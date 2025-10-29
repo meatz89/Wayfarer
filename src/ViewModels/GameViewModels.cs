@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 // Simple ViewModels for UI data transfer - no business logic
 // All content comes from JSON or mechanical states
 
@@ -191,13 +188,13 @@ public class LocationContentViewModel
     // LookingAround view data (NPCs with their social situations PRE-GROUPED)
     public List<NpcWithSituationsViewModel> NPCsWithSituations { get; set; } = new();
 
-    // Mental challenges - grouped by obstacles
-    public List<SituationCardViewModel> AmbientMentalSituations { get; set; } = new();  // Situations without obstacles
-    public List<ObstacleWithSituationsViewModel> MentalObstacles { get; set; } = new();  // Situations from obstacles
+    // Mental challenges - grouped by scenes
+    public List<SituationCardViewModel> AmbientMentalSituations { get; set; } = new();  // Situations without scenes
+    public List<SceneWithSituationsViewModel> MentalScenes { get; set; } = new();  // Situations from scenes
 
-    // Physical challenges - grouped by obstacles
-    public List<SituationCardViewModel> AmbientPhysicalSituations { get; set; } = new();  // Situations without obstacles
-    public List<ObstacleWithSituationsViewModel> PhysicalObstacles { get; set; } = new();  // Situations from obstacles
+    // Physical challenges - grouped by scenes
+    public List<SituationCardViewModel> AmbientPhysicalSituations { get; set; } = new();  // Situations without scenes
+    public List<SceneWithSituationsViewModel> PhysicalScenes { get; set; } = new();  // Situations from scenes
 
     // Spots view data
     public List<SpotWithNpcsViewModel> AvailableSpots { get; set; } = new();
@@ -223,7 +220,7 @@ public class LocationHeaderViewModel
 
 /// <summary>
 /// NPC with their social situations already filtered and attached
-/// NO FILTERING NEEDED IN UI - backend pre-groups situations by NPC and obstacles
+/// NO FILTERING NEEDED IN UI - backend pre-groups situations by NPC and scenes
 /// </summary>
 public class NpcWithSituationsViewModel
 {
@@ -234,9 +231,13 @@ public class NpcWithSituationsViewModel
     public string StateClass { get; set; }  // CSS class for connection state
     public string Description { get; set; }
 
-    // Social situations FOR THIS NPC - grouped by obstacles
-    public List<SituationCardViewModel> AmbientSocialSituations { get; set; } = new();  // Situations without obstacles
-    public List<ObstacleWithSituationsViewModel> SocialObstacles { get; set; } = new();  // Situations from obstacles
+    // Social situations FOR THIS NPC - grouped by scenes
+    public List<SituationCardViewModel> AmbientSocialSituations { get; set; } = new();  // Situations without scenes
+    public List<SceneWithSituationsViewModel> SocialScenes { get; set; } = new();  // Situations from scenes
+
+    // SCENE-SITUATION ARCHITECTURE: Executable actions from activated Situations
+    // Three-tier timing: Actions created at query-time from ChoiceTemplates
+    public List<ActionCardViewModel> Actions { get; set; } = new();
 
     // Exchange availability for MERCANTILE NPCs
     public bool HasExchange { get; set; }
@@ -264,10 +265,36 @@ public class SituationCardViewModel
 }
 
 /// <summary>
-/// Obstacle with its situations for hierarchical display
-/// Shows obstacle context (name, description, intensity, contexts) with nested situations
+/// Action card for display - executable choice from ChoiceTemplate
+/// Three-tier timing model: Actions are query-time entities created from ChoiceTemplates
 /// </summary>
-public class ObstacleWithSituationsViewModel
+public class ActionCardViewModel
+{
+    public string Id { get; set; }
+    public string SituationId { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string SystemType { get; set; }  // "social", "mental", "physical"
+
+    // Costs (from CostTemplate)
+    public int ResolveCost { get; set; }
+    public int CoinsCost { get; set; }
+    public int TimeSegments { get; set; }
+
+    // Action type determines execution path
+    public string ActionType { get; set; }  // "Instant", "StartChallenge", "Navigate"
+    public string ChallengeType { get; set; }  // "Social", "Mental", "Physical" (if StartChallenge)
+
+    // Requirements met indicator
+    public bool RequirementsMet { get; set; }
+    public string LockReason { get; set; }
+}
+
+/// <summary>
+/// Scene with its situations for hierarchical display
+/// Shows scene context (name, description, intensity, contexts) with nested situations
+/// </summary>
+public class SceneWithSituationsViewModel
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -276,7 +303,7 @@ public class ObstacleWithSituationsViewModel
     public List<string> Contexts { get; set; } = new();  // e.g., ["Search", "Deduction", "Pattern"]
     public string ContextsDisplay { get; set; }  // e.g., "Search, Deduction, Pattern"
 
-    // Situations that belong to this obstacle
+    // Situations that belong to this scene
     public List<SituationCardViewModel> Situations { get; set; } = new();
 }
 

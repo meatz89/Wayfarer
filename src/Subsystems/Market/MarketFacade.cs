@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Public facade for all market-related operations.
 /// Provides a clean API for trading, pricing, and market analysis.

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Physical Tactical System Card - represents physical challenge actions
 /// Parallel to MentalCard but for Physical tactical challenges

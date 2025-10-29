@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Result returned when an obligation situation is completed
 /// Contains data for displaying the obligation progress modal

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Manages location-specific actions and generates action options for Locations.
 /// Handles work, rest, services, and other location-based activities.
@@ -9,18 +5,16 @@ using System.Linq;
 public class LocationActionManager
 {
     private readonly GameWorld _gameWorld;
-    private readonly ActionGenerator _actionGenerator;
+    // ActionGenerator DELETED - violates three-tier timing (actions created at wrong time)
     private readonly TimeManager _timeManager;
     private readonly NPCRepository _npcRepository;
 
     public LocationActionManager(
         GameWorld gameWorld,
-        ActionGenerator actionGenerator,
         TimeManager timeManager,
         NPCRepository npcRepository)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-        _actionGenerator = actionGenerator ?? throw new ArgumentNullException(nameof(actionGenerator));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _npcRepository = npcRepository ?? throw new ArgumentNullException(nameof(npcRepository));
     }
@@ -38,15 +32,11 @@ public class LocationActionManager
         // Get dynamic actions from GameWorld data
         List<LocationActionViewModel> dynamicActions = GetDynamicLocationActions(venue.Id, location.Id);
 
-        // Get actions from ActionGenerator (only needs Location - all gameplay properties are there)
-        List<LocationActionViewModel> generatedActions = _actionGenerator.GenerateActionsForSpot(location);
+        // ActionGenerator DELETED - generated actions now come from SceneFacade at query time
+        // Property-based actions (from LocationPropertyType) remain here as legacy system
+        // Scene-based actions (from ChoiceTemplates) created by SceneFacade when Situation activates
 
-        // Combine both
-        List<LocationActionViewModel> allActions = new List<LocationActionViewModel>();
-        allActions.AddRange(dynamicActions);
-        allActions.AddRange(generatedActions);
-
-        return allActions;
+        return dynamicActions;
     }
 
     /// <summary>
@@ -105,17 +95,17 @@ public class LocationActionManager
     {
         List<string> costParts = new List<string>();
 
-        if (costs.CoinCost > 0)
-            costParts.Add($"{costs.CoinCost} coins");
+        if (costs.Coins > 0)
+            costParts.Add($"{costs.Coins} coins");
 
-        if (costs.FocusCost > 0)
-            costParts.Add($"{costs.FocusCost} focus");
+        if (costs.Focus > 0)
+            costParts.Add($"{costs.Focus} focus");
 
-        if (costs.StaminaCost > 0)
-            costParts.Add($"{costs.StaminaCost} stamina");
+        if (costs.Stamina > 0)
+            costParts.Add($"{costs.Stamina} stamina");
 
-        if (costs.HealthCost > 0)
-            costParts.Add($"{costs.HealthCost} health");
+        if (costs.Health > 0)
+            costParts.Add($"{costs.Health} health");
 
         if (costParts.Count == 0)
             return "Free!";
@@ -131,9 +121,9 @@ public class LocationActionManager
         Player player = _gameWorld.GetPlayer();
 
         // Check coin cost
-        if (action.Costs.CoinCost > 0)
+        if (action.Costs.Coins > 0)
         {
-            return player.Coins >= action.Costs.CoinCost;
+            return player.Coins >= action.Costs.Coins;
         }
 
         return true;

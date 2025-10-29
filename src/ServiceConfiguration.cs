@@ -1,7 +1,4 @@
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.IO;
+using Wayfarer.Services;
 
 public static class ServiceConfiguration
 {
@@ -44,7 +41,6 @@ public static class ServiceConfiguration
         // V3 Card-Based Obligation System - DELETED (wrong architecture)
         // Obligation is strategic activity, not tactical system
         // Mental/Physical facades will be added in refactor
-        services.AddSingleton<TravelObstacleService>();
 
         services.AddTimeSystem();
 
@@ -66,7 +62,12 @@ public static class ServiceConfiguration
         // Scene-Situation Architecture
         services.AddSingleton<ConsequenceFacade>();
         services.AddSingleton<SituationFacade>();
-        services.AddSingleton<SceneFacade>();
+        services.AddSingleton<Wayfarer.Subsystems.Scene.SceneFacade>();
+
+        // Unified Action Architecture - Three Parallel Executors
+        services.AddSingleton<LocationActionExecutor>();
+        services.AddSingleton<NPCActionExecutor>();
+        services.AddSingleton<PathCardExecutor>();
 
         // Player exertion calculator for dynamic cost modifiers (required by Mental/Physical effect resolvers)
         services.AddSingleton<PlayerExertionCalculator>();
@@ -85,15 +86,10 @@ public static class ServiceConfiguration
         services.AddSingleton<ObligationActivity>();
         services.AddSingleton<ObligationDiscoveryEvaluator>();
 
-        // Obstacle and Situation Services - Situation visibility filtering with property + access requirements
-        services.AddSingleton<ObstacleSituationFilter>();
+        // Scene and Situation Services - Situation visibility filtering with property + access requirements
         services.AddSingleton<SituationCompletionHandler>();
         services.AddSingleton<DifficultyCalculationService>();
-        services.AddSingleton<ObstacleFacade>();
-
-        // Equipment Subsystem
-        services.AddSingleton<EquipmentUsageService>();
-        services.AddSingleton<EquipmentFacade>();
+        // SceneFacade removed - old architecture deleted
 
         // NPC deck initialization handled directly in PackageLoader
 
@@ -133,12 +129,18 @@ public static class ServiceConfiguration
         services.AddSingleton<ObservationSystem>();
         services.AddSingleton<BindingObligationSystem>();
 
+        // Scene Instantiation System (needed by ObligationActivity)
+        services.AddSingleton<Wayfarer.Content.SceneInstantiator>();
+
+        // State Clearing System (needed by TimeFacade)
+        services.AddSingleton<StateClearingResolver>();
+
         // Transaction and Preview System
         // AccessRequirementChecker eliminated - PRINCIPLE 4: Economic affordability determines access
         services.AddSingleton<NarrativeService>();
 
-        // Action generation service
-        services.AddSingleton<ActionGenerator>();
+        // Action generation service DELETED - ActionGenerator.cs removed (violates three-tier timing)
+        // Actions now created by SceneFacade at query time from ChoiceTemplates
 
         // Core services
         services.AddScoped<MusicService>();

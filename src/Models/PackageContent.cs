@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using Wayfarer.Content.DTOs;
 
 /// <summary>
 /// Container for all game content in a package - uses DTOs consistently
@@ -145,9 +145,9 @@ public class PackageContent
     public List<ObligationDTO> Obligations { get; set; }
 
     /// <summary>
-    /// Travel obstacle definitions - challenges encountered during travel that require preparation (V2)
+    /// Travel scene definitions - challenges encountered during travel that require preparation (V2)
     /// </summary>
-    public List<TravelObstacleDTO> TravelObstacles { get; set; }
+    public List<TravelSceneDTO> TravelScenes { get; set; }
 
     /// <summary>
     /// Mental cards for obligation system - parallel to conversation cards for mental tactical challenges
@@ -164,11 +164,8 @@ public class PackageContent
     public List<MentalChallengeDeckDTO> MentalChallengeDecks { get; set; } = new List<MentalChallengeDeckDTO>();
     public List<PhysicalChallengeDeckDTO> PhysicalChallengeDecks { get; set; } = new List<PhysicalChallengeDeckDTO>();
 
-    /// <summary>
-    /// Obstacle definitions - challenges with multiple resolution paths and property-based gating
-    /// Can be placed on Locations, NPCs, or Routes
-    /// </summary>
-    public List<ObstacleDTO> Obstacles { get; set; } = new List<ObstacleDTO>();
+    // NOTE: Old SceneDTO system removed - NEW Scene-Situation architecture
+    // Scenes now spawn via Situation spawn rewards (SceneSpawnReward) instead of package-level definitions
 
     /// <summary>
     /// Conversation tree definitions - simple dialogue trees that can escalate to Social challenges
@@ -198,4 +195,10 @@ public class PackageContent
     /// Tracks player accomplishments across categories (Combat/Social/Investigation/Economic/Political)
     /// </summary>
     public List<AchievementDTO> Achievements { get; set; } = new List<AchievementDTO>();
+
+    /// <summary>
+    /// Scene templates - immutable archetypes for procedural narrative spawning
+    /// Defines multi-situation branching narratives with placement filters (Sir Brante pattern)
+    /// </summary>
+    public List<SceneTemplateDTO> SceneTemplates { get; set; } = new List<SceneTemplateDTO>();
 }

@@ -169,7 +169,24 @@ public class Player
     /// </summary>
     public int GetRouteFamiliarity(string routeId)
     {
-        return RouteFamiliarity.GetFamiliarity(routeId);
+        FamiliarityEntry entry = RouteFamiliarity.FirstOrDefault(f => f.EntityId == routeId);
+        return entry?.Level ?? 0;
+    }
+
+    /// <summary>
+    /// Set route familiarity to a specific value (max 5)
+    /// </summary>
+    public void SetRouteFamiliarity(string routeId, int level)
+    {
+        FamiliarityEntry existing = RouteFamiliarity.FirstOrDefault(f => f.EntityId == routeId);
+        if (existing != null)
+        {
+            existing.Level = level;
+        }
+        else
+        {
+            RouteFamiliarity.Add(new FamiliarityEntry { EntityId = routeId, Level = level });
+        }
     }
 
     /// <summary>
@@ -178,7 +195,7 @@ public class Player
     public void IncreaseRouteFamiliarity(string routeId, int amount = 1)
     {
         int current = GetRouteFamiliarity(routeId);
-        RouteFamiliarity.SetFamiliarity(routeId, Math.Min(5, current + amount));
+        SetRouteFamiliarity(routeId, Math.Min(5, current + amount));
     }
 
     /// <summary>
@@ -194,7 +211,8 @@ public class Player
     /// </summary>
     public int GetLocationFamiliarity(string locationId)
     {
-        return LocationFamiliarity.GetFamiliarity(locationId);
+        FamiliarityEntry entry = LocationFamiliarity.FirstOrDefault(f => f.EntityId == locationId);
+        return entry?.Level ?? 0;
     }
 
     /// <summary>
@@ -202,7 +220,57 @@ public class Player
     /// </summary>
     public void SetLocationFamiliarity(string locationId, int value)
     {
-        LocationFamiliarity.SetFamiliarity(locationId, Math.Min(3, Math.Max(0, value)));
+        int clampedValue = Math.Min(3, Math.Max(0, value));
+        FamiliarityEntry existing = LocationFamiliarity.FirstOrDefault(f => f.EntityId == locationId);
+        if (existing != null)
+        {
+            existing.Level = clampedValue;
+        }
+        else
+        {
+            LocationFamiliarity.Add(new FamiliarityEntry { EntityId = locationId, Level = clampedValue });
+        }
+    }
+
+    // ============================================
+    // NPC TOKEN MANAGEMENT (Connection system)
+    // ============================================
+
+    /// <summary>
+    /// Get token count for specific NPC and connection type
+    /// </summary>
+    public int GetNPCTokenCount(string npcId, ConnectionType type)
+    {
+        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.NpcId == npcId);
+        return entry?.GetTokenCount(type) ?? 0;
+    }
+
+    /// <summary>
+    /// Set token count for specific NPC and connection type
+    /// </summary>
+    public void SetNPCTokenCount(string npcId, ConnectionType type, int count)
+    {
+        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.NpcId == npcId);
+        if (entry == null)
+        {
+            entry = new NPCTokenEntry { NpcId = npcId };
+            NPCTokens.Add(entry);
+        }
+        entry.SetTokenCount(type, count);
+    }
+
+    /// <summary>
+    /// Get NPC token entry (creates if doesn't exist)
+    /// </summary>
+    public NPCTokenEntry GetNPCTokenEntry(string npcId)
+    {
+        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.NpcId == npcId);
+        if (entry == null)
+        {
+            entry = new NPCTokenEntry { NpcId = npcId };
+            NPCTokens.Add(entry);
+        }
+        return entry;
     }
 
     public void AddMemory(string key, string description, int currentDay, int importance, int expirationDays = -1)
@@ -413,14 +481,14 @@ public class NPCConnection
 
     public int GetCurrentValue()
     {
-        return _player.NPCTokens.GetTokenCount(_npcId, _tokenType);
+        return _player.GetNPCTokenCount(_npcId, _tokenType);
     }
 
     public void AdjustValue(int amount)
     {
-        int currentValue = _player.NPCTokens.GetTokenCount(_npcId, _tokenType);
+        int currentValue = _player.GetNPCTokenCount(_npcId, _tokenType);
         int newValue = Math.Max(0, currentValue + amount);
-        _player.NPCTokens.SetTokenCount(_npcId, _tokenType, newValue);
+        _player.SetNPCTokenCount(_npcId, _tokenType, newValue);
     }
 }
 

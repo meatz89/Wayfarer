@@ -1,62 +1,115 @@
-using System.Collections.Generic;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
-/// Scene - ephemeral UI construct generated per location/NPC visit
-/// NOT stored in GameWorld - generated fresh each visit by SceneFacade
-/// Contains all available situations for current context
+/// Scene - persistent narrative container spawned from templates
+/// ARCHITECTURE: Scenes are PERSISTENT (stored in GameWorld.Scenes)
+/// Contains embedded Situations organized by spawn rules defining cascades
 /// </summary>
 public class Scene
 {
-    /// <summary>
-    /// Location ID if this is a location scene
-    /// null for NPC scenes
-    /// </summary>
-    public string LocationId { get; set; }
+    // ==================== IDENTITY PROPERTIES ====================
 
     /// <summary>
-    /// NPC ID if this is an NPC interaction scene
-    /// null for location scenes
+    /// Unique identifier for this Scene instance
     /// </summary>
-    public string NpcId { get; set; }
+    public string Id { get; set; }
 
     /// <summary>
-    /// Display name for this scene context
-    /// Example: "Old Mill - Courtyard", "Conversation with Martha"
+    /// Template identifier - which SceneTemplate spawned this instance
+    /// References SceneTemplate in GameWorld.SceneTemplates
+    /// null for manually-authored Scenes (not template-spawned)
+    /// Used for save/load persistence
     /// </summary>
-    public string DisplayName { get; set; }
+    public string TemplateId { get; set; }
 
     /// <summary>
-    /// Intro narrative for this scene visit
-    /// Generated fresh each time based on current game state
+    /// Template reference - composition pattern for runtime access
+    /// SceneInstantiator sets this when spawning Scene from SceneTemplate
+    /// Enables access to template data without dictionary lookup
+    /// NOT serialized - populated from TemplateId during load
+    /// </summary>
+    public SceneTemplate Template { get; set; }
+
+    // ==================== PLACEMENT PROPERTIES ====================
+
+    /// <summary>
+    /// Placement type - where this Scene appears
+    /// Location: Appears at specific location
+    /// NPC: Appears when talking to specific NPC
+    /// Route: Appears when traveling specific route
+    /// </summary>
+    public PlacementType PlacementType { get; set; }
+
+    /// <summary>
+    /// Concrete placement identifier - which entity this Scene is assigned to
+    /// LocationId, NpcId, or RouteId depending on PlacementType
+    /// Assigned by procedural generation during spawn
+    /// </summary>
+    public string PlacementId { get; set; }
+
+    // ==================== CONTENT PROPERTIES ====================
+
+    /// <summary>
+    /// Situation IDs within this Scene
+    /// HIGHLANDER Pattern A: Scene stores IDs, GameWorld.Situations is single source of truth
+    /// SceneInstantiator creates Situations and adds to GameWorld.Situations, stores IDs here
+    /// Query time: Filter GameWorld.Situations.Where(s => scene.SituationIds.Contains(s.Id))
+    /// </summary>
+    public List<string> SituationIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Spawn rules defining how Situations lead into each other
+    /// Creates cascade patterns: Linear, HubAndSpoke, Branching, Converging, etc.
+    /// Transitions triggered by Choice selection and outcomes
+    /// </summary>
+    public SituationSpawnRules SpawnRules { get; set; }
+
+    /// <summary>
+    /// Current Situation identifier tracking player progress
+    /// References Situation.Id in GameWorld.Situations (filtered by this Scene's SituationIds)
+    /// Player sees this Situation when they enter placement
+    /// </summary>
+    public string CurrentSituationId { get; set; }
+
+    // ==================== STATE PROPERTIES ====================
+
+    /// <summary>
+    /// Scene state in lifecycle
+    /// Provisional: Created eagerly for perfect information, not yet finalized
+    /// Active: Available for player interaction
+    /// Completed: All relevant Situations finished
+    /// </summary>
+    public SceneState State { get; set; } = SceneState.Active;
+
+    /// <summary>
+    /// Source Situation that spawned this provisional Scene (for cleanup tracking)
+    /// Set during provisional Scene creation in SceneInstantiator
+    /// When action selected, all provisional Scenes from same Situation are deleted (except finalized ones)
+    /// null for finalized Scenes or manually-authored Scenes
+    /// </summary>
+    public string SourceSituationId { get; set; }
+
+    // ==================== METADATA ====================
+
+    /// <summary>
+    /// Generated intro narrative customized to placement
+    /// Created during spawn using template + actual entity properties
+    /// Example: "As you approach the mill, you notice..." (location-specific)
     /// </summary>
     public string IntroNarrative { get; set; }
 
     /// <summary>
-    /// All available situations in this scene
-    /// Categorized by interaction type and status
+    /// Archetype classification for this Scene
+    /// Linear, HubAndSpoke, Branching, etc.
+    /// Matches SpawnRules.Pattern for consistency
     /// </summary>
-    public List<Situation> AvailableSituations { get; set; } = new List<Situation>();
+    public SpawnPattern Archetype { get; set; }
 
     /// <summary>
-    /// Locked situations (visible but not accessible)
-    /// Shown with requirement information for player visibility
+    /// Display name for this Scene
+    /// Generated from template or manually authored
     /// </summary>
-    public List<SituationWithLockReason> LockedSituations { get; set; } = new List<SituationWithLockReason>();
-
-    /// <summary>
-    /// Current day when scene was generated
-    /// </summary>
-    public int CurrentDay { get; set; }
-
-    /// <summary>
-    /// Current time block when scene was generated
-    /// </summary>
-    public TimeBlocks CurrentTimeBlock { get; set; }
-
-    /// <summary>
-    /// Current segment when scene was generated
-    /// </summary>
-    public int CurrentSegment { get; set; }
+    public string DisplayName { get; set; }
 }
 
 /// <summary>

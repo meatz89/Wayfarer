@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Obligation template - contains metadata and phase definitions for situation creation
 /// Obligation does NOT spawn tactical sessions directly - it creates LocationSituations/NPCSituations
@@ -114,27 +112,12 @@ public class PhaseCompletionReward
     /// </summary>
     public int UnderstandingReward { get; set; } = 0;
 
-    public List<ObstacleSpawnInfo> ObstaclesSpawned { get; set; } = new List<ObstacleSpawnInfo>();
-}
-
-/// <summary>
-/// Defines where and what obstacle to spawn as obligation phase reward
-/// </summary>
-public class ObstacleSpawnInfo
-{
-    public ObstacleSpawnTargetType TargetType { get; set; }
-    public string TargetEntityId { get; set; }
-    public Obstacle Obstacle { get; set; }
-}
-
-/// <summary>
-/// Type of entity where obstacle should be spawned
-/// </summary>
-public enum ObstacleSpawnTargetType
-{
-    Location,
-    Route,
-    NPC
+    /// <summary>
+    /// Scene-Situation architecture: Scenes to spawn from templates
+    /// Replaces legacy ScenesSpawned (which had full Scene objects)
+    /// Now uses SceneTemplate IDs with placement relations
+    /// </summary>
+    public List<SceneSpawnReward> ScenesToSpawn { get; set; } = new List<SceneSpawnReward>();
 }
 
 /// <summary>
@@ -171,7 +154,7 @@ public class ObligationIntroAction
 
     /// <summary>
     /// Rewards granted when player accepts quest
-    /// Typically spawns Phase 1 obstacle to begin obligation
+    /// Typically spawns Phase 1 scene to begin obligation
     /// </summary>
     public PhaseCompletionReward CompletionReward { get; set; }
 }

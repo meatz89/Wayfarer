@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 // ========== TRAVEL VIEW MODELS ==========
 
 public class TravelDestinationViewModel

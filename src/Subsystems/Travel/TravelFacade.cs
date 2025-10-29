@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// Public facade for all travel-related operations.
 /// Single entry point for travel, routes, and exploration.
@@ -348,7 +343,7 @@ public class TravelFacade
         }
 
         // Check one-time card usage
-        if (card.IsOneTime && _gameWorld.PathCardRewardsClaimed.IsDiscovered(pathCardId))
+        if (card.IsOneTime && _gameWorld.IsPathCardDiscovered(pathCardId))
         {
             return new PathCardAvailability { CanPlay = false, Reason = "Already used this one-time path" };
         }
@@ -409,7 +404,7 @@ public class TravelFacade
             // Event segments: cards are ALWAYS face-up (IsDiscovered = true)
             // FixedPath segments: check PathCardDiscoveries dictionary
             bool isDiscovered = isEventSegment ||
-                              _gameWorld.PathCardDiscoveries.IsDiscovered(card.Id);
+                              _gameWorld.IsPathCardDiscovered(card.Id);
 
             bool canPlay = CanPlayPathCard(card.Id);
 
@@ -557,7 +552,7 @@ public class TravelFacade
         if (!string.IsNullOrEmpty(session.CurrentEventId) &&
             _gameWorld.AllPathCollections.Any(p => p.CollectionId == session.CurrentEventId))
         {
-            PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetCollection(session.CurrentEventId);
+            PathCardCollectionDTO collection = _gameWorld.GetPathCollection(session.CurrentEventId);
             return collection.NarrativeText;
         }
 
@@ -590,7 +585,7 @@ public class TravelFacade
             if (!string.IsNullOrEmpty(session.CurrentEventId) &&
                 _gameWorld.AllTravelEvents.Any(e => e.EventId == session.CurrentEventId))
             {
-                TravelEventDTO travelEvent = _gameWorld.AllTravelEvents.GetEvent(session.CurrentEventId);
+                TravelEventDTO travelEvent = _gameWorld.GetTravelEvent(session.CurrentEventId);
                 return travelEvent.EventCards?.FirstOrDefault(c => c.Id == cardId);
             }
         }
@@ -604,7 +599,7 @@ public class TravelFacade
                 return null;
             }
 
-            PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetCollection(collectionId);
+            PathCardCollectionDTO collection = _gameWorld.GetPathCollection(collectionId);
 
             // Look in embedded path cards
             return collection.PathCards?.FirstOrDefault(c => c.Id == cardId);
@@ -647,58 +642,18 @@ public class TravelFacade
     }
 
     /// <summary>
-    /// Resolve pending obstacle after player completes obstacle situations
-    /// Called after obstacle intensity reaches 0
+    /// Resolve pending scene after player completes scene situations
+    /// Called after scene intensity reaches 0
     /// </summary>
-    public bool ResolveObstacle(string obstacleId)
+    public bool ResolveScene(string sceneId)
     {
-        return _travelManager.ResolveObstacle(obstacleId);
+        return _travelManager.ResolveScene(sceneId);
     }
 
     // ========== CORE LOOP: PATH FILTERING ==========
 
     /// <summary>
     /// Get available paths for route segment (filtered by exploration cubes)
-    /// <summary>
-    /// Calculate obstacle intensity after equipment reductions
-    /// Uses equipment contexts to reduce base intensity
-    /// </summary>
-    private int CalculateObstacleIntensityWithEquipment(Obstacle obstacle, Player player)
-    {
-        int baseIntensity = obstacle.Intensity;
-        int totalReduction = 0;
-
-        foreach (ObstacleContext context in obstacle.Contexts)
-        {
-            int contextReduction = GetContextReductionFromEquipment(context, player);
-            totalReduction += contextReduction;
-        }
-
-        int finalIntensity = Math.Max(0, baseIntensity - totalReduction);
-        return finalIntensity;
-    }
-
-    /// <summary>
-    /// Get total intensity reduction for a context from player equipment
-    /// </summary>
-    private int GetContextReductionFromEquipment(ObstacleContext context, Player player)
-    {
-        int totalReduction = 0;
-
-        foreach (string itemId in player.Inventory.GetAllItems())
-        {
-            if (!string.IsNullOrEmpty(itemId))
-            {
-                Item item = _itemRepository.GetItemById(itemId);
-                if (item is Equipment equipment && equipment.MatchesContext(context))
-                {
-                    totalReduction += equipment.IntensityReduction;
-                }
-            }
-        }
-
-        return totalReduction;
-    }
 }
 
 /// <summary>

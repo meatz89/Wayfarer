@@ -7,22 +7,22 @@ public class ActionCosts
     /// <summary>
     /// Coin cost to perform this action
     /// </summary>
-    public int CoinCost { get; set; }
+    public int Coins { get; set; }
 
     /// <summary>
     /// Focus cost to perform this action
     /// </summary>
-    public int FocusCost { get; set; }
+    public int Focus { get; set; }
 
     /// <summary>
     /// Stamina cost to perform this action
     /// </summary>
-    public int StaminaCost { get; set; }
+    public int Stamina { get; set; }
 
     /// <summary>
     /// Health cost to perform this action
     /// </summary>
-    public int HealthCost { get; set; }
+    public int Health { get; set; }
 
     /// <summary>
     /// Creates an ActionCosts instance with all costs set to zero

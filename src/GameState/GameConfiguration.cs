@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Centralized game configuration containing all game constants and rules.
 /// Loaded from game-config.json at startup.

@@ -1,7 +1,3 @@
-using System;
-using System.Linq;
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// Handles situation completion lifecycle - marking complete, removing from ActiveSituations if DeleteOnSuccess, and obligation progress
 /// </summary>
@@ -128,7 +124,7 @@ public class SituationCompletionHandler
                 player.AddCoins(rewards.Coins.Value);
             }
 
-            // EQUIPMENT - add to player inventory by ID
+            // ITEM - add to player inventory by ID
             if (!string.IsNullOrEmpty(rewards.EquipmentId))
             {
                 player.Inventory.AddItem(rewards.EquipmentId);
@@ -222,7 +218,7 @@ public class SituationCompletionHandler
                         // Get PathCard collection for this segment
                         if (!string.IsNullOrEmpty(segment.PathCollectionId))
                         {
-                            PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetCollection(segment.PathCollectionId);
+                            PathCardCollectionDTO collection = _gameWorld.GetPathCollection(segment.PathCollectionId);
                             if (collection != null)
                             {
                                 PathCardDTO pathCard = collection.PathCards.FirstOrDefault(p => p.Id == unlock.PathId);
@@ -244,26 +240,6 @@ public class SituationCompletionHandler
                 }
             }
 
-            // OBSTACLE PROPERTY REDUCTION - reduce intensity of parent obstacle (if situation has PropertyReduction)
-            if (rewards.ObstacleReduction != null && rewards.ObstacleReduction.HasAnyReduction())
-            {
-                // Find parent obstacle by checking all obstacles for this situationId in their SituationIds list
-                Obstacle parentObstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.SituationIds.Contains(situation.Id));
-                if (parentObstacle != null)
-                {
-                    int previousIntensity = parentObstacle.Intensity;
-                    parentObstacle.Intensity = Math.Max(0, parentObstacle.Intensity - rewards.ObstacleReduction.ReduceIntensity);
-
-                    // If obstacle is now cleared, mark as resolved
-                    if (parentObstacle.IsCleared() && parentObstacle.State == ObstacleState.Active)
-                    {
-                        parentObstacle.State = ObstacleState.Resolved;
-                    }
-                }
-                else
-                {
-                }
-            }
         }
     }
 

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Generates atmospheric descriptions from categorical location properties.
 /// All text is systematically derived from game state - no hardcoded strings.

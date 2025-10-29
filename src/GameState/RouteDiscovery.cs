@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Represents how a route can be discovered through NPC relationships
 /// </summary>

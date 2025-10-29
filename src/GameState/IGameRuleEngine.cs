@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Central interface for all game mechanics and rule calculations.
 /// This separates game logic from UI and infrastructure concerns.

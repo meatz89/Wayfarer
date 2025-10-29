@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// PROJECTION PRINCIPLE: Card effect projection for Physical tactical system
 /// Parallel to CardEffectResult in Conversation system

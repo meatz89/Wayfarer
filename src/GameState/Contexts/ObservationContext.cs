@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// Context for ObservationScene screens containing scene state and metadata.
 /// Provides view model data for scene investigation with multiple examination points.
@@ -121,7 +117,18 @@ public class ObservationContext
         return "";
     }
 
-    public int GetTotalExaminations() => ExaminedPointIds.Count;
-    public int GetAvailableExaminations() => GetAvailablePoints().Count;
-    public int GetRemainingFocus() => CurrentFocus;
+    public int GetTotalExaminations()
+    {
+        return ExaminedPointIds.Count;
+    }
+
+    public int GetAvailableExaminations()
+    {
+        return GetAvailablePoints().Count;
+    }
+
+    public int GetRemainingFocus()
+    {
+        return CurrentFocus;
+    }
 }

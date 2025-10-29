@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
-
 /// <summary>
 /// Renders categorical templates into human-readable text
 /// This is the ONLY place where English text should be generated

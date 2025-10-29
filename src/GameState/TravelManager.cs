@@ -1,6 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Wayfarer.GameState.Enums;
 
 public class TravelManager
 {
@@ -95,7 +93,7 @@ public class TravelManager
             return new List<PathCardDTO>();
         }
 
-        PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetCollection(collectionId);
+        PathCardCollectionDTO collection = _gameWorld.GetPathCollection(collectionId);
 
         // Return embedded cards directly - no lookup needed
         return collection.PathCards;
@@ -129,7 +127,7 @@ public class TravelManager
     private List<PathCardDTO> HandleNormalizedEventSegment(RouteSegment segment, TravelSession session, string eventCollectionId)
     {
         // Step 1: Get event collection
-        PathCardCollectionDTO eventCollection = _gameWorld.AllEventCollections.GetCollection(eventCollectionId);
+        PathCardCollectionDTO eventCollection = _gameWorld.GetPathCollection(eventCollectionId);
 
         if (eventCollection.EventIds == null || eventCollection.EventIds.Count == 0)
         {
@@ -145,7 +143,7 @@ public class TravelManager
             return new List<PathCardDTO>();
         }
 
-        TravelEventDTO travelEvent = _gameWorld.AllTravelEvents.GetEvent(eventId);
+        TravelEventDTO travelEvent = _gameWorld.GetTravelEvent(eventId);
 
         // Step 4: Set narrative for UI
         session.CurrentEventNarrative = travelEvent.NarrativeText;
@@ -192,7 +190,7 @@ public class TravelManager
         }
 
         // Check if card is already discovered (face-up)
-        if (_gameWorld.PathCardDiscoveries.IsDiscovered(pathCardId))
+        if (_gameWorld.IsPathCardDiscovered(pathCardId))
         {
             return false; // Card already revealed
         }
@@ -209,13 +207,13 @@ public class TravelManager
         }
 
         // Check one-time card usage
-        if (card.IsOneTime && _gameWorld.PathCardRewardsClaimed.IsDiscovered(pathCardId))
+        if (card.IsOneTime && _gameWorld.IsPathCardDiscovered(pathCardId))
         {
             return false;
         }
 
         // Mark card as discovered (face-up)
-        _gameWorld.PathCardDiscoveries.SetDiscovered(pathCardId, true);
+        _gameWorld.SetPathCardDiscovered(pathCardId, true);
 
         // Set reveal state
         session.IsRevealingCard = true;
@@ -347,7 +345,7 @@ public class TravelManager
         }
 
         // Check if card is already discovered (face-up)
-        bool isDiscovered = _gameWorld.PathCardDiscoveries.IsDiscovered(pathCardId);
+        bool isDiscovered = _gameWorld.IsPathCardDiscovered(pathCardId);
 
         // For already discovered cards, apply effects immediately (no reveal screen needed)
         if (isDiscovered)
@@ -360,26 +358,26 @@ public class TravelManager
     }
 
     /// <summary>
-    /// Resolve pending obstacle after player completes obstacle situations
-    /// Called by GameFacade after obstacle intensity reaches 0
+    /// Resolve pending scene after player completes scene situations
+    /// Called by GameFacade after scene intensity reaches 0
     /// </summary>
-    public bool ResolveObstacle(string obstacleId)
+    public bool ResolveScene(string sceneId)
     {
         TravelSession session = _gameWorld.CurrentTravelSession;
-        if (session == null || session.PendingObstacleId != obstacleId)
+        if (session == null || session.PendingSceneId != sceneId)
         {
             return false;
         }
 
-        Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
-        if (obstacle == null || !obstacle.IsCleared())
+        Scene scene = _gameWorld.Scenes.FirstOrDefault(o => o.Id == sceneId);
+        if (scene == null || scene.State != SceneState.Completed)
         {
             return false;
         }
 
-        // Clear pending obstacle
-        session.PendingObstacleId = null;
-        _messageSystem.AddSystemMessage($"Obstacle resolved: {obstacle.Name}", SystemMessageTypes.Success);
+        // Clear pending scene
+        session.PendingSceneId = null;
+        _messageSystem.AddSystemMessage($"Scene resolved: {scene.DisplayName}", SystemMessageTypes.Success);
 
         // Now advance segment or complete route
         RouteOption route = GetRoute(session.RouteId);
@@ -510,7 +508,7 @@ public class TravelManager
             return null;
         }
 
-        PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetCollection(collectionId);
+        PathCardCollectionDTO collection = _gameWorld.GetPathCollection(collectionId);
 
         // Look in embedded path cards
         return collection.PathCards.FirstOrDefault(c => c.Id == cardId);
@@ -526,7 +524,7 @@ public class TravelManager
             return null;
 
         // Get the travel event
-        TravelEventEntry? eventEntry = _gameWorld.AllTravelEvents.FindById(session.CurrentEventId);
+        TravelEventEntry? eventEntry = _gameWorld.AllTravelEvents.FirstOrDefault(x => x.EventId == session.CurrentEventId);
         if (eventEntry == null)
             return null;
 
@@ -618,7 +616,7 @@ public class TravelManager
         }
 
         // Mark reward as claimed
-        _gameWorld.PathCardRewardsClaimed.SetDiscovered(cardId, true);
+        _gameWorld.SetPathCardDiscovered(cardId, true);
     }
 
     /// <summary>

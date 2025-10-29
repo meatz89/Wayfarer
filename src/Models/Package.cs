@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Main package container for game content
 /// </summary>

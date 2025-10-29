@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Represents a location-specific action that The Single Player can take.
 /// Uses property-based matching to dynamically determine availability at different locations.
@@ -79,6 +76,44 @@ public class LocationAction
     /// Obligation ID if this action launches an obligation (V2)
     /// </summary>
     public string ObligationId { get; set; }
+
+    /// <summary>
+    /// ChoiceTemplate source (Sir Brante layer - Scene-Situation architecture)
+    /// COMPOSITION not copy - access CompoundRequirement, ChoiceCost, ChoiceReward through this reference
+    ///
+    /// null = Always-available action parsed directly from JSON (legacy pattern)
+    ///        Uses direct Costs/Rewards properties above
+    ///
+    /// non-null = Scene-spawned action generated from ChoiceTemplate at spawn time
+    ///            ChoiceTemplate provides:
+    ///            - RequirementFormula (CompoundRequirement with OR paths)
+    ///            - CostTemplate (ChoiceCost with Coins/Resolve/TimeSegments)
+    ///            - RewardTemplate (ChoiceReward with bonds/scales/states/scene spawns)
+    ///
+    /// Enables unified action execution: All actions check ChoiceTemplate if present,
+    /// fall back to direct properties if null (legacy coexistence pattern)
+    /// </summary>
+    public ChoiceTemplate ChoiceTemplate { get; set; }
+
+    /// <summary>
+    /// THREE-TIER TIMING MODEL: Source Situation ID
+    /// Links ephemeral action to source Situation for cleanup after execution
+    /// Actions are QUERY-TIME instances (Tier 3), created when Situation activates
+    /// After action executes, GameFacade deletes ALL actions for this Situation
+    /// Next time player enters context, actions recreated fresh from ChoiceTemplates
+    /// </summary>
+    public string SituationId { get; set; }
+
+    /// <summary>
+    /// PERFECT INFORMATION: Provisional Scene ID
+    /// If this action spawns a Scene (ChoiceTemplate.RewardTemplate.ScenesToSpawn),
+    /// SceneFacade creates that Scene with State = Provisional immediately
+    /// Player sees WHERE Scene will spawn BEFORE selecting action
+    /// If action selected: Provisional Scene → Active (finalized)
+    /// If OTHER action selected: Provisional Scene → Deleted
+    /// Enables strategic decision-making with full knowledge of consequences
+    /// </summary>
+    public string ProvisionalSceneId { get; set; }
 
     /// <summary>
     /// Check if this action matches a given location's properties

@@ -17,7 +17,7 @@ public enum SituationInteractionType
     Mental,
 
     /// <summary>
-    /// Launches a Physical challenge (obstacle/endurance)
+    /// Launches a Physical challenge (scene/endurance)
     /// Player navigates to challenge screen
     /// </summary>
     Physical,

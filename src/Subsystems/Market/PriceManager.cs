@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Manages price calculations with supply/demand dynamics.
 /// Provides deterministic pricing based on Venue characteristics and market conditions.

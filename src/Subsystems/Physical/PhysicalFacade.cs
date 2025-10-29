@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Wayfarer.GameState.Enums;
-
 public class PhysicalFacade
 {
     private readonly GameWorld _gameWorld;
@@ -213,68 +207,6 @@ public class PhysicalFacade
         // Situation cards have no PhysicalCardTemplate, so must be checked first
         if (card.CardType == CardTypes.Situation)
         {
-            // Apply obstacle effects via containment pattern (THREE PARALLEL SYSTEMS symmetry)
-            // DISTRIBUTED INTERACTION: Find parent obstacle from Situation.ParentObstacle
-            Player currentPlayer = _gameWorld.GetPlayer();
-            Location location = currentPlayer.CurrentLocation;
-
-            // Get situation and its parent obstacle via object references
-            Situation situation = _gameWorld.Situations.FirstOrDefault(g => g.Id == _gameWorld.CurrentPhysicalSituationId);
-            if (situation == null)
-                return null; // Situation not found
-
-            Obstacle parentObstacle = situation.ParentObstacle;
-
-            if (parentObstacle != null)
-            {
-                switch (situation.ConsequenceType)
-                {
-                    case ConsequenceType.Resolution:
-                        // Permanently overcome
-                        parentObstacle.State = ObstacleState.Resolved;
-                        parentObstacle.ResolutionMethod = situation.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = situation.SetsRelationshipOutcome;
-                        // Remove from active play (but keep in GameWorld for history)
-                        if (!parentObstacle.IsPermanent)
-                        {
-                            location.ObstacleIds.Remove(parentObstacle.Id);
-                        }
-                        break;
-
-                    case ConsequenceType.Bypass:
-                        // Player passes, obstacle persists
-                        parentObstacle.ResolutionMethod = situation.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = situation.SetsRelationshipOutcome; break;
-
-                    case ConsequenceType.Transform:
-                        // Fundamentally changed
-                        parentObstacle.State = ObstacleState.Transformed;
-                        parentObstacle.Intensity = 0;
-                        if (!string.IsNullOrEmpty(situation.TransformDescription))
-                            parentObstacle.TransformedDescription = situation.TransformDescription;
-                        parentObstacle.ResolutionMethod = situation.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = situation.SetsRelationshipOutcome; break;
-
-                    case ConsequenceType.Modify:
-                        // Intensity reduced
-                        parentObstacle.Intensity = Math.Max(0,
-                            parentObstacle.Intensity - situation.PropertyReduction.ReduceIntensity);
-                        parentObstacle.ResolutionMethod = ResolutionMethod.Preparation;
-                        // Check if intensity is now 0 (fully modified)
-                        if (parentObstacle.Intensity == 0)
-                        {
-                            parentObstacle.State = ObstacleState.Transformed;
-                        }
-                        break;
-
-                    case ConsequenceType.Grant:
-                        // Grant knowledge/items, no obstacle change
-                        // Knowledge cards handled in Phase 3
-                        // Items already handled by existing reward system
-                        break;
-                }
-            }
-            // Else: ambient situation with no obstacle parent
 
             // Complete situation through SituationCompletionHandler (applies rewards: coins, StoryCubes, equipment)
             Situation completedSituation = _gameWorld.Situations.FirstOrDefault(g => g.Id == _gameWorld.CurrentPhysicalSituationId);

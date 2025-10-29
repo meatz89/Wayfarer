@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
 /// <summary>
 /// Provides observation data for locations from GameWorld
 /// This is a pure data provider with no external file dependencies

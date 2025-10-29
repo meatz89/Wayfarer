@@ -1,5 +1,3 @@
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// Projected scale value shift for player behavioral reputation
 /// Shows reputation consequence before player commits to situation

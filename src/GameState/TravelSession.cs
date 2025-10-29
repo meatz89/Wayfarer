@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Represents an active travel session with stamina management and progression tracking
 /// </summary>
@@ -30,8 +28,8 @@ public class TravelSession
     // Journey completion state - true when last segment is completed and ready to finish
     public bool IsReadyToComplete { get; set; } = false;
 
-    // Pending obstacle ID - set when path has obstacle that must be resolved before progressing
-    public string PendingObstacleId { get; set; }
+    // Pending scene ID - set when path has scene that must be resolved before progressing
+    public string PendingSceneId { get; set; }
 }
 
 public enum TravelState

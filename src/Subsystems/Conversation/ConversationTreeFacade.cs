@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Wayfarer.GameState;
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// Public facade for conversation tree operations.
 /// Handles simple dialogue tree navigation and escalation to tactical Social challenges.
@@ -260,7 +254,8 @@ public class ConversationTreeFacade
         TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
 
         return _gameWorld.ConversationTrees
-            .Where(t => {
+            .Where(t =>
+            {
                 // Check if tree is available (not completed, or repeatable)
                 if (t.IsCompleted && !t.IsRepeatable) return false;
 
@@ -301,20 +296,28 @@ public class ConversationTreeResult
     public string ChallengeSituationId { get; set; }
     public DialogueNode NextNode { get; set; }
 
-    public static ConversationTreeResult Failed(string message) =>
-        new ConversationTreeResult { Success = false, Message = message };
+    public static ConversationTreeResult Failed(string message)
+    {
+        return new ConversationTreeResult { Success = false, Message = message };
+    }
 
-    public static ConversationTreeResult Completed() =>
-        new ConversationTreeResult { Success = true, IsComplete = true };
+    public static ConversationTreeResult Completed()
+    {
+        return new ConversationTreeResult { Success = true, IsComplete = true };
+    }
 
-    public static ConversationTreeResult Continue(DialogueNode nextNode) =>
-        new ConversationTreeResult { Success = true, NextNode = nextNode };
+    public static ConversationTreeResult Continue(DialogueNode nextNode)
+    {
+        return new ConversationTreeResult { Success = true, NextNode = nextNode };
+    }
 
-    public static ConversationTreeResult EscalateToChallenge(string situationId) =>
-        new ConversationTreeResult
+    public static ConversationTreeResult EscalateToChallenge(string situationId)
+    {
+        return new ConversationTreeResult
         {
             Success = true,
             EscalatesToChallenge = true,
             ChallengeSituationId = situationId
         };
+    }
 }

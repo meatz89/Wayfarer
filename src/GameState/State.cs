@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// State definition - metadata about a type of temporary condition
 /// Loaded from 18_states.json, stored in GameWorld.States

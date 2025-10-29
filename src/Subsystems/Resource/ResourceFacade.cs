@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// Public facade for all resource-related operations.
 /// Manages coins, health, hunger, and attention across the game.
@@ -13,7 +8,6 @@ public class ResourceFacade
     private readonly ResourceCalculator _resourceCalculator;
     private readonly MessageSystem _messageSystem;
     private readonly TimeManager _timeManager;
-    private readonly TimeFacade _timeFacade;
     private readonly ItemRepository _itemRepository;
     private readonly StateClearingResolver _stateClearingResolver;
 
@@ -22,7 +16,6 @@ public class ResourceFacade
         ResourceCalculator resourceCalculator,
         MessageSystem messageSystem,
         TimeManager timeManager,
-        TimeFacade timeFacade,
         ItemRepository itemRepository,
         StateClearingResolver stateClearingResolver)
     {
@@ -30,7 +23,6 @@ public class ResourceFacade
         _resourceCalculator = resourceCalculator ?? throw new ArgumentNullException(nameof(resourceCalculator));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
-        _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
         _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
         _stateClearingResolver = stateClearingResolver ?? throw new ArgumentNullException(nameof(stateClearingResolver));
     }
@@ -295,9 +287,7 @@ public class ResourceFacade
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Advance 1 time segment
-        _timeFacade.AdvanceSegments(1);
-
+        // TIME PROGRESSION: Handled by GameFacade orchestration (calls TimeFacade.AdvanceSegments before this method)
         // Hunger increases by +5 per segment (automatic via time progression)
         // No need to manually modify hunger here
 
@@ -393,54 +383,14 @@ public class ResourceFacade
     }
 
     /// <summary>
-    /// Execute Full Recovery: Advance 1 time segment and restore ALL resources to maximum.
-    /// Used for paid secure room rest (10 coins).
-    /// Hunger increases by +5 automatically via time progression.
-    /// </summary>
-    public void ExecuteFullRecovery()
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        // Advance 1 time segment
-        _timeFacade.AdvanceSegments(1);
-
-        // Full resource recovery
-        int healthBefore = player.Health;
-        int staminaBefore = player.Stamina;
-        int hungerBefore = player.Hunger;
-        int focusBefore = player.Focus;
-
-        player.Health = player.MaxHealth;
-        player.Stamina = player.MaxStamina;
-        player.Hunger = player.MaxHunger;
-        player.Focus = player.MaxFocus;
-
-        int healthRecovered = player.Health - healthBefore;
-        int staminaRecovered = player.Stamina - staminaBefore;
-        int hungerRecovered = player.Hunger - hungerBefore;
-        int focusRecovered = player.Focus - focusBefore;
-
-        // Generate message about full recovery
-        string recoveryMessage = "Full rest in secure room.";
-        if (healthRecovered > 0) recoveryMessage += $" Health +{healthRecovered}";
-        if (staminaRecovered > 0) recoveryMessage += $" Stamina +{staminaRecovered}";
-        if (hungerRecovered > 0) recoveryMessage += $" Hunger +{hungerRecovered}";
-        if (focusRecovered > 0) recoveryMessage += $" Focus +{focusRecovered}";
-        recoveryMessage += " (Fully recovered)";
-
-        _messageSystem.AddSystemMessage(recoveryMessage, SystemMessageTypes.Success);
-    }
-
-    /// <summary>
-    /// Execute Wait action: Advance 1 time segment with no resource recovery.
+    /// Execute Wait action: Pass time with no resource recovery.
+    /// TIME PROGRESSION: Handled by GameFacade orchestration (calls TimeFacade.AdvanceSegments before this method)
     /// Hunger increases by +5 automatically via time progression.
     /// Global action available everywhere.
     /// </summary>
     public void ExecuteWait()
     {
-        // Advance 1 time segment
-        _timeFacade.AdvanceSegments(1);
-
+        // TIME PROGRESSION: Handled by GameFacade orchestration (calls TimeFacade.AdvanceSegments before this method)
         // Hunger increases by +5 per segment (automatic via time progression)
         // No resource recovery - just passing time
 

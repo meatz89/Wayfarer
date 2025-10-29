@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Strongly-typed behavior object describing HOW a state can be cleared
 /// Stored on State entity after parse-time translation by StateClearConditionsCatalogue

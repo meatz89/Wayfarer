@@ -1,10 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Wayfarer.GameState;
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// STRATEGIC LAYER FACADE - Handles situation selection, requirement validation, and strategic cost consumption
 ///
@@ -251,28 +244,33 @@ public class SituationSelectionResult
     public string NavigationDestinationId { get; set; }
     public bool NavigationAutoTriggerScene { get; set; }
 
-    public static SituationSelectionResult Failed(string message) =>
-        new SituationSelectionResult
+    public static SituationSelectionResult Failed(string message)
+    {
+        return new SituationSelectionResult
         {
             Success = false,
             Message = message,
             ResultType = SituationResultType.Failure
         };
+    }
 
-    public static SituationSelectionResult InstantResolution(Situation situation) =>
-        new SituationSelectionResult
+    public static SituationSelectionResult InstantResolution(Situation situation)
+    {
+        return new SituationSelectionResult
         {
             Success = true,
             ResultType = SituationResultType.InstantResolution,
             ResolvedSituation = situation
         };
+    }
 
     public static SituationSelectionResult LaunchChallenge(
         TacticalSystemType challengeType,
         string situationId,
         string deckId,
-        string targetId) =>
-        new SituationSelectionResult
+        string targetId)
+    {
+        return new SituationSelectionResult
         {
             Success = true,
             ResultType = SituationResultType.LaunchChallenge,
@@ -281,15 +279,18 @@ public class SituationSelectionResult
             ChallengeDeckId = deckId,
             ChallengeTargetId = targetId
         };
+    }
 
-    public static SituationSelectionResult Navigation(string destinationId, bool autoTriggerScene) =>
-        new SituationSelectionResult
+    public static SituationSelectionResult Navigation(string destinationId, bool autoTriggerScene)
+    {
+        return new SituationSelectionResult
         {
             Success = true,
             ResultType = SituationResultType.Navigation,
             NavigationDestinationId = destinationId,
             NavigationAutoTriggerScene = autoTriggerScene
         };
+    }
 }
 
 public enum SituationResultType

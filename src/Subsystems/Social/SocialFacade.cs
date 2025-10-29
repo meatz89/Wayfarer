@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// Public API for the Conversation subsystem.
 /// Handles all conversation operations with functionality absorbed from ConversationOrchestrator and CardDeckManager.
@@ -277,72 +271,7 @@ public class SocialFacade
         // THREE PARALLEL SYSTEMS SYMMETRY: Check situation card type BEFORE validation
         // Situation cards have no SocialCardTemplate, so must be checked first
         if (selectedCard.CardType == CardTypes.Situation)
-        {// Apply obstacle effects via containment pattern (THREE PARALLEL SYSTEMS symmetry)
-            // DISTRIBUTED INTERACTION: Find parent obstacle from Situation.ParentObstacle
-            NPC npc = _gameWorld.CurrentSocialSession.NPC;
-
-            // Get situation and its parent obstacle via object references
-            Situation situation = _gameWorld.Situations.FirstOrDefault(g => g.Id == _gameWorld.CurrentSocialSession.RequestId);
-            if (situation == null)
-                return null; // Situation not found
-
-            Obstacle parentObstacle = situation.ParentObstacle;
-
-            // TRUST DOMAIN MODEL: If Situation has ConsequenceType, ParentObstacle must exist
-            // Situations without obstacles are handled separately (ambient situations)
-            switch (situation.ConsequenceType)
-            {
-                case ConsequenceType.Resolution:
-                    // Permanently overcome
-                    parentObstacle.State = ObstacleState.Resolved;
-                    parentObstacle.ResolutionMethod = situation.SetsResolutionMethod;
-                    parentObstacle.RelationshipOutcome = situation.SetsRelationshipOutcome;
-                    // Remove from active play (but keep in GameWorld for history)
-                    if (!parentObstacle.IsPermanent)
-                    {
-                        npc.ObstacleIds.Remove(parentObstacle.Id);
-                    }
-                    _messageSystem.AddSystemMessage(
-                        $"Obstacle '{parentObstacle.Name}' permanently resolved via {situation.SetsResolutionMethod}",
-                        SystemMessageTypes.Success);
-                    break;
-
-                case ConsequenceType.Bypass:
-                    // Player passes, obstacle persists
-                    parentObstacle.ResolutionMethod = situation.SetsResolutionMethod;
-                    parentObstacle.RelationshipOutcome = situation.SetsRelationshipOutcome; break;
-
-                case ConsequenceType.Transform:
-                    // Fundamentally changed
-                    parentObstacle.State = ObstacleState.Transformed;
-                    parentObstacle.Intensity = 0;
-                    if (!string.IsNullOrEmpty(situation.TransformDescription))
-                        parentObstacle.TransformedDescription = situation.TransformDescription;
-                    parentObstacle.ResolutionMethod = situation.SetsResolutionMethod;
-                    parentObstacle.RelationshipOutcome = situation.SetsRelationshipOutcome;
-                    _messageSystem.AddSystemMessage(
-                        $"Obstacle '{parentObstacle.Name}' transformed, intensity set to 0",
-                        SystemMessageTypes.Success);
-                    break;
-
-                case ConsequenceType.Modify:
-                    // TRUST DOMAIN MODEL: PropertyReduction is required for Modify consequence type
-                    parentObstacle.Intensity = Math.Max(0,
-                        parentObstacle.Intensity - situation.PropertyReduction.ReduceIntensity);
-                    parentObstacle.ResolutionMethod = ResolutionMethod.Preparation;
-                    // Check if intensity is now 0 (fully modified)
-                    if (parentObstacle.Intensity == 0)
-                    {
-                        parentObstacle.State = ObstacleState.Transformed;
-                    }
-                    break;
-
-                case ConsequenceType.Grant:
-                    // Grant knowledge/items, no obstacle change
-                    // Knowledge cards handled in Phase 3
-                    // Items already handled by existing reward system
-                    break;
-            }
+        {
 
             // Complete situation through SituationCompletionHandler (applies rewards: coins, StoryCubes, equipment)
             Situation completedSituation = _gameWorld.Situations.FirstOrDefault(g => g.Id == _gameWorld.CurrentSocialSession.RequestId);

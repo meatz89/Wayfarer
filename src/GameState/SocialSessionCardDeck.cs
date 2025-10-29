@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// HIGHLANDER PRINCIPLE: This is the ONE AND ONLY card deck system for conversations.
 /// ALL card collections live here. NO EXCEPTIONS.

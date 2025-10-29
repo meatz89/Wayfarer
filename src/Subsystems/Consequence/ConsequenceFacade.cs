@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Wayfarer.GameState;
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// CONSEQUENCE FACADE - Applies situation consequences to game state
 ///

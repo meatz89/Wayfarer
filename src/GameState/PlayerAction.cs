@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Global player action available everywhere regardless of location context.
 /// Unlike LocationActions which are matched by location properties,

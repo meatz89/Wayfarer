@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 /// <summary>
 /// Defines the formula types for card effects.
 /// Each type represents a different calculation pattern.

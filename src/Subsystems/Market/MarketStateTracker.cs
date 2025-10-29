@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Tracks market conditions, inventory levels, and trade history
 /// to provide insights into supply, demand, and market dynamics.

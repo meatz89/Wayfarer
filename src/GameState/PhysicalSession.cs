@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 /// <summary>
 /// V4 Physical Session - runtime state for active physical challenge
 /// Unified architecture with MentalSession

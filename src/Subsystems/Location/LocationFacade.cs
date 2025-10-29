@@ -1,6 +1,5 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+using Wayfarer.GameState;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Public facade for all location-related operations.
@@ -25,12 +24,9 @@ public class LocationFacade
     private readonly MessageSystem _messageSystem;
     private readonly DialogueGenerationService _dialogueGenerator;
     private readonly NarrativeRenderer _narrativeRenderer;
-    private readonly ObstacleSituationFilter _obstacleSituationFilter;
     private readonly DifficultyCalculationService _difficultyService;
     private readonly ItemRepository _itemRepository;
-
-    // Scene-Situation Architecture
-    private readonly SceneFacade _sceneFacade;
+    private readonly Wayfarer.Subsystems.Scene.SceneFacade _sceneFacade;
 
     public LocationFacade(
         GameWorld gameWorld,
@@ -47,10 +43,9 @@ public class LocationFacade
         MessageSystem messageSystem,
         DialogueGenerationService dialogueGenerator,
         NarrativeRenderer narrativeRenderer,
-        ObstacleSituationFilter obstacleSituationFilter,
         DifficultyCalculationService difficultyService,
         ItemRepository itemRepository,
-        SceneFacade sceneFacade)
+        Wayfarer.Subsystems.Scene.SceneFacade sceneFacade)
     {
         _gameWorld = gameWorld;
         _locationManager = locationManager;
@@ -67,7 +62,6 @@ public class LocationFacade
         _messageSystem = messageSystem;
         _dialogueGenerator = dialogueGenerator;
         _narrativeRenderer = narrativeRenderer;
-        _obstacleSituationFilter = obstacleSituationFilter ?? throw new ArgumentNullException(nameof(obstacleSituationFilter));
         _difficultyService = difficultyService ?? throw new ArgumentNullException(nameof(difficultyService));
         _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
         _sceneFacade = sceneFacade ?? throw new ArgumentNullException(nameof(sceneFacade));
@@ -503,12 +497,13 @@ public class LocationFacade
         if (spot == null)
             throw new InvalidOperationException("Current location spot is null");
 
-        (List<SituationCardViewModel> ambientMental, List<ObstacleWithSituationsViewModel> mentalObstacles) = BuildMentalChallenges(spot);
-        (List<SituationCardViewModel> ambientPhysical, List<ObstacleWithSituationsViewModel> physicalObstacles) = BuildPhysicalChallenges(spot);
+        (List<SituationCardViewModel> ambientMental, List<SceneWithSituationsViewModel> mentalScenes) = BuildMentalChallenges(spot);
+        (List<SituationCardViewModel> ambientPhysical, List<SceneWithSituationsViewModel> physicalScenes) = BuildPhysicalChallenges(spot);
 
-        // Scene-Situation Architecture: Generate scene and get locked situations
-        Scene scene = _sceneFacade.GenerateLocationScene(spot.Id);
-        List<LockedSituationViewModel> lockedSituations = MapLockedSituations(scene);
+        // SCENE-SITUATION ARCHITECTURE: Locked situations handled by RequirementFormula in ChoiceTemplate
+        // Scene-based situations have requirements checked at action instantiation time
+        // For now, locked situations displayed as empty (UI shows available situations only)
+        List<LockedSituationViewModel> lockedSituations = new List<LockedSituationViewModel>();
 
         LocationContentViewModel viewModel = new LocationContentViewModel
         {
@@ -518,9 +513,9 @@ public class LocationFacade
             HasSpots = GetSpotsForVenue(venue).Count > 1,
             NPCsWithSituations = BuildNPCsWithSituations(spot, currentTime),
             AmbientMentalSituations = ambientMental,
-            MentalObstacles = mentalObstacles,
+            MentalScenes = mentalScenes,
             AmbientPhysicalSituations = ambientPhysical,
-            PhysicalObstacles = physicalObstacles,
+            PhysicalScenes = physicalScenes,
             AvailableSpots = BuildSpotsWithNPCs(venue, spot, currentTime),
             LockedSituations = lockedSituations
         };
@@ -529,16 +524,16 @@ public class LocationFacade
     }
 
     /// <summary>
-    /// Map Scene locked situations to view models with strongly-typed requirement gaps
+    /// Map SceneDisplay locked situations to view models with strongly-typed requirement gaps
     /// </summary>
-    private List<LockedSituationViewModel> MapLockedSituations(Scene scene)
+    private List<LockedSituationViewModel> MapLockedSituations(LocationSceneDisplay sceneDisplay)
     {
-        if (scene == null || scene.LockedSituations.Count == 0)
+        if (sceneDisplay == null || sceneDisplay.LockedSituations.Count == 0)
             return new List<LockedSituationViewModel>();
 
         List<LockedSituationViewModel> viewModels = new List<LockedSituationViewModel>();
 
-        foreach (SituationWithLockReason lockedSituation in scene.LockedSituations)
+        foreach (SituationWithLockReason lockedSituation in sceneDisplay.LockedSituations)
         {
             Situation situation = lockedSituation.Situation;
 
@@ -712,19 +707,54 @@ public class LocationFacade
         {
             ConnectionState connectionState = GetNPCConnectionState(npc);
 
-            // Get ALL situations for THIS NPC (uses PlacementNpcId)
-            List<Situation> allNpcSituations = _obstacleSituationFilter.GetVisibleNPCSituations(npc, _gameWorld);
+            // SCENE-SITUATION ARCHITECTURE: Query active Scenes with this NPC, get Situation IDs, query GameWorld.Situations
+            List<global::Scene> scenesAtNPC = _gameWorld.Scenes
+                .Where(s => s.State == SceneState.Active &&
+                           s.PlacementType == PlacementType.NPC &&
+                           s.PlacementId == npc.ID)
+                .ToList();
+
+            // Collect all Situation IDs from these scenes
+            List<string> situationIds = scenesAtNPC
+                .SelectMany(scene => scene.SituationIds)
+                .ToList();
+
+            // Query GameWorld.Situations for these IDs (HIGHLANDER: single source of truth)
+            List<Situation> allNpcSituations = _gameWorld.Situations
+                .Where(s => situationIds.Contains(s.Id))
+                .ToList();
+
+            // SCENE-SITUATION ARCHITECTURE: Activate dormant Situations → create NPCActions (Layer 3)
+            Player player = _gameWorld.GetPlayer();
+            List<NPCAction> npcActions = _sceneFacade.GetActionsForNPC(npc.ID, player);
+
+            // Map NPCActions to ActionCardViewModel for UI display
+            List<ActionCardViewModel> actions = npcActions.Select(action => new ActionCardViewModel
+            {
+                Id = action.Id,
+                SituationId = action.SituationId,
+                Name = action.Name,
+                Description = action.Description,
+                SystemType = action.ChallengeType?.ToString().ToLower() ?? "social",
+                ResolveCost = action.ChoiceTemplate?.CostTemplate?.Resolve ?? 0,
+                CoinsCost = action.ChoiceTemplate?.CostTemplate?.Coins ?? 0,
+                TimeSegments = action.ChoiceTemplate?.CostTemplate?.TimeSegments ?? 0,
+                ActionType = action.ChoiceTemplate?.ActionType.ToString() ?? "StartChallenge",
+                ChallengeType = action.ChallengeType?.ToString() ?? "Social",
+                RequirementsMet = true,  // TODO: Evaluate requirements
+                LockReason = null
+            }).ToList();
 
             // Filter to Social situations only, available
-            // NOTE: Obligation situations ARE included - they may have parent obstacles for hierarchical display
+            // NOTE: Obligation situations ARE included - they may have parent scenes for hierarchical display
             List<Situation> npcSocialSituations = allNpcSituations
                 .Where(g => g.SystemType == TacticalSystemType.Social)
                 .Where(g => g.IsAvailable && !g.IsCompleted)
                 .ToList();
 
-            // Group social situations by obstacle
-            (List<SituationCardViewModel> ambientSocial, List<ObstacleWithSituationsViewModel> socialObstacles) =
-                GroupSituationsByObstacle(npc, npcSocialSituations, "social", "Doubt");
+            // Group social situations by scene
+            (List<SituationCardViewModel> ambientSocial, List<SceneWithSituationsViewModel> socialScenes) =
+                GroupSituationsByScene(npc, npcSocialSituations, "social", "Doubt");
 
             result.Add(new NpcWithSituationsViewModel
             {
@@ -735,7 +765,8 @@ public class LocationFacade
                 StateClass = GetConnectionStateClass(connectionState),
                 Description = GetNPCDescriptionText(npc, connectionState),
                 AmbientSocialSituations = ambientSocial,
-                SocialObstacles = socialObstacles,
+                SocialScenes = socialScenes,
+                Actions = actions,  // NEW: Executable actions from ChoiceTemplates
                 HasExchange = npc.HasExchangeCards(),
                 ExchangeDescription = npc.HasExchangeCards() ? "Trading - Buy supplies and equipment" : null
             });
@@ -768,48 +799,62 @@ public class LocationFacade
     // Social situations are placed on NPCs (PlacementNpcId), not locations (PlacementLocationId)
     // Now calling GetVisibleNPCSituations() directly in BuildNPCsWithSituations()
 
-    private (List<SituationCardViewModel>, List<ObstacleWithSituationsViewModel>) BuildMentalChallenges(Location spot)
+    private (List<SituationCardViewModel>, List<SceneWithSituationsViewModel>) BuildMentalChallenges(Location spot)
     {
         return BuildChallengesBySystemType(spot, TacticalSystemType.Mental, "mental", "Exposure");
     }
 
-    private (List<SituationCardViewModel>, List<ObstacleWithSituationsViewModel>) BuildPhysicalChallenges(Location spot)
+    private (List<SituationCardViewModel>, List<SceneWithSituationsViewModel>) BuildPhysicalChallenges(Location spot)
     {
         return BuildChallengesBySystemType(spot, TacticalSystemType.Physical, "physical", "Danger");
     }
 
-    private (List<SituationCardViewModel>, List<ObstacleWithSituationsViewModel>) BuildChallengesBySystemType(
+    private (List<SituationCardViewModel>, List<SceneWithSituationsViewModel>) BuildChallengesBySystemType(
         Location spot, TacticalSystemType systemType, string systemTypeStr, string difficultyLabel)
     {
         List<SituationCardViewModel> ambientSituations = new List<SituationCardViewModel>();
-        List<ObstacleWithSituationsViewModel> obstacleGroups = new List<ObstacleWithSituationsViewModel>();
+        List<SceneWithSituationsViewModel> sceneGroups = new List<SceneWithSituationsViewModel>();
 
-        // Get all visible situations at this location
-        List<Situation> allVisibleSituations = _obstacleSituationFilter.GetVisibleLocationSituations(spot, _gameWorld);
+        // SCENE-SITUATION ARCHITECTURE: Query active Scenes at this location, get Situation IDs, query GameWorld.Situations
+        List<global::Scene> scenesAtLocation = _gameWorld.Scenes
+            .Where(s => s.State == SceneState.Active &&
+                       s.PlacementType == PlacementType.Location &&
+                       s.PlacementId == spot.Id)
+            .ToList();
+
+        // Collect all Situation IDs from these scenes
+        List<string> situationIds = scenesAtLocation
+            .SelectMany(scene => scene.SituationIds)
+            .ToList();
+
+        // Query GameWorld.Situations for these IDs (HIGHLANDER: single source of truth)
+        List<Situation> allVisibleSituations = _gameWorld.Situations
+            .Where(s => situationIds.Contains(s.Id))
+            .ToList();
 
         // Filter to this system type only
-        // NOTE: Obligation situations ARE included - they may have parent obstacles for hierarchical display
+        // NOTE: Obligation situations ARE included - they may have parent scenes for hierarchical display
         List<Situation> systemSituations = allVisibleSituations
             .Where(g => g.SystemType == systemType)
             .Where(g => g.IsAvailable && !g.IsCompleted)
             .ToList();
 
-        // Group situations by obstacle (ambient situations have no obstacle parent)
-        Dictionary<string, List<Situation>> situationsByObstacle = new Dictionary<string, List<Situation>>();
+        // Group situations by scene (ambient situations have no scene parent)
+        Dictionary<string, List<Situation>> situationsByScene = new Dictionary<string, List<Situation>>();
         List<Situation> ambientSituationsList = new List<Situation>();
 
         foreach (Situation situation in systemSituations)
         {
-            // Check if this situation belongs to an obstacle
-            Obstacle parentObstacle = FindParentObstacle(spot, situation);
+            // Check if this situation belongs to an scene
+            Scene parentScene = FindParentScene(spot, situation);
 
-            if (parentObstacle != null)
+            if (parentScene != null)
             {
-                if (!situationsByObstacle.ContainsKey(parentObstacle.Id))
+                if (!situationsByScene.ContainsKey(parentScene.Id))
                 {
-                    situationsByObstacle[parentObstacle.Id] = new List<Situation>();
+                    situationsByScene[parentScene.Id] = new List<Situation>();
                 }
-                situationsByObstacle[parentObstacle.Id].Add(situation);
+                situationsByScene[parentScene.Id].Add(situation);
             }
             else
             {
@@ -820,55 +865,51 @@ public class LocationFacade
         // Build ambient situations view models
         ambientSituations = ambientSituationsList.Select(g => BuildSituationCard(g, systemTypeStr, difficultyLabel)).ToList();
 
-        // Build obstacle groups
-        foreach (KeyValuePair<string, List<Situation>> kvp in situationsByObstacle)
+        // Build scene groups
+        foreach (KeyValuePair<string, List<Situation>> kvp in situationsByScene)
         {
-            Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == kvp.Key);
-            if (obstacle != null)
+            Scene scene = _gameWorld.Scenes.FirstOrDefault(o => o.Id == kvp.Key);
+            if (scene != null)
             {
-                obstacleGroups.Add(BuildObstacleWithSituations(obstacle, kvp.Value, systemTypeStr, difficultyLabel));
+                sceneGroups.Add(BuildSceneWithSituations(scene, kvp.Value, systemTypeStr, difficultyLabel));
             }
         }
 
-        return (ambientSituations, obstacleGroups);
+        return (ambientSituations, sceneGroups);
     }
 
-    private Obstacle FindParentObstacle(Location spot, Situation situation)
+    private Scene FindParentScene(Location spot, Situation situation)
     {
-        // Check all obstacles at this location to see if any contains this situation
-        foreach (string obstacleId in spot.ObstacleIds)
-        {
-            Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
-            if (obstacle != null && obstacle.SituationIds.Contains(situation.Id))
-            {
-                return obstacle;
-            }
-        }
-        return null;
+        // Query GameWorld.Scenes by placement, check if SituationIds contains this situation.Id
+        return _gameWorld.Scenes
+            .Where(s => s.PlacementType == PlacementType.Location)
+            .Where(s => s.PlacementId == spot.Id)
+            .Where(s => s.State == SceneState.Active)
+            .FirstOrDefault(s => s.SituationIds.Contains(situation.Id));
     }
 
-    private (List<SituationCardViewModel>, List<ObstacleWithSituationsViewModel>) GroupSituationsByObstacle(
+    private (List<SituationCardViewModel>, List<SceneWithSituationsViewModel>) GroupSituationsByScene(
         NPC npc, List<Situation> situations, string systemTypeStr, string difficultyLabel)
     {
         List<SituationCardViewModel> ambientSituations = new List<SituationCardViewModel>();
-        List<ObstacleWithSituationsViewModel> obstacleGroups = new List<ObstacleWithSituationsViewModel>();
+        List<SceneWithSituationsViewModel> sceneGroups = new List<SceneWithSituationsViewModel>();
 
-        // Group situations by obstacle (ambient situations have no obstacle parent)
-        Dictionary<string, List<Situation>> situationsByObstacle = new Dictionary<string, List<Situation>>();
+        // Group situations by scene (ambient situations have no scene parent)
+        Dictionary<string, List<Situation>> situationsByScene = new Dictionary<string, List<Situation>>();
         List<Situation> ambientSituationsList = new List<Situation>();
 
         foreach (Situation situation in situations)
         {
-            // Check if this situation belongs to an obstacle from this NPC
-            Obstacle parentObstacle = FindParentObstacleForNPC(npc, situation);
+            // Check if this situation belongs to an scene from this NPC
+            Scene parentScene = FindParentSceneForNPC(npc, situation);
 
-            if (parentObstacle != null)
+            if (parentScene != null)
             {
-                if (!situationsByObstacle.ContainsKey(parentObstacle.Id))
+                if (!situationsByScene.ContainsKey(parentScene.Id))
                 {
-                    situationsByObstacle[parentObstacle.Id] = new List<Situation>();
+                    situationsByScene[parentScene.Id] = new List<Situation>();
                 }
-                situationsByObstacle[parentObstacle.Id].Add(situation);
+                situationsByScene[parentScene.Id].Add(situation);
             }
             else
             {
@@ -879,43 +920,39 @@ public class LocationFacade
         // Build ambient situations view models
         ambientSituations = ambientSituationsList.Select(g => BuildSituationCard(g, systemTypeStr, difficultyLabel)).ToList();
 
-        // Build obstacle groups
-        foreach (KeyValuePair<string, List<Situation>> kvp in situationsByObstacle)
+        // Build scene groups
+        foreach (KeyValuePair<string, List<Situation>> kvp in situationsByScene)
         {
-            Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == kvp.Key);
-            if (obstacle != null)
+            Scene scene = _gameWorld.Scenes.FirstOrDefault(o => o.Id == kvp.Key);
+            if (scene != null)
             {
-                obstacleGroups.Add(BuildObstacleWithSituations(obstacle, kvp.Value, systemTypeStr, difficultyLabel));
+                sceneGroups.Add(BuildSceneWithSituations(scene, kvp.Value, systemTypeStr, difficultyLabel));
             }
         }
 
-        return (ambientSituations, obstacleGroups);
+        return (ambientSituations, sceneGroups);
     }
 
-    private Obstacle FindParentObstacleForNPC(NPC npc, Situation situation)
+    private Scene FindParentSceneForNPC(NPC npc, Situation situation)
     {
-        // Check all obstacles for this NPC to see if any contains this situation
-        foreach (string obstacleId in npc.ObstacleIds)
-        {
-            Obstacle obstacle = _gameWorld.Obstacles.FirstOrDefault(o => o.Id == obstacleId);
-            if (obstacle != null && obstacle.SituationIds.Contains(situation.Id))
-            {
-                return obstacle;
-            }
-        }
-        return null;
+        // Query GameWorld.Scenes by placement type and ID, check if SituationIds contains this situation.Id
+        return _gameWorld.Scenes
+            .Where(s => s.PlacementType == PlacementType.NPC)
+            .Where(s => s.PlacementId == npc.ID)
+            .Where(s => s.State == SceneState.Active)
+            .FirstOrDefault(s => s.SituationIds.Contains(situation.Id));
     }
 
-    private ObstacleWithSituationsViewModel BuildObstacleWithSituations(Obstacle obstacle, List<Situation> situations, string systemTypeStr, string difficultyLabel)
+    private SceneWithSituationsViewModel BuildSceneWithSituations(Scene scene, List<Situation> situations, string systemTypeStr, string difficultyLabel)
     {
-        return new ObstacleWithSituationsViewModel
+        return new SceneWithSituationsViewModel
         {
-            Id = obstacle.Id,
-            Name = obstacle.Name,
-            Description = obstacle.Description,
-            Intensity = obstacle.Intensity,
-            Contexts = obstacle.Contexts.Select(c => c.ToString()).ToList(),
-            ContextsDisplay = string.Join(", ", obstacle.Contexts.Select(c => c.ToString())),
+            Id = scene.Id,
+            Name = scene.DisplayName,
+            Description = scene.IntroNarrative,
+            Intensity = 0,  // Intensity removed from Scene - defaulting to 0
+            Contexts = new List<string>(),  // Contexts removed from Scene
+            ContextsDisplay = "",  // Contexts removed from Scene
             Situations = situations.Select(g => BuildSituationCard(g, systemTypeStr, difficultyLabel)).ToList()
         };
     }

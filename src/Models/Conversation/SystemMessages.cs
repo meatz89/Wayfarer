@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// System messages used in conversation UI for various actions and states.
 /// </summary>

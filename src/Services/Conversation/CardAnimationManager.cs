@@ -1,9 +1,3 @@
-using Microsoft.AspNetCore.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 /// <summary>
 /// SIMPLIFIED: Minimal animation tracking for visual feedback only.
 /// Prioritizes correctness over complex animations.

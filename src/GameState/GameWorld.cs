@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 public class GameWorld
 {
     // Game mode determines content loading and tutorial state
@@ -12,7 +8,15 @@ public class GameWorld
     public List<Venue> Venues { get; set; } = new List<Venue>();
     public List<Location> Locations { get; set; } = new List<Location>();
     public List<NPC> NPCs { get; set; } = new List<NPC>();
+
+    // ==================== EPHEMERAL ACTION COLLECTIONS (QUERY-TIME INSTANTIATION) ====================
+    // Actions created by SceneFacade when player enters context (Situation: Dormant → Active)
+    // NOT persisted in save files - recreated from Situation.Template.ChoiceTemplates on load
+    // Flat collections for executor access (HIGHLANDER Pattern A)
     public List<LocationAction> LocationActions { get; set; } = new List<LocationAction>();
+    public List<NPCAction> NPCActions { get; set; } = new List<NPCAction>();
+    public List<PathCard> PathCards { get; set; } = new List<PathCard>();
+
     public List<PlayerAction> PlayerActions { get; set; } = new List<PlayerAction>();
 
     // TimeBlock tracking for stranger refresh
@@ -57,10 +61,11 @@ public class GameWorld
     // Observations from packages
     public List<Observation> Observations { get; set; } = new List<Observation>();
 
+    // ObservationScenes - Mental challenge system for scene investigation
+    public List<ObservationScene> ObservationScenes { get; set; } = new List<ObservationScene>();
+
     // ConversationTrees - Simple dialogue without tactical challenge
     public List<ConversationTree> ConversationTrees { get; set; } = new List<ConversationTree>();
-    // ObservationScenes - Scene investigation with multiple examination points
-    public List<ObservationScene> ObservationScenes { get; set; } = new List<ObservationScene>();
     // EmergencySituations - Urgent situations demanding immediate response
     public List<EmergencySituation> EmergencySituations { get; set; } = new List<EmergencySituation>();
     // ActiveEmergency - Currently triggering emergency that interrupts gameplay (set at sync points)
@@ -73,7 +78,6 @@ public class GameWorld
 
     // Travel System
     public List<RouteImprovement> RouteImprovements { get; set; } = new List<RouteImprovement>();
-    public List<TravelObstacle> TravelObstacles { get; private set; } = new List<TravelObstacle>();
 
     // Initialization data - stored in GameWorld, not passed between phases
     public string InitialLocationSpotId { get; set; }
@@ -129,9 +133,23 @@ public class GameWorld
     // Event collections for Event route segments (containing eventIds, not pathCardIds)
     public List<PathCollectionEntry> AllEventCollections { get; set; } = new List<PathCollectionEntry>();
 
-    // OBSTACLE SYSTEM - Single source of truth for all obstacles
-    // Obstacles are location-agnostic, referenced by Location.ObstacleIds and NPC.ObstacleIds
-    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
+    // SCENE-SITUATION TEMPLATE SYSTEM - Templates for procedural Scene generation
+    // SceneTemplates define Scene archetypes with categorical filters
+    // At spawn time, SceneInstantiator queries GameWorld for matching entities and creates Scene instances
+    public List<SceneTemplate> SceneTemplates { get; set; } = new List<SceneTemplate>();
+
+    // PROVISIONAL SCENE SYSTEM - Temporary storage for Scenes awaiting player Choice selection
+    // Provisional Scenes created when Situation instantiated (one per Choice with SceneSpawnReward)
+    // Mechanical skeletons with placement assigned but NO narrative content (placeholders unresolved)
+    // Purpose: Perfect information - player sees WHERE Scene spawns BEFORE selecting Choice
+    // Lifecycle: Created → Displayed in UI → Finalized (if Choice selected) OR Deleted (if other Choice selected)
+    // Dictionary keyed by Scene.Id for O(1) lookup during finalization and cleanup
+    public Dictionary<string, Scene> ProvisionalScenes { get; set; } = new Dictionary<string, Scene>();
+
+    // SCENE SYSTEM - Persistent Scene instances spawned from SceneTemplates
+    // Scenes stored here, queried by PlacementType and PlacementId
+    // Contains embedded Situations with 2-4 Choices (Sir Brante pattern)
+    public List<Scene> Scenes { get; set; } = new List<Scene>();
 
     // SCENE-SITUATION ARCHITECTURE - Sir Brante integration
     // State definitions (metadata about temporary player conditions)
@@ -830,6 +848,158 @@ public class GameWorld
         foreach (ActiveState expiredState in expiredStates)
         {
             Player.ActiveStates.Remove(expiredState);
+        }
+    }
+
+    // ============================================
+    // PATH COLLECTION MANAGEMENT (Travel system)
+    // ============================================
+
+    /// <summary>
+    /// Get path collection by ID
+    /// </summary>
+    public PathCardCollectionDTO GetPathCollection(string collectionId)
+    {
+        PathCollectionEntry entry = AllPathCollections.FirstOrDefault(c => c.CollectionId == collectionId);
+        if (entry == null)
+            throw new InvalidOperationException($"No collection entry found for collection '{collectionId}' - ensure collection exists before accessing");
+        return entry.Collection;
+    }
+
+    /// <summary>
+    /// Add or update path collection
+    /// </summary>
+    public void AddOrUpdatePathCollection(string collectionId, PathCardCollectionDTO collection)
+    {
+        PathCollectionEntry existing = AllPathCollections.FirstOrDefault(c => c.CollectionId == collectionId);
+        if (existing != null)
+        {
+            existing.Collection = collection;
+        }
+        else
+        {
+            AllPathCollections.Add(new PathCollectionEntry { CollectionId = collectionId, Collection = collection });
+        }
+    }
+
+    // ============================================
+    // TRAVEL EVENT MANAGEMENT (Travel system)
+    // ============================================
+
+    /// <summary>
+    /// Get travel event by ID
+    /// </summary>
+    public TravelEventDTO GetTravelEvent(string eventId)
+    {
+        TravelEventEntry entry = AllTravelEvents.FirstOrDefault(e => e.EventId == eventId);
+        if (entry == null)
+            throw new InvalidOperationException($"No event entry found for event '{eventId}' - ensure event exists before accessing");
+        return entry.TravelEvent;
+    }
+
+    // ============================================
+    // SKELETON REGISTRY MANAGEMENT (Lazy loading)
+    // ============================================
+
+    /// <summary>
+    /// Add skeleton to registry for lazy resolution
+    /// </summary>
+    public void AddSkeleton(string key, string contentType)
+    {
+        if (!SkeletonRegistry.Any(r => r.SkeletonKey == key))
+        {
+            SkeletonRegistry.Add(new SkeletonRegistryEntry { SkeletonKey = key, ContentType = contentType });
+        }
+    }
+
+    // ============================================
+    // EVENT DECK POSITION MANAGEMENT (Deterministic draws)
+    // ============================================
+
+    /// <summary>
+    /// Get event deck position
+    /// </summary>
+    public int GetEventDeckPosition(string deckId)
+    {
+        EventDeckPositionEntry entry = EventDeckPositions.FirstOrDefault(p => p.DeckId == deckId);
+        if (entry == null)
+            throw new InvalidOperationException($"No event deck position entry found for deck '{deckId}' - ensure deck exists before accessing position");
+        return entry.Position;
+    }
+
+    /// <summary>
+    /// Set event deck position
+    /// </summary>
+    public void SetEventDeckPosition(string deckId, int position)
+    {
+        EventDeckPositionEntry existing = EventDeckPositions.FirstOrDefault(p => p.DeckId == deckId);
+        if (existing != null)
+        {
+            existing.Position = position;
+        }
+        else
+        {
+            EventDeckPositions.Add(new EventDeckPositionEntry { DeckId = deckId, Position = position });
+        }
+    }
+
+    // ============================================
+    // PATH CARD DISCOVERY MANAGEMENT (Progression tracking)
+    // ============================================
+
+    /// <summary>
+    /// Check if path card is discovered
+    /// </summary>
+    public bool IsPathCardDiscovered(string cardId)
+    {
+        PathCardDiscoveryEntry entry = PathCardDiscoveries.FirstOrDefault(d => d.CardId == cardId);
+        if (entry == null)
+            throw new InvalidOperationException($"No discovery entry found for card '{cardId}' - ensure card exists before checking discovery status");
+        return entry.IsDiscovered;
+    }
+
+    /// <summary>
+    /// Set path card discovery status
+    /// </summary>
+    public void SetPathCardDiscovered(string cardId, bool discovered)
+    {
+        PathCardDiscoveryEntry existing = PathCardDiscoveries.FirstOrDefault(d => d.CardId == cardId);
+        if (existing != null)
+        {
+            existing.IsDiscovered = discovered;
+        }
+        else
+        {
+            PathCardDiscoveries.Add(new PathCardDiscoveryEntry { CardId = cardId, IsDiscovered = discovered });
+        }
+    }
+
+    // ============================================
+    // LOCATION MANAGEMENT (GameWorld owns locations)
+    // ============================================
+
+    /// <summary>
+    /// Add or update location spot
+    /// </summary>
+    public void AddOrUpdateLocation(string locationId, Location location)
+    {
+        Location existing = Locations.FirstOrDefault(l => l.Id == locationId);
+        if (existing != null)
+        {
+            Locations.Remove(existing);
+        }
+        Locations.Add(location);
+    }
+
+    /// <summary>
+    /// Remove location spot
+    /// </summary>
+    public void RemoveLocation(string locationId)
+    {
+        Location existing = Locations.FirstOrDefault(l => l.Id == locationId);
+        if (existing != null)
+        {
+            Locations.Remove(existing);
         }
     }
 

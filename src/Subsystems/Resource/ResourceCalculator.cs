@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Calculates resource formulas and interdependencies.
 /// Central Venue for all resource calculation logic.

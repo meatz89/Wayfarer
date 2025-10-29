@@ -1,398 +1,360 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Wayfarer.GameState;
+using Wayfarer.Content;
 using Wayfarer.GameState.Enums;
 
+namespace Wayfarer.Subsystems.Scene;
+
 /// <summary>
-/// SCENE FACADE - Generates Scene instances for location/NPC interactions
-///
-/// CRITICAL ARCHITECTURAL PRINCIPLE: Scene as Fundamental Content Unit
-///
-/// Scene is the ACTIVE DATA SOURCE that populates LocationContent UI:
-/// - Locations/NPCs/LocationContent are PERSISTENT (they stay)
-/// - Scene is ACTIVE/EPHEMERAL (generated fresh each visit)
-/// - Scene evaluates CompoundRequirements (available vs locked separation)
-/// - Scene provides perfect information (locked situations visible with requirements)
-/// - Scene generates contextual intro narrative (not static description)
-///
-/// Default/Generic Scene:
-/// - If no authored scene exists, generic scene is generated
-/// - Generic scene = minimal atmospheric content
-/// - Generic scene = all available situations at location (no special filtering)
+/// SceneFacade - Query layer for Scene/Situation display
+/// Implements query-time action instantiation (Tier 3 of three-tier timing model)
+/// Responsibilities:
+/// - Query active Scenes at placements
+/// - Trigger Situation state transition (Dormant → Active)
+/// - Instantiate ChoiceTemplates into actions (LocationAction/NPCAction/PathCard)
+/// - Create provisional Scenes for actions with spawn rewards
+/// - Return display models to UI
+/// Does NOT execute actions (GameFacade handles execution)
 /// </summary>
 public class SceneFacade
 {
     private readonly GameWorld _gameWorld;
-    private readonly TimeFacade _timeFacade;
+    private readonly SceneInstantiator _sceneInstantiator;
 
-    public SceneFacade(
-        GameWorld gameWorld,
-        TimeFacade timeFacade)
+    public SceneFacade(GameWorld gameWorld, SceneInstantiator sceneInstantiator)
     {
-        _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-        _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
+        _gameWorld = gameWorld;
+        _sceneInstantiator = sceneInstantiator;
     }
 
+    // ==================== LOCATION CONTEXT ====================
+
     /// <summary>
-    /// Generate location scene - ephemeral instance created fresh each visit
-    /// Evaluates requirements and separates available vs locked situations
+    /// Get all actions available at a location
+    /// TRIGGERS: Situation Dormant → Active transition
+    /// CREATES: LocationActions from ChoiceTemplates
+    /// CREATES: Provisional Scenes for actions with spawn rewards
+    /// Called by UI when player enters location
     /// </summary>
-    public Scene GenerateLocationScene(string locationId)
+    public List<LocationAction> GetActionsAtLocation(string locationId, Player player)
     {
-        Location location = _gameWorld.GetLocation(locationId);
-        if (location == null)
-            return null;
-
-        Player player = _gameWorld.GetPlayer();
-
-        // Query ALL situations at this location (from GameWorld.Situations)
-        List<Situation> allSituationsAtLocation = _gameWorld.Situations
-            .Where(s => s.PlacementLocation?.Id == locationId)
-            .Where(s => s.Status != SituationStatus.Completed || s.Repeatable) // Include repeatable completed situations
+        // Find active Scenes at this location
+        List<global::Scene> scenes = _gameWorld.Scenes
+            .Where(s => s.State == SceneState.Active &&
+                       s.PlacementType == PlacementType.Location &&
+                       s.PlacementId == locationId)
             .ToList();
 
-        // Also include situations from NPCs present at this location
-        List<NPC> npcsAtLocation = _gameWorld.NPCs
-            .Where(n => n.Location?.Id == locationId)
-            .ToList();
+        List<LocationAction> allActions = new List<LocationAction>();
 
-        foreach (NPC npc in npcsAtLocation)
+        foreach (global::Scene scene in scenes)
         {
-            List<Situation> npcSituations = _gameWorld.Situations
-                .Where(s => s.PlacementNpc?.ID == npc.ID)
-                .Where(s => s.Status != SituationStatus.Completed || s.Repeatable)
+            // Get current Situation from GameWorld.Situations using scene.CurrentSituationId
+            Situation situation = _gameWorld.Situations
+                .FirstOrDefault(s => s.Id == scene.CurrentSituationId);
+
+            if (situation == null) continue;
+
+            // STATE TRANSITION: Dormant → Active
+            if (situation.State == SituationState.Dormant)
+            {
+                ActivateSituationForLocation(situation, scene, player);
+            }
+
+            // Fetch already-instantiated actions
+            List<LocationAction> situationActions = _gameWorld.LocationActions
+                .Where(a => a.SituationId == situation.Id)
                 .ToList();
 
-            allSituationsAtLocation.AddRange(npcSituations);
+            allActions.AddRange(situationActions);
         }
 
-        // Separate available vs locked based on CompoundRequirement evaluation
-        List<Situation> availableSituations = new List<Situation>();
-        List<SituationWithLockReason> lockedSituations = new List<SituationWithLockReason>();
-
-        foreach (Situation situation in allSituationsAtLocation)
-        {
-            // Check if situation has requirements
-            if (situation.CompoundRequirement == null || situation.CompoundRequirement.OrPaths.Count == 0)
-            {
-                // No requirements = always available
-                availableSituations.Add(situation);
-            }
-            else
-            {
-                // Evaluate requirements
-                bool isUnlocked = situation.CompoundRequirement.IsAnySatisfied(player, _gameWorld);
-
-                if (isUnlocked)
-                {
-                    availableSituations.Add(situation);
-                }
-                else
-                {
-                    // Locked - create lock reason with detailed requirement info
-                    SituationWithLockReason lockedSituation = CreateLockedSituation(situation, player);
-                    lockedSituations.Add(lockedSituation);
-                }
-            }
-        }
-
-        // Generate contextual intro narrative
-        string introNarrative = GenerateIntroNarrative(location, npcsAtLocation, player);
-
-        // Create Scene instance (ephemeral, not stored in GameWorld)
-        Scene scene = new Scene
-        {
-            LocationId = locationId,
-            DisplayName = location.Name,
-            IntroNarrative = introNarrative,
-            AvailableSituations = availableSituations,
-            LockedSituations = lockedSituations,
-            CurrentDay = _timeFacade.GetCurrentDay(),
-            CurrentTimeBlock = _timeFacade.GetCurrentTimeBlock(),
-            CurrentSegment = _timeFacade.GetCurrentSegment()
-        };
-
-        return scene;
+        return allActions;
     }
 
     /// <summary>
-    /// Create locked situation with detailed requirement explanation
-    /// Perfect information pattern: player sees what they need to unlock
-    /// Populates strongly-typed requirement gaps for type-specific UI rendering
+    /// Activate dormant Situation for Location context
+    /// Instantiates ChoiceTemplates → LocationActions
+    /// Creates provisional Scenes for actions with spawn rewards
     /// </summary>
-    private SituationWithLockReason CreateLockedSituation(Situation situation, Player player)
+    private void ActivateSituationForLocation(Situation situation, global::Scene scene, Player player)
     {
-        List<string> pathDescriptions = new List<string>();
-        SituationWithLockReason lockedSituation = new SituationWithLockReason
-        {
-            Situation = situation
-        };
+        situation.State = SituationState.Active;
 
-        // For each OR path, collect unmet requirements
-        foreach (OrPath path in situation.CompoundRequirement.OrPaths)
+        // Instantiate actions from ChoiceTemplates
+        foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
         {
-            List<string> pathRequirements = new List<string>();
-            bool pathSatisfied = true;
-
-            foreach (NumericRequirement requirement in path.NumericRequirements)
+            LocationAction action = new LocationAction
             {
-                bool met = requirement.IsSatisfied(player, _gameWorld);
-                if (!met)
-                {
-                    pathSatisfied = false;
-                    pathRequirements.Add(requirement.Label);
+                Id = $"{situation.Id}_action_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
+                Name = choiceTemplate.ActionTextTemplate,
+                Description = "",
+                ChoiceTemplate = choiceTemplate,
+                SituationId = situation.Id,
 
-                    // Populate strongly-typed requirement based on Type
-                    PopulateTypedRequirement(lockedSituation, requirement, player);
-                }
-            }
+                // Legacy properties (empty - use ChoiceTemplate)
+                RequiredProperties = new List<LocationPropertyType>(),
+                OptionalProperties = new List<LocationPropertyType>(),
+                ExcludedProperties = new List<LocationPropertyType>(),
+                Costs = new ActionCosts(),
+                Rewards = new ActionRewards(),
+                TimeRequired = 0,
+                Availability = new List<TimeBlocks>(),
+                Priority = 100
+            };
 
-            if (!pathSatisfied)
-            {
-                // Path not satisfied - show what's needed
-                string pathDescription = path.Label;
-                if (pathRequirements.Count > 0)
-                {
-                    pathDescription += $": {string.Join(" AND ", pathRequirements)}";
-                }
-                pathDescriptions.Add(pathDescription);
-            }
-        }
+            // Create provisional Scenes for SceneSpawnRewards
+            CreateProvisionalScenesForAction(choiceTemplate, action, scene, player);
 
-        // Create human-readable lock reason
-        lockedSituation.LockReason = pathDescriptions.Count > 0
-            ? string.Join(" OR ", pathDescriptions)
-            : "Requirements not met";
-
-        return lockedSituation;
-    }
-
-    /// <summary>
-    /// Populate strongly-typed requirement in SituationWithLockReason based on requirement type
-    /// Each type populates different contextual property for UI rendering
-    /// </summary>
-    private void PopulateTypedRequirement(SituationWithLockReason lockedSituation, NumericRequirement requirement, Player player)
-    {
-        switch (requirement.Type)
-        {
-            case "BondStrength":
-                // Get NPC for bond requirement
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == requirement.Context);
-                int currentBond = npc?.BondStrength ?? 0;
-
-                // Only add if not already present (avoid duplicates from multiple paths)
-                if (!lockedSituation.UnmetBonds.Any(b => b.NpcId == requirement.Context))
-                {
-                    lockedSituation.UnmetBonds.Add(new UnmetBondRequirement
-                    {
-                        NpcId = requirement.Context,
-                        NpcName = npc?.Name ?? "Unknown",
-                        Required = requirement.Threshold,
-                        Current = currentBond
-                    });
-                }
-                break;
-
-            case "Scale":
-                // Get current scale value
-                int currentScale = GetPlayerScaleValue(player, requirement.Context);
-
-                if (!lockedSituation.UnmetScales.Any(s => s.ScaleType.ToString() == requirement.Context))
-                {
-                    if (Enum.TryParse<ScaleType>(requirement.Context, true, out ScaleType scaleType))
-                    {
-                        lockedSituation.UnmetScales.Add(new UnmetScaleRequirement
-                        {
-                            ScaleType = scaleType,
-                            Required = requirement.Threshold,
-                            Current = currentScale
-                        });
-                    }
-                }
-                break;
-
-            case "Resolve":
-                if (lockedSituation.UnmetResolve.Count == 0)  // Only one resolve requirement needed
-                {
-                    lockedSituation.UnmetResolve.Add(new UnmetResolveRequirement
-                    {
-                        Required = requirement.Threshold,
-                        Current = player.Resolve
-                    });
-                }
-                break;
-
-            case "Coins":
-                if (lockedSituation.UnmetCoins.Count == 0)  // Only one coins requirement needed
-                {
-                    lockedSituation.UnmetCoins.Add(new UnmetCoinsRequirement
-                    {
-                        Required = requirement.Threshold,
-                        Current = player.Coins
-                    });
-                }
-                break;
-
-            case "CompletedSituations":
-                if (lockedSituation.UnmetSituationCount.Count == 0)
-                {
-                    lockedSituation.UnmetSituationCount.Add(new UnmetSituationCountRequirement
-                    {
-                        Required = requirement.Threshold,
-                        Current = player.CompletedSituationIds.Count
-                    });
-                }
-                break;
-
-            case "Achievement":
-                if (!lockedSituation.UnmetAchievements.Any(a => a.AchievementId == requirement.Context))
-                {
-                    lockedSituation.UnmetAchievements.Add(new UnmetAchievementRequirement
-                    {
-                        AchievementId = requirement.Context,
-                        MustHave = requirement.Threshold > 0
-                    });
-                }
-                break;
-
-            case "State":
-                if (!lockedSituation.UnmetStates.Any(s => s.StateType.ToString() == requirement.Context))
-                {
-                    if (Enum.TryParse<StateType>(requirement.Context, true, out StateType stateType))
-                    {
-                        lockedSituation.UnmetStates.Add(new UnmetStateRequirement
-                        {
-                            StateType = stateType,
-                            MustHave = requirement.Threshold > 0
-                        });
-                    }
-                }
-                break;
+            _gameWorld.LocationActions.Add(action);
         }
     }
 
-    /// <summary>
-    /// Get current scale value for player by scale name
-    /// </summary>
-    private int GetPlayerScaleValue(Player player, string scaleName)
-    {
-        return scaleName switch
-        {
-            "Morality" => player.Scales.Morality,
-            "Lawfulness" => player.Scales.Lawfulness,
-            "Method" => player.Scales.Method,
-            "Caution" => player.Scales.Caution,
-            "Transparency" => player.Scales.Transparency,
-            "Fame" => player.Scales.Fame,
-            _ => 0
-        };
-    }
+    // ==================== NPC CONTEXT ====================
 
     /// <summary>
-    /// Generate contextual intro narrative based on current game state
-    /// Reflects time of day, NPCs present, player state
-    /// TODO: Integrate AI narrative service for dynamic generation
+    /// Get all actions available with an NPC
+    /// TRIGGERS: Situation Dormant → Active transition
+    /// CREATES: NPCActions from ChoiceTemplates
+    /// CREATES: Provisional Scenes for actions with spawn rewards
+    /// Called by UI when player opens conversation with NPC
     /// </summary>
-    private string GenerateIntroNarrative(Location location, List<NPC> npcsPresent, Player player)
+    public List<NPCAction> GetActionsForNPC(string npcId, Player player)
     {
-        // Simple template-based narrative for now
-        // TODO: Replace with AI service integration
+        Console.WriteLine($"[VALIDATION-L3] SceneFacade.GetActionsForNPC() called for NPC: {npcId}");
 
-        TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
-        string timeDescription = currentTime switch
-        {
-            TimeBlocks.Morning => "The morning sun illuminates",
-            TimeBlocks.Midday => "The midday light fills",
-            TimeBlocks.Afternoon => "The afternoon shadows lengthen across",
-            TimeBlocks.Evening => "The evening light fades over",
-            _ => "You find yourself at"
-        };
-
-        string narrative = $"{timeDescription} {location.Name}.";
-
-        // Add NPC presence
-        if (npcsPresent.Count > 0)
-        {
-            List<string> npcNames = npcsPresent.Select(n => n.Name).ToList();
-            if (npcNames.Count == 1)
-            {
-                narrative += $" {npcNames[0]} is here.";
-            }
-            else if (npcNames.Count == 2)
-            {
-                narrative += $" {npcNames[0]} and {npcNames[1]} are here.";
-            }
-            else
-            {
-                string lastNpc = npcNames[npcNames.Count - 1];
-                List<string> otherNpcs = npcNames.Take(npcNames.Count - 1).ToList();
-                narrative += $" {string.Join(", ", otherNpcs)}, and {lastNpc} are here.";
-            }
-        }
-
-        return narrative;
-    }
-
-    /// <summary>
-    /// Generate NPC scene - for direct NPC interaction
-    /// Similar to location scene but focused on single NPC's situations
-    /// </summary>
-    public Scene GenerateNPCScene(string npcId)
-    {
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-        if (npc == null)
-            return null;
-
-        Player player = _gameWorld.GetPlayer();
-
-        // Query situations for this NPC
-        List<Situation> allNpcSituations = _gameWorld.Situations
-            .Where(s => s.PlacementNpc?.ID == npcId)
-            .Where(s => s.Status != SituationStatus.Completed || s.Repeatable)
+        // Find active Scenes with this NPC
+        List<global::Scene> scenes = _gameWorld.Scenes
+            .Where(s => s.State == SceneState.Active &&
+                       s.PlacementType == PlacementType.NPC &&
+                       s.PlacementId == npcId)
             .ToList();
 
-        // Separate available vs locked
-        List<Situation> availableSituations = new List<Situation>();
-        List<SituationWithLockReason> lockedSituations = new List<SituationWithLockReason>();
+        Console.WriteLine($"[VALIDATION-L3] Found {scenes.Count} active Scenes at NPC {npcId}");
 
-        foreach (Situation situation in allNpcSituations)
+        List<NPCAction> allActions = new List<NPCAction>();
+
+        foreach (global::Scene scene in scenes)
         {
-            if (situation.CompoundRequirement == null || situation.CompoundRequirement.OrPaths.Count == 0)
+            // Get current Situation from GameWorld.Situations using scene.CurrentSituationId
+            Situation situation = _gameWorld.Situations
+                .FirstOrDefault(s => s.Id == scene.CurrentSituationId);
+
+            if (situation == null) continue;
+
+            // STATE TRANSITION: Dormant → Active
+            if (situation.State == SituationState.Dormant)
             {
-                availableSituations.Add(situation);
+                ActivateSituationForNPC(situation, scene, player);
             }
-            else
+
+            // Fetch already-instantiated actions
+            List<NPCAction> situationActions = _gameWorld.NPCActions
+                .Where(a => a.SituationId == situation.Id)
+                .ToList();
+
+            allActions.AddRange(situationActions);
+        }
+
+        return allActions;
+    }
+
+    /// <summary>
+    /// Activate dormant Situation for NPC context
+    /// Instantiates ChoiceTemplates → NPCActions
+    /// Creates provisional Scenes for actions with spawn rewards
+    /// </summary>
+    private void ActivateSituationForNPC(Situation situation, global::Scene scene, Player player)
+    {
+        Console.WriteLine($"[VALIDATION-L3] ActivateSituationForNPC() - Situation {situation.Id} transitioning Dormant → Active");
+
+        situation.State = SituationState.Active;
+
+        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.PlacementId);
+
+        Console.WriteLine($"[VALIDATION-L3] Instantiating {situation.Template.ChoiceTemplates.Count} ChoiceTemplates → NPCActions");
+
+        foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
+        {
+            NPCAction action = new NPCAction
             {
-                bool isUnlocked = situation.CompoundRequirement.IsAnySatisfied(player, _gameWorld);
-                if (isUnlocked)
+                Id = $"{situation.Id}_npcaction_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
+                Name = choiceTemplate.ActionTextTemplate,
+                Description = "",
+                NPCId = npc?.ID,
+                ChoiceTemplate = choiceTemplate,
+                SituationId = situation.Id,
+                ActionType = DetermineNPCActionType(choiceTemplate),
+                ChallengeId = choiceTemplate.ChallengeId,
+                ChallengeType = choiceTemplate.ChallengeType
+            };
+
+            // Create provisional Scenes for SceneSpawnRewards
+            CreateProvisionalScenesForAction(choiceTemplate, action, scene, player);
+
+            _gameWorld.NPCActions.Add(action);
+            Console.WriteLine($"[VALIDATION-L3] Created NPCAction: {action.Id} ({action.Name})");
+        }
+
+        Console.WriteLine($"[VALIDATION-L3] Situation {situation.Id} activation COMPLETE - {situation.Template.ChoiceTemplates.Count} actions instantiated");
+    }
+
+    // ==================== ROUTE CONTEXT ====================
+
+    /// <summary>
+    /// Get all path cards available on a route
+    /// TRIGGERS: Situation Dormant → Active transition
+    /// CREATES: PathCards from ChoiceTemplates
+    /// CREATES: Provisional Scenes for actions with spawn rewards
+    /// Called by UI when player begins traveling route
+    /// </summary>
+    public List<PathCard> GetPathCardsForRoute(string routeId, Player player)
+    {
+        // Find active Scenes on this route
+        List<global::Scene> scenes = _gameWorld.Scenes
+            .Where(s => s.State == SceneState.Active &&
+                       s.PlacementType == PlacementType.Route &&
+                       s.PlacementId == routeId)
+            .ToList();
+
+        List<PathCard> allPathCards = new List<PathCard>();
+
+        foreach (global::Scene scene in scenes)
+        {
+            // Get current Situation from GameWorld.Situations using scene.CurrentSituationId
+            Situation situation = _gameWorld.Situations
+                .FirstOrDefault(s => s.Id == scene.CurrentSituationId);
+
+            if (situation == null) continue;
+
+            // STATE TRANSITION: Dormant → Active
+            if (situation.State == SituationState.Dormant)
+            {
+                ActivateSituationForRoute(situation, scene, player);
+            }
+
+            // Fetch already-instantiated path cards
+            List<PathCard> situationCards = _gameWorld.PathCards
+                .Where(pc => pc.SituationId == situation.Id)
+                .ToList();
+
+            allPathCards.AddRange(situationCards);
+        }
+
+        return allPathCards;
+    }
+
+    /// <summary>
+    /// Activate dormant Situation for Route context
+    /// Instantiates ChoiceTemplates → PathCards
+    /// Creates provisional Scenes for actions with spawn rewards
+    /// </summary>
+    private void ActivateSituationForRoute(Situation situation, global::Scene scene, Player player)
+    {
+        situation.State = SituationState.Active;
+
+        foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
+        {
+            PathCard pathCard = new PathCard
+            {
+                Id = $"{situation.Id}_pathcard_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
+                Name = choiceTemplate.ActionTextTemplate,
+                NarrativeText = "",
+                ChoiceTemplate = choiceTemplate,
+
+                // Legacy properties (default - use ChoiceTemplate)
+                StartsRevealed = true,
+                IsHidden = false,
+                ExplorationThreshold = 0,
+                IsOneTime = false,
+                StaminaCost = 0,
+                TravelTimeSegments = 0,
+                StatRequirements = new Dictionary<string, int>()
+            };
+
+            // Create provisional Scenes for SceneSpawnRewards
+            CreateProvisionalScenesForAction(choiceTemplate, pathCard, scene, player);
+
+            _gameWorld.PathCards.Add(pathCard);
+        }
+    }
+
+    // ==================== SHARED HELPERS ====================
+
+    /// <summary>
+    /// Create provisional Scenes for ChoiceTemplate with SceneSpawnRewards
+    /// Shared across all three action types (Location/NPC/Route)
+    /// Stores provisional global::SceneID on action for perfect information display
+    /// </summary>
+    private void CreateProvisionalScenesForAction<T>(
+        ChoiceTemplate choiceTemplate,
+        T action,
+        global::Scene parentScene,
+        Player player) where T : class
+    {
+        if (choiceTemplate.RewardTemplate?.ScenesToSpawn?.Count > 0)
+        {
+            foreach (SceneSpawnReward spawnReward in choiceTemplate.RewardTemplate.ScenesToSpawn)
+            {
+                SceneTemplate template = _gameWorld.SceneTemplates
+                    .FirstOrDefault(t => t.Id == spawnReward.SceneTemplateId);
+
+                if (template != null)
                 {
-                    availableSituations.Add(situation);
-                }
-                else
-                {
-                    SituationWithLockReason lockedSituation = CreateLockedSituation(situation, player);
-                    lockedSituations.Add(lockedSituation);
+                    global::Scene provisionalScene = _sceneInstantiator.CreateProvisionalScene(
+                        template,
+                        spawnReward,
+                        BuildSpawnContext(parentScene, player)
+                    );
+
+                    // Store provisional global::SceneID on action (perfect information)
+                    if (action is LocationAction locationAction)
+                        locationAction.ProvisionalSceneId = provisionalScene.Id;
+                    else if (action is NPCAction npcAction)
+                        npcAction.ProvisionalSceneId = provisionalScene.Id;
+                    else if (action is PathCard pathCard)
+                        pathCard.SceneId = provisionalScene.Id;
                 }
             }
         }
+    }
 
-        // Generate NPC-specific intro
-        string introNarrative = $"Conversation with {npc.Name}.";
-        // TODO: Add bond strength context, connection state, etc.
-
-        Scene scene = new Scene
+    /// <summary>
+    /// Build SceneSpawnContext from parent global::Sceneplacement
+    /// </summary>
+    private SceneSpawnContext BuildSpawnContext(global::Scene parentScene, Player player)
+    {
+        return new SceneSpawnContext
         {
-            NpcId = npcId,
-            DisplayName = $"Conversation with {npc.Name}",
-            IntroNarrative = introNarrative,
-            AvailableSituations = availableSituations,
-            LockedSituations = lockedSituations,
-            CurrentDay = _timeFacade.GetCurrentDay(),
-            CurrentTimeBlock = _timeFacade.GetCurrentTimeBlock(),
-            CurrentSegment = _timeFacade.GetCurrentSegment()
+            Player = player,
+            CurrentLocation = parentScene.PlacementType == PlacementType.Location ?
+                _gameWorld.Venues.FirstOrDefault(v => v.Id == parentScene.PlacementId) : null,
+            CurrentNPC = parentScene.PlacementType == PlacementType.NPC ?
+                _gameWorld.NPCs.FirstOrDefault(n => n.ID == parentScene.PlacementId) : null,
+            CurrentRoute = parentScene.PlacementType == PlacementType.Route ?
+                _gameWorld.Routes.FirstOrDefault(r => r.Id == parentScene.PlacementId) : null,
+            CurrentSituation = null
         };
+    }
 
-        return scene;
+    /// <summary>
+    /// Determine NPCActionType from ChoiceTemplate properties
+    /// Migrated from SceneInstantiator (same logic, query-time execution)
+    /// </summary>
+    private NPCActionType DetermineNPCActionType(ChoiceTemplate template)
+    {
+        if (template.ActionType == ChoiceActionType.StartChallenge)
+        {
+            if (template.ChallengeType == TacticalSystemType.Social)
+                return NPCActionType.StartConversation;
+            else
+                return NPCActionType.InitiateSituation;
+        }
+        else if (template.ActionType == ChoiceActionType.Navigate)
+        {
+            return NPCActionType.StartConversationTree;
+        }
+        else // ChoiceActionType.Instant
+        {
+            return NPCActionType.Instant;
+        }
     }
 }

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Template for card-based dialogue
 /// </summary>

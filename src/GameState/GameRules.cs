@@ -1,7 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-
-public class ListenDrawCountEntry
+﻿public class ListenDrawCountEntry
 {
     public ConnectionState State { get; set; }
     public int DrawCount { get; set; }

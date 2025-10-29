@@ -1,6 +1,3 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-
 /// <summary>
 /// Extension methods for configuring the time system.
 /// </summary>

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Wrapper for active cards available to the player.
 /// Used by narrative providers to analyze card options and generate appropriate NPC dialogue.

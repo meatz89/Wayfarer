@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 /// <summary>
 /// V4 Mental Session - runtime state for active obligation
 /// Unified architecture with ConversationSession

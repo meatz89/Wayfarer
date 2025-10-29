@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Tracks animation state for individual cards in the conversation UI.
 /// </summary>

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Core market logic manager for all trading operations and market queries.
 /// Implements dynamic pricing system with location-based arbitrage opportunities.

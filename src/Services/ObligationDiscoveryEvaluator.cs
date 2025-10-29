@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Evaluates which obligations can be discovered based on game state
 /// STATELESS service - all state in GameWorld

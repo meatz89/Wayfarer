@@ -1,6 +1,3 @@
-using Microsoft.Extensions.Configuration;
-using System;
-
 public class OllamaConfiguration
 {
     public string BaseUrl { get; set; }

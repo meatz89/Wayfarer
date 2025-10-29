@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using Wayfarer.Content;
 using Wayfarer.GameState.Enums;
 
 /// <summary>
@@ -13,6 +10,7 @@ public class ObligationActivity
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
+    private readonly SceneInstantiator _sceneInstantiator;
 
     private ObligationDiscoveryResult _pendingDiscoveryResult;
     private ObligationActivationResult _pendingActivationResult;
@@ -22,10 +20,12 @@ public class ObligationActivity
 
     public ObligationActivity(
         GameWorld gameWorld,
-        MessageSystem messageSystem)
+        MessageSystem messageSystem,
+        SceneInstantiator sceneInstantiator)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
+        _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
     }
 
     /// <summary>
@@ -143,8 +143,8 @@ public class ObligationActivity
         _gameWorld.ObligationJournal.ActiveObligations.Add(activeObligation);
 
         // NOTE: Obligations no longer spawn situations directly
-        // Situations are contained within obstacles as children (containment pattern)
-        // Obstacles are spawned by obligation phase completion rewards
+        // Situations are contained within scenes as children (containment pattern)
+        // Scenes are spawned by obligation phase completion rewards
 
         _messageSystem.AddSystemMessage(
             $"Obligation activated: {obligation.Name}",
@@ -183,7 +183,7 @@ public class ObligationActivity
         }
 
         // Grant Understanding from phase completion rewards (0-10 max)
-        if (completedPhase.CompletionReward.UnderstandingReward > 0)
+        if (completedPhase.CompletionReward != null && completedPhase.CompletionReward.UnderstandingReward > 0)
         {
             Player player = _gameWorld.GetPlayer();
             int newUnderstanding = Math.Min(10, player.Understanding + completedPhase.CompletionReward.UnderstandingReward);
@@ -194,24 +194,24 @@ public class ObligationActivity
                 SystemMessageTypes.Success);
         }
 
-        // Spawn obstacles from phase completion rewards
-        if (completedPhase.CompletionReward.ObstaclesSpawned.Count > 0)
+        // Spawn scenes from phase completion rewards using Scene-Situation template architecture
+        if (completedPhase.CompletionReward != null && completedPhase.CompletionReward.ScenesToSpawn.Count > 0)
         {
-            foreach (ObstacleSpawnInfo spawnInfo in completedPhase.CompletionReward.ObstaclesSpawned)
+            foreach (SceneSpawnReward sceneSpawn in completedPhase.CompletionReward.ScenesToSpawn)
             {
-                SpawnObstacle(spawnInfo);
+                SpawnSceneFromTemplate(sceneSpawn, null);
             }
         }
 
         // NOTE: Situations are no longer spawned by obligations
-        // Situations are contained within obstacles as children (containment pattern)
-        // New leads come from obstacle-spawned situations, not phase-spawned situations
+        // Situations are contained within scenes as children (containment pattern)
+        // New leads come from scene-spawned situations, not phase-spawned situations
         List<NewLeadInfo> newLeads = new List<NewLeadInfo>();
 
-        // NOTE: Obstacles no longer have ObligationId property - obligations tracked via Understanding resource
-        // Progress now measured by Understanding accumulated, not obstacle counts
-        int resolvedObstacleCount = 0; // Legacy - UI needs redesign
-        int totalObstacleCount = 1; // Legacy - UI needs redesign
+        // NOTE: Scenes no longer have ObligationId property - obligations tracked via Understanding resource
+        // Progress now measured by Understanding accumulated, not scene counts
+        int resolvedSceneCount = 0; // Legacy - UI needs redesign
+        int totalSceneCount = 1; // Legacy - UI needs redesign
 
         // Build result for UI modal
         ObligationProgressResult result = new ObligationProgressResult
@@ -221,8 +221,8 @@ public class ObligationActivity
             CompletedSituationName = completedPhase.Name,
             OutcomeNarrative = completedPhase.OutcomeNarrative,
             NewLeads = newLeads,
-            CompletedSituationCount = resolvedObstacleCount,
-            TotalSituationCount = totalObstacleCount
+            CompletedSituationCount = resolvedSceneCount,
+            TotalSituationCount = totalSceneCount
         };
 
         _pendingProgressResult = result;
@@ -252,8 +252,8 @@ public class ObligationActivity
             return null;
         }
 
-        // NOTE: Obstacles no longer have ObligationId property - obligations tracked via Understanding resource
-        // Completion now based on Understanding reaching requirement, not obstacle counts
+        // NOTE: Scenes no longer have ObligationId property - obligations tracked via Understanding resource
+        // Completion now based on Understanding reaching requirement, not scene counts
         // TODO: Add UnderstandingRequired property to Obligation model
         int requiredUnderstanding = 10; // Default completion threshold
         if (activeInv.UnderstandingAccumulated < requiredUnderstanding)
@@ -341,7 +341,7 @@ public class ObligationActivity
     }
 
     /// <summary>
-    /// Discover obligation - moves Potential → Active and immediately spawns intro obstacles
+    /// Discover obligation - moves Potential → Active and immediately spawns intro scenes
     /// DISCOVERED = ACTIVE: No intermediate state, discovery immediately activates obligation
     /// Sets pending discovery result for UI modal display
     /// </summary>
@@ -364,17 +364,17 @@ public class ObligationActivity
         };
         _gameWorld.ObligationJournal.ActiveObligations.Add(activeObligation);
 
-        // Spawn obstacles from intro completion reward IMMEDIATELY
-        if (obligation.IntroAction.CompletionReward.ObstaclesSpawned.Count > 0)
+        // Spawn scenes from intro completion reward IMMEDIATELY using Scene-Situation template architecture
+        if (obligation.IntroAction.CompletionReward != null && obligation.IntroAction.CompletionReward.ScenesToSpawn.Count > 0)
         {
-            foreach (ObstacleSpawnInfo spawnInfo in obligation.IntroAction.CompletionReward.ObstaclesSpawned)
+            foreach (SceneSpawnReward sceneSpawn in obligation.IntroAction.CompletionReward.ScenesToSpawn)
             {
-                SpawnObstacle(spawnInfo);
+                SpawnSceneFromTemplate(sceneSpawn, null);
             }
         }
 
         // Grant Understanding from intro completion reward (0-10 max)
-        if (obligation.IntroAction.CompletionReward.UnderstandingReward > 0)
+        if (obligation.IntroAction.CompletionReward != null && obligation.IntroAction.CompletionReward.UnderstandingReward > 0)
         {
             Player player = _gameWorld.GetPlayer();
             int newUnderstanding = Math.Min(10, player.Understanding + obligation.IntroAction.CompletionReward.UnderstandingReward);
@@ -414,7 +414,7 @@ public class ObligationActivity
 
     /// <summary>
     /// Complete intro action - LEGACY METHOD, now redundant
-    /// DiscoverObligation() now immediately activates and spawns obstacles
+    /// DiscoverObligation() now immediately activates and spawns scenes
     /// This method is safe to call but does nothing if obligation already active
     /// </summary>
     public void CompleteIntroAction(string obligationId)
@@ -439,17 +439,17 @@ public class ObligationActivity
         // Activate obligation (moves Discovered → Active)
         ActivateObligation(obligationId);
 
-        // Spawn obstacles from intro completion reward
-        if (obligation.IntroAction.CompletionReward.ObstaclesSpawned.Count > 0)
+        // Spawn scenes from intro completion reward using Scene-Situation template architecture
+        if (obligation.IntroAction.CompletionReward != null && obligation.IntroAction.CompletionReward.ScenesToSpawn.Count > 0)
         {
-            foreach (ObstacleSpawnInfo spawnInfo in obligation.IntroAction.CompletionReward.ObstaclesSpawned)
+            foreach (SceneSpawnReward sceneSpawn in obligation.IntroAction.CompletionReward.ScenesToSpawn)
             {
-                SpawnObstacle(spawnInfo);
+                SpawnSceneFromTemplate(sceneSpawn, null);
             }
         }
 
         // Grant Understanding from intro completion reward (0-10 max)
-        if (obligation.IntroAction.CompletionReward.UnderstandingReward > 0)
+        if (obligation.IntroAction.CompletionReward != null && obligation.IntroAction.CompletionReward.UnderstandingReward > 0)
         {
             Player player = _gameWorld.GetPlayer();
             int newUnderstanding = Math.Min(10, player.Understanding + obligation.IntroAction.CompletionReward.UnderstandingReward);
@@ -474,92 +474,111 @@ public class ObligationActivity
     }
 
     /// <summary>
-    /// Spawn an obstacle at the specified target entity as obligation phase reward
+    /// Spawn Scene from template as obligation phase reward
+    /// Uses Scene-Situation template architecture with SceneInstantiator
+    /// Obligation rewards use SpecificLocation/SpecificNPC/SpecificRoute placement
     /// </summary>
-    private void SpawnObstacle(ObstacleSpawnInfo spawnInfo)
+    private void SpawnSceneFromTemplate(SceneSpawnReward sceneSpawn, Situation sourceSituation)
     {
-        if (spawnInfo.Obstacle == null)
-            return;
-
-        switch (spawnInfo.TargetType)
+        // Get SceneTemplate from GameWorld
+        SceneTemplate template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == sceneSpawn.SceneTemplateId);
+        if (template == null)
         {
-            case ObstacleSpawnTargetType.Location:
-                Location location = _gameWorld.GetLocation(spawnInfo.TargetEntityId);
-                if (location == null)
-                {
-                    return;
-                }
-                // Duplicate ID protection - prevent data corruption
-                if (!_gameWorld.Obstacles.Any(o => o.Id == spawnInfo.Obstacle.Id))
-                {
-                    _gameWorld.Obstacles.Add(spawnInfo.Obstacle);
-                    location.ObstacleIds.Add(spawnInfo.Obstacle.Id);
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"Duplicate obstacle ID '{spawnInfo.Obstacle.Id}' found when spawning at Location '{location.Name}'. " +
-                        $"Obstacle IDs must be globally unique across all packages.");
-                }
-                _messageSystem.AddSystemMessage(
-                    $"New obstacle appeared at {location.Name}: {spawnInfo.Obstacle.Name}",
-                    SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage(
+                $"Scene template '{sceneSpawn.SceneTemplateId}' not found",
+                SystemMessageTypes.Warning);
+            return;
+        }
+
+        // Build SceneSpawnContext based on placement relation
+        // Obligation rewards use Specific* placement, so resolve entity from SpecificPlacementId
+        SceneSpawnContext context = BuildContextForObligationReward(sceneSpawn);
+        if (context == null)
+        {
+            _messageSystem.AddSystemMessage(
+                $"Cannot resolve placement for scene template '{sceneSpawn.SceneTemplateId}'",
+                SystemMessageTypes.Warning);
+            return;
+        }
+
+        // Create provisional Scene
+        Scene provisionalScene = _sceneInstantiator.CreateProvisionalScene(template, sceneSpawn, context);
+
+        // Immediately finalize (Obligation rewards spawn immediately, no player choice)
+        Scene finalizedScene = _sceneInstantiator.FinalizeScene(provisionalScene.Id, context);
+
+        // Add system message based on placement
+        string placementDescription = GetPlacementDescription(finalizedScene);
+        _messageSystem.AddSystemMessage(
+            $"New scene appeared: {finalizedScene.DisplayName} {placementDescription}",
+            SystemMessageTypes.Warning);
+    }
+
+    /// <summary>
+    /// Build SceneSpawnContext for Obligation rewards
+    /// Obligation rewards use SpecificLocation/SpecificNPC/SpecificRoute placement
+    /// Resolve entities from SpecificPlacementId
+    /// </summary>
+    private SceneSpawnContext BuildContextForObligationReward(SceneSpawnReward sceneSpawn)
+    {
+        SceneSpawnContext context = new SceneSpawnContext
+        {
+            CurrentSituation = null // Obligation rewards spawn independent of Situations
+        };
+
+        switch (sceneSpawn.PlacementRelation)
+        {
+            case PlacementRelation.SpecificLocation:
+                Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == sceneSpawn.SpecificPlacementId);
+                if (location == null) return null;
+
+                Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId);
+                if (venue == null) return null;
+
+                context.CurrentLocation = venue;
                 break;
 
-            case ObstacleSpawnTargetType.Route:
-                // Find route in GameWorld.Routes
-                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == spawnInfo.TargetEntityId);
-                if (route == null)
-                {
-                    return;
-                }
-                // Duplicate ID protection - prevent data corruption
-                if (!_gameWorld.Obstacles.Any(o => o.Id == spawnInfo.Obstacle.Id))
-                {
-                    _gameWorld.Obstacles.Add(spawnInfo.Obstacle);
-                    route.ObstacleIds.Add(spawnInfo.Obstacle.Id);
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"Duplicate obstacle ID '{spawnInfo.Obstacle.Id}' found when spawning on Route '{route.Name}'. " +
-                        $"Obstacle IDs must be globally unique across all packages.");
-                }
-                _messageSystem.AddSystemMessage(
-                    $"New obstacle appeared on route to {route.Name}: {spawnInfo.Obstacle.Name}",
-                    SystemMessageTypes.Warning);
+            case PlacementRelation.SpecificNPC:
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == sceneSpawn.SpecificPlacementId);
+                if (npc == null) return null;
+                context.CurrentNPC = npc;
                 break;
 
-            case ObstacleSpawnTargetType.NPC:
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == spawnInfo.TargetEntityId);
-                if (npc == null)
-                {
-                    return;
-                }
-                // Validate: NPCs can ONLY have Social context obstacles
-                ObstacleContext[] socialContexts = { ObstacleContext.Authority, ObstacleContext.Deception, ObstacleContext.Persuasion, ObstacleContext.Intimidation, ObstacleContext.Empathy, ObstacleContext.Negotiation, ObstacleContext.Etiquette };
-                if (!spawnInfo.Obstacle.Contexts.Any(c => socialContexts.Contains(c)))
-                {
-                    return;
-                }
-                // Duplicate ID protection - prevent data corruption
-                if (!_gameWorld.Obstacles.Any(o => o.Id == spawnInfo.Obstacle.Id))
-                {
-                    _gameWorld.Obstacles.Add(spawnInfo.Obstacle);
-                    npc.ObstacleIds.Add(spawnInfo.Obstacle.Id);
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"Duplicate obstacle ID '{spawnInfo.Obstacle.Id}' found when spawning on NPC '{npc.Name}'. " +
-                        $"Obstacle IDs must be globally unique across all packages.");
-                }
-                _messageSystem.AddSystemMessage(
-                    $"New social obstacle with {npc.Name}: {spawnInfo.Obstacle.Name}",
-                    SystemMessageTypes.Warning);
+            case PlacementRelation.SpecificRoute:
+                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == sceneSpawn.SpecificPlacementId);
+                if (route == null) return null;
+                context.CurrentRoute = route;
                 break;
 
-            default: break;
+            default:
+                // Obligation rewards should ONLY use Specific* placement
+                return null;
+        }
+
+        return context;
+    }
+
+    /// <summary>
+    /// Get human-readable placement description for system message
+    /// </summary>
+    private string GetPlacementDescription(Scene scene)
+    {
+        switch (scene.PlacementType)
+        {
+            case PlacementType.Location:
+                Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == scene.PlacementId);
+                return location != null ? $"at {location.Name}" : "";
+
+            case PlacementType.NPC:
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.PlacementId);
+                return npc != null ? $"with {npc.Name}" : "";
+
+            case PlacementType.Route:
+                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == scene.PlacementId);
+                return route != null ? $"on route to {route.Name}" : "";
+
+            default:
+                return "";
         }
     }
 

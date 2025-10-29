@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 public class CardInstance
 {
     public string InstanceId { get; init; } = Guid.NewGuid().ToString();

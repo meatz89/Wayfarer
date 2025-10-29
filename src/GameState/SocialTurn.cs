@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Represents a single turn in a conversation, containing all data from that turn
 /// </summary>

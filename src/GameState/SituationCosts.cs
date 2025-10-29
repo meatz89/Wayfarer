@@ -36,7 +36,7 @@ public class SituationCosts
     /// Stamina consumed by Physical challenges
     /// Competition: Limited Stamina pool (0-100), shared by ALL Physical situations
     /// Recovery: Rest actions, food, time passing
-    /// Strategic choice: Force through obstacle vs find alternate route
+    /// Strategic choice: Force through scene vs find alternate route
     /// Example: Force Through costs 30 Stamina, Find Route costs 15 Focus
     /// Resource competition: Use Stamina or Focus?
     /// </summary>

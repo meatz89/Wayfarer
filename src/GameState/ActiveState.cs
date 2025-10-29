@@ -1,5 +1,3 @@
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// Active State instance - temporary condition currently affecting the player
 /// Stored in Player.ActiveStates list, tracked with segment-based duration

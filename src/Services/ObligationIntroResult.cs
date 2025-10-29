@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Result returned when player clicks obligation intro button
 /// Contains data for displaying the RPG quest acceptance modal

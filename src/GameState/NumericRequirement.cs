@@ -1,5 +1,3 @@
-using System.Linq;
-
 /// <summary>
 /// Numeric Requirement - individual threshold check
 /// Used within CompoundRequirement OR paths

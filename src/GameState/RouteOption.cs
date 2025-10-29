@@ -83,9 +83,9 @@ public class RouteOption
     // Starting stamina for this route
     public int StartingStamina { get; set; } = 3;
 
-    // Obstacles on this route (bandits, flooding, difficult terrain challenges)
-    // References obstacles in GameWorld.Obstacles (single source of truth)
-    public List<string> ObstacleIds { get; set; } = new List<string>();
+    // NOTE: Old SceneIds property removed - NEW Scene-Situation architecture
+    // Scenes now spawn via Situation spawn rewards (SceneSpawnReward) instead of Route ownership
+    // Routes no longer directly own scenes - scenes are managed by Situation lifecycle
 
     // Localized mastery - ExplorationCubes reveal hidden path options on THIS route only
     // 0-10 scale: 0 cubes = only basic paths visible, 10 cubes = all optimal paths revealed

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 /// <summary>
 /// Strongly typed context for contextual messages
 /// </summary>

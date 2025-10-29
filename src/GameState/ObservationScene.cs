@@ -1,56 +1,29 @@
 /// <summary>
-/// Scene investigation with multiple examination points.
-/// Player has limited resources and must prioritize what to examine.
+/// ObservationScene - Mental challenge system for scene investigation.
+/// Represents a location-based investigation with multiple examination points.
+/// Players spend Focus to examine points, gaining knowledge and triggering events.
+/// Part of the Mental tactical layer (distinct from old equipment-based Scene system).
 /// </summary>
 public class ObservationScene
 {
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public Location Location { get; set; }  // Resolved during parsing
 
-    // Availability
+    // Placement context (NOT ownership)
+    public string LocationId { get; set; }
+    public Location Location { get; set; }
+
+    // Access requirements
     public List<string> RequiredKnowledge { get; set; } = new List<string>();
+
+    // Repeatability
     public bool IsRepeatable { get; set; }
+
+    // Completion state
     public bool IsCompleted { get; set; }
-
-    // Examination points
-    public List<ExaminationPoint> ExaminationPoints { get; set; } = new List<ExaminationPoint>();
-
-    // Tracking
     public List<string> ExaminedPointIds { get; set; } = new List<string>();
-}
 
-/// <summary>
-/// A specific point of interest within an observation scene that can be examined.
-/// Costs resources, may have requirements, grants outcomes.
-/// </summary>
-public class ExaminationPoint
-{
-    public string Id { get; set; }
-    public string Title { get; set; }
-    public string Description { get; set; }
-
-    // Costs
-    public int FocusCost { get; set; }
-    public int TimeCost { get; set; }
-
-    // Requirements
-    public PlayerStatType? RequiredStat { get; set; }
-    public int? RequiredStatLevel { get; set; }
-    public List<string> RequiredKnowledge { get; set; } = new List<string>();
-
-    // Outcomes
-    public List<string> GrantedKnowledge { get; set; } = new List<string>();
-    public string SpawnedSituationId { get; set; }
-    public string SpawnedConversationId { get; set; }
-    public string FoundItemId { get; set; }
-    public int FindItemChance { get; set; }  // 0-100 percentage
-
-    // Discovery progression (examining one point reveals another)
-    public string RevealsExaminationPointId { get; set; }
-
-    // State
-    public bool IsHidden { get; set; }
-    public bool IsExamined { get; set; }
+    // Examination content
+    public List<ExaminationPoint> ExaminationPoints { get; set; } = new List<ExaminationPoint>();
 }

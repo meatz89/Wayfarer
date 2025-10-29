@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Day-end summary data structure containing all changes that occurred during the day
 /// Used for comprehensive reporting and player feedback at day boundary

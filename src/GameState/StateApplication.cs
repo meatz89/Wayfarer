@@ -1,5 +1,3 @@
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// Projected state application or removal
 /// Shows temporary condition consequence before player commits to situation

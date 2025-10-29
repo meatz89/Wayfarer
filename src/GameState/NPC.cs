@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 public class NPC
 {
     // Identity
@@ -83,9 +79,9 @@ public class NPC
     // References situations in GameWorld.Situations dictionary (single source of truth)
     public List<string> ActiveSituationIds { get; set; } = new List<string>();
 
-    // Obstacle IDs for this NPC (Social barriers only - NPCs can only have SocialDifficulty obstacles)
-    // References obstacles in GameWorld.Obstacles list
-    public List<string> ObstacleIds { get; set; } = new List<string>();
+    // NOTE: Old SceneIds property removed - NEW Scene-Situation architecture
+    // Scenes now spawn via Situation spawn rewards (SceneSpawnReward) instead of NPC ownership
+    // NPCs no longer directly own scenes - scenes are managed by Situation lifecycle
 
     /// <summary>
     /// Object reference to location (for runtime navigation)

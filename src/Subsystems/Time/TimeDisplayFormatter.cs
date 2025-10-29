@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Formats time for display in the UI.
 /// </summary>

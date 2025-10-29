@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Represents a specific conversation option that maps to a situation card from the NPC's requests.
 /// Each conversation option corresponds to exactly one situation card.

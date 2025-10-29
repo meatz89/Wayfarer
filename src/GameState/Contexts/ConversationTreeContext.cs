@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// Context for ConversationTree screens containing conversation state and metadata.
 /// Provides view model data for simple dialogue tree navigation.

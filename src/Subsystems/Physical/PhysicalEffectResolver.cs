@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// PROJECTION PRINCIPLE: Pure projection function that returns what WOULD happen
 /// without modifying any game state. The resolver NEVER modifies state directly.

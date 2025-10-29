@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Tracks progress for a single stat (level and XP)
 /// </summary>

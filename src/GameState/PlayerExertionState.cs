@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Represents player's physical and mental exertion state
 /// Used to dynamically modify tactical card costs based on player fatigue

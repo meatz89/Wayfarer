@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 public class MentalFacade
 {
     private readonly GameWorld _gameWorld;
@@ -191,73 +186,7 @@ public class MentalFacade
         // SYMMETRY RESTORATION: Check situation card type BEFORE template check
         // Situation cards have no MentalCardTemplate, so must be checked first
         if (card.CardType == CardTypes.Situation)
-        {// Apply obstacle effects via containment pattern (THREE PARALLEL SYSTEMS symmetry)
-            // DISTRIBUTED INTERACTION: Find parent obstacle from Situation.ParentObstacle
-            Player currentPlayer = _gameWorld.GetPlayer();
-            Location location = currentPlayer.CurrentLocation;
-
-            // Get situation and its parent obstacle via object references
-            Situation situation = _gameWorld.Situations.FirstOrDefault(g => g.Id == _gameWorld.CurrentMentalSituationId);
-            if (situation == null)
-                return null; // Situation not found
-
-            Obstacle parentObstacle = situation.ParentObstacle;
-
-            if (parentObstacle != null)
-            {// PHASE 2: Five Consequence Types
-                switch (situation.ConsequenceType)
-                {
-                    case Wayfarer.GameState.Enums.ConsequenceType.Resolution:
-                        // Permanently overcome - mark as Resolved, remove from play
-                        parentObstacle.State = Wayfarer.GameState.Enums.ObstacleState.Resolved;
-                        parentObstacle.ResolutionMethod = situation.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = situation.SetsRelationshipOutcome;
-
-                        if (!parentObstacle.IsPermanent)
-                        {
-                            location.ObstacleIds.Remove(parentObstacle.Id);
-                        }
-                        break;
-
-                    case Wayfarer.GameState.Enums.ConsequenceType.Bypass:
-                        // Player passes, obstacle persists
-                        parentObstacle.ResolutionMethod = situation.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = situation.SetsRelationshipOutcome; break;
-
-                    case Wayfarer.GameState.Enums.ConsequenceType.Transform:
-                        // Fundamentally changed - intensity to 0, new description
-                        parentObstacle.State = Wayfarer.GameState.Enums.ObstacleState.Transformed;
-                        parentObstacle.Intensity = 0;
-
-                        if (!string.IsNullOrEmpty(situation.TransformDescription))
-                        {
-                            parentObstacle.TransformedDescription = situation.TransformDescription;
-                        }
-
-                        parentObstacle.ResolutionMethod = situation.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = situation.SetsRelationshipOutcome; break;
-
-                    case Wayfarer.GameState.Enums.ConsequenceType.Modify:
-                        // Intensity reduced - other situations may unlock
-                        parentObstacle.Intensity = Math.Max(0,
-                            parentObstacle.Intensity - situation.PropertyReduction.ReduceIntensity);
-
-                        parentObstacle.ResolutionMethod = Wayfarer.GameState.Enums.ResolutionMethod.Preparation;
-
-                        // Check if intensity now at 0 (auto-transform)
-                        if (parentObstacle.Intensity == 0)
-                        {
-                            parentObstacle.State = Wayfarer.GameState.Enums.ObstacleState.Transformed;
-                        }
-                        break;
-
-                    case Wayfarer.GameState.Enums.ConsequenceType.Grant:
-                        // Grant items/knowledge, no obstacle change
-                        // (Knowledge cards handled in Phase 3, items already handled by reward system)
-                        break;
-                }
-            }
-            // Else: ambient situation with no obstacle parent
+        {
 
             // Complete situation through SituationCompletionHandler (handles obligation progress)
             Situation completedSituation = _gameWorld.Situations.FirstOrDefault(g => g.Id == _gameWorld.CurrentMentalSituationId);
@@ -453,9 +382,9 @@ public class MentalFacade
         // PROGRESSION SYSTEM: Award Venue familiarity on success
         if (success && !string.IsNullOrEmpty(_gameWorld.CurrentMentalSession.VenueId))
         {
-            int currentFamiliarity = player.LocationFamiliarity.GetFamiliarity(_gameWorld.CurrentMentalSession.VenueId);
+            int currentFamiliarity = player.GetLocationFamiliarity(_gameWorld.CurrentMentalSession.VenueId);
             int newFamiliarity = Math.Min(3, currentFamiliarity + 1); // Max familiarity is 3
-            player.LocationFamiliarity.SetFamiliarity(_gameWorld.CurrentMentalSession.VenueId, newFamiliarity);
+            player.SetLocationFamiliarity(_gameWorld.CurrentMentalSession.VenueId, newFamiliarity);
         }
 
         // Clear obligation context

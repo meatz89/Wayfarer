@@ -1,7 +1,7 @@
 namespace Wayfarer.GameState.Enums;
 
 /// <summary>
-/// How obstacle was overcome
+/// How scene was overcome
 /// Provides semantic context for AI narrative generation
 /// </summary>
 public enum ResolutionMethod

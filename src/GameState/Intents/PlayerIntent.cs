@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Base class for all player intents. Intents represent what the player wants to do,
 /// without any execution logic or context. They are pure data objects.

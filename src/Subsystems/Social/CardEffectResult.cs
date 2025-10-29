@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Result of processing a card effect - COMPLETE projection of all resource changes
 /// THREE PARALLEL SYSTEMS: Matches MentalCardEffectResult and PhysicalCardEffectResult structure

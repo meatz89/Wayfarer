@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 public class TokenMechanicsManager
 {
     private readonly GameWorld _gameWorld;
@@ -72,7 +69,7 @@ public class TokenMechanicsManager
         int modifiedCount = (int)Math.Ceiling(count * modifier);
 
         // Initialize NPC token tracking if needed
-        NPCTokenEntry npcEntry = npcTokens.GetNPCTokenEntry(npcId);
+        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npcId);
 
         // Track old token count for category unlock checking
         int oldTokenCount = npcEntry.GetTokenCount(type);
@@ -109,7 +106,7 @@ public class TokenMechanicsManager
         Player player = _gameWorld.GetPlayer();
 
         // Get or create NPC token entry
-        NPCTokenEntry npcEntry = player.NPCTokens.GetNPCTokenEntry(npcId);
+        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npcId);
         int currentCount = npcEntry.GetTokenCount(type);
 
         // reduce from NPC relationship (can go negative)
@@ -192,7 +189,7 @@ public class TokenMechanicsManager
         List<NPCTokenEntry> npcTokens = player.NPCTokens;
 
         // Get or create NPC token entry
-        NPCTokenEntry npcEntry = npcTokens.GetNPCTokenEntry(npcId);
+        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npcId);
 
         // Track old count for obligation checking
         int oldCount = npcEntry.GetTokenCount(type);
@@ -298,7 +295,7 @@ public class TokenMechanicsManager
             return false;
 
         // Get or create NPC token entry and deduct tokens
-        NPCTokenEntry npcEntry = player.NPCTokens.GetNPCTokenEntry(npcId);
+        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npcId);
         npcEntry.SetTokenCount(type, tokensOfType - amount);
 
         // Add narrative feedback

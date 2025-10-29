@@ -1,5 +1,3 @@
-using System.Linq;
-
 // Conversation session
 public class SocialSession
 {

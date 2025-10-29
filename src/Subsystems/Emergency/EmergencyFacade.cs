@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Wayfarer.GameState;
-
 /// <summary>
 /// Public facade for emergency situation operations.
 /// Handles urgent situations that interrupt normal gameplay and demand immediate response.
@@ -342,9 +337,13 @@ public class EmergencyResult
     public bool Success { get; set; }
     public string Message { get; set; }
 
-    public static EmergencyResult Failed(string message) =>
-        new EmergencyResult { Success = false, Message = message };
+    public static EmergencyResult Failed(string message)
+    {
+        return new EmergencyResult { Success = false, Message = message };
+    }
 
-    public static EmergencyResult Resolved(string message) =>
-        new EmergencyResult { Success = true, Message = message };
+    public static EmergencyResult Resolved(string message)
+    {
+        return new EmergencyResult { Success = true, Message = message };
+    }
 }

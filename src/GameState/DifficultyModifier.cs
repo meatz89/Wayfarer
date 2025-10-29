@@ -17,7 +17,7 @@ public class DifficultyModifier
     /// - Mastery: Challenge type ("Combat", "Athletics", etc.)
     /// - Familiarity: NOT USED (uses situation.PlacementLocationId instead)
     /// - ConnectionTokens: NOT USED (uses situation.NpcId instead)
-    /// - ObstacleProperty: Property name (always "Intensity" now)
+    /// - SceneProperty: Property name (always "Intensity" now)
     /// - HasItemCategory: ItemCategory enum value as string ("Light_Source", "Navigation_Tools", etc.)
     /// </summary>
     public string Context { get; set; }
@@ -28,7 +28,7 @@ public class DifficultyModifier
     /// - Mastery: 0-3
     /// - Familiarity: 0-3
     /// - ConnectionTokens: 0-15
-    /// - ObstacleProperty: Maximum threshold (inverted: lower is better)
+    /// - SceneProperty: Maximum threshold (inverted: lower is better)
     /// - HasItemCategory: Not used (presence check only)
     /// </summary>
     public int Threshold { get; set; }
@@ -63,7 +63,7 @@ public enum ModifierType
     /// Physical expertise per challenge type (0-3 scale per type)
     /// Accumulated through Physical challenges of specific types
     /// Never depletes (cumulative per-type growth)
-    /// Competition: Multiple physical obstacles need it, limited Stamina to accumulate
+    /// Competition: Multiple physical scenes need it, limited Stamina to accumulate
     /// Context: Challenge type ("Combat", "Athletics", "Finesse", etc.)
     /// Threshold: Minimum Mastery needed for that type (e.g., 2)
     /// Effect: Danger reduction (e.g., -3)
@@ -93,15 +93,15 @@ public enum ModifierType
     ConnectionTokens,
 
     /// <summary>
-    /// Obstacle property threshold check
-    /// Checks if obstacle intensity meets threshold
+    /// Scene property threshold check
+    /// Checks if scene intensity meets threshold
     /// Context: Property name (always "Intensity" now)
     /// Threshold: Maximum intensity value (inverted logic: lower is better)
     /// Effect: Difficulty change (can be positive or negative)
     /// Example: If Intensity <= 2, reduce difficulty by 3
     /// Example: If Intensity > 3, increase difficulty by 2
     /// </summary>
-    ObstacleProperty,
+    SceneProperty,
 
     /// <summary>
     /// Equipment category presence (MECHANICAL PROPERTY, NOT ID)

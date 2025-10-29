@@ -7,6 +7,5 @@ public enum LocationViewState
     Landing,
     LookingAround,
     SituationDetail,
-    Spots,
-    Equipment
+    Spots
 }

@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Context for Emergency screens containing situation state and metadata.
 /// Provides view model data for urgent situations demanding immediate response.

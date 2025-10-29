@@ -1,6 +1,3 @@
-using System;
-using System.Linq;
-
 /// <summary>
 /// Validates movement between locations and Locations.
 /// Enforces movement rules and access requirements.

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 public class District
 {
     public string Id { get; set; }

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Represents a personality-specific conversation modifier
 /// Maps a personality type to its mechanical effect and parameters

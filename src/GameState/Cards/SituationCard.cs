@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// SituationCard - tactical layer victory condition
 /// Universal across all three challenge types (Social/Mental/Physical)
@@ -99,6 +97,4 @@ public class SituationCardRewards
     public string EquipmentId { get; set; }
     public CreateObligationReward CreateObligationData { get; set; }
     public RouteSegmentUnlock RouteSegmentUnlock { get; set; }
-
-    public ObstaclePropertyReduction ObstacleReduction { get; set; }
 }

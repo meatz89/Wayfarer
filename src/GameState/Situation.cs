@@ -1,10 +1,10 @@
-using System.Collections.Generic;
 using Wayfarer.GameState.Enums;
 
 /// <summary>
-/// Situation - approach to overcome obstacle (lives inside obstacle as child)
-/// Universal across all three challenge types (Social/Mental/Physical)
-/// PlacementLocation/PlacementNpc object references determine WHERE button appears (not ownership)
+/// Situation - narrative moment embedded within Scene
+/// Part of three-tier timing model: Templates → Scenes/Situations → Actions
+/// Situations start Dormant, become Active when player enters context
+/// Actions instantiated at query time by SceneFacade, NOT at Scene spawn
 /// </summary>
 public class Situation
 {
@@ -22,6 +22,24 @@ public class Situation
     /// Narrative description of the situation
     /// </summary>
     public string Description { get; set; }
+
+    // ==================== STATE MACHINE (QUERY-TIME ACTION INSTANTIATION) ====================
+
+    /// <summary>
+    /// Lifecycle state controlling action instantiation
+    /// Dormant: Situation exists but player hasn't entered context, NO actions instantiated
+    /// Active: Player entered location/conversation/route, ChoiceTemplates → Actions created
+    /// State transition triggered by SceneFacade when player enters context
+    /// </summary>
+    public SituationState State { get; set; } = SituationState.Dormant;
+
+    /// <summary>
+    /// Template reference for lazy action instantiation
+    /// CRITICAL: Actions NOT created at Scene spawn (Tier 2)
+    /// Actions created at query time (Tier 3) by SceneFacade from Template.ChoiceTemplates
+    /// Template stored here for on-demand instantiation when State: Dormant → Active
+    /// </summary>
+    public SituationTemplate Template { get; set; }
 
     /// <summary>
     /// THREE PARALLEL SYSTEMS - which tactical system this situation uses
@@ -199,10 +217,10 @@ public class Situation
     public Obligation Obligation { get; set; }
 
     /// <summary>
-    /// Object reference to parent obstacle (for runtime navigation)
-    /// Populated at initialization time from obstacle's SituationIds
+    /// Object reference to parent scene (for runtime navigation)
+    /// Populated at initialization time from scene's SituationIds
     /// </summary>
-    public Obstacle ParentObstacle { get; set; }
+    public Scene ParentScene { get; set; }
 
     /// <summary>
     /// Whether this situation is an obligation intro action
@@ -266,11 +284,11 @@ public class Situation
 
     /// <summary>
     /// What consequence occurs when situation succeeds
-    /// Resolution: Obstacle permanently overcome, removed from play
-    /// Bypass: Player passes, obstacle persists
-    /// Transform: Obstacle fundamentally changed, properties set to 0
-    /// Modify: Obstacle properties reduced, other situations may unlock
-    /// Grant: Player receives knowledge/items, obstacle unchanged
+    /// Resolution: Scene permanently overcome, removed from play
+    /// Bypass: Player passes, scene persists
+    /// Transform: Scene fundamentally changed, properties set to 0
+    /// Modify: Scene properties reduced, other situations may unlock
+    /// Grant: Player receives knowledge/items, scene unchanged
     /// </summary>
     public ConsequenceType ConsequenceType { get; set; } = ConsequenceType.Grant;
 
@@ -285,16 +303,9 @@ public class Situation
     public RelationshipOutcome SetsRelationshipOutcome { get; set; } = RelationshipOutcome.Neutral;
 
     /// <summary>
-    /// New description for obstacle if Transform consequence (replaces obstacle description)
+    /// New description for scene if Transform consequence (replaces scene description)
     /// </summary>
     public string TransformDescription { get; set; }
-
-    /// <summary>
-    /// Property reduction to apply to parent obstacle (for Modify consequence)
-    /// Reduces obstacle intensity, making other situations easier (NOT unlocking them)
-    /// null for Resolution, Bypass, Transform, and Grant consequence types
-    /// </summary>
-    public ObstaclePropertyReduction PropertyReduction { get; set; }
 
     /// <summary>
     /// Check if this situation is available to attempt

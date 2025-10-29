@@ -1,7 +1,7 @@
 namespace Wayfarer.GameState.Enums;
 
 /// <summary>
-/// Social impact of how obstacle was resolved
+/// Social impact of how scene was resolved
 /// Provides semantic context for AI narrative generation and future situation availability
 /// </summary>
 public enum RelationshipOutcome

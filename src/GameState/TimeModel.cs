@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Time model that serves as the single source of truth for all time-related state.
 /// Builds on TimeState to provide a complete segment-based time management system.

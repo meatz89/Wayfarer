@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Tracks NPC positions and availability across locations and Locations.
 /// Manages NPC scheduling and focus based on time blocks.

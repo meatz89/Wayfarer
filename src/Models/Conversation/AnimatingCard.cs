@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Type of animation to apply to a card
 /// </summary>

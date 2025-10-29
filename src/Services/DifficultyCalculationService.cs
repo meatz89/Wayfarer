@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Service for calculating final difficulty based on base difficulty and player state
 /// Replaces SituationRequirementsChecker (which was boolean gate system)
@@ -81,16 +77,8 @@ public class DifficultyCalculationService
                 // NPC relationship strength (0-15 per NPC)
                 // NO ID MATCHING: Uses situation's PlacementNpcId (mechanical property)
                 if (string.IsNullOrEmpty(situation.PlacementNpc?.ID)) return false;
-                int tokens = player.NPCTokens.GetTokenCount(situation.PlacementNpc?.ID, ConnectionType.Trust);
+                int tokens = player.GetNPCTokenCount(situation.PlacementNpc?.ID, ConnectionType.Trust);
                 return tokens >= mod.Threshold;
-
-            case ModifierType.ObstacleProperty:
-                // Check obstacle property threshold
-                Obstacle obstacle = FindParentObstacle(situation);
-                if (obstacle == null) return false;
-
-                int propertyValue = GetObstaclePropertyValue(obstacle, mod.Context);
-                return propertyValue <= mod.Threshold;  // Inverted: lower is better
 
             case ModifierType.HasItemCategory:
                 // Equipment category presence (MECHANICAL PROPERTY, NOT ID)
@@ -129,31 +117,6 @@ public class DifficultyCalculationService
         return categories.Distinct().ToList();
     }
 
-    /// <summary>
-    /// Find parent obstacle for a situation
-    /// Situation placement doesn't determine ownership - must search GameWorld.Obstacles
-    /// </summary>
-    private Obstacle FindParentObstacle(Situation situation)
-    {
-        // Search all obstacles in GameWorld for one that contains this situation
-        foreach (Obstacle obstacle in _gameWorld.Obstacles)
-        {
-            if (obstacle.SituationIds != null && obstacle.SituationIds.Contains(situation.Id))
-            {
-                return obstacle;
-            }
-        }
-        return null;
-    }
-
-    /// <summary>
-    /// Get obstacle property value by name
-    /// </summary>
-    private int GetObstaclePropertyValue(Obstacle obstacle, string propertyName)
-    {
-        // All obstacle types now use single Intensity property
-        return obstacle.Intensity;
-    }
 
     /// <summary>
     /// Format modifier for UI display
@@ -176,9 +139,6 @@ public class DifficultyCalculationService
 
             case ModifierType.ConnectionTokens:
                 return $"{status} Connection(NPC) ≥ {mod.Threshold}: {effectStr}";
-
-            case ModifierType.ObstacleProperty:
-                return $"{status} {mod.Context} ≤ {mod.Threshold}: {effectStr}";
 
             case ModifierType.HasItemCategory:
                 return $"{status} Has {mod.Context}: {effectStr}";

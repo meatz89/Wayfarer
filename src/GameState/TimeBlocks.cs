@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-/// <summary>
+﻿/// <summary>
 /// Time blocks for the day. Each block contains 1-4 segments.
 /// CRITICAL: Segments are RELATIVE to each block (1-4), NOT absolute day positions.
 /// </summary>

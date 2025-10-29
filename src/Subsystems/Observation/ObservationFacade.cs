@@ -1,9 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Wayfarer.GameState;
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// Public facade for observation scene operations.
 /// Handles scene investigation with multiple examination points and resource management.
@@ -274,6 +268,8 @@ public class ObservationResult
     public ExaminationPoint PointRevealed { get; set; }
     public bool SceneCompleted { get; set; }
 
-    public static ObservationResult Failed(string message) =>
-        new ObservationResult { Success = false, Message = message };
+    public static ObservationResult Failed(string message)
+    {
+        return new ObservationResult { Success = false, Message = message };
+    }
 }

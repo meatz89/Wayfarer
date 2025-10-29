@@ -1,5 +1,3 @@
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// Achievement definition - metadata about a milestone the player can earn
 /// Loaded from 19_achievements.json, stored in GameWorld.Achievements

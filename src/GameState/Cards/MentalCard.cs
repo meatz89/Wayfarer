@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Mental Tactical System Card - represents obligation/puzzle-solving actions
 /// Parallel to ConversationCard but for Mental tactical challenges

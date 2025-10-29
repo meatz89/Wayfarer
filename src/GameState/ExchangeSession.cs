@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 /// <summary>
 /// Represents an active exchange session between the player and an NPC.
 /// Tracks the state of negotiation and available exchanges.

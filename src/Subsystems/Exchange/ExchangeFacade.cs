@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 /// <summary>
 /// Public facade for all exchange-related operations.
 /// Handles resource trades, exchange validation, and NPC inventory management.
@@ -75,7 +70,7 @@ public class ExchangeFacade
 
         // Get exchanges from GameWorld directly
         // Query GameWorld.NPCExchangeCards first, then check NPC.ExchangeDeck
-        NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FindById(npcId);
+        NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FirstOrDefault(x => x.NpcId == npcId);
         List<ExchangeCard> npcExchanges = entry.ExchangeCards;
 
         // Also check NPC.ExchangeDeck
@@ -158,7 +153,7 @@ public class ExchangeFacade
         }
 
         // Get exchange data from GameWorld// Query GameWorld for the exchange
-        NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FindById(npcId);
+        NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FirstOrDefault(x => x.NpcId == npcId);
         ExchangeCard exchange = entry.ExchangeCards.FirstOrDefault(e => e.Id == exchangeId);
 
         // Also check NPC.ExchangeDeck if not found

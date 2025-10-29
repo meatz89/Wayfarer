@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Tracks binding obligations - promises and debts that create narrative pressure
 /// These appear as persistent reminders of what the player owes to NPCs

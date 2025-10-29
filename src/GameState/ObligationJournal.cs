@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Obligation Journal - tracks player's obligation progress
 /// Obligations have four states: Potential → Discovered → Active → Completed
@@ -35,8 +33,8 @@ public class ObligationJournal
 
 /// <summary>
 /// Active obligation state - tracks understanding accumulation and activation timing
-/// PRINCIPLE 4: No sequential phase unlocking - all obstacles spawn at activation
-/// Progress tracked by counting resolved obstacles, not completed situation IDs
+/// PRINCIPLE 4: No sequential phase unlocking - all scenes spawn at activation
+/// Progress tracked by counting resolved scenes, not completed situation IDs
 /// </summary>
 public class ActiveObligation
 {

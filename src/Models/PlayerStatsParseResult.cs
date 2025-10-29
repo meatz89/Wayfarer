@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Strongly-typed result for player stats parsing operations.
 /// Replaces tuple usage in PlayerStatParser.ParseStatsPackage().

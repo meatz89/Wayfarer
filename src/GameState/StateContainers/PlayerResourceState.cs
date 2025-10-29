@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Immutable state container for player resources with validation.
 /// Ensures resource values stay within valid bounds.
