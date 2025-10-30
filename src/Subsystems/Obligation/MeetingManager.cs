@@ -327,12 +327,12 @@ public class MeetingManager
     private bool IsPlayerAtNPCLocation(string npcId)
     {
         Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocation == null) return false;
+        if (_gameWorld.GetPlayerCurrentLocation() == null) return false;
 
         // Get current time block for NPC Venue checking
         TimeBlocks currentTime = GetCurrentTimeBlock();
         List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationAndTime(
-            player.CurrentLocation.Id,
+            _gameWorld.GetPlayerCurrentLocation().Id,
             currentTime);
 
         return npcsAtCurrentSpot.Any(npc => npc.ID == npcId);

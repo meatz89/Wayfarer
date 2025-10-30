@@ -71,7 +71,7 @@ public class ObligationDiscoveryEvaluator
     private bool CheckImmediateVisibility(ObligationPrerequisites prereqs, Player player)
     {
         // Check if player is at required location (LocationId is globally unique)
-        if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocation.Id != prereqs.LocationId)
+        if (!string.IsNullOrEmpty(prereqs.LocationId) && _gameWorld.GetPlayerCurrentLocation().Id != prereqs.LocationId)
         {
             return false;
         }
@@ -85,7 +85,7 @@ public class ObligationDiscoveryEvaluator
     private bool CheckEnvironmentalObservation(ObligationPrerequisites prereqs, Player player)
     {
         // Check if player is at required location (LocationId is globally unique)
-        if (!string.IsNullOrEmpty(prereqs.LocationId) && player.CurrentLocation.Id != prereqs.LocationId)
+        if (!string.IsNullOrEmpty(prereqs.LocationId) && _gameWorld.GetPlayerCurrentLocation().Id != prereqs.LocationId)
             return false;
 
         return true;

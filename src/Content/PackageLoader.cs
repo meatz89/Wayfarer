@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Wayfarer.Content.DTOs;
 using Wayfarer.Content.Parsers;
+using Wayfarer.Services;
 
 /// <summary>
 /// Helper class for exchange card lookups
@@ -66,7 +67,8 @@ public class PackageLoader
             Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
-                AllowTrailingCommas = true
+                AllowTrailingCommas = true,
+                ReadCommentHandling = JsonCommentHandling.Skip
             });
 
             // Check if already loaded
@@ -110,6 +112,8 @@ public class PackageLoader
 
         // Load in strict dependency order
         // 1. Foundation entities (no dependencies)
+        // HEX-BASED TRAVEL SYSTEM: Load hex grid FIRST - fundamental spatial scaffolding
+        LoadHexMap(package.Content.HexMap, allowSkeletons);
         LoadPlayerStatsConfiguration(package.Content.PlayerStatsConfig, allowSkeletons);
         LoadListenDrawCounts(package.Content.ListenDrawCounts);
         LoadStates(package.Content.States, allowSkeletons); // Scene-Situation: State definitions
@@ -118,9 +122,11 @@ public class PackageLoader
         LoadDistricts(package.Content.Districts, allowSkeletons);
         LoadItems(package.Content.Items, allowSkeletons);
 
-        // 2. Venues and Locations (may reference regions/districts)
+        // 2. Venues and Locations (may reference regions/districts and hex grid)
         LoadLocations(package.Content.Venues, allowSkeletons);
         LoadLocationSpots(package.Content.Locations, allowSkeletons);
+        // HEX-BASED TRAVEL SYSTEM: Sync Location.HexPosition after locations loaded
+        SyncLocationHexPositions();
 
         // 3. Cards (foundation for NPCs and conversations)
         LoadSocialCards(package.Content.SocialCards, allowSkeletons);
@@ -148,6 +154,8 @@ public class PackageLoader
 
         // 5. Routes (reference Locations which now have VenueId set)
         LoadRoutes(package.Content.Routes, allowSkeletons);
+        // HEX-BASED TRAVEL SYSTEM: Generate procedural routes after locations synced
+        GenerateProceduralRoutes();
 
         // 6. Relationship entities (depend on NPCs and cards)
         LoadExchanges(package.Content.Exchanges, allowSkeletons);
@@ -191,7 +199,8 @@ public class PackageLoader
         Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
-            AllowTrailingCommas = true
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip
         });
 
         // Check if already loaded
@@ -370,6 +379,69 @@ public class PackageLoader
 
             // Add stranger to the unified NPCs list
             _gameWorld.NPCs.Add(stranger);
+        }
+    }
+
+    /// <summary>
+    /// Load hex map grid - fundamental spatial scaffolding
+    /// HEX-BASED TRAVEL SYSTEM: Loads world hex grid with terrain, danger, and location placement
+    /// </summary>
+    private void LoadHexMap(HexMapDTO hexMapDto, bool allowSkeletons)
+    {
+        if (hexMapDto == null) return;
+
+        // Parse hex map using HexParser
+        HexMap hexMap = HexParser.ParseHexMap(hexMapDto);
+
+        // Store in GameWorld
+        _gameWorld.WorldHexGrid = hexMap;
+    }
+
+    /// <summary>
+    /// Sync Location.HexPosition from hex grid after locations loaded
+    /// HEX-BASED TRAVEL SYSTEM: HIGHLANDER synchronization - Location.HexPosition is source of truth
+    /// </summary>
+    private void SyncLocationHexPositions()
+    {
+        if (_gameWorld.WorldHexGrid == null || _gameWorld.WorldHexGrid.Hexes.Count == 0)
+            return; // No hex grid loaded, skip sync
+
+        // Sync Location.HexPosition (source of truth) with Hex.LocationId (derived lookup)
+        HexParser.SyncLocationHexPositions(_gameWorld.WorldHexGrid, _gameWorld.Locations);
+    }
+
+    /// <summary>
+    /// Generate procedural routes between locations using hex-based pathfinding
+    /// HEX-BASED TRAVEL SYSTEM: Creates routes from hex paths with calculated properties
+    /// Only generates routes between locations in DIFFERENT venues (same venue = instant travel)
+    /// </summary>
+    private void GenerateProceduralRoutes()
+    {
+        if (_gameWorld.WorldHexGrid == null || _gameWorld.WorldHexGrid.Hexes.Count == 0)
+            return; // No hex grid, skip procedural generation
+
+        // Create route generator
+        HexRouteGenerator generator = new HexRouteGenerator(_gameWorld);
+
+        // Generate all inter-venue routes
+        List<RouteOption> generatedRoutes = generator.GenerateAllRoutes();
+
+        // Add generated routes to GameWorld, avoiding duplicates with manually-authored routes
+        int addedCount = 0;
+        int skippedCount = 0;
+        foreach (RouteOption route in generatedRoutes)
+        {
+            // Check if route already exists (manually-authored routes take precedence)
+            bool routeExists = _gameWorld.Routes.Any(r => r.Id == route.Id);
+            if (!routeExists)
+            {
+                _gameWorld.Routes.Add(route);
+                addedCount++;
+            }
+            else
+            {
+                skippedCount++;
+            }
         }
     }
 

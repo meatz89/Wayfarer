@@ -241,7 +241,7 @@ public class ConversationTreeFacade
     private string GetLocationName()
     {
         Player player = _gameWorld.GetPlayer();
-        return player.CurrentLocation?.Name ?? "Unknown";
+        return _gameWorld.GetPlayerCurrentLocation()?.Name ?? "Unknown";
     }
 
     /// <summary>

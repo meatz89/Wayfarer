@@ -691,12 +691,16 @@ public class TravelManager
         Player player = _gameWorld.GetPlayer();
 
         // Move player to destination
+        // HEX-FIRST ARCHITECTURE: Set player position via hex coordinates
         Location targetSpot = _gameWorld.Locations
             .FirstOrDefault(s => s.Id == route.DestinationLocationSpot);
 
         if (targetSpot != null)
         {
-            player.CurrentLocation = targetSpot;
+            if (!targetSpot.HexPosition.HasValue)
+                throw new InvalidOperationException($"Destination location '{targetSpot.Id}' has no HexPosition - cannot complete journey");
+
+            player.CurrentPosition = targetSpot.HexPosition.Value;
 
             // Track Venue discovery
             string venueId = targetSpot.VenueId;

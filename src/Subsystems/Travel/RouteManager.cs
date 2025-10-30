@@ -50,7 +50,11 @@ public class RouteManager
     public List<RouteOption> GetAvailableRoutesFromCurrentLocation()
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocation.VenueId;
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
+        if (currentLocation == null)
+            return new List<RouteOption>();
+
+        string currentVenueId = currentLocation.VenueId;
         return GetRoutesFromLocation(currentVenueId);
     }
 

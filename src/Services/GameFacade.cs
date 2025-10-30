@@ -93,6 +93,14 @@ public class GameFacade
         return _gameWorld.GetPlayer();
     }
 
+    /// <summary>
+    /// Get player's current location via hex-first architecture
+    /// </summary>
+    public Location GetPlayerCurrentLocation()
+    {
+        return _gameWorld.GetPlayerCurrentLocation();
+    }
+
     public List<SystemMessage> GetSystemMessages()
     {
         return _messageSystem.GetMessages();
@@ -306,7 +314,10 @@ public class GameFacade
 
                 if (destSpot != null)
                 {
-                    player.CurrentLocation = destSpot;
+                    if (!destSpot.HexPosition.HasValue)
+                        throw new InvalidOperationException($"Destination location '{destSpot.Id}' has no HexPosition - cannot move player");
+
+                    player.CurrentPosition = destSpot.HexPosition.Value;
                 }
             }
 
@@ -689,13 +700,17 @@ public class GameFacade
         }
 
         // Initialize player at starting Venue from GameWorld initial conditions
+        // HEX-FIRST ARCHITECTURE: Player position is hex coordinates
         Player player = _gameWorld.GetPlayer();
         string startingSpotId = _gameWorld.InitialLocationSpotId;
         Location? startingSpot = _gameWorld.Locations.FirstOrDefault(s => s.Id == startingSpotId);
         if (startingSpot == null)
             throw new InvalidOperationException($"Invalid InitialLocationSpotId '{startingSpotId}' - no matching Location found in GameWorld.Locations");
 
-        player.CurrentLocation = startingSpot;
+        if (!startingSpot.HexPosition.HasValue)
+            throw new InvalidOperationException($"Starting location '{startingSpotId}' has no HexPosition - cannot initialize player position");
+
+        player.CurrentPosition = startingSpot.HexPosition.Value;
         Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);
 
         // Player resources already applied by PackageLoader.ApplyInitialPlayerConfiguration()
@@ -1211,6 +1226,12 @@ public class GameFacade
             return;
         }
 
+        if (!location.HexPosition.HasValue)
+        {
+            _messageSystem.AddSystemMessage($"location '{LocationId}' has no HexPosition - cannot teleport", SystemMessageTypes.Warning);
+            return;
+        }
+
         Venue? venue = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
         if (venue == null)
         {
@@ -1218,7 +1239,7 @@ public class GameFacade
             return;
         }
 
-        player.CurrentLocation = new Location(LocationId, location.Name) { VenueId = venueId };
+        player.CurrentPosition = location.HexPosition.Value;
         player.AddKnownLocation(venueId);
 
         _messageSystem.AddSystemMessage($"Teleported to {venue.Name} - {location.Name}", SystemMessageTypes.Success);

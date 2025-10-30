@@ -180,10 +180,10 @@ public class ArbitrageCalculator
     public List<ArbitrageOpening> FindOpportunitiesFromCurrentLocation()
     {
         Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocation == null)
+        if (_gameWorld.GetPlayerCurrentLocation() == null)
             throw new InvalidOperationException("Player has no current location");
 
-        string currentVenueId = player.CurrentLocation.VenueId;
+        string currentVenueId = _gameWorld.GetPlayerCurrentLocation().VenueId;
         List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
         List<Item> allItems = _itemRepository.GetAllItems();
 
@@ -239,10 +239,10 @@ public class ArbitrageCalculator
     public List<ArbitrageOpening> FindOpportunitiesForInventory()
     {
         Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocation == null)
+        if (_gameWorld.GetPlayerCurrentLocation() == null)
             throw new InvalidOperationException("Player has no current location");
 
-        string currentVenueId = player.CurrentLocation.VenueId;
+        string currentVenueId = _gameWorld.GetPlayerCurrentLocation().VenueId;
         List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
 
         foreach (string itemId in player.Inventory.GetItemIds())
@@ -302,10 +302,10 @@ public class ArbitrageCalculator
     public TradeRoute PlanOptimalRoute(int maxStops = 3)
     {
         Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocation == null)
+        if (_gameWorld.GetPlayerCurrentLocation() == null)
             throw new InvalidOperationException("Player has no current location");
 
-        string startLocation = player.CurrentLocation.VenueId;
+        string startLocation = _gameWorld.GetPlayerCurrentLocation().VenueId;
         int availableCapital = player.Coins;
 
         TradeRoute bestRoute = new TradeRoute();

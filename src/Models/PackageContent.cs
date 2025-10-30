@@ -16,6 +16,14 @@ public class PackageContent
     public List<DistrictDTO> Districts { get; set; }
 
     /// <summary>
+    /// Hex map grid - spatial scaffolding for procedural world generation
+    /// Defines terrain, danger levels, and location placement on hex grid
+    /// Part of hex-based travel system
+    /// NOTE: This is a single HexMapDTO (not a List) - one world grid per package
+    /// </summary>
+    public HexMapDTO HexMap { get; set; }
+
+    /// <summary>
     /// Social card definitions - uses DTO for consistency
     /// </summary>
     public List<SocialCardDTO> SocialCards { get; set; }

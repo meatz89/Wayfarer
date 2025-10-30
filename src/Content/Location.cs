@@ -5,6 +5,16 @@ public class Location
     public string VenueId { get; set; }
     public Venue Venue { get; internal set; }
 
+    // HEX-BASED TRAVEL SYSTEM: Location is THE primary spatial entity
+    /// <summary>
+    /// Hex grid position of this location (nullable for non-spatial locations)
+    /// Source of truth for location spatial positioning
+    /// ALL routes connect locations via hex paths
+    /// HIGHLANDER: Location.HexPosition is source of truth, Hex.LocationId is derived lookup
+    /// Venue has NO position - venues are abstract wrappers, locations are spatial reality
+    /// </summary>
+    public AxialCoordinates? HexPosition { get; set; }
+
     // Skeleton tracking
     public bool IsSkeleton { get; set; } = false;
     public string SkeletonSource { get; set; } // What created this skeleton

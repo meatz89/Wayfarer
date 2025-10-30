@@ -203,7 +203,7 @@ public class LocationFacade
     public void RefreshLocationState()
     {
         Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocation != null)
+        if (_gameWorld.GetPlayerCurrentLocation() != null)
         {
             _messageSystem.AddSystemMessage("Location refreshed", SystemMessageTypes.Info);
         }
@@ -223,11 +223,11 @@ public class LocationFacade
     public List<NPC> GetNPCsAtCurrentSpot()
     {
         Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocation == null)
+        if (_gameWorld.GetPlayerCurrentLocation() == null)
             throw new InvalidOperationException("Player has no current location");
 
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        return _npcTracker.GetNPCsAtSpot(player.CurrentLocation.Id, currentTime);
+        return _npcTracker.GetNPCsAtSpot(_gameWorld.GetPlayerCurrentLocation().Id, currentTime);
     }
 
     /// <summary>

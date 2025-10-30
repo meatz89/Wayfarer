@@ -9,6 +9,12 @@ public class GameWorld
     public List<Location> Locations { get; set; } = new List<Location>();
     public List<NPC> NPCs { get; set; } = new List<NPC>();
 
+    // HEX-BASED TRAVEL SYSTEM - Spatial scaffolding for procedural generation
+    // World hex grid with terrain, danger levels, and location placement
+    // Source of truth for spatial positioning and hex-based pathfinding
+    // HIGHLANDER: GameWorld.WorldHexGrid owns all Hex entities
+    public HexMap WorldHexGrid { get; set; } = new HexMap();
+
     // ==================== EPHEMERAL ACTION COLLECTIONS (QUERY-TIME INSTANTIATION) ====================
     // Actions created by SceneFacade when player enters context (Situation: Dormant → Active)
     // NOT persisted in save files - recreated from Situation.Template.ChoiceTemplates on load
@@ -349,6 +355,21 @@ public class GameWorld
     public Location GetLocation(string LocationId)
     {
         return Locations.FirstOrDefault(l => l.Id == LocationId);
+    }
+
+    /// <summary>
+    /// Get player's current location via hex-first architecture
+    /// HEX-FIRST PATTERN: player.CurrentPosition → hex → locationId → Location
+    /// Returns null if player position has no location or location not found
+    /// </summary>
+    public Location GetPlayerCurrentLocation()
+    {
+        Player player = GetPlayer();
+        Hex currentHex = WorldHexGrid.GetHex(player.CurrentPosition);
+        if (currentHex == null || string.IsNullOrEmpty(currentHex.LocationId))
+            return null;
+
+        return GetLocation(currentHex.LocationId);
     }
 
     /// <summary>

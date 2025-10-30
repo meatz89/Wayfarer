@@ -61,7 +61,7 @@ public class RouteRepository : IRouteRepository
     public IEnumerable<RouteOption> GetAvailableRoutes(string fromVenueId, Player player)
     {
         // Get routes from the player's current location
-        Location currentSpot = player.CurrentLocation;
+        Location currentSpot = _gameWorld.GetPlayerCurrentLocation();
         if (currentSpot == null) return new List<RouteOption>();
 
         // Get all routes that start from the current location

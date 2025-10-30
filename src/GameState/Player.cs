@@ -39,7 +39,9 @@ public class Player
 
     public PlayerStats Stats { get; private set; } = new();
 
-    public Location CurrentLocation { get; set; }
+    // Hex-first architecture: Player position is hex coordinates
+    // Location derived via: hexMap.GetHex(player.CurrentPosition)?.LocationId
+    public AxialCoordinates CurrentPosition { get; set; }
     public List<MemoryFlag> Memories { get; private set; } = new List<MemoryFlag>();
 
     public List<KnownRouteEntry> KnownRoutes { get; private set; } = new List<KnownRouteEntry>();

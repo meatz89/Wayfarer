@@ -52,7 +52,8 @@ namespace Wayfarer.Pages.Components
             ViewModel = GameFacade.GetLocationFacade().GetLocationContentViewModel();
 
             // Load available conversation trees and observation scenes for current location
-            string locationId = GameWorld.GetPlayer().CurrentLocation?.Id;
+            Location currentLocation = GameWorld.GetPlayerCurrentLocation();
+            string locationId = currentLocation?.Id;
             if (locationId != null)
             {
                 AvailableConversationTrees = GameFacade.GetAvailableConversationTreesAtLocation(locationId);

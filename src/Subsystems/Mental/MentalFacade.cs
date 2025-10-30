@@ -73,7 +73,7 @@ public class MentalFacade
         _gameWorld.CurrentMentalObligationId = obligationId;
 
         Player player = _gameWorld.GetPlayer();
-        Location location = player.CurrentLocation;
+        Location location = _gameWorld.GetPlayerCurrentLocation();
 
         // PROGRESSION SYSTEM: Focus cost from Situation (single source of truth from JSON)
         int focusCost = situation.Costs.Focus;

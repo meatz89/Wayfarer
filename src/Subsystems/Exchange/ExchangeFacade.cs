@@ -84,12 +84,12 @@ public class ExchangeFacade
 
         // Get player's current Venue for domain validation
         Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocation == null)
+        if (_gameWorld.GetPlayerCurrentLocation() == null)
         {
             throw new InvalidOperationException("Player has no current location");
         }
         Location currentSpot = _gameWorld.Locations
-            .FirstOrDefault(s => s.Id == player.CurrentLocation.Id);
+            .FirstOrDefault(s => s.Id == _gameWorld.GetPlayerCurrentLocation().Id);
 
         // Convert SpotProperties to domain strings for validation
         List<string> spotDomains = currentSpot.LocationProperties

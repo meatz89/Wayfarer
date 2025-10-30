@@ -91,6 +91,23 @@ public class RouteOption
     // 0-10 scale: 0 cubes = only basic paths visible, 10 cubes = all optimal paths revealed
     public int ExplorationCubes { get; set; } = 0;
 
+    // HEX-BASED TRAVEL SYSTEM - Procedural route generation from spatial scaffolding
+    /// <summary>
+    /// Underlying hex path connecting origin to destination
+    /// Procedurally generated via A* pathfinding through HexMap
+    /// Source of truth for route terrain/danger properties
+    /// Empty list for legacy manually-authored routes
+    /// </summary>
+    public List<AxialCoordinates> HexPath { get; set; } = new List<AxialCoordinates>();
+
+    /// <summary>
+    /// Total danger rating (0-100) summed from hex danger levels along HexPath
+    /// Calculated from: Sum(hex.DangerLevel for hex in HexPath)
+    /// Used for Scene template filtering and risk assessment
+    /// 0 for legacy manually-authored routes
+    /// </summary>
+    public int DangerRating { get; set; } = 0;
+
     public bool CanTravel(ItemRepository itemRepository, Player player, int totalFocus)
     {
         // Use logical access system instead of efficiency calculations

@@ -17,9 +17,9 @@ public class LocationManager
     public Venue GetCurrentLocation()
     {
         Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocation == null)
+        if (_gameWorld.GetPlayerCurrentLocation() == null)
             throw new InvalidOperationException("Player has no current location set");
-        return GetVenue(player.CurrentLocation.VenueId);
+        return GetVenue(_gameWorld.GetPlayerCurrentLocation().VenueId);
     }
 
     /// <summary>
@@ -27,7 +27,7 @@ public class LocationManager
     /// </summary>
     public Location GetCurrentLocationSpot()
     {
-        return _gameWorld.GetPlayer().CurrentLocation;
+        return _gameWorld.GetPlayerCurrentLocation();
     }
 
     /// <summary>
@@ -122,7 +122,10 @@ public class LocationManager
             throw new InvalidOperationException($"location {location.Id} does not belong to venue {venue.Id}");
         }
 
-        _gameWorld.GetPlayer().CurrentLocation = location;
+        if (!location.HexPosition.HasValue)
+            throw new InvalidOperationException($"Location '{location.Id}' has no HexPosition - cannot set player position");
+
+        _gameWorld.GetPlayer().CurrentPosition = location.HexPosition.Value;
     }
 
     /// <summary>
@@ -130,7 +133,10 @@ public class LocationManager
     /// </summary>
     public void SetCurrentSpot(Location location)
     {
-        _gameWorld.GetPlayer().CurrentLocation = location;
+        if (!location.HexPosition.HasValue)
+            throw new InvalidOperationException($"Location '{location.Id}' has no HexPosition - cannot set player position");
+
+        _gameWorld.GetPlayer().CurrentPosition = location.HexPosition.Value;
     }
 
     /// <summary>

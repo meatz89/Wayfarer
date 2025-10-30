@@ -302,7 +302,7 @@ public class ResourceFacade
         int staminaRecovered = player.Stamina - staminaBefore;
 
         // STATE CLEARING: Get projection of states to clear on rest
-        Location currentLocation = player.CurrentLocation;
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
         bool isSafe = currentLocation != null && currentLocation.LocationProperties.Contains(LocationPropertyType.Secure);
         List<StateType> statesToClear = _stateClearingResolver.GetStatesToClearOnRest(isSafe);
 

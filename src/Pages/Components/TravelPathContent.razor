@@ -788,9 +788,10 @@ else
             return "Origin";
 
         var player = GameFacade.GetPlayer();
-        if (player?.CurrentLocation?.VenueId != null)
+        Location currentLocation = GameFacade.GetPlayerCurrentLocation();
+        if (currentLocation?.VenueId != null)
         {
-            var Venue = GameFacade.GetLocationById(player.CurrentLocation.VenueId);
+            var Venue = GameFacade.GetLocationById(currentLocation.VenueId);
             return Venue?.Name ?? "Origin";
         }
 

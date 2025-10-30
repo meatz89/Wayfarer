@@ -34,7 +34,7 @@ public class EmergencyFacade
         int currentDay = _gameWorld.CurrentDay;
         int currentSegment = _timeFacade.GetCurrentSegment();
         Player player = _gameWorld.GetPlayer();
-        string currentLocationId = player.CurrentLocation?.Id;
+        string currentLocationId = _gameWorld.GetPlayerCurrentLocation()?.Id;
 
         foreach (EmergencySituation emergency in _gameWorld.EmergencySituations)
         {
@@ -144,7 +144,7 @@ public class EmergencyFacade
             CurrentSegment = currentSegment,
             ResponseDeadlineSegment = triggeredAt + emergency.ResponseWindowSegments,
             SegmentsRemaining = Math.Max(0, segmentsRemaining),
-            LocationName = player.CurrentLocation?.Name ?? "Unknown",
+            LocationName = _gameWorld.GetPlayerCurrentLocation()?.Name ?? "Unknown",
             TimeDisplay = _timeFacade.GetTimeString()
         };
     }

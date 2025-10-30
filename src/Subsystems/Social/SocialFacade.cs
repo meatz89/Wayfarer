@@ -446,7 +446,7 @@ public class SocialFacade
             session,
             new List<CardInstance>(), // observationCards - empty for now
             ResourceState.FromPlayerResourceState(_gameWorld.GetPlayerResourceState()),
-            _gameWorld.GetPlayer().CurrentLocation.ToString(),
+            _gameWorld.GetPlayerCurrentLocation().ToString(),
             _timeManager.GetCurrentTimeBlock().ToString());
 
         // Situation cards now handle domain logic - no context-specific initialization needed

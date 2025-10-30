@@ -17,6 +17,11 @@
 
     public List<string> LocationSpotIds { get; set; } = new List<string>();
 
+    // HEX-BASED TRAVEL SYSTEM: Venue is ONLY a wrapper for travel cost rules
+    // Venue has NO spatial position - Locations are the spatial entities
+    // Same Venue = instant free travel between locations
+    // Different Venue = Route required with hex path, costs, scenes
+
     public Venue(string id, string name)
     {
         Id = id;

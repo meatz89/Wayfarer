@@ -672,7 +672,7 @@ public class MarketSubsystemManager
 
         // Check player location
         Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocation.VenueId != venueId)
+        if (_gameWorld.GetPlayerCurrentLocation().VenueId != venueId)
         {
             error = "You must be at the Venue to trade";
             return false;

@@ -84,7 +84,8 @@ public class TravelFacade
     public bool CanTravelTo(string venueId)
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocation?.VenueId;
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
+        string currentVenueId = currentLocation?.VenueId;
         if (currentVenueId == null)
         {
             return false;
@@ -111,7 +112,8 @@ public class TravelFacade
     public TravelResult TravelTo(string venueId, TravelMethods transportMethod)
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocation?.VenueId;
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
+        string currentVenueId = currentLocation?.VenueId;
         if (currentVenueId == null)
         {
             return new TravelResult
@@ -210,7 +212,8 @@ public class TravelFacade
     public int CalculateTravelTime(string toVenueId, TravelMethods transportMethod)
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocation?.VenueId;
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
+        string currentVenueId = currentLocation?.VenueId;
         if (currentVenueId == null)
         {
             return 0;
@@ -226,7 +229,8 @@ public class TravelFacade
     public Dictionary<string, int> GetTravelTimesFromCurrentLocation()
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocation?.VenueId;
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
+        string currentVenueId = currentLocation?.VenueId;
         if (currentVenueId == null)
         {
             return new Dictionary<string, int>();
