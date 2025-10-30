@@ -119,16 +119,12 @@ public class SceneFacade
     /// </summary>
     public List<NPCAction> GetActionsForNPC(string npcId, Player player)
     {
-        Console.WriteLine($"[VALIDATION-L3] SceneFacade.GetActionsForNPC() called for NPC: {npcId}");
-
         // Find active Scenes with this NPC
         List<global::Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
                        s.PlacementType == PlacementType.NPC &&
                        s.PlacementId == npcId)
             .ToList();
-
-        Console.WriteLine($"[VALIDATION-L3] Found {scenes.Count} active Scenes at NPC {npcId}");
 
         List<NPCAction> allActions = new List<NPCAction>();
 
@@ -164,13 +160,9 @@ public class SceneFacade
     /// </summary>
     private void ActivateSituationForNPC(Situation situation, global::Scene scene, Player player)
     {
-        Console.WriteLine($"[VALIDATION-L3] ActivateSituationForNPC() - Situation {situation.Id} transitioning Dormant → Active");
-
         situation.State = SituationState.Active;
 
         NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.PlacementId);
-
-        Console.WriteLine($"[VALIDATION-L3] Instantiating {situation.Template.ChoiceTemplates.Count} ChoiceTemplates → NPCActions");
 
         foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
         {
@@ -191,10 +183,7 @@ public class SceneFacade
             CreateProvisionalScenesForAction(choiceTemplate, action, scene, player);
 
             _gameWorld.NPCActions.Add(action);
-            Console.WriteLine($"[VALIDATION-L3] Created NPCAction: {action.Id} ({action.Name})");
         }
-
-        Console.WriteLine($"[VALIDATION-L3] Situation {situation.Id} activation COMPLETE - {situation.Template.ChoiceTemplates.Count} actions instantiated");
     }
 
     // ==================== ROUTE CONTEXT ====================

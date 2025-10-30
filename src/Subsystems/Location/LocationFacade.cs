@@ -729,18 +729,19 @@ public class LocationFacade
             List<NPCAction> npcActions = _sceneFacade.GetActionsForNPC(npc.ID, player);
 
             // Map NPCActions to ActionCardViewModel for UI display
+            // LET IT CRASH: Trust entity initialization contracts (ChoiceTemplate/CostTemplate/ActionType always initialized)
             List<ActionCardViewModel> actions = npcActions.Select(action => new ActionCardViewModel
             {
                 Id = action.Id,
                 SituationId = action.SituationId,
                 Name = action.Name,
                 Description = action.Description,
-                SystemType = action.ChallengeType?.ToString().ToLower() ?? "social",
-                ResolveCost = action.ChoiceTemplate?.CostTemplate?.Resolve ?? 0,
-                CoinsCost = action.ChoiceTemplate?.CostTemplate?.Coins ?? 0,
-                TimeSegments = action.ChoiceTemplate?.CostTemplate?.TimeSegments ?? 0,
-                ActionType = action.ChoiceTemplate?.ActionType.ToString() ?? "StartChallenge",
-                ChallengeType = action.ChallengeType?.ToString() ?? "Social",
+                SystemType = action.ChallengeType.ToString().ToLower(),
+                ResolveCost = action.ChoiceTemplate.CostTemplate.Resolve,
+                CoinsCost = action.ChoiceTemplate.CostTemplate.Coins,
+                TimeSegments = action.ChoiceTemplate.CostTemplate.TimeSegments,
+                ActionType = action.ChoiceTemplate.ActionType.ToString(),
+                ChallengeType = action.ChallengeType.ToString(),
                 RequirementsMet = true,  // TODO: Evaluate requirements
                 LockReason = null
             }).ToList();
@@ -756,7 +757,7 @@ public class LocationFacade
             (List<SituationCardViewModel> ambientSocial, List<SceneWithSituationsViewModel> socialScenes) =
                 GroupSituationsByScene(npc, npcSocialSituations, "social", "Doubt");
 
-            result.Add(new NpcWithSituationsViewModel
+            NpcWithSituationsViewModel viewModel = new NpcWithSituationsViewModel
             {
                 Id = npc.ID,
                 Name = npc.Name,
@@ -769,7 +770,9 @@ public class LocationFacade
                 Actions = actions,  // NEW: Executable actions from ChoiceTemplates
                 HasExchange = npc.HasExchangeCards(),
                 ExchangeDescription = npc.HasExchangeCards() ? "Trading - Buy supplies and equipment" : null
-            });
+            };
+
+            result.Add(viewModel);
         }
 
         return result;

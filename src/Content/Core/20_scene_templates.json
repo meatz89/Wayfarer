@@ -19,8 +19,8 @@
         "expirationDays": 7,
         "placementFilter": {
           "placementType": "NPC",
-          "personalityTypes": ["DEVOTED", "MERCANTILE"],
-          "minBond": 5,
+          "personalityTypes": ["MERCANTILE"],
+          "minBond": 0,
           "maxBond": null,
           "npcTags": [],
           "locationProperties": [],

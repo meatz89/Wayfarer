@@ -52,8 +52,6 @@ public class PackageLoader
     /// </summary>
     public void LoadStaticPackages(List<string> packageFilePaths)
     {
-        Console.WriteLine($"[VALIDATION-L1] PackageLoader.LoadStaticPackages() called with {packageFilePaths.Count} package files");
-
         // Sort by filename to ensure proper loading order (01_, 02_, etc.)
         List<string> sortedPackages = packageFilePaths
             .OrderBy(f => Path.GetFileName(f))
@@ -63,7 +61,6 @@ public class PackageLoader
         foreach (string packagePath in sortedPackages)
         {
             string packageFileName = Path.GetFileName(packagePath);
-            Console.WriteLine($"[VALIDATION-L1] Loading package file: {packageFileName}");
 
             string json = File.ReadAllText(packagePath);
             Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
@@ -608,8 +605,6 @@ public class PackageLoader
     {
         if (venueDtos == null) return;
 
-        Console.WriteLine($"[VALIDATION-L1] LoadLocations() called with {venueDtos.Count} venues");
-
         foreach (VenueDTO dto in venueDtos)
         {
             // Check if this venue was previously a skeleton, if so replace it
@@ -635,8 +630,6 @@ public class PackageLoader
     private void LoadLocationSpots(List<LocationDTO> spotDtos, bool allowSkeletons)
     {
         if (spotDtos == null) return;
-
-        Console.WriteLine($"[VALIDATION-L1] LoadLocationSpots() called with {spotDtos.Count} location spots");
 
         foreach (LocationDTO dto in spotDtos)
         {
@@ -1498,17 +1491,12 @@ public class PackageLoader
     {
         if (sceneTemplateDtos == null) return;
 
-        Console.WriteLine($"[VALIDATION-L1] LoadSceneTemplates() called with {sceneTemplateDtos.Count} templates");
-
         SceneTemplateParser parser = new SceneTemplateParser(_gameWorld);
         foreach (SceneTemplateDTO dto in sceneTemplateDtos)
         {
             SceneTemplate template = parser.ParseSceneTemplate(dto);
             _gameWorld.SceneTemplates.Add(template);
-            Console.WriteLine($"[VALIDATION-L1] Parsed SceneTemplate: {template.Id} (Archetype: {template.Archetype}, Situations: {template.SituationTemplates.Count})");
         }
-
-        Console.WriteLine($"[VALIDATION-L1] Total SceneTemplates in GameWorld: {_gameWorld.SceneTemplates.Count}");
     }
 
 }
