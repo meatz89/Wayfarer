@@ -34,6 +34,15 @@ public class Situation
     public SituationState State { get; set; } = SituationState.Dormant;
 
     /// <summary>
+    /// Indicates this Situation auto-advances without player input
+    /// Used when parent Scene has Archetype = AutoAdvance
+    /// Situation displays narrative then immediately applies AutoProgressRewards
+    /// No player choices created - automatic progression
+    /// Tutorial Night Rest scene uses this pattern
+    /// </summary>
+    public bool IsAutoAdvance { get; set; } = false;
+
+    /// <summary>
     /// Template reference for lazy action instantiation
     /// CRITICAL: Actions NOT created at Scene spawn (Tier 2)
     /// Actions created at query time (Tier 3) by SceneFacade from Template.ChoiceTemplates

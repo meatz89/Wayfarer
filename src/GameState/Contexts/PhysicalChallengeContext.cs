@@ -15,6 +15,14 @@ public class PhysicalChallengeContext
     public string LocationName { get; set; }
     public string TimeDisplay { get; set; }
 
+    /// <summary>
+    /// Reward to apply if physical challenge succeeds
+    /// Set when challenge started from Choice with ActionType = StartChallenge
+    /// Applied in PhysicalFacade.EndSession() when outcome.Success == true
+    /// Tutorial Thomas path uses this to grant coins and bond after physical challenge
+    /// </summary>
+    public ChoiceReward CompletionReward { get; set; }
+
     public PhysicalChallengeContext()
     {
         IsValid = true;

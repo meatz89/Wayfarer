@@ -63,6 +63,7 @@ public static class ServiceConfiguration
         services.AddSingleton<ConsequenceFacade>();
         services.AddSingleton<SituationFacade>();
         services.AddSingleton<Wayfarer.Subsystems.Scene.SceneFacade>();
+        services.AddSingleton<Wayfarer.Subsystems.Consequence.RewardApplicationService>();
 
         // Unified Action Architecture - Three Parallel Executors
         services.AddSingleton<LocationActionExecutor>();

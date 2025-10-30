@@ -2,6 +2,7 @@ using System.Text;
 using Wayfarer.Content;
 using Wayfarer.GameState.Enums;
 using Wayfarer.Services;
+using Wayfarer.Subsystems.Consequence;
 
 /// <summary>
 /// GameFacade - Pure orchestrator for UI-Backend communication.
@@ -34,6 +35,7 @@ public class GameFacade
     private readonly PathCardExecutor _pathCardExecutor;
     private readonly ConsequenceFacade _consequenceFacade;
     private readonly SceneInstantiator _sceneInstantiator;
+    private readonly RewardApplicationService _rewardApplicationService;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -58,7 +60,8 @@ public class GameFacade
         LocationActionExecutor locationActionExecutor,
         NPCActionExecutor npcActionExecutor,
         PathCardExecutor pathCardExecutor,
-        ConsequenceFacade consequenceFacade)
+        ConsequenceFacade consequenceFacade,
+        RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -83,6 +86,7 @@ public class GameFacade
         _npcActionExecutor = npcActionExecutor ?? throw new ArgumentNullException(nameof(npcActionExecutor));
         _pathCardExecutor = pathCardExecutor ?? throw new ArgumentNullException(nameof(pathCardExecutor));
         _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
+        _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
         _sceneInstantiator = new SceneInstantiator(_gameWorld);
     }
 
@@ -1479,6 +1483,19 @@ public class GameFacade
         if (plan.CoinsCost > 0)
             player.Coins -= plan.CoinsCost;
 
+        // Apply new tutorial resource costs
+        if (plan.HealthCost > 0)
+            player.Health = Math.Max(0, player.Health - plan.HealthCost);
+
+        if (plan.StaminaCost > 0)
+            player.Stamina = Math.Max(0, player.Stamina - plan.StaminaCost);
+
+        if (plan.FocusCost > 0)
+            player.Focus = Math.Max(0, player.Focus - plan.FocusCost);
+
+        if (plan.HungerCost > 0)
+            player.Hunger = Math.Min(player.MaxHunger, player.Hunger + plan.HungerCost);
+
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
         if (plan.TimeSegments > 0)
             _timeFacade.AdvanceSegments(plan.TimeSegments);
@@ -1490,7 +1507,7 @@ public class GameFacade
             // Apply rewards
             if (plan.ChoiceReward != null)
             {
-                ApplyChoiceReward(plan.ChoiceReward, situation);
+                _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
             }
             else if (plan.LegacyRewards != null)
             {
@@ -1568,6 +1585,19 @@ public class GameFacade
         if (plan.CoinsCost > 0)
             player.Coins -= plan.CoinsCost;
 
+        // Apply new tutorial resource costs
+        if (plan.HealthCost > 0)
+            player.Health = Math.Max(0, player.Health - plan.HealthCost);
+
+        if (plan.StaminaCost > 0)
+            player.Stamina = Math.Max(0, player.Stamina - plan.StaminaCost);
+
+        if (plan.FocusCost > 0)
+            player.Focus = Math.Max(0, player.Focus - plan.FocusCost);
+
+        if (plan.HungerCost > 0)
+            player.Hunger = Math.Min(player.MaxHunger, player.Hunger + plan.HungerCost);
+
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
         if (plan.TimeSegments > 0)
             _timeFacade.AdvanceSegments(plan.TimeSegments);
@@ -1579,7 +1609,7 @@ public class GameFacade
             // Apply rewards
             if (plan.ChoiceReward != null)
             {
-                ApplyChoiceReward(plan.ChoiceReward, situation);
+                _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
             }
             else if (plan.LegacyRewards != null)
             {
@@ -1665,7 +1695,7 @@ public class GameFacade
             // Apply rewards
             if (plan.ChoiceReward != null)
             {
-                ApplyChoiceReward(plan.ChoiceReward, situation);
+                _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
             }
             else if (plan.IsLegacyAction)
             {
@@ -1773,122 +1803,38 @@ public class GameFacade
         // TokenGains, RevealsPaths, etc. would be handled by PathCard-specific logic
     }
 
-    private void ApplyChoiceReward(ChoiceReward reward, Situation currentSituation)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        // Apply resource rewards
-        if (reward.Coins != 0)
-            player.Coins += reward.Coins;
-
-        if (reward.Resolve != 0)
-            player.Resolve += reward.Resolve;
-
-        // Apply consequences (bonds, scales, states)
-        if (reward.BondChanges.Count > 0 || reward.ScaleShifts.Count > 0 || reward.StateApplications.Count > 0)
-        {
-            _consequenceFacade.ApplyConsequences(reward.BondChanges, reward.ScaleShifts, reward.StateApplications);
-        }
-
-        // Apply achievements
-        foreach (string achievementId in reward.AchievementIds)
-        {
-            // Check if achievement already earned
-            if (!player.EarnedAchievements.Any(a => a.AchievementId == achievementId))
-            {
-                player.EarnedAchievements.Add(new PlayerAchievement
-                {
-                    AchievementId = achievementId,
-                    EarnedDay = _gameWorld.CurrentDay,
-                    EarnedTimeBlock = _timeFacade.GetCurrentTimeBlock(),
-                    EarnedSegment = _timeFacade.GetCurrentSegment()
-                });
-            }
-        }
-
-        // Apply items
-        foreach (string itemId in reward.ItemIds)
-        {
-            // Add to inventory (assuming player has Items list)
-            // For now, we'll skip this until inventory system is implemented
-        }
-
-        // PHASE 5: Scene finalization - finalize provisional Scenes created during action generation
-        // Provisional Scenes created eagerly (perfect information), now finalize when action selected
-        foreach (SceneSpawnReward sceneSpawn in reward.ScenesToSpawn)
-        {
-            // Resolve Route if needed (Situation only has RouteId, not object reference)
-            RouteOption currentRoute = null;
-            if (!string.IsNullOrEmpty(currentSituation?.PlacementRouteId))
-            {
-                currentRoute = _gameWorld.Routes.FirstOrDefault(r => r.Id == currentSituation.PlacementRouteId);
-            }
-
-            // Build spawn context from Situation placement
-            SceneSpawnContext context = new SceneSpawnContext
-            {
-                Player = player,
-                CurrentSituation = currentSituation,
-                CurrentLocation = currentSituation?.PlacementLocation?.Venue,
-                CurrentNPC = currentSituation?.PlacementNpc,
-                CurrentRoute = currentRoute
-            };
-
-            // Find provisional Scene matching this template and placement
-            // Provisional Scene was created during action generation (eager creation for perfect information)
-            Scene provisionalScene = _gameWorld.ProvisionalScenes.Values
-                .FirstOrDefault(s => s.TemplateId == sceneSpawn.SceneTemplateId);
-
-            if (provisionalScene != null)
-            {
-                // Finalize: Move from provisional to active storage
-                _sceneInstantiator.FinalizeScene(provisionalScene.Id, context);
-            }
-            else
-            {
-                // Fallback: Create and immediately finalize if provisional wasn't created
-                // This handles non-template-based Situations (old architecture compatibility)
-                SceneTemplate template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == sceneSpawn.SceneTemplateId);
-                if (template != null)
-                {
-                    Scene scene = _sceneInstantiator.CreateProvisionalScene(template, sceneSpawn, context);
-                    _sceneInstantiator.FinalizeScene(scene.Id, context);
-                }
-            }
-        }
-
-        // CLEANUP: Delete provisional Scenes from non-selected actions in this Situation
-        // After finalization, selected action's Scenes are in GameWorld.Scenes (no longer provisional)
-        // Delete remaining provisional Scenes from same Situation to prevent accumulation
-        if (currentSituation != null)
-        {
-            List<string> unselectedProvisionalScenes = _gameWorld.ProvisionalScenes.Values
-                .Where(s => s.SourceSituationId == currentSituation.Id)
-                .Select(s => s.Id)
-                .ToList();
-
-            foreach (string? sceneId in unselectedProvisionalScenes)
-            {
-                _sceneInstantiator.DeleteProvisionalScene(sceneId);
-            }
-        }
-    }
 
     private IntentResult RouteToTacticalChallenge(ActionExecutionPlan plan)
     {
-        // Route to appropriate tactical system based on ChallengeType
+        // Store CompletionReward in appropriate PendingContext
+        // Reward will be applied when challenge completes successfully
         if (plan.ChallengeType == TacticalSystemType.Social)
         {
+            // Store Social context with CompletionReward
+            _gameWorld.PendingSocialContext = new SocialChallengeContext
+            {
+                CompletionReward = plan.ChoiceReward
+            };
             // Navigate to social challenge screen
             return IntentResult.NavigateScreen(ScreenMode.SocialChallenge);
         }
         else if (plan.ChallengeType == TacticalSystemType.Mental)
         {
+            // Store Mental context with CompletionReward
+            _gameWorld.PendingMentalContext = new MentalChallengeContext
+            {
+                CompletionReward = plan.ChoiceReward
+            };
             // Navigate to mental challenge screen
             return IntentResult.NavigateScreen(ScreenMode.MentalChallenge);
         }
         else if (plan.ChallengeType == TacticalSystemType.Physical)
         {
+            // Store Physical context with CompletionReward
+            _gameWorld.PendingPhysicalContext = new PhysicalChallengeContext
+            {
+                CompletionReward = plan.ChoiceReward
+            };
             // Navigate to physical challenge screen
             return IntentResult.NavigateScreen(ScreenMode.PhysicalChallenge);
         }

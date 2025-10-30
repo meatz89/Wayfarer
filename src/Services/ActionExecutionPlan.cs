@@ -17,6 +17,12 @@ public class ActionExecutionPlan
     public int CoinsCost { get; set; }
     public int TimeSegments { get; set; }
 
+    // Tutorial resource costs (6-point pools and hunger)
+    public int HealthCost { get; set; }
+    public int StaminaCost { get; set; }
+    public int FocusCost { get; set; }
+    public int HungerCost { get; set; }  // Positive value increases hunger (exertion)
+
     // Rewards to apply (GameFacade routes to appropriate facade)
     public ChoiceReward ChoiceReward { get; set; }
     public ActionRewards LegacyRewards { get; set; }

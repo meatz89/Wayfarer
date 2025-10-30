@@ -128,6 +128,15 @@ public class GameWorld
     public MentalOutcome LastMentalOutcome { get; set; }
     public PhysicalOutcome LastPhysicalOutcome { get; set; }
 
+    // Pending challenge contexts (for reward application after challenge completion)
+    // Set when challenge starts from Choice with ActionType = StartChallenge
+    // Contains CompletionReward to apply when challenge succeeds
+    // Cleared after challenge ends (success or failure)
+    // Tutorial system uses this: store reward when Elena social challenge starts, apply when succeeds
+    public SocialChallengeContext PendingSocialContext { get; set; }
+    public MentalChallengeContext PendingMentalContext { get; set; }
+    public PhysicalChallengeContext PendingPhysicalContext { get; set; }
+
     // PATH SYSTEM - For FixedPath segments that always show the same cards
     // Path card collections for FixedPath route segments (collections contain the actual cards)
     public List<PathCollectionEntry> AllPathCollections { get; set; } = new List<PathCollectionEntry>();

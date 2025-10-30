@@ -63,5 +63,14 @@ public enum SpawnPattern
     /// Single Situation, no cascade
     /// Standalone encounter
     /// </summary>
-    Standalone
+    Standalone,
+
+    /// <summary>
+    /// AutoAdvance - no player choices, narrative displays then auto-executes
+    /// Used for sleep, forced transitions, narrative progression
+    /// Situation.AutoProgressRewards applied automatically
+    /// Player sees narrative briefly, then rewards/time advancement execute
+    /// Tutorial Night Rest uses this: restore resources, advance to morning
+    /// </summary>
+    AutoAdvance
 }

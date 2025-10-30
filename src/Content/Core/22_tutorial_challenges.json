@@ -1,0 +1,69 @@
+{
+  "packageId": "tutorial_challenges",
+  "metadata": {
+    "name": "Tutorial Challenge Decks",
+    "timestamp": "2025-10-30T00:00:00Z",
+    "description": "Beginner-friendly challenge decks for tutorial: Elena's social service and Thomas's warehouse work. Lower danger thresholds and forgiving card distributions teach mechanics without punishing new players.",
+    "author": "Wayfarer Team",
+    "version": "1.0.0"
+  },
+  "content": {
+    "socialChallengeDecks": [
+      {
+        "id": "tutorial_social_service",
+        "name": "Evening Service",
+        "description": "Help Elena serve evening customers - a gentle introduction to social challenges through service work. Heavy Rapport/Insight focus, minimal Authority/Cunning. Teaches conversation basics without high tension.",
+        "dangerThreshold": 12,
+        "cardIds": [
+          "rapport_show_understanding",
+          "rapport_show_understanding",
+          "rapport_show_understanding",
+          "rapport_gentle_encouragement",
+          "rapport_gentle_encouragement",
+          "rapport_empathetic_response",
+          "rapport_empathetic_response",
+          "rapport_active_listening",
+          "rapport_active_listening",
+          "insight_quick_scan",
+          "insight_quick_scan",
+          "insight_ask_question",
+          "insight_ask_question",
+          "insight_careful_analysis",
+          "insight_notice_detail",
+          "diplomacy_reassure",
+          "diplomacy_reassure",
+          "diplomacy_propose_alternative",
+          "diplomacy_address_concern"
+        ],
+        "initialHandSize": 5,
+        "maxHandSize": 7
+      }
+    ],
+    "physicalChallengeDecks": [
+      {
+        "id": "tutorial_physical_warehouse",
+        "name": "Warehouse Work",
+        "description": "Move crates and organize supplies at Thomas's warehouse - a safe introduction to physical challenges through structured work. Focus on careful, precise movements. No high-risk Brute Force. Teaches physical mechanics with minimal danger.",
+        "dangerThreshold": 7,
+        "cardIds": [
+          "physical_climb_carefully",
+          "physical_climb_carefully",
+          "physical_climb_carefully",
+          "physical_climb_carefully",
+          "physical_leverage_tool",
+          "physical_leverage_tool",
+          "physical_leverage_tool",
+          "physical_leverage_tool",
+          "physical_precise_movement",
+          "physical_precise_movement",
+          "physical_precise_movement",
+          "physical_precise_movement",
+          "physical_sprint_forward",
+          "physical_sprint_forward"
+        ],
+        "initialHandSize": 5,
+        "maxHandSize": 7
+      }
+    ]
+  }
+}

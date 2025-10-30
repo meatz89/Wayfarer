@@ -80,15 +80,114 @@ Major refactoring to implement tutorial system based on revised specification:
 
 **Status:** ✅ COMPLETE
 
-### 2. Parser Integration (IN PROGRESS)
+### 2. Parser Integration ✅ COMPLETE
 
 **File:** `src/Content/Parsers/SceneTemplateParser.cs`
 
 **Completed:**
-- ParseChoiceCost() method: Added mapping for Health, Hunger, Stamina, Focus fields (lines 313-316)
+- ParseChoiceCost() method: Added mapping for Health, Hunger, Stamina, Focus fields
+- ParseChoiceReward() method: Added mapping for Health, Hunger, Stamina, Focus, AdvanceToBlock, AdvanceToDay fields
+- ParseTimeBlock() helper method: Converts string → TimeBlocks? enum
+- ParseDayAdvancement() helper method: Converts string → DayAdvancement? enum
+- ParseSituationTemplate(): Added mapping for AutoProgressRewards
 
-**Remaining:**
-- ParseChoiceReward() method: Need to add same field mappings
+**Status:** ✅ COMPLETE
+
+## Phase 2: Foundation Architecture ✅ COMPLETE
+
+### 1. SpawnPattern.AutoAdvance Enum ✅ COMPLETE
+
+**Files Modified:**
+- `src/GameState/Enums/SpawnPattern.cs` ✅
+
+**Changes:**
+- Added `AutoAdvance` enum value for scenes that progress without player input
+- Used by tutorial Night Rest scene for automatic resource restoration
+
+**Status:** ✅ COMPLETE
+
+### 2. Situation.IsAutoAdvance Property ✅ COMPLETE
+
+**Files Modified:**
+- `src/GameState/Situation.cs` ✅
+
+**Changes:**
+- Added `IsAutoAdvance` boolean property
+- Set when parent Scene has Archetype = AutoAdvance
+- Signals SceneFacade to execute rewards automatically
+
+**Status:** ✅ COMPLETE
+
+### 3. Challenge Context CompletionReward ✅ COMPLETE
+
+**Files Modified:**
+- `src/GameState/Contexts/SocialChallengeContext.cs` ✅
+- `src/GameState/Contexts/MentalChallengeContext.cs` ✅
+- `src/GameState/Contexts/PhysicalChallengeContext.cs` ✅
+
+**Changes:**
+- Added `CompletionReward` property (ChoiceReward type) to all three contexts
+- Set when challenge starts from Choice with ActionType = StartChallenge
+- Applied in respective facade EndConversation/EndSession methods
+
+**Status:** ✅ COMPLETE
+
+### 4. GameWorld PendingContext Storage ✅ COMPLETE
+
+**Files Modified:**
+- `src/GameState/GameWorld.cs` ✅
+
+**Changes:**
+- Added `PendingSocialContext` property
+- Added `PendingMentalContext` property
+- Added `PendingPhysicalContext` property
+- Stores context containing CompletionReward during challenge execution
+
+**Status:** ✅ COMPLETE
+
+### 5. ActionExecutionPlan Resource Costs ✅ COMPLETE
+
+**Files Modified:**
+- `src/Services/ActionExecutionPlan.cs` ✅
+
+**Changes:**
+- Added `HealthCost` property (int)
+- Added `StaminaCost` property (int)
+- Added `FocusCost` property (int)
+- Added `HungerCost` property (int)
+- Executor sets these from ChoiceTemplate.CostTemplate
+
+**Status:** ✅ COMPLETE
+
+### 6. RewardApplicationService ✅ COMPLETE
+
+**Files Created:**
+- `src/Subsystems/Consequence/RewardApplicationService.cs` ✅
+
+**Changes:**
+- Centralized service for applying ChoiceReward consequences
+- Handles: Coins, Resolve, Health, Stamina, Focus, Hunger
+- Handles: BondChanges, ScaleShifts, StateApplications
+- Handles: Achievements, Items
+- Handles: Time advancement (AdvanceToBlock, AdvanceToDay)
+- Handles: Scene spawning finalization
+- Dependency injection: GameWorld, ConsequenceFacade, TimeFacade, SceneInstantiator
+- Methods:
+  - `ApplyChoiceReward()`: Main entry point
+  - `AdvanceToBlock()`: Jump to time block within current day
+  - `AdvanceToNextDayAtBlock()`: Jump to next day at specific time block
+  - `FinalizeSceneSpawns()`: Finalize provisional scenes
+- Build status: ✅ Compiles with 0 errors, 0 warnings
+
+**Status:** ✅ COMPLETE
+
+### 7. Build Verification ✅ COMPLETE
+
+**Status:** ✅ Build succeeds with 0 errors, 0 warnings
+- All Phase 1 changes integrated
+- All Phase 2 foundation changes integrated
+- RewardApplicationService compiles successfully
+- Ready for Phase 3 integration work
 
 ## Work Remaining
 
