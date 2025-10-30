@@ -59,12 +59,14 @@ namespace Wayfarer.Pages.Components
             double hexWidth = 70;   // matches CSS .hex width
             double hexHeight = 80;  // matches CSS .hex height
 
-            // Pointy-top hex tessellation (width < height)
-            double horizontalSpacing = hexWidth;
-            double verticalSpacing = hexHeight * 0.75;
+            // Pointy-top hex tessellation formula
+            // Hexes should have gaps between them, so add spacing beyond tessellation
+            double horizontalSpacing = hexWidth + 5;
+            double verticalSpacing = hexHeight * 0.75 + 5;
 
             // Calculate position with proper offset for interlocking pattern
-            double x = coords.Q * horizontalSpacing + (coords.R * horizontalSpacing * 0.5);
+            // For pointy-top: x offset by half spacing per row, y advances by 3/4 height
+            double x = coords.Q * horizontalSpacing + (coords.R * (horizontalSpacing * 0.5));
             double y = coords.R * verticalSpacing;
 
             // Center the grid in viewport
