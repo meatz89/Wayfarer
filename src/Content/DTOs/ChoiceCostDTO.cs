@@ -24,4 +24,29 @@ public class ChoiceCostDTO
     /// 0 = instant action (no time passes)
     /// </summary>
     public int TimeSegments { get; set; } = 0;
+
+    /// <summary>
+    /// Health cost (physical risk/injury)
+    /// 0 = no health risk
+    /// </summary>
+    public int Health { get; set; } = 0;
+
+    /// <summary>
+    /// Hunger increase (physical exertion)
+    /// Positive values increase hunger, negative values decrease hunger
+    /// 0 = no hunger impact
+    /// </summary>
+    public int Hunger { get; set; } = 0;
+
+    /// <summary>
+    /// Stamina cost (physical/mental exertion)
+    /// 0 = no stamina cost
+    /// </summary>
+    public int Stamina { get; set; } = 0;
+
+    /// <summary>
+    /// Focus cost (mental concentration)
+    /// 0 = no focus cost
+    /// </summary>
+    public int Focus { get; set; } = 0;
 }

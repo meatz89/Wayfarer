@@ -21,6 +21,42 @@ public class ChoiceReward
     public int TimeSegments { get; set; } = 0;
 
     /// <summary>
+    /// Advance to specific time block (overrides TimeSegments)
+    /// Used by AutoAdvance scenes for major time jumps (e.g., sleep until morning)
+    /// </summary>
+    public TimeBlocks? AdvanceToBlock { get; set; }
+
+    /// <summary>
+    /// Advance to next day (or stay on current day)
+    /// Used with AdvanceToBlock for overnight transitions
+    /// </summary>
+    public DayAdvancement? AdvanceToDay { get; set; }
+
+    /// <summary>
+    /// Health amount granted (positive) or deducted (negative)
+    /// Rest and healing restore health, injuries reduce it
+    /// </summary>
+    public int Health { get; set; } = 0;
+
+    /// <summary>
+    /// Hunger amount changed (positive increases hunger, negative decreases hunger)
+    /// Eating food reduces hunger, exertion increases it
+    /// </summary>
+    public int Hunger { get; set; } = 0;
+
+    /// <summary>
+    /// Stamina amount granted (positive) or deducted (negative)
+    /// Rest restores stamina, exertion depletes it
+    /// </summary>
+    public int Stamina { get; set; } = 0;
+
+    /// <summary>
+    /// Focus amount granted (positive) or deducted (negative)
+    /// Rest restores focus, investigation depletes it
+    /// </summary>
+    public int Focus { get; set; } = 0;
+
+    /// <summary>
     /// Bond changes with NPCs
     /// Can strengthen or weaken relationships
     /// </summary>

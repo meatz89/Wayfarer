@@ -11,6 +11,16 @@ public enum TimeBlocks
     // Day ends at segment 16 (Evening segment 4), sleep/recovery happens automatically
 }
 
+/// <summary>
+/// Day advancement options for ChoiceReward time progression
+/// Used by AutoAdvance scenes to control day transitions
+/// </summary>
+public enum DayAdvancement
+{
+    CurrentDay,  // Stay on current day
+    NextDay      // Advance to next day
+}
+
 public static class TimeBlockSegments
 {
     public static readonly Dictionary<TimeBlocks, int> SegmentsPerBlock = new()

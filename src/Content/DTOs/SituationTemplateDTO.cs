@@ -33,4 +33,11 @@ public class SituationTemplateDTO
     /// Provides tone, theme, context for dynamic narrative generation
     /// </summary>
     public NarrativeHintsDTO NarrativeHints { get; set; }
+
+    /// <summary>
+    /// Rewards applied automatically when Situation activates (AutoAdvance archetype)
+    /// No player choices required - scene displays narrative then applies rewards
+    /// Used for sleep, travel, forced narrative progression
+    /// </summary>
+    public ChoiceRewardDTO AutoProgressRewards { get; set; }
 }

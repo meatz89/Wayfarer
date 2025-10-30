@@ -227,7 +227,8 @@ public class SceneTemplateParser
             NarrativeTemplate = dto.NarrativeTemplate,
             ChoiceTemplates = ParseChoiceTemplates(dto.ChoiceTemplates, sceneTemplateId, dto.Id),
             Priority = dto.Priority,
-            NarrativeHints = ParseNarrativeHints(dto.NarrativeHints)
+            NarrativeHints = ParseNarrativeHints(dto.NarrativeHints),
+            AutoProgressRewards = ParseChoiceReward(dto.AutoProgressRewards)
         };
 
         return template;
@@ -309,7 +310,11 @@ public class SceneTemplateParser
         {
             Coins = dto.Coins,
             Resolve = dto.Resolve,
-            TimeSegments = dto.TimeSegments
+            TimeSegments = dto.TimeSegments,
+            Health = dto.Health,
+            Hunger = dto.Hunger,
+            Stamina = dto.Stamina,
+            Focus = dto.Focus
         };
     }
 
@@ -326,6 +331,12 @@ public class SceneTemplateParser
             Coins = dto.Coins,
             Resolve = dto.Resolve,
             TimeSegments = dto.TimeSegments,
+            AdvanceToBlock = ParseTimeBlock(dto.AdvanceToBlock),
+            AdvanceToDay = ParseDayAdvancement(dto.AdvanceToDay),
+            Health = dto.Health,
+            Hunger = dto.Hunger,
+            Stamina = dto.Stamina,
+            Focus = dto.Focus,
             BondChanges = ParseBondChanges(dto.BondChanges),
             ScaleShifts = ParseScaleShifts(dto.ScaleShifts),
             StateApplications = ParseStateApplications(dto.StateApplications),
@@ -516,5 +527,33 @@ public class SceneTemplateParser
         }
 
         return transitions;
+    }
+
+    /// <summary>
+    /// Parse TimeBlock enum from string
+    /// </summary>
+    private TimeBlocks? ParseTimeBlock(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        if (Enum.TryParse<TimeBlocks>(value, ignoreCase: true, out TimeBlocks result))
+            return result;
+
+        throw new InvalidDataException($"Invalid TimeBlock value: '{value}'. Valid values: Morning, Midday, Afternoon, Evening");
+    }
+
+    /// <summary>
+    /// Parse DayAdvancement enum from string
+    /// </summary>
+    private DayAdvancement? ParseDayAdvancement(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+            return null;
+
+        if (Enum.TryParse<DayAdvancement>(value, ignoreCase: true, out DayAdvancement result))
+            return result;
+
+        throw new InvalidDataException($"Invalid DayAdvancement value: '{value}'. Valid values: CurrentDay, NextDay");
     }
 }

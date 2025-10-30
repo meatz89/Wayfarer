@@ -24,6 +24,48 @@ public class ChoiceRewardDTO
     public int TimeSegments { get; set; } = 0;
 
     /// <summary>
+    /// Advance to specific time block (overrides TimeSegments)
+    /// Values: "Morning", "Midday", "Afternoon", "Evening"
+    /// null = use TimeSegments instead
+    /// </summary>
+    public string? AdvanceToBlock { get; set; }
+
+    /// <summary>
+    /// Advance to next day
+    /// Values: "CurrentDay", "NextDay"
+    /// null = stay on current day
+    /// </summary>
+    public string? AdvanceToDay { get; set; }
+
+    /// <summary>
+    /// Health grant (positive) or penalty (negative)
+    /// Rest and healing restore health
+    /// 0 = no health change
+    /// </summary>
+    public int Health { get; set; } = 0;
+
+    /// <summary>
+    /// Hunger change (positive increases hunger, negative decreases)
+    /// Eating food reduces hunger
+    /// 0 = no hunger change
+    /// </summary>
+    public int Hunger { get; set; } = 0;
+
+    /// <summary>
+    /// Stamina grant (positive) or penalty (negative)
+    /// Rest restores stamina
+    /// 0 = no stamina change
+    /// </summary>
+    public int Stamina { get; set; } = 0;
+
+    /// <summary>
+    /// Focus grant (positive) or penalty (negative)
+    /// Rest restores focus
+    /// 0 = no focus change
+    /// </summary>
+    public int Focus { get; set; } = 0;
+
+    /// <summary>
     /// Relationship changes (transparent before selection)
     /// +/- bond deltas with NPCs
     /// </summary>
