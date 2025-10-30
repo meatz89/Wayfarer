@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Wayfarer.GameState.Enums;
 
 namespace Wayfarer.Services
 {
@@ -186,7 +187,396 @@ namespace Wayfarer.Services
                 RouteType = DetermineRouteType(dangerRating)
             };
 
+            // Generate route segments with encounters
+            route.Segments = GenerateRouteSegments(hexPath, dangerRating, timeSegments, transportType);
+
+            // Spawn scenes for Encounter segments
+            SpawnEncounterScenes(route);
+
             return route;
+        }
+
+        /// <summary>
+        /// Spawn scenes for all Encounter-type segments on the route
+        /// Filters SceneTemplates by PlacementType=Route, terrain, and danger
+        /// Creates Active scenes directly (not provisional - routes are permanent)
+        /// </summary>
+        private void SpawnEncounterScenes(RouteOption route)
+        {
+            if (route.Segments == null || route.Segments.Count == 0)
+                return;
+
+            // Get all SceneTemplates with Route placement
+            List<SceneTemplate> routeTemplates = _gameWorld.SceneTemplates
+                .Where(template => template.PlacementFilter != null &&
+                                  template.PlacementFilter.PlacementType == PlacementType.Route)
+                .ToList();
+
+            if (routeTemplates.Count == 0)
+                return; // No route scene templates available yet
+
+            foreach (RouteSegment segment in route.Segments.Where(s => s.Type == SegmentType.Encounter))
+            {
+                // Get hex range for this segment to determine terrain/danger
+                int hexesPerSegment = Math.Max(1, route.HexPath.Count / route.Segments.Count);
+                int segmentIndex = segment.SegmentNumber - 1;
+                int startHex = segmentIndex * hexesPerSegment;
+                int endHex = (segmentIndex == route.Segments.Count - 1) ? route.HexPath.Count : (segmentIndex + 1) * hexesPerSegment;
+                List<AxialCoordinates> segmentHexes = route.HexPath.Skip(startHex).Take(endHex - startHex).ToList();
+
+                (TerrainType dominantTerrain, int segmentDanger) = AnalyzeSegmentHexes(segmentHexes);
+
+                // Filter templates by terrain and danger
+                List<SceneTemplate> matchingTemplates = FilterSceneTemplatesByTerrainAndDanger(
+                    routeTemplates,
+                    dominantTerrain,
+                    segmentDanger
+                );
+
+                if (matchingTemplates.Count > 0)
+                {
+                    // Select random template (weighted by tier - lower tiers more common)
+                    SceneTemplate selectedTemplate = SelectWeightedRandomTemplate(matchingTemplates);
+
+                    // Spawn scene for this segment
+                    Scene scene = SpawnActiveSceneForRoute(selectedTemplate, route, segment);
+
+                    // Assign scene ID to segment
+                    segment.MandatorySceneId = scene.Id;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Filter SceneTemplates by terrain and danger using PlacementFilter
+        /// </summary>
+        private List<SceneTemplate> FilterSceneTemplatesByTerrainAndDanger(
+            List<SceneTemplate> templates,
+            TerrainType segmentTerrain,
+            int segmentDanger)
+        {
+            List<SceneTemplate> matching = new List<SceneTemplate>();
+
+            foreach (SceneTemplate template in templates)
+            {
+                PlacementFilter filter = template.PlacementFilter;
+
+                // Check terrain match (if filter specifies terrains)
+                if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
+                {
+                    // Convert TerrainType to string for comparison
+                    string terrainString = segmentTerrain.ToString();
+                    if (!filter.TerrainTypes.Contains(terrainString))
+                        continue; // Terrain doesn't match
+                }
+
+                // Check danger range (if filter specifies)
+                if (filter.MinDangerRating.HasValue && segmentDanger < filter.MinDangerRating.Value)
+                    continue; // Too safe for this template
+
+                if (filter.MaxDangerRating.HasValue && segmentDanger > filter.MaxDangerRating.Value)
+                    continue; // Too dangerous for this template
+
+                matching.Add(template);
+            }
+
+            return matching;
+        }
+
+        /// <summary>
+        /// Select random template with tier-based weighting (lower tiers more common)
+        /// </summary>
+        private SceneTemplate SelectWeightedRandomTemplate(List<SceneTemplate> templates)
+        {
+            if (templates.Count == 1)
+                return templates[0];
+
+            // Weight calculation: Tier 0 = 8x, Tier 1 = 4x, Tier 2 = 2x, Tier 3+ = 1x
+            int totalWeight = 0;
+            List<int> weights = new List<int>();
+
+            foreach (SceneTemplate template in templates)
+            {
+                int weight = template.Tier switch
+                {
+                    0 => 8, // Safety net scenes very common
+                    1 => 4, // Low complexity common
+                    2 => 2, // Standard complexity moderate
+                    _ => 1  // High complexity rare
+                };
+                weights.Add(weight);
+                totalWeight += weight;
+            }
+
+            // Random selection weighted by tier
+            Random random = new Random();
+            int roll = random.Next(totalWeight);
+            int cumulative = 0;
+
+            for (int i = 0; i < templates.Count; i++)
+            {
+                cumulative += weights[i];
+                if (roll < cumulative)
+                    return templates[i];
+            }
+
+            // Fallback (shouldn't reach here)
+            return templates[0];
+        }
+
+        /// <summary>
+        /// Spawn Active scene directly for route (non-provisional)
+        /// Route scenes are permanent, not choice-dependent like location/NPC scenes
+        /// </summary>
+        private Scene SpawnActiveSceneForRoute(SceneTemplate template, RouteOption route, RouteSegment segment)
+        {
+            // Generate unique Scene ID
+            string sceneId = $"scene_{template.Id}_{route.Id}_seg{segment.SegmentNumber}";
+
+            // Create Scene directly as Active (skip provisional step)
+            Scene scene = new Scene
+            {
+                Id = sceneId,
+                TemplateId = template.Id,
+                Template = template,
+                PlacementType = PlacementType.Route,
+                PlacementId = route.Id,
+                State = SceneState.Active, // Active immediately, not provisional
+                Archetype = template.Archetype,
+                DisplayName = template.DisplayNameTemplate,
+                IntroNarrative = template.IntroNarrativeTemplate,
+                SpawnRules = template.SpawnRules,
+                SituationIds = new List<string>()
+            };
+
+            // Create Situations from SituationTemplates
+            foreach (SituationTemplate sitTemplate in template.SituationTemplates)
+            {
+                Situation situation = InstantiateSituation(sitTemplate, scene, route);
+                _gameWorld.Situations.Add(situation);
+                scene.SituationIds.Add(situation.Id);
+            }
+
+            // Set CurrentSituationId to first Situation
+            scene.CurrentSituationId = scene.SituationIds.FirstOrDefault();
+
+            // Add to GameWorld.Scenes (permanent storage)
+            _gameWorld.Scenes.Add(scene);
+
+            return scene;
+        }
+
+        /// <summary>
+        /// Instantiate Situation from SituationTemplate for route scene
+        /// Simplified version without placeholder replacement (routes have minimal dynamic context)
+        /// </summary>
+        private Situation InstantiateSituation(SituationTemplate template, Scene parentScene, RouteOption route)
+        {
+            string situationId = $"situation_{template.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+
+            Situation situation = new Situation
+            {
+                Id = situationId,
+                Name = template.Id, // Use template ID as name
+                Description = template.NarrativeTemplate ?? "",
+                State = SituationState.Dormant, // Starts Dormant, activates when player enters segment
+                Template = template,
+                SystemType = TacticalSystemType.Physical, // Route encounters default to Physical
+                ParentScene = parentScene,
+                Tier = parentScene.Template?.Tier ?? 1,
+                Repeatable = false // Route encounters are one-time
+            };
+
+            return situation;
+        }
+
+        /// <summary>
+        /// Generate route segments with danger-based encounter distribution
+        /// Specification: Number of segments = TimeSegments, encounters distributed based on danger
+        /// </summary>
+        private List<RouteSegment> GenerateRouteSegments(
+            List<AxialCoordinates> hexPath,
+            int dangerRating,
+            int timeSegments,
+            TransportType transportType)
+        {
+            if (hexPath == null || hexPath.Count == 0 || timeSegments < 1)
+                return new List<RouteSegment>();
+
+            List<RouteSegment> segments = new List<RouteSegment>();
+
+            // Calculate number of encounters based on danger rating
+            int encounterCount = CalculateEncounterCount(dangerRating, timeSegments);
+
+            // Determine encounter positions (avoid first and last segments)
+            List<int> encounterPositions = DetermineEncounterPositions(timeSegments, encounterCount);
+
+            // Divide hex path into segment ranges
+            int hexesPerSegment = Math.Max(1, hexPath.Count / timeSegments);
+
+            // Generate segments
+            for (int i = 0; i < timeSegments; i++)
+            {
+                int segmentNumber = i + 1;
+                bool isEncounter = encounterPositions.Contains(segmentNumber);
+
+                // Get hex range for this segment
+                int startHex = i * hexesPerSegment;
+                int endHex = (i == timeSegments - 1) ? hexPath.Count : (i + 1) * hexesPerSegment;
+                List<AxialCoordinates> segmentHexes = hexPath.Skip(startHex).Take(endHex - startHex).ToList();
+
+                // Determine dominant terrain and danger for this segment
+                (TerrainType dominantTerrain, int segmentDanger) = AnalyzeSegmentHexes(segmentHexes);
+
+                RouteSegment segment = new RouteSegment
+                {
+                    SegmentNumber = segmentNumber,
+                    Type = isEncounter ? SegmentType.Encounter : SegmentType.FixedPath,
+                    PathCollectionId = isEncounter ? null : "default_path_collection", // FixedPath uses default
+                    MandatorySceneId = null, // Will be populated by scene spawning
+                    NarrativeDescription = GenerateSegmentDescription(dominantTerrain, segmentDanger)
+                };
+
+                segments.Add(segment);
+            }
+
+            return segments;
+        }
+
+        /// <summary>
+        /// Calculate number of encounters based on danger rating
+        /// Implements danger-based distribution algorithm
+        /// </summary>
+        private int CalculateEncounterCount(int dangerRating, int timeSegments)
+        {
+            if (dangerRating < 20)
+                return 0; // Safe routes: no mandatory encounters
+
+            if (dangerRating < 40)
+                return 1; // Low danger: 1 encounter
+
+            if (dangerRating < 60)
+                return Math.Min(2, timeSegments - 2); // Medium danger: 2 encounters (if space)
+
+            if (dangerRating < 80)
+                return Math.Min(3, timeSegments - 2); // High danger: 3 encounters (if space)
+
+            // Very high danger: 30% of segments (spec recommendation)
+            return Math.Min((int)Math.Ceiling(timeSegments * 0.3), timeSegments - 2);
+        }
+
+        /// <summary>
+        /// Determine positions for encounters within segment range
+        /// Avoids first and last segments, spreads evenly
+        /// </summary>
+        private List<int> DetermineEncounterPositions(int totalSegments, int encounterCount)
+        {
+            List<int> positions = new List<int>();
+
+            if (encounterCount == 0 || totalSegments < 3)
+                return positions; // No room for encounters
+
+            // Available positions: segments 2 through (totalSegments - 1)
+            // Segment numbering is 1-based
+            int availableStart = 2;
+            int availableEnd = totalSegments; // Inclusive, but we want to avoid last
+            int availableCount = availableEnd - availableStart; // Segments 2 to N-1
+
+            if (availableCount < 1)
+                return positions; // Not enough segments
+
+            // Distribute evenly through available range
+            if (encounterCount == 1)
+            {
+                // Place in middle
+                positions.Add(availableStart + availableCount / 2);
+            }
+            else
+            {
+                // Distribute evenly
+                float spacing = (float)availableCount / encounterCount;
+                for (int i = 0; i < encounterCount; i++)
+                {
+                    int position = availableStart + (int)Math.Round(i * spacing + spacing / 2);
+                    // Ensure within bounds
+                    position = Math.Max(availableStart, Math.Min(availableEnd - 1, position));
+                    if (!positions.Contains(position))
+                        positions.Add(position);
+                }
+            }
+
+            return positions;
+        }
+
+        /// <summary>
+        /// Analyze hex range to determine dominant terrain and average danger
+        /// </summary>
+        private (TerrainType dominantTerrain, int averageDanger) AnalyzeSegmentHexes(List<AxialCoordinates> segmentHexes)
+        {
+            if (segmentHexes == null || segmentHexes.Count == 0)
+                return (TerrainType.Plains, 0);
+
+            // Count terrain types
+            Dictionary<TerrainType, int> terrainCounts = new Dictionary<TerrainType, int>();
+            int totalDanger = 0;
+            int validHexCount = 0;
+
+            foreach (AxialCoordinates coords in segmentHexes)
+            {
+                Hex hex = _gameWorld.WorldHexGrid.GetHex(coords);
+                if (hex != null)
+                {
+                    // Count terrain
+                    if (!terrainCounts.ContainsKey(hex.Terrain))
+                        terrainCounts[hex.Terrain] = 0;
+                    terrainCounts[hex.Terrain]++;
+
+                    // Sum danger
+                    totalDanger += hex.DangerLevel;
+                    validHexCount++;
+                }
+            }
+
+            // Find dominant terrain (most common)
+            TerrainType dominantTerrain = TerrainType.Plains;
+            int maxCount = 0;
+            foreach (KeyValuePair<TerrainType, int> kvp in terrainCounts)
+            {
+                if (kvp.Value > maxCount)
+                {
+                    maxCount = kvp.Value;
+                    dominantTerrain = kvp.Key;
+                }
+            }
+
+            // Calculate average danger
+            int averageDanger = validHexCount > 0 ? totalDanger / validHexCount : 0;
+
+            return (dominantTerrain, averageDanger);
+        }
+
+        /// <summary>
+        /// Generate narrative description for segment based on terrain and danger
+        /// </summary>
+        private string GenerateSegmentDescription(TerrainType terrain, int danger)
+        {
+            string terrainDesc = terrain switch
+            {
+                TerrainType.Plains => "Open Plains",
+                TerrainType.Road => "Well-Traveled Road",
+                TerrainType.Forest => "Dense Forest",
+                TerrainType.Mountains => "Mountain Pass",
+                TerrainType.Swamp => "Treacherous Swamp",
+                TerrainType.Water => "Water Crossing",
+                _ => "Unknown Terrain"
+            };
+
+            string dangerDesc = danger < 3 ? "(Safe)" :
+                               danger < 6 ? "(Caution Advised)" :
+                               danger < 8 ? "(Dangerous)" :
+                               "(Very Dangerous)";
+
+            return $"{terrainDesc} {dangerDesc}";
         }
 
         /// <summary>

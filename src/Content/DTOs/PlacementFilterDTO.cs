@@ -85,6 +85,18 @@ public class PlacementFilterDTO
     /// </summary>
     public int? RouteTier { get; set; }
 
+    /// <summary>
+    /// Minimum danger rating (0-100 scale)
+    /// null = no minimum
+    /// </summary>
+    public int? MinDangerRating { get; set; }
+
+    /// <summary>
+    /// Maximum danger rating (0-100 scale)
+    /// null = no maximum
+    /// </summary>
+    public int? MaxDangerRating { get; set; }
+
     // ====================
     // PLAYER STATE FILTERS
     // ====================

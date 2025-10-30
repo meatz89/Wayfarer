@@ -61,22 +61,22 @@ Usage (services, UI, etc.)
 **THE RULE: ALL FIVE LAYERS MUST MATCH**
 
 When you DELETE a property:
-1. ✅ Remove from JSON source files
-2. ✅ Remove from DTO class
-3. ✅ Remove from Parser code (assignment, validation, logic)
-4. ✅ Remove from Entity class
-5. ✅ Remove from all usage (services, UI, wherever it's referenced)
+1. Remove from JSON source files
+2. Remove from DTO class
+3. Remove from Parser code (assignment, validation, logic)
+4. Remove from Entity class
+5. Remove from all usage (services, UI, wherever it's referenced)
 
 When you CHANGE a property (rename, type change, restructure):
-1. ✅ Change in JSON source files
-2. ✅ Change in DTO class
-3. ✅ Change in Parser code
-4. ✅ Change in Entity class
-5. ✅ Change in all usage
+1. Change in JSON source files
+2. Change in DTO class
+3. Change in Parser code
+4. Change in Entity class
+5. Change in all usage
 
 **CORRECT APPROACH (HOLISTIC):**
 ```
-✅ "Let me remove travelHubSpotId from the ENTIRE data flow"
+"Let me remove travelHubSpotId from the ENTIRE data flow"
    1. Search: grep -r "travelHubSpotId\|TravelHubSpotId" (find EVERYTHING)
    2. Delete from JSON source
    3. Delete from VenueDTO
@@ -94,32 +94,6 @@ When you CHANGE a property (rename, type change, restructure):
 - DTO fields that aren't parsed waste memory and cause confusion
 - Entity properties that aren't used violate single responsibility
 - Half-deleted features create phantom dependencies
-
-**EXAMPLES:**
-
-**Example 1 - Deleting a property:**
-User: "Remove travelHubSpotId - it's duplicate state (crossroads property is the source of truth)"
-
-✅ CORRECT:
-- grep -r "travelHubSpotId\|TravelHubSpotId" (find all references)
-- Remove from 01_foundation.json
-- Remove from VenueDTO.cs (public string TravelHubSpotId)
-- Remove from VenueParser.cs (venue.TravelHubSpotId = dto.TravelHubSpotId)
-- Remove from Venue.cs (public string TravelHubSpotId property)
-- Search for usage (venue.TravelHubSpotId references)
-- Delete usage or refactor to use crossroads property instead
-- Build and verify
-
-**Example 2 - Renaming a property:**
-User: "Rename 'profession' to 'occupation' in NPC data"
-
-✅ CORRECT:
-- Update JSON: "profession" → "occupation"
-- Update NPCDTO: public string Profession → public string Occupation
-- Update NPCParser: dto.Profession → dto.Occupation
-- Update NPC entity: if needed (or keep internal name as Profession if it's domain language)
-- Search and update all usage
-- Build and verify
 
 ### 6. UNDERSTAND PLAYER EXPERIENCE AND MENTAL STATE
 
@@ -149,10 +123,10 @@ User: "Rename 'profession' to 'occupation' in NPC data"
 
 **EXAMPLES OF CORRECT THINKING:**
 
-✅ Player at location → Sees options: "Talk to NPC", "Look around", "Check belongings", "Leave"
-✅ "Check belongings" appears WHERE IT MAKES SENSE (not everywhere, only where contextually appropriate)
-✅ Journal accessed via button because it's META (out-of-world reference material)
-✅ Challenges are IMMERSIVE experiences (full screen, no chrome)
+Player at location → Sees options: "Talk to NPC", "Look around", "Check belongings", "Leave"
+"Check belongings" appears WHERE IT MAKES SENSE (not everywhere, only where contextually appropriate)
+Journal accessed via button because it's META (out-of-world reference material)
+Challenges are IMMERSIVE experiences (full screen, no chrome)
 
 **THE CORRECT QUESTION:**
 
@@ -168,7 +142,7 @@ NOT: "Where should I put this button?"
 ❌ **WRONG RESPONSE:** "This isn't supported yet, so I'll delete it"
 ❌ **WRONG RESPONSE:** "The code doesn't handle this, so I'll comment it out"
 
-✅ **CORRECT RESPONSE:** "This action type doesn't exist. I will IMPLEMENT it by following the complete vertical slice pattern."
+**CORRECT RESPONSE:** "This action type doesn't exist. I will IMPLEMENT it by following the complete vertical slice pattern."
 
 **THE RULE:**
 - **NEVER remove necessary content just because it's not implemented yet**
@@ -180,7 +154,7 @@ NOT: "Where should I put this button?"
 User needs "SleepOutside" player action for tutorial.
 
 ❌ **WRONG:** Remove "SleepOutside" from JSON because PlayerActionType enum doesn't have it
-✅ **CORRECT:**
+**CORRECT:**
 1. Add `SleepOutside` to PlayerActionType enum
 2. Add handler in GameFacade.ExecutePlayerAction()
 3. Add implementation in ResourceFacade
@@ -262,8 +236,6 @@ User needs "SleepOutside" player action for tutorial.
 - ID immutable after parsing (never changes)
 - No desync risk (ID is source, object is derived once)
 
-**Examples:** Situation placement (location/NPC from JSON, frequent runtime access)
-
 ### Pattern B: Runtime-Only Navigation (Object ONLY, NO ID)
 
 **When to Use:** Property is runtime state, not from JSON, changes during gameplay
@@ -275,8 +247,6 @@ User needs "SleepOutside" player action for tutorial.
 - Changes frequently during gameplay
 - Desync risk if you add ID property alongside object
 
-**Examples:** Player current location (runtime state, moves between locations)
-
 ### Pattern C: Lookup on Demand (ID ONLY, NO Object)
 
 **When to Use:** Property from JSON, but lookups are infrequent
@@ -286,8 +256,6 @@ User needs "SleepOutside" player action for tutorial.
 - NO cached object reference
 - Lookup in GameWorld when needed (rare operations)
 - No memory wasted on cached reference
-
-**Examples:** Obligation patron NPC (referenced infrequently, lookup acceptable)
 
 ---
 
@@ -491,23 +459,23 @@ When you discover mixed representations:
    - Icons are UI concerns, not data
    - JSON stores categorical data, UI layer determines visual representation
    - ❌ WRONG: `"icon": "sword-icon.png"`
-   - ✅ CORRECT: No icon property at all (UI derives icon from categorical properties like type/category)
+   - CORRECT: No icon property at all (UI derives icon from categorical properties like type/category)
 
 2. **PREFER CATEGORICAL OVER NUMERICAL**
    - Always prefer categorical properties ("Capable", "Commanding", "Fragile") over numerical values in JSON
    - Content authors describe INTENT and RELATIVE MAGNITUDE, not exact mechanics
    - Catalogues translate intent → mechanics with game state scaling
    - ❌ WRONG: `"bondRequirement": 15` (hardcoded number)
-   - ✅ CORRECT: `"bondRequirement": "Trusted"` (categorical level translated by catalogue)
+   - CORRECT: `"bondRequirement": "Trusted"` (categorical level translated by catalogue)
    - ❌ WRONG: `"resolveCost": 8` (hardcoded number)
-   - ✅ CORRECT: `"resolveCost": "Medium"` (tier-based, scales with progression)
+   - CORRECT: `"resolveCost": "Medium"` (tier-based, scales with progression)
 
 3. **VALIDATE ID REFERENCES AT PARSE TIME**
    - ALL ID references in JSON must be validated against GameWorld entities during parsing
    - Parser must throw InvalidOperationException if referenced entity doesn't exist
    - Fail fast at game initialization, not during gameplay
    - ❌ WRONG: Silently ignore missing references or create placeholder
-   - ✅ CORRECT: `if (!gameWorld.NPCs.ContainsKey(dto.NpcId)) throw new InvalidOperationException($"Situation '{dto.Id}' references unknown NPC '{dto.NpcId}'")`
+   - CORRECT: `if (!gameWorld.NPCs.ContainsKey(dto.NpcId)) throw new InvalidOperationException($"Situation '{dto.Id}' references unknown NPC '{dto.NpcId}'")`
 
 **When Numerical Values ARE Appropriate:**
 - Player state progression (XP: 150, Coins: 47) - runtime accumulation
@@ -531,46 +499,27 @@ All parsers MUST:
 
 ---
 
-## EXISTING CATALOGUE EXAMPLES
-
-**EquipmentDurabilityCatalog:**
-- JSON: `"durability": "Fragile"`
-- Catalogue translates: "Fragile" → (uses: 2, repairCost: 10)
-- Entity stores: `equipment.ExhaustsAfterUses = 2`, `equipment.RepairCost = 10`
-- Runtime uses: `if (equipment.UsesRemaining == 0) { ... }`
-
-**SocialCardEffectCatalog:**
-- JSON: `"stat": "Rapport", "depth": 2, "index": 0`
-- Catalogue translates: (Rapport, depth 2) → CardEffectFormula with concrete effect values
-- Entity stores: `card.EffectFormula = formula`
-- Runtime uses: `understanding += card.EffectFormula.BaseValue`
-
-**PhysicalCardEffectCatalog, MentalCardEffectCatalog:**
-- Same pattern: Categorical properties → Concrete effect formulas at parse time
-
----
-
 ## ENFORCEMENT RULES
 
 **Code Review - Parser:**
-- ✅ All categorical JSON properties translated via catalogue?
-- ✅ All concrete values stored on entity properties (int, bool, object)?
-- ✅ NO Dictionary<string, X> on entities?
-- ✅ Catalogue throws on unknown categorical values?
-- ✅ Parser stores results on entity, not in temporary variables?
+- All categorical JSON properties translated via catalogue?
+- All concrete values stored on entity properties (int, bool, object)?
+- NO Dictionary<string, X> on entities?
+- Catalogue throws on unknown categorical values?
+- Parser stores results on entity, not in temporary variables?
 
 **Code Review - Runtime (GameFacade, Facades, Services):**
-- ✅ NO catalogue imports (catalogues are parse-time only)?
-- ✅ NO string comparisons (`action.Id == "something"`)?
-- ✅ NO dictionary lookups (`dict["key"]`, `dict.ContainsKey()`)?
-- ✅ NO enum switching for behavior (`switch (recoveryType)` in runtime)?
-- ✅ ONLY concrete property access (`action.HealthRecovery`, `action.CoinCost`)?
+- NO catalogue imports (catalogues are parse-time only)?
+- NO string comparisons (`action.Id == "something"`)?
+- NO dictionary lookups (`dict["key"]`, `dict.ContainsKey()`)?
+- NO enum switching for behavior (`switch (recoveryType)` in runtime)?
+- ONLY concrete property access (`action.HealthRecovery`, `action.CoinCost`)?
 
 **Code Review - Entities:**
-- ✅ Properties are concrete types (int, bool, strongly-typed classes)?
-- ✅ NO Dictionary<string, X> properties?
-- ✅ NO enum properties that control behavior (enums for display/grouping only)?
-- ✅ Property names describe mechanics, not categories ("HealthRecovery" not "RecoveryType")?
+- Properties are concrete types (int, bool, strongly-typed classes)?
+- NO Dictionary<string, X> properties?
+- NO enum properties that control behavior (enums for display/grouping only)?
+- Property names describe mechanics, not categories ("HealthRecovery" not "RecoveryType")?
 
 **If you see Dictionary or string matching in runtime code, STOP. The architecture is violated.**
 
@@ -723,34 +672,6 @@ AI generates JSON (Categorical/Relative)
     → Domain Entity (Absolute/Scaled values)
 ```
 
-**Examples:**
-
-**CORRECT** (AI-friendly categorical properties):
-```csharp
-// AI generates: "durability": "Fragile" (doesn't know absolute values)
-// Parser reads game state: player level 3, difficulty Normal
-// Catalogue scales dynamically:
-DurabilityType durability = ParseEnum(dto.Durability);
-int playerLevel = gameWorld.Player.Level;
-DifficultyMode difficulty = gameWorld.CurrentDifficulty;
-(int uses, int repairCost) = EquipmentDurabilityCatalog.GetDurabilityValues(
-    durability, playerLevel, difficulty);
-
-// Result at Level 1: Fragile → 2 uses, 10 coins
-// Result at Level 5: Fragile → 4 uses, 25 coins (scaled up)
-// Fragile ALWAYS weaker than Sturdy (relative consistency)
-```
-
-```csharp
-// AI generates conversational move without knowing exact values
-CardEffectFormula effect = SocialCardEffectCatalog.GetEffectFromCategoricalProperties(
-    move, stat, depth, cardId, playerLevel);
-
-// Catalogue scales based on progression:
-// Early game: Remark/Rapport/Depth2 → +4 Understanding
-// Late game: Remark/Rapport/Depth2 → +6 Understanding (scaled)
-```
-
 **Why This Matters:**
 
 1. **AI Content Generation**: AI can create entities without knowing global game state
@@ -794,19 +715,16 @@ If YES to any → Create categorical enum + scaling catalogue. If NO → Conside
 - Parent creates child
 - Parent destroys child
 - Child cannot exist without parent
-- Example: Investigation owns Obstacles, Obstacle owns Goals
 
 **PLACEMENT (presentation context):**
 - Entity appears at a location for UI/narrative purposes
 - Entity's lifecycle independent of placement
 - Placement is metadata on the entity
-- Example: Goal has `locationId` field, appears at that location
 
 **REFERENCE (lookup relationship):**
 - Entity A needs to find Entity B
 - Entity A stores Entity B's ID
 - No lifecycle dependency
-- Example: Location has `obstacleIds`, queries GameWorld.Obstacles
 
 **Common Error:** Making Location own Obstacles because goals appear there. Location is PLACEMENT context, not OWNER.
 
@@ -833,12 +751,6 @@ If YES to any → Create categorical enum + scaling catalogue. If NO → Conside
 - Multiple valid paths with genuine trade-offs
 - ALWAYS USE THIS PATTERN
 
-**Examples:**
-- ❌ "Complete conversation to discover investigation" (boolean gate)
-- ✅ "Reach 10 Momentum to play GoalCard that discovers investigation" (resource cost)
-- ❌ "Have knowledge token to unlock location" (boolean gate)
-- ✅ "Spend 15 Focus to complete Mental challenge that grants knowledge" (resource cost)
-
 **Test:** Does the player make a strategic trade-off (accepting one cost to avoid another)? If no, it's a boolean gate.
 
 ## Principle 6: Typed Rewards as System Boundaries
@@ -862,12 +774,6 @@ System A sets boolean flag
 ```
 
 **Why:** Typed rewards are explicit connections. Boolean gates are implicit dependencies. Explicit connections maintain system boundaries.
-
-**Examples:**
-- ✅ GoalCard.Rewards.DiscoverInvestigation (typed reward)
-- ✅ GoalCard.Rewards.PropertyReduction (typed reward)
-- ❌ Investigation.Prerequisites.CompletedGoalId (boolean gate)
-- ❌ Continuous evaluation of HasKnowledge() (state query)
 
 **Test:** Is the connection a one-time application of a typed effect, or a continuous check of boolean state? First is correct, second is wrong.
 
@@ -994,10 +900,10 @@ System A sets boolean flag
 - ❌ String interpretation: Runtime decides meaning of strings
 
 **REQUIRED PATTERN:**
-- ✅ Parse-time translation: Categorical → strongly-typed (happens ONCE at initialization)
-- ✅ Context-aware properties: Named for WHERE they're checked (not WHAT they check)
-- ✅ Semantic decomposition: One categorical input → Many contextual outputs
-- ✅ Zero runtime interpretation: All meaning decided at parse time
+- Parse-time translation: Categorical → strongly-typed (happens ONCE at initialization)
+- Context-aware properties: Named for WHERE they're checked (not WHAT they check)
+- Semantic decomposition: One categorical input → Many contextual outputs
+- Zero runtime interpretation: All meaning decided at parse time
 
 **Application Process:**
 When encountering categorical property (List<string>, string enum) during entity design:
@@ -1045,11 +951,11 @@ These aren't implementation problems to solve with clever code. They're signals 
 - ❌ Check List<string> at runtime instead of translating at parse time
 
 **Correct Pattern**:
-- ✅ Which entity should own this property architecturally?
-- ✅ Trace parser → JSON → entity alignment
-- ✅ Move property to correct entity in all three: JSON, parser, domain
-- ✅ Delete legacy code that violates architecture
-- ✅ Categorical properties translate to multiple strongly-typed properties at parse time
+- Which entity should own this property architecturally?
+- Trace parser → JSON → entity alignment
+- Move property to correct entity in all three: JSON, parser, domain
+- Delete legacy code that violates architecture
+- Categorical properties translate to multiple strongly-typed properties at parse time
 
 **Why This Matters**:
 - Dictionary disease causes runtime type errors, impossible debugging, lost IntelliSense

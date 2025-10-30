@@ -60,9 +60,10 @@
         </div>
     </div>
 
-    <!-- Journal Button -->
-    <div class="journal-button-container">
+    <!-- Fixed Buttons Container (Journal + Map) -->
+    <div class="fixed-buttons-container">
         <button class="journal-btn" @onclick="ToggleJournal">📖 Journal</button>
+        <button class="map-btn" @onclick="ToggleMap">🗺️ Map</button>
     </div>
 
     <!-- Journal Modal -->
@@ -173,6 +174,10 @@
 
                 case ScreenMode.Emergency:
                     <EmergencyContent Context="@CurrentEmergencyContext" OnEmergencyEnd="HandleEmergencyEnd" />
+                    break;
+
+                case ScreenMode.HexMap:
+                    <HexMapContent />
                     break;
 
                 default:

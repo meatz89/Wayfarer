@@ -680,6 +680,19 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         StateHasChanged();
     }
 
+    // Hex Map Navigation
+    protected async Task ToggleMap()
+    {
+        if (CurrentScreen == ScreenMode.HexMap)
+        {
+            await NavigateToScreen(ScreenMode.Location);
+        }
+        else
+        {
+            await NavigateToScreen(ScreenMode.HexMap);
+        }
+    }
+
     // Obligation Modals
     protected bool _showObligationDiscoveryModal = false;
     protected bool _showObligationIntroModal = false;

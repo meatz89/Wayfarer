@@ -1,0 +1,79 @@
+@inherits HexMapContentBase
+
+@namespace Wayfarer.Pages.Components
+
+<link href="css/hex-map.css" rel="stylesheet" />
+
+<div class="hex-map-container">
+    <!-- Map Header -->
+    <div class="map-header">
+        <div class="map-title">World Map</div>
+        <button class="close-map-btn" @onclick="CloseMap">Close</button>
+    </div>
+
+    <!-- HTML/CSS Hex Grid -->
+    <div class="map-viewport">
+        <div class="hex-grid-container">
+            @foreach (var hex in Hexes)
+            {
+                var pos = GetHexPosition(hex.Coordinates);
+                var terrainClass = GetTerrainColorClass(hex);
+                var isPlayer = IsPlayerPosition(hex.Coordinates);
+                var location = GetLocationAtCoordinates(hex.Coordinates);
+
+                <div class="hex hex-@terrainClass" style="left: @(pos.left)px; top: @(pos.top)px;">
+                    @if (isPlayer)
+                    {
+                        <div class="player-marker">★</div>
+                    }
+                    @if (location != null && !isPlayer)
+                    {
+                        <div class="location-marker">
+                            <div class="location-pin"></div>
+                            <div class="location-name">@location.Name</div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Map Legend -->
+    <div class="map-legend">
+        <div class="legend-title">Terrain Types</div>
+        <div class="legend-items">
+            <div class="legend-item">
+                <span class="legend-color hex-plains"></span>
+                <span class="legend-label">Plains</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color hex-road"></span>
+                <span class="legend-label">Road</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color hex-forest"></span>
+                <span class="legend-label">Forest</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color hex-mountains"></span>
+                <span class="legend-label">Mountains</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color hex-swamp"></span>
+                <span class="legend-label">Swamp</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color hex-water"></span>
+                <span class="legend-label">Water</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color player-marker-legend"></span>
+                <span class="legend-label">Your Position</span>
+            </div>
+            <div class="legend-item">
+                <span class="legend-color location-marker-legend"></span>
+                <span class="legend-label">Location</span>
+            </div>
+        </div>
+    </div>
+</div>

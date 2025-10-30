@@ -82,6 +82,8 @@ public class SceneTemplateParser
             // Route filters
             TerrainTypes = dto.TerrainTypes,
             RouteTier = dto.RouteTier,
+            MinDangerRating = dto.MinDangerRating,
+            MaxDangerRating = dto.MaxDangerRating,
             // Player state filters
             RequiredStates = ParseStateTypes(dto.RequiredStates, sceneTemplateId, "RequiredStates"),
             ForbiddenStates = ParseStateTypes(dto.ForbiddenStates, sceneTemplateId, "ForbiddenStates"),

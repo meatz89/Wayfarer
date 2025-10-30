@@ -12,5 +12,6 @@ public enum ScreenMode
     PhysicalChallenge,
     ConversationTree,
     Observation,
-    Emergency
+    Emergency,
+    HexMap
 }

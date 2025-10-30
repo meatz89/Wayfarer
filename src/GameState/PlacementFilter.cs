@@ -92,6 +92,22 @@ public class PlacementFilter
     /// </summary>
     public int? RouteTier { get; init; }
 
+    /// <summary>
+    /// Minimum danger rating for route selection (0-100 scale)
+    /// null = no minimum
+    /// Used to filter scenes for dangerous routes
+    /// Example: MinDangerRating = 30 means "only spawn on routes with danger 30+"
+    /// </summary>
+    public int? MinDangerRating { get; init; }
+
+    /// <summary>
+    /// Maximum danger rating for route selection (0-100 scale)
+    /// null = no maximum
+    /// Used to filter scenes for safer routes
+    /// Example: MaxDangerRating = 50 means "only spawn on routes with danger <= 50"
+    /// </summary>
+    public int? MaxDangerRating { get; init; }
+
     // ==================== PLAYER STATE FILTERS (applies to all placement types) ====================
 
     /// <summary>
