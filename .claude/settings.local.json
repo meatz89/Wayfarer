@@ -86,7 +86,11 @@
       "WebSearch",
       "WebFetch(domain:the-life-and-suffering-of-sir-brante.fandom.com)",
       "WebFetch(domain:steamcommunity.com)",
-      "WebFetch(domain:gameplay.tips)"
+      "WebFetch(domain:gameplay.tips)",
+      "mcp__playwright__playwright_navigate",
+      "mcp__playwright__playwright_screenshot",
+      "mcp__playwright__playwright_click",
+      "mcp__playwright__playwright_get_visible_text"
     ],
     "deny": [],
     "ask": []

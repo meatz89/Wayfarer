@@ -304,6 +304,48 @@ Actions hardcoded, no flexibility, no property-based filtering
 
 ---
 
+## Principle 13: THE UNIFIED HEX-ROUTE SYSTEM
+
+  Routes ARE NOT hand-authored content. Routes are PROCEDURALLY GENERATED from the hex map at initialization.
+
+  Hex Map (terrain grid)
+      ↓ Pathfinding algorithm
+  Route Generation (difficulty, segments, length calculated from terrain)
+      ↓ Output
+  Routes (List<Route> in GameWorld)
+      ↓ Player experiences
+  Route Segment Travel (gameplay)
+
+  This means Phase 3 should be:
+
+  PHASE 3: HEX-GENERATED ROUTE TRAVEL (Enable Movement)
+
+  3A. Verify Hex Map Foundation
+  - Check if hex grid parsing is complete (02_hex_grid.json exists)
+  - Verify HexRouteGenerator.cs is functional
+  - Ensure terrain types affect pathfinding costs
+
+  3B. Route Generation from Hex Pathfinding
+  - On GameWorld initialization: For each venue pair, run pathfinding
+  - Generate Route entities with:
+    - Segments derived from hex traversal distance
+    - Difficulty from terrain types traversed
+    - Segment count = hex distance / segments-per-hex ratio
+  - Store generated Routes in GameWorld.Routes collection
+
+  3C. Segment-by-Segment Travel (Same as before)
+  - Player selects generated route
+  - Traverses segments one by one
+  - Each segment's properties derived from hex terrain it represents
+
+  Why This Matters:
+  - Scalability: Can add new locations without hand-authoring every route
+  - Consistency: Route difficulty automatically matches terrain
+  - AI Integration: AI can generate hex terrain → routes emerge automatically
+  - Replayability: Procedural variation in route generation
+
+---
+
 ## Meta-Principle: Design Constraint as Quality Filter
 
 **When you find yourself reaching for:**

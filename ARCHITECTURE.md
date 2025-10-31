@@ -216,31 +216,6 @@ Wayfarer is a **low-fantasy tactical RPG** with **three parallel challenge syste
 
 ### 1. JSON Content Structure
 
-**Location**: `src/Content/Core/*.json`
-
-**Package Loading Order** (numbered files loaded alphabetically):
-```
-01_foundation.json     → Player stats, time blocks, base configuration
-03_npcs.json          → NPC definitions with personalities and initial tokens
-04_connections.json   → Routes and travel connections
-05_goals.json         → Goal definitions (strategic-tactical bridge)
-06_gameplay.json      → Venues, locations, game rules
-07_equipment.json     → Items and equipment definitions
-08_social_cards.json  → Social challenge cards (conversations)
-09_mental_cards.json  → Mental challenge cards (investigations)
-10_physical_cards.json → Physical challenge cards (obstacles)
-12_challenge_decks.json → Deck configurations for all three systems
-13_investigations.json  → Multi-phase investigation templates
-14_knowledge.json      → Knowledge entries and discovery system
-```
-
-**Content Relationships**:
-- **Goals**: First-class entities with `npcId` OR `locationId` for assignment
-- **Challenge Decks**: Reference card IDs for Social/Mental/Physical systems
-- **Investigations**: Reference goals via phase definitions
-- **Cards**: Bind to unified 5-stat system (Insight/Rapport/Authority/Diplomacy/Cunning)
-- All relationships use string IDs for loose coupling
-
 ### 2. Static Parser Layer
 
 **Location**: `src/Content/*Parser.cs`

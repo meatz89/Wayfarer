@@ -10,6 +10,13 @@ public class LocationAction
     public string Id { get; set; }
 
     /// <summary>
+    /// Source location where this action was generated (if location-specific)
+    /// null = global action available at any matching location
+    /// non-null = only available at this specific location
+    /// </summary>
+    public string SourceLocationId { get; set; }
+
+    /// <summary>
     /// Display name shown to the player
     /// </summary>
     public string Name { get; set; }
@@ -121,6 +128,10 @@ public class LocationAction
     public bool MatchesLocation(Location location, TimeBlocks currentTime)
     {
         if (location == null) return false;
+
+        // Check location identity first (if action is location-specific)
+        if (!string.IsNullOrEmpty(SourceLocationId) && location.Id != SourceLocationId)
+            return false; // Location-specific action at wrong location
 
         // Get all active properties for the current time
         List<LocationPropertyType> activeProperties = location.GetActiveProperties(currentTime);

@@ -1,5 +1,6 @@
 using Wayfarer.Content;
 using Wayfarer.GameState.Enums;
+using Wayfarer.Services;
 
 /// <summary>
 /// Static factory for creating and initializing GameWorld instances.
@@ -25,10 +26,35 @@ public static class GameWorldInitializer
         PackageLoader packageLoader = new PackageLoader(gameWorld);
         packageLoader.LoadPackagesFromDirectory("Content/Core");
 
+        // Generate procedural routes from hex grid pathfinding
+        // Must happen AFTER package loading (locations + hex grid must exist)
+        // Must happen BEFORE scene spawning (route-based scenes need routes)
+        GenerateProceduralRoutes(gameWorld);
+
         // Spawn initial starter Scenes to populate tutorial content
         SpawnInitialScenes(gameWorld);
 
         return gameWorld;
+    }
+
+    /// <summary>
+    /// Generate all routes between locations using hex-based pathfinding
+    /// Called after package loading (so locations + hex grid exist)
+    /// Called before scene spawning (route-based scenes need routes to exist)
+    /// </summary>
+    private static void GenerateProceduralRoutes(GameWorld gameWorld)
+    {
+        HexRouteGenerator routeGenerator = new HexRouteGenerator(gameWorld);
+
+        // Generate all routes between locations with different venue membership
+        List<RouteOption> generatedRoutes = routeGenerator.GenerateAllRoutes();
+
+        // Add routes to GameWorld (single source of truth)
+        gameWorld.Routes.AddRange(generatedRoutes);
+
+        // Log route generation summary
+        int locationCount = gameWorld.Locations.Count(loc => loc.HexPosition.HasValue);
+        Console.WriteLine($"[Route Generation] Generated {generatedRoutes.Count} routes connecting {locationCount} locations with hex positions");
     }
 
     /// <summary>

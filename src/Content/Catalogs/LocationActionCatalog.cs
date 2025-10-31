@@ -43,6 +43,7 @@ public static class LocationActionCatalog
             actions.Add(new LocationAction
             {
                 Id = $"travel_{location.Id}",
+                SourceLocationId = location.Id,  // Bind to specific location
                 Name = "Travel to Another Location",
                 Description = "Select a route to travel to another location",
                 ActionType = LocationActionType.Travel,
@@ -62,6 +63,7 @@ public static class LocationActionCatalog
             actions.Add(new LocationAction
             {
                 Id = $"work_{location.Id}",
+                SourceLocationId = location.Id,  // Bind to specific location
                 Name = "Work",
                 Description = "Earn coins through labor. Base pay 8 coins, reduced by hunger penalty.",
                 ActionType = LocationActionType.Work,
@@ -87,6 +89,7 @@ public static class LocationActionCatalog
             actions.Add(new LocationAction
             {
                 Id = $"rest_{location.Id}",
+                SourceLocationId = location.Id,  // Bind to specific location
                 Name = "Rest",
                 Description = "Take time to rest and recover. Advances 1 time segment. Restores +1 Health and +1 Stamina. Hunger increases by +5 automatically.",
                 ActionType = LocationActionType.Rest,
@@ -113,6 +116,7 @@ public static class LocationActionCatalog
             actions.Add(new LocationAction
             {
                 Id = $"secure_room_{location.Id}",
+                SourceLocationId = location.Id,  // Bind to specific location
                 Name = "Secure a Room (10 coins)",
                 Description = "Purchase a room for the night. Full recovery of all resources. A bed, a roof, safety through the night.",
                 ActionType = LocationActionType.SecureRoom,
@@ -160,6 +164,7 @@ public static class LocationActionCatalog
             {
                 // ID encodes destination for intent handler parsing
                 Id = $"move_to_{destination.Id}",
+                SourceLocationId = location.Id,  // Bind to specific source location
                 Name = $"Move to {destination.Name}",
                 Description = $"Walk to {destination.Name} within the same venue (instant, free)",
                 ActionType = LocationActionType.Travel,  // Use Travel type for intra-venue movement
