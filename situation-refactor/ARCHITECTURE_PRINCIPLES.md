@@ -8,6 +8,128 @@ This document describes the high-level architecture for the Scene-Situation syst
 
 ---
 
+## ⚠️ PRIME DIRECTIVE: PLAYABILITY OVER IMPLEMENTATION ⚠️
+
+**THE FUNDAMENTAL RULE: A game that compiles but is unplayable is WORSE than a game that crashes.**
+
+Before implementing ANY Scene/Situation/Choice architecture:
+
+### Mandatory Playability Validation
+
+1. **Can the player REACH this content from game start?**
+   - Trace EXACT player action path from initial spawn location
+   - Verify scene spawns at accessible location/NPC
+   - Confirm player can navigate to that location/NPC
+   - No broken route chains, no inaccessible islands
+
+2. **Are scenes VISIBLE in UI?**
+   - LocationContent renders scenes from GameWorld.Scenes
+   - Scene cards appear as clickable options
+   - UI queries work (GetScenesAtLocation, GetScenesAtNPC)
+
+3. **Do scenes EXECUTE correctly?**
+   - Clicking scene transitions to situation view
+   - Situation choices appear as action buttons
+   - Actions execute and apply rewards
+   - Navigation returns player to correct state
+
+### Fail-Fast Enforcement
+
+**❌ FORBIDDEN - Silent defaults that hide broken player paths:**
+```csharp
+// WRONG - Scene spawns but player never sees it
+var scenes = location.Scenes ?? new List<Scene>();
+
+// WRONG - Situation has no choices, player sees empty screen
+if (situation.ChoiceTemplates != null && situation.ChoiceTemplates.Any()) { ... }
+
+// WRONG - Starter scene missing, player has no content
+Scene starter = scenes.FirstOrDefault(s => s.IsStarter);
+if (starter != null) { ProcessScene(starter); }
+```
+
+**✅ REQUIRED - Throw exceptions for missing critical content:**
+```csharp
+// CORRECT - Fails fast, forces scene creation
+if (!gameWorld.Scenes.Any(s => s.IsStarter))
+    throw new InvalidOperationException("No starter scene found - player has no entry point!");
+
+// CORRECT - Fails fast, forces choice creation
+if (situation.ChoiceTemplates == null || !situation.ChoiceTemplates.Any())
+    throw new InvalidDataException($"Situation '{situation.Id}' has no choices - player cannot interact!");
+
+// CORRECT - Validates spawn location exists
+Location spawnLocation = gameWorld.Locations.FirstOrDefault(l => l.Id == scene.PlacementLocationId);
+if (spawnLocation == null)
+    throw new InvalidOperationException($"Scene '{scene.Id}' spawns at unknown location '{scene.PlacementLocationId}' - player cannot reach!");
+```
+
+### The Playability Test
+
+For EVERY scene/situation implemented:
+
+1. **Start game** → Where does player spawn?
+2. **Check UI** → Can player see route/NPC to reach scene location?
+3. **Navigate** → Can player execute travel/interaction to reach scene?
+4. **Arrive** → Does scene appear as clickable card in UI?
+5. **Click scene** → Does situation load with visible choices?
+6. **Select choice** → Does action execute correctly?
+
+**If ANY step fails, content is INACCESSIBLE.**
+
+---
+
+## ⚠️ PRIME PRINCIPLE: CATALOGUES ARE PARSE-TIME ONLY ⚠️
+
+**ABSOLUTE RULE - NO EXCEPTIONS:**
+
+**Catalogues are ONLY called from PARSER. NEVER from game logic. NEVER from facades. NEVER at runtime.**
+
+**THE ENTITY IS COMPLETE AFTER PARSING.**
+
+Once the parser finishes, the entity has ALL properties populated. Runtime code queries GameWorld.
+Runtime code NEVER generates entities. Runtime code NEVER calls catalogues.
+
+**THIS IS NOT A GUIDELINE. THIS IS AN ARCHITECTURAL CONSTRAINT.**
+
+Violating this principle breaks the entire data flow architecture.
+
+**WHERE CATALOGUES CAN BE CALLED:**
+- ✅ Parser classes in `src/Content/Parsers/`
+- ✅ PackageLoader in `src/Content/PackageLoader.cs`
+- ✅ SceneInstantiator (Tier 2 - Instantiation Time)
+- ✅ NOWHERE ELSE
+
+**WHERE CATALOGUES ARE FORBIDDEN:**
+- ❌ GameFacade or any Facade (SceneFacade, LocationFacade, etc.)
+- ❌ Any Manager or Service
+- ❌ Any UI Component (.razor, .razor.cs)
+- ❌ Any runtime code after game initialization (Tier 3 - Query Time)
+
+**EXAMPLE: LocationActionCatalog**
+
+```csharp
+// ✅ CORRECT - Called at Parse Time (Tier 1)
+// In PackageLoader.cs
+List<LocationAction> actions = LocationActionCatalog.GenerateActionsForLocation(location, allLocations);
+foreach (LocationAction action in actions)
+{
+    _gameWorld.LocationActions.Add(action);
+}
+
+// ❌ FORBIDDEN - Called at Runtime (Tier 3)
+// In LocationFacade.cs
+public List<LocationAction> GetActions(Location location)
+{
+    return LocationActionCatalog.GenerateActionsForLocation(location); // NO! ARCHITECTURAL VIOLATION!
+}
+```
+
+**HOW TO VERIFY:**
+If you see `using Wayfarer.Content.Catalogues;` in ANY file except Parser, PackageLoader, or SceneInstantiator → ARCHITECTURAL VIOLATION.
+
+---
+
 ## The Three-Tier Timing Model
 
 The architecture operates across three distinct timing phases:

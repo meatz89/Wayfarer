@@ -11,6 +11,61 @@ Wayfarer creates strategic depth through impossible choices, not mechanical comp
 - **Perfect Information**: All calculations visible to the single player of this single-player rpg
 - **No Soft-Lock Architecture**: Always a path forward, even if suboptimal
 - **Atmosphere Through Mechanics**: Danger, preparation, and discovery create immersion
+- **⚠️ PLAYABILITY OVER IMPLEMENTATION**: A game that compiles but is unplayable is WORSE than a game that crashes
+
+### ⚠️ PRIME DIRECTIVE: PLAYABILITY FIRST ⚠️
+
+**Before ANY content is marked complete, answer with 9/10 certainty:**
+
+1. **Can the player REACH this content from game start?**
+   - Trace EXACT player action path from spawn to content
+   - Verify ALL links (routes, scenes, NPCs, locations)
+   - No missing connections, broken references, or inaccessible islands
+
+2. **Can the player SEE this content in UI?**
+   - Actions appear as clickable buttons/cards
+   - Scene cards render in location view
+   - Routes visible in travel screen
+   - NPCs show interaction options
+
+3. **Can the player EXECUTE this content?**
+   - Actions execute without errors
+   - Costs deducted correctly
+   - Rewards applied as expected
+   - Navigation works (challenge → location → challenge)
+
+4. **Does player have FORWARD PROGRESS from every state?**
+   - No soft-locks (trapped states)
+   - No dead-ends (locations with no exits)
+   - No orphaned content (systems with no entry points)
+
+**Fail-Fast Enforcement:**
+
+```csharp
+// ❌ WRONG - Hides missing content, game "works" but unplayable
+var routes = location.Routes ?? new List<Route>();
+if (npc.Scenes != null && npc.Scenes.Any()) { ShowScenes(); }
+Scene starter = scenes.FirstOrDefault(s => s.IsStarter) ?? defaultScene;
+
+// ✅ CORRECT - Fails fast, forces content creation
+if (!location.Routes.Any())
+    throw new InvalidOperationException($"Location '{location.Id}' has no routes - player trapped!");
+if (!npc.Scenes.Any())
+    throw new InvalidOperationException($"NPC '{npc.Id}' has no scenes - player cannot interact!");
+if (!gameWorld.Scenes.Any(s => s.IsStarter))
+    throw new InvalidOperationException("No starter scene - player has no entry point!");
+```
+
+**The Playability Test:**
+
+Can you trace a COMPLETE PATH of player actions from game start to your content? If ANY link is broken, missing, or inaccessible, the content is NOT PLAYABLE.
+
+- Path EXISTS (all links present in JSON/code)
+- Path is FUNCTIONAL (all links execute correctly)
+- Path is DISCOVERABLE (player can find through normal play)
+- No BROKEN LINKS (no null routes, missing scenes, inaccessible NPCs)
+
+**The number of actions is IRRELEVANT. What matters: Path exists, path works, player can find it.**
 
 ### Genre Definition
 
@@ -55,6 +110,98 @@ Strong typing forces explicit relationships. Collections of specific entity type
 **Why:** Generic containers hide relationships. They enable lazy design where "anything can be anything." Strong typing forces clarity about what connects to what and why.
 
 **Test:** Can you draw the object graph with boxes and arrows where every arrow has a clear semantic meaning? If not, add structure.
+
+## Principle 2.5: Catalogue Pattern - Parse-Time Entity Generation
+
+**⚠️ PRIME PRINCIPLE: CATALOGUES ARE PARSE-TIME ONLY ⚠️**
+
+**ABSOLUTE RULE - NO EXCEPTIONS:**
+
+**Catalogues are ONLY called from PARSER. NEVER from game logic. NEVER from facades. NEVER at runtime.**
+
+**THE ENTITY IS COMPLETE AFTER PARSING.**
+
+Once the parser finishes, the entity has ALL properties populated. Runtime code queries GameWorld.
+Runtime code NEVER generates entities. Runtime code NEVER calls catalogues.
+
+**THIS IS NOT A GUIDELINE. THIS IS AN ARCHITECTURAL CONSTRAINT.**
+
+Violating this principle breaks the entire data flow architecture.
+
+**WHERE CATALOGUES CAN BE CALLED:**
+- ✅ Parser classes in `src/Content/Parsers/`
+- ✅ PackageLoader in `src/Content/PackageLoader.cs`
+- ✅ NOWHERE ELSE
+
+**WHERE CATALOGUES ARE FORBIDDEN:**
+- ❌ GameFacade or any Facade
+- ❌ Any Manager or Service
+- ❌ Any UI Component
+- ❌ Any runtime code after game initialization
+
+**⚠️ CATALOGUES GENERATE ENTITIES AT PARSE TIME, NEVER AT RUNTIME ⚠️**
+
+**THE PATTERN:**
+
+JSON stores CATEGORICAL PROPERTIES (enums) → Parser calls CATALOGUE → Catalogue procedurally GENERATES ENTITIES → Entities stored in GameWorld → Runtime queries GameWorld (NO catalogue calls)
+
+**Example Flow:**
+```
+JSON: Location has property "Crossroads"
+  ↓ (Parse Time)
+Parser reads LocationPropertyType.Crossroads enum
+  ↓ (Parse Time)
+Parser calls LocationActionCatalog.GenerateActionsForLocation(location)
+  ↓ (Parse Time)
+Catalogue sees Crossroads → Generates "Travel" LocationAction entity
+  ↓ (Parse Time)
+Parser adds action to GameWorld.LocationActions
+  ↓ (Runtime)
+LocationActionManager queries GameWorld.LocationActions (NO catalogue)
+```
+
+**FORBIDDEN PATTERNS:**
+
+❌ **Actions defined in JSON:**
+```json
+// WRONG - Actions should be procedurally generated
+"locationActions": [
+  { "id": "travel_square", "type": "travel" }
+]
+```
+
+❌ **Runtime catalogue calls:**
+```csharp
+// WRONG - Catalogues are parse-time ONLY
+public List<LocationAction> GetActions(Location loc)
+{
+    return LocationActionCatalog.Generate(loc); // NO!
+}
+```
+
+✅ **CORRECT - Categorical properties → Parser generates entities:**
+```json
+// Location has categorical property
+{
+  "id": "square_center",
+  "locationProperties": ["Crossroads", "Public"]
+}
+```
+
+```csharp
+// Parser calls catalogue at parse time
+List<LocationAction> actions = LocationActionCatalog.GenerateActionsForLocation(location);
+foreach (LocationAction action in actions)
+{
+    _gameWorld.LocationActions.Add(action);
+}
+```
+
+**Why This Matters:**
+- **Entities complete after parsing** - No runtime generation overhead
+- **Catalogues never imported by facades** - Clean separation
+- **String/ID never stored in entities** - Only strongly-typed enums
+- **No JSON bloat** - Actions generated from minimal categorical data
 
 ## Principle 3: Ownership vs Placement vs Reference
 

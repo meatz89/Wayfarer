@@ -16,6 +16,80 @@ This document describes the INTENDED architecture - the complete, coherent visio
 
 ## Part 1: Core Architectural Principles
 
+### ⚠️ PRINCIPLE ZERO: PLAYABILITY OVER IMPLEMENTATION ⚠️
+
+**THE FUNDAMENTAL RULE: A game that compiles but is unplayable is WORSE than a game that crashes.**
+
+**Concept:** Playability validation is the FIRST test for all features. Technical success means nothing if players cannot reach or interact with content.
+
+**Motivation:** In game development, it's easy to focus on architecture, compilation, and code quality while forgetting that the player must be able to actually PLAY the game. A perfectly architected system that the player never sees is worthless.
+
+**How It Works:** Before marking ANY work complete, validate the complete player path:
+
+1. **Reachability:** Can the player reach this content from game start through player actions?
+   - Trace EXACT action sequence from spawn location to content
+   - Verify every link in chain exists and functions
+   - No broken routes, missing NPCs, inaccessible locations
+
+2. **Visibility:** Is content rendered in UI where player can see it?
+   - Scenes appear in location displays
+   - Choices render as clickable buttons/cards
+   - Requirements and costs clearly shown
+
+3. **Interactivity:** Can player execute actions and see results?
+   - Clicking actions executes them
+   - Costs deducted, rewards applied
+   - State changes visible in UI
+
+4. **Forward Progress:** Does player have valid next actions from every state?
+   - No soft-locks where player is trapped
+   - No dead-ends with no choices
+   - Always at least one path forward
+
+**Fail-Fast Enforcement:**
+
+Silent defaults and nullable types hide broken player paths. Code that allows missing content to "work" (return empty collections, skip rendering) creates unplayable games that appear functional.
+
+**FORBIDDEN patterns:**
+```csharp
+// WRONG - Hides missing starting location
+if (!string.IsNullOrEmpty(startingSpotId)) { player.LocationId = startingSpotId; }
+
+// WRONG - Hides missing routes
+var routes = location.Routes ?? new List<Route>();
+
+// WRONG - Hides missing Situations
+if (scene.Situations != null && scene.Situations.Any()) { DisplaySituations(); }
+```
+
+**REQUIRED patterns:**
+```csharp
+// CORRECT - Throws if critical content missing
+if (string.IsNullOrEmpty(startingSpotId))
+    throw new InvalidOperationException("No starting location - player cannot spawn!");
+
+if (!gameWorld.Routes.Any(r => r.SourceLocationId == locationId))
+    throw new InvalidOperationException($"Location '{locationId}' has no routes - player trapped!");
+
+if (!scene.Situations.Any())
+    throw new InvalidOperationException($"Scene '{scene.Id}' has no Situations - player cannot interact!");
+```
+
+**Why This Matters:** Playability violations waste massive amounts of time. You implement a feature, it compiles, tests pass, architecture is perfect - but the player can never reach it because a route is missing or UI doesn't query it. Hours of work are inaccessible.
+
+**The Playability Test:** For EVERY feature, answer these questions with 9/10 certainty:
+
+1. Can I trace a COMPLETE path of player actions from game start to this feature?
+2. Does the UI render this feature when player reaches it?
+3. Can the player interact with this feature and see results?
+4. Does the player have forward progress after using this feature?
+
+**If the answer to ANY question is NO or UNCERTAIN, the feature is NOT COMPLETE.**
+
+This principle overrides all others. A perfect HIGHLANDER implementation that players never see is a failure. An elegant template system generating content at inaccessible locations is worthless. Architectural purity means nothing if the game is unplayable.
+
+---
+
 ### Principle 1: HIGHLANDER - Single Orchestrator
 
 **Concept:** There can be only one execution orchestrator - GameFacade.

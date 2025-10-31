@@ -6,6 +6,72 @@ Wayfarer uses a procedurally-generated hex map to define spatial relationships a
 
 ---
 
+## ⚠️ PRIME DIRECTIVE: PLAYABILITY OVER IMPLEMENTATION ⚠️
+
+**THE FUNDAMENTAL RULE: A game that compiles but is unplayable is WORSE than a game that crashes.**
+
+Before implementing ANY travel/route/location system:
+
+### Mandatory Playability Validation
+
+1. **Can the player REACH destinations from their starting location?**
+   - Trace EXACT route chain from starting location
+   - Verify routes exist in JSON and connect locations
+   - Confirm player can see routes in Travel UI
+   - No broken route chains, no inaccessible location islands
+
+2. **Are routes VISIBLE and EXECUTABLE in UI?**
+   - Routes render in TravelManager query results
+   - Route cards show costs, danger, and destination
+   - Player can click route and initiate travel
+   - Travel successfully places player at destination
+
+3. **Do Scenes spawn and appear during travel?**
+   - Route travel triggers Scene instantiation
+   - Scenes appear as situations during journey
+   - Player sees 2-4 choices at each situation
+   - Completing situations advances route progress
+
+### Fail-Fast Enforcement
+
+**❌ FORBIDDEN - Silent defaults that hide broken player paths:**
+```csharp
+// WRONG - Route exists but player never sees it
+if (routes != null && routes.Any()) { DisplayRoutes(routes); }
+
+// WRONG - Starting location has no routes, player trapped
+var availableRoutes = GetRoutesFromLocation(locationId) ?? new List<Route>();
+```
+
+**✅ REQUIRED - Throw exceptions for missing critical connections:**
+```csharp
+// CORRECT - Validates starting location has routes
+Location startLocation = gameWorld.Locations.FirstOrDefault(l => l.Id == startingSpotId);
+if (!gameWorld.Routes.Any(r => r.SourceLocationId == startLocation.Id))
+    throw new InvalidOperationException($"Starting location '{startLocation.Name}' has no routes - player trapped!");
+
+// CORRECT - Validates route destination exists
+Route route = gameWorld.Routes.FirstOrDefault(r => r.Id == routeId);
+Location destination = gameWorld.Locations.FirstOrDefault(l => l.Id == route.DestinationLocationId);
+if (destination == null)
+    throw new InvalidOperationException($"Route '{route.Id}' leads to unknown location - player cannot reach!");
+```
+
+### The Playability Test for Travel
+
+For EVERY location/route in the game:
+
+1. **Start game** → Player spawns at starting location
+2. **Check routes** → Does location have at least one route visible in UI?
+3. **Select route** → Can player click and initiate travel?
+4. **During travel** → Do Scenes spawn with 2-4 choices?
+5. **Complete travel** → Does player arrive at destination successfully?
+6. **From destination** → Does new location have routes or is player trapped?
+
+**If ANY step fails for ANY location, that content is INACCESSIBLE.**
+
+---
+
 ## Core Game Loop
 
 ### Three-Loop Structure

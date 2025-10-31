@@ -1404,8 +1404,10 @@ public class GameFacade
     /// </summary>
     public List<Situation> GetAvailableSituationsAtLocation(string locationId)
     {
+        // PLAYABILITY VALIDATION: Location must exist
         Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
-        if (location == null) return new List<Situation>();
+        if (location == null)
+            throw new InvalidOperationException($"Location '{locationId}' not found in GameWorld - cannot query situations!");
 
         // Query all Situations (both legacy and Scene-embedded) at this location
         return _gameWorld.Situations

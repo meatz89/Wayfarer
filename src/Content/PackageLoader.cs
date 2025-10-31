@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Wayfarer.Content.Catalogs;
 using Wayfarer.Content.DTOs;
 using Wayfarer.Content.Parsers;
 using Wayfarer.Services;
@@ -128,6 +129,11 @@ public class PackageLoader
         // HEX-BASED TRAVEL SYSTEM: Sync Location.HexPosition after locations loaded
         SyncLocationHexPositions();
 
+        // CATALOGUE PATTERN: Generate actions from categorical properties (PARSE TIME ONLY)
+        // Must happen AFTER all locations loaded because LocationActionCatalog needs complete location list
+        GeneratePlayerActionsFromCatalogue();
+        GenerateLocationActionsFromCatalogue();
+
         // 3. Cards (foundation for NPCs and conversations)
         LoadSocialCards(package.Content.SocialCards, allowSkeletons);
         LoadMentalCards(package.Content.MentalCards, allowSkeletons);
@@ -164,8 +170,9 @@ public class PackageLoader
         // 7. Complex entities
         LoadDialogueTemplates(package.Content.DialogueTemplates, allowSkeletons);
         LoadStandingObligations(package.Content.StandingObligations, allowSkeletons);
-        LoadLocationActions(package.Content.LocationActions, allowSkeletons);
-        LoadPlayerActions(package.Content.PlayerActions, allowSkeletons);
+        // NOTE: LocationActions and PlayerActions NO LONGER loaded from JSON
+        // Actions are now GENERATED from catalogues at parse time (see GeneratePlayerActionsFromCatalogue/GenerateLocationActionsFromCatalogue)
+        // CATALOGUE PATTERN: Actions generated from categorical properties, never from JSON
 
         // 8. Travel content
         List<PathCardEntry> pathCardLookup = LoadPathCards(package.Content.PathCards, allowSkeletons);
@@ -270,11 +277,16 @@ public class PackageLoader
             _gameWorld.ApplyInitialPlayerConfiguration();
         }
 
-        // Set starting location
-        if (!string.IsNullOrEmpty(conditions.StartingSpotId))
-        {
-            _gameWorld.InitialLocationSpotId = conditions.StartingSpotId;
-        }
+        // Set starting location - CRITICAL for playability
+        if (string.IsNullOrEmpty(conditions.StartingSpotId))
+            throw new InvalidOperationException("StartingSpotId is required in starting conditions - player has no spawn location!");
+
+        // Validate starting location exists in parsed locations
+        Location startingLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == conditions.StartingSpotId);
+        if (startingLocation == null)
+            throw new InvalidOperationException($"StartingSpotId '{conditions.StartingSpotId}' not found in parsed locations - player cannot spawn!");
+
+        _gameWorld.InitialLocationSpotId = conditions.StartingSpotId;
 
         // Apply starting obligations
         if (conditions.StartingObligations != null)
@@ -325,6 +337,57 @@ public class PackageLoader
         if (conditions.StartingSegment.HasValue)
         {
             _gameWorld.InitialSegment = conditions.StartingSegment.Value;
+        }
+    }
+
+    /// <summary>
+    /// Generate universal player actions from PlayerActionCatalog (PARSE TIME ONLY)
+    /// Called ONCE after all locations loaded, not per location
+    /// CATALOGUE PATTERN: Actions generated from categorical properties, never from JSON
+    /// </summary>
+    private void GeneratePlayerActionsFromCatalogue()
+    {
+        // Generate universal player actions (CheckBelongings, Wait, SleepOutside)
+        List<PlayerAction> playerActions = PlayerActionCatalog.GenerateUniversalActions();
+
+        // Add to GameWorld (check for duplicates if multiple packages)
+        foreach (PlayerAction action in playerActions)
+        {
+            // Avoid duplicates if multiple packages loaded
+            if (!_gameWorld.PlayerActions.Any(a => a.Id == action.Id))
+            {
+                _gameWorld.PlayerActions.Add(action);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Generate location actions from LocationActionCatalog (PARSE TIME ONLY)
+    /// Called ONCE after all locations loaded (needs complete location list for intra-venue movement)
+    /// CATALOGUE PATTERN: Actions generated from categorical properties, never from JSON
+    /// </summary>
+    private void GenerateLocationActionsFromCatalogue()
+    {
+        // Get all locations for intra-venue movement calculation
+        List<Location> allLocations = _gameWorld.Locations.ToList();
+
+        // Generate actions for each location based on its categorical properties
+        foreach (Location location in allLocations)
+        {
+            List<LocationAction> generatedActions = LocationActionCatalog.GenerateActionsForLocation(
+                location,
+                allLocations // Pass all locations for intra-venue movement calculation
+            );
+
+            // Add generated actions to GameWorld
+            foreach (LocationAction action in generatedActions)
+            {
+                // Avoid duplicates if multiple packages loaded
+                if (!_gameWorld.LocationActions.Any(a => a.Id == action.Id))
+                {
+                    _gameWorld.LocationActions.Add(action);
+                }
+            }
         }
     }
 
@@ -1093,27 +1156,10 @@ public class PackageLoader
         }
     }
 
-    private void LoadLocationActions(List<LocationActionDTO> locationActionDtos, bool allowSkeletons)
-    {
-        if (locationActionDtos == null) return;
-
-        foreach (LocationActionDTO dto in locationActionDtos)
-        {
-            LocationAction locationAction = LocationActionParser.ParseLocationAction(dto);
-            _gameWorld.LocationActions.Add(locationAction);
-        }
-    }
-
-    private void LoadPlayerActions(List<PlayerActionDTO> playerActionDtos, bool allowSkeletons)
-    {
-        if (playerActionDtos == null) return;
-
-        foreach (PlayerActionDTO dto in playerActionDtos)
-        {
-            PlayerAction playerAction = PlayerActionParser.ParsePlayerAction(dto);
-            _gameWorld.PlayerActions.Add(playerAction);
-        }
-    }
+    // NOTE: LoadLocationActions and LoadPlayerActions methods REMOVED
+    // Actions are NO LONGER loaded from JSON - they are GENERATED from catalogues at parse time
+    // See GeneratePlayerActionsFromCatalogue() and GenerateLocationActionsFromCatalogue() above
+    // CATALOGUE PATTERN: Actions generated from categorical properties (LocationPropertyType enums), never from JSON
 
     // Conversion methods that don't have dedicated parsers yet
 

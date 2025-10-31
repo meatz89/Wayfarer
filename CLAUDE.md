@@ -175,6 +175,142 @@ User needs "SleepOutside" player action for tutorial.
 - Feature completes a logical pattern
 - Feature supports user requirements
 
+### ⚠️ PRIME DIRECTIVE: PLAYABILITY OVER IMPLEMENTATION ⚠️
+
+**THE FUNDAMENTAL RULE: A game that compiles but is unplayable is WORSE than a game that crashes.**
+
+**PLAYABILITY VALIDATION (MANDATORY FOR ALL WORK):**
+
+Before marking ANY task complete, you MUST answer these questions with 9/10 certainty:
+
+1. **Can the player REACH this content from game start?**
+   - Trace the EXACT player action path from initial spawn location
+   - Verify EVERY link in the chain (routes, scenes, NPCs, locations)
+   - No missing connections, no broken references, no inaccessible islands
+
+2. **Are ALL required actions VISIBLE and EXECUTABLE?**
+   - Player can SEE the action in UI (button, card, scene choice)
+   - Player can PERFORM the action (not blocked by missing resources/states)
+   - Action produces EXPECTED result (changes game state correctly)
+
+3. **Does the player have FORWARD PROGRESS from every state?**
+   - No soft-locks (states where player cannot proceed)
+   - No dead-ends (locations with no exit routes)
+   - No orphaned content (systems with no entry point)
+
+**THE THREE VALIDATION LEVELS:**
+
+**Level 1: TECHNICAL (Compilation)**
+- Code compiles without errors
+- No null reference exceptions
+- Types match between layers
+- ❌ **NOT SUFFICIENT** - Technical correctness ≠ playability
+
+**Level 2: ARCHITECTURAL (Data Flow)**
+- JSON → DTO → Parser → Entity → GameWorld → UI
+- All references resolve correctly
+- No silent failures from missing data
+- ❌ **STILL NOT SUFFICIENT** - Architecture correctness ≠ player accessibility
+
+**Level 3: PLAYABILITY (Player Experience)** ✅ **REQUIRED**
+- Player can start game
+- Player can see available actions
+- Player can execute actions
+- Player can reach intended content
+- Player has forward progress from all states
+
+**FAIL FAST PRINCIPLE (ENFORCEMENT):**
+
+**❌ FORBIDDEN - Silent defaults that hide missing JSON:**
+```csharp
+// WRONG - Hides missing route, game "works" but player trapped
+List<Route> routes = location.Routes ?? new List<Route>();
+
+// WRONG - Hides missing scenes, content inaccessible
+if (npc.Scenes != null && npc.Scenes.Any()) { ... }
+
+// WRONG - Hides missing tutorial, player has no guidance
+Scene tutorial = scenes.FirstOrDefault(s => s.IsStarter) ?? defaultScene;
+```
+
+**✅ REQUIRED - Throw exceptions for missing critical content:**
+```csharp
+// CORRECT - Fails fast, forces JSON fix
+if (location.Routes == null || !location.Routes.Any())
+    throw new InvalidOperationException($"Location '{location.Id}' has no routes - player trapped!");
+
+// CORRECT - Fails fast, forces scene creation
+if (!npc.Scenes.Any())
+    throw new InvalidOperationException($"NPC '{npc.Id}' has no scenes - player cannot interact!");
+
+// CORRECT - Fails fast, forces tutorial implementation
+Scene tutorial = scenes.FirstOrDefault(s => s.IsStarter);
+if (tutorial == null)
+    throw new InvalidOperationException("No starter scene found - player has no entry point!");
+```
+
+**PLAYABILITY AUDIT PROCESS:**
+
+For EVERY piece of content (scene, NPC, location, route, challenge):
+
+1. **Trace Player Path:**
+   ```
+   Game Start (square_center)
+     ↓ Can player travel?
+   Route exists? (square_to_inn)
+     ↓ Can player see route?
+   Route visible in UI? (Travel screen)
+     ↓ Can player use route?
+   Route requirements met? (stamina, knowledge)
+     ↓ Does route work?
+   Destination exists? (common_room)
+     ↓ Can player act at destination?
+   Actions/Scenes available? (Elena NPC, tutorial_evening_arrival)
+   ```
+
+2. **Validate Each Link:**
+   - Link exists in JSON? ✅
+   - Link parsed correctly? ✅
+   - Link accessible in UI? ✅
+   - Link executable by player? ✅
+   - Link produces expected result? ✅
+
+3. **Test in Browser:**
+   - Start game
+   - Follow traced path
+   - Verify EVERY action works
+   - Reach intended content
+   - Confirm forward progress possible
+
+**COMMON PLAYABILITY VIOLATIONS:**
+
+❌ **"Tutorial implemented, scenes work"** - Did you TEST player can reach it?
+❌ **"Route parsing works"** - Did you TEST player can see and use the route?
+❌ **"NPC spawns correctly"** - Did you TEST player can interact with NPC?
+❌ **"Challenge mechanics implemented"** - Did you TEST player can enter challenge?
+❌ **"All compilation errors fixed"** - Did you TEST the PLAYER EXPERIENCE?
+
+**THE TEST:**
+
+Can you trace a COMPLETE PATH of player actions from game start to your implemented content? If ANY link in that chain is broken, missing, or inaccessible, the content is NOT PLAYABLE.
+
+The number of actions is IRRELEVANT. What matters:
+- Path EXISTS (all links present)
+- Path is FUNCTIONAL (all links work)
+- Path is DISCOVERABLE (player can find it through normal play)
+- No BROKEN LINKS (no null routes, missing scenes, inaccessible NPCs)
+
+**WHY THIS MATTERS:**
+
+- Silent failures waste HOURS debugging "why isn't this working?"
+- Inaccessible content is WORTHLESS (might as well not exist)
+- Player experience is THE ONLY THING THAT MATTERS
+- Technical correctness means NOTHING if player can't play
+
+**GORDON RAMSAY ENFORCEMENT:**
+
+"YOU DONKEY! The game COMPILES but the player can't DO ANYTHING! You validated the ARCHITECTURE but forgot to check if a HUMAN CAN ACTUALLY PLAY THE FUCKING GAME!"
+
 ### CORRECT PROCESS:
 
 1. **User asks question**
@@ -450,6 +586,151 @@ When you discover mixed representations:
 - JSON already has concrete absolute values (coinCost: 10) - just copy to entity
 - Property is pure data with no translation needed
 - Value is unique to one entity (no reuse)
+
+### ⚠️ PRIME PRINCIPLE: CATALOGUES ARE PARSE-TIME ONLY ⚠️
+
+**ABSOLUTE RULE - NO EXCEPTIONS:**
+
+**Catalogues are ONLY called from PARSER. NEVER from game logic. NEVER from facades. NEVER at runtime.**
+
+**THE ENTITY IS COMPLETE AFTER PARSING.**
+
+Once the parser finishes, the entity has ALL properties populated. Runtime code queries GameWorld.
+Runtime code NEVER generates entities. Runtime code NEVER calls catalogues.
+
+**THIS IS NOT A GUIDELINE. THIS IS AN ARCHITECTURAL CONSTRAINT.**
+
+Violating this principle breaks the entire data flow architecture.
+
+**WHERE CATALOGUES CAN BE CALLED:**
+- ✅ Parser classes (LocationParser, NPCParser, etc.) in `src/Content/Parsers/`
+- ✅ PackageLoader in `src/Content/PackageLoader.cs`
+- ✅ NOWHERE ELSE
+
+**WHERE CATALOGUES ARE FORBIDDEN:**
+- ❌ GameFacade
+- ❌ Any Facade (LocationFacade, SocialFacade, MentalFacade, PhysicalFacade, etc.)
+- ❌ Any Manager (LocationActionManager, etc.)
+- ❌ Any Service
+- ❌ Any UI Component (.razor, .razor.cs)
+- ❌ Any runtime code that executes after game initialization
+
+**HOW TO VERIFY:**
+If you see `using Wayfarer.Content.Catalogues;` in ANY file except Parser or PackageLoader → ARCHITECTURAL VIOLATION.
+
+### ⚠️ CRITICAL: CATALOGUES GENERATE ENTITIES, NOT JUST PROPERTIES ⚠️
+
+**THE PATTERN:**
+
+Catalogues do NOT just translate properties. They **PROCEDURALLY GENERATE COMPLETE ENTITIES** from categorical properties.
+
+**Example: LocationActionCatalog**
+
+```csharp
+// ✅ CORRECT - Catalogue generates entity instances
+public static class LocationActionCatalog
+{
+    /// <summary>
+    /// Generate ALL LocationActions for a location based on its categorical properties.
+    /// Called by Parser ONLY - runtime never touches this.
+    /// </summary>
+    public static List<LocationAction> GenerateActionsForLocation(Location location, TimeBlocks currentTime)
+    {
+        List<LocationAction> actions = new List<LocationAction>();
+
+        // Crossroads property → Generate Travel action
+        if (location.LocationProperties.Contains(LocationPropertyType.Crossroads))
+        {
+            actions.Add(new LocationAction
+            {
+                Id = $"travel_{location.Id}",
+                Name = "Travel to Another Location",
+                ActionType = LocationActionType.Travel,
+                Costs = ActionCosts.None(),
+                // ... complete entity
+            });
+        }
+
+        // Commercial property → Generate Work action
+        if (location.LocationProperties.Contains(LocationPropertyType.Commercial))
+        {
+            actions.Add(new LocationAction
+            {
+                Id = $"work_{location.Id}",
+                Name = "Work for Coins",
+                ActionType = LocationActionType.Work,
+                // ... complete entity
+            });
+        }
+
+        return actions;
+    }
+}
+```
+
+**Parser Usage:**
+```csharp
+// In LocationParser.cs
+Location location = ParseLocation(dto);
+
+// Generate actions from location's categorical properties
+List<LocationAction> generatedActions = LocationActionCatalog.GenerateActionsForLocation(location, timeBlock);
+foreach (LocationAction action in generatedActions)
+{
+    _gameWorld.LocationActions.Add(action);
+}
+```
+
+**Runtime Usage:**
+```csharp
+// In LocationActionManager.cs (FACADE)
+public List<LocationActionViewModel> GetLocationActions(Venue venue, Location location)
+{
+    // Query GameWorld.LocationActions (NO catalogue calls!)
+    return _gameWorld.LocationActions
+        .Where(action => action.MatchesLocation(location, currentTime))
+        .ToList();
+}
+```
+
+**WHY THIS MATTERS:**
+
+1. **Entities complete after parsing** - No runtime generation
+2. **Catalogues are parse-time ONLY** - Never imported by facades
+3. **String/ID never stored** - Catalogue converts categorical → strongly-typed enum
+4. **No JSON for actions** - Actions generated procedurally from properties
+
+**FORBIDDEN PATTERNS:**
+
+❌ **Runtime catalogue calls:**
+```csharp
+// WRONG - Catalogue called at runtime
+public List<LocationAction> GetLocationActions(Location location)
+{
+    return LocationActionCatalog.GenerateActionsForLocation(location); // NO!
+}
+```
+
+❌ **Actions defined in JSON:**
+```json
+// WRONG - Actions should be generated procedurally, not defined in JSON
+{
+  "locationActions": [
+    { "id": "travel_square", "name": "Travel", "type": "travel" }
+  ]
+}
+```
+
+✅ **CORRECT - Location properties in JSON, actions generated by parser:**
+```json
+// CORRECT - Location has categorical properties
+{
+  "id": "square_center",
+  "locationProperties": ["Crossroads", "Public"]
+}
+```
+
+Parser sees "Crossroads" → Calls catalogue → Generates Travel action → Adds to GameWorld.LocationActions
 
 ### JSON Authoring Principles (Categorical-First Design)
 

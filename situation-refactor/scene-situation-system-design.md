@@ -6,6 +6,78 @@
 
 The Scene-Situation spawning system generates story beats by spawning narrative contexts (Situations) at locations, NPCs, and routes. Unlike obstacles (persistent challenges), Scene orchestrators are ephemeral - they spawn multiple Situations in various configurations (sequential, parallel, branching), then discard themselves.
 
+---
+
+## ⚠️ PRIME DIRECTIVE: PLAYABILITY OVER IMPLEMENTATION ⚠️
+
+**THE FUNDAMENTAL RULE: A game that compiles but is unplayable is WORSE than a game that crashes.**
+
+Before implementing ANY Scene/Situation content:
+
+### Mandatory Playability Validation
+
+1. **Can the player REACH the Scene placement from game start?**
+   - If Scene spawns at Location: Can player navigate there via routes?
+   - If Scene spawns at NPC: Is NPC at accessible location?
+   - If Scene spawns on Route: Can player initiate that route travel?
+   - Trace COMPLETE path from starting location
+
+2. **Are Situations VISIBLE and INTERACTIVE in UI?**
+   - Situation appears when player enters location/conversation/route
+   - Situation presents 2-4 choices as cards/buttons
+   - Each choice shows costs, requirements, and consequences
+   - Player can select and execute choices
+
+3. **Do Scenes spawn and cascade correctly?**
+   - isStarter Scenes spawn at game initialization
+   - Completing choices spawns follow-up Scenes as defined
+   - Scene spawn rewards create Scenes at valid placements
+   - Cascading Situations appear when prerequisites met
+
+### Fail-Fast Enforcement
+
+**❌ FORBIDDEN - Silent defaults that hide unplayable Scenes:**
+```csharp
+// WRONG - Scene has no Situations, player sees empty screen
+if (scene.Situations != null && scene.Situations.Any()) { DisplaySituations(scene.Situations); }
+
+// WRONG - Situation has no choices, player cannot interact
+var choices = situation.ChoiceTemplates ?? new List<ChoiceTemplate>();
+```
+
+**✅ REQUIRED - Throw exceptions for missing critical content:**
+```csharp
+// CORRECT - Validates Scene has Situations
+if (!scene.Situations.Any())
+    throw new InvalidOperationException($"Scene '{scene.Id}' has no Situations - player cannot interact!");
+
+// CORRECT - Validates Situation has 2-4 choices (Sir Brante pattern)
+if (situation.ChoiceTemplates.Count < 2 || situation.ChoiceTemplates.Count > 4)
+    throw new InvalidDataException($"Situation '{situation.Id}' has {situation.ChoiceTemplates.Count} choices - must have 2-4 (Sir Brante pattern)!");
+
+// CORRECT - Validates Scene placement exists
+if (scene.PlacementType == PlacementType.Location)
+{
+    Location location = gameWorld.Locations.FirstOrDefault(l => l.Id == scene.PlacementId);
+    if (location == null)
+        throw new InvalidOperationException($"Scene '{scene.Id}' spawns at unknown location '{scene.PlacementId}' - player cannot reach!");
+}
+```
+
+### The Playability Test for Scenes
+
+For EVERY Scene implemented:
+
+1. **Spawn validation** → Does Scene spawn at accessible placement?
+2. **UI visibility** → Does Situation render in location/conversation/route UI?
+3. **Choice display** → Do all 2-4 choices appear as clickable options?
+4. **Execution** → Does selecting choice execute and apply consequences?
+5. **Cascade** → Do follow-up Scenes/Situations spawn correctly?
+
+**If ANY step fails, Scene content is INACCESSIBLE.**
+
+---
+
 ## Strategic Layer Hierarchy
 
 **THREE LEVELS OF ABSTRACTION:**

@@ -455,215 +455,48 @@ Startup → GameWorldInitializer.CreateGameWorld()
 
 ### 1. Action System Overview
 
+**⚠️ CRITICAL ARCHITECTURE CHANGE: Actions are NO LONGER defined in JSON**
+
+**Actions are PROCEDURALLY GENERATED from categorical location properties at parse time.**
+
 **Two Action Types**:
-- **PlayerActions**: Global actions available everywhere (e.g., "Check Belongings", "Wait")
-- **LocationActions**: Context-specific actions available at certain locations (e.g., "Travel", "Rest", "Work")
+- **PlayerActions**: Universal actions available everywhere (e.g., "Check Belongings", "Wait", "Sleep Outside")
+- **LocationActions**: Property-driven actions generated from LocationPropertyType enums
 
-**Architecture Goal**: Eliminate "Dictionary Disease" (string-based matching) through strongly-typed enum catalogues with parser validation and single-point dispatch through GameFacade.
+**Architecture Goals**:
+1. **Catalogue Pattern**: Actions generated from categorical properties (parse-time ONLY)
+2. **No JSON Bloat**: Locations define properties, catalogues generate complete actions
+3. **Strong Typing**: All action types, costs, rewards strongly-typed
+4. **No Dictionary Disease**: Zero string-based matching or dictionary lookups
 
-### 2. Enum Catalogues (Action Type Definition)
+### 2. Complete System Documentation
 
-**Location**: `src/Content/PlayerActionType.cs`, `src/Content/LocationActionType.cs`
+**⚠️ FULL DOCUMENTATION**: See [LOCATION_PROPERTY_ACTION_SYSTEM.md](./LOCATION_PROPERTY_ACTION_SYSTEM.md) for comprehensive documentation of:
+- Location Property → Action Generation pattern
+- Catalogue implementation details
+- Parse-time integration
+- Runtime querying and filtering
+- Property → Action mapping table
+- Adding new action types
+- Testing and debugging
 
-**PlayerActionType Enum** - Global actions available everywhere:
-```csharp
-public enum PlayerActionType
-{
-    CheckBelongings,  // View inventory/equipment screen
-    Wait              // Skip 1 time segment, no resource recovery
-}
-```
+### 3. Quick Reference
 
-**LocationActionType Enum** - Location-specific actions:
-```csharp
-public enum LocationActionType
-{
-    Travel,      // Navigate to connected routes
-    Rest,        // Recover +1 health, +1 stamina (requires "rest"/"restful" property)
-    Work,        // Earn coins based on location opportunities
-    Investigate  // Gain location familiarity through observation
-}
-```
+**Location Property → Action Mapping**:
 
-**Purpose**: Single source of truth for valid action types, enables compile-time type safety and parser validation.
+| Property | Generated Action | Costs | Rewards |
+|----------|-----------------|-------|---------|
+| Crossroads | Travel | None | None |
+| Commercial | Work | Time + Stamina | 8 Coins |
+| Restful | Rest | Time | +1 Health, +1 Stamina |
+| Lodging | Secure Room | 10 Coins | Full Recovery |
 
-### 3. Domain Entities with Strong Typing
+**Universal Player Actions**:
+- Check Belongings
+- Wait
+- Sleep Outside
 
-**Location**: `src/GameState/PlayerAction.cs`, `src/GameState/LocationAction.cs`
-
-**PlayerAction** - Global action entity:
-```csharp
-public class PlayerAction
-{
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public PlayerActionType ActionType { get; set; }  // STRONGLY TYPED ENUM
-    public Dictionary<string, int> Cost { get; set; }
-    public int TimeRequired { get; set; }
-    public int Priority { get; set; }
-}
-```
-
-**LocationAction** - Location-specific action entity:
-```csharp
-public class LocationAction
-{
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public LocationActionType ActionType { get; set; }  // STRONGLY TYPED ENUM
-    public Dictionary<string, int> Cost { get; set; }
-    public Dictionary<string, int> Reward { get; set; }
-    public int TimeRequired { get; set; }
-    public List<string> Availability { get; set; }
-    public int Priority { get; set; }
-    public string InvestigationId { get; set; }
-    public List<LocationPropertyType> RequiredProperties { get; set; }  // Property-based matching
-    public List<LocationPropertyType> OptionalProperties { get; set; }
-    public List<LocationPropertyType> ExcludedProperties { get; set; }
-}
-```
-
-**Critical**: `ActionType` is strongly-typed enum, NOT string. This eliminates runtime string matching errors.
-
-### 4. Parsers with Enum Validation
-
-**Location**: `src/Content/Parsers/PlayerActionParser.cs`, `src/Content/Parsers/LocationActionParser.cs`
-
-**PlayerActionParser** - Validates actionType against enum catalogue:
-```csharp
-public static PlayerAction ParsePlayerAction(PlayerActionDTO dto)
-{
-    ValidateRequiredFields(dto);
-
-    // ENUM VALIDATION - throws InvalidDataException if unknown action type
-    if (!Enum.TryParse<PlayerActionType>(dto.ActionType, true, out PlayerActionType actionType))
-    {
-        string validTypes = string.Join(", ", Enum.GetNames(typeof(PlayerActionType)));
-        throw new InvalidDataException(
-            $"PlayerAction '{dto.Id}' has unknown actionType '{dto.ActionType}'. " +
-            $"Valid types: {validTypes}");
-    }
-
-    return new PlayerAction
-    {
-        Id = dto.Id,
-        Name = dto.Name,
-        Description = dto.Description,
-        ActionType = actionType,  // Strongly typed enum assigned
-        Cost = dto.Cost ?? new Dictionary<string, int>(),
-        TimeRequired = dto.TimeRequired,
-        Priority = dto.Priority
-    };
-}
-```
-
-**LocationActionParser** - Validates actionType and converts property strings to enums:
-```csharp
-public static LocationAction ParseLocationAction(LocationActionDTO dto)
-{
-    ValidateRequiredFields(dto);
-
-    // ENUM VALIDATION - throws InvalidDataException if unknown action type
-    if (!Enum.TryParse<LocationActionType>(dto.ActionType, true, out LocationActionType actionType))
-    {
-        string validTypes = string.Join(", ", Enum.GetNames(typeof(LocationActionType)));
-        throw new InvalidDataException(
-            $"LocationAction '{dto.Id}' has unknown actionType '{dto.ActionType}'. " +
-            $"Valid types: {validTypes}");
-    }
-
-    return new LocationAction
-    {
-        Id = dto.Id,
-        Name = dto.Name,
-        Description = dto.Description,
-        ActionType = actionType,  // Strongly typed enum assigned
-        Cost = dto.Cost ?? new Dictionary<string, int>(),
-        Reward = dto.Reward ?? new Dictionary<string, int>(),
-        TimeRequired = dto.TimeRequired,
-        Availability = dto.Availability ?? new List<string>(),
-        Priority = dto.Priority,
-        InvestigationId = dto.InvestigationId,
-        RequiredProperties = ParseLocationProperties(dto.RequiredProperties),
-        OptionalProperties = ParseLocationProperties(dto.OptionalProperties),
-        ExcludedProperties = ParseLocationProperties(dto.ExcludedProperties)
-    };
-}
-
-// Converts property strings to LocationPropertyType enums
-private static List<LocationPropertyType> ParseLocationProperties(List<string> propertyStrings)
-{
-    // Returns empty list if null, logs warning if property doesn't match enum
-}
-```
-
-**Parser Integration**: `PackageLoader.cs` calls these parsers during content loading:
-```csharp
-// In PackageLoader.LoadLocationActions()
-LocationAction action = LocationActionParser.ParseLocationAction(dto);
-
-// In PackageLoader.LoadPlayerActions()
-PlayerAction action = PlayerActionParser.ParsePlayerAction(dto);
-```
-
-**Why This Matters**: Unknown action types crash at startup with descriptive error messages, preventing runtime bugs from malformed JSON.
-
-### 5. JSON Content Definition
-
-**Location**: `src/Content/Core/01_foundation.json`
-
-**PlayerAction JSON Example**:
-```json
-{
-  "playerActions": [
-    {
-      "id": "wait",
-      "name": "Wait",
-      "description": "Pass time without activity. Skips 1 time segment with no resource recovery.",
-      "actionType": "Wait",
-      "timeRequired": 1,
-      "priority": 200
-    },
-    {
-      "id": "check_belongings",
-      "name": "Check Belongings",
-      "description": "Review your current equipment and inventory.",
-      "actionType": "CheckBelongings",
-      "priority": 100
-    }
-  ]
-}
-```
-
-**LocationAction JSON Example**:
-```json
-{
-  "locationActions": [
-    {
-      "id": "rest",
-      "name": "Rest",
-      "description": "Take time to rest and recover. Restores +1 Health and +1 Stamina.",
-      "actionType": "Rest",
-      "timeRequired": 1,
-      "requiredProperties": ["rest", "restful"],
-      "priority": 50
-    },
-    {
-      "id": "travel",
-      "name": "Travel",
-      "description": "Choose a route to travel to a connected location.",
-      "actionType": "Travel",
-      "priority": 10
-    }
-  ]
-}
-```
-
-**Property-Based Matching**: LocationActions use `requiredProperties`, `optionalProperties`, and `excludedProperties` to match against location properties. For example, "Rest" action only appears at locations with "rest" or "restful" property.
-
-### 6. GameFacade Orchestration (Single Dispatch Point)
+### 5. GameFacade Orchestration (Single Dispatch Point)
 
 **Location**: `src/Services/GameFacade.cs`
 

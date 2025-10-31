@@ -211,6 +211,99 @@ System A sets boolean flag
 
 ---
 
+## Principle 12: Location Properties Define Player Options
+
+**Locations are not defined by hardcoded action lists. Locations are defined by categorical PROPERTIES that procedurally generate available actions.**
+
+**THE PATTERN:**
+
+Locations have **LocationPropertyType** enums (Crossroads, Commercial, Restful, Lodging, etc.)
+→ Parser calls **LocationActionCatalog** at parse time
+→ Catalogue sees properties → Generates complete **LocationAction** entities
+→ Actions stored in **GameWorld.LocationActions**
+→ Runtime filters actions by property matching
+
+**Why This Matters:**
+
+1. **Content Creation Flexibility**: Authors describe WHAT a location IS (categorical properties), not WHAT actions it HAS (action lists)
+2. **Automatic Action Generation**: Same property generates same actions everywhere (consistency)
+3. **No JSON Bloat**: One property string generates complete action with costs/rewards/descriptions
+4. **Easy Content Expansion**: Add new property → Catalogue automatically generates appropriate actions
+5. **AI Content Generation**: AI can generate locations by assigning properties without knowing exact action mechanics
+
+**Property → Action Mapping (Current Implementation):**
+
+| Property | Generated Action | Description | Costs | Rewards |
+|----------|-----------------|-------------|-------|---------|
+| **Crossroads** | Travel to Another Location | Opens route selection screen | None | None |
+| **Commercial** | Work | Earn 8 coins through labor | Time + Stamina | 8 Coins |
+| **Restful** | Rest | Recover health and stamina | Time | +1 Health, +1 Stamina |
+| **Lodging** | Secure Room for Night | Full recovery with shelter | 10 Coins + Time | Full Recovery |
+
+**Intra-Venue Movement:**
+- Locations in same venue → Automatic "Move to X" actions generated
+- FREE, INSTANT movement within venue
+- No property requirements
+
+**Universal Player Actions:**
+- Check Belongings (view inventory)
+- Wait (skip time)
+- Sleep Outside (emergency rest, costs health)
+
+**Examples:**
+
+✅ **CORRECT - Property-Driven Location:**
+```json
+{
+  "id": "common_room",
+  "name": "Common Room",
+  "properties": {
+    "base": ["crossroads", "commercial"],
+    "all": ["public", "busy", "restful", "lodging"]
+  }
+}
+```
+Parser sees properties → Generates 4 actions: Travel, Work, Rest, Secure Room
+
+❌ **WRONG - Action-List-Driven Location:**
+```json
+{
+  "id": "common_room",
+  "name": "Common Room",
+  "actions": ["travel", "work", "rest", "secure_room"]
+}
+```
+Actions hardcoded, no flexibility, no property-based filtering
+
+**Design Implications:**
+
+1. **Location Design Process:**
+   - Step 1: Define location concept (e.g., "busy inn common room")
+   - Step 2: Assign categorical properties (commercial, restful, lodging, crossroads)
+   - Step 3: Actions auto-generate from properties
+   - Step 4: Test that property combination makes narrative sense
+
+2. **Balance Changes:**
+   - Want to change Work cost/reward? Change catalogue formula
+   - ALL Commercial locations update automatically
+   - No JSON editing needed
+
+3. **Content Expansion:**
+   - Add new LocationPropertyType (e.g., "Training")
+   - Add catalogue rule: Training → Generate "Train Skills" action
+   - ALL locations with Training property get action automatically
+
+4. **Player Mental Model:**
+   - Player sees location properties (Crossroads tag, Busy tag, etc.)
+   - Player intuits available actions from properties
+   - Crossroads → Travel available
+   - Commercial → Work available
+   - Properties have narrative meaning AND mechanical function
+
+**Test:** Can you add a new location property and have actions automatically appear? If you need to manually add actions, the system is wrong.
+
+---
+
 ## Meta-Principle: Design Constraint as Quality Filter
 
 **When you find yourself reaching for:**

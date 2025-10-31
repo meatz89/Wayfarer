@@ -65,8 +65,12 @@ public class SceneInstantiator
             scene.SituationIds.Add(situation.Id);
         }
 
+        // PLAYABILITY VALIDATION: Scene must have at least one Situation
+        if (!scene.SituationIds.Any())
+            throw new InvalidOperationException($"Scene '{scene.Id}' (template '{sceneTemplate.Id}') has no SituationIds - player cannot interact!");
+
         // Set CurrentSituationId to first Situation ID
-        scene.CurrentSituationId = scene.SituationIds.FirstOrDefault();
+        scene.CurrentSituationId = scene.SituationIds.First();
 
         // Store in provisional Scenes (temporary storage)
         _gameWorld.ProvisionalScenes[sceneId] = scene;

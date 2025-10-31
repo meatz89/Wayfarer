@@ -50,99 +50,17 @@
         "description": "Lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations. Elena, the innkeeper, wipes down tables while watching travelers settle in for the night.",
         "properties": {
           "base": [
-            "crossroads"
+            "crossroads",
+            "commercial"
           ],
           "all": [
             "public",
             "busy",
-            "restful"
+            "restful",
+            "lodging"
           ]
         },
         "canInvestigate": false
-      }
-    ],
-    "locationActions": [
-      {
-        "id": "rest",
-        "name": "Rest",
-        "description": "Take time to rest and recover. Advances 1 time segment. Restores +1 Health and +1 Stamina. Hunger increases by +5 automatically.",
-        "actionType": "Rest",
-        "priority": 50,
-        "cost": {},
-        "reward": {
-          "health": 1,
-          "stamina": 1
-        },
-        "timeRequired": 1,
-        "availability": ["Morning", "Midday", "Afternoon", "Evening"],
-        "requiredProperties": ["restful"],
-        "optionalProperties": [],
-        "excludedProperties": []
-      },
-      {
-        "id": "secure_room",
-        "name": "Secure a Room (10 coins)",
-        "description": "Purchase a room for the night. Full recovery of all resources. A bed, a roof, safety through the night.",
-        "actionType": "SecureRoom",
-        "priority": 100,
-        "cost": {
-          "coins": 10
-        },
-        "reward": {
-          "fullRecovery": true
-        },
-        "timeRequired": 1,
-        "availability": ["Evening"],
-        "requiredProperties": [],
-        "optionalProperties": [],
-        "excludedProperties": []
-      },
-      {
-        "id": "work",
-        "name": "Work",
-        "description": "Earn coins through labor. Base pay 8 coins, reduced by hunger penalty.",
-        "actionType": "Work",
-        "priority": 150,
-        "cost": {},
-        "reward": {
-          "coins": 8
-        },
-        "timeRequired": 1,
-        "availability": ["Morning", "Midday", "Afternoon"],
-        "requiredProperties": ["commercial"],
-        "optionalProperties": [],
-        "excludedProperties": []
-      }
-    ],
-    "playerActions": [
-      {
-        "id": "check_belongings",
-        "name": "Check Belongings",
-        "description": "Review your current equipment and inventory",
-        "actionType": "CheckBelongings",
-        "priority": 100,
-        "cost": {},
-        "timeRequired": 0
-      },
-      {
-        "id": "wait",
-        "name": "Wait",
-        "description": "Pass time without activity. Advances 1 time segment with no resource recovery. Hunger increases by +5 automatically.",
-        "actionType": "Wait",
-        "priority": 200,
-        "cost": {},
-        "timeRequired": 1
-      },
-      {
-        "id": "sleep_outside",
-        "name": "Sleep Outside",
-        "description": "Sleep rough without shelter. Saves coins but costs 2 Health and provides no recovery. Cold, uncomfortable, risky.",
-        "actionType": "SleepOutside",
-        "priority": 300,
-        "cost": {
-          "health": 2
-        },
-        "timeRequired": 0
       }
     ]
   }
