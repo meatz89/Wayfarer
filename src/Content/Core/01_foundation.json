@@ -61,6 +61,38 @@
           ]
         },
         "canInvestigate": false
+      },
+      {
+        "id": "upstairs_room",
+        "venueId": "brass_bell_inn",
+        "name": "Upstairs Room",
+        "description": "A simple guest room. Quiet, safe. A bed waits.",
+        "properties": {
+          "base": [
+            "lodging"
+          ],
+          "all": [
+            "restful",
+            "lodging"
+          ]
+        },
+        "canInvestigate": false
+      },
+      {
+        "id": "fountain_plaza",
+        "venueId": "town_square",
+        "name": "Fountain Plaza",
+        "description": "The town fountain. Locals gather here to chat and trade news.",
+        "properties": {
+          "base": [
+            "public"
+          ],
+          "all": [
+            "public",
+            "busy"
+          ]
+        },
+        "canInvestigate": false
       }
     ]
   }

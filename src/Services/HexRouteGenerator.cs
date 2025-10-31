@@ -139,6 +139,17 @@ namespace Wayfarer.Services
                         );
 
                         allRoutes.Add(route);
+
+                        // Generate reverse route (B → A) for bidirectional travel
+                        RouteOption reverseRoute = CreateRouteFromPath(
+                            loc2,  // Swap: destination becomes origin
+                            loc1,  // Swap: origin becomes destination
+                            pathResult.Path.ToList().AsEnumerable().Reverse().ToList(),  // Reverse hex path
+                            pathResult.DangerRating,
+                            pathResult.TotalCost,
+                            TransportType.Walking
+                        );
+                        allRoutes.Add(reverseRoute);
                     }
                 }
             }
@@ -432,7 +443,7 @@ namespace Wayfarer.Services
                 {
                     SegmentNumber = segmentNumber,
                     Type = isEncounter ? SegmentType.Encounter : SegmentType.FixedPath,
-                    PathCollectionId = isEncounter ? null : "default_path_collection", // FixedPath uses default
+                    PathCollectionId = null, // Self-sufficient: FixedPath uses NarrativeDescription only, no PathCards needed
                     MandatorySceneId = null, // Will be populated by scene spawning
                     NarrativeDescription = GenerateSegmentDescription(dominantTerrain, segmentDanger)
                 };

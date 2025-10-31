@@ -25,7 +25,7 @@
       "satchelCapacity": 10,
       "satchelWeight": 0
     },
-    "startingSpotId": "square_center",
+    "startingSpotId": "common_room",
     "startingDay": 1,
     "startingTimeBlock": "Evening",
     "startingSegment": 1
