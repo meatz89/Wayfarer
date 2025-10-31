@@ -38,32 +38,44 @@ public static class LocationParser
         // Parse location properties from the new structure
         if (dto.Properties != null)
         {// Parse base properties (always active)
+            Console.WriteLine($"[LocationParser] Parsing properties for location '{dto.Id}'");
+
             if (dto.Properties.Base != null)
             {
+                Console.WriteLine($"[LocationParser] Base properties: {string.Join(", ", dto.Properties.Base)}");
                 foreach (string propString in dto.Properties.Base)
                 {
                     if (EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
                     {
                         location.LocationProperties.Add(prop);
+                        Console.WriteLine($"[LocationParser] ✅ Parsed base property: {propString} → {prop}");
                     }
                     else
-                    { }
+                    {
+                        Console.WriteLine($"[LocationParser] ⚠️ WARNING: Failed to parse base property '{propString}' for location '{dto.Id}'");
+                    }
                 }
             }
 
             // Parse "all" properties (always active, alternative to "base")
             if (dto.Properties.All != null)
             {
+                Console.WriteLine($"[LocationParser] All properties: {string.Join(", ", dto.Properties.All)}");
                 foreach (string propString in dto.Properties.All)
                 {
                     if (EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
                     {
                         location.LocationProperties.Add(prop);
+                        Console.WriteLine($"[LocationParser] ✅ Parsed all property: {propString} → {prop}");
                     }
                     else
-                    { }
+                    {
+                        Console.WriteLine($"[LocationParser] ⚠️ WARNING: Failed to parse all property '{propString}' for location '{dto.Id}'");
+                    }
                 }
             }
+
+            Console.WriteLine($"[LocationParser] Final LocationProperties for '{dto.Id}': {string.Join(", ", location.LocationProperties)}");
 
             // Parse time-specific properties
             Dictionary<TimeBlocks, List<LocationPropertyType>> timeProperties = new Dictionary<TimeBlocks, List<LocationPropertyType>>();

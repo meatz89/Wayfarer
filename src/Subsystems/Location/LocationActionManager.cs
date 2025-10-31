@@ -47,10 +47,32 @@ public class LocationActionManager
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
+        Console.WriteLine($"\n[LocationActionManager] ==============================================");
+        Console.WriteLine($"[LocationActionManager] Getting dynamic actions for location: {LocationId}");
+        Console.WriteLine($"[LocationActionManager] Current time: {currentTime}");
+
         // Get the location to check its properties
         Location location = _gameWorld.GetLocation(LocationId);
         if (location == null)
             throw new InvalidOperationException($"Location not found: {LocationId}");
+
+        Console.WriteLine($"[LocationActionManager] Location properties: {string.Join(", ", location.LocationProperties)}");
+        Console.WriteLine($"[LocationActionManager] Total actions in GameWorld: {_gameWorld.LocationActions.Count}");
+
+        // Log each action's filtering result
+        Console.WriteLine($"[LocationActionManager] Filtering actions:");
+        foreach (LocationAction action in _gameWorld.LocationActions)
+        {
+            bool matchesLocation = action.MatchesLocation(location, currentTime);
+            bool timeAvailable = IsTimeAvailable(action, currentTime);
+            string status = (matchesLocation && timeAvailable) ? "✅ PASS" : "❌ FAIL";
+
+            Console.WriteLine($"  {status} {action.Id}:");
+            Console.WriteLine($"      SourceLocationId: {action.SourceLocationId ?? "null"} (checking against: {location.Id})");
+            Console.WriteLine($"      MatchesLocation: {matchesLocation}");
+            Console.WriteLine($"      IsTimeAvailable: {timeAvailable} (Availability: {string.Join(", ", action.Availability)})");
+            Console.WriteLine($"      RequiredProperties: {string.Join(", ", action.RequiredProperties)}");
+        }
 
         // Get actions that match this location's properties
         List<LocationAction> availableActions = _gameWorld.LocationActions
@@ -59,6 +81,9 @@ public class LocationActionManager
             .OrderBy(action => action.Priority)
             .ThenBy(action => action.Name)
             .ToList();
+
+        Console.WriteLine($"[LocationActionManager] {availableActions.Count} actions passed filters");
+        Console.WriteLine($"[LocationActionManager] ==============================================\n");
 
         foreach (LocationAction action in availableActions)
         {

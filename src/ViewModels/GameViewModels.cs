@@ -182,6 +182,7 @@ public class LocationContentViewModel
 
     // Landing view data
     public List<LocationActionViewModel> TravelActions { get; set; } = new();
+    public List<LocationActionViewModel> LocationSpecificActions { get; set; } = new();
     public List<LocationActionViewModel> PlayerActions { get; set; } = new();
     public bool HasSpots { get; set; }
 

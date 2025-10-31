@@ -509,6 +509,7 @@ public class LocationFacade
         {
             Header = BuildLocationHeader(venue, spot, currentTime),
             TravelActions = GetTravelActions(venue, spot),
+            LocationSpecificActions = GetLocationSpecificActions(venue, spot),
             PlayerActions = GetPlayerActions(),
             HasSpots = GetSpotsForVenue(venue).Count > 1,
             NPCsWithSituations = BuildNPCsWithSituations(spot, currentTime),
@@ -692,6 +693,14 @@ public class LocationFacade
         }
 
         return playerActions;
+    }
+
+    private List<LocationActionViewModel> GetLocationSpecificActions(Venue venue, Location spot)
+    {
+        List<LocationActionViewModel> actions = _actionManager.GetLocationActions(venue, spot);
+        // Return non-travel location actions (rest, work, secure room, food, etc.)
+        // These are location-specific atmospheric actions generated from LocationPropertyTypes
+        return actions.Where(a => a.ActionType != "travel").ToList();
     }
 
     private List<NpcWithSituationsViewModel> BuildNPCsWithSituations(Location spot, TimeBlocks currentTime)

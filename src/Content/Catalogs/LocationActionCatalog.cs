@@ -37,9 +37,15 @@ public static class LocationActionCatalog
     {
         List<LocationAction> actions = new List<LocationAction>();
 
+        // DIAGNOSTIC LOGGING
+        Console.WriteLine($"[LocationActionCatalog] Generating actions for location '{location.Id}'");
+        Console.WriteLine($"[LocationActionCatalog] Properties: {string.Join(", ", location.LocationProperties)}");
+        Console.WriteLine($"[LocationActionCatalog] Property count: {location.LocationProperties.Count}");
+
         // Crossroads property → Travel action (opens route selection screen)
         if (location.LocationProperties.Contains(LocationPropertyType.Crossroads))
         {
+            Console.WriteLine($"[LocationActionCatalog] ✅ Crossroads found - generating Travel action");
             actions.Add(new LocationAction
             {
                 Id = $"travel_{location.Id}",
@@ -60,6 +66,7 @@ public static class LocationActionCatalog
         // Commercial property → Work action
         if (location.LocationProperties.Contains(LocationPropertyType.Commercial))
         {
+            Console.WriteLine($"[LocationActionCatalog] ✅ Commercial found - generating Work action");
             actions.Add(new LocationAction
             {
                 Id = $"work_{location.Id}",
@@ -86,6 +93,7 @@ public static class LocationActionCatalog
         // Restful property → Rest action
         if (location.LocationProperties.Contains(LocationPropertyType.Restful))
         {
+            Console.WriteLine($"[LocationActionCatalog] ✅ Restful found - generating Rest action");
             actions.Add(new LocationAction
             {
                 Id = $"rest_{location.Id}",
@@ -113,6 +121,7 @@ public static class LocationActionCatalog
         // Lodging property → Secure Room action
         if (location.LocationProperties.Contains(LocationPropertyType.Lodging))
         {
+            Console.WriteLine($"[LocationActionCatalog] ✅ Lodging found - generating Secure Room action");
             actions.Add(new LocationAction
             {
                 Id = $"secure_room_{location.Id}",
