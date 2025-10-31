@@ -163,6 +163,10 @@ public class PackageLoader
         // HEX-BASED TRAVEL SYSTEM: Generate procedural routes after locations synced
         GenerateProceduralRoutes();
 
+        // CATALOGUE PATTERN: Generate delivery jobs from routes (PARSE TIME ONLY)
+        // Must happen AFTER routes loaded because DeliveryJobCatalog needs complete route list
+        GenerateDeliveryJobsFromCatalogue();
+
         // 6. Relationship entities (depend on NPCs and cards)
         LoadExchanges(package.Content.Exchanges, allowSkeletons);
         InitializeNPCExchangeDecks(package.Content.DeckCompositions);
@@ -387,6 +391,31 @@ public class PackageLoader
                 {
                     _gameWorld.LocationActions.Add(action);
                 }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Generate delivery jobs from DeliveryJobCatalog (PARSE TIME ONLY)
+    /// Called ONCE after routes and locations loaded
+    /// CATALOGUE PATTERN: Jobs generated procedurally from routes, never from JSON
+    /// </summary>
+    private void GenerateDeliveryJobsFromCatalogue()
+    {
+        // Get all routes and locations
+        List<RouteOption> allRoutes = _gameWorld.Routes.ToList();
+        List<Location> allLocations = _gameWorld.Locations.ToList();
+
+        // Generate delivery jobs from routes
+        List<DeliveryJob> generatedJobs = DeliveryJobCatalog.GenerateJobsFromRoutes(allRoutes, allLocations);
+
+        // Add generated jobs to GameWorld
+        foreach (DeliveryJob job in generatedJobs)
+        {
+            // Avoid duplicates if multiple packages loaded
+            if (!_gameWorld.AvailableDeliveryJobs.Any(j => j.Id == job.Id))
+            {
+                _gameWorld.AvailableDeliveryJobs.Add(job);
             }
         }
     }

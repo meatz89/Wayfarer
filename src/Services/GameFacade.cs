@@ -105,6 +105,19 @@ public class GameFacade
         return _gameWorld.GetPlayerCurrentLocation();
     }
 
+    /// <summary>
+    /// Get player's active delivery job (if any)
+    /// </summary>
+    public DeliveryJob GetActiveDeliveryJob()
+    {
+        Player player = _gameWorld.GetPlayer();
+        if (player != null && player.HasActiveDeliveryJob)
+        {
+            return _gameWorld.GetJobById(player.ActiveDeliveryJobId);
+        }
+        return null;
+    }
+
     public List<SystemMessage> GetSystemMessages()
     {
         return _messageSystem.GetMessages();
@@ -762,6 +775,11 @@ public class GameFacade
             WorkIntent => await ProcessWorkIntent(),
             InvestigateLocationIntent => ProcessInvestigateIntent(),
 
+            // Delivery job intents (Core Loop Phase 3)
+            ViewJobBoardIntent => ProcessViewJobBoardIntent(),
+            AcceptDeliveryJobIntent accept => ProcessAcceptDeliveryJobIntent(accept.JobId),
+            CompleteDeliveryIntent => ProcessCompleteDeliveryIntent(),
+
             // Conversation/NPC intents
             TalkIntent talk => await ProcessTalkIntent(talk.NpcId),
 
@@ -956,6 +974,75 @@ public class GameFacade
 
         _locationFacade.InvestigateLocation(currentSpot.Id);
         _messageSystem.AddSystemMessage("🔍 Investigated location, gaining familiarity", SystemMessageTypes.Info);
+        return IntentResult.Executed(requiresRefresh: true);
+    }
+
+    // ========== DELIVERY JOB INTENT HANDLERS ==========
+
+    private IntentResult ProcessViewJobBoardIntent()
+    {
+        // Navigate to JobBoard view modal
+        return IntentResult.NavigateView(LocationViewState.JobBoard);
+    }
+
+    private IntentResult ProcessAcceptDeliveryJobIntent(string jobId)
+    {
+        Player player = _gameWorld.GetPlayer();
+
+        // Validation: Can only have one active job
+        if (player.HasActiveDeliveryJob)
+        {
+            _messageSystem.AddSystemMessage("You already have an active delivery job", SystemMessageTypes.Warning);
+            return IntentResult.Failed();
+        }
+
+        // Get job and validate
+        DeliveryJob job = _gameWorld.GetJobById(jobId);
+        if (job == null || !job.IsAvailable)
+        {
+            _messageSystem.AddSystemMessage("Job no longer available", SystemMessageTypes.Warning);
+            return IntentResult.Failed();
+        }
+
+        // Accept job
+        player.ActiveDeliveryJobId = jobId;
+        job.IsAvailable = false;
+
+        _messageSystem.AddSystemMessage($"Accepted: {job.JobDescription}", SystemMessageTypes.Success);
+
+        // Close modal and refresh location
+        return IntentResult.Executed(requiresRefresh: true);
+    }
+
+    private IntentResult ProcessCompleteDeliveryIntent()
+    {
+        Player player = _gameWorld.GetPlayer();
+
+        // Validation: Must have active job
+        if (!player.HasActiveDeliveryJob)
+        {
+            _messageSystem.AddSystemMessage("No active delivery job", SystemMessageTypes.Warning);
+            return IntentResult.Failed();
+        }
+
+        DeliveryJob job = _gameWorld.GetJobById(player.ActiveDeliveryJobId);
+        if (job == null)
+        {
+            _messageSystem.AddSystemMessage("Delivery job data not found", SystemMessageTypes.Warning);
+            return IntentResult.Failed();
+        }
+
+        // Pay player
+        player.ModifyCoins(job.Payment);
+
+        // Clear active job
+        player.ActiveDeliveryJobId = "";
+
+        // Advance time (delivery takes time)
+        _timeFacade.AdvanceSegments(1);
+
+        _messageSystem.AddSystemMessage($"Delivery complete! Earned {job.Payment} coins", SystemMessageTypes.Success);
+
         return IntentResult.Executed(requiresRefresh: true);
     }
 

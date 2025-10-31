@@ -1,0 +1,57 @@
+@inherits JobBoardViewBase
+
+@namespace Wayfarer.Pages.Components
+
+<div class="location-job-board-view">
+    <div class="job-board-header">
+        <div class="job-board-title">📋 Delivery Job Board</div>
+        <div class="job-board-subtitle">Accept a delivery job to earn coins</div>
+    </div>
+
+    @if (AvailableJobs.Any())
+    {
+        <div class="jobs-grid">
+            @foreach (var job in AvailableJobs)
+            {
+                <div class="job-card @GetDifficultyClass(job.DifficultyTier)">
+                    <div class="job-header">
+                        <div class="job-description">@job.JobDescription</div>
+                        <div class="job-difficulty-badge @GetDifficultyClass(job.DifficultyTier)">
+                            @job.DifficultyTier
+                        </div>
+                    </div>
+
+                    <div class="job-details">
+                        <div class="job-detail-item">
+                            <span class="detail-label">Payment:</span>
+                            <span class="detail-value">@job.Payment coins</span>
+                        </div>
+                        <div class="job-detail-item">
+                            <span class="detail-label">Cargo:</span>
+                            <span class="detail-value">@job.CargoDescription</span>
+                        </div>
+                    </div>
+
+                    <div class="job-actions">
+                        <button class="action-button primary" @onclick="async () => await HandleAcceptJob(job.Id)">
+                            ACCEPT JOB
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="no-jobs-message">
+            <p>No delivery jobs available at this location right now.</p>
+            <p>Check back later or visit other Commercial locations.</p>
+        </div>
+    }
+
+    <div class="job-board-actions">
+        <button class="action-button" @onclick="() => OnNavigateBack.InvokeAsync()">
+            Close
+        </button>
+    </div>
+</div>

@@ -680,6 +680,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         return "0/0";
     }
 
+    protected DeliveryJob GetActiveDeliveryJob()
+    {
+        return GameFacade.GetActiveDeliveryJob();
+    }
+
     // Discovery Journal
     protected bool _showJournal = false;
 

@@ -88,6 +88,24 @@ public static class LocationActionCatalog
                 Availability = new List<TimeBlocks> { TimeBlocks.Morning, TimeBlocks.Midday, TimeBlocks.Afternoon },
                 Priority = 150  // Match JSON priority
             });
+
+            // Commercial property → Job Board action (Core Loop Phase 3)
+            Console.WriteLine($"[LocationActionCatalog] ✅ Commercial found - generating View Job Board action");
+            actions.Add(new LocationAction
+            {
+                Id = $"view_job_board_{location.Id}",
+                SourceLocationId = location.Id,  // Bind to specific location
+                Name = "View Job Board",
+                Description = "Check available delivery jobs. Accept one job at a time to earn coins through deliveries.",
+                ActionType = LocationActionType.ViewJobBoard,
+                Costs = ActionCosts.None(),  // Viewing is free
+                Rewards = ActionRewards.None(),  // No direct reward (opens modal)
+                RequiredProperties = new List<LocationPropertyType> { LocationPropertyType.Commercial },
+                OptionalProperties = new List<LocationPropertyType>(),
+                ExcludedProperties = new List<LocationPropertyType>(),
+                Availability = new List<TimeBlocks>(),  // Available at all times (job board always accessible)
+                Priority = 140  // Just below Work action
+            });
         }
 
         // Restful property → Rest action

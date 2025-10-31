@@ -82,10 +82,11 @@
         "id": "fountain_plaza",
         "venueId": "town_square",
         "name": "Fountain Plaza",
-        "description": "The town fountain. Locals gather here to chat and trade news.",
+        "description": "The town fountain. Locals gather here to chat and trade news. A courier's board posts delivery opportunities.",
         "properties": {
           "base": [
-            "public"
+            "public",
+            "commercial"
           ],
           "all": [
             "public",

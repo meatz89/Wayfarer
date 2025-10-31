@@ -399,6 +399,12 @@
                            OnMoveToSpot="HandleMoveToSpot"
                            OnNavigateBack="NavigateBack" />
                 break;
+
+            case LocationViewState.JobBoard:
+                <JobBoardView CurrentLocationId="@GameWorld.GetPlayerCurrentLocation().Id"
+                              OnAcceptJob="HandleAcceptJob"
+                              OnNavigateBack="NavigateBack" />
+                break;
         }
     </div>
 }

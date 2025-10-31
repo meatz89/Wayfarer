@@ -93,6 +93,8 @@ namespace Wayfarer.Pages.Components
                     LocationActionType.Work => new WorkIntent(),
                     LocationActionType.Investigate => new InvestigateLocationIntent(),
                     LocationActionType.Travel => new OpenTravelScreenIntent(),
+                    LocationActionType.ViewJobBoard => new ViewJobBoardIntent(),
+                    LocationActionType.CompleteDelivery => new CompleteDeliveryIntent(),
                     _ => null
                 };
             }
@@ -277,6 +279,20 @@ namespace Wayfarer.Pages.Components
         protected async Task HandleStartExchange(string npcId)
         {
             await GameScreen.StartExchange(npcId);
+        }
+
+        protected async Task HandleAcceptJob(string jobId)
+        {
+            // Execute through intent system - backend handles validation
+            IntentResult result = await GameFacade.ProcessIntent(new AcceptDeliveryJobIntent(jobId));
+
+            if (result.Success)
+            {
+                // Job accepted - close modal and refresh
+                NavigateBack();
+                await RefreshLocationData();
+                await OnActionExecuted.InvokeAsync();
+            }
         }
 
         // ============================================

@@ -85,6 +85,28 @@ public class LocationActionManager
         Console.WriteLine($"[LocationActionManager] {availableActions.Count} actions passed filters");
         Console.WriteLine($"[LocationActionManager] ==============================================\n");
 
+        // DELIVERY JOB SYSTEM: Add dynamic CompleteDelivery action if player is at destination
+        Player player = _gameWorld.GetPlayer();
+        if (player.HasActiveDeliveryJob)
+        {
+            DeliveryJob activeJob = _gameWorld.GetJobById(player.ActiveDeliveryJobId);
+            if (activeJob != null && activeJob.DestinationLocationId == LocationId)
+            {
+                Console.WriteLine($"[LocationActionManager] ✅ Adding dynamic CompleteDelivery action - player at destination");
+                // Create dynamic ViewModel directly (no domain entity for dynamic actions)
+                actions.Add(new LocationActionViewModel
+                {
+                    Id = $"complete_delivery_{activeJob.Id}",
+                    ActionType = "completedelivery",
+                    Title = $"Complete Delivery ({activeJob.Payment} coins)",
+                    Detail = $"Deliver {activeJob.CargoDescription} and receive {activeJob.Payment} coins payment.",
+                    Cost = "",  // No cost to complete
+                    IsAvailable = true,
+                    EngagementType = "Action"  // String, not enum
+                });
+            }
+        }
+
         foreach (LocationAction action in availableActions)
         {
             LocationActionViewModel viewModel = new LocationActionViewModel

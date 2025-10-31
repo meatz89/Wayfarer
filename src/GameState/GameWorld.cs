@@ -192,6 +192,11 @@ public class GameWorld
     public List<Item> Items { get; set; } = new List<Item>();
     public List<RouteOption> Routes { get; set; } = new List<RouteOption>();
 
+    // Delivery Job System - Core game loop (Phase 3)
+    // Jobs generated procedurally at parse time from routes by DeliveryJobCatalog
+    // Players can accept ONE active job at a time (tracked in Player.ActiveDeliveryJobId)
+    public List<DeliveryJob> AvailableDeliveryJobs { get; set; } = new();
+
     // Card system removed - using conversation and Venue action systems
 
     // Progression tracking
@@ -580,6 +585,31 @@ public class GameWorld
                 patron.RelationshipFlow = Math.Min(24, patron.RelationshipFlow + 2);
             }
         }
+    }
+
+    // ============================================
+    // DELIVERY JOB MANAGEMENT (Core Loop - Phase 3)
+    // ============================================
+
+    /// <summary>
+    /// Get all available delivery jobs at a specific location for current time
+    /// Used by LocationActionManager to show job board actions
+    /// </summary>
+    public List<DeliveryJob> GetJobsAvailableAt(string locationId, TimeBlocks currentTime)
+    {
+        return AvailableDeliveryJobs
+            .Where(job => job.OriginLocationId == locationId)
+            .Where(job => job.IsAvailable)
+            .Where(job => job.AvailableAt.Count == 0 || job.AvailableAt.Contains(currentTime))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Get delivery job by ID
+    /// </summary>
+    public DeliveryJob GetJobById(string jobId)
+    {
+        return AvailableDeliveryJobs.FirstOrDefault(j => j.Id == jobId);
     }
 
     /// <summary>

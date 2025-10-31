@@ -63,6 +63,22 @@ public class Player
     // References obligations in GameWorld.Obligations (single source of truth)
     public List<string> ActiveObligationIds { get; set; } = new List<string>();
 
+    // ============================================
+    // DELIVERY JOB SYSTEM (Core Loop - Phase 3)
+    // ============================================
+
+    /// <summary>
+    /// Active delivery job ID (empty = no active job)
+    /// Player can only have ONE active delivery job at a time
+    /// References job in GameWorld.AvailableDeliveryJobs (single source of truth)
+    /// </summary>
+    public string ActiveDeliveryJobId { get; set; } = "";
+
+    /// <summary>
+    /// Check if player has an active delivery job
+    /// </summary>
+    public bool HasActiveDeliveryJob => !string.IsNullOrEmpty(ActiveDeliveryJobId);
+
     // Equipment ownership: Player.Inventory stores item IDs (single source of truth)
     // ItemRepository resolves IDs to Equipment entities from GameWorld.Items
     // No inline Equipment storage - references by ID only (architecture principle)

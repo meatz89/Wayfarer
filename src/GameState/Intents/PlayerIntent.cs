@@ -165,3 +165,33 @@ public class OpenTravelScreenIntent : PlayerIntent
 {
 }
 
+/// <summary>
+/// Intent to view job board at current Commercial location
+/// Opens modal showing available delivery jobs
+/// </summary>
+public class ViewJobBoardIntent : PlayerIntent
+{
+}
+
+/// <summary>
+/// Intent to accept a delivery job
+/// Player can only have ONE active job at a time
+/// </summary>
+public class AcceptDeliveryJobIntent : PlayerIntent
+{
+    public string JobId { get; }
+
+    public AcceptDeliveryJobIntent(string jobId)
+    {
+        JobId = jobId;
+    }
+}
+
+/// <summary>
+/// Intent to complete active delivery job at destination
+/// Pays player and clears active job
+/// </summary>
+public class CompleteDeliveryIntent : PlayerIntent
+{
+}
+

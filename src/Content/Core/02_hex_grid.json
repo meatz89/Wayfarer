@@ -36,8 +36,8 @@
           "r": 0,
           "terrain": "Plains",
           "dangerLevel": 0,
-          "locationId": null,
-          "isDiscovered": false
+          "locationId": "fountain_plaza",
+          "isDiscovered": true
         },
         {
           "q": 0,
