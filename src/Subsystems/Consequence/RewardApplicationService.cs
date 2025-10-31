@@ -40,25 +40,36 @@ public class RewardApplicationService
 
         Player player = _gameWorld.GetPlayer();
 
-        // Apply basic resource rewards (existing)
-        if (reward.Coins != 0)
-            player.Coins += reward.Coins;
+        // Apply FullRecovery if flagged (overrides individual resource rewards)
+        if (reward.FullRecovery)
+        {
+            player.Health = player.MaxHealth;
+            player.Stamina = player.MaxStamina;
+            player.Focus = player.MaxFocus;
+            player.Hunger = 0; // Full recovery resets hunger to 0
+        }
+        else
+        {
+            // Apply basic resource rewards (existing)
+            if (reward.Coins != 0)
+                player.Coins += reward.Coins;
 
-        if (reward.Resolve != 0)
-            player.Resolve += reward.Resolve;
+            if (reward.Resolve != 0)
+                player.Resolve += reward.Resolve;
 
-        // Apply tutorial resource rewards (NEW)
-        if (reward.Health != 0)
-            player.Health = Math.Clamp(player.Health + reward.Health, 0, player.MaxHealth);
+            // Apply tutorial resource rewards (NEW)
+            if (reward.Health != 0)
+                player.Health = Math.Clamp(player.Health + reward.Health, 0, player.MaxHealth);
 
-        if (reward.Stamina != 0)
-            player.Stamina = Math.Clamp(player.Stamina + reward.Stamina, 0, player.MaxStamina);
+            if (reward.Stamina != 0)
+                player.Stamina = Math.Clamp(player.Stamina + reward.Stamina, 0, player.MaxStamina);
 
-        if (reward.Focus != 0)
-            player.Focus = Math.Clamp(player.Focus + reward.Focus, 0, player.MaxFocus);
+            if (reward.Focus != 0)
+                player.Focus = Math.Clamp(player.Focus + reward.Focus, 0, player.MaxFocus);
 
-        if (reward.Hunger != 0)
-            player.Hunger = Math.Clamp(player.Hunger + reward.Hunger, 0, player.MaxHunger);
+            if (reward.Hunger != 0)
+                player.Hunger = Math.Clamp(player.Hunger + reward.Hunger, 0, player.MaxHunger);
+        }
 
         // Apply consequences (bonds, scales, states)
         if (reward.BondChanges.Count > 0 || reward.ScaleShifts.Count > 0 || reward.StateApplications.Count > 0)

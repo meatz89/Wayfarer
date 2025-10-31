@@ -1842,6 +1842,60 @@ public class GameFacade
         return IntentResult.Failed();
     }
 
+    /// <summary>
+    /// Process social challenge outcome - apply CompletionReward if successful
+    /// STRATEGIC LAYER: GameFacade applies rewards after receiving tactical outcome
+    /// </summary>
+    public void ProcessSocialChallengeOutcome()
+    {
+        if (_gameWorld.LastSocialOutcome?.Success == true &&
+            _gameWorld.PendingSocialContext?.CompletionReward != null)
+        {
+            Situation currentSituation = _gameWorld.Situations
+                .FirstOrDefault(s => s.Id == _gameWorld.CurrentSocialSession?.RequestId);
+            _rewardApplicationService.ApplyChoiceReward(
+                _gameWorld.PendingSocialContext.CompletionReward,
+                currentSituation);
+        }
+        _gameWorld.PendingSocialContext = null;
+    }
+
+    /// <summary>
+    /// Process mental challenge outcome - apply CompletionReward if successful
+    /// STRATEGIC LAYER: GameFacade applies rewards after receiving tactical outcome
+    /// </summary>
+    public void ProcessMentalChallengeOutcome()
+    {
+        if (_gameWorld.LastMentalOutcome?.Success == true &&
+            _gameWorld.PendingMentalContext?.CompletionReward != null)
+        {
+            Situation currentSituation = _gameWorld.Situations
+                .FirstOrDefault(s => s.Id == _gameWorld.CurrentMentalSituationId);
+            _rewardApplicationService.ApplyChoiceReward(
+                _gameWorld.PendingMentalContext.CompletionReward,
+                currentSituation);
+        }
+        _gameWorld.PendingMentalContext = null;
+    }
+
+    /// <summary>
+    /// Process physical challenge outcome - apply CompletionReward if successful
+    /// STRATEGIC LAYER: GameFacade applies rewards after receiving tactical outcome
+    /// </summary>
+    public void ProcessPhysicalChallengeOutcome()
+    {
+        if (_gameWorld.LastPhysicalOutcome?.Success == true &&
+            _gameWorld.PendingPhysicalContext?.CompletionReward != null)
+        {
+            Situation currentSituation = _gameWorld.Situations
+                .FirstOrDefault(s => s.Id == _gameWorld.CurrentPhysicalSituationId);
+            _rewardApplicationService.ApplyChoiceReward(
+                _gameWorld.PendingPhysicalContext.CompletionReward,
+                currentSituation);
+        }
+        _gameWorld.PendingPhysicalContext = null;
+    }
+
     private IntentResult ApplyNavigationPayload(NavigationPayload payload)
     {
         // Apply navigation based on payload type

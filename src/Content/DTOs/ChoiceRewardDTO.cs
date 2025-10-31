@@ -66,6 +66,13 @@ public class ChoiceRewardDTO
     public int Focus { get; set; } = 0;
 
     /// <summary>
+    /// Full recovery flag - restores all resources to maximum
+    /// Used for securing room at inn
+    /// false = normal resource grants, true = full recovery
+    /// </summary>
+    public bool FullRecovery { get; set; } = false;
+
+    /// <summary>
     /// Relationship changes (transparent before selection)
     /// +/- bond deltas with NPCs
     /// </summary>

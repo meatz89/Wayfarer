@@ -353,6 +353,10 @@ public class PhysicalFacade
             }
         }
 
+        // TACTICAL LAYER: Do NOT apply CompletionReward here
+        // Rewards are strategic layer concern - GameFacade applies them after receiving outcome
+        // PendingContext stays alive for GameFacade to process
+
         // Clear obligation context
         _gameWorld.CurrentPhysicalSituationId = null;
         _gameWorld.CurrentPhysicalObligationId = null;

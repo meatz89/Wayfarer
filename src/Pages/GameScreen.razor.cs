@@ -329,6 +329,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected async Task HandleConversationEnd()
     {
+        // STRATEGIC LAYER: Process challenge outcome and apply rewards
+        GameFacade.ProcessSocialChallengeOutcome();
+
         CurrentSocialContext = null;
 
         // Always refresh UI after conversation ends
@@ -376,6 +379,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task HandleMentalEnd()
     {
+        // STRATEGIC LAYER: Process challenge outcome and apply rewards
+        GameFacade.ProcessMentalChallengeOutcome();
+
         CurrentMentalContext = null;
 
         // Always refresh UI after mental session ends
@@ -470,6 +476,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task HandlePhysicalEnd()
     {
+        // STRATEGIC LAYER: Process challenge outcome and apply rewards
+        GameFacade.ProcessPhysicalChallengeOutcome();
+
         CurrentPhysicalContext = null;
 
         // Always refresh UI after physical session ends

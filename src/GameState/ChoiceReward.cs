@@ -57,6 +57,13 @@ public class ChoiceReward
     public int Focus { get; set; } = 0;
 
     /// <summary>
+    /// Full recovery of all resources to maximum
+    /// Used for securing room at inn - restores Health/Stamina/Focus to max, Hunger to 0
+    /// Tutorial: Paying for lodging grants full recovery
+    /// </summary>
+    public bool FullRecovery { get; set; } = false;
+
+    /// <summary>
     /// Bond changes with NPCs
     /// Can strengthen or weaken relationships
     /// </summary>

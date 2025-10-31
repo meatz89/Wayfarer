@@ -1,5 +1,6 @@
 using Wayfarer.Content;
 using Wayfarer.GameState.Enums;
+using Wayfarer.Subsystems.Consequence;
 
 namespace Wayfarer.Subsystems.Scene;
 
@@ -18,11 +19,13 @@ public class SceneFacade
 {
     private readonly GameWorld _gameWorld;
     private readonly SceneInstantiator _sceneInstantiator;
+    private readonly RewardApplicationService _rewardApplicationService;
 
-    public SceneFacade(GameWorld gameWorld, SceneInstantiator sceneInstantiator)
+    public SceneFacade(GameWorld gameWorld, SceneInstantiator sceneInstantiator, RewardApplicationService rewardApplicationService)
     {
         _gameWorld = gameWorld;
         _sceneInstantiator = sceneInstantiator;
+        _rewardApplicationService = rewardApplicationService;
     }
 
     // ==================== LOCATION CONTEXT ====================
@@ -74,10 +77,18 @@ public class SceneFacade
     /// Activate dormant Situation for Location context
     /// Instantiates ChoiceTemplates → LocationActions
     /// Creates provisional Scenes for actions with spawn rewards
+    /// AutoAdvance situations execute rewards immediately
     /// </summary>
     private void ActivateSituationForLocation(Situation situation, global::Scene scene, Player player)
     {
         situation.State = SituationState.Active;
+
+        // AutoAdvance detection: Execute AutoProgressRewards immediately
+        if (situation.IsAutoAdvance && situation.Template.AutoProgressRewards != null)
+        {
+            _rewardApplicationService.ApplyChoiceReward(situation.Template.AutoProgressRewards, situation);
+            return; // No actions to instantiate for AutoAdvance situations
+        }
 
         // Instantiate actions from ChoiceTemplates
         foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
@@ -157,10 +168,18 @@ public class SceneFacade
     /// Activate dormant Situation for NPC context
     /// Instantiates ChoiceTemplates → NPCActions
     /// Creates provisional Scenes for actions with spawn rewards
+    /// AutoAdvance situations execute rewards immediately
     /// </summary>
     private void ActivateSituationForNPC(Situation situation, global::Scene scene, Player player)
     {
         situation.State = SituationState.Active;
+
+        // AutoAdvance detection: Execute AutoProgressRewards immediately
+        if (situation.IsAutoAdvance && situation.Template.AutoProgressRewards != null)
+        {
+            _rewardApplicationService.ApplyChoiceReward(situation.Template.AutoProgressRewards, situation);
+            return; // No actions to instantiate for AutoAdvance situations
+        }
 
         NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.PlacementId);
 
@@ -235,10 +254,18 @@ public class SceneFacade
     /// Activate dormant Situation for Route context
     /// Instantiates ChoiceTemplates → PathCards
     /// Creates provisional Scenes for actions with spawn rewards
+    /// AutoAdvance situations execute rewards immediately
     /// </summary>
     private void ActivateSituationForRoute(Situation situation, global::Scene scene, Player player)
     {
         situation.State = SituationState.Active;
+
+        // AutoAdvance detection: Execute AutoProgressRewards immediately
+        if (situation.IsAutoAdvance && situation.Template.AutoProgressRewards != null)
+        {
+            _rewardApplicationService.ApplyChoiceReward(situation.Template.AutoProgressRewards, situation);
+            return; // No actions to instantiate for AutoAdvance situations
+        }
 
         foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
         {

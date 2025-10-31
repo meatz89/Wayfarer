@@ -204,6 +204,7 @@ public class SceneInstantiator
             Description = template.NarrativeTemplate,
             NarrativeHints = template.NarrativeHints,
             State = SituationState.Dormant,  // START dormant - actions created at query time
+            IsAutoAdvance = parentScene.Archetype == SpawnPattern.AutoAdvance,  // Copy archetype to Situation
 
             // PLACEMENT INHERITANCE: Inherit from parent Scene
             ParentScene = parentScene,

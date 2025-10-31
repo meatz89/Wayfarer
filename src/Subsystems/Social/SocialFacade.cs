@@ -172,6 +172,10 @@ public class SocialFacade
             _tokenManager.AddTokensToNPC(connectionType, _gameWorld.LastSocialOutcome.TokensEarned, _gameWorld.CurrentSocialSession.NPC.ID);
         }
 
+        // TACTICAL LAYER: Do NOT apply CompletionReward here
+        // Rewards are strategic layer concern - GameFacade applies them after receiving outcome
+        // PendingContext stays alive for GameFacade to process
+
         _gameWorld.CurrentSocialSession.Deck.ResetForNewConversation();
         _gameWorld.CurrentSocialSession = null;
 

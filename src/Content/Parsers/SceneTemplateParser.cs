@@ -38,7 +38,7 @@ public class SceneTemplateParser
             Archetype = archetype,
             DisplayNameTemplate = dto.DisplayNameTemplate,
             PlacementFilter = ParsePlacementFilter(dto.PlacementFilter, dto.Id),
-            SituationTemplates = ParseSituationTemplates(dto.SituationTemplates, dto.Id),
+            SituationTemplates = ParseSituationTemplates(dto.SituationTemplates, dto.Id, archetype),
             SpawnRules = ParseSpawnRules(dto.SpawnRules, dto.Id),
             ExpirationDays = dto.ExpirationDays,
             IsStarter = dto.IsStarter,
@@ -199,7 +199,7 @@ public class SceneTemplateParser
     /// <summary>
     /// Parse embedded SituationTemplates
     /// </summary>
-    private List<SituationTemplate> ParseSituationTemplates(List<SituationTemplateDTO> dtos, string sceneTemplateId)
+    private List<SituationTemplate> ParseSituationTemplates(List<SituationTemplateDTO> dtos, string sceneTemplateId, SpawnPattern archetype)
     {
         if (dtos == null || !dtos.Any())
             throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' must have at least one SituationTemplate");
@@ -207,7 +207,7 @@ public class SceneTemplateParser
         List<SituationTemplate> templates = new List<SituationTemplate>();
         foreach (SituationTemplateDTO dto in dtos)
         {
-            templates.Add(ParseSituationTemplate(dto, sceneTemplateId));
+            templates.Add(ParseSituationTemplate(dto, sceneTemplateId, archetype));
         }
 
         return templates;
@@ -216,7 +216,7 @@ public class SceneTemplateParser
     /// <summary>
     /// Parse a single SituationTemplate
     /// </summary>
-    private SituationTemplate ParseSituationTemplate(SituationTemplateDTO dto, string sceneTemplateId)
+    private SituationTemplate ParseSituationTemplate(SituationTemplateDTO dto, string sceneTemplateId, SpawnPattern archetype)
     {
         if (string.IsNullOrEmpty(dto.Id))
             throw new InvalidDataException($"SituationTemplate in SceneTemplate '{sceneTemplateId}' missing required 'Id'");
@@ -225,7 +225,7 @@ public class SceneTemplateParser
         {
             Id = dto.Id,
             NarrativeTemplate = dto.NarrativeTemplate,
-            ChoiceTemplates = ParseChoiceTemplates(dto.ChoiceTemplates, sceneTemplateId, dto.Id),
+            ChoiceTemplates = ParseChoiceTemplates(dto.ChoiceTemplates, sceneTemplateId, dto.Id, archetype),
             Priority = dto.Priority,
             NarrativeHints = ParseNarrativeHints(dto.NarrativeHints),
             AutoProgressRewards = ParseChoiceReward(dto.AutoProgressRewards)
@@ -237,8 +237,18 @@ public class SceneTemplateParser
     /// <summary>
     /// Parse embedded ChoiceTemplates
     /// </summary>
-    private List<ChoiceTemplate> ParseChoiceTemplates(List<ChoiceTemplateDTO> dtos, string sceneTemplateId, string situationTemplateId)
+    private List<ChoiceTemplate> ParseChoiceTemplates(List<ChoiceTemplateDTO> dtos, string sceneTemplateId, string situationTemplateId, SpawnPattern archetype)
     {
+        // AutoAdvance scenes have no choices (narrative auto-executes)
+        if (archetype == SpawnPattern.AutoAdvance)
+        {
+            if (dtos != null && dtos.Any())
+                throw new InvalidDataException($"AutoAdvance SceneTemplate '{sceneTemplateId}' SituationTemplate '{situationTemplateId}' should have EMPTY ChoiceTemplates (choices not allowed for AutoAdvance)");
+
+            return new List<ChoiceTemplate>(); // Empty list for AutoAdvance
+        }
+
+        // Normal scenes require 2-4 choices (Sir Brante pattern)
         if (dtos == null || !dtos.Any())
             throw new InvalidDataException($"SituationTemplate '{situationTemplateId}' in SceneTemplate '{sceneTemplateId}' must have at least 2 ChoiceTemplates (Sir Brante pattern: 2-4 choices)");
 
@@ -337,6 +347,7 @@ public class SceneTemplateParser
             Hunger = dto.Hunger,
             Stamina = dto.Stamina,
             Focus = dto.Focus,
+            FullRecovery = dto.FullRecovery,
             BondChanges = ParseBondChanges(dto.BondChanges),
             ScaleShifts = ParseScaleShifts(dto.ScaleShifts),
             StateApplications = ParseStateApplications(dto.StateApplications),
