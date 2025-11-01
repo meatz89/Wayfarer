@@ -2,7 +2,7 @@
 
 public class TravelDestinationViewModel
 {
-    public string VenueId { get; set; }
+    public string LocationId { get; set; }
     public string LocationName { get; set; }
     public string Description { get; set; }
     public bool CanTravel { get; set; }

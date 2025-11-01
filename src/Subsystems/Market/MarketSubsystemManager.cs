@@ -34,7 +34,7 @@ public class MarketSubsystemManager
         public bool Success { get; set; }
         public string ItemId { get; set; }
         public string ItemName { get; set; }
-        public string VenueId { get; set; }
+        public string LocationId { get; set; }
         public TradeAction Action { get; set; }
         public int Price { get; set; }
         public int CoinsBefore { get; set; }
@@ -60,7 +60,7 @@ public class MarketSubsystemManager
         public string ItemId { get; set; }
         public string ItemName { get; set; }
         public TradeAction RecommendedAction { get; set; }
-        public string VenueId { get; set; }
+        public string LocationId { get; set; }
         public string LocationName { get; set; }
         public int ExpectedProfit { get; set; }
         public string Reasoning { get; set; }
@@ -72,7 +72,7 @@ public class MarketSubsystemManager
     /// </summary>
     public class MarketSummary
     {
-        public string VenueId { get; set; }
+        public string LocationId { get; set; }
         public string LocationName { get; set; }
         public bool IsOpen { get; set; }
         public List<string> AvailableTraders { get; set; } = new List<string>();
@@ -86,20 +86,20 @@ public class MarketSubsystemManager
     // ========== MARKET AVAILABILITY ==========
 
     /// <summary>
-    /// Check if market is available at a Venue at a specific time
+    /// Check if market is available at a Location at a specific time
     /// </summary>
-    public bool IsMarketAvailable(string venueId, TimeBlocks timeBlock)
+    public bool IsMarketAvailable(string locationId, TimeBlocks timeBlock)
     {
-        List<NPC> traders = GetTradersAtTime(venueId, timeBlock);
+        List<NPC> traders = GetTradersAtTime(locationId, timeBlock);
         return traders.Count > 0;
     }
 
     /// <summary>
     /// Get market availability status message
     /// </summary>
-    public string GetMarketAvailabilityStatus(string venueId, TimeBlocks currentTime)
+    public string GetMarketAvailabilityStatus(string locationId, TimeBlocks currentTime)
     {
-        List<NPC> currentTraders = GetTradersAtTime(venueId, currentTime);
+        List<NPC> currentTraders = GetTradersAtTime(locationId, currentTime);
 
         if (currentTraders.Count > 0)
         {
@@ -108,7 +108,7 @@ public class MarketSubsystemManager
         }
 
         // Find next available time
-        List<NPC> allTraders = GetAllTraders(venueId);
+        List<NPC> allTraders = GetAllTraders(locationId);
         if (allTraders.Count == 0)
         {
             return "No traders at this location";
@@ -121,7 +121,7 @@ public class MarketSubsystemManager
         {
             if (time <= currentTime) continue; // Skip past and current times
 
-            List<NPC> futureTraders = GetTradersAtTime(venueId, time);
+            List<NPC> futureTraders = GetTradersAtTime(locationId, time);
             if (futureTraders.Count > 0)
             {
                 return $"Market closed - Opens at {time}";
@@ -134,9 +134,9 @@ public class MarketSubsystemManager
     /// <summary>
     /// Get traders available at current time
     /// </summary>
-    public List<NPC> GetAvailableTraders(string venueId, TimeBlocks timeBlock)
+    public List<NPC> GetAvailableTraders(string locationId, TimeBlocks timeBlock)
     {
-        return GetTradersAtTime(venueId, timeBlock);
+        return GetTradersAtTime(locationId, timeBlock);
     }
 
     // ========== PRICING LOGIC ==========
@@ -150,9 +150,9 @@ public class MarketSubsystemManager
     }
 
     /// <summary>
-    /// Get dynamic pricing for an item at a location
+    /// Get dynamic pricing for an item at a location (based on Location properties, NOT Venue type)
     /// </summary>
-    private LocationPricing GetDynamicPricing(string venueId, string itemId)
+    private LocationPricing GetDynamicPricing(string locationId, string itemId)
     {
         Item item = _itemRepository.GetItemById(itemId);
         if (item == null)
@@ -161,7 +161,7 @@ public class MarketSubsystemManager
         }
 
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        bool marketAvailable = IsMarketAvailable(venueId, currentTime);
+        bool marketAvailable = IsMarketAvailable(locationId, currentTime);
 
         if (!marketAvailable)
         {
@@ -174,32 +174,33 @@ public class MarketSubsystemManager
             SupplyLevel = 1.0f
         };
 
-        // Location-specific pricing logic (uses strongly-typed VenueType enum)
-        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Id == venueId);
-        if (venue != null)
+        // Location properties determine pricing (NOT Venue type)
+        Location location = _gameWorld.GetLocation(locationId);
+        if (location != null)
         {
-            switch (venue.Type)
+            // Check Location properties to determine pricing
+            if (location.LocationProperties.Contains(LocationPropertyType.Market))
             {
-                case VenueType.Market:
-                    // Markets have higher prices (competitive commercial environment)
-                    pricing.BuyPrice = item.BuyPrice + 1;
-                    pricing.SellPrice = item.SellPrice + 1;
-                    break;
-                case VenueType.Tavern:
-                    // Taverns have lower prices (casual trade, not primary business)
-                    pricing.BuyPrice = Math.Max(1, item.BuyPrice - 1);
-                    pricing.SellPrice = Math.Max(1, item.SellPrice - 1);
-                    break;
-                default:
-                    // Other venue types use base prices
-                    pricing.BuyPrice = item.BuyPrice;
-                    pricing.SellPrice = item.SellPrice;
-                    break;
+                // Markets have higher prices (competitive commercial environment)
+                pricing.BuyPrice = item.BuyPrice + 1;
+                pricing.SellPrice = item.SellPrice + 1;
+            }
+            else if (location.LocationProperties.Contains(LocationPropertyType.Tavern))
+            {
+                // Taverns have lower prices (casual trade, not primary business)
+                pricing.BuyPrice = Math.Max(1, item.BuyPrice - 1);
+                pricing.SellPrice = Math.Max(1, item.SellPrice - 1);
+            }
+            else
+            {
+                // Other location types use base prices
+                pricing.BuyPrice = item.BuyPrice;
+                pricing.SellPrice = item.SellPrice;
             }
         }
         else
         {
-            // Venue not found, use base prices
+            // Location not found, use base prices
             pricing.BuyPrice = item.BuyPrice;
             pricing.SellPrice = item.SellPrice;
         }
@@ -217,9 +218,9 @@ public class MarketSubsystemManager
     /// <summary>
     /// Get the price for a specific item at a specific location
     /// </summary>
-    public int GetItemPrice(string venueId, string itemId, bool isBuyPrice)
+    public int GetItemPrice(string locationId, string itemId, bool isBuyPrice)
     {
-        LocationPricing pricing = GetDynamicPricing(venueId, itemId);
+        LocationPricing pricing = GetDynamicPricing(locationId, itemId);
         if (!pricing.IsAvailable) return -1;
         return isBuyPrice ? pricing.BuyPrice : pricing.SellPrice;
     }
@@ -227,12 +228,12 @@ public class MarketSubsystemManager
     /// <summary>
     /// Get all items available for purchase at a location
     /// </summary>
-    public List<Item> GetAvailableItems(string venueId)
+    public List<Item> GetAvailableItems(string locationId)
     {
         List<Item> availableItems = new List<Item>();
 
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        if (!IsMarketAvailable(venueId, currentTime))
+        if (!IsMarketAvailable(locationId, currentTime))
         {
             return availableItems;
         }
@@ -240,7 +241,7 @@ public class MarketSubsystemManager
         List<Item> allItems = _itemRepository.GetAllItems();
         foreach (Item item in allItems)
         {
-            LocationPricing pricing = GetDynamicPricing(venueId, item.Id);
+            LocationPricing pricing = GetDynamicPricing(locationId, item.Id);
             if (pricing.IsAvailable && pricing.BuyPrice > 0)
             {
                 // Create a copy with location-specific pricing
@@ -268,10 +269,10 @@ public class MarketSubsystemManager
     /// <summary>
     /// Check if player can buy an item
     /// </summary>
-    public bool CanBuyItem(string itemId, string venueId)
+    public bool CanBuyItem(string itemId, string locationId)
     {
         // Check market availability
-        if (!IsMarketAvailable(venueId, _timeManager.GetCurrentTimeBlock()))
+        if (!IsMarketAvailable(locationId, _timeManager.GetCurrentTimeBlock()))
             return false;
 
         // Check item availability
@@ -279,7 +280,7 @@ public class MarketSubsystemManager
         if (item == null) return false;
 
         // Check pricing
-        int buyPrice = GetItemPrice(venueId, itemId, true);
+        int buyPrice = GetItemPrice(locationId, itemId, true);
         if (buyPrice <= 0) return false;
 
         // Check player resources
@@ -293,10 +294,10 @@ public class MarketSubsystemManager
     /// <summary>
     /// Check if player can sell an item
     /// </summary>
-    public bool CanSellItem(string itemId, string venueId)
+    public bool CanSellItem(string itemId, string locationId)
     {
         // Check market availability
-        if (!IsMarketAvailable(venueId, _timeManager.GetCurrentTimeBlock()))
+        if (!IsMarketAvailable(locationId, _timeManager.GetCurrentTimeBlock()))
             return false;
 
         Player player = _gameWorld.GetPlayer();
@@ -305,15 +306,15 @@ public class MarketSubsystemManager
         if (!player.Inventory.HasItem(itemId))
             return false;
 
-        // Check if Venue buys this item
-        int sellPrice = GetItemPrice(venueId, itemId, false);
+        // Check if Location buys this item
+        int sellPrice = GetItemPrice(locationId, itemId, false);
         return sellPrice > 0;
     }
 
     /// <summary>
     /// Buy an item at a location
     /// </summary>
-    public TradeResult BuyItem(string itemId, string venueId)
+    public TradeResult BuyItem(string itemId, string locationId)
     {
         Player player = _gameWorld.GetPlayer();
         Item item = _itemRepository.GetItemById(itemId);
@@ -322,14 +323,14 @@ public class MarketSubsystemManager
         {
             ItemId = itemId,
             ItemName = item.Name,
-            VenueId = venueId,
+            LocationId = locationId,
             Action = TradeAction.Buy,
             CoinsBefore = player.Coins,
             HadItemBefore = player.Inventory.HasItem(itemId)
         };
 
         // Check market availability
-        if (!IsMarketAvailable(venueId, _timeManager.GetCurrentTimeBlock()))
+        if (!IsMarketAvailable(locationId, _timeManager.GetCurrentTimeBlock()))
         {
             result.Success = false;
             result.ErrorReason = "Market is closed at this time";
@@ -337,7 +338,7 @@ public class MarketSubsystemManager
         }
 
         // Get price
-        int buyPrice = GetItemPrice(venueId, itemId, true);
+        int buyPrice = GetItemPrice(locationId, itemId, true);
         result.Price = buyPrice;
 
         // Attempt purchase
@@ -383,7 +384,7 @@ public class MarketSubsystemManager
     /// <summary>
     /// Sell an item at a location
     /// </summary>
-    public TradeResult SellItem(string itemId, string venueId)
+    public TradeResult SellItem(string itemId, string locationId)
     {
         Player player = _gameWorld.GetPlayer();
         Item item = _itemRepository.GetItemById(itemId);
@@ -392,14 +393,14 @@ public class MarketSubsystemManager
         {
             ItemId = itemId,
             ItemName = item.Name,
-            VenueId = venueId,
+            LocationId = locationId,
             Action = TradeAction.Sell,
             CoinsBefore = player.Coins,
             HadItemBefore = player.Inventory.HasItem(itemId)
         };
 
         // Check market availability
-        if (!IsMarketAvailable(venueId, _timeManager.GetCurrentTimeBlock()))
+        if (!IsMarketAvailable(locationId, _timeManager.GetCurrentTimeBlock()))
         {
             result.Success = false;
             result.ErrorReason = "Market is closed at this time";
@@ -407,7 +408,7 @@ public class MarketSubsystemManager
         }
 
         // Get price
-        int sellPrice = GetItemPrice(venueId, itemId, false);
+        int sellPrice = GetItemPrice(locationId, itemId, false);
         result.Price = sellPrice;
 
         // Attempt sale
@@ -453,15 +454,15 @@ public class MarketSubsystemManager
     /// <summary>
     /// Get market items with UI-friendly information for purchase at a location
     /// </summary>
-    public List<MarketItem> GetAvailableMarketItems(string venueId)
+    public List<MarketItem> GetAvailableMarketItems(string locationId)
     {
-        if (!IsMarketAvailable(venueId, _timeManager.GetCurrentTimeBlock()))
+        if (!IsMarketAvailable(locationId, _timeManager.GetCurrentTimeBlock()))
         {
             return new List<MarketItem>();
         }
 
         // Get items with location-specific pricing
-        List<Item> items = GetAvailableItems(venueId);
+        List<Item> items = GetAvailableItems(locationId);
 
         // Convert to MarketItem format
         return items.Select(item => new MarketItem
@@ -481,7 +482,7 @@ public class MarketSubsystemManager
     /// <summary>
     /// Get trade recommendations based on current position
     /// </summary>
-    public List<TradeRecommendation> GetTradeRecommendations(string currentVenueId)
+    public List<TradeRecommendation> GetTradeRecommendations(string currentLocationId)
     {
         List<TradeRecommendation> recommendations = new List<TradeRecommendation>();
         Player player = _gameWorld.GetPlayer();
@@ -492,15 +493,15 @@ public class MarketSubsystemManager
             Item item = _itemRepository.GetItemById(itemId);
             if (item == null) continue;
 
-            int sellPriceHere = GetItemPrice(currentVenueId, itemId, false);
+            int sellPriceHere = GetItemPrice(currentLocationId, itemId, false);
             if (sellPriceHere <= 0) continue;
 
-            // Check if this is a good place to sell
-            List<Venue> locations = _gameWorld.Venues;
+            // Check if this is a good place to sell (compare to all Locations)
+            List<Location> allLocations = _gameWorld.Locations;
             int avgSellPrice = 0;
             int validLocations = 0;
 
-            foreach (Venue loc in locations)
+            foreach (Location loc in allLocations)
             {
                 int price = GetItemPrice(loc.Id, itemId, false);
                 if (price > 0)
@@ -521,8 +522,8 @@ public class MarketSubsystemManager
                         ItemId = itemId,
                         ItemName = item.Name,
                         RecommendedAction = TradeAction.Sell,
-                        VenueId = currentVenueId,
-                        LocationName = GetLocationName(currentVenueId),
+                        LocationId = currentLocationId,
+                        LocationName = GetLocationName(currentLocationId),
                         ExpectedProfit = sellPriceHere - avgSellPrice,
                         Reasoning = $"Price here ({sellPriceHere}) is above average ({avgSellPrice})",
                         Confidence = Math.Min(1.0f, (float)(sellPriceHere - avgSellPrice) / avgSellPrice)
@@ -534,7 +535,7 @@ public class MarketSubsystemManager
         // Recommend buying items that are cheap here
         if (player.Coins > 10) // Only if player has money to invest
         {
-            List<Item> availableItems = GetAvailableItems(currentVenueId);
+            List<Item> availableItems = GetAvailableItems(currentLocationId);
 
             foreach (Item item in availableItems)
             {
@@ -543,13 +544,13 @@ public class MarketSubsystemManager
 
                 // Check profit potential
                 int buyPriceHere = item.BuyPrice;
-                List<Venue> locations = _gameWorld.Venues;
+                List<Location> allLocations = _gameWorld.Locations;
                 int maxSellPrice = 0;
                 string bestSellLocation = null;
 
-                foreach (Venue loc in locations)
+                foreach (Location loc in allLocations)
                 {
-                    if (loc.Id == currentVenueId) continue;
+                    if (loc.Id == currentLocationId) continue;
                     int sellPrice = GetItemPrice(loc.Id, item.Id, false);
                     if (sellPrice > maxSellPrice)
                     {
@@ -566,8 +567,8 @@ public class MarketSubsystemManager
                         ItemId = item.Id,
                         ItemName = item.Name,
                         RecommendedAction = TradeAction.Buy,
-                        VenueId = currentVenueId,
-                        LocationName = GetLocationName(currentVenueId),
+                        LocationId = currentLocationId,
+                        LocationName = GetLocationName(currentLocationId),
                         ExpectedProfit = profit,
                         Reasoning = $"Can sell for {maxSellPrice} in {GetLocationName(bestSellLocation)}",
                         Confidence = Math.Min(1.0f, (float)profit / buyPriceHere)
@@ -585,31 +586,31 @@ public class MarketSubsystemManager
     /// <summary>
     /// Get comprehensive market summary for a location
     /// </summary>
-    public MarketSummary GetMarketSummary(string venueId)
+    public MarketSummary GetMarketSummary(string locationId)
     {
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
         Player player = _gameWorld.GetPlayer();
 
         MarketSummary summary = new MarketSummary
         {
-            VenueId = venueId,
-            LocationName = GetLocationName(venueId),
-            IsOpen = IsMarketAvailable(venueId, currentTime)
+            LocationId = locationId,
+            LocationName = GetLocationName(locationId),
+            IsOpen = IsMarketAvailable(locationId, currentTime)
         };
 
         if (summary.IsOpen)
         {
-            List<NPC> traders = GetAvailableTraders(venueId, currentTime);
+            List<NPC> traders = GetAvailableTraders(locationId, currentTime);
             summary.AvailableTraders = traders.Select(t => t.Name).ToList();
 
-            List<Item> items = GetAvailableItems(venueId);
+            List<Item> items = GetAvailableItems(locationId);
             summary.TotalItemsAvailable = items.Count;
             summary.AffordableItems = items.Count(i => i.BuyPrice <= player.Coins);
 
             // Count items profitable to sell
             foreach (string itemId in player.Inventory.GetItemIds())
             {
-                int sellPrice = GetItemPrice(venueId, itemId, false);
+                int sellPrice = GetItemPrice(locationId, itemId, false);
                 if (sellPrice > 0)
                 {
                     summary.ProfitableToSell++;
@@ -620,7 +621,7 @@ public class MarketSubsystemManager
         }
         else
         {
-            summary.MarketStatus = GetMarketAvailabilityStatus(venueId, currentTime);
+            summary.MarketStatus = GetMarketAvailabilityStatus(locationId, currentTime);
 
             // Find next open time
             TimeBlocks[] futureTimes = { TimeBlocks.Morning, TimeBlocks.Midday,
@@ -628,7 +629,7 @@ public class MarketSubsystemManager
             foreach (TimeBlocks time in futureTimes)
             {
                 if (time <= currentTime) continue;
-                if (IsMarketAvailable(venueId, time))
+                if (IsMarketAvailable(locationId, time))
                 {
                     summary.NextOpenTime = time;
                     break;
@@ -642,11 +643,11 @@ public class MarketSubsystemManager
     // ========== HELPER METHODS ==========
 
     /// <summary>
-    /// Get all traders at a Venue (regardless of time)
+    /// Get all traders at a Location (regardless of time)
     /// </summary>
-    private List<NPC> GetAllTraders(string venueId)
+    private List<NPC> GetAllTraders(string locationId)
     {
-        return _npcRepository.GetNPCsForLocation(venueId)
+        return _npcRepository.GetNPCsForLocation(locationId)
             .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
             .ToList();
     }
@@ -654,32 +655,32 @@ public class MarketSubsystemManager
     /// <summary>
     /// Get traders available at a specific time
     /// </summary>
-    private List<NPC> GetTradersAtTime(string venueId, TimeBlocks timeBlock)
+    private List<NPC> GetTradersAtTime(string locationId, TimeBlocks timeBlock)
     {
-        return _npcRepository.GetNPCsForLocationAndTime(venueId, timeBlock)
+        return _npcRepository.GetNPCsForLocationAndTime(locationId, timeBlock)
             .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
             .ToList();
     }
 
     /// <summary>
-    /// Get Venue name by ID
+    /// Get Location name by ID
     /// </summary>
-    private string GetLocationName(string venueId)
+    private string GetLocationName(string locationId)
     {
-        Venue venue = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
-        return venue.Name;
+        Location location = _gameWorld.GetLocation(locationId);
+        return location?.Name ?? "Unknown Location";
     }
 
     /// <summary>
     /// Validate trade preconditions
     /// </summary>
-    private bool ValidateTradeConditions(string venueId, out string error)
+    private bool ValidateTradeConditions(string locationId, out string error)
     {
         error = "";
 
         // Check time
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        if (!IsMarketAvailable(venueId, currentTime))
+        if (!IsMarketAvailable(locationId, currentTime))
         {
             error = "Market is closed at this time";
             return false;
@@ -687,9 +688,10 @@ public class MarketSubsystemManager
 
         // Check player location
         Player player = _gameWorld.GetPlayer();
-        if (_gameWorld.GetPlayerCurrentLocation().VenueId != venueId)
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
+        if (currentLocation == null || currentLocation.Id != locationId)
         {
-            error = "You must be at the Venue to trade";
+            error = "You must be at the Location to trade";
             return false;
         }
 

@@ -25,10 +25,10 @@ public class ArbitrageCalculator
     {
         public string ItemId { get; set; }
         public string ItemName { get; set; }
-        public string BuyVenueId { get; set; }
+        public string BuyLocationId { get; set; }
         public string BuyLocationName { get; set; }
         public int BuyPrice { get; set; }
-        public string SellVenueId { get; set; }
+        public string SellLocationId { get; set; }
         public string SellLocationName { get; set; }
         public int SellPrice { get; set; }
         public int GrossProfit { get; set; }
@@ -67,17 +67,17 @@ public class ArbitrageCalculator
         if (item == null)
             throw new InvalidOperationException($"Item not found: {itemId}");
 
-        List<Venue> locations = _gameWorld.Venues;
+        List<Location> locations = _gameWorld.Locations;
         ArbitrageOpening bestOpening = null;
         int highestProfit = 0;
 
-        // Compare all Venue pairs
-        foreach (Venue buyLocation in locations)
+        // Compare all Location pairs
+        foreach (Location buyLocation in locations)
         {
             int buyPrice = _priceManager.GetBuyPrice(itemId, buyLocation.Id);
             if (buyPrice <= 0) continue; // Item not available for purchase here
 
-            foreach (Venue sellLocation in locations)
+            foreach (Location sellLocation in locations)
             {
                 if (buyLocation.Id == sellLocation.Id) continue; // Skip same location
 
@@ -87,7 +87,7 @@ public class ArbitrageCalculator
                 int grossProfit = sellPrice - buyPrice;
                 if (grossProfit <= 0) continue; // Not profitable
 
-                // Calculate travel cost (simplified - could be enhanced)
+                // Calculate travel cost
                 int distance = CalculateDistance(buyLocation.Id, sellLocation.Id);
                 int travelCost = CalculateTravelCost(distance);
                 int netProfit = grossProfit - travelCost;
@@ -99,10 +99,10 @@ public class ArbitrageCalculator
                     {
                         ItemId = itemId,
                         ItemName = item.Name,
-                        BuyVenueId = buyLocation.Id,
+                        BuyLocationId = buyLocation.Id,
                         BuyLocationName = buyLocation.Name,
                         BuyPrice = buyPrice,
-                        SellVenueId = sellLocation.Id,
+                        SellLocationId = sellLocation.Id,
                         SellLocationName = sellLocation.Name,
                         SellPrice = sellPrice,
                         GrossProfit = grossProfit,
@@ -146,14 +146,14 @@ public class ArbitrageCalculator
     /// <summary>
     /// Calculate profit for a specific trade between two locations
     /// </summary>
-    public int CalculateProfit(string itemId, string buyVenueId, string sellVenueId)
+    public int CalculateProfit(string itemId, string buyLocationId, string sellLocationId)
     {
-        int buyPrice = _priceManager.GetBuyPrice(itemId, buyVenueId);
-        int sellPrice = _priceManager.GetSellPrice(itemId, sellVenueId);
+        int buyPrice = _priceManager.GetBuyPrice(itemId, buyLocationId);
+        int sellPrice = _priceManager.GetSellPrice(itemId, sellLocationId);
 
         if (buyPrice <= 0 || sellPrice <= 0) return -1;
 
-        int distance = CalculateDistance(buyVenueId, sellVenueId);
+        int distance = CalculateDistance(buyLocationId, sellLocationId);
         int travelCost = CalculateTravelCost(distance);
 
         return sellPrice - buyPrice - travelCost;
@@ -180,27 +180,28 @@ public class ArbitrageCalculator
     public List<ArbitrageOpening> FindOpportunitiesFromCurrentLocation()
     {
         Player player = _gameWorld.GetPlayer();
-        if (_gameWorld.GetPlayerCurrentLocation() == null)
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
+        if (currentLocation == null)
             throw new InvalidOperationException("Player has no current location");
 
-        string currentVenueId = _gameWorld.GetPlayerCurrentLocation().VenueId;
+        string currentLocationId = currentLocation.Id;
         List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
         List<Item> allItems = _itemRepository.GetAllItems();
 
         foreach (Item item in allItems)
         {
-            int buyPrice = _priceManager.GetBuyPrice(item.Id, currentVenueId);
+            int buyPrice = _priceManager.GetBuyPrice(item.Id, currentLocationId);
             if (buyPrice <= 0) continue;
 
-            List<Venue> locations = _gameWorld.Venues;
-            foreach (Venue sellLocation in locations)
+            List<Location> locations = _gameWorld.Locations;
+            foreach (Location sellLocation in locations)
             {
-                if (sellLocation.Id == currentVenueId) continue;
+                if (sellLocation.Id == currentLocationId) continue;
 
                 int sellPrice = _priceManager.GetSellPrice(item.Id, sellLocation.Id);
                 if (sellPrice <= 0) continue;
 
-                int distance = CalculateDistance(currentVenueId, sellLocation.Id);
+                int distance = CalculateDistance(currentLocationId, sellLocation.Id);
                 int travelCost = CalculateTravelCost(distance);
                 int netProfit = sellPrice - buyPrice - travelCost;
 
@@ -210,10 +211,10 @@ public class ArbitrageCalculator
                     {
                         ItemId = item.Id,
                         ItemName = item.Name,
-                        BuyVenueId = currentVenueId,
-                        BuyLocationName = GetLocationName(currentVenueId),
+                        BuyLocationId = currentLocationId,
+                        BuyLocationName = currentLocation.Name,
                         BuyPrice = buyPrice,
-                        SellVenueId = sellLocation.Id,
+                        SellLocationId = sellLocation.Id,
                         SellLocationName = sellLocation.Name,
                         SellPrice = sellPrice,
                         GrossProfit = sellPrice - buyPrice,
@@ -224,7 +225,7 @@ public class ArbitrageCalculator
                         IsCurrentlyProfitable = true,
                         DistanceBetweenLocations = distance,
                         ProfitPerDistance = distance > 0 ? (float)netProfit / distance : netProfit,
-                        OpeningDescription = GenerateOpeningDescription(item.Name, GetLocationName(currentVenueId), sellLocation.Name, netProfit)
+                        OpeningDescription = GenerateOpeningDescription(item.Name, currentLocation.Name, sellLocation.Name, netProfit)
                     });
                 }
             }
@@ -239,10 +240,11 @@ public class ArbitrageCalculator
     public List<ArbitrageOpening> FindOpportunitiesForInventory()
     {
         Player player = _gameWorld.GetPlayer();
-        if (_gameWorld.GetPlayerCurrentLocation() == null)
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
+        if (currentLocation == null)
             throw new InvalidOperationException("Player has no current location");
 
-        string currentVenueId = _gameWorld.GetPlayerCurrentLocation().VenueId;
+        string currentLocationId = currentLocation.Id;
         List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
 
         foreach (string itemId in player.Inventory.GetItemIds())
@@ -251,17 +253,17 @@ public class ArbitrageCalculator
             if (item == null)
                 throw new InvalidOperationException($"Item not found in repository: {itemId}");
 
-            int currentSellPrice = _priceManager.GetSellPrice(itemId, currentVenueId);
-            List<Venue> locations = _gameWorld.Venues;
+            int currentSellPrice = _priceManager.GetSellPrice(itemId, currentLocationId);
+            List<Location> locations = _gameWorld.Locations;
 
-            foreach (Venue sellLocation in locations)
+            foreach (Location sellLocation in locations)
             {
-                if (sellLocation.Id == currentVenueId) continue;
+                if (sellLocation.Id == currentLocationId) continue;
 
                 int otherSellPrice = _priceManager.GetSellPrice(itemId, sellLocation.Id);
                 if (otherSellPrice <= currentSellPrice) continue;
 
-                int distance = CalculateDistance(currentVenueId, sellLocation.Id);
+                int distance = CalculateDistance(currentLocationId, sellLocation.Id);
                 int travelCost = CalculateTravelCost(distance);
                 int netProfit = otherSellPrice - currentSellPrice - travelCost;
 
@@ -271,10 +273,10 @@ public class ArbitrageCalculator
                     {
                         ItemId = itemId,
                         ItemName = item.Name,
-                        BuyVenueId = currentVenueId,
-                        BuyLocationName = GetLocationName(currentVenueId),
+                        BuyLocationId = currentLocationId,
+                        BuyLocationName = currentLocation.Name,
                         BuyPrice = currentSellPrice, // What we could sell for here
-                        SellVenueId = sellLocation.Id,
+                        SellLocationId = sellLocation.Id,
                         SellLocationName = sellLocation.Name,
                         SellPrice = otherSellPrice,
                         GrossProfit = otherSellPrice - currentSellPrice,
@@ -302,10 +304,11 @@ public class ArbitrageCalculator
     public TradeRoute PlanOptimalRoute(int maxStops = 3)
     {
         Player player = _gameWorld.GetPlayer();
-        if (_gameWorld.GetPlayerCurrentLocation() == null)
+        Location currentLocationEntity = _gameWorld.GetPlayerCurrentLocation();
+        if (currentLocationEntity == null)
             throw new InvalidOperationException("Player has no current location");
 
-        string startLocation = _gameWorld.GetPlayerCurrentLocation().VenueId;
+        string startLocation = currentLocationEntity.Id;
         int availableCapital = player.Coins;
 
         TradeRoute bestRoute = new TradeRoute();
@@ -317,7 +320,7 @@ public class ArbitrageCalculator
 
         for (int stop = 0; stop < maxStops; stop++)
         {
-            // Find best opening from current Venue with available capital
+            // Find best opening from current Location with available capital
             List<ArbitrageOpening> opportunities = FindAllOpportunitiesFrom(currentLocation)
                 .Where(o => o.RequiredCapital <= currentCapital)
                 .OrderByDescending(o => o.NetProfit)
@@ -327,12 +330,12 @@ public class ArbitrageCalculator
 
             ArbitrageOpening bestOpp = opportunities.First();
             bestRoute.Trades.Add(bestOpp);
-            bestRoute.LocationSequence.Add(bestOpp.SellVenueId);
+            bestRoute.LocationSequence.Add(bestOpp.SellLocationId);
 
             // Update capital and profit
             currentCapital = currentCapital - bestOpp.BuyPrice + bestOpp.SellPrice - bestOpp.TravelCost;
             totalProfit += bestOpp.NetProfit;
-            currentLocation = bestOpp.SellVenueId;
+            currentLocation = bestOpp.SellLocationId;
         }
 
         bestRoute.TotalProfit = totalProfit;
@@ -349,25 +352,26 @@ public class ArbitrageCalculator
     /// <summary>
     /// Find all opportunities from a specific location
     /// </summary>
-    private List<ArbitrageOpening> FindAllOpportunitiesFrom(string fromVenueId)
+    private List<ArbitrageOpening> FindAllOpportunitiesFrom(string fromLocationId)
     {
         List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
         List<Item> allItems = _itemRepository.GetAllItems();
-        List<Venue> locations = _gameWorld.Venues;
+        List<Location> locations = _gameWorld.Locations;
+        Location fromLocation = _gameWorld.GetLocation(fromLocationId);
 
         foreach (Item item in allItems)
         {
-            int buyPrice = _priceManager.GetBuyPrice(item.Id, fromVenueId);
+            int buyPrice = _priceManager.GetBuyPrice(item.Id, fromLocationId);
             if (buyPrice <= 0) continue;
 
-            foreach (Venue sellLocation in locations)
+            foreach (Location sellLocation in locations)
             {
-                if (sellLocation.Id == fromVenueId) continue;
+                if (sellLocation.Id == fromLocationId) continue;
 
                 int sellPrice = _priceManager.GetSellPrice(item.Id, sellLocation.Id);
                 if (sellPrice <= buyPrice) continue;
 
-                int distance = CalculateDistance(fromVenueId, sellLocation.Id);
+                int distance = CalculateDistance(fromLocationId, sellLocation.Id);
                 int travelCost = CalculateTravelCost(distance);
                 int netProfit = sellPrice - buyPrice - travelCost;
 
@@ -377,10 +381,10 @@ public class ArbitrageCalculator
                     {
                         ItemId = item.Id,
                         ItemName = item.Name,
-                        BuyVenueId = fromVenueId,
-                        BuyLocationName = GetLocationName(fromVenueId),
+                        BuyLocationId = fromLocationId,
+                        BuyLocationName = fromLocation.Name,
                         BuyPrice = buyPrice,
-                        SellVenueId = sellLocation.Id,
+                        SellLocationId = sellLocation.Id,
                         SellLocationName = sellLocation.Name,
                         SellPrice = sellPrice,
                         GrossProfit = sellPrice - buyPrice,
@@ -402,62 +406,31 @@ public class ArbitrageCalculator
     // ========== HELPER METHODS ==========
 
     /// <summary>
-    /// Calculate distance between two locations (simplified)
+    /// Calculate distance between two locations using hex coordinates
     /// </summary>
-    private int CalculateDistance(string fromVenueId, string toVenueId)
+    private int CalculateDistance(string fromLocationId, string toLocationId)
     {
-        // Simplified distance calculation
-        // In a real implementation, this would use actual route data
-        if (fromVenueId == toVenueId) return 0;
+        if (fromLocationId == toLocationId) return 0;
 
-        // Define some basic distances between known locations
-        Dictionary<string, Dictionary<string, int>> distances = new Dictionary<string, Dictionary<string, int>>
-        {
-            ["town_square"] = new Dictionary<string, int>
-            {
-                ["dusty_flagon"] = 1,
-                ["old_mill"] = 2,
-                ["merchant_quarter"] = 1,
-                ["harbor"] = 3
-            },
-            ["dusty_flagon"] = new Dictionary<string, int>
-            {
-                ["town_square"] = 1,
-                ["old_mill"] = 2,
-                ["merchant_quarter"] = 2,
-                ["harbor"] = 3
-            },
-            ["old_mill"] = new Dictionary<string, int>
-            {
-                ["town_square"] = 2,
-                ["dusty_flagon"] = 2,
-                ["merchant_quarter"] = 3,
-                ["harbor"] = 4
-            },
-            ["merchant_quarter"] = new Dictionary<string, int>
-            {
-                ["town_square"] = 1,
-                ["dusty_flagon"] = 2,
-                ["old_mill"] = 3,
-                ["harbor"] = 2
-            },
-            ["harbor"] = new Dictionary<string, int>
-            {
-                ["town_square"] = 3,
-                ["dusty_flagon"] = 3,
-                ["old_mill"] = 4,
-                ["merchant_quarter"] = 2
-            }
-        };
+        // Get locations from GameWorld
+        Location fromLocation = _gameWorld.GetLocation(fromLocationId);
+        Location toLocation = _gameWorld.GetLocation(toLocationId);
 
-        if (distances.ContainsKey(fromVenueId) &&
-            distances[fromVenueId].ContainsKey(toVenueId))
-        {
-            return distances[fromVenueId][toVenueId];
-        }
+        if (fromLocation == null)
+            throw new InvalidOperationException($"[ArbitrageCalculator] Location not found: {fromLocationId}");
 
-        // Default distance if not in our map
-        return 2;
+        if (toLocation == null)
+            throw new InvalidOperationException($"[ArbitrageCalculator] Location not found: {toLocationId}");
+
+        // Verify locations have hex positions
+        if (fromLocation.HexPosition == null)
+            throw new InvalidOperationException($"[ArbitrageCalculator] Location '{fromLocationId}' missing HexPosition");
+
+        if (toLocation.HexPosition == null)
+            throw new InvalidOperationException($"[ArbitrageCalculator] Location '{toLocationId}' missing HexPosition");
+
+        // Calculate hex distance
+        return fromLocation.HexPosition.Value.DistanceTo(toLocation.HexPosition.Value);
     }
 
     /// <summary>
@@ -468,17 +441,6 @@ public class ArbitrageCalculator
         // Simple linear cost model
         // Could be enhanced with route difficulty, transport costs, etc.
         return distance * 2; // 2 coins per unit distance
-    }
-
-    /// <summary>
-    /// Get Venue name by ID
-    /// </summary>
-    private string GetLocationName(string venueId)
-    {
-        Venue venue = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
-        if (venue == null)
-            throw new InvalidOperationException($"Venue not found: {venueId}");
-        return venue.Name;
     }
 
     /// <summary>

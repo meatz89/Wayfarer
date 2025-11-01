@@ -47,9 +47,8 @@ public class TravelFacade
 
         foreach (RouteOption route in routes)
         {
-            // Extract Venue ID from destination location (format: venueId.spotName)
-            string venueId = route.DestinationLocationSpot.Split('.')[0];
-            Venue? destination = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
+            // Get destination Location directly (DestinationLocationSpot is a Location ID)
+            Location destination = _gameWorld.GetLocation(route.DestinationLocationSpot);
             if (destination != null)
             {
                 // Core Loop: All routes physically exist and are visible from game start
@@ -58,7 +57,7 @@ public class TravelFacade
 
                 destinations.Add(new TravelDestinationViewModel
                 {
-                    VenueId = destination.Id,
+                    LocationId = destination.Id,
                     LocationName = destination.Name,
                     Description = destination.Description,
                     CanTravel = hasPermit,
@@ -74,25 +73,25 @@ public class TravelFacade
         return destinations;
     }
 
-    public RouteOption GetRouteBetweenLocations(string fromVenueId, string toVenueId)
+    public RouteOption GetRouteBetweenLocations(string fromLocationId, string toLocationId)
     {
-        return _routeManager.GetRouteBetweenLocations(fromVenueId, toVenueId);
+        return _routeManager.GetRouteBetweenLocations(fromLocationId, toLocationId);
     }
 
     // ========== TRAVEL OPERATIONS ==========
 
-    public bool CanTravelTo(string venueId)
+    public bool CanTravelTo(string locationId)
     {
         Player player = _gameWorld.GetPlayer();
         Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
-        string currentVenueId = currentLocation?.VenueId;
-        if (currentVenueId == null)
+        string currentLocationId = currentLocation?.Id;
+        if (currentLocationId == null)
         {
             return false;
         }
 
         // Check if route exists
-        RouteOption route = GetRouteBetweenLocations(currentVenueId, venueId);
+        RouteOption route = GetRouteBetweenLocations(currentLocationId, locationId);
         if (route == null)
         {
             return false;
@@ -109,22 +108,22 @@ public class TravelFacade
         return true;
     }
 
-    public TravelResult TravelTo(string venueId, TravelMethods transportMethod)
+    public TravelResult TravelTo(string locationId, TravelMethods transportMethod)
     {
         Player player = _gameWorld.GetPlayer();
         Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
-        string currentVenueId = currentLocation?.VenueId;
-        if (currentVenueId == null)
+        string currentLocationId = currentLocation?.Id;
+        if (currentLocationId == null)
         {
             return new TravelResult
             {
                 Success = false,
-                Reason = "Current Venue is unknown"
+                Reason = "Current Location is unknown"
             };
         }
 
         // Get route
-        RouteOption route = GetRouteBetweenLocations(currentVenueId, venueId);
+        RouteOption route = GetRouteBetweenLocations(currentLocationId, locationId);
         if (route == null)
         {
             return new TravelResult
@@ -158,7 +157,7 @@ public class TravelFacade
         }
 
         // Calculate time and cost
-        int travelTime = _travelTimeCalculator.CalculateTravelTime(currentVenueId, venueId, transportMethod);
+        int travelTime = _travelTimeCalculator.CalculateTravelTime(currentLocationId, locationId, transportMethod);
         int coinCost = _travelTimeCalculator.CalculateTravelCost(route, transportMethod);
 
         // Check if player can afford
@@ -172,7 +171,7 @@ public class TravelFacade
         }
 
         // Return travel information for GameFacade to execute
-        // GameFacade will handle coin deduction and Venue update
+        // GameFacade will handle coin deduction and Location update
         return new TravelResult
         {
             Success = true,
@@ -180,7 +179,7 @@ public class TravelFacade
             SegmentCost = travelTime, // Direct segments usage
             CoinCost = coinCost,
             RouteId = route.Id,
-            DestinationId = venueId,
+            DestinationId = locationId,
             TransportMethod = transportMethod
         };
     }
@@ -209,33 +208,21 @@ public class TravelFacade
 
     // ========== TIME CALCULATIONS ==========
 
-    public int CalculateTravelTime(string toVenueId, TravelMethods transportMethod)
+    public int CalculateTravelTime(string toLocationId, TravelMethods transportMethod)
     {
         Player player = _gameWorld.GetPlayer();
         Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
-        string currentVenueId = currentLocation?.VenueId;
-        if (currentVenueId == null)
+        string currentLocationId = currentLocation?.Id;
+        if (currentLocationId == null)
         {
             return 0;
         }
-        return _travelTimeCalculator.CalculateTravelTime(currentVenueId, toVenueId, transportMethod);
+        return _travelTimeCalculator.CalculateTravelTime(currentLocationId, toLocationId, transportMethod);
     }
 
     public int CalculateTravelCost(RouteOption route, TravelMethods transportMethod)
     {
         return _travelTimeCalculator.CalculateTravelCost(route, transportMethod);
-    }
-
-    public Dictionary<string, int> GetTravelTimesFromCurrentLocation()
-    {
-        Player player = _gameWorld.GetPlayer();
-        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
-        string currentVenueId = currentLocation?.VenueId;
-        if (currentVenueId == null)
-        {
-            return new Dictionary<string, int>();
-        }
-        return _travelTimeCalculator.GetTravelTimesFrom(currentVenueId);
     }
 
     // ========== TRANSPORT METHODS ==========

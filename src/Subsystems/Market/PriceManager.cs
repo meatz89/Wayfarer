@@ -32,7 +32,7 @@ public class PriceManager
     {
         public string ItemId { get; set; }
         public string ItemName { get; set; }
-        public string VenueId { get; set; }
+        public string LocationId { get; set; }
         public int BaseBuyPrice { get; set; }
         public int BaseSellPrice { get; set; }
         public int AdjustedBuyPrice { get; set; }
@@ -50,25 +50,25 @@ public class PriceManager
     /// <summary>
     /// Get buy price for an item at a location
     /// </summary>
-    public int GetBuyPrice(string itemId, string venueId)
+    public int GetBuyPrice(string itemId, string locationId)
     {
-        PricingInfo pricing = GetPricingInfo(itemId, venueId);
+        PricingInfo pricing = GetPricingInfo(itemId, locationId);
         return pricing.IsAvailable ? pricing.AdjustedBuyPrice : -1;
     }
 
     /// <summary>
     /// Get sell price for an item at a location
     /// </summary>
-    public int GetSellPrice(string itemId, string venueId)
+    public int GetSellPrice(string itemId, string locationId)
     {
-        PricingInfo pricing = GetPricingInfo(itemId, venueId);
+        PricingInfo pricing = GetPricingInfo(itemId, locationId);
         return pricing.IsAvailable ? pricing.AdjustedSellPrice : -1;
     }
 
     /// <summary>
     /// Get complete pricing information for an item at a location
     /// </summary>
-    public PricingInfo GetPricingInfo(string itemId, string venueId)
+    public PricingInfo GetPricingInfo(string itemId, string locationId)
     {
         Item item = _itemRepository.GetItemById(itemId);
         if (item == null)
@@ -85,16 +85,16 @@ public class PriceManager
         {
             ItemId = itemId,
             ItemName = item.Name,
-            VenueId = venueId,
+            LocationId = locationId,
             BaseBuyPrice = item.BuyPrice,
             BaseSellPrice = item.SellPrice,
             IsAvailable = true
         };
 
         // Calculate modifiers
-        pricing.SupplyModifier = CalculateSupplyModifier(itemId, venueId);
-        pricing.DemandModifier = CalculateDemandModifier(itemId, venueId);
-        pricing.LocationModifier = CalculateLocationModifier(itemId, venueId);
+        pricing.SupplyModifier = CalculateSupplyModifier(itemId, locationId);
+        pricing.DemandModifier = CalculateDemandModifier(itemId, locationId);
+        pricing.LocationModifier = CalculateLocationModifier(itemId, locationId);
 
         // Combine modifiers
         pricing.FinalModifier = pricing.SupplyModifier * pricing.DemandModifier * pricing.LocationModifier;
@@ -120,9 +120,9 @@ public class PriceManager
     /// <summary>
     /// Calculate supply-based price modifier
     /// </summary>
-    private float CalculateSupplyModifier(string itemId, string venueId)
+    private float CalculateSupplyModifier(string itemId, string locationId)
     {
-        float supplyLevel = _marketStateTracker.GetSupplyLevel(itemId, venueId);
+        float supplyLevel = _marketStateTracker.GetSupplyLevel(itemId, locationId);
 
         // Low supply = higher prices, high supply = lower prices
         // Supply 0.5 = 1.3x price, Supply 1.0 = 1.0x price, Supply 2.0 = 0.7x price
@@ -139,9 +139,9 @@ public class PriceManager
     /// <summary>
     /// Calculate demand-based price modifier
     /// </summary>
-    private float CalculateDemandModifier(string itemId, string venueId)
+    private float CalculateDemandModifier(string itemId, string locationId)
     {
-        float demandLevel = _marketStateTracker.GetDemandLevel(itemId, venueId);
+        float demandLevel = _marketStateTracker.GetDemandLevel(itemId, locationId);
 
         // High demand = higher prices, low demand = lower prices
         // Demand 0.5 = 0.85x price, Demand 1.0 = 1.0x price, Demand 2.0 = 1.2x price
@@ -156,13 +156,13 @@ public class PriceManager
     }
 
     /// <summary>
-    /// Calculate location-based price modifier
+    /// Calculate location-based price modifier based on Location properties
     /// </summary>
-    private float CalculateLocationModifier(string itemId, string venueId)
+    private float CalculateLocationModifier(string itemId, string locationId)
     {
-        Venue venue = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
-        if (venue == null)
-            throw new InvalidOperationException($"Venue not found: {venueId}");
+        Location location = _gameWorld.GetLocation(locationId);
+        if (location == null)
+            throw new InvalidOperationException($"Location not found: {locationId}");
 
         Item item = _itemRepository.GetItemById(itemId);
         if (item == null)
@@ -170,71 +170,72 @@ public class PriceManager
 
         float modifier = 1.0f;
 
-        // Venue type affects prices (uses strongly-typed VenueType enum)
-        switch (venue.Type)
+        // Location properties determine pricing (NOT Venue type)
+        // Check properties in priority order (most specific first)
+
+        // Market locations - higher prices for most goods
+        if (location.LocationProperties.Contains(LocationPropertyType.Market))
         {
-            case VenueType.Market:
-                // Market has slightly higher prices for most goods
-                modifier = 1.1f;
-                // But lower prices for common items
-                if (item.Categories.Contains(ItemCategory.Hunger) ||
-                    item.Categories.Contains(ItemCategory.Materials))
-                {
-                    modifier = 0.95f;
-                }
-                break;
-
-            case VenueType.Tavern:
-                // Tavern has lower general prices
+            modifier = 1.1f;
+            // But lower prices for common items (food/materials)
+            if (item.Categories.Contains(ItemCategory.Hunger) ||
+                item.Categories.Contains(ItemCategory.Materials))
+            {
+                modifier = 0.95f;
+            }
+        }
+        // Tavern locations - lower general prices, higher food prices
+        else if (location.LocationProperties.Contains(LocationPropertyType.Tavern))
+        {
+            modifier = 0.9f;
+            // Higher prices for food and drink
+            if (item.Categories.Contains(ItemCategory.Hunger))
+            {
+                modifier = 1.15f;
+            }
+        }
+        // Commercial locations (workshops, etc.) - good prices for tools/materials
+        else if (location.LocationProperties.Contains(LocationPropertyType.Commercial))
+        {
+            // Good prices for materials and tools
+            if (item.Categories.Contains(ItemCategory.Materials) ||
+                item.Categories.Contains(ItemCategory.Tools))
+            {
+                modifier = 0.85f;
+            }
+            else
+            {
+                modifier = 1.05f;
+            }
+        }
+        // Wealthy/Prestigious locations - higher prices for trade goods
+        else if (location.LocationProperties.Contains(LocationPropertyType.Wealthy) ||
+                 location.LocationProperties.Contains(LocationPropertyType.Prestigious))
+        {
+            // Competitive prices for trade goods and valuables
+            if (item.Categories.Contains(ItemCategory.Trade_Goods) ||
+                item.Categories.Contains(ItemCategory.Valuables))
+            {
                 modifier = 0.9f;
-                // But higher prices for food and drink
-                if (item.Categories.Contains(ItemCategory.Hunger))
-                {
-                    modifier = 1.15f;
-                }
-                break;
-
-            case VenueType.Workshop:
-                // Workshop has good prices for materials and tools
-                if (item.Categories.Contains(ItemCategory.Materials) ||
-                    item.Categories.Contains(ItemCategory.Tools))
-                {
-                    modifier = 0.85f;
-                }
-                else
-                {
-                    modifier = 1.05f;
-                }
-                break;
-
-            case VenueType.Merchant:
-                // Merchant quarter has competitive prices for trade goods
-                if (item.Categories.Contains(ItemCategory.Trade_Goods) ||
-                    item.Categories.Contains(ItemCategory.Valuables))
-                {
-                    modifier = 0.9f;
-                }
-                else
-                {
-                    modifier = 1.0f;
-                }
-                break;
-
-            case VenueType.Harbor:
-                // Harbor has good prices for water-related items
-                if (item.Categories.Contains(ItemCategory.Water_Transport))
-                {
-                    modifier = 0.8f;
-                }
-                else
-                {
-                    modifier = 1.1f;
-                }
-                break;
-
-            default:
+            }
+            else
+            {
                 modifier = 1.0f;
-                break;
+            }
+        }
+        // Water-adjacent locations - better prices for water-related items
+        else if (location.LocationProperties.Contains(LocationPropertyType.Water) ||
+                 location.LocationProperties.Contains(LocationPropertyType.River))
+        {
+            // Good prices for water transport
+            if (item.Categories.Contains(ItemCategory.Water_Transport))
+            {
+                modifier = 0.8f;
+            }
+            else
+            {
+                modifier = 1.1f;
+            }
         }
 
         return modifier;
@@ -273,14 +274,14 @@ public class PriceManager
     /// <summary>
     /// Get prices for all items at a location
     /// </summary>
-    public List<PricingInfo> GetLocationPrices(string venueId)
+    public List<PricingInfo> GetLocationPrices(string locationId)
     {
         List<PricingInfo> prices = new List<PricingInfo>();
         List<Item> allItems = _itemRepository.GetAllItems();
 
         foreach (Item item in allItems)
         {
-            PricingInfo pricing = GetPricingInfo(item.Id, venueId);
+            PricingInfo pricing = GetPricingInfo(item.Id, locationId);
             if (pricing.IsAvailable)
             {
                 prices.Add(pricing);
@@ -291,16 +292,16 @@ public class PriceManager
     }
 
     /// <summary>
-    /// Get price comparison for an item across all locations
+    /// Get price comparison for an item across all locations (checks all Locations in world)
     /// </summary>
     public List<PricingInfo> GetItemPriceComparison(string itemId)
     {
         List<PricingInfo> prices = new List<PricingInfo>();
-        List<Venue> locations = _gameWorld.Venues;
+        List<Location> allLocations = _gameWorld.Locations;
 
-        foreach (Venue venue in locations)
+        foreach (Location location in allLocations)
         {
-            PricingInfo pricing = GetPricingInfo(itemId, venue.Id);
+            PricingInfo pricing = GetPricingInfo(itemId, location.Id);
             if (pricing.IsAvailable)
             {
                 prices.Add(pricing);
@@ -313,9 +314,9 @@ public class PriceManager
     /// <summary>
     /// Find items with best profit margins at a location
     /// </summary>
-    public List<PricingInfo> GetHighMarginItems(string venueId, int topN = 5)
+    public List<PricingInfo> GetHighMarginItems(string locationId, int topN = 5)
     {
-        List<PricingInfo> prices = GetLocationPrices(venueId);
+        List<PricingInfo> prices = GetLocationPrices(locationId);
 
         return prices
             .OrderByDescending(p => (float)(p.AdjustedSellPrice - p.AdjustedBuyPrice) / p.AdjustedBuyPrice)
@@ -328,13 +329,13 @@ public class PriceManager
     /// <summary>
     /// Predict future price based on current trends
     /// </summary>
-    public int PredictFuturePrice(string itemId, string venueId, bool isBuyPrice)
+    public int PredictFuturePrice(string itemId, string locationId, bool isBuyPrice)
     {
-        PricingInfo current = GetPricingInfo(itemId, venueId);
+        PricingInfo current = GetPricingInfo(itemId, locationId);
         if (!current.IsAvailable) return -1;
 
         // Get market conditions
-        MarketStateTracker.MarketConditions conditions = _marketStateTracker.GetMarketConditions(venueId);
+        MarketStateTracker.MarketConditions conditions = _marketStateTracker.GetMarketConditions(locationId);
 
         float trendModifier = 1.0f;
 
@@ -375,7 +376,7 @@ public class PriceManager
     /// <summary>
     /// Apply special event pricing (festivals, shortages, etc.)
     /// </summary>
-    public void ApplyEventPricing(string eventType, string venueId)
+    public void ApplyEventPricing(string eventType, string locationId)
     {
         switch (eventType)
         {
@@ -388,7 +389,7 @@ public class PriceManager
                     i.Categories.Contains(ItemCategory.Luxury_Items)))
                 {
                     // Increase demand during festival
-                    float currentDemand = _marketStateTracker.GetDemandLevel(item.Id, venueId);
+                    float currentDemand = _marketStateTracker.GetDemandLevel(item.Id, locationId);
                     // Note: Would need to add SetDemandLevel method to MarketStateTracker
                 }
                 break;
@@ -408,9 +409,9 @@ public class PriceManager
     /// <summary>
     /// Calculate bulk discount for multiple purchases
     /// </summary>
-    public int CalculateBulkPrice(string itemId, string venueId, int quantity)
+    public int CalculateBulkPrice(string itemId, string locationId, int quantity)
     {
-        int singlePrice = GetBuyPrice(itemId, venueId);
+        int singlePrice = GetBuyPrice(itemId, locationId);
         if (singlePrice <= 0) return -1;
 
         float discount = 1.0f;
