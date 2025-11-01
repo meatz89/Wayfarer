@@ -171,12 +171,6 @@ public class PriceManager
         float modifier = 1.0f;
 
         // Venue type affects prices (uses strongly-typed VenueType enum)
-        Venue venue = gameWorld.Venues.FirstOrDefault(v => v.Id == venueId);
-        if (venue == null)
-        {
-            return 1.0f;  // No venue found, default modifier
-        }
-
         switch (venue.Type)
         {
             case VenueType.Market:
