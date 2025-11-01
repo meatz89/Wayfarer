@@ -702,13 +702,6 @@ public class TravelManager
 
             player.CurrentPosition = targetSpot.HexPosition.Value;
 
-            // Track Venue discovery
-            string venueId = targetSpot.VenueId;
-            if (!player.DiscoveredVenueIds.Contains(venueId))
-            {
-                player.DiscoveredVenueIds.Add(venueId);
-            }
-
             // Increment Venue familiarity (max 3)
             int currentFamiliarity = player.GetLocationFamiliarity(venueId);
             player.SetLocationFamiliarity(venueId, Math.Min(3, currentFamiliarity + 1));
