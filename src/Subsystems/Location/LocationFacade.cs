@@ -511,7 +511,7 @@ public class LocationFacade
             TravelActions = GetTravelActions(venue, spot),
             LocationSpecificActions = GetLocationSpecificActions(venue, spot),
             PlayerActions = GetPlayerActions(),
-            HasSpots = GetSpotsForVenue(venue).Count > 1,
+            // REMOVED: HasSpots (intra-venue movement now data-driven from LocationActionCatalog)
             NPCsWithSituations = BuildNPCsWithSituations(spot, currentTime),
             AmbientMentalSituations = ambientMental,
             MentalScenes = mentalScenes,

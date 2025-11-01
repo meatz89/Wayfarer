@@ -7,20 +7,9 @@
     <div class="actions-grid">
         @* HIGH-LEVEL NAVIGATION CHOICES (3-5 options) *@
 
-        <div class="action-card" @onclick="() => OnNavigateToView.InvokeAsync(LocationViewState.LookingAround)">
-            <div class="action-name">Look Around</div>
-            <div class="action-detail">See who's here and what's happening - people, challenges, opportunities</div>
-        </div>
-
+        @* REMOVED: "Look Around" - now data-driven from PlayerActionCatalog (LookAround action) *@
         @* REMOVED: "Examine Location" - consolidated into Look Around *@
-
-        @if (HasSpots)
-        {
-            <div class="action-card" @onclick="() => OnNavigateToView.InvokeAsync(LocationViewState.Spots)">
-                <div class="action-name">Move to Another Spot</div>
-                <div class="action-detail">Explore other areas in @CurrentLocationName</div>
-            </div>
-        }
+        @* REMOVED: "Move to Another Spot" - now data-driven from LocationActionCatalog (IntraVenueMove actions) *@
 
         @* Travel actions from location *@
         @foreach (var action in TravelActions)

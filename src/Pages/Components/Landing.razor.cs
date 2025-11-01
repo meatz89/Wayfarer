@@ -10,7 +10,7 @@ namespace Wayfarer.Pages.Components
     {
         // REMOVED: HasNPCs (Look Around always visible now)
         // REMOVED: HasLocationChallenges (consolidated into Look Around)
-        [Parameter] public bool HasSpots { get; set; }
+        // REMOVED: HasSpots (intra-venue movement now data-driven from LocationActionCatalog)
         [Parameter] public string CurrentLocationName { get; set; }
         [Parameter] public List<LocationActionViewModel> TravelActions { get; set; } = new();
         [Parameter] public List<LocationActionViewModel> LocationSpecificActions { get; set; } = new();

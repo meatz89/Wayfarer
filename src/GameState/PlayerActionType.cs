@@ -27,5 +27,12 @@ public enum PlayerActionType
     /// Effect: -2 Health, no time advancement, no recovery
     /// Tutorial: Save coins but take damage and risk
     /// </summary>
-    SleepOutside
+    SleepOutside,
+
+    /// <summary>
+    /// Look around at current location
+    /// Effect: Navigate to LookingAround view showing NPCs, challenges, and opportunities
+    /// UI: Always available at any location
+    /// </summary>
+    LookAround
 }

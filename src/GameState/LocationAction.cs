@@ -17,6 +17,14 @@ public class LocationAction
     public string SourceLocationId { get; set; }
 
     /// <summary>
+    /// Destination location for IntraVenueMove actions
+    /// Strongly-typed property replacing ID string parsing antipattern
+    /// Only populated for LocationActionType.IntraVenueMove
+    /// null for all other action types
+    /// </summary>
+    public string DestinationLocationId { get; set; }
+
+    /// <summary>
     /// Display name shown to the player
     /// </summary>
     public string Name { get; set; }

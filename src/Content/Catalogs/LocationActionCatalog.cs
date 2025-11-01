@@ -201,12 +201,13 @@ public static class LocationActionCatalog
         {
             actions.Add(new LocationAction
             {
-                // ID encodes destination for intent handler parsing
+                // ID for debugging/uniqueness only (no parsing)
                 Id = $"move_to_{destination.Id}",
                 SourceLocationId = location.Id,  // Bind to specific source location
+                DestinationLocationId = destination.Id,  // ✅ Strongly-typed property (replaces ID parsing antipattern)
                 Name = $"Move to {destination.Name}",
                 Description = $"Walk to {destination.Name} within the same venue (instant, free)",
-                ActionType = LocationActionType.Travel,  // Use Travel type for intra-venue movement
+                ActionType = LocationActionType.IntraVenueMove,  // Strongly typed: intra-venue movement (distinct from cross-venue Travel)
                 Costs = ActionCosts.None(),  // Intra-venue movement is FREE because hexes are adjacent
                 Rewards = ActionRewards.None(),
                 RequiredProperties = new List<LocationPropertyType>(),  // No property requirements (always available)

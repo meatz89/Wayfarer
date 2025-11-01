@@ -31,6 +31,14 @@ public class LocationActionViewModel
     public string LockReason { get; set; }
     public string EngagementType { get; set; }
     public string ObligationLabel { get; set; }
+
+    /// <summary>
+    /// Destination location for IntraVenueMove actions (strongly-typed property)
+    /// Replaces ID string parsing antipattern
+    /// Only populated for ActionType == "intravenuemove"
+    /// null for all other action types
+    /// </summary>
+    public string DestinationLocationId { get; set; }
 }
 
 public class NPCInteractionViewModel
@@ -184,7 +192,7 @@ public class LocationContentViewModel
     public List<LocationActionViewModel> TravelActions { get; set; } = new();
     public List<LocationActionViewModel> LocationSpecificActions { get; set; } = new();
     public List<LocationActionViewModel> PlayerActions { get; set; } = new();
-    public bool HasSpots { get; set; }
+    // REMOVED: HasSpots (intra-venue movement now data-driven from LocationActionCatalog)
 
     // LookingAround view data (NPCs with their social situations PRE-GROUPED)
     public List<NpcWithSituationsViewModel> NPCsWithSituations { get; set; } = new();

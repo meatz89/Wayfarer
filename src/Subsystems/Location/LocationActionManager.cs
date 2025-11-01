@@ -117,7 +117,8 @@ public class LocationActionManager
                 Detail = action.Description,
                 Cost = GetCostDisplay(action.Costs),
                 IsAvailable = CanPerformAction(action),
-                EngagementType = action.EngagementType
+                EngagementType = action.EngagementType,
+                DestinationLocationId = action.DestinationLocationId  // ✅ Copy strongly-typed property (IntraVenueMove parameter)
             };
             actions.Add(viewModel);
         }

@@ -117,6 +117,14 @@ public class CheckBelongingsIntent : PlayerIntent
 }
 
 /// <summary>
+/// Intent to look around at current location
+/// Triggers navigation to LookingAround view showing NPCs, challenges, opportunities
+/// </summary>
+public class LookAroundIntent : PlayerIntent
+{
+}
+
+/// <summary>
 /// Intent to sleep rough without shelter
 /// Uses PlayerAction entity for data-driven health cost
 /// </summary>

@@ -81,6 +81,7 @@ namespace Wayfarer.Pages.Components
                     PlayerActionType.CheckBelongings => new CheckBelongingsIntent(),
                     PlayerActionType.Wait => new WaitIntent(),
                     PlayerActionType.SleepOutside => new SleepOutsideIntent(),
+                    PlayerActionType.LookAround => new LookAroundIntent(),
                     _ => null
                 };
             }
@@ -93,6 +94,7 @@ namespace Wayfarer.Pages.Components
                     LocationActionType.Work => new WorkIntent(),
                     LocationActionType.Investigate => new InvestigateLocationIntent(),
                     LocationActionType.Travel => new OpenTravelScreenIntent(),
+                    LocationActionType.IntraVenueMove => CreateIntraVenueMoveIntent(action),
                     LocationActionType.ViewJobBoard => new ViewJobBoardIntent(),
                     LocationActionType.CompleteDelivery => new CompleteDeliveryIntent(),
                     _ => null
@@ -403,6 +405,18 @@ namespace Wayfarer.Pages.Components
                     await OnActionExecuted.InvokeAsync();
                 }
             }
+        }
+
+        /// <summary>
+        /// Create MoveIntent from intra-venue movement action
+        /// Uses strongly-typed DestinationLocationId property (no ID parsing)
+        /// </summary>
+        private MoveIntent CreateIntraVenueMoveIntent(LocationActionViewModel action)
+        {
+            if (string.IsNullOrEmpty(action.DestinationLocationId))
+                throw new InvalidOperationException("IntraVenueMove action missing DestinationLocationId property");
+
+            return new MoveIntent(action.DestinationLocationId);
         }
     }
 }

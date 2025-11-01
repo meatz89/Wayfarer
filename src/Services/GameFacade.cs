@@ -768,6 +768,7 @@ public class GameFacade
             // Player action intents
             WaitIntent => ProcessWaitIntent(),
             SleepOutsideIntent => ProcessSleepOutsideIntent(),
+            LookAroundIntent => ProcessLookAroundIntent(),
 
             // Location action intents
             RestAtLocationIntent => await ProcessRestAtLocationIntent(),
@@ -859,6 +860,12 @@ public class GameFacade
             SystemMessageTypes.Warning);
 
         return IntentResult.Executed(requiresRefresh: true);
+    }
+
+    private IntentResult ProcessLookAroundIntent()
+    {
+        // Backend authority: Navigate to LookingAround view showing NPCs, challenges, opportunities
+        return IntentResult.NavigateView(LocationViewState.LookingAround);
     }
 
     // ========== LOCATION ACTION INTENT HANDLERS ==========

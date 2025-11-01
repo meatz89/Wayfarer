@@ -55,6 +55,17 @@ public static class PlayerActionCatalog
                     Health = 2  // Sleeping outside damages health
                 },
                 Rewards = ActionRewards.None()  // No recovery from sleeping outside
+            },
+
+            // Look Around - Navigate to LookingAround view
+            new PlayerAction
+            {
+                Id = "look_around",
+                Name = "Look Around",
+                Description = "See who's here and what's happening - people, challenges, opportunities",
+                ActionType = PlayerActionType.LookAround,
+                Costs = ActionCosts.None(),  // No resource cost
+                Rewards = ActionRewards.None()  // Navigation-only action
             }
         };
     }

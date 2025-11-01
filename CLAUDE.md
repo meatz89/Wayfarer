@@ -1304,6 +1304,9 @@ Ask about actual values, actual assignments, actual data flow. Stop going in cir
 **GORDON RAMSAY META-PRINCIPLE**
 YOU ARE THE GORDON RAMSAY OF SOFTWARE ENGINEERING. Aggressive enforcement, zero tolerance for sloppiness, direct confrontation, expects perfection. "This code is FUCKING RAW!" Be a PARTNER, not a SYCOPHANT.
 
+**NO QUICK FIXES, EVER**
+Never implement "pragmatic" workarounds (string parsing, flag checks, conditional logic). Never defer architectural corrections to "later refactoring". Never ship half-implemented solutions. Always do FULL VERTICAL SLICE implementation from the start. If the architecture is wrong, FIX THE ARCHITECTURE FIRST. No shortcuts, no technical debt, no "we'll clean this up later". Quick fixes compound into unmaintainable messes. Do it right the first time or don't do it at all.
+
 ---
 
 ## ENTITY INITIALIZATION STANDARD ("LET IT CRASH" PHILOSOPHY)
@@ -1344,6 +1347,227 @@ List<Goal> goals = obstacle.GoalIds?.Select(id => _gameWorld.Goals[id]).ToList()
 - Less code (no redundant ?? operators everywhere)
 - Forces fixing root cause (missing JSON data) instead of hiding it
 
+---
+
+## ⚠️ THE ID ANTIPATTERN: NO STRING ENCODING/PARSING ⚠️
+
+### The Fundamental Rule
+
+**IDs are for UNIQUENESS and DEBUGGING ONLY. NEVER encode data in ID strings. NEVER parse IDs to extract information.**
+
+---
+
+### FORBIDDEN PATTERNS (❌ NEVER DO THIS)
+
+#### **Antipattern 1: Encoding Data in ID Strings**
+```csharp
+// ❌ WRONG - ID encodes destination location
+new LocationAction
+{
+    Id = $"move_to_{destinationId}",  // Data hidden in string
+    ActionType = LocationActionType.IntraVenueMove
+}
+```
+
+#### **Antipattern 2: Parsing IDs to Extract Data**
+```csharp
+// ❌ WRONG - Runtime string parsing
+private MoveIntent CreateIntent(LocationActionViewModel action)
+{
+    const string prefix = "move_to_";
+
+    if (!action.Id.StartsWith(prefix))  // String matching
+        throw new InvalidOperationException();
+
+    string destinationId = action.Id.Substring(prefix.Length);  // String parsing
+    return new MoveIntent(destinationId);
+}
+```
+
+#### **Antipattern 3: String Matching on IDs**
+```csharp
+// ❌ WRONG - Logic based on ID pattern matching
+if (action.Id.StartsWith("move_to_"))
+{
+    // Execute move logic
+}
+else if (action.Id.StartsWith("talk_to_"))
+{
+    // Execute conversation logic
+}
+```
+
+**Why These Are Wrong:**
+- **No type safety** - Compiler can't catch typos or format changes
+- **Fragile** - Changing ID format breaks everything downstream
+- **Hidden data** - Properties aren't discoverable in IntelliSense
+- **Magic strings** - Couples implementation to string format
+- **Violates strong typing principle** - Bypasses the type system
+
+---
+
+### CORRECT PATTERNS (✅ ALWAYS DO THIS)
+
+#### **Pattern 1: ActionType as Routing Key**
+
+ActionType (enum converted to lowercase string) is the PRIMARY routing key. Never use ID for routing.
+
+```csharp
+// ✅ CORRECT - Route on ActionType, not ID
+intent = locationActionType switch
+{
+    LocationActionType.IntraVenueMove => CreateIntraVenueMoveIntent(action),
+    LocationActionType.Rest => new RestAtLocationIntent(),
+    LocationActionType.Travel => new OpenTravelScreenIntent(),
+    _ => null
+};
+```
+
+#### **Pattern 2: Strongly-Typed Properties for Parameterized Data**
+
+When an action needs parameters, add strongly-typed properties to ALL layers.
+
+```csharp
+// ✅ CORRECT - Domain entity with strongly-typed property
+public class LocationAction
+{
+    public string Id { get; set; }  // For uniqueness/debugging only
+    public LocationActionType ActionType { get; set; }  // Routing key
+    public string DestinationLocationId { get; set; }  // Strongly-typed parameter
+}
+
+// ✅ CORRECT - ViewModel with strongly-typed property
+public class LocationActionViewModel
+{
+    public string Id { get; set; }  // For uniqueness/debugging only
+    public string ActionType { get; set; }  // Routing key (lowercase enum)
+    public string DestinationLocationId { get; set; }  // Copied from domain entity
+}
+
+// ✅ CORRECT - Direct property access, no parsing
+private MoveIntent CreateIntraVenueMoveIntent(LocationActionViewModel action)
+{
+    if (string.IsNullOrEmpty(action.DestinationLocationId))
+        throw new InvalidOperationException("IntraVenueMove action missing DestinationLocationId");
+
+    return new MoveIntent(action.DestinationLocationId);  // Direct access
+}
+```
+
+#### **Pattern 3: Properties Flow Through Entire Data Stack**
+
+```
+Parse-time (Catalogue):
+    Domain Entity: DestinationLocationId = "fountain_plaza"
+         ↓
+Query-time (LocationActionManager):
+    ViewModel: DestinationLocationId = "fountain_plaza" (copied)
+         ↓
+Execution (LocationContent.razor.cs):
+    Intent: new MoveIntent("fountain_plaza") (direct access)
+```
+
+---
+
+### WHEN IDs ARE ACCEPTABLE
+
+IDs should ONLY be used for:
+
+1. **Uniqueness** (dictionary keys, UI rendering keys):
+```csharp
+// ✅ CORRECT - ID used as React-style key for rendering
+@foreach (var action in actions)
+{
+    <div key="@action.Id">@action.Title</div>
+}
+```
+
+2. **Debugging/Logging** (display only, never logic):
+```csharp
+// ✅ CORRECT - ID used for diagnostic output
+Console.WriteLine($"Processing action: {action.Id}");
+```
+
+3. **Simple Passthrough** (domain → ViewModel, no logic):
+```csharp
+// ✅ CORRECT - Just copying ID for debugging
+LocationActionViewModel vm = new LocationActionViewModel
+{
+    Id = action.Id,  // Passthrough only
+    ActionType = action.ActionType.ToString().ToLower()  // Routing key
+};
+```
+
+**IDs should NEVER be used for:**
+- ❌ Routing decisions (use ActionType enum)
+- ❌ Conditional logic (use strongly-typed properties)
+- ❌ Data extraction (add properties instead)
+- ❌ String matching/parsing (violates type safety)
+
+---
+
+### ENFORCEMENT CHECKLIST
+
+Before committing code with IDs, verify:
+
+- [ ] **No string parsing** - No `.Substring()`, `.Split()`, regex on IDs
+- [ ] **No string matching** - No `.StartsWith()`, `.Contains()`, `.EndsWith()` on IDs
+- [ ] **No encoding** - IDs don't contain `$"prefix_{data}"` patterns
+- [ ] **ActionType routing** - Logic routes on ActionType, not ID
+- [ ] **Strongly-typed properties** - Parameterized actions have explicit properties
+- [ ] **Properties flow correctly** - Domain → ViewModel → Intent has same property
+
+---
+
+### EXAMPLE: IntraVenueMove (Correct Implementation)
+
+**Domain Entity (LocationAction):**
+```csharp
+public string Id { get; set; } = $"move_to_{destination.Id}";  // Debugging only
+public LocationActionType ActionType { get; set; } = LocationActionType.IntraVenueMove;
+public string DestinationLocationId { get; set; } = destination.Id;  // ✅ Strongly-typed
+```
+
+**ViewModel (LocationActionViewModel):**
+```csharp
+public string Id { get; set; } = action.Id;  // Passthrough for debugging
+public string ActionType { get; set; } = "intravenuemove";  // Routing key
+public string DestinationLocationId { get; set; } = action.DestinationLocationId;  // ✅ Copied
+```
+
+**Intent Creation (LocationContent.razor.cs):**
+```csharp
+LocationActionType.IntraVenueMove => CreateIntraVenueMoveIntent(action),  // Route on ActionType
+
+private MoveIntent CreateIntraVenueMoveIntent(LocationActionViewModel action)
+{
+    return new MoveIntent(action.DestinationLocationId);  // ✅ Direct access, no parsing
+}
+```
+
+---
+
+### WHY THIS MATTERS
+
+**Type Safety:**
+- Compiler catches property typos, not runtime string bugs
+- IntelliSense shows available parameters
+- Refactoring tools find all usages
+
+**Maintainability:**
+- Properties document what actions need
+- No hidden coupling to ID format
+- Easy to add new parameters (just add property)
+
+**Correctness:**
+- No string parsing edge cases (empty, malformed, wrong format)
+- No magic string constants scattered across codebase
+- Clear data flow from domain to execution
+
+**"If you need to parse an ID to get data, you designed it wrong. Add a property."**
+
+---
+
 ## CONSTRAINT SUMMARY
 
 **ARCHITECTURE**
@@ -1368,7 +1592,7 @@ One mechanic, one purpose | Verisimilitude (fiction supports mechanics) | Perfec
 Dumb display only (no game logic in UI) | All choices are cards, not buttons | Backend determines availability | Unified screen architecture | Separate CSS files | Clean specificity (no !important hacks) | Resources always visible
 
 **CONTENT**
-Package cohesion (references in same package) | Lazy loading with skeletons | No hardcoded content | No string/ID matching | All content from JSON | Parsers must parse (no JsonElement passthrough) | JSON field names MUST match C# property names (NO JsonPropertyName workarounds)
+Package cohesion (references in same package) | Lazy loading with skeletons | No hardcoded content | No string/ID matching (see ID ANTIPATTERN section) | All content from JSON | Parsers must parse (no JsonElement passthrough) | JSON field names MUST match C# property names (NO JsonPropertyName workarounds)
 
 **ASYNC**
 Always async/await | Never .Wait(), .Result, .GetAwaiter().GetResult() | No Task.Run or parallel operations | If method calls async, it must be async | No synchronous wrappers | Propagate async to UI
