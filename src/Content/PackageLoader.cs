@@ -86,6 +86,13 @@ public class PackageLoader
             LoadPackageContent(package, allowSkeletons: false);
         }
 
+        // CATALOGUE PATTERN: Generate content from loaded entities (ONCE after all packages loaded)
+        // Must happen AFTER all packages loaded because catalogues need complete entity lists
+        GeneratePlayerActionsFromCatalogue();
+        GenerateLocationActionsFromCatalogue();
+        GenerateProceduralRoutes();
+        GenerateDeliveryJobsFromCatalogue();
+
         // Final validation and initialization
         ValidateCrossroadsConfiguration();
         InitializeTravelDiscoverySystem();
@@ -129,10 +136,8 @@ public class PackageLoader
         // HEX-BASED TRAVEL SYSTEM: Sync Location.HexPosition after locations loaded
         SyncLocationHexPositions();
 
+        // NOTE: Action/route/job generation moved to LoadStaticPackages() - runs ONCE after all packages loaded
         // CATALOGUE PATTERN: Generate actions from categorical properties (PARSE TIME ONLY)
-        // Must happen AFTER all locations loaded because LocationActionCatalog needs complete location list
-        GeneratePlayerActionsFromCatalogue();
-        GenerateLocationActionsFromCatalogue();
 
         // 3. Cards (foundation for NPCs and conversations)
         LoadSocialCards(package.Content.SocialCards, allowSkeletons);
@@ -160,12 +165,7 @@ public class PackageLoader
 
         // 5. Routes (reference Locations which now have VenueId set)
         LoadRoutes(package.Content.Routes, allowSkeletons);
-        // HEX-BASED TRAVEL SYSTEM: Generate procedural routes after locations synced
-        GenerateProceduralRoutes();
-
-        // CATALOGUE PATTERN: Generate delivery jobs from routes (PARSE TIME ONLY)
-        // Must happen AFTER routes loaded because DeliveryJobCatalog needs complete route list
-        GenerateDeliveryJobsFromCatalogue();
+        // NOTE: Route generation and job generation moved to LoadStaticPackages() - runs ONCE after all packages loaded
 
         // 6. Relationship entities (depend on NPCs and cards)
         LoadExchanges(package.Content.Exchanges, allowSkeletons);

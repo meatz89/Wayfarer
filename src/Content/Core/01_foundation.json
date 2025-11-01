@@ -72,8 +72,7 @@
             "lodging"
           ],
           "all": [
-            "restful",
-            "lodging"
+            "restful"
           ]
         },
         "canInvestigate": false
@@ -89,7 +88,6 @@
             "commercial"
           ],
           "all": [
-            "public",
             "busy"
           ]
         },
