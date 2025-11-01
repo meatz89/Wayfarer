@@ -56,6 +56,13 @@ public class Situation
     public TacticalSystemType SystemType { get; set; } = TacticalSystemType.Social;
 
     /// <summary>
+    /// Semantic type marking narrative weight (Normal vs Crisis)
+    /// Crisis situations are typically final situations in a Scene that test player preparation
+    /// with higher stat requirements or expensive alternatives
+    /// </summary>
+    public SituationType Type { get; set; } = SituationType.Normal;
+
+    /// <summary>
     /// The deck ID this situation uses for challenge generation
     /// </summary>
     public string DeckId { get; set; }

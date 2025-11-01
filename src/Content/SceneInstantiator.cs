@@ -205,6 +205,7 @@ public class SceneInstantiator
             Id = situationId,
             TemplateId = template.Id,
             Template = template,  // CRITICAL: Store template for lazy action instantiation
+            Type = template.Type,  // Copy semantic type (Normal vs Crisis) from template
             Description = template.NarrativeTemplate,
             NarrativeHints = template.NarrativeHints,
             State = SituationState.Dormant,  // START dormant - actions created at query time

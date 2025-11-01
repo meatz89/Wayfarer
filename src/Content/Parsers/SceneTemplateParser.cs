@@ -221,9 +221,20 @@ public class SceneTemplateParser
         if (string.IsNullOrEmpty(dto.Id))
             throw new InvalidDataException($"SituationTemplate in SceneTemplate '{sceneTemplateId}' missing required 'Id'");
 
+        // Parse SituationType (defaults to Normal if not specified for backward compatibility)
+        SituationType situationType = SituationType.Normal;
+        if (!string.IsNullOrEmpty(dto.Type))
+        {
+            if (!Enum.TryParse<SituationType>(dto.Type, true, out situationType))
+            {
+                throw new InvalidDataException($"SituationTemplate '{dto.Id}' in SceneTemplate '{sceneTemplateId}' has invalid Type value: '{dto.Type}'. Must be 'Normal' or 'Crisis'.");
+            }
+        }
+
         SituationTemplate template = new SituationTemplate
         {
             Id = dto.Id,
+            Type = situationType,
             NarrativeTemplate = dto.NarrativeTemplate,
             ChoiceTemplates = ParseChoiceTemplates(dto.ChoiceTemplates, sceneTemplateId, dto.Id, archetype),
             Priority = dto.Priority,

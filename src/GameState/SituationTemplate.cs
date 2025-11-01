@@ -14,6 +14,14 @@ public class SituationTemplate
     public string Id { get; init; }
 
     /// <summary>
+    /// Semantic type marking narrative weight (Normal vs Crisis)
+    /// Crisis situations are typically final situations in a Scene that test player preparation
+    /// with higher stat requirements or expensive alternatives
+    /// Defaults to Normal if not specified in JSON
+    /// </summary>
+    public SituationType Type { get; init; } = SituationType.Normal;
+
+    /// <summary>
     /// Narrative template with placeholders
     /// Example: "As you approach {LocationName}, {NPCName} steps forward nervously..."
     /// Placeholders replaced at spawn time:

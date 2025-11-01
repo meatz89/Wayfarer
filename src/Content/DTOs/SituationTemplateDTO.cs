@@ -11,6 +11,13 @@ public class SituationTemplateDTO
     public string Id { get; set; }
 
     /// <summary>
+    /// Semantic type marking narrative weight: "Normal" or "Crisis"
+    /// Crisis situations test player preparation with high stat requirements
+    /// Defaults to "Normal" if not specified in JSON
+    /// </summary>
+    public string Type { get; set; }
+
+    /// <summary>
     /// Narrative description template with {placeholders}
     /// Example: "{NPCName} asks for your help investigating {LocationName}"
     /// </summary>

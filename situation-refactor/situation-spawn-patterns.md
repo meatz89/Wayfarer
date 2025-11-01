@@ -489,3 +489,91 @@ Must complete before location changes/closes
 ```
 
 Templates are PATTERNS, not content. Code instantiates them with concrete entities from GameWorld.
+
+---
+
+## Crisis Rhythm Pattern
+
+**Pattern:** Escalating tension through preparation-test cycles
+
+**Concept:** Scenes follow the rhythm **Build → Build → Build → TEST**, where regular situations allow preparation and Crisis situations test preparation quality.
+
+**Structure:**
+- Scene contains 3-5 Situations
+- First 2-4 situations have `type: "Normal"` (build phase)
+- Final situation has `type: "Crisis"` (test phase)
+- Crisis has high stat requirement OR expensive alternative OR risky gamble
+- Failure has permanent consequences
+
+**Example: Merchant Guild Dispute**
+```
+Situation 1 (Normal): Observe argument
+  Choices: Listen (+1 Insight) or Move closer (+1 Authority)
+
+Situation 2 (Normal): Gather information
+  Choices: Ask merchants (+1 Diplomacy) or Investigate (+1 Insight)
+
+Situation 3 (Normal): Choose side
+  Choices: Support seller (+1 Rapport) or Support buyer (+1 Authority)
+
+Situation 4 (Crisis): Guild confrontation
+  Choice A: Assert authority (Authority 4+, 2 energy) ← Easy if prepared
+  Choice B: Pay off guild (20 coins) ← Expensive alternative
+  Choice C: Threaten (Physical challenge) ← Risky gamble
+  Choice D: Walk away (Scene fails, NPC bond -3) ← Permanent failure
+```
+
+**Player Experience:**
+1. **Situations 1-3:** "I'm building toward something..."
+2. **Approaching Crisis:** "Things escalating, need to be ready"
+3. **Crisis:** "This is it - do I have the stats?"
+4. **Resolution:** "Preparation paid off!" OR "Should have invested more..."
+
+**Decision Space:**
+- Which stat to build during preparation?
+- Build one stat high (4+) or spread across multiple (3 each)?
+- Accept expensive alternative if unprepared?
+- Risk gamble or accept failure?
+
+**Strategic Depth:**
+- Every regular choice matters (building stats for crisis)
+- Can't prepare for all crises (resource limits)
+- Must choose which scenes to prioritize
+- Unprepared path is expensive but not impossible
+
+**Use Cases:**
+- Social encounters (Diplomacy/Authority crises)
+- Investigation scenes (Insight/Cunning crises)
+- Physical challenges (Strength/Endurance crises)
+- Any scene where preparation should matter
+
+**Integration with Other Patterns:**
+
+**Linear + Crisis:**
+```
+Normal Situation 1 → Normal Situation 2 → Crisis Situation
+Build stats linearly, test at end
+```
+
+**Hub + Crisis:**
+```
+Hub (Normal) → [Path A, Path B, Path C] (Normal, parallel)
+  → Convergence (Crisis - tests which paths completed)
+```
+
+**Branching + Crisis:**
+```
+Preparation (Normal)
+  → Crisis Choice
+    Success Path → Positive outcome
+    Failure Path → Negative outcome
+Both paths valid, different opportunities
+```
+
+**Implementation Notes:**
+- `SituationType` enum marks situations as Normal or Crisis
+- Parser validates and defaults to Normal if not specified
+- UI can detect Crisis situations for visual treatment
+- Backward compatible (existing content defaults to Normal)
+
+**See:** `CRISIS_RHYTHM_SYSTEM.md` for complete documentation and design rationale.

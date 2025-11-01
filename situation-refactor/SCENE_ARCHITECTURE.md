@@ -178,6 +178,14 @@ Templates are immutable archetypes that define reusable patterns. They exist ind
 - Narrative structure and emotional tone
 - How situations cascade (linear progression, branching paths, hub-and-spoke options)
 - What choices are available within this narrative moment (2-4 ChoiceTemplates, Sir Brante pattern)
+- **Semantic type (Normal vs Crisis)** - marks final situations that test player preparation
+
+**CRISIS RHYTHM SYSTEM:** Situations can be marked as `Crisis` type to create escalating narrative tension. Scenes follow the pattern **Build → Build → Build → TEST**, where regular situations allow preparation (stat gains, resource gathering) and Crisis situations test whether the player prepared correctly. Crisis situations typically have:
+- High stat requirements (Authority 4+) for the prepared path
+- Expensive alternatives (20+ coins) for the unprepared path
+- Permanent consequences for failure (scene locks, NPC relationship damage)
+
+This creates strategic depth where player choices during preparation determine the cost of crisis resolution. See `CRISIS_RHYTHM_SYSTEM.md` for complete documentation.
 
 **ChoiceTemplate** defines one player-facing decision within a situation. Each choice template describes:
 - What requirements must be met for this choice to be available versus locked
