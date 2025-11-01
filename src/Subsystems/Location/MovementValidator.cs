@@ -160,50 +160,6 @@ public class MovementValidator
         return result;
     }
 
-    /// <summary>
-    /// Check if player can enter a location.
-    /// </summary>
-    public bool CanEnterLocation(string venueId)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        // Check if Venue is unlocked
-        if (player.UnlockedVenueIds.Contains(venueId))
-        {
-            return true;
-        }
-
-        // Check if Venue has been discovered
-        if (player.DiscoveredVenueIds.Contains(venueId))
-        {
-            return true;
-        }
-
-        // Check if it's a starting Venue (always accessible)
-        if (venueId == "greystone_market" || venueId == "sleeping_fox_inn")
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// Get the reason why a Venue cannot be entered.
-    /// </summary>
-    public string GetLocationBlockedReason(string venueId)
-    {
-        if (CanEnterLocation(venueId)) return null;
-
-        Player player = _gameWorld.GetPlayer();
-
-        if (!player.DiscoveredVenueIds.Contains(venueId))
-        {
-            return "Location not yet discovered";
-        }
-
-        return "Location is locked";
-    }
 }
 
 /// <summary>

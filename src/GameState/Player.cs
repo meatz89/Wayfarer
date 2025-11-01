@@ -32,7 +32,6 @@ public class Player
 
     // Venue knowledge - Moved from action system
     public List<string> LocationActionAvailability { get; set; } = new List<string>();
-    public List<string> DiscoveredVenueIds { get; set; } = new List<string>();
 
     // Travel capabilities
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
@@ -82,9 +81,6 @@ public class Player
     // Equipment ownership: Player.Inventory stores item IDs (single source of truth)
     // ItemRepository resolves IDs to Equipment entities from GameWorld.Items
     // No inline Equipment storage - references by ID only (architecture principle)
-
-    // Token Favor System
-    public List<string> UnlockedVenueIds { get; set; } = new List<string>();
 
     // Route Familiarity System (0-5 scale per route)
     // ID is route ID, level is familiarity level (0=Unknown, 5=Mastered)

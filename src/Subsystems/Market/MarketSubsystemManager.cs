@@ -1,3 +1,5 @@
+using Wayfarer.GameState.Enums;
+
 /// <summary>
 /// Core market logic manager for all trading operations and market queries.
 /// Implements dynamic pricing system with location-based arbitrage opportunities.
@@ -172,21 +174,34 @@ public class MarketSubsystemManager
             SupplyLevel = 1.0f
         };
 
-        // Location-specific pricing logic
-        switch (venueId)
+        // Location-specific pricing logic (uses strongly-typed VenueType enum)
+        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Id == venueId);
+        if (venue != null)
         {
-            case "town_square":
-                pricing.BuyPrice = item.BuyPrice + 1;
-                pricing.SellPrice = item.SellPrice + 1;
-                break;
-            case "dusty_flagon":
-                pricing.BuyPrice = Math.Max(1, item.BuyPrice - 1);
-                pricing.SellPrice = Math.Max(1, item.SellPrice - 1);
-                break;
-            default:
-                pricing.BuyPrice = item.BuyPrice;
-                pricing.SellPrice = item.SellPrice;
-                break;
+            switch (venue.Type)
+            {
+                case VenueType.Market:
+                    // Markets have higher prices (competitive commercial environment)
+                    pricing.BuyPrice = item.BuyPrice + 1;
+                    pricing.SellPrice = item.SellPrice + 1;
+                    break;
+                case VenueType.Tavern:
+                    // Taverns have lower prices (casual trade, not primary business)
+                    pricing.BuyPrice = Math.Max(1, item.BuyPrice - 1);
+                    pricing.SellPrice = Math.Max(1, item.SellPrice - 1);
+                    break;
+                default:
+                    // Other venue types use base prices
+                    pricing.BuyPrice = item.BuyPrice;
+                    pricing.SellPrice = item.SellPrice;
+                    break;
+            }
+        }
+        else
+        {
+            // Venue not found, use base prices
+            pricing.BuyPrice = item.BuyPrice;
+            pricing.SellPrice = item.SellPrice;
         }
 
         // Ensure buy price is always higher than sell price
