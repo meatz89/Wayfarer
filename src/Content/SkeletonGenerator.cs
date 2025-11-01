@@ -1,3 +1,5 @@
+using Wayfarer.GameState.Enums;
+
 /// <summary>
 /// Generates mechanically complete but narratively generic skeleton content
 /// for missing references. These skeletons allow the game to run without AI
@@ -84,8 +86,6 @@ public static class SkeletonGenerator
     public static Venue GenerateSkeletonVenue(string id, string source)
     {
         int hash = Math.Abs(id.GetHashCode());
-        LocationTypes[] locationTypes = Enum.GetValues<LocationTypes>();
-        LocationTypes selectedType = locationTypes[hash % locationTypes.Length];
 
         Venue venue = new Venue(id, $"{GenericLocationNames[hash % GenericLocationNames.Length]} #{hash % 100}")
         {
@@ -93,7 +93,7 @@ public static class SkeletonGenerator
             IsSkeleton = true,
             SkeletonSource = source,
             Tier = 1 + (hash % 3), // Organizational tier 1-3
-            LocationTypeString = selectedType.ToString(), // Display string only
+            Type = VenueType.Wilderness, // Default for skeleton venues
             LocationSpotIds = new List<string> { $"{id}_hub" } // Reference to hub location
         };
 

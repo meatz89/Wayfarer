@@ -1,4 +1,6 @@
-﻿public class Venue
+﻿using Wayfarer.GameState.Enums;
+
+public class Venue
 {
     public string Id { get; set; }
     public string Name { get; private set; }
@@ -12,7 +14,7 @@
     public string SkeletonSource { get; set; } // What created this skeleton
 
     // Tier system (1-5) for difficulty/content progression
-    public string LocationTypeString { get; set; } // Mechanical property for display type (e.g., "Tavern", "Crossroads")
+    public VenueType Type { get; set; } = VenueType.Wilderness;  // Strongly-typed venue category (replaces LocationTypeString)
     public int Tier { get; set; } = 1;
 
     public List<string> LocationSpotIds { get; set; } = new List<string>();

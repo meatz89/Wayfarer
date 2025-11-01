@@ -211,6 +211,7 @@ public class ExchangeFacade
         {
             ExchangeId = exchangeId,
             ExchangeName = exchange.Name,
+            NpcId = npcId,  // ✅ Strongly-typed property (no ID parsing)
             Timestamp = DateTime.Now,
             Day = _gameWorld.CurrentDay,
             TimeBlock = _gameWorld.CurrentTimeBlock,
@@ -247,11 +248,12 @@ public class ExchangeFacade
 
     /// <summary>
     /// Get exchange history for an NPC
+    /// Uses strongly-typed NpcId property (no ID parsing)
     /// </summary>
     public List<ExchangeHistoryEntry> GetExchangeHistory(string npcId)
     {
         return _gameWorld.ExchangeHistory
-            .Where(h => h.ExchangeId.StartsWith(npcId) || h.ExchangeName.Contains(npcId))
+            .Where(h => h.NpcId == npcId)
             .ToList();
     }
 
@@ -532,6 +534,7 @@ public class ExchangeHistoryEntry
 {
     public string ExchangeId { get; set; }
     public string ExchangeName { get; set; }
+    public string NpcId { get; set; }  // ✅ Strongly-typed property for NPC reference (no ID parsing)
     public DateTime Timestamp { get; set; }
     public int Day { get; set; }
     public TimeBlocks TimeBlock { get; set; }

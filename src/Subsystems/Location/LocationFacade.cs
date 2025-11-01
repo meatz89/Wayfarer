@@ -597,47 +597,43 @@ public class LocationFacade
         return string.IsNullOrEmpty(modifier) ? timeStr : $"{timeStr}: {modifier}";
     }
 
+    /// <summary>
+    /// Get time-of-day atmosphere modifier based on venue type.
+    /// Uses strongly-typed VenueType enum (no string matching).
+    /// </summary>
     private string GetLocationTimeModifier(Venue venue, TimeBlocks currentTime)
     {
-        string locationName = venue.Name?.ToLower() ?? "";
-
-        if (locationName.Contains("market") || locationName.Contains("square"))
+        return venue.Type switch
         {
-            return currentTime switch
+            VenueType.Market => currentTime switch
             {
                 TimeBlocks.Morning => "Opening",
                 TimeBlocks.Midday => "Busy",
                 TimeBlocks.Afternoon => "Closing",
                 TimeBlocks.Evening => "Empty",
                 _ => ""
-            };
-        }
+            },
 
-        if (locationName.Contains("tavern") || locationName.Contains("kettle"))
-        {
-            return currentTime switch
+            VenueType.Tavern => currentTime switch
             {
                 TimeBlocks.Morning => "Quiet",
                 TimeBlocks.Midday => "Quiet",
                 TimeBlocks.Afternoon => "Busy",
                 TimeBlocks.Evening => "Lively",
                 _ => ""
-            };
-        }
+            },
 
-        if (locationName.Contains("noble") || locationName.Contains("manor"))
-        {
-            return currentTime switch
+            VenueType.NobleDistrict => currentTime switch
             {
                 TimeBlocks.Morning => "Formal",
                 TimeBlocks.Midday => "Active",
                 TimeBlocks.Afternoon => "Reception",
                 TimeBlocks.Evening => "Private",
                 _ => ""
-            };
-        }
+            },
 
-        return "";
+            _ => ""  // Other venue types have no time modifier
+        };
     }
 
     private List<string> BuildSpotTraits(Location spot)
@@ -687,12 +683,38 @@ public class LocationFacade
                 Title = action.Name,
                 Detail = action.Description,
                 ActionType = action.ActionType.ToString().ToLower(),
+                Cost = GetCostDisplay(action.Costs),
                 IsAvailable = true,
                 Icon = ""
             });
         }
 
         return playerActions;
+    }
+
+    /// <summary>
+    /// Get display string for action costs (shared between LocationActions and PlayerActions)
+    /// </summary>
+    private string GetCostDisplay(ActionCosts costs)
+    {
+        List<string> costParts = new List<string>();
+
+        if (costs.Coins > 0)
+            costParts.Add($"{costs.Coins} coins");
+
+        if (costs.Focus > 0)
+            costParts.Add($"{costs.Focus} focus");
+
+        if (costs.Stamina > 0)
+            costParts.Add($"{costs.Stamina} stamina");
+
+        if (costs.Health > 0)
+            costParts.Add($"{costs.Health} health");
+
+        if (costParts.Count == 0)
+            return "Free!";
+
+        return string.Join(", ", costParts);
     }
 
     private List<LocationActionViewModel> GetLocationSpecificActions(Venue venue, Location spot)
