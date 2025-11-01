@@ -90,7 +90,8 @@
       "mcp__playwright__playwright_navigate",
       "mcp__playwright__playwright_screenshot",
       "mcp__playwright__playwright_click",
-      "mcp__playwright__playwright_get_visible_text"
+      "mcp__playwright__playwright_get_visible_text",
+      "mcp__playwright__playwright_console_logs"
     ],
     "deny": [],
     "ask": []

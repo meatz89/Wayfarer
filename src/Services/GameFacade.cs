@@ -174,9 +174,9 @@ public class GameFacade
         return _locationFacade.GetLocationById(venueId);
     }
 
-    public bool MoveToSpot(string spotName)
+    public bool MoveToSpot(string locationId)
     {
-        bool success = _locationFacade.MoveToSpot(spotName);
+        bool success = _locationFacade.MoveToSpot(locationId);
 
         // Movement to new Venue may unlock obligation discovery (ImmediateVisibility, EnvironmentalObservation triggers)
         if (success)

@@ -95,12 +95,12 @@ public class LocationFacade
     /// Move player to a different location within the current location.
     /// Movement between Locations within a Venue is FREE (no attention cost).
     /// </summary>
-    public bool MoveToSpot(string spotName)
+    public bool MoveToSpot(string locationId)
     {
         // Validation
-        if (!_movementValidator.ValidateSpotName(spotName))
+        if (string.IsNullOrEmpty(locationId))
         {
-            _messageSystem.AddSystemMessage("Invalid location name", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("Invalid location ID", SystemMessageTypes.Warning);
             return false;
         }
 
@@ -116,17 +116,17 @@ public class LocationFacade
         }
 
         // Check if already at target
-        if (_movementValidator.IsAlreadyAtSpot(currentSpot, spotName))
+        if (currentSpot.Id == locationId)
         {
             return true; // Already there - no-op success
         }
 
-        // Find target location by name
+        // Find target location by ID (HIGHLANDER: runtime lookups use ID only)
         List<Location> Locations = _spotManager.GetLocationsForVenue(currentLocation.Id);
-        Location targetSpot = Locations.FirstOrDefault(s => s.Name.Equals(spotName, StringComparison.OrdinalIgnoreCase));
+        Location targetSpot = Locations.FirstOrDefault(s => s.Id == locationId);
         if (targetSpot == null)
         {
-            _messageSystem.AddSystemMessage($"location '{spotName}' not found in {currentLocation.Name}", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"location ID '{locationId}' not found in {currentLocation.Name}", SystemMessageTypes.Warning);
             return false;
         }
 
