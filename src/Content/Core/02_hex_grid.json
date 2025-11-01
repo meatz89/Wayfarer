@@ -60,8 +60,8 @@
           "r": -1,
           "terrain": "Road",
           "dangerLevel": 0,
-          "locationId": null,
-          "isDiscovered": false
+          "locationId": "upstairs_room",
+          "isDiscovered": true
         },
         {
           "q": -1,

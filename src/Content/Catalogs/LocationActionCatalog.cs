@@ -167,25 +167,37 @@ public static class LocationActionCatalog
     }
 
     /// <summary>
-    /// Generate intra-venue movement actions for locations in the same venue.
-    /// These are FREE, INSTANT movement actions between locations in the same venue.
+    /// Generate intra-venue movement actions for ADJACENT hexes in the same venue.
+    /// VENUE = 7-hex cluster (center + 6 adjacent hexes). Movement is instant/free BECAUSE hexes are adjacent.
+    /// ALL locations must have hex positions - movement requires spatial adjacency verification.
     /// NOTE: Destination is encoded in action ID - intent handler will parse it.
     /// </summary>
     private static List<LocationAction> GenerateIntraVenueMovementActions(Location location, List<Location> allLocations)
     {
         List<LocationAction> actions = new List<LocationAction>();
 
-        // Find other locations in the same venue
-        List<Location> sameVenueLocations = allLocations
-            .Where(l => l.VenueId == location.VenueId && l.Id != location.Id)
+        // Source location must have hex position
+        if (!location.HexPosition.HasValue)
+        {
+            Console.WriteLine($"[LocationActionCatalog] ⚠️ Location '{location.Id}' has no HexPosition - cannot generate movement actions");
+            return actions;
+        }
+
+        // Find ADJACENT locations in the same venue (7-hex cluster pattern)
+        List<Location> adjacentSameVenueLocations = allLocations
+            .Where(l =>
+                l.VenueId == location.VenueId &&  // Same venue (7-hex cluster)
+                l.Id != location.Id &&  // Different location
+                l.HexPosition.HasValue &&  // Destination must have hex position
+                AreHexesAdjacent(location.HexPosition.Value, l.HexPosition.Value))  // Must be adjacent hexes
             .ToList();
 
-        // Only generate if venue has multiple locations
-        if (!sameVenueLocations.Any())
+        // Only generate if there are adjacent locations in same venue
+        if (!adjacentSameVenueLocations.Any())
             return actions;
 
-        // Generate a "Move to X" action for each other location in venue
-        foreach (Location destination in sameVenueLocations)
+        // Generate a "Move to X" action for each ADJACENT location in venue
+        foreach (Location destination in adjacentSameVenueLocations)
         {
             actions.Add(new LocationAction
             {
@@ -195,7 +207,7 @@ public static class LocationActionCatalog
                 Name = $"Move to {destination.Name}",
                 Description = $"Walk to {destination.Name} within the same venue (instant, free)",
                 ActionType = LocationActionType.Travel,  // Use Travel type for intra-venue movement
-                Costs = ActionCosts.None(),  // Intra-venue movement is FREE
+                Costs = ActionCosts.None(),  // Intra-venue movement is FREE because hexes are adjacent
                 Rewards = ActionRewards.None(),
                 RequiredProperties = new List<LocationPropertyType>(),  // No property requirements (always available)
                 OptionalProperties = new List<LocationPropertyType>(),
@@ -206,5 +218,21 @@ public static class LocationActionCatalog
         }
 
         return actions;
+    }
+
+    /// <summary>
+    /// Check if two hexes are adjacent in axial coordinates.
+    /// Adjacent = differ by exactly one step in axial hex grid directions.
+    /// </summary>
+    private static bool AreHexesAdjacent(AxialCoordinates hex1, AxialCoordinates hex2)
+    {
+        int dq = Math.Abs(hex1.Q - hex2.Q);
+        int dr = Math.Abs(hex1.R - hex2.R);
+
+        // In axial coordinates, adjacent hexes have one of these patterns:
+        // (±1, 0), (0, ±1), or (±1, ∓1)
+        return (dq == 1 && dr == 0) ||  // Horizontal neighbors
+               (dq == 0 && dr == 1) ||  // Vertical neighbors
+               (dq == 1 && dr == 1);    // Diagonal neighbors
     }
 }

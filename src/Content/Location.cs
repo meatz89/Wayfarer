@@ -7,11 +7,12 @@ public class Location
 
     // HEX-BASED TRAVEL SYSTEM: Location is THE primary spatial entity
     /// <summary>
-    /// Hex grid position of this location (nullable for non-spatial locations)
-    /// Source of truth for location spatial positioning
-    /// ALL routes connect locations via hex paths
-    /// HIGHLANDER: Location.HexPosition is source of truth, Hex.LocationId is derived lookup
-    /// Venue has NO position - venues are abstract wrappers, locations are spatial reality
+    /// Hex grid position of this location (nullable only during initialization - ALL locations MUST have positions after parsing)
+    /// VENUE = 7-hex cluster (center + 6 adjacent hexes). Each location occupies ONE hex in the cluster.
+    /// Same-venue movement = moving between ADJACENT hexes in the same cluster (instant/free BECAUSE adjacent).
+    /// Cross-venue travel = moving between non-adjacent hexes (requires routes, costs resources).
+    /// Source of truth for location spatial positioning - ALL routes connect locations via hex paths.
+    /// HIGHLANDER: Location.HexPosition is source of truth, Hex.LocationId is derived lookup.
     /// </summary>
     public AxialCoordinates? HexPosition { get; set; }
 
