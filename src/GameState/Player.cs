@@ -462,14 +462,6 @@ public class Player
         return (GetCurrentWeight(itemRepository), Inventory.GetCapacity());
     }
 
-    public void AddKnownLocation(string venueId)
-    {
-        if (!DiscoveredVenueIds.Contains(venueId))
-        {
-            DiscoveredVenueIds.Add(venueId);
-        }
-    }
-
     public void AddKnownLocationSpot(string LocationId)
     {
         if (!LocationActionAvailability.Contains(LocationId))

@@ -31,24 +31,24 @@ namespace Wayfarer.Pages.Components
             return GameWorld.Locations.Count;
         }
 
-        protected List<Venue> GetDiscoveredLocations()
+        protected List<Location> GetDiscoveredLocations()
         {
             Player player = GameWorld.GetPlayer();
-            return GameWorld.Venues
+            return GameWorld.Locations
                 .Where(l => player.LocationFamiliarity.Any(f => f.EntityId == l.Id))
                 .OrderBy(l => l.Name)
                 .ToList();
         }
 
-        protected int GetFamiliarity(string venueId)
+        protected int GetFamiliarity(string locationId)
         {
-            return GameWorld.GetPlayer().GetLocationFamiliarity(venueId);
+            return GameWorld.GetPlayer().GetLocationFamiliarity(locationId);
         }
 
-        protected double GetFamiliarityPercent(string venueId, int max)
+        protected double GetFamiliarityPercent(string locationId, int max)
         {
             if (max == 0) return 0;
-            return (double)GetFamiliarity(venueId) / max * 100.0;
+            return (double)GetFamiliarity(locationId) / max * 100.0;
         }
 
         protected int GetCollectedObservationCount()

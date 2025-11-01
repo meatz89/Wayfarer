@@ -702,9 +702,9 @@ public class TravelManager
 
             player.CurrentPosition = targetSpot.HexPosition.Value;
 
-            // Increment Venue familiarity (max 3)
-            int currentFamiliarity = player.GetLocationFamiliarity(venueId);
-            player.SetLocationFamiliarity(venueId, Math.Min(3, currentFamiliarity + 1));
+            // Increment Location familiarity (max 3)
+            int currentFamiliarity = player.GetLocationFamiliarity(targetSpot.Id);
+            player.SetLocationFamiliarity(targetSpot.Id, Math.Min(3, currentFamiliarity + 1));
         }
 
         // Increase route familiarity (max 5)

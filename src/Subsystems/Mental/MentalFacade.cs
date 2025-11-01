@@ -86,7 +86,7 @@ public class MentalFacade
         _gameWorld.CurrentMentalSession = new MentalSession
         {
             ObligationId = engagement.Id,
-            VenueId = location.VenueId,
+            LocationId = location.Id,
             CurrentAttention = 10,
             MaxAttention = 10,
             CurrentUnderstanding = 0,
@@ -379,12 +379,12 @@ public class MentalFacade
 
         Player player = _gameWorld.GetPlayer();
 
-        // PROGRESSION SYSTEM: Award Venue familiarity on success
-        if (success && !string.IsNullOrEmpty(_gameWorld.CurrentMentalSession.VenueId))
+        // PROGRESSION SYSTEM: Award Location familiarity on success
+        if (success && !string.IsNullOrEmpty(_gameWorld.CurrentMentalSession.LocationId))
         {
-            int currentFamiliarity = player.GetLocationFamiliarity(_gameWorld.CurrentMentalSession.VenueId);
+            int currentFamiliarity = player.GetLocationFamiliarity(_gameWorld.CurrentMentalSession.LocationId);
             int newFamiliarity = Math.Min(3, currentFamiliarity + 1); // Max familiarity is 3
-            player.SetLocationFamiliarity(_gameWorld.CurrentMentalSession.VenueId, newFamiliarity);
+            player.SetLocationFamiliarity(_gameWorld.CurrentMentalSession.LocationId, newFamiliarity);
         }
 
         // TACTICAL LAYER: Do NOT apply CompletionReward here

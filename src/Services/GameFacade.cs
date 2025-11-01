@@ -1338,7 +1338,6 @@ public class GameFacade
         }
 
         player.CurrentPosition = location.HexPosition.Value;
-        player.AddKnownLocation(venueId);
 
         _messageSystem.AddSystemMessage($"Teleported to {venue.Name} - {location.Name}", SystemMessageTypes.Success);
     }
