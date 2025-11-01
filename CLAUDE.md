@@ -95,7 +95,124 @@ When you CHANGE a property (rename, type change, restructure):
 - Entity properties that aren't used violate single responsibility
 - Half-deleted features create phantom dependencies
 
-### 6. UNDERSTAND PLAYER EXPERIENCE AND MENTAL STATE
+### 6. SEMANTIC HONESTY - METHOD NAMES MUST MATCH REALITY
+
+**⚠️ CRITICAL: Method names, parameter names, return types, properties, and comments must all align with what the code ACTUALLY does ⚠️**
+
+**THE FUNDAMENTAL RULE:**
+
+Code must be semantically honest. If a method says "Location" it must work on Locations. If a property stores a Venue ID, it must be named "VenueId". If a method returns a Venue, it must say "Venue" in the name.
+
+**VIOLATIONS TO AVOID:**
+
+❌ Method names referencing "Location" that take venueId parameter
+❌ Property names referencing "LocationId" that store venue identifiers
+❌ Methods named "GetLocationById" that return Venue entities
+❌ Comments mentioning "location" when parameters/logic work on venues
+
+**CORRECT PATTERNS:**
+
+✅ Method names must match parameter entity type (RecordVenueVisit takes venueId)
+✅ Property names must match stored data type (VenueVisitCount has VenueId property)
+✅ Method names must match return type (GetVenueById returns Venue)
+✅ All naming layers aligned: method name, parameters, return type, comments
+
+**WHY THIS MATTERS:**
+
+- **Developers trust names** - If a method says "GetLocationById", they expect it to return a Location entity
+- **Semantic confusion wastes hours** - Reading code where names lie requires constant mental translation
+- **Refactoring becomes impossible** - Can't search for "all methods working on venues" when they're named "Location"
+- **Type system can't help** - Compiler allows `Venue GetLocationById()` because both are valid types
+- **Future changes break silently** - If you implement actual location-level tracking, existing "Location" methods working on venues will conflict
+
+**THE LITMUS TEST:**
+
+Can you answer these questions by reading ONLY the method signature (no implementation)?
+1. What entity type does this method work on?
+2. What entity type does this method return?
+3. What do the parameters represent?
+
+If NO to any question → Method name lies → Rename it.
+
+**REFACTORING CHECKLIST:**
+
+When you discover semantic dishonesty:
+
+1. **Identify the truth:** Does this method ACTUALLY work on Venues or Locations?
+2. **Rename consistently:** Method name, parameter names, property names must match truth
+3. **Search exhaustively:** Find ALL call sites (grep for method name)
+4. **Update holistically:** Update method signature + ALL call sites + documentation
+5. **Build and verify:** Ensure no references broken
+
+**ARCHITECTURAL ALIGNMENT:**
+
+This principle enforces architectural clarity:
+- If Venues are organizational wrappers (not gameplay entities), methods working on venues should say "Venue"
+- If Locations are spatial entities (actual gameplay happens here), methods working on locations should say "Location"
+- Never mix terminology - pick one consistent with the architecture
+
+### 7. SINGLE GRANULARITY PER CONCEPT
+
+**⚠️ CRITICAL: Each concept should be tracked at EXACTLY ONE level of granularity throughout the codebase ⚠️**
+
+**THE FUNDAMENTAL RULE:**
+
+If you track familiarity at the Location level, ALL familiarity tracking must be at Location level. Don't mix venue-level and location-level tracking of the same concept.
+
+**VIOLATION PATTERN:**
+
+❌ Tracking related concepts (familiarity and visit counts) at different granularities (Location vs Venue)
+❌ Player has LocationFamiliarity (location-level) but VenueVisits (venue-level)
+❌ Creates confusion about relationship between concepts
+❌ Data doesn't align: Location familiarity doesn't match Venue visit counts
+
+**CORRECT PATTERN:**
+
+✅ Track all related concepts at same granularity level
+✅ If player familiarity tracked at Location level, visits also tracked at Location level
+✅ If architectural review determines Venue-level appropriate, ALL tracking moves to Venue level
+✅ Consistent granularity across all Player state properties
+
+**WHY THIS MATTERS:**
+
+- **Architectural consistency** - Mixed granularities indicate confused architecture
+- **Prevents orphaned data** - If player gains familiarity with Location A (in Venue 1), but visit count tracked for Venue 1, the data doesn't align
+- **Simplifies queries** - All related concepts queryable at same level
+- **Future-proofs design** - Adding new tracking (discovery, mastery, etc.) has clear granularity to follow
+
+**DECISION FRAMEWORK:**
+
+When choosing granularity, ask:
+
+1. **Where does the player ACTUALLY stand?** (Player is at a Location, not "at a Venue")
+2. **What does the gameplay care about?** (Challenges happen at specific spots, not abstract areas)
+3. **What level provides meaningful differentiation?** (Two locations in same venue can have different properties)
+
+**WAYFARER ARCHITECTURE:**
+
+- **Venues** = Organizational grouping (clustered hex cells, no spatial position, NO gameplay semantics)
+- **Locations** = Spatial entities (actual hex cells where player stands, gameplay happens here)
+
+Therefore:
+- ✅ Player state tracked at **Location level** (familiarity, visits, discovery)
+- ✅ Routes connect **Locations** (not Venues)
+- ✅ Challenges happen at **Locations** (not Venues)
+- ❌ NO player state tracked at Venue level (Venues are just organizational)
+
+**CONSISTENCY CHECK:**
+
+After refactoring, audit these questions:
+1. Is familiarity tracked per-X?
+2. Are visits tracked per-X?
+3. Is discovery tracked per-X?
+4. Are challenges placed at X?
+5. Do routes connect X entities?
+
+X should be THE SAME ANSWER for all questions (e.g., all "Location").
+
+**EXCEPTION:** Venue-level aggregation for UI display is acceptable (e.g., "Show all locations in this venue"), but the SOURCE DATA must be at single granularity.
+
+### 8. UNDERSTAND PLAYER EXPERIENCE AND MENTAL STATE
 
 **CRITICAL: Before proposing ANY UI changes, you MUST think like the PLAYER:**
 
@@ -121,7 +238,7 @@ When you CHANGE a property (rename, type change, restructure):
 - Navigation happens through DECISIONS, not menus/buttons
 - Everything is presented IN-WORLD, not as UI chrome
 
-**EXAMPLES OF CORRECT THINKING:**
+**CORRECT THINKING:**
 
 Player at location → Sees options: "Talk to NPC", "Look around", "Check belongings", "Leave"
 "Check belongings" appears WHERE IT MAKES SENSE (not everywhere, only where contextually appropriate)
@@ -148,17 +265,6 @@ NOT: "Where should I put this button?"
 - **NEVER remove necessary content just because it's not implemented yet**
 - **ALWAYS implement the missing code to support required features**
 - **DELETE ONLY when feature is genuinely unnecessary or wrong design**
-
-**EXAMPLE:**
-
-User needs "SleepOutside" player action for tutorial.
-
-❌ **WRONG:** Remove "SleepOutside" from JSON because PlayerActionType enum doesn't have it
-**CORRECT:**
-1. Add `SleepOutside` to PlayerActionType enum
-2. Add handler in GameFacade.ExecutePlayerAction()
-3. Add implementation in ResourceFacade
-4. Keep "SleepOutside" in JSON
 
 **WHY THIS MATTERS:**
 - Deleting required features breaks the design
@@ -222,32 +328,18 @@ Before marking ANY task complete, you MUST answer these questions with 9/10 cert
 **FAIL FAST PRINCIPLE (ENFORCEMENT):**
 
 **❌ FORBIDDEN - Silent defaults that hide missing JSON:**
-```csharp
-// WRONG - Hides missing route, game "works" but player trapped
-List<Route> routes = location.Routes ?? new List<Route>();
 
-// WRONG - Hides missing scenes, content inaccessible
-if (npc.Scenes != null && npc.Scenes.Any()) { ... }
-
-// WRONG - Hides missing tutorial, player has no guidance
-Scene tutorial = scenes.FirstOrDefault(s => s.IsStarter) ?? defaultScene;
-```
+- Using null-coalescing operator (??) to provide empty collections when JSON missing critical data
+- Null-checking required content before accessing (if npc.Scenes != null pattern)
+- Providing fallback default entities when required entity not found
+- Result: Game compiles and runs, but player encounters soft-locks or inaccessible content
 
 **✅ REQUIRED - Throw exceptions for missing critical content:**
-```csharp
-// CORRECT - Fails fast, forces JSON fix
-if (location.Routes == null || !location.Routes.Any())
-    throw new InvalidOperationException($"Location '{location.Id}' has no routes - player trapped!");
 
-// CORRECT - Fails fast, forces scene creation
-if (!npc.Scenes.Any())
-    throw new InvalidOperationException($"NPC '{npc.Id}' has no scenes - player cannot interact!");
-
-// CORRECT - Fails fast, forces tutorial implementation
-Scene tutorial = scenes.FirstOrDefault(s => s.IsStarter);
-if (tutorial == null)
-    throw new InvalidOperationException("No starter scene found - player has no entry point!");
-```
+- Check for null or empty collections of critical content at parse time
+- Throw InvalidOperationException with descriptive message identifying missing content
+- Force content creator to fix JSON source data, not hide the problem
+- Result: Game crashes immediately at initialization with clear error pointing to exact problem
 
 **PLAYABILITY AUDIT PROCESS:**
 
@@ -455,30 +547,6 @@ The number of actions is IRRELEVANT. What matters:
 
 ---
 
-## REFACTORING CHECKLIST
-
-When you discover mixed representations:
-
-1. **Identify primary representation:**
-   - From JSON + frequent access → Pattern A (both)
-   - Runtime-only state → Pattern B (object only)
-   - From JSON + infrequent access → Pattern C (ID only)
-
-2. **Search entire codebase:**
-   - Find ALL usages of both forms
-   - Determine dominant pattern
-
-3. **Convert to single representation:**
-   - Select pattern based on decision tree
-   - Update ALL code consistently
-   - Delete redundant properties
-
-4. **Verify no desync:**
-   - Build and test
-   - Ensure no code path can create inconsistency
-
----
-
 ## SUMMARY
 
 **HIGHLANDER Principle:** ONE concept, ONE representation, used CONSISTENTLY everywhere.
@@ -624,74 +692,25 @@ If you see `using Wayfarer.Content.Catalogues;` in ANY file except Parser or Pac
 
 Catalogues do NOT just translate properties. They **PROCEDURALLY GENERATE COMPLETE ENTITIES** from categorical properties.
 
-**Example: LocationActionCatalog**
+**CATALOGUE PROCEDURAL GENERATION PATTERN:**
 
-```csharp
-// ✅ CORRECT - Catalogue generates entity instances
-public static class LocationActionCatalog
-{
-    /// <summary>
-    /// Generate ALL LocationActions for a location based on its categorical properties.
-    /// Called by Parser ONLY - runtime never touches this.
-    /// </summary>
-    public static List<LocationAction> GenerateActionsForLocation(Location location, TimeBlocks currentTime)
-    {
-        List<LocationAction> actions = new List<LocationAction>();
+**Catalogue Structure:**
+- Static class with static methods that generate complete entity instances
+- Examines entity's categorical properties (LocationProperties enum)
+- Returns List of procedurally-generated entities based on those properties
+- Called ONLY by parser at initialization, NEVER at runtime
 
-        // Crossroads property → Generate Travel action
-        if (location.LocationProperties.Contains(LocationPropertyType.Crossroads))
-        {
-            actions.Add(new LocationAction
-            {
-                Id = $"travel_{location.Id}",
-                Name = "Travel to Another Location",
-                ActionType = LocationActionType.Travel,
-                Costs = ActionCosts.None(),
-                // ... complete entity
-            });
-        }
+**Parser Integration:**
+- Parser creates Location entity from JSON
+- Parser calls catalogue to generate actions based on Location's properties
+- Parser adds generated actions to GameWorld.LocationActions collection
+- Entities complete - no further generation needed
 
-        // Commercial property → Generate Work action
-        if (location.LocationProperties.Contains(LocationPropertyType.Commercial))
-        {
-            actions.Add(new LocationAction
-            {
-                Id = $"work_{location.Id}",
-                Name = "Work for Coins",
-                ActionType = LocationActionType.Work,
-                // ... complete entity
-            });
-        }
-
-        return actions;
-    }
-}
-```
-
-**Parser Usage:**
-```csharp
-// In LocationParser.cs
-Location location = ParseLocation(dto);
-
-// Generate actions from location's categorical properties
-List<LocationAction> generatedActions = LocationActionCatalog.GenerateActionsForLocation(location, timeBlock);
-foreach (LocationAction action in generatedActions)
-{
-    _gameWorld.LocationActions.Add(action);
-}
-```
-
-**Runtime Usage:**
-```csharp
-// In LocationActionManager.cs (FACADE)
-public List<LocationActionViewModel> GetLocationActions(Venue venue, Location location)
-{
-    // Query GameWorld.LocationActions (NO catalogue calls!)
-    return _gameWorld.LocationActions
-        .Where(action => action.MatchesLocation(location, currentTime))
-        .ToList();
-}
-```
+**Runtime Behavior:**
+- Facades query GameWorld.LocationActions (pre-populated collection)
+- Filter actions by location/time/availability criteria
+- NO catalogue calls - all entities already exist
+- Pure data access, no procedural generation at runtime
 
 **WHY THIS MATTERS:**
 
@@ -703,34 +722,23 @@ public List<LocationActionViewModel> GetLocationActions(Venue venue, Location lo
 **FORBIDDEN PATTERNS:**
 
 ❌ **Runtime catalogue calls:**
-```csharp
-// WRONG - Catalogue called at runtime
-public List<LocationAction> GetLocationActions(Location location)
-{
-    return LocationActionCatalog.GenerateActionsForLocation(location); // NO!
-}
-```
+- Facade method calls LocationActionCatalog.GenerateActionsForLocation during gameplay
+- Violates parse-time-only constraint
+- Wastes CPU regenerating entities that should already exist
+- Indicates entities not properly populated during initialization
 
-❌ **Actions defined in JSON:**
-```json
-// WRONG - Actions should be generated procedurally, not defined in JSON
-{
-  "locationActions": [
-    { "id": "travel_square", "name": "Travel", "type": "travel" }
-  ]
-}
-```
+❌ **Actions defined explicitly in JSON:**
+- JSON contains locationActions array with action definitions
+- Actions should be generated procedurally from categorical properties, not authored explicitly
+- Violates procedural generation pattern
+- Creates maintenance burden (must update JSON for every action variation)
 
-✅ **CORRECT - Location properties in JSON, actions generated by parser:**
-```json
-// CORRECT - Location has categorical properties
-{
-  "id": "square_center",
-  "locationProperties": ["Crossroads", "Public"]
-}
-```
-
-Parser sees "Crossroads" → Calls catalogue → Generates Travel action → Adds to GameWorld.LocationActions
+✅ **CORRECT PATTERN:**
+- JSON contains only categorical properties (locationProperties: ["Crossroads", "Public"])
+- Parser reads properties, calls catalogue to generate actions procedurally
+- Catalogue generates Travel action from Crossroads property
+- Parser adds generated actions to GameWorld.LocationActions
+- Runtime queries pre-populated collection, never calls catalogue
 
 ### JSON Authoring Principles (Categorical-First Design)
 
@@ -1314,21 +1322,24 @@ Never implement "pragmatic" workarounds (string parsing, flag checks, conditiona
 ### The Problem: Defensive Programming Hides Bugs
 
 **ANTI-PATTERN** (Defensive Programming):
-```csharp
-// Parser hiding missing data with defaults
-public SocialCard ParseCard(SocialCardDTO dto)
-{
-    return new SocialCard
-    {
-        Title = dto.Title ?? "",  // ❌ HIDES missing required field!
-        PersonalityTypes = dto.PersonalityTypes ?? new List<string>()  // ❌ REDUNDANT!
-    };
-}
 
-// Game logic not trusting entity initialization
-List<Goal> goals = obstacle.GoalIds?.Select(id => _gameWorld.Goals[id]).ToList()
-                   ?? new List<Goal>();  // ❌ GoalIds NEVER null!
-```
+**Parser hiding missing data:**
+- Using null-coalescing on required fields (Title ?? "")
+- Provides empty string when JSON missing required property
+- Hides missing data errors at parse time
+- Results in entities with invalid/empty state that fail later during gameplay
+
+**Parser hiding missing collections:**
+- Using null-coalescing on collection properties (PersonalityTypes ?? new List<string>())
+- Collections should initialize inline on entity class
+- Parser should assign directly without ?? operator
+- Redundant defensive code when entity already initializes collection
+
+**Game logic not trusting initialization:**
+- Using null-coalescing when querying entity properties (obstacle.GoalIds?.Select(...) ?? new List<Goal>())
+- Defensive coding against properties that are NEVER null
+- Creates dual source of truth (entity initialization + runtime fallback)
+- Wastes CPU and hides architectural violations
 
 **Why This Is Wrong:**
 - Hides bugs instead of failing fast
@@ -1360,42 +1371,19 @@ List<Goal> goals = obstacle.GoalIds?.Select(id => _gameWorld.Goals[id]).ToList()
 ### FORBIDDEN PATTERNS (❌ NEVER DO THIS)
 
 #### **Antipattern 1: Encoding Data in ID Strings**
-```csharp
-// ❌ WRONG - ID encodes destination location
-new LocationAction
-{
-    Id = $"move_to_{destinationId}",  // Data hidden in string
-    ActionType = LocationActionType.IntraVenueMove
-}
-```
+- Creating IDs using string interpolation with embedded data (Id = "move_to_{destinationId}")
+- Data hidden in string format, not accessible via properties
+- Violates separation of identity vs data
 
 #### **Antipattern 2: Parsing IDs to Extract Data**
-```csharp
-// ❌ WRONG - Runtime string parsing
-private MoveIntent CreateIntent(LocationActionViewModel action)
-{
-    const string prefix = "move_to_";
+- Runtime code checks ID prefixes (StartsWith("move_to_"))
+- Runtime code uses Substring() or string parsing to extract embedded data
+- Intent creation depends on parsing ID strings rather than accessing properties
 
-    if (!action.Id.StartsWith(prefix))  // String matching
-        throw new InvalidOperationException();
-
-    string destinationId = action.Id.Substring(prefix.Length);  // String parsing
-    return new MoveIntent(destinationId);
-}
-```
-
-#### **Antipattern 3: String Matching on IDs**
-```csharp
-// ❌ WRONG - Logic based on ID pattern matching
-if (action.Id.StartsWith("move_to_"))
-{
-    // Execute move logic
-}
-else if (action.Id.StartsWith("talk_to_"))
-{
-    // Execute conversation logic
-}
-```
+#### **Antipattern 3: String Matching on IDs for Logic Routing**
+- Using if/else chains checking ID string patterns for routing (if action.Id.StartsWith("move_to_"))
+- Logic branches based on ID format rather than strongly-typed enum
+- Runtime behavior coupled to string format conventions
 
 **Why These Are Wrong:**
 - **No type safety** - Compiler can't catch typos or format changes
@@ -1410,62 +1398,43 @@ else if (action.Id.StartsWith("talk_to_"))
 
 #### **Pattern 1: ActionType as Routing Key**
 
-ActionType (enum converted to lowercase string) is the PRIMARY routing key. Never use ID for routing.
+ActionType enum is PRIMARY routing key. Never use ID for routing.
 
-```csharp
-// ✅ CORRECT - Route on ActionType, not ID
-intent = locationActionType switch
-{
-    LocationActionType.IntraVenueMove => CreateIntraVenueMoveIntent(action),
-    LocationActionType.Rest => new RestAtLocationIntent(),
-    LocationActionType.Travel => new OpenTravelScreenIntent(),
-    _ => null
-};
-```
+**Implementation:**
+- Switch expression on LocationActionType enum
+- Each case returns specific intent type
+- IntraVenueMove case calls CreateIntraVenueMoveIntent()
+- Rest case creates RestAtLocationIntent
+- Travel case creates OpenTravelScreenIntent
+- No string matching, pure enum routing
 
 #### **Pattern 2: Strongly-Typed Properties for Parameterized Data**
 
-When an action needs parameters, add strongly-typed properties to ALL layers.
+When action needs parameters, add strongly-typed properties to ALL layers.
 
-```csharp
-// ✅ CORRECT - Domain entity with strongly-typed property
-public class LocationAction
-{
-    public string Id { get; set; }  // For uniqueness/debugging only
-    public LocationActionType ActionType { get; set; }  // Routing key
-    public string DestinationLocationId { get; set; }  // Strongly-typed parameter
-}
+**Domain Entity:**
+- Id property for uniqueness/debugging only
+- ActionType property as routing key (enum)
+- DestinationLocationId property as strongly-typed parameter (string)
 
-// ✅ CORRECT - ViewModel with strongly-typed property
-public class LocationActionViewModel
-{
-    public string Id { get; set; }  // For uniqueness/debugging only
-    public string ActionType { get; set; }  // Routing key (lowercase enum)
-    public string DestinationLocationId { get; set; }  // Copied from domain entity
-}
+**ViewModel:**
+- Id property for uniqueness/debugging only
+- ActionType property as routing key (lowercase enum string)
+- DestinationLocationId property copied from domain entity
 
-// ✅ CORRECT - Direct property access, no parsing
-private MoveIntent CreateIntraVenueMoveIntent(LocationActionViewModel action)
-{
-    if (string.IsNullOrEmpty(action.DestinationLocationId))
-        throw new InvalidOperationException("IntraVenueMove action missing DestinationLocationId");
-
-    return new MoveIntent(action.DestinationLocationId);  // Direct access
-}
-```
+**Intent Creation:**
+- Direct property access (action.DestinationLocationId)
+- Validation throws if property missing
+- No string parsing, no ID parsing
+- Pure data access
 
 #### **Pattern 3: Properties Flow Through Entire Data Stack**
 
-```
-Parse-time (Catalogue):
-    Domain Entity: DestinationLocationId = "fountain_plaza"
-         ↓
-Query-time (LocationActionManager):
-    ViewModel: DestinationLocationId = "fountain_plaza" (copied)
-         ↓
-Execution (LocationContent.razor.cs):
-    Intent: new MoveIntent("fountain_plaza") (direct access)
-```
+**Data Flow:**
+- Parse-time (Catalogue): Domain Entity gets DestinationLocationId = "fountain_plaza"
+- Query-time (LocationActionManager): ViewModel copies DestinationLocationId = "fountain_plaza"
+- Execution (LocationContent.razor.cs): Intent constructor receives "fountain_plaza" via direct property access
+- No transformations, no parsing, straight property copying through layers
 
 ---
 
@@ -1474,29 +1443,21 @@ Execution (LocationContent.razor.cs):
 IDs should ONLY be used for:
 
 1. **Uniqueness** (dictionary keys, UI rendering keys):
-```csharp
-// ✅ CORRECT - ID used as React-style key for rendering
-@foreach (var action in actions)
-{
-    <div key="@action.Id">@action.Title</div>
-}
-```
+- Blazor/Razor foreach loops using key attribute for rendering optimization
+- ID provides unique identifier for DOM diffing
+- No logic, no parsing - purely for framework internal use
 
 2. **Debugging/Logging** (display only, never logic):
-```csharp
-// ✅ CORRECT - ID used for diagnostic output
-Console.WriteLine($"Processing action: {action.Id}");
-```
+- Console.WriteLine or logging statements showing which entity being processed
+- ID displayed for diagnostic purposes only
+- Never branches logic based on ID value
+- Read-only display for developers
 
 3. **Simple Passthrough** (domain → ViewModel, no logic):
-```csharp
-// ✅ CORRECT - Just copying ID for debugging
-LocationActionViewModel vm = new LocationActionViewModel
-{
-    Id = action.Id,  // Passthrough only
-    ActionType = action.ActionType.ToString().ToLower()  // Routing key
-};
-```
+- ViewModel copies ID directly from domain entity
+- Passthrough for debugging/rendering purposes
+- No transformation, no parsing
+- ActionType property used for actual routing logic, not ID
 
 **IDs should NEVER be used for:**
 - ❌ Routing decisions (use ActionType enum)
@@ -1518,32 +1479,6 @@ Before committing code with IDs, verify:
 - [ ] **Properties flow correctly** - Domain → ViewModel → Intent has same property
 
 ---
-
-### EXAMPLE: IntraVenueMove (Correct Implementation)
-
-**Domain Entity (LocationAction):**
-```csharp
-public string Id { get; set; } = $"move_to_{destination.Id}";  // Debugging only
-public LocationActionType ActionType { get; set; } = LocationActionType.IntraVenueMove;
-public string DestinationLocationId { get; set; } = destination.Id;  // ✅ Strongly-typed
-```
-
-**ViewModel (LocationActionViewModel):**
-```csharp
-public string Id { get; set; } = action.Id;  // Passthrough for debugging
-public string ActionType { get; set; } = "intravenuemove";  // Routing key
-public string DestinationLocationId { get; set; } = action.DestinationLocationId;  // ✅ Copied
-```
-
-**Intent Creation (LocationContent.razor.cs):**
-```csharp
-LocationActionType.IntraVenueMove => CreateIntraVenueMoveIntent(action),  // Route on ActionType
-
-private MoveIntent CreateIntraVenueMoveIntent(LocationActionViewModel action)
-{
-    return new MoveIntent(action.DestinationLocationId);  // ✅ Direct access, no parsing
-}
-```
 
 ---
 
