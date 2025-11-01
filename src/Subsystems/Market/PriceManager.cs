@@ -1,3 +1,5 @@
+using Wayfarer.GameState.Enums;
+
 /// <summary>
 /// Manages price calculations with supply/demand dynamics.
 /// Provides deterministic pricing based on Venue characteristics and market conditions.
@@ -168,11 +170,17 @@ public class PriceManager
 
         float modifier = 1.0f;
 
-        // Venue type affects prices
-        switch (venueId)
+        // Venue type affects prices (uses strongly-typed VenueType enum)
+        Venue venue = gameWorld.Venues.FirstOrDefault(v => v.Id == venueId);
+        if (venue == null)
         {
-            case "town_square":
-                // Town has slightly higher prices for most goods
+            return 1.0f;  // No venue found, default modifier
+        }
+
+        switch (venue.Type)
+        {
+            case VenueType.Market:
+                // Market has slightly higher prices for most goods
                 modifier = 1.1f;
                 // But lower prices for common items
                 if (item.Categories.Contains(ItemCategory.Hunger) ||
@@ -182,7 +190,7 @@ public class PriceManager
                 }
                 break;
 
-            case "dusty_flagon":
+            case VenueType.Tavern:
                 // Tavern has lower general prices
                 modifier = 0.9f;
                 // But higher prices for food and drink
@@ -192,8 +200,8 @@ public class PriceManager
                 }
                 break;
 
-            case "old_mill":
-                // Mill has good prices for materials and tools
+            case VenueType.Workshop:
+                // Workshop has good prices for materials and tools
                 if (item.Categories.Contains(ItemCategory.Materials) ||
                     item.Categories.Contains(ItemCategory.Tools))
                 {
@@ -205,7 +213,7 @@ public class PriceManager
                 }
                 break;
 
-            case "merchant_quarter":
+            case VenueType.Merchant:
                 // Merchant quarter has competitive prices for trade goods
                 if (item.Categories.Contains(ItemCategory.Trade_Goods) ||
                     item.Categories.Contains(ItemCategory.Valuables))
@@ -218,7 +226,7 @@ public class PriceManager
                 }
                 break;
 
-            case "harbor":
+            case VenueType.Harbor:
                 // Harbor has good prices for water-related items
                 if (item.Categories.Contains(ItemCategory.Water_Transport))
                 {
