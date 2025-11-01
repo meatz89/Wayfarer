@@ -142,19 +142,19 @@ public class LocationManager
     /// <summary>
     /// Record that the player has visited a location.
     /// </summary>
-    public void RecordLocationVisit(string venueId)
+    public void RecordLocationVisit(string locationId)
     {
-        if (string.IsNullOrEmpty(venueId)) return;
-        _gameWorld.RecordLocationVisit(venueId);
+        if (string.IsNullOrEmpty(locationId)) return;
+        _gameWorld.RecordLocationVisit(locationId);
     }
 
     /// <summary>
     /// Check if this is the player's first visit to a location.
     /// </summary>
-    public bool IsFirstVisit(string venueId)
+    public bool IsFirstVisit(string locationId)
     {
-        if (string.IsNullOrEmpty(venueId)) return false;
-        return _gameWorld.IsFirstVisit(venueId);
+        if (string.IsNullOrEmpty(locationId)) return false;
+        return _gameWorld.IsFirstVisit(locationId);
     }
 
     /// <summary>

@@ -15,30 +15,15 @@ public class RouteRepository : IRouteRepository
         return _gameWorld.IsRouteBlocked(routeId, _gameWorld.CurrentDay);
     }
 
-    // Get routes from a specific Venue (by checking all Locations in that location)
-    public IEnumerable<RouteOption> GetRoutesFromLocation(string venueId)
+    // Get routes from a specific Location
+    public IEnumerable<RouteOption> GetRoutesFromLocation(string locationId)
     {
-        List<RouteOption> allRoutes = new List<RouteOption>();
-
         // ONLY use GameWorld.Routes as the single source of truth
-        if (_gameWorld.Routes != null)
-        {
-            // Find all routes that originate from any location in this location
-            foreach (RouteOption route in _gameWorld.Routes)
-            {
-                // Look up the origin location to get its location
-                if (!string.IsNullOrEmpty(route.OriginLocationSpot))
-                {
-                    Location originSpot = _gameWorld.GetLocation(route.OriginLocationSpot);
-                    if (originSpot != null && originSpot.VenueId == venueId)
-                    {
-                        allRoutes.Add(route);
-                    }
-                }
-            }
-        }
+        if (_gameWorld.Routes == null)
+            return new List<RouteOption>();
 
-        return allRoutes;
+        // Direct query by OriginLocationSpot (no iteration needed)
+        return _gameWorld.Routes.Where(r => r.OriginLocationSpot == locationId);
     }
 
     // Get all routes in the world
@@ -58,14 +43,14 @@ public class RouteRepository : IRouteRepository
     }
 
     // Get available routes from the player's current location
-    public IEnumerable<RouteOption> GetAvailableRoutes(string fromVenueId, Player player)
+    public IEnumerable<RouteOption> GetAvailableRoutes(string fromLocationId, Player player)
     {
-        // Get routes from the player's current location
-        Location currentSpot = _gameWorld.GetPlayerCurrentLocation();
-        if (currentSpot == null) return new List<RouteOption>();
+        // Get routes from the specified location
+        Location location = _gameWorld.GetLocation(fromLocationId);
+        if (location == null) return new List<RouteOption>();
 
-        // Get all routes that start from the current location
-        IEnumerable<RouteOption> allRoutes = GetAll().Where(r => r.OriginLocationSpot == currentSpot.Id);
+        // Get all routes that start from this location
+        IEnumerable<RouteOption> allRoutes = GetRoutesFromLocation(location.Id);
         List<RouteOption> availableRoutes = new List<RouteOption>();
 
         foreach (RouteOption route in allRoutes)

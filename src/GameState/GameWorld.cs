@@ -202,29 +202,29 @@ public class GameWorld
     // Progression tracking
     public List<RouteDiscovery> RouteDiscoveries { get; set; } = new List<RouteDiscovery>();
 
-    public void RecordLocationVisit(string venueId)
+    public void RecordLocationVisit(string locationId)
     {
-        LocationVisitCount visitCount = LocationVisitCounts.FirstOrDefault(lvc => lvc.LocationId == venueId);
+        LocationVisitCount visitCount = LocationVisitCounts.FirstOrDefault(lvc => lvc.LocationId == locationId);
         if (visitCount == null)
         {
-            visitCount = new LocationVisitCount { LocationId = venueId, Count = 0 };
+            visitCount = new LocationVisitCount { LocationId = locationId, Count = 0 };
             LocationVisitCounts.Add(visitCount);
         }
 
         visitCount.Count++;
     }
 
-    public int GetLocationVisitCount(string venueId)
+    public int GetLocationVisitCount(string locationId)
     {
-        LocationVisitCount visitCount = LocationVisitCounts.FirstOrDefault(lvc => lvc.LocationId == venueId);
+        LocationVisitCount visitCount = LocationVisitCounts.FirstOrDefault(lvc => lvc.LocationId == locationId);
         if (visitCount == null)
             return 0;
         return visitCount.Count;
     }
 
-    public bool IsFirstVisit(string venueId)
+    public bool IsFirstVisit(string locationId)
     {
-        return GetLocationVisitCount(venueId) == 0;
+        return GetLocationVisitCount(locationId) == 0;
     }
 
     public bool IsConversationCompleted(string actionId)
