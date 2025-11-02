@@ -1,3 +1,4 @@
+using Wayfarer.Content.Catalogues;
 using Wayfarer.GameState.Enums;
 
 namespace Wayfarer.Content.Parsers;
@@ -23,6 +24,9 @@ public class SceneTemplateParser
         // Validate required fields
         if (string.IsNullOrEmpty(dto.Id))
             throw new InvalidDataException("SceneTemplate missing required field 'Id'");
+
+        Console.WriteLine($"[SceneTemplateParser] Parsing SceneTemplate: {dto.Id}");
+
         if (string.IsNullOrEmpty(dto.Archetype))
             throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required field 'Archetype'");
 
@@ -30,6 +34,26 @@ public class SceneTemplateParser
         if (!Enum.TryParse<SpawnPattern>(dto.Archetype, true, out SpawnPattern archetype))
         {
             throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid Archetype value: '{dto.Archetype}'");
+        }
+
+        // Parse PresentationMode (defaults to Atmospheric if not specified)
+        PresentationMode presentationMode = PresentationMode.Atmospheric;
+        if (!string.IsNullOrEmpty(dto.PresentationMode))
+        {
+            if (!Enum.TryParse<PresentationMode>(dto.PresentationMode, true, out presentationMode))
+            {
+                throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid PresentationMode value: '{dto.PresentationMode}'. Must be 'Atmospheric' or 'Modal'.");
+            }
+        }
+
+        // Parse ProgressionMode (defaults to Breathe if not specified)
+        ProgressionMode progressionMode = ProgressionMode.Breathe;
+        if (!string.IsNullOrEmpty(dto.ProgressionMode))
+        {
+            if (!Enum.TryParse<ProgressionMode>(dto.ProgressionMode, true, out progressionMode))
+            {
+                throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid ProgressionMode value: '{dto.ProgressionMode}'. Must be 'Breathe' or 'Cascade'.");
+            }
         }
 
         SceneTemplate template = new SceneTemplate
@@ -43,7 +67,9 @@ public class SceneTemplateParser
             ExpirationDays = dto.ExpirationDays,
             IsStarter = dto.IsStarter,
             IntroNarrativeTemplate = dto.IntroNarrativeTemplate,
-            Tier = dto.Tier
+            Tier = dto.Tier,
+            PresentationMode = presentationMode,
+            ProgressionMode = progressionMode
         };
 
         return template;
@@ -231,12 +257,27 @@ public class SceneTemplateParser
             }
         }
 
+        // ARCHETYPE-BASED GENERATION: If archetypeId present, generate 4 ChoiceTemplates from catalogue
+        // Otherwise use hand-authored ChoiceTemplates from JSON (backward compatible)
+        List<ChoiceTemplate> choiceTemplates;
+        if (!string.IsNullOrEmpty(dto.ArchetypeId))
+        {
+            // PARSE-TIME ARCHETYPE GENERATION
+            choiceTemplates = GenerateChoiceTemplatesFromArchetype(dto.ArchetypeId, sceneTemplateId, dto.Id);
+        }
+        else
+        {
+            // HAND-AUTHORED CHOICES (existing behavior)
+            choiceTemplates = ParseChoiceTemplates(dto.ChoiceTemplates, sceneTemplateId, dto.Id, archetype);
+        }
+
         SituationTemplate template = new SituationTemplate
         {
             Id = dto.Id,
             Type = situationType,
+            ArchetypeId = dto.ArchetypeId,
             NarrativeTemplate = dto.NarrativeTemplate,
-            ChoiceTemplates = ParseChoiceTemplates(dto.ChoiceTemplates, sceneTemplateId, dto.Id, archetype),
+            ChoiceTemplates = choiceTemplates,
             Priority = dto.Priority,
             NarrativeHints = ParseNarrativeHints(dto.NarrativeHints),
             AutoProgressRewards = ParseChoiceReward(dto.AutoProgressRewards)
@@ -577,5 +618,185 @@ public class SceneTemplateParser
             return result;
 
         throw new InvalidDataException($"Invalid DayAdvancement value: '{value}'. Valid values: CurrentDay, NextDay");
+    }
+
+    /// <summary>
+    /// Generate 4 ChoiceTemplates from archetype structure (parse-time only)
+    /// Called ONLY at parse time when SituationTemplate has archetypeId
+    /// Creates the 4-choice pattern: stat-gated, money, challenge, fallback
+    /// </summary>
+    private List<ChoiceTemplate> GenerateChoiceTemplatesFromArchetype(string archetypeId, string sceneTemplateId, string situationTemplateId)
+    {
+        // Fetch archetype definition from catalogue (PARSE-TIME ONLY)
+        SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(archetypeId);
+
+        List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
+
+        // CHOICE 1: Stat-Gated (Primary OR Secondary stat)
+        // Best outcome, free if stat requirement met
+        ChoiceTemplate statGatedChoice = new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_stat",
+            ActionTextTemplate = GenerateStatGatedActionText(archetype),
+            RequirementFormula = CreateStatRequirement(archetype),
+            CostTemplate = new ChoiceCost(), // Free
+            RewardTemplate = new ChoiceReward(), // Will be defined in JSON or instantiated at spawn time
+            ActionType = ChoiceActionType.Instant
+        };
+        choices.Add(statGatedChoice);
+
+        // CHOICE 2: Money
+        // Guaranteed success, expensive
+        ChoiceTemplate moneyChoice = new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_money",
+            ActionTextTemplate = GenerateMoneyActionText(archetype),
+            RequirementFormula = new CompoundRequirement(), // No requirements
+            CostTemplate = new ChoiceCost { Coins = archetype.CoinCost },
+            RewardTemplate = new ChoiceReward(),
+            ActionType = ChoiceActionType.Instant
+        };
+        choices.Add(moneyChoice);
+
+        // CHOICE 3: Challenge
+        // Variable outcome, risky
+        ChoiceTemplate challengeChoice = new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_challenge",
+            ActionTextTemplate = GenerateChallengeActionText(archetype),
+            RequirementFormula = new CompoundRequirement(), // No requirements (but has resource cost)
+            CostTemplate = new ChoiceCost { Resolve = archetype.ResolveCost },
+            RewardTemplate = new ChoiceReward(),
+            ActionType = ChoiceActionType.StartChallenge,
+            ChallengeId = null, // Will be set by spawn-time instantiation
+            ChallengeType = archetype.ChallengeType
+        };
+        choices.Add(challengeChoice);
+
+        // CHOICE 4: Fallback
+        // Poor outcome, always available
+        ChoiceTemplate fallbackChoice = new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_fallback",
+            ActionTextTemplate = GenerateFallbackActionText(archetype),
+            RequirementFormula = new CompoundRequirement(), // No requirements
+            CostTemplate = new ChoiceCost { TimeSegments = archetype.FallbackTimeCost },
+            RewardTemplate = new ChoiceReward(),
+            ActionType = ChoiceActionType.Instant
+        };
+        choices.Add(fallbackChoice);
+
+        return choices;
+    }
+
+    /// <summary>
+    /// Create compound requirement with OR logic for primary/secondary stat
+    /// </summary>
+    private CompoundRequirement CreateStatRequirement(SituationArchetype archetype)
+    {
+        CompoundRequirement requirement = new CompoundRequirement();
+
+        // Path 1: Primary stat meets threshold
+        OrPath primaryPath = new OrPath
+        {
+            Label = $"{archetype.PrimaryStat} {archetype.StatThreshold}+",
+            NumericRequirements = new List<NumericRequirement>
+            {
+                new NumericRequirement
+                {
+                    Type = "PlayerStat",
+                    Context = archetype.PrimaryStat.ToString(),
+                    Threshold = archetype.StatThreshold,
+                    Label = $"{archetype.PrimaryStat} {archetype.StatThreshold}+"
+                }
+            }
+        };
+        requirement.OrPaths.Add(primaryPath);
+
+        // Path 2: Secondary stat meets threshold (only if different from primary)
+        if (archetype.SecondaryStat != archetype.PrimaryStat)
+        {
+            OrPath secondaryPath = new OrPath
+            {
+                Label = $"{archetype.SecondaryStat} {archetype.StatThreshold}+",
+                NumericRequirements = new List<NumericRequirement>
+                {
+                    new NumericRequirement
+                    {
+                        Type = "PlayerStat",
+                        Context = archetype.SecondaryStat.ToString(),
+                        Threshold = archetype.StatThreshold,
+                        Label = $"{archetype.SecondaryStat} {archetype.StatThreshold}+"
+                    }
+                }
+            };
+            requirement.OrPaths.Add(secondaryPath);
+        }
+
+        return requirement;
+    }
+
+    /// <summary>
+    /// Generate action text template for stat-gated choice
+    /// </summary>
+    private string GenerateStatGatedActionText(SituationArchetype archetype)
+    {
+        return archetype.Id switch
+        {
+            "confrontation" => "Assert authority and take command",
+            "negotiation" => "Negotiate favorable terms",
+            "investigation" => "Deduce the solution through analysis",
+            "social_maneuvering" => "Read the social dynamics and navigate skillfully",
+            "crisis" => "Take decisive action with expertise",
+            _ => "Use your expertise"
+        };
+    }
+
+    /// <summary>
+    /// Generate action text template for money choice
+    /// </summary>
+    private string GenerateMoneyActionText(SituationArchetype archetype)
+    {
+        return archetype.Id switch
+        {
+            "confrontation" => "Pay off the opposition",
+            "negotiation" => "Pay the premium price",
+            "investigation" => "Hire an expert or pay for information",
+            "social_maneuvering" => "Offer a generous gift",
+            "crisis" => "Pay for emergency solution",
+            _ => "Pay to resolve"
+        };
+    }
+
+    /// <summary>
+    /// Generate action text template for challenge choice
+    /// </summary>
+    private string GenerateChallengeActionText(SituationArchetype archetype)
+    {
+        return archetype.Id switch
+        {
+            "confrontation" => "Attempt a physical confrontation",
+            "negotiation" => "Engage in complex debate",
+            "investigation" => "Work through the puzzle systematically",
+            "social_maneuvering" => "Make a bold social gambit",
+            "crisis" => "Risk everything on a desperate gambit",
+            _ => "Accept the challenge"
+        };
+    }
+
+    /// <summary>
+    /// Generate action text template for fallback choice
+    /// </summary>
+    private string GenerateFallbackActionText(SituationArchetype archetype)
+    {
+        return archetype.Id switch
+        {
+            "confrontation" => "Back down and submit",
+            "negotiation" => "Accept unfavorable terms",
+            "investigation" => "Give up and move on",
+            "social_maneuvering" => "Exit awkwardly",
+            "crisis" => "Flee the situation",
+            _ => "Accept poor outcome"
+        };
     }
 }

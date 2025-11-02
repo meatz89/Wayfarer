@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Wayfarer.Subsystems.Scene;
 
 /// <summary>
 /// Main game screen component that manages the unified UI with fixed header/footer and dynamic content area.
@@ -23,6 +24,8 @@ using Microsoft.AspNetCore.Components;
 public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 {
     [Inject] protected GameFacade GameFacade { get; set; }
+    [Inject] protected GameWorld GameWorld { get; set; }
+    [Inject] protected SceneFacade SceneFacade { get; set; }
     [Inject] protected LoadingStateService LoadingStateService { get; set; }
     [Inject] protected ObligationActivity ObligationActivity { get; set; }
 
@@ -60,6 +63,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     // Navigation State
     protected ExchangeContext CurrentExchangeContext { get; set; }
     protected TravelSceneContext CurrentSceneContext { get; set; }
+    protected ModalSceneContext CurrentModalSceneContext { get; set; }
     protected SocialChallengeContext CurrentSocialContext { get; set; }
     protected MentalChallengeContext CurrentMentalContext { get; set; }
     protected PhysicalChallengeContext CurrentPhysicalContext { get; set; }
@@ -81,6 +85,18 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         {
             await StartEmergency(activeEmergency.Id);
             return; // Emergency takes priority, skip normal initialization
+        }
+
+        // Check for modal scene at current location spot (Sir Brante forced moment)
+        Location currentLocationSpot = GameFacade.GetCurrentLocationSpot();
+        if (currentLocationSpot != null)
+        {
+            Scene modalScene = SceneFacade.GetModalSceneAtLocation(currentLocationSpot.Id);
+            if (modalScene != null)
+            {
+                await StartModalScene(modalScene.Id);
+                return; // Modal scene takes priority over normal location display
+            }
         }
 
         await base.OnInitializedAsync();
@@ -530,6 +546,53 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         GameFacade.ClearActiveEmergency();
 
         // Always refresh UI after emergency ends
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+        await RefreshLocationDisplay();
+
+        CurrentScreen = ScreenMode.Location;
+        ContentVersion++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task StartModalScene(string sceneId)
+    {
+        Scene scene = GameWorld.Scenes.FirstOrDefault(s => s.Id == sceneId);
+        if (scene == null)
+            return;
+
+        // Get current situation from scene
+        Situation currentSituation = GameWorld.Situations
+            .FirstOrDefault(s => s.Id == scene.CurrentSituationId);
+
+        if (currentSituation == null)
+            return;
+
+        // Create modal scene context
+        Venue currentLocation = GameFacade.GetCurrentLocation();
+        CurrentModalSceneContext = new ModalSceneContext
+        {
+            IsValid = true,
+            Scene = scene,
+            CurrentSituation = currentSituation,
+            LocationId = currentLocation?.Id,
+            LocationName = currentLocation?.Name
+        };
+
+        // Always refresh UI before modal scene
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+
+        CurrentScreen = ScreenMode.Scene;
+        ContentVersion++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task HandleModalSceneEnd()
+    {
+        CurrentModalSceneContext = null;
+
+        // Always refresh UI after modal scene ends
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
         await RefreshLocationDisplay();

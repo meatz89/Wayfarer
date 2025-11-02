@@ -186,6 +186,10 @@
                     <ObservationContent Context="@CurrentObservationContext" OnObservationEnd="HandleObservationEnd" />
                     break;
 
+                case ScreenMode.Scene:
+                    <SceneContent Context="@CurrentModalSceneContext" OnSceneEnd="HandleModalSceneEnd" />
+                    break;
+
                 case ScreenMode.Emergency:
                     <EmergencyContent Context="@CurrentEmergencyContext" OnEmergencyEnd="HandleEmergencyEnd" />
                     break;

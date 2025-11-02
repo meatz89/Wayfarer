@@ -5,6 +5,7 @@
 public enum ScreenMode
 {
     Location,
+    Scene,           // Full-screen scene display (Sir Brante forced moment)
     Exchange,
     Travel,
     SocialChallenge,

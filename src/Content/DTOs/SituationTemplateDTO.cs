@@ -18,6 +18,15 @@ public class SituationTemplateDTO
     public string Type { get; set; }
 
     /// <summary>
+    /// Optional archetype ID for procedural choice generation
+    /// If specified: Parser generates 4 ChoiceTemplates from archetype at parse time
+    /// Valid values: "confrontation", "negotiation", "investigation", "social_maneuvering", "crisis"
+    /// If null/empty: Use explicit ChoiceTemplates from JSON (existing hand-authored behavior)
+    /// BACKWARD COMPATIBLE: Existing content without archetypeId continues working unchanged
+    /// </summary>
+    public string ArchetypeId { get; set; }
+
+    /// <summary>
     /// Narrative description template with {placeholders}
     /// Example: "{NPCName} asks for your help investigating {LocationName}"
     /// </summary>

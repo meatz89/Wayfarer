@@ -12,6 +12,7 @@
       {
         "id": "tutorial_evening_arrival",
         "archetype": "Linear",
+        "presentationMode": "Modal",
         "displayNameTemplate": "Evening Arrival at {VenueName}",
         "introNarrativeTemplate": "You arrive at {VenueName} as evening shadows lengthen. The warm glow from windows promises shelter, but your coin purse feels light.",
         "tier": 0,
@@ -209,6 +210,7 @@
       {
         "id": "tutorial_secure_room",
         "archetype": "Linear",
+        "presentationMode": "Modal",
         "displayNameTemplate": "Securing Lodging",
         "introNarrativeTemplate": "You return to {NPCName}, coins in hand. She nods approvingly.",
         "tier": 0,
@@ -356,6 +358,7 @@
       {
         "id": "tutorial_night_rest",
         "archetype": "AutoAdvance",
+        "presentationMode": "Modal",
         "displayNameTemplate": "Night's Rest",
         "introNarrativeTemplate": "You climb the stairs to your room, exhaustion weighing on you.",
         "tier": 0,
@@ -427,6 +430,7 @@
       {
         "id": "tutorial_day2_morning",
         "archetype": "Linear",
+        "presentationMode": "Modal",
         "displayNameTemplate": "A New Day",
         "introNarrativeTemplate": "Morning in {VenueName}. The world feels different after rest.",
         "tier": 0,
@@ -563,6 +567,7 @@
       {
         "id": "tutorial_rough_morning",
         "archetype": "Linear",
+        "presentationMode": "Modal",
         "displayNameTemplate": "Cold Morning",
         "introNarrativeTemplate": "Morning comes slowly. The cold has seeped into your bones.",
         "tier": 0,

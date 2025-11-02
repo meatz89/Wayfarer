@@ -46,6 +46,8 @@ public class SceneInstantiator
             Template = sceneTemplate, // Composition - reference template for access
             PlacementType = placementType,
             PlacementId = placementId,
+            PresentationMode = sceneTemplate.PresentationMode,
+            ProgressionMode = sceneTemplate.ProgressionMode,
             State = SceneState.Provisional, // KEY: Provisional state
             SourceSituationId = context.CurrentSituation?.Id, // Track source for cleanup
             Archetype = sceneTemplate.Archetype,
@@ -74,6 +76,10 @@ public class SceneInstantiator
 
         // Store in provisional Scenes (temporary storage)
         _gameWorld.ProvisionalScenes[sceneId] = scene;
+
+        Console.WriteLine($"[SceneInstantiator] Created Scene '{scene.Id}'");
+        Console.WriteLine($"  State: {scene.State}, Placement: {scene.PlacementType}/{scene.PlacementId}");
+        Console.WriteLine($"  Presentation: {scene.PresentationMode}, Situations: {scene.SituationIds.Count}");
 
         return scene;
     }

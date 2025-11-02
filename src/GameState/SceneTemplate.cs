@@ -92,4 +92,20 @@ public class SceneTemplate
     /// Used for difficulty scaling and requirement formula calculation
     /// </summary>
     public int Tier { get; init; } = 1;
+
+    /// <summary>
+    /// Presentation mode - how Scenes spawned from this template appear to the player
+    /// Atmospheric: Scene appears as menu option (existing behavior)
+    /// Modal: Scene takes over full screen on location entry (Sir Brante forced moment)
+    /// Defaults to Atmospheric for backward compatibility
+    /// </summary>
+    public PresentationMode PresentationMode { get; init; } = PresentationMode.Atmospheric;
+
+    /// <summary>
+    /// Progression mode - how situations within Scenes spawned from this template flow after choices
+    /// Breathe: Return to menu after each situation (player-controlled pacing)
+    /// Cascade: Continue to next situation immediately (pressure and momentum)
+    /// Defaults to Breathe for backward compatibility
+    /// </summary>
+    public ProgressionMode ProgressionMode { get; init; } = ProgressionMode.Breathe;
 }

@@ -1,3 +1,5 @@
+using Wayfarer.GameState.Enums;
+
 /// <summary>
 /// Numeric Requirement - individual threshold check
 /// Used within CompoundRequirement OR paths
@@ -6,7 +8,7 @@ public class NumericRequirement
 {
     /// <summary>
     /// Type of requirement
-    /// Values: "BondStrength", "Scale", "Resolve", "Coins", "CompletedSituations", "Achievement", "State"
+    /// Values: "BondStrength", "Scale", "Resolve", "Coins", "CompletedSituations", "Achievement", "State", "PlayerStat"
     /// </summary>
     public string Type { get; set; }
 
@@ -16,6 +18,7 @@ public class NumericRequirement
     /// - For Scale: Scale name ("Morality", "Lawfulness", etc.)
     /// - For Achievement: Achievement ID
     /// - For State: State type ("Trusted", "Celebrated", etc.)
+    /// - For PlayerStat: Stat name ("Insight", "Rapport", "Authority", "Diplomacy", "Cunning")
     /// - For others: null or unused
     /// </summary>
     public string Context { get; set; }
@@ -52,6 +55,7 @@ public class NumericRequirement
             "CompletedSituations" => player.CompletedSituationIds.Count >= Threshold,
             "Achievement" => CheckAchievement(player, Context, Threshold),
             "State" => CheckState(player, Context, Threshold),
+            "PlayerStat" => CheckPlayerStat(player, Context, Threshold),
             _ => false // Unknown type
         };
     }
@@ -96,5 +100,18 @@ public class NumericRequirement
     {
         bool hasState = player.ActiveStates.Any(s => s.Type.ToString() == stateTypeName);
         return threshold > 0 ? hasState : !hasState;
+    }
+
+    private bool CheckPlayerStat(Player player, string statName, int threshold)
+    {
+        // Parse stat name to enum
+        if (!Enum.TryParse<PlayerStatType>(statName, ignoreCase: true, out PlayerStatType statType))
+        {
+            return false; // Unknown stat name
+        }
+
+        // Check if player's stat level meets threshold
+        int statLevel = player.Stats.GetLevel(statType);
+        return statLevel >= threshold;
     }
 }

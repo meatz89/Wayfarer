@@ -62,4 +62,20 @@ public class SceneTemplateDTO
     /// Tier 0: Safety net, Tier 1: Low, Tier 2: Standard, Tier 3: High, Tier 4: Climactic
     /// </summary>
     public int Tier { get; set; } = 1;
+
+    /// <summary>
+    /// Presentation mode - how this Scene appears to the player
+    /// "Atmospheric": Scene appears as menu option (existing behavior)
+    /// "Modal": Scene takes over full screen on location entry (Sir Brante forced moment)
+    /// Defaults to "Atmospheric" if not specified
+    /// </summary>
+    public string PresentationMode { get; set; }
+
+    /// <summary>
+    /// Progression mode - how situations within this Scene flow after choices
+    /// "Breathe": Return to menu after each situation (player-controlled pacing)
+    /// "Cascade": Continue to next situation immediately (pressure and momentum)
+    /// Defaults to "Breathe" if not specified
+    /// </summary>
+    public string ProgressionMode { get; set; }
 }

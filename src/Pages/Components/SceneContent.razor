@@ -1,0 +1,74 @@
+@inherits SceneContentBase
+
+@namespace Wayfarer.Pages.Components
+
+@* ARCHITECTURAL PRINCIPLE: Screen components are rendered INSIDE GameScreen's game-container.
+   They must NEVER define their own game-container, header, or resource bars - those are managed by the parent GameScreen.
+   Screen components should only contain their specific content wrapped in a semantic class like 'scene-content'. *@
+
+@if (Scene != null && CurrentSituation != null)
+{
+    <div class="scene-content">
+        <!-- Scene Header -->
+        <div class="scene-header">
+            <h2 class="scene-title">@Scene.DisplayName</h2>
+        </div>
+
+        <!-- Narrative Section -->
+        <div class="scene-narrative">
+            @CurrentSituation.Description
+        </div>
+
+        <!-- Choices Section -->
+        <div class="scene-choices">
+            @if (Choices != null && Choices.Any())
+            {
+                @foreach (var choice in Choices)
+                {
+                    <div class="scene-choice-card action-card @(!choice.RequirementsMet ? "locked" : "")"
+                         @onclick="() => HandleChoiceSelected(choice)">
+                        @if (!choice.RequirementsMet && !string.IsNullOrEmpty(choice.LockReason))
+                        {
+                            <div class="action-locked-overlay">
+                                <span class="lock-icon">🔒</span>
+                                <span class="lock-text">@choice.LockReason</span>
+                            </div>
+                        }
+                        <div class="choice-name">@choice.Name</div>
+                        @if (!string.IsNullOrEmpty(choice.Description))
+                        {
+                            <div class="choice-description">@choice.Description</div>
+                        }
+                        @if (choice.ResolveCost > 0 || choice.CoinsCost > 0 || choice.TimeSegments > 0)
+                        {
+                            <div class="choice-costs">
+                                @if (choice.ResolveCost > 0)
+                                {
+                                    <span class="cost">🎯 @choice.ResolveCost Resolve</span>
+                                }
+                                @if (choice.CoinsCost > 0)
+                                {
+                                    <span class="cost">💰 @choice.CoinsCost Coins</span>
+                                }
+                                @if (choice.TimeSegments > 0)
+                                {
+                                    <span class="cost">⏱️ @choice.TimeSegments Segments</span>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="no-choices-message">No choices available</div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="scene-error">
+        <p>Scene or situation not found</p>
+    </div>
+}

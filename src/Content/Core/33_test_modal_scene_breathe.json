@@ -1,0 +1,80 @@
+{
+  "packageId": "test_modal_scene_breathe",
+  "metadata": {
+    "name": "Test Modal Scene - Breathe Mode",
+    "timestamp": "2025-11-02T00:00:00Z",
+    "description": "Modal scene with BREATHE progression (return to menu after each choice)",
+    "author": "Wayfarer Team",
+    "version": "1.0.0"
+  },
+  "content": {
+    "sceneTemplates": [
+      {
+        "id": "test_modal_breathe",
+        "isStarter": true,
+        "archetype": "Linear",
+        "displayNameTemplate": "Mysterious Merchant",
+        "introNarrativeTemplate": "A hooded figure approaches with rare goods...",
+        "tier": 0,
+        "presentationMode": "Modal",
+        "progressionMode": "Breathe",
+        "placementFilter": {
+          "placementType": "Location",
+          "personalityTypes": [],
+          "minBond": null,
+          "maxBond": null,
+          "npcTags": [],
+          "locationProperties": ["crossroads", "commercial"],
+          "locationTags": [],
+          "terrainTypes": [],
+          "districtId": null,
+          "regionId": null,
+          "routeTier": null,
+          "requiredStates": [],
+          "forbiddenStates": [],
+          "requiredAchievements": [],
+          "scaleRequirements": []
+        },
+        "spawnRules": {
+          "pattern": "Linear",
+          "initialSituationId": "merchant_offer_1",
+          "transitions": [
+            {
+              "fromSituationId": "merchant_offer_1",
+              "toSituationId": "merchant_offer_2"
+            }
+          ],
+          "completionCondition": null
+        },
+        "situationTemplates": [
+          {
+            "id": "merchant_offer_1",
+            "narrativeTemplate": "A hooded merchant approaches. 'I have rare goods for sale. Interested?'",
+            "priority": 0,
+            "archetypeId": "negotiation",
+            "narrativeHints": {
+              "tone": "mysterious",
+              "theme": "commerce",
+              "context": "trade",
+              "style": "direct"
+            },
+            "choiceTemplates": []
+          },
+          {
+            "id": "merchant_offer_2",
+            "narrativeTemplate": "The merchant reveals a second item. 'This one is even more valuable. What do you say?'",
+            "priority": 1,
+            "archetypeId": "negotiation",
+            "narrativeHints": {
+              "tone": "mysterious",
+              "theme": "commerce",
+              "context": "trade",
+              "style": "direct"
+            },
+            "choiceTemplates": []
+          }
+        ]
+      }
+    ]
+  }
+}

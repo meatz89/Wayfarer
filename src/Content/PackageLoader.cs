@@ -1644,6 +1644,8 @@ public class PackageLoader
             SceneTemplate template = parser.ParseSceneTemplate(dto);
             _gameWorld.SceneTemplates.Add(template);
         }
+
+        Console.WriteLine($"[PackageLoader] Loaded {_gameWorld.SceneTemplates.Count} SceneTemplates");
     }
 
 }

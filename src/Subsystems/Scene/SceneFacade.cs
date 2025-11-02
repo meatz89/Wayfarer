@@ -31,6 +31,76 @@ public class SceneFacade
     // ==================== LOCATION CONTEXT ====================
 
     /// <summary>
+    /// Get modal scene at location (if one exists)
+    /// Modal scenes take over the full screen on location entry (Sir Brante forced moment)
+    /// Returns null if no modal scene at this location
+    /// Called by UI when player enters location to check for modal takeover
+    /// PLACEMENT-AGNOSTIC: Finds scenes placed at Location/NPC/Route that are present at this location
+    /// </summary>
+    public global::Scene GetModalSceneAtLocation(string locationId)
+    {
+        List<global::Scene> allActive = _gameWorld.Scenes.Where(s => s.State == SceneState.Active).ToList();
+        Console.WriteLine($"[SceneFacade] GetModalSceneAtLocation('{locationId}')");
+        Console.WriteLine($"  Total active scenes: {allActive.Count}");
+        foreach (global::Scene s in allActive)
+        {
+            Console.WriteLine($"    - {s.Id}: {s.PlacementType}/{s.PlacementId}, Modal={s.PresentationMode == PresentationMode.Modal}");
+        }
+
+        return _gameWorld.Scenes
+            .FirstOrDefault(s => s.State == SceneState.Active &&
+                               s.PresentationMode == PresentationMode.Modal &&
+                               IsSceneAtLocation(s, locationId));
+    }
+
+    /// <summary>
+    /// Check if scene is present at this location (placement-agnostic)
+    /// Handles three placement types:
+    /// - Location: Direct placement at location
+    /// - NPC: NPC is at this location
+    /// - Route: Route departs from this location
+    /// </summary>
+    private bool IsSceneAtLocation(global::Scene scene, string locationId)
+    {
+        // Direct location placement
+        if (scene.PlacementType == PlacementType.Location)
+        {
+            bool matches = scene.PlacementId == locationId;
+            if (matches)
+            {
+                Console.WriteLine($"  [IsSceneAtLocation] Scene '{scene.Id}' MATCHES: Location placement '{scene.PlacementId}'");
+            }
+            else
+            {
+                Console.WriteLine($"  [IsSceneAtLocation] Scene '{scene.Id}' Location placement: '{scene.PlacementId}' (target: '{locationId}') - no match");
+            }
+            return matches;
+        }
+
+        // NPC placement - check if NPC is at this location
+        if (scene.PlacementType == PlacementType.NPC)
+        {
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.PlacementId);
+            string npcLocationId = npc?.Location?.Id;
+            bool matches = npcLocationId == locationId;
+            Console.WriteLine($"  [IsSceneAtLocation] Scene '{scene.Id}' NPC placement: NPC '{scene.PlacementId}' at location '{npcLocationId}' (target: '{locationId}') - {(matches ? "MATCH" : "no match")}");
+            return matches;
+        }
+
+        // Route placement - check if route departs from this location
+        if (scene.PlacementType == PlacementType.Route)
+        {
+            RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == scene.PlacementId);
+            bool matches = route?.OriginLocationSpot == locationId;
+            Console.WriteLine($"  [IsSceneAtLocation] Scene '{scene.Id}' Route placement: Route '{scene.PlacementId}' origin '{route?.OriginLocationSpot}' (target: '{locationId}') - {(matches ? "MATCH" : "no match")}");
+            return matches;
+        }
+
+        Console.WriteLine($"  [IsSceneAtLocation] Scene '{scene.Id}' - Unknown placement type: {scene.PlacementType}");
+        return false;
+    }
+
+    /// <summary>
     /// Get all actions available at a location
     /// TRIGGERS: Situation Dormant → Active transition
     /// CREATES: LocationActions from ChoiceTemplates

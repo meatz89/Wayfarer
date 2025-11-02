@@ -47,6 +47,24 @@ public class Scene
     /// </summary>
     public string PlacementId { get; set; }
 
+    // ==================== PRESENTATION PROPERTIES ====================
+
+    /// <summary>
+    /// Presentation mode - how this Scene appears to the player
+    /// Atmospheric: Scene appears as menu option (existing behavior)
+    /// Modal: Scene takes over full screen on location entry (Sir Brante forced moment)
+    /// Defaults to Atmospheric for backward compatibility
+    /// </summary>
+    public PresentationMode PresentationMode { get; set; } = PresentationMode.Atmospheric;
+
+    /// <summary>
+    /// Progression mode - how situations within this Scene flow after choices
+    /// Breathe: Return to menu after each situation (player-controlled pacing)
+    /// Cascade: Continue to next situation immediately (pressure and momentum)
+    /// Defaults to Breathe for backward compatibility
+    /// </summary>
+    public ProgressionMode ProgressionMode { get; set; } = ProgressionMode.Breathe;
+
     // ==================== CONTENT PROPERTIES ====================
 
     /// <summary>

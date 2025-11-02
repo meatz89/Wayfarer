@@ -47,6 +47,12 @@ public static class GameWorldInitializer
         // Find all starter templates
         List<SceneTemplate> starterTemplates = gameWorld.SceneTemplates.Where(t => t.IsStarter).ToList();
 
+        Console.WriteLine($"[Init] Found {starterTemplates.Count} starter templates");
+        foreach (SceneTemplate t in starterTemplates)
+        {
+            Console.WriteLine($"  - {t.Id} (PlacementFilter: {t.PlacementFilter?.PlacementType})");
+        }
+
         foreach (SceneTemplate template in starterTemplates)
         {
             // Build spawn reward for starter scene
@@ -113,7 +119,24 @@ public static class GameWorldInitializer
         switch (placementType)
         {
             case "location":
-                return gameWorld.Locations.FirstOrDefault()?.Id;
+                // Filter locations by PlacementFilter criteria
+                Location matchingLocation = gameWorld.Locations.FirstOrDefault(location =>
+                {
+                    // Check location properties (if specified)
+                    if (filter.LocationProperties != null && filter.LocationProperties.Count > 0)
+                    {
+                        // Location must have ALL specified properties
+                        foreach (LocationPropertyType requiredProp in filter.LocationProperties)
+                        {
+                            if (!location.LocationProperties.Contains(requiredProp))
+                                return false;
+                        }
+                    }
+
+                    return true;
+                });
+
+                return matchingLocation?.Id;
 
             case "npc":
                 // Filter NPCs by PlacementFilter criteria
