@@ -39,23 +39,6 @@ Wayfarer creates strategic depth through impossible choices, not mechanical comp
    - No dead-ends (locations with no exits)
    - No orphaned content (systems with no entry points)
 
-**Fail-Fast Enforcement:**
-
-```csharp
-// ❌ WRONG - Hides missing content, game "works" but unplayable
-var routes = location.Routes ?? new List<Route>();
-if (npc.Scenes != null && npc.Scenes.Any()) { ShowScenes(); }
-Scene starter = scenes.FirstOrDefault(s => s.IsStarter) ?? defaultScene;
-
-// ✅ CORRECT - Fails fast, forces content creation
-if (!location.Routes.Any())
-    throw new InvalidOperationException($"Location '{location.Id}' has no routes - player trapped!");
-if (!npc.Scenes.Any())
-    throw new InvalidOperationException($"NPC '{npc.Id}' has no scenes - player cannot interact!");
-if (!gameWorld.Scenes.Any(s => s.IsStarter))
-    throw new InvalidOperationException("No starter scene - player has no entry point!");
-```
-
 **The Playability Test:**
 
 Can you trace a COMPLETE PATH of player actions from game start to your content? If ANY link is broken, missing, or inaccessible, the content is NOT PLAYABLE.
@@ -126,19 +109,6 @@ Runtime code NEVER generates entities. Runtime code NEVER calls catalogues.
 
 **THIS IS NOT A GUIDELINE. THIS IS AN ARCHITECTURAL CONSTRAINT.**
 
-Violating this principle breaks the entire data flow architecture.
-
-**WHERE CATALOGUES CAN BE CALLED:**
-- ✅ Parser classes in `src/Content/Parsers/`
-- ✅ PackageLoader in `src/Content/PackageLoader.cs`
-- ✅ NOWHERE ELSE
-
-**WHERE CATALOGUES ARE FORBIDDEN:**
-- ❌ GameFacade or any Facade
-- ❌ Any Manager or Service
-- ❌ Any UI Component
-- ❌ Any runtime code after game initialization
-
 **⚠️ CATALOGUES GENERATE ENTITIES AT PARSE TIME, NEVER AT RUNTIME ⚠️**
 
 **THE PATTERN:**
@@ -158,43 +128,6 @@ Catalogue sees Crossroads → Generates "Travel" LocationAction entity
 Parser adds action to GameWorld.LocationActions
   ↓ (Runtime)
 LocationActionManager queries GameWorld.LocationActions (NO catalogue)
-```
-
-**FORBIDDEN PATTERNS:**
-
-❌ **Actions defined in JSON:**
-```json
-// WRONG - Actions should be procedurally generated
-"locationActions": [
-  { "id": "travel_square", "type": "travel" }
-]
-```
-
-❌ **Runtime catalogue calls:**
-```csharp
-// WRONG - Catalogues are parse-time ONLY
-public List<LocationAction> GetActions(Location loc)
-{
-    return LocationActionCatalog.Generate(loc); // NO!
-}
-```
-
-✅ **CORRECT - Categorical properties → Parser generates entities:**
-```json
-// Location has categorical property
-{
-  "id": "square_center",
-  "locationProperties": ["Crossroads", "Public"]
-}
-```
-
-```csharp
-// Parser calls catalogue at parse time
-List<LocationAction> actions = LocationActionCatalog.GenerateActionsForLocation(location);
-foreach (LocationAction action in actions)
-{
-    _gameWorld.LocationActions.Add(action);
-}
 ```
 
 **Why This Matters:**
@@ -250,12 +183,6 @@ foreach (LocationAction action in actions)
 - Multiple valid paths with genuine trade-offs
 - ALWAYS USE THIS PATTERN
 
-**Examples:**
-- ❌ "Complete conversation to discover investigation" (boolean gate)
-- ✅ "Reach 10 Momentum to play GoalCard that discovers investigation" (resource cost)
-- ❌ "Have knowledge token to unlock location" (boolean gate)
-- ✅ "Spend 15 Focus to complete Mental challenge that grants knowledge" (resource cost)
-
 **Test:** Does the player make a strategic trade-off (accepting one cost to avoid another)? If no, it's a boolean gate.
 
 ## Principle 5: Typed Rewards as System Boundaries
@@ -279,12 +206,6 @@ System A sets boolean flag
 ```
 
 **Why:** Typed rewards are explicit connections. Boolean gates are implicit dependencies. Explicit connections maintain system boundaries.
-
-**Examples:**
-- ✅ GoalCard.Rewards.DiscoverInvestigation (typed reward)
-- ✅ GoalCard.Rewards.PropertyReduction (typed reward)
-- ❌ Investigation.Prerequisites.CompletedGoalId (boolean gate)
-- ❌ Continuous evaluation of HasKnowledge() (state query)
 
 **Test:** Is the connection a one-time application of a typed effect, or a continuous check of boolean state? First is correct, second is wrong.
 

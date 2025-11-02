@@ -481,7 +481,39 @@ Enter Scene B modal presentation
 - Choice labels (generic, get replaced at instantiation)
 - Placeholder types: {NPCName}, {LocationName}, {PlayerName}, {Domain-specific terms}
 
-### 4.4 Stat Selection (Fixed Approach)
+### 4.4 Archetype Catalog as Parse-Time Catalogue (CRITICAL ARCHITECTURAL ALIGNMENT)
+
+**⚠️ IMPORTANT: SituationArchetypeCatalog IS A CATALOGUE in the CLAUDE.md sense.**
+
+**CATALOGUE PATTERN COMPLIANCE:**
+- Lives in `src/Content/Catalogues/` (standard location)
+- Called ONLY from SceneTemplateParser at PARSE TIME
+- NEVER called from facades, managers, or runtime code
+- NEVER imported in any file except parsers
+- Generates complete entities (ChoiceTemplates) from categorical properties (archetypeId)
+- Translation happens ONCE at game initialization, NEVER during gameplay
+
+**Data Flow:**
+```
+JSON (archetypeId: "confrontation")
+  → SceneTemplateParser reads at parse time
+  → SituationArchetypeCatalog.GetArchetype() called
+  → Catalogue returns archetype with choice structure
+  → Parser generates 4 ChoiceTemplates
+  → Store in SituationTemplate
+  → GameWorld.SituationTemplates (complete, no further generation)
+```
+
+**Runtime Behavior:**
+- Facades query GameWorld.Situations (pre-populated)
+- SceneFacade instantiates actions from ChoiceTemplates (normal flow)
+- NO catalogue calls - all entities already generated at parse time
+- Pure data access, no procedural generation at runtime
+
+**Verification:**
+- If you see `using Wayfarer.Content.Catalogues;` anywhere except SceneTemplateParser → ARCHITECTURAL VIOLATION
+
+### 4.5 Stat Selection (Fixed Approach)
 
 **Principle:** Archetype defines exactly which stats apply.
 
@@ -510,7 +542,9 @@ Enter Scene B modal presentation
 
 **Result:** Players learn "Economic zones test Diplomacy, Authority zones test Authority" → Strategic preparation becomes meaningful.
 
-### 4.5 Instantiation Process (Parse Time)
+### 4.6 Instantiation Process (Parse Time)
+
+**⚠️ CRITICAL: This is PARSE-TIME ONLY, not runtime generation.**
 
 **Template Declares Archetype:**
 ```json
@@ -546,7 +580,7 @@ Enter Scene B modal presentation
 
 **Result:** Same archetype can spawn infinite situations with different narrative contexts.
 
-### 4.6 Learning Curve Design
+### 4.7 Learning Curve Design
 
 **First Encounter (Discovery):**
 - Player enters Economic zone → Negotiation situation

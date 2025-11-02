@@ -924,40 +924,1213 @@ Agency comes from impossible choices, not from doing everything. Limited resourc
 
 ---
 
-## Part 15: Implementation Priorities
+# Crisis Rhythm System
 
-### Phase 1: Foundation
-- Create entity models (Scene with embedded Situations)
-- Create action entity models (LocationAction, NPCAction, PathCard with ChoiceTemplate composition)
-- Create template models (SceneTemplate, SituationTemplate, ChoiceTemplate)
-- Implement SceneInstantiator with provisional state support
-- Update GameWorld collections
+## Overview
 
-### Phase 2: Execution Pipeline
-- Implement three executors as pure validators
-- Update GameFacade with unified Execute methods
-- Wire action entity instantiation
-- Connect UI to GameFacade execution
+The Crisis Rhythm System introduces **escalating narrative tension** through a predictable pattern: regular situations build resources and preparation, then a Crisis situation tests whether the player prepared correctly.
 
-### Phase 3: Content Pipeline
-- Update parsers for template structure
-- Implement PlacementFilter evaluation
-- Wire starter scene initialization
-- Test scene spawning from choices
+**Core Concept:** Every Scene follows the rhythm **Build → Build → Build → TEST**, creating strategic depth where player choices during preparation determine the cost of the final crisis resolution.
 
-### Phase 4: Display Integration
-- Update SceneFacade with query methods
-- Integrate provisional scene display in UI
-- Show locked choices with requirement paths
-- Display strategic costs clearly
+## Design Philosophy
 
-### Phase 5: Polish
-- Implement spawn pattern cascade logic
-- Add time side effect coordination
-- Complete save/load integration
-- Test end-to-end flows
+### Inspired by Sir Brante's Crisis Accumulation
+
+The system implements the **"suffocation engine"** pattern from Sir Brante, where:
+- **Early choices feel manageable** - modest costs, visible stat gains
+- **Crisis moments expose preparation quality** - high stat requirements or expensive alternatives
+- **Failure has permanent consequences** - scenes lock, NPCs turn away, locations bar access
+
+### Divergence from 80 Days' Steady State
+
+Unlike 80 Days' constant resource tension with full recovery options:
+- **Wayfarer accumulates pressure** - preparation choices compound toward crisis
+- **Crisis moments are binary tests** - prepared correctly = easy, unprepared = expensive/risky
+- **Consequences persist** - failed crises affect future options
+
+## Usage Patterns
+
+### The 3-5-1 Scene Structure
+
+**3-5 Regular Situations** (Build phase):
+- Present 2-4 choices each
+- Visible costs (energy, coins, time)
+- Build stats incrementally (+1 Authority, +1 Diplomacy, etc.)
+- Gather resources and information
+- Feel manageable, encourage experimentation
+
+**1 Crisis Situation** (Test phase):
+- High stat requirement (Authority 4+, Diplomacy 4+, etc.)
+- Expensive alternative (20+ coins)
+- Risky gamble option (Physical challenge)
+- Failure option with permanent consequence
+
+## Player Experience Flow
+
+### Strategic Forecasting
+
+**Scene shows Crisis indicator before engagement:**
+
+```
+📍 Merchant Quarter
+
+Active Scenes:
+- [💬 Normal] "Witness Dispute" (Situation 1/4)
+- [⚠️ Crisis] "Guild Confrontation" (Situation 4/4) ← CRISIS READY!
+```
+
+**Player strategic thinking:**
+- "I'm at situation 3/4, crisis coming next"
+- "This scene needs Authority or Diplomacy"
+- "Should I build stats now or save resources?"
+
+### Preparation Phase
+
+**Situation 1: "Observe argument"**
+- Player chooses "Move closer" (+1 Authority, 2 energy)
+- Authority now at 3
+
+**Situation 2: "Gather information"**
+- Player chooses "Ask merchants" (+1 Diplomacy, 2 energy)
+- Diplomacy now at 3
+
+**Situation 3: "Choose side"**
+- Player chooses "Support buyer" (+1 Authority)
+- Authority now at 4 ✓
+
+**Clear error messages:**
+- Tells author exactly which situation has invalid type
+- Lists valid values
+- Prevents runtime type mismatches
+
+### Data Flow
+
+```
+JSON ("type": "Crisis")
+  ↓
+SituationTemplateDTO.Type (string)
+  ↓
+SceneTemplateParser validates + parses
+  ↓
+SituationTemplate.Type (SituationType enum)
+  ↓
+SceneInstantiator copies to runtime instance
+  ↓
+Situation.Type (SituationType enum)
+  ↓
+UI detects Crisis situations for visual treatment
+```
+
+### Phase 3: UI Indicators
+
+**Visual treatment for Crisis situations:**
+- Red border or highlight
+- ⚠️ Warning icon
+- "CRISIS MOMENT" label
+- Tension music/sound cues
+- Animated entrance
+
+### Phase 4: Domain Forecasting
+
+- "Crisis (Social Domain)" - knows to build Diplomacy/Rapport
+- Strategic preparation without spoiling exact requirement
+
+### Phase 5: Consequence Tiers
+
+**Failure tiers:**
+1. **Soft Lock** - Miss one option, alternatives remain
+2. **Scene Lock** - Scene removed, cannot retry
+3. **Location Access** - Barred from location for X days
+4. **NPC Relationship** - Bond permanently damaged
+5. **Reputation Cascade** - Other NPCs react negatively
+
+### Phase 6: Dynamic Crisis Timing
+
+**Creates uncertainty:**
+- "Crisis might be next... or maybe two more situations"
+- Player must stay prepared throughout scene
+- Increases tension
+
+## Design Principles
+
+### 1. Perfect Information on Costs
+
+**Always show before selection:**
+- Stat requirements visible ("Authority 4+")
+- Resource costs transparent ("20 coins")
+- Locked choices shown with requirements
+
+**Never show:**
+- When crisis will hit (situation number hidden)
+- Alternative crisis paths until crisis presents
+- Exact consequence details
+
+### 2. No Randomness in Requirements
+
+**Pure threshold checks:**
+- Have Authority 4+ = pass
+- Have Authority 3 = fail
+- No dice rolls, no chance
+
+**Why:** Player preparation has deterministic outcome. Strategic planning rewarded, not luck.
+
+### 3. Every Regular Choice Matters
+
+**Framing effect:**
+- Without crisis: "Free choice (0 cost) is optimal"
+- With crisis coming: "Stat-building choice is strategic investment"
+
+**Example:**
+- Regular Situation: "Help merchant?"
+  - Choice A: Help (2 energy, +1 Diplomacy)
+  - Choice B: Refuse (0 cost, 0 stats)
+- Player thinks: "Crisis needs Diplomacy, invest now while cheap"
+
+### 4. Impossible Optimization
+
+**No "perfect" path:**
+- Situations offer choices between different stats
+- Can't maximize all stats equally
+- Must choose which crises to prepare for
+
+**Strategic depth:**
+- "Should I build Authority for Guard scenes or Diplomacy for Merchant scenes?"
+- "I can afford to fail social crises but not physical ones"
+
+## Verisimilitude
+
+### Narrative Coherence
+
+**Crisis situations must make sense:**
+- Guild confrontation demands authority or payment (realistic)
+- Guard challenge requires combat or submission (makes sense)
+- Scholar puzzle needs insight or time investment (logical)
+
+**Anti-pattern:**
+- "Random stat check" - no narrative reason for requirement
+- "Sudden violence" - crisis doesn't flow from preparation
+- "Arbitrary consequence" - punishment doesn't match failure
+
+### Player Mental State
+
+**What player experiences:**
+1. **Situation 1-3:** "I'm gathering information, building relationships"
+2. **Approaching Crisis:** "Things are escalating, I need to be ready"
+3. **Crisis Moment:** "This is it - do I have what it takes?"
+4. **Resolution:** "My preparation paid off" OR "I should have invested more"
+
+**Emotional arc:**
+- Permissive → Tense → Critical → Relief/Regret
+
+
+# Scene-Situation System Design
+
+## Core Philosophy
+
+**Scenes orchestrate dynamic narrative emergence through spatial situation spawning.**
+
+The Scene-Situation spawning system generates story beats by spawning narrative contexts (Situations) at locations, NPCs, and routes. Unlike obstacles (persistent challenges), Scene orchestrators are ephemeral - they spawn multiple Situations in various configurations (sequential, parallel, branching), then discard themselves.
 
 ---
+
+## ⚠️ PRIME DIRECTIVE: PLAYABILITY OVER IMPLEMENTATION ⚠️
+
+**THE FUNDAMENTAL RULE: A game that compiles but is unplayable is WORSE than a game that crashes.**
+
+Before implementing ANY Scene/Situation content:
+
+### Mandatory Playability Validation
+
+1. **Can the player REACH the Scene placement from game start?**
+   - If Scene spawns at Location: Can player navigate there via routes?
+   - If Scene spawns at NPC: Is NPC at accessible location?
+   - If Scene spawns on Route: Can player initiate that route travel?
+   - Trace COMPLETE path from starting location
+
+2. **Are Situations VISIBLE and INTERACTIVE in UI?**
+   - Situation appears when player enters location/conversation/route
+   - Situation presents 2-4 choices as cards/buttons
+   - Each choice shows costs, requirements, and consequences
+   - Player can select and execute choices
+
+3. **Do Scenes spawn and cascade correctly?**
+   - isStarter Scenes spawn at game initialization
+   - Completing choices spawns follow-up Scenes as defined
+   - Scene spawn rewards create Scenes at valid placements
+   - Cascading Situations appear when prerequisites met
+
+   
+### The Playability Test for Scenes
+
+For EVERY Scene implemented:
+
+1. **Spawn validation** → Does Scene spawn at accessible placement?
+2. **UI visibility** → Does Situation render in location/conversation/route UI?
+3. **Choice display** → Do all 2-4 choices appear as clickable options?
+4. **Execution** → Does selecting choice execute and apply consequences?
+5. **Cascade** → Do follow-up Scenes/Situations spawn correctly?
+
+**If ANY step fails, Scene content is INACCESSIBLE.**
+
+---
+
+## Strategic Layer Hierarchy
+
+**THREE LEVELS OF ABSTRACTION:**
+
+### Level 1: Scene (Ephemeral Orchestrator)
+- Spawns from SceneTemplate
+- Creates multiple Situations at various placements
+- Defines configuration (sequential, parallel, branching, conditional)
+- Discards itself after spawning Situations
+- NOT stored in GameWorld (ephemeral)
+
+### Level 2: Situation (Persistent Narrative Context)
+- Spawns from SituationTemplate within a Scene
+- Contains 2-4 action references (by ID)
+- Appears at one Location/NPC/Route
+- Persists until player completes one of its actions
+- Stored in GameWorld.Situations
+
+### Level 3: Actions (Player Choices)
+- Existing entities: LocationAction, ConversationOption, TravelCard
+- NOT created by Scenes (already exist in GameWorld)
+- Situations reference them by ID
+- Player selects ONE action from Situation's 2-4 options
+
+---
+
+## Sir Brante Pattern in Wayfarer Context
+
+**Sir Brante Structure:**
+- Player sees Situation narrative
+- 2-4 choices presented
+- Each choice has:
+  - Requirements (visible)
+  - Costs (visible)
+  - Outcomes (hidden until selected)
+- Some choices instant, some start challenges
+- Choice locks in outcome, progresses story
+
+**Wayfarer Implementation:**
+- **Situation** = Sir Brante narrative moment
+- **Actions** = Sir Brante choices (2-4 options)
+- Player navigates to Location/NPC/Route
+- Sees Situation narrative
+- Selects one of 2-4 Actions
+- Action executes (instant or challenge)
+- Situation completes, story progresses
+
+**Key Difference:**
+- Sir Brante: Linear progression through scripted situations
+- Wayfarer: Spatial navigation, dynamic situation spawning, emergent narrative
+
+---
+
+## Design Constraints
+
+### Sir Brante Pattern Requirements
+1. **2-4 Choices**: Every Situation must offer 2-4 actions (no more, no less)
+2. **Narrative Context**: Situation provides story/context, actions are responses
+3. **Mixed Types**: Actions can be instant (cost/reward) or challenge-starting
+4. **Visible Requirements**: All action requirements shown to player before selection
+5. **Hidden Outcomes**: Exact rewards/consequences hidden until action selected
+6. **Progression**: Selecting action completes Situation, advances story
+
+### Spatial Navigation
+1. **Placement Persistence**: Situation persists at location until completed
+2. **Player Discovery**: Player navigates to placement to discover Situation
+3. **Multiple Situations**: One placement can host multiple Situations simultaneously
+4. **Priority Display**: Higher priority Situations shown more prominently
+
+### Strategic Layer Separation
+1. **No Tactical Mechanics**: Situations do NOT contain SituationCards (those are challenge victory conditions)
+2. **Action References Only**: Situations reference existing actions by ID, don't create them
+3. **Scene Orchestration**: Scenes spawn Situations, Situations don't spawn Situations directly
+4. **Ephemeral Scenes**: Scenes discard after spawning, not stored in GameWorld
+
+### Categorical Design
+1. **Template Filters**: Use categorical properties, not concrete IDs
+2. **Parse-Time Translation**: All categorical → concrete at instantiation
+3. **Dynamic Scaling**: Requirements scale based on player progression
+4. **AI-Friendly**: Templates describable without knowing exact game state
+
+---
+
+## Summary
+
+**Scenes** are ephemeral orchestrators that spawn **Situations** in various configurations. **Situations** are persistent narrative contexts appearing at locations/NPCs/routes, offering players 2-4 **action** choices. Actions (LocationAction/ConversationOption/TravelCard) are existing entities that Situations reference, NOT inline definitions.
+
+This architecture enables:
+- **Emergent Narrative**: Dynamic story beats generated from templates
+- **Spatial Discovery**: Player navigates world to find spawned Situations
+- **Strategic Choice**: Player selects among visible action options with clear costs/requirements
+- **Reusability**: Templates instantiate with different entities, creating variety
+- **AI Generation**: Categorical templates enable procedural content creation
+
+The Scene-Situation system is the **STRATEGIC LAYER** of Wayfarer's narrative engine. It sits above the tactical challenge layer (Social/Mental/Physical with SituationCards) and provides the framework for dynamic quest/story generation across the game world.
+
+
+# Situation Spawn Patterns
+
+## ARCHITECTURAL CONTEXT
+
+**STRATEGIC LAYER HIERARCHY:**
+- **Scene** = Ephemeral spawning orchestrator that creates multiple Situations in various configurations
+- **Situation** = Persistent narrative context containing 2-4 actions (LocationAction/ConversationOption/TravelCard)
+- **Spawn Flow**: Scene spawns Situations → Situation completion can spawn new Scenes or Situations
+
+**PATTERN APPLICATION:**
+- Scenes use these patterns to orchestrate MULTIPLE Situations (sequential, parallel, branching)
+- Situations use these patterns to spawn follow-up Situations or Scenes
+- Templates define patterns, code instantiates with concrete entities from GameWorld
+
+**LAYER SEPARATION:**
+- STRATEGIC: Scene/Situation/Actions (these patterns apply here)
+- TACTICAL: SituationCard (victory conditions inside challenges - separate system)
+
+---
+
+Spawn patterns define how situations cascade and connect across the game world. Templates use these patterns to create dynamic narrative chains without hardcoded content.
+
+## Pattern 1: Linear Progression
+
+**Pattern:** Sequential story beats (A → B → C)
+
+**Structure:**
+- Situation spawns single follow-up on completion
+- Each step builds on previous narrative
+- Success/failure both progress (different paths)
+- Creates guided narrative arc
+
+**Example: Investigation Chain**
+```
+Template: investigation_start
+→ Spawns: investigation_evidence
+  → Spawns: investigation_confrontation
+    → Spawns: investigation_resolution
+
+Each step reveals more information, building toward conclusion
+```
+
+**Decision space:** Player choices affect WHICH follow-up spawns (success vs failure paths), but always progress forward
+
+**Use cases:** Mystery arcs, tutorial sequences, character introductions, main story beats
+
+---
+
+## Pattern 2: Hub-and-Spoke
+
+**Pattern:** Central situation spawns multiple parallel options
+
+**Structure:**
+- One situation spawns several child situations simultaneously
+- All children available at once
+- Children independent (no prerequisite order)
+- Completing all children may unlock final convergence
+
+**Example: Merchant's Problems**
+```
+Template: merchant_needs_help
+→ Spawns (parallel):
+  - recover_stolen_goods
+  - negotiate_with_thieves_guild
+  - investigate_competitor
+
+Player chooses which to tackle first, all available
+Completing all three may spawn: merchant_gratitude_rewards
+```
+
+**Decision space:** Which problem to solve first? Resource allocation across multiple paths? Pursue all or focus?
+
+**Use cases:** Side quest hubs, faction requests, exploration branches, player agency moments
+
+---
+
+## Pattern 3: Branching Consequences
+
+**Pattern:** Success and failure lead to different futures
+
+**Structure:**
+- Situation has two distinct completion paths (success/failure)
+- Success spawns positive consequence chain
+- Failure spawns negative consequence chain
+- Both paths are valid, create different opportunities
+
+**Example: Rescue Attempt**
+```
+Template: rescue_hostage
+
+Success Path:
+→ Spawns: grateful_ally_favor
+  → Spawns: ally_introduces_contacts
+
+Failure Path:
+→ Spawns: hostage_lost_guilt
+  → Spawns: seeking_redemption_quest
+
+Both paths continue story, different tones
+```
+
+**Decision space:** Player accepts consequences of choices. Failure isn't game over, just different story.
+
+**Use cases:** High-stakes decisions, moral dilemmas, relationship forks, permanent consequences
+
+---
+
+## Pattern 4: Discovery Chain
+
+**Pattern:** Finding clues reveals hidden situations
+
+**Structure:**
+- Initial situation spawns at known location
+- Completing it spawns follow-up at NEW location (previously unknown/inaccessible)
+- Each discovery unlocks further exploration
+- Location discovery drives progression
+
+**Example: Hidden Passage**
+```
+Template: warehouse_investigation
+→ Spawns: hidden_passage_discovered (new location revealed)
+  → Spawns: smugglers_den_infiltration (deeper location)
+    → Spawns: crime_boss_confrontation (final location)
+
+Each step reveals new area of game world
+```
+
+**Decision space:** Thoroughness rewarded with discovery. Explore deeply vs move on?
+
+**Use cases:** Exploration gameplay, secret areas, investigation depth, world expansion
+
+---
+
+## Pattern 5: Escalating Stakes
+
+**Pattern:** Each situation increases difficulty and rewards
+
+**Structure:**
+- First situation has low requirements, low rewards
+- Completing it spawns harder version with better rewards
+- Player can opt out at any level
+- Risk/reward escalation creates tension
+
+**Example: Underground Fighting**
+```
+Template: amateur_bout (easy, small reward)
+→ Spawns: veteran_match (medium, good reward)
+  → Spawns: championship_fight (hard, great reward)
+    → Spawns: death_match (extreme, legendary reward)
+
+Each step optional, player chooses when to stop
+```
+
+**Decision space:** Push luck for better rewards or take winnings and leave? Risk management.
+
+**Use cases:** Arena systems, gambling, challenge towers, risk/reward loops
+
+---
+
+## Pattern 6: Timed Cascade
+
+**Pattern:** Completing situation before deadline spawns urgent path, after deadline spawns consequence path
+
+**Structure:**
+- Situation has time limit (days/segments)
+- Completing before deadline: spawns ideal follow-up
+- Missing deadline: spawns degraded follow-up (still progresses)
+- Time pressure creates urgency
+
+**Example: Medical Emergency**
+```
+Template: npc_sick
+
+If completed within 2 days:
+→ Spawns: npc_recovered_gratitude
+
+If completed after 2 days:
+→ Spawns: npc_died_funeral
+  → Spawns: family_blames_player
+
+Both paths continue, different emotional tone
+```
+
+**Decision space:** Prioritize urgent vs important? Accept time-cost trade-offs?
+
+**Use cases:** Deadlines, emergencies, ticking clocks, priority management
+
+---
+
+## Pattern 7: Reputation Threshold
+
+**Pattern:** Completing N situations of type X unlocks special situation
+
+**Structure:**
+- Multiple situations share category/tag
+- Tracking counts completions of that category
+- Reaching threshold spawns unique opportunity
+- Rewards specialization and consistency
+
+**Example: Faction Loyalty**
+```
+Template (repeatable): faction_favor_mission
+
+After completing 3 faction missions:
+→ Spawns: faction_lieutenant_promotion
+
+After completing 7 total:
+→ Spawns: faction_inner_circle_invitation
+
+Cumulative investment unlocks deeper access
+```
+
+**Decision space:** Specialize in one faction or diversify across many? Long-term investment.
+
+**Use cases:** Faction progression, skill mastery, reputation systems, relationship depth
+
+---
+
+## Pattern 8: Resource Sink Gate
+
+**Pattern:** Situation requires spending accumulated resource to unlock next tier
+
+**Structure:**
+- Complete situation only if player has threshold resource amount
+- Completing costs resources but spawns valuable follow-up
+- Acts as progression gate (can't rush without resources)
+- Creates resource pressure
+
+**Example: Academic Advancement**
+```
+Template: university_entrance_exam (requires 500 coins)
+→ Spawns: university_courses (requires 100 coins per course)
+  → Spawns: thesis_defense (requires 50 knowledge)
+    → Spawns: scholar_recognition
+
+Each step drains resources but unlocks new opportunities
+```
+
+**Decision space:** Hoard resources or invest in advancement? Opportunity cost.
+
+**Use cases:** Class progression, economic gates, investment systems, tier unlocks
+
+---
+
+## Pattern 9: Converging Paths
+
+**Pattern:** Multiple independent situations converge to unlock finale
+
+**Structure:**
+- Several situations spawn independently
+- Each completion tracks toward shared goal
+- Completing ALL spawns convergence situation
+- Parallel progress toward single outcome
+
+**Example: Investigation Threads**
+```
+Independent Templates:
+- question_witness_a
+- search_crime_scene
+- investigate_alibi
+- follow_money_trail
+
+When ALL four completed:
+→ Spawns: pieces_together_revelation
+  → Spawns: confront_culprit
+
+Must pursue all threads to reach conclusion
+```
+
+**Decision space:** Which thread to pursue next? Must complete all eventually.
+
+**Use cases:** Mystery investigations, gather-the-party quests, multi-aspect challenges
+
+---
+
+## Pattern 10: Mutually Exclusive Paths
+
+**Pattern:** Completing situation A prevents situation B from spawning
+
+**Structure:**
+- Two situations available simultaneously
+- Completing one removes/blocks the other
+- Permanent choice between paths
+- Creates regret/commitment
+
+**Example: Faction Allegiance**
+```
+Template: thieves_guild_invitation (accept thieves)
+Template: merchants_guild_invitation (accept merchants)
+
+Accepting thieves:
+→ Spawns: thieves_guild_missions
+→ BLOCKS: merchants_guild_invitation
+
+Accepting merchants:
+→ Spawns: merchants_guild_missions
+→ BLOCKS: thieves_guild_invitation
+
+Cannot join both, permanent choice
+```
+
+**Decision space:** Which path to commit to? Accept lost opportunities?
+
+**Use cases:** Faction exclusivity, permanent decisions, meaningful choices, replayability
+
+---
+
+## Pattern 11: Recursive Loops
+
+**Pattern:** Completing situation can re-spawn itself with variations
+
+**Structure:**
+- Situation spawns modified version of itself on completion
+- Parameters change (difficulty, rewards, narrative details)
+- Can continue indefinitely or until condition met
+- Creates repeatable content with progression
+
+**Example: Patrol Encounters**
+```
+Template: highway_patrol
+
+On completion:
+→ Spawns: highway_patrol (same template, higher difficulty tier)
+
+Parameters scale each loop:
+- Enemy strength increases
+- Rewards improve
+- Narrative acknowledges repetition ("They're getting bolder...")
+
+Stops when player leaves region or completes regional quest
+```
+
+**Decision space:** Keep farming for rewards or move on? Optimization vs exploration.
+
+**Use cases:** Grinding loops, procedural encounters, challenge scaling, emergent difficulty
+
+---
+
+## Pattern 12: Delayed Spawn
+
+**Pattern:** Completing situation spawns follow-up after time delay
+
+**Structure:**
+- Situation completes immediately
+- Follow-up spawns X days later
+- Creates anticipation and world continuity
+- Simulates off-screen events
+
+**Example: Message Delivery**
+```
+Template: send_message_to_capital
+
+Completes immediately
+↓
+(3 days pass)
+↓
+Spawns: messenger_returns_with_reply
+  → Spawns: capital_responds (content based on original message)
+
+World feels alive with events happening independently
+```
+
+**Decision space:** Player continues other activities while waiting. World feels reactive.
+
+**Use cases:** Message systems, travel time, NPC reactions, world simulation
+
+---
+
+## Pattern 13: Conditional Multi-Spawn
+
+**Pattern:** Situation spawns different combinations based on completion state
+
+**Structure:**
+- Situation tracks how it was completed (which approach used, resources spent, etc.)
+- Different completion methods spawn different follow-up combinations
+- Creates branching based on player method, not just success/failure
+- Rewards playstyle diversity
+
+**Example: Defuse Conflict**
+```
+Template: tavern_brawl
+
+If resolved via Intimidation:
+→ Spawns: criminals_fear_player + tavern_owner_grateful
+
+If resolved via Persuasion:
+→ Spawns: criminals_respect_player + tavern_becomes_safe_house
+
+If resolved via Violence:
+→ Spawns: guards_investigate + reputation_damaged
+
+Same situation, three different outcome combinations
+```
+
+**Decision space:** How to solve problem? Method matters as much as success.
+
+**Use cases:** Approach diversity, playstyle expression, methodical consequences
+
+---
+
+## Pattern 14: Failure-Only Spawn
+
+**Pattern:** Only failure spawns follow-up (success ends chain)
+
+**Structure:**
+- Succeeding completes situation cleanly (no spawn)
+- Failing spawns complication that must be addressed
+- Creates "success is closure, failure is story" dynamic
+- Failing isn't punishment, it's content
+
+**Example: Stealth Infiltration**
+```
+Template: sneak_past_guards
+
+Success: Clean entry, no spawn (mission continues elsewhere)
+
+Failure:
+→ Spawns: alarm_raised
+  → Spawns: escape_pursuit
+    → Spawns: hide_from_search
+
+Failure creates more story beats
+```
+
+**Decision space:** Risk stealth for clean success or accept failure cascade?
+
+**Use cases:** Stealth systems, heist gameplay, cascading problems, failure as content
+
+---
+
+## Pattern 15: Prerequisite Network
+
+**Pattern:** Situation only spawns when multiple conditions met
+
+**Structure:**
+- Template defines multiple spawn requirements
+- Must complete situations A AND B AND have resource C
+- Creates complex unlock conditions
+- Rewards thorough preparation
+
+**Example: Ancient Ritual**
+```
+Template: perform_ritual
+
+Spawn Requirements:
+- Completed: gather_sacred_herbs
+- Completed: learn_ritual_words
+- Have: ancient_tome (item)
+- Location: sacred_grove (discovered)
+- Time: Full moon (specific day)
+
+Only spawns when ALL conditions met
+```
+
+**Decision space:** Orchestrate multiple threads to enable unlock. Preparation rewarded.
+
+**Use cases:** Ritual systems, complex unlocks, quest convergence, preparation gameplay
+
+---
+
+## Meta-Patterns: Combining Templates
+
+Templates combine to create rich narrative structures:
+
+**Linear + Branching:**
+```
+A → B (success) → C
+  → D (failure) → E
+Both paths progress story, different tones
+```
+
+**Hub + Convergence:**
+```
+Hub → [A, B, C] (parallel)
+When all complete → Finale
+```
+
+**Escalation + Exclusive:**
+```
+Path 1: Tier 1 → Tier 2 → Tier 3
+Path 2: Alternative progression
+Choosing Path 1 blocks Path 2
+```
+
+**Discovery + Timed:**
+```
+Find Location → Urgent situation spawns
+Must complete before location changes/closes
+```
+
+Templates are PATTERNS, not content. Code instantiates them with concrete entities from GameWorld.
+
+---
+
+## Crisis Rhythm Pattern
+
+**Pattern:** Escalating tension through preparation-test cycles
+
+**Concept:** Scenes follow the rhythm **Build → Build → Build → TEST**, where regular situations allow preparation and Crisis situations test preparation quality.
+
+**Structure:**
+- Scene contains 3-5 Situations
+- First 2-4 situations have `type: "Normal"` (build phase)
+- Final situation has `type: "Crisis"` (test phase)
+- Crisis has high stat requirement OR expensive alternative OR risky gamble
+- Failure has permanent consequences
+
+**Example: Merchant Guild Dispute**
+```
+Situation 1 (Normal): Observe argument
+  Choices: Listen (+1 Insight) or Move closer (+1 Authority)
+
+Situation 2 (Normal): Gather information
+  Choices: Ask merchants (+1 Diplomacy) or Investigate (+1 Insight)
+
+Situation 3 (Normal): Choose side
+  Choices: Support seller (+1 Rapport) or Support buyer (+1 Authority)
+
+Situation 4 (Crisis): Guild confrontation
+  Choice A: Assert authority (Authority 4+, 2 energy) ← Easy if prepared
+  Choice B: Pay off guild (20 coins) ← Expensive alternative
+  Choice C: Threaten (Physical challenge) ← Risky gamble
+  Choice D: Walk away (Scene fails, NPC bond -3) ← Permanent failure
+```
+
+**Player Experience:**
+1. **Situations 1-3:** "I'm building toward something..."
+2. **Approaching Crisis:** "Things escalating, need to be ready"
+3. **Crisis:** "This is it - do I have the stats?"
+4. **Resolution:** "Preparation paid off!" OR "Should have invested more..."
+
+**Decision Space:**
+- Which stat to build during preparation?
+- Build one stat high (4+) or spread across multiple (3 each)?
+- Accept expensive alternative if unprepared?
+- Risk gamble or accept failure?
+
+**Strategic Depth:**
+- Every regular choice matters (building stats for crisis)
+- Can't prepare for all crises (resource limits)
+- Must choose which scenes to prioritize
+- Unprepared path is expensive but not impossible
+
+**Use Cases:**
+- Social encounters (Diplomacy/Authority crises)
+- Investigation scenes (Insight/Cunning crises)
+- Physical challenges (Strength/Endurance crises)
+- Any scene where preparation should matter
+
+**Integration with Other Patterns:**
+
+**Linear + Crisis:**
+```
+Normal Situation 1 → Normal Situation 2 → Crisis Situation
+Build stats linearly, test at end
+```
+
+**Hub + Crisis:**
+```
+Hub (Normal) → [Path A, Path B, Path C] (Normal, parallel)
+  → Convergence (Crisis - tests which paths completed)
+```
+
+**Branching + Crisis:**
+```
+Preparation (Normal)
+  → Crisis Choice
+    Success Path → Positive outcome
+    Failure Path → Negative outcome
+Both paths valid, different opportunities
+```
+
+**Implementation Notes:**
+- `SituationType` enum marks situations as Normal or Crisis
+- Parser validates and defaults to Normal if not specified
+- UI can detect Crisis situations for visual treatment
+- Backward compatible (existing content defaults to Normal)
+
+**See:** `CRISIS_RHYTHM_SYSTEM.md` for complete documentation and design rationale.
+
+
+
+### World Scaffolding
+
+The game world contains permanent entities that exist independently of scenes:
+
+**Location** represents a physical place with:
+- Venue type (inn, market square, residential district)
+- Atmospheric description that sets tone
+- Tags that make it eligible for certain scene placements
+- List of NPCs currently present
+- List of routes departing to other locations
+
+**NPC** represents a person with:
+- Portrait and visual identity
+- Personality type that affects scene spawns
+- Bond level with player
+- Current location
+- Conversational history
+
+**Route** represents a path between locations with:
+- Terrain type affecting travel difficulty
+- Distance determining time cost
+- Environmental hazards
+- Currently active events
+
+These entities always exist. Scenes spawn onto them dynamically but never modify their fundamental existence.
+
+---
+
+
+## Part 5: Content Pipeline and Dynamic Generation
+
+### The Unified Parser Approach
+
+All content enters the game through the same pipeline regardless of source:
+
+**Input:** JSON files containing templates (SceneTemplates, SituationTemplates, ChoiceTemplates)
+
+**Parsing:** PackageLoader reads JSON, invokes specialized parsers for each template type, validates structure, stores in GameWorld's template collections
+
+**Instantiation:** SceneInstantiator creates runtime entities from templates when spawn conditions trigger
+
+This pipeline is source-agnostic. Whether content was hand-authored by designers or generated by AI makes no difference. Both use identical JSON structure. Both flow through identical parsers. Both instantiate identically.
+
+### Starter Content
+
+Certain SceneTemplates are marked as "starter" content. During game initialization, GameWorldInitializer:
+- Queries all SceneTemplates with starter flag set
+- Calls SceneInstantiator to create Active scenes from each
+- Places these scenes according to their PlacementFilters
+- Populates the initial world with playable content
+
+Starter content bootstraps the narrative. It gives players initial actions at key locations. It establishes the world's baseline state.
+
+### Dynamic Spawning
+
+After initialization, new Scenes spawn from player choices. When a Choice executes with scene spawn rewards:
+- GameFacade receives the reward specification (which template, what placement relation, any delay)
+- Creates provisional Scene showing player where it would appear
+- On commitment, finalizes Scene and makes it active
+- New content seamlessly integrates into existing world
+
+This creates cascading narratives. One choice spawns a scene. Completing that scene spawns more scenes. The story grows organically from player decisions.
+
+### AI Integration Point
+
+AI-generated content enters through the same parser pipeline:
+
+**Process:**
+- AI generates JSON matching exact template structure
+- Game loads JSON through existing PackageLoader
+- Parsers validate and store new templates
+- Templates become available for spawning
+- No code changes needed
+
+**Quality Control:**
+- AI follows schema constraints enforced by parsers
+- PlacementFilters ensure spawns make narrative sense
+- Template structure prevents AI from creating broken content
+- Validation catches malformed generation
+
+**Scope:**
+- AI generates narrative text, choice options, requirement formulas
+- AI does NOT generate code or game mechanics
+- AI works within design-defined systems and patterns
+- Human designers define the pattern language, AI fills patterns with content
+
+This separation means designers can iterate on game systems without retraining AI. AI can generate infinite content variations without breaking game systems.
+
+---
+
+
+## Part 6: Scene Lifecycle and State Management
+
+### Scene States
+
+Scenes progress through defined lifecycle states:
+
+**Provisional State** exists when a Scene is created as consequence preview. The Scene has:
+- Structural skeleton (template reference, placement, embedded situations)
+- Placeholder text not yet finalized
+- Not yet playable
+- Visible to player in UI previews
+- Stored separately from active scenes
+
+**Active State** exists when a Scene becomes playable. The Scene has:
+- Finalized narrative text with placeholders replaced
+- Fully instantiated Situations and Choices
+- Current situation tracking
+- Available for player interaction
+- Stored in main scene collection
+
+**Completed State** exists when a Scene finishes. The Scene has:
+- All relevant situations finished
+- No longer displayed in location/NPC/route UI
+- Archived for save file persistence
+- Still referenced for history and conditionals
+
+### State Transitions
+
+**Provisional → Active** occurs when:
+- Player selects the Choice that created this provisional Scene
+- GameFacade calls SceneInstantiator to finalize
+- Placeholders replaced, narrative generated, state changed
+- Scene moved from provisional to active collection
+
+**Active → Completed** occurs when:
+- Final situation in scene finishes
+- OR scene expiration condition met (time limit, world state change)
+- OR scene explicitly terminated by special choice
+
+**Provisional → Deleted** occurs when:
+- Player selects ANY other Choice from same Situation
+- GameFacade calls SceneInstantiator to delete
+- Memory freed, no trace remains
+
+### Situation Progression
+
+Within an Active Scene, Situations advance according to spawn rules defined in template:
+
+**Linear Progression:** Complete Situation A, Situation B spawns at same placement. Complete B, C spawns. Creates guided narrative arc.
+
+**Hub-and-Spoke:** Complete initial Situation, multiple follow-up Situations spawn simultaneously. Player chooses order. All must complete to reach finale.
+
+**Branching:** Success and failure paths lead to different follow-up Situations. Both valid, both continue story, different tones.
+
+**Cascade Patterns:** Templates define complex flows combining these primitives.
+
+GameFacade coordinates situation transitions. When a Situation completes, GameFacade:
+- Consults Scene's spawn rules
+- Determines which Situation(s) spawn next
+- Updates Scene's current situation tracking
+- Instantiates new Situation if appropriate
+- Marks Scene as complete if no more situations
+
+---
+---
+
+## Part 8: The World Model
+
+### Permanent Scaffolding
+
+The game world exists independently of narrative content. Locations, NPCs, and Routes form permanent structure. They:
+- Define the world's geography
+- Provide personality and flavor
+- Establish relationships and proximity
+- Create navigation possibilities
+
+This scaffolding persists across save/load. It's the stage on which scenes perform.
+
+### Ephemeral Opportunities
+
+Scenes are temporary. They spawn, play out, complete, despawn. At any moment:
+- Some locations have active scenes
+- Some locations have no scenes (atmospheric only)
+- Some NPCs have conversations available
+- Some NPCs are uninteresting currently
+
+This creates pacing and discovery. The world feels alive because not everything is always available. Finding new content feels meaningful because it wasn't guaranteed.
+
+### Scene-World Binding
+
+When a Scene spawns, the SceneInstantiator:
+- Evaluates PlacementFilter against current world state
+- Finds eligible entities (Locations matching tags, NPCs matching personality)
+- Selects best fit based on:
+  - Current player location (prefer nearby)
+  - Entity availability (not already hosting conflicting scene)
+  - Narrative coherence (personality match, relationship history)
+  - Design priority hints in filter
+- Binds Scene to selected entity with PlacementType + PlacementId
+
+Once bound, Scene exists at that placement until completed. If player visits, they encounter the Scene. If player doesn't visit, Scene may expire based on template rules.
+
+### No Scene State
+
+When no Scene is active at a placement:
+- Location displays atmospheric properties only
+- UI shows "There's nothing pressing here right now"
+- Player can still navigate away, rest, or perform universal actions
+- World continues existing
+
+This is intentional design, not missing content. Quiet moments are valid. Not every location needs story beats simultaneously.
+
+---
+
+## Part 9: Integration Patterns
+
+### UI to Strategic Layer
+
+UI components display world state and capture player intent. They:
+- Call LocationFacade for persistent location wrapper
+- Call SceneFacade for active scene query results
+- Combine both into unified display
+- Present choices to player
+- Capture button clicks as intent
+- Call GameFacade execution methods with action IDs
+
+UI does NOT:
+- Directly modify game state
+- Apply costs or rewards
+- Manage scene lifecycle
+- Evaluate requirements
+
+UI is presentation and intent capture only.
+
+### Strategic to Tactical Layer
+
+When a Choice has ActionType of StartChallenge, GameFacade routes player to tactical systems:
+- Social challenges for conversation/persuasion
+- Mental challenges for investigation/deduction
+- Physical challenges for combat/athletics
+
+Routing includes challenge configuration:
+- Which deck to use
+- Win/loss conditions
+- Resource pools (Focus, Stamina)
+- Success/failure consequence divergence
+
+Tactical systems are independent gameplay modes with their own UI. They resolve to success or failure. Result returns to GameFacade which applies appropriate consequences.
+
+### Tactical to Strategic Layer
+
+When tactical challenge completes:
+- Result (success or failure) returns to GameFacade
+- GameFacade consults the Choice's ChoiceReward structure
+- Applies success consequences or failure consequences
+- Advances Situation or completes Scene as appropriate
+- Returns control to strategic navigation UI
+
+The boundary is clean. Tactical systems don't know about Scenes or Situations. They're black-box challenge resolution systems.
+
+---
+
+
+## Part 14: Design Philosophy
+
+### Elegance Through Constraint
+
+Strong typing, clear ownership, explicit relationships aren't limitations. They're quality filters. When design requires workarounds, the design is wrong.
+
+Good architecture makes correct paths easy and incorrect paths hard. It guides toward maintainable solutions.
+
+### Systems Over Content
+
+Content is infinite. Systems are precious. Design systems that enable infinite content variation without code changes. Let authors and AI fill systems with content.
+
+### Perfect Information Without Spoilers
+
+Strategic layer shows consequences. Tactical layer hides execution. This split enables informed decision-making while preserving surprise and challenge.
+
+### Failure as Content
+
+Failure states should continue story with different tone, not block progress. Players learn through consequences, not through retries.
+
+### Player Agency Through Scarcity
+
+Agency comes from impossible choices, not from doing everything. Limited resources force prioritization. Perfect information makes prioritization fair.
+
 
 ## Conclusion
 
