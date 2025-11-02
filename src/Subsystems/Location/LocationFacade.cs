@@ -1002,6 +1002,7 @@ public class LocationFacade
             Name = situation.Name,
             Description = situation.Description,
             SystemType = systemType,
+            Type = situation.Type.ToString(),  // Copy from domain entity (Normal/Crisis)
             Difficulty = difficultyResult.FinalDifficulty,
             DifficultyLabel = difficultyLabel,
             ObligationId = situation.Obligation?.Id,

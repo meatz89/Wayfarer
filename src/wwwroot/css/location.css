@@ -1441,6 +1441,27 @@ body * {
     box-shadow: 0 4px 16px rgba(139, 103, 38, 0.4);
 }
 
+.situation-action-btn.crisis-situation {
+    border-color: #b22222;
+    border-width: 3px;
+    background: #ffe4e4;
+    box-shadow: 0 0 12px rgba(178, 34, 34, 0.3);
+}
+
+.situation-action-btn.crisis-situation:hover {
+    background: #ffcccc;
+    border-color: #8b0000;
+    box-shadow: 0 4px 16px rgba(178, 34, 34, 0.5);
+}
+
+.situation-action-btn.crisis-situation::before {
+    content: "⚠️";
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 18px;
+}
+
 .situation-system-badge {
     display: inline-block;
     padding: 4px 10px;

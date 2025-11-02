@@ -180,6 +180,22 @@ public class SceneInstantiator
                     throw new InvalidOperationException("SpecificRoute placement requires SpecificPlacementId in spawnReward");
                 return (PlacementType.Route, spawnReward.SpecificPlacementId);
 
+            case PlacementRelation.Generic:
+                // Evaluate PlacementFilter from SceneTemplate to find matching entity
+                if (template.PlacementFilter == null)
+                    throw new InvalidOperationException($"Generic placement requires PlacementFilter on SceneTemplate '{template.Id}'");
+
+                string placementId = EvaluatePlacementFilter(template.PlacementFilter, context);
+                if (string.IsNullOrEmpty(placementId))
+                {
+                    throw new InvalidOperationException(
+                        $"No matching entity found for PlacementFilter on SceneTemplate '{template.Id}'.\n{FormatFilterCriteria(template.PlacementFilter)}"
+                    );
+                }
+
+                PlacementType placementType = template.PlacementFilter.PlacementType;
+                return (placementType, placementId);
+
             default:
                 throw new InvalidOperationException($"Unknown PlacementRelation: {relation}");
         }
@@ -231,4 +247,269 @@ public class SceneInstantiator
     // Actions are NOW created at query time (Tier 3) by SceneFacade
     // This is the CRITICAL architectural refactoring for three-tier timing model
     // See situation-refactor/REFACTORING_PLAN.md for complete details
+
+    // ==================== GENERIC PLACEMENT FILTER EVALUATION ====================
+    // RUNTIME PlacementFilter evaluation for Generic placement relation
+    // Replicates GameWorldInitializer.FindStarterPlacement() logic for runtime spawning
+    // Supports AI-generated scenes with categorical properties instead of hardcoded IDs
+
+    /// <summary>
+    /// Evaluate PlacementFilter to find matching entity at runtime
+    /// Returns entity ID or null if no match found
+    /// Throws InvalidOperationException if no matching entity (fail fast)
+    /// </summary>
+    private string EvaluatePlacementFilter(PlacementFilter filter, SceneSpawnContext context)
+    {
+        Player player = context.Player;
+
+        switch (filter.PlacementType)
+        {
+            case PlacementType.NPC:
+                return FindMatchingNPC(filter, player);
+
+            case PlacementType.Location:
+                return FindMatchingLocation(filter, player);
+
+            case PlacementType.Route:
+                return FindMatchingRoute(filter, player);
+
+            default:
+                throw new InvalidOperationException($"Unknown PlacementType: {filter.PlacementType}");
+        }
+    }
+
+    /// <summary>
+    /// Find NPC matching PlacementFilter criteria
+    /// REFERENCE IMPLEMENTATION: Copied from GameWorldInitializer.FindStarterPlacement() (lines 120-142)
+    /// Returns first NPC ID matching ALL filter criteria, or null if no match
+    /// </summary>
+    private string FindMatchingNPC(PlacementFilter filter, Player player)
+    {
+        NPC matchingNPC = _gameWorld.NPCs.FirstOrDefault(npc =>
+        {
+            // Check personality type (if specified)
+            if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
+            {
+                if (!filter.PersonalityTypes.Contains(npc.PersonalityType))
+                    return false;
+            }
+
+            // Check bond thresholds (BondStrength stored directly on NPC)
+            int currentBond = npc.BondStrength;
+            if (filter.MinBond.HasValue && currentBond < filter.MinBond.Value)
+                return false;
+            if (filter.MaxBond.HasValue && currentBond > filter.MaxBond.Value)
+                return false;
+
+            // NPC tags check removed - NPCs don't have Tags property in current architecture
+            // TODO: Add filter.NpcTags check when NPC.Tags property implemented
+
+            // Check player state filters (shared across all placement types)
+            if (!CheckPlayerStateFilters(filter, player))
+                return false;
+
+            return true;
+        });
+
+        return matchingNPC?.ID;
+    }
+
+    /// <summary>
+    /// Find Location matching PlacementFilter criteria
+    /// Returns first Location ID matching ALL filter criteria, or null if no match
+    /// </summary>
+    private string FindMatchingLocation(PlacementFilter filter, Player player)
+    {
+        Location matchingLocation = _gameWorld.Locations.FirstOrDefault(loc =>
+        {
+            // Check location properties (if specified)
+            if (filter.LocationProperties != null && filter.LocationProperties.Count > 0)
+            {
+                // Location must have ALL specified properties
+                if (!filter.LocationProperties.All(prop => loc.LocationProperties.Contains(prop)))
+                    return false;
+            }
+
+            // TODO: District/Region filters when Location.DistrictId/RegionId properties implemented
+            // if (!string.IsNullOrEmpty(filter.DistrictId))
+            // {
+            //     if (loc.DistrictId != filter.DistrictId)
+            //         return false;
+            // }
+            // if (!string.IsNullOrEmpty(filter.RegionId))
+            // {
+            //     if (loc.RegionId != filter.RegionId)
+            //         return false;
+            // }
+
+            // Location tags check removed - Locations don't have Tags property in current architecture
+            // TODO: Add filter.LocationTags check when Location.Tags property implemented
+
+            // Check player state filters (shared across all placement types)
+            if (!CheckPlayerStateFilters(filter, player))
+                return false;
+
+            return true;
+        });
+
+        return matchingLocation?.Id;
+    }
+
+    /// <summary>
+    /// Find Route matching PlacementFilter criteria
+    /// Returns first Route ID matching ALL filter criteria, or null if no match
+    /// ⚠️ BLOCKED: Route entity missing TerrainType, Tier, DangerRating properties
+    /// Currently returns first route as fallback
+    /// </summary>
+    private string FindMatchingRoute(PlacementFilter filter, Player player)
+    {
+        RouteOption matchingRoute = _gameWorld.Routes.FirstOrDefault(route =>
+        {
+            // TODO: Check terrain types when Route.TerrainType property exists
+            // if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
+            // {
+            //     if (!filter.TerrainTypes.Contains(route.TerrainType))
+            //         return false;
+            // }
+
+            // TODO: Check route tier when Route.Tier property exists
+            // if (filter.RouteTier.HasValue)
+            // {
+            //     if (route.Tier != filter.RouteTier.Value)
+            //         return false;
+            // }
+
+            // TODO: Check danger rating when Route.DangerRating property exists
+            // if (filter.MinDangerRating.HasValue && route.DangerRating < filter.MinDangerRating.Value)
+            //     return false;
+            // if (filter.MaxDangerRating.HasValue && route.DangerRating > filter.MaxDangerRating.Value)
+            //     return false;
+
+            // Check player state filters (shared across all placement types)
+            if (!CheckPlayerStateFilters(filter, player))
+                return false;
+
+            return true;
+        });
+
+        return matchingRoute?.Id;
+    }
+
+    /// <summary>
+    /// Validate player state filters (shared across all placement types)
+    /// Returns true if player meets all state requirements, false otherwise
+    /// </summary>
+    private bool CheckPlayerStateFilters(PlacementFilter filter, Player player)
+    {
+        // Check required states
+        if (filter.RequiredStates != null && filter.RequiredStates.Count > 0)
+        {
+            // Player must have ALL required states
+            if (!filter.RequiredStates.All(state => player.ActiveStates.Any(activeState => activeState.Type == state)))
+                return false;
+        }
+
+        // Check forbidden states
+        if (filter.ForbiddenStates != null && filter.ForbiddenStates.Count > 0)
+        {
+            // Player must have NONE of the forbidden states
+            if (filter.ForbiddenStates.Any(state => player.ActiveStates.Any(activeState => activeState.Type == state)))
+                return false;
+        }
+
+        // Check required achievements
+        if (filter.RequiredAchievements != null && filter.RequiredAchievements.Count > 0)
+        {
+            // Player must have ALL required achievements
+            if (!filter.RequiredAchievements.All(achId =>
+                player.EarnedAchievements.Any(a => a.AchievementId == achId)))
+                return false;
+        }
+
+        // Check scale requirements
+        if (filter.ScaleRequirements != null && filter.ScaleRequirements.Count > 0)
+        {
+            foreach (ScaleRequirement scaleReq in filter.ScaleRequirements)
+            {
+                int scaleValue = GetScaleValue(player, scaleReq.ScaleType);
+
+                if (scaleReq.MinValue.HasValue && scaleValue < scaleReq.MinValue.Value)
+                    return false;
+
+                if (scaleReq.MaxValue.HasValue && scaleValue > scaleReq.MaxValue.Value)
+                    return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Get current scale value for player
+    /// REFERENCE: Copied from ConsequenceFacade.GetScaleValue() (lines 157-169)
+    /// </summary>
+    private int GetScaleValue(Player player, ScaleType scaleType)
+    {
+        return scaleType switch
+        {
+            ScaleType.Morality => player.Scales.Morality,
+            ScaleType.Lawfulness => player.Scales.Lawfulness,
+            ScaleType.Method => player.Scales.Method,
+            ScaleType.Caution => player.Scales.Caution,
+            ScaleType.Transparency => player.Scales.Transparency,
+            ScaleType.Fame => player.Scales.Fame,
+            _ => 0
+        };
+    }
+
+    /// <summary>
+    /// Format PlacementFilter criteria for diagnostic error messages
+    /// Returns human-readable summary of all filter criteria
+    /// </summary>
+    private string FormatFilterCriteria(PlacementFilter filter)
+    {
+        List<string> criteria = new List<string>();
+
+        criteria.Add($"PlacementType: {filter.PlacementType}");
+
+        // NPC filters
+        if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
+            criteria.Add($"Personality Types: [{string.Join(", ", filter.PersonalityTypes)}]");
+        if (filter.MinBond.HasValue)
+            criteria.Add($"MinBond: {filter.MinBond.Value}");
+        if (filter.MaxBond.HasValue)
+            criteria.Add($"MaxBond: {filter.MaxBond.Value}");
+        if (filter.NpcTags != null && filter.NpcTags.Count > 0)
+            criteria.Add($"NPC Tags: [{string.Join(", ", filter.NpcTags)}]");
+
+        // Location filters
+        if (filter.LocationProperties != null && filter.LocationProperties.Count > 0)
+            criteria.Add($"Location Properties: [{string.Join(", ", filter.LocationProperties)}]");
+        if (!string.IsNullOrEmpty(filter.DistrictId))
+            criteria.Add($"District: {filter.DistrictId}");
+        if (!string.IsNullOrEmpty(filter.RegionId))
+            criteria.Add($"Region: {filter.RegionId}");
+
+        // Route filters
+        if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
+            criteria.Add($"Terrain Types: [{string.Join(", ", filter.TerrainTypes)}]");
+        if (filter.RouteTier.HasValue)
+            criteria.Add($"Route Tier: {filter.RouteTier.Value}");
+        if (filter.MinDangerRating.HasValue)
+            criteria.Add($"Min Danger: {filter.MinDangerRating.Value}");
+        if (filter.MaxDangerRating.HasValue)
+            criteria.Add($"Max Danger: {filter.MaxDangerRating.Value}");
+
+        // Player state filters
+        if (filter.RequiredStates != null && filter.RequiredStates.Count > 0)
+            criteria.Add($"Required States: [{string.Join(", ", filter.RequiredStates)}]");
+        if (filter.ForbiddenStates != null && filter.ForbiddenStates.Count > 0)
+            criteria.Add($"Forbidden States: [{string.Join(", ", filter.ForbiddenStates)}]");
+        if (filter.RequiredAchievements != null && filter.RequiredAchievements.Count > 0)
+            criteria.Add($"Required Achievements: [{string.Join(", ", filter.RequiredAchievements)}]");
+        if (filter.ScaleRequirements != null && filter.ScaleRequirements.Count > 0)
+            criteria.Add($"Scale Requirements: {filter.ScaleRequirements.Count} requirements");
+
+        return string.Join("\n", criteria);
+    }
 }

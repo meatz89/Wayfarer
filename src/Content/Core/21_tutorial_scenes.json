@@ -501,7 +501,14 @@
                   "stateApplications": [],
                   "achievementIds": ["tutorial_complete"],
                   "itemIds": [],
-                  "scenesToSpawn": []
+                  "scenesToSpawn": [
+                    {
+                      "sceneTemplateId": "inn_trouble_brewing",
+                      "placementRelation": "Generic",
+                      "specificPlacementId": null,
+                      "spawnTiming": "Immediate"
+                    }
+                  ]
                 },
                 "navigationPayload": null
               },
@@ -538,7 +545,14 @@
                   "stateApplications": [],
                   "achievementIds": ["tutorial_complete"],
                   "itemIds": [],
-                  "scenesToSpawn": []
+                  "scenesToSpawn": [
+                    {
+                      "sceneTemplateId": "inn_trouble_brewing",
+                      "placementRelation": "Generic",
+                      "specificPlacementId": null,
+                      "spawnTiming": "Immediate"
+                    }
+                  ]
                 },
                 "navigationPayload": null
               }

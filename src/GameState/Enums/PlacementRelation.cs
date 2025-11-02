@@ -40,5 +40,15 @@ public enum PlacementRelation
     /// Spawn on specific route (ID provided in SpecificPlacementId)
     /// Absolute placement
     /// </summary>
-    SpecificRoute
+    SpecificRoute,
+
+    /// <summary>
+    /// Spawn at entity matching SceneTemplate.PlacementFilter criteria
+    /// Categorical/filter-based placement
+    /// Evaluates PlacementFilter at runtime to find suitable NPC/Location/Route
+    /// Supports AI-generated scenes without hardcoded entity IDs
+    /// Uses first entity matching all filter criteria (PersonalityType, MinBond, LocationProperties, etc.)
+    /// Throws exception if no matching entity found (fail fast)
+    /// </summary>
+    Generic
 }

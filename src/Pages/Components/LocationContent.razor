@@ -117,7 +117,7 @@
                                 <div class="actions-grid">
                                     @foreach (var situation in npcWithSituations.AmbientSocialSituations)
                                     {
-                                        <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "")"
+                                        <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "") @(situation.Type == "Crisis" ? "crisis-situation" : "")"
                                              @onclick="() => HandleNavigateToSituation(situation.Id)">
                                             <div class="situation-system-badge social">Social</div>
                                             <div class="situation-name">@situation.Name</div>
@@ -151,7 +151,7 @@
                                     <div class="actions-grid">
                                         @foreach (var situation in scene.Situations)
                                         {
-                                            <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "")"
+                                            <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "") @(situation.Type == "Crisis" ? "crisis-situation" : "")"
                                                  @onclick="() => HandleNavigateToSituation(situation.Id)">
                                                 <div class="situation-system-badge social">Social</div>
                                                 <div class="situation-name">@situation.Name</div>
@@ -199,7 +199,7 @@
                             <div class="actions-grid">
                                 @foreach (var situation in ViewModel.AmbientMentalSituations)
                                 {
-                                    <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "")"
+                                    <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "") @(situation.Type == "Crisis" ? "crisis-situation" : "")"
                                          @onclick="() => HandleNavigateToSituation(situation.Id)">
                                         <div class="situation-system-badge mental">Mental</div>
                                         <div class="situation-name">@situation.Name</div>
@@ -233,7 +233,7 @@
                                 <div class="actions-grid">
                                     @foreach (var situation in scene.Situations)
                                     {
-                                        <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "")"
+                                        <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "") @(situation.Type == "Crisis" ? "crisis-situation" : "")"
                                              @onclick="() => HandleNavigateToSituation(situation.Id)">
                                             <div class="situation-system-badge mental">Mental</div>
                                             <div class="situation-name">@situation.Name</div>
@@ -267,7 +267,7 @@
                             <div class="actions-grid">
                                 @foreach (var situation in ViewModel.AmbientPhysicalSituations)
                                 {
-                                    <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "")"
+                                    <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "") @(situation.Type == "Crisis" ? "crisis-situation" : "")"
                                          @onclick="() => HandleNavigateToSituation(situation.Id)">
                                         <div class="situation-system-badge physical">Physical</div>
                                         <div class="situation-name">@situation.Name</div>
@@ -301,7 +301,7 @@
                                 <div class="actions-grid">
                                     @foreach (var situation in scene.Situations)
                                     {
-                                        <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "")"
+                                        <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "") @(situation.Type == "Crisis" ? "crisis-situation" : "")"
                                              @onclick="() => HandleNavigateToSituation(situation.Id)">
                                             <div class="situation-system-badge physical">Physical</div>
                                             <div class="situation-name">@situation.Name</div>

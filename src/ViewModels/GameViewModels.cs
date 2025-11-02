@@ -263,6 +263,7 @@ public class SituationCardViewModel
     public string Name { get; set; }
     public string Description { get; set; }
     public string SystemType { get; set; }  // "social", "mental", "physical"
+    public string Type { get; set; }  // "Normal" or "Crisis" - for UI visual weight
     public int Difficulty { get; set; }  // Pre-calculated difficulty
     public string DifficultyLabel { get; set; }  // "Doubt", "Exposure", "Danger"
     public string ObligationId { get; set; }
