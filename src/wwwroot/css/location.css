@@ -1462,6 +1462,57 @@ body * {
     font-size: 18px;
 }
 
+/* Sir Brante pattern: Locked action state (requirements not met) */
+.situation-action-btn.locked {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background: #e8dcc4;
+    border-color: #a68b6f;
+    border-style: dashed;
+}
+
+.situation-action-btn.locked:hover {
+    transform: none;
+    box-shadow: none;
+    background: #e8dcc4;
+    border-color: #a68b6f;
+}
+
+/* Lock overlay - absolute positioned over action card content */
+.action-locked-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(44, 36, 26, 0.75);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    backdrop-filter: blur(2px);
+    z-index: 10;
+}
+
+.lock-icon {
+    font-size: 28px;
+    filter: grayscale(100%);
+    opacity: 0.8;
+}
+
+.lock-text {
+    color: #e8dcc4;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    padding: 0 15px;
+    line-height: 1.4;
+}
+
 .situation-system-badge {
     display: inline-block;
     padding: 4px 10px;

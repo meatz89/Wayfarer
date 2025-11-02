@@ -761,20 +761,27 @@ public class LocationFacade
 
             // Map NPCActions to ActionCardViewModel for UI display
             // LET IT CRASH: Trust entity initialization contracts (ChoiceTemplate/CostTemplate/ActionType always initialized)
-            List<ActionCardViewModel> actions = npcActions.Select(action => new ActionCardViewModel
+            List<ActionCardViewModel> actions = npcActions.Select(action =>
             {
-                Id = action.Id,
-                SituationId = action.SituationId,
-                Name = action.Name,
-                Description = action.Description,
-                SystemType = action.ChallengeType.ToString().ToLower(),
-                ResolveCost = action.ChoiceTemplate.CostTemplate.Resolve,
-                CoinsCost = action.ChoiceTemplate.CostTemplate.Coins,
-                TimeSegments = action.ChoiceTemplate.CostTemplate.TimeSegments,
-                ActionType = action.ChoiceTemplate.ActionType.ToString(),
-                ChallengeType = action.ChallengeType.ToString(),
-                RequirementsMet = true,  // TODO: Evaluate requirements
-                LockReason = null
+                // Evaluate requirements at display-time (Sir Brante pattern: show locked choices with visible requirements)
+                bool requirementsMet = action.ChoiceTemplate.RequirementFormula?.IsAnySatisfied(player, _gameWorld) ?? true;
+                string lockReason = !requirementsMet ? GenerateLockReason(action.ChoiceTemplate.RequirementFormula, player) : null;
+
+                return new ActionCardViewModel
+                {
+                    Id = action.Id,
+                    SituationId = action.SituationId,
+                    Name = action.Name,
+                    Description = action.Description,
+                    SystemType = action.ChallengeType.ToString().ToLower(),
+                    ResolveCost = action.ChoiceTemplate.CostTemplate.Resolve,
+                    CoinsCost = action.ChoiceTemplate.CostTemplate.Coins,
+                    TimeSegments = action.ChoiceTemplate.CostTemplate.TimeSegments,
+                    ActionType = action.ChoiceTemplate.ActionType.ToString(),
+                    ChallengeType = action.ChallengeType.ToString(),
+                    RequirementsMet = requirementsMet,
+                    LockReason = lockReason
+                };
             }).ToList();
 
             // Filter to Social situations only, available
@@ -827,6 +834,48 @@ public class LocationFacade
         // Fallback to generated description
         string template = _dialogueGenerator.GenerateNPCDescription(npc, state);
         return _narrativeRenderer.RenderTemplate(template);
+    }
+
+    /// <summary>
+    /// Generate human-readable lock reason from CompoundRequirement
+    /// Sir Brante pattern: Show player WHY choice is locked (visible requirements)
+    /// Returns formatted string like "Requires Authority 3+" or "Requires Bond 15+ OR Morality +8"
+    /// </summary>
+    private string GenerateLockReason(CompoundRequirement requirement, Player player)
+    {
+        if (requirement == null || requirement.OrPaths == null || requirement.OrPaths.Count == 0)
+            return "Requirements not met";
+
+        // Collect all path labels from unmet paths
+        List<string> pathLabels = new List<string>();
+
+        foreach (OrPath path in requirement.OrPaths)
+        {
+            if (!path.IsSatisfied(player, _gameWorld))
+            {
+                // Use path label if available, otherwise generate from requirements
+                if (!string.IsNullOrEmpty(path.Label))
+                {
+                    pathLabels.Add(path.Label);
+                }
+                else if (path.NumericRequirements != null && path.NumericRequirements.Count > 0)
+                {
+                    // Use first requirement's label as fallback
+                    NumericRequirement firstReq = path.NumericRequirements.First();
+                    if (!string.IsNullOrEmpty(firstReq.Label))
+                    {
+                        pathLabels.Add(firstReq.Label);
+                    }
+                }
+            }
+        }
+
+        if (pathLabels.Count == 0)
+            return "Requirements not met";
+        else if (pathLabels.Count == 1)
+            return $"Requires {pathLabels[0]}";
+        else
+            return $"Requires {string.Join(" OR ", pathLabels)}";
     }
 
     // DELETED: GetFilteredSocialSituations() - was incorrectly using GetVisibleLocationSituations()

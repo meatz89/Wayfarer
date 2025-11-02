@@ -81,8 +81,16 @@
                                 <div class="actions-grid">
                                     @foreach (var action in npcWithSituations.Actions)
                                     {
-                                        <div class="situation-action-btn action-card"
+                                        <div class="situation-action-btn action-card @(!action.RequirementsMet ? "locked" : "")"
                                              @onclick="() => HandleExecuteNPCAction(action)">
+                                            @* Sir Brante pattern: Locked overlay shows requirements *@
+                                            @if (!action.RequirementsMet && !string.IsNullOrEmpty(action.LockReason))
+                                            {
+                                                <div class="action-locked-overlay">
+                                                    <span class="lock-icon">🔒</span>
+                                                    <span class="lock-text">@action.LockReason</span>
+                                                </div>
+                                            }
                                             <div class="situation-system-badge @action.SystemType">@action.ChallengeType</div>
                                             <div class="situation-name">@action.Name</div>
                                             @if (!string.IsNullOrEmpty(action.Description))
