@@ -431,6 +431,18 @@ public class Player
             Inventory = new Inventory(config.SatchelCapacity.Value);
         }
 
+        // Add initial items to inventory
+        if (config.InitialItems != null && config.InitialItems.Count > 0)
+        {
+            foreach (ResourceEntry entry in config.InitialItems)
+            {
+                for (int i = 0; i < entry.Amount; i++)
+                {
+                    Inventory.AddItem(entry.ResourceType);
+                }
+            }
+        }
+
         // SatchelWeight represents initial weight from starting obligations (Viktor's package)
         // This will be handled by the obligation system when adding starting obligations
     }

@@ -23,7 +23,12 @@
       "maxFocus": 6,
       "minHealth": 0,
       "satchelCapacity": 10,
-      "satchelWeight": 0
+      "satchelWeight": 0,
+      "initialItems": [
+        { "resourceType": "rope", "amount": 2 },
+        { "resourceType": "lantern", "amount": 1 },
+        { "resourceType": "rations", "amount": 3 }
+      ]
     },
     "startingSpotId": "common_room",
     "startingDay": 1,
