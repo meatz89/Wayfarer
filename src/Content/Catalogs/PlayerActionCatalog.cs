@@ -65,7 +65,8 @@ public static class PlayerActionCatalog
                 Description = "See who's here and what's happening - people, challenges, opportunities",
                 ActionType = PlayerActionType.LookAround,
                 Costs = ActionCosts.None(),  // No resource cost
-                Rewards = ActionRewards.None()  // Navigation-only action
+                Rewards = ActionRewards.None(),  // Navigation-only action
+                Priority = 1  // TOP priority - should appear first in list
             }
         };
     }

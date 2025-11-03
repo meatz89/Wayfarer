@@ -687,7 +687,13 @@ public class LocationFacade
         if (_gameWorld.PlayerActions == null)
             throw new InvalidOperationException("PlayerActions not initialized");
 
-        foreach (PlayerAction action in _gameWorld.PlayerActions)
+        // Sort by Priority (ascending - lower number = higher priority)
+        List<PlayerAction> sortedActions = _gameWorld.PlayerActions
+            .OrderBy(action => action.Priority)
+            .ThenBy(action => action.Name)
+            .ToList();
+
+        foreach (PlayerAction action in sortedActions)
         {
             // Filter: Don't show "Sleep Outside" when player is INSIDE (at Indoor location)
             if (action.ActionType == PlayerActionType.SleepOutside &&

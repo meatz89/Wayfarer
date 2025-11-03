@@ -136,33 +136,6 @@ public static class LocationActionCatalog
             });
         }
 
-        // LodgingProvider property → Secure Room action
-        if (location.LocationProperties.Contains(LocationPropertyType.LodgingProvider))
-        {
-            Console.WriteLine($"[LocationActionCatalog] ✅ LodgingProvider found - generating Secure Room action");
-            actions.Add(new LocationAction
-            {
-                Id = $"secure_room_{location.Id}",
-                SourceLocationId = location.Id,  // Bind to specific location
-                Name = "Secure a Room (10 coins)",
-                Description = "Purchase a room for the night. Full recovery of all resources. A bed, a roof, safety through the night.",
-                ActionType = LocationActionType.SecureRoom,
-                Costs = new ActionCosts
-                {
-                    Coins = 10  // Cost for secure lodging
-                },
-                Rewards = new ActionRewards
-                {
-                    FullRecovery = true  // Full health/stamina/focus recovery
-                },
-                RequiredProperties = new List<LocationPropertyType> { LocationPropertyType.LodgingProvider },
-                OptionalProperties = new List<LocationPropertyType>(),
-                ExcludedProperties = new List<LocationPropertyType>(),
-                Availability = new List<TimeBlocks> { TimeBlocks.Evening },  // Only at evening
-                Priority = 120  // High priority - important service
-            });
-        }
-
         return actions;
     }
 

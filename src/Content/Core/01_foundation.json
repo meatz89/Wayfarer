@@ -34,9 +34,7 @@
         "description": "You've been walking since dawn. Your legs ache, your coin purse feels light, and the sun is setting. The warm glow of The Brass Bell Inn beckons from across the square.",
         "properties": {
           "base": [
-            "crossroads"
-          ],
-          "all": [
+            "crossroads",
             "public",
             "busy"
           ]
@@ -51,13 +49,10 @@
         "properties": {
           "base": [
             "crossroads",
-            "commercial"
-          ],
-          "all": [
+            "commercial",
             "public",
             "busy",
             "restful",
-            "lodgingProvider",
             "indoor"
           ]
         },
@@ -70,9 +65,7 @@
         "description": "A simple guest room. Quiet, safe. A bed waits.",
         "properties": {
           "base": [
-            "sleepingSpace"
-          ],
-          "all": [
+            "sleepingSpace",
             "restful",
             "indoor"
           ]
@@ -87,9 +80,7 @@
         "properties": {
           "base": [
             "public",
-            "commercial"
-          ],
-          "all": [
+            "commercial",
             "busy"
           ]
         },

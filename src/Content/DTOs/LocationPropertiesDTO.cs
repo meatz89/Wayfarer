@@ -6,8 +6,6 @@ public class LocationPropertiesDTO
 {
     public List<string> Base { get; set; } = new List<string>();
 
-    public List<string> All { get; set; } = new List<string>();
-
     public List<string> Morning { get; set; } = new List<string>();
 
     public List<string> Midday { get; set; } = new List<string>();
