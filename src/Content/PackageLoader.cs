@@ -1649,7 +1649,11 @@ public class PackageLoader
             _gameWorld.SceneTemplates.Add(template);
         }
 
-        Console.WriteLine($"[PackageLoader] Loaded {_gameWorld.SceneTemplates.Count} SceneTemplates");
+        // Only log when templates were actually loaded from this package (reduce log noise)
+        if (sceneTemplateDtos.Count > 0)
+        {
+            Console.WriteLine($"[PackageLoader] Loaded {sceneTemplateDtos.Count} SceneTemplates from this package");
+        }
     }
 
 }
