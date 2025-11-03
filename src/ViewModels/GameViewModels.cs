@@ -228,8 +228,9 @@ public class LocationHeaderViewModel
 }
 
 /// <summary>
-/// NPC with their social situations already filtered and attached
-/// NO FILTERING NEEDED IN UI - backend pre-groups situations by NPC and scenes
+/// NPC present at location - simplified for "Look Around" view
+/// Shows basic NPC metadata with single "Talk to" engagement action
+/// NO situations, scenes, or executable actions (those appear AFTER engagement)
 /// </summary>
 public class NpcWithSituationsViewModel
 {
@@ -239,14 +240,6 @@ public class NpcWithSituationsViewModel
     public string ConnectionState { get; set; }
     public string StateClass { get; set; }  // CSS class for connection state
     public string Description { get; set; }
-
-    // Social situations FOR THIS NPC - grouped by scenes
-    public List<SituationCardViewModel> AmbientSocialSituations { get; set; } = new();  // Situations without scenes
-    public List<SceneWithSituationsViewModel> SocialScenes { get; set; } = new();  // Situations from scenes
-
-    // SCENE-SITUATION ARCHITECTURE: Executable actions from activated Situations
-    // Three-tier timing: Actions created at query-time from ChoiceTemplates
-    public List<ActionCardViewModel> Actions { get; set; } = new();
 
     // Exchange availability for MERCANTILE NPCs
     public bool HasExchange { get; set; }

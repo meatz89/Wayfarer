@@ -117,6 +117,21 @@ public class CheckBelongingsIntent : PlayerIntent
 }
 
 /// <summary>
+/// Intent to engage with an NPC
+/// Spawns scene for NPC engagement, shows situations/choices
+/// This is the CORRECT way to interact with NPCs (not direct challenge execution)
+/// </summary>
+public class EngageNPCIntent : PlayerIntent
+{
+    public string NpcId { get; }
+
+    public EngageNPCIntent(string npcId)
+    {
+        NpcId = npcId ?? throw new ArgumentNullException(nameof(npcId));
+    }
+}
+
+/// <summary>
 /// Intent to look around at current location
 /// Triggers navigation to LookingAround view showing NPCs, challenges, opportunities
 /// </summary>

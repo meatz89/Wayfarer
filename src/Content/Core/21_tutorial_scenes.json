@@ -13,6 +13,7 @@
         "id": "tutorial_evening_arrival",
         "archetype": "Linear",
         "presentationMode": "Modal",
+        "isForced": false,
         "displayNameTemplate": "Evening Arrival at {VenueName}",
         "introNarrativeTemplate": "You arrive at {VenueName} as evening shadows lengthen. The warm glow from windows promises shelter, but your coin purse feels light.",
         "tier": 0,

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Wayfarer.GameState.Enums;
 using Wayfarer.Subsystems.Scene;
 
 /// <summary>
@@ -580,6 +581,52 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         };
 
         // Always refresh UI before modal scene
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+
+        CurrentScreen = ScreenMode.Scene;
+        ContentVersion++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task StartNPCEngagement(string npcId)
+    {
+        // Find active scene for this NPC
+        Scene scene = GameWorld.Scenes.FirstOrDefault(s =>
+            s.State == SceneState.Active &&
+            s.PlacementType == PlacementType.NPC &&
+            s.PlacementId == npcId);
+
+        // If no active scene found, we can't engage (scene should be spawned first)
+        // In future, could spawn scene here if needed
+        if (scene == null)
+        {
+            Console.WriteLine($"[GameScreen] No active scene found for NPC {npcId}");
+            return;
+        }
+
+        // Get current situation from scene
+        Situation currentSituation = GameWorld.Situations
+            .FirstOrDefault(s => s.Id == scene.CurrentSituationId);
+
+        if (currentSituation == null)
+        {
+            Console.WriteLine($"[GameScreen] No current situation found for scene {scene.Id}");
+            return;
+        }
+
+        // Create modal scene context
+        Venue currentLocation = GameFacade.GetCurrentLocation();
+        CurrentModalSceneContext = new ModalSceneContext
+        {
+            IsValid = true,
+            Scene = scene,
+            CurrentSituation = currentSituation,
+            LocationId = currentLocation?.Id,
+            LocationName = currentLocation?.Name
+        };
+
+        // Always refresh UI before scene
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
 

@@ -284,6 +284,11 @@ namespace Wayfarer.Pages.Components
             await GameScreen.StartExchange(npcId);
         }
 
+        protected async Task HandleTalkToNPC(string npcId)
+        {
+            await GameScreen.StartNPCEngagement(npcId);
+        }
+
         protected async Task HandleAcceptJob(string jobId)
         {
             // Execute through intent system - backend handles validation
@@ -307,18 +312,8 @@ namespace Wayfarer.Pages.Components
             if (SelectedSituation == null) return null;
 
             // Find the situation in view model to get pre-calculated difficulty
-            // Search in Social situations (ambient + scenes)
-            SituationCardViewModel situationCard = ViewModel.NPCsWithSituations
-                .SelectMany(npc => npc.AmbientSocialSituations)
-                .FirstOrDefault(g => g.Id == SelectedSituation.Id);
-
-            if (situationCard == null)
-            {
-                situationCard = ViewModel.NPCsWithSituations
-                    .SelectMany(npc => npc.SocialScenes)
-                    .SelectMany(scene => scene.Situations)
-                    .FirstOrDefault(g => g.Id == SelectedSituation.Id);
-            }
+            // NOTE: Social situations from NPCs removed - they appear in Scene view after engagement
+            SituationCardViewModel situationCard = null;
 
             // Search in Mental situations (ambient + scenes)
             if (situationCard == null)

@@ -743,68 +743,11 @@ public class LocationFacade
         // Get NPCs at spot
         List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot.Id, currentTime);
 
-        // Build NPCs with their situations PRE-GROUPED
-        // CORRECT: Get situations FROM each NPC (using PlacementNpcId), not from location
+        // Build SIMPLE NPC cards for "Look Around" view
+        // NO scenes, situations, or executable actions (those appear AFTER player clicks "Talk to NPC")
         foreach (NPC npc in npcsAtSpot)
         {
             ConnectionState connectionState = GetNPCConnectionState(npc);
-
-            // SCENE-SITUATION ARCHITECTURE: Query active Scenes with this NPC, get Situation IDs, query GameWorld.Situations
-            List<global::Scene> scenesAtNPC = _gameWorld.Scenes
-                .Where(s => s.State == SceneState.Active &&
-                           s.PlacementType == PlacementType.NPC &&
-                           s.PlacementId == npc.ID)
-                .ToList();
-
-            // Collect all Situation IDs from these scenes
-            List<string> situationIds = scenesAtNPC
-                .SelectMany(scene => scene.SituationIds)
-                .ToList();
-
-            // Query GameWorld.Situations for these IDs (HIGHLANDER: single source of truth)
-            List<Situation> allNpcSituations = _gameWorld.Situations
-                .Where(s => situationIds.Contains(s.Id))
-                .ToList();
-
-            // SCENE-SITUATION ARCHITECTURE: Activate dormant Situations → create NPCActions (Layer 3)
-            Player player = _gameWorld.GetPlayer();
-            List<NPCAction> npcActions = _sceneFacade.GetActionsForNPC(npc.ID, player);
-
-            // Map NPCActions to ActionCardViewModel for UI display
-            // LET IT CRASH: Trust entity initialization contracts (ChoiceTemplate/CostTemplate/ActionType always initialized)
-            List<ActionCardViewModel> actions = npcActions.Select(action =>
-            {
-                // Evaluate requirements at display-time (Sir Brante pattern: show locked choices with visible requirements)
-                bool requirementsMet = action.ChoiceTemplate.RequirementFormula?.IsAnySatisfied(player, _gameWorld) ?? true;
-                string lockReason = !requirementsMet ? GenerateLockReason(action.ChoiceTemplate.RequirementFormula, player) : null;
-
-                return new ActionCardViewModel
-                {
-                    Id = action.Id,
-                    SituationId = action.SituationId,
-                    Name = action.Name,
-                    Description = action.Description,
-                    SystemType = action.ChallengeType.ToString().ToLower(),
-                    ResolveCost = action.ChoiceTemplate.CostTemplate.Resolve,
-                    CoinsCost = action.ChoiceTemplate.CostTemplate.Coins,
-                    TimeSegments = action.ChoiceTemplate.CostTemplate.TimeSegments,
-                    ActionType = action.ChoiceTemplate.ActionType.ToString(),
-                    ChallengeType = action.ChallengeType.ToString(),
-                    RequirementsMet = requirementsMet,
-                    LockReason = lockReason
-                };
-            }).ToList();
-
-            // Filter to Social situations only, available
-            // NOTE: Obligation situations ARE included - they may have parent scenes for hierarchical display
-            List<Situation> npcSocialSituations = allNpcSituations
-                .Where(g => g.SystemType == TacticalSystemType.Social)
-                .Where(g => g.IsAvailable && !g.IsCompleted)
-                .ToList();
-
-            // Group social situations by scene
-            (List<SituationCardViewModel> ambientSocial, List<SceneWithSituationsViewModel> socialScenes) =
-                GroupSituationsByScene(npc, npcSocialSituations, "social", "Doubt");
 
             NpcWithSituationsViewModel viewModel = new NpcWithSituationsViewModel
             {
@@ -814,9 +757,6 @@ public class LocationFacade
                 ConnectionState = connectionState.ToString(),
                 StateClass = GetConnectionStateClass(connectionState),
                 Description = GetNPCDescriptionText(npc, connectionState),
-                AmbientSocialSituations = ambientSocial,
-                SocialScenes = socialScenes,
-                Actions = actions,  // NEW: Executable actions from ChoiceTemplates
                 HasExchange = npc.HasExchangeCards(),
                 ExchangeDescription = npc.HasExchangeCards() ? "Trading - Buy supplies and equipment" : null
             };

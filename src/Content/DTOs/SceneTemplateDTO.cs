@@ -85,4 +85,12 @@ public class SceneTemplateDTO
     /// Defaults to "Breathe" if not specified
     /// </summary>
     public string ProgressionMode { get; set; }
+
+    /// <summary>
+    /// IsForced - whether this Scene auto-starts on location entry (forced interruption)
+    /// true: Scene triggers immediately when player enters location (emergency, critical story beat)
+    /// false: Scene waits for player action to trigger (NPC engagement, player-initiated)
+    /// Defaults to false if not specified
+    /// </summary>
+    public bool IsForced { get; set; } = false;
 }

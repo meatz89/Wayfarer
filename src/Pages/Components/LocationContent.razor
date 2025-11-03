@@ -56,275 +56,36 @@
                 <div class="location-npc-list-view">
                     <div class="section-header">You scan the area...</div>
 
-                    @* ========== NPCs WITH THEIR SOCIAL SITUATIONS ========== *@
+                    @* ========== NPCs PRESENT ========== *@
                     @if (ViewModel.NPCsWithSituations.Any())
                     {
                         <div class="section-subheader">People Here</div>
 
-                        @foreach (var npcWithSituations in ViewModel.NPCsWithSituations)
+                        @foreach (var npc in ViewModel.NPCsWithSituations)
                         {
-                            @* NPC Card *@
+                            @* NPC Card with simple "Talk to" engagement *@
                             <div class="npc-card">
                                 <div class="npc-header">
                                     <div>
-                                        <div class="npc-name">@npcWithSituations.Name</div>
-                                        <div class="npc-type">@npcWithSituations.PersonalityType</div>
+                                        <div class="npc-name">@npc.Name</div>
+                                        <div class="npc-type">@npc.PersonalityType - <span class="npc-state @npc.StateClass">@npc.ConnectionState</span></div>
                                     </div>
-                                    <div class="npc-state @npcWithSituations.StateClass">@npcWithSituations.ConnectionState</div>
                                 </div>
-                                <div class="npc-description">@npcWithSituations.Description</div>
-                            </div>
+                                <div class="npc-description">@npc.Description</div>
 
-                            @* SCENE-SITUATION ARCHITECTURE: Executable Actions from ChoiceTemplates *@
-                            @if (npcWithSituations.Actions.Any())
-                            {
+                                @* Single "Talk to NPC" button - scenes/situations appear AFTER engagement *@
                                 <div class="actions-grid">
-                                    @foreach (var action in npcWithSituations.Actions)
+                                    <div class="situation-action-btn" @onclick="async () => await HandleTalkToNPC(npc.Id)">
+                                        <div class="situation-name">Talk to @npc.Name</div>
+                                    </div>
+
+                                    @* Exchange Option for MERCANTILE NPCs *@
+                                    @if (npc.HasExchange)
                                     {
-                                        <div class="situation-action-btn action-card @(!action.RequirementsMet ? "locked" : "")"
-                                             @onclick="() => HandleExecuteNPCAction(action)">
-                                            @* Sir Brante pattern: Locked overlay shows requirements *@
-                                            @if (!action.RequirementsMet && !string.IsNullOrEmpty(action.LockReason))
-                                            {
-                                                <div class="action-locked-overlay">
-                                                    <span class="lock-icon">🔒</span>
-                                                    <span class="lock-text">@action.LockReason</span>
-                                                </div>
-                                            }
-                                            <div class="situation-system-badge @action.SystemType">@action.ChallengeType</div>
-                                            <div class="situation-name">@action.Name</div>
-                                            @if (!string.IsNullOrEmpty(action.Description))
-                                            {
-                                                <div class="situation-description">@action.Description</div>
-                                            }
-                                            @if (action.ResolveCost > 0 || action.CoinsCost > 0 || action.TimeSegments > 0)
-                                            {
-                                                <div class="action-costs">
-                                                    @if (action.ResolveCost > 0)
-                                                    {
-                                                        <span>Resolve: @action.ResolveCost</span>
-                                                    }
-                                                    @if (action.CoinsCost > 0)
-                                                    {
-                                                        <span>Coins: @action.CoinsCost</span>
-                                                    }
-                                                    @if (action.TimeSegments > 0)
-                                                    {
-                                                        <span>Time: @action.TimeSegments</span>
-                                                    }
-                                                </div>
-                                            }
-                                        </div>
-                                    }
-                                </div>
-                            }
-
-                            @* Ambient Social Situations (without scenes) *@
-                            @if (npcWithSituations.AmbientSocialSituations.Any())
-                            {
-                                <div class="actions-grid">
-                                    @foreach (var situation in npcWithSituations.AmbientSocialSituations)
-                                    {
-                                        <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "") @(situation.Type == "Crisis" ? "crisis-situation" : "")"
-                                             @onclick="() => HandleNavigateToSituation(situation.Id)">
-                                            <div class="situation-system-badge social">Social</div>
-                                            <div class="situation-name">@situation.Name</div>
-                                            @if (!string.IsNullOrEmpty(situation.Description))
-                                            {
-                                                <div class="situation-description">@situation.Description</div>
-                                            }
-                                            <div class="situation-difficulty">
-                                                <span class="difficulty-label">@situation.DifficultyLabel:</span>
-                                                <span class="difficulty-value">@situation.Difficulty</span>
-                                            </div>
-                                            @if (situation.IsIntroAction)
-                                            {
-                                                <div class="situation-obligation-tag intro-tag">🔍 Obligation</div>
-                                            }
-                                        </div>
-                                    }
-                                </div>
-                            }
-
-                            @* Social Scenes with nested situations *@
-                            @foreach (var scene in npcWithSituations.SocialScenes)
-                            {
-                                <div class="scene-card">
-                                    <div class="scene-header">
-                                        <div class="scene-name">@scene.Name</div>
-                                        @* ARCHITECTURE UPDATE: Scene.Intensity and Scene.Contexts removed from view model *@
-                                    </div>
-                                    <div class="scene-description">@scene.Description</div>
-
-                                    <div class="actions-grid">
-                                        @foreach (var situation in scene.Situations)
-                                        {
-                                            <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "") @(situation.Type == "Crisis" ? "crisis-situation" : "")"
-                                                 @onclick="() => HandleNavigateToSituation(situation.Id)">
-                                                <div class="situation-system-badge social">Social</div>
-                                                <div class="situation-name">@situation.Name</div>
-                                                @if (!string.IsNullOrEmpty(situation.Description))
-                                                {
-                                                    <div class="situation-description">@situation.Description</div>
-                                                }
-                                                <div class="situation-difficulty">
-                                                    <span class="difficulty-label">@situation.DifficultyLabel:</span>
-                                                    <span class="difficulty-value">@situation.Difficulty</span>
-                                                </div>
-                                                @if (situation.IsIntroAction)
-                                                {
-                                                    <div class="situation-obligation-tag intro-tag">🔍 Obligation</div>
-                                                }
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-                            }
-
-                            @* Exchange Option for MERCANTILE NPCs *@
-                            @if (npcWithSituations.HasExchange)
-                            {
-                                <div class="actions-grid">
-                                    <div class="situation-action-btn"
-                                         @onclick="async () => await HandleStartExchange(npcWithSituations.Id)">
-                                        <div class="situation-system-badge exchange">Exchange</div>
-                                        <div class="situation-name">Trading</div>
-                                        <div class="situation-description">@npcWithSituations.ExchangeDescription</div>
-                                    </div>
-                                </div>
-                            }
-                        }
-                    }
-
-                    @* ========== MENTAL CHALLENGES ========== *@
-                    @if (ViewModel.AmbientMentalSituations.Any() || ViewModel.MentalScenes.Any())
-                    {
-                        <div class="section-subheader">Mental Challenges</div>
-
-                        @* Ambient Mental Situations (without scenes) *@
-                        @if (ViewModel.AmbientMentalSituations.Any())
-                        {
-                            <div class="actions-grid">
-                                @foreach (var situation in ViewModel.AmbientMentalSituations)
-                                {
-                                    <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "") @(situation.Type == "Crisis" ? "crisis-situation" : "")"
-                                         @onclick="() => HandleNavigateToSituation(situation.Id)">
-                                        <div class="situation-system-badge mental">Mental</div>
-                                        <div class="situation-name">@situation.Name</div>
-                                        @if (!string.IsNullOrEmpty(situation.Description))
-                                        {
-                                            <div class="situation-description">@situation.Description</div>
-                                        }
-                                        <div class="situation-difficulty">
-                                            <span class="difficulty-label">@situation.DifficultyLabel:</span>
-                                            <span class="difficulty-value">@situation.Difficulty</span>
-                                        </div>
-                                        @if (situation.IsIntroAction)
-                                        {
-                                            <div class="situation-obligation-tag intro-tag">🔍 Obligation</div>
-                                        }
-                                    </div>
-                                }
-                            </div>
-                        }
-
-                        @* Mental Scenes with nested situations *@
-                        @foreach (var scene in ViewModel.MentalScenes)
-                        {
-                            <div class="scene-card">
-                                <div class="scene-header">
-                                    <div class="scene-name">@scene.Name</div>
-                                    @* ARCHITECTURE UPDATE: Scene.Intensity and Scene.Contexts removed from view model *@
-                                </div>
-                                <div class="scene-description">@scene.Description</div>
-
-                                <div class="actions-grid">
-                                    @foreach (var situation in scene.Situations)
-                                    {
-                                        <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "") @(situation.Type == "Crisis" ? "crisis-situation" : "")"
-                                             @onclick="() => HandleNavigateToSituation(situation.Id)">
-                                            <div class="situation-system-badge mental">Mental</div>
-                                            <div class="situation-name">@situation.Name</div>
-                                            @if (!string.IsNullOrEmpty(situation.Description))
-                                            {
-                                                <div class="situation-description">@situation.Description</div>
-                                            }
-                                            <div class="situation-difficulty">
-                                                <span class="difficulty-label">@situation.DifficultyLabel:</span>
-                                                <span class="difficulty-value">@situation.Difficulty</span>
-                                            </div>
-                                            @if (situation.IsIntroAction)
-                                            {
-                                                <div class="situation-obligation-tag intro-tag">🔍 Obligation</div>
-                                            }
-                                        </div>
-                                    }
-                                </div>
-                            </div>
-                        }
-                    }
-
-                    @* ========== PHYSICAL CHALLENGES ========== *@
-                    @if (ViewModel.AmbientPhysicalSituations.Any() || ViewModel.PhysicalScenes.Any())
-                    {
-                        <div class="section-subheader">Physical Challenges</div>
-
-                        @* Ambient Physical Situations (without scenes) *@
-                        @if (ViewModel.AmbientPhysicalSituations.Any())
-                        {
-                            <div class="actions-grid">
-                                @foreach (var situation in ViewModel.AmbientPhysicalSituations)
-                                {
-                                    <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "") @(situation.Type == "Crisis" ? "crisis-situation" : "")"
-                                         @onclick="() => HandleNavigateToSituation(situation.Id)">
-                                        <div class="situation-system-badge physical">Physical</div>
-                                        <div class="situation-name">@situation.Name</div>
-                                        @if (!string.IsNullOrEmpty(situation.Description))
-                                        {
-                                            <div class="situation-description">@situation.Description</div>
-                                        }
-                                        <div class="situation-difficulty">
-                                            <span class="difficulty-label">@situation.DifficultyLabel:</span>
-                                            <span class="difficulty-value">@situation.Difficulty</span>
-                                        </div>
-                                        @if (situation.IsIntroAction)
-                                        {
-                                            <div class="situation-obligation-tag intro-tag">🔍 Obligation</div>
-                                        }
-                                    </div>
-                                }
-                            </div>
-                        }
-
-                        @* Physical Scenes with nested situations *@
-                        @foreach (var scene in ViewModel.PhysicalScenes)
-                        {
-                            <div class="scene-card">
-                                <div class="scene-header">
-                                    <div class="scene-name">@scene.Name</div>
-                                    @* ARCHITECTURE UPDATE: Scene.Intensity and Scene.Contexts removed from view model *@
-                                </div>
-                                <div class="scene-description">@scene.Description</div>
-
-                                <div class="actions-grid">
-                                    @foreach (var situation in scene.Situations)
-                                    {
-                                        <div class="situation-action-btn @(situation.IsIntroAction ? "intro-action" : "") @(situation.Type == "Crisis" ? "crisis-situation" : "")"
-                                             @onclick="() => HandleNavigateToSituation(situation.Id)">
-                                            <div class="situation-system-badge physical">Physical</div>
-                                            <div class="situation-name">@situation.Name</div>
-                                            @if (!string.IsNullOrEmpty(situation.Description))
-                                            {
-                                                <div class="situation-description">@situation.Description</div>
-                                            }
-                                            <div class="situation-difficulty">
-                                                <span class="difficulty-label">@situation.DifficultyLabel:</span>
-                                                <span class="difficulty-value">@situation.Difficulty</span>
-                                            </div>
-                                            @if (situation.IsIntroAction)
-                                            {
-                                                <div class="situation-obligation-tag intro-tag">🔍 Obligation</div>
-                                            }
+                                        <div class="situation-action-btn" @onclick="async () => await HandleStartExchange(npc.Id)">
+                                            <div class="situation-system-badge exchange">Exchange</div>
+                                            <div class="situation-name">Trading</div>
+                                            <div class="situation-description">@npc.ExchangeDescription</div>
                                         </div>
                                     }
                                 </div>

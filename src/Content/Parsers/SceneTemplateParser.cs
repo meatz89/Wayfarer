@@ -70,7 +70,8 @@ public class SceneTemplateParser
             IntroNarrativeTemplate = dto.IntroNarrativeTemplate,
             Tier = dto.Tier,
             PresentationMode = presentationMode,
-            ProgressionMode = progressionMode
+            ProgressionMode = progressionMode,
+            IsForced = dto.IsForced
         };
 
         return template;

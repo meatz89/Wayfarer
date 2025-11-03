@@ -50,6 +50,7 @@ public class SceneFacade
         return _gameWorld.Scenes
             .FirstOrDefault(s => s.State == SceneState.Active &&
                                s.PresentationMode == PresentationMode.Modal &&
+                               s.IsForced &&
                                IsSceneAtLocation(s, locationId));
     }
 
