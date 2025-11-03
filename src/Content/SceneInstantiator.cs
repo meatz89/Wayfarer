@@ -15,10 +15,12 @@ namespace Wayfarer.Content;
 public class SceneInstantiator
 {
     private readonly GameWorld _gameWorld;
+    private readonly SpawnConditionsEvaluator _spawnConditionsEvaluator;
 
-    public SceneInstantiator(GameWorld gameWorld)
+    public SceneInstantiator(GameWorld gameWorld, SpawnConditionsEvaluator spawnConditionsEvaluator)
     {
         _gameWorld = gameWorld;
+        _spawnConditionsEvaluator = spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator));
     }
 
     /// <summary>
@@ -29,16 +31,35 @@ public class SceneInstantiator
     /// <param name="sceneTemplate">SceneTemplate to instantiate from</param>
     /// <param name="spawnReward">Scene spawn reward containing placement relation and delay info</param>
     /// <param name="context">Spawn context with current entities for resolution</param>
-    /// <returns>Provisional Scene with State = Provisional, stored in gameWorld.ProvisionalScenes</returns>
+    /// <returns>Provisional Scene with State = Provisional, stored in gameWorld.Scenes (unified collection)</returns>
     public Scene CreateProvisionalScene(SceneTemplate sceneTemplate, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
+        // PHASE 2.5: Check spawn conditions BEFORE creating scene
+        // Evaluate if this scene is eligible to spawn based on player/world/entity state
+        // If conditions fail, return null (scene not eligible - no provisional created)
+        bool isEligible = _spawnConditionsEvaluator.EvaluateAll(
+            sceneTemplate.SpawnConditions,
+            context.Player,
+            placementId: null // Placement not resolved yet - will check later if needed
+        );
+
+        if (!isEligible)
+        {
+            Console.WriteLine($"[SceneInstantiator] Scene '{sceneTemplate.Id}' REJECTED by spawn conditions");
+            return null; // Scene not eligible - don't create provisional
+        }
+
         // Generate unique Scene ID
         string sceneId = $"scene_{sceneTemplate.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
 
         // Determine concrete placement based on PlacementRelation from spawnReward
         (PlacementType placementType, string placementId) = ResolvePlacement(sceneTemplate, spawnReward, context);
 
-        // Create Scene instance from template
+        // SHALLOW PROVISIONAL: Calculate metadata from template WITHOUT instantiating Situations
+        int situationCount = sceneTemplate.SituationTemplates?.Count ?? 0;
+        string estimatedDifficulty = CalculateEstimatedDifficulty(sceneTemplate);
+
+        // Create Scene instance from template (SHALLOW - no Situations yet)
         Scene scene = new Scene
         {
             Id = sceneId,
@@ -51,31 +72,17 @@ public class SceneInstantiator
             State = SceneState.Provisional, // KEY: Provisional state
             SourceSituationId = context.CurrentSituation?.Id, // Track source for cleanup
             Archetype = sceneTemplate.Archetype,
-            DisplayName = sceneTemplate.DisplayNameTemplate,
-            IntroNarrative = sceneTemplate.IntroNarrativeTemplate,
+            DisplayName = sceneTemplate.DisplayNameTemplate, // Placeholders NOT replaced until finalization
+            IntroNarrative = sceneTemplate.IntroNarrativeTemplate, // Placeholders NOT replaced until finalization
             SpawnRules = sceneTemplate.SpawnRules,
-            SituationIds = new List<string>() // Will be populated next
+            SituationIds = new List<string>(), // EMPTY - Situations instantiated in FinalizeScene()
+            SituationCount = situationCount, // Metadata for perfect information display
+            EstimatedDifficulty = estimatedDifficulty, // Metadata for perfect information display
+            CurrentSituationId = null // Will be set in FinalizeScene() after Situations created
         };
 
-        // Create Situations from SituationTemplates - store in GameWorld.Situations, track IDs in Scene
-        foreach (SituationTemplate sitTemplate in sceneTemplate.SituationTemplates)
-        {
-            Situation situation = InstantiateSituation(sitTemplate, scene, context);
-            // HIGHLANDER Pattern A: Add to GameWorld.Situations immediately
-            _gameWorld.Situations.Add(situation);
-            // Track ID in Scene
-            scene.SituationIds.Add(situation.Id);
-        }
-
-        // PLAYABILITY VALIDATION: Scene must have at least one Situation
-        if (!scene.SituationIds.Any())
-            throw new InvalidOperationException($"Scene '{scene.Id}' (template '{sceneTemplate.Id}') has no SituationIds - player cannot interact!");
-
-        // Set CurrentSituationId to first Situation ID
-        scene.CurrentSituationId = scene.SituationIds.First();
-
-        // Store in provisional Scenes (temporary storage)
-        _gameWorld.ProvisionalScenes[sceneId] = scene;
+        // PHASE 1.4: Store in unified Scenes collection (filtered by State property)
+        _gameWorld.Scenes.Add(scene);
 
         Console.WriteLine($"[SceneInstantiator] Created Scene '{scene.Id}'");
         Console.WriteLine($"  State: {scene.State}, Placement: {scene.PlacementType}/{scene.PlacementId}");
@@ -85,20 +92,44 @@ public class SceneInstantiator
     }
 
     /// <summary>
-    /// Finalize provisional Scene - activate and move to permanent storage
+    /// Finalize provisional Scene - instantiate Situations, replace placeholders, activate
     /// Called when player SELECTS Choice that spawned this provisional Scene
-    /// HIGHLANDER Pattern A: Flatten Situations to GameWorld.Situations for query access
+    /// CRITICAL CHANGE: This is where Situations are instantiated FOR THE FIRST TIME
+    /// Provisional scenes are SHALLOW metadata only - full instantiation happens here
     /// </summary>
     /// <param name="sceneId">Provisional Scene ID to finalize</param>
     /// <param name="context">Spawn context for placeholder replacement</param>
     /// <returns>Finalized Scene with State = Active, stored in gameWorld.Scenes</returns>
     public Scene FinalizeScene(string sceneId, SceneSpawnContext context)
     {
-        // Get provisional Scene
-        if (!_gameWorld.ProvisionalScenes.TryGetValue(sceneId, out Scene scene))
+        // PHASE 1.4: Get provisional Scene from unified collection via LINQ
+        Scene scene = _gameWorld.Scenes.FirstOrDefault(s => s.Id == sceneId && s.State == SceneState.Provisional);
+
+        if (scene == null)
         {
-            throw new InvalidOperationException($"Provisional Scene '{sceneId}' not found in gameWorld.ProvisionalScenes");
+            throw new InvalidOperationException($"Provisional Scene '{sceneId}' not found in gameWorld.Scenes");
         }
+
+        // INSTANTIATE SITUATIONS FOR THE FIRST TIME (moved from CreateProvisionalScene)
+        // This is the key change - provisional scenes are shallow, finalization creates full object graph
+        foreach (SituationTemplate sitTemplate in scene.Template.SituationTemplates)
+        {
+            Situation situation = InstantiateSituation(sitTemplate, scene, context);
+            // HIGHLANDER Pattern A: Add to GameWorld.Situations on finalization only
+            _gameWorld.Situations.Add(situation);
+            // Track ID in Scene
+            scene.SituationIds.Add(situation.Id);
+
+            // PLACEHOLDER REPLACEMENT: Situation descriptions
+            situation.Description = PlaceholderReplacer.ReplaceAll(situation.Description, context, _gameWorld);
+        }
+
+        // PLAYABILITY VALIDATION: Scene must have at least one Situation after instantiation
+        if (!scene.SituationIds.Any())
+            throw new InvalidOperationException($"Scene '{scene.Id}' (template '{scene.Template.Id}') has no SituationIds after finalization - player cannot interact!");
+
+        // Set CurrentSituationId to first Situation ID
+        scene.CurrentSituationId = scene.SituationIds.First();
 
         // PLACEHOLDER REPLACEMENT: Convert template text to concrete narrative
         scene.DisplayName = PlaceholderReplacer.ReplaceAll(scene.DisplayName, context, _gameWorld);
@@ -119,12 +150,8 @@ public class SceneInstantiator
             // Placeholder replacement for actions happens in SceneFacade at query time
         }
 
-        // Change state to Active
+        // PHASE 1.4: Change state to Active (no collection movement needed - unified storage)
         scene.State = SceneState.Active;
-
-        // Move from provisional to active storage
-        _gameWorld.ProvisionalScenes.Remove(sceneId);
-        _gameWorld.Scenes.Add(scene);
 
         return scene;
     }
@@ -133,17 +160,41 @@ public class SceneInstantiator
     /// Delete provisional Scene - cleanup when Choice NOT selected
     /// Called when player selects different Choice in Situation
     /// All unselected Choices' provisional Scenes are deleted
+    /// SHALLOW ARCHITECTURE: Only removes Scene from ProvisionalScenes
+    /// No Situation cleanup needed (Situations only instantiated in FinalizeScene)
     /// </summary>
     /// <param name="sceneId">Provisional Scene ID to delete</param>
     public void DeleteProvisionalScene(string sceneId)
     {
-        if (_gameWorld.ProvisionalScenes.ContainsKey(sceneId))
+        // PHASE 1.4: Find and remove from unified Scenes collection via LINQ
+        Scene provisionalScene = _gameWorld.Scenes.FirstOrDefault(s => s.Id == sceneId && s.State == SceneState.Provisional);
+
+        if (provisionalScene != null)
         {
-            _gameWorld.ProvisionalScenes.Remove(sceneId);
+            _gameWorld.Scenes.Remove(provisionalScene);
         }
     }
 
     // ==================== PRIVATE HELPERS ====================
+
+    /// <summary>
+    /// Calculate estimated difficulty from SceneTemplate metadata
+    /// Used for provisional Scene perfect information display
+    /// Maps SceneTemplate.Tier to difficulty string
+    /// Does NOT instantiate Situations (metadata only)
+    /// </summary>
+    private string CalculateEstimatedDifficulty(SceneTemplate template)
+    {
+        return template.Tier switch
+        {
+            0 => "Safety Net",
+            1 => "Low",
+            2 => "Standard",
+            3 => "High",
+            4 => "Climactic",
+            _ => "Standard" // Default fallback
+        };
+    }
 
     /// <summary>
     /// Resolve concrete placement based on PlacementRelation enum and context
@@ -230,15 +281,13 @@ public class SceneInstantiator
             Type = template.Type,  // Copy semantic type (Normal vs Crisis) from template
             Description = template.NarrativeTemplate,
             NarrativeHints = template.NarrativeHints,
-            State = SituationState.Dormant,  // START dormant - actions created at query time
+            InstantiationState = InstantiationState.Deferred,  // START deferred - actions created at query time
             IsAutoAdvance = parentScene.Archetype == SpawnPattern.AutoAdvance,  // Copy archetype to Situation
 
-            // PLACEMENT INHERITANCE: Inherit from parent Scene
-            ParentScene = parentScene,
-            PlacementLocation = context.CurrentLocation != null ?
-                _gameWorld.Locations.FirstOrDefault(l => l.Venue?.Id == context.CurrentLocation.Id) : null,
-            PlacementNpc = context.CurrentNPC,
-            PlacementRouteId = context.CurrentRoute?.Id
+            // PLACEMENT INHERITANCE: ParentScene reference enables GetPlacementId() queries
+            // Scene is single source of truth for placement (HIGHLANDER Pattern C)
+            // Situation queries placement via GetPlacementId(PlacementType) helper
+            ParentScene = parentScene
         };
 
         // NO ACTION CREATION HERE - actions instantiated by SceneFacade when player enters context
@@ -364,32 +413,32 @@ public class SceneInstantiator
     /// <summary>
     /// Find Route matching PlacementFilter criteria
     /// Returns first Route ID matching ALL filter criteria, or null if no match
-    /// ⚠️ BLOCKED: Route entity missing TerrainType, Tier, DangerRating properties
-    /// Currently returns first route as fallback
+    /// Filters by terrain type, tier, and danger rating
     /// </summary>
     private string FindMatchingRoute(PlacementFilter filter, Player player)
     {
         RouteOption matchingRoute = _gameWorld.Routes.FirstOrDefault(route =>
         {
-            // TODO: Check terrain types when Route.TerrainType property exists
-            // if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
-            // {
-            //     if (!filter.TerrainTypes.Contains(route.TerrainType))
-            //         return false;
-            // }
+            // Check terrain types (dominant terrain from TerrainCategories)
+            if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
+            {
+                string dominantTerrain = route.GetDominantTerrainType();
+                if (!filter.TerrainTypes.Contains(dominantTerrain))
+                    return false;
+            }
 
-            // TODO: Check route tier when Route.Tier property exists
-            // if (filter.RouteTier.HasValue)
-            // {
-            //     if (route.Tier != filter.RouteTier.Value)
-            //         return false;
-            // }
+            // Check route tier (calculated from DangerRating)
+            if (filter.RouteTier.HasValue)
+            {
+                if (route.Tier != filter.RouteTier.Value)
+                    return false;
+            }
 
-            // TODO: Check danger rating when Route.DangerRating property exists
-            // if (filter.MinDangerRating.HasValue && route.DangerRating < filter.MinDangerRating.Value)
-            //     return false;
-            // if (filter.MaxDangerRating.HasValue && route.DangerRating > filter.MaxDangerRating.Value)
-            //     return false;
+            // Check danger rating range (0-100 scale)
+            if (filter.MinDangerRating.HasValue && route.DangerRating < filter.MinDangerRating.Value)
+                return false;
+            if (filter.MaxDangerRating.HasValue && route.DangerRating > filter.MaxDangerRating.Value)
+                return false;
 
             // Check player state filters (shared across all placement types)
             if (!CheckPlayerStateFilters(filter, player))

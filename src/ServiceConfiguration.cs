@@ -63,6 +63,7 @@ public static class ServiceConfiguration
         services.AddSingleton<ConsequenceFacade>();
         services.AddSingleton<SituationFacade>();
         services.AddSingleton<Wayfarer.Subsystems.Scene.SceneFacade>();
+        services.AddSingleton<SpawnFacade>();
         services.AddSingleton<Wayfarer.Subsystems.Consequence.RewardApplicationService>();
 
         // Unified Action Architecture - Three Parallel Executors
@@ -131,6 +132,7 @@ public static class ServiceConfiguration
         services.AddSingleton<BindingObligationSystem>();
 
         // Scene Instantiation System (needed by ObligationActivity)
+        services.AddSingleton<SpawnConditionsEvaluator>();
         services.AddSingleton<Wayfarer.Content.SceneInstantiator>();
 
         // State Clearing System (needed by TimeFacade)

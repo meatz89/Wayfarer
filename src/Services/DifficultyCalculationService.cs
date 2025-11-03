@@ -68,16 +68,18 @@ public class DifficultyCalculationService
 
             case ModifierType.Familiarity:
                 // Location understanding (0-3 per Location)
-                // Uses Location ID from the situation's placement
-                if (string.IsNullOrEmpty(situation.PlacementLocation?.Id)) return false;
-                int familiarity = player.GetLocationFamiliarity(situation.PlacementLocation?.Id);
+                // PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+                string locationId = situation.GetPlacementId(PlacementType.Location);
+                if (string.IsNullOrEmpty(locationId)) return false;
+                int familiarity = player.GetLocationFamiliarity(locationId);
                 return familiarity >= mod.Threshold;
 
             case ModifierType.ConnectionTokens:
                 // NPC relationship strength (0-15 per NPC)
-                // NO ID MATCHING: Uses situation's PlacementNpcId (mechanical property)
-                if (string.IsNullOrEmpty(situation.PlacementNpc?.ID)) return false;
-                int tokens = player.GetNPCTokenCount(situation.PlacementNpc?.ID, ConnectionType.Trust);
+                // PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+                string npcId = situation.GetPlacementId(PlacementType.NPC);
+                if (string.IsNullOrEmpty(npcId)) return false;
+                int tokens = player.GetNPCTokenCount(npcId, ConnectionType.Trust);
                 return tokens >= mod.Threshold;
 
             case ModifierType.HasItemCategory:

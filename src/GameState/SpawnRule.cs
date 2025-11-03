@@ -41,7 +41,7 @@ public class SpawnRule
     /// Additional conditions that must be met for spawn to occur
     /// Empty/null means always spawn on parent completion
     /// </summary>
-    public SpawnConditions Conditions { get; set; }
+    public SituationSpawnConditions Conditions { get; set; }
 }
 
 /// <summary>
@@ -68,10 +68,12 @@ public class RequirementOffsets
 }
 
 /// <summary>
-/// Conditions for spawn rule execution
+/// Conditions for situation spawn rule execution (recursive situation spawning)
 /// Additional checks beyond parent situation completion
+/// Renamed from SpawnConditions to avoid collision with SceneTemplate.SpawnConditions
+/// SCOPE: Situation-level spawning (child situations from parent situations)
 /// </summary>
-public class SpawnConditions
+public class SituationSpawnConditions
 {
     /// <summary>
     /// Minimum player Resolve required for spawn

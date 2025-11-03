@@ -1,3 +1,5 @@
+using Wayfarer.GameState.Enums;
+
 /// <summary>
 /// Handles situation completion lifecycle - marking complete, removing from ActiveSituations if DeleteOnSuccess, and obligation progress
 /// </summary>
@@ -7,17 +9,20 @@ public class SituationCompletionHandler
     private readonly ObligationActivity _obligationActivity;
     private readonly TimeManager _timeManager;
     private readonly ConsequenceFacade _consequenceFacade;
+    private readonly SpawnFacade _spawnFacade;
 
     public SituationCompletionHandler(
         GameWorld gameWorld,
         ObligationActivity obligationActivity,
         TimeManager timeManager,
-        ConsequenceFacade consequenceFacade)
+        ConsequenceFacade consequenceFacade,
+        SpawnFacade spawnFacade)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
+        _spawnFacade = spawnFacade ?? throw new ArgumentNullException(nameof(spawnFacade));
     }
 
     /// <summary>
@@ -57,7 +62,18 @@ public class SituationCompletionHandler
             CheckObligationProgress(situation.Id, situation.Obligation?.Id);
         }
 
-        // TODO Phase D: Execute spawn rules via SpawnFacade
+        // PHASE 3: Execute SuccessSpawns - recursive situation spawning
+        if (situation.SuccessSpawns != null && situation.SuccessSpawns.Count > 0)
+        {
+            _spawnFacade.ExecuteSpawnRules(situation.SuccessSpawns, situation);
+        }
+
+        // PHASE 1.3: Scene state machine - advance to next situation
+        // Scene owns its lifecycle, not facades
+        if (situation.ParentScene != null)
+        {
+            situation.ParentScene.AdvanceToNextSituation(situation.Id);
+        }
     }
 
     /// <summary>
@@ -90,12 +106,22 @@ public class SituationCompletionHandler
 
     /// <summary>
     /// Handle situation failure - situation always remains in ActiveSituations for retry
+    /// PHASE 3: Execute FailureSpawns for recursive situation spawning
     /// </summary>
     /// <param name="situation">Situation that failed</param>
     public void FailSituation(Situation situation)
     {
         if (situation == null)
             throw new ArgumentNullException(nameof(situation));
+
+        // Mark situation as failed
+        situation.LifecycleStatus = LifecycleStatus.Failed;
+
+        // PHASE 3: Execute FailureSpawns - recursive situation spawning on failure
+        if (situation.FailureSpawns != null && situation.FailureSpawns.Count > 0)
+        {
+            _spawnFacade.ExecuteSpawnRules(situation.FailureSpawns, situation);
+        }
 
         // Situations remain in ActiveSituations on failure regardless of DeleteOnSuccess
         // Player can retry the situation
@@ -131,12 +157,14 @@ public class SituationCompletionHandler
             }
 
             // OBLIGATION CUBES - grant to situation's placement Location (localized mastery)
+            // PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
             if (rewards.InvestigationCubes.HasValue && rewards.InvestigationCubes.Value > 0)
             {
-                if (!string.IsNullOrEmpty(situation.PlacementLocation?.Id))
+                string locationId = situation.GetPlacementId(PlacementType.Location);
+                if (!string.IsNullOrEmpty(locationId))
                 {
-                    _gameWorld.GrantLocationCubes(situation.PlacementLocation?.Id, rewards.InvestigationCubes.Value);
-                    Location location = _gameWorld.GetLocation(situation.PlacementLocation?.Id);
+                    _gameWorld.GrantLocationCubes(locationId, rewards.InvestigationCubes.Value);
+                    Location location = _gameWorld.GetLocation(locationId);
                     string locationName = location.Name;
                 }
                 else
@@ -145,12 +173,14 @@ public class SituationCompletionHandler
             }
 
             // STORY CUBES - grant to situation's placement NPC (localized mastery)
+            // PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
             if (rewards.StoryCubes.HasValue && rewards.StoryCubes.Value > 0)
             {
-                if (!string.IsNullOrEmpty(situation.PlacementNpc?.ID))
+                string npcId = situation.GetPlacementId(PlacementType.NPC);
+                if (!string.IsNullOrEmpty(npcId))
                 {
-                    _gameWorld.GrantNPCCubes(situation.PlacementNpc?.ID, rewards.StoryCubes.Value);
-                    NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == situation.PlacementNpc?.ID);
+                    _gameWorld.GrantNPCCubes(npcId, rewards.StoryCubes.Value);
+                    NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
                     string npcName = npc.Name;
                 }
                 else
@@ -159,12 +189,14 @@ public class SituationCompletionHandler
             }
 
             // EXPLORATION CUBES - grant to route (requires route context from situation)
+            // PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
             if (rewards.ExplorationCubes.HasValue && rewards.ExplorationCubes.Value > 0)
             {
-                if (!string.IsNullOrEmpty(situation.PlacementRouteId))
+                string routeId = situation.GetPlacementId(PlacementType.Route);
+                if (!string.IsNullOrEmpty(routeId))
                 {
-                    _gameWorld.GrantRouteCubes(situation.PlacementRouteId, rewards.ExplorationCubes.Value);
-                    RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == situation.PlacementRouteId);
+                    _gameWorld.GrantRouteCubes(routeId, rewards.ExplorationCubes.Value);
+                    RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == routeId);
                     string routeName = route?.Name ?? "Unknown Route";
                 }
                 else
@@ -245,13 +277,15 @@ public class SituationCompletionHandler
 
     /// <summary>
     /// Remove situation from NPC.ActiveSituationIds or Location.ActiveSituationIds
+    /// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
     /// </summary>
     private void RemoveSituationFromActiveSituations(Situation situation)
     {
-        if (!string.IsNullOrEmpty(situation.PlacementNpc?.ID))
+        string npcId = situation.GetPlacementId(PlacementType.NPC);
+        if (!string.IsNullOrEmpty(npcId))
         {
             // Remove from NPC.ActiveSituationIds
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == situation.PlacementNpc?.ID);
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
             if (npc != null)
             {
                 if (npc.ActiveSituationIds.Contains(situation.Id))
@@ -260,15 +294,19 @@ public class SituationCompletionHandler
                 }
             }
         }
-        else if (!string.IsNullOrEmpty(situation.PlacementLocation?.Id))
+        else
         {
-            // Remove from Location.ActiveSituationIds
-            Location location = _gameWorld.GetLocation(situation.PlacementLocation?.Id);
-            if (location != null)
+            string locationId = situation.GetPlacementId(PlacementType.Location);
+            if (!string.IsNullOrEmpty(locationId))
             {
-                if (location.ActiveSituationIds.Contains(situation.Id))
+                // Remove from Location.ActiveSituationIds
+                Location location = _gameWorld.GetLocation(locationId);
+                if (location != null)
                 {
-                    location.ActiveSituationIds.Remove(situation.Id);
+                    if (location.ActiveSituationIds.Contains(situation.Id))
+                    {
+                        location.ActiveSituationIds.Remove(situation.Id);
+                    }
                 }
             }
         }

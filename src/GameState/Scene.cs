@@ -72,8 +72,25 @@ public class Scene
     /// HIGHLANDER Pattern A: Scene stores IDs, GameWorld.Situations is single source of truth
     /// SceneInstantiator creates Situations and adds to GameWorld.Situations, stores IDs here
     /// Query time: Filter GameWorld.Situations.Where(s => scene.SituationIds.Contains(s.Id))
+    /// SHALLOW PROVISIONAL: Empty list for provisional scenes (no Situations instantiated yet)
     /// </summary>
     public List<string> SituationIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Number of situations in this Scene (metadata for provisional scenes)
+    /// Populated from Template.SituationTemplates.Count during provisional creation
+    /// Enables perfect information display without full Situation instantiation
+    /// Used for UI display: "This spawns scene with N situations"
+    /// </summary>
+    public int SituationCount { get; set; } = 0;
+
+    /// <summary>
+    /// Estimated difficulty based on template tier and requirements
+    /// Calculated during provisional creation from template properties
+    /// Enables rough difficulty preview without full instantiation
+    /// Used for UI display: "Estimated difficulty: Medium"
+    /// </summary>
+    public string EstimatedDifficulty { get; set; } = "Standard";
 
     /// <summary>
     /// Spawn rules defining how Situations lead into each other
@@ -128,6 +145,66 @@ public class Scene
     /// Generated from template or manually authored
     /// </summary>
     public string DisplayName { get; set; }
+
+    // ==================== STATE MACHINE METHODS ====================
+
+    /// <summary>
+    /// Advance scene to next situation after completing current situation
+    /// Queries SpawnRules.Transitions for matching source, updates CurrentSituationId
+    /// If no valid transitions, marks scene as complete
+    /// DOMAIN RESPONSIBILITY: Scene owns its state machine, not facades
+    /// </summary>
+    /// <param name="completedSituationId">Situation that was just completed</param>
+    public void AdvanceToNextSituation(string completedSituationId)
+    {
+        if (SpawnRules == null || SpawnRules.Transitions == null || SpawnRules.Transitions.Count == 0)
+        {
+            // No transitions defined - scene complete after first situation
+            CurrentSituationId = null;
+            State = SceneState.Completed;
+            return;
+        }
+
+        // Find transition from completed situation
+        SituationTransition transition = GetTransitionForCompletedSituation(completedSituationId);
+
+        if (transition != null)
+        {
+            // Valid transition found - advance to destination situation
+            CurrentSituationId = transition.DestinationSituationId;
+        }
+        else
+        {
+            // No valid transition - scene complete
+            CurrentSituationId = null;
+            State = SceneState.Completed;
+        }
+    }
+
+    /// <summary>
+    /// Get transition for completed situation
+    /// Returns first matching SituationTransition or null if no match
+    /// Helper for AdvanceToNextSituation()
+    /// </summary>
+    /// <param name="completedSituationId">Situation that was just completed</param>
+    /// <returns>Matching SituationTransition or null</returns>
+    public SituationTransition GetTransitionForCompletedSituation(string completedSituationId)
+    {
+        if (SpawnRules == null || SpawnRules.Transitions == null)
+            return null;
+
+        return SpawnRules.Transitions.FirstOrDefault(t => t.SourceSituationId == completedSituationId);
+    }
+
+    /// <summary>
+    /// Check if scene is complete
+    /// Scene complete when CurrentSituationId is null (no more situations) or State is Completed
+    /// </summary>
+    /// <returns>True if scene complete, false otherwise</returns>
+    public bool IsComplete()
+    {
+        return CurrentSituationId == null || State == SceneState.Completed;
+    }
 }
 
 /// <summary>

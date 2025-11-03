@@ -390,7 +390,7 @@ namespace Wayfarer.Services
                 Id = situationId,
                 Name = template.Id, // Use template ID as name
                 Description = template.NarrativeTemplate ?? "",
-                State = SituationState.Dormant, // Starts Dormant, activates when player enters segment
+                InstantiationState = InstantiationState.Deferred, // Starts deferred, instantiates when player enters segment
                 Template = template,
                 SystemType = TacticalSystemType.Physical, // Route encounters default to Physical
                 ParentScene = parentScene,

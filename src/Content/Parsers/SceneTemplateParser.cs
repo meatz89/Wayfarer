@@ -62,6 +62,7 @@ public class SceneTemplateParser
             Archetype = archetype,
             DisplayNameTemplate = dto.DisplayNameTemplate,
             PlacementFilter = ParsePlacementFilter(dto.PlacementFilter, dto.Id),
+            SpawnConditions = SpawnConditionsParser.ParseSpawnConditions(dto.SpawnConditions),
             SituationTemplates = ParseSituationTemplates(dto.SituationTemplates, dto.Id, archetype),
             SpawnRules = ParseSpawnRules(dto.SpawnRules, dto.Id),
             ExpirationDays = dto.ExpirationDays,

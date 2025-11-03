@@ -733,28 +733,32 @@ public class PackageLoader
             Situation situation = SituationParser.ConvertDTOToSituation(dto, _gameWorld);
 
             // Add to centralized GameWorld.Situations storage
-            _gameWorld.Situations.Add(situation);// Assign situation to NPC or Location based on PlacementNpcId/PlacementLocationId
-            if (!string.IsNullOrEmpty(situation.PlacementNpc?.ID))
+            _gameWorld.Situations.Add(situation);
+
+            // PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+            // Assign situation to NPC or Location based on placement from Scene
+            string npcId = situation.GetPlacementId(PlacementType.NPC);
+            if (!string.IsNullOrEmpty(npcId))
             {
                 // Social situation - assign to NPC.ActiveSituationIds (reference only, situation lives in GameWorld.Situations)
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == situation.PlacementNpc?.ID);
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
                 if (npc != null)
                 {
                     npc.ActiveSituationIds.Add(situation.Id);
                 }
-                else
-                { }
             }
-            else if (!string.IsNullOrEmpty(situation.PlacementLocation?.Id))
+            else
             {
-                // Mental/Physical situation - assign to Location.ActiveSituationIds (reference only, situation lives in GameWorld.Situations)
-                Location location = _gameWorld.GetLocation(situation.PlacementLocation?.Id);
-                if (location != null)
+                string locationId = situation.GetPlacementId(PlacementType.Location);
+                if (!string.IsNullOrEmpty(locationId))
                 {
-                    location.ActiveSituationIds.Add(situation.Id);
+                    // Mental/Physical situation - assign to Location.ActiveSituationIds (reference only, situation lives in GameWorld.Situations)
+                    Location location = _gameWorld.GetLocation(locationId);
+                    if (location != null)
+                    {
+                        location.ActiveSituationIds.Add(situation.Id);
+                    }
                 }
-                else
-                { }
             }
         }
     }

@@ -153,15 +153,8 @@ public class GameWorld
     // At spawn time, SceneInstantiator queries GameWorld for matching entities and creates Scene instances
     public List<SceneTemplate> SceneTemplates { get; set; } = new List<SceneTemplate>();
 
-    // PROVISIONAL SCENE SYSTEM - Temporary storage for Scenes awaiting player Choice selection
-    // Provisional Scenes created when Situation instantiated (one per Choice with SceneSpawnReward)
-    // Mechanical skeletons with placement assigned but NO narrative content (placeholders unresolved)
-    // Purpose: Perfect information - player sees WHERE Scene spawns BEFORE selecting Choice
-    // Lifecycle: Created → Displayed in UI → Finalized (if Choice selected) OR Deleted (if other Choice selected)
-    // Dictionary keyed by Scene.Id for O(1) lookup during finalization and cleanup
-    public Dictionary<string, Scene> ProvisionalScenes { get; set; } = new Dictionary<string, Scene>();
-
     // SCENE SYSTEM - Persistent Scene instances spawned from SceneTemplates
+    // PHASE 1.4: Unified collection for all scenes (Active, Provisional, Completed)
     // Scenes stored here, queried by PlacementType and PlacementId
     // Contains embedded Situations with 2-4 Choices (Sir Brante pattern)
     public List<Scene> Scenes { get; set; } = new List<Scene>();

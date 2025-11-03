@@ -22,7 +22,7 @@ public static class SpawnRuleParser
             TemplateId = dto.TemplateId,
             TargetPlacement = dto.TargetPlacement,
             RequirementOffsets = ParseRequirementOffsets(dto.RequirementOffsets),
-            Conditions = ParseSpawnConditions(dto.Conditions)
+            Conditions = ParseSituationSpawnConditions(dto.Conditions)
         };
 
         return spawnRule;
@@ -49,12 +49,12 @@ public static class SpawnRuleParser
     /// Parse spawn conditions from DTO
     /// All conditions are optional (null/empty means always spawn)
     /// </summary>
-    private static SpawnConditions ParseSpawnConditions(ConditionsDTO dto)
+    private static SituationSpawnConditions ParseSituationSpawnConditions(ConditionsDTO dto)
     {
         if (dto == null)
-            return new SpawnConditions();
+            return new SituationSpawnConditions();
 
-        return new SpawnConditions
+        return new SituationSpawnConditions
         {
             MinResolve = dto.MinResolve,
             RequiredState = dto.RequiredState,

@@ -48,8 +48,7 @@ public static class SituationParser
             SystemType = systemType,
             DeckId = dto.DeckId,
             IsIntroAction = dto.IsIntroAction,
-            IsAvailable = dto.IsAvailable,
-            IsCompleted = dto.IsCompleted,
+            // IsAvailable and IsCompleted are computed properties from Status enum (no population needed)
             DeleteOnSuccess = dto.DeleteOnSuccess,
             Costs = costs,
             DifficultyModifiers = difficultyModifiers,
@@ -62,12 +61,15 @@ public static class SituationParser
             // Scene-Situation Architecture additions (spawn/completion tracking)
             TemplateId = dto.TemplateId,
             ParentSituationId = dto.ParentSituationId,
-            SpawnedDay = dto.SpawnedDay,
-            SpawnedTimeBlock = spawnedTimeBlock,
-            SpawnedSegment = dto.SpawnedSegment,
-            CompletedDay = dto.CompletedDay,
-            CompletedTimeBlock = completedTimeBlock,
-            CompletedSegment = dto.CompletedSegment,
+            Lifecycle = new SpawnTracking
+            {
+                SpawnedDay = dto.SpawnedDay,
+                SpawnedTimeBlock = spawnedTimeBlock,
+                SpawnedSegment = dto.SpawnedSegment,
+                CompletedDay = dto.CompletedDay,
+                CompletedTimeBlock = completedTimeBlock,
+                CompletedSegment = dto.CompletedSegment
+            },
 
             // Scene-Situation Architecture (interaction/requirements/consequences/spawns)
             InteractionType = ParseInteractionType(dto.InteractionType),
@@ -86,11 +88,8 @@ public static class SituationParser
 
         // Resolve object references during parsing (HIGHLANDER: ID is parsing artifact, not entity property)
         // Parser uses ID from DTO as lookup key, entity stores ONLY object reference
-        if (!string.IsNullOrEmpty(dto.PlacementLocationId))
-            situation.PlacementLocation = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.PlacementLocationId);
-
-        if (!string.IsNullOrEmpty(dto.PlacementNpcId))
-            situation.PlacementNpc = gameWorld.NPCs.FirstOrDefault(n => n.ID == dto.PlacementNpcId);
+        // PLACEMENT REMOVED: Situation queries placement from ParentScene via GetPlacementId() helper
+        // Scene is single source of truth for placement (HIGHLANDER Pattern C)
 
         if (!string.IsNullOrEmpty(dto.ObligationId))
             situation.Obligation = gameWorld.Obligations.FirstOrDefault(i => i.Id == dto.ObligationId);

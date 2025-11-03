@@ -29,6 +29,13 @@ public class SceneTemplateDTO
     public PlacementFilterDTO PlacementFilter { get; set; }
 
     /// <summary>
+    /// Temporal eligibility conditions for scene spawning
+    /// null = always eligible (no temporal filtering)
+    /// Defines player state, world state, and entity state requirements
+    /// </summary>
+    public SpawnConditionsDTO SpawnConditions { get; set; }
+
+    /// <summary>
     /// Embedded situation templates (composition)
     /// Each defines a narrative context with 2-4 choices
     /// </summary>

@@ -251,6 +251,105 @@ Challenges are IMMERSIVE experiences (full screen, no chrome)
 
 NOT: "Where should I put this button?"
 
+### 9. SENTINEL VALUES OVER NULL FOR DOMAIN LOGIC
+
+**⚠️ CRITICAL: Never use null to represent domain logic states. Use explicit sentinel values instead. ⚠️**
+
+**THE FUNDAMENTAL RULE:**
+
+Using `null` to mean a specific domain state (like "always eligible", "no restrictions", "default behavior") conflates **uninitialized state** with **intentional domain logic**. This violates DDD principles where domain concepts must be explicit.
+
+**VIOLATIONS TO AVOID:**
+
+❌ **null SpawnConditions = always spawn** (null is not a domain concept)
+❌ **null PlacementFilter = spawn anywhere** (implicit logic through absence)
+❌ **null Requirements = no requirements** (confuses missing data with intentional design)
+❌ **Checking `if (entity.Property == null)` to trigger behavior** (null is implementation detail, not domain concept)
+
+**CORRECT PATTERN - Sentinel Values:**
+
+✅ **Static readonly sentinel value:** `SpawnConditions.AlwaysEligible`
+✅ **Internal flag for evaluator:** `internal bool IsAlwaysEligible { get; init; }`
+✅ **Parser returns sentinel, not null:** `return SpawnConditions.AlwaysEligible;`
+✅ **Evaluator checks flag, not null:** `if (conditions.IsAlwaysEligible) return true;`
+✅ **Explicit domain concept:** "AlwaysEligible" is a named state, discoverable via IntelliSense
+
+**EXAMPLE IMPLEMENTATION:**
+
+```csharp
+public record SpawnConditions
+{
+    /// <summary>
+    /// Sentinel value indicating scene is always eligible (no temporal filtering)
+    /// Use this instead of null to explicitly represent unconditional spawning
+    /// DDD pattern: Explicit domain concept, not implicit null check
+    /// </summary>
+    public static readonly SpawnConditions AlwaysEligible = new SpawnConditions
+    {
+        IsAlwaysEligible = true,
+        PlayerState = new PlayerStateConditions(),
+        WorldState = new WorldStateConditions(),
+        EntityState = new EntityStateConditions()
+    };
+
+    /// <summary>
+    /// Flag indicating this is the AlwaysEligible sentinel value
+    /// Internal use only - evaluator checks this flag first
+    /// </summary>
+    internal bool IsAlwaysEligible { get; init; } = false;
+}
+
+// Parser returns sentinel instead of null:
+public static SpawnConditions ParseSpawnConditions(SpawnConditionsDTO dto)
+{
+    if (dto == null)
+        return SpawnConditions.AlwaysEligible; // ✅ Explicit sentinel
+}
+
+// Evaluator checks flag, not null:
+public bool EvaluateAll(SpawnConditions conditions, Player player)
+{
+    if (conditions == null)
+        throw new ArgumentNullException(nameof(conditions),
+            "SpawnConditions cannot be null. Use SpawnConditions.AlwaysEligible for unconditional spawning.");
+
+    if (conditions.IsAlwaysEligible)
+        return true; // ✅ Explicit check for domain concept
+
+    // ... evaluate conditions
+}
+```
+
+**WHY THIS MATTERS:**
+
+1. **Semantic Clarity** - "AlwaysEligible" is self-documenting, `null` requires comments/docs
+2. **IntelliSense Discovery** - Developers find `SpawnConditions.AlwaysEligible` via autocomplete
+3. **Fail Fast** - Evaluator throws on actual null (uninitialized), doesn't silently treat as valid
+4. **Type Safety** - Sentinel value enforces initialization, prevents accidental null propagation
+5. **Refactoring Safety** - Can add properties to AlwaysEligible without null checks scattered everywhere
+6. **DDD Compliance** - Domain concept (unconditional spawning) has explicit representation in code
+
+**WHEN TO USE SENTINEL VALUES:**
+
+- Any time null would mean "default behavior" or "no restrictions"
+- When absence of data represents a specific domain state
+- When evaluators/validators need to check for special cases
+- When domain logic routes based on "missing" values
+
+**FORBIDDEN PATTERNS:**
+
+❌ `if (entity.Property == null) { /* special behavior */ }`
+❌ Parser returning null to mean "use default"
+❌ Null-coalescing operators to provide domain logic defaults: `?? AlwaysEligible`
+❌ Documentation saying "null means X" - make X explicit in code
+
+**CORRECT PATTERN:**
+- Create static readonly sentinel: `Entity.DefaultValue`, `Entity.NoRestrictions`, `Entity.AlwaysEligible`
+- Add internal flag: `internal bool IsDefault { get; init; }`
+- Parser/Factory returns sentinel, never null
+- Evaluator checks flag first, throws on actual null
+- Sentinel value is discoverable, self-documenting, type-safe
+
 ### ⚠️ CRITICAL PRINCIPLE: NEVER DELETE REQUIRED FEATURES ⚠️
 
 **IF A FEATURE IS NEEDED BUT NOT YET IMPLEMENTED:**

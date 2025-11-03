@@ -171,11 +171,32 @@ public class RewardApplicationService
 
         foreach (SceneSpawnReward sceneSpawn in reward.ScenesToSpawn)
         {
-            // Resolve Route if needed (Situation only has RouteId, not object reference)
+            // PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+            // Resolve Route if needed (Situation only has RouteId via Scene)
             RouteOption currentRoute = null;
-            if (!string.IsNullOrEmpty(currentSituation?.PlacementRouteId))
+            string routeId = currentSituation?.GetPlacementId(PlacementType.Route);
+            if (!string.IsNullOrEmpty(routeId))
             {
-                currentRoute = _gameWorld.Routes.FirstOrDefault(r => r.Id == currentSituation.PlacementRouteId);
+                currentRoute = _gameWorld.Routes.FirstOrDefault(r => r.Id == routeId);
+            }
+
+            // Resolve Location/NPC if needed
+            Venue currentVenue = null;
+            string locationId = currentSituation?.GetPlacementId(PlacementType.Location);
+            if (!string.IsNullOrEmpty(locationId))
+            {
+                Location location = _gameWorld.GetLocation(locationId);
+                if (location != null && !string.IsNullOrEmpty(location.VenueId))
+                {
+                    currentVenue = _gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId);
+                }
+            }
+
+            NPC currentNPC = null;
+            string npcId = currentSituation?.GetPlacementId(PlacementType.NPC);
+            if (!string.IsNullOrEmpty(npcId))
+            {
+                currentNPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
             }
 
             // Build spawn context from Situation placement
@@ -183,15 +204,16 @@ public class RewardApplicationService
             {
                 Player = player,
                 CurrentSituation = currentSituation,
-                CurrentLocation = currentSituation?.PlacementLocation?.Venue,
-                CurrentNPC = currentSituation?.PlacementNpc,
+                CurrentLocation = currentVenue,
+                CurrentNPC = currentNPC,
                 CurrentRoute = currentRoute
             };
 
             // Find provisional Scene matching this template and placement
             // Provisional Scene was created during action generation (eager creation for perfect information)
-            global::Scene provisionalScene = _gameWorld.ProvisionalScenes.Values
-                .FirstOrDefault(s => s.TemplateId == sceneSpawn.SceneTemplateId);
+            // PHASE 1.4: Query unified Scenes collection with State filter
+            global::Scene provisionalScene = _gameWorld.Scenes
+                .FirstOrDefault(s => s.State == SceneState.Provisional && s.TemplateId == sceneSpawn.SceneTemplateId);
 
             if (provisionalScene != null)
             {
@@ -212,12 +234,13 @@ public class RewardApplicationService
         }
 
         // CLEANUP: Delete provisional Scenes from non-selected actions in this Situation
-        // After finalization, selected action's Scenes are in GameWorld.Scenes (no longer provisional)
+        // After finalization, selected action's Scenes have State=Active (no longer provisional)
         // Delete remaining provisional Scenes from same Situation to prevent accumulation
+        // PHASE 1.4: Query unified Scenes collection with State filter
         if (currentSituation != null)
         {
-            List<string> unselectedProvisionalScenes = _gameWorld.ProvisionalScenes.Values
-                .Where(s => s.SourceSituationId == currentSituation.Id)
+            List<string> unselectedProvisionalScenes = _gameWorld.Scenes
+                .Where(s => s.State == SceneState.Provisional && s.SourceSituationId == currentSituation.Id)
                 .Select(s => s.Id)
                 .ToList();
 

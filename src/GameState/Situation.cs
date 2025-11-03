@@ -26,12 +26,13 @@ public class Situation
     // ==================== STATE MACHINE (QUERY-TIME ACTION INSTANTIATION) ====================
 
     /// <summary>
-    /// Lifecycle state controlling action instantiation
-    /// Dormant: Situation exists but player hasn't entered context, NO actions instantiated
-    /// Active: Player entered location/conversation/route, ChoiceTemplates → Actions created
-    /// State transition triggered by SceneFacade when player enters context
+    /// Controls whether ChoiceTemplate actions have been materialized into GameWorld collections
+    /// Deferred: Situation exists but NO actions in GameWorld.LocationActions/NPCActions/PathCards
+    /// Instantiated: Player entered context, ChoiceTemplates → Actions created in GameWorld
+    /// Transition triggered by SceneFacade at query time (three-tier timing model)
+    /// Orthogonal to LifecycleStatus (progression tracking)
     /// </summary>
-    public SituationState State { get; set; } = SituationState.Dormant;
+    public InstantiationState InstantiationState { get; set; } = InstantiationState.Deferred;
 
     /// <summary>
     /// Indicates this Situation auto-advances without player input
@@ -68,11 +69,6 @@ public class Situation
     public string DeckId { get; set; }
 
 
-    /// <summary>
-    /// Route ID where this situation's button appears in UI (semantic: placement, not ownership)
-    /// Used for route-based situations (scouting, pathfinding) that grant ExplorationCubes
-    /// </summary>
-    public string PlacementRouteId { get; set; }
 
     // Scene-Situation Architecture additions (spawn tracking, completion tracking, template system)
 
@@ -91,40 +87,12 @@ public class Situation
     public string ParentSituationId { get; set; }
 
     /// <summary>
-    /// Day when this situation was spawned
-    /// null if not yet spawned (template definition)
+    /// Lifecycle tracking (spawn and completion timestamps)
+    /// Shared record that can be reused across Scene, Situation, and other time-sensitive entities
+    /// Implements HIGHLANDER principle: ONE definition of spawn/completion tracking
+    /// Initialized inline to prevent null references (LET IT CRASH philosophy)
     /// </summary>
-    public int? SpawnedDay { get; set; }
-
-    /// <summary>
-    /// Time block when this situation was spawned
-    /// null if not yet spawned (template definition)
-    /// </summary>
-    public TimeBlocks? SpawnedTimeBlock { get; set; }
-
-    /// <summary>
-    /// Segment within time block when this situation was spawned (1-4)
-    /// null if not yet spawned (template definition)
-    /// </summary>
-    public int? SpawnedSegment { get; set; }
-
-    /// <summary>
-    /// Day when this situation was completed
-    /// null if not yet completed
-    /// </summary>
-    public int? CompletedDay { get; set; }
-
-    /// <summary>
-    /// Time block when this situation was completed
-    /// null if not yet completed
-    /// </summary>
-    public TimeBlocks? CompletedTimeBlock { get; set; }
-
-    /// <summary>
-    /// Segment within time block when this situation was completed (1-4)
-    /// null if not yet completed
-    /// </summary>
-    public int? CompletedSegment { get; set; }
+    public SpawnTracking Lifecycle { get; set; } = new SpawnTracking();
 
     /// <summary>
     /// Type of interaction when player selects this situation
@@ -218,16 +186,6 @@ public class Situation
     public NarrativeHints NarrativeHints { get; set; }
 
     /// <summary>
-    /// Object reference to placement location (for runtime navigation)
-    /// </summary>
-    public Location PlacementLocation { get; set; }
-
-    /// <summary>
-    /// Object reference to placement NPC (for runtime navigation)
-    /// </summary>
-    public NPC PlacementNpc { get; set; }
-
-    /// <summary>
     /// Object reference to parent obligation (for runtime navigation)
     /// </summary>
     public Obligation Obligation { get; set; }
@@ -237,6 +195,21 @@ public class Situation
     /// Populated at initialization time from scene's SituationIds
     /// </summary>
     public Scene ParentScene { get; set; }
+
+    /// <summary>
+    /// Get placement ID from parent Scene for specified placement type
+    /// Implements HIGHLANDER Pattern: Scene owns placement, Situation queries it
+    /// Returns null if no parent scene or placement type doesn't match
+    /// </summary>
+    /// <param name="placementType">Type of placement to query (Location/NPC/Route)</param>
+    /// <returns>Placement ID if parent scene has matching placement type, null otherwise</returns>
+    public string GetPlacementId(PlacementType placementType)
+    {
+        if (ParentScene == null)
+            return null;
+
+        return ParentScene.PlacementType == placementType ? ParentScene.PlacementId : null;
+    }
 
     /// <summary>
     /// Whether this situation is an obligation intro action
@@ -254,19 +227,32 @@ public class Situation
     public ConnectionType ConnectionType { get; set; } = ConnectionType.Trust;
 
     /// <summary>
-    /// Current status of the situation
+    /// Tracks situation progression from spawn through resolution
+    /// Controls UI visibility, selectability, and completion tracking
+    /// Orthogonal to InstantiationState (action materialization)
     /// </summary>
-    public SituationStatus Status { get; set; } = SituationStatus.Available;
+    public LifecycleStatus LifecycleStatus { get; set; } = LifecycleStatus.Selectable;
 
     /// <summary>
-    /// Whether this situation is currently available
+    /// Whether this situation is currently available to select
+    /// Computed from LifecycleStatus - true only when LifecycleStatus == Selectable
+    /// HIGHLANDER: LifecycleStatus enum is single source of truth, this is derived query
     /// </summary>
-    public bool IsAvailable { get; set; } = true;
+    public bool IsAvailable => LifecycleStatus == LifecycleStatus.Selectable;
 
     /// <summary>
-    /// Whether this situation has been completed
+    /// Whether this situation has been completed (success or failure)
+    /// Computed from LifecycleStatus - true when LifecycleStatus == Completed OR Failed
+    /// HIGHLANDER: LifecycleStatus enum is single source of truth, this is derived query
     /// </summary>
-    public bool IsCompleted { get; set; } = false;
+    public bool IsCompleted => LifecycleStatus == LifecycleStatus.Completed || LifecycleStatus == LifecycleStatus.Failed;
+
+    /// <summary>
+    /// Whether actions have been instantiated in GameWorld collections
+    /// Computed from InstantiationState - true when InstantiationState == Instantiated
+    /// Used for debugging and validation of three-tier timing model
+    /// </summary>
+    public bool HasInstantiatedActions => InstantiationState == InstantiationState.Instantiated;
 
     /// <summary>
     /// Whether this situation should be deleted from ActiveSituations on successful completion.
@@ -325,18 +311,19 @@ public class Situation
 
     /// <summary>
     /// Check if this situation is available to attempt
+    /// Simply queries IsAvailable computed property (which derives from Status)
     /// </summary>
     public bool IsAvailableToAttempt()
     {
-        return Status == SituationStatus.Available && IsAvailable;
+        return IsAvailable;
     }
 
     /// <summary>
     /// Mark this situation as completed
+    /// Sets LifecycleStatus only - IsCompleted is computed property that auto-updates
     /// </summary>
     public void Complete()
     {
-        Status = SituationStatus.Completed;
-        IsCompleted = true;
+        LifecycleStatus = LifecycleStatus.Completed;
     }
 }

@@ -45,7 +45,7 @@ public class SpawnFacade
         foreach (SpawnRule rule in spawnRules)
         {
             // Validate spawn conditions (if present)
-            if (rule.Conditions != null && !ValidateSpawnConditions(rule.Conditions, player))
+            if (rule.Conditions != null && !ValidateSituationSpawnConditions(rule.Conditions, player))
             {
                 // Conditions not met - skip this spawn
                 continue;
@@ -74,7 +74,7 @@ public class SpawnFacade
     /// <summary>
     /// Validate spawn conditions - all conditions must be met for spawn to occur
     /// </summary>
-    private bool ValidateSpawnConditions(SpawnConditions conditions, Player player)
+    private bool ValidateSituationSpawnConditions(SituationSpawnConditions conditions, Player player)
     {
         // Check MinResolve
         if (conditions.MinResolve.HasValue && player.Resolve < conditions.MinResolve.Value)
@@ -126,8 +126,7 @@ public class SpawnFacade
             SystemType = template.SystemType,
             DeckId = template.DeckId,
             IsIntroAction = template.IsIntroAction,
-            IsAvailable = true, // Spawned situations start available
-            IsCompleted = false,
+            // IsAvailable and IsCompleted are computed properties from Status enum (no assignment needed)
             DeleteOnSuccess = template.DeleteOnSuccess,
             Costs = CloneCosts(template.Costs),
             DifficultyModifiers = template.DifficultyModifiers.ToList(),
@@ -145,14 +144,17 @@ public class SpawnFacade
             NarrativeHints = template.NarrativeHints, // TODO: Clone if mutable
             Category = template.Category,
             ConnectionType = template.ConnectionType,
-            Status = SituationStatus.Available,
+            LifecycleStatus = LifecycleStatus.Selectable,
 
             // Spawn tracking
             Template = null, // TODO: Replace with proper template reference when using SituationTemplate system
             ParentSituationId = parentSituation.Id, // Track parent situation
-            SpawnedDay = _timeFacade.GetCurrentDay(),
-            SpawnedTimeBlock = _timeFacade.GetCurrentTimeBlock(),
-            SpawnedSegment = _timeFacade.GetCurrentSegment(),
+            Lifecycle = new SpawnTracking
+            {
+                SpawnedDay = _timeFacade.GetCurrentDay(),
+                SpawnedTimeBlock = _timeFacade.GetCurrentTimeBlock(),
+                SpawnedSegment = _timeFacade.GetCurrentSegment()
+            },
 
             // Clone projected consequences
             ProjectedBondChanges = template.ProjectedBondChanges.ToList(),
@@ -257,86 +259,43 @@ public class SpawnFacade
     /// </summary>
     private void ResolvePlacement(Situation spawned, Situation parent, SpawnRule rule)
     {
-        // ARCHITECTURE UPDATE: Use PlacementRelation enum (aligned with SceneSpawnReward)
-        switch (rule.PlacementRelation)
-        {
-            case PlacementRelation.SameLocation:
-                // Use parent's location placement
-                spawned.PlacementLocation = parent.PlacementLocation;
-                spawned.PlacementNpc = null;
-                spawned.Obligation = parent.Obligation;
-                break;
+        // PHASE 0.2: Placement properties DELETED from Situation - Scene owns placement now
+        // Spawned situations inherit parent scene, which owns placement through Scene.PlacementLocation/PlacementNpc/PlacementRouteId
+        // SpawnFacade NO LONGER sets placement properties on situations
+        // Scene-Situation architecture: Scene is OWNER of placement hierarchy
 
-            case PlacementRelation.SameNPC:
-                // Use parent's NPC placement
-                spawned.PlacementNpc = parent.PlacementNpc;
-                spawned.PlacementLocation = parent.PlacementNpc?.Location;
-                spawned.Obligation = parent.Obligation;
-                break;
-
-            case PlacementRelation.SpecificLocation:
-                // Resolve location by ID
-                if (string.IsNullOrEmpty(rule.SpecificPlacementId))
-                    throw new InvalidOperationException($"SpawnRule with SpecificLocation strategy missing SpecificPlacementId (template: {rule.TemplateId})");
-
-                Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == rule.SpecificPlacementId);
-                if (location == null)
-                    throw new InvalidOperationException($"SpawnRule references unknown location '{rule.SpecificPlacementId}' (template: {rule.TemplateId})");
-
-                spawned.PlacementLocation = location;
-                spawned.PlacementNpc = null;
-                spawned.Obligation = parent.Obligation; // Keep parent's obligation
-                break;
-
-            case PlacementRelation.SpecificNPC:
-                // Resolve NPC by ID
-                if (string.IsNullOrEmpty(rule.SpecificPlacementId))
-                    throw new InvalidOperationException($"SpawnRule with SpecificNPC strategy missing SpecificPlacementId (template: {rule.TemplateId})");
-
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == rule.SpecificPlacementId);
-                if (npc == null)
-                    throw new InvalidOperationException($"SpawnRule references unknown NPC '{rule.SpecificPlacementId}' (template: {rule.TemplateId})");
-
-                spawned.PlacementNpc = npc;
-                spawned.PlacementLocation = npc.Location; // NPC's current location
-                spawned.Obligation = parent.Obligation; // Keep parent's obligation
-                break;
-
-            case PlacementRelation.SpecificRoute:
-            case PlacementRelation.SameRoute:
-                // Routes: Use PlacementRouteId
-                spawned.PlacementRouteId = rule.PlacementRelation == PlacementRelation.SameRoute
-                    ? parent.PlacementRouteId
-                    : rule.SpecificPlacementId;
-                spawned.PlacementLocation = parent.PlacementLocation;
-                spawned.PlacementNpc = null;
-                spawned.Obligation = parent.Obligation;
-                break;
-
-            default:
-                throw new InvalidOperationException($"Unknown PlacementRelation: {rule.PlacementRelation}");
-        }
+        // TODO Phase 0.2: Implement Scene-based placement inheritance once Scene system refactored
+        // For now, spawned situations will not have direct placement (rely on ParentScene lookup)
+        spawned.Obligation = parent.Obligation;
     }
 
     /// <summary>
     /// Add spawned situation to ActiveSituationIds based on placement
+    /// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
     /// </summary>
     private void AddToActiveSituations(Situation situation)
     {
-        if (situation.PlacementNpc != null)
+        string npcId = situation.GetPlacementId(PlacementType.NPC);
+        if (!string.IsNullOrEmpty(npcId))
         {
             // Add to NPC's ActiveSituationIds
-            if (!situation.PlacementNpc.ActiveSituationIds.Contains(situation.Id))
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+            if (npc != null && !npc.ActiveSituationIds.Contains(situation.Id))
             {
-                situation.PlacementNpc.ActiveSituationIds.Add(situation.Id);
+                npc.ActiveSituationIds.Add(situation.Id);
             }
         }
-        else if (situation.PlacementLocation != null)
+        else
         {
-            // Add to Location's ActiveSituationIds
-            if (!situation.PlacementLocation.ActiveSituationIds.Contains(situation.Id))
+            string locationId = situation.GetPlacementId(PlacementType.Location);
+            if (!string.IsNullOrEmpty(locationId))
             {
-                situation.PlacementLocation.ActiveSituationIds.Add(situation.Id);
+                // Add to Location's ActiveSituationIds
+                Location location = _gameWorld.GetLocation(locationId);
+                if (location != null && !location.ActiveSituationIds.Contains(situation.Id))
+                {
+                    location.ActiveSituationIds.Add(situation.Id);
+                }
             }
         }
     }

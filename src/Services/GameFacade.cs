@@ -61,7 +61,8 @@ public class GameFacade
         NPCActionExecutor npcActionExecutor,
         PathCardExecutor pathCardExecutor,
         ConsequenceFacade consequenceFacade,
-        RewardApplicationService rewardApplicationService)
+        RewardApplicationService rewardApplicationService,
+        SpawnConditionsEvaluator spawnConditionsEvaluator)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -87,7 +88,7 @@ public class GameFacade
         _pathCardExecutor = pathCardExecutor ?? throw new ArgumentNullException(nameof(pathCardExecutor));
         _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
-        _sceneInstantiator = new SceneInstantiator(_gameWorld);
+        _sceneInstantiator = new SceneInstantiator(_gameWorld, spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator)));
     }
 
     // ========== CORE GAME STATE ==========
@@ -1494,6 +1495,7 @@ public class GameFacade
     /// Get all Situations available at a specific location
     /// Includes both legacy standalone Situations and Scene-embedded Situations
     /// Scene-embedded Situations inherit placement from parent Scene
+    /// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
     /// </summary>
     public List<Situation> GetAvailableSituationsAtLocation(string locationId)
     {
@@ -1504,13 +1506,14 @@ public class GameFacade
 
         // Query all Situations (both legacy and Scene-embedded) at this location
         return _gameWorld.Situations
-            .Where(s => s.PlacementLocation?.Id == locationId)
+            .Where(s => s.GetPlacementId(PlacementType.Location) == locationId)
             .ToList();
     }
 
     /// <summary>
     /// Get all Situations available for a specific NPC
     /// Includes both legacy standalone Situations and Scene-embedded Situations
+    /// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
     /// </summary>
     public List<Situation> GetAvailableSituationsForNPC(string npcId)
     {
@@ -1519,7 +1522,7 @@ public class GameFacade
 
         // Query all Situations (both legacy and Scene-embedded) for this NPC
         return _gameWorld.Situations
-            .Where(s => s.PlacementNpc?.ID == npcId)
+            .Where(s => s.GetPlacementId(PlacementType.NPC) == npcId)
             .ToList();
     }
 
@@ -1848,7 +1851,7 @@ public class GameFacade
         Situation situation = _gameWorld.Situations.FirstOrDefault(s => s.Id == situationId);
         if (situation != null)
         {
-            situation.State = SituationState.Dormant;
+            situation.InstantiationState = InstantiationState.Deferred;
         }
     }
 

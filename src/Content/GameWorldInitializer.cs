@@ -42,7 +42,8 @@ public static class GameWorldInitializer
     /// </summary>
     private static void SpawnInitialScenes(GameWorld gameWorld)
     {
-        SceneInstantiator instantiator = new SceneInstantiator(gameWorld);
+        SpawnConditionsEvaluator spawnConditionsEvaluator = new SpawnConditionsEvaluator(gameWorld);
+        SceneInstantiator instantiator = new SceneInstantiator(gameWorld, spawnConditionsEvaluator);
 
         // Find all starter templates
         List<SceneTemplate> starterTemplates = gameWorld.SceneTemplates.Where(t => t.IsStarter).ToList();

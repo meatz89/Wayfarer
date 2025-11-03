@@ -87,16 +87,6 @@ public class SituationDTO
     public bool IsIntroAction { get; set; } = false;
 
     /// <summary>
-    /// Whether this situation is currently available
-    /// </summary>
-    public bool IsAvailable { get; set; } = true;
-
-    /// <summary>
-    /// Whether this situation has been completed
-    /// </summary>
-    public bool IsCompleted { get; set; } = false;
-
-    /// <summary>
     /// Whether this situation should be deleted from ActiveSituations on successful completion.
     /// Default: true (obligation progression pattern)
     /// </summary>

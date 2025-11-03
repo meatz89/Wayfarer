@@ -120,14 +120,17 @@ public class SceneFacade
 
         foreach (global::Scene scene in scenes)
         {
+            // PHASE 1.3: Skip completed scenes (state machine method)
+            if (scene.IsComplete()) continue;
+
             // Get current Situation from GameWorld.Situations using scene.CurrentSituationId
             Situation situation = _gameWorld.Situations
                 .FirstOrDefault(s => s.Id == scene.CurrentSituationId);
 
             if (situation == null) continue;
 
-            // STATE TRANSITION: Dormant → Active
-            if (situation.State == SituationState.Dormant)
+            // STATE TRANSITION: Deferred → Instantiated
+            if (situation.InstantiationState == InstantiationState.Deferred)
             {
                 ActivateSituationForLocation(situation, scene, player);
             }
@@ -151,7 +154,7 @@ public class SceneFacade
     /// </summary>
     private void ActivateSituationForLocation(Situation situation, global::Scene scene, Player player)
     {
-        situation.State = SituationState.Active;
+        situation.InstantiationState = InstantiationState.Instantiated;
 
         // AutoAdvance detection: Execute AutoProgressRewards immediately
         if (situation.IsAutoAdvance && situation.Template.AutoProgressRewards != null)
@@ -211,6 +214,9 @@ public class SceneFacade
 
         foreach (global::Scene scene in scenes)
         {
+            // PHASE 1.3: Skip completed scenes (state machine method)
+            if (scene.IsComplete()) continue;
+
             // Get current Situation from GameWorld.Situations using scene.CurrentSituationId
             Situation situation = _gameWorld.Situations
                 .FirstOrDefault(s => s.Id == scene.CurrentSituationId);
@@ -218,7 +224,7 @@ public class SceneFacade
             if (situation == null) continue;
 
             // STATE TRANSITION: Dormant → Active
-            if (situation.State == SituationState.Dormant)
+            if (situation.InstantiationState == InstantiationState.Deferred)
             {
                 ActivateSituationForNPC(situation, scene, player);
             }
@@ -242,7 +248,7 @@ public class SceneFacade
     /// </summary>
     private void ActivateSituationForNPC(Situation situation, global::Scene scene, Player player)
     {
-        situation.State = SituationState.Active;
+        situation.InstantiationState = InstantiationState.Instantiated;
 
         // AutoAdvance detection: Execute AutoProgressRewards immediately
         if (situation.IsAutoAdvance && situation.Template.AutoProgressRewards != null)
@@ -297,6 +303,9 @@ public class SceneFacade
 
         foreach (global::Scene scene in scenes)
         {
+            // PHASE 1.3: Skip completed scenes (state machine method)
+            if (scene.IsComplete()) continue;
+
             // Get current Situation from GameWorld.Situations using scene.CurrentSituationId
             Situation situation = _gameWorld.Situations
                 .FirstOrDefault(s => s.Id == scene.CurrentSituationId);
@@ -304,7 +313,7 @@ public class SceneFacade
             if (situation == null) continue;
 
             // STATE TRANSITION: Dormant → Active
-            if (situation.State == SituationState.Dormant)
+            if (situation.InstantiationState == InstantiationState.Deferred)
             {
                 ActivateSituationForRoute(situation, scene, player);
             }
@@ -328,7 +337,7 @@ public class SceneFacade
     /// </summary>
     private void ActivateSituationForRoute(Situation situation, global::Scene scene, Player player)
     {
-        situation.State = SituationState.Active;
+        situation.InstantiationState = InstantiationState.Instantiated;
 
         // AutoAdvance detection: Execute AutoProgressRewards immediately
         if (situation.IsAutoAdvance && situation.Template.AutoProgressRewards != null)

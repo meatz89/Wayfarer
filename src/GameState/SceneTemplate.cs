@@ -40,6 +40,16 @@ public class SceneTemplate
     public PlacementFilter PlacementFilter { get; init; }
 
     /// <summary>
+    /// Temporal eligibility conditions for scene spawning
+    /// null = always eligible (no temporal filtering)
+    /// Non-null = Scene spawns only when conditions met (player state, world state, entity state)
+    /// Three evaluation dimensions: PlayerState, WorldState, EntityState
+    /// Evaluated by SpawnConditionsEvaluator at spawn time
+    /// Enables dynamic narrative emergence based on game state
+    /// </summary>
+    public SpawnConditions SpawnConditions { get; init; }
+
+    /// <summary>
     /// Embedded SituationTemplates defining Situations within this Scene
     /// Each SituationTemplate contains 2-4 ChoiceTemplates (Sir Brante pattern)
     /// NOT standalone entities - always embedded in SceneTemplate

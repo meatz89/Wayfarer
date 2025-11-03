@@ -12,11 +12,11 @@ public class DifficultyModifier
 
     /// <summary>
     /// Context for the modifier (if needed)
-    /// NO ID MATCHING: Familiarity and ConnectionTokens use situation's properties, not Context
+    /// NO ID MATCHING: Familiarity and ConnectionTokens use situation's placement via GetPlacementId(), not Context
     /// - Understanding: null (global resource)
     /// - Mastery: Challenge type ("Combat", "Athletics", etc.)
-    /// - Familiarity: NOT USED (uses situation.PlacementLocationId instead)
-    /// - ConnectionTokens: NOT USED (uses situation.NpcId instead)
+    /// - Familiarity: NOT USED (uses situation.GetPlacementId(PlacementType.Location) instead)
+    /// - ConnectionTokens: NOT USED (uses situation.GetPlacementId(PlacementType.NPC) instead)
     /// - SceneProperty: Property name (always "Intensity" now)
     /// - HasItemCategory: ItemCategory enum value as string ("Light_Source", "Navigation_Tools", etc.)
     /// </summary>
@@ -75,7 +75,7 @@ public enum ModifierType
     /// Accumulated through Mental challenges at that specific location
     /// Never depletes (cumulative per-location growth)
     /// Competition: Multiple locations need obligation, limited Focus
-    /// Context: NOT USED (service uses situation.PlacementLocationId instead - NO ID MATCHING)
+    /// Context: NOT USED (service uses situation.GetPlacementId(PlacementType.Location) instead - NO ID MATCHING)
     /// Threshold: Minimum Familiarity needed (e.g., 2)
     /// Effect: Exposure or Doubt reduction (e.g., -2)
     /// </summary>
