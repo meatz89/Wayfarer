@@ -7,6 +7,7 @@ public enum ScreenMode
     Location,
     Scene,           // Full-screen scene display (Sir Brante forced moment)
     Exchange,
+    Inventory,       // Player belongings (items, equipment) - passive viewing
     Travel,
     SocialChallenge,
     MentalChallenge,

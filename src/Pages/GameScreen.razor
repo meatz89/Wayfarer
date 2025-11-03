@@ -159,7 +159,11 @@
                 case ScreenMode.Exchange:
                     <ExchangeContent Context="@CurrentExchangeContext" OnExchangeEnd="HandleExchangeEnd" />
                     break;
-                    
+
+                case ScreenMode.Inventory:
+                    <InventoryContent OnClose="() => NavigateToScreen(ScreenMode.Location)" />
+                    break;
+
                 case ScreenMode.Travel:
                     <TravelContent
                         CurrentLocation="@GetCurrentLocation()"

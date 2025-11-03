@@ -1,0 +1,175 @@
+/* BLAZOR CSS ISOLATION: Inventory-specific styles only */
+
+/* Inventory Screen Container */
+.inventory-screen {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: #faf4ea;
+}
+
+/* Header Bar (similar to NPC bar in conversations) */
+.inventory-header {
+    background: linear-gradient(to bottom, #f4e8d0, #e8dcc4);
+    padding: 15px 20px;
+    border-bottom: 2px solid #a68b6f;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.inventory-header h2 {
+    color: #5c4a3a;
+    font-size: 22px;
+    font-weight: normal;
+    margin: 0;
+}
+
+.close-btn {
+    background: #8b4726;
+    color: #faf4ea;
+    border: none;
+    border-radius: 4px;
+    padding: 8px 16px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.close-btn:hover {
+    background: #a65830;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+/* Content Area */
+.inventory-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+/* Weight Status Bar */
+.weight-status {
+    background: #f9f3e9;
+    padding: 15px 20px;
+    border-radius: 4px;
+    border: 2px solid #c4a684;
+    margin-bottom: 20px;
+}
+
+.weight-label {
+    font-size: 13px;
+    color: #7a6250;
+    font-weight: bold;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.weight-bar {
+    height: 20px;
+    background: #e8dcc4;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid #d4c5a0;
+}
+
+.weight-fill {
+    height: 100%;
+    background: linear-gradient(to right, #7a8b5a, #6a7a4a);
+    transition: width 0.3s ease;
+}
+
+/* Inventory Section */
+.inventory-section {
+    background: #f4e8d0;
+    padding: 15px;
+    border-radius: 4px;
+    border: 2px solid #c4a684;
+}
+
+.inventory-section h3 {
+    font-size: 14px;
+    color: #5c4a3a;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 0 0 15px 0;
+    border-bottom: 1px solid #d4c5a0;
+    padding-bottom: 8px;
+}
+
+/* Items List */
+.items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+/* Item Card */
+.item-card {
+    background: #faf4ea;
+    border: 2px solid #c4a684;
+    border-radius: 4px;
+    padding: 12px 15px;
+    transition: all 0.3s ease;
+}
+
+.item-card:hover {
+    background: #fefaf0;
+    border-color: #a68b6f;
+    transform: translateX(2px);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.item-name {
+    font-size: 15px;
+    font-weight: bold;
+    color: #5c4a3a;
+}
+
+.item-count {
+    background: #8b4726;
+    color: #faf4ea;
+    padding: 2px 8px;
+    border-radius: 2px;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.item-description {
+    font-size: 13px;
+    color: #7a6250;
+    line-height: 1.4;
+    margin-bottom: 6px;
+    font-style: italic;
+}
+
+.item-weight {
+    font-size: 11px;
+    color: #a68b6f;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* Empty State */
+.empty-message {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.empty-message p {
+    font-size: 14px;
+    color: #7a6250;
+    font-style: italic;
+    margin: 0;
+}

@@ -770,6 +770,7 @@ public class GameFacade
             WaitIntent => ProcessWaitIntent(),
             SleepOutsideIntent => ProcessSleepOutsideIntent(),
             LookAroundIntent => ProcessLookAroundIntent(),
+            CheckBelongingsIntent => ProcessCheckBelongingsIntent(),
 
             // Location action intents
             RestAtLocationIntent => await ProcessRestAtLocationIntent(),
@@ -867,6 +868,14 @@ public class GameFacade
     {
         // Backend authority: Navigate to LookingAround view showing NPCs, challenges, opportunities
         return IntentResult.NavigateView(LocationViewState.LookingAround);
+    }
+
+    private IntentResult ProcessCheckBelongingsIntent()
+    {
+        // Backend authority: Navigate to Inventory screen (full-screen meta view)
+        // Displays player's belongings: inventory items + equipped items
+        // Passive viewing only - no equip/unequip mechanics (out of scope)
+        return IntentResult.NavigateScreen(ScreenMode.Inventory);
     }
 
     // ========== LOCATION ACTION INTENT HANDLERS ==========
