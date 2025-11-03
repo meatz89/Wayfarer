@@ -41,7 +41,8 @@ public enum LocationPropertyType
     Social,         // Social hub, enables social interactions
     Service,        // Service location, various services available
     Rest,           // Rest area, enables rest actions
-    Lodging,        // Lodging available, sleep/room actions
+    SleepingSpace,  // Has bed/accommodation, enables Rest action (functional)
+    LodgingProvider, // Offers accommodation services, NPC conversation topic (business)
 
     // Venue type properties
     Tavern,         // Tavern Venue type
@@ -76,6 +77,7 @@ public enum LocationPropertyType
     ViewsRiver,     // Views of river
     Urban,          // Urban environment
     Rural,          // Rural environment
+    Indoor,         // Enclosed space (building interior, shelter)
 
     // Activity level properties
     Busy,           // Generally busy location

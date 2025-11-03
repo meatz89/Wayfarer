@@ -521,7 +521,7 @@ public class LocationFacade
             Header = BuildLocationHeader(venue, spot, currentTime),
             TravelActions = GetTravelActions(venue, spot),
             LocationSpecificActions = GetLocationSpecificActions(venue, spot),
-            PlayerActions = GetPlayerActions(),
+            PlayerActions = GetPlayerActions(spot),
             // REMOVED: HasSpots (intra-venue movement now data-driven from LocationActionCatalog)
             NPCsWithSituations = BuildNPCsWithSituations(spot, currentTime),
             AmbientMentalSituations = ambientMental,
@@ -680,7 +680,7 @@ public class LocationFacade
         return actions.Where(a => a.ActionType == "travel").ToList();
     }
 
-    private List<LocationActionViewModel> GetPlayerActions()
+    private List<LocationActionViewModel> GetPlayerActions(Location spot)
     {
         List<LocationActionViewModel> playerActions = new List<LocationActionViewModel>();
 
@@ -689,6 +689,13 @@ public class LocationFacade
 
         foreach (PlayerAction action in _gameWorld.PlayerActions)
         {
+            // Filter: Don't show "Sleep Outside" when player is INSIDE (at Indoor location)
+            if (action.ActionType == PlayerActionType.SleepOutside &&
+                spot.LocationProperties.Contains(LocationPropertyType.Indoor))
+            {
+                continue;  // Skip this action - player is inside, not outside
+            }
+
             playerActions.Add(new LocationActionViewModel
             {
                 Title = action.Name,

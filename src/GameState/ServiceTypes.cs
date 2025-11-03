@@ -8,7 +8,6 @@
     EquipmentRepair,
     FoodProduction,
     Trading,
-    Lodging,
     Market,
     Work,
     Transport  // NPCs who control routes and accept travel permits

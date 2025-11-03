@@ -57,7 +57,8 @@
             "public",
             "busy",
             "restful",
-            "lodging"
+            "lodgingProvider",
+            "indoor"
           ]
         },
         "canInvestigate": false
@@ -69,10 +70,11 @@
         "description": "A simple guest room. Quiet, safe. A bed waits.",
         "properties": {
           "base": [
-            "lodging"
+            "sleepingSpace"
           ],
           "all": [
-            "restful"
+            "restful",
+            "indoor"
           ]
         },
         "canInvestigate": false

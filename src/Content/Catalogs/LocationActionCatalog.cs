@@ -108,16 +108,16 @@ public static class LocationActionCatalog
             });
         }
 
-        // Restful property → Rest action
-        if (location.LocationProperties.Contains(LocationPropertyType.Restful))
+        // SleepingSpace property → Rest action
+        if (location.LocationProperties.Contains(LocationPropertyType.SleepingSpace))
         {
-            Console.WriteLine($"[LocationActionCatalog] ✅ Restful found - generating Rest action");
+            Console.WriteLine($"[LocationActionCatalog] ✅ SleepingSpace found - generating Rest action");
             actions.Add(new LocationAction
             {
                 Id = $"rest_{location.Id}",
                 SourceLocationId = location.Id,  // Bind to specific location
                 Name = "Rest",
-                Description = "Take time to rest and recover. Advances 1 time segment. Restores +1 Health and +1 Stamina. Hunger increases by +5 automatically.",
+                Description = "Rest in the safety of this sleeping space. Advances 1 time segment. Restores +1 Health and +1 Stamina. Hunger increases by +5 automatically.",
                 ActionType = LocationActionType.Rest,
                 Costs = new ActionCosts
                 {
@@ -128,18 +128,18 @@ public static class LocationActionCatalog
                     HealthRecovery = 1,
                     StaminaRecovery = 1
                 },
-                RequiredProperties = new List<LocationPropertyType> { LocationPropertyType.Restful },
+                RequiredProperties = new List<LocationPropertyType> { LocationPropertyType.SleepingSpace },
                 OptionalProperties = new List<LocationPropertyType>(),
                 ExcludedProperties = new List<LocationPropertyType>(),
                 Availability = new List<TimeBlocks> { TimeBlocks.Morning, TimeBlocks.Midday, TimeBlocks.Afternoon, TimeBlocks.Evening },
-                Priority = 50  // Match JSON priority
+                Priority = 130  // High priority - safe recovery
             });
         }
 
-        // Lodging property → Secure Room action
-        if (location.LocationProperties.Contains(LocationPropertyType.Lodging))
+        // LodgingProvider property → Secure Room action
+        if (location.LocationProperties.Contains(LocationPropertyType.LodgingProvider))
         {
-            Console.WriteLine($"[LocationActionCatalog] ✅ Lodging found - generating Secure Room action");
+            Console.WriteLine($"[LocationActionCatalog] ✅ LodgingProvider found - generating Secure Room action");
             actions.Add(new LocationAction
             {
                 Id = $"secure_room_{location.Id}",
@@ -149,17 +149,17 @@ public static class LocationActionCatalog
                 ActionType = LocationActionType.SecureRoom,
                 Costs = new ActionCosts
                 {
-                    Coins = 10  // Match JSON cost
+                    Coins = 10  // Cost for secure lodging
                 },
                 Rewards = new ActionRewards
                 {
                     FullRecovery = true  // Full health/stamina/focus recovery
                 },
-                RequiredProperties = new List<LocationPropertyType> { LocationPropertyType.Lodging },
+                RequiredProperties = new List<LocationPropertyType> { LocationPropertyType.LodgingProvider },
                 OptionalProperties = new List<LocationPropertyType>(),
                 ExcludedProperties = new List<LocationPropertyType>(),
                 Availability = new List<TimeBlocks> { TimeBlocks.Evening },  // Only at evening
-                Priority = 100  // Match JSON priority
+                Priority = 120  // High priority - important service
             });
         }
 
