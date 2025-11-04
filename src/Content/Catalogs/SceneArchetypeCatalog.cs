@@ -60,7 +60,8 @@ public static class SceneArchetypeCatalog
             "transaction_sequence" => GenerateTransactionSequence(tier, contextNPC, contextLocation, contextPlayer),
             "gatekeeper_sequence" => GenerateGatekeeperSequence(tier, contextNPC, contextLocation, contextPlayer),
             "consequence_reflection" => GenerateConsequenceReflection(tier, contextLocation, contextPlayer),
-            _ => throw new InvalidDataException($"Unknown scene archetype ID: '{sceneArchetypeId}'. Valid values: service_with_location_access, transaction_sequence, gatekeeper_sequence, consequence_reflection")
+            "inn_crisis_escalation" => GenerateInnCrisisEscalation(tier, contextNPC, contextLocation, contextPlayer),
+            _ => throw new InvalidDataException($"Unknown scene archetype ID: '{sceneArchetypeId}'. Valid values: service_with_location_access, transaction_sequence, gatekeeper_sequence, consequence_reflection, inn_crisis_escalation")
         };
     }
 
@@ -600,6 +601,132 @@ public static class SceneArchetypeCatalog
         return new SceneArchetypeDefinition
         {
             SituationTemplates = new List<SituationTemplate> { reflectionSituation },
+            SpawnRules = spawnRules
+        };
+    }
+
+    /// <summary>
+    /// INN_CRISIS_ESCALATION archetype
+    ///
+    /// When Used: Escalating crisis at location with NPC ally requiring player intervention
+    /// Situation Count: 4
+    /// Pattern: Linear (observe → investigate → support → resolve)
+    ///
+    /// Situation 1 - Observe: Player notices brewing trouble (auto-progress)
+    ///   - No archetype (narrative only)
+    ///   - Rewards: Resolve +1, Time +1
+    ///
+    /// Situation 2 - Investigate: Player assesses the threat
+    ///   - Archetype: investigation
+    ///   - Choices: Insight to understand, coins for information, Mental challenge, fallback
+    ///
+    /// Situation 3 - Support: Player shows presence to support NPC ally
+    ///   - Archetype: social_maneuvering
+    ///   - Choices: Rapport to connect, coins for gesture, Social challenge, fallback
+    ///
+    /// Situation 4 - Resolve: Crisis moment requiring decisive action
+    ///   - Archetype: crisis
+    ///   - Choices: Authority to command, coins to bribe, Physical challenge to fight, fallback
+    ///
+    /// Reusable Pattern: Any NPC-based crisis escalating from observation to resolution
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateInnCrisisEscalation(
+        int tier,
+        NPC contextNPC,
+        Location contextLocation,
+        Player contextPlayer)
+    {
+        List<SituationTemplate> situations = new List<SituationTemplate>();
+
+        // Situation 1: Observation (auto-progress)
+        situations.Add(new SituationTemplate
+        {
+            Id = "notice_trouble",
+            Type = SituationType.Normal,
+            ArchetypeId = null,  // No archetype - pure narrative observation
+            NarrativeTemplate = null,  // AI generates from hints
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "tense",
+                Theme = "escalation",
+                Context = "observation",
+                Style = "direct"
+            },
+            AutoProgressRewards = new ChoiceReward
+            {
+                Resolve = 1,
+                TimeSegments = 1
+            }
+        });
+
+        // Situation 2: Investigation (threat assessment)
+        situations.Add(new SituationTemplate
+        {
+            Id = "harassment_begins",
+            Type = SituationType.Normal,
+            ArchetypeId = "investigation",  // Insight to assess, Mental challenge
+            NarrativeTemplate = null,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "threatening",
+                Theme = "intimidation",
+                Context = "threat_assessment",
+                Style = "visceral"
+            }
+        });
+
+        // Situation 3: Social Maneuvering (supporting ally)
+        situations.Add(new SituationTemplate
+        {
+            Id = "elena_signals",
+            Type = SituationType.Normal,
+            ArchetypeId = "social_maneuvering",  // Rapport to support, Social challenge
+            NarrativeTemplate = null,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "urgent",
+                Theme = "support",
+                Context = "ally_protection",
+                Style = "sparse"
+            }
+        });
+
+        // Situation 4: Crisis (decisive action)
+        situations.Add(new SituationTemplate
+        {
+            Id = "crisis_confrontation",
+            Type = SituationType.Crisis,
+            ArchetypeId = "crisis",  // Authority to command, Physical challenge to fight
+            NarrativeTemplate = null,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "explosive",
+                Theme = "crisis",
+                Context = "physical_confrontation",
+                Style = "immediate"
+            }
+        });
+
+        // Linear pattern - situation 1 → 2 → 3 → 4
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = "notice_trouble",
+            Transitions = new List<SituationTransition>
+            {
+                new SituationTransition { SourceSituationId = "notice_trouble", DestinationSituationId = "harassment_begins", Condition = TransitionCondition.Always },
+                new SituationTransition { SourceSituationId = "harassment_begins", DestinationSituationId = "elena_signals", Condition = TransitionCondition.Always },
+                new SituationTransition { SourceSituationId = "elena_signals", DestinationSituationId = "crisis_confrontation", Condition = TransitionCondition.Always }
+            }
+        };
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = situations,
             SpawnRules = spawnRules
         };
     }

@@ -57,62 +57,55 @@ public class SceneTemplateParser
         }
 
         // SCENE ARCHETYPE GENERATION: If sceneArchetypeId present, generate complete multi-situation structure from catalogue
-        // Otherwise use hand-authored SituationTemplates from JSON (backward compatible)
-        List<SituationTemplate> situationTemplates;
-        SituationSpawnRules spawnRules;
+        // HIGHLANDER ENFORCEMENT: sceneArchetypeId is REQUIRED
+        // ALL scenes must use archetype-driven generation
+        // NO hand-authored situationTemplates arrays allowed
+        if (string.IsNullOrEmpty(dto.SceneArchetypeId))
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required 'sceneArchetypeId'. All scenes must reference a scene archetype. Hand-authored situationTemplates arrays are not allowed.");
 
-        if (!string.IsNullOrEmpty(dto.SceneArchetypeId))
+        // PARSE-TIME SCENE ARCHETYPE GENERATION
+        Console.WriteLine($"[SceneArchetypeGeneration] Generating multi-situation structure for SceneTemplate '{dto.Id}' using archetype '{dto.SceneArchetypeId}'");
+
+        // Resolve entity objects from placementFilter for context-aware generation
+        // NPC can be null for location-only scenes (consequence, environmental, etc.)
+        NPC contextNPC = ResolveNPCFromPlacementFilter(dto.PlacementFilter, dto.Id);
+        Location contextLocation = ResolveLocationFromPlacementFilter(dto.PlacementFilter, contextNPC, dto.Id);
+        Player contextPlayer = _gameWorld.GetPlayer();
+
+        if (contextNPC != null)
         {
-            // PARSE-TIME SCENE ARCHETYPE GENERATION
-            Console.WriteLine($"[SceneArchetypeGeneration] Generating multi-situation structure for SceneTemplate '{dto.Id}' using archetype '{dto.SceneArchetypeId}'");
-
-            // Resolve entity objects from placementFilter for context-aware generation
-            // NPC can be null for location-only scenes (consequence, environmental, etc.)
-            NPC contextNPC = ResolveNPCFromPlacementFilter(dto.PlacementFilter, dto.Id);
-            Location contextLocation = ResolveLocationFromPlacementFilter(dto.PlacementFilter, contextNPC, dto.Id);
-            Player contextPlayer = _gameWorld.GetPlayer();
-
-            if (contextNPC != null)
-            {
-                Console.WriteLine($"[SceneArchetypeGeneration] Entity context: NPC={contextNPC.Name} (Personality={contextNPC.PersonalityType}, Profession={contextNPC.Profession}), Location={contextLocation.Name}, Player.Coins={contextPlayer.Coins}");
-            }
-            else
-            {
-                Console.WriteLine($"[SceneArchetypeGeneration] Entity context: Location={contextLocation.Name} (Properties={string.Join(", ", contextLocation.LocationProperties)}), Player.Coins={contextPlayer.Coins}");
-            }
-
-            SceneArchetypeDefinition archetypeDefinition = SceneArchetypeCatalog.GetSceneArchetype(
-                dto.SceneArchetypeId,
-                dto.ServiceType ?? "generic",
-                dto.Tier,
-                contextNPC,
-                contextLocation,
-                contextPlayer
-            );
-
-            // Enrich bare SituationTemplates from catalogue with ChoiceTemplates
-            situationTemplates = new List<SituationTemplate>();
-            foreach (SituationTemplate bareTemplate in archetypeDefinition.SituationTemplates)
-            {
-                SituationTemplate enrichedTemplate = EnrichSituationTemplateFromArchetype(
-                    bareTemplate,
-                    dto.Id,
-                    archetype
-                );
-                situationTemplates.Add(enrichedTemplate);
-            }
-
-            // Use generated SpawnRules
-            spawnRules = archetypeDefinition.SpawnRules;
-
-            Console.WriteLine($"[SceneArchetypeGeneration] Generated {situationTemplates.Count} situations with pattern '{spawnRules.Pattern}'");
+            Console.WriteLine($"[SceneArchetypeGeneration] Entity context: NPC={contextNPC.Name} (Personality={contextNPC.PersonalityType}, Profession={contextNPC.Profession}), Location={contextLocation.Name}, Player.Coins={contextPlayer.Coins}");
         }
         else
         {
-            // HAND-AUTHORED CONTENT (existing behavior)
-            situationTemplates = ParseSituationTemplates(dto.SituationTemplates, dto.Id, archetype);
-            spawnRules = ParseSpawnRules(dto.SpawnRules, dto.Id);
+            Console.WriteLine($"[SceneArchetypeGeneration] Entity context: Location={contextLocation.Name} (Properties={string.Join(", ", contextLocation.LocationProperties)}), Player.Coins={contextPlayer.Coins}");
         }
+
+        SceneArchetypeDefinition archetypeDefinition = SceneArchetypeCatalog.GetSceneArchetype(
+            dto.SceneArchetypeId,
+            dto.ServiceType ?? "generic",
+            dto.Tier,
+            contextNPC,
+            contextLocation,
+            contextPlayer
+        );
+
+        // Enrich bare SituationTemplates from catalogue with ChoiceTemplates
+        List<SituationTemplate> situationTemplates = new List<SituationTemplate>();
+        foreach (SituationTemplate bareTemplate in archetypeDefinition.SituationTemplates)
+        {
+            SituationTemplate enrichedTemplate = EnrichSituationTemplateFromArchetype(
+                bareTemplate,
+                dto.Id,
+                archetype
+            );
+            situationTemplates.Add(enrichedTemplate);
+        }
+
+        // Use generated SpawnRules
+        SituationSpawnRules spawnRules = archetypeDefinition.SpawnRules;
+
+        Console.WriteLine($"[SceneArchetypeGeneration] Generated {situationTemplates.Count} situations with pattern '{spawnRules.Pattern}'");
 
         SceneTemplate template = new SceneTemplate
         {

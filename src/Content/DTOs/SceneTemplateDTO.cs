@@ -36,18 +36,6 @@ public class SceneTemplateDTO
     public SpawnConditionsDTO SpawnConditions { get; set; }
 
     /// <summary>
-    /// Embedded situation templates (composition)
-    /// Each defines a narrative context with 2-4 choices
-    /// </summary>
-    public List<SituationTemplateDTO> SituationTemplates { get; set; } = new List<SituationTemplateDTO>();
-
-    /// <summary>
-    /// Cascade pattern definitions
-    /// Defines how Situations sequence/branch/converge
-    /// </summary>
-    public SituationSpawnRulesDTO SpawnRules { get; set; }
-
-    /// <summary>
     /// Optional time limit before Scene expires
     /// null = no expiration
     /// </summary>
@@ -95,10 +83,10 @@ public class SceneTemplateDTO
     public bool IsForced { get; set; } = false;
 
     /// <summary>
-    /// Optional scene archetype ID for procedural multi-situation generation
-    /// If specified, SceneArchetypeCatalog generates complete SituationTemplates array at PARSE TIME
-    /// Values: "service_with_location_access", "transaction_sequence", "gatekeeper_sequence"
-    /// If null: Use hand-authored SituationTemplates from JSON (existing behavior)
+    /// REQUIRED scene archetype ID for procedural multi-situation generation
+    /// SceneArchetypeCatalog generates complete SituationTemplates array at PARSE TIME
+    /// Valid values: "service_with_location_access", "transaction_sequence", "gatekeeper_sequence", "consequence_reflection", "inn_crisis_escalation"
+    /// HIGHLANDER ENFORCEMENT: ALL scenes must reference a scene archetype - hand-authored situationTemplates arrays are not allowed
     /// PARSE-TIME ONLY: SceneArchetypeCatalog called during parsing, never at runtime
     /// </summary>
     public string SceneArchetypeId { get; set; }

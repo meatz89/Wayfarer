@@ -5,16 +5,17 @@
     "timestamp": "2025-10-28T00:00:00Z",
     "description": "SceneTemplate definitions for procedural Scene spawning. Scenes spawn from Choice rewards, Obligation phases, and events.",
     "author": "Wayfarer Team",
-    "version": "2.0.0"
+    "version": "3.0.0"
   },
   "content": {
     "sceneTemplates": [
       {
         "id": "inn_trouble_brewing",
         "archetype": "Linear",
-        "sceneArchetypeId": null,
+        "sceneArchetypeId": "inn_crisis_escalation",
         "displayNameTemplate": "Trouble in the Common Room",
         "introNarrativeTemplate": "A drunk patron is getting aggressive. Elena looks worried.",
+        "presentationMode": "Modal",
         "tier": 1,
         "isStarter": false,
         "expirationDays": 1,
@@ -35,82 +36,7 @@
           "forbiddenStates": [],
           "requiredAchievements": [],
           "scaleRequirements": []
-        },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "notice_trouble",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "notice_trouble",
-            "type": "Normal",
-            "archetypeId": null,
-            "narrativeTemplate": "A large man in a stained coat slams his mug down. 'More ale!' he shouts. Elena moves to serve him, but her eyes are wary.\n\nYou've seen this before - the way his jaw sets, the way his hands curl. Trouble brewing.",
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "tense",
-              "theme": "escalation",
-              "context": "observation",
-              "style": "direct"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": {
-              "coins": 0,
-              "resolve": 1,
-              "timeSegments": 1,
-              "bondChanges": [],
-              "scaleShifts": [],
-              "stateApplications": [],
-              "achievementIds": [],
-              "itemIds": [],
-              "scenesToSpawn": []
-            }
-          },
-          {
-            "id": "harassment_begins",
-            "type": "Normal",
-            "archetypeId": "investigation",
-            "narrativeTemplate": "The drunk grabs Elena's wrist as she pours. 'Pretty thing, aren't you?' His smile is ugly.\n\nElena pulls free, professional calm barely holding. Other patrons look away. Nobody wants this fight.",
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "threatening",
-              "theme": "intimidation",
-              "context": "threat_assessment",
-              "style": "visceral"
-            },
-            "choiceTemplates": []
-          },
-          {
-            "id": "elena_signals",
-            "type": "Normal",
-            "archetypeId": "social_maneuvering",
-            "narrativeTemplate": "Elena catches your eye. The look is brief but clear: Help. Now.\n\nThe drunk is standing now, swaying, blocking her path. His friends at the table laugh nervously.",
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "urgent",
-              "theme": "support",
-              "context": "ally_protection",
-              "style": "sparse"
-            },
-            "choiceTemplates": []
-          },
-          {
-            "id": "crisis_confrontation",
-            "type": "Crisis",
-            "archetypeId": "crisis",
-            "narrativeTemplate": "The drunk shoves Elena. Hard.\n\nShe stumbles into tables. Mugs crash. The room goes silent.\n\nHe turns to face you, fists clenched. 'You got something to say?'\n\nThis ends NOW. One way or another.",
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "explosive",
-              "theme": "crisis",
-              "context": "physical_confrontation",
-              "style": "immediate"
-            },
-            "choiceTemplates": []
-          }
-        ]
+        }
       }
     ]
   }
