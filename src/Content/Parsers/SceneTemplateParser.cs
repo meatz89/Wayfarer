@@ -317,18 +317,22 @@ public class SceneTemplateParser
             }
         }
 
-        // ARCHETYPE-BASED GENERATION: If archetypeId present, generate 4 ChoiceTemplates from catalogue
-        // Otherwise use hand-authored ChoiceTemplates from JSON (backward compatible)
+        // ARCHETYPE-BASED GENERATION: archetypeId generates 4 ChoiceTemplates from catalogue
+        // Situations with autoProgressRewards have no choices (narrative auto-executes)
         List<ChoiceTemplate> choiceTemplates;
         if (!string.IsNullOrEmpty(dto.ArchetypeId))
         {
             // PARSE-TIME ARCHETYPE GENERATION
             choiceTemplates = GenerateChoiceTemplatesFromArchetype(dto.ArchetypeId, sceneTemplateId, dto.Id);
         }
+        else if (dto.AutoProgressRewards != null)
+        {
+            // AUTO-PROGRESS SITUATION (no choices, narrative observation)
+            choiceTemplates = new List<ChoiceTemplate>();
+        }
         else
         {
-            // HAND-AUTHORED CHOICES (existing behavior)
-            choiceTemplates = ParseChoiceTemplates(dto.ChoiceTemplates, sceneTemplateId, dto.Id, archetype);
+            throw new InvalidDataException($"SituationTemplate '{dto.Id}' in SceneTemplate '{sceneTemplateId}' must have EITHER 'archetypeId' (archetype-driven choices) OR 'autoProgressRewards' (auto-progress). Hand-authored choiceTemplates are not allowed.");
         }
 
         SituationTemplate template = new SituationTemplate
