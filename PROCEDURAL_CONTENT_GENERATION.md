@@ -36,6 +36,36 @@ Without procedural scene generation, every service location needs hand-authored 
 
 ---
 
+**Choice-Level Time Costs:** Implementation uses ChoiceCost.TimeSegments instead of situation-level costs. Superior because different approaches to same situation cost different time (bribe guard = instant, persuade = 2 segments, fight = 4 segments). More flexible than uniform situation timing proposed in design.
+
+**Manual Cleanup:** Implementation uses explicit ItemsToRemove and LocationsToLock in departure situations instead of automatic Scene.ExecuteCleanup(). Superior because cleanup is visible in content authoring, debuggable, and author-controlled. Automatic tracking was hidden magic prone to silent failures.
+
+**Direct Location Access:** Implementation has Location.IsLocked directly, no separate Location entity. Superior because player accesses Location, period. Design's Location/Spot hierarchy was unnecessary complexity (spots within locations within venues = three-level nesting for no benefit).
+
+**Null Entity Handling:** Implementation gracefully handles categorical scenes without concrete entities at parse time. GenerateContextualHints provides generic hints when entities null, concrete hints when present. Enables procedural spawning without parse-time entity binding. Design assumed entities always present - implementation proved more flexible pattern needed.
+
+### Domain Entity State Machine
+
+Scene.AdvanceToNextSituation() and Scene.IsComplete() methods exist. Domain entity owns progression logic. Services orchestrate calls to entity methods, not scattered state manipulation.
+
+### AI Integration Points Ready
+
+SceneNarrativeService.cs architecture complete with context bundling (ScenePromptContext), NarrativeHints structure, integration point in SceneInstantiator.FinalizeScene(). AI calls currently stubbed returning fallback narrative. Proven async pattern exists in Social system's AINarrativeProvider for reference implementation.
+
+### Template-Instance Separation
+
+SituationTemplates embedded in SceneTemplate (composition). Runtime Situations in flat GameWorld.Situations list. Scene.SituationIds references only (HIGHLANDER). Immutable templates, mutable game state.
+
+### Two-Entity Placement
+
+PlacementFilter evaluates NPC (personality, bond, tags) and Location (services, properties, tags). Selection strategies: Closest, HighestBond, LeastRecent, WeightedRandom. Dual-mode: concrete binding (tutorial) + categorical filtering (procedural).
+
+### Item Lifecycle & Time System
+
+Player.Inventory with weight capacity. ChoiceReward.ItemIds grants items, ItemsToRemove cleans up. HasItem requirement gates content. GameWorld.CurrentDay/CurrentTimeBlock single source. ChoiceCost.TimeSegments, ChoiceReward time advancement. GameFacade.ProcessTimeAdvancement() HIGHLANDER sync point. Scene.ExpiresOnDay for time-limited content.
+
+---
+
 ## Architectural Discovery
 
 ### Scene Scope Understanding
@@ -44,15 +74,15 @@ Scenes are NOT single conversations with 2-4 choices. Scenes are complete multi-
 
 **Sequential Situation Progression:** Multiple situations flowing in defined order. Negotiation situation completes, spawns access situation. Access situation completes, spawns service situation. Service situation completes, spawns departure situation. Scene progression rules define this flow (linear, branching, hub-and-spoke, conditional).
 
-**Location State Modification:** Scenes change world state. Spot lock states toggle (locked becomes unlocked becomes locked again). NPC availability changes (merchant closes shop, guard changes post). Environmental properties shift (time of day advances, weather changes, danger levels update).
+**Location State Modification:** Scenes change world state. Location.IsLocked toggles (locked becomes unlocked becomes locked again). NPC availability changes (merchant closes shop, guard changes post). Environmental properties shift (time of day advances, weather changes, danger levels update).
 
-**Item Lifecycle Management:** Scenes grant items (room key, ticket, permit) that exist temporarily within scene scope. Item granted in situation 1, consumed in situation 2, removed in situation 4. Items don't persist beyond scene - they're arc-specific temporary tokens enabling progression.
+**Item Lifecycle Management:** Scenes grant items (room key, ticket, permit) that exist temporarily within scene scope. Item granted in situation 1, consumed in situation 2, removed in situation 4 via explicit cleanup. Items don't persist beyond scene unless intentionally permanent rewards.
 
 **Resource Flow Orchestration:** Scenes consume resources (coins, time, energy) and produce benefits (restored stamina, gained knowledge, increased stats). Economic balance maintained across entire arc. Early situations cost resources, later situations provide benefits, net outcome justified by total cost.
 
 **World State Causality:** Actions in one situation cause consequences in later situations. Paying coins in negotiation situation affects what happens in service situation (paid upfront versus pay later). Time advancement in rest situation triggers morning-specific narrative in departure situation. Prior choices ripple forward through arc.
 
-**Cleanup and Reset Logic:** Scenes restore world to sensible state after completion. Temporary items removed. Locked spots re-locked. NPC availability reset. Time advanced appropriately. Next player visit finds world in coherent state, not broken by prior scene completion.
+**Explicit Cleanup Design:** Departure situations specify cleanup through authored rewards (ItemsToRemove, LocationsToLock). Author controls what gets restored, making cleanup visible and debuggable. More reliable than hidden automatic tracking.
 
 ### The Three-Tier Timing Model
 
@@ -198,17 +228,17 @@ Spawn rules are DECLARATIVE DATA defining flow, not imperative code. Scene templ
 
 ### Item Lifecycle Within Scene Scope
 
-Scenes frequently grant temporary items enabling progression:
+Scenes grant temporary items enabling progression through explicit choice rewards:
 
-**Grant Phase:** Early situation rewards player with item. Room key from innkeeper negotiation, permit from guard approval, token from merchant purchase. Item added to player inventory.
+**Grant Phase:** Early situation rewards player with item via ChoiceReward.ItemIds. Room key from innkeeper negotiation, permit from guard approval, token from merchant purchase. Item added to player inventory.
 
-**Consumption Phase:** Middle situation requires item to proceed. Accessing locked spot consumes room key, presenting permit allows checkpoint passage, showing token enables service. Item checked against requirements, consumed if appropriate.
+**Consumption Phase:** Middle situation requires item to proceed via HasItem requirement. Accessing locked location requires room key. Presenting permit allows checkpoint passage. Showing token enables service. Requirements check player inventory.
 
-**Removal Phase:** Final situation cleans up temporary item if still held. Departure removes room key even if player didn't use it yet (checkout process), expired permits removed, tokens reclaimed. Ensures items don't persist beyond scene scope inappropriately.
+**Removal Phase:** Final situation explicitly removes temporary item via ChoiceReward.ItemsToRemove. Departure choice specifies "remove room_key from inventory". Author controls cleanup, making it visible in content design. More reliable than hidden automatic tracking.
 
-Item lifecycle is scene-managed. Reward template grants item, requirement template checks for item, cleanup logic removes item. Same item potentially granted by different scenes (multiple inns grant room_key), but each scene instance manages its granted items independently.
+Items can also be permanent rewards. Completing investigation grants knowledge_fragment that persists. Choice rewards distinguish: temporary access tokens (removed by departure), permanent rewards (never removed), consumable items (used once then depleted).
 
-Items can also be permanent rewards. Completing investigation grants knowledge_fragment that persists forever. Scene distinguishes: temporary items (scene-scoped access tokens), permanent items (persistent rewards), consumable items (used once then depleted).
+Scene manages item lifecycle through authored choice rewards, not automatic tracking. Author sees item lifecycle in situation definitions: grant in negotiate rewards, require in access requirements, remove in depart rewards. Debuggable and explicit.
 
 ### Resource Restoration Economics
 
@@ -252,30 +282,29 @@ Tutorial "Secure Lodging" scene is minimally authored, maximally generated:
   "tier": 0,
   "isStarter": true,
   "concreteNpcId": "elena_innkeeper",
-  "concreteLocationId": "tavern_common_room",
-  "concreteSpotId": "tavern_upper_floor"
+  "concreteLocationId": "tavern_upper_floor"
 }
 ```
 
-No situations defined. No choices defined. Just archetype reference + concrete entity bindings.
+No situations defined. No choices defined. Just archetype reference + concrete entity bindings. Note: only two entities needed (NPC + Location), not three. Location IS the service location.
 
-**Parse-Time Generation:** SceneArchetypeCatalog.GenerateServiceWithLocationAccess receives: archetype ID, tier 0, Elena entity object (Personality=Innkeeper, Demeanor=Friendly, Authority=Low), Tavern entity object (Services=Lodging, CostModifier=1.0x, Atmosphere=Casual), Upper Floor entity object (Privacy=Medium, Functionality=Rest, Lockable=true), player state benchmarks.
+**Parse-Time Generation:** SceneArchetypeCatalog.GenerateServiceWithLocationAccess receives: archetype ID, tier 0, Elena entity object (Personality=Innkeeper, Demeanor=Friendly, Authority=Low), Upper Floor Location object (Services=Lodging, IsLocked=true), player state benchmarks.
 
 Generation queries properties and produces:
 
-**Situation 1 - Negotiation:** Challenge option (15 Focus because Friendly demeanor, Social threshold 1 because Tier 0 + Low authority), grants +1 bond. Payment option (15 coins because Urban + Medium privacy). Refuse option (always available). All three ChoiceTemplates generated from property queries.
+**Situation 1 - Negotiation:** Challenge option (15 Focus because Friendly demeanor, Social threshold 1 because Tier 0 + Low authority), grants +1 bond. Payment option (15 coins because tier 0 base). Refuse option (always available). All three ChoiceTemplates generated from property queries. Rewards include room_key item and LocationsToUnlock=[tavern_upper_floor].
 
-**Situation 2 - Access:** Navigate to Upper Floor spot (now unlocked due to room_key granted by situation 1). Single choice (enter room) consuming key.
+**Situation 2 - Access:** Navigate to Upper Floor location (now unlocked). Single choice (enter room) with HasItem requirement (room_key). Choice cost includes TimeSegments (time to walk upstairs).
 
-**Situation 3 - Rest:** Time cost 6 hours (advances to morning). Benefit: restore 40 stamina (Tier 0 formula × Rest functionality). Single choice (sleep).
+**Situation 3 - Rest:** Time cost 6 hours via ChoiceCost.TimeSegments (advances to morning). Benefit: restore 40 stamina (Tier 0 formula). Choice reward advances time to morning block.
 
-**Situation 4 - Departure:** Cleanup situation. Remove room_key from inventory, re-lock Upper Floor spot. Single automatic choice (leave room).
+**Situation 4 - Departure:** Cleanup situation. ChoiceReward.ItemsToRemove=[room_key], LocationsToLock=[tavern_upper_floor]. Explicit author-visible cleanup. Single automatic choice (leave room).
 
-**Complete 4-situation arc generated from properties + archetype pattern.** Situation flow (SpawnRules), choice structures, costs, benefits, item lifecycle all procedurally determined by querying Elena/Tavern/UpperFloor properties and applying archetype formulas.
+**Complete 4-situation arc generated from properties + archetype pattern.** Situation flow (SpawnRules), choice structures, costs, benefits, item lifecycle all procedurally determined by querying Elena/Upper Floor properties and applying archetype formulas.
 
-**Tutorial Reproducibility:** Every playthrough generates identical scene because: same entities → same properties → same generation output. Elena always Friendly (easier challenge), Tavern always moderate cost, Upper Floor always medium privacy rest benefit.
+**Tutorial Reproducibility:** Every playthrough generates identical scene because: same entities → same properties → same generation output. Elena always Friendly (easier challenge), Upper Floor always moderate cost, service always rest benefit.
 
-**Post-Tutorial Variation:** Same archetype at Marcus's bathhouse generates: Professional demeanor (moderate difficulty), Bathing service (cleanliness benefit instead of stamina), Private chamber (2x cost premium). Different entities, contextually appropriate variation, identical generation logic.
+**Post-Tutorial Variation:** Same archetype at Marcus's bathhouse generates: Professional demeanor (moderate difficulty), Bathing service (cleanliness benefit instead of stamina), different location context. Different entities, contextually appropriate variation, identical generation logic.
 
 ### Scene Archetype Catalog Minimal
 
