@@ -69,6 +69,13 @@ public class SceneInstantiator
         int situationCount = sceneTemplate.SituationTemplates?.Count ?? 0;
         string estimatedDifficulty = CalculateEstimatedDifficulty(sceneTemplate);
 
+        // Calculate expiration day from template
+        // null = no expiration (scene lasts until completed)
+        // value = CurrentDay + ExpirationDays (absolute day number when scene expires)
+        int? expiresOnDay = sceneTemplate.ExpirationDays.HasValue
+            ? _gameWorld.CurrentDay + sceneTemplate.ExpirationDays.Value
+            : null;
+
         // Create Scene instance from template (SHALLOW - no Situations yet)
         Scene scene = new Scene
         {
@@ -82,6 +89,7 @@ public class SceneInstantiator
             IsForced = sceneTemplate.IsForced,
             State = SceneState.Provisional, // KEY: Provisional state
             SourceSituationId = context.CurrentSituation?.Id, // Track source for cleanup
+            ExpiresOnDay = expiresOnDay, // Time-limited content (enforced in ProcessTimeAdvancement)
             Archetype = sceneTemplate.Archetype,
             DisplayName = sceneTemplate.DisplayNameTemplate, // Placeholders NOT replaced until finalization
             IntroNarrative = sceneTemplate.IntroNarrativeTemplate, // Placeholders NOT replaced until finalization
@@ -320,7 +328,8 @@ public class SceneInstantiator
             Description = template.NarrativeTemplate,
             NarrativeHints = template.NarrativeHints,
             InstantiationState = InstantiationState.Deferred,  // START deferred - actions created at query time
-            IsAutoAdvance = parentScene.Archetype == SpawnPattern.AutoAdvance,  // Copy archetype to Situation
+            IsAutoAdvance = (template.ChoiceTemplates == null || template.ChoiceTemplates.Count == 0)
+                             && template.AutoProgressRewards != null,  // Detect per-situation auto-advance
 
             // PLACEMENT INHERITANCE: ParentScene reference enables GetPlacementId() queries
             // Scene is single source of truth for placement (HIGHLANDER Pattern C)
@@ -639,7 +648,7 @@ public class SceneInstantiator
         {
             PlacementSelectionStrategy.Closest => SelectClosestNPC(candidates, player),
             PlacementSelectionStrategy.HighestBond => SelectHighestBondNPC(candidates),
-            PlacementSelectionStrategy.LeastRecent => SelectWeightedRandomNPC(candidates), // TODO: Implement interaction tracking
+            PlacementSelectionStrategy.LeastRecent => SelectLeastRecentNPC(candidates, player),
             PlacementSelectionStrategy.WeightedRandom => SelectWeightedRandomNPC(candidates),
             _ => candidates[0] // Fallback to first match
         };
@@ -661,7 +670,7 @@ public class SceneInstantiator
         {
             PlacementSelectionStrategy.Closest => SelectClosestLocation(candidates, player),
             PlacementSelectionStrategy.HighestBond => SelectWeightedRandomLocation(candidates), // N/A for locations
-            PlacementSelectionStrategy.LeastRecent => SelectWeightedRandomLocation(candidates), // TODO: Implement interaction tracking
+            PlacementSelectionStrategy.LeastRecent => SelectLeastRecentLocation(candidates, player),
             PlacementSelectionStrategy.WeightedRandom => SelectWeightedRandomLocation(candidates),
             _ => candidates[0] // Fallback to first match
         };
@@ -725,6 +734,45 @@ public class SceneInstantiator
     }
 
     /// <summary>
+    /// Select NPC least recently interacted with for content variety
+    /// Uses Player.NPCInteractions timestamp data to find oldest interaction
+    /// Falls back to WeightedRandom if no interaction history exists
+    /// </summary>
+    private NPC SelectLeastRecentNPC(List<NPC> candidates, Player player)
+    {
+        // Create interaction lookup dictionary for fast access
+        // ONE record per NPC (update-in-place pattern) - no GroupBy needed
+        Dictionary<string, NPCInteractionRecord> interactionLookup = player.NPCInteractions
+            .ToDictionary(interaction => interaction.NPCId);
+
+        // Find candidate with oldest interaction (or never interacted)
+        NPC leastRecentNPC = null;
+        long oldestTimestamp = long.MaxValue;
+
+        foreach (NPC candidate in candidates)
+        {
+            if (!interactionLookup.ContainsKey(candidate.ID))
+            {
+                // Never interacted with this NPC - prioritize these
+                return candidate;
+            }
+
+            NPCInteractionRecord record = interactionLookup[candidate.ID];
+            long timestamp = CalculateTimestamp(record.LastInteractionDay, record.LastInteractionTimeBlock, record.LastInteractionSegment);
+
+            if (timestamp < oldestTimestamp)
+            {
+                oldestTimestamp = timestamp;
+                leastRecentNPC = candidate;
+            }
+        }
+
+        // If all candidates have been interacted with, return least recent
+        // If somehow nothing found, fall back to random
+        return leastRecentNPC ?? SelectWeightedRandomNPC(candidates);
+    }
+
+    /// <summary>
     /// Select random NPC from candidates using RNG for unpredictable variety
     /// </summary>
     private NPC SelectWeightedRandomNPC(List<NPC> candidates)
@@ -742,6 +790,64 @@ public class SceneInstantiator
         Random random = new Random();
         int index = random.Next(candidates.Count);
         return candidates[index];
+    }
+
+    /// <summary>
+    /// Select Location least recently visited for content variety
+    /// Uses Player.LocationVisits timestamp data to find oldest visit
+    /// Falls back to WeightedRandom if no visit history exists
+    /// </summary>
+    private Location SelectLeastRecentLocation(List<Location> candidates, Player player)
+    {
+        // Create visit timestamp lookup dictionary for fast access
+        // ONE record per location (update-in-place pattern) - no GroupBy needed
+        Dictionary<string, LocationVisitRecord> visitLookup = player.LocationVisits
+            .ToDictionary(visit => visit.LocationId);
+
+        // Find candidate with oldest visit (or never visited)
+        Location leastRecentLocation = null;
+        long oldestTimestamp = long.MaxValue;
+
+        foreach (Location candidate in candidates)
+        {
+            if (!visitLookup.ContainsKey(candidate.Id))
+            {
+                // Never visited this location - prioritize these
+                return candidate;
+            }
+
+            LocationVisitRecord record = visitLookup[candidate.Id];
+            long timestamp = CalculateTimestamp(record.LastVisitDay, record.LastVisitTimeBlock, record.LastVisitSegment);
+
+            if (timestamp < oldestTimestamp)
+            {
+                oldestTimestamp = timestamp;
+                leastRecentLocation = candidate;
+            }
+        }
+
+        // If all candidates have been visited, return least recent
+        // If somehow nothing found, fall back to random
+        return leastRecentLocation ?? SelectWeightedRandomLocation(candidates);
+    }
+
+    /// <summary>
+    /// Calculate timestamp from game time components for chronological comparison
+    /// Formula: (Day * 16) + (TimeBlockValue * 4) + Segment
+    /// Assumes 4 time blocks per day (Morning, Midday, Afternoon, Evening), 4 segments per block = 16 segments/day
+    /// </summary>
+    private long CalculateTimestamp(int day, TimeBlocks timeBlock, int segment)
+    {
+        int timeBlockValue = timeBlock switch
+        {
+            TimeBlocks.Morning => 0,
+            TimeBlocks.Midday => 1,
+            TimeBlocks.Afternoon => 2,
+            TimeBlocks.Evening => 3,
+            _ => 0
+        };
+
+        return (day * 16) + (timeBlockValue * 4) + segment;
     }
 
     /// <summary>

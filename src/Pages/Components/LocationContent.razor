@@ -161,12 +161,6 @@
                                 OnNavigateBack="NavigateBack" />
                 break;
 
-            case LocationViewState.Spots:
-                <SpotsView CurrentLocationName="@ViewModel.Header.VenueName"
-                           AvailableSpots="@ViewModel.AvailableSpots"
-                           OnMoveToSpot="HandleMoveToSpot"
-                           OnNavigateBack="NavigateBack" />
-                break;
 
             case LocationViewState.JobBoard:
                 <JobBoardView CurrentLocationId="@GameWorld.GetPlayerCurrentLocation().Id"

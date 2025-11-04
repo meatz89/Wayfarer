@@ -20,12 +20,14 @@ public class SceneFacade
     private readonly GameWorld _gameWorld;
     private readonly SceneInstantiator _sceneInstantiator;
     private readonly RewardApplicationService _rewardApplicationService;
+    private readonly SituationCompletionHandler _situationCompletionHandler;
 
-    public SceneFacade(GameWorld gameWorld, SceneInstantiator sceneInstantiator, RewardApplicationService rewardApplicationService)
+    public SceneFacade(GameWorld gameWorld, SceneInstantiator sceneInstantiator, RewardApplicationService rewardApplicationService, SituationCompletionHandler situationCompletionHandler)
     {
         _gameWorld = gameWorld;
         _sceneInstantiator = sceneInstantiator;
         _rewardApplicationService = rewardApplicationService;
+        _situationCompletionHandler = situationCompletionHandler;
     }
 
     // ==================== LOCATION CONTEXT ====================
@@ -158,9 +160,15 @@ public class SceneFacade
         situation.InstantiationState = InstantiationState.Instantiated;
 
         // AutoAdvance detection: Execute AutoProgressRewards immediately
-        if (situation.IsAutoAdvance && situation.Template.AutoProgressRewards != null)
+        if (situation.IsAutoAdvance)
         {
             _rewardApplicationService.ApplyChoiceReward(situation.Template.AutoProgressRewards, situation);
+
+            // MULTI-SITUATION SCENE: Complete AutoAdvance situation and advance scene
+            // Scene.AdvanceToNextSituation() called by completion handler
+            // Enables automatic progression through narrative-only situations
+            _situationCompletionHandler.CompleteSituation(situation);
+
             return; // No actions to instantiate for AutoAdvance situations
         }
 
@@ -252,9 +260,15 @@ public class SceneFacade
         situation.InstantiationState = InstantiationState.Instantiated;
 
         // AutoAdvance detection: Execute AutoProgressRewards immediately
-        if (situation.IsAutoAdvance && situation.Template.AutoProgressRewards != null)
+        if (situation.IsAutoAdvance)
         {
             _rewardApplicationService.ApplyChoiceReward(situation.Template.AutoProgressRewards, situation);
+
+            // MULTI-SITUATION SCENE: Complete AutoAdvance situation and advance scene
+            // Scene.AdvanceToNextSituation() called by completion handler
+            // Enables automatic progression through narrative-only situations
+            _situationCompletionHandler.CompleteSituation(situation);
+
             return; // No actions to instantiate for AutoAdvance situations
         }
 
@@ -341,9 +355,15 @@ public class SceneFacade
         situation.InstantiationState = InstantiationState.Instantiated;
 
         // AutoAdvance detection: Execute AutoProgressRewards immediately
-        if (situation.IsAutoAdvance && situation.Template.AutoProgressRewards != null)
+        if (situation.IsAutoAdvance)
         {
             _rewardApplicationService.ApplyChoiceReward(situation.Template.AutoProgressRewards, situation);
+
+            // MULTI-SITUATION SCENE: Complete AutoAdvance situation and advance scene
+            // Scene.AdvanceToNextSituation() called by completion handler
+            // Enables automatic progression through narrative-only situations
+            _situationCompletionHandler.CompleteSituation(situation);
+
             return; // No actions to instantiate for AutoAdvance situations
         }
 

@@ -90,8 +90,32 @@ public class ChoiceReward
     /// <summary>
     /// Items granted to player inventory
     /// Equipment, consumables, quest items
+    /// Part of item lifecycle: GRANT phase
     /// </summary>
     public List<string> ItemIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Items to remove from player inventory
+    /// Used for: Consuming keys, removing temporary access tokens, cleanup
+    /// Part of item lifecycle: REMOVE phase
+    /// Multi-Situation Scene Pattern: Situations can clean up items granted earlier in arc
+    /// Example: Depart situation removes room_key granted by negotiate situation
+    /// </summary>
+    public List<string> ItemsToRemove { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Location IDs to unlock (set IsLocked = false)
+    /// Multi-Situation Scene Pattern: Access situation unlocks upper_floor when player gets key
+    /// Direct property modification - no string matching, strongly typed
+    /// </summary>
+    public List<string> LocationsToUnlock { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Location IDs to lock (set IsLocked = true)
+    /// Multi-Situation Scene Pattern: Depart situation relocks upper_floor when player leaves
+    /// Direct property modification - no string matching, strongly typed
+    /// </summary>
+    public List<string> LocationsToLock { get; set; } = new List<string>();
 
     /// <summary>
     /// Scenes to spawn as consequences of this Choice

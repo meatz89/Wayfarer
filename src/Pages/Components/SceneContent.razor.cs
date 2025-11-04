@@ -20,6 +20,7 @@ namespace Wayfarer.Pages.Components
         [Inject] protected GameWorld GameWorld { get; set; }
         [Inject] protected SceneFacade SceneFacade { get; set; }
         [Inject] protected RewardApplicationService RewardApplicationService { get; set; }
+        [Inject] protected SituationCompletionHandler SituationCompletionHandler { get; set; }
 
         protected Scene Scene { get; set; }
         protected Situation CurrentSituation { get; set; }
@@ -171,60 +172,27 @@ namespace Wayfarer.Pages.Components
                 RewardApplicationService.ApplyChoiceReward(choiceTemplate.RewardTemplate, CurrentSituation);
             }
 
-            // Check progression mode
-            if (Scene.ProgressionMode == ProgressionMode.Cascade)
+            // MULTI-SITUATION SCENE: Complete situation and advance
+            // Scene entity owns state machine via Scene.AdvanceToNextSituation()
+            // UI queries new current situation after completion
+            SituationCompletionHandler.CompleteSituation(CurrentSituation);
+
+            // Re-query current situation after scene advancement
+            string newSituationId = Scene.CurrentSituationId;
+            Situation newSituation = GameWorld.Situations.FirstOrDefault(s => s.Id == newSituationId);
+
+            if (newSituation != null && newSituation.Id != CurrentSituation.Id)
             {
-                // Cascade: Auto-advance to next situation
-                await AdvanceToNextSituation();
+                // Scene advanced to new situation - reload and display
+                CurrentSituation = newSituation;
+                LoadChoices();
+                StateHasChanged();
             }
-            else // ProgressionMode.Breathe
+            else
             {
-                // Breathe: Return to location menu (player sees consequences)
+                // Scene complete - return to location
                 await OnSceneEnd.InvokeAsync();
             }
-        }
-
-        /// <summary>
-        /// Cascade progression: Advance to next situation in scene.
-        /// If no more situations, complete scene and return to location.
-        /// </summary>
-        private async Task AdvanceToNextSituation()
-        {
-            // Find next situation based on scene's SpawnRules transitions
-            string nextSituationId = GetNextSituationId(CurrentSituation.Id);
-
-            if (!string.IsNullOrEmpty(nextSituationId))
-            {
-                // Load next situation
-                Situation nextSituation = GameWorld.Situations
-                    .FirstOrDefault(s => s.Id == nextSituationId);
-
-                if (nextSituation != null)
-                {
-                    CurrentSituation = nextSituation;
-                    LoadChoices();
-                    StateHasChanged();
-                    return;
-                }
-            }
-
-            // No more situations - complete scene and return to location
-            await OnSceneEnd.InvokeAsync();
-        }
-
-        /// <summary>
-        /// Get next situation ID based on SpawnRules transitions.
-        /// Returns null if current situation is the last one.
-        /// </summary>
-        private string GetNextSituationId(string currentSituationId)
-        {
-            if (Scene.Template?.SpawnRules?.Transitions == null)
-                return null;
-
-            SituationTransition transition = Scene.Template.SpawnRules.Transitions
-                .FirstOrDefault(t => t.SourceSituationId == currentSituationId);
-
-            return transition?.DestinationSituationId;
         }
     }
 }

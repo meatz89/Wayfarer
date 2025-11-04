@@ -71,6 +71,16 @@ public class Location
     public List<string> DomainTags { get; set; } = new List<string>();
     public LocationTypes LocationType { get; set; } = LocationTypes.Crossroads;
     public bool IsStartingLocation { get; set; } = false;
+
+    /// <summary>
+    /// Lock state for location access control
+    /// Used by multi-situation scene pattern: locked locations require items to access
+    /// Scene rewards can modify this state (unlock), cleanup restores original state (relock)
+    /// Tutorial: Upper floor locked until player has room_key, relocked on departure
+    /// HIGHLANDER: Location entity owns its lock state, no duplicate tracking
+    /// </summary>
+    public bool IsLocked { get; set; } = false;
+
     public string? Description { get; internal set; }
 
     public Location(string id, string name)

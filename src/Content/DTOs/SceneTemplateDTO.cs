@@ -93,4 +93,21 @@ public class SceneTemplateDTO
     /// Defaults to false if not specified
     /// </summary>
     public bool IsForced { get; set; } = false;
+
+    /// <summary>
+    /// Optional scene archetype ID for procedural multi-situation generation
+    /// If specified, SceneArchetypeCatalog generates complete SituationTemplates array at PARSE TIME
+    /// Values: "service_with_location_access", "transaction_sequence", "gatekeeper_sequence"
+    /// If null: Use hand-authored SituationTemplates from JSON (existing behavior)
+    /// PARSE-TIME ONLY: SceneArchetypeCatalog called during parsing, never at runtime
+    /// </summary>
+    public string SceneArchetypeId { get; set; }
+
+    /// <summary>
+    /// Service type for service_with_location_access archetype
+    /// Values: "lodging", "bathing", "healing", "storage", "training"
+    /// Ignored if SceneArchetypeId is null or not service-related
+    /// Used to generate service-specific rewards and narrative hints
+    /// </summary>
+    public string ServiceType { get; set; }
 }

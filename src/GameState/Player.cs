@@ -90,6 +90,31 @@ public class Player
     // ID is Location ID (spot like "courtyard", "mill_entrance"), level is familiarity level (0-3)
     public List<FamiliarityEntry> LocationFamiliarity { get; set; } = new List<FamiliarityEntry>();
 
+    // ============================================
+    // INTERACTION HISTORY (Procedural Content Generation - LeastRecent Selection Strategy)
+    // ============================================
+
+    /// <summary>
+    /// Location visit timestamps for LeastRecent selection strategy
+    /// Tracks LAST visit time per location (one record per location, update in place)
+    /// Used by procedural scene placement to prefer locations player hasn't visited recently
+    /// </summary>
+    public List<LocationVisitRecord> LocationVisits { get; set; } = new List<LocationVisitRecord>();
+
+    /// <summary>
+    /// NPC interaction history with timestamps for LeastRecent selection strategy
+    /// Tracks when player last interacted with each NPC
+    /// Used by procedural scene placement to prefer NPCs player hasn't interacted with recently
+    /// </summary>
+    public List<NPCInteractionRecord> NPCInteractions { get; set; } = new List<NPCInteractionRecord>();
+
+    /// <summary>
+    /// Route traversal history with timestamps for LeastRecent selection strategy
+    /// Tracks when player last traveled each route
+    /// Used by procedural scene placement to prefer routes player hasn't traversed recently
+    /// </summary>
+    public List<RouteTraversalRecord> RouteTraversals { get; set; } = new List<RouteTraversalRecord>();
+
     // Observation tracking - IDs of observation cards collected
     public List<string> CollectedObservations { get; set; } = new List<string>();
 
@@ -497,6 +522,31 @@ public class Player
         {
             LocationActionAvailability.Add(LocationId);
         }
+    }
+
+    // ============================================
+    // ITEM LIFECYCLE SYSTEM (Multi-Situation Scene Pattern)
+    // ============================================
+
+    /// <summary>
+    /// Remove item from inventory by ID
+    /// Returns true if item was present and removed, false if not found
+    /// Used for: Consuming keys, removing temporary access tokens, cleanup
+    /// Part of item lifecycle pattern: grant → require → remove
+    /// </summary>
+    public bool RemoveItem(string itemId)
+    {
+        return Inventory.RemoveItem(itemId);
+    }
+
+    /// <summary>
+    /// Check if player possesses specific item
+    /// Used for: Item possession requirements, gated progression
+    /// Part of item lifecycle pattern: required for situation activation
+    /// </summary>
+    public bool HasItem(string itemId)
+    {
+        return Inventory.GetAllItems().Contains(itemId);
     }
 
 }

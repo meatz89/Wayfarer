@@ -32,12 +32,23 @@
         @* Location-specific atmospheric actions (rest, lodging, work, food) *@
         @foreach (var action in LocationSpecificActions)
         {
-            <div class="action-card @GetActionClass(action)" @onclick="async () => await OnExecuteLocationAction.InvokeAsync(action)">
-                <div class="action-name">@action.Title</div>
+            <div class="action-card @GetActionClass(action) @(!action.IsAvailable ? "locked" : "")"
+                 @onclick="async () => { if (action.IsAvailable) await OnExecuteLocationAction.InvokeAsync(action); }">
+                <div class="action-name">
+                    @action.Title
+                    @if (!action.IsAvailable)
+                    {
+                        <span class="lock-icon">🔒</span>
+                    }
+                </div>
                 <div class="action-detail">@action.Detail</div>
                 @if (!string.IsNullOrEmpty(action.Cost))
                 {
                     <div class="action-cost">@action.Cost</div>
+                }
+                @if (!action.IsAvailable && !string.IsNullOrEmpty(action.LockReason))
+                {
+                    <div class="lock-reason">@action.LockReason</div>
                 }
             </div>
         }

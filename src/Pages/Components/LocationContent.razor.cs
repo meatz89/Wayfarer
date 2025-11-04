@@ -130,6 +130,17 @@ namespace Wayfarer.Pages.Components
                 {
                     await RefreshLocationData();
                     await OnActionExecuted.InvokeAsync();
+
+                    // MODAL SCENE FORCING: Check if action triggered a forced modal scene
+                    // GameFacade sets PendingForcedSceneId after successful movement actions
+                    // If found, navigate to forced scene immediately (Sir Brante forced moment pattern)
+                    if (!string.IsNullOrEmpty(GameWorld.PendingForcedSceneId))
+                    {
+                        string forcedSceneId = GameWorld.PendingForcedSceneId;
+                        GameWorld.PendingForcedSceneId = null; // Clear pending flag
+
+                        await GameScreen.StartModalScene(forcedSceneId);
+                    }
                 }
             }
         }
@@ -196,6 +207,17 @@ namespace Wayfarer.Pages.Components
                 ResetNavigation();
                 await RefreshLocationData();
                 await OnActionExecuted.InvokeAsync();
+
+                // MODAL SCENE FORCING: Check if movement triggered a forced modal scene
+                // GameFacade sets PendingForcedSceneId after successful movement
+                // If found, navigate to forced scene immediately (Sir Brante forced moment pattern)
+                if (!string.IsNullOrEmpty(GameWorld.PendingForcedSceneId))
+                {
+                    string forcedSceneId = GameWorld.PendingForcedSceneId;
+                    GameWorld.PendingForcedSceneId = null; // Clear pending flag
+
+                    await GameScreen.StartModalScene(forcedSceneId);
+                }
             }
         }
 

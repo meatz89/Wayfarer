@@ -528,7 +528,6 @@ public class LocationFacade
             MentalScenes = mentalScenes,
             AmbientPhysicalSituations = ambientPhysical,
             PhysicalScenes = physicalScenes,
-            AvailableSpots = BuildSpotsWithNPCs(venue, spot, currentTime),
             LockedSituations = lockedSituations
         };
 
@@ -1046,31 +1045,6 @@ public class LocationFacade
         }
     }
 
-    private List<SpotWithNpcsViewModel> BuildSpotsWithNPCs(Venue venue, Location currentSpot, TimeBlocks currentTime)
-    {
-        List<SpotWithNpcsViewModel> spots = new List<SpotWithNpcsViewModel>();
-
-        IEnumerable<Location> allSpots = _gameWorld.Locations.Where(s => s.VenueId == venue.Id);
-
-        foreach (Location spot in allSpots)
-        {
-            List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot.Id, currentTime);
-
-            spots.Add(new SpotWithNpcsViewModel
-            {
-                Id = spot.Name,
-                Name = spot.Name,
-                IsCurrentSpot = spot.Id == currentSpot.Id,
-                NPCs = npcsAtSpot.Select(npc => new NpcAtSpotViewModel
-                {
-                    Name = npc.Name,
-                    ConnectionState = GetNPCConnectionState(npc).ToString()
-                }).ToList()
-            });
-        }
-
-        return spots;
-    }
 
     private List<Location> GetSpotsForVenue(Venue venue)
     {

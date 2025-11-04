@@ -56,6 +56,64 @@ public class SceneTemplateParser
             }
         }
 
+        // SCENE ARCHETYPE GENERATION: If sceneArchetypeId present, generate complete multi-situation structure from catalogue
+        // Otherwise use hand-authored SituationTemplates from JSON (backward compatible)
+        List<SituationTemplate> situationTemplates;
+        SituationSpawnRules spawnRules;
+
+        if (!string.IsNullOrEmpty(dto.SceneArchetypeId))
+        {
+            // PARSE-TIME SCENE ARCHETYPE GENERATION
+            Console.WriteLine($"[SceneArchetypeGeneration] Generating multi-situation structure for SceneTemplate '{dto.Id}' using archetype '{dto.SceneArchetypeId}'");
+
+            // Resolve entity objects from placementFilter for context-aware generation
+            // NPC can be null for location-only scenes (consequence, environmental, etc.)
+            NPC contextNPC = ResolveNPCFromPlacementFilter(dto.PlacementFilter, dto.Id);
+            Location contextLocation = ResolveLocationFromPlacementFilter(dto.PlacementFilter, contextNPC, dto.Id);
+            Player contextPlayer = _gameWorld.GetPlayer();
+
+            if (contextNPC != null)
+            {
+                Console.WriteLine($"[SceneArchetypeGeneration] Entity context: NPC={contextNPC.Name} (Personality={contextNPC.PersonalityType}, Profession={contextNPC.Profession}), Location={contextLocation.Name}, Player.Coins={contextPlayer.Coins}");
+            }
+            else
+            {
+                Console.WriteLine($"[SceneArchetypeGeneration] Entity context: Location={contextLocation.Name} (Properties={string.Join(", ", contextLocation.LocationProperties)}), Player.Coins={contextPlayer.Coins}");
+            }
+
+            SceneArchetypeDefinition archetypeDefinition = SceneArchetypeCatalog.GetSceneArchetype(
+                dto.SceneArchetypeId,
+                dto.ServiceType ?? "generic",
+                dto.Tier,
+                contextNPC,
+                contextLocation,
+                contextPlayer
+            );
+
+            // Enrich bare SituationTemplates from catalogue with ChoiceTemplates
+            situationTemplates = new List<SituationTemplate>();
+            foreach (SituationTemplate bareTemplate in archetypeDefinition.SituationTemplates)
+            {
+                SituationTemplate enrichedTemplate = EnrichSituationTemplateFromArchetype(
+                    bareTemplate,
+                    dto.Id,
+                    archetype
+                );
+                situationTemplates.Add(enrichedTemplate);
+            }
+
+            // Use generated SpawnRules
+            spawnRules = archetypeDefinition.SpawnRules;
+
+            Console.WriteLine($"[SceneArchetypeGeneration] Generated {situationTemplates.Count} situations with pattern '{spawnRules.Pattern}'");
+        }
+        else
+        {
+            // HAND-AUTHORED CONTENT (existing behavior)
+            situationTemplates = ParseSituationTemplates(dto.SituationTemplates, dto.Id, archetype);
+            spawnRules = ParseSpawnRules(dto.SpawnRules, dto.Id);
+        }
+
         SceneTemplate template = new SceneTemplate
         {
             Id = dto.Id,
@@ -63,8 +121,8 @@ public class SceneTemplateParser
             DisplayNameTemplate = dto.DisplayNameTemplate,
             PlacementFilter = ParsePlacementFilter(dto.PlacementFilter, dto.Id),
             SpawnConditions = SpawnConditionsParser.ParseSpawnConditions(dto.SpawnConditions),
-            SituationTemplates = ParseSituationTemplates(dto.SituationTemplates, dto.Id, archetype),
-            SpawnRules = ParseSpawnRules(dto.SpawnRules, dto.Id),
+            SituationTemplates = situationTemplates,
+            SpawnRules = spawnRules,
             ExpirationDays = dto.ExpirationDays,
             IsStarter = dto.IsStarter,
             IntroNarrativeTemplate = dto.IntroNarrativeTemplate,
@@ -407,6 +465,9 @@ public class SceneTemplateParser
             StateApplications = ParseStateApplications(dto.StateApplications),
             AchievementIds = dto.AchievementIds,
             ItemIds = dto.ItemIds,
+            ItemsToRemove = dto.ItemsToRemove,
+            LocationsToUnlock = dto.LocationsToUnlock,
+            LocationsToLock = dto.LocationsToLock,
             ScenesToSpawn = ParseSceneSpawnRewards(dto.ScenesToSpawn)
         };
     }
@@ -809,5 +870,120 @@ public class SceneTemplateParser
             "crisis" => "Flee the situation",
             _ => "Accept poor outcome"
         };
+    }
+
+    /// <summary>
+    /// Enrich bare SituationTemplate from SceneArchetypeCatalog with ChoiceTemplates
+    /// Takes domain entity from catalogue (ArchetypeId set, ChoiceTemplates empty)
+    /// Returns complete domain entity (ChoiceTemplates populated from archetype)
+    /// NO DTO CONVERSION - direct domain entity manipulation
+    /// </summary>
+    private SituationTemplate EnrichSituationTemplateFromArchetype(
+        SituationTemplate bareTemplate,
+        string sceneTemplateId,
+        SpawnPattern sceneArchetype)
+    {
+        List<ChoiceTemplate> choiceTemplates;
+
+        if (!string.IsNullOrEmpty(bareTemplate.ArchetypeId))
+        {
+            // Generate ChoiceTemplates from archetype using existing method
+            choiceTemplates = GenerateChoiceTemplatesFromArchetype(
+                bareTemplate.ArchetypeId,
+                sceneTemplateId,
+                bareTemplate.Id
+            );
+
+            Console.WriteLine($"[EnrichSituation] Generated {choiceTemplates.Count} choices for situation '{bareTemplate.Id}' using archetype '{bareTemplate.ArchetypeId}'");
+        }
+        else
+        {
+            // AutoAdvance situation or simple narrative - no choices needed
+            choiceTemplates = new List<ChoiceTemplate>();
+            Console.WriteLine($"[EnrichSituation] Situation '{bareTemplate.Id}' has no archetype - using empty choices (AutoAdvance or simple narrative)");
+        }
+
+        // Create new SituationTemplate with populated ChoiceTemplates
+        // All other properties copied from bare template
+        return new SituationTemplate
+        {
+            Id = bareTemplate.Id,
+            Type = bareTemplate.Type,
+            ArchetypeId = bareTemplate.ArchetypeId,
+            NarrativeTemplate = bareTemplate.NarrativeTemplate,
+            ChoiceTemplates = choiceTemplates,
+            Priority = bareTemplate.Priority,
+            NarrativeHints = bareTemplate.NarrativeHints,
+            AutoProgressRewards = bareTemplate.AutoProgressRewards
+        };
+    }
+
+    /// <summary>
+    /// Resolve NPC entity from PlacementFilter for context-aware archetype generation
+    /// Returns null for location-only scenes (PlacementType = Location)
+    /// Supports concrete NPC binding (npcId field) for tutorial
+    /// Supports categorical selection (personalityTypes) for procedural content
+    /// </summary>
+    private NPC ResolveNPCFromPlacementFilter(PlacementFilterDTO placementFilter, string sceneTemplateId)
+    {
+        if (placementFilter == null)
+            throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' with sceneArchetypeId requires placementFilter");
+
+        // Location-only scene (no NPC interaction)
+        if (placementFilter.PlacementType == "Location")
+        {
+            Console.WriteLine($"[EntityResolution] Location-only scene (no NPC)");
+            return null;
+        }
+
+        // Concrete NPC binding (tutorial pattern)
+        if (!string.IsNullOrEmpty(placementFilter.NpcId))
+        {
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == placementFilter.NpcId);
+            if (npc == null)
+                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' placementFilter references invalid NpcId: '{placementFilter.NpcId}'");
+
+            Console.WriteLine($"[EntityResolution] Resolved concrete NPC: {npc.Name} (ID={npc.ID})");
+            return npc;
+        }
+
+        // Categorical selection (procedural pattern) - NOT IMPLEMENTED YET
+        // Would query GameWorld for NPCs matching personalityTypes, apply selection strategy
+        // For now, throw error requiring concrete npcId
+        throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' with sceneArchetypeId requires placementFilter.npcId (categorical selection not yet implemented)");
+    }
+
+    /// <summary>
+    /// Resolve Location entity from PlacementFilter
+    /// For NPC scenes: derives location from NPC.Location
+    /// For Location scenes: resolves from locationId
+    /// </summary>
+    private Location ResolveLocationFromPlacementFilter(PlacementFilterDTO placementFilter, NPC contextNPC, string sceneTemplateId)
+    {
+        if (placementFilter == null)
+            throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' with sceneArchetypeId requires placementFilter");
+
+        // NPC scene: derive location from NPC
+        if (contextNPC != null)
+        {
+            if (contextNPC.Location == null)
+                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' NPC '{contextNPC.ID}' has null Location");
+
+            Console.WriteLine($"[EntityResolution] Location derived from NPC: {contextNPC.Location.Name}");
+            return contextNPC.Location;
+        }
+
+        // Location scene: resolve from locationId
+        if (!string.IsNullOrEmpty(placementFilter.LocationId))
+        {
+            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == placementFilter.LocationId);
+            if (location == null)
+                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' placementFilter references invalid LocationId: '{placementFilter.LocationId}'");
+
+            Console.WriteLine($"[EntityResolution] Resolved concrete Location: {location.Name} (ID={location.Id})");
+            return location;
+        }
+
+        throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' with sceneArchetypeId requires either npcId or locationId in placementFilter");
     }
 }

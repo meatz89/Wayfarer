@@ -738,6 +738,736 @@
             "autoProgressRewards": null
           }
         ]
+      },
+      {
+        "id": "innkeeper_service_request",
+        "archetype": "Linear",
+        "displayNameTemplate": "Lodging Request with {NPCName}",
+        "introNarrativeTemplate": "The innkeeper looks up from their ledger. A room for the night has its price.",
+        "tier": 1,
+        "isStarter": false,
+        "expirationDays": 3,
+        "placementFilter": {
+          "placementType": "NPC",
+          "personalityTypes": ["MERCANTILE"],
+          "minBond": 0,
+          "maxBond": 10,
+          "npcTags": [],
+          "locationProperties": ["Commercial", "LodgingProvider"],
+          "locationTags": [],
+          "terrainTypes": [],
+          "districtId": null,
+          "regionId": null,
+          "routeTier": null,
+          "requiredStates": [],
+          "forbiddenStates": [],
+          "requiredAchievements": [],
+          "scaleRequirements": []
+        },
+        "spawnConditions": {
+          "isAlwaysEligible": false,
+          "playerState": {
+            "completedScenes": [],
+            "choiceHistory": [],
+            "minStats": {},
+            "requiredItems": [],
+            "locationVisits": {}
+          },
+          "worldState": {
+            "weather": null,
+            "timeBlock": null,
+            "minDay": 1,
+            "maxDay": null,
+            "locationStates": []
+          },
+          "entityState": {
+            "npcBond": {},
+            "locationReputation": {},
+            "routeTravelCount": {},
+            "properties": []
+          },
+          "combinationLogic": "AND"
+        },
+        "spawnRules": {
+          "pattern": "Linear",
+          "initialSituationId": "request_room",
+          "transitions": [],
+          "completionCondition": null
+        },
+        "situationTemplates": [
+          {
+            "id": "request_room",
+            "type": "Normal",
+            "archetypeId": "service_transaction",
+            "narrativeTemplate": null,
+            "priority": 100,
+            "narrativeHints": {
+              "tone": "business-like",
+              "theme": "service_request",
+              "context": "innkeeper_interaction",
+              "style": "transactional"
+            },
+            "choiceTemplates": [],
+            "autoProgressRewards": null
+          }
+        ]
+      },
+      {
+        "id": "restricted_area_entrance",
+        "archetype": "Linear",
+        "displayNameTemplate": "Restricted Access at {LocationName}",
+        "introNarrativeTemplate": "The door is barred. Entry requires authorization or ingenuity.",
+        "tier": 2,
+        "isStarter": false,
+        "expirationDays": 2,
+        "placementFilter": {
+          "placementType": "Location",
+          "personalityTypes": [],
+          "minBond": null,
+          "maxBond": null,
+          "npcTags": [],
+          "locationProperties": ["Private", "Restricted"],
+          "locationTags": [],
+          "terrainTypes": [],
+          "districtId": null,
+          "regionId": null,
+          "routeTier": null,
+          "requiredStates": [],
+          "forbiddenStates": [],
+          "requiredAchievements": [],
+          "scaleRequirements": []
+        },
+        "spawnConditions": {
+          "isAlwaysEligible": false,
+          "playerState": {
+            "completedScenes": [],
+            "choiceHistory": [],
+            "minStats": {},
+            "requiredItems": [],
+            "locationVisits": {}
+          },
+          "worldState": {
+            "weather": null,
+            "timeBlock": null,
+            "minDay": 2,
+            "maxDay": null,
+            "locationStates": []
+          },
+          "entityState": {
+            "npcBond": {},
+            "locationReputation": {},
+            "routeTravelCount": {},
+            "properties": []
+          },
+          "combinationLogic": "AND"
+        },
+        "spawnRules": {
+          "pattern": "Linear",
+          "initialSituationId": "bypass_restriction",
+          "transitions": [],
+          "completionCondition": null
+        },
+        "situationTemplates": [
+          {
+            "id": "bypass_restriction",
+            "type": "Normal",
+            "archetypeId": "access_control",
+            "narrativeTemplate": null,
+            "priority": 100,
+            "narrativeHints": {
+              "tone": "determined",
+              "theme": "access_restriction",
+              "context": "security_challenge",
+              "style": "tactical"
+            },
+            "choiceTemplates": [],
+            "autoProgressRewards": null
+          }
+        ]
+      },
+      {
+        "id": "tavern_rumor_network",
+        "archetype": "Linear",
+        "displayNameTemplate": "Local Rumors at {LocationName}",
+        "introNarrativeTemplate": "The tavern hums with gossip. Useful information flows through these walls.",
+        "tier": 1,
+        "isStarter": false,
+        "expirationDays": 3,
+        "placementFilter": {
+          "placementType": "Location",
+          "personalityTypes": [],
+          "minBond": null,
+          "maxBond": null,
+          "npcTags": [],
+          "locationProperties": ["Public", "Social"],
+          "locationTags": [],
+          "terrainTypes": [],
+          "districtId": null,
+          "regionId": null,
+          "routeTier": null,
+          "requiredStates": [],
+          "forbiddenStates": [],
+          "requiredAchievements": [],
+          "scaleRequirements": []
+        },
+        "spawnConditions": {
+          "isAlwaysEligible": false,
+          "playerState": {
+            "completedScenes": [],
+            "choiceHistory": [],
+            "minStats": {},
+            "requiredItems": [],
+            "locationVisits": {}
+          },
+          "worldState": {
+            "weather": null,
+            "timeBlock": null,
+            "minDay": 2,
+            "maxDay": null,
+            "locationStates": []
+          },
+          "entityState": {
+            "npcBond": {},
+            "locationReputation": {},
+            "routeTravelCount": {},
+            "properties": []
+          },
+          "combinationLogic": "AND"
+        },
+        "spawnRules": {
+          "pattern": "Linear",
+          "initialSituationId": "gather_rumors",
+          "transitions": [],
+          "completionCondition": null
+        },
+        "situationTemplates": [
+          {
+            "id": "gather_rumors",
+            "type": "Normal",
+            "archetypeId": "information_gathering",
+            "narrativeTemplate": null,
+            "priority": 100,
+            "narrativeHints": {
+              "tone": "casual",
+              "theme": "information_network",
+              "context": "tavern_gossip",
+              "style": "conversational"
+            },
+            "choiceTemplates": [],
+            "autoProgressRewards": null
+          }
+        ]
+      },
+      {
+        "id": "guild_competency_test",
+        "archetype": "Linear",
+        "displayNameTemplate": "Guild Examination with {NPCName}",
+        "introNarrativeTemplate": "The guild master needs proof of your capabilities before granting access.",
+        "tier": 2,
+        "isStarter": false,
+        "expirationDays": 2,
+        "placementFilter": {
+          "placementType": "NPC",
+          "personalityTypes": ["PROUD"],
+          "minBond": 0,
+          "maxBond": 5,
+          "npcTags": [],
+          "locationProperties": ["Commercial", "Professional"],
+          "locationTags": [],
+          "terrainTypes": [],
+          "districtId": null,
+          "regionId": null,
+          "routeTier": null,
+          "requiredStates": [],
+          "forbiddenStates": [],
+          "requiredAchievements": [],
+          "scaleRequirements": []
+        },
+        "spawnConditions": {
+          "isAlwaysEligible": false,
+          "playerState": {
+            "completedScenes": [],
+            "choiceHistory": [],
+            "minStats": {},
+            "requiredItems": [],
+            "locationVisits": {}
+          },
+          "worldState": {
+            "weather": null,
+            "timeBlock": null,
+            "minDay": 3,
+            "maxDay": null,
+            "locationStates": []
+          },
+          "entityState": {
+            "npcBond": {},
+            "locationReputation": {},
+            "routeTravelCount": {},
+            "properties": []
+          },
+          "combinationLogic": "AND"
+        },
+        "spawnRules": {
+          "pattern": "Linear",
+          "initialSituationId": "prove_skill",
+          "transitions": [],
+          "completionCondition": null
+        },
+        "situationTemplates": [
+          {
+            "id": "prove_skill",
+            "type": "Normal",
+            "archetypeId": "skill_demonstration",
+            "narrativeTemplate": null,
+            "priority": 100,
+            "narrativeHints": {
+              "tone": "professional",
+              "theme": "competency_proof",
+              "context": "guild_examination",
+              "style": "formal"
+            },
+            "choiceTemplates": [],
+            "autoProgressRewards": null
+          }
+        ]
+      },
+      {
+        "id": "public_accusation",
+        "archetype": "Linear",
+        "displayNameTemplate": "Accusation by {NPCName}",
+        "introNarrativeTemplate": "Your name has been questioned publicly. Reputation demands a response.",
+        "tier": 2,
+        "isStarter": false,
+        "expirationDays": 1,
+        "placementFilter": {
+          "placementType": "NPC",
+          "personalityTypes": ["PROUD", "Cunning"],
+          "minBond": 0,
+          "maxBond": 3,
+          "npcTags": [],
+          "locationProperties": ["Public"],
+          "locationTags": [],
+          "terrainTypes": [],
+          "districtId": null,
+          "regionId": null,
+          "routeTier": null,
+          "requiredStates": [],
+          "forbiddenStates": [],
+          "requiredAchievements": [],
+          "scaleRequirements": []
+        },
+        "spawnConditions": {
+          "isAlwaysEligible": false,
+          "playerState": {
+            "completedScenes": [],
+            "choiceHistory": [],
+            "minStats": {},
+            "requiredItems": [],
+            "locationVisits": {}
+          },
+          "worldState": {
+            "weather": null,
+            "timeBlock": null,
+            "minDay": 3,
+            "maxDay": null,
+            "locationStates": []
+          },
+          "entityState": {
+            "npcBond": {},
+            "locationReputation": {},
+            "routeTravelCount": {},
+            "properties": []
+          },
+          "combinationLogic": "AND"
+        },
+        "spawnRules": {
+          "pattern": "Linear",
+          "initialSituationId": "defend_reputation",
+          "transitions": [],
+          "completionCondition": null
+        },
+        "situationTemplates": [
+          {
+            "id": "defend_reputation",
+            "type": "Normal",
+            "archetypeId": "reputation_challenge",
+            "narrativeTemplate": null,
+            "priority": 100,
+            "narrativeHints": {
+              "tone": "confrontational",
+              "theme": "honor_defense",
+              "context": "public_challenge",
+              "style": "assertive"
+            },
+            "choiceTemplates": [],
+            "autoProgressRewards": null
+          }
+        ]
+      },
+      {
+        "id": "medical_emergency",
+        "archetype": "Linear",
+        "displayNameTemplate": "Medical Crisis at {LocationName}",
+        "introNarrativeTemplate": "Someone is hurt. Immediate action is needed.",
+        "tier": 2,
+        "isStarter": false,
+        "expirationDays": 1,
+        "placementFilter": {
+          "placementType": "Location",
+          "personalityTypes": [],
+          "minBond": null,
+          "maxBond": null,
+          "npcTags": [],
+          "locationProperties": ["Public"],
+          "locationTags": [],
+          "terrainTypes": [],
+          "districtId": null,
+          "regionId": null,
+          "routeTier": null,
+          "requiredStates": [],
+          "forbiddenStates": [],
+          "requiredAchievements": [],
+          "scaleRequirements": []
+        },
+        "spawnConditions": {
+          "isAlwaysEligible": false,
+          "playerState": {
+            "completedScenes": [],
+            "choiceHistory": [],
+            "minStats": {},
+            "requiredItems": [],
+            "locationVisits": {}
+          },
+          "worldState": {
+            "weather": null,
+            "timeBlock": null,
+            "minDay": 3,
+            "maxDay": null,
+            "locationStates": []
+          },
+          "entityState": {
+            "npcBond": {},
+            "locationReputation": {},
+            "routeTravelCount": {},
+            "properties": []
+          },
+          "combinationLogic": "AND"
+        },
+        "spawnRules": {
+          "pattern": "Linear",
+          "initialSituationId": "provide_aid",
+          "transitions": [],
+          "completionCondition": null
+        },
+        "situationTemplates": [
+          {
+            "id": "provide_aid",
+            "type": "Normal",
+            "archetypeId": "emergency_aid",
+            "narrativeTemplate": null,
+            "priority": 100,
+            "narrativeHints": {
+              "tone": "urgent",
+              "theme": "medical_intervention",
+              "context": "emergency_response",
+              "style": "decisive"
+            },
+            "choiceTemplates": [],
+            "autoProgressRewards": null
+          }
+        ]
+      },
+      {
+        "id": "permit_application",
+        "archetype": "Linear",
+        "displayNameTemplate": "Permit Processing with {NPCName}",
+        "introNarrativeTemplate": "The official shuffles papers. Bureaucracy has its own rhythm.",
+        "tier": 1,
+        "isStarter": false,
+        "expirationDays": 3,
+        "placementFilter": {
+          "placementType": "NPC",
+          "personalityTypes": ["DEVOTED"],
+          "minBond": 0,
+          "maxBond": 10,
+          "npcTags": [],
+          "locationProperties": ["Administrative", "Official"],
+          "locationTags": [],
+          "terrainTypes": [],
+          "districtId": null,
+          "regionId": null,
+          "routeTier": null,
+          "requiredStates": [],
+          "forbiddenStates": [],
+          "requiredAchievements": [],
+          "scaleRequirements": []
+        },
+        "spawnConditions": {
+          "isAlwaysEligible": false,
+          "playerState": {
+            "completedScenes": [],
+            "choiceHistory": [],
+            "minStats": {},
+            "requiredItems": [],
+            "locationVisits": {}
+          },
+          "worldState": {
+            "weather": null,
+            "timeBlock": null,
+            "minDay": 2,
+            "maxDay": null,
+            "locationStates": []
+          },
+          "entityState": {
+            "npcBond": {},
+            "locationReputation": {},
+            "routeTravelCount": {},
+            "properties": []
+          },
+          "combinationLogic": "AND"
+        },
+        "spawnRules": {
+          "pattern": "Linear",
+          "initialSituationId": "navigate_bureaucracy",
+          "transitions": [],
+          "completionCondition": null
+        },
+        "situationTemplates": [
+          {
+            "id": "navigate_bureaucracy",
+            "type": "Normal",
+            "archetypeId": "administrative_procedure",
+            "narrativeTemplate": null,
+            "priority": 100,
+            "narrativeHints": {
+              "tone": "patient",
+              "theme": "bureaucratic_process",
+              "context": "official_paperwork",
+              "style": "procedural"
+            },
+            "choiceTemplates": [],
+            "autoProgressRewards": null
+          }
+        ]
+      },
+      {
+        "id": "goods_quality_disagreement",
+        "archetype": "Linear",
+        "displayNameTemplate": "Quality Dispute with {NPCName}",
+        "introNarrativeTemplate": "The goods aren't as promised. Resolution is needed.",
+        "tier": 2,
+        "isStarter": false,
+        "expirationDays": 2,
+        "placementFilter": {
+          "placementType": "NPC",
+          "personalityTypes": ["MERCANTILE"],
+          "minBond": 0,
+          "maxBond": 5,
+          "npcTags": [],
+          "locationProperties": ["Commercial"],
+          "locationTags": [],
+          "terrainTypes": [],
+          "districtId": null,
+          "regionId": null,
+          "routeTier": null,
+          "requiredStates": [],
+          "forbiddenStates": [],
+          "requiredAchievements": [],
+          "scaleRequirements": []
+        },
+        "spawnConditions": {
+          "isAlwaysEligible": false,
+          "playerState": {
+            "completedScenes": [],
+            "choiceHistory": [],
+            "minStats": {},
+            "requiredItems": [],
+            "locationVisits": {}
+          },
+          "worldState": {
+            "weather": null,
+            "timeBlock": null,
+            "minDay": 3,
+            "maxDay": null,
+            "locationStates": []
+          },
+          "entityState": {
+            "npcBond": {},
+            "locationReputation": {},
+            "routeTravelCount": {},
+            "properties": []
+          },
+          "combinationLogic": "AND"
+        },
+        "spawnRules": {
+          "pattern": "Linear",
+          "initialSituationId": "resolve_quality_issue",
+          "transitions": [],
+          "completionCondition": null
+        },
+        "situationTemplates": [
+          {
+            "id": "resolve_quality_issue",
+            "type": "Normal",
+            "archetypeId": "trade_dispute",
+            "narrativeTemplate": null,
+            "priority": 100,
+            "narrativeHints": {
+              "tone": "assertive",
+              "theme": "quality_complaint",
+              "context": "merchant_dispute",
+              "style": "firm"
+            },
+            "choiceTemplates": [],
+            "autoProgressRewards": null
+          }
+        ]
+      },
+      {
+        "id": "social_etiquette_violation",
+        "archetype": "Linear",
+        "displayNameTemplate": "Social Blunder at {LocationName}",
+        "introNarrativeTemplate": "You've offended local customs. Damage control is required.",
+        "tier": 1,
+        "isStarter": false,
+        "expirationDays": 2,
+        "placementFilter": {
+          "placementType": "Location",
+          "personalityTypes": [],
+          "minBond": null,
+          "maxBond": null,
+          "npcTags": [],
+          "locationProperties": ["Public", "Social"],
+          "locationTags": [],
+          "terrainTypes": [],
+          "districtId": null,
+          "regionId": null,
+          "routeTier": null,
+          "requiredStates": [],
+          "forbiddenStates": [],
+          "requiredAchievements": [],
+          "scaleRequirements": []
+        },
+        "spawnConditions": {
+          "isAlwaysEligible": false,
+          "playerState": {
+            "completedScenes": [],
+            "choiceHistory": [],
+            "minStats": {},
+            "requiredItems": [],
+            "locationVisits": {}
+          },
+          "worldState": {
+            "weather": null,
+            "timeBlock": null,
+            "minDay": 2,
+            "maxDay": null,
+            "locationStates": []
+          },
+          "entityState": {
+            "npcBond": {},
+            "locationReputation": {},
+            "routeTravelCount": {},
+            "properties": []
+          },
+          "combinationLogic": "AND"
+        },
+        "spawnRules": {
+          "pattern": "Linear",
+          "initialSituationId": "make_amends",
+          "transitions": [],
+          "completionCondition": null
+        },
+        "situationTemplates": [
+          {
+            "id": "make_amends",
+            "type": "Normal",
+            "archetypeId": "cultural_faux_pas",
+            "narrativeTemplate": null,
+            "priority": 100,
+            "narrativeHints": {
+              "tone": "apologetic",
+              "theme": "cultural_mistake",
+              "context": "etiquette_breach",
+              "style": "conciliatory"
+            },
+            "choiceTemplates": [],
+            "autoProgressRewards": null
+          }
+        ]
+      },
+      {
+        "id": "faction_recruitment_offer",
+        "archetype": "Linear",
+        "displayNameTemplate": "Recruitment Offer from {NPCName}",
+        "introNarrativeTemplate": "They want you to join their cause. Commitment comes with strings attached.",
+        "tier": 2,
+        "isStarter": false,
+        "expirationDays": 2,
+        "placementFilter": {
+          "placementType": "NPC",
+          "personalityTypes": ["Cunning", "DEVOTED"],
+          "minBond": 3,
+          "maxBond": 10,
+          "npcTags": [],
+          "locationProperties": ["Private"],
+          "locationTags": [],
+          "terrainTypes": [],
+          "districtId": null,
+          "regionId": null,
+          "routeTier": null,
+          "requiredStates": [],
+          "forbiddenStates": [],
+          "requiredAchievements": [],
+          "scaleRequirements": []
+        },
+        "spawnConditions": {
+          "isAlwaysEligible": false,
+          "playerState": {
+            "completedScenes": [],
+            "choiceHistory": [],
+            "minStats": {},
+            "requiredItems": [],
+            "locationVisits": {}
+          },
+          "worldState": {
+            "weather": null,
+            "timeBlock": null,
+            "minDay": 5,
+            "maxDay": null,
+            "locationStates": []
+          },
+          "entityState": {
+            "npcBond": {},
+            "locationReputation": {},
+            "routeTravelCount": {},
+            "properties": []
+          },
+          "combinationLogic": "AND"
+        },
+        "spawnRules": {
+          "pattern": "Linear",
+          "initialSituationId": "consider_offer",
+          "transitions": [],
+          "completionCondition": null
+        },
+        "situationTemplates": [
+          {
+            "id": "consider_offer",
+            "type": "Normal",
+            "archetypeId": "recruitment",
+            "narrativeTemplate": null,
+            "priority": 100,
+            "narrativeHints": {
+              "tone": "calculated",
+              "theme": "commitment_decision",
+              "context": "faction_recruitment",
+              "style": "cautious"
+            },
+            "choiceTemplates": [],
+            "autoProgressRewards": null
+          }
+        ]
       }
     ]
   }

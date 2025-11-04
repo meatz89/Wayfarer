@@ -113,8 +113,8 @@ public class MovementValidator
     {
         if (location == null) return false;
 
-        // Check if location has time-based restrictions
-        // These restrictions are now handled through time-specific properties
+        if (location.IsLocked)
+            return false;
 
         return true;
     }

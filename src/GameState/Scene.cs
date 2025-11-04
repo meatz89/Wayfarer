@@ -133,6 +133,17 @@ public class Scene
     /// </summary>
     public string SourceSituationId { get; set; }
 
+    /// <summary>
+    /// Day when this Scene expires (transitions to Expired state)
+    /// null = no expiration (Scene remains until completed)
+    /// Positive value = Scene expires on this day automatically
+    /// Calculated at spawn time from SceneTemplate.ExpirationDays: CurrentDay + ExpirationDays
+    /// Enforcement happens in GameFacade.ProcessTimeAdvancement (HIGHLANDER sync point)
+    /// Enables time-limited content (rumors, opportunities, urgent requests)
+    /// Expired scenes filtered out from SceneFacade queries
+    /// </summary>
+    public int? ExpiresOnDay { get; set; }
+
     // ==================== METADATA ====================
 
     /// <summary>

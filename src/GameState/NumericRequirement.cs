@@ -8,7 +8,7 @@ public class NumericRequirement
 {
     /// <summary>
     /// Type of requirement
-    /// Values: "BondStrength", "Scale", "Resolve", "Coins", "CompletedSituations", "Achievement", "State", "PlayerStat"
+    /// Values: "BondStrength", "Scale", "Resolve", "Coins", "CompletedSituations", "Achievement", "State", "PlayerStat", "HasItem"
     /// </summary>
     public string Type { get; set; }
 
@@ -19,6 +19,7 @@ public class NumericRequirement
     /// - For Achievement: Achievement ID
     /// - For State: State type ("Trusted", "Celebrated", etc.)
     /// - For PlayerStat: Stat name ("Insight", "Rapport", "Authority", "Diplomacy", "Cunning")
+    /// - For HasItem: Item ID
     /// - For others: null or unused
     /// </summary>
     public string Context { get; set; }
@@ -32,6 +33,7 @@ public class NumericRequirement
     /// - For CompletedSituations: count of completed situations
     /// - For Achievement: 1 = must have, 0 = must not have
     /// - For State: 1 = must have state active, 0 = must not have state
+    /// - For HasItem: 1 = must have item, 0 = must not have item
     /// </summary>
     public int Threshold { get; set; }
 
@@ -56,6 +58,7 @@ public class NumericRequirement
             "Achievement" => CheckAchievement(player, Context, Threshold),
             "State" => CheckState(player, Context, Threshold),
             "PlayerStat" => CheckPlayerStat(player, Context, Threshold),
+            "HasItem" => CheckHasItem(player, Context, Threshold),
             _ => false // Unknown type
         };
     }
@@ -113,5 +116,11 @@ public class NumericRequirement
         // Check if player's stat level meets threshold
         int statLevel = player.Stats.GetLevel(statType);
         return statLevel >= threshold;
+    }
+
+    private bool CheckHasItem(Player player, string itemId, int threshold)
+    {
+        bool hasItem = player.HasItem(itemId);
+        return threshold > 0 ? hasItem : !hasItem;
     }
 }

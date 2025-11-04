@@ -205,8 +205,6 @@ public class LocationContentViewModel
     public List<SituationCardViewModel> AmbientPhysicalSituations { get; set; } = new();  // Situations without scenes
     public List<SceneWithSituationsViewModel> PhysicalScenes { get; set; } = new();  // Situations from scenes
 
-    // Spots view data
-    public List<SpotWithNpcsViewModel> AvailableSpots { get; set; } = new();
 
     // Scene-Situation Architecture: Locked situations with requirement gaps
     // Perfect information: player sees what they need to unlock
@@ -310,26 +308,6 @@ public class SceneWithSituationsViewModel
     public List<SituationCardViewModel> Situations { get; set; } = new();
 }
 
-/// <summary>
-/// Spot with NPCs already attached
-/// NO FILTERING NEEDED IN UI - backend pre-attaches NPCs to spots
-/// </summary>
-public class SpotWithNpcsViewModel
-{
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public bool IsCurrentSpot { get; set; }
-    public List<NpcAtSpotViewModel> NPCs { get; set; } = new();
-}
-
-/// <summary>
-/// Simplified NPC info for spot list
-/// </summary>
-public class NpcAtSpotViewModel
-{
-    public string Name { get; set; }
-    public string ConnectionState { get; set; }
-}
 
 /// <summary>
 /// Locked situation with strongly-typed requirement gaps for UI rendering

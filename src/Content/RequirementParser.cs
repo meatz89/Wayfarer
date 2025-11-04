@@ -104,7 +104,7 @@ public static class RequirementParser
         List<string> validTypes = new List<string>
         {
             "BondStrength", "Scale", "Resolve", "Coins",
-            "CompletedSituations", "Achievement", "State", "PlayerStat"
+            "CompletedSituations", "Achievement", "State", "PlayerStat", "HasItem"
         };
 
         if (!validTypes.Contains(dto.Type))
@@ -141,6 +141,7 @@ public static class RequirementParser
             "Achievement" => true,   // Needs achievement ID
             "State" => true,         // Needs state type
             "PlayerStat" => true,    // Needs stat name (Insight, Rapport, Authority, Diplomacy, Cunning)
+            "HasItem" => true,       // Needs item ID
             "Resolve" => false,      // No context needed
             "Coins" => false,        // No context needed
             "CompletedSituations" => false, // No context needed
@@ -163,6 +164,7 @@ public static class RequirementParser
             "Achievement" => dto.Threshold > 0 ? $"Have {dto.Context}" : $"Don't have {dto.Context}",
             "State" => dto.Threshold > 0 ? $"Have {dto.Context} state" : $"Don't have {dto.Context} state",
             "PlayerStat" => $"{dto.Context} {dto.Threshold}+",
+            "HasItem" => dto.Threshold > 0 ? $"Have {dto.Context}" : $"Don't have {dto.Context}",
             _ => "Unknown requirement"
         };
     }

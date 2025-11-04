@@ -38,6 +38,8 @@ public class GameFacade
     private readonly SceneInstantiator _sceneInstantiator;
     private readonly RewardApplicationService _rewardApplicationService;
     private readonly SpawnFacade _spawnFacade;
+    private readonly SceneFacade _sceneFacade;
+    private readonly SituationCompletionHandler _situationCompletionHandler;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -65,7 +67,9 @@ public class GameFacade
         ConsequenceFacade consequenceFacade,
         RewardApplicationService rewardApplicationService,
         SpawnConditionsEvaluator spawnConditionsEvaluator,
-        SpawnFacade spawnFacade)
+        SpawnFacade spawnFacade,
+        SceneFacade sceneFacade,
+        SituationCompletionHandler situationCompletionHandler)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -92,6 +96,8 @@ public class GameFacade
         _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
         _spawnFacade = spawnFacade ?? throw new ArgumentNullException(nameof(spawnFacade));
+        _sceneFacade = sceneFacade ?? throw new ArgumentNullException(nameof(sceneFacade));
+        _situationCompletionHandler = situationCompletionHandler ?? throw new ArgumentNullException(nameof(situationCompletionHandler));
         SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
         _sceneInstantiator = new SceneInstantiator(_gameWorld, spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator)), narrativeService);
     }
@@ -342,10 +348,20 @@ public class GameFacade
 
                     player.CurrentPosition = destSpot.HexPosition.Value;
 
+                    // TRIGGER POINT 1: Record location visit after successful travel
+                    RecordLocationVisit(destSpot.Id);
+
+                    // TRIGGER POINT 3: Record route traversal after successful travel
+                    RecordRouteTraversal(routeId);
+
                     // AUTOMATIC SPAWNING ORCHESTRATION - Location trigger
                     // Check for procedural scenes that become eligible when entering this location
                     // Handoff implementation: Phase 4 (lines 254-260)
                     _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Location, destSpot.Id);
+
+                    // MODAL SCENE FORCING: Check for forced modal scene at new location
+                    // If found, sets GameWorld.PendingForcedSceneId for UI to detect
+                    CheckForForcedModalScene();
                 }
             }
 
@@ -820,6 +836,17 @@ public class GameFacade
     private IntentResult ProcessMoveIntent(string targetSpotId)
     {
         bool success = MoveToSpot(targetSpotId);
+
+        if (success)
+        {
+            // TRIGGER POINT 1: Record location visit after successful movement
+            RecordLocationVisit(targetSpotId);
+
+            // MODAL SCENE FORCING: Check for forced modal scene at new location
+            // If found, sets GameWorld.PendingForcedSceneId for UI to detect
+            CheckForForcedModalScene();
+        }
+
         return success ? IntentResult.Executed(requiresRefresh: true) : IntentResult.Failed();
     }
 
@@ -970,11 +997,8 @@ public class GameFacade
         // Advance to next day morning
         TimeAdvancementResult timeResult = _timeFacade.AdvanceToNextDay();
         ProcessTimeAdvancement(timeResult);
-
-        // AUTOMATIC SPAWNING ORCHESTRATION - Time trigger
-        // GameFacade orchestrates: TimeFacade advances time, then SpawnFacade checks for eligible scenes
-        // Facades never call each other directly - GameFacade handles the coordination
-        _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Time, contextId: null);
+        // NOTE: Time-based spawn trigger now fires inside ProcessTimeAdvancement (HIGHLANDER principle)
+        // No need to call CheckAndSpawnEligibleScenes here - it's handled automatically
 
         await Task.CompletedTask;
         return IntentResult.Executed(requiresRefresh: true);
@@ -1071,7 +1095,17 @@ public class GameFacade
         player.ActiveDeliveryJobId = "";
 
         // Advance time (delivery takes time)
-        _timeFacade.AdvanceSegments(1);
+        TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
+        TimeBlocks newTimeBlock = _timeFacade.AdvanceSegments(1);
+
+        // HIGHLANDER: Process time advancement side effects (hunger, emergencies, time-based spawns)
+        ProcessTimeAdvancement(new TimeAdvancementResult
+        {
+            OldTimeBlock = oldTimeBlock,
+            NewTimeBlock = newTimeBlock,
+            CrossedTimeBlock = oldTimeBlock != newTimeBlock,
+            SegmentsAdvanced = 1
+        });
 
         _messageSystem.AddSystemMessage($"Delivery complete! Earned {job.Payment} coins", SystemMessageTypes.Success);
 
@@ -1119,6 +1153,25 @@ public class GameFacade
     // ========== PRIVATE HELPERS ==========
 
     /// <summary>
+    /// Check for forced modal scenes at player's current location
+    /// Modal scenes with IsForced = true should auto-trigger when player enters the location
+    /// HIGHLANDER: Single check point for forced scene detection after movement
+    /// Sets GameWorld.PendingForcedSceneId if found, UI layer reads and navigates
+    /// </summary>
+    private void CheckForForcedModalScene()
+    {
+        Location currentLocation = GetPlayerCurrentLocation();
+        if (currentLocation == null)
+            return;
+
+        global::Scene forcedScene = _sceneFacade.GetModalSceneAtLocation(currentLocation.Id);
+        if (forcedScene != null)
+        {
+            _gameWorld.PendingForcedSceneId = forcedScene.Id;
+        }
+    }
+
+    /// <summary>
     /// HIGHLANDER: THE ONLY place for processing time advancement side effects.
     /// All time-based resource changes happen here (hunger, day transitions, emergency checking).
     /// Called after EVERY time advancement (Wait, Rest, Work, Travel, etc.).
@@ -1147,6 +1200,31 @@ public class GameFacade
                 $"⚠️ EMERGENCY: {activeEmergency.Name}",
                 SystemMessageTypes.Warning);
         }
+
+        // SCENE EXPIRATION ENFORCEMENT (HIGHLANDER sync point for time-based state changes)
+        // Check all active scenes for expiration based on current day
+        // Scenes with ExpiresOnDay <= CurrentDay transition to Expired state
+        // Expired scenes filtered out from SceneFacade queries (no longer visible to player)
+        int currentDay = _gameWorld.CurrentDay;
+        List<global::Scene> activeScenes = _gameWorld.Scenes
+            .Where(s => s.State == SceneState.Active && s.ExpiresOnDay.HasValue)
+            .ToList();
+
+        foreach (global::Scene scene in activeScenes)
+        {
+            if (currentDay >= scene.ExpiresOnDay.Value)
+            {
+                scene.State = SceneState.Expired;
+                // Optional: System message for player feedback (uncomment if desired)
+                // _messageSystem.AddSystemMessage($"Opportunity expired: {scene.DisplayName}", SystemMessageTypes.Info);
+            }
+        }
+
+        // AUTOMATIC SPAWNING ORCHESTRATION - Time trigger
+        // Check for procedural scenes with time-based spawn conditions (morning, evening, day ranges)
+        // HIGHLANDER: This ensures time-based spawns fire after EVERY time advancement
+        // (Wait, Rest, Work, Travel, SecureRoom, Delivery, Action execution, etc.)
+        _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Time, contextId: null);
     }
 
     /// <summary>
@@ -1646,6 +1724,14 @@ public class GameFacade
             // After execution, remove them so they can be regenerated on next query
             CleanupActionsForSituation(situationId);
 
+            // MULTI-SITUATION SCENE: Complete situation and advance scene
+            // Scene.AdvanceToNextSituation() called by completion handler
+            // Enables linear progression through multi-situation arcs
+            if (situation != null)
+            {
+                _situationCompletionHandler.CompleteSituation(situation);
+            }
+
             // Process time advancement (HIGHLANDER: single sync point)
             ProcessTimeAdvancement(new TimeAdvancementResult
             {
@@ -1695,6 +1781,14 @@ public class GameFacade
         NPCAction action = _gameWorld.NPCActions.FirstOrDefault(a => a.Id == actionId && a.SituationId == situationId);
         if (action == null)
             return IntentResult.Failed();
+
+        // TRIGGER POINT 2: Record NPC interaction when action execution starts
+        // Get NPC ID from Situation placement (Scene-embedded situations inherit placement from parent Scene)
+        string npcId = situation.GetPlacementId(PlacementType.NPC);
+        if (!string.IsNullOrEmpty(npcId))
+        {
+            RecordNPCInteraction(npcId);
+        }
 
         // STEP 1: Validate and extract execution plan
         ActionExecutionPlan plan = _npcActionExecutor.ValidateAndExtract(action, player, _gameWorld);
@@ -1747,6 +1841,14 @@ public class GameFacade
             // Actions are query-time instances, not persistent data
             // After execution, remove them so they can be regenerated on next query
             CleanupActionsForSituation(situationId);
+
+            // MULTI-SITUATION SCENE: Complete situation and advance scene
+            // Scene.AdvanceToNextSituation() called by completion handler
+            // Enables linear progression through multi-situation arcs
+            if (situation != null)
+            {
+                _situationCompletionHandler.CompleteSituation(situation);
+            }
 
             // Process time advancement (HIGHLANDER: single sync point)
             ProcessTimeAdvancement(new TimeAdvancementResult
@@ -1835,6 +1937,14 @@ public class GameFacade
             // After execution, remove them so they can be regenerated on next query
             CleanupActionsForSituation(situationId);
 
+            // MULTI-SITUATION SCENE: Complete situation and advance scene
+            // Scene.AdvanceToNextSituation() called by completion handler
+            // Enables linear progression through multi-situation arcs
+            if (situation != null)
+            {
+                _situationCompletionHandler.CompleteSituation(situation);
+            }
+
             // Process time advancement (HIGHLANDER: single sync point)
             ProcessTimeAdvancement(new TimeAdvancementResult
             {
@@ -1857,6 +1967,105 @@ public class GameFacade
     }
 
     // ========== HELPER METHODS ==========
+
+    /// <summary>
+    /// Record location visit in player interaction history
+    /// Update-in-place pattern: Find existing record or create new
+    /// ONE record per location (replaces previous timestamp)
+    /// </summary>
+    private void RecordLocationVisit(string locationId)
+    {
+        Player player = _gameWorld.GetPlayer();
+
+        // Find existing record
+        LocationVisitRecord existingRecord = player.LocationVisits
+            .FirstOrDefault(record => record.LocationId == locationId);
+
+        if (existingRecord != null)
+        {
+            // Update existing record with current timestamp
+            existingRecord.LastVisitDay = _timeFacade.GetCurrentDay();
+            existingRecord.LastVisitTimeBlock = _timeFacade.GetCurrentTimeBlock();
+            existingRecord.LastVisitSegment = _timeFacade.GetCurrentSegment();
+        }
+        else
+        {
+            // Create new record
+            player.LocationVisits.Add(new LocationVisitRecord
+            {
+                LocationId = locationId,
+                LastVisitDay = _timeFacade.GetCurrentDay(),
+                LastVisitTimeBlock = _timeFacade.GetCurrentTimeBlock(),
+                LastVisitSegment = _timeFacade.GetCurrentSegment()
+            });
+        }
+    }
+
+    /// <summary>
+    /// Record NPC interaction in player interaction history
+    /// Update-in-place pattern: Find existing record or create new
+    /// ONE record per NPC (replaces previous timestamp)
+    /// </summary>
+    private void RecordNPCInteraction(string npcId)
+    {
+        Player player = _gameWorld.GetPlayer();
+
+        // Find existing record
+        NPCInteractionRecord existingRecord = player.NPCInteractions
+            .FirstOrDefault(record => record.NPCId == npcId);
+
+        if (existingRecord != null)
+        {
+            // Update existing record with current timestamp
+            existingRecord.LastInteractionDay = _timeFacade.GetCurrentDay();
+            existingRecord.LastInteractionTimeBlock = _timeFacade.GetCurrentTimeBlock();
+            existingRecord.LastInteractionSegment = _timeFacade.GetCurrentSegment();
+        }
+        else
+        {
+            // Create new record
+            player.NPCInteractions.Add(new NPCInteractionRecord
+            {
+                NPCId = npcId,
+                LastInteractionDay = _timeFacade.GetCurrentDay(),
+                LastInteractionTimeBlock = _timeFacade.GetCurrentTimeBlock(),
+                LastInteractionSegment = _timeFacade.GetCurrentSegment()
+            });
+        }
+    }
+
+    /// <summary>
+    /// Record route traversal in player interaction history
+    /// Update-in-place pattern: Find existing record or create new
+    /// ONE record per route (replaces previous timestamp)
+    /// </summary>
+    private void RecordRouteTraversal(string routeId)
+    {
+        Player player = _gameWorld.GetPlayer();
+
+        // Find existing record
+        RouteTraversalRecord existingRecord = player.RouteTraversals
+            .FirstOrDefault(record => record.RouteId == routeId);
+
+        if (existingRecord != null)
+        {
+            // Update existing record with current timestamp
+            existingRecord.LastTraversalDay = _timeFacade.GetCurrentDay();
+            existingRecord.LastTraversalTimeBlock = _timeFacade.GetCurrentTimeBlock();
+            existingRecord.LastTraversalSegment = _timeFacade.GetCurrentSegment();
+        }
+        else
+        {
+            // Create new record
+            player.RouteTraversals.Add(new RouteTraversalRecord
+            {
+                RouteId = routeId,
+                LastTraversalDay = _timeFacade.GetCurrentDay(),
+                LastTraversalTimeBlock = _timeFacade.GetCurrentTimeBlock(),
+                LastTraversalSegment = _timeFacade.GetCurrentSegment()
+            });
+        }
+    }
 
     /// <summary>
     /// Cleanup ephemeral actions for a Situation after execution

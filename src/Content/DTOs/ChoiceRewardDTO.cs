@@ -103,6 +103,25 @@ public class ChoiceRewardDTO
     public List<string> ItemIds { get; set; } = new List<string>();
 
     /// <summary>
+    /// Item IDs to remove from player inventory
+    /// Used for consuming keys, removing temporary access tokens
+    /// Part of item lifecycle: REMOVE phase
+    /// </summary>
+    public List<string> ItemsToRemove { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Location IDs to unlock (set IsLocked = false)
+    /// Multi-Situation Scene Pattern: unlock upper_floor when key acquired
+    /// </summary>
+    public List<string> LocationsToUnlock { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Location IDs to lock (set IsLocked = true)
+    /// Multi-Situation Scene Pattern: relock upper_floor on departure
+    /// </summary>
+    public List<string> LocationsToLock { get; set; } = new List<string>();
+
+    /// <summary>
     /// Scenes to spawn (cascading narrative)
     /// Procedural Scene generation with placement strategies
     /// PERFECT INFORMATION: Created eagerly, player sees WHERE Scene spawns BEFORE selecting Choice

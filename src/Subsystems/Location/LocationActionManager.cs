@@ -109,16 +109,30 @@ public class LocationActionManager
 
         foreach (LocationAction action in availableActions)
         {
+            bool isAvailable = CanPerformAction(action);
+            string lockReason = null;
+
+            if (action.ActionType == LocationActionType.IntraVenueMove && !string.IsNullOrEmpty(action.DestinationLocationId))
+            {
+                Location destination = _gameWorld.GetLocation(action.DestinationLocationId);
+                if (destination != null && destination.IsLocked)
+                {
+                    isAvailable = false;
+                    lockReason = "Location is locked";
+                }
+            }
+
             LocationActionViewModel viewModel = new LocationActionViewModel
             {
                 Id = action.Id,
-                ActionType = action.ActionType.ToString().ToLower(),  // Convert enum to lowercase string for ViewModel
+                ActionType = action.ActionType.ToString().ToLower(),
                 Title = action.Name,
                 Detail = action.Description,
                 Cost = GetCostDisplay(action.Costs),
-                IsAvailable = CanPerformAction(action),
+                IsAvailable = isAvailable,
+                LockReason = lockReason,
                 EngagementType = action.EngagementType,
-                DestinationLocationId = action.DestinationLocationId  // ✅ Copy strongly-typed property (IntraVenueMove parameter)
+                DestinationLocationId = action.DestinationLocationId
             };
             actions.Add(viewModel);
         }

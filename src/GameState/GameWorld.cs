@@ -77,6 +77,12 @@ public class GameWorld
     // ActiveEmergency - Currently triggering emergency that interrupts gameplay (set at sync points)
     public EmergencySituation ActiveEmergency { get; set; }
 
+    // PendingForcedSceneId - Modal scene that should auto-trigger on location entry
+    // Set by movement methods (ProcessMoveIntent, TravelToDestinationAsync) after checking for forced scenes
+    // Checked by UI layer (LocationContent) after movement completes
+    // HIGHLANDER: Single pending forced scene at any time
+    public string PendingForcedSceneId { get; set; }
+
     // Dialogue templates from packages
     public DialogueTemplates DialogueTemplates { get; set; }
     public List<Obligation> Obligations { get; private set; } = new List<Obligation>();
@@ -172,7 +178,6 @@ public class GameWorld
     // Core data collections
     public List<StandingObligation> StandingObligationTemplates { get; set; } = new();
 
-    public List<LocationVisitCount> LocationVisitCounts { get; set; } = new List<LocationVisitCount>();
     public List<string> CompletedConversations { get; } = new List<string>();
 
     // Weather conditions (no seasons - game timeframe is only days/weeks)
@@ -194,31 +199,6 @@ public class GameWorld
 
     // Progression tracking
     public List<RouteDiscovery> RouteDiscoveries { get; set; } = new List<RouteDiscovery>();
-
-    public void RecordLocationVisit(string locationId)
-    {
-        LocationVisitCount visitCount = LocationVisitCounts.FirstOrDefault(lvc => lvc.LocationId == locationId);
-        if (visitCount == null)
-        {
-            visitCount = new LocationVisitCount { LocationId = locationId, Count = 0 };
-            LocationVisitCounts.Add(visitCount);
-        }
-
-        visitCount.Count++;
-    }
-
-    public int GetLocationVisitCount(string locationId)
-    {
-        LocationVisitCount visitCount = LocationVisitCounts.FirstOrDefault(lvc => lvc.LocationId == locationId);
-        if (visitCount == null)
-            return 0;
-        return visitCount.Count;
-    }
-
-    public bool IsFirstVisit(string locationId)
-    {
-        return GetLocationVisitCount(locationId) == 0;
-    }
 
     public bool IsConversationCompleted(string actionId)
     {
