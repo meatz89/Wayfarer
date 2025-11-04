@@ -60,8 +60,9 @@ public static class SceneArchetypeCatalog
             "transaction_sequence" => GenerateTransactionSequence(tier, contextNPC, contextLocation, contextPlayer),
             "gatekeeper_sequence" => GenerateGatekeeperSequence(tier, contextNPC, contextLocation, contextPlayer),
             "consequence_reflection" => GenerateConsequenceReflection(tier, contextLocation, contextPlayer),
+            "single_situation" => GenerateSingleSituation(serviceType, tier, contextNPC, contextLocation, contextPlayer),
             "inn_crisis_escalation" => GenerateInnCrisisEscalation(tier, contextNPC, contextLocation, contextPlayer),
-            _ => throw new InvalidDataException($"Unknown scene archetype ID: '{sceneArchetypeId}'. Valid values: service_with_location_access, transaction_sequence, gatekeeper_sequence, consequence_reflection, inn_crisis_escalation")
+            _ => throw new InvalidDataException($"Unknown scene archetype ID: '{sceneArchetypeId}'. Valid values: service_with_location_access, transaction_sequence, gatekeeper_sequence, consequence_reflection, single_situation, inn_crisis_escalation")
         };
     }
 
@@ -603,6 +604,224 @@ public static class SceneArchetypeCatalog
             SituationTemplates = new List<SituationTemplate> { reflectionSituation },
             SpawnRules = spawnRules
         };
+    }
+
+    /// <summary>
+    /// SINGLE_SITUATION archetype
+    ///
+    /// When Used: Generic single-situation scenes using any situation archetype
+    /// Situation Count: 1 (standalone)
+    /// Pattern: Standalone (no transitions, single situation)
+    ///
+    /// Parameterized by situationArchetypeId (passed via serviceType parameter):
+    ///   - "negotiation": Price disputes, deal-making
+    ///   - "confrontation": Authority challenges, barriers
+    ///   - "investigation": Mysteries, information gathering
+    ///   - "social_maneuvering": Reputation, relationships
+    ///   - "crisis": Emergencies, high-stakes moments
+    ///   - Plus 10 extended archetypes (service_transaction, access_control, etc.)
+    ///
+    /// Reusable pattern for procedural scene generation
+    /// Context-aware based on NPC personality, Location properties, Player state
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateSingleSituation(
+        string situationArchetypeId,
+        int tier,
+        NPC contextNPC,
+        Location contextLocation,
+        Player contextPlayer)
+    {
+        string situationId = $"{situationArchetypeId}_situation";
+
+        // Single situation using specified archetype
+        SituationTemplate situation = new SituationTemplate
+        {
+            Id = situationId,
+            Type = SituationType.Normal,
+            ArchetypeId = situationArchetypeId,
+            NarrativeTemplate = null,
+            Priority = 100,
+            NarrativeHints = GenerateContextualHints(situationArchetypeId, contextNPC, contextLocation, contextPlayer)
+        };
+
+        // Standalone pattern - single situation, no transitions
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Standalone,
+            InitialSituationId = situationId,
+            Transitions = new List<SituationTransition>()
+        };
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = new List<SituationTemplate> { situation },
+            SpawnRules = spawnRules
+        };
+    }
+
+    /// <summary>
+    /// Generate context-aware narrative hints based on situation archetype and entity properties
+    /// Reads NPC personality, Location properties, Player state to generate appropriate tone/theme/context
+    /// </summary>
+    private static NarrativeHints GenerateContextualHints(
+        string situationArchetypeId,
+        NPC contextNPC,
+        Location contextLocation,
+        Player contextPlayer)
+    {
+        NarrativeHints hints = new NarrativeHints();
+
+        // Base hints per situation archetype
+        switch (situationArchetypeId?.ToLowerInvariant())
+        {
+            case "negotiation":
+                hints.Tone = "business-like";
+                hints.Theme = "economic_negotiation";
+                hints.Context = "merchant_interaction";
+                hints.Style = "pragmatic";
+                break;
+
+            case "confrontation":
+                hints.Tone = "tense";
+                hints.Theme = "authority_confrontation";
+                hints.Context = "checkpoint_encounter";
+                hints.Style = "direct";
+                break;
+
+            case "investigation":
+                hints.Tone = "curious";
+                hints.Theme = "information_exchange";
+                hints.Context = "casual_inquiry";
+                hints.Style = "conversational";
+                break;
+
+            case "social_maneuvering":
+                hints.Tone = "calculating";
+                hints.Theme = "social_capital";
+                hints.Context = "relationship_building";
+                hints.Style = "formal";
+                break;
+
+            case "crisis":
+                hints.Tone = "urgent";
+                hints.Theme = "emergency_response";
+                hints.Context = "time_pressure";
+                hints.Style = "tense";
+                break;
+
+            case "service_transaction":
+                hints.Tone = "business-like";
+                hints.Theme = "service_request";
+                hints.Context = "transactional";
+                hints.Style = "professional";
+                break;
+
+            case "access_control":
+                hints.Tone = "determined";
+                hints.Theme = "access_restriction";
+                hints.Context = "security_challenge";
+                hints.Style = "tactical";
+                break;
+
+            case "information_gathering":
+                hints.Tone = "casual";
+                hints.Theme = "information_network";
+                hints.Context = "tavern_gossip";
+                hints.Style = "conversational";
+                break;
+
+            case "skill_demonstration":
+                hints.Tone = "professional";
+                hints.Theme = "competency_proof";
+                hints.Context = "guild_examination";
+                hints.Style = "formal";
+                break;
+
+            case "reputation_challenge":
+                hints.Tone = "confrontational";
+                hints.Theme = "honor_defense";
+                hints.Context = "public_challenge";
+                hints.Style = "assertive";
+                break;
+
+            case "emergency_aid":
+                hints.Tone = "urgent";
+                hints.Theme = "medical_intervention";
+                hints.Context = "emergency_response";
+                hints.Style = "decisive";
+                break;
+
+            case "administrative_procedure":
+                hints.Tone = "patient";
+                hints.Theme = "bureaucratic_process";
+                hints.Context = "official_paperwork";
+                hints.Style = "procedural";
+                break;
+
+            case "trade_dispute":
+                hints.Tone = "assertive";
+                hints.Theme = "quality_complaint";
+                hints.Context = "merchant_dispute";
+                hints.Style = "firm";
+                break;
+
+            case "cultural_faux_pas":
+                hints.Tone = "apologetic";
+                hints.Theme = "cultural_mistake";
+                hints.Context = "etiquette_breach";
+                hints.Style = "conciliatory";
+                break;
+
+            case "recruitment":
+                hints.Tone = "calculated";
+                hints.Theme = "commitment_decision";
+                hints.Context = "faction_recruitment";
+                hints.Style = "cautious";
+                break;
+
+            default:
+                hints.Tone = "neutral";
+                hints.Theme = "generic_interaction";
+                hints.Context = "standard_situation";
+                hints.Style = "balanced";
+                break;
+        }
+
+        // Context-aware adjustments based on entity properties
+        if (contextNPC != null)
+        {
+            // NPC personality modifies tone
+            if (contextNPC.PersonalityType == PersonalityType.DEVOTED)
+            {
+                hints.Tone = "empathetic";
+            }
+            else if (contextNPC.PersonalityType == PersonalityType.MERCANTILE)
+            {
+                hints.Tone = "transactional";
+            }
+            else if (contextNPC.PersonalityType == PersonalityType.PROUD)
+            {
+                hints.Tone = "authoritative";
+            }
+            else if (contextNPC.PersonalityType == PersonalityType.CUNNING)
+            {
+                hints.Tone = "calculating";
+            }
+        }
+
+        // Location properties modify context (if available)
+        if (contextLocation != null && contextLocation.LocationProperties.Contains(LocationPropertyType.Commercial))
+        {
+            hints.Context = $"{hints.Context}_commercial";
+        }
+
+        // Player state modifies style (if available)
+        if (contextPlayer != null && contextPlayer.Coins < 10)
+        {
+            hints.Style = "desperate";
+        }
+
+        return hints;
     }
 
     /// <summary>

@@ -11,7 +11,7 @@
     "sceneTemplates": [
       {
         "id": "merchant_price_negotiation",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Price Dispute with {NPCName}",
         "introNarrativeTemplate": "The merchant quotes a price that makes you pause. There's room to negotiate here.",
         "tier": 1,
@@ -19,11 +19,16 @@
         "expirationDays": 2,
         "placementFilter": {
           "placementType": "NPC",
-          "personalityTypes": ["Mercantile"],
+          "personalityTypes": [
+            "Mercantile"
+          ],
           "minBond": 1,
           "maxBond": 10,
           "npcTags": [],
-          "locationProperties": ["Commercial", "Public"],
+          "locationProperties": [
+            "Commercial",
+            "Public"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -58,33 +63,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "initial_offer",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "initial_offer",
-            "type": "Normal",
-            "archetypeId": "negotiation",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "business-like",
-              "theme": "economic_negotiation",
-              "context": "merchant_interaction",
-              "style": "pragmatic"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "negotiation"
       },
       {
         "id": "guard_checkpoint_passage",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Checkpoint with {NPCName}",
         "introNarrativeTemplate": "The guard steps forward, blocking your path with practiced authority.",
         "tier": 2,
@@ -92,11 +76,17 @@
         "expirationDays": 1,
         "placementFilter": {
           "placementType": "NPC",
-          "personalityTypes": ["PROUD"],
+          "personalityTypes": [
+            "PROUD"
+          ],
           "minBond": 0,
           "maxBond": 5,
           "npcTags": [],
-          "locationProperties": ["Public", "Checkpoint", "Guarded"],
+          "locationProperties": [
+            "Public",
+            "Checkpoint",
+            "Guarded"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -131,33 +121,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "checkpoint_stop",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "checkpoint_stop",
-            "type": "Normal",
-            "archetypeId": "confrontation",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "tense",
-              "theme": "authority_confrontation",
-              "context": "checkpoint_encounter",
-              "style": "direct"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "confrontation"
       },
       {
         "id": "local_information_gathering",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Inquiry with {NPCName}",
         "introNarrativeTemplate": "They might know something useful, if approached correctly.",
         "tier": 1,
@@ -165,11 +134,16 @@
         "expirationDays": 3,
         "placementFilter": {
           "placementType": "NPC",
-          "personalityTypes": ["MERCANTILE", "DEVOTED"],
+          "personalityTypes": [
+            "MERCANTILE",
+            "DEVOTED"
+          ],
           "minBond": 1,
           "maxBond": 10,
           "npcTags": [],
-          "locationProperties": ["Public"],
+          "locationProperties": [
+            "Public"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -204,33 +178,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "ask_about_area",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "ask_about_area",
-            "type": "Normal",
-            "archetypeId": "investigation",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "curious",
-              "theme": "information_exchange",
-              "context": "casual_inquiry",
-              "style": "conversational"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "investigation"
       },
       {
         "id": "noble_favor_exchange",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Request from {NPCName}",
         "introNarrativeTemplate": "The noble regards you with calculated interest. Favors are the currency of their world.",
         "tier": 2,
@@ -238,11 +191,17 @@
         "expirationDays": 2,
         "placementFilter": {
           "placementType": "NPC",
-          "personalityTypes": ["Cunning", "PROUD"],
+          "personalityTypes": [
+            "Cunning",
+            "PROUD"
+          ],
           "minBond": 3,
           "maxBond": 10,
           "npcTags": [],
-          "locationProperties": ["Private", "Noble"],
+          "locationProperties": [
+            "Private",
+            "Noble"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -277,33 +236,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "favor_proposition",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "favor_proposition",
-            "type": "Normal",
-            "archetypeId": "social_maneuvering",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "calculating",
-              "theme": "social_capital",
-              "context": "noble_politics",
-              "style": "formal"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "social_maneuvering"
       },
       {
         "id": "emergency_location_crisis",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Emergency at {LocationName}",
         "introNarrativeTemplate": "Urgent situation demanding immediate action. No time for hesitation.",
         "tier": 3,
@@ -315,7 +253,9 @@
           "minBond": null,
           "maxBond": null,
           "npcTags": [],
-          "locationProperties": ["Public"],
+          "locationProperties": [
+            "Public"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -350,33 +290,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "crisis_response",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "crisis_response",
-            "type": "Normal",
-            "archetypeId": "crisis",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "urgent",
-              "theme": "emergency_response",
-              "context": "time_pressure",
-              "style": "tense"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "crisis"
       },
       {
         "id": "warehouse_access_request",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Warehouse Access with {NPCName}",
         "introNarrativeTemplate": "The warehouse keeper eyes you skeptically. Access isn't freely granted.",
         "tier": 1,
@@ -384,11 +303,15 @@
         "expirationDays": 2,
         "placementFilter": {
           "placementType": "NPC",
-          "personalityTypes": ["MERCANTILE"],
+          "personalityTypes": [
+            "MERCANTILE"
+          ],
           "minBond": 0,
           "maxBond": 5,
           "npcTags": [],
-          "locationProperties": ["Commercial"],
+          "locationProperties": [
+            "Commercial"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -423,33 +346,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "access_request",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "access_request",
-            "type": "Normal",
-            "archetypeId": "negotiation",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "business-like",
-              "theme": "access_control",
-              "context": "warehouse_security",
-              "style": "direct"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "negotiation"
       },
       {
         "id": "suspicious_activity_report",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Suspicious Activity at {LocationName}",
         "introNarrativeTemplate": "Something isn't right here. The pieces don't fit together.",
         "tier": 2,
@@ -461,7 +363,10 @@
           "minBond": null,
           "maxBond": null,
           "npcTags": [],
-          "locationProperties": ["Public", "Commercial"],
+          "locationProperties": [
+            "Public",
+            "Commercial"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -496,33 +401,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "investigate_activity",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "investigate_activity",
-            "type": "Normal",
-            "archetypeId": "investigation",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "suspicious",
-              "theme": "mystery_discovery",
-              "context": "investigation",
-              "style": "observant"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "investigation"
       },
       {
         "id": "community_reputation_building",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Community Standing",
         "introNarrativeTemplate": "Building trust with the locals requires more than just words.",
         "tier": 1,
@@ -534,7 +418,9 @@
           "minBond": null,
           "maxBond": null,
           "npcTags": [],
-          "locationProperties": ["Public"],
+          "locationProperties": [
+            "Public"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -569,33 +455,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "build_trust",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "build_trust",
-            "type": "Normal",
-            "archetypeId": "social_maneuvering",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "friendly",
-              "theme": "reputation_building",
-              "context": "community_relations",
-              "style": "approachable"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "social_maneuvering"
       },
       {
         "id": "trade_route_dispute",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Trade Dispute with {NPCName}",
         "introNarrativeTemplate": "Competing interests clash over access to the trade route.",
         "tier": 2,
@@ -603,11 +468,16 @@
         "expirationDays": 2,
         "placementFilter": {
           "placementType": "NPC",
-          "personalityTypes": ["Mercantile", "Cunning"],
+          "personalityTypes": [
+            "Mercantile",
+            "Cunning"
+          ],
           "minBond": 0,
           "maxBond": 5,
           "npcTags": [],
-          "locationProperties": ["Commercial"],
+          "locationProperties": [
+            "Commercial"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -642,33 +512,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "resolve_dispute",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "resolve_dispute",
-            "type": "Normal",
-            "archetypeId": "confrontation",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "contentious",
-              "theme": "economic_conflict",
-              "context": "trade_dispute",
-              "style": "aggressive"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "confrontation"
       },
       {
         "id": "missing_goods_inquiry",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Missing Shipment Investigation",
         "introNarrativeTemplate": "Goods have vanished. Someone knows what happened.",
         "tier": 2,
@@ -680,7 +529,9 @@
           "minBond": null,
           "maxBond": null,
           "npcTags": [],
-          "locationProperties": ["Commercial"],
+          "locationProperties": [
+            "Commercial"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -715,33 +566,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "investigate_missing_goods",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "investigate_missing_goods",
-            "type": "Normal",
-            "archetypeId": "investigation",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "investigative",
-              "theme": "mystery_solving",
-              "context": "theft_investigation",
-              "style": "methodical"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "investigation"
       },
       {
         "id": "innkeeper_service_request",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Lodging Request with {NPCName}",
         "introNarrativeTemplate": "The innkeeper looks up from their ledger. A room for the night has its price.",
         "tier": 1,
@@ -749,11 +579,16 @@
         "expirationDays": 3,
         "placementFilter": {
           "placementType": "NPC",
-          "personalityTypes": ["MERCANTILE"],
+          "personalityTypes": [
+            "MERCANTILE"
+          ],
           "minBond": 0,
           "maxBond": 10,
           "npcTags": [],
-          "locationProperties": ["Commercial", "LodgingProvider"],
+          "locationProperties": [
+            "Commercial",
+            "LodgingProvider"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -788,33 +623,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "request_room",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "request_room",
-            "type": "Normal",
-            "archetypeId": "service_transaction",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "business-like",
-              "theme": "service_request",
-              "context": "innkeeper_interaction",
-              "style": "transactional"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "service_transaction"
       },
       {
         "id": "restricted_area_entrance",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Restricted Access at {LocationName}",
         "introNarrativeTemplate": "The door is barred. Entry requires authorization or ingenuity.",
         "tier": 2,
@@ -826,7 +640,10 @@
           "minBond": null,
           "maxBond": null,
           "npcTags": [],
-          "locationProperties": ["Private", "Exclusive"],
+          "locationProperties": [
+            "Private",
+            "Exclusive"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -861,33 +678,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "bypass_restriction",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "bypass_restriction",
-            "type": "Normal",
-            "archetypeId": "access_control",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "determined",
-              "theme": "access_restriction",
-              "context": "security_challenge",
-              "style": "tactical"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "access_control"
       },
       {
         "id": "tavern_rumor_network",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Local Rumors at {LocationName}",
         "introNarrativeTemplate": "The tavern hums with gossip. Useful information flows through these walls.",
         "tier": 1,
@@ -899,7 +695,10 @@
           "minBond": null,
           "maxBond": null,
           "npcTags": [],
-          "locationProperties": ["Public", "Social"],
+          "locationProperties": [
+            "Public",
+            "Social"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -934,33 +733,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "gather_rumors",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "gather_rumors",
-            "type": "Normal",
-            "archetypeId": "information_gathering",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "casual",
-              "theme": "information_network",
-              "context": "tavern_gossip",
-              "style": "conversational"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "information_gathering"
       },
       {
         "id": "guild_competency_test",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Guild Examination with {NPCName}",
         "introNarrativeTemplate": "The guild master needs proof of your capabilities before granting access.",
         "tier": 2,
@@ -968,11 +746,15 @@
         "expirationDays": 2,
         "placementFilter": {
           "placementType": "NPC",
-          "personalityTypes": ["PROUD"],
+          "personalityTypes": [
+            "PROUD"
+          ],
           "minBond": 0,
           "maxBond": 5,
           "npcTags": [],
-          "locationProperties": ["Commercial"],
+          "locationProperties": [
+            "Commercial"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -1007,33 +789,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "prove_skill",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "prove_skill",
-            "type": "Normal",
-            "archetypeId": "skill_demonstration",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "professional",
-              "theme": "competency_proof",
-              "context": "guild_examination",
-              "style": "formal"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "skill_demonstration"
       },
       {
         "id": "public_accusation",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Accusation by {NPCName}",
         "introNarrativeTemplate": "Your name has been questioned publicly. Reputation demands a response.",
         "tier": 2,
@@ -1041,11 +802,16 @@
         "expirationDays": 1,
         "placementFilter": {
           "placementType": "NPC",
-          "personalityTypes": ["PROUD", "Cunning"],
+          "personalityTypes": [
+            "PROUD",
+            "Cunning"
+          ],
           "minBond": 0,
           "maxBond": 3,
           "npcTags": [],
-          "locationProperties": ["Public"],
+          "locationProperties": [
+            "Public"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -1080,33 +846,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "defend_reputation",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "defend_reputation",
-            "type": "Normal",
-            "archetypeId": "reputation_challenge",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "confrontational",
-              "theme": "honor_defense",
-              "context": "public_challenge",
-              "style": "assertive"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "reputation_challenge"
       },
       {
         "id": "medical_emergency",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Medical Crisis at {LocationName}",
         "introNarrativeTemplate": "Someone is hurt. Immediate action is needed.",
         "tier": 2,
@@ -1118,7 +863,9 @@
           "minBond": null,
           "maxBond": null,
           "npcTags": [],
-          "locationProperties": ["Public"],
+          "locationProperties": [
+            "Public"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -1153,33 +900,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "provide_aid",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "provide_aid",
-            "type": "Normal",
-            "archetypeId": "emergency_aid",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "urgent",
-              "theme": "medical_intervention",
-              "context": "emergency_response",
-              "style": "decisive"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "emergency_aid"
       },
       {
         "id": "permit_application",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Permit Processing with {NPCName}",
         "introNarrativeTemplate": "The official shuffles papers. Bureaucracy has its own rhythm.",
         "tier": 1,
@@ -1187,11 +913,15 @@
         "expirationDays": 3,
         "placementFilter": {
           "placementType": "NPC",
-          "personalityTypes": ["DEVOTED"],
+          "personalityTypes": [
+            "DEVOTED"
+          ],
           "minBond": 0,
           "maxBond": 10,
           "npcTags": [],
-          "locationProperties": ["Official"],
+          "locationProperties": [
+            "Official"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -1226,33 +956,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "navigate_bureaucracy",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "navigate_bureaucracy",
-            "type": "Normal",
-            "archetypeId": "administrative_procedure",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "patient",
-              "theme": "bureaucratic_process",
-              "context": "official_paperwork",
-              "style": "procedural"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "administrative_procedure"
       },
       {
         "id": "goods_quality_disagreement",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Quality Dispute with {NPCName}",
         "introNarrativeTemplate": "The goods aren't as promised. Resolution is needed.",
         "tier": 2,
@@ -1260,11 +969,15 @@
         "expirationDays": 2,
         "placementFilter": {
           "placementType": "NPC",
-          "personalityTypes": ["MERCANTILE"],
+          "personalityTypes": [
+            "MERCANTILE"
+          ],
           "minBond": 0,
           "maxBond": 5,
           "npcTags": [],
-          "locationProperties": ["Commercial"],
+          "locationProperties": [
+            "Commercial"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -1299,33 +1012,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "resolve_quality_issue",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "resolve_quality_issue",
-            "type": "Normal",
-            "archetypeId": "trade_dispute",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "assertive",
-              "theme": "quality_complaint",
-              "context": "merchant_dispute",
-              "style": "firm"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "trade_dispute"
       },
       {
         "id": "social_etiquette_violation",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Social Blunder at {LocationName}",
         "introNarrativeTemplate": "You've offended local customs. Damage control is required.",
         "tier": 1,
@@ -1337,7 +1029,10 @@
           "minBond": null,
           "maxBond": null,
           "npcTags": [],
-          "locationProperties": ["Public", "Social"],
+          "locationProperties": [
+            "Public",
+            "Social"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -1372,33 +1067,12 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "make_amends",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "make_amends",
-            "type": "Normal",
-            "archetypeId": "cultural_faux_pas",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "apologetic",
-              "theme": "cultural_mistake",
-              "context": "etiquette_breach",
-              "style": "conciliatory"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "cultural_faux_pas"
       },
       {
         "id": "faction_recruitment_offer",
-        "archetype": "Linear",
+        "archetype": "Standalone",
         "displayNameTemplate": "Recruitment Offer from {NPCName}",
         "introNarrativeTemplate": "They want you to join their cause. Commitment comes with strings attached.",
         "tier": 2,
@@ -1406,11 +1080,16 @@
         "expirationDays": 2,
         "placementFilter": {
           "placementType": "NPC",
-          "personalityTypes": ["Cunning", "DEVOTED"],
+          "personalityTypes": [
+            "Cunning",
+            "DEVOTED"
+          ],
           "minBond": 3,
           "maxBond": 10,
           "npcTags": [],
-          "locationProperties": ["Private"],
+          "locationProperties": [
+            "Private"
+          ],
           "locationTags": [],
           "terrainTypes": [],
           "districtId": null,
@@ -1445,29 +1124,8 @@
           },
           "combinationLogic": "AND"
         },
-        "spawnRules": {
-          "pattern": "Linear",
-          "initialSituationId": "consider_offer",
-          "transitions": [],
-          "completionCondition": null
-        },
-        "situationTemplates": [
-          {
-            "id": "consider_offer",
-            "type": "Normal",
-            "archetypeId": "recruitment",
-            "narrativeTemplate": null,
-            "priority": 100,
-            "narrativeHints": {
-              "tone": "calculated",
-              "theme": "commitment_decision",
-              "context": "faction_recruitment",
-              "style": "cautious"
-            },
-            "choiceTemplates": [],
-            "autoProgressRewards": null
-          }
-        ]
+        "sceneArchetypeId": "single_situation",
+        "serviceType": "recruitment"
       }
     ]
   }

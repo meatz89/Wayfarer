@@ -72,13 +72,17 @@ public class SceneTemplateParser
         Location contextLocation = ResolveLocationFromPlacementFilter(dto.PlacementFilter, contextNPC, dto.Id);
         Player contextPlayer = _gameWorld.GetPlayer();
 
-        if (contextNPC != null)
+        if (contextNPC != null && contextLocation != null)
         {
             Console.WriteLine($"[SceneArchetypeGeneration] Entity context: NPC={contextNPC.Name} (Personality={contextNPC.PersonalityType}, Profession={contextNPC.Profession}), Location={contextLocation.Name}, Player.Coins={contextPlayer.Coins}");
         }
-        else
+        else if (contextLocation != null)
         {
             Console.WriteLine($"[SceneArchetypeGeneration] Entity context: Location={contextLocation.Name} (Properties={string.Join(", ", contextLocation.LocationProperties)}), Player.Coins={contextPlayer.Coins}");
+        }
+        else
+        {
+            Console.WriteLine($"[SceneArchetypeGeneration] Categorical scene (no concrete entities at parse time), Player.Coins={contextPlayer.Coins}");
         }
 
         SceneArchetypeDefinition archetypeDefinition = SceneArchetypeCatalog.GetSceneArchetype(
@@ -944,10 +948,12 @@ public class SceneTemplateParser
             return npc;
         }
 
-        // Categorical selection (procedural pattern) - NOT IMPLEMENTED YET
-        // Would query GameWorld for NPCs matching personalityTypes, apply selection strategy
-        // For now, throw error requiring concrete npcId
-        throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' with sceneArchetypeId requires placementFilter.npcId (categorical selection not yet implemented)");
+        // Categorical selection (procedural pattern)
+        // Scene uses categorical filters (personalityTypes, locationProperties) for procedural spawning
+        // No concrete entity at parse time, so return null
+        // GenerateSingleSituation will use generic hints without entity-specific context
+        Console.WriteLine($"[EntityResolution] Categorical NPC scene (no concrete NPC at parse time)");
+        return null;
     }
 
     /// <summary>
@@ -981,6 +987,11 @@ public class SceneTemplateParser
             return location;
         }
 
-        throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' with sceneArchetypeId requires either npcId or locationId in placementFilter");
+        // Categorical location selection (procedural pattern)
+        // Scene uses categorical filters (locationProperties, locationTags) for procedural spawning
+        // No concrete location at parse time, so return null
+        // GenerateSingleSituation will use generic hints without location-specific context
+        Console.WriteLine($"[EntityResolution] Categorical location scene (no concrete location at parse time)");
+        return null;
     }
 }
