@@ -4,428 +4,526 @@
 
 ### The Scaling Crisis
 
-Wayfarer's narrative RPG model creates a content volume problem. If every location needs hand-authored scenes, every NPC needs custom dialogue trees, and every player choice spawns unique follow-up content, the authoring burden becomes exponential. A tutorial scene showing "player secures lodging from innkeeper" requires a writer to craft the situation description, three choice texts, success/failure outcomes, and mechanical costs. If this pattern appears nowhere else in the game, that effort yields exactly one player moment.
+Wayfarer's narrative RPG model creates a content volume problem. A scene like "Secure Lodging" encompasses: the innkeeper conversation, payment or persuasion, receiving a room key, navigating to the locked upper floor, resting overnight with resource restoration, time passing to morning, waking up, leaving the room, and the room locking again. This entire multi-situation arc with location state changes, item lifecycle, resource restoration, and time advancement is ONE scene template.
 
-The traditional solution - procedural generation - fails because narrative quality collapses. Generated dialogue reads like mad libs. Character personalities dissolve into template variables. The player quickly recognizes they're interacting with algorithms, not a living world.
+If every merchant needs a hand-authored "purchase services" scene, every guard needs a custom "checkpoint passage" scene, and every location needs unique "rest and recovery" scenes, the authoring burden becomes exponential. Each scene requires: multiple situation flows, choice structures at each beat, mechanical consequences, world state modifications, narrative coherence across the arc, and cleanup logic. Creating one complete scene might take days of design and balancing work.
+
+The traditional solution - procedural generation - fails because these complex multi-situation arcs require careful mechanical orchestration. Generated scenes produce broken progression (situations spawn out of order), unbalanced economics (rest costs too little or too much), narrative incoherence (morning departure happens before sleeping), and broken state management (keys granted but never removed).
 
 ### The AI Limitation
 
-Large language models can generate compelling narrative but cannot create balanced game mechanics. An AI can write engaging dialogue for a tense negotiation but has no concept of "this should cost 18 Focus because the player's maximum is 55 and the formula is max times 0.33". AI can describe a desperate plea but cannot determine "this spawns a consequence scene if declined because the NPC bond level matters systemically". Mechanical coherence requires mathematical precision, progression balance, and systemic interconnection that AI fundamentally lacks.
+Large language models can generate compelling narrative for individual moments but cannot orchestrate complex multi-situation arcs with mechanical coherence. AI can write engaging dialogue for innkeeper negotiation but has no concept of "this grants an item that unlocks a location which enables a rest situation which restores resources using formulas and advances time which triggers morning situation which removes the key and re-locks the location". 
+
+Scene structure requires understanding: situation sequencing (negotiation BEFORE access BEFORE rest BEFORE departure), resource flow (key granted then consumed, energy depleted then restored, coins spent never returned), world state causality (time advances causing morning, rest causes restoration, departure causes lock), and economic balance (rest benefit must justify cost across progression curve).
 
 ### The Core Insight
 
-Separate mechanical pattern from narrative manifestation. Game logic defines structure: a negotiation with three paths (challenge, payment, fallback) where costs scale by tier and requirements use stat thresholds. AI applies narrative texture: this negotiation happens to be about warehouse access with Amos the merchant who values practicality, versus barn access with Gregory the farmer who values tradition, versus checkpoint passage with Captain Thorne who values authority.
+Separate scene archetype patterns from narrative manifestation and entity context. Game logic defines multi-situation arc structure: "service with location access" contains negotiation situation (challenge or payment grants access item), access situation (consume item to unlock location), service situation (consume time/resources for benefit), and departure situation (remove item, re-lock location). This pattern works for: lodging (sleep restores resources), bathing (time for cleanliness stat), storage (coins for inventory space), training (time for skill gain), healing (coins for health restoration).
 
-Same mechanical skeleton, infinite narrative variations. The architecture must support this separation completely.
+AI applies narrative texture: the lodging scene happens at an inn with Elena the innkeeper and mentions beds, while bathing happens at bathhouse with attendant Marcus and mentions hot water, while healing happens at temple with priest Thalia and mentions prayers. Same mechanical structure, infinite narrative variations based on service type, NPC personality, location atmosphere, cultural context.
+
+The architecture must support complete scene arc generation from archetypes while allowing AI to provide contextual narrative for each situation within the arc.
 
 ### Why This Matters
 
-Without procedural generation, the game hits content walls quickly. With naive procedural generation, narrative quality collapses. With AI-only generation, mechanical balance breaks. The solution must preserve handcrafted quality while achieving procedural scale, keeping AI constrained to its strengths (narrative) while ensuring game logic controls mechanics.
+Without procedural scene generation, every service location needs hand-authored multi-situation arcs. With naive procedural generation, scenes break mechanically (wrong situation ordering, unbalanced costs, broken state). With AI-only generation, scenes lack mechanical coherence (made-up costs, arbitrary progression, broken economy). The solution must generate mechanically sound multi-situation arcs while allowing AI to provide rich narrative at each beat.
 
 ---
 
 ## Architectural Discovery
 
+### Scene Scope Understanding
+
+Scenes are NOT single conversations with 2-4 choices. Scenes are complete multi-situation narrative arcs with:
+
+**Sequential Situation Progression:** Multiple situations flowing in defined order. Negotiation situation completes, spawns access situation. Access situation completes, spawns service situation. Service situation completes, spawns departure situation. Scene progression rules define this flow (linear, branching, hub-and-spoke, conditional).
+
+**Location State Modification:** Scenes change world state. Location lock states toggle (locked becomes unlocked becomes locked again). NPC availability changes (merchant closes shop, guard changes post). Environmental properties shift (time of day advances, weather changes, danger levels update).
+
+**Item Lifecycle Management:** Scenes grant items (room key, ticket, permit) that exist temporarily within scene scope. Item granted in situation 1, consumed in situation 2, removed in situation 4. Items don't persist beyond scene - they're arc-specific temporary tokens enabling progression.
+
+**Resource Flow Orchestration:** Scenes consume resources (coins, time, energy) and produce benefits (restored stamina, gained knowledge, increased stats). Economic balance maintained across entire arc. Early situations cost resources, later situations provide benefits, net outcome justified by total cost.
+
+**World State Causality:** Actions in one situation cause consequences in later situations. Paying coins in negotiation situation affects what happens in service situation (paid upfront versus pay later). Time advancement in rest situation triggers morning-specific narrative in departure situation. Prior choices ripple forward through arc.
+
+**Cleanup and Reset Logic:** Scenes restore world to sensible state after completion. Temporary items removed. Locked locations re-locked. NPC availability reset. Time advanced appropriately. Next player visit finds world in coherent state, not broken by prior scene completion.
+
 ### The Three-Tier Timing Model
 
-The codebase enforces strict separation between when content is defined, when it's instantiated, and when it becomes visible to players.
+The codebase enforces strict separation between when content is defined, when it's instantiated, and when it becomes visible.
 
-**Parse Time** occurs at game initialization. JSON files define immutable templates - scene structures, situation patterns, choice frameworks. These templates never change during gameplay. Catalogues translate categorical descriptions into concrete mechanical values during this phase exclusively. A template saying "social challenge appropriate for merchant personality" becomes specific Focus costs, stat requirements, and reward magnitudes. This translation happens once.
+**Parse Time** occurs at game initialization. JSON files define immutable scene templates containing: complete situation sequences, spawn rules governing flow between situations, mechanical formulas for costs/benefits, item grant/consume/remove patterns, location state modification logic, and narrative hints for AI generation. Catalogues translate scene archetype IDs into these complete multi-situation structures during parsing exclusively.
 
-**Instantiation Time** occurs when spawn conditions trigger. A scene template becomes a runtime scene instance, placed at a concrete location or NPC. Situations within that scene are created as dormant entities - they exist in the game world but have no player-facing actions yet. No memory is wasted on choices the player cannot see. The system stores references to templates for later use.
+**Instantiation Time** occurs when spawn conditions trigger. A scene template becomes runtime scene instance placed at concrete location/NPC. All situations within scene created as dormant entities simultaneously - they exist but none are active yet. First situation in sequence marked as current, others wait for spawn rules to activate them. No actions instantiated yet, just situation structure in dormant state.
 
-**Query Time** occurs when the player enters the context where content lives. Navigating to a location, talking to an NPC, or selecting a route triggers activation. Dormant situations transition to active, and their choice templates finally instantiate into action entities. Provisional scenes spawn to show consequences before commitment. Everything ephemeral - created for one decision point and cleaned up afterward.
+**Query Time** occurs when player enters context where scene lives. First situation transitions from dormant to active, instantiates its choices into action entities. Player selects action, situation completes, spawn rules determine next situation, that situation activates and instantiates its actions. Progression continues until scene completes.
 
-This three-tier separation prevents premature instantiation, eliminates stale data, and ensures fresh evaluation of requirements at decision time.
+This three-tier separation prevents premature activation of later situations (rest situation doesn't activate before negotiation), ensures fresh evaluation at each beat (departure situation evaluates morning-specific conditions), and maintains efficient memory usage (actions only exist when player can see them).
 
-### Template-Instance Composition Pattern
+### Template-Instance Composition for Scene Arcs
 
-Templates are immutable archetypes. Instances are mutable runtime entities that reference their originating template. A situation instance stores its template reference, not a copy of template data. When activation occurs, the instance queries its template for choice definitions and instantiates them with current context.
+Scene templates contain embedded situation templates defining complete arc structure. SituationTemplates are NOT separate top-level entities in GameWorld - they're embedded within SceneTemplate as architectural definition of arc flow.
 
-This composition prevents data duplication, ensures consistency, and allows templates to serve as infinite sources. One situation template generates hundreds of situation instances across different NPCs and locations, all referencing that single template.
+A "Secure Lodging" scene template contains four embedded SituationTemplates: negotiate, access, rest, depart. Each SituationTemplate has ChoiceTemplates defining player options at that beat. Scene template's SpawnRules define how situations activate sequentially (negotiate completes spawns access, access completes spawns rest, rest completes spawns depart).
 
-The critical rule: never copy template properties onto instances. Always reference. The instance adds runtime state (which choices selected, completion status, spawned entities) but never duplicates structural data.
+At instantiation, Scene instance created with reference to template, all Situations instantiated simultaneously as dormant runtime entities, each Situation stores reference to its SituationTemplate for later action instantiation. Scene owns progression state (which situation is current), Situations own activation state (dormant versus active).
+
+This composition enables: archetype-driven scene structure (template defines complete arc pattern), lazy action instantiation (situation dormant until player reaches that beat), template reusability (one scene template generates hundreds of contextual instances), and mechanical consistency (all lodging scenes follow same economic balance, just different narrative).
 
 ### The HIGHLANDER Principle
 
-Every concept has exactly one authoritative representation. Situations exist in a flat GameWorld list, not nested within scenes. The scene stores situation IDs as references. Querying "which situations belong to this scene" filters the flat list by those IDs. No entity exists in multiple collections simultaneously.
+Every concept exists in exactly one authoritative location with no duplication.
 
-Placement information lives on the scene, not duplicated onto situations. Situations query their parent scene for placement context. If placement were stored in both places, synchronization bugs emerge - scene says "at Market Square" while situation says "at Tavern".
+Situations within scene live in GameWorld.Situations flat list, not nested in Scene.Situations property. Scene stores List<string> SituationIds referencing them. Querying "situations in this scene" filters flat list by IDs. This prevents situations existing in multiple locations simultaneously.
 
-This ruthless elimination of duplication extends everywhere. If template has a property, instance references template rather than copying. If entity has an ID reference, no corresponding object reference exists alongside it (or vice versa). State machines have orthogonal dimensions rather than synthesized combinations. One source of truth, always.
+Spawn rules define situation flow but don't duplicate situation data. SpawnRule has SourceSituationTemplateId and DestinationSituationTemplateId (references), not embedded copies of situation definitions. Rule says "when situation A completes, spawn situation B", but doesn't contain duplicate copies of A or B.
 
-### Catalogue Constraint
+Item grants stored in reward templates, item requirements stored in situation requirements, item lifecycle managed by scene progression, but item definition itself exists once in item catalog. No duplicating "room_key" definition across negotiation rewards, access requirements, and departure cleanup logic.
 
-Catalogues translate categorical properties to concrete mechanical values, but only at parse time. A situation archetype catalog receives "negotiation pattern at tier 2 for merchant personality" and outputs specific Focus costs, coin amounts, and stat thresholds. This calculation happens during template creation, never during gameplay.
+Location lock states stored once on LocationLocation entity. Access situation modifies location.IsLocked property, departure situation restores it, but lock state isn't cached in scene. Query location entity for current state, don't maintain duplicate tracking.
 
-Runtime code never imports catalogues. After parsing, entities have concrete strongly-typed properties. The archetype ID becomes metadata for content creation tools but has no runtime meaning. No string matching against archetype names, no dictionary lookups of pattern definitions. The translation is permanently baked into the template at parse time.
+### Catalogue Constraint for Scene Archetypes
 
-This constraint ensures fail-fast behavior. Bad patterns crash at load, not during play. Testing catches all archetype issues immediately.
+Scene archetype catalogues generate complete multi-situation structures at parse time exclusively. A scene archetype like "service_with_location_access" receives context (service type, tier, expected player resources, location properties) and outputs: complete sequence of SituationTemplates, ChoiceTemplates for each situation, cost/benefit formulas, item grant/consume patterns, SpawnRules governing flow, and cleanup logic.
 
-### Entity Type Requirements
+The catalogue performs complex generation: calculates balanced economics (total cost versus total benefit), determines appropriate item types (temporary access tokens), defines sensible progression (negotiation before access before service), sets tier-appropriate costs (scales with player progression), and embeds default narrative hints (service type influences tone).
 
-Templates specify required entity types categorically. A situation template declares "requires NPC entity" and "requires Location entity" without containing any narrative text. These are categorical requirements for what kinds of game entities the situation needs.
+This generation happens ONCE per template load. Runtime never calls archetype catalogues. After parsing, Scene entities have concrete SituationTemplate lists with embedded ChoiceTemplates. The archetype ID becomes metadata for content tools. Runtime uses strongly-typed template structures, never regenerates from archetype.
 
-At instantiation time, game logic resolves categorical requirements to concrete entities. The placement filter evaluates and selects a specific NPC (Amos), a specific location (Market Square), specific items if relevant. These concrete entity references are stored as strongly-typed properties on the scene and situation instances.
+This ensures fail-fast behavior (broken archetypes crash at load) and architectural boundaries (parsers import catalogues, game logic never does).
 
-At finalization time when AI generates narrative, it receives the actual entity objects with all their properties. The NPC entity has name, personality, background, current bond level, interaction history. The location entity has atmospheric properties, time of day, weather. AI generates complete narrative text from these rich entity contexts - situation descriptions, choice action texts, all narrative content.
+### Entity Type Requirements for Scene Context
 
-Templates contain no narrative text whatsoever. They are purely structural and mechanical definitions. All narrative comes from AI generation informed by entity properties.
+Scene templates specify required entity contexts without narrative text. "Service with location access" template declares: requires NPC entity (service provider), requires Location entity (where service happens), requires LocationLocation entity (locked area player accesses), may require items as prerequisites.
+
+These are categorical requirements. Template says "needs Merchant or Innkeeper personality NPC" and "needs Urban location with Lodging property" and "needs lockable interior location", not concrete entity IDs (except tutorial).
+
+At instantiation, placement filter evaluates categorical requirements against game world entities, selects concrete matches (Elena NPC, Tavern location, Upper Floor location), binds strongly-typed entity references onto Scene instance. Scene stores NPC object, Location object, LocationLocation object as properties.
+
+At finalization for each situation, AI generation receives entity contexts: NPC object with all properties (personality, background, bond, relationship history), Location object with all properties (atmosphere, current time, weather, properties), service type (lodging/bathing/healing), situation position in arc (first/middle/last), prior situation outcomes.
+
+AI generates complete narrative for that situation: situation description, all choice action texts, success/failure narrative, transition narrative to next situation. Each situation gets contextually appropriate narrative based on where it sits in arc and what entities it involves.
 
 ### State Machine Orthogonality
 
-Entities have multiple independent state dimensions. Situations track both when actions are instantiated (Dormant versus Active) and where in the lifecycle the situation stands (Available versus Completed versus Failed). These dimensions are genuinely orthogonal - a situation can have instantiated actions yet already be completed (cleanup hasn't run yet) or be available but not instantiated (player hasn't entered that context).
+Scenes track multiple independent state dimensions:
 
-Conflating these dimensions creates confusion. The codebase originally had both dimensions using "Active" to mean different things, leading to developers debugging "is this situation active or active?" The solution is clear naming reflecting actual semantics, not trying to merge genuinely separate concerns.
+**Scene Lifecycle:** Provisional (not committed), Active (currently playing), Completed (fully resolved), Expired (time limit exceeded). Governs whether scene appears in world and accepts player interaction.
+
+**Situation Activation:** Dormant (not yet reached), Active (player at this beat). Governs whether situation instantiates actions. Many situations dormant waiting for spawn rules to activate them.
+
+**Situation Lifecycle:** Locked (requirements not met), Selectable (player can engage), InProgress (challenge executing), Completed (resolved successfully), Failed (attempt failed). Governs specific situation status independent of scene or activation state.
+
+**Progression Tracking:** Which situation is current, which situations completed, what spawn rules triggered, what items granted/consumed, what world state modifications applied. Scene-level arc state.
+
+These dimensions are genuinely orthogonal. A scene can be Active with current situation Completed waiting for spawn rule to trigger next situation which is still Dormant. Or situation can be Active (actions instantiated) but Locked (requirements not met yet) because player needs item from prior situation first.
+
+Conflating these creates confusion. Original codebase had collision between activation state and lifecycle state both using "Active". Clear naming prevents bugs.
 
 ---
 
 ## Domain Model Understanding
 
-### Scene-Situation-Choice Hierarchy
+### Scene as Multi-Situation Arc
 
-Scenes are containers for narrative arcs. A scene might represent "Elena needs help with missing supplies" or "Guard checkpoint confrontation" or "Negotiate warehouse access". Scenes own placement (which location, NPC, or route they appear at), progression rules (how situations within flow), and lifecycle state (provisional versus active versus completed).
+Scenes are self-contained narrative arcs with beginning, middle, end. Not single moments, but complete story beats spanning multiple player decisions and world state changes.
 
-Situations are player-facing decision points within scenes. A scene might have multiple situations that unlock sequentially or in parallel. Each situation presents 2-4 choices following the Sir Brante pattern - multiple valid approaches to the same narrative beat, not arbitrary option bloat.
+**Beginning:** Setup situation establishes premise. Innkeeper conversation, guard confrontation, merchant pitch. Player learns what scene offers and what it costs. Choice determines how arc progresses (challenge versus payment versus refusal).
 
-Choices are the mechanical templates defining player actions. Each choice specifies action type (instant resolution versus challenge start versus navigation), costs (resources consumed), requirements (stat thresholds, items needed), and rewards (consequences applied). Choices are embedded in situation templates as architectural definitions, not runtime entities.
+**Middle:** Execution situations deliver on promise. Access locked area, perform service, achieve goal. May involve navigation (move to location), time passage (wait for result), resource application (consume items/energy). Mechanical benefit applied here.
 
-At query time, choice templates instantiate into action entities - LocationActions, NPCActions, or PathCards depending on placement context. These actions are ephemeral, created when the player can see them and deleted after execution.
+**End:** Conclusion situation wraps up arc. Return to normal, cleanup temporary state, receive final consequences. Departure from room, leaving checkpoint, completing transaction. World restored to coherent state for next player visit.
 
-### Archetypes as Mechanical Patterns
+Situations within scene know their position. Template properties indicate: IsOpening (first situation), IsIntermediate (middle beats), IsConclusion (final situation). This affects narrative generation (opening introduces, conclusion wraps up) and mechanical behavior (openings may have requirements, conclusions may have cleanup).
 
-Archetypes are reusable interaction structures. "Negotiation with bypass" defines a pattern: challenge path (costs session resource, requires skill, grants relationship), payment path (costs coins, instant success, no relationship), fallback path (expensive, always available, reputation penalty). This pattern applies to securing lodging, gaining warehouse access, passing checkpoints, convincing guards, or extracting information.
+### Situation Sequencing via Spawn Rules
 
-The archetype specifies number of choices, their action types, cost formulas, requirement formulas, and reward templates. Archetype generation creates concrete choice templates using player state and tier scaling. Higher tiers demand more resources and higher stat thresholds. Player progression scales costs relative to maximum resources.
+Situations don't activate arbitrarily. SpawnRules on Scene template govern flow:
 
-Archetypes are mechanical abstractions. They say nothing about narrative - no NPC names, no location references, no dialogue. Pure interaction structure.
+**Linear Progression:** Situation A completes, spawn rule activates situation B. Situation B completes, spawn rule activates situation C. Strict sequence, no branching. Used for: service arcs (negotiate → access → use → depart), tutorial flows, time-bound sequences.
 
-### Placement Filters and Spawn Conditions
+**Conditional Branching:** Situation A completion spawns different situations based on outcome. Success spawns situation B, failure spawns situation C. Both valid continuations, different narrative tones. Used for: negotiation failures (success grants access, failure demands alternative), challenge outcomes (victory rewards, defeat consequences).
 
-Placement filters determine WHERE content can appear. Categorical properties define eligibility: NPC personality types (Merchant, Guard, Noble), location properties (Urban, Commercial, Dangerous), terrain types (Forest, Mountain), danger ratings. Filters say "this template works for any Merchant NPC at an Urban location" without naming specific entities.
+**Hub-and-Spoke:** Initial situation spawns multiple parallel situations, player chooses order, all must complete before finale. Used for: investigation scenes (gather clues at multiple locations), preparation sequences (acquire items from different sources), relationship building (multiple conversation topics).
 
-Spawn conditions determine WHEN content becomes eligible. Player state checks (completed prior scenes, choice history, minimum resources), world state checks (time of day, weather, current day), and entity relationship checks (NPC bond thresholds, location reputation). Conditions gate content behind progression, create temporal variety, and react to player decisions.
+**Recursive Spawning:** Situation completion can spawn additional situations within same scene dynamically. Investigation gathering evidence might spawn follow-up investigation based on what was found. Crisis situation might spawn escalation situations if player choices make things worse.
 
-Filters are evaluated at spawn time to resolve categorical descriptions to concrete placements. Conditions are evaluated before spawning to determine eligibility. Together they enable one template to manifest contextually across the game world.
+Spawn rules are DECLARATIVE DATA defining flow, not imperative code. Scene template lists transitions (source situation → destination situation, with conditions). Scene instance executes rules by checking completion, evaluating conditions, activating next situations. Domain entity owns state machine.
 
-### Template Mutability Contract
+### Item Lifecycle Within Scene Scope
 
-Templates are immutable after parsing. They define structure but never change. Hand-authored templates in JSON files specify concrete placements (tutorial lodging must be Elena) and exact mechanical values (costs exactly 15 coins). These templates are content.
+Scenes frequently grant temporary items enabling progression:
 
-Procedural templates define patterns with categorical filters and formula-driven costs. They reference archetypes, specify tier scaling, and declare placement eligibility. These templates are systems.
+**Grant Phase:** Early situation rewards player with item. Room key from innkeeper negotiation, permit from guard approval, token from merchant purchase. Item added to player inventory.
 
-Instances are mutable during gameplay. Scenes track which situation is current, situations track completion status, spawned entities accumulate in game world lists. Instance mutation reflects game state evolution, but never alters template definitions.
+**Consumption Phase:** Middle situation requires item to proceed. Accessing locked location consumes room key, presenting permit allows checkpoint passage, showing token enables service. Item checked against requirements, consumed if appropriate.
 
-### The Perfect Information Boundary
+**Removal Phase:** Final situation cleans up temporary item if still held. Departure removes room key even if player didn't use it yet (checkout process), expired permits removed, tokens reclaimed. Ensures items don't persist beyond scene scope inappropriately.
 
-Players see strategic information before commitment: costs, requirements, rewards types (bond increase, item gain), consequences (spawns scene at location). Players do NOT see tactical details until engagement: exact challenge cards, specific dialogue branches, precise narrative outcomes.
+Item lifecycle is scene-managed. Reward template grants item, requirement template checks for item, cleanup logic removes item. Same item potentially granted by different scenes (multiple inns grant room_key), but each scene instance manages its granted items independently.
 
-This boundary preserves strategic decision-making (informed choice between valid alternatives) while maintaining tactical uncertainty (execution requires skill/luck). The architecture enforces this through provisional scenes (show WHAT and WHERE spawns, not HOW it plays) and requirement display (show thresholds, not internal calculations).
+Items can also be permanent rewards. Completing investigation grants knowledge_fragment that persists forever. Scene distinguishes: temporary items (scene-scoped access tokens), permanent items (persistent rewards), consumable items (used once then depleted).
+
+### Resource Restoration Economics
+
+Service scenes typically cost resources early, provide benefits later:
+
+**Cost Phase:** Negotiation situation costs coins OR energy (challenge). Player spends resources upfront to access service.
+
+**Benefit Phase:** Service situation restores different resources. Lodging restores stamina and reduces sleep need. Healing restores health. Training increases stats. Benefit justified by earlier cost.
+
+**Economic Balance:** Total benefit must justify total cost across player progression. Early game lodging costs 15 coins and restores 30 stamina (good value for poor players). Late game lodging costs 60 coins and restores 80 stamina (good value for rich players maintaining same ratio). Formulas scale both cost and benefit by tier.
+
+Not all scenes have restoration. Investigation scenes cost resources (time, energy) but grant knowledge (information, items, narrative progression) without resource restoration. Service scenes specifically characterized by resource exchange pattern.
+
+### Location State Modification Patterns
+
+Scenes modify world state temporarily or permanently:
+
+**Temporary State Changes:** Location locks toggle for scene duration. Upper floor unlocked when player has key, re-locked when scene completes. NPC availability shifts (shopkeeper busy during your transaction). These revert after scene.
+
+**Permanent State Changes:** Location properties modified permanently. Completing investigation at location adds "Investigated" property preventing repeat. Causing scene failure might add "Hostile" property changing future interactions. These persist beyond scene.
+
+**Time Advancement:** Service situations advance world clock. Resting advances to morning. Long travels advance multiple time blocks. Training advances by days. Time affects all world state (NPC schedules, shop availability, random events, spawn eligibility for time-gated scenes).
+
+**State Restoration:** Cleanup situations ensure coherent world state. Can't leave location permanently unlocked (breaks future lodging scenes). Can't leave NPC in "transaction active" state. Can't leave time frozen. Scene completion restores or advances appropriately.
+
+Scenes don't modify structural entities (won't delete locations or NPCs), only modify state properties on those entities temporarily.
 
 ---
 
 ## Current State Analysis
 
-### Tutorial Content is Hand-Authored
+### Tutorial Scene Structure
 
-The existing tutorial scenes use concrete entity IDs for placement. The lodging scene explicitly targets Elena by ID, spawns at game start unconditionally, and has hardcoded costs (15 Focus, 15 coins). This is appropriate for tutorial content ensuring consistent new player experience, but does not scale.
+Tutorial "Secure Lodging" scene is hand-authored demonstrating complete arc pattern:
 
-The tutorial establishes mechanical vocabulary (challenge versus instant, Focus costs versus coin costs, bond as consequence) that procedural content must maintain. Players learn patterns through handcrafted examples then encounter those patterns contextually generated throughout the game.
+**Situation 1 - Negotiation (Opening):** Talk to Elena, choose challenge (costs Focus, grants bond) or payment (costs coins, no bond). Completion grants room_key item, activates situation 2.
 
-### Archetype Catalog Exists But Underutilized
+**Situation 2 - Access (Intermediate):** Navigate to upper floor location (now unlocked due to room_key). Completion consumes room_key (or stores for later), activates situation 3.
 
-The SituationArchetypeCatalog generates choice templates from archetype IDs, but only a handful of archetypes exist. The catalog is called at parse time correctly (never during gameplay), applies tier scaling formulas, and outputs strongly-typed choice templates. The infrastructure for procedural generation exists, just needs expansion.
+**Situation 3 - Rest (Intermediate):** Sleep for night. Costs time (advances to morning). Restores stamina/energy. Completion activates situation 4.
 
-Current archetypes focus on challenge structures (Mental versus Physical versus Social pathways) but lack interaction pattern variety. Need archetypes for transactions, information extraction, gatekeeping, favors, crises, discoveries, conflicts, bargains.
+**Situation 4 - Departure (Conclusion):** Leave room. Removes room_key if still held. Re-locks upper floor location. Scene complete.
 
-### Placement Filtering Partially Implemented
+This establishes pattern vocabulary: multi-situation flow, item lifecycle, resource restoration, state cleanup. Players learn "scenes are arcs not moments" through handcrafted example. Procedural scenes must maintain this structural pattern.
 
-PlacementFilter evaluates NPC personality types and location properties correctly. Route filtering for terrain types and danger ratings exists but is commented out with incorrect assumption that routes lack necessary properties (they actually have them via hex system integration).
+### Scene Archetype Catalog Minimal
 
-Placement resolution returns first match rather than selecting strategically. When five merchants match a filter, game always picks whichever appears first in the list. Need selection strategies (closest distance, highest bond, random weighted by interaction history, least recently used).
+Situation archetype catalog exists (generates individual situation choice structures) but no scene archetype catalog exists. No code generates complete multi-situation arcs from archetypes. Each scene currently hand-authored defining complete situation sequence.
 
-The distinction between tutorial concrete placement (this exact NPC) and procedural categorical placement (any NPC matching criteria) is architecturally supported but not fully exploited.
+Need scene archetype catalog that generates: situation sequences, spawn rules, item grant/consume/remove patterns, resource cost/benefit formulas, state modification logic, cleanup sequences. This is more complex than situation archetype generation (single choice structure versus complete arc orchestration).
 
-### AI Integration Points Undefined
+### Spawn Rule Execution Exists
 
-The codebase has narrative hint properties on templates (tone, theme, context) that would inform AI prompts, but nothing consumes these hints yet. The architecture anticipates AI but doesn't depend on it - templates currently have no narrative text at all, awaiting AI generation.
+Scene domain entity has SpawnRules property and situations have completion tracking, but Scene lacks methods to execute rules. SituationCompletionHandler checks rules and spawns next situations, but this is service responsibility not domain entity behavior.
 
-Entity reference binding happens at scene finalization, which would be the natural point to trigger AI generation. The system knows concrete context (which NPC entity, which location entity, which player choices previously made) at that moment. The missing piece is the bridge to AI generation with proper context bundling.
+Architecture expects Scene.AdvanceToNextSituation() method that queries own SpawnRules, finds transition for completed situation, activates next situation(s), updates CurrentSituationId, marks scene complete if no more situations. Domain entity should own state machine, not have lifecycle scattered across services.
 
-### Spawning Triggers Are Manual
+### Placement Filter Supports Locations
 
-Scenes spawn at initialization if marked IsStarter or when explicitly spawned by choice rewards. No automatic background spawning based on conditions. The SpawnConditions entity exists but nothing evaluates it continuously. Content remains reactive (spawned by player actions) rather than proactive (appearing when conditions met).
+PlacementFilter evaluates NPC and Location entities, but scenes also need LocationLocation references (for lockable areas). Filter can specify location properties (Lodging, Bathing, Healing) but doesn't specify location requirements (needs lockable interior room, needs private chamber, needs secluded area).
 
-The architecture for condition checking exists (player state queries, world state checks, entity relationship thresholds), just needs orchestration - who checks conditions, when, and how frequently.
+Scene instantiation currently hardcodes location selection (first matching location at location). Need location filtering (accessibility, privacy level, capacity) and selection strategies (prefer higher privacy if affordable, prefer closer to entrance if rushed).
+
+### Item System Exists But Scene Integration Unclear
+
+Player.Inventory exists, items can be granted/removed. Location.RequiredItems exists for locking mechanism. But scene-managed temporary items unclear. Does room_key persist in inventory forever, or removed by scene? Does scene track "I granted this key, I must clean it up"?
+
+Need scene-level item tracking: items granted by this scene instance, items consumed during progression, items to remove at completion. Scene owns lifecycle for items it introduces.
+
+### Time System Incomplete
+
+World has CurrentDay and CurrentTimeBlock, situations can advance time, but integration unclear. Does rest situation automatically advance to morning, or does player control when to wake? Does time advancement trigger morning-specific narrative in departure situation?
+
+Need robust time advancement integration: situations declare time cost (rest costs night, short activities cost segments, instant activities cost zero), situation completion applies time cost, world state updates, subsequent situations in arc see updated time context (morning versus evening affects narrative).
 
 ---
 
 ## Design Approach & Rationale
 
-### The Separation of Concerns
+### Scene Archetypes as Multi-Situation Patterns
 
-Game logic must own mechanics completely. Costs, requirements, rewards, systemic interactions, progression scaling, balance considerations - these are mathematical relationships governed by formulas, not creative decisions. The negotiation pattern costs 33% of maximum Focus because that creates resource tension without being prohibitive. The challenge requires stat threshold 3 at tier 2 because that aligns with expected player progression. These decisions require understanding the entire systemic web.
+Scene archetypes define complete narrative arc patterns with multiple situations in sequence:
 
-AI must own narrative exclusively. Personality expression, thematic coherence, dialogue naturality, atmospheric detail - these are creative judgments requiring language understanding and contextual appropriateness. Describing Amos as "eyeing you skeptically, arms crossed over his stained apron" captures merchant personality and establishes tone. This is language generation, not mechanical design.
+**Service with Location Access:** Four situations (negotiate, access, service, depart). Used for: lodging (rest), bathing (cleanliness), storage (item management), training (skill increase), healing (health restoration). Cost varies by service type, benefit varies by tier, but structure identical.
 
-The interface between them is entity context bundling. Game logic determines "this is a tier 2 negotiation at Market Square with merchant NPC Amos, player has prior positive interaction, situation involves restricted access". Game logic provides the actual NPC entity object with all its properties (personality, background, bond level, interaction history) and actual Location entity with all its properties (atmospheric description, current time, weather). AI receives these rich entity contexts and generates complete narrative text - situation descriptions and all choice action texts.
+**Transaction Sequence:** Three situations (browse inventory, negotiate price, complete transaction). Used for: shopping (buy items), selling (convert items to coins), trading (item exchanges). Complexity varies by merchant type and item rarity.
 
-### Why Archetypes Work
+**Investigation Arc:** Variable situations (gather evidence, analyze findings, confront suspect, resolve mystery). Hub-and-spoke pattern (gather from multiple sources) converging to linear conclusion. Used for: quest lines, mystery solving, knowledge acquisition.
 
-Interactions in narrative RPGs follow recognizable patterns. NPCs present obstacles (permissions, information, resources) that players overcome through skill demonstration, payment, or consequence acceptance. The specific narrative wrapper differs (convince guard, bribe merchant, threaten informant) but mechanical structure repeats.
+**Gatekeeper Sequence:** Two to four situations (initial confrontation, prove worthiness or bribe, pass checkpoint, optional consequences). Linear or branching based on player approach. Used for: guard posts, restricted areas, authority challenges.
 
-Archetypes capture these patterns explicitly. Rather than each scene being unique mechanical design, scenes reference proven patterns with tier-appropriate scaling. Content creators design patterns once, verify balance holistically, then apply contextually infinite times.
+**Crisis Response:** Three to five situations (crisis discovered, assess options, execute solution, handle aftermath, consequences). Time-sensitive, failure spawns escalation. Used for: emergencies, disasters, urgent requests.
 
-The archetype library becomes shared mechanical vocabulary. Designers learn "negotiation_with_bypass creates resource trade-offs" and apply it everywhere appropriate. No reinventing interaction structures per-scene, no mechanical balance drift, no systemic inconsistency.
+Each archetype specifies: situation count and types, spawn rules governing flow, item lifecycle patterns, resource economics (costs versus benefits), state modification logic (what world changes occur), cleanup requirements (what must be restored).
 
-Archetypes also enable player learning. Encountering "challenge or pay" pattern with Elena teaches pattern recognition. Finding same structure with Amos at higher stakes tests skill at familiar challenge. Pattern recurrence rewards mastery while narrative variety prevents repetition feeling.
+Archetypes are mechanical arc patterns devoid of narrative. Same archetype generates lodging at inn (rest), bathing at bathhouse (cleanliness), healing at temple (health) with identical situation flow but different service benefits and narrative context.
 
-### Categorical Filters Over Concrete IDs
+### Why Multi-Situation Arcs Work
 
-Hand-authoring "spawn this scene at Elena" doesn't scale. Hand-authoring "spawn this scene at any Merchant NPC at Urban location with bond 0-2" scales infinitely. The same template applies to dozens of potential NPCs across evolving world state.
+Players learn scene patterns through repetition with variation:
 
-Categorical thinking enables content multiplication. One template describing "merchant request" generates contextual instances for every matching merchant. Add new merchant to game world, they automatically become eligible for all matching templates. No per-NPC authoring required.
+**Pattern Recognition:** Encounter "service with access" at inn (lodging), recognize same structure at bathhouse (bathing), apply knowledge to new contexts. Structural familiarity speeds comprehension, narrative variety prevents repetition feeling stale.
 
-The approach also supports emergent appropriateness. A scene requiring "helpful personality" will naturally avoid spawning on "hostile personality" NPCs even without explicit exclusion rules. The positive filter implicitly creates negative space.
+**Strategic Planning:** Knowing lodging scene requires negotiation → access → rest → departure helps player plan resource expenditure. "I need 15 coins for negotiation and 6 hours for rest, do I have both?" Perfect information at arc level, not just situation level.
 
-Concrete IDs remain valid for tutorial and major story beats requiring specific characters. The architecture supports both - templates declare concrete IDs for authored content, categorical filters for procedural content. Same spawning system, different specificity levels.
+**Expectation Management:** Scene archetypes establish expectations. Service scenes restore resources (positive outcome). Investigation scenes grant knowledge (informational outcome). Crisis scenes create cascading consequences (potentially negative outcome). Genre conventions maintained by consistent archetype usage.
 
-### Formula-Driven Scaling
+**Mechanical Consistency:** All service scenes balanced similarly. Lodging costs X and restores Y, bathing costs X and restores different Y, healing costs X and restores third Y. Ratios consistent, benefits different, balance maintained. Archetypes enforce economic equilibrium across procedurally generated scenes.
 
-Costs must scale with player progression or content becomes trivial. A 15 Focus cost matters at character creation (player maximum 25) but is negligible mid-game (player maximum 80). Formula-driven scaling maintains intended resource pressure across progression.
+### Formula-Driven Arc Economics
 
-Formulas reference player state dynamically. Cost calculated as "maximum Focus multiplied by 0.33" means early game sees 8 Focus cost, mid-game sees 26 Focus cost, maintaining similar proportion of total resources. The mechanical pressure stays constant even as absolute values scale.
+Complete scene economics must balance across entire arc, not just per-situation:
 
-Tier system enables content targeting. Tier 0 tutorial content has trivial costs and minimal requirements. Tier 3 late-game content demands significant resources and high stat thresholds. Placing scenes at appropriate tiers ensures players encounter difficulty appropriate to current capabilities.
+**Total Cost Calculation:** Sum all costs across all situations. Negotiation costs 15 coins OR 20 Focus, access costs time segment, rest costs 6 time segments. Total: 15 coins + 7 time OR 20 Focus + 7 time.
 
-Formulas also enable player state adaptation. A scene checking "player has 50+ coins" might adjust offered payment cost to 60% of current coins rather than fixed value. Content responds to player wealth dynamically, preventing trivial purchases for rich players while remaining accessible to careful players.
+**Total Benefit Calculation:** Sum all benefits across all situations. Rest restores 40 stamina, removes sleep deprivation penalty, grants "well rested" temporary buff. Benefit must justify total cost.
 
-### AI Timing at Finalization
+**Tier Scaling:** Early game (tier 0-1) has cheaper services (15 coins, 40 stamina restored). Late game (tier 3-4) has expensive services (60 coins, 120 stamina restored). Both maintain ~2.5x stamina-per-coin ratio. Formulas scale costs and benefits proportionally.
 
-AI generation cannot occur at template creation (templates contain no narrative), at scene instantiation (no concrete entity context yet), or during provisional state (not committed). Must wait until finalization when player selects action spawning scene.
+**Opportunity Cost Consideration:** 7 time segments spent resting means 7 segments not spent traveling, investigating, or doing other activities. Must be worth the opportunity cost. Rest benefit must exceed "I could have earned coins elsewhere with this time" threshold.
 
-At finalization, the system has: concrete NPC entity object (with all properties), concrete Location entity object (with all properties), current player choice history, current time of day, current world state, all mechanical values resolved. This complete entity context enables appropriate narrative generation.
+Scene archetype generation calculates economics holistically: receives player state (maximum resources, earning rates, resource depletion rates), determines appropriate cost (challenging but achievable), determines equivalent benefit (justifies cost), distributes costs/benefits across situations appropriately (front-load costs, back-load benefits).
 
-Finalization is also the natural checkpoint. Player committed to action, scene will actually play, generation justified. Provisional scenes might get deleted without ever being played. Finalization ensures every generation serves actual gameplay.
+### Categorical Placement with Location Filtering
 
-The latency consideration is real - player selects action, system calls AI, waits for generation, then continues. This requires loading states or async generation strategies. The architectural placement at finalization is correct regardless - it's the moment when complete entity context is available.
+Scenes need THREE entity contexts, not just two:
 
-### Templates as Patterns Not Content
+**NPC Context:** Service provider with appropriate personality. Innkeeper for lodging, attendant for bathing, priest for healing, guard for checkpoints. Personality affects narrative tone and negotiation difficulty.
 
-Thinking "this is the lodging scene" or "this is the warehouse scene" creates specificity trap. Each scene becomes unique authored artifact requiring individual mechanical balance. The library grows linearly with content.
+**Location Context:** Appropriate location type with required properties. Inn for lodging (Lodging property), bathhouse for bathing (Bathing property), temple for healing (Healing property). Location atmosphere affects narrative setting.
 
-Thinking "this is negotiation pattern manifesting as lodging" or "negotiation pattern manifesting as warehouse" enables reuse. The pattern is content, specific manifestations are instantiations. Library grows in archetypes (15-20 patterns) not in scenes (hundreds of unique entities).
+**Location Context:** Specific lockable area player accesses. Upper floor room at inn, private bath chamber at bathhouse, healing sanctuary at temple. Location privacy level affects service quality (private rooms better than shared).
 
-This shift requires content creators to think pattern-first. Designing a scene starts with "which archetype fits this interaction?" rather than "what unique mechanics does this need?". Templates specify archetype ID and contextual parameters (tier, placement filters), trusting the archetype to provide mechanical soundness.
+Placement filter evaluates all three: "any Innkeeper NPC at any Urban location with Lodging property at any location with lockable Interior location with privacy level Medium+". Resolution finds concrete matches across three entity types simultaneously.
 
-Templates become thin wrappers over archetypes - spawn rules, placement logic, narrative hints. The weight lives in archetypes (mechanical patterns) and AI (narrative generation), not in per-scene unique design.
+Location filtering needs properties: accessibility (public/private/restricted), privacy (shared/semi-private/private), capacity (number of users), functionality (rest/storage/service). These enable selection strategies (prefer private if affordable, accept shared if cheap) and ensure mechanical appropriateness (can't rest in public square, can't store items in busy corridor).
+
+### AI Generation Per Situation Within Arc
+
+AI generates narrative SEPARATELY for each situation in scene, not for entire scene at once:
+
+**Situation 1 Generation:** AI receives: NPC context (Elena innkeeper, friendly personality, bond 0, new relationship), location context (tavern common room, evening, busy), situation position (opening of service arc), service type (lodging), player state (tired, low coins). Generates: situation description (Elena greets you), choice action texts (convince her vs pay upfront), success narratives (she hands you key), transition narrative (head upstairs).
+
+**Situation 2 Generation:** AI receives: Same NPC context (but now bond +1 if player chose challenge), location context (upper hallway, still evening), situation position (intermediate, after negotiation), item context (holding room_key), player state (same). Generates: situation description (hallway is quiet), choice action text (enter your room), transition narrative (you unlock door).
+
+**Situation 3 Generation:** AI receives: Same contexts, situation position (intermediate, service phase), location context (NOW MORNING because time advanced), player state (refreshed). Generates: situation description (morning light through window), choice action text (get out of bed), transition narrative (you gather belongings).
+
+**Situation 4 Generation:** AI receives: Same contexts, situation position (conclusion), location context (morning, common room). Generates: situation description (you return to common room), choice action text (leave room), conclusion narrative (Elena nods as you depart).
+
+Each situation generation independent, context-aware of position in arc, receives updated world state (time, location changes), produces narrative appropriate to that beat. Full scene narrative emerges from sequenced per-situation generations.
+
+### Template Cleanup Patterns
+
+Scene templates define cleanup requirements ensuring world state coherence after completion:
+
+**Item Cleanup:** List items granted by this scene that should be removed. Room keys removed (can't keep keys after checkout), permits removed (expired after use), tickets consumed (single use). Permanent items (rewards) not removed.
+
+**State Restoration:** List world states to restore. Upper floor location re-locked, NPC availability reset to normal, environmental states reverted. Ensures next player finds consistent world state.
+
+**Conditional Cleanup:** Some cleanup conditional on scene outcome. Successful negotiation increases NPC bond permanently (not cleaned up). Failed negotiation might add temporary negative state that expires. Success/failure determines what persists.
+
+**Time Validation:** Ensure time advanced sensibly. Can't complete rest scene without advancing time. Can't complete instant transaction while claiming hours passed. Validation catches inconsistent time handling.
+
+Scene archetype generation includes cleanup logic appropriate to archetype type. Service scenes clean up access items and re-lock locations. Investigation scenes don't clean up knowledge gained. Transaction scenes clean up negotiation state but not purchased items.
 
 ---
 
 ## Implementation Strategy
 
-### Phase 1: Archetype Library Expansion
+### Phase 1: Scene Archetype Catalog Creation
 
-The first effort must expand the archetype catalog from handful to comprehensive library. Identify recurring interaction patterns across RPG design: negotiations, transactions, gatekeepers, information exchanges, crises, discoveries, conflicts, bargains, favors, obligations, investigations, confrontations.
+Build new catalog generating complete multi-situation scene structures from archetype IDs:
 
-For each pattern, define mechanical structure: number of choices (2-4), action types (challenge/instant/navigate split), cost formulas (percentage of player resources by resource type), requirement formulas (stat thresholds by tier), reward templates (bond changes, item grants, scale shifts, scene spawns). The archetype is complete mechanical specification independent of narrative.
+**Service with Location Access Archetype:** Generates four SituationTemplates (negotiate with NPC, access locked location, perform service, depart and cleanup), each SituationTemplate has ChoiceTemplates appropriate to situation type (negotiate has challenge/payment/refuse, access has enter, service has use/leave-early, depart has automatic cleanup). Generates SpawnRules (negotiate-complete → access, access-complete → service, service-complete → depart). Generates item lifecycle (grant room_key, require room_key, remove room_key). Generates resource economics (cost formulas in negotiate, benefit formulas in service). Generates state modifications (unlock location, advance time, re-lock location).
 
-Test archetypes in isolation. Create hand-authored test scenes using each archetype at different tiers with different player states. Verify costs feel appropriate, requirements create meaningful gates, rewards justify effort. Balance archetypes as standalone mechanical patterns before deploying procedurally.
+**Transaction Sequence Archetype:** Generates three SituationTemplates (browse inventory, negotiate price, complete transaction). More complex than service (inventory browsing has many items, negotiation has haggling mechanics, transaction has multiple payment options). Generates conditional branching (browse-select-item → negotiate, negotiate-accept → transact, negotiate-refuse → browse-again).
 
-Document archetype semantics. Each archetype needs clear description of intended use case (when does negotiation_with_bypass fit versus pure_negotiation?), mechanical trade-offs (challenge path gains bond, payment path skips relationship), and narrative flexibility (what narrative contexts does this pattern support?).
+**Investigation Arc Archetype:** Generates variable situation count based on complexity parameter (3-7 situations). Hub-and-spoke pattern (initial situation spawns multiple investigation situations, all must complete before conclusion situation). Evidence gathering mechanics (each investigation grants evidence item, conclusion requires evidence threshold). More complex spawn rules (parallel situations with convergence).
 
-### Phase 2: Template Bifurcation
+Document archetype capabilities: what situations generated, what spawn patterns used, what economics applied, what states modified, what items managed. Each archetype is substantial implementation effort (50-200 lines of generation logic), not simple templates.
 
-Separate existing templates into tutorial content (concrete, hand-authored) and procedural templates (categorical, archetype-referenced). Tutorial templates keep concrete NPC IDs and exact costs for consistent onboarding. Procedural templates declare personality type filters and formula-driven costs for scalable content.
+Test archetypes in isolation with hand-authored test parameters. Verify generated situations make mechanical sense, spawn rules create logical flow, economics balance across tier ranges, state modifications don't break world consistency.
 
-Create procedural versions of tutorial patterns. The tutorial lodging scene with Elena becomes procedural template "merchant request pattern at tier 1" with placement filter for Merchant/Innkeeper personalities at Urban locations with bond 0-2. Same mechanical structure, applicable to dozens of NPCs.
+### Phase 2: Scene State Machine Implementation
 
-This bifurcation is content migration work, not architectural change. The spawning system already supports both concrete and categorical placement. Just need to author templates exploiting categorical filtering.
+Add domain methods to Scene entity for arc progression control:
 
-### Phase 3: Placement Resolution Enhancement
+**Scene.AdvanceToNextSituation(completedSituationId):** Queries SpawnRules, finds transitions from completed situation, gets destination situation template IDs, instantiates destination situations as runtime entities (add to GameWorld.Situations with scene ID reference), transitions those situations from nonexistent to Dormant state, updates CurrentSituationId to point to newly spawned situation(s), marks scene complete if no valid transitions exist.
 
-Expand placement filter evaluator to handle all categorical properties: NPC tags (currently commented out), location district/region properties (currently commented out), route terrain types (infrastructure exists via hex system, filtering commented out).
+**Scene.ExecuteCleanup():** Queries template CleanupPatterns, removes temporary items from player inventory, restores location lock states, reverts NPC availability, validates time advanced appropriately, marks scene as fully resolved.
 
-Implement selection strategies beyond first-match. When multiple entities match filter, select based on: spatial proximity (closest to player), relationship depth (highest bond), interaction recency (least recently encountered), weighted random (prevent predictability).
+**Scene.IsComplete():** Checks if CurrentSituationId points to conclusion situation and that situation is Completed, or if no valid spawn transitions remain. Boolean indicating arc finished.
 
-Strategy selection should be template-specified. Some scenes want closest match (urgent crisis), some want highest bond (trust-dependent requests), some want random (environmental variety). The archetype or template declares preferred strategy.
+These methods encapsulate scene lifecycle. SituationCompletionHandler calls Scene.AdvanceToNextSituation() after situation resolves. GameFacade calls Scene.ExecuteCleanup() when scene marked complete. Domain entity owns state machine, services orchestrate calls.
 
-### Phase 4: Condition Evaluation Orchestration
+### Phase 3: Location Filtering and Integration
 
-Build SpawnConditionsEvaluator that checks player state (completed scenes, choice history, resource thresholds, stat levels), world state (time of day, weather, current day range), and entity state (NPC bonds, location reputation). This service was designed in prior work, needs implementation.
+Extend placement filtering to handle LocationLocation entities:
 
-Determine evaluation timing. Conditions could be checked: on time advancement (scene becomes eligible at evening), on location entry (scene appears when player arrives), on NPC interaction (scene spawns when talking to character), on completion of other scenes (cascade spawning). Multiple triggers likely needed.
+**Location Properties:** Add properties to LocationLocation entity (Accessibility enum, Privacy enum, Capacity int, Functionality enum). These enable filtering (need private lockable interior location for lodging, need public accessible exterior location for market stall).
 
-Create spawn queue system for scenes that become eligible but haven't spawned yet. When condition evaluation finds "this scene is now eligible", don't spawn immediately (could be middle of different scene), queue for appropriate moment (next scene query at that placement).
+**Placement Filter Location Requirements:** Add LocationRequirements to PlacementFilter (functionality required, minimum privacy, accessibility constraints). Scene templates declare location needs alongside NPC and location requirements.
 
-### Phase 5: AI Integration Points
+**Three-Entity Resolution:** PlacementFilterEvaluator resolves NPC + Location + Location simultaneously. Find NPCs matching personality, filter locations where NPC present with required properties, filter locations at those locations matching location requirements. Return triple (NPC, Location, Location) or null if no match.
 
-Define context bundling structure. When scene finalizes, collect: NPC entity object (all properties: name, personality, background, bond level, interaction history), Location entity object (all properties: name, atmospheric description, time of day, weather), situation archetype (pattern type, tier, mechanical structure), player entity (prior choices with this NPC, current needs, character background).
+**Location Selection Strategies:** When multiple locations match, apply template preference (prefer highest privacy if service scene, prefer closest to entrance if time-sensitive, random if no preference). Store selected location reference on Scene instance.
 
-Create AI generation trigger at finalization. Before scene transitions from provisional to active, call generation service with entity context bundle. Service returns: situation description text, choice action text for each choice, any additional flavor text. These are pure narrative strings generated entirely by AI from entity properties.
+Location integration enables location-based service scenes (can't have lodging without lockable room, can't have storage without secure vault, can't have private training without isolated space).
 
-Implement fallback strategy. If AI generation fails (timeout, service unavailable, rate limit), have reasonable defaults. AI generation is enhancement, not dependency.
+### Phase 4: Item Lifecycle Management
 
-### Phase 6: Content Creation Workflow
+Implement scene-scoped item tracking:
 
-Document template creation process for content designers. Start with archetype selection (which pattern fits intended interaction?), specify tier (how difficult should this be?), define placement filters (which NPCs/locations qualify?), set spawn conditions (when should this appear?), provide narrative hints (tone, theme, context for AI generation).
+**Scene Item Tracking:** Add GrantedItemIds list to Scene instance tracking which items this scene gave player. When situation grants item (via reward), also add to scene's tracking list. When scene completes, cleanup logic iterates tracking list and removes any still in player inventory.
 
-Create validation tools. Parser should verify: archetype ID exists, placement filter properties are valid enums, spawn conditions reference valid player state properties, tier is reasonable for archetype, narrative hints are present if AI generation expected.
+**Situation Item Requirements:** Expand requirement system to check player inventory for specific items. Access situation requires room_key (granted by prior negotiation situation). If player lacks key, situation locked even if previous situation completed (player discarded key somehow).
 
-Build content testing framework. Spawn template procedurally in test environment with different NPC types, different locations, different player states. Verify placement resolution finds appropriate entities, spawn conditions trigger at right moments, costs scale appropriately by tier, narrative hints produce reasonable AI context bundles.
+**Conditional Item Removal:** Some items removed only under conditions. If player uses key to access room, consumed immediately. If player never accessed room (departed without using service), key removed at cleanup. Flexible item lifecycle patterns.
+
+**Permanent vs Temporary Items:** Item definitions specify whether scene-managed (temporary access token) or permanent (reward). Scene cleanup only removes scene-managed items, never touches permanent rewards.
+
+This prevents item pollution (temporary tokens persisting inappropriately) and enables complex item-gated progressions within scenes.
+
+### Phase 5: Time Integration and Advancement
+
+Robustly integrate time system with situation completion:
+
+**Situation Time Costs:** Expand SituationTemplate with TimeCost property (segments, hours, days). Rest situation costs 6-8 hours (advances to morning), travel situation costs 2-4 segments (advances time block), instant situation costs 0 time (same moment).
+
+**Automatic Time Advancement:** When situation completes, apply time cost automatically. GameWorld.CurrentDay and CurrentTimeBlock updated. Subsequent situations in arc see updated time (morning instead of evening, next day instead of same day).
+
+**Time-Dependent Narrative:** AI generation receives CurrentTimeBlock as part of location context. Morning generates "morning light" narrative, evening generates "dim tavern" narrative. Same location different atmosphere based on time.
+
+**Time Validation:** Scene completion validates time advanced logically. Rest scene must advance time. Transaction scene should not advance much time. Catches situations incorrectly claiming/not claiming time passage.
+
+Time becomes integral to scene flow, not external system. Scenes orchestrate time passage as part of arc progression.
+
+### Phase 6: AI Integration Per Situation
+
+Build generation system calling AI separately for each situation in active scene:
+
+**Context Bundling Per Situation:** When situation activates (transitions Dormant → Active), collect: NPC entity object (all properties), Location entity object (all properties including CURRENT time), Location entity object (properties), situation position indicator (opening/intermediate/conclusion), service type or scene theme, player state (current resources, prior choices in this scene), items held relevant to this situation. Package as typed context object.
+
+**Situation-Specific Generation Call:** Invoke AI with context bundle and situation template narrative hints. AI returns: situation description text, choice action texts (one per ChoiceTemplate in this situation), success/failure narrative variants, transition narrative to next situation.
+
+**Direct Storage:** Store generated texts directly on Situation entity properties (Description, per-choice ActionText, outcome narratives). No separate storage, no placeholder replacement (no placeholders exist). Situation now has complete narrative for this beat.
+
+**Sequential Generation:** Each situation generates when activated, not all at scene start. Situation 2 generates only after situation 1 completes (context includes situation 1 outcome). Situation 3 generates after situation 2 (context includes morning time because rest advanced time). Emergent coherent narrative from sequential context-aware generation.
+
+**Fallback Handling:** If AI generation fails for a situation, situation activates with template-default generic text or previous working generation. Scene continues playable, just less narrative richness. AI enhancement, not dependency.
+
+This generates contextually rich narrative for each beat while maintaining mechanical coherence across entire arc.
 
 ---
 
 ## Critical Constraints
 
-### Catalogue Parse-Time Restriction
+### Scene Archetype Complexity
 
-Under no circumstances can runtime code import or call catalogues. Situation archetype catalog generates choice templates during JSON parsing exclusively. After parse phase completes, the archetype ID becomes metadata annotation for content tools, completely ignored by game logic.
+Scene archetypes are substantially more complex than situation archetypes. Situation archetype generates 2-4 ChoiceTemplates (single decision point). Scene archetype generates 3-7 SituationTemplates each with 2-4 ChoiceTemplates plus SpawnRules plus item lifecycle plus economics (complete multi-situation arc).
 
-This constraint ensures fail-fast behavior. If archetype generation produces invalid mechanical values (negative costs, impossible requirements), the game crashes at load with clear error. Runtime bugs from bad archetypes are impossible because runtime never executes archetype logic. Testing catches all archetype issues immediately.
+Expect scene archetype generation methods to be 100-300 lines implementing complete pattern logic. This is significant engineering effort. Start with simplest archetypes (linear service scenes), validate thoroughly, then tackle complex patterns (branching investigations, recursive crises).
 
-The constraint also enforces clear architectural boundaries. Parsers live in content loading namespace and import catalogues. Services, facades, and domain entities live in game logic namespaces and never see catalogue types. Type system enforces the boundary.
+Scene archetypes are reusable mechanical art. Once "service with location access" archetype exists, applies to lodging/bathing/healing/storage/training contextually. Effort justified by infinite reuse.
 
-### Strong Typing Throughout
+### HIGHLANDER for Scene Arcs
 
-The codebase prohibits weak types across the board: no Dictionary with string keys and object values, no var keyword (explicit types required), no object parameter types, no HashSet collections, no lambda expressions beyond simple projections, no func delegates.
+All situations within scene exist in GameWorld.Situations flat list, not nested in Scene property. Scene stores situation ID references. Situation stores Scene reference for parent queries. No duplication.
 
-For procedural generation, this means spawn conditions are strongly-typed nested records with explicit enum properties, not string dictionaries. Placement filters have typed lists of personality enums and location property enums, not string arrays requiring runtime parsing. Cost templates have decimal properties for specific resource types, not generic "cost" dictionaries.
+SpawnRules reference situation TEMPLATE IDs (from template), not situation instance IDs (runtime). Runtime spawn logic looks up template by ID, instantiates NEW situation from template, adds to GameWorld.Situations. Template IDs stable, instance IDs unique per spawn.
 
-Strong typing catches errors at compile time. Misspelling a personality type, referencing invalid stat, using wrong resource for cost - all compiler errors, none runtime bugs. IDE autocomplete guides correct usage. Refactoring changes propagate safely via compiler enforcement.
-
-The constraint also improves debugging. Watch windows show typed objects with meaningful property names. Stack traces reference concrete types. No "object at index 2 of Dictionary entry 'conditions' is somehow null" - just clear typed property access.
+Item tracking lives on Scene (this scene granted these items), not duplicated on Player (player has items, doesn't know source). Scene cleanup queries own tracking list, removes those items from player inventory. Scene owns lifecycle for items it introduced.
 
 ### Template Immutability
 
-Templates loaded from JSON never change after parse phase completes. Properties are init-only. Collections are initialized once and never modified. Template references passed throughout codebase can trust template stability.
+Scene templates never modify after parsing. SpawnRules list, SituationTemplates list, CleanupPatterns all immutable. Scene instances mutable (progression state, completion tracking) but never modify templates.
 
-This immutability enables safe reference sharing. Template references can be stored anywhere without defensive copying. Multiple threads can query same template simultaneously without synchronization. Template lookup is thread-safe inherently.
+This enables safe reuse. One "Secure Lodging" scene template generates hundreds of lodging scene instances at different inns with different NPCs. All reference same template structure, each has unique runtime state.
 
-Immutability also makes debugging deterministic. Template-driven behavior depends only on template content, not runtime state mutations. Bugs reproduce consistently. No "template was modified somewhere upstream causing downstream corruption".
+### AI Boundary - Entity Context Not Mechanics
 
-Instances are mutable by necessity (game state evolves), but never modify templates they reference. Instance state lives in instance properties exclusively. Querying template for structural information never causes side effects.
+AI receives: NPC entity object (personality, background, bond, history), Location entity object (atmosphere, time, properties), Location entity object (privacy, accessibility), situation position in arc (opening/middle/conclusion), service type or theme. Full entity contexts with rich properties.
 
-### HIGHLANDER Enforcement
+AI does NOT receive: cost formulas, requirement thresholds, spawn rules, mechanical balance ratios, resource restoration amounts. These are game logic concerns. AI generates narrative describing WHAT happens, not determining COSTS.
 
-Every concept exists in exactly one authoritative location. Situations live in GameWorld flat list, scenes store situation IDs. Placement information lives on scene, situations query parent for context. Status and state are orthogonal enums on situation, not derived from combined state.
-
-Procedural generation must respect this ruthlessly. When archetype generates choice templates, they're stored embedded in situation template, not separately registered. When placement resolution selects NPC, scene stores NPC ID and NPC object reference, not duplicating information. When spawn conditions evaluate player state, they query Player entity properties, not cached snapshot.
-
-Duplication introduces desynchronization risk. If both scene and situation store placement, one can be updated without the other. If both template and instance store mechanical values, formula changes break deployed instances. HIGHLANDER prevents these failure modes architecturally.
-
-The principle extends to generated content. AI-generated narrative text is stored directly in instance properties after generation, not maintained separately with instance holding reference. Bond changes from rewards modify Player entity directly, not accumulated in scene completion record. One source, always.
-
-### AI Boundary Clarity
-
-AI receives entity context (NPC entity object, Location entity object, player relationship history) but never mechanical values (costs, requirements, rewards, formulas). AI prompts describe entity properties (NPC personality and background, location atmosphere, player standing) but omit game systems entirely.
-
-AI returns pure narrative text: situation descriptions, choice action texts, flavor descriptions. No mechanical decisions. AI doesn't determine "this should cost 20 Focus" or "this requires Social skill 3" or "this grants +2 bond". Those decisions live in archetype definitions and tier scaling formulas.
-
-This boundary protects game balance. AI cannot accidentally create unbalanced content by inventing costs. AI cannot break progression by inventing requirements. AI cannot disrupt economy by inventing rewards. Mechanical design remains fully under developer control.
-
-The boundary also improves AI generation quality. Language models excel at creative text generation from rich context. Constraining AI to narrative domain plays to strength. Providing full entity objects with all properties gives AI maximum context for appropriate generation.
+AI returns: pure narrative strings (situation descriptions, choice texts, outcome narratives). No mechanical decisions. Generated text stored directly on Situation properties, no transformation needed.
 
 ### Entity References Are Strongly Typed
 
-When scene instantiation resolves placement, it stores both NPC ID (string) and NPC entity object reference (typed) on the scene. These are NOT duplicates violating HIGHLANDER - they serve different purposes. The ID enables serialization, the object reference enables runtime navigation and property access.
+Scene stores NPC entity object reference (for AI context), Location entity object reference (for AI context), LocationLocation entity object reference (for access control), PLUS corresponding IDs for each (for serialization).
 
-The object reference is the primary runtime mechanism. AI generation receives entity objects, not IDs. Situation queries scene for entity context, gets typed objects. This provides rich property access (NPC personality, background, bond level, interaction history) without repeated dictionary lookups.
+Object references are primary runtime mechanism. AI generation, requirement evaluation, spawn logic all use typed objects with full property access. IDs only for save/load.
 
-The ID enables persistence. When saving game state, object references cannot serialize. IDs serialize cleanly. On load, IDs rehydrate to object references by querying GameWorld collections. Parse-time link, runtime object usage.
-
-This dual storage is acceptable HIGHLANDER exception because: (1) ID and object represent same concept (not duplicated information), (2) ID is persistence mechanism only (never used for game logic), (3) object is game logic mechanism only (never used for serialization), (4) both populated once at instantiation (no ongoing synchronization).
+This dual storage (ID + object) acceptable because: same concept, different purposes, both populated once at instantiation, no ongoing synchronization risk.
 
 ---
 
 ## Key Files & Their Roles
 
-### SituationArchetypeCatalog
+### SceneArchetypeCatalog (NEW)
 
-This catalogue translates archetype IDs into concrete choice templates. Called exclusively during parse phase when situation templates reference archetype IDs. Receives archetype identifier, tier level, player progression benchmarks (maximum resources, expected stat ranges), and NPC/location context properties.
+Generates complete multi-situation scene structures from archetype IDs. Called exclusively during parse phase.
 
-Applies formula logic to generate appropriate costs (percentage of player resources), requirements (stat thresholds by tier), and rewards (bond changes, item selections, scene spawn rules). Returns list of choice templates following Sir Brante pattern (2-4 choices, never more).
+Methods include: GenerateServiceWithLocationAccess (produces 4-situation service arc), GenerateTransactionSequence (produces 3-situation shopping arc), GenerateInvestigationArc (produces variable-length investigation flow), each returning complete SceneTemplate with embedded SituationTemplates and SpawnRules.
 
-The catalogue is mechanical pattern library. Each archetype method encodes interaction structure: negotiation with bypass generates challenge/payment/fallback trilogy, pure negotiation generates challenge/alternative challenge pair, transaction generates buy/sell/walk away options.
+This catalog is complex. Each archetype generation method orchestrates: situation count/types, choice structures per situation, spawn rule definitions, item grant/consume/remove patterns, cost/benefit formulas across arc, state modification logic, cleanup requirements. Substantial engineering effort per archetype, unlimited reuse after implementation.
 
-This file grows as archetype library expands. Each new interaction pattern added here becomes available to all templates via archetype ID reference. Shared mechanical vocabulary lives here exclusively.
+### SceneTemplate
 
-### SceneTemplate and SituationTemplate
+Immutable scene structure containing: embedded List<SituationTemplate> (all situations in arc), SpawnRules (transitions between situations), PlacementFilter (what NPC/Location/Location required), SpawnConditions (when eligible), CleanupPatterns (what to restore), economic metadata (cost/benefit tier scaling), narrative hints per situation (for AI generation).
 
-Templates define scene structure and situation patterns. Scene templates declare placement filters (which entity types qualify), spawn conditions (when content becomes eligible), situation flow rules (linear progression, hub-and-spoke branching), and metadata for AI generation hints.
+Templates contain NO narrative text. Pure structure and mechanics. AI generates narrative per-situation from entity contexts.
 
-Situation templates embedded within scenes specify archetype ID, tier level, narrative hints (tone, theme, context), and any override parameters (if specific costs needed rather than formula defaults). Templates compose archetypes with contextual parameters.
+Hand-authored for tutorial (concrete entity IDs, exact costs). Generated procedurally post-tutorial (categorical filters, formula-driven costs). Always immutable after parsing.
 
-These entities are immutable content definitions. Hand-authored for tutorial, procedurally defined post-tutorial, but always immutable after parse. Templates are read frequently (every spawn check, every placement resolution) but never modified.
+### Scene Entity
 
-Templates contain zero narrative text. They define entity type requirements (needs NPC, needs Location), mechanical structure (archetype ID, tier), and AI generation hints (tone, theme), but no actual narrative strings.
+Runtime scene instance tracking: CurrentSituationId (progression through arc), List<string> SituationIds (references to GameWorld.Situations), GrantedItemIds (item lifecycle tracking), PlacedNPC/PlacedLocation/PlacedLocation (strongly-typed entity references AND IDs), State (Provisional/Active/Completed), Template (reference to SceneTemplate).
 
-As procedural generation expands, these files see more categorical properties (personality type lists, location property filters) and fewer concrete IDs (specific NPC names, exact locations). The shift from authored content to pattern definition.
+Owns state machine methods: AdvanceToNextSituation (progression control), ExecuteCleanup (restoration logic), IsComplete (completion detection). Domain entity owns lifecycle, not scattered across services.
+
+### Situation Entity
+
+Runtime situation instance within scene: Template reference (for lazy action instantiation), ParentScene reference (for context queries), InstantiationState (Deferred/Instantiated), LifecycleStatus (Locked/Selectable/InProgress/Completed/Failed), GeneratedDescription (AI-produced narrative text stored directly), per-choice ActionTexts (AI-generated strings for each choice).
+
+Situations know position in arc via template properties. Opening situations introduce, conclusion situations wrap up. Position affects narrative generation and mechanical behavior.
+
+### SituationTemplate
+
+Embedded in SceneTemplate, not separate top-level entity. Defines single situation: List<ChoiceTemplate> (player options at this beat), TimeCost (how much time this beat consumes), ItemGrants/ItemRequirements (lifecycle participation), NarrativeHints (for AI generation specific to this beat), PositionIndicator (opening/intermediate/conclusion).
+
+Contains NO narrative text. AI generates all narrative from entity contexts and hints.
+
+### SpawnRules
+
+List of situation transitions defining scene flow. Each transition specifies: SourceSituationTemplateId (which template), DestinationSituationTemplateId (which template spawns), Condition (success/failure/always), RequirementOffsets (if applicable). Scene instance executes these rules to advance progression.
+
+Linear scenes have simple rules (A→B→C→D). Branching scenes have conditional rules (A→B if success, A→C if failure). Hub-and-spoke scenes have parallel rules (A→[B,C,D], [B,C,D]→E when all complete).
 
 ### PlacementFilterEvaluator
 
-Service that matches categorical placement filters to concrete entities. Receives filter specification (personality types, location properties, terrain types, bond ranges, stat thresholds) and returns eligible entities from game world.
+Expanded to handle three-entity resolution: NPC + Location + Location.
 
-Queries NPC list for personality matches, location list for property matches, route list for terrain and danger matches. Applies all filter criteria as AND logic (must satisfy every condition) unless filter specifies OR logic for specific criteria.
+Receives PlacementFilter with NPC requirements (personality types), Location requirements (properties), Location requirements (functionality, privacy, accessibility). Queries GameWorld for matching NPCs, filters by locations where NPC present with properties, filters by locations at those locations with requirements.
 
-Implements selection strategies. When multiple entities match, applies template-specified strategy: closest distance (spatial proximity), highest bond (relationship depth), least recent interaction (variety), weighted random (unpredictability). Returns single selected entity or ordered list if template needs multiple placements.
-
-This service enables template reusability. One template declaring "Merchant at Urban location" applies to dozens of potential NPCs rather than requiring per-NPC templates. Content multiplication through categorical matching.
-
-### SpawnConditionsEvaluator
-
-Service that checks whether scenes are eligible to spawn based on world/player/entity state. Receives spawn conditions specification (player state requirements, world state requirements, entity relationship requirements) and returns boolean eligibility.
-
-Queries Player entity for completed scene list, choice history, resource levels, stat values. Queries GameWorld for current time block, weather, day number. Queries specific entities for bond levels, reputation values, property states.
-
-Called at multiple trigger points: time advancement (check if new scenes eligible), location entry (check location-specific scenes), NPC interaction (check NPC-specific scenes), scene completion (check cascade spawning).
-
-This service enables conditional content. Scenes appear when circumstances warrant rather than spawning unconditionally. Dynamic narrative emergence from state-driven eligibility.
+Returns triple (NPC, Location, Location) or null. Applies selection strategies if multiple matches (prefer highest bond NPC, prefer highest privacy location, prefer closest location).
 
 ### SceneInstantiator
 
-Factory service that creates scene and situation instances from templates. Resolves placement (categorical filter to concrete entity), instantiates situations in dormant state, sets up spawn rules for situation flow, creates lifecycle tracking records.
+Factory creating scene instances from templates. Resolves placement (categorical filter → concrete NPC/Location/Location triple). Instantiates all situations in scene simultaneously as Dormant entities in GameWorld.Situations. Binds entity references (NPC object, Location object, Location object) onto Scene. Marks first situation as current.
 
-For provisional scenes, creates lightweight metadata (template reference, placement ID, situation count estimate) without instantiating full situation objects. For finalized scenes, instantiates complete situation tree.
+At finalization (if scene provisional), doesn't instantiate situations yet (already done). Just transitions scene Provisional→Active. Situations activate individually as player progresses, not all at finalization.
 
-At finalization, binds concrete entity references. Scene stores NPC object reference (for AI context), Location object reference (for AI context), and corresponding IDs (for serialization). These strongly-typed entity references enable AI generation with full property access.
+### AI Generation Service (FUTURE)
 
-Triggers AI generation at finalization if template specifies narrative hints. Bundles entity contexts (NPC object, Location object, player state) into generation request. Receives generated narrative text and stores directly in situation instance properties.
+Context bundling per situation: collect NPC/Location/Location entity objects, situation position indicator, service type, player state, items held. Package as typed context.
 
-This service is boundary between templates (immutable patterns) and instances (mutable gameplay entities). Understands both domains and translates appropriately.
+Generation call per situation activation: AI receives context and narrative hints, returns situation description + all choice action texts + outcome narratives. Store directly on Situation properties.
 
-### Scene and Situation Domain Entities
-
-Runtime representations of spawned content. Scenes track current situation progression, completion state (provisional/active/completed), placement resolution (which specific NPC/location/route), spawn rule execution state.
-
-Scenes store strongly-typed entity references: NPC object (if NPC placement), Location object (if location placement), Route object (if route placement). These enable rich property access for AI generation and game logic without repeated lookups.
-
-Situations track activation state (dormant/active for action instantiation), completion status (available/completed/failed for lifecycle), template reference (for choice instantiation), parent scene reference (for context queries), and generated narrative text (AI-produced strings).
-
-These entities should own their state machine behavior. Scene determines when situations advance, when scene completes, what happens on expiration. Situation determines activation timing, completion detection, requirement satisfaction checking. Domain logic lives in domain entities, not spread across services.
-
-Generated narrative text lives directly on Situation entity after AI generation completes. Situation.Description stores AI-generated situation narrative. No separate storage, no reference indirection. Direct property assignment after generation.
-
-### ChoiceTemplate (Embedded Structure)
-
-Not standalone entity, but embedded structure within situation templates. Defines individual player action: action type (instant/challenge/navigate), cost template (resource amounts by type), requirement formula (stat thresholds, item needs), reward template (consequences on success), failure template (consequences on failure).
-
-Choice templates contain zero narrative text. They are pure mechanical specification. When instantiated into actions at query time, those actions also initially have no narrative text - they await AI generation at finalization to populate action text.
-
-Choice templates are what archetype catalog generates. Archetypes output these embedded structures containing mechanical specifications. Templates store them within situations, not as separate entities.
-
-At query time, SceneFacade instantiates choice templates into LocationAction/NPCAction/PathCard entities (depending on placement). Those action entities reference choice template for mechanical data but are distinct runtime entities with ephemeral lifecycle.
-
-This embedded structure captures complete mechanical specification for one player option. All costs, requirements, and consequences defined here. Services execute choice by querying these specifications.
-
-### AI Generation Integration Points (Future)
-
-Not currently existing files but architectural hooks designed for future implementation. Would include context bundling service (collecting NPC/Location/Player entity objects into generation-ready structure), AI prompt construction (converting entity properties to appropriate prompt format including narrative hints), generation result parser (extracting narrative text from AI responses), and error handling (fallback when generation fails).
-
-These integration points trigger at scene finalization. Context bundling provides actual entity objects with full property access (NPC.Personality, NPC.Background, NPC.BondLevel, Location.AtmosphericDescription, Location.CurrentTime). Prompt construction uses narrative hints from template. Parser extracts generated situation description and choice action texts. All text stored directly in Situation properties.
-
-The architecture anticipates these services through narrative hint properties on templates and entity reference binding at instantiation. System functions without AI currently (templates have no narrative), but structural preparation enables future AI integration without architectural changes.
+Sequential generation: Situation 2 generates with updated context (situation 1 outcome, possibly advanced time). Situation 3 generates with further updates. Emergent coherent narrative from context-aware sequential generation.
 
 ---
 
-This architecture preserves hand-crafted quality through mechanical rigor while achieving procedural scale through template reusability. Game logic owns balance and progression completely. AI owns narrative texture exclusively. Templates contain no narrative text - just structural requirements and mechanical patterns. All narrative comes from AI generation informed by rich entity context. The boundary between mechanical and narrative domains remains absolute.
+This architecture supports procedural generation of complete multi-situation narrative arcs while maintaining mechanical coherence and economic balance. Scene archetypes define reusable arc patterns. AI provides contextual narrative for each beat. Game logic orchestrates progression through situations with state modification, item lifecycle, and time advancement. Templates contain pure structure, instances track runtime state, entities own their lifecycle behavior.
