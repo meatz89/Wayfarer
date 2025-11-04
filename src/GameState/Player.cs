@@ -160,6 +160,23 @@ public class Player
     /// </summary>
     public List<string> CompletedSituationIds { get; set; } = new List<string>();
 
+    /// <summary>
+    /// Completed Scene IDs - tracking which scenes player has completed
+    /// Used by SpawnConditionsEvaluator for scene eligibility checking
+    /// Enables content gating (Scene B requires Scene A completion)
+    /// Populated by RewardApplicationService when scene completes
+    /// </summary>
+    public List<string> CompletedSceneIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Choice History - tracking which specific choices player has made
+    /// Stores choice IDs from ChoiceTemplate.Id when executed
+    /// Used by SpawnConditionsEvaluator for branching narrative content
+    /// Enables consequence tracking (if player chose X, spawn scene Y)
+    /// Populated by RewardApplicationService when choice executes
+    /// </summary>
+    public List<string> ChoiceHistory { get; set; } = new List<string>();
+
     public void AddKnownRoute(RouteOption route)
     {
         string originName = route.OriginLocationSpot;

@@ -885,6 +885,136 @@ All parsers MUST:
 3. Validate ID references exist in GameWorld (throw if not found)
 4. Validate nested objects properly structured (throw if malformed)
 
+### SITUATION ARCHETYPE SYSTEM
+
+**What Archetypes Are:**
+
+Archetypes are reusable mechanical patterns that define interaction structure. They specify:
+- Number of choices (always 2-4, following Sir Brante pattern)
+- Action types (Challenge vs Instant Resolution)
+- Cost formulas (percentage of player resources, scaled by tier)
+- Requirement formulas (stat thresholds, scaled by tier)
+- Reward templates (bond changes, scene spawns, scale shifts)
+
+Archetypes contain ZERO narrative content. They are pure mechanical patterns. AI generates all narrative text (situation descriptions, choice action text) from entity context at finalization time.
+
+**The 5 Core Archetypes:**
+
+1. **Confrontation** (Authority/Dominance)
+   - **Use Case:** Facing gatekeepers, guards, obstacles requiring assertion
+   - **Mechanical Pattern:** Authority stat check OR 15 coins OR Physical challenge OR fallback
+   - **Trade-Offs:** Stat path builds authority relationship, coin path avoids relationship, challenge path risks resources, fallback expensive but guaranteed
+   - **Narrative Flexibility:** Checkpoint passages, guard confrontations, territorial disputes, dominance challenges
+
+2. **Negotiation** (Diplomacy/Trade)
+   - **Use Case:** Merchants, pragmatic NPCs, transactional exchanges requiring persuasion
+   - **Mechanical Pattern:** Diplomacy/Rapport stat check OR 15 coins OR Mental challenge OR fallback
+   - **Trade-Offs:** Stat path builds social bonds, coin path is instant but no relationship, challenge path tests mental acuity, fallback expensive
+   - **Narrative Flexibility:** Price disputes, access requests, favor negotiations, pragmatic deals, warehouse access, lodging arrangements
+
+3. **Investigation** (Insight/Discovery)
+   - **Use Case:** Information gathering, puzzle solving, discovering hidden truths
+   - **Mechanical Pattern:** Insight/Cunning stat check OR 10 coins (bribe) OR Mental challenge OR fallback
+   - **Trade-Offs:** Stat path demonstrates detective skill, coin path shortcuts investigation, challenge path deep analysis, fallback slower but certain
+   - **Narrative Flexibility:** Crime investigation, secret discovery, uncovering schemes, research tasks, intelligence gathering
+
+4. **Social Maneuvering** (Rapport/Manipulation)
+   - **Use Case:** Social circles, reputations, subtle influence, gaining favor without direct confrontation
+   - **Mechanical Pattern:** Rapport/Cunning stat check OR 10 coins (gift) OR Social challenge OR fallback
+   - **Trade-Offs:** Stat path builds social standing, coin path buys goodwill, challenge path tests social intelligence, fallback slower
+   - **Narrative Flexibility:** Court politics, social climbing, reputation building, favor currying, soft influence
+
+5. **Crisis** (Emergency Response)
+   - **Use Case:** Urgent situations requiring immediate decisive action under pressure
+   - **Mechanical Pattern:** Authority/Insight stat check OR 25 coins (emergency expenditure) OR Physical challenge OR fallback
+   - **Trade-Offs:** Stat path shows leadership under pressure, coin path resource-intensive solution, challenge path physical response, fallback accepts consequences
+   - **Narrative Flexibility:** Emergencies, disasters, urgent obstacles, time-critical decisions, life-threatening situations
+
+**How to Use Archetypes in JSON:**
+
+In SituationTemplate, instead of hand-authoring `choiceTemplates` array, specify `archetypeId`:
+
+```json
+{
+  "id": "initial_offer",
+  "type": "Normal",
+  "archetypeId": "negotiation",
+  "narrativeTemplate": null,
+  "priority": 100,
+  "narrativeHints": {
+    "tone": "business-like",
+    "theme": "economic_negotiation",
+    "context": "merchant_interaction",
+    "style": "pragmatic"
+  },
+  "choiceTemplates": [],
+  "autoProgressRewards": null
+}
+```
+
+**Key Points:**
+- `archetypeId` triggers parse-time choice generation (4 choices created by SituationArchetypeCatalog)
+- `narrativeTemplate: null` because AI generates narrative from entity context
+- `choiceTemplates: []` empty because archetype generates them
+- `narrativeHints` provide AI generation guidance (tone, theme, context, style)
+
+**When to Use Archetypes vs Hand-Authored:**
+
+**Use Archetypes When:**
+- Interaction follows a recognizable RPG pattern (negotiation, confrontation, investigation)
+- Content needs to scale procedurally (many NPCs, many locations)
+- Mechanical balance is critical (tier-scaled costs, progression-appropriate requirements)
+- AI narrative generation will provide contextual variety
+
+**Hand-Author When:**
+- Tutorial content requiring exact costs for teaching (15 Focus, not formula-based)
+- Unique story beats with non-standard mechanical structure
+- Choices have unusual action types or special consequences
+- Precise control needed over exact mechanical values
+
+**Archetype Selection Guide:**
+
+Ask: "What is the player trying to accomplish?"
+- **Assert dominance/authority** → Confrontation
+- **Make a deal/persuade pragmatically** → Negotiation
+- **Discover information/solve puzzle** → Investigation
+- **Build social influence subtly** → Social Maneuvering
+- **Respond to urgent crisis** → Crisis
+
+Ask: "What stats should gate success?"
+- Authority/Dominance → Confrontation
+- Diplomacy/Rapport (transaction) → Negotiation
+- Insight/Cunning (discovery) → Investigation
+- Rapport/Cunning (social) → Social Maneuvering
+- Authority/Insight (emergency) → Crisis
+
+**Categorical Placement with Archetypes:**
+
+Archetypes work best with categorical placement filters (not concrete NPC IDs):
+
+```json
+{
+  "placementFilter": {
+    "placementType": "NPC",
+    "personalityTypes": ["Mercantile", "Pragmatic"],
+    "locationProperties": ["Commercial", "Public"],
+    "minBond": 1,
+    "maxBond": 10
+  }
+}
+```
+
+One archetype template spawns at EVERY matching NPC/Location, creating contextual variety through entity properties feeding AI generation.
+
+**Mechanical Guarantees:**
+
+All archetypes provide:
+- **Perfect information:** Player sees costs/requirements before committing
+- **Multiple valid paths:** No "correct" choice, genuine trade-offs
+- **Tier scaling:** Costs/requirements scale with player progression
+- **Formula-driven balance:** Consistent resource pressure across game
+- **Always forward progress:** Fallback path ensures no soft-locks
+
 ---
 
 ## ENFORCEMENT RULES

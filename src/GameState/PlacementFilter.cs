@@ -12,6 +12,12 @@ public class PlacementFilter
     /// </summary>
     public PlacementType PlacementType { get; init; }
 
+    /// <summary>
+    /// Strategy for selecting ONE entity when multiple candidates match the filter
+    /// Defaults to WeightedRandom for backward compatibility
+    /// </summary>
+    public PlacementSelectionStrategy SelectionStrategy { get; init; } = PlacementSelectionStrategy.WeightedRandom;
+
     // ==================== NPC FILTERS (when PlacementType == NPC) ====================
 
     /// <summary>

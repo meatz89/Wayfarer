@@ -63,6 +63,7 @@ public class PackageLoader
         foreach (string packagePath in sortedPackages)
         {
             string packageFileName = Path.GetFileName(packagePath);
+            Console.WriteLine($"[PackageLoader] Loading package: {packageFileName}");
 
             string json = File.ReadAllText(packagePath);
             Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions

@@ -1,6 +1,7 @@
 using Wayfarer.Content;
 using Wayfarer.GameState.Enums;
 using Wayfarer.Services;
+using Wayfarer.Subsystems.Scene;
 
 /// <summary>
 /// Static factory for creating and initializing GameWorld instances.
@@ -43,7 +44,8 @@ public static class GameWorldInitializer
     private static void SpawnInitialScenes(GameWorld gameWorld)
     {
         SpawnConditionsEvaluator spawnConditionsEvaluator = new SpawnConditionsEvaluator(gameWorld);
-        SceneInstantiator instantiator = new SceneInstantiator(gameWorld, spawnConditionsEvaluator);
+        SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
+        SceneInstantiator instantiator = new SceneInstantiator(gameWorld, spawnConditionsEvaluator, narrativeService);
 
         // Find all starter templates
         List<SceneTemplate> starterTemplates = gameWorld.SceneTemplates.Where(t => t.IsStarter).ToList();

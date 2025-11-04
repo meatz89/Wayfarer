@@ -54,26 +54,26 @@ public class SpawnConditionsEvaluator
             return true; // No player state conditions = pass
 
         // Check CompletedScenes
-        // NOTE: Player doesn't have CompletedSceneIds yet - using CompletedSituationIds as proxy for now
-        // TODO: Add Player.CompletedSceneIds tracking when Scene completion implemented
         if (conditions.CompletedScenes != null && conditions.CompletedScenes.Count > 0)
         {
             foreach (string sceneId in conditions.CompletedScenes)
             {
-                // For now, treat as passed (scene completion tracking not yet implemented)
-                // When implemented: if (!player.CompletedSceneIds.Contains(sceneId)) return false;
+                if (!player.CompletedSceneIds.Contains(sceneId))
+                {
+                    return false; // Required scene not completed
+                }
             }
         }
 
         // Check ChoiceHistory
-        // NOTE: Player doesn't have ChoiceHistory tracking yet
-        // TODO: Add Player.ChoiceHistory tracking when choice system fully implemented
         if (conditions.ChoiceHistory != null && conditions.ChoiceHistory.Count > 0)
         {
             foreach (string choiceId in conditions.ChoiceHistory)
             {
-                // For now, treat as passed (choice history tracking not yet implemented)
-                // When implemented: if (!player.ChoiceHistory.Contains(choiceId)) return false;
+                if (!player.ChoiceHistory.Contains(choiceId))
+                {
+                    return false; // Required choice not made
+                }
             }
         }
 

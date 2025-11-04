@@ -72,7 +72,16 @@ public class SituationCompletionHandler
         // Scene owns its lifecycle, not facades
         if (situation.ParentScene != null)
         {
-            situation.ParentScene.AdvanceToNextSituation(situation.Id);
+            Scene scene = situation.ParentScene;
+            scene.AdvanceToNextSituation(situation.Id);
+
+            // AUTOMATIC SPAWNING ORCHESTRATION - Scene completion trigger (cascade spawning)
+            // If scene just completed, check for procedural scenes that become eligible
+            // This enables cascading content: completing one scene spawns follow-up scenes
+            if (scene.State == SceneState.Completed)
+            {
+                _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Scene, scene.Id);
+            }
         }
     }
 

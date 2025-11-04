@@ -131,7 +131,8 @@ public class TimeFacade
     /// </summary>
     public TimeAdvancementResult AdvanceToNextDay()
     {
-        return _timeManager.TimeModel.AdvanceToNextDay();
+        TimeAdvancementResult result = _timeManager.TimeModel.AdvanceToNextDay();
+        return result;
     }
 
     public int WaitUntilNextTimeBlock()

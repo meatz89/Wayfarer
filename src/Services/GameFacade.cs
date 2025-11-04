@@ -3,6 +3,7 @@ using Wayfarer.Content;
 using Wayfarer.GameState.Enums;
 using Wayfarer.Services;
 using Wayfarer.Subsystems.Consequence;
+using Wayfarer.Subsystems.Scene;
 
 /// <summary>
 /// GameFacade - Pure orchestrator for UI-Backend communication.
@@ -36,6 +37,7 @@ public class GameFacade
     private readonly ConsequenceFacade _consequenceFacade;
     private readonly SceneInstantiator _sceneInstantiator;
     private readonly RewardApplicationService _rewardApplicationService;
+    private readonly SpawnFacade _spawnFacade;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -62,7 +64,8 @@ public class GameFacade
         PathCardExecutor pathCardExecutor,
         ConsequenceFacade consequenceFacade,
         RewardApplicationService rewardApplicationService,
-        SpawnConditionsEvaluator spawnConditionsEvaluator)
+        SpawnConditionsEvaluator spawnConditionsEvaluator,
+        SpawnFacade spawnFacade)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -88,7 +91,9 @@ public class GameFacade
         _pathCardExecutor = pathCardExecutor ?? throw new ArgumentNullException(nameof(pathCardExecutor));
         _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
-        _sceneInstantiator = new SceneInstantiator(_gameWorld, spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator)));
+        _spawnFacade = spawnFacade ?? throw new ArgumentNullException(nameof(spawnFacade));
+        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
+        _sceneInstantiator = new SceneInstantiator(_gameWorld, spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator)), narrativeService);
     }
 
     // ========== CORE GAME STATE ==========
@@ -336,6 +341,11 @@ public class GameFacade
                         throw new InvalidOperationException($"Destination location '{destSpot.Id}' has no HexPosition - cannot move player");
 
                     player.CurrentPosition = destSpot.HexPosition.Value;
+
+                    // AUTOMATIC SPAWNING ORCHESTRATION - Location trigger
+                    // Check for procedural scenes that become eligible when entering this location
+                    // Handoff implementation: Phase 4 (lines 254-260)
+                    _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Location, destSpot.Id);
                 }
             }
 
@@ -961,6 +971,11 @@ public class GameFacade
         TimeAdvancementResult timeResult = _timeFacade.AdvanceToNextDay();
         ProcessTimeAdvancement(timeResult);
 
+        // AUTOMATIC SPAWNING ORCHESTRATION - Time trigger
+        // GameFacade orchestrates: TimeFacade advances time, then SpawnFacade checks for eligible scenes
+        // Facades never call each other directly - GameFacade handles the coordination
+        _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Time, contextId: null);
+
         await Task.CompletedTask;
         return IntentResult.Executed(requiresRefresh: true);
     }
@@ -1067,6 +1082,11 @@ public class GameFacade
 
     private async Task<IntentResult> ProcessTalkIntent(string npcId)
     {
+        // AUTOMATIC SPAWNING ORCHESTRATION - NPC trigger
+        // Check for procedural scenes that become eligible when interacting with this NPC
+        // GameFacade orchestrates: Player talks to NPC, then SpawnFacade checks for eligible scenes
+        _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.NPC, npcId);
+
         // TODO: Implement conversation initiation
         _messageSystem.AddSystemMessage($"Talking to NPC {npcId} not yet implemented", SystemMessageTypes.Info);
         await Task.CompletedTask;

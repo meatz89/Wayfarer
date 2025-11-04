@@ -1,31 +1,51 @@
+using Wayfarer.Content;
 using Wayfarer.GameState.Enums;
+using Wayfarer.Services;
 
 /// <summary>
-/// SPAWN FACADE - Executes spawn rules to create cascading situation chains
+/// SPAWN FACADE - Executes spawn rules and orchestrates automatic scene spawning
 ///
-/// Sir Brante Pattern: Parent situation completion spawns child situations
+/// TWO RESPONSIBILITIES:
+/// 1. Cascading Situations: Parent situation completion spawns child situations (Sir Brante pattern)
+/// 2. Automatic Scenes: Checks spawn conditions at trigger points and instantiates eligible SceneTemplates
+///
+/// Sir Brante Pattern (Situations):
 /// - Clones template situations
 /// - Applies requirement offsets (makes children easier/harder)
 /// - Validates spawn conditions before execution
 /// - Adds spawned situations to GameWorld and ActiveSituationIds
 ///
-/// Called by:
-/// - SituationFacade.ResolveInstantSituation() - After instant situation resolution
-/// - SituationCompletionHandler.CompleteSituation() - After challenge completion
+/// Automatic Spawning (Scenes):
+/// - Checks SceneTemplates with spawn conditions
+/// - Evaluates conditions against current player/world/entity state
+/// - Instantiates eligible scenes via SceneInstantiator
+/// - Called at trigger points: time advancement, location entry, NPC interaction
 ///
-/// NO EVENTS - Synchronous execution orchestrated by completion handlers
+/// Called by:
+/// - SituationFacade.ResolveInstantSituation() - After instant situation resolution (cascading)
+/// - SituationCompletionHandler.CompleteSituation() - After challenge completion (cascading)
+/// - GameFacade.RestAtLocationAsync() - Time trigger orchestration (after TimeFacade.AdvanceToNextDay)
+/// - GameFacade.TravelToDestinationAsync() - Location trigger orchestration (after position update)
+///
+/// NO EVENTS - Synchronous execution orchestrated by GameFacade (facades never call each other)
 /// </summary>
 public class SpawnFacade
 {
     private readonly GameWorld _gameWorld;
-    private readonly TimeFacade _timeFacade;
+    private readonly TimeManager _timeManager;
+    private readonly SpawnConditionsEvaluator _conditionsEvaluator;
+    private readonly SceneInstantiator _sceneInstantiator;
 
     public SpawnFacade(
         GameWorld gameWorld,
-        TimeFacade timeFacade)
+        TimeManager timeManager,
+        SpawnConditionsEvaluator conditionsEvaluator,
+        SceneInstantiator sceneInstantiator)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-        _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
+        _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
+        _conditionsEvaluator = conditionsEvaluator ?? throw new ArgumentNullException(nameof(conditionsEvaluator));
+        _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
     }
 
     /// <summary>
@@ -115,7 +135,7 @@ public class SpawnFacade
     private Situation CloneTemplateWithModifications(Situation template, Situation parentSituation, SpawnRule rule)
     {
         // Generate unique ID for spawned situation (template ID + parent ID + timestamp)
-        string spawnedId = $"{template.Id}_spawned_{parentSituation.Id}_{_timeFacade.GetCurrentDay()}_{_timeFacade.GetCurrentSegment()}";
+        string spawnedId = $"{template.Id}_spawned_{parentSituation.Id}_{_timeManager.CurrentDay}_{_timeManager.CurrentSegment}";
 
         // Create cloned situation
         Situation spawned = new Situation
@@ -151,9 +171,9 @@ public class SpawnFacade
             ParentSituationId = parentSituation.Id, // Track parent situation
             Lifecycle = new SpawnTracking
             {
-                SpawnedDay = _timeFacade.GetCurrentDay(),
-                SpawnedTimeBlock = _timeFacade.GetCurrentTimeBlock(),
-                SpawnedSegment = _timeFacade.GetCurrentSegment()
+                SpawnedDay = _timeManager.CurrentDay,
+                SpawnedTimeBlock = _timeManager.CurrentTimeBlock,
+                SpawnedSegment = _timeManager.CurrentSegment
             },
 
             // Clone projected consequences
@@ -299,4 +319,127 @@ public class SpawnFacade
             }
         }
     }
+
+    /// <summary>
+    /// AUTOMATIC SCENE SPAWNING ORCHESTRATION
+    /// Checks SceneTemplates for spawn eligibility and instantiates eligible scenes
+    /// Called at trigger points: time advancement, location entry, NPC interaction
+    ///
+    /// HANDOFF IMPLEMENTATION: Phase 4 (lines 247-253)
+    /// - Queries SceneTemplates with isStarter=false
+    /// - Evaluates spawn conditions via SpawnConditionsEvaluator
+    /// - Instantiates eligible scenes via SceneInstantiator
+    /// - Prevents duplicate spawning (checks existing scenes)
+    /// </summary>
+    /// <param name="triggerType">What triggered the spawn check (Time, Location, NPC, Scene)</param>
+    /// <param name="contextId">Optional context ID (locationId, npcId, etc.)</param>
+    public void CheckAndSpawnEligibleScenes(SpawnTriggerType triggerType, string contextId = null)
+    {
+        Console.WriteLine($"[SpawnOrchestration] Checking eligible scenes (Trigger: {triggerType}, Context: {contextId ?? "none"})");
+
+        Player player = _gameWorld.GetPlayer();
+
+        // Query procedural SceneTemplates (isStarter=false, has spawnConditions)
+        List<SceneTemplate> proceduralTemplates = _gameWorld.SceneTemplates
+            .Where(t => !t.IsStarter && t.SpawnConditions != null)
+            .ToList();
+
+        Console.WriteLine($"[SpawnOrchestration] Found {proceduralTemplates.Count} procedural templates to evaluate");
+
+        int spawned = 0;
+        foreach (SceneTemplate template in proceduralTemplates)
+        {
+            // Skip if already spawned (check GameWorld.Scenes for this templateId)
+            bool alreadySpawned = _gameWorld.Scenes.Any(s => s.TemplateId == template.Id && s.State != SceneState.Completed);
+            if (alreadySpawned)
+            {
+                continue; // Scene already active, don't spawn duplicate
+            }
+
+            // Evaluate spawn conditions
+            bool isEligible = _conditionsEvaluator.EvaluateAll(template.SpawnConditions, player);
+
+            if (isEligible)
+            {
+                Console.WriteLine($"[SpawnOrchestration] Template '{template.Id}' is ELIGIBLE - spawning scene");
+
+                // Build spawn context for instantiation
+                SceneSpawnReward spawnReward = new SceneSpawnReward
+                {
+                    SceneTemplateId = template.Id,
+                    PlacementRelation = DeterminePlacementFromFilter(template.PlacementFilter),
+                    SpecificPlacementId = null, // SceneInstantiator resolves placement
+                    DelayDays = 0 // Spawn immediately when eligible
+                };
+
+                SceneSpawnContext spawnContext = BuildSpawnContext(template, player);
+
+                if (spawnContext != null)
+                {
+                    // Create provisional scene (lightweight)
+                    Scene provisionalScene = _sceneInstantiator.CreateProvisionalScene(template, spawnReward, spawnContext);
+
+                    // Immediately finalize (makes scene active, applies placement)
+                    _sceneInstantiator.FinalizeScene(provisionalScene.Id, spawnContext);
+
+                    spawned++;
+                    Console.WriteLine($"[SpawnOrchestration] Scene '{provisionalScene.Id}' spawned and finalized");
+                }
+                else
+                {
+                    Console.WriteLine($"[SpawnOrchestration] Failed to build spawn context for template '{template.Id}'");
+                }
+            }
+        }
+
+        if (spawned > 0)
+        {
+            Console.WriteLine($"[SpawnOrchestration] Spawned {spawned} new scenes");
+        }
+    }
+
+    /// <summary>
+    /// Determine PlacementRelation from PlacementFilter
+    /// </summary>
+    private PlacementRelation DeterminePlacementFromFilter(PlacementFilter filter)
+    {
+        if (filter == null)
+            return PlacementRelation.SpecificLocation;
+
+        return filter.PlacementType switch
+        {
+            PlacementType.NPC => PlacementRelation.SpecificNPC,
+            PlacementType.Location => PlacementRelation.SpecificLocation,
+            PlacementType.Route => PlacementRelation.SpecificRoute,
+            _ => PlacementRelation.SpecificLocation
+        };
+    }
+
+    /// <summary>
+    /// Build SceneSpawnContext for scene instantiation
+    /// </summary>
+    private SceneSpawnContext BuildSpawnContext(SceneTemplate template, Player player)
+    {
+        SceneSpawnContext context = new SceneSpawnContext
+        {
+            Player = player,
+            CurrentSituation = null // Automatic spawning is not triggered by situations
+        };
+
+        // SceneInstantiator will resolve placement from PlacementFilter
+        // We just provide player and current world state context
+        return context;
+    }
+}
+
+/// <summary>
+/// Trigger types for automatic scene spawning
+/// Used for logging and potential future trigger-specific logic
+/// </summary>
+public enum SpawnTriggerType
+{
+    Time,      // Time advancement (day change, time block change)
+    Location,  // Player moved to new location
+    NPC,       // Player interacted with NPC
+    Scene      // Scene completed (cascade spawning)
 }

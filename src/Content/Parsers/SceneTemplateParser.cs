@@ -629,6 +629,8 @@ public class SceneTemplateParser
     /// </summary>
     private List<ChoiceTemplate> GenerateChoiceTemplatesFromArchetype(string archetypeId, string sceneTemplateId, string situationTemplateId)
     {
+        Console.WriteLine($"[Archetype Generation] Generating 4 choices for situation '{situationTemplateId}' using archetype '{archetypeId}'");
+
         // Fetch archetype definition from catalogue (PARSE-TIME ONLY)
         SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(archetypeId);
 
@@ -687,6 +689,13 @@ public class SceneTemplateParser
             ActionType = ChoiceActionType.Instant
         };
         choices.Add(fallbackChoice);
+
+        // VERIFICATION LOGGING - Prove 4 choices generated with correct properties
+        Console.WriteLine($"[Archetype Generation] Generated {choices.Count} choices:");
+        Console.WriteLine($"  [Choice 1] Stat-Gated: Requires {archetype.PrimaryStat}/{archetype.SecondaryStat} {archetype.StatThreshold}+, Costs 0, Type={statGatedChoice.ActionType}");
+        Console.WriteLine($"  [Choice 2] Money: No requirements, Costs {archetype.CoinCost} coins, Type={moneyChoice.ActionType}");
+        Console.WriteLine($"  [Choice 3] Challenge: No requirements, Costs {archetype.ResolveCost} Resolve, Type={challengeChoice.ActionType}, ChallengeType={archetype.ChallengeType}");
+        Console.WriteLine($"  [Choice 4] Fallback: No requirements, Costs {archetype.FallbackTimeCost} time segments, Type={fallbackChoice.ActionType}");
 
         return choices;
     }

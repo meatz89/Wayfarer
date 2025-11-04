@@ -1,4 +1,6 @@
 using Wayfarer.GameState.Enums;
+using Wayfarer.Models;
+using Wayfarer.Subsystems.Scene;
 
 namespace Wayfarer.Content;
 
@@ -11,16 +13,24 @@ namespace Wayfarer.Content;
 ///
 /// ARCHITECTURE PRINCIPLE: Scenes created from SceneTemplates with PlacementRelation enum
 /// Determines concrete placement (SameLocation, SameNPC, SpecificLocation, etc.) at spawn time
+///
+/// AI GENERATION INTEGRATION: SceneNarrativeService called at finalization time
+/// Generates situation narratives from entity context when template has no hardcoded narrative
 /// </summary>
 public class SceneInstantiator
 {
     private readonly GameWorld _gameWorld;
     private readonly SpawnConditionsEvaluator _spawnConditionsEvaluator;
+    private readonly SceneNarrativeService _narrativeService;
 
-    public SceneInstantiator(GameWorld gameWorld, SpawnConditionsEvaluator spawnConditionsEvaluator)
+    public SceneInstantiator(
+        GameWorld gameWorld,
+        SpawnConditionsEvaluator spawnConditionsEvaluator,
+        SceneNarrativeService narrativeService)
     {
         _gameWorld = gameWorld;
         _spawnConditionsEvaluator = spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator));
+        _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
     }
 
     /// <summary>
@@ -121,7 +131,34 @@ public class SceneInstantiator
             // Track ID in Scene
             scene.SituationIds.Add(situation.Id);
 
+            // AI GENERATION: Generate narrative if template has no hardcoded narrative
+            // Check: situation.Description null AND situation.NarrativeHints present
+            // This pattern enables procedural content with archetype-driven generation
+            if (string.IsNullOrEmpty(situation.Description) && situation.NarrativeHints != null)
+            {
+                try
+                {
+                    // Build entity context for AI generation
+                    ScenePromptContext promptContext = BuildScenePromptContext(scene, context);
+
+                    // Generate narrative from entity context
+                    string generatedNarrative = _narrativeService.GenerateSituationNarrative(promptContext, situation.NarrativeHints);
+
+                    // Set generated narrative
+                    situation.Description = generatedNarrative;
+
+                    Console.WriteLine($"[SceneInstantiator] Generated narrative for Situation '{situation.Id}'");
+                }
+                catch (Exception ex)
+                {
+                    // Fallback on generation failure
+                    Console.WriteLine($"[SceneInstantiator] Narrative generation failed for Situation '{situation.Id}': {ex.Message}");
+                    situation.Description = "A situation unfolds before you."; // Ultimate fallback
+                }
+            }
+
             // PLACEHOLDER REPLACEMENT: Situation descriptions
+            // Happens AFTER AI generation so generated text can contain placeholders
             situation.Description = PlaceholderReplacer.ReplaceAll(situation.Description, context, _gameWorld);
         }
 
@@ -336,12 +373,13 @@ public class SceneInstantiator
 
     /// <summary>
     /// Find NPC matching PlacementFilter criteria
-    /// REFERENCE IMPLEMENTATION: Copied from GameWorldInitializer.FindStarterPlacement() (lines 120-142)
-    /// Returns first NPC ID matching ALL filter criteria, or null if no match
+    /// PHASE 3: Collects ALL matching NPCs, then applies SelectionStrategy to choose ONE
+    /// Returns selected NPC ID, or null if no matches
     /// </summary>
     private string FindMatchingNPC(PlacementFilter filter, Player player)
     {
-        NPC matchingNPC = _gameWorld.NPCs.FirstOrDefault(npc =>
+        // Collect ALL matching NPCs
+        List<NPC> matchingNPCs = _gameWorld.NPCs.Where(npc =>
         {
             // Check personality type (if specified)
             if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
@@ -365,18 +403,26 @@ public class SceneInstantiator
                 return false;
 
             return true;
-        });
+        }).ToList();
 
-        return matchingNPC?.ID;
+        // No matches found
+        if (matchingNPCs.Count == 0)
+            return null;
+
+        // Apply selection strategy to choose ONE from multiple matches
+        NPC selectedNPC = ApplySelectionStrategyNPC(matchingNPCs, filter.SelectionStrategy, player);
+        return selectedNPC?.ID;
     }
 
     /// <summary>
     /// Find Location matching PlacementFilter criteria
-    /// Returns first Location ID matching ALL filter criteria, or null if no match
+    /// PHASE 3: Collects ALL matching Locations, then applies SelectionStrategy to choose ONE
+    /// Returns selected Location ID, or null if no matches
     /// </summary>
     private string FindMatchingLocation(PlacementFilter filter, Player player)
     {
-        Location matchingLocation = _gameWorld.Locations.FirstOrDefault(loc =>
+        // Collect ALL matching Locations
+        List<Location> matchingLocations = _gameWorld.Locations.Where(loc =>
         {
             // Check location properties (if specified)
             if (filter.LocationProperties != null && filter.LocationProperties.Count > 0)
@@ -406,9 +452,15 @@ public class SceneInstantiator
                 return false;
 
             return true;
-        });
+        }).ToList();
 
-        return matchingLocation?.Id;
+        // No matches found
+        if (matchingLocations.Count == 0)
+            return null;
+
+        // Apply selection strategy to choose ONE from multiple matches
+        Location selectedLocation = ApplySelectionStrategyLocation(matchingLocations, filter.SelectionStrategy, player);
+        return selectedLocation?.Id;
     }
 
     /// <summary>
@@ -567,5 +619,172 @@ public class SceneInstantiator
             criteria.Add($"Scale Requirements: {filter.ScaleRequirements.Count} requirements");
 
         return string.Join("\n", criteria);
+    }
+
+    // ==================== PLACEMENT SELECTION STRATEGIES ====================
+
+    /// <summary>
+    /// Apply selection strategy to choose ONE NPC from multiple matching candidates
+    /// PHASE 3: Implements 4 strategies (Closest, HighestBond, LeastRecent, WeightedRandom)
+    /// </summary>
+    private NPC ApplySelectionStrategyNPC(List<NPC> candidates, PlacementSelectionStrategy strategy, Player player)
+    {
+        if (candidates == null || candidates.Count == 0)
+            return null;
+
+        if (candidates.Count == 1)
+            return candidates[0]; // Only one candidate, return it
+
+        return strategy switch
+        {
+            PlacementSelectionStrategy.Closest => SelectClosestNPC(candidates, player),
+            PlacementSelectionStrategy.HighestBond => SelectHighestBondNPC(candidates),
+            PlacementSelectionStrategy.LeastRecent => SelectWeightedRandomNPC(candidates), // TODO: Implement interaction tracking
+            PlacementSelectionStrategy.WeightedRandom => SelectWeightedRandomNPC(candidates),
+            _ => candidates[0] // Fallback to first match
+        };
+    }
+
+    /// <summary>
+    /// Apply selection strategy to choose ONE Location from multiple matching candidates
+    /// PHASE 3: Implements 4 strategies (Closest works, others fall back to Random)
+    /// </summary>
+    private Location ApplySelectionStrategyLocation(List<Location> candidates, PlacementSelectionStrategy strategy, Player player)
+    {
+        if (candidates == null || candidates.Count == 0)
+            return null;
+
+        if (candidates.Count == 1)
+            return candidates[0]; // Only one candidate, return it
+
+        return strategy switch
+        {
+            PlacementSelectionStrategy.Closest => SelectClosestLocation(candidates, player),
+            PlacementSelectionStrategy.HighestBond => SelectWeightedRandomLocation(candidates), // N/A for locations
+            PlacementSelectionStrategy.LeastRecent => SelectWeightedRandomLocation(candidates), // TODO: Implement interaction tracking
+            PlacementSelectionStrategy.WeightedRandom => SelectWeightedRandomLocation(candidates),
+            _ => candidates[0] // Fallback to first match
+        };
+    }
+
+    /// <summary>
+    /// Select NPC closest to player's current position using hex grid distance
+    /// </summary>
+    private NPC SelectClosestNPC(List<NPC> candidates, Player player)
+    {
+        NPC closest = null;
+        int minDistance = int.MaxValue;
+
+        foreach (NPC npc in candidates)
+        {
+            if (npc.Location?.HexPosition == null)
+                continue; // NPC has no position, skip
+
+            int distance = player.CurrentPosition.DistanceTo(npc.Location.HexPosition.Value);
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                closest = npc;
+            }
+        }
+
+        return closest ?? candidates[0]; // Fallback to first if no positions
+    }
+
+    /// <summary>
+    /// Select Location closest to player's current position using hex grid distance
+    /// </summary>
+    private Location SelectClosestLocation(List<Location> candidates, Player player)
+    {
+        Location closest = null;
+        int minDistance = int.MaxValue;
+
+        foreach (Location location in candidates)
+        {
+            if (location.HexPosition == null)
+                continue; // Location has no position, skip
+
+            int distance = player.CurrentPosition.DistanceTo(location.HexPosition.Value);
+            if (distance < minDistance)
+            {
+                minDistance = distance;
+                closest = location;
+            }
+        }
+
+        return closest ?? candidates[0]; // Fallback to first if no positions
+    }
+
+    /// <summary>
+    /// Select NPC with highest bond strength
+    /// Good for "trusted ally" or "close friend" scenarios
+    /// </summary>
+    private NPC SelectHighestBondNPC(List<NPC> candidates)
+    {
+        return candidates.OrderByDescending(npc => npc.BondStrength).First();
+    }
+
+    /// <summary>
+    /// Select random NPC from candidates using RNG for unpredictable variety
+    /// </summary>
+    private NPC SelectWeightedRandomNPC(List<NPC> candidates)
+    {
+        Random random = new Random();
+        int index = random.Next(candidates.Count);
+        return candidates[index];
+    }
+
+    /// <summary>
+    /// Select random Location from candidates using RNG for unpredictable variety
+    /// </summary>
+    private Location SelectWeightedRandomLocation(List<Location> candidates)
+    {
+        Random random = new Random();
+        int index = random.Next(candidates.Count);
+        return candidates[index];
+    }
+
+    /// <summary>
+    /// Build ScenePromptContext for AI narrative generation from Scene and spawn context.
+    /// Bundles entity objects (NPC, Location, Route) with complete properties for rich context.
+    /// Called at finalization when concrete placement is resolved.
+    /// </summary>
+    private ScenePromptContext BuildScenePromptContext(Scene scene, SceneSpawnContext context)
+    {
+        ScenePromptContext promptContext = new ScenePromptContext
+        {
+            Player = context.Player,
+            ArchetypeId = scene.Template.Archetype.ToString(),
+            Tier = scene.Template.Tier,
+            SceneDisplayName = scene.DisplayName,
+            CurrentTimeBlock = _gameWorld.CurrentTimeBlock,
+            CurrentWeather = _gameWorld.CurrentWeather.ToString().ToLower(),
+            CurrentDay = _gameWorld.CurrentDay
+        };
+
+        // Resolve entity references based on placement type
+        switch (scene.PlacementType)
+        {
+            case PlacementType.NPC:
+                promptContext.NPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.PlacementId);
+                if (promptContext.NPC != null)
+                {
+                    promptContext.NPCBondLevel = promptContext.NPC.BondStrength;
+                    // Also populate location if NPC has one
+                    promptContext.Location = promptContext.NPC.Location;
+                    // TODO: Populate PriorChoicesWithNPC from Player.ChoiceHistory when implemented
+                }
+                break;
+
+            case PlacementType.Location:
+                promptContext.Location = _gameWorld.Locations.FirstOrDefault(l => l.Id == scene.PlacementId);
+                break;
+
+            case PlacementType.Route:
+                promptContext.Route = _gameWorld.Routes.FirstOrDefault(r => r.Id == scene.PlacementId);
+                break;
+        }
+
+        return promptContext;
     }
 }
