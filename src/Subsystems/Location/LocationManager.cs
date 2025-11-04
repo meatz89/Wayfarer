@@ -25,7 +25,7 @@ public class LocationManager
     /// <summary>
     /// Get the player's current Venue location.
     /// </summary>
-    public Location GetCurrentLocationSpot()
+    public Location GetCurrentLocation()
     {
         return _gameWorld.GetPlayerCurrentLocation();
     }
@@ -96,7 +96,7 @@ public class LocationManager
     /// <summary>
     /// Add a new location to the world.
     /// </summary>
-    public void AddLocationSpot(Location location)
+    public void AddLocation(Location location)
     {
         if (location == null) throw new ArgumentNullException(nameof(location));
 

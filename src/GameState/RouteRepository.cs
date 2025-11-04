@@ -22,8 +22,8 @@ public class RouteRepository : IRouteRepository
         if (_gameWorld.Routes == null)
             return new List<RouteOption>();
 
-        // Direct query by OriginLocationSpot (no iteration needed)
-        return _gameWorld.Routes.Where(r => r.OriginLocationSpot == locationId);
+        // Direct query by OriginLocation (no iteration needed)
+        return _gameWorld.Routes.Where(r => r.OriginLocation == locationId);
     }
 
     // Get all routes in the world

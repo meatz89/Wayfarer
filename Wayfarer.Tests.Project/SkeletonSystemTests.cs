@@ -153,7 +153,7 @@ namespace Wayfarer.Tests
             Assert.That(npc, Is.Not.Null, "Should have NPCs");
             Assert.That(location, Is.Not.Null, "Should have locations (including skeletons)");
             Assert.That(Enum.IsDefined(typeof(PersonalityType), npc.PersonalityType), Is.True, "NPC should have valid personality");
-            Assert.That(Enum.IsDefined(typeof(LocationSpotTypes), location.LocationType), Is.True, "Location should have valid type");
+            Assert.That(Enum.IsDefined(typeof(LocationTypes), location.LocationType), Is.True, "Location should have valid type");
 
             // Skeleton locations should be navigable
             Venue? skeletonLocation = gameWorld.locations.FirstOrDefault(l => l.IsSkeleton);

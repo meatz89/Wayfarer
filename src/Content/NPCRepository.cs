@@ -161,14 +161,14 @@ public class NPCRepository
     /// <summary>
     /// Gets the primary NPC for a specific location if available at the current time
     /// </summary>
-    public NPC GetPrimaryNPCForSpot(string locationSpotId, TimeBlocks currentTime)
+    public NPC GetPrimaryNPCForSpot(string locationId, TimeBlocks currentTime)
     {
         List<NPC> npcs = _gameWorld.GetCharacters();
         if (npcs == null)
         {
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
-        NPC? npc = npcs.FirstOrDefault(n => n.Location?.Id == locationSpotId && n.IsAvailable(currentTime));
+        NPC? npc = npcs.FirstOrDefault(n => n.Location?.Id == locationId && n.IsAvailable(currentTime));
         if (npc != null && !IsNPCVisible(npc))
             return null;
         return npc;

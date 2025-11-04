@@ -171,14 +171,14 @@ public class GameFacade
         return _locationFacade.GetCurrentLocation();
     }
 
-    public Location GetLocationSpot(string LocationId)
+    public Location GetLocation(string LocationId)
     {
         return _gameWorld.GetLocation(LocationId);
     }
 
-    public Location GetCurrentLocationSpot()
+    public Location GetCurrentLocation()
     {
-        return _locationFacade.GetCurrentLocationSpot();
+        return _locationFacade.GetCurrentLocation();
     }
 
     public Venue GetLocationById(string venueId)
@@ -339,7 +339,7 @@ public class GameFacade
             if (actualRoute != null)
             {
                 // Find the destination location by its ID from GameWorld's Locations dictionary
-                Location? destSpot = _gameWorld.GetLocation(actualRoute.DestinationLocationSpot);
+                Location? destSpot = _gameWorld.GetLocation(actualRoute.DestinationLocation);
 
                 if (destSpot != null)
                 {
@@ -377,7 +377,7 @@ public class GameFacade
             });
 
             // Get destination Venue name for the message
-            Location? finalDestSpot = _gameWorld.GetLocation(targetRoute.DestinationLocationSpot);
+            Location? finalDestSpot = _gameWorld.GetLocation(targetRoute.DestinationLocation);
 
             string destinationName = "Unknown";
             if (finalDestSpot != null)
@@ -506,7 +506,7 @@ public class GameFacade
     /// Start a new Mental tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public MentalSession StartMentalSession(string deckId, string locationSpotId, string situationId, string obligationId)
+    public MentalSession StartMentalSession(string deckId, string locationId, string situationId, string obligationId)
     {
         if (_mentalFacade.IsSessionActive())
             throw new InvalidOperationException("Mental session already active");
@@ -580,7 +580,7 @@ public class GameFacade
     /// Start a new Physical tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public PhysicalSession StartPhysicalSession(string deckId, string locationSpotId, string situationId, string obligationId)
+    public PhysicalSession StartPhysicalSession(string deckId, string locationId, string situationId, string obligationId)
     {
         if (_physicalFacade.IsSessionActive())
             throw new InvalidOperationException("Physical session already active");
@@ -655,7 +655,7 @@ public class GameFacade
 
         // Get current location
         Venue? currentLocation = GetCurrentLocation();
-        Location? currentSpot = GetCurrentLocationSpot();
+        Location? currentSpot = GetCurrentLocation();
 
         // Get current time block
         TimeBlocks timeBlock = _timeFacade.GetCurrentTimeBlock();
@@ -746,10 +746,10 @@ public class GameFacade
         // Initialize player at starting Venue from GameWorld initial conditions
         // HEX-FIRST ARCHITECTURE: Player position is hex coordinates
         Player player = _gameWorld.GetPlayer();
-        string startingSpotId = _gameWorld.InitialLocationSpotId;
+        string startingSpotId = _gameWorld.InitialLocationId;
         Location? startingSpot = _gameWorld.Locations.FirstOrDefault(s => s.Id == startingSpotId);
         if (startingSpot == null)
-            throw new InvalidOperationException($"Invalid InitialLocationSpotId '{startingSpotId}' - no matching Location found in GameWorld.Locations");
+            throw new InvalidOperationException($"Invalid InitialLocationId '{startingSpotId}' - no matching Location found in GameWorld.Locations");
 
         if (!startingSpot.HexPosition.HasValue)
             throw new InvalidOperationException($"Starting location '{startingSpotId}' has no HexPosition - cannot initialize player position");
@@ -1021,7 +1021,7 @@ public class GameFacade
 
     private IntentResult ProcessInvestigateIntent()
     {
-        Location currentSpot = GetCurrentLocationSpot();
+        Location currentSpot = GetCurrentLocation();
         if (currentSpot == null)
         {
             _messageSystem.AddSystemMessage("No current location to investigate", SystemMessageTypes.Warning);

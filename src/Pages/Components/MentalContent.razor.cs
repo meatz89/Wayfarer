@@ -535,7 +535,7 @@ namespace Wayfarer.Pages.Components
                 throw new InvalidOperationException("GameFacade is null");
 
             Venue currentLocation = GameFacade.GetCurrentLocation();
-            Location currentSpot = GameFacade.GetCurrentLocationSpot();
+            Location currentSpot = GameFacade.GetCurrentLocation();
 
             if (currentLocation == null || currentSpot == null)
                 throw new InvalidOperationException("Current location or spot is null");

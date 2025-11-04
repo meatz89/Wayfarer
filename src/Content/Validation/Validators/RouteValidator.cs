@@ -7,7 +7,7 @@ public class RouteValidator : BaseValidator
 {
     private readonly List<string> _requiredFields = new List<string>
         {
-            "id", "originLocationSpot", "destinationLocationSpot", "method", "travelTimeSegments", "baseCoinCost", "baseStaminaCost"
+            "id", "originLocation", "destinationLocation", "method", "travelTimeSegments", "baseCoinCost", "baseStaminaCost"
         };
 
     public override bool CanValidate(string fileName)
@@ -130,8 +130,8 @@ public class RouteValidator : BaseValidator
         }
 
         // Validate route consistency
-        string fromId = GetStringProperty(route, "originLocationSpot");
-        string toId = GetStringProperty(route, "destinationLocationSpot");
+        string fromId = GetStringProperty(route, "originLocation");
+        string toId = GetStringProperty(route, "destinationLocation");
 
         if (!string.IsNullOrEmpty(fromId) && !string.IsNullOrEmpty(toId) && fromId == toId)
         {

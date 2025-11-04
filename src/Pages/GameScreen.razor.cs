@@ -89,10 +89,10 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
 
         // Check for modal scene at current location spot (Sir Brante forced moment)
-        Location currentLocationSpot = GameFacade.GetCurrentLocationSpot();
-        if (currentLocationSpot != null)
+        Location currentLocation = GameFacade.GetCurrentLocation();
+        if (currentLocation != null)
         {
-            Scene modalScene = SceneFacade.GetModalSceneAtLocation(currentLocationSpot.Id);
+            Scene modalScene = SceneFacade.GetModalSceneAtLocation(currentLocation.Id);
             if (modalScene != null)
             {
                 await StartModalScene(modalScene.Id);
@@ -135,7 +135,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     protected async Task RefreshLocationDisplay()
     {
         Venue venue = GameFacade.GetCurrentLocation();
-        Location location = GameFacade.GetCurrentLocationSpot();
+        Location location = GameFacade.GetCurrentLocation();
 
         if (venue != null)
         {
@@ -365,9 +365,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartMentalSession(string deckId, string locationSpotId, string situationId, string obligationId)
+    public async Task StartMentalSession(string deckId, string locationId, string situationId, string obligationId)
     {
-        MentalSession session = GameFacade.StartMentalSession(deckId, locationSpotId, situationId, obligationId);
+        MentalSession session = GameFacade.StartMentalSession(deckId, locationId, situationId, obligationId);
 
         // Create context parallel to Social pattern
         CurrentMentalContext = new MentalChallengeContext
@@ -414,9 +414,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartPhysicalSession(string deckId, string locationSpotId, string situationId, string obligationId)
+    public async Task StartPhysicalSession(string deckId, string locationId, string situationId, string obligationId)
     {
-        PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationSpotId, situationId, obligationId);
+        PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationId, situationId, obligationId);
 
         // Create context parallel to Social pattern
         CurrentPhysicalContext = new PhysicalChallengeContext

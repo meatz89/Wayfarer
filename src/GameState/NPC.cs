@@ -153,11 +153,11 @@ public class NPC
         return true;
     }
 
-    public bool IsAvailableAtTime(string locationSpotId, TimeBlocks currentTime)
+    public bool IsAvailableAtTime(string locationId, TimeBlocks currentTime)
     {
         // NPCs are always available by default
         // Check if NPC is at the specified Venue location
-        return Location?.Id == locationSpotId && IsAvailable(currentTime);
+        return Location?.Id == locationId && IsAvailable(currentTime);
     }
 
     public bool CanProvideService(ServiceTypes requestedService)

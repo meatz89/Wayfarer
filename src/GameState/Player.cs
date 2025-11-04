@@ -204,7 +204,7 @@ public class Player
 
     public void AddKnownRoute(RouteOption route)
     {
-        string originName = route.OriginLocationSpot;
+        string originName = route.OriginLocation;
 
         KnownRouteEntry routeEntry = KnownRoutes.FirstOrDefault(kr => kr.OriginSpotId == originName);
         if (routeEntry == null)
@@ -214,7 +214,7 @@ public class Player
         }
 
         // Only add if not already known
-        if (!routeEntry.Routes.Any(r => r.DestinationLocationSpot == route.DestinationLocationSpot))
+        if (!routeEntry.Routes.Any(r => r.DestinationLocation == route.DestinationLocation))
         {
             routeEntry.Routes.Add(route);
         }
@@ -516,7 +516,7 @@ public class Player
         return (GetCurrentWeight(itemRepository), Inventory.GetCapacity());
     }
 
-    public void AddKnownLocationSpot(string LocationId)
+    public void AddKnownLocation(string LocationId)
     {
         if (!LocationActionAvailability.Contains(LocationId))
         {

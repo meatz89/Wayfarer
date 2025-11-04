@@ -77,9 +77,9 @@ namespace Wayfarer.Pages.Components
             {
                 Id = r.Id,
                 Name = r.Name,  // Store the actual route name from JSON
-                DestinationName = GetDestinationLocationName(r.DestinationLocationSpot),
-                DestinationSpotName = GetDestinationLocationSpotName(r.DestinationLocationSpot),
-                District = GetDestinationDistrict(r.DestinationLocationSpot),
+                DestinationName = GetDestinationLocationName(r.DestinationLocation),
+                DestinationSpotName = GetDestinationLocationName(r.DestinationLocation),
+                District = GetDestinationDistrict(r.DestinationLocation),
                 TransportType = FormatTransportType(r.Method),
                 TravelTime = r.TravelTimeSegments,
                 Cost = r.BaseCoinCost,
@@ -93,7 +93,7 @@ namespace Wayfarer.Pages.Components
         private string GetDestinationLocationName(string destinationSpotId)
         {
             // Get the actual Venue location from GameWorld to find its name
-            Location location = GameFacade.GetLocationSpot(destinationSpotId);
+            Location location = GameFacade.GetLocation(destinationSpotId);
             Venue venue = GameFacade.GetLocationById(location.VenueId);
 
             if (venue != null)
@@ -103,10 +103,10 @@ namespace Wayfarer.Pages.Components
             return "Unknown Location";
         }
 
-        private string GetDestinationLocationSpotName(string destinationSpotId)
+        private string GetDestinationLocationName(string destinationSpotId)
         {
             // Get the actual Venue location from GameWorld to find its name
-            Location location = GameFacade.GetLocationSpot(destinationSpotId);
+            Location location = GameFacade.GetLocation(destinationSpotId);
             if (location == null)
             {
                 throw new InvalidOperationException($"Location spot not found: {destinationSpotId}");
@@ -127,7 +127,7 @@ namespace Wayfarer.Pages.Components
             // Find the venue containing this location
             foreach (Venue venue in locations)
             {
-                if (venue.LocationSpotIds.Contains(destinationSpotId))
+                if (venue.LocationIds.Contains(destinationSpotId))
                 {
                     // Get the district for this venue
                     District district = GameFacade.GetDistrictForLocation(venue.Id);

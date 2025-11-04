@@ -142,7 +142,7 @@ GameWorld
 │   └── Hex[] (grid cells with terrain/danger properties)
 ├── Venues (narrative clusters, radius-based)
 │   └── Locations (specific spots within Venue)
-│       └── LocationSpot[] (sub-areas within Location)
+│       └── Location[] (sub-areas within Location)
 └── Routes (inter-venue travel paths)
     └── RouteSegment[] (generated from hex path)
 ```
@@ -189,7 +189,7 @@ Cluster of Locations within hex radius (typically 1-2 hexes). Maximum 7 Location
 - **HexCoordinates**: AxialCoordinates
 - **IsVenueTravelHub**: bool (exactly one per Venue)
 - **LocationType**: enum (Shop | Residence | Landmark | Hub)
-- **Spots**: List<LocationSpot> (sub-areas for Scene placement)
+- **Spots**: List<Location> (sub-areas for Scene placement)
 
 **Ownership:**
 - GameWorld.Locations (flat list)

@@ -53,7 +53,7 @@ public class NPC
 
 Similar properties added to:
 - `Location` (includes Familiarity property)
-- `LocationSpot` (includes spot properties for investigation scaling)
+- `Location` (includes spot properties for investigation scaling)
 - `ConversationCard`
 
 ### 2. SkeletonGenerator
@@ -138,7 +138,7 @@ GameWorld tracks all skeletons:
 ```csharp
 public class GameWorld
 {
-    // Maps skeleton ID to type ("NPC", "Location", "LocationSpot", etc.)
+    // Maps skeleton ID to type ("NPC", "Location", "Location", etc.)
     public Dictionary<string, string> SkeletonRegistry { get; set; }
     
     public List<string> GetSkeletonReport()
@@ -269,7 +269,7 @@ public class SkeletonLocation : Location
         this.Familiarity = 0;
         
         // Create generic spots with properties
-        this.Spots.Add(new LocationSpot
+        this.Spots.Add(new Location
         {
             Id = $"{id}_main",
             Properties = new Dictionary<string, List<string>>

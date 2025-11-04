@@ -14,11 +14,11 @@ public class ContentValidator
         // Check venues have valid Venue location references
         foreach (Venue venue in _gameWorld.Venues)
         {
-            foreach (string locationSpotId in venue.LocationSpotIds)
+            foreach (string locationId in venue.LocationIds)
             {
-                if (!_gameWorld.Venues.Any(ls => ls.Id == locationSpotId))
+                if (!_gameWorld.Venues.Any(ls => ls.Id == locationId))
                 {
-                    result.AddMissingLocationSpot(locationSpotId, venue);
+                    result.AddMissingLocation(locationId, venue);
                 }
             }
         }

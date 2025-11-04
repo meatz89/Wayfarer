@@ -35,7 +35,7 @@ namespace Wayfarer.Tests
             Assert.That(gameWorld.SocialCards.Count, Is.GreaterThan(0), "Cards should be loaded");
             Assert.That(gameWorld.NPCs.Count, Is.GreaterThan(0), "NPCs should be loaded");
             Assert.That(gameWorld.locations.Count, Is.GreaterThan(0), "Locations should be loaded");
-            Assert.That(gameWorld.locationSpots.Count, Is.GreaterThan(0), "Location spots should be loaded");
+            Assert.That(gameWorld.locations.Count, Is.GreaterThan(0), "Location spots should be loaded");
             Assert.That(gameWorld.Routes.Count, Is.GreaterThan(0), "Routes should be loaded");
             Assert.That(gameWorld.LetterTemplates.Count, Is.GreaterThan(0), "Letter templates should be loaded");
 
@@ -44,7 +44,7 @@ namespace Wayfarer.Tests
             Assert.That(gameWorld.NPCs.Any(n => n.Name == "Marcus"), Is.True, "Marcus should be loaded");
 
             // Check starting conditions
-            Assert.That(gameWorld.InitialLocationSpotId, Is.EqualTo("corner_table"), "Should start at corner table");
+            Assert.That(gameWorld.InitialLocationId, Is.EqualTo("corner_table"), "Should start at corner table");
         }
 
         [Test]

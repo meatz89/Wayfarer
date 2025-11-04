@@ -86,7 +86,7 @@ Spawn rules define situation flow but don't duplicate situation data. SpawnRule 
 
 Item grants stored in reward templates, item requirements stored in situation requirements, item lifecycle managed by scene progression, but item definition itself exists once in item catalog. No duplicating "room_key" definition across negotiation rewards, access requirements, and departure cleanup logic.
 
-Location spot lock states stored once on LocationSpot entity. Access situation modifies spot.IsLocked property, departure situation restores it, but lock state isn't cached in scene. Query spot entity for current state, don't maintain duplicate tracking.
+Location spot lock states stored once on Location entity. Access situation modifies spot.IsLocked property, departure situation restores it, but lock state isn't cached in scene. Query spot entity for current state, don't maintain duplicate tracking.
 
 ### Catalogue Constraint for Scene Archetypes
 
@@ -134,7 +134,7 @@ Conflating these creates confusion. Original codebase had collision between acti
 
 ### Entity Properties Control Generation
 
-The categorical properties on entities (NPC, Location, LocationSpot) are the primary mechanism for contextual procedural generation. These properties query during archetype generation to produce contextually appropriate mechanical values and narrative hints.
+The categorical properties on entities (NPC, Location, Location) are the primary mechanism for contextual procedural generation. These properties query during archetype generation to produce contextually appropriate mechanical values and narrative hints.
 
 **NPC Properties Affecting Generation:**
 
@@ -291,7 +291,7 @@ Architecture expects Scene.AdvanceToNextSituation() method that queries own Spaw
 
 ### Placement Filter Supports Spots
 
-PlacementFilter evaluates NPC and Location entities, but scenes also need LocationSpot references (for lockable areas). Filter can specify location properties (Lodging, Bathing, Healing) but doesn't specify spot requirements (needs lockable interior room, needs private chamber, needs secluded area).
+PlacementFilter evaluates NPC and Location entities, but scenes also need Location references (for lockable areas). Filter can specify location properties (Lodging, Bathing, Healing) but doesn't specify spot requirements (needs lockable interior room, needs private chamber, needs secluded area).
 
 Scene instantiation currently hardcodes spot selection (first matching spot at location). Need spot filtering (accessibility, privacy level, capacity) and selection strategies (prefer higher privacy if affordable, prefer closer to entrance if rushed).
 
@@ -412,7 +412,7 @@ GenerateServiceWithLocationAccess(
     tier: int,
     npc: NPC,              // Entity object with properties
     location: Location,    // Entity object with properties  
-    spot: LocationSpot,    // Entity object with properties
+    spot: Location,    // Entity object with properties
     playerState: PlayerState
 ) -> SceneTemplate
 ```
@@ -443,9 +443,9 @@ These methods encapsulate scene lifecycle. SituationCompletionHandler calls Scen
 
 ### Phase 3: Spot Filtering and Integration
 
-Extend placement filtering to handle LocationSpot entities:
+Extend placement filtering to handle Location entities:
 
-**Spot Properties:** Add properties to LocationSpot entity (Accessibility enum, Privacy enum, Capacity int, Functionality enum). These enable filtering (need private lockable interior spot for lodging, need public accessible exterior spot for market stall).
+**Spot Properties:** Add properties to Location entity (Accessibility enum, Privacy enum, Capacity int, Functionality enum). These enable filtering (need private lockable interior spot for lodging, need public accessible exterior spot for market stall).
 
 **Placement Filter Spot Requirements:** Add SpotRequirements to PlacementFilter (functionality required, minimum privacy, accessibility constraints). Scene templates declare spot needs alongside NPC and location requirements.
 
@@ -535,7 +535,7 @@ AI returns: pure narrative strings (situation descriptions, choice texts, outcom
 
 ### Entity References Are Strongly Typed
 
-Scene stores NPC entity object reference (for AI context), Location entity object reference (for AI context), LocationSpot entity object reference (for access control), PLUS corresponding IDs for each (for serialization).
+Scene stores NPC entity object reference (for AI context), Location entity object reference (for AI context), Location entity object reference (for access control), PLUS corresponding IDs for each (for serialization).
 
 Object references are primary runtime mechanism. AI generation, requirement evaluation, spawn logic all use typed objects with full property access. IDs only for save/load.
 
@@ -549,7 +549,7 @@ This dual storage (ID + object) acceptable because: same concept, different purp
 
 Generates complete multi-situation scene structures from archetype IDs with entity properties driving contextual generation. Called exclusively during parse phase.
 
-**Method Signature Pattern:** Each archetype generation method receives: archetype ID, tier, strongly-typed entity objects (NPC, Location, LocationSpot), player state benchmarks. NOT just entity IDs - actual entity objects with queryable properties.
+**Method Signature Pattern:** Each archetype generation method receives: archetype ID, tier, strongly-typed entity objects (NPC, Location, Location), player state benchmarks. NOT just entity IDs - actual entity objects with queryable properties.
 
 **Property Query Logic:** Generation queries entity properties to determine mechanical values. npc.Demeanor scales challenge difficulty and payment costs. location.Services determines benefit type (Lodging=stamina, Bathing=cleanliness). spot.Privacy multiplies costs. Formulas reference properties, not hardcoded values.
 
@@ -603,7 +603,7 @@ No situations array. No choices array. Parser resolves entity IDs to objects, pa
 
 No situations array. No choices array. Placement evaluator finds matching entities, passes objects to archetype generation, receives complete scene structure.
 
-**Both Paths Identical After Entity Resolution:** Tutorial parser and procedural evaluator both produce: NPC object, Location object, LocationSpot object. Both invoke identical archetype generation method. Both receive identical SceneTemplate output structure (embedded SituationTemplates with ChoiceTemplates, SpawnRules, item lifecycle, cleanup patterns).
+**Both Paths Identical After Entity Resolution:** Tutorial parser and procedural evaluator both produce: NPC object, Location object, Location object. Both invoke identical archetype generation method. Both receive identical SceneTemplate output structure (embedded SituationTemplates with ChoiceTemplates, SpawnRules, item lifecycle, cleanup patterns).
 
 **Templates Contain Zero Narrative Text:** Pure structure and mechanics. AI generates all narrative from entity properties at situation activation. Template specifies archetype pattern and entity requirements, generation produces mechanical structure, AI produces contextual narrative.
 

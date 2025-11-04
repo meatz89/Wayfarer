@@ -133,7 +133,7 @@ public class PackageLoader
 
         // 2. Venues and Locations (may reference regions/districts and hex grid)
         LoadLocations(package.Content.Venues, allowSkeletons);
-        LoadLocationSpots(package.Content.Locations, allowSkeletons);
+        LoadLocations(package.Content.Locations, allowSkeletons);
         // HEX-BASED TRAVEL SYSTEM: Sync Location.HexPosition after locations loaded
         SyncLocationHexPositions();
 
@@ -291,7 +291,7 @@ public class PackageLoader
         if (startingLocation == null)
             throw new InvalidOperationException($"StartingSpotId '{conditions.StartingSpotId}' not found in parsed locations - player cannot spawn!");
 
-        _gameWorld.InitialLocationSpotId = conditions.StartingSpotId;
+        _gameWorld.InitialLocationId = conditions.StartingSpotId;
 
         // Apply starting obligations
         if (conditions.StartingObligations != null)
@@ -796,7 +796,7 @@ public class PackageLoader
         }
     }
 
-    private void LoadLocationSpots(List<LocationDTO> spotDtos, bool allowSkeletons)
+    private void LoadLocations(List<LocationDTO> spotDtos, bool allowSkeletons)
     {
         if (spotDtos == null) return;
 
@@ -1214,8 +1214,8 @@ public class PackageLoader
         {
             Id = dto.Id,
             Name = dto.Name,
-            OriginLocationSpot = dto.OriginSpotId,
-            DestinationLocationSpot = dto.DestinationSpotId,
+            OriginLocation = dto.OriginSpotId,
+            DestinationLocation = dto.DestinationSpotId,
             Method = Enum.TryParse<TravelMethods>(dto.Method, out TravelMethods method) ? method : TravelMethods.Walking,
             BaseCoinCost = dto.BaseCoinCost,
             BaseStaminaCost = dto.BaseStaminaCost,
@@ -1388,8 +1388,8 @@ public class PackageLoader
     private RouteOption GenerateReverseRoute(RouteOption forwardRoute)
     {
         // Extract Venue IDs from the location IDs for naming
-        string originVenueId = GetVenueIdFromSpotId(forwardRoute.OriginLocationSpot);
-        string destVenueId = GetVenueIdFromSpotId(forwardRoute.DestinationLocationSpot);
+        string originVenueId = GetVenueIdFromSpotId(forwardRoute.OriginLocation);
+        string destVenueId = GetVenueIdFromSpotId(forwardRoute.DestinationLocation);
 
         // Generate reverse route ID by swapping origin and destination
         string[] idParts = forwardRoute.Id.Split("_to_");
@@ -1402,8 +1402,8 @@ public class PackageLoader
             Id = reverseId,
             Name = $"Return to {GetLocationNameFromId(originVenueId)}",
             // Swap origin and destination
-            OriginLocationSpot = forwardRoute.DestinationLocationSpot,
-            DestinationLocationSpot = forwardRoute.OriginLocationSpot,
+            OriginLocation = forwardRoute.DestinationLocation,
+            DestinationLocation = forwardRoute.OriginLocation,
 
             // Keep the same properties for both directions
             Method = forwardRoute.Method,
@@ -1524,10 +1524,10 @@ public class PackageLoader
         List<string> routeSpotIds = new List<string>();
         foreach (RouteOption route in _gameWorld.Routes)
         {
-            if (!routeSpotIds.Contains(route.OriginLocationSpot))
-                routeSpotIds.Add(route.OriginLocationSpot);
-            if (!routeSpotIds.Contains(route.DestinationLocationSpot))
-                routeSpotIds.Add(route.DestinationLocationSpot);
+            if (!routeSpotIds.Contains(route.OriginLocation))
+                routeSpotIds.Add(route.OriginLocation);
+            if (!routeSpotIds.Contains(route.DestinationLocation))
+                routeSpotIds.Add(route.DestinationLocation);
         }
 
         foreach (string LocationId in routeSpotIds)

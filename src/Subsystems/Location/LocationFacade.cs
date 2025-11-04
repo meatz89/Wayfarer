@@ -78,9 +78,9 @@ public class LocationFacade
     /// <summary>
     /// Get the player's current Venue location.
     /// </summary>
-    public Location GetCurrentLocationSpot()
+    public Location GetCurrentLocation()
     {
-        return _locationManager.GetCurrentLocationSpot();
+        return _locationManager.GetCurrentLocation();
     }
 
     /// <summary>
@@ -107,7 +107,7 @@ public class LocationFacade
         // Get current state
         Player player = _gameWorld.GetPlayer();
         Venue currentLocation = GetCurrentLocation();
-        Location currentSpot = GetCurrentLocationSpot();
+        Location currentSpot = GetCurrentLocation();
 
         if (!_movementValidator.ValidateCurrentState(player, currentLocation, currentSpot))
         {
@@ -140,7 +140,7 @@ public class LocationFacade
 
         // Execute movement
         _locationManager.SetCurrentSpot(targetSpot);
-        player.AddKnownLocationSpot(targetSpot.Id);
+        player.AddKnownLocation(targetSpot.Id);
         _messageSystem.AddSystemMessage($"Moved to {targetSpot.Name}", SystemMessageTypes.Info);
 
         return true;
@@ -154,7 +154,7 @@ public class LocationFacade
     {
         Player player = _gameWorld.GetPlayer();
         Venue venue = GetCurrentLocation();
-        Location location = GetCurrentLocationSpot();
+        Location location = GetCurrentLocation();
 
         if (venue == null)
             throw new InvalidOperationException("Current venue is null");
@@ -345,7 +345,7 @@ public class LocationFacade
             throw new InvalidOperationException($"Location not found: {locationId}");
 
         string venueId = location.VenueId;
-        List<Observation> locationObservations = _observationSystem.GetObservationsForLocationSpot(venueId, locationId);
+        List<Observation> locationObservations = _observationSystem.GetObservationsForLocation(venueId, locationId);
         if (locationObservations.Count > 0)
         {
             TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
@@ -403,9 +403,9 @@ public class LocationFacade
 
         foreach (RouteOption route in availableRoutes)
         {
-            Location destSpot = _gameWorld.GetLocation(route.DestinationLocationSpot);
+            Location destSpot = _gameWorld.GetLocation(route.DestinationLocation);
             if (destSpot == null)
-                throw new InvalidOperationException($"Destination location spot not found: {route.DestinationLocationSpot}");
+                throw new InvalidOperationException($"Destination location spot not found: {route.DestinationLocation}");
 
             Venue destination = _locationManager.GetVenue(destSpot.VenueId);
             if (destination == null)
@@ -500,7 +500,7 @@ public class LocationFacade
     {
         Player player = _gameWorld.GetPlayer();
         Venue venue = GetCurrentLocation();
-        Location spot = GetCurrentLocationSpot();
+        Location spot = GetCurrentLocation();
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
         if (venue == null)

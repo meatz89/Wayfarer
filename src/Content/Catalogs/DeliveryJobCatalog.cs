@@ -40,8 +40,8 @@ public static class DeliveryJobCatalog
         foreach (RouteOption route in routes)
         {
             // Get origin and destination locations
-            Location origin = locations.FirstOrDefault(l => l.Id == route.OriginLocationSpot);
-            Location destination = locations.FirstOrDefault(l => l.Id == route.DestinationLocationSpot);
+            Location origin = locations.FirstOrDefault(l => l.Id == route.OriginLocation);
+            Location destination = locations.FirstOrDefault(l => l.Id == route.DestinationLocation);
 
             // Skip if locations not found
             if (origin == null || destination == null)

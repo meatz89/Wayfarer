@@ -92,7 +92,7 @@ public class GameWorld
     public List<RouteImprovement> RouteImprovements { get; set; } = new List<RouteImprovement>();
 
     // Initialization data - stored in GameWorld, not passed between phases
-    public string InitialLocationSpotId { get; set; }
+    public string InitialLocationId { get; set; }
     public PlayerInitialConfig InitialPlayerConfig { get; set; }
 
     // Time initialization (applied to TimeModel after DI initialization)

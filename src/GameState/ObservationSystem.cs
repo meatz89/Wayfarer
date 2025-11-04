@@ -56,7 +56,7 @@ public class ObservationSystem
     /// <summary>
     /// Get observations for a specific Venue and location
     /// </summary>
-    public List<Observation> GetObservationsForLocationSpot(string venueId, string LocationId)
+    public List<Observation> GetObservationsForLocation(string venueId, string LocationId)
     {
         if (_observationsByLocationAndSpot.TryGetValue(venueId, out Dictionary<string, List<Observation>>? spotMap))
         {

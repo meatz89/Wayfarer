@@ -17,7 +17,7 @@ public class Venue
     public VenueType Type { get; set; } = VenueType.Wilderness;  // Strongly-typed venue category (replaces LocationTypeString)
     public int Tier { get; set; } = 1;
 
-    public List<string> LocationSpotIds { get; set; } = new List<string>();
+    public List<string> LocationIds { get; set; } = new List<string>();
 
     // HEX-BASED TRAVEL SYSTEM: Venue is ONLY a wrapper for travel cost rules
     // Venue has NO spatial position - Locations are the spatial entities

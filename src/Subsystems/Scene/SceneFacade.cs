@@ -94,8 +94,8 @@ public class SceneFacade
         if (scene.PlacementType == PlacementType.Route)
         {
             RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == scene.PlacementId);
-            bool matches = route?.OriginLocationSpot == locationId;
-            Console.WriteLine($"  [IsSceneAtLocation] Scene '{scene.Id}' Route placement: Route '{scene.PlacementId}' origin '{route?.OriginLocationSpot}' (target: '{locationId}') - {(matches ? "MATCH" : "no match")}");
+            bool matches = route?.OriginLocation == locationId;
+            Console.WriteLine($"  [IsSceneAtLocation] Scene '{scene.Id}' Route placement: Route '{scene.PlacementId}' origin '{route?.OriginLocation}' (target: '{locationId}') - {(matches ? "MATCH" : "no match")}");
             return matches;
         }
 

@@ -151,7 +151,7 @@ Scene entity has SpawnRules (pattern, transitions, completion condition) and Cur
 
 **SituationTemplate → ChoiceTemplate:** One-to-many embedded composition. ChoiceTemplates stored inline in SituationTemplate.ChoiceTemplates list. 2-4 choices (Sir Brante pattern) unless IsAutoAdvance. Parser validates count. Actions instantiated at query time by SceneFacade from these templates.
 
-**Scene → Location/NPC/Route:** Scene has PlacementType enum + PlacementId string (concrete reference). Scene can be placed at ONE entity. UI queries check IsSceneAtLocation(): Location placement=direct match, NPC placement=check NPC.Location.Id, Route placement=check Route.OriginLocationSpot.
+**Scene → Location/NPC/Route:** Scene has PlacementType enum + PlacementId string (concrete reference). Scene can be placed at ONE entity. UI queries check IsSceneAtLocation(): Location placement=direct match, NPC placement=check NPC.Location.Id, Route placement=check Route.OriginLocation.
 
 **Situation → Template:** Situation stores Template reference (object) for lazy action instantiation. Template contains ChoiceTemplates used at query time. Not serialized (runtime-only reference).
 

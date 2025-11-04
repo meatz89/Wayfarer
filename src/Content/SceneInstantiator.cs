@@ -305,7 +305,7 @@ public class SceneInstantiator
     }
 
     // NOTE: AdjacentLocation placement removed from PlacementRelation enum
-    // If needed in future, add to enum and implement here with proper LocationSpot → Location mapping
+    // If needed in future, add to enum and implement here with proper Location → Location mapping
 
     /// <summary>
     /// Instantiate Situation from SituationTemplate
