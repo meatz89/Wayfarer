@@ -912,6 +912,7 @@ public class SceneTemplateParser
         return new SituationTemplate
         {
             Id = bareTemplate.Id,
+            Name = bareTemplate.Name,  // CRITICAL: Copy Name from catalogue-generated template
             Type = bareTemplate.Type,
             ArchetypeId = bareTemplate.ArchetypeId,
             NarrativeTemplate = bareTemplate.NarrativeTemplate,

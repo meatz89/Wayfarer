@@ -243,11 +243,17 @@ public class NpcWithSituationsViewModel
     public bool HasExchange { get; set; }
     public string ExchangeDescription { get; set; }
 
-    // Interaction button control
-    // null = no button shown (NPC has no active scene)
-    // non-null = button shown with this label (from Scene.DisplayName or first Situation.Name)
-    // Examples: "Ask about the missing girl", "Discuss recent events", null
-    public string InteractionLabel { get; set; }
+    // Available scenes for this NPC - each scene becomes a separate interaction button
+    // Empty list = no buttons shown (NPC has no active scenes)
+    // Multiple scenes = multiple buttons (one per scene)
+    public List<NpcSceneViewModel> AvailableScenes { get; set; } = new();
+}
+
+public class NpcSceneViewModel
+{
+    public Scene Scene { get; set; }
+    public string Label { get; set; }
+    public string Description { get; set; }
 }
 
 /// <summary>

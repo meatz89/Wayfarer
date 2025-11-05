@@ -746,30 +746,43 @@ public class LocationFacade
         {
             ConnectionState connectionState = GetNPCConnectionState(npc);
 
-            // Find active scene for this NPC to determine interaction label
-            Scene activeScene = _gameWorld.Scenes.FirstOrDefault(s =>
+            // Find ALL active scenes for this NPC (multi-scene display)
+            List<Scene> activeScenes = _gameWorld.Scenes.Where(s =>
                 s.State == SceneState.Active &&
                 s.PlacementType == PlacementType.NPC &&
-                s.PlacementId == npc.ID);
+                s.PlacementId == npc.ID).ToList();
 
-            // Derive interaction label from scene
-            string interactionLabel = null;
-            if (activeScene != null)
+            // Build scene view model for each active scene
+            List<NpcSceneViewModel> availableScenes = new List<NpcSceneViewModel>();
+            foreach (Scene scene in activeScenes)
             {
-                // Try Scene.DisplayName first (curated label)
-                if (!string.IsNullOrEmpty(activeScene.DisplayName))
+                // Derive label using fallback hierarchy: DisplayName → FirstSituation.Name → Placeholder
+                string label = null;
+                if (!string.IsNullOrEmpty(scene.DisplayName))
                 {
-                    interactionLabel = activeScene.DisplayName;
+                    label = scene.DisplayName;
                 }
-                else if (activeScene.SituationIds.Count > 0)
+                else if (scene.SituationIds.Count > 0)
                 {
-                    // Fallback: Get first situation name
-                    Situation firstSituation = _gameWorld.Situations.FirstOrDefault(s => s.Id == activeScene.SituationIds[0]);
-                    if (firstSituation != null)
+                    Situation firstSituation = _gameWorld.Situations.FirstOrDefault(s => s.Id == scene.SituationIds[0]);
+                    if (firstSituation != null && !string.IsNullOrEmpty(firstSituation.Name))
                     {
-                        interactionLabel = firstSituation.Name;
+                        label = firstSituation.Name;
                     }
                 }
+
+                // Fallback to placeholder if no label found (playability over aesthetics)
+                if (string.IsNullOrEmpty(label))
+                {
+                    label = $"Talk to {npc.Name}";
+                }
+
+                availableScenes.Add(new NpcSceneViewModel
+                {
+                    Scene = scene,
+                    Label = label,
+                    Description = scene.IntroNarrative
+                });
             }
 
             NpcWithSituationsViewModel viewModel = new NpcWithSituationsViewModel
@@ -782,7 +795,7 @@ public class LocationFacade
                 Description = GetNPCDescriptionText(npc, connectionState),
                 HasExchange = npc.HasExchangeCards(),
                 ExchangeDescription = npc.HasExchangeCards() ? "Trading - Buy supplies and equipment" : null,
-                InteractionLabel = interactionLabel
+                AvailableScenes = availableScenes
             };
 
             result.Add(viewModel);

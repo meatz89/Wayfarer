@@ -306,9 +306,9 @@ namespace Wayfarer.Pages.Components
             await GameScreen.StartExchange(npcId);
         }
 
-        protected async Task HandleTalkToNPC(string npcId)
+        protected async Task HandleTalkToNPC(string npcId, Scene scene)
         {
-            await GameScreen.StartNPCEngagement(npcId);
+            await GameScreen.StartNPCEngagement(npcId, scene);
         }
 
         protected async Task HandleAcceptJob(string jobId)

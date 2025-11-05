@@ -322,6 +322,7 @@ public class SceneInstantiator
         Situation situation = new Situation
         {
             Id = situationId,
+            Name = template.Name,  // Copy display name from template
             TemplateId = template.Id,
             Template = template,  // CRITICAL: Store template for lazy action instantiation
             Type = template.Type,  // Copy semantic type (Normal vs Crisis) from template

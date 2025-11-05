@@ -589,19 +589,19 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartNPCEngagement(string npcId)
+    public async Task StartNPCEngagement(string npcId, Scene scene)
     {
-        // Find active scene for this NPC
-        Scene scene = GameWorld.Scenes.FirstOrDefault(s =>
-            s.State == SceneState.Active &&
-            s.PlacementType == PlacementType.NPC &&
-            s.PlacementId == npcId);
-
-        // If no active scene found, we can't engage (scene should be spawned first)
-        // In future, could spawn scene here if needed
-        if (scene == null)
+        // Direct scene object passed from UI (HIGHLANDER Pattern B - no lookup needed)
+        // Defensive validation: Scene must be active and belong to this NPC
+        if (scene.State != SceneState.Active)
         {
-            Console.WriteLine($"[GameScreen] No active scene found for NPC {npcId}");
+            Console.WriteLine($"[GameScreen] Scene {scene.Id} is not active (state: {scene.State})");
+            return;
+        }
+
+        if (scene.PlacementType != PlacementType.NPC || scene.PlacementId != npcId)
+        {
+            Console.WriteLine($"[GameScreen] Scene {scene.Id} does not belong to NPC {npcId}");
             return;
         }
 

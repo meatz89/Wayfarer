@@ -110,10 +110,17 @@ public static class SceneArchetypeCatalog
         string negotiateArchetype = DetermineNegotiationArchetype(contextNPC, contextLocation, contextPlayer);
         NarrativeHints negotiateHints = GenerateNegotiationHints(serviceType, contextNPC, contextLocation, contextPlayer);
 
+        // Generate situation names based on service type
+        string negotiateName = $"Secure {CapitalizeServiceType(serviceType)}";
+        string accessName = "Enter";
+        string serviceName = CapitalizeServiceType(serviceType);
+        string departName = "Leave";
+
         // Situation 1: Negotiate with service provider
         SituationTemplate negotiateSituation = new SituationTemplate
         {
             Id = negotiateSitId,
+            Name = negotiateName,
             Type = SituationType.Normal,
             ArchetypeId = negotiateArchetype,  // Context-aware archetype selection
             NarrativeTemplate = null,  // AI generates at finalization
@@ -125,6 +132,7 @@ public static class SceneArchetypeCatalog
         SituationTemplate accessSituation = new SituationTemplate
         {
             Id = accessSitId,
+            Name = accessName,
             Type = SituationType.Normal,
             ArchetypeId = "access_control",  // SituationArchetypeCatalog generates choices
             NarrativeTemplate = null,  // AI generates
@@ -145,6 +153,7 @@ public static class SceneArchetypeCatalog
         SituationTemplate serviceSituation = new SituationTemplate
         {
             Id = serviceSitId,
+            Name = serviceName,
             Type = SituationType.Normal,
             ArchetypeId = GetServiceArchetype(serviceType),  // Service-specific archetype
             NarrativeTemplate = null,  // AI generates
@@ -162,6 +171,7 @@ public static class SceneArchetypeCatalog
         SituationTemplate departureSituation = new SituationTemplate
         {
             Id = departSitId,
+            Name = departName,
             Type = SituationType.Normal,
             ArchetypeId = null,  // Simple departure, no choices needed
             NarrativeTemplate = null,  // AI generates
@@ -948,5 +958,17 @@ public static class SceneArchetypeCatalog
             SituationTemplates = situations,
             SpawnRules = spawnRules
         };
+    }
+
+    /// <summary>
+    /// Capitalize service type for display names
+    /// "lodging" → "Lodging", "bathing" → "Bathing", "healing" → "Healing"
+    /// </summary>
+    private static string CapitalizeServiceType(string serviceType)
+    {
+        if (string.IsNullOrEmpty(serviceType))
+            return "Service";
+
+        return char.ToUpper(serviceType[0]) + serviceType.Substring(1);
     }
 }

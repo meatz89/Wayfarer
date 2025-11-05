@@ -74,14 +74,14 @@
                                 <div class="npc-description">@npc.Description</div>
 
                                 @* Interaction buttons - conditional on scene/exchange availability *@
-                                @if (!string.IsNullOrEmpty(npc.InteractionLabel) || npc.HasExchange)
+                                @if (npc.AvailableScenes.Count > 0 || npc.HasExchange)
                                 {
                                     <div class="actions-grid">
-                                        @* Scene interaction button - shown only if NPC has active scene *@
-                                        @if (!string.IsNullOrEmpty(npc.InteractionLabel))
+                                        @* Scene interaction buttons - one per active scene (multi-scene display) *@
+                                        @foreach (var sceneVm in npc.AvailableScenes)
                                         {
-                                            <div class="situation-action-btn" @onclick="async () => await HandleTalkToNPC(npc.Id)">
-                                                <div class="situation-name">@npc.InteractionLabel</div>
+                                            <div class="situation-action-btn" @onclick="async () => await HandleTalkToNPC(npc.Id, sceneVm.Scene)">
+                                                <div class="situation-name">@sceneVm.Label</div>
                                             </div>
                                         }
 
