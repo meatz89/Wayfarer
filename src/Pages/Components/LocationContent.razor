@@ -63,7 +63,7 @@
 
                         @foreach (var npc in ViewModel.NPCsWithSituations)
                         {
-                            @* NPC Card with simple "Talk to" engagement *@
+                            @* NPC Card - NPCs always visible (physical presence) *@
                             <div class="npc-card">
                                 <div class="npc-header">
                                     <div>
@@ -73,22 +73,29 @@
                                 </div>
                                 <div class="npc-description">@npc.Description</div>
 
-                                @* Single "Talk to NPC" button - scenes/situations appear AFTER engagement *@
-                                <div class="actions-grid">
-                                    <div class="situation-action-btn" @onclick="async () => await HandleTalkToNPC(npc.Id)">
-                                        <div class="situation-name">Talk to @npc.Name</div>
-                                    </div>
+                                @* Interaction buttons - conditional on scene/exchange availability *@
+                                @if (!string.IsNullOrEmpty(npc.InteractionLabel) || npc.HasExchange)
+                                {
+                                    <div class="actions-grid">
+                                        @* Scene interaction button - shown only if NPC has active scene *@
+                                        @if (!string.IsNullOrEmpty(npc.InteractionLabel))
+                                        {
+                                            <div class="situation-action-btn" @onclick="async () => await HandleTalkToNPC(npc.Id)">
+                                                <div class="situation-name">@npc.InteractionLabel</div>
+                                            </div>
+                                        }
 
-                                    @* Exchange Option for MERCANTILE NPCs *@
-                                    @if (npc.HasExchange)
-                                    {
-                                        <div class="situation-action-btn" @onclick="async () => await HandleStartExchange(npc.Id)">
-                                            <div class="situation-system-badge exchange">Exchange</div>
-                                            <div class="situation-name">Trading</div>
-                                            <div class="situation-description">@npc.ExchangeDescription</div>
-                                        </div>
-                                    }
-                                </div>
+                                        @* Exchange Option for MERCANTILE NPCs *@
+                                        @if (npc.HasExchange)
+                                        {
+                                            <div class="situation-action-btn" @onclick="async () => await HandleStartExchange(npc.Id)">
+                                                <div class="situation-system-badge exchange">Exchange</div>
+                                                <div class="situation-name">Trading</div>
+                                                <div class="situation-description">@npc.ExchangeDescription</div>
+                                            </div>
+                                        }
+                                    </div>
+                                }
                             </div>
                         }
                     }

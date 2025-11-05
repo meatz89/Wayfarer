@@ -741,10 +741,36 @@ public class LocationFacade
         List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot.Id, currentTime);
 
         // Build SIMPLE NPC cards for "Look Around" view
-        // NO scenes, situations, or executable actions (those appear AFTER player clicks "Talk to NPC")
+        // NPCs ALWAYS visible (physical presence), button conditional on scene availability
         foreach (NPC npc in npcsAtSpot)
         {
             ConnectionState connectionState = GetNPCConnectionState(npc);
+
+            // Find active scene for this NPC to determine interaction label
+            Scene activeScene = _gameWorld.Scenes.FirstOrDefault(s =>
+                s.State == SceneState.Active &&
+                s.PlacementType == PlacementType.NPC &&
+                s.PlacementId == npc.ID);
+
+            // Derive interaction label from scene
+            string interactionLabel = null;
+            if (activeScene != null)
+            {
+                // Try Scene.DisplayName first (curated label)
+                if (!string.IsNullOrEmpty(activeScene.DisplayName))
+                {
+                    interactionLabel = activeScene.DisplayName;
+                }
+                else if (activeScene.SituationIds.Count > 0)
+                {
+                    // Fallback: Get first situation name
+                    Situation firstSituation = _gameWorld.Situations.FirstOrDefault(s => s.Id == activeScene.SituationIds[0]);
+                    if (firstSituation != null)
+                    {
+                        interactionLabel = firstSituation.Name;
+                    }
+                }
+            }
 
             NpcWithSituationsViewModel viewModel = new NpcWithSituationsViewModel
             {
@@ -755,7 +781,8 @@ public class LocationFacade
                 StateClass = GetConnectionStateClass(connectionState),
                 Description = GetNPCDescriptionText(npc, connectionState),
                 HasExchange = npc.HasExchangeCards(),
-                ExchangeDescription = npc.HasExchangeCards() ? "Trading - Buy supplies and equipment" : null
+                ExchangeDescription = npc.HasExchangeCards() ? "Trading - Buy supplies and equipment" : null,
+                InteractionLabel = interactionLabel
             };
 
             result.Add(viewModel);

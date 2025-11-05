@@ -227,8 +227,8 @@ public class LocationHeaderViewModel
 
 /// <summary>
 /// NPC present at location - simplified for "Look Around" view
-/// Shows basic NPC metadata with single "Talk to" engagement action
-/// NO situations, scenes, or executable actions (those appear AFTER engagement)
+/// Shows basic NPC metadata with conditional interaction button
+/// NPCs ALWAYS visible (physical presence), button conditional on scene availability
 /// </summary>
 public class NpcWithSituationsViewModel
 {
@@ -242,6 +242,12 @@ public class NpcWithSituationsViewModel
     // Exchange availability for MERCANTILE NPCs
     public bool HasExchange { get; set; }
     public string ExchangeDescription { get; set; }
+
+    // Interaction button control
+    // null = no button shown (NPC has no active scene)
+    // non-null = button shown with this label (from Scene.DisplayName or first Situation.Name)
+    // Examples: "Ask about the missing girl", "Discuss recent events", null
+    public string InteractionLabel { get; set; }
 }
 
 /// <summary>
