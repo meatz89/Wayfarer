@@ -221,10 +221,9 @@ public static class GameWorldInitializer
                 if (route == null) return null;
                 context.CurrentRoute = route;
 
-                Location routeOrigin = gameWorld.Locations.FirstOrDefault(l => l.Id == route.OriginLocation);
-                if (routeOrigin != null)
+                if (route.OriginLocation != null)
                 {
-                    context.CurrentLocation = routeOrigin;
+                    context.CurrentLocation = route.OriginLocation;
                 }
                 break;
 
