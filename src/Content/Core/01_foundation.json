@@ -59,20 +59,6 @@
         "canInvestigate": false
       },
       {
-        "id": "upstairs_room",
-        "venueId": "brass_bell_inn",
-        "name": "Upstairs Room",
-        "description": "A simple guest room. Quiet, safe. A bed waits.",
-        "properties": {
-          "base": [
-            "sleepingSpace",
-            "restful",
-            "indoor"
-          ]
-        },
-        "canInvestigate": false
-      },
-      {
         "id": "fountain_plaza",
         "venueId": "town_square",
         "name": "Fountain Plaza",
