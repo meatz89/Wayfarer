@@ -400,19 +400,18 @@ public class SpawnFacade
 
     /// <summary>
     /// Determine PlacementRelation from PlacementFilter
+    /// PlacementFilter presence ALWAYS means Generic categorical resolution.
+    /// PlacementType tells SceneInstantiator WHICH entity type to filter (NPC vs Location vs Route),
+    /// NOT which resolution strategy to use.
     /// </summary>
     private PlacementRelation DeterminePlacementFromFilter(PlacementFilter filter)
     {
         if (filter == null)
             return PlacementRelation.SpecificLocation;
 
-        return filter.PlacementType switch
-        {
-            PlacementType.NPC => PlacementRelation.SpecificNPC,
-            PlacementType.Location => PlacementRelation.SpecificLocation,
-            PlacementType.Route => PlacementRelation.SpecificRoute,
-            _ => PlacementRelation.SpecificLocation
-        };
+        // PlacementFilter exists = use Generic categorical resolution
+        // SceneInstantiator.EvaluatePlacementFilter() reads filter.PlacementType to determine entity type
+        return PlacementRelation.Generic;
     }
 
     /// <summary>

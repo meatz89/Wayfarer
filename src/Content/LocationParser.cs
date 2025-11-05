@@ -15,6 +15,18 @@ public static class LocationParser
             VenueId = dto.VenueId ?? "" // Optional - defaults to empty if missing
         };
 
+        // HIGHLANDER Pattern A: Resolve Venue object reference from VenueId
+        // Location.VenueId (string) from JSON, Location.Venue (object) resolved here via GameWorld lookup
+        // Runtime code uses ONLY Location.Venue, never VenueId lookups
+        if (!string.IsNullOrEmpty(location.VenueId))
+        {
+            location.Venue = gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId);
+            if (location.Venue == null)
+            {
+                throw new InvalidOperationException($"Location '{dto.Id}' references non-existent Venue '{location.VenueId}'");
+            }
+        }
+
         // Parse time windows
         if (dto.CurrentTimeBlocks != null && dto.CurrentTimeBlocks.Count > 0)
         {
