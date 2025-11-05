@@ -73,7 +73,10 @@ public class SituationCompletionHandler
         if (situation.ParentScene != null)
         {
             Scene scene = situation.ParentScene;
-            scene.AdvanceToNextSituation(situation.Id);
+            SceneRoutingDecision routingDecision = scene.AdvanceToNextSituation(situation.Id, _gameWorld);
+
+            // Store routing decision on situation for UI to query
+            situation.RoutingDecision = routingDecision;
 
             // AUTOMATIC SPAWNING ORCHESTRATION - Scene completion trigger (cascade spawning)
             // If scene just completed, check for procedural scenes that become eligible

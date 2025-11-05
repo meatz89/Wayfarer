@@ -430,20 +430,44 @@ namespace Wayfarer.Pages.Components
             // UI queries new current situation after completion
             SituationCompletionHandler.CompleteSituation(CurrentSituation);
 
-            // Re-query current situation after scene advancement
-            string newSituationId = Scene.CurrentSituationId;
-            Situation newSituation = GameWorld.Situations.FirstOrDefault(s => s.Id == newSituationId);
+            // CONTEXT-AWARE ROUTING: Query routing decision from completed situation
+            SceneRoutingDecision routingDecision = CurrentSituation.RoutingDecision;
 
-            if (newSituation != null && newSituation.Id != CurrentSituation.Id)
+            if (routingDecision == SceneRoutingDecision.ContinueInScene)
             {
-                // Scene advanced to new situation - reload and display
-                CurrentSituation = newSituation;
-                LoadChoices();
-                StateHasChanged();
+                // Same context (location + NPC) - seamless cascade to next situation
+                string nextSituationId = Scene.CurrentSituationId;
+                Situation nextSituation = GameWorld.Situations.FirstOrDefault(s => s.Id == nextSituationId);
+
+                if (nextSituation != null)
+                {
+                    // Ensure next situation is instantiated (Deferred → Instantiated)
+                    if (nextSituation.InstantiationState == InstantiationState.Deferred)
+                    {
+                        SceneFacade.InstantiateSituation(nextSituation);
+                    }
+
+                    // Reload modal with next situation - no exit to world
+                    CurrentSituation = nextSituation;
+                    LoadChoices();
+                    StateHasChanged();
+                }
+                else
+                {
+                    // Safety fallback - scene should have marked complete
+                    await OnSceneEnd.InvokeAsync();
+                }
             }
-            else
+            else if (routingDecision == SceneRoutingDecision.ExitToWorld)
             {
-                // Scene complete - return to location
+                // Different context (location or NPC changed) - player must navigate
+                // Scene persists with updated CurrentSituationId
+                // Will resume when player navigates to required context
+                await OnSceneEnd.InvokeAsync();
+            }
+            else // SceneRoutingDecision.SceneComplete
+            {
+                // Scene complete - no more situations
                 await OnSceneEnd.InvokeAsync();
             }
         }

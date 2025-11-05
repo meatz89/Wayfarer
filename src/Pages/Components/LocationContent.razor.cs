@@ -12,6 +12,7 @@ namespace Wayfarer.Pages.Components
     {
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected GameWorld GameWorld { get; set; }
+        [Inject] protected Subsystems.Scene.SceneFacade SceneFacade { get; set; }
 
         [Parameter] public EventCallback OnActionExecuted { get; set; }
 
@@ -59,6 +60,17 @@ namespace Wayfarer.Pages.Components
             {
                 AvailableConversationTrees = GameFacade.GetAvailableConversationTreesAtLocation(locationId);
                 AvailableObservationScenes = GameFacade.GetAvailableObservationScenesAtLocation(locationId);
+
+                // MULTI-SITUATION SCENE RESUMPTION: Check if player navigated to location required by waiting scene
+                // Scene completed Situation 1 with ExitToWorld routing (different context required)
+                // Player navigated to required location - auto-resume scene to continue progression
+                List<global::Scene> resumableScenes = SceneFacade.GetResumableModalScenesAtContext(locationId, null);
+                if (resumableScenes.Count > 0)
+                {
+                    // Auto-resume first waiting scene (should only be one per location context)
+                    global::Scene resumableScene = resumableScenes[0];
+                    await GameScreen.StartModalScene(resumableScene.Id);
+                }
             }
 
             await Task.CompletedTask;

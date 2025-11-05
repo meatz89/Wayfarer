@@ -66,6 +66,24 @@ public class SituationTemplate
     public int Priority { get; init; } = 0;
 
     /// <summary>
+    /// Location where this Situation occurs (context tracking for multi-situation scenes)
+    /// Set by SceneArchetypeCatalog during generation
+    /// Used by Scene.CompareContexts to determine if consecutive situations share same location
+    /// Same location = seamless cascade, different location = exit to world
+    /// Example: "common_room", "upper_floor"
+    /// </summary>
+    public string RequiredLocationId { get; init; }
+
+    /// <summary>
+    /// NPC who must be present for this Situation (context tracking for multi-situation scenes)
+    /// Set by SceneArchetypeCatalog during generation
+    /// null = no NPC requirement (location-only context)
+    /// Used by Scene.CompareContexts to determine if consecutive situations share same context
+    /// Example: "elena" for negotiation situations, null for service delivery situations
+    /// </summary>
+    public string RequiredNpcId { get; init; }
+
+    /// <summary>
     /// Optional narrative hints for AI generation
     /// If NarrativeTemplate is null/empty, AI generates narrative using these hints
     /// Provides tone, theme, context, style guidance

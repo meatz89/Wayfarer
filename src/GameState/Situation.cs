@@ -44,6 +44,16 @@ public class Situation
     public bool IsAutoAdvance { get; set; } = false;
 
     /// <summary>
+    /// Routing decision for multi-situation scene progression
+    /// Set by SituationCompletionHandler after Scene.AdvanceToNextSituation
+    /// Read by SceneContent.HandleChoiceSelected to determine UI routing
+    /// ContinueInScene = reload modal with next situation (seamless cascade)
+    /// ExitToWorld = exit to world, scene resumes when player navigates to required context
+    /// SceneComplete = scene finished, remove from active scenes
+    /// </summary>
+    public SceneRoutingDecision RoutingDecision { get; set; }
+
+    /// <summary>
     /// Template reference for lazy action instantiation
     /// CRITICAL: Actions NOT created at Scene spawn (Tier 2)
     /// Actions created at query time (Tier 3) by SceneFacade from Template.ChoiceTemplates

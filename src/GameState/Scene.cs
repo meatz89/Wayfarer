@@ -173,16 +173,19 @@ public class Scene
     /// Queries SpawnRules.Transitions for matching source, updates CurrentSituationId
     /// If no valid transitions, marks scene as complete
     /// DOMAIN RESPONSIBILITY: Scene owns its state machine, not facades
+    /// CONTEXT-AWARE: Compares contexts to determine routing (seamless cascade vs exit to world)
     /// </summary>
     /// <param name="completedSituationId">Situation that was just completed</param>
-    public void AdvanceToNextSituation(string completedSituationId)
+    /// <param name="gameWorld">GameWorld for situation lookup</param>
+    /// <returns>Routing decision for UI (ContinueInScene, ExitToWorld, or SceneComplete)</returns>
+    public SceneRoutingDecision AdvanceToNextSituation(string completedSituationId, GameWorld gameWorld)
     {
         if (SpawnRules == null || SpawnRules.Transitions == null || SpawnRules.Transitions.Count == 0)
         {
             // No transitions defined - scene complete after first situation
             CurrentSituationId = null;
             State = SceneState.Completed;
-            return;
+            return SceneRoutingDecision.SceneComplete;
         }
 
         // Find transition from completed situation
@@ -190,14 +193,22 @@ public class Scene
 
         if (transition != null)
         {
-            // Valid transition found - advance to destination situation
+            // Valid transition found - get both situations for context comparison
+            Situation completedSituation = gameWorld.Situations.FirstOrDefault(s => s.Id == completedSituationId);
+            Situation nextSituation = gameWorld.Situations.FirstOrDefault(s => s.Id == transition.DestinationSituationId);
+
+            // Update CurrentSituationId
             CurrentSituationId = transition.DestinationSituationId;
+
+            // Compare contexts to determine routing
+            return CompareContexts(completedSituation, nextSituation);
         }
         else
         {
             // No valid transition - scene complete
             CurrentSituationId = null;
             State = SceneState.Completed;
+            return SceneRoutingDecision.SceneComplete;
         }
     }
 
@@ -225,6 +236,98 @@ public class Scene
     {
         return CurrentSituationId == null || State == SceneState.Completed;
     }
+
+    /// <summary>
+    /// Check if this Scene should activate at given context (location + optional NPC)
+    /// Used for multi-situation scene resumption after navigation
+    /// Scene resumes if:
+    /// - Scene is Active
+    /// - CurrentSituationId is set (scene has next situation waiting)
+    /// - Current situation's RequiredLocationId matches locationId
+    /// - Current situation's RequiredNpcId matches npcId (or both null)
+    /// </summary>
+    /// <param name="locationId">Location player is currently at</param>
+    /// <param name="npcId">NPC player is currently interacting with (null if none)</param>
+    /// <param name="gameWorld">GameWorld for situation lookup</param>
+    /// <returns>True if scene should resume at this context</returns>
+    public bool ShouldActivateAtContext(string locationId, string npcId, GameWorld gameWorld)
+    {
+        if (State != SceneState.Active)
+            return false;
+
+        if (string.IsNullOrEmpty(CurrentSituationId))
+            return false;
+
+        Situation currentSituation = gameWorld.Situations.FirstOrDefault(s => s.Id == CurrentSituationId);
+        if (currentSituation == null || currentSituation.Template == null)
+            return false;
+
+        SituationTemplate template = currentSituation.Template;
+
+        // Check location match
+        if (template.RequiredLocationId != locationId)
+            return false;
+
+        // Check NPC match (both null = match, both non-null = compare values)
+        if (template.RequiredNpcId != npcId)
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Compare contexts of two consecutive situations to determine routing
+    /// Same context (location + NPC) = ContinueInScene (seamless cascade)
+    /// Different context = ExitToWorld (player must navigate)
+    /// PRIVATE: Called internally by AdvanceToNextSituation
+    /// </summary>
+    /// <param name="previousSituation">Situation that was just completed</param>
+    /// <param name="nextSituation">Situation about to become current</param>
+    /// <returns>Routing decision for UI</returns>
+    private SceneRoutingDecision CompareContexts(Situation previousSituation, Situation nextSituation)
+    {
+        if (previousSituation?.Template == null || nextSituation?.Template == null)
+            return SceneRoutingDecision.ExitToWorld;
+
+        SituationTemplate prevTemplate = previousSituation.Template;
+        SituationTemplate nextTemplate = nextSituation.Template;
+
+        // Compare location context
+        bool sameLocation = prevTemplate.RequiredLocationId == nextTemplate.RequiredLocationId;
+
+        // Compare NPC context
+        bool sameNpc = prevTemplate.RequiredNpcId == nextTemplate.RequiredNpcId;
+
+        // Same context = seamless cascade, different context = exit to world
+        return (sameLocation && sameNpc) ? SceneRoutingDecision.ContinueInScene : SceneRoutingDecision.ExitToWorld;
+    }
+}
+
+/// <summary>
+/// Routing decision for multi-situation scene progression
+/// Determines UI behavior after situation completion
+/// </summary>
+public enum SceneRoutingDecision
+{
+    /// <summary>
+    /// Continue in scene modal - next situation shares same context (location + NPC)
+    /// UI reloads modal with next situation without exiting to world
+    /// Example: Situations 2→3 both at upper_floor
+    /// </summary>
+    ContinueInScene,
+
+    /// <summary>
+    /// Exit to world - next situation requires different context (location or NPC changed)
+    /// Scene persists with updated CurrentSituationId, resumes when player navigates to required context
+    /// Example: Situation 1 at common_room → Situation 2 at upper_floor (player must navigate)
+    /// </summary>
+    ExitToWorld,
+
+    /// <summary>
+    /// Scene complete - no more situations
+    /// Scene marked as Completed, removed from active scenes
+    /// </summary>
+    SceneComplete
 }
 
 /// <summary>

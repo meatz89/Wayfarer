@@ -57,6 +57,25 @@ public class SceneFacade
     }
 
     /// <summary>
+    /// Get resumable modal scenes at given context (location + optional NPC)
+    /// Used for multi-situation scene resumption after navigation
+    /// Returns scenes that should auto-activate when player navigates to their required context
+    /// Example: Player completes Situation 1 at common_room, navigates to upper_floor,
+    ///          this method finds the scene waiting at upper_floor and returns it for resumption
+    /// </summary>
+    /// <param name="locationId">Location player is currently at</param>
+    /// <param name="npcId">NPC player is currently interacting with (null if none)</param>
+    /// <returns>List of scenes that should resume at this context</returns>
+    public List<global::Scene> GetResumableModalScenesAtContext(string locationId, string npcId)
+    {
+        return _gameWorld.Scenes
+            .Where(s => s.State == SceneState.Active &&
+                       s.PresentationMode == PresentationMode.Modal &&
+                       s.ShouldActivateAtContext(locationId, npcId, _gameWorld))
+            .ToList();
+    }
+
+    /// <summary>
     /// Check if scene is present at this location (placement-agnostic)
     /// Handles three placement types:
     /// - Location: Direct placement at location

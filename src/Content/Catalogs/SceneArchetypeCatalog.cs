@@ -125,7 +125,9 @@ public static class SceneArchetypeCatalog
             ArchetypeId = negotiateArchetype,  // Context-aware archetype selection
             NarrativeTemplate = null,  // AI generates at finalization
             Priority = 100,
-            NarrativeHints = negotiateHints
+            NarrativeHints = negotiateHints,
+            RequiredLocationId = contextNPC?.Location?.Id,  // Negotiate at NPC's location (common_room)
+            RequiredNpcId = contextNPC?.ID  // NPC must be present for negotiation (elena)
         };
 
         // Situation 2: Access locked location (AutoAdvance)
@@ -146,7 +148,9 @@ public static class SceneArchetypeCatalog
             AutoProgressRewards = new ChoiceReward
             {
                 TimeSegments = 1  // Accessing location costs 1 time segment
-            }
+            },
+            RequiredLocationId = contextLocation?.Id,  // Access at service location (upper_floor)
+            RequiredNpcId = null  // No NPC requirement for access
         };
 
         // Situation 3: Service provision
@@ -164,7 +168,9 @@ public static class SceneArchetypeCatalog
                 Theme = $"{serviceType}_experience",
                 Context = $"{serviceType}_provision"
             },
-            AutoProgressRewards = GenerateServiceRewards(serviceType, tier)
+            AutoProgressRewards = GenerateServiceRewards(serviceType, tier),
+            RequiredLocationId = contextLocation?.Id,  // Service at service location (upper_floor)
+            RequiredNpcId = null  // No NPC requirement for service delivery
         };
 
         // Situation 4: Departure and cleanup (AutoAdvance)
@@ -185,7 +191,9 @@ public static class SceneArchetypeCatalog
             AutoProgressRewards = new ChoiceReward
             {
                 TimeSegments = 1  // Leaving costs 1 time segment
-            }
+            },
+            RequiredLocationId = contextNPC?.Location?.Id,  // Depart at NPC's location (common_room)
+            RequiredNpcId = contextNPC?.ID  // Return to NPC for conclusion (elena)
         };
 
         // Generate spawn rules (linear progression)
