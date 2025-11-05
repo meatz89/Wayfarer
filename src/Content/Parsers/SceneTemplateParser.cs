@@ -1,4 +1,5 @@
 using Wayfarer.Content.Catalogues;
+using Wayfarer.GameState;
 using Wayfarer.GameState.Enums;
 
 namespace Wayfarer.Content.Parsers;
@@ -85,9 +86,11 @@ public class SceneTemplateParser
             Console.WriteLine($"[SceneArchetypeGeneration] Categorical scene (no concrete entities at parse time), Player.Coins={contextPlayer.Coins}");
         }
 
+        ServiceType serviceType = ParseServiceType(dto.ServiceType);
+
         SceneArchetypeDefinition archetypeDefinition = SceneArchetypeCatalog.GetSceneArchetype(
             dto.SceneArchetypeId,
-            dto.ServiceType ?? "generic",
+            serviceType,
             dto.Tier,
             contextNPC,
             contextLocation,
@@ -292,6 +295,20 @@ public class SceneTemplateParser
         }
 
         return requirements;
+    }
+
+    /// <summary>
+    /// Parse service type string to enum
+    /// </summary>
+    private ServiceType ParseServiceType(string serviceTypeStr)
+    {
+        if (string.IsNullOrEmpty(serviceTypeStr))
+            return ServiceType.Generic;
+
+        if (Enum.TryParse<ServiceType>(serviceTypeStr, true, out ServiceType result))
+            return result;
+
+        throw new InvalidDataException($"Invalid ServiceType: '{serviceTypeStr}'");
     }
 
     /// <summary>

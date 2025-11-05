@@ -48,7 +48,7 @@ public static class SceneArchetypeCatalog
     /// </summary>
     public static SceneArchetypeDefinition GetSceneArchetype(
         string sceneArchetypeId,
-        string serviceType,
+        ServiceType serviceType,
         int tier,
         NPC contextNPC,
         Location contextLocation,
@@ -94,7 +94,7 @@ public static class SceneArchetypeCatalog
     ///   - Cleanup: Remove access_token, re-lock location
     /// </summary>
     private static SceneArchetypeDefinition GenerateServiceWithLocationAccess(
-        string serviceType,
+        ServiceType serviceType,
         int tier,
         NPC contextNPC,
         Location contextLocation,
@@ -472,16 +472,16 @@ public static class SceneArchetypeCatalog
     /// <summary>
     /// Map service type to appropriate situation archetype
     /// </summary>
-    private static string GetServiceArchetype(string serviceType)
+    private static string GetServiceArchetype(ServiceType serviceType)
     {
-        return serviceType?.ToLowerInvariant() switch
+        return serviceType switch
         {
-            "lodging" => "service_transaction",  // Rest/sleep service
-            "bathing" => "service_transaction",  // Cleanliness service
-            "healing" => "service_transaction",  // Health restoration
-            "storage" => "service_transaction",  // Item management
-            "training" => "skill_demonstration", // Skill increase
-            _ => "service_transaction"  // Default
+            ServiceType.Lodging => "service_transaction",
+            ServiceType.Bathing => "service_transaction",
+            ServiceType.Healing => "service_transaction",
+            ServiceType.Storage => "service_transaction",
+            ServiceType.Training => "skill_demonstration",
+            _ => "service_transaction"
         };
     }
 
@@ -489,36 +489,31 @@ public static class SceneArchetypeCatalog
     /// Generate service-specific rewards based on service type and tier
     /// Tier scaling: Higher tiers cost more and provide greater benefits
     /// </summary>
-    private static ChoiceReward GenerateServiceRewards(string serviceType, int tier)
+    private static ChoiceReward GenerateServiceRewards(ServiceType serviceType, int tier)
     {
         ChoiceReward reward = new ChoiceReward();
 
-        switch (serviceType?.ToLowerInvariant())
+        switch (serviceType)
         {
-            case "lodging":
-                // Full recovery: Health/Stamina/Focus to max, Hunger to 0
+            case ServiceType.Lodging:
                 reward.FullRecovery = true;
-                reward.TimeSegments = 6;  // Full night sleep (1.5 time blocks)
+                reward.TimeSegments = 6;
                 break;
 
-            case "bathing":
-                // Bathing costs time, restores cleanliness
-                reward.TimeSegments = 2;  // Short activity
+            case ServiceType.Bathing:
+                reward.TimeSegments = 2;
                 break;
 
-            case "healing":
-                // Healing restores health
+            case ServiceType.Healing:
                 reward.TimeSegments = 1;
-                reward.Health = 20 + (tier * 10);  // Scales with tier
+                reward.Health = 20 + (tier * 10);
                 break;
 
-            case "storage":
-                // Storage enables item management
+            case ServiceType.Storage:
                 reward.TimeSegments = 1;
                 break;
 
-            case "training":
-                // Training advances time significantly
+            case ServiceType.Training:
                 reward.TimeSegments = 4;
                 break;
 
@@ -566,7 +561,7 @@ public static class SceneArchetypeCatalog
     /// Low player coins emphasize scarcity themes
     /// </summary>
     private static NarrativeHints GenerateNegotiationHints(
-        string serviceType,
+        ServiceType serviceType,
         NPC contextNPC,
         Location contextLocation,
         Player contextPlayer)
@@ -576,22 +571,21 @@ public static class SceneArchetypeCatalog
         // Tone based on NPC personality
         if (contextNPC.PersonalityType == PersonalityType.DEVOTED)
         {
-            hints.Tone = "empathetic";  // Warm, understanding, personal
-            hints.Theme = "human_connection";  // Focus on relationships, not transactions
+            hints.Tone = "empathetic";
+            hints.Theme = "human_connection";
         }
         else if (contextNPC.PersonalityType == PersonalityType.MERCANTILE)
         {
-            hints.Tone = "transactional";  // Cold, efficient, business-like
-            hints.Theme = "economic_exchange";  // Focus on value, price, trade
+            hints.Tone = "transactional";
+            hints.Theme = "economic_exchange";
         }
         else
         {
-            hints.Tone = "professional";  // Neutral, standard service interaction
-            hints.Theme = "service_request";  // Standard request pattern
+            hints.Tone = "professional";
+            hints.Theme = "service_request";
         }
 
-        // Context based on service type and location
-        hints.Context = $"{serviceType}_negotiation";
+        hints.Context = $"{serviceType.ToString().ToLowerInvariant()}_negotiation";
 
         // Style modifiers based on player state
         if (contextPlayer.Coins < 10)  // Tutorial: player has 5 coins, 10-coin room triggers scarcity
@@ -680,15 +674,15 @@ public static class SceneArchetypeCatalog
     /// Context-aware based on NPC personality, Location properties, Player state
     /// </summary>
     private static SceneArchetypeDefinition GenerateSingleSituation(
-        string situationArchetypeId,
+        ServiceType serviceType,
         int tier,
         NPC contextNPC,
         Location contextLocation,
         Player contextPlayer)
     {
+        string situationArchetypeId = serviceType.ToString().ToLowerInvariant();
         string situationId = $"{situationArchetypeId}_situation";
 
-        // Single situation using specified archetype
         SituationTemplate situation = new SituationTemplate
         {
             Id = situationId,
@@ -1009,11 +1003,8 @@ public static class SceneArchetypeCatalog
     /// Capitalize service type for display names
     /// "lodging" → "Lodging", "bathing" → "Bathing", "healing" → "Healing"
     /// </summary>
-    private static string CapitalizeServiceType(string serviceType)
+    private static string CapitalizeServiceType(ServiceType serviceType)
     {
-        if (string.IsNullOrEmpty(serviceType))
-            return "Service";
-
-        return char.ToUpper(serviceType[0]) + serviceType.Substring(1);
+        return serviceType.ToString();
     }
 }
