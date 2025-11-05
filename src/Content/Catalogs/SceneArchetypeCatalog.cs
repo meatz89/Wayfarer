@@ -1,5 +1,6 @@
 using Wayfarer.GameState;
 using Wayfarer.GameState.Enums;
+using System.Text.RegularExpressions;
 
 namespace Wayfarer.Content.Catalogues;
 
@@ -39,6 +40,18 @@ namespace Wayfarer.Content.Catalogues;
 /// </summary>
 public static class SceneArchetypeCatalog
 {
+    /// <summary>
+    /// Convert PascalCase enum to snake_case string for archetype ID lookup
+    /// Example: ServiceType.SocialManeuvering → "social_maneuvering"
+    /// </summary>
+    private static string ToSnakeCase(string pascalCase)
+    {
+        if (string.IsNullOrEmpty(pascalCase))
+            return pascalCase;
+
+        return Regex.Replace(pascalCase, "(?<!^)([A-Z])", "_$1").ToLowerInvariant();
+    }
+
     /// <summary>
     /// Get scene archetype definition by ID with entity context for categorical property reading
     /// Called at parse time to generate context-aware multi-situation structure
@@ -585,7 +598,7 @@ public static class SceneArchetypeCatalog
             hints.Theme = "service_request";
         }
 
-        hints.Context = $"{serviceType.ToString().ToLowerInvariant()}_negotiation";
+        hints.Context = $"{ToSnakeCase(serviceType.ToString())}_negotiation";
 
         // Style modifiers based on player state
         if (contextPlayer.Coins < 10)  // Tutorial: player has 5 coins, 10-coin room triggers scarcity
@@ -680,7 +693,7 @@ public static class SceneArchetypeCatalog
         Location contextLocation,
         Player contextPlayer)
     {
-        string situationArchetypeId = serviceType.ToString().ToLowerInvariant();
+        string situationArchetypeId = ToSnakeCase(serviceType.ToString());
         string situationId = $"{situationArchetypeId}_situation";
 
         SituationTemplate situation = new SituationTemplate
