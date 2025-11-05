@@ -45,8 +45,10 @@ public class NumericRequirement
 
     /// <summary>
     /// Check if this requirement is satisfied by current game state
+    /// Self-contained pattern: markerMap resolves "generated:{templateId}" to actual IDs
+    /// Pass null markerMap for non-self-contained requirements
     /// </summary>
-    public bool IsSatisfied(Player player, GameWorld gameWorld)
+    public bool IsSatisfied(Player player, GameWorld gameWorld, Dictionary<string, string> markerMap = null)
     {
         return Type switch
         {
@@ -58,7 +60,7 @@ public class NumericRequirement
             "Achievement" => CheckAchievement(player, Context, Threshold),
             "State" => CheckState(player, Context, Threshold),
             "PlayerStat" => CheckPlayerStat(player, Context, Threshold),
-            "HasItem" => CheckHasItem(player, Context, Threshold),
+            "HasItem" => CheckHasItem(player, Context, Threshold, markerMap),
             _ => false // Unknown type
         };
     }
@@ -119,9 +121,32 @@ public class NumericRequirement
         return statLevel >= threshold;
     }
 
-    private bool CheckHasItem(Player player, string itemId, int threshold)
+    private bool CheckHasItem(Player player, string itemId, int threshold, Dictionary<string, string> markerMap)
     {
-        bool hasItem = player.HasItem(itemId);
+        // Resolve marker to actual item ID (self-contained pattern)
+        // If itemId is "generated:room_key", resolve to actual created item ID
+        string resolvedItemId = ResolveMarker(itemId, markerMap ?? new Dictionary<string, string>());
+
+        bool hasItem = player.HasItem(resolvedItemId);
         return threshold > 0 ? hasItem : !hasItem;
+    }
+
+    /// <summary>
+    /// Resolve marker to actual resource ID
+    /// If ID is "generated:{templateId}", look up in marker map
+    /// If ID is not a marker, return as-is
+    /// </summary>
+    private string ResolveMarker(string id, Dictionary<string, string> markerMap)
+    {
+        if (string.IsNullOrEmpty(id))
+            return id;
+
+        if (id.StartsWith("generated:"))
+        {
+            if (markerMap.TryGetValue(id, out string resolvedId))
+                return resolvedId;
+        }
+
+        return id;
     }
 }

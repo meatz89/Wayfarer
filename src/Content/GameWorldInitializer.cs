@@ -45,7 +45,10 @@ public static class GameWorldInitializer
     {
         SpawnConditionsEvaluator spawnConditionsEvaluator = new SpawnConditionsEvaluator(gameWorld);
         SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
-        SceneInstantiator instantiator = new SceneInstantiator(gameWorld, spawnConditionsEvaluator, narrativeService);
+        PackageLoader packageLoader = new PackageLoader(gameWorld);
+        HexRouteGenerator hexRouteGenerator = new HexRouteGenerator(gameWorld);
+        MarkerResolutionService markerResolutionService = new MarkerResolutionService();
+        SceneInstantiator instantiator = new SceneInstantiator(gameWorld, spawnConditionsEvaluator, narrativeService, packageLoader, hexRouteGenerator, markerResolutionService);
 
         // Find all starter templates
         List<SceneTemplate> starterTemplates = gameWorld.SceneTemplates.Where(t => t.IsStarter).ToList();

@@ -98,4 +98,21 @@ public class SceneTemplateDTO
     /// Used to generate service-specific rewards and narrative hints
     /// </summary>
     public string ServiceType { get; set; }
+
+    /// <summary>
+    /// Dependent location specifications for self-contained scenes
+    /// Scene dynamically creates these locations via JSON package generation
+    /// Empty/null = Scene uses only pre-existing locations (traditional pattern)
+    /// Self-contained pattern: Catalogue generates specs → Parser converts to domain → SceneInstantiator creates resources
+    /// </summary>
+    public List<DependentLocationSpecDTO> DependentLocations { get; set; }
+
+    /// <summary>
+    /// Dependent item specifications for self-contained scenes
+    /// Scene dynamically creates these items via JSON package generation
+    /// Empty/null = Scene uses only pre-existing items (traditional pattern)
+    /// Self-contained pattern: Catalogue generates specs → Parser converts to domain → SceneInstantiator creates resources
+    /// Example: Room keys, special access permits, quest items
+    /// </summary>
+    public List<DependentItemSpecDTO> DependentItems { get; set; }
 }

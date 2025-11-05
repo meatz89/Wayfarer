@@ -837,9 +837,13 @@ public class LocationFacade
         // Collect all path labels from unmet paths
         List<string> pathLabels = new List<string>();
 
+        // NOTE: No marker resolution here - this is UI display only, not actual requirement checking
+        // Actual requirement checking happens elsewhere with proper marker map context
+        Dictionary<string, string> emptyMarkerMap = new Dictionary<string, string>();
+
         foreach (OrPath path in requirement.OrPaths)
         {
-            if (!path.IsSatisfied(player, _gameWorld))
+            if (!path.IsSatisfied(player, _gameWorld, emptyMarkerMap))
             {
                 // Use path label if available, otherwise generate from requirements
                 if (!string.IsNullOrEmpty(path.Label))

@@ -149,7 +149,7 @@ public static class SceneArchetypeCatalog
             {
                 TimeSegments = 1  // Accessing location costs 1 time segment
             },
-            RequiredLocationId = contextLocation?.Id,  // Access at service location (upper_floor)
+            RequiredLocationId = "generated:private_room",  // Marker resolves to actual private room ID at finalization
             RequiredNpcId = null  // No NPC requirement for access
         };
 
@@ -169,7 +169,7 @@ public static class SceneArchetypeCatalog
                 Context = $"{serviceType}_provision"
             },
             AutoProgressRewards = GenerateServiceRewards(serviceType, tier),
-            RequiredLocationId = contextLocation?.Id,  // Service at service location (upper_floor)
+            RequiredLocationId = "generated:private_room",  // Marker resolves to actual private room ID at finalization
             RequiredNpcId = null  // No NPC requirement for service delivery
         };
 
@@ -192,8 +192,8 @@ public static class SceneArchetypeCatalog
             {
                 TimeSegments = 1  // Leaving costs 1 time segment
             },
-            RequiredLocationId = contextNPC?.Location?.Id,  // Depart at NPC's location (common_room)
-            RequiredNpcId = contextNPC?.ID  // Return to NPC for conclusion (elena)
+            RequiredLocationId = "generated:private_room",  // Marker resolves to actual private room ID at finalization
+            RequiredNpcId = null  // No NPC requirement for departure
         };
 
         // Generate spawn rules (linear progression)
@@ -224,6 +224,38 @@ public static class SceneArchetypeCatalog
             }
         };
 
+        // SELF-CONTAINED PATTERN: Generate dependent resources for scenes that need private locations
+        // Creates location and item specs that SceneInstantiator will materialize at finalization
+        // Uses marker-based references: "generated:private_room", "generated:room_key"
+
+        // Dependent Location: Private room for service delivery
+        DependentLocationSpec privateRoomSpec = new DependentLocationSpec
+        {
+            TemplateId = "private_room",
+            NamePattern = $"{{npc_name}}'s {{service_type}} Room",  // Token replacement at finalization
+            DescriptionPattern = $"A private room where {{npc_name}} provides {{service_type}} services.",
+            VenueIdSource = VenueIdSource.SameAsBase,  // Same building as NPC location
+            HexPlacement = HexPlacementStrategy.SameVenue,  // Intra-venue navigation (instant)
+            Properties = new List<string> { "sleepingSpace", "restful", "indoor", "private" },
+            IsLockedInitially = true,  // Requires key to access
+            UnlockItemTemplateId = "room_key",  // References item spec below
+            CanInvestigate = false  // Private room, no investigation cubes
+        };
+
+        // Dependent Item: Room key granted during negotiation
+        DependentItemSpec roomKeySpec = new DependentItemSpec
+        {
+            TemplateId = "room_key",
+            NamePattern = "Room Key",
+            DescriptionPattern = "A key that unlocks access to {{npc_name}}'s private {{service_type}} room.",
+            Categories = new List<ItemCategory> { ItemCategory.Special_Access },
+            Weight = 1,  // Tiny item
+            BuyPrice = 0,  // Cannot purchase separately
+            SellPrice = 0,  // Cannot sell (quest item)
+            AddToInventoryOnCreation = false,  // Granted via situation reward, not auto-added
+            SpawnLocationTemplateId = null  // Granted directly to player, not placed at location
+        };
+
         return new SceneArchetypeDefinition
         {
             SituationTemplates = new List<SituationTemplate>
@@ -233,7 +265,9 @@ public static class SceneArchetypeCatalog
                 serviceSituation,
                 departureSituation
             },
-            SpawnRules = spawnRules
+            SpawnRules = spawnRules,
+            DependentLocations = new List<DependentLocationSpec> { privateRoomSpec },
+            DependentItems = new List<DependentItemSpec> { roomKeySpec }
         };
     }
 

@@ -111,6 +111,16 @@ public class SceneTemplateParser
 
         Console.WriteLine($"[SceneArchetypeGeneration] Generated {situationTemplates.Count} situations with pattern '{spawnRules.Pattern}'");
 
+        // Extract dependent resources from archetype definition (self-contained pattern)
+        // Catalogue generates resource specifications at parse time
+        List<DependentLocationSpec> dependentLocations = archetypeDefinition.DependentLocations ?? new List<DependentLocationSpec>();
+        List<DependentItemSpec> dependentItems = archetypeDefinition.DependentItems ?? new List<DependentItemSpec>();
+
+        if (dependentLocations.Any() || dependentItems.Any())
+        {
+            Console.WriteLine($"[SceneArchetypeGeneration] Archetype generated {dependentLocations.Count} dependent locations and {dependentItems.Count} dependent items");
+        }
+
         SceneTemplate template = new SceneTemplate
         {
             Id = dto.Id,
@@ -126,7 +136,9 @@ public class SceneTemplateParser
             Tier = dto.Tier,
             PresentationMode = presentationMode,
             ProgressionMode = progressionMode,
-            IsForced = dto.IsForced
+            IsForced = dto.IsForced,
+            DependentLocations = dependentLocations,
+            DependentItems = dependentItems
         };
 
         return template;

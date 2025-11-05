@@ -14,15 +14,16 @@ public class CompoundRequirement
     /// <summary>
     /// Check if any path is satisfied by current game state
     /// Returns true if at least one complete path's requirements are all met
+    /// Self-contained pattern: markerMap resolves "generated:{templateId}" to actual IDs in requirements
     /// </summary>
-    public bool IsAnySatisfied(Player player, GameWorld gameWorld)
+    public bool IsAnySatisfied(Player player, GameWorld gameWorld, Dictionary<string, string> markerMap = null)
     {
         if (OrPaths == null || OrPaths.Count == 0)
             return true; // No requirements means always unlocked
 
         foreach (OrPath path in OrPaths)
         {
-            if (path.IsSatisfied(player, gameWorld))
+            if (path.IsSatisfied(player, gameWorld, markerMap))
                 return true; // Found a satisfied path
         }
 
@@ -50,15 +51,16 @@ public class OrPath
     /// <summary>
     /// Check if this path is satisfied by current game state
     /// Returns true if ALL requirements in this path are met
+    /// Self-contained pattern: markerMap passed to requirement evaluation for marker resolution
     /// </summary>
-    public bool IsSatisfied(Player player, GameWorld gameWorld)
+    public bool IsSatisfied(Player player, GameWorld gameWorld, Dictionary<string, string> markerMap = null)
     {
         if (NumericRequirements == null || NumericRequirements.Count == 0)
             return true; // No requirements means path is satisfied
 
         foreach (NumericRequirement req in NumericRequirements)
         {
-            if (!req.IsSatisfied(player, gameWorld))
+            if (!req.IsSatisfied(player, gameWorld, markerMap))
                 return false; // Found an unsatisfied requirement
         }
 

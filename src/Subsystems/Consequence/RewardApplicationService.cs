@@ -17,17 +17,20 @@ public class RewardApplicationService
     private readonly ConsequenceFacade _consequenceFacade;
     private readonly TimeFacade _timeFacade;
     private readonly SceneInstantiator _sceneInstantiator;
+    private readonly MarkerResolutionService _markerResolutionService;
 
     public RewardApplicationService(
         GameWorld gameWorld,
         ConsequenceFacade consequenceFacade,
         TimeFacade timeFacade,
-        SceneInstantiator sceneInstantiator)
+        SceneInstantiator sceneInstantiator,
+        MarkerResolutionService markerResolutionService)
     {
         _gameWorld = gameWorld;
         _consequenceFacade = consequenceFacade;
         _timeFacade = timeFacade;
         _sceneInstantiator = sceneInstantiator;
+        _markerResolutionService = markerResolutionService ?? throw new ArgumentNullException(nameof(markerResolutionService));
     }
 
     /// <summary>
@@ -93,32 +96,40 @@ public class RewardApplicationService
             }
         }
 
-        // Apply item grants
+        // Resolve markers using parent scene's resolution map (self-contained pattern)
+        global::Scene parentScene = currentSituation?.ParentScene;
+        Dictionary<string, string> markerMap = parentScene?.MarkerResolutionMap ?? new Dictionary<string, string>();
+
+        // Apply item grants (resolve markers first)
         foreach (string itemId in reward.ItemIds)
         {
-            player.Inventory.AddItem(itemId);
+            string resolvedId = _markerResolutionService.ResolveMarker(itemId, markerMap);
+            player.Inventory.AddItem(resolvedId);
         }
 
-        // Apply item removals (Multi-Situation Scene Pattern: cleanup phase)
+        // Apply item removals (Multi-Situation Scene Pattern: cleanup phase, resolve markers first)
         foreach (string itemId in reward.ItemsToRemove)
         {
-            player.RemoveItem(itemId);
+            string resolvedId = _markerResolutionService.ResolveMarker(itemId, markerMap);
+            player.RemoveItem(resolvedId);
         }
 
-        // Unlock locations (Multi-Situation Scene Pattern: grant access when conditions met)
+        // Unlock locations (Multi-Situation Scene Pattern: grant access when conditions met, resolve markers first)
         // Direct property modification - no string matching, strongly typed
         foreach (string locationId in reward.LocationsToUnlock)
         {
-            Location location = _gameWorld.GetLocation(locationId);
+            string resolvedId = _markerResolutionService.ResolveMarker(locationId, markerMap);
+            Location location = _gameWorld.GetLocation(resolvedId);
             if (location != null)
                 location.IsLocked = false;
         }
 
-        // Lock locations (Multi-Situation Scene Pattern: restore original state on cleanup)
+        // Lock locations (Multi-Situation Scene Pattern: restore original state on cleanup, resolve markers first)
         // Direct property modification - no string matching, strongly typed
         foreach (string locationId in reward.LocationsToLock)
         {
-            Location location = _gameWorld.GetLocation(locationId);
+            string resolvedId = _markerResolutionService.ResolveMarker(locationId, markerMap);
+            Location location = _gameWorld.GetLocation(resolvedId);
             if (location != null)
                 location.IsLocked = true;
         }
@@ -273,4 +284,5 @@ public class RewardApplicationService
             }
         }
     }
+
 }

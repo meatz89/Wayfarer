@@ -1,5 +1,8 @@
+using System.Text.Json;
+using Wayfarer.Content.DTOs;
 using Wayfarer.GameState.Enums;
 using Wayfarer.Models;
+using Wayfarer.Services;
 using Wayfarer.Subsystems.Scene;
 
 namespace Wayfarer.Content;
@@ -22,15 +25,24 @@ public class SceneInstantiator
     private readonly GameWorld _gameWorld;
     private readonly SpawnConditionsEvaluator _spawnConditionsEvaluator;
     private readonly SceneNarrativeService _narrativeService;
+    private readonly PackageLoader _packageLoader;
+    private readonly HexRouteGenerator _hexRouteGenerator;
+    private readonly MarkerResolutionService _markerResolutionService;
 
     public SceneInstantiator(
         GameWorld gameWorld,
         SpawnConditionsEvaluator spawnConditionsEvaluator,
-        SceneNarrativeService narrativeService)
+        SceneNarrativeService narrativeService,
+        PackageLoader packageLoader,
+        HexRouteGenerator hexRouteGenerator,
+        MarkerResolutionService markerResolutionService)
     {
         _gameWorld = gameWorld;
         _spawnConditionsEvaluator = spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
+        _markerResolutionService = markerResolutionService ?? throw new ArgumentNullException(nameof(markerResolutionService));
+        _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
+        _hexRouteGenerator = hexRouteGenerator ?? throw new ArgumentNullException(nameof(hexRouteGenerator));
     }
 
     /// <summary>
@@ -129,6 +141,17 @@ public class SceneInstantiator
             throw new InvalidOperationException($"Provisional Scene '{sceneId}' not found in gameWorld.Scenes");
         }
 
+        // SELF-CONTAINED PATTERN: Generate and load dependent resources if specified
+        // Creates locations/items dynamically via JSON package pipeline
+        // Must happen BEFORE situation instantiation so marker references can be resolved
+        if (scene.Template.DependentLocations.Any() || scene.Template.DependentItems.Any())
+        {
+            GenerateAndLoadDependentResources(scene, context);
+
+            // Build marker resolution map for "generated:{templateId}" → actual ID
+            BuildMarkerResolutionMap(scene);
+        }
+
         // INSTANTIATE SITUATIONS FOR THE FIRST TIME (moved from CreateProvisionalScene)
         // This is the key change - provisional scenes are shallow, finalization creates full object graph
         foreach (SituationTemplate sitTemplate in scene.Template.SituationTemplates)
@@ -138,6 +161,21 @@ public class SceneInstantiator
             _gameWorld.Situations.Add(situation);
             // Track ID in Scene
             scene.SituationIds.Add(situation.Id);
+
+            // MARKER RESOLUTION: Resolve markers in situation template properties
+            // Self-contained scenes use markers like "generated:private_room" that must resolve to actual IDs
+            // Resolved IDs stored in Situation properties, NOT template (templates are immutable/shared)
+            if (scene.MarkerResolutionMap.Count > 0)
+            {
+                situation.ResolvedRequiredLocationId = _markerResolutionService.ResolveMarker(sitTemplate.RequiredLocationId, scene.MarkerResolutionMap);
+                situation.ResolvedRequiredNpcId = _markerResolutionService.ResolveMarker(sitTemplate.RequiredNpcId, scene.MarkerResolutionMap);
+
+                // Resolve NavigationPayload destination if present
+                if (situation.NavigationPayload != null)
+                {
+                    situation.NavigationPayload.DestinationId = _markerResolutionService.ResolveMarker(situation.NavigationPayload.DestinationId, scene.MarkerResolutionMap);
+                }
+            }
 
             // AI GENERATION: Generate narrative if template has no hardcoded narrative
             // Check: situation.Description null AND situation.NarrativeHints present
@@ -893,5 +931,273 @@ public class SceneInstantiator
         }
 
         return promptContext;
+    }
+
+    // ==================== SELF-CONTAINED SCENE PACKAGE GENERATION ====================
+
+    /// <summary>
+    /// Generate and load dependent resources for self-contained scene
+    /// Creates JSON package with LocationDTOs and ItemDTOs, loads through PackageLoader
+    /// Tracks created resource IDs in scene for forensics and cleanup
+    /// Called from FinalizeScene BEFORE situation instantiation
+    /// </summary>
+    private void GenerateAndLoadDependentResources(Scene scene, SceneSpawnContext context)
+    {
+        // Build lists of DTOs
+        List<LocationDTO> locationDtos = new List<LocationDTO>();
+        List<ItemDTO> itemDtos = new List<ItemDTO>();
+
+        // Generate LocationDTOs from specifications
+        foreach (DependentLocationSpec spec in scene.Template.DependentLocations)
+        {
+            LocationDTO locationDto = BuildLocationDTO(spec, scene, context);
+            locationDtos.Add(locationDto);
+        }
+
+        // Generate ItemDTOs from specifications
+        foreach (DependentItemSpec spec in scene.Template.DependentItems)
+        {
+            ItemDTO itemDto = BuildItemDTO(spec, scene, context, locationDtos);
+            itemDtos.Add(itemDto);
+        }
+
+        // Create Package object
+        string packageId = $"scene_{scene.Id}_dep";
+        Package package = new Package
+        {
+            PackageId = packageId,
+            Metadata = new PackageMetadata
+            {
+                Name = $"Scene {scene.Id} Dependent Resources",
+                Author = "Scene System",
+                Version = "1.0.0"
+            },
+            Content = new PackageContent
+            {
+                Locations = locationDtos,
+                Items = itemDtos
+            }
+        };
+
+        // Serialize to JSON
+        JsonSerializerOptions jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        };
+        string json = JsonSerializer.Serialize(package, jsonOptions);
+
+        // Load through PackageLoader (standard pipeline)
+        List<string> skeletonIds = _packageLoader.LoadDynamicPackageFromJson(json, packageId);
+
+        // Track created resource IDs in scene
+        foreach (LocationDTO dto in locationDtos)
+        {
+            scene.CreatedLocationIds.Add(dto.Id);
+        }
+        foreach (ItemDTO dto in itemDtos)
+        {
+            scene.CreatedItemIds.Add(dto.Id);
+        }
+        scene.DependentPackageId = packageId;
+
+        // Add items to player inventory if specified
+        Player player = context.Player;
+        foreach (DependentItemSpec spec in scene.Template.DependentItems)
+        {
+            if (spec.AddToInventoryOnCreation)
+            {
+                string itemId = $"{scene.Id}_{spec.TemplateId}";
+                Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
+                if (item != null)
+                {
+                    player.Inventory.AddItem(item);
+                }
+            }
+        }
+
+        // Generate routes for created locations
+        foreach (string locationId in scene.CreatedLocationIds)
+        {
+            Location createdLocation = _gameWorld.GetLocation(locationId);
+            if (createdLocation != null && createdLocation.HexPosition.HasValue)
+            {
+                List<RouteOption> generatedRoutes = _hexRouteGenerator.GenerateRoutesForNewLocation(createdLocation);
+                foreach (RouteOption route in generatedRoutes)
+                {
+                    _gameWorld.Routes.Add(route);
+                }
+            }
+        }
+
+        Console.WriteLine($"[SceneInstantiator] Generated package '{packageId}' with {locationDtos.Count} locations, {itemDtos.Count} items");
+        if (skeletonIds.Any())
+        {
+            Console.WriteLine($"[SceneInstantiator] Created {skeletonIds.Count} skeletons: {string.Join(", ", skeletonIds)}");
+        }
+    }
+
+    /// <summary>
+    /// Build LocationDTO from DependentLocationSpec
+    /// Replaces tokens, determines venue, finds hex placement
+    /// </summary>
+    private LocationDTO BuildLocationDTO(DependentLocationSpec spec, Scene scene, SceneSpawnContext context)
+    {
+        // Generate unique ID
+        string locationId = $"{scene.Id}_{spec.TemplateId}";
+
+        // Replace tokens in name and description
+        string locationName = PlaceholderReplacer.ReplaceAll(spec.NamePattern, context, _gameWorld);
+        string locationDescription = PlaceholderReplacer.ReplaceAll(spec.DescriptionPattern, context, _gameWorld);
+
+        // Determine venue ID
+        string venueId = DetermineVenueId(spec.VenueIdSource, context);
+
+        // Find hex placement
+        // Build LocationDTO
+        LocationDTO dto = new LocationDTO
+        {
+            Id = locationId,
+            Name = locationName,
+            Description = locationDescription,
+            VenueId = venueId,
+            Type = "Room", // Default type for generated locations
+            InitialState = spec.IsLockedInitially ? "Locked" : "Available",
+            CanInvestigate = spec.CanInvestigate,
+            CanWork = false, // Generated locations don't support work by default
+            WorkType = "",
+            WorkPay = 0
+        };
+
+        // Map properties
+        if (spec.Properties != null && spec.Properties.Any())
+        {
+            dto.DomainTags = spec.Properties;
+        }
+
+        return dto;
+    }
+
+    /// <summary>
+    /// Build ItemDTO from DependentItemSpec
+    /// Replaces tokens, maps categories, handles inventory placement
+    /// </summary>
+    private ItemDTO BuildItemDTO(DependentItemSpec spec, Scene scene, SceneSpawnContext context, List<LocationDTO> createdLocations)
+    {
+        // Generate unique ID
+        string itemId = $"{scene.Id}_{spec.TemplateId}";
+
+        // Replace tokens in name and description
+        string itemName = PlaceholderReplacer.ReplaceAll(spec.NamePattern, context, _gameWorld);
+        string itemDescription = PlaceholderReplacer.ReplaceAll(spec.DescriptionPattern, context, _gameWorld);
+
+        // Build ItemDTO
+        ItemDTO dto = new ItemDTO
+        {
+            Id = itemId,
+            Name = itemName,
+            Description = itemDescription,
+            BuyPrice = spec.BuyPrice,
+            SellPrice = spec.SellPrice,
+            InventorySlots = spec.Weight
+        };
+
+        // Map categories
+        if (spec.Categories != null && spec.Categories.Any())
+        {
+            dto.Categories = spec.Categories.Select(c => c.ToString()).ToList();
+        }
+
+        // Handle placement
+        if (spec.AddToInventoryOnCreation)
+        {
+            // Item will be added to player inventory AFTER parsing
+            // Store this intent in a way the parser can understand
+            // For now, we'll handle this after package loading
+        }
+
+        return dto;
+    }
+
+    /// <summary>
+    /// Determine venue ID based on VenueIdSource enum
+    /// </summary>
+    private string DetermineVenueId(VenueIdSource source, SceneSpawnContext context)
+    {
+        switch (source)
+        {
+            case VenueIdSource.SameAsBase:
+                if (context.CurrentLocation == null)
+                    throw new InvalidOperationException("VenueIdSource.SameAsBase requires CurrentLocation in context");
+                return context.CurrentLocation.Id;
+
+            case VenueIdSource.GenerateNew:
+                throw new NotImplementedException("VenueIdSource.GenerateNew not yet implemented");
+
+            default:
+                throw new InvalidOperationException($"Unknown VenueIdSource: {source}");
+        }
+    }
+
+    /// <summary>
+    /// Find adjacent hex position for new location
+    /// Implements HexPlacementStrategy.Adjacent logic
+    /// </summary>
+    private AxialCoordinates? FindAdjacentHex(Location baseLocation, HexPlacementStrategy strategy)
+    {
+        switch (strategy)
+        {
+            case HexPlacementStrategy.SameVenue:
+                // Same venue = no hex placement needed (intra-venue instant travel)
+                return null;
+
+            case HexPlacementStrategy.Adjacent:
+                if (!baseLocation.HexPosition.HasValue)
+                    throw new InvalidOperationException($"Base location '{baseLocation.Id}' has no HexPosition - cannot find adjacent hex");
+
+                // Get neighbors from hex map
+                HexMap hexMap = _gameWorld.WorldHexGrid;
+                if (hexMap == null)
+                    throw new InvalidOperationException("GameWorld.WorldHexGrid is null - cannot find adjacent hex");
+
+                Hex baseHex = hexMap.GetHex(baseLocation.HexPosition.Value);
+                if (baseHex == null)
+                    throw new InvalidOperationException($"Base location hex position {baseLocation.HexPosition.Value} not found in HexMap");
+
+                List<Hex> neighbors = hexMap.GetNeighbors(baseHex);
+
+                // Find first unoccupied neighbor
+                foreach (Hex neighborHex in neighbors)
+                {
+                    // Check if any location occupies this hex
+                    bool hexOccupied = _gameWorld.Locations.Any(loc => loc.HexPosition.HasValue &&
+                                                                       loc.HexPosition.Value.Equals(neighborHex.Coordinates));
+                    if (!hexOccupied)
+                    {
+                        return neighborHex.Coordinates;
+                    }
+                }
+
+                throw new InvalidOperationException($"No unoccupied adjacent hexes found for location '{baseLocation.Id}'");
+
+            case HexPlacementStrategy.Distance:
+            case HexPlacementStrategy.Random:
+                throw new NotImplementedException($"HexPlacementStrategy.{strategy} not yet implemented");
+
+            default:
+                throw new InvalidOperationException($"Unknown HexPlacementStrategy: {strategy}");
+        }
+    }
+
+    /// <summary>
+    /// Build marker resolution map for self-contained scene using MarkerResolutionService
+    /// Maps "generated:{templateId}" markers to actual created resource IDs
+    /// Called after GenerateAndLoadDependentResources completes
+    /// Enables situations/choices to reference generated resources via markers
+    /// </summary>
+    private void BuildMarkerResolutionMap(Scene scene)
+    {
+        scene.MarkerResolutionMap = _markerResolutionService.BuildMarkerResolutionMap(scene);
+        Console.WriteLine($"[SceneInstantiator] Built marker resolution map for scene '{scene.Id}' with {scene.MarkerResolutionMap.Count} entries");
     }
 }

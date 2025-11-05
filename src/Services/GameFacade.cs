@@ -99,7 +99,10 @@ public class GameFacade
         _sceneFacade = sceneFacade ?? throw new ArgumentNullException(nameof(sceneFacade));
         _situationCompletionHandler = situationCompletionHandler ?? throw new ArgumentNullException(nameof(situationCompletionHandler));
         SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
-        _sceneInstantiator = new SceneInstantiator(_gameWorld, spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator)), narrativeService);
+        PackageLoader packageLoader = new PackageLoader(_gameWorld);
+        HexRouteGenerator hexRouteGenerator = new HexRouteGenerator(_gameWorld);
+        MarkerResolutionService markerResolutionService = new MarkerResolutionService();
+        _sceneInstantiator = new SceneInstantiator(_gameWorld, spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator)), narrativeService, packageLoader, hexRouteGenerator, markerResolutionService);
     }
 
     // ========== CORE GAME STATE ==========

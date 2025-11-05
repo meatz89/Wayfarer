@@ -362,13 +362,24 @@ Generation queries properties and produces complete self-contained package:
 
 **Situation Structure (references created resources):**
 
-**Situation 1 - Negotiation (Common Room + Elena):** Three choices demonstrating multiple solution paths:
+**Situation 1 - Negotiation (Common Room + Elena):** Three choices demonstrating Sir Brante-style transparent choice design:
 
-1. **Convince Elena** - Social challenge (15 Focus, Friendly demeanor = easier difficulty, grants +1 bond)
+1. **Convince Elena** - Social challenge (15 Focus, Friendly demeanor = easier difficulty)
+   - Visible consequences: +1 Bond with Elena, grants room key
+   - Available (player has sufficient Focus)
+
 2. **Pay Elena** - Direct transaction (15 coins, tier 0 base cost)
-3. **Show Traveler's Guild Token** - Free access (requires HasItem: guild_token, **LOCKED** if player declined guild membership earlier)
+   - Visible consequences: Grants room key, no bond change
+   - Available (player has sufficient coins)
 
-The locked third option teaches perfect information and consequence. Earlier tutorial scene offers Guild Recruiter: join for 10 coins (grants guild_token) or decline. Players who declined see locked option at Elena, understand: "I could have free lodging if I'd paid 10 coins for guild membership. Now I need 15 coins or 15 Focus." Players who joined use token, get free room, learn guild membership has ongoing value. All three ChoiceTemplates generated from property queries. Successful choices grant scene-created room_key item and unlock scene-created Upper Room location.
+3. **Show Traveler's Guild Token** - Free access
+   - Visible consequences: Grants room key, no cost
+   - **LOCKED** - Requires: Traveler's Guild Token
+   - Grayed presentation showing: "Join guild earlier to unlock this option"
+
+All three choices visible simultaneously. Requirements shown upfront. Consequences displayed before selection. Player learns: credentials have strategic value, earlier choices affect later opportunities, multiple solutions exist to same problem. Locked choice teaches without punishing - player sees path not taken, understands what would unlock it, plans differently next playthrough.
+
+Successful choices grant scene-created room_key item and unlock scene-created Upper Room location.
 
 **Situation 2 - Access (Upper Room):** Navigate to created Upper Room location (now unlocked). Single choice (enter room) with HasItem requirement (scene-created room_key). Choice cost includes TimeSegments (time to walk upstairs). Location and item both created by scene at spawn, guaranteed to exist.
 
@@ -438,7 +449,7 @@ Need robust time advancement integration: situations declare time cost (rest cos
 
 Scene archetypes define complete narrative arc patterns with multiple situations in sequence:
 
-**Service with Location Access:** Four situations (negotiate, access, service, depart). Negotiation offers three paths: challenge (tests player skill/resources), payment (direct transaction), conditional bypass (requires specific credential/membership). Used for: lodging (rest), bathing (cleanliness), storage (item management), training (skill increase), healing (health restoration). Cost varies by service type, benefit varies by tier, but structure identical. Conditional bypass teaches long-term strategic value (guild membership grants free lodging, physician credential grants free healing, noble seal grants privileged access).
+**Service with Location Access:** Four situations (negotiate, access, service, depart). Negotiation offers three paths: challenge (tests player skill/resources), payment (direct transaction), conditional bypass (requires specific credential/membership). All paths visible simultaneously with requirements and consequences displayed. Sir Brante transparency: locked options show what player lacks, teach strategic value of earlier decisions. Used for: lodging (rest), bathing (cleanliness), storage (item management), training (skill increase), healing (health restoration). Cost varies by service type, benefit varies by tier, but structure identical. Conditional bypass teaches long-term strategic value (guild membership grants free lodging, physician credential grants free healing, noble seal grants privileged access).
 
 **Transaction Sequence:** Three situations (browse inventory, negotiate price, complete transaction). Used for: shopping (buy items), selling (convert items to coins), trading (item exchanges). Complexity varies by merchant type and item rarity.
 
@@ -460,13 +471,15 @@ Players learn scene patterns through repetition with variation:
 
 **Strategic Planning:** Knowing lodging scene requires negotiation → access → rest → departure helps player plan resource expenditure. "I need 15 coins for negotiation and 6 hours for rest, do I have both?" Perfect information at arc level, not just situation level. Understanding context changes helps plan: "Negotiation at common room, then must travel upstairs, complete service there, return to finish."
 
-**Locked Choices as Teaching:** Seeing unavailable options teaches consequence and strategic value. Guild token choice locked at Elena shows: "I could have free lodging if I'd joined guild for 10 coins earlier. Now I need more resources." Player learns to evaluate long-term trade-offs and opportunity costs. Future playthroughs informed by seeing paths not taken.
+**Locked Choices as Teaching:** Sir Brante pattern: show unavailable options with visible requirements and consequences. Guild token choice locked at Elena displays: "Requires: Traveler's Guild Token" and "Would grant: Free lodging, no cost." Player learns long-term trade-offs without punishment. Future playthroughs informed by seeing complete option space. No hidden choices - transparency enables strategic thinking.
 
 **Expectation Management:** Scene archetypes establish expectations. Service scenes restore resources (positive outcome). Investigation scenes grant knowledge (informational outcome). Crisis scenes create cascading consequences (potentially negative outcome). Genre conventions maintained by consistent archetype usage.
 
 **Natural World Integration:** Context-aware progression maintains fiction coherence. Player negotiates lodging, physically travels to room, experiences service, physically returns to conclude. Scene arcs flow naturally through world geography rather than creating isolated narrative bubbles. Scenes persist across time and navigation.
 
 **Mechanical Consistency:** All service scenes balanced similarly. Lodging costs X and restores Y, bathing costs X and restores different Y, healing costs X and restores third Y. Ratios consistent, benefits different, balance maintained. Archetypes enforce economic equilibrium across procedurally generated scenes.
+
+**Sir Brante Choice Design Philosophy:** Wayfarer adopts The Life and Suffering of Sir Brante's transparent choice design. Display all choices including locked options with visible requirements. Show exact consequences before selection (stat changes, relationship impacts, resource costs). Multiple valid approaches to same goal representing different character expressions. Locked high-requirement choices teach strategic planning: "I need Determination 4 to unlock this option - next time I'll prioritize that stat." Perfect information enables strategic planning rather than trial-and-error guessing.
 
 ### Formula-Driven Arc Economics
 
@@ -538,7 +551,7 @@ Build catalog generating complete multi-situation scene structures from archetyp
 
 **Dependent Resource Specifications:** Archetype produces specifications for resources scene will create at spawn. Service archetype generates: dependent location specification (relative placement adjacent to base, pattern name incorporating NPC name, property requirements IsLocked + Services matching service type, lifecycle strategy PermanentLock), dependent item specification (pattern name "Room Key" or context-appropriate, lifecycle SceneScoped for removal at completion).
 
-**Situation Generation:** Produces four SituationTemplates. Negotiate situation has ChoiceTemplates: (1) challenge with property-scaled difficulty, (2) payment with property-scaled cost, (3) conditional bypass option requiring specific item (guild_token, professional_credential, noble_seal based on service context). Access situation references created location and requires created item. Service situation references created location with property-determined benefit and time cost. Departure situation has cleanup specifying created item removal and created location lock restoration.
+**Situation Generation:** Produces four SituationTemplates with Sir Brante transparency. Negotiate situation has ChoiceTemplates: (1) challenge with visible cost (Focus amount) and visible consequences (+bond, grants key), (2) payment with visible cost (coins amount) and visible consequences (grants key, no bond), (3) conditional bypass with visible requirement (specific item) and visible consequences (free key). All three visible simultaneously. Locked choice shows exact requirement text and preview of benefits. Access situation references created location and requires created item. Service situation references created location with property-determined benefit and time cost. Departure situation has cleanup specifying created item removal and created location lock restoration.
 
 **SpawnRules Generation:** Linear flow (negotiate→access→service→depart) with success conditions. Each transition references situation template IDs from generated situations. Situations specify required contexts (base location for negotiate, created location for access/service, base location for depart).
 
@@ -546,7 +559,7 @@ Build catalog generating complete multi-situation scene structures from archetyp
 
 **Tutorial and Procedural Use Identical Logic:** Tutorial parser resolves concrete entity IDs to objects (Elena, Tavern Common Room), passes to generation. Procedural placement evaluator selects entities matching filters (any Innkeeper, any Lodging location), passes to generation. Generation receives entity objects either way, queries properties identically, produces contextually appropriate output including dependent resource specifications.
 
-**Test Pattern:** Create test entities with extreme property values. Friendly (0.8x) vs Hostile (1.4x) NPCs should generate 1.75x difficulty difference. Urban (1.0x) vs Remote (1.5x) locations should show cost scaling. Verify formulas balance across property ranges. Test conditional bypass choices: verify requirements properly lock/unlock options based on player state (has guild_token vs lacks guild_token should show unlocked vs locked third choice). Verify dependent resource specifications produced correctly (location placement, item naming, lifecycle strategies).
+**Test Pattern:** Create test entities with extreme property values. Friendly (0.8x) vs Hostile (1.4x) NPCs should generate 1.75x difficulty difference. Urban (1.0x) vs Remote (1.5x) locations should show cost scaling. Verify formulas balance across property ranges. Test Sir Brante transparency: all choices visible including locked ones, requirements shown clearly, consequences displayed before selection. Test conditional bypass choices: verify locked choice shows "Requires: X" text and consequence preview. Verify dependent resource specifications produced correctly (location placement, item naming, lifecycle strategies).
 
 ### Phase 2: Scene State Machine and Resource Creation
 

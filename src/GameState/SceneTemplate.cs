@@ -126,4 +126,23 @@ public class SceneTemplate
     /// Defaults to false - most Modal scenes are player-initiated, not forced
     /// </summary>
     public bool IsForced { get; init; } = false;
+
+    /// <summary>
+    /// Dependent locations that this Scene creates dynamically at spawn time
+    /// Self-contained pattern: Scene generates JSON package → PackageLoader → Standard parsing
+    /// Each spec becomes LocationDTO, flows through normal JSON → DTO → Domain pipeline
+    /// Scene tracks created location IDs for forensics and cleanup
+    /// Empty list = Scene uses only pre-existing locations (traditional pattern)
+    /// </summary>
+    public List<DependentLocationSpec> DependentLocations { get; init; } = new List<DependentLocationSpec>();
+
+    /// <summary>
+    /// Dependent items that this Scene creates dynamically at spawn time
+    /// Self-contained pattern: Scene generates JSON package → PackageLoader → Standard parsing
+    /// Each spec becomes ItemDTO, flows through normal JSON → DTO → Domain pipeline
+    /// Scene tracks created item IDs for forensics and cleanup
+    /// Empty list = Scene uses only pre-existing items (traditional pattern)
+    /// Example: Room keys, special access permits, quest items
+    /// </summary>
+    public List<DependentItemSpec> DependentItems { get; init; } = new List<DependentItemSpec>();
 }

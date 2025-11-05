@@ -59,8 +59,9 @@ namespace Wayfarer.Pages.Components
                 List<RequirementPathVM> requirementPaths = new List<RequirementPathVM>();
                 if (choiceTemplate.RequirementFormula != null && choiceTemplate.RequirementFormula.OrPaths.Count > 0)
                 {
-                    requirementsMet = choiceTemplate.RequirementFormula.IsAnySatisfied(player, GameWorld);
-                    requirementPaths = GetRequirementGaps(choiceTemplate.RequirementFormula, player);
+                    Dictionary<string, string> markerMap = Scene?.MarkerResolutionMap ?? new Dictionary<string, string>();
+                    requirementsMet = choiceTemplate.RequirementFormula.IsAnySatisfied(player, GameWorld, markerMap);
+                    requirementPaths = GetRequirementGaps(choiceTemplate.RequirementFormula, player, markerMap);
 
                     if (!requirementsMet && requirementPaths.Count > 0)
                     {
@@ -333,7 +334,7 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        private List<RequirementPathVM> GetRequirementGaps(CompoundRequirement compoundReq, Player player)
+        private List<RequirementPathVM> GetRequirementGaps(CompoundRequirement compoundReq, Player player, Dictionary<string, string> markerMap)
         {
             List<RequirementPathVM> paths = new List<RequirementPathVM>();
 
@@ -351,7 +352,7 @@ namespace Wayfarer.Pages.Components
                     string formattedReq = FormatRequirementGap(req, player);
                     requirements.Add(formattedReq);
 
-                    if (!req.IsSatisfied(player, GameWorld))
+                    if (!req.IsSatisfied(player, GameWorld, markerMap))
                     {
                         missingRequirements.Add(formattedReq);
                         pathSatisfied = false;
@@ -441,13 +442,8 @@ namespace Wayfarer.Pages.Components
 
                 if (nextSituation != null)
                 {
-                    // Ensure next situation is instantiated (Deferred → Instantiated)
-                    if (nextSituation.InstantiationState == InstantiationState.Deferred)
-                    {
-                        SceneFacade.InstantiateSituation(nextSituation);
-                    }
-
                     // Reload modal with next situation - no exit to world
+                    // Situations are fully instantiated during FinalizeScene, no on-demand instantiation needed
                     CurrentSituation = nextSituation;
                     LoadChoices();
                     StateHasChanged();

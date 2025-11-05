@@ -166,6 +166,44 @@ public class Scene
     /// </summary>
     public string DisplayName { get; set; }
 
+    // ==================== DEPENDENT RESOURCE TRACKING ====================
+
+    /// <summary>
+    /// Location IDs created by this Scene through dynamic package generation
+    /// Self-contained pattern: Scene generates resources, tracks IDs for forensics
+    /// Used for cleanup and debugging - enables answering "which scene created this location?"
+    /// Empty list = Scene created no locations (traditional pre-existing location pattern)
+    /// </summary>
+    public List<string> CreatedLocationIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Item IDs created by this Scene through dynamic package generation
+    /// Self-contained pattern: Scene generates resources, tracks IDs for forensics
+    /// Used for cleanup and debugging - enables answering "which scene created this item?"
+    /// Empty list = Scene created no items (traditional pre-existing item pattern)
+    /// </summary>
+    public List<string> CreatedItemIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Package ID of dynamically generated content package
+    /// Forensic identifier enables tracing back to generated JSON
+    /// Format: "scene_{sceneId}_package"
+    /// null = Scene generated no dynamic package
+    /// </summary>
+    public string DependentPackageId { get; set; }
+
+    /// <summary>
+    /// Marker resolution map for self-contained scenes
+    /// Maps template IDs to actual created resource IDs
+    /// Key: "generated:{templateId}" marker format
+    /// Value: actual resource ID after creation
+    /// Example: {"generated:private_room" → "scene_abc123_private_room", "generated:room_key" → "scene_abc123_room_key"}
+    /// Populated during FinalizeScene after resource creation
+    /// Used by RewardApplicationService and action instantiation to resolve markers
+    /// Empty dictionary = no marker resolution needed (traditional pattern)
+    /// </summary>
+    public Dictionary<string, string> MarkerResolutionMap { get; set; } = new Dictionary<string, string>();
+
     // ==================== STATE MACHINE METHODS ====================
 
     /// <summary>
@@ -262,14 +300,18 @@ public class Scene
         if (currentSituation == null || currentSituation.Template == null)
             return false;
 
-        SituationTemplate template = currentSituation.Template;
+        // MARKER RESOLUTION: Use resolved IDs if present (self-contained scenes)
+        // Resolved IDs populated during finalization for markers like "generated:private_room"
+        // Fall back to template properties for non-self-contained scenes
+        string requiredLocationId = currentSituation.ResolvedRequiredLocationId ?? currentSituation.Template.RequiredLocationId;
+        string requiredNpcId = currentSituation.ResolvedRequiredNpcId ?? currentSituation.Template.RequiredNpcId;
 
         // Check location match
-        if (template.RequiredLocationId != locationId)
+        if (requiredLocationId != locationId)
             return false;
 
         // Check NPC match (both null = match, both non-null = compare values)
-        if (template.RequiredNpcId != npcId)
+        if (requiredNpcId != npcId)
             return false;
 
         return true;
@@ -289,14 +331,19 @@ public class Scene
         if (previousSituation?.Template == null || nextSituation?.Template == null)
             return SceneRoutingDecision.ExitToWorld;
 
-        SituationTemplate prevTemplate = previousSituation.Template;
-        SituationTemplate nextTemplate = nextSituation.Template;
+        // MARKER RESOLUTION: Use resolved IDs if present (self-contained scenes)
+        // Compare actual resolved IDs, not template markers
+        string prevLocationId = previousSituation.ResolvedRequiredLocationId ?? previousSituation.Template.RequiredLocationId;
+        string nextLocationId = nextSituation.ResolvedRequiredLocationId ?? nextSituation.Template.RequiredLocationId;
+
+        string prevNpcId = previousSituation.ResolvedRequiredNpcId ?? previousSituation.Template.RequiredNpcId;
+        string nextNpcId = nextSituation.ResolvedRequiredNpcId ?? nextSituation.Template.RequiredNpcId;
 
         // Compare location context
-        bool sameLocation = prevTemplate.RequiredLocationId == nextTemplate.RequiredLocationId;
+        bool sameLocation = prevLocationId == nextLocationId;
 
         // Compare NPC context
-        bool sameNpc = prevTemplate.RequiredNpcId == nextTemplate.RequiredNpcId;
+        bool sameNpc = prevNpcId == nextNpcId;
 
         // Same context = seamless cascade, different context = exit to world
         return (sameLocation && sameNpc) ? SceneRoutingDecision.ContinueInScene : SceneRoutingDecision.ExitToWorld;
