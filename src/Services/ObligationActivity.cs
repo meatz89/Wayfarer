@@ -539,12 +539,28 @@ public class ObligationActivity
                 NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == sceneSpawn.SpecificPlacementId);
                 if (npc == null) return null;
                 context.CurrentNPC = npc;
+
+                string npcLocationId = npc.WorkLocationId ?? npc.HomeLocationId;
+                if (!string.IsNullOrEmpty(npcLocationId))
+                {
+                    Location npcLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == npcLocationId);
+                    if (npcLocation != null)
+                    {
+                        context.CurrentLocation = npcLocation;
+                    }
+                }
                 break;
 
             case PlacementRelation.SpecificRoute:
                 RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == sceneSpawn.SpecificPlacementId);
                 if (route == null) return null;
                 context.CurrentRoute = route;
+
+                Location routeOrigin = _gameWorld.Locations.FirstOrDefault(l => l.Id == route.OriginLocation);
+                if (routeOrigin != null)
+                {
+                    context.CurrentLocation = routeOrigin;
+                }
                 break;
 
             default:

@@ -54,8 +54,8 @@ public class RouteOption
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public string OriginLocation { get; set; }
-    public string DestinationLocation { get; set; }
+    public Location OriginLocation { get; set; }
+    public Location DestinationLocation { get; set; }
 
     public TravelMethods Method { get; set; }
     public int BaseCoinCost { get; set; }

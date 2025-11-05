@@ -220,6 +220,12 @@ public static class GameWorldInitializer
                 RouteOption route = gameWorld.Routes.FirstOrDefault(r => r.Id == spawn.SpecificPlacementId);
                 if (route == null) return null;
                 context.CurrentRoute = route;
+
+                Location routeOrigin = gameWorld.Locations.FirstOrDefault(l => l.Id == route.OriginLocation);
+                if (routeOrigin != null)
+                {
+                    context.CurrentLocation = routeOrigin;
+                }
                 break;
 
             default:
