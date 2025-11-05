@@ -13,6 +13,8 @@ public static class ServiceTypeCatalogue
         new InvestigationService(),
         new SocialManeuveringService(),
         new CrisisService(),
+        new ServiceTransactionService(),
+        new AccessControlService(),
         new GenericService()
     };
 

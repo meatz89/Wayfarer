@@ -99,7 +99,8 @@
       "Bash(nul)",
       "Bash(Select-Object -First 50)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:7000\" dotnet run:*)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:7100\" dotnet run:*)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:7100\" dotnet run:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:7100\" timeout 10 dotnet run:*)"
     ],
     "deny": [],
     "ask": []
