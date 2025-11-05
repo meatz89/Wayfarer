@@ -100,6 +100,86 @@ namespace Wayfarer.Pages.Components
                     }
                 }
 
+                // Map ALL costs (Perfect Information)
+                int resolveCost = choiceTemplate.CostTemplate?.Resolve ?? 0;
+                int coinsCost = choiceTemplate.CostTemplate?.Coins ?? 0;
+                int timeSegments = choiceTemplate.CostTemplate?.TimeSegments ?? 0;
+                int healthCost = choiceTemplate.CostTemplate?.Health ?? 0;
+                int staminaCost = choiceTemplate.CostTemplate?.Stamina ?? 0;
+                int focusCost = choiceTemplate.CostTemplate?.Focus ?? 0;
+                int hungerCost = choiceTemplate.CostTemplate?.Hunger ?? 0;
+
+                // Map ALL rewards (Perfect Information)
+                ChoiceReward reward = choiceTemplate.RewardTemplate;
+                int coinsReward = reward?.Coins ?? 0;
+                int resolveReward = reward?.Resolve ?? 0;
+                int healthReward = reward?.Health ?? 0;
+                int staminaReward = reward?.Stamina ?? 0;
+                int focusReward = reward?.Focus ?? 0;
+                int hungerChange = reward?.Hunger ?? 0;
+                bool fullRecovery = reward?.FullRecovery ?? false;
+
+                // Map relationship consequences (BondChanges)
+                List<BondChangeVM> bondChanges = new List<BondChangeVM>();
+                if (reward?.BondChanges != null)
+                {
+                    foreach (BondChange bondChange in reward.BondChanges)
+                    {
+                        NPC npc = GameWorld.NPCs.FirstOrDefault(n => n.ID == bondChange.NpcId);
+                        bondChanges.Add(new BondChangeVM
+                        {
+                            NpcName = npc?.Name ?? bondChange.NpcId,
+                            Delta = bondChange.Delta,
+                            Reason = bondChange.Reason ?? ""
+                        });
+                    }
+                }
+
+                // Map reputation consequences (ScaleShifts)
+                List<ScaleShiftVM> scaleShifts = new List<ScaleShiftVM>();
+                if (reward?.ScaleShifts != null)
+                {
+                    foreach (ScaleShift scaleShift in reward.ScaleShifts)
+                    {
+                        scaleShifts.Add(new ScaleShiftVM
+                        {
+                            ScaleName = scaleShift.ScaleType.ToString(),
+                            Delta = scaleShift.Delta,
+                            Reason = scaleShift.Reason ?? ""
+                        });
+                    }
+                }
+
+                // Map condition consequences (StateApplications)
+                List<StateApplicationVM> stateApplications = new List<StateApplicationVM>();
+                if (reward?.StateApplications != null)
+                {
+                    foreach (StateApplication stateApp in reward.StateApplications)
+                    {
+                        stateApplications.Add(new StateApplicationVM
+                        {
+                            StateName = stateApp.StateType.ToString(),
+                            Apply = stateApp.Apply,
+                            Reason = stateApp.Reason ?? ""
+                        });
+                    }
+                }
+
+                // Map progression unlocks
+                List<string> achievementsGranted = reward?.AchievementIds ?? new List<string>();
+                List<string> itemsGranted = reward?.ItemIds ?? new List<string>();
+                List<string> locationsUnlocked = reward?.LocationsToUnlock ?? new List<string>();
+
+                // Map scene spawns to display names
+                List<string> scenesUnlocked = new List<string>();
+                if (reward?.ScenesToSpawn != null)
+                {
+                    foreach (SceneSpawnReward sceneSpawn in reward.ScenesToSpawn)
+                    {
+                        scenesUnlocked.Add(sceneSpawn.SceneTemplateId);
+                    }
+                }
+
                 ActionCardViewModel choice = new ActionCardViewModel
                 {
                     Id = choiceTemplate.Id,
@@ -107,9 +187,35 @@ namespace Wayfarer.Pages.Components
                     Description = "",
                     RequirementsMet = requirementsMet,
                     LockReason = lockReason,
-                    ResolveCost = choiceTemplate.CostTemplate?.Resolve ?? 0,
-                    CoinsCost = choiceTemplate.CostTemplate?.Coins ?? 0,
-                    TimeSegments = choiceTemplate.CostTemplate?.TimeSegments ?? 0
+
+                    // All costs
+                    ResolveCost = resolveCost,
+                    CoinsCost = coinsCost,
+                    TimeSegments = timeSegments,
+                    HealthCost = healthCost,
+                    StaminaCost = staminaCost,
+                    FocusCost = focusCost,
+                    HungerCost = hungerCost,
+
+                    // All rewards
+                    CoinsReward = coinsReward,
+                    ResolveReward = resolveReward,
+                    HealthReward = healthReward,
+                    StaminaReward = staminaReward,
+                    FocusReward = focusReward,
+                    HungerChange = hungerChange,
+                    FullRecovery = fullRecovery,
+
+                    // All consequences
+                    BondChanges = bondChanges,
+                    ScaleShifts = scaleShifts,
+                    StateApplications = stateApplications,
+
+                    // All progression unlocks
+                    AchievementsGranted = achievementsGranted,
+                    ItemsGranted = itemsGranted,
+                    LocationsUnlocked = locationsUnlocked,
+                    ScenesUnlocked = scenesUnlocked
                 };
 
                 Choices.Add(choice);

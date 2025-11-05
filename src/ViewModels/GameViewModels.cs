@@ -293,6 +293,10 @@ public class ActionCardViewModel
     public int ResolveCost { get; set; }
     public int CoinsCost { get; set; }
     public int TimeSegments { get; set; }
+    public int HealthCost { get; set; }
+    public int StaminaCost { get; set; }
+    public int FocusCost { get; set; }
+    public int HungerCost { get; set; }
 
     // Action type determines execution path
     public string ActionType { get; set; }  // "Instant", "StartChallenge", "Navigate"
@@ -301,6 +305,61 @@ public class ActionCardViewModel
     // Requirements met indicator
     public bool RequirementsMet { get; set; }
     public string LockReason { get; set; }
+
+    // Rewards (from ChoiceReward) - Perfect Information principle
+    public int CoinsReward { get; set; }
+    public int ResolveReward { get; set; }
+    public int HealthReward { get; set; }
+    public int StaminaReward { get; set; }
+    public int FocusReward { get; set; }
+    public int HungerChange { get; set; }
+    public bool FullRecovery { get; set; }
+
+    // Relationship consequences (transparent before selection)
+    public List<BondChangeVM> BondChanges { get; set; } = new();
+
+    // Reputation consequences (transparent before selection)
+    public List<ScaleShiftVM> ScaleShifts { get; set; } = new();
+
+    // Condition consequences (transparent before selection)
+    public List<StateApplicationVM> StateApplications { get; set; } = new();
+
+    // Progression unlocks (transparent before selection)
+    public List<string> AchievementsGranted { get; set; } = new();
+    public List<string> ItemsGranted { get; set; } = new();
+    public List<string> LocationsUnlocked { get; set; } = new();
+    public List<string> ScenesUnlocked { get; set; } = new();
+
+    // Detailed requirement gaps (replaces vague LockReason)
+    public List<RequirementPathVM> RequirementPaths { get; set; } = new();
+}
+
+public class BondChangeVM
+{
+    public string NpcName { get; set; }
+    public int Delta { get; set; }
+    public string Reason { get; set; }
+}
+
+public class ScaleShiftVM
+{
+    public string ScaleName { get; set; }
+    public int Delta { get; set; }
+    public string Reason { get; set; }
+}
+
+public class StateApplicationVM
+{
+    public string StateName { get; set; }
+    public bool Apply { get; set; }
+    public string Reason { get; set; }
+}
+
+public class RequirementPathVM
+{
+    public List<string> Requirements { get; set; } = new();
+    public bool PathSatisfied { get; set; }
+    public List<string> MissingRequirements { get; set; } = new();
 }
 
 /// <summary>

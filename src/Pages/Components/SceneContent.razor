@@ -39,21 +39,148 @@
                         {
                             <div class="choice-description">@choice.Description</div>
                         }
-                        @if (choice.ResolveCost > 0 || choice.CoinsCost > 0 || choice.TimeSegments > 0)
+
+                        @* ALL COSTS - Perfect Information *@
+                        @if (choice.ResolveCost > 0 || choice.CoinsCost > 0 || choice.TimeSegments > 0 ||
+                             choice.HealthCost > 0 || choice.StaminaCost > 0 || choice.FocusCost > 0 || choice.HungerCost > 0)
                         {
-                            <div class="choice-costs">
-                                @if (choice.ResolveCost > 0)
-                                {
-                                    <span class="cost">🎯 @choice.ResolveCost Resolve</span>
-                                }
-                                @if (choice.CoinsCost > 0)
-                                {
-                                    <span class="cost">💰 @choice.CoinsCost Coins</span>
-                                }
-                                @if (choice.TimeSegments > 0)
-                                {
-                                    <span class="cost">⏱️ @choice.TimeSegments Segments</span>
-                                }
+                            <div class="choice-section">
+                                <div class="choice-section-title">COSTS:</div>
+                                <div class="choice-costs">
+                                    @if (choice.ResolveCost > 0)
+                                    {
+                                        <span class="cost">🎯 @choice.ResolveCost Resolve</span>
+                                    }
+                                    @if (choice.CoinsCost > 0)
+                                    {
+                                        <span class="cost">💰 @choice.CoinsCost Coins</span>
+                                    }
+                                    @if (choice.TimeSegments > 0)
+                                    {
+                                        <span class="cost">⏱️ @choice.TimeSegments Segments</span>
+                                    }
+                                    @if (choice.HealthCost > 0)
+                                    {
+                                        <span class="cost">❤️ @choice.HealthCost Health</span>
+                                    }
+                                    @if (choice.StaminaCost > 0)
+                                    {
+                                        <span class="cost">💪 @choice.StaminaCost Stamina</span>
+                                    }
+                                    @if (choice.FocusCost > 0)
+                                    {
+                                        <span class="cost">🔷 @choice.FocusCost Focus</span>
+                                    }
+                                    @if (choice.HungerCost > 0)
+                                    {
+                                        <span class="cost">🍽️ +@choice.HungerCost Hunger</span>
+                                    }
+                                </div>
+                            </div>
+                        }
+
+                        @* ALL CONSEQUENCES - Perfect Information *@
+                        @if (choice.CoinsReward != 0 || choice.ResolveReward != 0 || choice.HealthReward != 0 ||
+                             choice.StaminaReward != 0 || choice.FocusReward != 0 || choice.HungerChange != 0 ||
+                             choice.FullRecovery || choice.BondChanges.Any() || choice.ScaleShifts.Any() ||
+                             choice.StateApplications.Any() || choice.AchievementsGranted.Any() ||
+                             choice.ItemsGranted.Any() || choice.LocationsUnlocked.Any() || choice.ScenesUnlocked.Any())
+                        {
+                            <div class="choice-section">
+                                <div class="choice-section-title">CONSEQUENCES:</div>
+                                <div class="choice-consequences">
+                                    @* Resource rewards *@
+                                    @if (choice.FullRecovery)
+                                    {
+                                        <div class="consequence-item">✨ Full Recovery (all resources restored)</div>
+                                    }
+                                    @if (choice.CoinsReward != 0)
+                                    {
+                                        <div class="consequence-item">💰 @(choice.CoinsReward > 0 ? "+" : "")@choice.CoinsReward Coins</div>
+                                    }
+                                    @if (choice.ResolveReward != 0)
+                                    {
+                                        <div class="consequence-item">🎯 @(choice.ResolveReward > 0 ? "+" : "")@choice.ResolveReward Resolve</div>
+                                    }
+                                    @if (choice.HealthReward != 0)
+                                    {
+                                        <div class="consequence-item">❤️ @(choice.HealthReward > 0 ? "+" : "")@choice.HealthReward Health</div>
+                                    }
+                                    @if (choice.StaminaReward != 0)
+                                    {
+                                        <div class="consequence-item">💪 @(choice.StaminaReward > 0 ? "+" : "")@choice.StaminaReward Stamina</div>
+                                    }
+                                    @if (choice.FocusReward != 0)
+                                    {
+                                        <div class="consequence-item">🔷 @(choice.FocusReward > 0 ? "+" : "")@choice.FocusReward Focus</div>
+                                    }
+                                    @if (choice.HungerChange != 0)
+                                    {
+                                        <div class="consequence-item">🍽️ @(choice.HungerChange > 0 ? "+" : "")@choice.HungerChange Hunger</div>
+                                    }
+
+                                    @* Relationship consequences *@
+                                    @foreach (var bondChange in choice.BondChanges)
+                                    {
+                                        <div class="consequence-item consequence-bond">
+                                            💙 @(bondChange.Delta > 0 ? "+" : "")@bondChange.Delta Bond with @bondChange.NpcName
+                                            @if (!string.IsNullOrEmpty(bondChange.Reason))
+                                            {
+                                                <div class="consequence-reason">@bondChange.Reason</div>
+                                            }
+                                        </div>
+                                    }
+
+                                    @* Reputation consequences *@
+                                    @foreach (var scaleShift in choice.ScaleShifts)
+                                    {
+                                        <div class="consequence-item consequence-scale">
+                                            ⚖️ @(scaleShift.Delta > 0 ? "+" : "")@scaleShift.Delta @scaleShift.ScaleName
+                                            @if (!string.IsNullOrEmpty(scaleShift.Reason))
+                                            {
+                                                <div class="consequence-reason">@scaleShift.Reason</div>
+                                            }
+                                        </div>
+                                    }
+
+                                    @* Condition consequences *@
+                                    @foreach (var stateApp in choice.StateApplications)
+                                    {
+                                        <div class="consequence-item consequence-state">
+                                            @(stateApp.Apply ? "✅ Gain" : "❌ Remove") State: @stateApp.StateName
+                                            @if (!string.IsNullOrEmpty(stateApp.Reason))
+                                            {
+                                                <div class="consequence-reason">@stateApp.Reason</div>
+                                            }
+                                        </div>
+                                    }
+
+                                    @* Progression unlocks *@
+                                    @if (choice.AchievementsGranted.Any())
+                                    {
+                                        <div class="consequence-item consequence-unlock">
+                                            🏆 Achievements: @string.Join(", ", choice.AchievementsGranted)
+                                        </div>
+                                    }
+                                    @if (choice.ItemsGranted.Any())
+                                    {
+                                        <div class="consequence-item consequence-unlock">
+                                            🎒 Items: @string.Join(", ", choice.ItemsGranted)
+                                        </div>
+                                    }
+                                    @if (choice.LocationsUnlocked.Any())
+                                    {
+                                        <div class="consequence-item consequence-unlock">
+                                            🗺️ Unlocks: @string.Join(", ", choice.LocationsUnlocked)
+                                        </div>
+                                    }
+                                    @if (choice.ScenesUnlocked.Any())
+                                    {
+                                        <div class="consequence-item consequence-unlock">
+                                            📖 Unlocks Scenes: @string.Join(", ", choice.ScenesUnlocked)
+                                        </div>
+                                    }
+                                </div>
                             </div>
                         }
                     </div>
