@@ -693,7 +693,7 @@ public class TravelManager
         // Move player to destination
         // HEX-FIRST ARCHITECTURE: Set player position via hex coordinates
         Location targetSpot = _gameWorld.Locations
-            .FirstOrDefault(s => s.Id == route.DestinationLocation);
+            .FirstOrDefault(s => s.Id == route.DestinationLocationId);
 
         if (targetSpot != null)
         {

@@ -388,9 +388,9 @@ public class LocationFacade
 
         foreach (RouteOption route in availableRoutes)
         {
-            Location destSpot = _gameWorld.GetLocation(route.DestinationLocation);
+            Location destSpot = _gameWorld.GetLocation(route.DestinationLocationId);
             if (destSpot == null)
-                throw new InvalidOperationException($"Destination location spot not found: {route.DestinationLocation}");
+                throw new InvalidOperationException($"Destination location spot not found: {route.DestinationLocationId}");
 
             Venue destination = _locationManager.GetVenue(destSpot.VenueId);
             if (destination == null)

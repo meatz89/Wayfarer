@@ -23,7 +23,7 @@ public class RouteRepository : IRouteRepository
             return new List<RouteOption>();
 
         // Direct query by OriginLocation (no iteration needed)
-        return _gameWorld.Routes.Where(r => r.OriginLocation == locationId);
+        return _gameWorld.Routes.Where(r => r.OriginLocationId == locationId);
     }
 
     // Get all routes in the world

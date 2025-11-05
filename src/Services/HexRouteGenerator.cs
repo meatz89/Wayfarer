@@ -186,8 +186,10 @@ namespace Wayfarer.Services
             {
                 Id = routeId,
                 Name = $"{origin.Name} to {destination.Name}",
-                OriginLocation = origin.Id,
-                DestinationLocation = destination.Id,
+                OriginLocationId = origin.Id,
+                OriginLocation = origin,
+                DestinationLocationId = destination.Id,
+                DestinationLocation = destination,
                 Method = ConvertTransportToTravelMethod(transportType),
                 BaseCoinCost = coinCost,
                 BaseStaminaCost = staminaCost,

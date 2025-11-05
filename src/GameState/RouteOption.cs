@@ -54,7 +54,12 @@ public class RouteOption
 {
     public string Id { get; set; }
     public string Name { get; set; }
+
+    // HIGHLANDER Pattern A (BOTH ID + Object)
+    // From JSON, frequent runtime navigation
+    public string OriginLocationId { get; set; }
     public Location OriginLocation { get; set; }
+    public string DestinationLocationId { get; set; }
     public Location DestinationLocation { get; set; }
 
     public TravelMethods Method { get; set; }

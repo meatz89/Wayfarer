@@ -204,7 +204,7 @@ public class Player
 
     public void AddKnownRoute(RouteOption route)
     {
-        string originName = route.OriginLocation;
+        string originName = route.OriginLocationId;
 
         KnownRouteEntry routeEntry = KnownRoutes.FirstOrDefault(kr => kr.OriginSpotId == originName);
         if (routeEntry == null)

@@ -1214,8 +1214,10 @@ public class PackageLoader
         {
             Id = dto.Id,
             Name = dto.Name,
-            OriginLocation = dto.OriginSpotId,
-            DestinationLocation = dto.DestinationSpotId,
+            OriginLocationId = dto.OriginSpotId,
+            OriginLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == dto.OriginSpotId),
+            DestinationLocationId = dto.DestinationSpotId,
+            DestinationLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == dto.DestinationSpotId),
             Method = Enum.TryParse<TravelMethods>(dto.Method, out TravelMethods method) ? method : TravelMethods.Walking,
             BaseCoinCost = dto.BaseCoinCost,
             BaseStaminaCost = dto.BaseStaminaCost,
@@ -1388,8 +1390,8 @@ public class PackageLoader
     private RouteOption GenerateReverseRoute(RouteOption forwardRoute)
     {
         // Extract Venue IDs from the location IDs for naming
-        string originVenueId = GetVenueIdFromSpotId(forwardRoute.OriginLocation);
-        string destVenueId = GetVenueIdFromSpotId(forwardRoute.DestinationLocation);
+        string originVenueId = GetVenueIdFromSpotId(forwardRoute.OriginLocationId);
+        string destVenueId = GetVenueIdFromSpotId(forwardRoute.DestinationLocationId);
 
         // Generate reverse route ID by swapping origin and destination
         string[] idParts = forwardRoute.Id.Split("_to_");
@@ -1401,8 +1403,10 @@ public class PackageLoader
         {
             Id = reverseId,
             Name = $"Return to {GetLocationNameFromId(originVenueId)}",
-            // Swap origin and destination
+            // Swap origin and destination (both IDs and objects)
+            OriginLocationId = forwardRoute.DestinationLocationId,
             OriginLocation = forwardRoute.DestinationLocation,
+            DestinationLocationId = forwardRoute.OriginLocationId,
             DestinationLocation = forwardRoute.OriginLocation,
 
             // Keep the same properties for both directions
@@ -1524,10 +1528,10 @@ public class PackageLoader
         List<string> routeSpotIds = new List<string>();
         foreach (RouteOption route in _gameWorld.Routes)
         {
-            if (!routeSpotIds.Contains(route.OriginLocation))
-                routeSpotIds.Add(route.OriginLocation);
-            if (!routeSpotIds.Contains(route.DestinationLocation))
-                routeSpotIds.Add(route.DestinationLocation);
+            if (!routeSpotIds.Contains(route.OriginLocationId))
+                routeSpotIds.Add(route.OriginLocationId);
+            if (!routeSpotIds.Contains(route.DestinationLocationId))
+                routeSpotIds.Add(route.DestinationLocationId);
         }
 
         foreach (string LocationId in routeSpotIds)

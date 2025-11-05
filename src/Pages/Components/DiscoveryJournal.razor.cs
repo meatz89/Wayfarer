@@ -77,10 +77,10 @@ namespace Wayfarer.Pages.Components
                 {
                     routes.Add(new RouteInfo
                     {
-                        Id = $"{route.OriginLocation}_{route.DestinationLocation}",
-                        OriginName = route.OriginLocation,
-                        DestinationName = route.DestinationLocation,
-                        Familiarity = player.GetRouteFamiliarity($"{route.OriginLocation}_{route.DestinationLocation}")
+                        Id = $"{route.OriginLocationId}_{route.DestinationLocationId}",
+                        OriginName = route.OriginLocationId,
+                        DestinationName = route.DestinationLocationId,
+                        Familiarity = player.GetRouteFamiliarity($"{route.OriginLocationId}_{route.DestinationLocationId}")
                     });
                 }
             }

@@ -77,9 +77,9 @@ namespace Wayfarer.Pages.Components
             {
                 Id = r.Id,
                 Name = r.Name,  // Store the actual route name from JSON
-                DestinationName = GetDestinationVenueName(r.DestinationLocation),
-                DestinationSpotName = GetDestinationLocationName(r.DestinationLocation),
-                District = GetDestinationDistrict(r.DestinationLocation),
+                DestinationName = GetDestinationVenueName(r.DestinationLocationId),
+                DestinationSpotName = GetDestinationLocationName(r.DestinationLocationId),
+                District = GetDestinationDistrict(r.DestinationLocationId),
                 TransportType = FormatTransportType(r.Method),
                 TravelTime = r.TravelTimeSegments,
                 Cost = r.BaseCoinCost,

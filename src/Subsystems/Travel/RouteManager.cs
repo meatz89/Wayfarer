@@ -26,8 +26,8 @@ public class RouteManager
     public RouteOption GetRouteBetweenLocations(string fromLocationId, string toLocationId)
     {
         List<RouteOption> routes = GetRoutesFromLocation(fromLocationId);
-        // RouteOption uses DestinationLocation for exact destination
-        return routes.FirstOrDefault(r => r.DestinationLocation == toLocationId);
+        // RouteOption uses DestinationLocationId for exact destination
+        return routes.FirstOrDefault(r => r.DestinationLocationId == toLocationId);
     }
 
     /// <summary>

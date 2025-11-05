@@ -333,7 +333,7 @@ public class GameFacade
             if (actualRoute != null)
             {
                 // Find the destination location by its ID from GameWorld's Locations dictionary
-                Location? destSpot = _gameWorld.GetLocation(actualRoute.DestinationLocation);
+                Location? destSpot = _gameWorld.GetLocation(actualRoute.DestinationLocationId);
 
                 if (destSpot != null)
                 {
@@ -371,7 +371,7 @@ public class GameFacade
             });
 
             // Get destination Venue name for the message
-            Location? finalDestSpot = _gameWorld.GetLocation(targetRoute.DestinationLocation);
+            Location? finalDestSpot = _gameWorld.GetLocation(targetRoute.DestinationLocationId);
 
             string destinationName = "Unknown";
             if (finalDestSpot != null)

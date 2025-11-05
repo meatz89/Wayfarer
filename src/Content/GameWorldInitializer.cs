@@ -204,15 +204,10 @@ public static class GameWorldInitializer
                 if (npc == null) return null;
                 context.CurrentNPC = npc;
 
-                // Derive Location from NPC's work/home location
-                string npcLocationId = npc.WorkLocationId ?? npc.HomeLocationId;
-                if (!string.IsNullOrEmpty(npcLocationId))
+                // Derive Location from NPC's Location property (set by NPCParser during parsing)
+                if (npc.Location != null)
                 {
-                    Location npcLocation = gameWorld.Locations.FirstOrDefault(l => l.Id == npcLocationId);
-                    if (npcLocation != null)
-                    {
-                        context.CurrentLocation = npcLocation; // Location is source of truth
-                    }
+                    context.CurrentLocation = npc.Location; // Location is source of truth
                 }
                 break;
 

@@ -187,7 +187,7 @@ namespace Wayfarer.Pages.Components
                 throw new InvalidOperationException("No current route in travel context");
 
             // Extract destination from route
-            string destinationSpot = TravelContext.CurrentRoute.DestinationLocation;
+            string destinationSpot = TravelContext.CurrentRoute.DestinationLocationId;
             if (string.IsNullOrEmpty(destinationSpot))
                 return "Unknown Destination";
 
