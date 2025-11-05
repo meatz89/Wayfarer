@@ -237,7 +237,7 @@
           "combinationLogic": "AND"
         },
         "sceneArchetypeId": "single_situation",
-        "serviceType": "SocialManeuvering"
+        "serviceType": "social_maneuvering"
       },
       {
         "id": "emergency_location_crisis",
@@ -456,7 +456,7 @@
           "combinationLogic": "AND"
         },
         "sceneArchetypeId": "single_situation",
-        "serviceType": "SocialManeuvering"
+        "serviceType": "social_maneuvering"
       },
       {
         "id": "trade_route_dispute",
@@ -624,7 +624,7 @@
           "combinationLogic": "AND"
         },
         "sceneArchetypeId": "single_situation",
-        "serviceType": "ServiceTransaction"
+        "serviceType": "service_transaction"
       },
       {
         "id": "restricted_area_entrance",
@@ -679,7 +679,7 @@
           "combinationLogic": "AND"
         },
         "sceneArchetypeId": "single_situation",
-        "serviceType": "AccessControl"
+        "serviceType": "access_control"
       },
       {
         "id": "tavern_rumor_network",
@@ -734,7 +734,7 @@
           "combinationLogic": "AND"
         },
         "sceneArchetypeId": "single_situation",
-        "serviceType": "InformationGathering"
+        "serviceType": "information_gathering"
       },
       {
         "id": "guild_competency_test",
@@ -790,7 +790,7 @@
           "combinationLogic": "AND"
         },
         "sceneArchetypeId": "single_situation",
-        "serviceType": "SkillDemonstration"
+        "serviceType": "skill_demonstration"
       },
       {
         "id": "public_accusation",
@@ -847,7 +847,7 @@
           "combinationLogic": "AND"
         },
         "sceneArchetypeId": "single_situation",
-        "serviceType": "ReputationChallenge"
+        "serviceType": "reputation_challenge"
       },
       {
         "id": "medical_emergency",
@@ -901,7 +901,7 @@
           "combinationLogic": "AND"
         },
         "sceneArchetypeId": "single_situation",
-        "serviceType": "EmergencyAid"
+        "serviceType": "emergency_aid"
       },
       {
         "id": "permit_application",
@@ -957,7 +957,7 @@
           "combinationLogic": "AND"
         },
         "sceneArchetypeId": "single_situation",
-        "serviceType": "AdministrativeProcedure"
+        "serviceType": "administrative_procedure"
       },
       {
         "id": "goods_quality_disagreement",
@@ -1013,7 +1013,7 @@
           "combinationLogic": "AND"
         },
         "sceneArchetypeId": "single_situation",
-        "serviceType": "TradeDispute"
+        "serviceType": "trade_dispute"
       },
       {
         "id": "social_etiquette_violation",
@@ -1068,7 +1068,7 @@
           "combinationLogic": "AND"
         },
         "sceneArchetypeId": "single_situation",
-        "serviceType": "CulturalFauxPas"
+        "serviceType": "cultural_faux_pas"
       },
       {
         "id": "faction_recruitment_offer",
