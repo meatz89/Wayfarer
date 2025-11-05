@@ -174,6 +174,7 @@ public static class SceneArchetypeCatalog
         };
 
         // Situation 4: Departure and cleanup (AutoAdvance)
+        // Player returns to common room to check out with NPC
         SituationTemplate departureSituation = new SituationTemplate
         {
             Id = departSitId,
@@ -190,10 +191,12 @@ public static class SceneArchetypeCatalog
             },
             AutoProgressRewards = new ChoiceReward
             {
-                TimeSegments = 1  // Leaving costs 1 time segment
+                TimeSegments = 1,  // Leaving costs 1 time segment
+                ItemsToRemove = new List<string> { "generated:room_key" },  // Return key during checkout
+                LocationsToLock = new List<string> { "generated:private_room" }  // Re-lock private room after checkout
             },
-            RequiredLocationId = "generated:private_room",  // Marker resolves to actual private room ID at finalization
-            RequiredNpcId = null  // No NPC requirement for departure
+            RequiredLocationId = contextNPC?.Location?.Id,  // Return to NPC's location (common room) for checkout
+            RequiredNpcId = contextNPC?.ID  // Check out with the service provider NPC
         };
 
         // Generate spawn rules (linear progression)
