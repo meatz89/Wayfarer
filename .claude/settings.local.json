@@ -97,7 +97,8 @@
       "Bash(curl:*)",
       "Bash(del /F \"C:\\Git\\Wayfarer\\src\\GameState\\ServiceType.cs\")",
       "Bash(nul)",
-      "Bash(Select-Object -First 50)"
+      "Bash(Select-Object -First 50)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:7000\" dotnet run:*)"
     ],
     "deny": [],
     "ask": []

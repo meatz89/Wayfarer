@@ -8,6 +8,11 @@ public static class ServiceTypeCatalogue
     {
         new LodgingService(),
         new TrainingService(),
+        new NegotiationService(),
+        new ConfrontationService(),
+        new InvestigationService(),
+        new SocialManeuveringService(),
+        new CrisisService(),
         new GenericService()
     };
 
