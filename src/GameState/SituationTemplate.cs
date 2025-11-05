@@ -30,15 +30,6 @@ public class SituationTemplate
     public SituationType Type { get; init; } = SituationType.Normal;
 
     /// <summary>
-    /// Optional archetype ID for procedural choice generation
-    /// If specified, parser generates 4 ChoiceTemplates from archetype structure at PARSE TIME
-    /// Values: "confrontation", "negotiation", "investigation", "social_maneuvering", "crisis"
-    /// If null: Use hand-authored ChoiceTemplates from JSON (existing behavior)
-    /// PARSE-TIME ONLY: SituationArchetypeCatalog called during parsing, never at runtime
-    /// </summary>
-    public string ArchetypeId { get; init; }
-
-    /// <summary>
     /// Narrative template with placeholders
     /// Example: "As you approach {LocationName}, {NPCName} steps forward nervously..."
     /// Placeholders replaced at spawn time:

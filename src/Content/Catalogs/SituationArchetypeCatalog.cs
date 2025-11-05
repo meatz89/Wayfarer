@@ -526,4 +526,193 @@ public static class SituationArchetypeCatalog
             FallbackTimeCost = 1
         };
     }
+
+    public static List<ChoiceTemplate> GenerateChoiceTemplates(
+        SituationArchetype archetype,
+        string situationTemplateId)
+    {
+        List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
+
+        ChoiceTemplate statGatedChoice = new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_stat",
+            ActionTextTemplate = GenerateStatGatedActionText(archetype),
+            RequirementFormula = CreateStatRequirement(archetype),
+            CostTemplate = new ChoiceCost(),
+            RewardTemplate = new ChoiceReward(),
+            ActionType = ChoiceActionType.Instant
+        };
+        choices.Add(statGatedChoice);
+
+        ChoiceTemplate moneyChoice = new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_money",
+            ActionTextTemplate = GenerateMoneyActionText(archetype),
+            RequirementFormula = new CompoundRequirement(),
+            CostTemplate = new ChoiceCost { Coins = archetype.CoinCost },
+            RewardTemplate = new ChoiceReward(),
+            ActionType = ChoiceActionType.Instant
+        };
+        choices.Add(moneyChoice);
+
+        ChoiceTemplate challengeChoice = new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_challenge",
+            ActionTextTemplate = GenerateChallengeActionText(archetype),
+            RequirementFormula = new CompoundRequirement(),
+            CostTemplate = new ChoiceCost { Resolve = archetype.ResolveCost },
+            RewardTemplate = new ChoiceReward(),
+            ActionType = ChoiceActionType.StartChallenge,
+            ChallengeId = null,
+            ChallengeType = archetype.ChallengeType
+        };
+        choices.Add(challengeChoice);
+
+        ChoiceTemplate fallbackChoice = new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_fallback",
+            ActionTextTemplate = GenerateFallbackActionText(archetype),
+            RequirementFormula = new CompoundRequirement(),
+            CostTemplate = new ChoiceCost { TimeSegments = archetype.FallbackTimeCost },
+            RewardTemplate = new ChoiceReward(),
+            ActionType = ChoiceActionType.Instant
+        };
+        choices.Add(fallbackChoice);
+
+        return choices;
+    }
+
+    private static CompoundRequirement CreateStatRequirement(SituationArchetype archetype)
+    {
+        CompoundRequirement requirement = new CompoundRequirement();
+
+        OrPath primaryPath = new OrPath
+        {
+            Label = $"{archetype.PrimaryStat} {archetype.StatThreshold}+",
+            NumericRequirements = new List<NumericRequirement>
+            {
+                new NumericRequirement
+                {
+                    Type = "PlayerStat",
+                    Context = archetype.PrimaryStat.ToString(),
+                    Threshold = archetype.StatThreshold,
+                    Label = $"{archetype.PrimaryStat} {archetype.StatThreshold}+"
+                }
+            }
+        };
+        requirement.OrPaths.Add(primaryPath);
+
+        if (archetype.SecondaryStat != archetype.PrimaryStat)
+        {
+            OrPath secondaryPath = new OrPath
+            {
+                Label = $"{archetype.SecondaryStat} {archetype.StatThreshold}+",
+                NumericRequirements = new List<NumericRequirement>
+                {
+                    new NumericRequirement
+                    {
+                        Type = "PlayerStat",
+                        Context = archetype.SecondaryStat.ToString(),
+                        Threshold = archetype.StatThreshold,
+                        Label = $"{archetype.SecondaryStat} {archetype.StatThreshold}+"
+                    }
+                }
+            };
+            requirement.OrPaths.Add(secondaryPath);
+        }
+
+        return requirement;
+    }
+
+    private static string GenerateStatGatedActionText(SituationArchetype archetype)
+    {
+        return archetype.Id switch
+        {
+            "confrontation" => "Assert authority and take command",
+            "negotiation" => "Negotiate favorable terms",
+            "investigation" => "Deduce the solution through analysis",
+            "social_maneuvering" => "Read the social dynamics and navigate skillfully",
+            "crisis" => "Take decisive action with expertise",
+            "service_transaction" => "Use your expertise",
+            "access_control" => "Present credentials",
+            "information_gathering" => "Ask the right questions",
+            "skill_demonstration" => "Demonstrate your competence",
+            "reputation_challenge" => "Defend your honor",
+            "emergency_aid" => "Apply expert treatment",
+            "administrative_procedure" => "Navigate bureaucracy skillfully",
+            "trade_dispute" => "Leverage your position",
+            "cultural_faux_pas" => "Apologize gracefully",
+            "recruitment" => "Negotiate terms",
+            _ => "Use your expertise"
+        };
+    }
+
+    private static string GenerateMoneyActionText(SituationArchetype archetype)
+    {
+        return archetype.Id switch
+        {
+            "confrontation" => "Pay off the opposition",
+            "negotiation" => "Pay the premium price",
+            "investigation" => "Hire an expert or pay for information",
+            "social_maneuvering" => "Offer a generous gift",
+            "crisis" => "Pay for emergency solution",
+            "service_transaction" => "Pay the asking price",
+            "access_control" => "Bribe the gatekeeper",
+            "information_gathering" => "Buy the information",
+            "skill_demonstration" => "Hire someone to vouch",
+            "reputation_challenge" => "Offer compensation",
+            "emergency_aid" => "Pay for premium care",
+            "administrative_procedure" => "Expedite with payment",
+            "trade_dispute" => "Offer settlement",
+            "cultural_faux_pas" => "Offer gift as amends",
+            "recruitment" => "Buy time",
+            _ => "Pay to resolve"
+        };
+    }
+
+    private static string GenerateChallengeActionText(SituationArchetype archetype)
+    {
+        return archetype.Id switch
+        {
+            "confrontation" => "Attempt a physical confrontation",
+            "negotiation" => "Engage in complex debate",
+            "investigation" => "Work through the puzzle systematically",
+            "social_maneuvering" => "Make a bold social gambit",
+            "crisis" => "Risk everything on a desperate gambit",
+            "service_transaction" => "Attempt to bargain",
+            "access_control" => "Force your way through",
+            "information_gathering" => "Investigate on your own",
+            "skill_demonstration" => "Attempt without preparation",
+            "reputation_challenge" => "Challenge to duel",
+            "emergency_aid" => "Risk improvised treatment",
+            "administrative_procedure" => "Navigate red tape",
+            "trade_dispute" => "Escalate to arbitration",
+            "cultural_faux_pas" => "Defend your action",
+            "recruitment" => "Counter-offer boldly",
+            _ => "Accept the challenge"
+        };
+    }
+
+    private static string GenerateFallbackActionText(SituationArchetype archetype)
+    {
+        return archetype.Id switch
+        {
+            "confrontation" => "Back down and submit",
+            "negotiation" => "Accept unfavorable terms",
+            "investigation" => "Give up and move on",
+            "social_maneuvering" => "Exit awkwardly",
+            "crisis" => "Flee the situation",
+            "service_transaction" => "Leave without service",
+            "access_control" => "Turn back",
+            "information_gathering" => "Move on without answers",
+            "skill_demonstration" => "Admit lack of skill",
+            "reputation_challenge" => "Apologize and back down",
+            "emergency_aid" => "Do nothing",
+            "administrative_procedure" => "Abandon the process",
+            "trade_dispute" => "Accept the loss",
+            "cultural_faux_pas" => "Ignore and act oblivious",
+            "recruitment" => "Refuse bluntly",
+            _ => "Accept poor outcome"
+        };
+    }
 }

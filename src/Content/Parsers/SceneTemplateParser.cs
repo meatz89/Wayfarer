@@ -86,30 +86,43 @@ public class SceneTemplateParser
             Console.WriteLine($"[SceneArchetypeGeneration] Categorical scene (no concrete entities at parse time), Player.Coins={contextPlayer.Coins}");
         }
 
-        ServiceType serviceType = ParseServiceType(dto.ServiceType);
+        ServiceType serviceType = ServiceTypeCatalogue.GetByIdOrThrow(dto.ServiceType);
 
-        SceneArchetypeDefinition archetypeDefinition = SceneArchetypeCatalog.GetSceneArchetype(
-            dto.SceneArchetypeId,
-            serviceType,
-            dto.Tier,
-            contextNPC,
-            contextLocation,
-            contextPlayer
-        );
+        SceneArchetypeDefinition archetypeDefinition;
 
-        // Enrich bare SituationTemplates from catalogue with ChoiceTemplates
-        List<SituationTemplate> situationTemplates = new List<SituationTemplate>();
-        foreach (SituationTemplate bareTemplate in archetypeDefinition.SituationTemplates)
+        switch (dto.SceneArchetypeId?.ToLowerInvariant())
         {
-            SituationTemplate enrichedTemplate = EnrichSituationTemplateFromArchetype(
-                bareTemplate,
-                dto.Id,
-                archetype
-            );
-            situationTemplates.Add(enrichedTemplate);
+            case "service_with_location_access":
+                archetypeDefinition = serviceType.GenerateMultiSituationArc(
+                    dto.Tier,
+                    contextNPC,
+                    contextLocation,
+                    contextPlayer
+                );
+                break;
+
+            case "single_situation":
+                archetypeDefinition = serviceType.GenerateSingleSituation(
+                    dto.Tier,
+                    contextNPC,
+                    contextLocation,
+                    contextPlayer
+                );
+                break;
+
+            default:
+                archetypeDefinition = SceneArchetypeCatalog.GetSceneArchetype(
+                    dto.SceneArchetypeId,
+                    serviceType,
+                    dto.Tier,
+                    contextNPC,
+                    contextLocation,
+                    contextPlayer
+                );
+                break;
         }
 
-        // Use generated SpawnRules
+        List<SituationTemplate> situationTemplates = archetypeDefinition.SituationTemplates;
         SituationSpawnRules spawnRules = archetypeDefinition.SpawnRules;
 
         Console.WriteLine($"[SceneArchetypeGeneration] Generated {situationTemplates.Count} situations with pattern '{spawnRules.Pattern}'");
@@ -298,20 +311,6 @@ public class SceneTemplateParser
     }
 
     /// <summary>
-    /// Parse service type string to enum
-    /// </summary>
-    private ServiceType ParseServiceType(string serviceTypeStr)
-    {
-        if (string.IsNullOrEmpty(serviceTypeStr))
-            return ServiceType.Generic;
-
-        if (Enum.TryParse<ServiceType>(serviceTypeStr, true, out ServiceType result))
-            return result;
-
-        throw new InvalidDataException($"Invalid ServiceType: '{serviceTypeStr}'");
-    }
-
-    /// <summary>
     /// Parse embedded SituationTemplates
     /// </summary>
     private List<SituationTemplate> ParseSituationTemplates(List<SituationTemplateDTO> dtos, string sceneTemplateId, SpawnPattern archetype)
@@ -368,7 +367,6 @@ public class SceneTemplateParser
         {
             Id = dto.Id,
             Type = situationType,
-            ArchetypeId = dto.ArchetypeId,
             NarrativeTemplate = dto.NarrativeTemplate,
             ChoiceTemplates = choiceTemplates,
             Priority = dto.Priority,
@@ -902,53 +900,6 @@ public class SceneTemplateParser
             "social_maneuvering" => "Exit awkwardly",
             "crisis" => "Flee the situation",
             _ => "Accept poor outcome"
-        };
-    }
-
-    /// <summary>
-    /// Enrich bare SituationTemplate from SceneArchetypeCatalog with ChoiceTemplates
-    /// Takes domain entity from catalogue (ArchetypeId set, ChoiceTemplates empty)
-    /// Returns complete domain entity (ChoiceTemplates populated from archetype)
-    /// NO DTO CONVERSION - direct domain entity manipulation
-    /// </summary>
-    private SituationTemplate EnrichSituationTemplateFromArchetype(
-        SituationTemplate bareTemplate,
-        string sceneTemplateId,
-        SpawnPattern sceneArchetype)
-    {
-        List<ChoiceTemplate> choiceTemplates;
-
-        if (!string.IsNullOrEmpty(bareTemplate.ArchetypeId))
-        {
-            // Generate ChoiceTemplates from archetype using existing method
-            choiceTemplates = GenerateChoiceTemplatesFromArchetype(
-                bareTemplate.ArchetypeId,
-                sceneTemplateId,
-                bareTemplate.Id
-            );
-
-            Console.WriteLine($"[EnrichSituation] Generated {choiceTemplates.Count} choices for situation '{bareTemplate.Id}' using archetype '{bareTemplate.ArchetypeId}'");
-        }
-        else
-        {
-            // AutoAdvance situation or simple narrative - no choices needed
-            choiceTemplates = new List<ChoiceTemplate>();
-            Console.WriteLine($"[EnrichSituation] Situation '{bareTemplate.Id}' has no archetype - using empty choices (AutoAdvance or simple narrative)");
-        }
-
-        // Create new SituationTemplate with populated ChoiceTemplates
-        // All other properties copied from bare template
-        return new SituationTemplate
-        {
-            Id = bareTemplate.Id,
-            Name = bareTemplate.Name,  // CRITICAL: Copy Name from catalogue-generated template
-            Type = bareTemplate.Type,
-            ArchetypeId = bareTemplate.ArchetypeId,
-            NarrativeTemplate = bareTemplate.NarrativeTemplate,
-            ChoiceTemplates = choiceTemplates,
-            Priority = bareTemplate.Priority,
-            NarrativeHints = bareTemplate.NarrativeHints,
-            AutoProgressRewards = bareTemplate.AutoProgressRewards
         };
     }
 
