@@ -532,10 +532,7 @@ public class ObligationActivity
                 Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == sceneSpawn.SpecificPlacementId);
                 if (location == null) return null;
 
-                Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId);
-                if (venue == null) return null;
-
-                context.CurrentLocation = venue;
+                context.CurrentLocation = location; // Location is source of truth
                 break;
 
             case PlacementRelation.SpecificNPC:

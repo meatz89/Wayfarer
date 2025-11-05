@@ -91,7 +91,10 @@
       "mcp__playwright__playwright_screenshot",
       "mcp__playwright__playwright_click",
       "mcp__playwright__playwright_get_visible_text",
-      "mcp__playwright__playwright_console_logs"
+      "mcp__playwright__playwright_console_logs",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6900\" dotnet run:*)",
+      "Bash(tee:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": []

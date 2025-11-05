@@ -496,9 +496,9 @@ public static class SceneArchetypeCatalog
         switch (serviceType?.ToLowerInvariant())
         {
             case "lodging":
-                // Rest restores stamina, advances time to morning
-                reward.TimeSegments = 6;  // Full night sleep
-                reward.Stamina = 30 + (tier * 10);  // Scales with tier
+                // Full recovery: Health/Stamina/Focus to max, Hunger to 0
+                reward.FullRecovery = true;
+                reward.TimeSegments = 6;  // Full night sleep (1.5 time blocks)
                 break;
 
             case "bathing":

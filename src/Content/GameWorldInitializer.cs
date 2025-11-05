@@ -196,16 +196,24 @@ public static class GameWorldInitializer
                 Location location = gameWorld.Locations.FirstOrDefault(l => l.Id == spawn.SpecificPlacementId);
                 if (location == null) return null;
 
-                Venue venue = gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId);
-                if (venue == null) return null;
-
-                context.CurrentLocation = venue;
+                context.CurrentLocation = location; // Location is source of truth
                 break;
 
             case PlacementRelation.SpecificNPC:
                 NPC npc = gameWorld.NPCs.FirstOrDefault(n => n.ID == spawn.SpecificPlacementId);
                 if (npc == null) return null;
                 context.CurrentNPC = npc;
+
+                // Derive Location from NPC's work/home location
+                string npcLocationId = npc.WorkLocationId ?? npc.HomeLocationId;
+                if (!string.IsNullOrEmpty(npcLocationId))
+                {
+                    Location npcLocation = gameWorld.Locations.FirstOrDefault(l => l.Id == npcLocationId);
+                    if (npcLocation != null)
+                    {
+                        context.CurrentLocation = npcLocation; // Location is source of truth
+                    }
+                }
                 break;
 
             case PlacementRelation.SpecificRoute:

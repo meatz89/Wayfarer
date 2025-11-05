@@ -215,15 +215,11 @@ public class RewardApplicationService
             }
 
             // Resolve Location/NPC if needed
-            Venue currentVenue = null;
+            Location currentLocation = null;
             string locationId = currentSituation?.GetPlacementId(PlacementType.Location);
             if (!string.IsNullOrEmpty(locationId))
             {
-                Location location = _gameWorld.GetLocation(locationId);
-                if (location != null && !string.IsNullOrEmpty(location.VenueId))
-                {
-                    currentVenue = _gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId);
-                }
+                currentLocation = _gameWorld.GetLocation(locationId); // Location is source of truth
             }
 
             NPC currentNPC = null;
@@ -238,7 +234,7 @@ public class RewardApplicationService
             {
                 Player = player,
                 CurrentSituation = currentSituation,
-                CurrentLocation = currentVenue,
+                CurrentLocation = currentLocation, // Location is source of truth
                 CurrentNPC = currentNPC,
                 CurrentRoute = currentRoute
             };

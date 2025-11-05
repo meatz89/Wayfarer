@@ -134,6 +134,9 @@ public static class ServiceConfiguration
         // Scene Instantiation System (needed by ObligationActivity)
         services.AddSingleton<SpawnConditionsEvaluator>();
         services.AddSingleton<Wayfarer.Subsystems.Scene.SceneNarrativeService>();
+        services.AddSingleton<PackageLoader>();
+        services.AddSingleton<HexRouteGenerator>();
+        services.AddSingleton<MarkerResolutionService>();
         services.AddSingleton<Wayfarer.Content.SceneInstantiator>();
 
         // State Clearing System (needed by TimeFacade)

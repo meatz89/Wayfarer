@@ -15,10 +15,11 @@ public class SceneSpawnContext
     public Situation CurrentSituation { get; set; }
 
     /// <summary>
-    /// Venue (location) where current Situation exists (nullable)
-    /// Used for SameLocation placement and location-based filters
+    /// Location where current Situation exists (nullable)
+    /// Location is source of truth - contains VenueId for grouping
+    /// Used for SameLocation placement, VenueId resolution, and placeholder replacement
     /// </summary>
-    public Venue CurrentLocation { get; set; }
+    public Location CurrentLocation { get; set; }
 
     /// <summary>
     /// NPC involved in current Situation (nullable)

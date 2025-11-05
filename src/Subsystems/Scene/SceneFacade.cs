@@ -461,7 +461,7 @@ public class SceneFacade
         {
             Player = player,
             CurrentLocation = parentScene.PlacementType == PlacementType.Location ?
-                _gameWorld.Venues.FirstOrDefault(v => v.Id == parentScene.PlacementId) : null,
+                _gameWorld.Locations.FirstOrDefault(l => l.Id == parentScene.PlacementId) : null, // Location is source of truth
             CurrentNPC = parentScene.PlacementType == PlacementType.NPC ?
                 _gameWorld.NPCs.FirstOrDefault(n => n.ID == parentScene.PlacementId) : null,
             CurrentRoute = parentScene.PlacementType == PlacementType.Route ?

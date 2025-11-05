@@ -294,7 +294,7 @@ public class SceneInstantiator
             case PlacementRelation.SameLocation:
                 if (context.CurrentLocation == null)
                     throw new InvalidOperationException("SameLocation placement requires CurrentLocation in context");
-                return (PlacementType.Location, context.CurrentLocation.Id);
+                return (PlacementType.Location, context.CurrentLocation.Id); // Location.Id (source of truth)
 
             case PlacementRelation.SameNPC:
                 if (context.CurrentNPC == null)
@@ -1129,7 +1129,7 @@ public class SceneInstantiator
             case VenueIdSource.SameAsBase:
                 if (context.CurrentLocation == null)
                     throw new InvalidOperationException("VenueIdSource.SameAsBase requires CurrentLocation in context");
-                return context.CurrentLocation.Id;
+                return context.CurrentLocation.VenueId; // Location.VenueId (source of truth)
 
             case VenueIdSource.GenerateNew:
                 throw new NotImplementedException("VenueIdSource.GenerateNew not yet implemented");
