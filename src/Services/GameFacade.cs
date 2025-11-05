@@ -164,12 +164,8 @@ public class GameFacade
         return _locationFacade.GetAvailableApproaches(player);
     }
 
-    // ========== Venue OPERATIONS ==========
-
-    public Venue GetCurrentLocation()
-    {
-        return _locationFacade.GetCurrentLocation();
-    }
+    // ========== LOCATION OPERATIONS ==========
+    // Venue is ALWAYS derived from Location: location.Venue
 
     public Location GetLocation(string LocationId)
     {
@@ -179,11 +175,6 @@ public class GameFacade
     public Location GetCurrentLocation()
     {
         return _locationFacade.GetCurrentLocation();
-    }
-
-    public Venue GetLocationById(string venueId)
-    {
-        return _locationFacade.GetLocationById(venueId);
     }
 
     public bool MoveToSpot(string locationId)
@@ -653,9 +644,9 @@ public class GameFacade
             return null;
         }
 
-        // Get current location
-        Venue? currentLocation = GetCurrentLocation();
-        Location? currentSpot = GetCurrentLocation();
+        // Get current location (Venue derived from Location)
+        Location? currentLocation = GetCurrentLocation();
+        Venue? venue = currentLocation?.Venue;
 
         // Get current time block
         TimeBlocks timeBlock = _timeFacade.GetCurrentTimeBlock();
@@ -697,9 +688,11 @@ public class GameFacade
             },
             LocationInfo = new LocationInfo
             {
-                VenueId = currentSpot.Id,
-                Name = currentLocation.Name,
-                Description = currentLocation.Description
+                LocationId = currentLocation.Id,
+                LocationName = currentLocation.Name,
+                VenueId = currentLocation.VenueId,
+                VenueName = venue?.Name,
+                Description = venue?.Description
             },
             CurrentTimeBlock = timeBlock,
             PlayerResources = playerResources,
@@ -708,7 +701,7 @@ public class GameFacade
             Session = new ExchangeSession
             {
                 NpcId = npcId,
-                VenueId = currentSpot.Id,
+                LocationId = currentLocation.Id,
                 AvailableExchanges = availableExchanges
             }
         };

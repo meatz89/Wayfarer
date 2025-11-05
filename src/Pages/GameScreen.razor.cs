@@ -134,7 +134,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected async Task RefreshLocationDisplay()
     {
-        Venue venue = GameFacade.GetCurrentLocation();
+        Venue venue = GameFacade.GetCurrentLocation().Venue;
         Location location = GameFacade.GetCurrentLocation();
 
         if (venue != null)
@@ -156,7 +156,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     private string BuildLocationPath(string locationName)
     {
         // Get the current venue directly from GameFacade by ID
-        Venue venue = GameFacade.GetCurrentLocation();
+        Venue venue = GameFacade.GetCurrentLocation().Venue;
         if (venue == null) return locationName;
 
         // Get the district from the venue's district ID
@@ -376,7 +376,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             ErrorMessage = session == null ? "Failed to start Mental session" : string.Empty,
             DeckId = deckId,
             Session = session,
-            Venue = GameFacade.GetCurrentLocation(),
+            Venue = GameFacade.GetCurrentLocation().Venue,
             LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"
         };
 
@@ -425,7 +425,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             ErrorMessage = session == null ? "Failed to start Physical session" : string.Empty,
             DeckId = deckId,
             Session = session,
-            Venue = GameFacade.GetCurrentLocation(),
+            Venue = GameFacade.GetCurrentLocation().Venue,
             LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"
         };
 
@@ -570,7 +570,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             return;
 
         // Create modal scene context
-        Venue currentLocation = GameFacade.GetCurrentLocation();
+        Location currentLocation = GameFacade.GetCurrentLocation();
         CurrentModalSceneContext = new ModalSceneContext
         {
             IsValid = true,
@@ -616,7 +616,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
 
         // Create modal scene context
-        Venue currentLocation = GameFacade.GetCurrentLocation();
+        Location currentLocation = GameFacade.GetCurrentLocation();
         CurrentModalSceneContext = new ModalSceneContext
         {
             IsValid = true,
@@ -683,7 +683,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected string GetCurrentLocation()
     {
-        Venue venue = GameFacade.GetCurrentLocation();
+        Venue venue = GameFacade.GetCurrentLocation().Venue;
         return venue?.Name ?? "Unknown";
     }
 

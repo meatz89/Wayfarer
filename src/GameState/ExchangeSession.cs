@@ -17,9 +17,9 @@ public class ExchangeSession
     public string NpcId { get; set; }
 
     /// <summary>
-    /// The Venue where this exchange is taking place.
+    /// The Location where this exchange is taking place.
     /// </summary>
-    public string VenueId { get; set; }
+    public string LocationId { get; set; }
 
     /// <summary>
     /// The time block when this session started.

@@ -68,15 +68,8 @@ public class LocationFacade
     }
 
     /// <summary>
-    /// Get the player's current location.
-    /// </summary>
-    public Venue GetCurrentLocation()
-    {
-        return _locationManager.GetCurrentLocation();
-    }
-
-    /// <summary>
-    /// Get the player's current Venue location.
+    /// Get the player's current Location (spatial position).
+    /// Venue is derived: GetCurrentLocation().Venue
     /// </summary>
     public Location GetCurrentLocation()
     {
@@ -84,15 +77,7 @@ public class LocationFacade
     }
 
     /// <summary>
-    /// Get a specific Venue by ID.
-    /// </summary>
-    public Venue GetLocationById(string venueId)
-    {
-        return _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
-    }
-
-    /// <summary>
-    /// Move player to a different location within the current location.
+    /// Move player to a different Location within the current Venue.
     /// Movement between Locations within a Venue is FREE (no attention cost).
     /// </summary>
     public bool MoveToSpot(string locationId)
@@ -106,32 +91,32 @@ public class LocationFacade
 
         // Get current state
         Player player = _gameWorld.GetPlayer();
-        Venue currentLocation = GetCurrentLocation();
-        Location currentSpot = GetCurrentLocation();
+        Venue currentVenue = GetCurrentLocation().Venue;
+        Location currentLocation = GetCurrentLocation();
 
-        if (!_movementValidator.ValidateCurrentState(player, currentLocation, currentSpot))
+        if (!_movementValidator.ValidateCurrentState(player, currentVenue, currentLocation))
         {
             _messageSystem.AddSystemMessage("Cannot determine current location", SystemMessageTypes.Danger);
             return false;
         }
 
         // Check if already at target
-        if (currentSpot.Id == locationId)
+        if (currentLocation.Id == locationId)
         {
             return true; // Already there - no-op success
         }
 
         // Find target location by ID (HIGHLANDER: runtime lookups use ID only)
-        List<Location> Locations = _spotManager.GetLocationsForVenue(currentLocation.Id);
+        List<Location> Locations = _spotManager.GetLocationsForVenue(currentVenue.Id);
         Location targetSpot = Locations.FirstOrDefault(s => s.Id == locationId);
         if (targetSpot == null)
         {
-            _messageSystem.AddSystemMessage($"location ID '{locationId}' not found in {currentLocation.Name}", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"Location ID '{locationId}' not found in {currentVenue.Name}", SystemMessageTypes.Warning);
             return false;
         }
 
         // Validate movement
-        MovementValidationResult validationResult = _movementValidator.ValidateMovement(currentLocation, currentSpot, targetSpot);
+        MovementValidationResult validationResult = _movementValidator.ValidateMovement(currentVenue, currentLocation, targetSpot);
         if (!validationResult.IsValid)
         {
             _messageSystem.AddSystemMessage(validationResult.ErrorMessage, SystemMessageTypes.Warning);
@@ -153,7 +138,7 @@ public class LocationFacade
     public LocationScreenViewModel GetLocationScreen(List<NPCConversationOptions> npcConversationOptions)
     {
         Player player = _gameWorld.GetPlayer();
-        Venue venue = GetCurrentLocation();
+        Venue venue = GetCurrentLocation().Venue;
         Location location = GetCurrentLocation();
 
         if (venue == null)
@@ -499,7 +484,7 @@ public class LocationFacade
     public LocationContentViewModel GetLocationContentViewModel()
     {
         Player player = _gameWorld.GetPlayer();
-        Venue venue = GetCurrentLocation();
+        Venue venue = GetCurrentLocation().Venue;
         Location spot = GetCurrentLocation();
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 

@@ -616,13 +616,13 @@ namespace Wayfarer.Pages.Components
             if (GameFacade == null)
                 throw new InvalidOperationException("GameFacade is null");
 
-            Venue currentLocation = GameFacade.GetCurrentLocation();
+            Venue currentVenue = GameFacade.GetCurrentLocation().Venue;
             Location currentSpot = GameFacade.GetCurrentLocation();
 
-            if (currentLocation == null || currentSpot == null)
+            if (currentVenue == null || currentSpot == null)
                 throw new InvalidOperationException("Current location or spot is null");
 
-            string locationName = currentLocation.Name;
+            string locationName = currentVenue.Name;
             string spotName = currentSpot.Name;
             string spotTraits = GetSpotTraits(currentSpot);
 

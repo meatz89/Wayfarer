@@ -422,9 +422,9 @@ namespace Wayfarer.Pages.Components
 
             // Get current Venue name
             if (GameFacade == null) return status;
-            Venue currentLocation = GameFacade.GetCurrentLocation();
-            if (currentLocation != null && !string.IsNullOrEmpty(currentLocation.Name))
-                status.Add(currentLocation.Name);
+            Venue currentVenue = GameFacade.GetCurrentLocation().Venue;
+            if (currentVenue != null && !string.IsNullOrEmpty(currentVenue.Name))
+                status.Add(currentVenue.Name);
 
             return status;
         }
@@ -448,13 +448,13 @@ namespace Wayfarer.Pages.Components
             if (GameFacade == null)
                 throw new InvalidOperationException("GameFacade is null");
 
-            Venue currentLocation = GameFacade.GetCurrentLocation();
+            Venue currentVenue = GameFacade.GetCurrentLocation().Venue;
             Location currentSpot = GameFacade.GetCurrentLocation();
 
-            if (currentLocation == null || currentSpot == null)
+            if (currentVenue == null || currentSpot == null)
                 throw new InvalidOperationException("Current location or spot is null");
 
-            string locationName = currentLocation.Name;
+            string locationName = currentVenue.Name;
             string spotName = currentSpot.Name;
             string spotTraits = GetSpotTraits(currentSpot);
 
@@ -534,14 +534,6 @@ namespace Wayfarer.Pages.Components
         {
             // Static container variables only
             return "--container-state: static;";
-        }
-
-        private string FormatResourceList(List<ResourceAmount> resources)
-        {
-            if (resources == null || resources.Count == 0)
-                return "nothing";
-
-            return string.Join(", ", resources.Select(r => $"{r.Amount} {r.Type.ToString().ToLower()}"));
         }
 
         // NOTE: Card display methods (GetCardStatClass, GetCardStatName, GetCardDepth,

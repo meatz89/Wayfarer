@@ -236,11 +236,14 @@ public class NpcInfo
 }
 
 /// <summary>
-/// Basic Venue information for exchange context.
+/// Location information for exchange context.
+/// Stores LocationId as primary reference, VenueId/VenueName derived for display and filtering.
 /// </summary>
 public class LocationInfo
 {
-    public string VenueId { get; set; }
-    public string Name { get; set; }
+    public string LocationId { get; set; }
+    public string LocationName { get; set; }
+    public string VenueId { get; set; }  // Derived from Location.VenueId (for IsAvailable checks)
+    public string VenueName { get; set; }  // Derived from Location.Venue.Name (for display)
     public string Description { get; set; }
 }

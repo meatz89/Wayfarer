@@ -12,18 +12,8 @@ public class LocationManager
     }
 
     /// <summary>
-    /// Get the player's current Venue based on their current location.
-    /// </summary>
-    public Venue GetCurrentLocation()
-    {
-        Player player = _gameWorld.GetPlayer();
-        if (_gameWorld.GetPlayerCurrentLocation() == null)
-            throw new InvalidOperationException("Player has no current location set");
-        return GetVenue(_gameWorld.GetPlayerCurrentLocation().VenueId);
-    }
-
-    /// <summary>
-    /// Get the player's current Venue location.
+    /// Get the player's current Location (spatial position).
+    /// Venue is derived: GetCurrentLocation().Venue
     /// </summary>
     public Location GetCurrentLocation()
     {
@@ -80,7 +70,7 @@ public class LocationManager
     /// <summary>
     /// Add a new venue to the world.
     /// </summary>
-    public void AddLocation(Venue venue)
+    public void AddVenue(Venue venue)
     {
         if (venue == null) throw new ArgumentNullException(nameof(venue));
 
@@ -142,17 +132,17 @@ public class LocationManager
     /// <summary>
     /// Check if a Venue exists.
     /// </summary>
-    public bool LocationExists(string venueId)
+    public bool VenueExists(string venueId)
     {
         return GetVenue(venueId) != null;
     }
 
     /// <summary>
-    /// Check if a location exists by its ID.
+    /// Check if a Location exists by its ID.
     /// </summary>
-    public bool SpotExists(string LocationId)
+    public bool LocationExists(string locationId)
     {
-        return GetLocation(LocationId) != null;
+        return GetLocation(locationId) != null;
     }
 
     /// <summary>

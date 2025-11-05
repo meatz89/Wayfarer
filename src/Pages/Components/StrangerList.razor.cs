@@ -29,12 +29,12 @@ namespace Wayfarer.Pages.Components
             if (string.IsNullOrEmpty(VenueId))
             {
                 // Get current Venue if not specified
-                Venue currentLocation = GameFacade.GetCurrentLocation();
-                if (currentLocation == null)
+                Venue currentVenue = GameFacade.GetCurrentLocation().Venue;
+                if (currentVenue == null)
                 {
                     throw new InvalidOperationException("Current location not found");
                 }
-                VenueId = currentLocation.Id;
+                VenueId = currentVenue.Id;
             }
 
             AvailableStrangers = GameFacade.GetAvailableStrangers(VenueId);

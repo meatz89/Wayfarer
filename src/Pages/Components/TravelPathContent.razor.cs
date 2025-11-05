@@ -195,7 +195,7 @@ namespace Wayfarer.Pages.Components
             Location location = GameFacade.GetLocation(destinationSpot);
             if (location != null)
             {
-                Venue venue = GameFacade.GetLocationById(location.VenueId);
+                Venue venue = GameFacade.GetLocation(location.VenueId).Venue;
                 if (venue != null)
                 {
                     return venue.Name;

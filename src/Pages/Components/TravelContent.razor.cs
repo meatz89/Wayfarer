@@ -65,8 +65,8 @@ namespace Wayfarer.Pages.Components
 
         private void LoadAvailableRoutes()
         {
-            Venue currentLoc = GameFacade.GetCurrentLocation();
-            if (currentLoc == null)
+            Venue currentVenue = GameFacade.GetCurrentLocation().Venue;
+            if (currentVenue == null)
             {
                 return;
             }
@@ -77,7 +77,7 @@ namespace Wayfarer.Pages.Components
             {
                 Id = r.Id,
                 Name = r.Name,  // Store the actual route name from JSON
-                DestinationName = GetDestinationLocationName(r.DestinationLocation),
+                DestinationName = GetDestinationVenueName(r.DestinationLocation),
                 DestinationSpotName = GetDestinationLocationName(r.DestinationLocation),
                 District = GetDestinationDistrict(r.DestinationLocation),
                 TransportType = FormatTransportType(r.Method),
@@ -90,17 +90,17 @@ namespace Wayfarer.Pages.Components
             }).ToList();
         }
 
-        private string GetDestinationLocationName(string destinationSpotId)
+        private string GetDestinationVenueName(string destinationSpotId)
         {
-            // Get the actual Venue location from GameWorld to find its name
+            // Get the Venue name for this destination Location
             Location location = GameFacade.GetLocation(destinationSpotId);
-            Venue venue = GameFacade.GetLocationById(location.VenueId);
+            Venue venue = GameFacade.GetLocation(location.VenueId).Venue;
 
             if (venue != null)
             {
                 return venue.Name;
             }
-            return "Unknown Location";
+            return "Unknown Venue";
         }
 
         private string GetDestinationLocationName(string destinationSpotId)
