@@ -364,11 +364,23 @@ public class SpawnFacade
                 Console.WriteLine($"[SpawnOrchestration] Template '{template.Id}' is ELIGIBLE - spawning scene");
 
                 // Build spawn context for instantiation
+                PlacementRelation placementRelation = DeterminePlacementFromFilter(template.PlacementFilter);
+
+                // For concrete binding (tutorial pattern), copy ID from PlacementFilter to SpawnReward
+                string specificPlacementId = null;
+                if (template.PlacementFilter != null)
+                {
+                    if (!string.IsNullOrEmpty(template.PlacementFilter.NpcId))
+                        specificPlacementId = template.PlacementFilter.NpcId;
+                    else if (!string.IsNullOrEmpty(template.PlacementFilter.LocationId))
+                        specificPlacementId = template.PlacementFilter.LocationId;
+                }
+
                 SceneSpawnReward spawnReward = new SceneSpawnReward
                 {
                     SceneTemplateId = template.Id,
-                    PlacementRelation = DeterminePlacementFromFilter(template.PlacementFilter),
-                    SpecificPlacementId = null, // SceneInstantiator resolves placement
+                    PlacementRelation = placementRelation,
+                    SpecificPlacementId = specificPlacementId, // Concrete ID for tutorial pattern, null for categorical
                     DelayDays = 0 // Spawn immediately when eligible
                 };
 
@@ -400,17 +412,23 @@ public class SpawnFacade
 
     /// <summary>
     /// Determine PlacementRelation from PlacementFilter
-    /// PlacementFilter presence ALWAYS means Generic categorical resolution.
-    /// PlacementType tells SceneInstantiator WHICH entity type to filter (NPC vs Location vs Route),
-    /// NOT which resolution strategy to use.
+    /// TWO PATTERNS:
+    /// 1. CONCRETE BINDING: NpcId/LocationId present → SpecificNPC/SpecificLocation
+    /// 2. CATEGORICAL SEARCH: Only categorical properties → Generic
     /// </summary>
     private PlacementRelation DeterminePlacementFromFilter(PlacementFilter filter)
     {
         if (filter == null)
             return PlacementRelation.SpecificLocation;
 
-        // PlacementFilter exists = use Generic categorical resolution
-        // SceneInstantiator.EvaluatePlacementFilter() reads filter.PlacementType to determine entity type
+        // CONCRETE BINDING: Presence of concrete ID = Specific placement (tutorial pattern)
+        if (!string.IsNullOrEmpty(filter.NpcId))
+            return PlacementRelation.SpecificNPC;
+
+        if (!string.IsNullOrEmpty(filter.LocationId))
+            return PlacementRelation.SpecificLocation;
+
+        // CATEGORICAL SEARCH: No concrete IDs = Generic categorical resolution (procedural pattern)
         return PlacementRelation.Generic;
     }
 
