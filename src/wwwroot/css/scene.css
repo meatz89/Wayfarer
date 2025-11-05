@@ -129,10 +129,12 @@
 }
 
 /* Locked Choice State - Content Fully Readable */
+/* Single visual treatment for ALL unavailability (requirements OR costs) */
 .scene-choice-card.locked {
     cursor: not-allowed;
     border: 2px dashed #c4a684;
     box-shadow: none;
+    background: linear-gradient(135deg, #f9f3e8 0%, #f5efe5 100%);
 }
 
 /* ==========================================
@@ -155,34 +157,6 @@
 }
 
 /* ==========================================
-   CHOICE COSTS DISPLAY - Prominent and Clear
-   ========================================== */
-.choice-costs {
-    display: flex;
-    gap: 20px;
-    font-size: 13px;
-    color: #7a6250;
-    margin-top: 15px;
-    padding-top: 15px;
-    border-top: 2px solid #e8dcc4;
-}
-
-.choice-costs .cost {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 4px 10px;
-    background: rgba(212, 167, 106, 0.08);
-    border-radius: 4px;
-    font-weight: 600;
-    transition: background 0.2s ease;
-}
-
-.scene-choice-card:hover:not(.locked) .choice-costs .cost {
-    background: rgba(212, 167, 106, 0.15);
-}
-
-/* ==========================================
    LOCKED CHOICE - Content Fully Visible
    ========================================== */
 .scene-choice-card.locked:hover {
@@ -190,13 +164,17 @@
     border-color: #c4a684;
 }
 
-.action-locked-overlay {
-    padding: 0 0 8px 0;
-    margin-bottom: 8px;
+.scene-locked-indicator {
+    padding: 0 0 10px 0;
+    margin-bottom: 10px;
+    border-bottom: 2px solid #d4704a;
+}
+
+.lock-header {
     display: flex;
     align-items: center;
     gap: 6px;
-    border-bottom: 1px solid #e8dcc4;
+    margin-bottom: 8px;
 }
 
 .lock-icon {
@@ -204,11 +182,36 @@
     opacity: 1.0;
 }
 
-.lock-text {
+.lock-title {
     font-size: 11px;
     color: #d4704a;
     font-weight: 700;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+}
+
+.requirement-path {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.requirement-gap {
+    font-size: 11px;
+    color: #d4704a;
+    font-weight: 600;
+    line-height: 1.4;
+    padding-left: 20px;
+}
+
+.requirement-or {
+    font-size: 10px;
+    color: #8b7355;
+    font-weight: 700;
+    text-align: center;
+    letter-spacing: 0.5px;
+    margin: 4px 0;
 }
 
 /* ==========================================
@@ -224,8 +227,9 @@
     font-size: 11px;
     font-weight: 700;
     color: #7a6250;
-    letter-spacing: 0.5px;
+    letter-spacing: 0.8px;
     margin-bottom: 8px;
+    text-transform: uppercase;
 }
 
 .choice-consequences {
@@ -248,6 +252,14 @@
     padding-left: 18px;
 }
 
+.final-value {
+    font-size: 11px;
+    color: #8b7355;
+    font-style: italic;
+    font-weight: 500;
+    margin-left: 4px;
+}
+
 .consequence-bond {
     color: #4a7ba7;
 }
@@ -263,6 +275,12 @@
 .consequence-unlock {
     color: #5c8a4a;
     font-weight: 600;
+}
+
+.consequence-none {
+    color: #8b7355;
+    font-style: italic;
+    font-size: 12px;
 }
 
 /* ==========================================
@@ -321,11 +339,6 @@
 
     .choice-description {
         font-size: 11px;
-    }
-
-    .choice-costs {
-        flex-wrap: wrap;
-        gap: 8px;
     }
 }
 

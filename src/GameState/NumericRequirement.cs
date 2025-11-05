@@ -65,10 +65,11 @@ public class NumericRequirement
 
     private bool CheckBondStrength(Player player, string npcId, int threshold)
     {
-        // Assuming NPC entities have BondStrength property
-        // Will be implemented when NPC.BondStrength property exists
-        // For now, return false
-        return false; // TODO: Implement when NPC.BondStrength exists
+        NPCTokenEntry entry = player.NPCTokens.FirstOrDefault(t => t.NpcId == npcId);
+        if (entry == null) return false;
+
+        int totalBond = entry.Trust + entry.Diplomacy + entry.Status + entry.Shadow;
+        return totalBond >= threshold;
     }
 
     private bool CheckScale(Player player, string scaleName, int threshold)

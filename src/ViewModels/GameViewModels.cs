@@ -315,6 +315,27 @@ public class ActionCardViewModel
     public int HungerChange { get; set; }
     public bool FullRecovery { get; set; }
 
+    // Final values after this choice (for Sir Brante-style display)
+    public int FinalCoins { get; set; }
+    public int FinalResolve { get; set; }
+    public int FinalHealth { get; set; }
+    public int FinalStamina { get; set; }
+    public int FinalFocus { get; set; }
+    public int FinalHunger { get; set; }
+
+    // Affordability check - separate from requirements
+    // Requirements = prerequisites (stats, relationships, items)
+    // Affordability = resource availability (coins, resolve, stamina, focus, health)
+    public bool IsAffordable { get; set; }
+
+    // Current player resources (for Sir Brante display in COSTS section)
+    public int CurrentCoins { get; set; }
+    public int CurrentResolve { get; set; }
+    public int CurrentHealth { get; set; }
+    public int CurrentStamina { get; set; }
+    public int CurrentFocus { get; set; }
+    public int CurrentHunger { get; set; }
+
     // Relationship consequences (transparent before selection)
     public List<BondChangeVM> BondChanges { get; set; } = new();
 
@@ -339,6 +360,8 @@ public class BondChangeVM
     public string NpcName { get; set; }
     public int Delta { get; set; }
     public string Reason { get; set; }
+    public int CurrentBond { get; set; }
+    public int FinalBond { get; set; }
 }
 
 public class ScaleShiftVM
@@ -346,6 +369,8 @@ public class ScaleShiftVM
     public string ScaleName { get; set; }
     public int Delta { get; set; }
     public string Reason { get; set; }
+    public int CurrentScale { get; set; }
+    public int FinalScale { get; set; }
 }
 
 public class StateApplicationVM

@@ -55,13 +55,17 @@ namespace Wayfarer.Pages.Components
                 bool requirementsMet = true;
                 string lockReason = "";
 
-                // Validate RequirementFormula
+                // Validate RequirementFormula and build requirement gaps
+                List<RequirementPathVM> requirementPaths = new List<RequirementPathVM>();
                 if (choiceTemplate.RequirementFormula != null && choiceTemplate.RequirementFormula.OrPaths.Count > 0)
                 {
                     requirementsMet = choiceTemplate.RequirementFormula.IsAnySatisfied(player, GameWorld);
-                    if (!requirementsMet)
+                    requirementPaths = GetRequirementGaps(choiceTemplate.RequirementFormula, player);
+
+                    if (!requirementsMet && requirementPaths.Count > 0)
                     {
-                        lockReason = "Requirements not met";
+                        lockReason = string.Join(" OR ", requirementPaths.Select(p =>
+                            string.Join(" AND ", p.MissingRequirements)));
                     }
                 }
 
@@ -119,33 +123,44 @@ namespace Wayfarer.Pages.Components
                 int hungerChange = reward?.Hunger ?? 0;
                 bool fullRecovery = reward?.FullRecovery ?? false;
 
-                // Map relationship consequences (BondChanges)
+                // Map relationship consequences (BondChanges) with current/final values
                 List<BondChangeVM> bondChanges = new List<BondChangeVM>();
                 if (reward?.BondChanges != null)
                 {
                     foreach (BondChange bondChange in reward.BondChanges)
                     {
                         NPC npc = GameWorld.NPCs.FirstOrDefault(n => n.ID == bondChange.NpcId);
+                        int currentBond = GetTotalBond(player, bondChange.NpcId);
+                        int finalBond = currentBond + bondChange.Delta;
+
                         bondChanges.Add(new BondChangeVM
                         {
                             NpcName = npc?.Name ?? bondChange.NpcId,
                             Delta = bondChange.Delta,
-                            Reason = bondChange.Reason ?? ""
+                            Reason = bondChange.Reason ?? "",
+                            CurrentBond = currentBond,
+                            FinalBond = finalBond
                         });
                     }
                 }
 
-                // Map reputation consequences (ScaleShifts)
+                // Map reputation consequences (ScaleShifts) with current/final values
                 List<ScaleShiftVM> scaleShifts = new List<ScaleShiftVM>();
                 if (reward?.ScaleShifts != null)
                 {
                     foreach (ScaleShift scaleShift in reward.ScaleShifts)
                     {
+                        string scaleName = scaleShift.ScaleType.ToString();
+                        int currentScale = GetScaleValue(player, scaleName);
+                        int finalScale = currentScale + scaleShift.Delta;
+
                         scaleShifts.Add(new ScaleShiftVM
                         {
-                            ScaleName = scaleShift.ScaleType.ToString(),
+                            ScaleName = scaleName,
                             Delta = scaleShift.Delta,
-                            Reason = scaleShift.Reason ?? ""
+                            Reason = scaleShift.Reason ?? "",
+                            CurrentScale = currentScale,
+                            FinalScale = finalScale
                         });
                     }
                 }
@@ -206,6 +221,31 @@ namespace Wayfarer.Pages.Components
                     HungerChange = hungerChange,
                     FullRecovery = fullRecovery,
 
+                    // Final values after this choice (Sir Brante-style Perfect Information)
+                    FinalCoins = player.Coins - coinsCost + coinsReward,
+                    FinalResolve = player.Resolve - resolveCost + resolveReward,
+                    FinalHealth = fullRecovery ? player.MaxHealth : (player.Health - healthCost + healthReward),
+                    FinalStamina = fullRecovery ? player.MaxStamina : (player.Stamina - staminaCost + staminaReward),
+                    FinalFocus = fullRecovery ? player.MaxFocus : (player.Focus - focusCost + focusReward),
+                    FinalHunger = fullRecovery ? 0 : (player.Hunger + hungerCost + hungerChange),
+
+                    // Affordability check - separate from requirements
+                    // Requirements = prerequisites (stats, relationships, items)
+                    // Affordability = resource availability (coins, resolve, stamina, focus, health)
+                    IsAffordable = player.Coins >= coinsCost &&
+                                  player.Resolve >= resolveCost &&
+                                  player.Health >= healthCost &&
+                                  player.Stamina >= staminaCost &&
+                                  player.Focus >= focusCost,
+
+                    // Current player resources (for Razor display)
+                    CurrentCoins = player.Coins,
+                    CurrentResolve = player.Resolve,
+                    CurrentHealth = player.Health,
+                    CurrentStamina = player.Stamina,
+                    CurrentFocus = player.Focus,
+                    CurrentHunger = player.Hunger,
+
                     // All consequences
                     BondChanges = bondChanges,
                     ScaleShifts = scaleShifts,
@@ -215,11 +255,118 @@ namespace Wayfarer.Pages.Components
                     AchievementsGranted = achievementsGranted,
                     ItemsGranted = itemsGranted,
                     LocationsUnlocked = locationsUnlocked,
-                    ScenesUnlocked = scenesUnlocked
+                    ScenesUnlocked = scenesUnlocked,
+
+                    // Requirement gaps (Perfect Information for locked choices)
+                    RequirementPaths = requirementPaths
                 };
 
                 Choices.Add(choice);
             }
+        }
+
+        private int GetTotalBond(Player player, string npcId)
+        {
+            NPCTokenEntry entry = player.NPCTokens.FirstOrDefault(t => t.NpcId == npcId);
+            if (entry == null) return 0;
+            return entry.Trust + entry.Diplomacy + entry.Status + entry.Shadow;
+        }
+
+        private int GetScaleValue(Player player, string scaleName)
+        {
+            return scaleName switch
+            {
+                "Morality" => player.Scales.Morality,
+                "Lawfulness" => player.Scales.Lawfulness,
+                "Method" => player.Scales.Method,
+                "Caution" => player.Scales.Caution,
+                "Transparency" => player.Scales.Transparency,
+                "Fame" => player.Scales.Fame,
+                _ => 0
+            };
+        }
+
+        private int GetPlayerStatLevel(Player player, string statName)
+        {
+            if (!Enum.TryParse<PlayerStatType>(statName, ignoreCase: true, out PlayerStatType statType))
+                return 0;
+            return player.Stats.GetLevel(statType);
+        }
+
+        private string FormatBondGap(string npcId, int threshold, Player player)
+        {
+            int current = GetTotalBond(player, npcId);
+            NPC npc = GameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+            string npcName = npc?.Name ?? npcId;
+            return $"Bond {threshold}+ with {npcName} (now {current})";
+        }
+
+        private string FormatScaleGap(string scaleName, int threshold, Player player)
+        {
+            int current = GetScaleValue(player, scaleName);
+            if (threshold >= 0)
+                return $"{scaleName} {threshold}+ (now {current})";
+            else
+                return $"{scaleName} {threshold}- (now {current})";
+        }
+
+        private string FormatPlayerStatGap(string statName, int threshold, Player player)
+        {
+            int current = GetPlayerStatLevel(player, statName);
+            return $"{statName} {threshold}+ (now {current})";
+        }
+
+        private string FormatRequirementGap(NumericRequirement req, Player player)
+        {
+            return req.Type switch
+            {
+                "BondStrength" => FormatBondGap(req.Context, req.Threshold, player),
+                "Scale" => FormatScaleGap(req.Context, req.Threshold, player),
+                "PlayerStat" => FormatPlayerStatGap(req.Context, req.Threshold, player),
+                "Resolve" => $"Resolve {req.Threshold}+ (now {player.Resolve})",
+                "Coins" => $"Coins {req.Threshold}+ (now {player.Coins})",
+                "CompletedSituations" => $"{req.Threshold}+ Completed Situations (now {player.CompletedSituationIds.Count})",
+                "Achievement" => req.Threshold > 0 ? $"Need Achievement: {req.Context}" : $"Must NOT have Achievement: {req.Context}",
+                "State" => req.Threshold > 0 ? $"Need State: {req.Context}" : $"Must NOT have State: {req.Context}",
+                "HasItem" => req.Threshold > 0 ? $"Need Item: {req.Context}" : $"Must NOT have Item: {req.Context}",
+                _ => "Unknown requirement"
+            };
+        }
+
+        private List<RequirementPathVM> GetRequirementGaps(CompoundRequirement compoundReq, Player player)
+        {
+            List<RequirementPathVM> paths = new List<RequirementPathVM>();
+
+            if (compoundReq == null || compoundReq.OrPaths.Count == 0)
+                return paths;
+
+            foreach (OrPath orPath in compoundReq.OrPaths)
+            {
+                List<string> requirements = new List<string>();
+                List<string> missingRequirements = new List<string>();
+                bool pathSatisfied = true;
+
+                foreach (NumericRequirement req in orPath.NumericRequirements)
+                {
+                    string formattedReq = FormatRequirementGap(req, player);
+                    requirements.Add(formattedReq);
+
+                    if (!req.IsSatisfied(player, GameWorld))
+                    {
+                        missingRequirements.Add(formattedReq);
+                        pathSatisfied = false;
+                    }
+                }
+
+                paths.Add(new RequirementPathVM
+                {
+                    Requirements = requirements,
+                    PathSatisfied = pathSatisfied,
+                    MissingRequirements = missingRequirements
+                });
+            }
+
+            return paths;
         }
 
         /// <summary>
@@ -228,7 +375,7 @@ namespace Wayfarer.Pages.Components
         /// </summary>
         protected async Task HandleChoiceSelected(ActionCardViewModel choice)
         {
-            if (choice == null || !choice.RequirementsMet)
+            if (choice == null || !choice.RequirementsMet || !choice.IsAffordable)
                 return;
 
             // Find the matching ChoiceTemplate
