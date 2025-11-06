@@ -359,6 +359,24 @@ Scene lifecycle through typed states with explicit transitions. No boolean flags
 
 State transitions logged for debugging. Audit trail shows: spawn → activate → pause → resume → complete. Diagnostic errors reference state history.
 
+### Scene State Machine with Transition Matching
+
+Scenes progress through situations using typed transitions with condition evaluation. When situation completes, Scene.AdvanceToNextSituation queries transitions to determine next situation. If matching transition exists, scene updates CurrentSituationId and continues. If no matching transition found, scene marks Completed and despawns.
+
+**Situation Identity Duality (HIGHLANDER Pattern D)**: Each runtime situation has TWO identifiers serving distinct purposes:
+- **Id**: Unique instance identifier (GUID). Ensures runtime uniqueness when same template spawns multiple times.
+- **TemplateId**: References source SituationTemplate. Enables matching against template-defined rules.
+
+Both stored on Situation entity. Template ID copied from template during instantiation, never changes. Instance ID generated at creation, ensures global uniqueness.
+
+**Transition Matching Logic**: SituationTransition objects define SourceSituationId and DestinationSituationId using template IDs (not instance IDs). Template authors define transitions at authoring time using template identifiers. Runtime matching uses completedSituation.TemplateId to find transitions, connecting template-defined rules to runtime instances.
+
+**Critical Requirement**: GetTransitionForCompletedSituation must compare against TemplateId, not Id. Using instance Id causes matching failure (transitions reference templates, not specific instances). Scene finds no matching transition, marks Completed, despawns prematurely creating soft-lock bug.
+
+**Pattern Rationale**: Templates authored before instances exist. Transition rules defined in templates using template IDs. Runtime situations store both IDs enabling template-based matching (transition logic) and instance-based uniqueness (state tracking). This is HIGHLANDER Pattern D specialization where "persistence ID" is actually template ID.
+
+**Scene Completion**: When GetTransitionForCompletedSituation returns null (no matching transition), scene interprets this as "no more situations" and marks itself Completed. Scene despawns, removes from active scenes list. This is correct terminal state for linear progression reaching end. Incorrect when transitions exist but matching fails due to wrong ID comparison.
+
 ### Conditional Transition Architecture
 
 Scenes support branching narratives where player choices and challenge outcomes determine progression paths. The conditional transition system enables strategic decision-making with mechanical consequences.
@@ -1337,9 +1355,21 @@ Locations have lifecycle state beyond existence. IsLocked property represents wh
 
 WorldHexGrid provides spatial indexing using two-level lookup: Hexes list containing all Hex objects, _hexLookup dictionary mapping AxialCoordinates to hexes. Both must be updated when dependent locations spawn.
 
-**Dynamic Location Integration**: When location with HexPosition loads through dynamic package loading, create corresponding Hex object at those coordinates. Hex assigned location ID, added to Hexes list, _hexLookup dictionary rebuilt to include new coordinates. Maintains invariant: every location with HexPosition has corresponding hex in grid at exact coordinates.
+**Bidirectional Sync Pattern**: Hex grid maintains invariant that Location.HexPosition and Hex.LocationId stay synchronized through two complementary operations:
+- **SyncLocationHexPositions** (hex→location): Initial world load reads Hex.LocationId from hex grid, sets Location.HexPosition. Hex is source of truth during initial load.
+- **EnsureHexGridCompleteness** (location→hex): Runtime location creation reads Location.HexPosition, updates Hex.LocationId. Location is source of truth for runtime modifications.
 
-**Timing**: Hex creation occurs after location entity creation (so location ID valid) but before action generation or navigation (so spatial queries work). PackageLoader.LoadDynamicPackageFromJson sequence: load content → create hexes → generate actions → create routes.
+One-way data flow per operation prevents circular dependencies. Initial load uses hex grid as spatial definition. Runtime creation uses locations as spatial source.
+
+**Dynamic Location Integration**: When location with HexPosition loads through dynamic package loading:
+1. Query hexMap.GetHex(coordinates) to find hex at location's position
+2. If hex exists with null or different LocationId, update Hex.LocationId to reference location
+3. If hex doesn't exist at coordinates, create new Hex with appropriate terrain/danger for settlement
+4. Rebuild _hexLookup dictionary after modifications (cache invalidation)
+
+Maintains invariant: every location with HexPosition has corresponding hex in grid at exact coordinates. Updates existing hexes rather than always creating new ones (wilderness hexes exist without locations initially).
+
+**Timing**: Hex completeness check occurs in PackageLoader after location loading but before action generation. Sequence: load locations → SyncLocationHexPositions (initial) → EnsureHexGridCompleteness (runtime) → generate actions → create routes. Integration boundary where dependent resources join world state.
 
 **Navigation Dependency**: GetPlayerCurrentLocation queries WorldHexGrid.GetHex with player coordinates. Lookup must succeed for navigation. Without hex at coordinates, lookup returns null causing NullReferenceException when code accesses null.Venue. Hex grid is spatial index for ALL locations, not optional or parallel system.
 
@@ -1789,6 +1819,8 @@ The architecture enforces specific constraints preventing entire classes of bugs
 
 **HIGHLANDER for Context Building**: SceneSpawnContextBuilder is the SOLE implementation of context building logic. Never duplicate context resolution in facades, services, or tests. Any code needing SceneSpawnContext calls the shared utility. This prevents six duplicate implementations with inconsistent NPC→Location resolution behavior. Context building is orchestration-level logic (requires GameWorld queries) centralized in static utility accessible everywhere.
 
+**HIGHLANDER Pattern D (Template + Instance IDs)**: Entities spawned from templates at runtime store BOTH TemplateId (references source template) AND Id (unique instance identifier). Template ID enables matching against template-defined rules. Instance ID ensures uniqueness when same template spawns multiple times. Never compute one from other at query time. Situation uses Pattern D: transitions match on TemplateId (template-defined rules), state tracking uses Id (instance uniqueness). Consistency prevents desync bugs.
+
 **Why Parameterization Fails**: Making archetype selection a parameter (e.g., "standalone" archetype taking `situationArchetypeId` parameter) moves design decisions to configuration space. This creates:
 - Configuration creep (structure choices in JSON)
 - Catalogue bypass (parser calls SituationArchetypeCatalog directly)
@@ -1837,7 +1869,9 @@ This architecture supports procedural generation of complete multi-situation nar
 
 **Two-level archetype system enables procedural variation within designed constraints.** Scene archetypes define structure (how many situations, which situation archetypes, what transitions). Situation archetypes define interaction patterns (4-choice structure with stat/money/challenge/fallback). Catalogues compose these layers at parse time. Scene archetype identity IS its structure - `single_negotiation` and `single_confrontation` are distinct archetypes, not configuration variants. No parameterization - more specific archetypes solve flexibility needs.
 
-**Hex grid provides spatial foundation for all locations.** Every location occupies one hex using axial coordinates (Q, R). Venues are 7-hex clusters (center + 6 adjacent). Intra-venue movement between adjacent hexes instant and free. Inter-venue movement between non-adjacent hexes uses routes with resource costs. Location.HexPosition is core identity enabling movement system participation. WorldHexGrid.Hexes and _hexLookup dictionary updated when any location (static or dynamic) added. Navigation depends on hex grid completeness - missing hex at coordinates causes null reference crashes.
+**Scene state machine with template-based transition matching.** Scenes progress through situations using SituationTransition objects with condition evaluation. Transitions defined at template authoring time using template IDs. Runtime situations have both Id (unique instance) and TemplateId (source template reference) - HIGHLANDER Pattern D. Transition matching uses TemplateId to connect template-defined rules to runtime instances. When GetTransitionForCompletedSituation finds matching transition, scene advances to next situation. When no matching transition found, scene marks Completed and despawns. Using instance Id instead of TemplateId causes matching failure, premature scene completion, soft-lock bugs.
+
+**Hex grid provides spatial foundation for all locations.** Every location occupies one hex using axial coordinates (Q, R). Venues are 7-hex clusters (center + 6 adjacent). Intra-venue movement between adjacent hexes instant and free. Inter-venue movement between non-adjacent hexes uses routes with resource costs. Location.HexPosition is core identity enabling movement system participation. WorldHexGrid.Hexes and _hexLookup dictionary updated through bidirectional sync pattern: SyncLocationHexPositions (hex→location) for initial load, EnsureHexGridCompleteness (location→hex) for runtime creation. Navigation depends on hex grid completeness - missing hex at coordinates causes null reference crashes.
 
 **Location locking system enables dynamic world expansion with access control.** Locations own IsLocked state (HIGHLANDER: one owner). Parser translates categorical InitialState to concrete IsLocked boolean. Dependent locations spawn locked. Choice rewards modify IsLocked directly through LocationsToUnlock/LocationsToLock lists. Action generation creates movement actions for all adjacent locations regardless of lock state. Availability checks query IsLocked at action execution time. UI renders locked state visually. Players unlock locations through scene choices, manually navigate to unlocked areas maintaining agency.
 
