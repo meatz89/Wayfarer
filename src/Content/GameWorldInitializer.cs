@@ -39,8 +39,8 @@ public static class GameWorldInitializer
     }
 
     /// <summary>
-    /// Spawn all SceneTemplates marked as starter content
-    /// Creates Active Scenes (not provisional) to populate initial game world
+    /// Log all SceneTemplates marked as starter content for verification
+    /// Actual spawning happens in GameFacade.StartGameAsync() after initialization completes
     /// Called during game initialization after content loading
     /// </summary>
     private static void SpawnInitialScenes(GameWorld gameWorld)
@@ -57,21 +57,13 @@ public static class GameWorldInitializer
         SceneInstanceFacade sceneInstanceFacade =
             new SceneInstanceFacade(instantiator, gameWorld);
 
-        // TODO: Starter scene spawning moved to GameFacade (proper orchestration layer)
-        // GameWorldInitializer should NOT spawn scenes - it lacks orchestration dependencies
-        // (ContentGenerationFacade, PackageLoaderFacade, HexRouteGenerator)
-        // Starter scenes will be spawned via GameFacade.SpawnStarterScenes() after initialization completes
-
-        // Find all starter templates (for logging only)
+        // Find all starter templates (for verification logging)
         List<SceneTemplate> starterTemplates = gameWorld.SceneTemplates.Where(t => t.IsStarter).ToList();
 
-        Console.WriteLine($"[Init] Found {starterTemplates.Count} starter templates (spawning deferred to GameFacade)");
+        Console.WriteLine($"[Init] Found {starterTemplates.Count} starter templates (will be spawned by GameFacade.StartGameAsync)");
         foreach (SceneTemplate t in starterTemplates)
         {
             Console.WriteLine($"  - {t.Id} (PlacementFilter: {t.PlacementFilter?.PlacementType})");
         }
     }
-
-    // Helper methods for starter scene spawning REMOVED
-    // Starter scene spawning will be implemented in GameFacade with proper orchestration
 }

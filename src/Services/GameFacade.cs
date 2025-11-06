@@ -774,6 +774,9 @@ public class GameFacade
         _exchangeFacade.InitializeNPCExchanges();// Mark game as started
         _gameWorld.IsGameStarted = true;
 
+        // Spawn starter scenes (tutorial content, initial situations)
+        SpawnStarterScenes();
+
         _messageSystem.AddSystemMessage("Game started", SystemMessageTypes.Success);
     }
 
@@ -1720,6 +1723,78 @@ public class GameFacade
         }
 
         return scene;
+    }
+
+    /// <summary>
+    /// Spawn all starter scenes during game initialization
+    /// HIGHLANDER: Called ONCE from StartGameAsync() after IsGameStarted = true
+    /// Starter scenes provide initial gameplay content (tutorial, intro situations)
+    /// </summary>
+    public void SpawnStarterScenes()
+    {
+        Player player = _gameWorld.GetPlayer();
+
+        List<SceneTemplate> starterTemplates = _gameWorld.SceneTemplates
+            .Where(t => t.IsStarter)
+            .ToList();
+
+        Console.WriteLine($"[StarterScenes] Found {starterTemplates.Count} starter templates to spawn");
+
+        foreach (SceneTemplate template in starterTemplates)
+        {
+            PlacementRelation placementRelation = DeterminePlacementRelation(template.PlacementFilter);
+
+            string specificPlacementId = null;
+            if (template.PlacementFilter != null)
+            {
+                if (!string.IsNullOrEmpty(template.PlacementFilter.NpcId))
+                    specificPlacementId = template.PlacementFilter.NpcId;
+                else if (!string.IsNullOrEmpty(template.PlacementFilter.LocationId))
+                    specificPlacementId = template.PlacementFilter.LocationId;
+            }
+
+            SceneSpawnReward spawnReward = new SceneSpawnReward
+            {
+                SceneTemplateId = template.Id,
+                PlacementRelation = placementRelation,
+                SpecificPlacementId = specificPlacementId,
+                DelayDays = 0
+            };
+
+            SceneSpawnContext spawnContext = new SceneSpawnContext
+            {
+                Player = player,
+                CurrentSituation = null
+            };
+
+            Console.WriteLine($"[StarterScenes] Spawning '{template.Id}' (PlacementRelation: {placementRelation}, SpecificPlacementId: {specificPlacementId})");
+
+            Scene scene = SpawnSceneWithDynamicContent(template, spawnReward, spawnContext);
+
+            Console.WriteLine($"[StarterScenes] Spawned scene '{scene.Id}' successfully");
+        }
+
+        Console.WriteLine($"[StarterScenes] Completed spawning {starterTemplates.Count} starter scenes");
+    }
+
+    /// <summary>
+    /// Determine PlacementRelation from PlacementFilter
+    /// TWO PATTERNS:
+    /// 1. CONCRETE BINDING: NpcId/LocationId present → SpecificNPC/SpecificLocation
+    /// 2. CATEGORICAL SEARCH: Only categorical properties → Generic
+    /// </summary>
+    private PlacementRelation DeterminePlacementRelation(PlacementFilter filter)
+    {
+        if (filter == null)
+            return PlacementRelation.SpecificLocation;
+
+        if (!string.IsNullOrEmpty(filter.NpcId))
+            return PlacementRelation.SpecificNPC;
+
+        if (!string.IsNullOrEmpty(filter.LocationId))
+            return PlacementRelation.SpecificLocation;
+
+        return PlacementRelation.Generic;
     }
 
     // ========== UNIFIED ACTION ARCHITECTURE - EXECUTE METHODS ==========
