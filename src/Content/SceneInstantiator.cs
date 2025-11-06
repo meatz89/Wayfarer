@@ -49,10 +49,10 @@ public class SceneInstantiator
     /// <returns>Provisional Scene with State = Provisional, stored in gameWorld.Scenes (unified collection)</returns>
     public Scene CreateProvisionalScene(SceneTemplate sceneTemplate, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
-        // PHASE 2.5: Check spawn conditions BEFORE creating scene
-        // Evaluate if this scene is eligible to spawn based on player/world/entity state
-        // If conditions fail, return null (scene not eligible - no provisional created)
-        bool isEligible = _spawnConditionsEvaluator.EvaluateAll(
+        // STARTER SCENES BYPASS: IsStarter means guaranteed spawn (tutorial/intro content)
+        // Spawn conditions are for triggered/emergent content, not starter content
+        // Starter scenes must always spawn regardless of player progression state
+        bool isEligible = sceneTemplate.IsStarter || _spawnConditionsEvaluator.EvaluateAll(
             sceneTemplate.SpawnConditions,
             context.Player,
             placementId: null // Placement not resolved yet - will check later if needed
@@ -68,7 +68,9 @@ public class SceneInstantiator
         string sceneId = $"scene_{sceneTemplate.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
 
         // Determine concrete placement based on PlacementRelation from spawnReward
-        (PlacementType placementType, string placementId) = ResolvePlacement(sceneTemplate, spawnReward, context);
+        PlacementResolution placement = ResolvePlacement(sceneTemplate, spawnReward, context);
+        PlacementType placementType = placement.PlacementType;
+        string placementId = placement.PlacementId;
 
         // SHALLOW PROVISIONAL: Calculate metadata from template WITHOUT instantiating Situations
         int situationCount = sceneTemplate.SituationTemplates?.Count ?? 0;
@@ -123,7 +125,7 @@ public class SceneInstantiator
     /// <param name="sceneId">Provisional Scene ID to finalize</param>
     /// <param name="context">Spawn context for placeholder replacement</param>
     /// <returns>Finalized Scene with dependent resource specs for orchestrator to load</returns>
-    public (Scene scene, DependentResourceSpecs dependentSpecs) FinalizeScene(string sceneId, SceneSpawnContext context)
+    public SceneFinalizationResult FinalizeScene(string sceneId, SceneSpawnContext context)
     {
         // PHASE 1.4: Get provisional Scene from unified collection via LINQ
         Scene scene = _gameWorld.Scenes.FirstOrDefault(s => s.Id == sceneId && s.State == SceneState.Provisional);
@@ -236,7 +238,7 @@ public class SceneInstantiator
         // PHASE 1.4: Change state to Active (no collection movement needed - unified storage)
         scene.State = SceneState.Active;
 
-        return (scene, dependentSpecs);
+        return new SceneFinalizationResult(scene, dependentSpecs);
     }
 
     /// <summary>
@@ -281,10 +283,10 @@ public class SceneInstantiator
 
     /// <summary>
     /// Resolve concrete placement based on PlacementRelation enum and context
-    /// Returns (PlacementType, PlacementId) tuple
+    /// Returns PlacementResolution with PlacementType and PlacementId
     /// Uses SceneSpawnReward.PlacementRelation (enum) + SpecificPlacementId
     /// </summary>
-    private (PlacementType, string) ResolvePlacement(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
+    private PlacementResolution ResolvePlacement(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
         PlacementRelation relation = spawnReward.PlacementRelation;
 
@@ -293,32 +295,32 @@ public class SceneInstantiator
             case PlacementRelation.SameLocation:
                 if (context.CurrentLocation == null)
                     throw new InvalidOperationException("SameLocation placement requires CurrentLocation in context");
-                return (PlacementType.Location, context.CurrentLocation.Id); // Location.Id (source of truth)
+                return new PlacementResolution(PlacementType.Location, context.CurrentLocation.Id); // Location.Id (source of truth)
 
             case PlacementRelation.SameNPC:
                 if (context.CurrentNPC == null)
                     throw new InvalidOperationException("SameNPC placement requires CurrentNPC in context");
-                return (PlacementType.NPC, context.CurrentNPC.ID);
+                return new PlacementResolution(PlacementType.NPC, context.CurrentNPC.ID);
 
             case PlacementRelation.SameRoute:
                 if (context.CurrentRoute == null)
                     throw new InvalidOperationException("SameRoute placement requires CurrentRoute in context");
-                return (PlacementType.Route, context.CurrentRoute.Id);
+                return new PlacementResolution(PlacementType.Route, context.CurrentRoute.Id);
 
             case PlacementRelation.SpecificLocation:
                 if (string.IsNullOrEmpty(spawnReward.SpecificPlacementId))
                     throw new InvalidOperationException("SpecificLocation placement requires SpecificPlacementId in spawnReward");
-                return (PlacementType.Location, spawnReward.SpecificPlacementId);
+                return new PlacementResolution(PlacementType.Location, spawnReward.SpecificPlacementId);
 
             case PlacementRelation.SpecificNPC:
                 if (string.IsNullOrEmpty(spawnReward.SpecificPlacementId))
                     throw new InvalidOperationException("SpecificNPC placement requires SpecificPlacementId in spawnReward");
-                return (PlacementType.NPC, spawnReward.SpecificPlacementId);
+                return new PlacementResolution(PlacementType.NPC, spawnReward.SpecificPlacementId);
 
             case PlacementRelation.SpecificRoute:
                 if (string.IsNullOrEmpty(spawnReward.SpecificPlacementId))
                     throw new InvalidOperationException("SpecificRoute placement requires SpecificPlacementId in spawnReward");
-                return (PlacementType.Route, spawnReward.SpecificPlacementId);
+                return new PlacementResolution(PlacementType.Route, spawnReward.SpecificPlacementId);
 
             case PlacementRelation.Generic:
                 // Evaluate PlacementFilter from SceneTemplate to find matching entity
@@ -334,7 +336,7 @@ public class SceneInstantiator
                 }
 
                 PlacementType placementType = template.PlacementFilter.PlacementType;
-                return (placementType, placementId);
+                return new PlacementResolution(placementType, placementId);
 
             default:
                 throw new InvalidOperationException($"Unknown PlacementRelation: {relation}");

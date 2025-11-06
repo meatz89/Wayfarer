@@ -511,9 +511,9 @@ public class Player
     /// <summary>
     /// Get current weight as ratio (for UI display)
     /// </summary>
-    public (int current, int max) GetWeightStatus(ItemRepository itemRepository)
+    public WeightStatus GetWeightStatus(ItemRepository itemRepository)
     {
-        return (GetCurrentWeight(itemRepository), Inventory.GetCapacity());
+        return new WeightStatus(GetCurrentWeight(itemRepository), Inventory.GetCapacity());
     }
 
     public void AddKnownLocation(string LocationId)

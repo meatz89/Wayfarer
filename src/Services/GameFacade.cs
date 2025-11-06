@@ -515,10 +515,10 @@ public class GameFacade
         Player player = _gameWorld.GetPlayer();
 
         // Build deck with signature deck knowledge cards in starting hand
-        (List<CardInstance> deck, List<CardInstance> startingHand) = _mentalFacade.GetDeckBuilder()
+        MentalDeckBuildResult buildResult = _mentalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _mentalFacade.StartSession(challengeDeck, deck, startingHand, situationId, obligationId);
+        return _mentalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situationId, obligationId);
     }
 
     /// <summary>
@@ -589,10 +589,10 @@ public class GameFacade
         Player player = _gameWorld.GetPlayer();
 
         // Build deck with signature deck knowledge cards in starting hand
-        (List<CardInstance> deck, List<CardInstance> startingHand) = _physicalFacade.GetDeckBuilder()
+        PhysicalDeckBuildResult buildResult = _physicalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _physicalFacade.StartSession(challengeDeck, deck, startingHand, situationId, obligationId);
+        return _physicalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situationId, obligationId);
     }
 
     /// <summary>
@@ -1644,7 +1644,15 @@ public class GameFacade
     {
         Scene provisionalScene = _sceneInstanceFacade.CreateProvisionalScene(template, spawnReward, context);
 
-        (Scene scene, DependentResourceSpecs dependentSpecs) = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, context);
+        if (provisionalScene == null)
+        {
+            Console.WriteLine($"[GameFacade] Scene '{template.Id}' failed spawn conditions - cannot finalize");
+            return null;
+        }
+
+        SceneFinalizationResult finalizationResult = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, context);
+        Scene scene = finalizationResult.Scene;
+        DependentResourceSpecs dependentSpecs = finalizationResult.DependentSpecs;
 
         if (dependentSpecs.HasResources)
         {
@@ -1743,6 +1751,12 @@ public class GameFacade
                 continue;
 
             Scene scene = SpawnSceneWithDynamicContent(template, spawnReward, spawnContext);
+
+            if (scene == null)
+            {
+                Console.WriteLine($"[GameFacade] Starter scene '{template.Id}' failed to spawn - skipping");
+                continue;
+            }
         }
     }
 

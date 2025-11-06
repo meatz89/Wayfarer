@@ -243,7 +243,8 @@ public class RewardApplicationService
             Scene provisionalScene = _gameWorld.Scenes
                 .FirstOrDefault(s => s.State == SceneState.Provisional && s.TemplateId == sceneSpawn.SceneTemplateId);
 
-            (Scene finalizedScene, DependentResourceSpecs _) = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, context);
+            SceneFinalizationResult finalizationResult = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, context);
+            Scene finalizedScene = finalizationResult.Scene;
         }
 
         // CLEANUP: Delete provisional Scenes from non-selected actions in this Situation

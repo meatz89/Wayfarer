@@ -237,7 +237,9 @@ namespace Wayfarer.Services
                 int endHex = (segmentIndex == route.Segments.Count - 1) ? route.HexPath.Count : (segmentIndex + 1) * hexesPerSegment;
                 List<AxialCoordinates> segmentHexes = route.HexPath.Skip(startHex).Take(endHex - startHex).ToList();
 
-                (TerrainType dominantTerrain, int segmentDanger) = AnalyzeSegmentHexes(segmentHexes);
+                SegmentAnalysisResult analysis = AnalyzeSegmentHexes(segmentHexes);
+                TerrainType dominantTerrain = analysis.DominantTerrain;
+                int segmentDanger = analysis.AverageDanger;
 
                 // Filter templates by terrain and danger
                 List<SceneTemplate> matchingTemplates = FilterSceneTemplatesByTerrainAndDanger(
@@ -439,7 +441,9 @@ namespace Wayfarer.Services
                 List<AxialCoordinates> segmentHexes = hexPath.Skip(startHex).Take(endHex - startHex).ToList();
 
                 // Determine dominant terrain and danger for this segment
-                (TerrainType dominantTerrain, int segmentDanger) = AnalyzeSegmentHexes(segmentHexes);
+                SegmentAnalysisResult analysis = AnalyzeSegmentHexes(segmentHexes);
+                TerrainType dominantTerrain = analysis.DominantTerrain;
+                int segmentDanger = analysis.AverageDanger;
 
                 RouteSegment segment = new RouteSegment
                 {
@@ -524,10 +528,10 @@ namespace Wayfarer.Services
         /// <summary>
         /// Analyze hex range to determine dominant terrain and average danger
         /// </summary>
-        private (TerrainType dominantTerrain, int averageDanger) AnalyzeSegmentHexes(List<AxialCoordinates> segmentHexes)
+        private SegmentAnalysisResult AnalyzeSegmentHexes(List<AxialCoordinates> segmentHexes)
         {
             if (segmentHexes == null || segmentHexes.Count == 0)
-                return (TerrainType.Plains, 0);
+                return new SegmentAnalysisResult(TerrainType.Plains, 0);
 
             // Count terrain types
             Dictionary<TerrainType, int> terrainCounts = new Dictionary<TerrainType, int>();
@@ -565,7 +569,7 @@ namespace Wayfarer.Services
             // Calculate average danger
             int averageDanger = validHexCount > 0 ? totalDanger / validHexCount : 0;
 
-            return (dominantTerrain, averageDanger);
+            return new SegmentAnalysisResult(dominantTerrain, averageDanger);
         }
 
         /// <summary>

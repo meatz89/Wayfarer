@@ -14,9 +14,9 @@ public class MentalDeckBuilder
     /// <summary>
     /// Build deck from engagement deck (parallel to Social system)
     /// Signature deck knowledge cards added to starting hand (NOT shuffled into deck)
-    /// Returns (deck to draw from, starting hand with knowledge cards)
+    /// Returns deck to draw from and starting hand with knowledge cards
     /// </summary>
-    public (List<CardInstance> deck, List<CardInstance> startingHand) BuildDeckWithStartingHand(MentalChallengeDeck challengeDeck, Player player)
+    public MentalDeckBuildResult BuildDeckWithStartingHand(MentalChallengeDeck challengeDeck, Player player)
     {
         List<CardInstance> startingHand = new List<CardInstance>();
 
@@ -44,7 +44,7 @@ public class MentalDeckBuilder
             return true;
         }).ToList();
 
-        return (deck, startingHand);
+        return new MentalDeckBuildResult(deck, startingHand);
     }
 
     /// <summary>

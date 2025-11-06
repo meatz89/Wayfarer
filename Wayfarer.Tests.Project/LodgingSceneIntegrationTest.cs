@@ -98,7 +98,9 @@ public class LodgingSceneIntegrationTest
         Assert.Equal(SceneState.Provisional, provisionalScene.State);
         Assert.Equal(template.Id, provisionalScene.TemplateId);
 
-        (Scene finalizedScene, DependentResourceSpecs specs) = sceneInstanceFacade.FinalizeScene(provisionalScene.Id, spawnContext);
+        SceneFinalizationResult result = sceneInstanceFacade.FinalizeScene(provisionalScene.Id, spawnContext);
+        Scene finalizedScene = result.Scene;
+        DependentResourceSpecs specs = result.DependentSpecs;
 
         Assert.NotNull(finalizedScene);
         Assert.Equal(SceneState.Active, finalizedScene.State);

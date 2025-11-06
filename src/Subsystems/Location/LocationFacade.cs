@@ -482,8 +482,12 @@ public class LocationFacade
         if (spot == null)
             throw new InvalidOperationException("Current location spot is null");
 
-        (List<SituationCardViewModel> ambientMental, List<SceneWithSituationsViewModel> mentalScenes) = BuildMentalChallenges(spot);
-        (List<SituationCardViewModel> ambientPhysical, List<SceneWithSituationsViewModel> physicalScenes) = BuildPhysicalChallenges(spot);
+        ChallengeBuildResult mentalResult = BuildMentalChallenges(spot);
+        List<SituationCardViewModel> ambientMental = mentalResult.AmbientSituations;
+        List<SceneWithSituationsViewModel> mentalScenes = mentalResult.SceneGroups;
+        ChallengeBuildResult physicalResult = BuildPhysicalChallenges(spot);
+        List<SituationCardViewModel> ambientPhysical = physicalResult.AmbientSituations;
+        List<SceneWithSituationsViewModel> physicalScenes = physicalResult.SceneGroups;
 
         // SCENE-SITUATION ARCHITECTURE: Locked situations handled by RequirementFormula in ChoiceTemplate
         // Scene-based situations have requirements checked at action instantiation time
@@ -859,17 +863,17 @@ public class LocationFacade
             return $"Requires {string.Join(" OR ", pathLabels)}";
     }
     
-    private (List<SituationCardViewModel>, List<SceneWithSituationsViewModel>) BuildMentalChallenges(Location spot)
+    private ChallengeBuildResult BuildMentalChallenges(Location spot)
     {
         return BuildChallengesBySystemType(spot, TacticalSystemType.Mental, "mental", "Exposure");
     }
 
-    private (List<SituationCardViewModel>, List<SceneWithSituationsViewModel>) BuildPhysicalChallenges(Location spot)
+    private ChallengeBuildResult BuildPhysicalChallenges(Location spot)
     {
         return BuildChallengesBySystemType(spot, TacticalSystemType.Physical, "physical", "Danger");
     }
 
-    private (List<SituationCardViewModel>, List<SceneWithSituationsViewModel>) BuildChallengesBySystemType(
+    private ChallengeBuildResult BuildChallengesBySystemType(
         Location spot, TacticalSystemType systemType, string systemTypeStr, string difficultyLabel)
     {
         List<SituationCardViewModel> ambientSituations = new List<SituationCardViewModel>();
@@ -935,7 +939,7 @@ public class LocationFacade
             }
         }
 
-        return (ambientSituations, sceneGroups);
+        return new ChallengeBuildResult(ambientSituations, sceneGroups);
     }
 
     private Scene FindParentScene(Location spot, Situation situation)
@@ -948,7 +952,7 @@ public class LocationFacade
             .FirstOrDefault(s => s.SituationIds.Contains(situation.Id));
     }
 
-    private (List<SituationCardViewModel>, List<SceneWithSituationsViewModel>) GroupSituationsByScene(
+    private ChallengeBuildResult GroupSituationsByScene(
         NPC npc, List<Situation> situations, string systemTypeStr, string difficultyLabel)
     {
         List<SituationCardViewModel> ambientSituations = new List<SituationCardViewModel>();
@@ -990,7 +994,7 @@ public class LocationFacade
             }
         }
 
-        return (ambientSituations, sceneGroups);
+        return new ChallengeBuildResult(ambientSituations, sceneGroups);
     }
 
     private Scene FindParentSceneForNPC(NPC npc, Situation situation)

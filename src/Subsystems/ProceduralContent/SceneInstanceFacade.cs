@@ -55,7 +55,8 @@ public class SceneInstanceFacade
     {
         Scene provisionalScene = _sceneInstantiator.CreateProvisionalScene(template, spawnReward, context);
 
-        (Scene finalizedScene, DependentResourceSpecs _) = FinalizeScene(provisionalScene.Id, context);
+        SceneFinalizationResult finalizationResult = FinalizeScene(provisionalScene.Id, context);
+        Scene finalizedScene = finalizationResult.Scene;
 
         return finalizedScene;
     }
@@ -78,7 +79,7 @@ public class SceneInstanceFacade
     /// Calls SceneInstantiator to finalize scene and instantiate situations
     /// Returns Scene with State=Active AND DependentResourceSpecs for orchestrator
     /// </summary>
-    public (Scene scene, DependentResourceSpecs dependentSpecs) FinalizeScene(string sceneId, SceneSpawnContext context)
+    public SceneFinalizationResult FinalizeScene(string sceneId, SceneSpawnContext context)
     {
         return _sceneInstantiator.FinalizeScene(sceneId, context);
     }

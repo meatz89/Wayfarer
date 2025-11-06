@@ -14,9 +14,9 @@ public class PhysicalDeckBuilder
     /// <summary>
     /// Build deck from engagement deck (parallel to Social system)
     /// Signature deck knowledge cards added to starting hand (NOT shuffled into deck)
-    /// Returns (deck to draw from, starting hand with knowledge and injury cards)
+    /// Returns deck to draw from and starting hand with knowledge and injury cards
     /// </summary>
-    public (List<CardInstance> deck, List<CardInstance> startingHand) BuildDeckWithStartingHand(
+    public PhysicalDeckBuildResult BuildDeckWithStartingHand(
         PhysicalChallengeDeck challengeDeck, Player player)
     {
         List<CardInstance> startingHand = new List<CardInstance>();
@@ -60,7 +60,7 @@ public class PhysicalDeckBuilder
             }
         }
 
-        return (deck, startingHand);
+        return new PhysicalDeckBuildResult(deck, startingHand);
     }
 
     /// <summary>

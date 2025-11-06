@@ -33,14 +33,14 @@ public struct AxialCoordinates : IEquatable<AxialCoordinates>
     }
 
     // Hex neighbor offsets (axial coordinates)
-    private static readonly (int q, int r)[] NeighborOffsets = new[]
+    private static readonly HexDirectionOffset[] NeighborOffsets = new[]
     {
-        ( 0, -1), // North
-        (+1, -1), // Northeast
-        (+1,  0), // Southeast
-        ( 0, +1), // South
-        (-1, +1), // Southwest
-        (-1,  0)  // Northwest
+        new HexDirectionOffset( 0, -1), // North
+        new HexDirectionOffset(+1, -1), // Northeast
+        new HexDirectionOffset(+1,  0), // Southeast
+        new HexDirectionOffset( 0, +1), // South
+        new HexDirectionOffset(-1, +1), // Southwest
+        new HexDirectionOffset(-1,  0)  // Northwest
     };
 
     /// <summary>
@@ -52,8 +52,8 @@ public struct AxialCoordinates : IEquatable<AxialCoordinates>
         for (int i = 0; i < 6; i++)
         {
             neighbors[i] = new AxialCoordinates(
-                Q + NeighborOffsets[i].q,
-                R + NeighborOffsets[i].r
+                Q + NeighborOffsets[i].Q,
+                R + NeighborOffsets[i].R
             );
         }
         return neighbors;
@@ -67,8 +67,8 @@ public struct AxialCoordinates : IEquatable<AxialCoordinates>
         if (direction < 0 || direction > 5)
             throw new ArgumentException($"Direction must be 0-5, got {direction}");
 
-        (int q, int r) offset = NeighborOffsets[direction];
-        return new AxialCoordinates(Q + offset.q, R + offset.r);
+        HexDirectionOffset offset = NeighborOffsets[direction];
+        return new AxialCoordinates(Q + offset.Q, R + offset.R);
     }
 
     /// <summary>
@@ -104,7 +104,7 @@ public struct AxialCoordinates : IEquatable<AxialCoordinates>
 
         for (int i = 0; i < 6; i++)
         {
-            if (NeighborOffsets[i].q == dq && NeighborOffsets[i].r == dr)
+            if (NeighborOffsets[i].Q == dq && NeighborOffsets[i].R == dr)
                 return i;
         }
 

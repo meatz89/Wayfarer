@@ -89,7 +89,9 @@ public class SocialFacade
         Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
 
         // Create session deck and get request cards from the request
-        (SocialSessionCardDeck deck, List<CardInstance> SituationCards) = _deckBuilder.CreateConversationDeck(npc, requestId);
+        SocialDeckBuildResult buildResult = _deckBuilder.CreateConversationDeck(npc, requestId);
+        SocialSessionCardDeck deck = buildResult.Deck;
+        List<CardInstance> SituationCards = buildResult.SituationCards;
 
         // Calculate starting resources based on player's highest stat
         Player player = _gameWorld.GetPlayer();

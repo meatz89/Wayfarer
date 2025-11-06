@@ -390,7 +390,8 @@ public class SpawnFacade
                 {
                     Scene provisionalScene = _sceneInstanceFacade.CreateProvisionalScene(template, spawnReward, spawnContext);
 
-                    (Scene finalizedScene, DependentResourceSpecs _) = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, spawnContext);
+                    SceneFinalizationResult finalizationResult = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, spawnContext);
+                    Scene finalizedScene = finalizationResult.Scene;
 
                     spawned++;
                     Console.WriteLine($"[SpawnOrchestration] Scene '{provisionalScene.Id}' spawned and finalized");

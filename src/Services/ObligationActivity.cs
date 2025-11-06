@@ -509,7 +509,8 @@ public class ObligationActivity
 
         Scene provisionalScene = _sceneInstanceFacade.CreateProvisionalScene(template, sceneSpawn, context);
 
-        (Scene finalizedScene, DependentResourceSpecs _) = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, context);
+        SceneFinalizationResult finalizationResult = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, context);
+        Scene finalizedScene = finalizationResult.Scene;
 
         string placementDescription = GetPlacementDescription(finalizedScene);
         _messageSystem.AddSystemMessage(

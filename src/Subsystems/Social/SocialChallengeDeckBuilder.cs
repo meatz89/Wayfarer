@@ -17,7 +17,7 @@ public class SocialChallengeDeckBuilder
     /// Create a conversation deck from conversation type cards.
     /// Request drives everything - it determines the conversation type and connection type.
     /// </summary>
-    public (SocialSessionCardDeck deck, List<CardInstance> SituationCards) CreateConversationDeck(
+    public SocialDeckBuildResult CreateConversationDeck(
         NPC npc,
         string requestId)
     {
@@ -78,7 +78,7 @@ public class SocialChallengeDeckBuilder
         deck.ShuffleDeckPile();
 
         // Return deck with empty request cards (they're in the deck's request pile)
-        return (deck, new List<CardInstance>());
+        return new SocialDeckBuildResult(deck, new List<CardInstance>());
     }
 
     /// <summary>
