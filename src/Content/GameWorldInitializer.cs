@@ -19,6 +19,11 @@ public static class GameWorldInitializer
         // Create new GameWorld instance
         GameWorld gameWorld = new GameWorld();
 
+        // CRITICAL: Clear Content/Dynamic folder at game start for clean state
+        // Dependent resources from previous sessions (scene-generated locations/items) must not persist
+        // Must happen BEFORE any package loading to prevent stale JSON files from interfering
+        ClearDynamicContentFolder();
+
         // Create SceneGenerationFacade for parse-time scene generation
         SceneGenerationFacade sceneGenerationFacade = new SceneGenerationFacade(gameWorld);
 
@@ -65,5 +70,39 @@ public static class GameWorldInitializer
         {
             Console.WriteLine($"  - {t.Id} (PlacementFilter: {t.PlacementFilter?.PlacementType})");
         }
+    }
+
+    /// <summary>
+    /// Clear Content/Dynamic folder at game initialization for clean state
+    /// Removes stale scene-generated JSON files from previous sessions
+    /// Called before any package loading to prevent interference
+    /// </summary>
+    private static void ClearDynamicContentFolder()
+    {
+        string dynamicPath = Path.Combine("Content", "Dynamic");
+
+        if (!Directory.Exists(dynamicPath))
+        {
+            Console.WriteLine($"[Init] Dynamic folder does not exist, skipping cleanup");
+            return;
+        }
+
+        string[] jsonFiles = Directory.GetFiles(dynamicPath, "*.json");
+
+        if (jsonFiles.Length == 0)
+        {
+            Console.WriteLine($"[Init] Dynamic folder is already empty");
+            return;
+        }
+
+        Console.WriteLine($"[Init] Clearing {jsonFiles.Length} stale files from Content/Dynamic");
+
+        foreach (string file in jsonFiles)
+        {
+            File.Delete(file);
+            Console.WriteLine($"[Init]   ✅ Deleted {Path.GetFileName(file)}");
+        }
+
+        Console.WriteLine($"[Init] Content/Dynamic cleared - clean state achieved");
     }
 }
