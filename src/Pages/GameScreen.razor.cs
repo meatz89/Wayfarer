@@ -62,7 +62,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     // Navigation State
     protected ExchangeContext CurrentExchangeContext { get; set; }
-    protected TravelSceneContext CurrentTravelSceneContext { get; set; }
+    protected RouteObstacleContext CurrentRouteObstacleContext { get; set; }
     protected SceneContext CurrentSceneContext { get; set; }
     protected SocialChallengeContext CurrentSocialContext { get; set; }
     protected MentalChallengeContext CurrentMentalContext { get; set; }
@@ -652,35 +652,17 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     }
 
     protected async Task HandleSceneEnd(bool success)
-    {// If scene was successfully overcome, complete the pending travel
-        if (success && !string.IsNullOrEmpty(CurrentSceneContext?.RouteId))
-        {
-            string routeId = CurrentSceneContext.RouteId;// Clear scene context before travel
-            CurrentSceneContext = null;
+    {
+        // Clear scene context
+        CurrentSceneContext = null;
 
-            // Execute travel via intent system
-            TravelIntent travelIntent = new TravelIntent(routeId);
-            IntentResult result = await GameFacade.ProcessIntent(travelIntent);
+        // Refresh displays
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+        await RefreshLocationDisplay();
 
-            if (result.Success)
-            {
-                await RefreshResourceDisplay();
-                await RefreshTimeDisplay();
-                await RefreshLocationDisplay();
-
-                await NavigateToScreen(ScreenMode.Location);
-            }
-        }
-        else
-        {
-            // Failed scene or no route - just return to locationCurrentSceneContext = null;
-
-            await RefreshResourceDisplay();
-            await RefreshTimeDisplay();
-            await RefreshLocationDisplay();
-
-            await NavigateToScreen(ScreenMode.Location);
-        }
+        // Return to location
+        await NavigateToScreen(ScreenMode.Location);
     }
 
     protected string GetCurrentLocation()

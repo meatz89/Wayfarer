@@ -1,9 +1,9 @@
 /// <summary>
-/// Context for TravelScene screens containing scene state and metadata.
+/// Context for route obstacle screens containing scene state and metadata.
 /// Used for route obstacle encounters where player chooses approach to overcome scene.
 /// Part of Physical challenge system (distinct from Physical card challenges).
 /// </summary>
-public class TravelSceneContext
+public class RouteObstacleContext
 {
     public bool IsValid { get; set; }
     public string ErrorMessage { get; set; }
@@ -22,7 +22,7 @@ public class TravelSceneContext
     // Display info
     public string TimeDisplay { get; set; }
 
-    public TravelSceneContext()
+    public RouteObstacleContext()
     {
         IsValid = true;
         ErrorMessage = string.Empty;
