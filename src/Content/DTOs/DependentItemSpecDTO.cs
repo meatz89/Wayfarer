@@ -13,16 +13,16 @@ public class DependentItemSpecDTO
     public string TemplateId { get; set; }
 
     /// <summary>
-    /// Name pattern with {placeholders}
+    /// Name pattern with placeholders replaced by PlaceholderReplacer at finalization
+    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
     /// Example: "Room Key"
-    /// Placeholders replaced at finalization with actual entity names
     /// </summary>
     public string NamePattern { get; set; }
 
     /// <summary>
-    /// Description pattern with {placeholders}
-    /// Example: "A key that unlocks access to {npc_name}'s private {service_type} room."
-    /// Placeholders replaced at finalization with actual entity names
+    /// Description pattern with placeholders replaced by PlaceholderReplacer at finalization
+    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
+    /// Example: "A key that unlocks access to {NPCName}'s private lodging room."
     /// </summary>
     public string DescriptionPattern { get; set; }
 

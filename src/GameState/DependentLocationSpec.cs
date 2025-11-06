@@ -13,16 +13,18 @@ public class DependentLocationSpec
     public string TemplateId { get; set; }
 
     /// <summary>
-    /// Pattern for generating location name with token replacement
-    /// Supports tokens: {npc_name}, {base_location_name}, {venue_name}
-    /// Example: "{npc_name}'s Private Room", "Upper Floor of {venue_name}"
+    /// Pattern for generating location name with placeholder replacement
+    /// Placeholders replaced at scene finalization by PlaceholderReplacer
+    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
+    /// Example: "{NPCName}'s Private Room", "Upper Floor of {LocationName}"
     /// </summary>
     public string NamePattern { get; set; }
 
     /// <summary>
-    /// Pattern for generating location description with token replacement
-    /// Supports same tokens as NamePattern
-    /// Example: "A quiet room reserved for {npc_name}'s guests."
+    /// Pattern for generating location description with placeholder replacement
+    /// Placeholders replaced at scene finalization by PlaceholderReplacer
+    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
+    /// Example: "A quiet room reserved for {NPCName}'s guests."
     /// </summary>
     public string DescriptionPattern { get; set; }
 

@@ -273,8 +273,8 @@ public static class SceneArchetypeCatalog
         DependentLocationSpec privateRoomSpec = new DependentLocationSpec
         {
             TemplateId = "private_room",
-            NamePattern = "{npc_name}'s Lodging Room",
-            DescriptionPattern = "A private room where {npc_name} provides lodging services.",
+            NamePattern = "{NPCName}'s Lodging Room",
+            DescriptionPattern = "A private room where {NPCName} provides lodging services.",
             VenueIdSource = VenueIdSource.SameAsBase,
             HexPlacement = HexPlacementStrategy.SameVenue,
             Properties = new List<string> { "sleepingSpace", "restful", "indoor", "private" },
@@ -287,7 +287,7 @@ public static class SceneArchetypeCatalog
         {
             TemplateId = "room_key",
             NamePattern = "Room Key",
-            DescriptionPattern = "A key that unlocks access to {npc_name}'s private lodging room.",
+            DescriptionPattern = "A key that unlocks access to {NPCName}'s private lodging room.",
             Categories = new List<ItemCategory> { ItemCategory.Special_Access },
             Weight = 1,
             BuyPrice = 0,

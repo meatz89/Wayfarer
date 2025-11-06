@@ -79,7 +79,7 @@ public class LodgingSceneFlowTest
         DependentLocationSpec locationSpec = result.DependentLocations[0];
 
         Assert.Equal("private_room", locationSpec.TemplateId);
-        Assert.Contains("{npc_name}", locationSpec.NamePattern);
+        Assert.Contains("{NPCName}", locationSpec.NamePattern);
         Assert.Equal(VenueIdSource.SameAsBase, locationSpec.VenueIdSource);
         Assert.Equal(HexPlacementStrategy.SameVenue, locationSpec.HexPlacement);
         Assert.True(locationSpec.IsLockedInitially);
@@ -90,7 +90,7 @@ public class LodgingSceneFlowTest
         DependentItemSpec itemSpec = result.DependentItems[0];
 
         Assert.Equal("room_key", itemSpec.TemplateId);
-        Assert.Contains("{npc_name}", itemSpec.DescriptionPattern);
+        Assert.Contains("{NPCName}", itemSpec.DescriptionPattern);
     }
 
     [Fact]

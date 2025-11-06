@@ -146,6 +146,10 @@ public class SceneInstantiator
             scene.CreatedLocationIds.AddRange(dependentSpecs.CreatedLocationIds);
             scene.CreatedItemIds.AddRange(dependentSpecs.CreatedItemIds);
             scene.DependentPackageId = dependentSpecs.PackageId;
+
+            // Build marker resolution map immediately after IDs are available
+            // Markers can be resolved from IDs alone - actual entities don't need to be loaded yet
+            BuildMarkerResolutionMap(scene);
         }
 
         // INSTANTIATE SITUATIONS FOR THE FIRST TIME (moved from CreateProvisionalScene)

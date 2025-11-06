@@ -13,16 +13,16 @@ public class DependentLocationSpecDTO
     public string TemplateId { get; set; }
 
     /// <summary>
-    /// Name pattern with {placeholders}
-    /// Example: "{npc_name}'s {service_type} Room"
-    /// Placeholders replaced at finalization with actual entity names
+    /// Name pattern with placeholders replaced by PlaceholderReplacer at finalization
+    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
+    /// Example: "{NPCName}'s Private Room"
     /// </summary>
     public string NamePattern { get; set; }
 
     /// <summary>
-    /// Description pattern with {placeholders}
-    /// Example: "A private room where {npc_name} provides {service_type} services."
-    /// Placeholders replaced at finalization with actual entity names
+    /// Description pattern with placeholders replaced by PlaceholderReplacer at finalization
+    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
+    /// Example: "A private room where {NPCName} provides lodging services."
     /// </summary>
     public string DescriptionPattern { get; set; }
 
