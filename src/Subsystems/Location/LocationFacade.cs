@@ -26,7 +26,7 @@ public class LocationFacade
     private readonly NarrativeRenderer _narrativeRenderer;
     private readonly DifficultyCalculationService _difficultyService;
     private readonly ItemRepository _itemRepository;
-    private readonly Wayfarer.Subsystems.Scene.SceneFacade _sceneFacade;
+    private readonly SceneFacade _sceneFacade;
 
     public LocationFacade(
         GameWorld gameWorld,
@@ -45,7 +45,7 @@ public class LocationFacade
         NarrativeRenderer narrativeRenderer,
         DifficultyCalculationService difficultyService,
         ItemRepository itemRepository,
-        Wayfarer.Subsystems.Scene.SceneFacade sceneFacade)
+        SceneFacade sceneFacade)
     {
         _gameWorld = gameWorld;
         _locationManager = locationManager;
@@ -869,11 +869,7 @@ public class LocationFacade
         else
             return $"Requires {string.Join(" OR ", pathLabels)}";
     }
-
-    // DELETED: GetFilteredSocialSituations() - was incorrectly using GetVisibleLocationSituations()
-    // Social situations are placed on NPCs (PlacementNpcId), not locations (PlacementLocationId)
-    // Now calling GetVisibleNPCSituations() directly in BuildNPCsWithSituations()
-
+    
     private (List<SituationCardViewModel>, List<SceneWithSituationsViewModel>) BuildMentalChallenges(Location spot)
     {
         return BuildChallengesBySystemType(spot, TacticalSystemType.Mental, "mental", "Exposure");
@@ -891,7 +887,7 @@ public class LocationFacade
         List<SceneWithSituationsViewModel> sceneGroups = new List<SceneWithSituationsViewModel>();
 
         // SCENE-SITUATION ARCHITECTURE: Query active Scenes at this location, get Situation IDs, query GameWorld.Situations
-        List<global::Scene> scenesAtLocation = _gameWorld.Scenes
+        List<Scene> scenesAtLocation = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
                        s.PlacementType == PlacementType.Location &&
                        s.PlacementId == spot.Id)
@@ -1072,11 +1068,5 @@ public class LocationFacade
             default:
                 return 10;
         }
-    }
-
-
-    private List<Location> GetSpotsForVenue(Venue venue)
-    {
-        return _gameWorld.Locations.Where(s => s.VenueId == venue.Id).ToList();
     }
 }

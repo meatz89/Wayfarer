@@ -41,9 +41,29 @@ public class ChoiceTemplate
     /// <summary>
     /// Reward template structure
     /// Defines what rewards to apply when Choice selected
+    /// For Instant actions: Applied immediately
+    /// For StartChallenge actions: Applied BEFORE challenge (immediate effects)
     /// May include Scene spawning templates with PlacementRelation
     /// </summary>
     public ChoiceReward RewardTemplate { get; init; } = new ChoiceReward();
+
+    /// <summary>
+    /// Conditional reward applied if challenge SUCCEEDS
+    /// Only used for StartChallenge action types
+    /// Applied AFTER challenge completion when player wins
+    /// null = no success-specific rewards (use RewardTemplate only)
+    /// Example: Unlock location on challenge success, grant key item
+    /// </summary>
+    public ChoiceReward OnSuccessReward { get; init; }
+
+    /// <summary>
+    /// Conditional reward applied if challenge FAILS
+    /// Only used for StartChallenge action types
+    /// Applied AFTER challenge completion when player loses
+    /// null = no failure-specific rewards
+    /// Example: Apply negative consequences, spawn follow-up situations
+    /// </summary>
+    public ChoiceReward OnFailureReward { get; init; }
 
     /// <summary>
     /// Action classification - what happens when player selects this Choice

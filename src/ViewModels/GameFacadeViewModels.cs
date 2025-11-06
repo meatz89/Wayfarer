@@ -199,7 +199,7 @@ public class TimeBlockServiceViewModel
 {
     public TimeBlocks TimeBlock { get; set; }
     public bool IsCurrentTimeBlock { get; set; }
-    public List<ServiceTypes> AvailableServices { get; set; }
+    public List<string> AvailableServices { get; set; }
     public List<string> AvailableNPCs { get; set; }
 }
 

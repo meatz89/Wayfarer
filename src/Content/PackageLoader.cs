@@ -43,9 +43,12 @@ public class PackageLoader
     // Track loaded packages to prevent reloading
     private List<string> _loadedPackageIds = new List<string>();
 
-    public PackageLoader(GameWorld gameWorld)
+    private readonly SceneGenerationFacade _sceneGenerationFacade;
+
+    public PackageLoader(GameWorld gameWorld, SceneGenerationFacade sceneGenerationFacade)
     {
         _gameWorld = gameWorld;
+        _sceneGenerationFacade = sceneGenerationFacade;
     }
 
     /// <summary>
@@ -1647,7 +1650,7 @@ public class PackageLoader
     {
         if (sceneTemplateDtos == null) return;
 
-        SceneTemplateParser parser = new SceneTemplateParser(_gameWorld);
+        SceneTemplateParser parser = new SceneTemplateParser(_gameWorld, _sceneGenerationFacade);
         foreach (SceneTemplateDTO dto in sceneTemplateDtos)
         {
             SceneTemplate template = parser.ParseSceneTemplate(dto);

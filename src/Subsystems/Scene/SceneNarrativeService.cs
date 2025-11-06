@@ -1,8 +1,6 @@
 using Wayfarer.GameState;
 using Wayfarer.Models;
 
-namespace Wayfarer.Subsystems.Scene;
-
 /// <summary>
 /// Service that generates narrative text for Scenes and Situations from entity context.
 /// Implements AI generation pattern: Entity context → AI prompt → Generated narrative.

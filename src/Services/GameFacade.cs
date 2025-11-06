@@ -2,8 +2,6 @@ using System.Text;
 using Wayfarer.Content;
 using Wayfarer.GameState.Enums;
 using Wayfarer.Services;
-using Wayfarer.Subsystems.Consequence;
-using Wayfarer.Subsystems.Scene;
 
 /// <summary>
 /// GameFacade - Pure orchestrator for UI-Backend communication.
@@ -35,11 +33,15 @@ public class GameFacade
     private readonly NPCActionExecutor _npcActionExecutor;
     private readonly PathCardExecutor _pathCardExecutor;
     private readonly ConsequenceFacade _consequenceFacade;
-    private readonly SceneInstantiator _sceneInstantiator;
     private readonly RewardApplicationService _rewardApplicationService;
     private readonly SpawnFacade _spawnFacade;
     private readonly SceneFacade _sceneFacade;
     private readonly SituationCompletionHandler _situationCompletionHandler;
+    private readonly SceneInstanceFacade _sceneInstanceFacade;
+    private readonly PackageLoaderFacade _packageLoaderFacade;
+    private readonly HexRouteGenerator _hexRouteGenerator;
+    private readonly ContentGenerationFacade _contentGenerationFacade;
+    private readonly SceneInstantiator _sceneInstantiator;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -69,7 +71,12 @@ public class GameFacade
         SpawnConditionsEvaluator spawnConditionsEvaluator,
         SpawnFacade spawnFacade,
         SceneFacade sceneFacade,
-        SituationCompletionHandler situationCompletionHandler)
+        SituationCompletionHandler situationCompletionHandler,
+        SceneInstanceFacade sceneInstanceFacade,
+        PackageLoaderFacade packageLoaderFacade,
+        HexRouteGenerator hexRouteGenerator,
+        ContentGenerationFacade contentGenerationFacade,
+        SceneInstantiator sceneInstantiator)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -98,11 +105,11 @@ public class GameFacade
         _spawnFacade = spawnFacade ?? throw new ArgumentNullException(nameof(spawnFacade));
         _sceneFacade = sceneFacade ?? throw new ArgumentNullException(nameof(sceneFacade));
         _situationCompletionHandler = situationCompletionHandler ?? throw new ArgumentNullException(nameof(situationCompletionHandler));
-        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
-        PackageLoader packageLoader = new PackageLoader(_gameWorld);
-        HexRouteGenerator hexRouteGenerator = new HexRouteGenerator(_gameWorld);
-        MarkerResolutionService markerResolutionService = new MarkerResolutionService();
-        _sceneInstantiator = new SceneInstantiator(_gameWorld, spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator)), narrativeService, packageLoader, hexRouteGenerator, markerResolutionService);
+        _sceneInstanceFacade = sceneInstanceFacade ?? throw new ArgumentNullException(nameof(sceneInstanceFacade));
+        _packageLoaderFacade = packageLoaderFacade ?? throw new ArgumentNullException(nameof(packageLoaderFacade));
+        _hexRouteGenerator = hexRouteGenerator ?? throw new ArgumentNullException(nameof(hexRouteGenerator));
+        _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
+        _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
     }
 
     // ========== CORE GAME STATE ==========
@@ -1160,7 +1167,7 @@ public class GameFacade
         if (currentLocation == null)
             return;
 
-        global::Scene forcedScene = _sceneFacade.GetModalSceneAtLocation(currentLocation.Id);
+        Scene forcedScene = _sceneFacade.GetModalSceneAtLocation(currentLocation.Id);
         if (forcedScene != null)
         {
             _gameWorld.PendingForcedSceneId = forcedScene.Id;
@@ -1202,11 +1209,11 @@ public class GameFacade
         // Scenes with ExpiresOnDay <= CurrentDay transition to Expired state
         // Expired scenes filtered out from SceneFacade queries (no longer visible to player)
         int currentDay = _gameWorld.CurrentDay;
-        List<global::Scene> activeScenes = _gameWorld.Scenes
+        List<Scene> activeScenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active && s.ExpiresOnDay.HasValue)
             .ToList();
 
-        foreach (global::Scene scene in activeScenes)
+        foreach (Scene scene in activeScenes)
         {
             if (currentDay >= scene.ExpiresOnDay.Value)
             {
@@ -1645,6 +1652,57 @@ public class GameFacade
     public void ClearActiveEmergency()
     {
         _gameWorld.ActiveEmergency = null;
+    }
+
+    // ========== PROCEDURAL CONTENT GENERATION - MULTI-FACADE ORCHESTRATION ==========
+
+    /// <summary>
+    /// HIGHLANDER ORCHESTRATOR: Spawn scene with dynamic content generation
+    /// GameFacade is SOLE orchestrator for multi-facade operations
+    /// LET IT CRASH: Pipeline succeeds completely or throws exception with stack trace
+    /// </summary>
+    public Scene SpawnSceneWithDynamicContent(
+        SceneTemplate template,
+        SceneSpawnReward spawnReward,
+        SceneSpawnContext context)
+    {
+        Scene provisionalScene = _sceneInstanceFacade.CreateProvisionalScene(template, spawnReward, context);
+
+        (Scene scene, DependentResourceSpecs dependentSpecs) = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, context);
+
+        if (dependentSpecs.HasResources)
+        {
+            _contentGenerationFacade.CreateDynamicPackageFile(dependentSpecs.PackageJson, dependentSpecs.PackageId);
+
+            _packageLoaderFacade.LoadDynamicPackage(dependentSpecs.PackageJson, dependentSpecs.PackageId);
+
+            Player player = context.Player;
+            foreach (string itemId in dependentSpecs.ItemsToAddToInventory)
+            {
+                Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
+                if (item != null)
+                {
+                    player.Inventory.AddItem(item);
+                }
+            }
+
+            foreach (string locationId in dependentSpecs.CreatedLocationIds)
+            {
+                Location createdLocation = _gameWorld.GetLocation(locationId);
+                if (createdLocation != null && createdLocation.HexPosition.HasValue)
+                {
+                    List<RouteOption> generatedRoutes = _hexRouteGenerator.GenerateRoutesForNewLocation(createdLocation);
+                    foreach (RouteOption route in generatedRoutes)
+                    {
+                        _gameWorld.Routes.Add(route);
+                    }
+                }
+            }
+
+            _sceneInstantiator.BuildMarkerResolutionMap(scene);
+        }
+
+        return scene;
     }
 
     // ========== UNIFIED ACTION ARCHITECTURE - EXECUTE METHODS ==========

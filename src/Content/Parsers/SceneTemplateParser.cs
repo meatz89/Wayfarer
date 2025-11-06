@@ -1,20 +1,24 @@
 using Wayfarer.Content.Catalogues;
 using Wayfarer.GameState;
 using Wayfarer.GameState.Enums;
+using Wayfarer.Subsystems.ProceduralContent;
 
 namespace Wayfarer.Content.Parsers;
 
 /// <summary>
 /// Parser for SceneTemplate definitions - converts DTOs to domain models
 /// Handles recursive parsing of embedded SituationTemplates and ChoiceTemplates
+/// Uses SceneGenerationFacade for clean isolation from generation subsystem
 /// </summary>
 public class SceneTemplateParser
 {
     private readonly GameWorld _gameWorld;
+    private readonly SceneGenerationFacade _generationFacade;
 
-    public SceneTemplateParser(GameWorld gameWorld)
+    public SceneTemplateParser(GameWorld gameWorld, SceneGenerationFacade generationFacade)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+        _generationFacade = generationFacade ?? throw new ArgumentNullException(nameof(generationFacade));
     }
 
     /// <summary>
@@ -67,60 +71,28 @@ public class SceneTemplateParser
         // PARSE-TIME SCENE ARCHETYPE GENERATION
         Console.WriteLine($"[SceneArchetypeGeneration] Generating multi-situation structure for SceneTemplate '{dto.Id}' using archetype '{dto.SceneArchetypeId}'");
 
-        // Resolve entity objects from placementFilter for context-aware generation
+        // Resolve entity IDs from placementFilter for context-aware generation
         // NPC can be null for location-only scenes (consequence, environmental, etc.)
         NPC contextNPC = ResolveNPCFromPlacementFilter(dto.PlacementFilter, dto.Id);
         Location contextLocation = ResolveLocationFromPlacementFilter(dto.PlacementFilter, contextNPC, dto.Id);
-        Player contextPlayer = _gameWorld.GetPlayer();
+
+        string npcId = contextNPC?.ID;
+        string locationId = contextLocation?.Id;
 
         if (contextNPC != null && contextLocation != null)
         {
-            Console.WriteLine($"[SceneArchetypeGeneration] Entity context: NPC={contextNPC.Name} (Personality={contextNPC.PersonalityType}, Profession={contextNPC.Profession}), Location={contextLocation.Name}, Player.Coins={contextPlayer.Coins}");
-        }
-        else if (contextLocation != null)
-        {
-            Console.WriteLine($"[SceneArchetypeGeneration] Entity context: Location={contextLocation.Name} (Properties={string.Join(", ", contextLocation.LocationProperties)}), Player.Coins={contextPlayer.Coins}");
+            Console.WriteLine($"[SceneGeneration] Context: NPC={contextNPC.Name} (Personality={contextNPC.PersonalityType}), Location={contextLocation.Name}, Tier={dto.Tier}");
         }
         else
         {
-            Console.WriteLine($"[SceneArchetypeGeneration] Categorical scene (no concrete entities at parse time), Player.Coins={contextPlayer.Coins}");
+            Console.WriteLine($"[SceneGeneration] Categorical context: Tier={dto.Tier}");
         }
 
-        ServiceType serviceType = ServiceTypeCatalogue.GetByIdOrThrow(dto.ServiceType);
-
-        SceneArchetypeDefinition archetypeDefinition;
-
-        switch (dto.SceneArchetypeId?.ToLowerInvariant())
-        {
-            case "service_with_location_access":
-                archetypeDefinition = serviceType.GenerateMultiSituationArc(
-                    dto.Tier,
-                    contextNPC,
-                    contextLocation,
-                    contextPlayer
-                );
-                break;
-
-            case "single_situation":
-                archetypeDefinition = serviceType.GenerateSingleSituation(
-                    dto.Tier,
-                    contextNPC,
-                    contextLocation,
-                    contextPlayer
-                );
-                break;
-
-            default:
-                archetypeDefinition = SceneArchetypeCatalog.GetSceneArchetype(
-                    dto.SceneArchetypeId,
-                    serviceType,
-                    dto.Tier,
-                    contextNPC,
-                    contextLocation,
-                    contextPlayer
-                );
-                break;
-        }
+        SceneArchetypeDefinition archetypeDefinition = _generationFacade.GenerateSceneFromArchetype(
+            dto.SceneArchetypeId,
+            dto.Tier,
+            npcId,
+            locationId);
 
         List<SituationTemplate> situationTemplates = archetypeDefinition.SituationTemplates;
         SituationSpawnRules spawnRules = archetypeDefinition.SpawnRules;

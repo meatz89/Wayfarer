@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Components;
 using Wayfarer.GameState.Enums;
-using Wayfarer.Subsystems.Scene;
-using Wayfarer.Subsystems.Consequence;
 
 namespace Wayfarer.Pages.Components
 {

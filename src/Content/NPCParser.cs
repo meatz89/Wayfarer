@@ -45,19 +45,6 @@ public static class NPCParser
             throw new InvalidOperationException($"NPC '{npc.Name}' (ID: {npc.ID}) is missing 'personalityType' in DTO or has invalid value '{dto.PersonalityType}' - fix DTO data");
         }
 
-        // Parse services and map to ServiceTypes enum
-        if (dto.Services != null)
-        {
-            foreach (string serviceStr in dto.Services)
-            {
-                ServiceTypes? mappedService = MapServiceFromJson(serviceStr);
-                if (mappedService.HasValue)
-                {
-                    npc.ProvidedServices.Add(mappedService.Value);
-                }
-            }
-        }
-
         // Set default player relationship
         npc.PlayerRelationship = NPCRelationship.Neutral;
 
@@ -138,34 +125,6 @@ public static class NPCParser
         };
     }
 
-    private static ServiceTypes? MapServiceFromJson(string jsonService)
-    {
-        return jsonService switch
-        {
-            "Trade" => ServiceTypes.Trade,
-            "Work" => ServiceTypes.Work,
-            "Information" => ServiceTypes.Information,
-            "Lodging" => ServiceTypes.Rest,
-            "equipment_commissioning" => ServiceTypes.EquipmentRepair,
-            "workshop_contracts" => ServiceTypes.Training,
-            "trade_goods" => ServiceTypes.Trade,
-            "delivery_contracts" => ServiceTypes.Trading,
-            "rest_services" => ServiceTypes.Rest,
-            "labor_contracts" => ServiceTypes.Training,
-            "lumber_sales" => ServiceTypes.Trade,
-            "logging_contracts" => ServiceTypes.Training,
-            "herb_sales" => ServiceTypes.Trade,
-            "gathering_contracts" => ServiceTypes.Training,
-            "heavy_labor" => ServiceTypes.Training,
-            "equipment_repair" => ServiceTypes.EquipmentRepair,
-            "fish_sales" => ServiceTypes.Trade,
-            "dock_work" => ServiceTypes.Training,
-            "transport_contracts" => ServiceTypes.Trading,
-            "simple_labor" => ServiceTypes.Training,
-            "boat_maintenance" => ServiceTypes.EquipmentRepair,
-            _ => null // Unknown service
-        };
-    }
 
     private static ConnectionType? ParseConnectionType(string connectionTypeStr)
     {

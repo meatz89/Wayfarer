@@ -121,7 +121,7 @@ public class ExchangeFacade
                     Reward = FormatReward(exchange.GetRewardAsList()),
                     CanAfford = validation.CanAfford,
                     ExchangeCard = exchange,
-                    ValidationResult = new global::ExchangeValidationResult
+                    ValidationResult = new ExchangeValidationResult
                     {
                         IsValid = validation.IsValid,
                         IsVisible = validation.IsVisible,

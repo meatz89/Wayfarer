@@ -3,7 +3,6 @@ using Wayfarer.Content.DTOs;
 using Wayfarer.GameState.Enums;
 using Wayfarer.Models;
 using Wayfarer.Services;
-using Wayfarer.Subsystems.Scene;
 
 namespace Wayfarer.Content;
 
@@ -25,24 +24,18 @@ public class SceneInstantiator
     private readonly GameWorld _gameWorld;
     private readonly SpawnConditionsEvaluator _spawnConditionsEvaluator;
     private readonly SceneNarrativeService _narrativeService;
-    private readonly PackageLoader _packageLoader;
-    private readonly HexRouteGenerator _hexRouteGenerator;
     private readonly MarkerResolutionService _markerResolutionService;
 
     public SceneInstantiator(
         GameWorld gameWorld,
         SpawnConditionsEvaluator spawnConditionsEvaluator,
         SceneNarrativeService narrativeService,
-        PackageLoader packageLoader,
-        HexRouteGenerator hexRouteGenerator,
         MarkerResolutionService markerResolutionService)
     {
         _gameWorld = gameWorld;
         _spawnConditionsEvaluator = spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
         _markerResolutionService = markerResolutionService ?? throw new ArgumentNullException(nameof(markerResolutionService));
-        _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
-        _hexRouteGenerator = hexRouteGenerator ?? throw new ArgumentNullException(nameof(hexRouteGenerator));
     }
 
     /// <summary>
@@ -130,8 +123,8 @@ public class SceneInstantiator
     /// </summary>
     /// <param name="sceneId">Provisional Scene ID to finalize</param>
     /// <param name="context">Spawn context for placeholder replacement</param>
-    /// <returns>Finalized Scene with State = Active, stored in gameWorld.Scenes</returns>
-    public Scene FinalizeScene(string sceneId, SceneSpawnContext context)
+    /// <returns>Finalized Scene with dependent resource specs for orchestrator to load</returns>
+    public (Scene scene, DependentResourceSpecs dependentSpecs) FinalizeScene(string sceneId, SceneSpawnContext context)
     {
         // PHASE 1.4: Get provisional Scene from unified collection via LINQ
         Scene scene = _gameWorld.Scenes.FirstOrDefault(s => s.Id == sceneId && s.State == SceneState.Provisional);
@@ -141,15 +134,18 @@ public class SceneInstantiator
             throw new InvalidOperationException($"Provisional Scene '{sceneId}' not found in gameWorld.Scenes");
         }
 
-        // SELF-CONTAINED PATTERN: Generate and load dependent resources if specified
-        // Creates locations/items dynamically via JSON package pipeline
+        // SELF-CONTAINED PATTERN: Generate dependent resource specs (NOT load them)
+        // Returns specs to orchestrator who will create JSON files and load via PackageLoader
         // Must happen BEFORE situation instantiation so marker references can be resolved
+        DependentResourceSpecs dependentSpecs = DependentResourceSpecs.Empty;
         if (scene.Template.DependentLocations.Any() || scene.Template.DependentItems.Any())
         {
-            GenerateAndLoadDependentResources(scene, context);
+            dependentSpecs = GenerateDependentResourceSpecs(scene, context);
 
-            // Build marker resolution map for "generated:{templateId}" → actual ID
-            BuildMarkerResolutionMap(scene);
+            // Track created resource IDs in scene (for marker resolution)
+            scene.CreatedLocationIds.AddRange(dependentSpecs.CreatedLocationIds);
+            scene.CreatedItemIds.AddRange(dependentSpecs.CreatedItemIds);
+            scene.DependentPackageId = dependentSpecs.PackageId;
         }
 
         // INSTANTIATE SITUATIONS FOR THE FIRST TIME (moved from CreateProvisionalScene)
@@ -237,7 +233,7 @@ public class SceneInstantiator
         // PHASE 1.4: Change state to Active (no collection movement needed - unified storage)
         scene.State = SceneState.Active;
 
-        return scene;
+        return (scene, dependentSpecs);
     }
 
     /// <summary>
@@ -936,12 +932,12 @@ public class SceneInstantiator
     // ==================== SELF-CONTAINED SCENE PACKAGE GENERATION ====================
 
     /// <summary>
-    /// Generate and load dependent resources for self-contained scene
-    /// Creates JSON package with LocationDTOs and ItemDTOs, loads through PackageLoader
-    /// Tracks created resource IDs in scene for forensics and cleanup
+    /// Generate dependent resource SPECS for self-contained scene
+    /// Returns specs to orchestrator who creates JSON files and loads via PackageLoader
+    /// Does NOT load resources itself (pure generation, no infrastructure)
     /// Called from FinalizeScene BEFORE situation instantiation
     /// </summary>
-    private void GenerateAndLoadDependentResources(Scene scene, SceneSpawnContext context)
+    private DependentResourceSpecs GenerateDependentResourceSpecs(Scene scene, SceneSpawnContext context)
     {
         // Build lists of DTOs
         List<LocationDTO> locationDtos = new List<LocationDTO>();
@@ -979,7 +975,7 @@ public class SceneInstantiator
             }
         };
 
-        // Serialize to JSON
+        // Serialize to JSON for orchestrator
         JsonSerializerOptions jsonOptions = new JsonSerializerOptions
         {
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -987,54 +983,32 @@ public class SceneInstantiator
         };
         string json = JsonSerializer.Serialize(package, jsonOptions);
 
-        // Load through PackageLoader (standard pipeline)
-        List<string> skeletonIds = _packageLoader.LoadDynamicPackageFromJson(json, packageId);
+        // Build list of created IDs for scene tracking
+        List<string> createdLocationIds = locationDtos.Select(dto => dto.Id).ToList();
+        List<string> createdItemIds = itemDtos.Select(dto => dto.Id).ToList();
 
-        // Track created resource IDs in scene
-        foreach (LocationDTO dto in locationDtos)
-        {
-            scene.CreatedLocationIds.Add(dto.Id);
-        }
-        foreach (ItemDTO dto in itemDtos)
-        {
-            scene.CreatedItemIds.Add(dto.Id);
-        }
-        scene.DependentPackageId = packageId;
-
-        // Add items to player inventory if specified
-        Player player = context.Player;
+        // Build list of items to add to inventory (orchestrator handles after loading)
+        List<string> itemsToAddToInventory = new List<string>();
         foreach (DependentItemSpec spec in scene.Template.DependentItems)
         {
             if (spec.AddToInventoryOnCreation)
             {
                 string itemId = $"{scene.Id}_{spec.TemplateId}";
-                Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
-                if (item != null)
-                {
-                    player.Inventory.AddItem(item);
-                }
+                itemsToAddToInventory.Add(itemId);
             }
         }
 
-        // Generate routes for created locations
-        foreach (string locationId in scene.CreatedLocationIds)
+        // Return specs to orchestrator (NO LOADING HERE)
+        return new DependentResourceSpecs
         {
-            Location createdLocation = _gameWorld.GetLocation(locationId);
-            if (createdLocation != null && createdLocation.HexPosition.HasValue)
-            {
-                List<RouteOption> generatedRoutes = _hexRouteGenerator.GenerateRoutesForNewLocation(createdLocation);
-                foreach (RouteOption route in generatedRoutes)
-                {
-                    _gameWorld.Routes.Add(route);
-                }
-            }
-        }
-
-        Console.WriteLine($"[SceneInstantiator] Generated package '{packageId}' with {locationDtos.Count} locations, {itemDtos.Count} items");
-        if (skeletonIds.Any())
-        {
-            Console.WriteLine($"[SceneInstantiator] Created {skeletonIds.Count} skeletons: {string.Join(", ", skeletonIds)}");
-        }
+            Locations = locationDtos,
+            Items = itemDtos,
+            PackageId = packageId,
+            PackageJson = json,
+            CreatedLocationIds = createdLocationIds,
+            CreatedItemIds = createdItemIds,
+            ItemsToAddToInventory = itemsToAddToInventory
+        };
     }
 
     /// <summary>
@@ -1194,8 +1168,9 @@ public class SceneInstantiator
     /// Maps "generated:{templateId}" markers to actual created resource IDs
     /// Called after GenerateAndLoadDependentResources completes
     /// Enables situations/choices to reference generated resources via markers
+    /// PUBLIC: Called by orchestrator after loading dependent resources
     /// </summary>
-    private void BuildMarkerResolutionMap(Scene scene)
+    public void BuildMarkerResolutionMap(Scene scene)
     {
         scene.MarkerResolutionMap = _markerResolutionService.BuildMarkerResolutionMap(scene);
         Console.WriteLine($"[SceneInstantiator] Built marker resolution map for scene '{scene.Id}' with {scene.MarkerResolutionMap.Count} entries");

@@ -57,16 +57,6 @@ public class NPCLocationTracker
         return _npcRepository.GetPrimaryNPCForSpot(LocationId, timeBlock);
     }
 
-    /// <summary>
-    /// Get all services available at a location.
-    /// </summary>
-    public List<ServiceTypes> GetAllLocationServices(string locationId)
-    {
-        if (string.IsNullOrEmpty(locationId)) return new List<ServiceTypes>();
-
-        // Use NPCRepository method
-        return _npcRepository.GetAllLocationServices(locationId);
-    }
 
     /// <summary>
     /// Check if an NPC is at a specific location.
@@ -175,13 +165,6 @@ public class NPCLocationTracker
         };
     }
 
-    /// <summary>
-    /// Get NPCs that provide a specific service.
-    /// </summary>
-    public List<NPC> GetNPCsProvidingService(ServiceTypes service)
-    {
-        return _npcRepository.GetNPCsProvidingService(service);
-    }
 
     /// <summary>
     /// Get NPCs by profession.

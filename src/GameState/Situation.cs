@@ -105,6 +105,23 @@ public class Situation
     public SpawnTracking Lifecycle { get; set; } = new SpawnTracking();
 
     /// <summary>
+    /// ID of the last choice selected by player for this situation
+    /// Populated when player selects a choice from this situation's ChoiceTemplates
+    /// Used for conditional transition evaluation (TransitionCondition.OnChoice)
+    /// null = situation not yet completed or no choice selected
+    /// </summary>
+    public string LastChoiceId { get; set; }
+
+    /// <summary>
+    /// Whether the last challenge attempt succeeded
+    /// null = no challenge attempted yet, or choice was non-challenge (Instant action)
+    /// true = challenge succeeded
+    /// false = challenge failed
+    /// Used for conditional transition evaluation (TransitionCondition.OnSuccess/OnFailure)
+    /// </summary>
+    public bool? LastChallengeSucceeded { get; set; }
+
+    /// <summary>
     /// Type of interaction when player selects this situation
     /// Determines resolution flow: instant, challenge (Mental/Physical/Social), or navigation
     /// Replaces implicit SystemType checks - explicit interaction type

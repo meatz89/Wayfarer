@@ -44,7 +44,6 @@ public class Location
     public int TravelTimeSegments { get; set; }
     public string TravelDescription { get; set; }
     public int Difficulty { get; set; }
-    public List<ServiceTypes> AvailableServices { get; set; } = new List<ServiceTypes>();
     public bool HasBeenVisited { get; set; }
     public int VisitCount { get; set; }
     public List<NPC> NPCsPresent { get; set; } = new List<NPC>();

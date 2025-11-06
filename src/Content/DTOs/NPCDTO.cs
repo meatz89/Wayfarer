@@ -21,7 +21,4 @@ public class NPCDTO
 
     public string CurrentState { get; set; }
     public Dictionary<string, int> InitialTokens { get; set; } = new Dictionary<string, int>();
-
-    // NOTE: Old SceneDTO system deleted - NEW Scene-Situation architecture
-    // Scenes now use Scene-Situation spawning pattern (spawn templates instead of inline scene definitions)
 }

@@ -2,38 +2,10 @@
 /// Renders categorical templates into human-readable text
 /// This is the ONLY place where English text should be generated
 /// All text generation is rule-based from categorical properties
+/// REFACTORED: Uses switch expression instead of Dictionary<string, Func<>>
 /// </summary>
 public class NarrativeRenderer
 {
-    private readonly Dictionary<string, Func<string, string>> _categoryRenderers;
-
-    public NarrativeRenderer()
-    {
-        _categoryRenderers = new Dictionary<string, Func<string, string>>
-        {
-            ["greeting"] = RenderGreeting,
-            ["emotional"] = RenderEmotional,
-            ["gesture"] = RenderGesture,
-            ["stance"] = RenderStance,
-            ["urgency"] = RenderUrgency,
-            ["activity"] = RenderActivity,
-            ["posture"] = RenderPosture,
-            ["behavior"] = RenderBehavior,
-            ["query"] = RenderQuery,
-            ["demand"] = RenderDemand,
-            ["commitment"] = RenderCommitment,
-            ["topic"] = RenderTopic,
-            ["reaction"] = RenderReaction,
-            ["response"] = RenderResponse,
-            ["denial"] = RenderDenial,
-            ["threat"] = RenderThreat,
-            ["consequence"] = RenderConsequence,
-            ["plea"] = RenderPlea,
-            ["deadline"] = RenderDeadline,
-            ["fate"] = RenderFate
-        };
-    }
-
     /// <summary>
     /// Convert categorical template to human-readable text
     /// </summary>
@@ -47,19 +19,47 @@ public class NarrativeRenderer
 
         foreach (TemplatePart part in parts)
         {
-            if (_categoryRenderers.ContainsKey(part.Category))
-            {
-                string text = _categoryRenderers[part.Category](part.Value);
-                if (!string.IsNullOrEmpty(text))
-                    rendered.Add(text);
-            }
+            string text = RenderCategory(part.Category, part.Value);
+            if (!string.IsNullOrEmpty(text))
+                rendered.Add(text);
         }
 
         if (!rendered.Any())
             return "...";
 
-        // Combine parts into natural sentence
         return CombineParts(rendered);
+    }
+
+    /// <summary>
+    /// Switch-based category rendering (replaces Dictionary<string, Func<>> pattern).
+    /// Routes category name to appropriate render method.
+    /// </summary>
+    private string RenderCategory(string category, string value)
+    {
+        return category switch
+        {
+            "greeting" => RenderGreeting(value),
+            "emotional" => RenderEmotional(value),
+            "gesture" => RenderGesture(value),
+            "stance" => RenderStance(value),
+            "urgency" => RenderUrgency(value),
+            "activity" => RenderActivity(value),
+            "posture" => RenderPosture(value),
+            "behavior" => RenderBehavior(value),
+            "query" => RenderQuery(value),
+            "demand" => RenderDemand(value),
+            "commitment" => RenderCommitment(value),
+            "topic" => RenderTopic(value),
+            "reaction" => RenderReaction(value),
+            "response" => RenderResponse(value),
+            "denial" => RenderDenial(value),
+            "threat" => RenderThreat(value),
+            "consequence" => RenderConsequence(value),
+            "plea" => RenderPlea(value),
+            "deadline" => RenderDeadline(value),
+            "fate" => RenderFate(value),
+            _ => value // Unknown category - passthrough
+        };
     }
 
     private List<TemplatePart> ParseTemplate(string template)
@@ -90,7 +90,6 @@ public class NarrativeRenderer
                 ? parts[0]
                 : parts[0] + ".";
 
-        // For disconnected letter dialogue, combine with spaces
         string result = "";
         for (int i = 0; i < parts.Count; i++)
         {
@@ -100,7 +99,6 @@ public class NarrativeRenderer
             }
             else
             {
-                // Check if previous part ends with punctuation
                 if (result.EndsWith(".") || result.EndsWith("!") || result.EndsWith("?"))
                 {
                     result += " " + parts[i];

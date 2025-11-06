@@ -227,60 +227,11 @@ public class LocationActionManager
         // Get NPCs at this location
         List<NPC> npcs = _npcRepository.GetNPCsForLocationAndTime(location.Id, currentTime);
 
-        foreach (NPC npc in npcs)
-        {
-            // Check what services this NPC provides
-            foreach (ServiceTypes service in npc.ProvidedServices)
-            {
-                LocationActionViewModel serviceAction = GenerateServiceAction(service, npc);
-                if (serviceAction == null)
-                    throw new InvalidOperationException($"Unsupported service type: {service}");
-                actions.Add(serviceAction);
-            }
-        }
+        // Service-based actions removed - use Scene-Situation architecture instead
 
         return actions;
     }
 
-    /// <summary>
-    /// Generate an action for a specific service.
-    /// </summary>
-    private LocationActionViewModel GenerateServiceAction(ServiceTypes service, NPC provider)
-    {
-        switch (service)
-        {
-            case ServiceTypes.Trading:
-                return new LocationActionViewModel
-                {
-                    ActionType = "letter_board",
-                    Title = $"Check {provider.Name}'s Letter Board",
-                    Detail = "View available letters for delivery",
-                    IsAvailable = true
-                };
-
-            case ServiceTypes.Market:
-                return new LocationActionViewModel
-                {
-                    ActionType = "trade",
-                    Title = $"Trade with {provider.Name}",
-                    Detail = "Buy or sell goods",
-                    IsAvailable = true
-                };
-
-            case ServiceTypes.Information:
-                return new LocationActionViewModel
-                {
-                    ActionType = "inquire",
-                    Title = $"Ask {provider.Name} for Information",
-                    Detail = "Learn about local events and opportunities",
-                    Cost = "Free!",
-                    IsAvailable = true
-                };
-
-            default:
-                throw new InvalidOperationException($"Unsupported service type: {service}");
-        }
-    }
 
     // Method removed - LocationActionsViewModel doesn't have ClosedServices property
     // This functionality would need to be redesigned if needed

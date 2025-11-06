@@ -14,7 +14,7 @@ namespace Wayfarer.Pages.Components
         [Inject] protected TravelManager TravelManager { get; set; }
         [Inject] protected TravelFacade TravelFacade { get; set; }
         [Inject] protected GameWorld GameWorld { get; set; }
-        [Inject] protected Wayfarer.Subsystems.Scene.SceneFacade SceneFacade { get; set; }
+        [Inject] protected SceneFacade SceneFacade { get; set; }
 
         protected List<PathCardInfo> AvailablePathCards { get; set; } = new();
 
@@ -717,7 +717,7 @@ namespace Wayfarer.Pages.Components
                 return new List<SituationPreviewData>();
 
             // Query GameWorld.Scenes for scene with matching ID
-            global::Scene scene = GameWorld.Scenes.FirstOrDefault(s => s.Id == sceneId);
+            Scene scene = GameWorld.Scenes.FirstOrDefault(s => s.Id == sceneId);
             if (scene == null)
                 return new List<SituationPreviewData>();
 

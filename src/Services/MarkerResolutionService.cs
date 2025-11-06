@@ -7,8 +7,8 @@ public class MarkerResolutionService
 {
     /// <summary>
     /// Resolve marker to actual resource ID using marker resolution map
-    /// If ID is a marker ("generated:{templateId}"), look up actual ID in map
-    /// If ID is not a marker, return as-is
+    /// If ID is in the marker map, return the resolved ID
+    /// If ID is not in the marker map, return as-is (may be actual ID or non-marker)
     /// null/empty IDs return null (no marker resolution needed)
     /// </summary>
     public string ResolveMarker(string id, Dictionary<string, string> markerMap)
@@ -16,22 +16,14 @@ public class MarkerResolutionService
         if (string.IsNullOrEmpty(id))
             return null;
 
-        // Check if this is a marker
-        if (id.StartsWith("generated:"))
+        // Check if this ID is in the marker map
+        if (markerMap.TryGetValue(id, out string resolvedId))
         {
-            // Look up actual ID in marker map
-            if (markerMap.TryGetValue(id, out string resolvedId))
-            {
-                Console.WriteLine($"[MarkerResolutionService] Resolved marker '{id}' → '{resolvedId}'");
-                return resolvedId;
-            }
-
-            // Marker not found in map - graceful degradation
-            Console.WriteLine($"[MarkerResolutionService] WARNING: Marker '{id}' not found in resolution map");
-            return id;
+            Console.WriteLine($"[MarkerResolutionService] Resolved marker '{id}' → '{resolvedId}'");
+            return resolvedId;
         }
 
-        // Not a marker, return as-is
+        // Not a marker (or actual ID), return as-is
         return id;
     }
 
@@ -40,7 +32,7 @@ public class MarkerResolutionService
     /// Maps "generated:{templateId}" → actual created entity IDs
     /// Called at finalization time after dependent resources are created
     /// </summary>
-    public Dictionary<string, string> BuildMarkerResolutionMap(global::Scene scene)
+    public Dictionary<string, string> BuildMarkerResolutionMap(Scene scene)
     {
         Dictionary<string, string> map = new Dictionary<string, string>();
 

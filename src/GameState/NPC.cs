@@ -28,11 +28,7 @@ public class NPC
     public int ConversationDifficulty { get; set; } = 1;
 
     // NPCs are always available - no schedule system
-    public List<ServiceTypes> ProvidedServices { get; set; } = new List<ServiceTypes>();
     public NPCRelationship PlayerRelationship { get; set; } = NPCRelationship.Neutral;
-
-    // Work Properties
-    public bool OffersWork => ProvidedServices.Contains(ServiceTypes.Work);
 
     // Confrontation Tracking
     public int LastConfrontationCount { get; set; } = 0;  // Track confrontations already shown
@@ -143,10 +139,6 @@ public class NPC
 
     public string ScheduleDescription => "Always available";
 
-    public string ProvidedServicesDescription => ProvidedServices.Any()
-        ? $"Services: {string.Join(", ", ProvidedServices.Select(s => s.ToString().Replace('_', ' ')))}"
-        : "No services available";
-
     public bool IsAvailable(TimeBlocks currentTime)
     {
         // NPCs are always available by default
@@ -160,10 +152,6 @@ public class NPC
         return Location?.Id == locationId && IsAvailable(currentTime);
     }
 
-    public bool CanProvideService(ServiceTypes requestedService)
-    {
-        return ProvidedServices.Contains(requestedService);
-    }
 
     // Method for adding known routes (used by HELP verb)
     public void AddKnownRoute(RouteOption route)

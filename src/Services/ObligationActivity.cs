@@ -10,7 +10,7 @@ public class ObligationActivity
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
-    private readonly SceneInstantiator _sceneInstantiator;
+    private readonly SceneInstanceFacade _sceneInstanceFacade;
 
     private ObligationDiscoveryResult _pendingDiscoveryResult;
     private ObligationActivationResult _pendingActivationResult;
@@ -21,11 +21,11 @@ public class ObligationActivity
     public ObligationActivity(
         GameWorld gameWorld,
         MessageSystem messageSystem,
-        SceneInstantiator sceneInstantiator)
+        SceneInstanceFacade sceneInstanceFacade)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-        _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
+        _sceneInstanceFacade = sceneInstanceFacade ?? throw new ArgumentNullException(nameof(sceneInstanceFacade));
     }
 
     /// <summary>
@@ -501,13 +501,10 @@ public class ObligationActivity
             return;
         }
 
-        // Create provisional Scene
-        Scene provisionalScene = _sceneInstantiator.CreateProvisionalScene(template, sceneSpawn, context);
+        Scene provisionalScene = _sceneInstanceFacade.CreateProvisionalScene(template, sceneSpawn, context);
 
-        // Immediately finalize (Obligation rewards spawn immediately, no player choice)
-        Scene finalizedScene = _sceneInstantiator.FinalizeScene(provisionalScene.Id, context);
+        (Scene finalizedScene, DependentResourceSpecs _) = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, context);
 
-        // Add system message based on placement
         string placementDescription = GetPlacementDescription(finalizedScene);
         _messageSystem.AddSystemMessage(
             $"New scene appeared: {finalizedScene.DisplayName} {placementDescription}",

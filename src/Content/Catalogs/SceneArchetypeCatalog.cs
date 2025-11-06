@@ -1,5 +1,6 @@
 using Wayfarer.GameState;
 using Wayfarer.GameState.Enums;
+using Wayfarer.Content.Generators;
 
 namespace Wayfarer.Content.Catalogues;
 
@@ -40,27 +41,332 @@ namespace Wayfarer.Content.Catalogues;
 public static class SceneArchetypeCatalog
 {
     /// <summary>
-    /// Get scene archetype definition by ID with entity context for categorical property reading
+    /// UNIFIED GENERATION ENTRY POINT (HIGHLANDER: ONE way to generate ALL archetypes)
+    ///
+    /// Generate scene archetype definition by ID with GenerationContext for categorical property reading
     /// Called at parse time to generate context-aware multi-situation structure
-    /// NPC can be null for location-only scenes (consequence, environmental, etc.)
-    /// Reads NPC personality, Location properties, Player state to generate appropriate choices
+    /// Reads GenerationContext properties (NPC personality, Location properties, Player state)
     /// Throws InvalidDataException on unknown archetype ID (fail fast)
+    ///
+    /// ALL scene generation goes through this ONE method.
     /// </summary>
-    public static SceneArchetypeDefinition GetSceneArchetype(
-        string sceneArchetypeId,
-        ServiceType serviceType,
+    public static SceneArchetypeDefinition Generate(
+        string archetypeId,
         int tier,
-        NPC contextNPC,
-        Location contextLocation,
-        Player contextPlayer)
+        GenerationContext context)
     {
-        return sceneArchetypeId?.ToLowerInvariant() switch
+        return archetypeId?.ToLowerInvariant() switch
         {
-            "transaction_sequence" => GenerateTransactionSequence(tier, contextNPC, contextLocation, contextPlayer),
-            "gatekeeper_sequence" => GenerateGatekeeperSequence(tier, contextNPC, contextLocation, contextPlayer),
-            "consequence_reflection" => GenerateConsequenceReflection(tier, contextLocation, contextPlayer),
-            "inn_crisis_escalation" => GenerateInnCrisisEscalation(tier, contextNPC, contextLocation, contextPlayer),
-            _ => throw new InvalidDataException($"Unknown scene archetype ID: '{sceneArchetypeId}'. ServiceType-specific archetypes (service_with_location_access, single_situation) are now handled by ServiceType polymorphic classes. Valid catalogue archetypes: transaction_sequence, gatekeeper_sequence, consequence_reflection, inn_crisis_escalation")
+            "service_with_location_access" => GenerateServiceWithLocationAccess(tier, context),
+            "transaction_sequence" => GenerateTransactionSequence(tier, context),
+            "gatekeeper_sequence" => GenerateGatekeeperSequence(tier, context),
+            "consequence_reflection" => GenerateConsequenceReflection(tier, context),
+            "inn_crisis_escalation" => GenerateInnCrisisEscalation(tier, context),
+            _ => throw new InvalidDataException($"Unknown scene archetype ID: '{archetypeId}'. Valid archetypes: service_with_location_access, transaction_sequence, gatekeeper_sequence, consequence_reflection, inn_crisis_escalation")
+        };
+    }
+
+    /// <summary>
+    /// SERVICE_WITH_LOCATION_ACCESS archetype
+    ///
+    /// When Used: Services requiring private space (lodging, bathing, healing, storage, training)
+    /// Situation Count: 4
+    /// Pattern: Linear (negotiate → access → service → depart)
+    ///
+    /// Situation 1 - Negotiate: Player arranges service
+    ///   - Archetype: social_maneuvering (DEVOTED) or service_transaction (MERCANTILE)
+    ///   - Choice: Rapport/Diplomacy vs. Coins
+    ///
+    /// Situation 2 - Access: Enter private location (auto-progress)
+    ///   - Archetype: None (automatic)
+    ///   - Action: Unlock and enter generated location
+    ///
+    /// Situation 3 - Service: Receive service benefit (auto-progress)
+    ///   - Archetype: None (automatic)
+    ///   - Reward: Tier-scaled health/stamina restoration + time cost
+    ///
+    /// Situation 4 - Depart: Leave and cleanup (auto-progress)
+    ///   - Archetype: None (automatic)
+    ///   - Action: Remove key, lock location, return to base
+    ///
+    /// Creates dependent resources:
+    ///   - generated:private_room (unlocked by room_key)
+    ///   - generated:room_key (removed on departure)
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateServiceWithLocationAccess(int tier, GenerationContext context)
+    {
+        string serviceId = "secure_lodging";
+        string negotiateSitId = $"{serviceId}_negotiate";
+        string accessSitId = $"{serviceId}_access";
+        string serviceSitId = $"{serviceId}_service";
+        string departSitId = $"{serviceId}_depart";
+
+        SituationArchetype negotiateArchetype = DetermineNegotiationArchetype(context);
+        NarrativeHints negotiateHints = GenerateServiceNegotiationHints(context, serviceId);
+        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(negotiateArchetype, negotiateSitId);
+
+        // Add unlock rewards to negotiate choices (all successful negotiation paths grant room access)
+        // Stat-gated and money choices get immediate rewards
+        // Challenge choice gets OnSuccessReward (applied after challenge completion)
+        // Fallback choice gets no rewards (represents leaving without service)
+        List<ChoiceTemplate> enrichedChoices = new List<ChoiceTemplate>();
+        foreach (ChoiceTemplate choice in negotiateChoices)
+        {
+            if (choice.Id.EndsWith("_stat") || choice.Id.EndsWith("_money"))
+            {
+                // Instant success paths: unlock room and grant key immediately
+                enrichedChoices.Add(new ChoiceTemplate
+                {
+                    Id = choice.Id,
+                    ActionTextTemplate = choice.ActionTextTemplate,
+                    RequirementFormula = choice.RequirementFormula,
+                    CostTemplate = choice.CostTemplate,
+                    RewardTemplate = new ChoiceReward
+                    {
+                        LocationsToUnlock = new List<string> { "generated:private_room" },
+                        ItemIds = new List<string> { "generated:room_key" }
+                    },
+                    ActionType = choice.ActionType,
+                    ChallengeId = choice.ChallengeId,
+                    ChallengeType = choice.ChallengeType,
+                    NavigationPayload = choice.NavigationPayload
+                });
+            }
+            else if (choice.Id.EndsWith("_challenge"))
+            {
+                // Challenge path: unlock room and grant key on success only
+                enrichedChoices.Add(new ChoiceTemplate
+                {
+                    Id = choice.Id,
+                    ActionTextTemplate = choice.ActionTextTemplate,
+                    RequirementFormula = choice.RequirementFormula,
+                    CostTemplate = choice.CostTemplate,
+                    RewardTemplate = choice.RewardTemplate,
+                    OnSuccessReward = new ChoiceReward
+                    {
+                        LocationsToUnlock = new List<string> { "generated:private_room" },
+                        ItemIds = new List<string> { "generated:room_key" }
+                    },
+                    ActionType = choice.ActionType,
+                    ChallengeId = choice.ChallengeId,
+                    ChallengeType = choice.ChallengeType,
+                    NavigationPayload = choice.NavigationPayload
+                });
+            }
+            else
+            {
+                // Fallback path: no rewards (player leaves without securing lodging)
+                enrichedChoices.Add(choice);
+            }
+        }
+
+        string negotiateName = "Secure Lodging";
+        string accessName = "Enter";
+        string serviceName = "Rest";
+        string departName = "Leave";
+
+        SituationTemplate negotiateSituation = new SituationTemplate
+        {
+            Id = negotiateSitId,
+            Name = negotiateName,
+            Type = SituationType.Normal,
+            NarrativeTemplate = null,
+            ChoiceTemplates = enrichedChoices,
+            Priority = 100,
+            NarrativeHints = negotiateHints,
+            RequiredLocationId = context.NpcLocationId,
+            RequiredNpcId = context.NpcId
+        };
+
+        SituationTemplate accessSituation = new SituationTemplate
+        {
+            Id = accessSitId,
+            Name = accessName,
+            Type = SituationType.Normal,
+            NarrativeTemplate = null,
+            ChoiceTemplates = new List<ChoiceTemplate>(),
+            Priority = 90,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "descriptive",
+                Theme = "location_access",
+                Context = $"{serviceId}_entry"
+            },
+            AutoProgressRewards = new ChoiceReward
+            {
+                TimeSegments = 1
+            },
+            RequiredLocationId = "generated:private_room",
+            RequiredNpcId = null
+        };
+
+        SituationTemplate serviceSituation = new SituationTemplate
+        {
+            Id = serviceSitId,
+            Name = serviceName,
+            Type = SituationType.Normal,
+            NarrativeTemplate = null,
+            ChoiceTemplates = new List<ChoiceTemplate>(),
+            Priority = 80,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "restorative",
+                Theme = $"{serviceId}_experience",
+                Context = $"{serviceId}_provision"
+            },
+            AutoProgressRewards = GenerateServiceRewards(tier),
+            RequiredLocationId = "generated:private_room",
+            RequiredNpcId = null
+        };
+
+        SituationTemplate departureSituation = new SituationTemplate
+        {
+            Id = departSitId,
+            Name = departName,
+            Type = SituationType.Normal,
+            NarrativeTemplate = null,
+            ChoiceTemplates = new List<ChoiceTemplate>(),
+            Priority = 70,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "conclusive",
+                Theme = "departure",
+                Context = $"{serviceId}_conclusion"
+            },
+            AutoProgressRewards = new ChoiceReward
+            {
+                TimeSegments = 1,
+                ItemsToRemove = new List<string> { "generated:room_key" },
+                LocationsToLock = new List<string> { "generated:private_room" }
+            },
+            RequiredLocationId = context.NpcLocationId,
+            RequiredNpcId = context.NpcId
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = negotiateSitId,
+            Transitions = new List<SituationTransition>
+            {
+                new SituationTransition
+                {
+                    SourceSituationId = negotiateSitId,
+                    DestinationSituationId = accessSitId,
+                    Condition = TransitionCondition.Always
+                },
+                new SituationTransition
+                {
+                    SourceSituationId = accessSitId,
+                    DestinationSituationId = serviceSitId,
+                    Condition = TransitionCondition.Always
+                },
+                new SituationTransition
+                {
+                    SourceSituationId = serviceSitId,
+                    DestinationSituationId = departSitId,
+                    Condition = TransitionCondition.Always
+                }
+            }
+        };
+
+        DependentLocationSpec privateRoomSpec = new DependentLocationSpec
+        {
+            TemplateId = "private_room",
+            NamePattern = "{npc_name}'s Lodging Room",
+            DescriptionPattern = "A private room where {npc_name} provides lodging services.",
+            VenueIdSource = VenueIdSource.SameAsBase,
+            HexPlacement = HexPlacementStrategy.SameVenue,
+            Properties = new List<string> { "sleepingSpace", "restful", "indoor", "private" },
+            IsLockedInitially = true,
+            UnlockItemTemplateId = "room_key",
+            CanInvestigate = false
+        };
+
+        DependentItemSpec roomKeySpec = new DependentItemSpec
+        {
+            TemplateId = "room_key",
+            NamePattern = "Room Key",
+            DescriptionPattern = "A key that unlocks access to {npc_name}'s private lodging room.",
+            Categories = new List<ItemCategory> { ItemCategory.Special_Access },
+            Weight = 1,
+            BuyPrice = 0,
+            SellPrice = 0,
+            AddToInventoryOnCreation = false,
+            SpawnLocationTemplateId = null
+        };
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = new List<SituationTemplate>
+            {
+                negotiateSituation,
+                accessSituation,
+                serviceSituation,
+                departureSituation
+            },
+            SpawnRules = spawnRules,
+            DependentLocations = new List<DependentLocationSpec> { privateRoomSpec },
+            DependentItems = new List<DependentItemSpec> { roomKeySpec }
+        };
+    }
+
+    private static SituationArchetype DetermineNegotiationArchetype(GenerationContext context)
+    {
+        if (context.NpcPersonality == PersonalityType.DEVOTED)
+        {
+            return SituationArchetypeCatalog.GetArchetype("social_maneuvering");
+        }
+
+        if (context.NpcPersonality == PersonalityType.MERCANTILE)
+        {
+            return SituationArchetypeCatalog.GetArchetype("service_transaction");
+        }
+
+        return SituationArchetypeCatalog.GetArchetype("service_transaction");
+    }
+
+    private static NarrativeHints GenerateServiceNegotiationHints(GenerationContext context, string serviceId)
+    {
+        NarrativeHints hints = new();
+
+        if (context.NpcPersonality == PersonalityType.DEVOTED)
+        {
+            hints.Tone = "empathetic";
+            hints.Theme = "human_connection";
+        }
+        else if (context.NpcPersonality == PersonalityType.MERCANTILE)
+        {
+            hints.Tone = "transactional";
+            hints.Theme = "economic_exchange";
+        }
+        else
+        {
+            hints.Tone = "professional";
+            hints.Theme = "service_request";
+        }
+
+        hints.Context = $"{serviceId}_negotiation";
+
+        if (context.PlayerCoins < 10)
+        {
+            hints.Style = "desperate";
+        }
+        else
+        {
+            hints.Style = "standard";
+        }
+
+        return hints;
+    }
+
+    private static ChoiceReward GenerateServiceRewards(int tier)
+    {
+        return new ChoiceReward
+        {
+            TimeSegments = 8,
+            Health = tier + 2,
+            Stamina = tier + 3
         };
     }
 
@@ -85,9 +391,7 @@ public static class SceneArchetypeCatalog
     /// </summary>
     private static SceneArchetypeDefinition GenerateTransactionSequence(
         int tier,
-        NPC contextNPC,
-        Location contextLocation,
-        Player contextPlayer)
+        GenerationContext context)
     {
         string browseSitId = "transaction_browse";
         string negotiateSitId = "transaction_negotiate";
@@ -198,9 +502,7 @@ public static class SceneArchetypeCatalog
     /// </summary>
     private static SceneArchetypeDefinition GenerateGatekeeperSequence(
         int tier,
-        NPC contextNPC,
-        Location contextLocation,
-        Player contextPlayer)
+        GenerationContext context)
     {
         string confrontSitId = "gatekeeper_confront";
         string passSitId = "gatekeeper_pass";
@@ -286,8 +588,7 @@ public static class SceneArchetypeCatalog
     /// </summary>
     private static SceneArchetypeDefinition GenerateConsequenceReflection(
         int tier,
-        Location contextLocation,
-        Player contextPlayer)
+        GenerationContext context)
     {
         string situationId = "consequence_reflection";
 
@@ -326,71 +627,14 @@ public static class SceneArchetypeCatalog
         };
     }
 
-    /// <summary>
-    /// SINGLE_SITUATION archetype
-    ///
-    /// When Used: Generic single-situation scenes using any situation archetype
-    /// Situation Count: 1 (standalone)
-    /// Pattern: Standalone (no transitions, single situation)
-    ///
-    /// Parameterized by situationArchetypeId (passed via serviceType parameter):
-    ///   - "negotiation": Price disputes, deal-making
-    ///   - "confrontation": Authority challenges, barriers
-    ///   - "investigation": Mysteries, information gathering
-    ///   - "social_maneuvering": Reputation, relationships
-    ///   - "crisis": Emergencies, high-stakes moments
-    ///   - Plus 10 extended archetypes (service_transaction, access_control, etc.)
-    ///
-    /// Reusable pattern for procedural scene generation
-    /// Context-aware based on NPC personality, Location properties, Player state
-    /// </summary>
-    private static SceneArchetypeDefinition GenerateSingleSituation(
-        ServiceType serviceType,
-        int tier,
-        NPC contextNPC,
-        Location contextLocation,
-        Player contextPlayer)
-    {
-        string situationArchetypeId = serviceType.Id;
-        string situationId = $"{situationArchetypeId}_situation";
-
-        SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(situationArchetypeId);
-        List<ChoiceTemplate> choices = SituationArchetypeCatalog.GenerateChoiceTemplates(archetype, situationId);
-
-        SituationTemplate situation = new SituationTemplate
-        {
-            Id = situationId,
-            Type = SituationType.Normal,
-            NarrativeTemplate = null,
-            ChoiceTemplates = choices,
-            Priority = 100,
-            NarrativeHints = GenerateContextualHints(situationArchetypeId, contextNPC, contextLocation, contextPlayer)
-        };
-
-        // Standalone pattern - single situation, no transitions
-        SituationSpawnRules spawnRules = new SituationSpawnRules
-        {
-            Pattern = SpawnPattern.Standalone,
-            InitialSituationId = situationId,
-            Transitions = new List<SituationTransition>()
-        };
-
-        return new SceneArchetypeDefinition
-        {
-            SituationTemplates = new List<SituationTemplate> { situation },
-            SpawnRules = spawnRules
-        };
-    }
 
     /// <summary>
-    /// Generate context-aware narrative hints based on situation archetype and entity properties
+    /// Generate context-aware narrative hints based on situation archetype and GenerationContext properties
     /// Reads NPC personality, Location properties, Player state to generate appropriate tone/theme/context
     /// </summary>
     private static NarrativeHints GenerateContextualHints(
         string situationArchetypeId,
-        NPC contextNPC,
-        Location contextLocation,
-        Player contextPlayer)
+        GenerationContext context)
     {
         NarrativeHints hints = new NarrativeHints();
 
@@ -510,36 +754,36 @@ public static class SceneArchetypeCatalog
                 break;
         }
 
-        // Context-aware adjustments based on entity properties
-        if (contextNPC != null)
+        // Context-aware adjustments based on GenerationContext properties
+        if (context.NpcPersonality != null)
         {
             // NPC personality modifies tone
-            if (contextNPC.PersonalityType == PersonalityType.DEVOTED)
+            if (context.NpcPersonality == PersonalityType.DEVOTED)
             {
                 hints.Tone = "empathetic";
             }
-            else if (contextNPC.PersonalityType == PersonalityType.MERCANTILE)
+            else if (context.NpcPersonality == PersonalityType.MERCANTILE)
             {
                 hints.Tone = "transactional";
             }
-            else if (contextNPC.PersonalityType == PersonalityType.PROUD)
+            else if (context.NpcPersonality == PersonalityType.PROUD)
             {
                 hints.Tone = "authoritative";
             }
-            else if (contextNPC.PersonalityType == PersonalityType.CUNNING)
+            else if (context.NpcPersonality == PersonalityType.CUNNING)
             {
                 hints.Tone = "calculating";
             }
         }
 
         // Location properties modify context (if available)
-        if (contextLocation != null && contextLocation.LocationProperties.Contains(LocationPropertyType.Commercial))
+        if (context.LocationProperties.Contains(LocationPropertyType.Commercial))
         {
             hints.Context = $"{hints.Context}_commercial";
         }
 
         // Player state modifies style (if available)
-        if (contextPlayer != null && contextPlayer.Coins < 10)
+        if (context.PlayerCoins < 10)
         {
             hints.Style = "desperate";
         }
@@ -574,9 +818,7 @@ public static class SceneArchetypeCatalog
     /// </summary>
     private static SceneArchetypeDefinition GenerateInnCrisisEscalation(
         int tier,
-        NPC contextNPC,
-        Location contextLocation,
-        Player contextPlayer)
+        GenerationContext context)
     {
         List<SituationTemplate> situations = new List<SituationTemplate>();
 

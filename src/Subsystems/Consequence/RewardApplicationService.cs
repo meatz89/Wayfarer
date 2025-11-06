@@ -3,8 +3,6 @@ using Wayfarer.GameState;
 using Wayfarer.GameState.Enums;
 using Wayfarer.Services;
 
-namespace Wayfarer.Subsystems.Consequence;
-
 /// <summary>
 /// Centralized service for applying ChoiceReward consequences
 /// Used by GameFacade (instant actions), challenge facades (on completion), and SceneFacade (AutoAdvance)
@@ -16,20 +14,20 @@ public class RewardApplicationService
     private readonly GameWorld _gameWorld;
     private readonly ConsequenceFacade _consequenceFacade;
     private readonly TimeFacade _timeFacade;
-    private readonly SceneInstantiator _sceneInstantiator;
+    private readonly SceneInstanceFacade _sceneInstanceFacade;
     private readonly MarkerResolutionService _markerResolutionService;
 
     public RewardApplicationService(
         GameWorld gameWorld,
         ConsequenceFacade consequenceFacade,
         TimeFacade timeFacade,
-        SceneInstantiator sceneInstantiator,
+        SceneInstanceFacade sceneInstanceFacade,
         MarkerResolutionService markerResolutionService)
     {
         _gameWorld = gameWorld;
         _consequenceFacade = consequenceFacade;
         _timeFacade = timeFacade;
-        _sceneInstantiator = sceneInstantiator;
+        _sceneInstanceFacade = sceneInstanceFacade;
         _markerResolutionService = markerResolutionService ?? throw new ArgumentNullException(nameof(markerResolutionService));
     }
 
@@ -97,7 +95,7 @@ public class RewardApplicationService
         }
 
         // Resolve markers using parent scene's resolution map (self-contained pattern)
-        global::Scene parentScene = currentSituation?.ParentScene;
+        Scene parentScene = currentSituation?.ParentScene;
         Dictionary<string, string> markerMap = parentScene?.MarkerResolutionMap ?? new Dictionary<string, string>();
 
         // Apply item grants (resolve markers first)
@@ -242,25 +240,10 @@ public class RewardApplicationService
             // Find provisional Scene matching this template and placement
             // Provisional Scene was created during action generation (eager creation for perfect information)
             // PHASE 1.4: Query unified Scenes collection with State filter
-            global::Scene provisionalScene = _gameWorld.Scenes
+            Scene provisionalScene = _gameWorld.Scenes
                 .FirstOrDefault(s => s.State == SceneState.Provisional && s.TemplateId == sceneSpawn.SceneTemplateId);
 
-            if (provisionalScene != null)
-            {
-                // Finalize: Move from provisional to active storage
-                _sceneInstantiator.FinalizeScene(provisionalScene.Id, context);
-            }
-            else
-            {
-                // Fallback: Create and immediately finalize if provisional wasn't created
-                // This handles non-template-based Situations (old architecture compatibility)
-                SceneTemplate template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == sceneSpawn.SceneTemplateId);
-                if (template != null)
-                {
-                    global::Scene scene = _sceneInstantiator.CreateProvisionalScene(template, sceneSpawn, context);
-                    _sceneInstantiator.FinalizeScene(scene.Id, context);
-                }
-            }
+            (Scene finalizedScene, DependentResourceSpecs _) = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, context);
         }
 
         // CLEANUP: Delete provisional Scenes from non-selected actions in this Situation
@@ -276,7 +259,7 @@ public class RewardApplicationService
 
             foreach (string? sceneId in unselectedProvisionalScenes)
             {
-                _sceneInstantiator.DeleteProvisionalScene(sceneId);
+                _sceneInstanceFacade.DeleteProvisionalScene(sceneId);
             }
         }
     }

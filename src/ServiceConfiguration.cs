@@ -1,3 +1,4 @@
+using Wayfarer.Content;
 using Wayfarer.Services;
 
 public static class ServiceConfiguration
@@ -62,9 +63,9 @@ public static class ServiceConfiguration
         // Scene-Situation Architecture
         services.AddSingleton<ConsequenceFacade>();
         services.AddSingleton<SituationFacade>();
-        services.AddSingleton<Wayfarer.Subsystems.Scene.SceneFacade>();
+        services.AddSingleton<SceneFacade>();
         services.AddSingleton<SpawnFacade>();
-        services.AddSingleton<Wayfarer.Subsystems.Consequence.RewardApplicationService>();
+        services.AddSingleton<RewardApplicationService>();
 
         // Unified Action Architecture - Three Parallel Executors
         services.AddSingleton<LocationActionExecutor>();
@@ -133,11 +134,17 @@ public static class ServiceConfiguration
 
         // Scene Instantiation System (needed by ObligationActivity)
         services.AddSingleton<SpawnConditionsEvaluator>();
-        services.AddSingleton<Wayfarer.Subsystems.Scene.SceneNarrativeService>();
+        services.AddSingleton<SceneNarrativeService>();
         services.AddSingleton<PackageLoader>();
         services.AddSingleton<HexRouteGenerator>();
         services.AddSingleton<MarkerResolutionService>();
-        services.AddSingleton<Wayfarer.Content.SceneInstantiator>();
+        services.AddSingleton<SceneInstantiator>();
+
+        // Scene Generation and Instance Facades (clean boundaries for procedural content)
+        services.AddSingleton<SceneGenerationFacade>();
+        services.AddSingleton<SceneInstanceFacade>();
+        services.AddSingleton<PackageLoaderFacade>();
+        services.AddSingleton<ContentGenerationFacade>();
 
         // State Clearing System (needed by TimeFacade)
         services.AddSingleton<StateClearingResolver>();

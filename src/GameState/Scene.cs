@@ -226,13 +226,15 @@ public class Scene
             return SceneRoutingDecision.SceneComplete;
         }
 
-        // Find transition from completed situation
-        SituationTransition transition = GetTransitionForCompletedSituation(completedSituationId);
+        // Get completed situation for conditional transition evaluation
+        Situation completedSituation = gameWorld.Situations.FirstOrDefault(s => s.Id == completedSituationId);
+
+        // Find transition from completed situation (evaluates conditions)
+        SituationTransition transition = GetTransitionForCompletedSituation(completedSituation);
 
         if (transition != null)
         {
-            // Valid transition found - get both situations for context comparison
-            Situation completedSituation = gameWorld.Situations.FirstOrDefault(s => s.Id == completedSituationId);
+            // Valid transition found - get next situation for context comparison
             Situation nextSituation = gameWorld.Situations.FirstOrDefault(s => s.Id == transition.DestinationSituationId);
 
             // Update CurrentSituationId
@@ -252,17 +254,55 @@ public class Scene
 
     /// <summary>
     /// Get transition for completed situation
-    /// Returns first matching SituationTransition or null if no match
+    /// Evaluates TransitionCondition to determine which transition applies
+    /// Supports conditional branching based on choice selection and challenge outcome
     /// Helper for AdvanceToNextSituation()
     /// </summary>
-    /// <param name="completedSituationId">Situation that was just completed</param>
-    /// <returns>Matching SituationTransition or null</returns>
-    public SituationTransition GetTransitionForCompletedSituation(string completedSituationId)
+    /// <param name="completedSituation">Situation that was just completed (with outcome tracking)</param>
+    /// <returns>Matching SituationTransition based on evaluated conditions, or null if no match</returns>
+    public SituationTransition GetTransitionForCompletedSituation(Situation completedSituation)
     {
-        if (SpawnRules == null || SpawnRules.Transitions == null)
+        if (SpawnRules == null || SpawnRules.Transitions == null || completedSituation == null)
             return null;
 
-        return SpawnRules.Transitions.FirstOrDefault(t => t.SourceSituationId == completedSituationId);
+        // Find all transitions from this source situation
+        List<SituationTransition> candidateTransitions = SpawnRules.Transitions
+            .Where(t => t.SourceSituationId == completedSituation.Id)
+            .ToList();
+
+        if (candidateTransitions.Count == 0)
+            return null;
+
+        // Evaluate conditions in priority order:
+        // 1. OnChoice (most specific)
+        // 2. OnSuccess/OnFailure (outcome-based)
+        // 3. Always (fallback)
+
+        // Check OnChoice transitions first (most specific)
+        if (completedSituation.LastChoiceId != null)
+        {
+            SituationTransition choiceTransition = candidateTransitions
+                .FirstOrDefault(t => t.Condition == TransitionCondition.OnChoice
+                                  && t.SpecificChoiceId == completedSituation.LastChoiceId);
+            if (choiceTransition != null)
+                return choiceTransition;
+        }
+
+        // Check OnSuccess/OnFailure transitions (challenge outcome)
+        if (completedSituation.LastChallengeSucceeded.HasValue)
+        {
+            TransitionCondition targetCondition = completedSituation.LastChallengeSucceeded.Value
+                ? TransitionCondition.OnSuccess
+                : TransitionCondition.OnFailure;
+
+            SituationTransition outcomeTransition = candidateTransitions
+                .FirstOrDefault(t => t.Condition == targetCondition);
+            if (outcomeTransition != null)
+                return outcomeTransition;
+        }
+
+        // Fallback to Always transition
+        return candidateTransitions.FirstOrDefault(t => t.Condition == TransitionCondition.Always);
     }
 
     /// <summary>

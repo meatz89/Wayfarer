@@ -393,31 +393,4 @@ public class LocationManager
             .ToList();
     }
 
-    /// <summary>
-    /// Get Locations that provide a specific service.
-    /// </summary>
-    public List<Location> GetServiceLocations(string venueId, ServiceTypes service, TimeBlocks timeBlock)
-    {
-        List<Location> Locations = GetLocationsForVenue(venueId);
-        List<Location> serviceSpots = new List<Location>();
-
-        foreach (Location location in Locations)
-        {
-            // Check if location has properties that indicate this service
-            List<LocationPropertyType> properties = GetActiveLocationProperties(location, timeBlock);
-
-            bool hasService = service switch
-            {
-                ServiceTypes.Market => properties.Contains(LocationPropertyType.Commercial),
-                _ => false
-            };
-
-            if (hasService)
-            {
-                serviceSpots.Add(location);
-            }
-        }
-
-        return serviceSpots;
-    }
 }

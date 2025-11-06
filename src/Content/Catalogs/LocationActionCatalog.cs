@@ -143,7 +143,6 @@ public static class LocationActionCatalog
     /// Generate intra-venue movement actions for ADJACENT hexes in the same venue.
     /// VENUE = 7-hex cluster (center + 6 adjacent hexes). Movement is instant/free BECAUSE hexes are adjacent.
     /// ALL locations must have hex positions - movement requires spatial adjacency verification.
-    /// NOTE: Destination is encoded in action ID - intent handler will parse it.
     /// </summary>
     private static List<LocationAction> GenerateIntraVenueMovementActions(Location location, List<Location> allLocations)
     {

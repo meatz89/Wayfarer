@@ -9,7 +9,7 @@ public class TravelSceneContext
     public string ErrorMessage { get; set; }
 
     // Scene data
-    public TravelScene Scene { get; set; }
+    public TravelScene scene { get; set; }
     public string RouteId { get; set; }
 
     // Player state

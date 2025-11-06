@@ -1,8 +1,5 @@
 using Wayfarer.Content;
 using Wayfarer.GameState.Enums;
-using Wayfarer.Subsystems.Consequence;
-
-namespace Wayfarer.Subsystems.Scene;
 
 /// <summary>
 /// SceneFacade - Query layer for Scene/Situation display
@@ -18,14 +15,14 @@ namespace Wayfarer.Subsystems.Scene;
 public class SceneFacade
 {
     private readonly GameWorld _gameWorld;
-    private readonly SceneInstantiator _sceneInstantiator;
+    private readonly SceneInstanceFacade _sceneInstanceFacade;
     private readonly RewardApplicationService _rewardApplicationService;
     private readonly SituationCompletionHandler _situationCompletionHandler;
 
-    public SceneFacade(GameWorld gameWorld, SceneInstantiator sceneInstantiator, RewardApplicationService rewardApplicationService, SituationCompletionHandler situationCompletionHandler)
+    public SceneFacade(GameWorld gameWorld, SceneInstanceFacade sceneInstanceFacade, RewardApplicationService rewardApplicationService, SituationCompletionHandler situationCompletionHandler)
     {
         _gameWorld = gameWorld;
-        _sceneInstantiator = sceneInstantiator;
+        _sceneInstanceFacade = sceneInstanceFacade;
         _rewardApplicationService = rewardApplicationService;
         _situationCompletionHandler = situationCompletionHandler;
     }
@@ -39,12 +36,12 @@ public class SceneFacade
     /// Called by UI when player enters location to check for modal takeover
     /// PLACEMENT-AGNOSTIC: Finds scenes placed at Location/NPC/Route that are present at this location
     /// </summary>
-    public global::Scene GetModalSceneAtLocation(string locationId)
+    public Scene GetModalSceneAtLocation(string locationId)
     {
-        List<global::Scene> allActive = _gameWorld.Scenes.Where(s => s.State == SceneState.Active).ToList();
+        List<Scene> allActive = _gameWorld.Scenes.Where(s => s.State == SceneState.Active).ToList();
         Console.WriteLine($"[SceneFacade] GetModalSceneAtLocation('{locationId}')");
         Console.WriteLine($"  Total active scenes: {allActive.Count}");
-        foreach (global::Scene s in allActive)
+        foreach (Scene s in allActive)
         {
             Console.WriteLine($"    - {s.Id}: {s.PlacementType}/{s.PlacementId}, Modal={s.PresentationMode == PresentationMode.Modal}");
         }
@@ -66,7 +63,7 @@ public class SceneFacade
     /// <param name="locationId">Location player is currently at</param>
     /// <param name="npcId">NPC player is currently interacting with (null if none)</param>
     /// <returns>List of scenes that should resume at this context</returns>
-    public List<global::Scene> GetResumableModalScenesAtContext(string locationId, string npcId)
+    public List<Scene> GetResumableModalScenesAtContext(string locationId, string npcId)
     {
         return _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
@@ -82,7 +79,7 @@ public class SceneFacade
     /// - NPC: NPC is at this location
     /// - Route: Route departs from this location
     /// </summary>
-    private bool IsSceneAtLocation(global::Scene scene, string locationId)
+    private bool IsSceneAtLocation(Scene scene, string locationId)
     {
         // Direct location placement
         if (scene.PlacementType == PlacementType.Location)
@@ -132,7 +129,7 @@ public class SceneFacade
     public List<LocationAction> GetActionsAtLocation(string locationId, Player player)
     {
         // Find active Scenes at this location
-        List<global::Scene> scenes = _gameWorld.Scenes
+        List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
                        s.PlacementType == PlacementType.Location &&
                        s.PlacementId == locationId)
@@ -140,7 +137,7 @@ public class SceneFacade
 
         List<LocationAction> allActions = new List<LocationAction>();
 
-        foreach (global::Scene scene in scenes)
+        foreach (Scene scene in scenes)
         {
             // PHASE 1.3: Skip completed scenes (state machine method)
             if (scene.IsComplete()) continue;
@@ -174,7 +171,7 @@ public class SceneFacade
     /// Creates provisional Scenes for actions with spawn rewards
     /// AutoAdvance situations execute rewards immediately
     /// </summary>
-    private void ActivateSituationForLocation(Situation situation, global::Scene scene, Player player)
+    private void ActivateSituationForLocation(Situation situation, Scene scene, Player player)
     {
         situation.InstantiationState = InstantiationState.Instantiated;
 
@@ -232,7 +229,7 @@ public class SceneFacade
     public List<NPCAction> GetActionsForNPC(string npcId, Player player)
     {
         // Find active Scenes with this NPC
-        List<global::Scene> scenes = _gameWorld.Scenes
+        List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
                        s.PlacementType == PlacementType.NPC &&
                        s.PlacementId == npcId)
@@ -240,7 +237,7 @@ public class SceneFacade
 
         List<NPCAction> allActions = new List<NPCAction>();
 
-        foreach (global::Scene scene in scenes)
+        foreach (Scene scene in scenes)
         {
             // PHASE 1.3: Skip completed scenes (state machine method)
             if (scene.IsComplete()) continue;
@@ -274,7 +271,7 @@ public class SceneFacade
     /// Creates provisional Scenes for actions with spawn rewards
     /// AutoAdvance situations execute rewards immediately
     /// </summary>
-    private void ActivateSituationForNPC(Situation situation, global::Scene scene, Player player)
+    private void ActivateSituationForNPC(Situation situation, Scene scene, Player player)
     {
         situation.InstantiationState = InstantiationState.Instantiated;
 
@@ -327,7 +324,7 @@ public class SceneFacade
     public List<PathCard> GetPathCardsForRoute(string routeId, Player player)
     {
         // Find active Scenes on this route
-        List<global::Scene> scenes = _gameWorld.Scenes
+        List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
                        s.PlacementType == PlacementType.Route &&
                        s.PlacementId == routeId)
@@ -335,7 +332,7 @@ public class SceneFacade
 
         List<PathCard> allPathCards = new List<PathCard>();
 
-        foreach (global::Scene scene in scenes)
+        foreach (Scene scene in scenes)
         {
             // PHASE 1.3: Skip completed scenes (state machine method)
             if (scene.IsComplete()) continue;
@@ -369,7 +366,7 @@ public class SceneFacade
     /// Creates provisional Scenes for actions with spawn rewards
     /// AutoAdvance situations execute rewards immediately
     /// </summary>
-    private void ActivateSituationForRoute(Situation situation, global::Scene scene, Player player)
+    private void ActivateSituationForRoute(Situation situation, Scene scene, Player player)
     {
         situation.InstantiationState = InstantiationState.Instantiated;
 
@@ -417,12 +414,12 @@ public class SceneFacade
     /// <summary>
     /// Create provisional Scenes for ChoiceTemplate with SceneSpawnRewards
     /// Shared across all three action types (Location/NPC/Route)
-    /// Stores provisional global::SceneID on action for perfect information display
+    /// Stores provisional sceneID on action for perfect information display
     /// </summary>
     private void CreateProvisionalScenesForAction<T>(
         ChoiceTemplate choiceTemplate,
         T action,
-        global::Scene parentScene,
+        Scene parentScene,
         Player player) where T : class
     {
         if (choiceTemplate.RewardTemplate?.ScenesToSpawn?.Count > 0)
@@ -434,13 +431,13 @@ public class SceneFacade
 
                 if (template != null)
                 {
-                    global::Scene provisionalScene = _sceneInstantiator.CreateProvisionalScene(
+                    Scene provisionalScene = _sceneInstanceFacade.CreateProvisionalScene(
                         template,
                         spawnReward,
                         BuildSpawnContext(parentScene, player)
                     );
 
-                    // Store provisional global::SceneID on action (perfect information)
+                    // Store provisional sceneID on action (perfect information)
                     if (action is LocationAction locationAction)
                         locationAction.ProvisionalSceneId = provisionalScene.Id;
                     else if (action is NPCAction npcAction)
@@ -453,9 +450,9 @@ public class SceneFacade
     }
 
     /// <summary>
-    /// Build SceneSpawnContext from parent global::Sceneplacement
+    /// Build SceneSpawnContext from parent sceneplacement
     /// </summary>
-    private SceneSpawnContext BuildSpawnContext(global::Scene parentScene, Player player)
+    private SceneSpawnContext BuildSpawnContext(Scene parentScene, Player player)
     {
         return new SceneSpawnContext
         {

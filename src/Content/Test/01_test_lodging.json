@@ -1,0 +1,59 @@
+{
+  "packageId": "test_lodging",
+  "metadata": {
+    "name": "Test Lodging Scene",
+    "timestamp": "2025-01-01T00:00:00Z",
+    "description": "Minimal test content for lodging scene integration tests",
+    "author": "Test Suite",
+    "version": "1.0.0"
+  },
+  "content": {
+    "hexMap": {
+      "hexes": [
+        {
+          "id": "hex_test",
+          "q": 0,
+          "r": 0,
+          "terrain": "Plains",
+          "dangerLevel": 0,
+          "hexProperties": []
+        }
+      ]
+    },
+    "venues": [
+      {
+        "id": "test_inn_venue",
+        "name": "Test Inn",
+        "description": "A simple test inn for lodging scene tests",
+        "districtId": "test_district",
+        "tier": 1,
+        "locationType": "Tavern"
+      }
+    ],
+    "locations": [
+      {
+        "id": "test_inn_common",
+        "venueId": "test_inn_venue",
+        "name": "Common Room",
+        "description": "The common room of the test inn",
+        "hexCoordinate": "0,0",
+        "properties": {
+          "base": ["indoor", "social", "restful", "crossroads"]
+        },
+        "canInvestigate": false
+      }
+    ],
+    "npcs": [
+      {
+        "id": "test_innkeeper",
+        "name": "Test Innkeeper",
+        "description": "A friendly innkeeper for testing",
+        "personalityType": "MERCANTILE",
+        "LocationId": "test_inn_common",
+        "bondStrength": 0,
+        "Profession": "Innkeeper",
+        "CurrentState": "NEUTRAL"
+      }
+    ]
+  }
+}

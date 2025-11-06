@@ -648,7 +648,7 @@ public class MarketSubsystemManager
     private List<NPC> GetAllTraders(string locationId)
     {
         return _npcRepository.GetNPCsForLocation(locationId)
-            .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+            .Where(npc => npc.Profession == Professions.Merchant)
             .ToList();
     }
 
@@ -658,7 +658,7 @@ public class MarketSubsystemManager
     private List<NPC> GetTradersAtTime(string locationId, TimeBlocks timeBlock)
     {
         return _npcRepository.GetNPCsForLocationAndTime(locationId, timeBlock)
-            .Where(npc => npc.CanProvideService(ServiceTypes.Trade))
+            .Where(npc => npc.Profession == Professions.Merchant)
             .ToList();
     }
 

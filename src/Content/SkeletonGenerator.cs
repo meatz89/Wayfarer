@@ -53,28 +53,11 @@ public static class SkeletonGenerator
             Tier = 1 + (hash % 3), // Tier 1-3
 
             // Default relationship flow (NEUTRAL state at neutral position)
-            RelationshipFlow = 12,
-
-            // Empty collections
-            ProvidedServices = new List<ServiceTypes>(),
+            RelationshipFlow = 12
         };
 
         // Initialize card decks (required for NPC to function)
         npc.ExchangeDeck = new List<ExchangeCard>();
-
-        // Add a default service based on profession
-        switch (npc.Profession)
-        {
-            case Professions.Merchant:
-                npc.ProvidedServices.Add(ServiceTypes.Trade);
-                break;
-            case Professions.Innkeeper:
-                npc.ProvidedServices.Add(ServiceTypes.Rest);
-                break;
-            case Professions.Guard:
-                npc.ProvidedServices.Add(ServiceTypes.Information);
-                break;
-        }
 
         return npc;
     }
@@ -126,7 +109,6 @@ public static class SkeletonGenerator
             TravelTimeSegments = 1 + (hash % 5), // 1-5 segments
             Difficulty = 1 + (hash % 3), // 1-3
             DomainTags = new List<string>(),
-            AvailableServices = new List<ServiceTypes>(),
 
             // Add some random location properties
             LocationProperties = new List<LocationPropertyType>()
@@ -142,19 +124,6 @@ public static class SkeletonGenerator
             {
                 location.LocationProperties.Add(property);
             }
-        }
-
-        // Add services based on Venue type (moved from GenerateSkeletonLocation)
-        switch (location.LocationType)
-        {
-            case LocationTypes.Town:
-            case LocationTypes.City:
-                location.AvailableServices.Add(ServiceTypes.Trade);
-                location.AvailableServices.Add(ServiceTypes.Rest);
-                break;
-            case LocationTypes.Outpost:
-                location.AvailableServices.Add(ServiceTypes.Information);
-                break;
         }
 
         return location;

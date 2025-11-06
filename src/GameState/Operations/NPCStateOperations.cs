@@ -39,31 +39,6 @@ public static class NPCStateOperations
             $"Moved {state.Name} to location {LocationId}");
     }
 
-    /// <summary>
-    /// Adds a new service that the NPC can provide.
-    /// </summary>
-    public static NPCOperationResult AddService(NPCState state, ServiceTypes service)
-    {
-        if (state == null)
-            return NPCOperationResult.Failure("NPC state cannot be null");
-
-        if (state.ProvidedServices.Contains(service))
-            return NPCOperationResult.Success(state, "NPC already provides this service");
-
-        NPCState newState = state.WithAddedService(service);
-        return NPCOperationResult.Success(newState,
-            $"{state.Name} can now provide {service} service");
-    }
-
-    /// <summary>
-    /// Validates if an NPC can provide a specific service.
-    /// </summary>
-    public static bool CanProvideService(NPCState state, ServiceTypes service)
-    {
-        if (state == null)
-            return false;
-        return state.ProvidedServices.Contains(service);
-    }
 
     /// <summary>
     /// Validates if an NPC is available at a specific time.

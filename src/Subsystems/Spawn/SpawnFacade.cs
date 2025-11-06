@@ -34,18 +34,18 @@ public class SpawnFacade
     private readonly GameWorld _gameWorld;
     private readonly TimeManager _timeManager;
     private readonly SpawnConditionsEvaluator _conditionsEvaluator;
-    private readonly SceneInstantiator _sceneInstantiator;
+    private readonly SceneInstanceFacade _sceneInstanceFacade;
 
     public SpawnFacade(
         GameWorld gameWorld,
         TimeManager timeManager,
         SpawnConditionsEvaluator conditionsEvaluator,
-        SceneInstantiator sceneInstantiator)
+        SceneInstanceFacade sceneInstanceFacade)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _conditionsEvaluator = conditionsEvaluator ?? throw new ArgumentNullException(nameof(conditionsEvaluator));
-        _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
+        _sceneInstanceFacade = sceneInstanceFacade ?? throw new ArgumentNullException(nameof(sceneInstanceFacade));
     }
 
     /// <summary>
@@ -388,11 +388,9 @@ public class SpawnFacade
 
                 if (spawnContext != null)
                 {
-                    // Create provisional scene (lightweight)
-                    Scene provisionalScene = _sceneInstantiator.CreateProvisionalScene(template, spawnReward, spawnContext);
+                    Scene provisionalScene = _sceneInstanceFacade.CreateProvisionalScene(template, spawnReward, spawnContext);
 
-                    // Immediately finalize (makes scene active, applies placement)
-                    _sceneInstantiator.FinalizeScene(provisionalScene.Id, spawnContext);
+                    (Scene finalizedScene, DependentResourceSpecs _) = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, spawnContext);
 
                     spawned++;
                     Console.WriteLine($"[SpawnOrchestration] Scene '{provisionalScene.Id}' spawned and finalized");

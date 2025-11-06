@@ -83,14 +83,7 @@ public class NPCValidator : IContentValidator
                 if (service.ValueKind == JsonValueKind.String)
                 {
                     string? serviceStr = service.GetString();
-                    if (!string.IsNullOrEmpty(serviceStr) &&
-                        !EnumParser.TryParse<ServiceTypes>(serviceStr, out _))
-                    {
-                        errors.Add(new ValidationError(
-                            $"{fileName}:{npcId}",
-                            $"Invalid service type: '{serviceStr}'",
-                            ValidationSeverity.Warning));
-                    }
+                    // Services are now free-form strings, no validation needed
                 }
             }
         }
