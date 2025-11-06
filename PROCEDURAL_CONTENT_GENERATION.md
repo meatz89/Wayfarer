@@ -26,6 +26,8 @@ Separate scene archetype patterns from entity context, with entity categorical p
 
 **Tutorial and procedural use identical generation path:** Tutorial JSON specifies archetype + concrete entity IDs (Elena, Tavern, Upper Floor). Procedural templates specify archetype + categorical filters (any Innkeeper at any Urban location with Lodging service). Both paths invoke same generation logic receiving entity objects. Generation queries properties and produces complete arc.
 
+**System reliability is non-negotiable:** Pure generation core with zero game dependencies. Parse-time validation catches all structural errors. Explicit contracts enforce dependencies. Comprehensive automated testing (1000+ tests) prevents regressions. Debug tools provide complete traceability. This is mission-critical infrastructure requiring bulletproof implementation.
+
 AI applies narrative texture using entity properties: Elena generates "the innkeeper greets you warmly" because Demeanor=Friendly. Marcus generates "the attendant regards you professionally" because Demeanor=Professional. Thalia generates "the priestess offers a compassionate smile" because Demeanor=Compassionate. Same situation position, different entity properties, contextually appropriate narrative.
 
 The architecture enables: minimal JSON authoring (just archetype + entity references), tutorial reproducibility (same entities always generate same scene), infinite procedural variation (different entities generate appropriate variations), mechanical consistency (same formulas balance all instances), narrative appropriateness (AI receives property-derived hints).
@@ -34,11 +36,17 @@ The architecture enables: minimal JSON authoring (just archetype + entity refere
 
 Without procedural scene generation, every service location needs hand-authored multi-situation arcs. With naive procedural generation, scenes break mechanically (wrong situation ordering, unbalanced costs, broken state). With AI-only generation, scenes lack mechanical coherence (made-up costs, arbitrary progression, broken economy). The solution must generate mechanically sound multi-situation arcs while allowing AI to provide rich narrative at each beat.
 
+The system must be bulletproof. Scene generation is mission-critical infrastructure. Parse-time validation catches structural errors before runtime. Pure generation core with deterministic output enables exhaustive testing. Explicit contracts and audit trails provide complete traceability. Comprehensive test suite (1000+ unit tests, 100+ integration tests, 20+ end-to-end tests) catches regressions automatically. See System Robustness Architecture section for complete reliability strategy.
+
+**LET IT CRASH philosophy:** Succeed completely or fail with full diagnostic information. No graceful degradation, no partial states, no fallbacks hiding problems. Invalid template at parse? Crash with validation report. Location creation fails during spawn? Crash and rollback. Situation references non-existent location? Crash with stack trace. Force developers to fix root causes rather than papering over issues with fallbacks that mask systemic problems.
+
 ---
 
 ## Implementation Status
 
 The codebase implements the core property-driven generation philosophy while making pragmatic improvements to the original design. Implementation choices often prove superior to initial architectural proposals.
+
+**Critical Success Factor:** Scene generation system operates as isolated, thoroughly tested subsystem. Pure generation core with zero game dependencies enables independent testing. Parse-time validation prevents invalid templates from reaching runtime. Comprehensive test suite (unit, integration, end-to-end) provides confidence in mechanical correctness. See System Robustness Architecture section for complete implementation strategy ensuring bulletproof reliability.
 
 ### Working Scene Archetypes (6 Total)
 
@@ -114,13 +122,19 @@ Scenes define and create their own dependent resources rather than referencing p
 
 **Created Dependencies at Spawn:** When scene instantiates, it creates dependent resources from specifications in template. Service scenes create: private location adjacent to base location on hex grid (upper room, private chamber, secluded sanctuary), access item unique to this scene instance (room key, entry token, sacred seal). Created resources exist solely for this scene instance.
 
-**Hex Grid Integration:** Dependent locations specify relative placement (adjacent to base location, specific distance, directional preference). Scene instantiation queries hex grid for valid placement, creates location at that position. Existing intra-venue travel logic automatically generates movement routes between adjacent locations. No special routing logic needed.
+**Dynamic Location Creation Pipeline:** Scenes don't reference pre-existing locations beyond base. Instead, scene generation produces strongly-typed LocationCreationSpec objects describing locations to create. GameFacade orchestrates multi-system pipeline: ContentGenerationFacade transforms specs into JSON files matching foundation.json structure in /dynamic-content directory, PackageLoaderFacade parses JSON identically to static content creating Location entities in GameWorld, SceneInstanceFacade receives final location IDs for scene tracking. Facades never reference each other - only GameFacade orchestrates. Pipeline atomic: all locations created before scene instantiation proceeds, or entire spawn fails.
+
+**Hex Grid Integration:** Dependent locations specify relative placement (adjacent to base location, specific distance, directional preference). GameFacade queries hex grid for valid placement coordinates, passes concrete coordinates to ContentGenerationFacade. Created locations added to hex grid at specified coordinates. Existing intra-venue travel logic automatically generates movement routes between adjacent locations. No special dynamic location handling needed. Player navigates between static and dynamic locations identically.
 
 **Resource Naming and Identity:** Created resources use pattern-based naming incorporating context. Upper room becomes "Elena's Private Room" when spawned at Elena's inn, "Marcus's Bath Chamber" at Marcus's bathhouse. Item becomes "room_key_scene_{sceneId}" ensuring uniqueness per instance. Names derived from placement context, not pre-authored.
 
+**Strongly-Typed Specifications:** Scene templates contain LocationCreationSpec objects (never dictionaries or generic objects). Each spec declares: NamePattern string, PlacementRule enum (Adjacent/Distance/Direction), HexOffsetFromBase coordinates, Properties object with typed fields (IsLocked boolean, Atmosphere enum, Services enum list), IntegrationStrategy enum (Permanent/Temporary/Reusable). Item specs similarly strongly-typed. No var, no dynamic, no object. Compiler verifies all specifications.
+
 **Lifecycle Ownership:** Scene tracks all resources it created. Scene entity maintains lists: created location IDs, created item IDs. Scene owns complete lifecycle: creation at spawn, modification during progression, cleanup at completion. No orphaned resources when scene completes.
 
-**Cleanup Strategies:** Template defines cleanup behavior per dependent resource. Permanent lock (location exists but forever inaccessible after scene), temporary removal (location deleted from world after scene), reusable (location remains accessible for future scene spawns). Items typically scene-scoped (removed at completion) or permanent rewards (persist in player inventory).
+**Cleanup Strategies:** Template defines cleanup behavior per dependent resource. Location specifications declare IntegrationStrategy: Permanent (location permanently locked after scene, remains on grid), TemporaryRemove (location deleted from GameWorld and hex grid, JSON file removed from dynamic-content directory), Reusable (location restored to initial state for future scene spawns). Items typically scene-scoped (removed at completion) or permanent rewards (persist in player inventory). Dynamic content manifest tracks all created files enabling systematic cleanup.
+
+**Static-Dynamic Equivalence:** After creation, dynamically-created locations behave identically to statically-authored locations. Same Location entity type, same properties, same query patterns. No code checking "is this dynamic?" needed. PackageLoader parses dynamic JSON identically to foundation.json. Spatial systems, travel systems, query systems treat all locations uniformly.
 
 **Self-Containment Benefits:** Scene never references world entities that might not exist. Upper room location guaranteed to exist because scene creates it. Room key guaranteed to exist because scene creates it. Situations reference created resources through template indices (dependentLocations[0], dependentItems[0]) not brittle ID strings. Reproducibility guaranteed: same external context always creates identical dependent structure.
 
@@ -324,7 +338,7 @@ Scenes grant temporary items enabling progression through explicit choice reward
 
 **Removal Phase:** Final situation explicitly removes temporary item via ChoiceReward.ItemsToRemove. Departure choice specifies "remove room_key from inventory". Author controls cleanup, making it visible in content design. More reliable than hidden automatic tracking.
 
-Items can also be permanent rewards. Completing investigation grants knowledge_fragment that persists. Choice rewards distinguish: temporary access tokens (removed by departure), permanent rewards (never removed), consumable items (used once then depleted).
+Items can also be permanent rewards. Completing investigation grants knowledge_fragment that persists. Choice rewards distinguish: access tokens, permanent rewards, consumable items.
 
 Scene manages item lifecycle through authored choice rewards, not automatic tracking. Author sees item lifecycle in situation definitions: grant in negotiate rewards, require in access requirements, remove in depart rewards. Debuggable and explicit.
 
@@ -619,21 +633,25 @@ Build catalog generating complete multi-situation scene structures from archetyp
 
 **Test Pattern:** Create test entities with extreme property values. Friendly (0.8x) vs Hostile (1.4x) NPCs should generate 1.75x difficulty difference. Urban (1.0x) vs Remote (1.5x) locations should show cost scaling. Verify formulas balance across property ranges. Test Sir Brante transparency: all choices visible including locked ones, requirements shown clearly, consequences displayed before selection. Test conditional bypass choices: verify locked choice shows "Requires: X" text and consequence preview. Verify dependent resource specifications produced correctly (location placement, item naming, lifecycle strategies). Test tag-based spawning: complete scene granting "LodgingExperienceAcquired" tag, verify future scene with RequiredTags=["LodgingExperienceAcquired"] becomes eligible to spawn. Verify multiple scenes can grant same tag (tutorial lodging OR procedural lodging both enable advanced scenes). Verify Sir Brante "CONDITIONS MET" display shows which tags unlocked scene.
 
-### Phase 2: Scene State Machine and Resource Creation
+### Phase 2: Scene State Machine and Dynamic Location Creation Pipeline
 
-Add domain methods to Scene entity for arc progression control with context-aware advancement and dependent resource lifecycle management:
+Implement complete scene spawning pipeline orchestrated by GameFacade with multi-system coordination ensuring facade isolation.
 
-**Scene.CreateDependentResources(gameWorld, hexGrid):** At scene spawn, reads template dependent resource specifications. Creates locations on hex grid adjacent to base location using pattern names incorporating placement context. Creates items with unique identifiers incorporating scene ID. Adds created location IDs and item IDs to scene tracking lists. Returns success indicating all resources created successfully. Resources guaranteed to exist because scene creates them.
+**GameFacade Orchestration (Multi-Step Pipeline):** Receives SceneTemplate from SceneGenerationFacade after validation. Extracts LocationCreationSpec list from template. **Step 1 - JSON Generation:** For each location spec, calls ContentGenerationFacade.CreateDynamicLocationFile(spec). ContentGenerationFacade transforms strongly-typed spec into JSON matching foundation.json structure, writes to /dynamic-content/locations/scene_{sceneId}_location_{index}.json, returns DynamicFileManifest (strongly-typed: filepath, timestamp, checksum). **Step 2 - Package Loading:** For each manifest, calls PackageLoaderFacade.LoadDynamicContent(filepath). PackageLoader parses JSON identically to static content parsing, creates Location entity in GameWorld.Locations, integrates with hex grid and spatial systems, returns LocationCreationResult (strongly-typed: success boolean, locationId string, errorReason enum). **Step 3 - Scene Instantiation:** Collects all created location IDs from successful results, calls SceneInstanceFacade.InstantiateScene(template, locationIds). Scene entity created with CreatedLocationIds tracking list populated.
 
-**Scene.AdvanceToNextSituation(completedSituationId):** Queries SpawnRules, finds transitions from completed situation, gets destination situation template IDs, instantiates destination situations as runtime entities (add to GameWorld.Situations with scene ID reference), transitions those situations from nonexistent to Dormant state. **Critical context check:** Compares next situation's required location/NPC context against current context. If match (same location/NPC), immediately activates next situation and returns flag indicating "continue scene flow" (lock player in seamless cascade). If mismatch (different location/NPC), updates CurrentSituationId but leaves situation dormant, returns flag indicating "exit to world" (player must navigate). Marks scene complete if no valid transitions exist.
+**Atomic Creation Guarantee (LET IT CRASH):** All locations for scene created successfully before scene instantiation proceeds. If ANY location creation fails - hex coordinate occupied, JSON write error, duplicate location ID, invalid placement rule - entire scene spawn aborted with exception. Already-created locations rolled back: removed from GameWorld, JSON files deleted using manifests, hex grid updated. Player sees error message with full diagnostic information, world state unchanged. **No partial scene spawning ever.** No "created 2 of 3 locations, continuing anyway." No fallbacks. No graceful degradation. Either complete success or clean failure with crash. Developer investigates stack trace, fixes root cause (hex grid algorithm, placement logic, file permissions, whatever), reloads, tries again. System forces correctness rather than tolerating partial states.
+
+**Facade Isolation Enforcement (Critical):** SceneGenerationFacade never imports ContentGenerationFacade, PackageLoaderFacade, GameWorld, or Unity. ContentGenerationFacade never imports SceneGenerationFacade, PackageLoaderFacade, or GameWorld. PackageLoaderFacade never imports SceneGenerationFacade or ContentGenerationFacade. SceneInstanceFacade never imports ContentGenerationFacade or PackageLoaderFacade. **Only GameFacade calls multiple facades.** Facades never call each other. Facades only know domain entities and their immediate responsibilities. Clean dependency graph prevents coupling: Facades → Domain, GameFacade → Facades, no facade-to-facade arrows.
+
+**Scene.AdvanceToNextSituation(completedSituationId):** Queries SpawnRules, finds transitions from completed situation, gets destination situation template IDs, instantiates destination situations as runtime entities (add to GameWorld.Situations with scene ID reference), transitions those situations from nonexistent to Dormant state. **Critical context check:** Compares next situation's required location/NPC context against current context. Location comparison includes both base location and dynamically-created locations by their final GameWorld IDs. If match (same location/NPC), immediately activates next situation and returns flag indicating "continue scene flow" (lock player in seamless cascade). If mismatch (different location/NPC), updates CurrentSituationId but leaves situation dormant, returns flag indicating "exit to world" (player must navigate). Marks scene complete if no valid transitions exist. Situations reference dynamically-created locations by concrete GameWorld location IDs - no temporary references, no specs, only real entities.
 
 **Scene.ShouldActivateAtContext(locationId, npcId):** Queries CurrentSituationId, gets current situation template, compares situation's required context (location/NPC) against provided context. Location comparison checks both base location and created locations. Returns true if match, enabling situation activation when player reaches correct location. Supports scene persistence across navigation.
 
-**Scene.ExecuteCleanup():** Queries template cleanup specifications and scene's created resource tracking lists. Removes temporary items from player inventory (including scene-created items). Applies lifecycle strategies to created locations (permanent lock, temporary removal, reusable state). Grants player tags specified in template (adds to Player.Tags list enabling future scene spawns based on RequiredTags). Reverts NPC availability. Validates time advanced appropriately. Marks scene as fully resolved. No orphaned resources after cleanup. Tag granting implements dependency inversion - future scenes spawn based on player state, not hardcoded scene IDs.
+**Scene.ExecuteCleanup():** Queries template cleanup specifications and scene's created resource tracking lists. Removes temporary items from player inventory (including scene-created items). Applies IntegrationStrategy to created locations: **PermanentLock** sets Location.IsLocked=true permanently (location remains on grid but inaccessible), **TemporaryRemove** returns location IDs to caller (GameFacade then calls ContentGenerationFacade.RemoveDynamicLocation(locationId, manifest) which removes from GameWorld and deletes JSON file), **Reusable** restores location to initial state for future scene spawns. Updates DynamicContentManifest tracking. Grants player tags specified in template (adds to Player.Tags list enabling future scene spawns based on RequiredTags). Reverts NPC availability. Validates time advanced appropriately. Marks scene as fully resolved. No orphaned resources after cleanup. Tag granting implements dependency inversion - future scenes spawn based on player state, not hardcoded scene IDs. Cleanup returns strongly-typed CleanupResult indicating locations requiring removal for GameFacade coordination.
 
 **Scene.IsComplete():** Checks if CurrentSituationId points to conclusion situation and that situation is Completed, or if no valid spawn transitions remain. Boolean indicating arc finished.
 
-These methods encapsulate scene lifecycle including dependent resource management. SceneInstantiator calls Scene.CreateDependentResources() after scene instantiation. SituationCompletionHandler calls Scene.AdvanceToNextSituation() after situation resolves, receives context-match flag determining whether to lock player in scene or return to world. LocationViewBuilder calls Scene.ShouldActivateAtContext() when displaying location to determine which dormant situations should activate. GameFacade calls Scene.ExecuteCleanup() when scene marked complete. Domain entity owns state machine and resource lifecycle, services orchestrate calls.
+These methods encapsulate scene lifecycle while GameFacade orchestrates multi-system operations. GameFacade orchestrates ContentGenerationFacade (JSON creation), PackageLoaderFacade (entity instantiation), and SceneInstanceFacade (scene spawning) during spawn pipeline. SituationCompletionHandler calls Scene.AdvanceToNextSituation() after situation resolves, receives context-match flag determining whether to lock player in scene or return to world. LocationViewBuilder calls Scene.ShouldActivateAtContext() when displaying location to determine which dormant situations should activate. GameFacade calls Scene.ExecuteCleanup() when scene marked complete, receives CleanupResult, then calls ContentGenerationFacade.RemoveDynamicLocation() for any locations requiring removal. Domain entity owns state machine and resource lifecycle tracking. GameFacade orchestrates multi-facade operations. Facades remain isolated from each other. Services execute individual facade calls.
 
 ### Phase 3: Dependent Resource Management System
 
@@ -646,8 +664,6 @@ Implement resource creation pipeline for scenes to create locations and items at
 **Pattern Name Resolution:** Resource specifications use patterns incorporating context variables. Upper room location pattern: "[NPC.Name]'s Private Room" resolves to "Elena's Private Room" when Elena is placement NPC. Item pattern: "Room Key" or "[Service] Access Token" resolves contextually. Patterns enable generic specifications producing contextual concrete names.
 
 **Resource Tracking:** Scene maintains lists of created resource IDs. Created locations tracked separately from base location reference. Created items tracked separately from player inventory. Tracking enables cleanup to target only scene-created resources, leaving pre-existing world resources unmodified.
-
-**Lifecycle Strategies:** Specifications declare cleanup behavior. Location lifecycle options: PermanentLock (location remains on grid but forever inaccessible), TemporaryRemove (location deleted from grid), Reusable (location remains accessible for future scenes). Item lifecycle options: SceneScoped (removed at completion), PlayerOwned (persists as permanent reward). Strategy determines ExecuteCleanup behavior.
 
 **Reference Resolution:** Situations reference created resources through template indices or pattern identifiers, not brittle ID strings. Access situation requires "created_item[0]" or pattern reference "access_token". Service situation requires "created_location[0]" or pattern reference "service_location". Runtime resolution uses scene's tracking lists to find concrete resource IDs.
 
@@ -663,9 +679,7 @@ Implement complete lifecycle management for items created and managed by scenes:
 
 **Item Requirements in Progression:** Middle situations require scene-created items to proceed through HasItem requirements. Access situation specifies requirement for created access item. Runtime requirement evaluation resolves item reference through scene tracking, checks player inventory for concrete item. Situation remains locked until requirement met.
 
-**Item Removal at Cleanup:** Final situations and cleanup phase remove scene-created items through explicit cleanup specifications. Departure choice rewards include ItemsToRemove referencing created items. Scene.ExecuteCleanup iterates CreatedItemIds tracking list, removes any still present in player inventory. Prevents item pollution from temporary access tokens persisting inappropriately.
-
-**Permanent Rewards Distinction:** Some scene-created items persist as permanent rewards. Investigation scenes create knowledge_fragment items with PlayerOwned lifecycle. Cleanup does not remove these items - they remain in inventory permanently. Lifecycle strategy determines cleanup behavior.
+**Permanent Rewards Distinction:** Some scene-created items persist as permanent rewards. Investigation scenes create knowledge_fragment items with PlayerOwned lifecycle.
 
 **Item Naming and Context:** Created items use pattern-based naming incorporating placement context. "Room Key" at Elena's inn, "Bath Token" at Marcus's bathhouse, "Healing Permit" at Thalia's temple. Same specification, different concrete names based on NPC and service type. Pattern resolution at creation time produces contextual names.
 
@@ -734,6 +748,182 @@ Implement dependency inversion replacing scene-ID dependencies with abstract pla
 **Migration Strategy:** Convert existing CompletedSceneIds spawn conditions to equivalent RequiredTags. Tutorial scenes grant tags matching their teaching purpose. Procedural scenes grant same tags. No content changes required, only spawn condition rewiring.
 
 This eliminates brittle scene-ID coupling while maintaining clear progression dependencies and Sir Brante-style transparent requirement display.
+
+---
+
+## System Robustness Architecture
+
+Procedural content generation is mission-critical infrastructure. If scene generation, instantiation, or progression fails, the entire game fails. This architecture ensures rock-solid reliability through isolation, validation, contracts, and comprehensive testing.
+
+### LET IT CRASH Philosophy
+
+System follows Erlang/Elixir philosophy: succeed completely or fail loudly with full diagnostic information. No graceful degradation, no partial states, no fallbacks hiding problems.
+
+**Crash on Invalid Input:** Parse-time validation encounters malformed template? Throw ValidationException with detailed report. Game won't start until templates fixed. No "skip invalid template and continue" option. Forces content authors to fix issues immediately.
+
+**Crash on Contract Violation:** Scene spawn finds no matching NPC? Throw MissingDependencyException with filter and available entities. Location creation fails? Throw and rollback entire spawn. Situation references non-existent resource? Throw with full context. Stack traces show exactly where and why failure occurred.
+
+**No Partial States:** Atomic operations only. Creating 3 locations? Either all 3 succeed or LET IT CRASH. Spawning scene with 4 situations? Either complete scene with all situations or LET IT CRASH.
+
+**No Fallbacks:** Don't catch exceptions to return default values. Don't substitute placeholder content when generation fails. Don't skip validation steps because "it usually works." Every fallback masks root cause. System crashes force developers to fix actual problems, not paper over symptoms.
+
+**Why This Works:** Mission-critical infrastructure demands correctness. Better to crash during development (with stack traces enabling rapid diagnosis) than ship buggy content that breaks player experience. Crashes during testing reveal problems immediately. No fallbacks means no hidden issues accumulating. Forces systematic resolution of root causes.
+
+### Pure Generation Core (Isolated Subsystem)
+
+Scene generation operates as completely isolated subsystem with zero game world dependencies.
+
+**Inputs:** Entity property objects (NPC with Personality/Demeanor/Authority, Location with Services/Atmosphere/CostModifier), tier integer, player state benchmarks. Entity objects passed as parameters, never queried from game world.
+
+**Process:** Generation methods are pure functions with no side effects. Query entity properties, apply formulas, produce template structures. No world state modification, no service calls, no external dependencies. Deterministic: same inputs always produce identical outputs.
+
+**Outputs:** Complete immutable SceneTemplate structures containing situation sequences, spawn rules, dependent resource specifications, choice structures, cost/benefit formulas, cleanup specifications.
+
+**Zero Coupling:** Generation layer never imports GameWorld, GameFacade, service classes, Unity libraries. Only domain entity definitions for property access. Can compile and test generation independently of entire game.
+
+**Testing Advantage:** Create mock entities with controlled property values. Generate scenes. Assert structure correctness. No game world initialization required. Run 10,000 generation tests in seconds.
+
+### Validation Pipeline (Fail-Fast at Parse)
+
+After archetype generation, before template storage, validation pipeline checks structural coherence. Invalid templates crash at parse, never reach runtime. **LET IT CRASH:** No graceful degradation, no warnings-as-errors toggle, no "skip invalid and continue." Validation failure throws exception immediately with detailed report. Game won't start until all templates valid.
+
+**Structure Validation:** All SituationTemplateIds in SpawnRules exist in situation list. All ChoiceTemplates have valid requirement types. All ChoiceRewards have valid reward types. All resource references resolvable (items granted before required, locations created before accessed). Violation = immediate crash with specific rule, situation, and expected/actual values.
+
+**Dependency Validation:** Dependent location specs have valid placement rules (Adjacent/Distance/Direction). Dependent item specs have valid lifecycle strategies (SceneScoped/PlayerOwned). Item lifecycle chains coherent (can't require item never granted). Location unlock/lock chains coherent (can't unlock location never created). Violation = immediate crash with dependency chain trace.
+
+**Economic Validation:** Total costs don't exceed tier budget. Total benefits justify total costs (benefit/cost ratio within range). Time costs reasonable (rest must advance time, transaction can't claim hours). Resource grants balance costs (restoring 40 stamina must cost resources justifying benefit). Violation = immediate crash with economic breakdown showing imbalance.
+
+**Parse-Time Crashes (Deliberate):** Validation failure throws exception immediately. Invalid template never stored. Developer sees detailed report: which rule violated, which situation/choice involved, expected versus actual values, full stack trace for debugging. Fix template definition, reload, validation passes. No running game with invalid templates lurking. No runtime surprises from malformed content.
+
+**Runtime Safety:** Runtime never encounters invalid templates. All templates passed validation at load. Reduces defensive checks, simplifies logic. Runtime can assume structure validity - no "is this situation ID valid?" checks scattered everywhere.
+
+### Scene Package Contract (Self-Describing Templates)
+
+Every SceneTemplate explicitly declares complete dependency and capability contract.
+
+**External Dependencies:** RequiredNpcPersonalities, RequiredLocationServices, RequiredLocationProperties. PlacementFilter evaluates these during spawn resolution.
+
+**Internal Creations:** DependentLocationSpecs declaring locations scene creates (count, placement, properties, lifecycle). DependentItemSpecs declaring items scene creates (count, naming, lifecycle). Resources guaranteed at spawn.
+
+**Progression Contract:** SituationCount, FlowType, SituationContextRequirements (which situation needs which location/NPC), AutoAdvancePoints, ExpectedCompletionTime.
+
+**Cleanup Contract:** ItemsToRemove, LocationLifecycleStrategies, ExpectedFinalPlayerState.
+
+**Contract Enforcement (LET IT CRASH):** Spawn evaluation checks external dependencies before instantiation. Can't spawn if required NPC personality not found? Throw MissingDependencyException with filter details and available entities. Required location service not available? Throw immediately with location list showing what services exist. Instantiation creates all declared resources or fails atomically - hex coordinate occupied? Throw HexOccupiedE exception and rollback entire spawn. JSON file write fails? Throw FileSystemException and clean up partial files. No partial scene spawning. Progression tracking verifies contract - situation references location not in created list? Throw InvalidLocationReferenceException with situation ID and location ID. Cleanup validation confirms contract fulfilled - items should be removed but still in inventory? Throw CleanupContractViolationException with item list. No warnings, no skipping, no "best effort." Crash with full diagnostic information. Developer fixes root cause.
+
+### Deterministic Generation Testing
+
+Generation must be perfectly reproducible. Same inputs always produce identical outputs.
+
+**Property-Driven Reproducibility:** Generate scene with specific entity properties 1000 times. Compare all outputs byte-for-byte. Must be identical. Any variance = bug.
+
+**Test Fixture Library:** 20 test entities covering property combinations. Elena (Friendly Innkeeper, Low Authority). Thorne (Hostile Guard, High Authority). Marcus (Professional Attendant, Medium Authority). Precise known values.
+
+**Exhaustive Test Matrix:** All archetypes (6) × all fixtures (20) = 120 variants. Assert expected patterns for each. Catches property-specific generation bugs.
+
+**Golden Template Storage:** Store reference templates for each archetype+fixture. On every build, regenerate and compare. Output difference = review required. Prevents accidental formula changes.
+
+**Regression Detection:** Any generation code change triggers full matrix regeneration. Diff shows exactly what changed. Verifies changes match intent.
+
+### Debug Visualization Tools
+
+Developer tools for understanding and diagnosing generation and spawning.
+
+**Scene Template Inspector:** Visual representation showing: situation graph with spawn rule arrows, resource flow diagram (item creation/granting/removal), context requirement map, economic balance breakdown.
+
+**Spawn Diagnosis:** Query "why didn't scene X spawn?" Reports: PlacementFilter evaluation (NPCs matched, locations matched, selection result), spawn condition evaluation (requirements checked, pass/fail), resource availability (hex grid placement valid). Specific failure reason.
+
+**Situation Activation Trace:** Player at location, situation didn't activate. Shows: scenes with situations here, situation states (dormant/active/locked), context matching evaluation (location match, NPC match), requirement evaluation (has items, has tags). Explains exactly why no activation.
+
+**Economic Balance Analyzer:** Calculate per-situation costs/benefits, total costs/benefits, benefit/cost ratio, tier appropriateness. Flags imbalanced scenes.
+
+### State Machine Formalism
+
+Scenes and situations operate as explicit state machines with defined states, transitions, guards, audit trails.
+
+**Scene States:** NotSpawned → Spawned → Active → Completed → CleanedUp. Each state has entry/exit conditions.
+
+**Scene Transitions:** NotSpawned → Spawned requires PlacementFilter match and successful resource creation. Spawned → Active requires finalization. Active → Completed requires final situation finished. Completed → CleanedUp requires cleanup contract fulfilled.
+
+**Transition Guards:** Can't transition without preconditions. Attempting invalid transition = assertion failure with detailed error.
+
+**State Transition Logging:** Every transition logged: timestamp, scene ID, states, trigger reason, player location, player resources. Full audit trail.
+
+**Situation States:** Nonexistent → Dormant → Active/Locked → InProgress → Completed/Failed. State determines visibility and interaction.
+
+**Situation Transitions:** Logged with same detail. Provides situation-level audit trail.
+
+### Resource Lifecycle Audit
+
+Scenes create resources. Audit system tracks creation, usage, cleanup ensuring no leaks or ghosts.
+
+**Creation Tracking:** Scene.CreateDependentResources() logs each resource: location created at hex coordinate with pattern name, item created with unique ID. Adds to Scene.CreatedLocationIds and CreatedItemIds.
+
+**Usage Tracking:** Item granted to player logged. Item required logged (passed/failed). Location unlocked logged. All usage tracked relative to created resources.
+
+**Cleanup Tracking:** Scene.ExecuteCleanup() iterates granted items, removes from inventory, logs removal. Iterates created locations, applies lifecycle strategies, logs application. Validates all created resources accounted for.
+
+**Audit Report:** On completion, reports: resources created, granted to player, consumed during scene, cleaned up. Flags orphans (created but not cleaned) and ghosts (cleanup referenced non-existent).
+
+**Developer Review:** Orphans indicate missing cleanup spec. Ghosts indicate incorrect ID reference. Enables systematic leak detection.
+
+### Context Matching Clarity
+
+Situation activation depends on context matching. System provides explicit rules and transparent evaluation.
+
+**Context Specification:** Each SituationTemplate declares RequiredContext with optional LocationId and NpcId. Null means "any".
+
+**Matching Algorithm:** Player at location with NPC. For each dormant situation: check location match (required vs current), check NPC match (required vs current). Overall match requires both.
+
+**Query API:** GetActivatableSituationsAtContext(locationId, npcId) returns matching situation IDs. CanSituationActivateAt(situationId, locationId, npcId) returns boolean plus detailed reason. GetSituationContextRequirements(situationId) returns requirements without evaluation.
+
+**Evaluation Transparency:** Query API explains exactly why situation didn't activate. Shows location match result, NPC match result, requirement check result, overall verdict.
+
+**Auto-Advance Detection:** When situation completes, Scene.AdvanceToNextSituation() compares next situation context to current. Match = immediate activation, lock player. Mismatch = leave dormant, player must navigate.
+
+### Integration Interface
+
+Game interacts with content generation through clean facades. Internal complexity hidden behind stable API.
+
+**SceneGenerationFacade (Parse-Time):** GenerateSceneFromTemplate(archetypeId, npc, location) invokes generation, validates, returns template or throws. ValidateTemplate(template) runs validation pipeline. GetAvailableArchetypes() returns registered archetypes.
+
+**ContentGenerationFacade (Runtime):** CreateDynamicLocationFile(spec) transforms LocationCreationSpec into JSON matching foundation.json structure, writes to dynamic-content directory, returns DynamicFileManifest or throws FileSystemException. RemoveDynamicLocation(locationId, manifest) removes location from GameWorld and deletes JSON file, returns RemovalResult. GetDynamicContentManifest() returns current manifest of all dynamic files.
+
+**PackageLoaderFacade (Runtime):** LoadDynamicContent(filepath) parses JSON, creates Location entity in GameWorld, integrates with hex grid, returns LocationCreationResult. LoadStaticContent(filepath) existing method using identical parsing logic. No distinction between static and dynamic after entity creation.
+
+**SceneInstanceFacade (Runtime):** SpawnScene(template, npc, location, locationIds) instantiates scene with pre-created location IDs from pipeline, returns scene ID or failure. ActivateScene(sceneId) transitions to Active. GetSituationsAtContext(locationId, npcId) queries matching situations. AdvanceScene(sceneId, situationId) executes progression.
+
+**GameFacade (Orchestrator):** Coordinates multi-facade spawn pipeline: extracts LocationCreationSpec from template → calls ContentGenerationFacade for each → calls PackageLoaderFacade for each → calls SceneInstanceFacade with location IDs. Cleanup pipeline: calls Scene.ExecuteCleanup → receives CleanupResult → calls ContentGenerationFacade.RemoveDynamicLocation for locations requiring removal. Only GameFacade orchestrates. Facades never call each other.
+
+**Clean Boundaries:** Game code never accesses template internals, spawn rules, or situation templates directly. All access through facades. Facades never reference each other, only GameFacade coordinates.
+
+**Interface Stability:** Facade signatures stable across versions. Internal implementation can change without breaking game code.
+
+**Dependency Direction:** Game depends on facades. Facades depend on generation and domain entities. Generation depends only on domain entities. GameFacade depends on facades. No circular dependencies. No facade-to-facade dependencies.
+
+### Strongly-Typed Data Structures (No Dictionaries, No var, No object)
+
+All data passing between systems uses explicitly-typed value objects. Never Dictionary&lt;string, object&gt;, never HashSet&lt;dynamic&gt;, never var hiding types, never untyped objects. Compiler verifies all structure transformations.
+
+**LocationCreationSpec (value object):** NamePattern string with context variable placeholders. PlacementRule enum (Adjacent/Distance/Direction with concrete values). HexOffsetFromBase typed as HexCoordinate struct (X integer, Y integer). Properties typed as LocationProperties object (IsLocked boolean, Atmosphere enum, Services List&lt;ServiceType enum&gt;). InitialLockState boolean. IntegrationStrategy enum (Permanent/Temporary/Reusable). Every field strongly typed, no generic collections of objects.
+
+**DynamicFileManifest (value object):** FilePath string. CreatedTimestamp DateTime struct. ContentChecksum string for integrity verification. ManifestType enum identifying content category. Scene owns list of manifests for all files it created.
+
+**LocationCreationResult (value object):** Success boolean. LocationId string when success true. ErrorReason enum (HexOccupied/DuplicateId/InvalidPlacement/FileSystemError) when success false. ErrorDetails string with human-readable explanation for debugging.
+
+**CleanupResult (value object):** LocationIdsToRemove List&lt;string&gt;. ItemIdsRemoved List&lt;string&gt;. TagsGranted List&lt;string&gt;. ManifestsToDelete List&lt;DynamicFileManifest&gt;. All strongly typed lists, never object arrays.
+
+Pipeline transformation: SceneTemplate (with LocationCreationSpec list) → DynamicFileManifest list → LocationCreationResult list → Scene entity (with location ID strings). Each step transforms strongly-typed input to strongly-typed output. Type safety verified at compile time.
+
+### Test Strategy
+
+Comprehensive testing at every layer. Automated suite catches regressions.
+
+**Unit Tests (Generation - 100+ tests):** Each archetype with mock entities. Assert situation count, choice count, cost formulas, benefit formulas, spawn rules, resource specs, cleanup specs. Test LocationCreationSpec production (correct placement rules, properties, naming patterns). Run in milliseconds, no game world.
+
+**Integration Tests (Instantiation - 10+ tests):** Minimal test world with known entities. Test ContentGenerationFacade: receive spec, produce JSON, validate structure matches foundation.json format. Test PackageLoaderFacade: parse JSON, create Location entity, assert properties correct. Test pipeline: GameFacade orchestrates spec → JSON → location → scene, assert all steps succeed, assert atomic failure behavior (one failure LETS IT CRASH). Generate templates, spawn scenes through full pipeline. Assert resources created correctly, situations instantiated, placement strategies work. Run in seconds with lightweight world.
+
+**End-to-End Tests (Progression - 2+ tests):** Simulate complete scene lifecycles with dynamic location creation and cleanup. Create player, spawn scene through GameFacade pipeline (assert JSON files created, locations added to grid, scene references correct IDs). Simulate situation completions, player navigation to created locations, context matching triggering activation. Assert advancement, context handling, item lifecycle. Test cleanup: scene completes, assert cleanup result correct, GameFacade removes locations with TemporaryRemove strategy (assert GameWorld updated, JSON files deleted), assert PermanentLock strategy leaves location on grid but locked. Run in seconds covering representative arc patterns including dynamic resource lifecycle.
 
 ---
 
@@ -854,9 +1044,9 @@ Templates contain embedded SituationTemplates with ChoiceTemplates, SpawnRules d
 
 ### Scene Entity
 
-Runtime scene instance tracking: CurrentSituationId (progression through arc), List<string> SituationIds (references to GameWorld.Situations), CreatedLocationIds (locations scene created at spawn), CreatedItemIds (items scene created at spawn), GrantedTags (player tags this scene will grant on completion), PlacedNPC/PlacedLocation (strongly-typed entity references AND IDs for external dependencies), State (Provisional/Active/Completed), Template (reference to SceneTemplate), DisplayName (optional authored label for UI).
+Runtime scene instance tracking: CurrentSituationId (progression through arc), List<string> SituationIds (references to GameWorld.Situations), CreatedLocationIds (locations created via GameFacade pipeline at spawn), CreatedItemIds (items scene created at spawn), GrantedTags (player tags this scene will grant on completion), PlacedNPC/PlacedLocation (strongly-typed entity references AND IDs for external dependencies), State (Provisional/Active/Completed), Template (reference to SceneTemplate), DisplayName (optional authored label for UI).
 
-Owns state machine methods: **CreateDependentResources** (reads template specifications, creates locations on hex grid adjacent to base, creates items with unique identifiers, populates tracking lists), **AdvanceToNextSituation** (progression control with context-aware auto-advance - returns flag indicating whether next situation shares context for seamless cascade or requires world navigation), **ShouldActivateAtContext** (checks if current situation should activate at given location/NPC context, supporting scene persistence across navigation), **ExecuteCleanup** (applies lifecycle strategies to created locations, removes created items from player inventory, grants player tags enabling future scene spawns, restoration logic), **IsComplete** (completion detection). Domain entity owns lifecycle including dependent resource management and tag granting, not scattered across services.
+Owns state machine methods: **AdvanceToNextSituation** (progression control with context-aware auto-advance - returns flag indicating whether next situation shares context for seamless cascade or requires world navigation, compares against both base and created locations), **ShouldActivateAtContext** (checks if current situation should activate at given location/NPC context including created locations, supporting scene persistence across navigation), **ExecuteCleanup** (returns CleanupResult specifying which created locations need removal - GameFacade then orchestrates ContentGenerationFacade calls, removes created items from player inventory, grants player tags enabling future scene spawns, restoration logic), **IsComplete** (completion detection). Domain entity owns lifecycle state machine and resource tracking. GameFacade orchestrates multi-system operations for resource creation and removal. Scene provides tracking and coordination, not direct creation.
 
 Context tracking: Scene knows which location/NPC each situation requires, comparing both external base location and scene-created locations. Compares consecutive situations to determine auto-advance behavior. Same context = immediate transition, player locked in flow. Different context = exit to world, scene persists with updated CurrentSituationId, reactivates when player reaches matching context.
 
@@ -894,17 +1084,41 @@ Scene receives minimal external bindings from evaluator. Everything else created
 
 ### SceneInstantiator
 
-Factory creating scene instances from templates with complete dependent resource creation.
+Factory creating scene instances from templates. Does NOT create dependent resources - that's GameFacade's orchestration responsibility.
 
 Resolves placement through categorical filter evaluation: queries GameWorld for NPC matching personality filter, queries locations where NPC present matching service filter, selects concrete (NPC, Location) pair using selection strategy (highest bond, least recent, weighted random). External dependencies resolved.
 
-Instantiates scene from template: creates Scene entity with reference to template, binds NPC and Location entity references, marks as Provisional state. Calls Scene.CreateDependentResources passing GameWorld and hex grid. Scene reads dependent location specifications, finds valid hex adjacent to base location, creates location with contextual name, adds to hex grid. Scene reads dependent item specifications, creates items with unique identifiers, adds to GameWorld.Items. Scene populates CreatedLocationIds and CreatedItemIds tracking lists.
+Instantiates scene from template: creates Scene entity with reference to template, binds NPC and Location entity references, marks as Provisional state. **Does not create locations or items** - receives pre-created location IDs from GameFacade after pipeline completes. Populates Scene.CreatedLocationIds with provided IDs. Populates Scene.CreatedItemIds from item creation (items created directly, locations created through multi-system pipeline).
 
-Instantiates all situations in scene simultaneously as Dormant entities in GameWorld.Situations flat list. Each Situation gets reference to SituationTemplate, reference to parent Scene, placement context from template. Scene.SituationIds list populated with created situation IDs. Marks first situation as current via CurrentSituationId. No actions instantiated yet, just situation structure in dormant state.
+Instantiates all situations in scene simultaneously as Dormant entities in GameWorld.Situations flat list. Each Situation gets reference to SituationTemplate, reference to parent Scene, placement context from template. Situations reference dynamically-created locations by their final GameWorld location IDs. Scene.SituationIds list populated with created situation IDs. Marks first situation as current via CurrentSituationId. No actions instantiated yet, just situation structure in dormant state.
 
-At finalization when scene transitions Provisional to Active, situations remain dormant until player reaches matching context. Scene already created dependent resources at instantiation. Resources exist throughout scene lifecycle.
+At finalization when scene transitions Provisional to Active, situations remain dormant until player reaches matching context. Scene references all resources by final GameWorld IDs. Resources guaranteed to exist because pipeline completed successfully before instantiation.
 
-Complete self-contained package: scene receives minimal external bindings (NPC + base location), creates everything else it needs (dependent locations, items, situations), manages complete lifecycle (progression, cleanup, resource removal).
+Separation of concerns: SceneInstantiator creates scene domain entities. GameFacade orchestrates resource creation pipeline. ContentGenerationFacade creates JSON files. PackageLoaderFacade creates Location entities. Clean boundaries.
+
+### ContentGenerationFacade
+
+Transforms strongly-typed resource specifications into JSON files matching static content structure.
+
+**CreateDynamicLocationFile(spec):** Receives LocationCreationSpec value object. Transforms spec fields into JSON structure matching foundation.json format: id from pattern, name from pattern with context resolution, hexCoordinate from spec, properties object with typed fields. Writes JSON to /dynamic-content/locations/ directory with generated filename scene_{sceneId}_location_{index}.json. Returns DynamicFileManifest on success (filepath, timestamp, checksum) or throws FileSystemException on failure. Never imports GameWorld, SceneGenerationFacade, or PackageLoaderFacade. Only knows JSON structure and file operations.
+
+**RemoveDynamicLocation(locationId, manifest):** Receives location ID and its creation manifest. Validates location is dynamic (in manifest). Removes from GameWorld.Locations collection. Deletes JSON file at manifest filepath. Updates DynamicContentManifest removing entry. Returns RemovalResult indicating success. Handles cleanup phase of resource lifecycle.
+
+**GetDynamicContentManifest():** Returns current manifest listing all dynamically-created content files with metadata. Used for world reset and debugging.
+
+Facade responsibility: JSON generation and file management only. Does not parse, does not create GameWorld entities, does not understand scenes or situations. Pure data transformation and file I/O.
+
+### PackageLoaderFacade
+
+Parses JSON content files and creates GameWorld entities. Treats dynamic content identically to static content.
+
+**LoadDynamicContent(filepath):** Receives filepath to JSON file. Parses JSON using identical parser logic as static foundation.json loading. Extracts location data, creates Location entity with all properties. Adds to GameWorld.Locations collection. Integrates with hex grid at specified coordinates. Spatial systems automatically generate intra-venue travel routes. Returns LocationCreationResult on success (locationId) or failure (errorReason enum: HexOccupied, DuplicateId, InvalidPlacement, ParseError). Never imports SceneGenerationFacade or ContentGenerationFacade. Only knows parsing and entity creation.
+
+**LoadStaticContent(filepath):** Existing method for static content. Uses same parsing logic as LoadDynamicContent. No special dynamic handling - both paths identical after JSON parse.
+
+Facade responsibility: JSON parsing and entity instantiation only. Does not generate JSON, does not create files, does not understand scenes. Pure parsing and GameWorld integration.
+
+Dynamic and static content converge at this boundary: both become Location entities in GameWorld.Locations, indistinguishable after creation.
 
 ### AI Generation Service (FUTURE)
 
@@ -931,3 +1145,7 @@ Queries active scenes at current location to build interaction options.
 ---
 
 This architecture supports procedural generation of complete multi-situation narrative arcs while maintaining mechanical coherence and economic balance. Scene archetypes define reusable arc patterns. AI provides contextual narrative for each beat. Game logic orchestrates progression through situations with state modification, item lifecycle, and time advancement. Templates contain pure structure, instances track runtime state, entities own their lifecycle behavior.
+
+**Dynamic location creation enables true scene self-containment.** Scenes don't depend on pre-authored locations beyond base. GameFacade orchestrates multi-system pipeline: ContentGenerationFacade produces JSON files, PackageLoaderFacade creates Location entities, SceneInstanceFacade references final IDs. Facades isolated from each other - only GameFacade coordinates. Strongly-typed value objects (LocationCreationSpec, DynamicFileManifest, LocationCreationResult, CleanupResult) ensure compile-time verification. Static and dynamic locations indistinguishable after creation. Complete lifecycle from specification to JSON to entity to cleanup.
+
+**Reliability is paramount.** Pure generation core with zero dependencies enables isolated testing. Parse-time validation prevents structural errors from reaching runtime. Explicit contracts and state machines provide complete traceability. Comprehensive automated test suite (1000+ unit, 100+ integration, 20+ end-to-end tests) catches regressions immediately. Debug visualization tools enable rapid diagnosis. Atomic pipeline guarantees complete success or clean failure. This system architecture ensures rock-solid procedural content generation where failure is not an option.
