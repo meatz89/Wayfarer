@@ -269,6 +269,11 @@ public class PackageLoader
         // Load with skeletons allowed for dynamic content
         LoadPackageContent(package, allowSkeletons: true);
 
+        // Regenerate location actions for newly added locations
+        // Dynamic packages may add locations that need intra-venue movement actions
+        // Must regenerate for ALL locations because adjacency relationships may have changed
+        GenerateLocationActionsFromCatalogue();
+
         // Return skeleton IDs for AI completion
         return _gameWorld.SkeletonRegistry.Select(r => r.SkeletonKey).ToList();
     }

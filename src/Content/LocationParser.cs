@@ -15,6 +15,13 @@ public static class LocationParser
             VenueId = dto.VenueId ?? "" // Optional - defaults to empty if missing
         };
 
+        // CATALOGUE PATTERN: Translate InitialState categorical value to concrete IsLocked boolean
+        // Parse-time translation from DTO string to domain property
+        if (!string.IsNullOrEmpty(location.InitialState) && location.InitialState == "Locked")
+        {
+            location.IsLocked = true;
+        }
+
         // HIGHLANDER Pattern A: Resolve Venue object reference from VenueId
         // Location.VenueId (string) from JSON, Location.Venue (object) resolved here via GameWorld lookup
         // Runtime code uses ONLY Location.Venue, never VenueId lookups

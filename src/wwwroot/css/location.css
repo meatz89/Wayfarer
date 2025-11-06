@@ -615,6 +615,33 @@ body * {
     border-color: #c4a684;
 }
 
+/* Locked action card state (for locked locations/unavailable actions) */
+.action-card.locked {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background: #e8dcc4;
+    border-color: #a68b6f;
+    border-style: dashed;
+}
+
+.action-card.locked:hover {
+    background: #e8dcc4;
+    border-color: #a68b6f;
+    transform: none;
+}
+
+.action-card .lock-icon {
+    margin-left: 6px;
+    opacity: 0.7;
+}
+
+.action-card .lock-reason {
+    font-size: 10px;
+    color: #8b4726;
+    font-style: italic;
+    margin-top: 4px;
+}
+
 .action-name {
     font-size: 14px;
     color: #5c4a3a;
