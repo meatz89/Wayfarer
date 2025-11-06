@@ -1031,7 +1031,17 @@ public class SceneInstantiator
         // Determine venue ID
         string venueId = DetermineVenueId(spec.VenueIdSource, context);
 
-        // Find hex placement
+        // Find hex placement (CRITICAL: ALL locations must have hex positions)
+        Location baseLocation = context.CurrentLocation;
+        if (baseLocation == null)
+            throw new InvalidOperationException($"Cannot place dependent location '{locationId}' - context.CurrentLocation is null");
+
+        AxialCoordinates? hexPosition = FindAdjacentHex(baseLocation, spec.HexPlacement);
+        if (!hexPosition.HasValue)
+            throw new InvalidOperationException($"Failed to find hex position for dependent location '{locationId}' using strategy '{spec.HexPlacement}'");
+
+        Console.WriteLine($"[DependentLocation] Placed '{locationId}' at hex ({hexPosition.Value.Q}, {hexPosition.Value.R}) adjacent to base location '{baseLocation.Id}'");
+
         // Build LocationDTO
         LocationDTO dto = new LocationDTO
         {
@@ -1039,6 +1049,8 @@ public class SceneInstantiator
             Name = locationName,
             Description = locationDescription,
             VenueId = venueId,
+            Q = hexPosition.Value.Q,
+            R = hexPosition.Value.R,
             Type = "Room", // Default type for generated locations
             InitialState = spec.IsLockedInitially ? "Locked" : "Available",
             CanInvestigate = spec.CanInvestigate,
@@ -1119,17 +1131,17 @@ public class SceneInstantiator
 
     /// <summary>
     /// Find adjacent hex position for new location
-    /// Implements HexPlacementStrategy.Adjacent logic
+    /// Implements HexPlacementStrategy.Adjacent and SameVenue logic (both find unoccupied adjacent hex)
     /// </summary>
     private AxialCoordinates? FindAdjacentHex(Location baseLocation, HexPlacementStrategy strategy)
     {
         switch (strategy)
         {
             case HexPlacementStrategy.SameVenue:
-                // Same venue = no hex placement needed (intra-venue instant travel)
-                return null;
-
             case HexPlacementStrategy.Adjacent:
+                // Both strategies find unoccupied adjacent hex
+                // SameVenue = adjacent hex in SAME venue (intra-venue travel)
+                // Adjacent = adjacent hex (may be different venue if crossing venue boundary)
                 if (!baseLocation.HexPosition.HasValue)
                     throw new InvalidOperationException($"Base location '{baseLocation.Id}' has no HexPosition - cannot find adjacent hex");
 

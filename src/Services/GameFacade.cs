@@ -1672,9 +1672,14 @@ public class GameFacade
 
         if (dependentSpecs.HasResources)
         {
+            Console.WriteLine($"[DependentResources] Scene '{scene.Id}' has dependent resources");
+            Console.WriteLine($"[DependentResources]   Locations: {dependentSpecs.CreatedLocationIds.Count}, Items: {dependentSpecs.ItemsToAddToInventory.Count}");
+
             _contentGenerationFacade.CreateDynamicPackageFile(dependentSpecs.PackageJson, dependentSpecs.PackageId);
+            Console.WriteLine($"[DependentResources] Created dynamic package file: {dependentSpecs.PackageId}");
 
             _packageLoaderFacade.LoadDynamicPackage(dependentSpecs.PackageJson, dependentSpecs.PackageId);
+            Console.WriteLine($"[DependentResources] Loaded dynamic package via PackageLoader");
 
             Player player = context.Player;
             foreach (string itemId in dependentSpecs.ItemsToAddToInventory)
@@ -1683,18 +1688,30 @@ public class GameFacade
                 if (item != null)
                 {
                     player.Inventory.AddItem(item);
+                    Console.WriteLine($"[DependentResources] Added item to inventory: {item.Name} ({item.Id})");
                 }
             }
 
             foreach (string locationId in dependentSpecs.CreatedLocationIds)
             {
                 Location createdLocation = _gameWorld.GetLocation(locationId);
-                if (createdLocation != null && createdLocation.HexPosition.HasValue)
+                if (createdLocation != null)
                 {
-                    List<RouteOption> generatedRoutes = _hexRouteGenerator.GenerateRoutesForNewLocation(createdLocation);
-                    foreach (RouteOption route in generatedRoutes)
+                    Console.WriteLine($"[DependentResources] Created location: {createdLocation.Name} ({createdLocation.Id})");
+                    Console.WriteLine($"[DependentResources]   VenueId: {createdLocation.VenueId}, HexPosition: {(createdLocation.HexPosition.HasValue ? createdLocation.HexPosition.Value.ToString() : "NONE (intra-venue)")}");
+
+                    if (createdLocation.HexPosition.HasValue)
                     {
-                        _gameWorld.Routes.Add(route);
+                        List<RouteOption> generatedRoutes = _hexRouteGenerator.GenerateRoutesForNewLocation(createdLocation);
+                        foreach (RouteOption route in generatedRoutes)
+                        {
+                            _gameWorld.Routes.Add(route);
+                        }
+                        Console.WriteLine($"[DependentResources]   Generated {generatedRoutes.Count} hex routes");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[DependentResources]   No hex position - intra-venue location (travel via venue navigation)");
                     }
                 }
             }

@@ -36,6 +36,10 @@ namespace Wayfarer.Content.Parsers
                 hexMap.Hexes.Add(hex);
             }
 
+            // Validate hex grid integrity before building lookup
+            ValidateDuplicateCoordinates(hexMap);
+            ValidateDuplicateLocationIds(hexMap);
+
             // Build coordinate lookup dictionary
             hexMap.BuildLookup();
 
@@ -113,6 +117,87 @@ namespace Wayfarer.Content.Parsers
 
                 // Set Location.HexPosition (source of truth) from hex coordinates
                 location.HexPosition = hex.Coordinates;
+            }
+
+            // Validate all locations have hex positions after sync
+            ValidateAllLocationsHaveHexPositions(locations);
+        }
+
+        /// <summary>
+        /// Validate no duplicate hex coordinates exist in hex map
+        /// CRITICAL: Prevents coordinate lookup dictionary corruption
+        /// Called after parsing all hexes, before BuildLookup()
+        /// </summary>
+        private static void ValidateDuplicateCoordinates(HexMap hexMap)
+        {
+            HashSet<(int, int)> seenCoordinates = new HashSet<(int, int)>();
+
+            for (int i = 0; i < hexMap.Hexes.Count; i++)
+            {
+                Hex hex = hexMap.Hexes[i];
+                (int, int) coords = (hex.Coordinates.Q, hex.Coordinates.R);
+
+                if (seenCoordinates.Contains(coords))
+                {
+                    throw new InvalidDataException(
+                        $"Duplicate hex coordinate ({hex.Coordinates.Q}, {hex.Coordinates.R}) found in hex_grid.json. " +
+                        $"Each hex position must be unique. Check hexes array for duplicate Q/R values.");
+                }
+
+                seenCoordinates.Add(coords);
+            }
+        }
+
+        /// <summary>
+        /// Validate no duplicate locationIds exist across hexes
+        /// CRITICAL: Prevents same location appearing on multiple hexes (impossible spatial state)
+        /// Called after coordinate validation, before BuildLookup()
+        /// </summary>
+        private static void ValidateDuplicateLocationIds(HexMap hexMap)
+        {
+            Dictionary<string, AxialCoordinates> locationToHex = new Dictionary<string, AxialCoordinates>();
+
+            foreach (Hex hex in hexMap.Hexes)
+            {
+                if (string.IsNullOrEmpty(hex.LocationId))
+                    continue; // Wilderness hex, skip
+
+                if (locationToHex.ContainsKey(hex.LocationId))
+                {
+                    AxialCoordinates firstHex = locationToHex[hex.LocationId];
+                    throw new InvalidDataException(
+                        $"Location '{hex.LocationId}' referenced by multiple hexes: " +
+                        $"({firstHex.Q}, {firstHex.R}) and ({hex.Coordinates.Q}, {hex.Coordinates.R}). " +
+                        $"Each location must occupy exactly one hex position.");
+                }
+
+                locationToHex[hex.LocationId] = hex.Coordinates;
+            }
+        }
+
+        /// <summary>
+        /// Validate all locations have hex positions after sync
+        /// CRITICAL: Ensures travel system can reach all locations
+        /// Called after SyncLocationHexPositions assigns all positions
+        /// </summary>
+        private static void ValidateAllLocationsHaveHexPositions(List<Location> locations)
+        {
+            List<string> missingPositions = new List<string>();
+
+            foreach (Location location in locations)
+            {
+                if (!location.HexPosition.HasValue)
+                {
+                    missingPositions.Add(location.Id);
+                }
+            }
+
+            if (missingPositions.Count > 0)
+            {
+                throw new InvalidDataException(
+                    $"Locations without hex positions: {string.Join(", ", missingPositions)}. " +
+                    $"Every location must have a hex position defined in 02_hex_grid.json " +
+                    $"or generated at scene finalization for dependent locations.");
             }
         }
     }

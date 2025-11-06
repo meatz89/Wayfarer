@@ -57,180 +57,21 @@ public static class GameWorldInitializer
         SceneInstanceFacade sceneInstanceFacade =
             new SceneInstanceFacade(instantiator, gameWorld);
 
-        // Find all starter templates
+        // TODO: Starter scene spawning moved to GameFacade (proper orchestration layer)
+        // GameWorldInitializer should NOT spawn scenes - it lacks orchestration dependencies
+        // (ContentGenerationFacade, PackageLoaderFacade, HexRouteGenerator)
+        // Starter scenes will be spawned via GameFacade.SpawnStarterScenes() after initialization completes
+
+        // Find all starter templates (for logging only)
         List<SceneTemplate> starterTemplates = gameWorld.SceneTemplates.Where(t => t.IsStarter).ToList();
 
-        Console.WriteLine($"[Init] Found {starterTemplates.Count} starter templates");
+        Console.WriteLine($"[Init] Found {starterTemplates.Count} starter templates (spawning deferred to GameFacade)");
         foreach (SceneTemplate t in starterTemplates)
         {
             Console.WriteLine($"  - {t.Id} (PlacementFilter: {t.PlacementFilter?.PlacementType})");
         }
-
-        foreach (SceneTemplate template in starterTemplates)
-        {
-            // Build spawn reward for starter scene
-            // Starter scenes use SIMPLE placement: first matching entity from filter
-            SceneSpawnReward starterSpawn = new SceneSpawnReward
-            {
-                SceneTemplateId = template.Id,
-                PlacementRelation = DeterminePlacementRelation(template),
-                SpecificPlacementId = FindStarterPlacement(template, gameWorld),
-                DelayDays = 0 // Starter content spawns immediately
-            };
-
-            // Build minimal context for starter spawning
-            SceneSpawnContext context = BuildStarterContext(starterSpawn, gameWorld);
-
-            if (context != null)
-            {
-                Scene starterScene = sceneInstanceFacade.CreateProvisionalScene(template, starterSpawn, context);
-
-                (Scene finalizedScene, DependentResourceSpecs _) = sceneInstanceFacade.FinalizeScene(starterScene.Id, context);
-            }
-        }
     }
 
-    /// <summary>
-    /// Determine PlacementRelation from template's PlacementFilter
-    /// Simple implementation: Use SpecificPlacement based on filter's placementType
-    /// </summary>
-    private static PlacementRelation DeterminePlacementRelation(SceneTemplate template)
-    {
-        if (template.PlacementFilter == null)
-            return PlacementRelation.SpecificLocation; // Default to location
-
-        string placementType = template.PlacementFilter.PlacementType.ToString().ToLowerInvariant();
-
-        return placementType switch
-        {
-            "location" => PlacementRelation.SpecificLocation,
-            "npc" => PlacementRelation.SpecificNPC,
-            "route" => PlacementRelation.SpecificRoute,
-            _ => PlacementRelation.SpecificLocation
-        };
-    }
-
-    /// <summary>
-    /// Find concrete placement entity for starter Scene
-    /// Evaluates PlacementFilter criteria: personality, bond thresholds, tags
-    /// Returns first matching entity that satisfies all filter conditions
-    /// </summary>
-    private static string FindStarterPlacement(SceneTemplate template, GameWorld gameWorld)
-    {
-        if (template.PlacementFilter == null)
-        {
-            // No filter: use first available entity
-            return gameWorld.Locations.FirstOrDefault()?.Id;
-        }
-
-        PlacementFilter filter = template.PlacementFilter;
-        string placementType = filter.PlacementType.ToString().ToLowerInvariant();
-        Player player = gameWorld.GetPlayer();
-
-        switch (placementType)
-        {
-            case "location":
-                // Filter locations by PlacementFilter criteria
-                Location matchingLocation = gameWorld.Locations.FirstOrDefault(location =>
-                {
-                    // Check location properties (if specified)
-                    if (filter.LocationProperties != null && filter.LocationProperties.Count > 0)
-                    {
-                        // Location must have ALL specified properties
-                        foreach (LocationPropertyType requiredProp in filter.LocationProperties)
-                        {
-                            if (!location.LocationProperties.Contains(requiredProp))
-                                return false;
-                        }
-                    }
-
-                    return true;
-                });
-
-                return matchingLocation?.Id;
-
-            case "npc":
-                // Filter NPCs by PlacementFilter criteria
-                NPC matchingNPC = gameWorld.NPCs.FirstOrDefault(npc =>
-                {
-                    // Check personality type (if specified)
-                    if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
-                    {
-                        if (!filter.PersonalityTypes.Contains(npc.PersonalityType))
-                            return false;
-                    }
-
-                    // Check bond thresholds (BondStrength stored directly on NPC)
-                    int currentBond = npc.BondStrength;
-                    if (filter.MinBond.HasValue && currentBond < filter.MinBond.Value)
-                        return false;
-                    if (filter.MaxBond.HasValue && currentBond > filter.MaxBond.Value)
-                        return false;
-
-                    // NPC tags check removed - NPCs don't have Tags property in current architecture
-                    // TODO: Add Tags property to NPC if needed for future PlacementFilter scenarios
-
-                    return true;
-                });
-
-                return matchingNPC?.ID;
-
-            case "route":
-                return gameWorld.Routes.FirstOrDefault()?.Id;
-
-            default:
-                return gameWorld.Locations.FirstOrDefault()?.Id;
-        }
-    }
-
-    /// <summary>
-    /// Build SceneSpawnContext for starter Scene spawning
-    /// Resolves placement entity from ID
-    /// </summary>
-    private static SceneSpawnContext BuildStarterContext(SceneSpawnReward spawn, GameWorld gameWorld)
-    {
-        SceneSpawnContext context = new SceneSpawnContext
-        {
-            Player = gameWorld.GetPlayer(),
-            CurrentSituation = null // Starter scenes spawn independent of Situations
-        };
-
-        switch (spawn.PlacementRelation)
-        {
-            case PlacementRelation.SpecificLocation:
-                Location location = gameWorld.Locations.FirstOrDefault(l => l.Id == spawn.SpecificPlacementId);
-                if (location == null) return null;
-
-                context.CurrentLocation = location; // Location is source of truth
-                break;
-
-            case PlacementRelation.SpecificNPC:
-                NPC npc = gameWorld.NPCs.FirstOrDefault(n => n.ID == spawn.SpecificPlacementId);
-                if (npc == null) return null;
-                context.CurrentNPC = npc;
-
-                // Derive Location from NPC's Location property (set by NPCParser during parsing)
-                if (npc.Location != null)
-                {
-                    context.CurrentLocation = npc.Location; // Location is source of truth
-                }
-                break;
-
-            case PlacementRelation.SpecificRoute:
-                RouteOption route = gameWorld.Routes.FirstOrDefault(r => r.Id == spawn.SpecificPlacementId);
-                if (route == null) return null;
-                context.CurrentRoute = route;
-
-                if (route.OriginLocation != null)
-                {
-                    context.CurrentLocation = route.OriginLocation;
-                }
-                break;
-
-            default:
-                return null;
-        }
-
-        return context;
-    }
+    // Helper methods for starter scene spawning REMOVED
+    // Starter scene spawning will be implemented in GameFacade with proper orchestration
 }
