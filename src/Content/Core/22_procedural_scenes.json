@@ -63,8 +63,7 @@
           },
           "combinationLogic": "AND"
         },
-        "sceneArchetypeId": "single_situation",
-        "serviceType": "negotiation"
+        "sceneArchetypeId": "single_negotiation"
       },
       {
         "id": "guard_checkpoint_passage",
@@ -121,8 +120,7 @@
           },
           "combinationLogic": "AND"
         },
-        "sceneArchetypeId": "single_situation",
-        "serviceType": "confrontation"
+        "sceneArchetypeId": "single_confrontation"
       },
       {
         "id": "trade_route_dispute",
@@ -178,8 +176,7 @@
           },
           "combinationLogic": "AND"
         },
-        "sceneArchetypeId": "single_situation",
-        "serviceType": "confrontation"
+        "sceneArchetypeId": "single_confrontation"
       },
       {
         "id": "missing_goods_inquiry",
@@ -232,8 +229,7 @@
           },
           "combinationLogic": "AND"
         },
-        "sceneArchetypeId": "single_situation",
-        "serviceType": "investigation"
+        "sceneArchetypeId": "single_investigation"
       },
       {
         "id": "innkeeper_service_request",
@@ -289,8 +285,7 @@
           },
           "combinationLogic": "AND"
         },
-        "sceneArchetypeId": "single_situation",
-        "serviceType": "service_transaction"
+        "sceneArchetypeId": "single_service_transaction"
       },
       {
         "id": "restricted_area_entrance",
@@ -344,8 +339,7 @@
           },
           "combinationLogic": "AND"
         },
-        "sceneArchetypeId": "single_situation",
-        "serviceType": "access_control"
+        "sceneArchetypeId": "single_access_control"
       }
     ]
   }

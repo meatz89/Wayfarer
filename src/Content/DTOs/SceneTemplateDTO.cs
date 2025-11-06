@@ -83,11 +83,27 @@ public class SceneTemplateDTO
     public bool IsForced { get; set; } = false;
 
     /// <summary>
-    /// REQUIRED scene archetype ID for procedural multi-situation generation
+    /// Scene archetype ID for procedural scene generation
     /// SceneArchetypeCatalog generates complete SituationTemplates array at PARSE TIME
-    /// Valid values: "service_with_location_access", "transaction_sequence", "gatekeeper_sequence", "consequence_reflection", "inn_crisis_escalation"
-    /// HIGHLANDER ENFORCEMENT: ALL scenes must reference a scene archetype - hand-authored situationTemplates arrays are not allowed
-    /// PARSE-TIME ONLY: SceneArchetypeCatalog called during parsing, never at runtime
+    /// REQUIRED for all scenes - defines both structure and content
+    ///
+    /// Multi-situation archetypes (2-4 situations):
+    ///   - "service_with_location_access": 4-situation service arc (negotiate→access→service→depart)
+    ///   - "transaction_sequence": 3-situation trade arc (browse→negotiate→complete)
+    ///   - "gatekeeper_sequence": 2-situation authority arc (confront→pass)
+    ///   - "inn_crisis_escalation": 4-situation escalating conflict
+    ///
+    /// Single-situation archetypes (1 situation with 4-choice pattern):
+    ///   - "single_negotiation": Diplomatic trade/bargaining
+    ///   - "single_confrontation": Authority challenge/dominance
+    ///   - "single_investigation": Analytical puzzle/discovery
+    ///   - "single_social_maneuvering": Rapport building/manipulation
+    ///   - "single_crisis": Emergency response/decisive action
+    ///   - "single_service_transaction": Simple service request
+    ///   - "consequence_reflection": Consequence acknowledgment
+    ///
+    /// Scene archetype defines WHAT the scene contains (design)
+    /// PlacementFilter defines WHERE/WHEN it appears (configuration)
     /// </summary>
     public string SceneArchetypeId { get; set; }
 

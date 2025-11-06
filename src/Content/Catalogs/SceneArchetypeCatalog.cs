@@ -62,7 +62,17 @@ public static class SceneArchetypeCatalog
             "gatekeeper_sequence" => GenerateGatekeeperSequence(tier, context),
             "consequence_reflection" => GenerateConsequenceReflection(tier, context),
             "inn_crisis_escalation" => GenerateInnCrisisEscalation(tier, context),
-            _ => throw new InvalidDataException($"Unknown scene archetype ID: '{archetypeId}'. Valid archetypes: service_with_location_access, transaction_sequence, gatekeeper_sequence, consequence_reflection, inn_crisis_escalation")
+
+            // SINGLE-SITUATION SCENE ARCHETYPES (Standalone pattern, one situation)
+            "single_negotiation" => GenerateSingleSituationScene("negotiation", tier, context, "negotiation", "diplomatic"),
+            "single_confrontation" => GenerateSingleSituationScene("confrontation", tier, context, "authority_challenge", "tense"),
+            "single_investigation" => GenerateSingleSituationScene("investigation", tier, context, "discovery", "analytical"),
+            "single_social_maneuvering" => GenerateSingleSituationScene("social_maneuvering", tier, context, "social_navigation", "subtle"),
+            "single_crisis" => GenerateSingleSituationScene("crisis", tier, context, "emergency", "urgent"),
+            "single_service_transaction" => GenerateSingleSituationScene("service_transaction", tier, context, "service_request", "transactional"),
+            "single_access_control" => GenerateSingleSituationScene("access_control", tier, context, "restricted_access", "authoritative"),
+
+            _ => throw new InvalidDataException($"Unknown scene archetype ID: '{archetypeId}'. Valid archetypes: service_with_location_access, transaction_sequence, gatekeeper_sequence, consequence_reflection, inn_crisis_escalation, single_negotiation, single_confrontation, single_investigation, single_social_maneuvering, single_crisis, single_service_transaction, single_access_control")
         };
     }
 
@@ -756,6 +766,61 @@ public static class SceneArchetypeCatalog
         return new SceneArchetypeDefinition
         {
             SituationTemplates = situations,
+            SpawnRules = spawnRules
+        };
+    }
+
+    /// <summary>
+    /// SHARED HELPER: Generate single-situation scene from situation archetype
+    ///
+    /// Pattern: Standalone (one situation, no transitions)
+    /// Used by: All single_* scene archetypes
+    ///
+    /// This method wraps a situation archetype in scene archetype structure.
+    /// Scene archetype DEFINES which situation archetype to use (design decision).
+    /// JSON authors select scene archetype name, not situation archetype (configuration).
+    ///
+    /// Following HIGHLANDER principle: Scene archetype ID encodes BOTH structure (one situation)
+    /// AND content (which situation archetype). No parameterization from JSON.
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateSingleSituationScene(
+        string situationArchetypeId,
+        int tier,
+        GenerationContext context,
+        string themeContext,
+        string tone)
+    {
+        string situationId = $"single_{situationArchetypeId}";
+
+        SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(situationArchetypeId);
+        List<ChoiceTemplate> choices = SituationArchetypeCatalog.GenerateChoiceTemplates(archetype, situationId);
+
+        SituationTemplate situation = new SituationTemplate
+        {
+            Id = situationId,
+            Type = SituationType.Normal,
+            NarrativeTemplate = null,
+            ChoiceTemplates = choices,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = tone,
+                Theme = themeContext,
+                Context = situationArchetypeId,
+                Style = "standard"
+            }
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Standalone,
+            InitialSituationId = situationId,
+            Transitions = new List<SituationTransition>()
+        };
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = new List<SituationTemplate> { situation },
             SpawnRules = spawnRules
         };
     }

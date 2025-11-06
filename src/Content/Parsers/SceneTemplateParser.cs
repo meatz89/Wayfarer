@@ -61,15 +61,13 @@ public class SceneTemplateParser
             }
         }
 
-        // SCENE ARCHETYPE GENERATION: If sceneArchetypeId present, generate complete multi-situation structure from catalogue
-        // HIGHLANDER ENFORCEMENT: sceneArchetypeId is REQUIRED
-        // ALL scenes must use archetype-driven generation
-        // NO hand-authored situationTemplates arrays allowed
+        // SCENE ARCHETYPE GENERATION: All scenes use sceneArchetypeId (HIGHLANDER: ONE path)
+        // Scene archetype defines BOTH structure (how many situations) AND content (which situation types)
+        // NO special handling for Standalone vs Multi-situation - catalogue handles all variation
         if (string.IsNullOrEmpty(dto.SceneArchetypeId))
-            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required 'sceneArchetypeId'. All scenes must reference a scene archetype. Hand-authored situationTemplates arrays are not allowed.");
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required 'sceneArchetypeId'. All scenes must reference a scene archetype.");
 
-        // PARSE-TIME SCENE ARCHETYPE GENERATION
-        Console.WriteLine($"[SceneArchetypeGeneration] Generating multi-situation structure for SceneTemplate '{dto.Id}' using archetype '{dto.SceneArchetypeId}'");
+        Console.WriteLine($"[SceneArchetypeGeneration] Generating scene '{dto.Id}' using archetype '{dto.SceneArchetypeId}'");
 
         // Resolve entity IDs from placementFilter for context-aware generation
         // NPC can be null for location-only scenes (consequence, environmental, etc.)
@@ -873,6 +871,42 @@ public class SceneTemplateParser
             "crisis" => "Flee the situation",
             _ => "Accept poor outcome"
         };
+    }
+
+    /// <summary>
+    /// Generate single SituationTemplate from situation archetype
+    /// Called for Standalone scenes that need ONE situation with 4-choice pattern
+    /// Returns SituationTemplate with choices generated from SituationArchetypeCatalog
+    /// </summary>
+    private SituationTemplate GenerateSingleSituationFromArchetype(string situationArchetypeId, string sceneTemplateId, int tier)
+    {
+        string situationId = $"{sceneTemplateId}_situation";
+
+        Console.WriteLine($"[SingleSituationGeneration] Generating situation '{situationId}' from archetype '{situationArchetypeId}'");
+
+        // Generate 4 choices from archetype catalogue
+        List<ChoiceTemplate> choices = GenerateChoiceTemplatesFromArchetype(situationArchetypeId, sceneTemplateId, situationId);
+
+        // Create situation template with generated choices
+        SituationTemplate template = new SituationTemplate
+        {
+            Id = situationId,
+            Type = SituationType.Normal,
+            NarrativeTemplate = null, // AI generates from hints
+            ChoiceTemplates = choices,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "neutral",
+                Theme = situationArchetypeId,
+                Context = "standalone_situation",
+                Style = "balanced"
+            }
+        };
+
+        Console.WriteLine($"[SingleSituationGeneration] Created SituationTemplate '{situationId}' with {choices.Count} choices");
+
+        return template;
     }
 
     /// <summary>
