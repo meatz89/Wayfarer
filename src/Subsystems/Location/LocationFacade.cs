@@ -732,6 +732,7 @@ public class LocationFacade
 
         // Get NPCs at spot
         List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot.Id, currentTime);
+        Console.WriteLine($"[LocationFacade.BuildNPCsWithSituations] Found {npcsAtSpot.Count} NPCs at '{spot.Id}' during {currentTime}");
 
         // Build SIMPLE NPC cards for "Look Around" view
         // NPCs ALWAYS visible (physical presence), button conditional on scene availability

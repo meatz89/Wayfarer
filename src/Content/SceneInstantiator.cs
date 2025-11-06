@@ -215,6 +215,7 @@ public class SceneInstantiator
 
         // Set CurrentSituationId to first Situation ID
         scene.CurrentSituationId = scene.SituationIds.First();
+        Console.WriteLine($"[SceneInstantiator] Set CurrentSituationId = '{scene.CurrentSituationId}' for scene '{scene.Id}'");
 
         // PLACEHOLDER REPLACEMENT: Convert template text to concrete narrative
         scene.DisplayName = PlaceholderReplacer.ReplaceAll(scene.DisplayName, context, _gameWorld);
@@ -237,6 +238,7 @@ public class SceneInstantiator
 
         // PHASE 1.4: Change state to Active (no collection movement needed - unified storage)
         scene.State = SceneState.Active;
+        Console.WriteLine($"[SceneInstantiator] Scene '{scene.Id}' finalized successfully - State: {scene.State}, CurrentSituationId: {scene.CurrentSituationId}, SituationCount: {scene.SituationIds.Count}");
 
         return new SceneFinalizationResult(scene, dependentSpecs);
     }

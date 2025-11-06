@@ -137,6 +137,12 @@ public class NPCRepository
         _debugLogger?.LogNPCActivity("GetNPCsForLocationAndTime", null,
             $"Looking for NPCs at location '{LocationId}' during {currentTime}");
 
+        Console.WriteLine($"[NPCRepository] Checking {npcs.Count} NPCs for location '{LocationId}'");
+        foreach (NPC npc in npcs)
+        {
+            Console.WriteLine($"[NPCRepository]   NPC '{npc.Name}' (ID={npc.ID}) - Location: {(npc.Location != null ? $"'{npc.Location.Id}'" : "NULL")}");
+        }
+
         List<NPC> npcsAtLocation = npcs.Where(n => n.Location?.Id == LocationId).ToList();
 
         // Apply visibility filtering

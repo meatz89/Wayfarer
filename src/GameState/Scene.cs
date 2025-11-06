@@ -209,9 +209,12 @@ public class Scene
     /// <returns>Routing decision for UI (ContinueInScene, ExitToWorld, or SceneComplete)</returns>
     public SceneRoutingDecision AdvanceToNextSituation(string completedSituationId, GameWorld gameWorld)
     {
+        Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' advancing from situation '{completedSituationId}'");
+
         if (SpawnRules == null || SpawnRules.Transitions == null || SpawnRules.Transitions.Count == 0)
         {
             // No transitions defined - scene complete after first situation
+            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' has no transitions - marking as complete");
             CurrentSituationId = null;
             State = SceneState.Completed;
             return SceneRoutingDecision.SceneComplete;
@@ -230,13 +233,17 @@ public class Scene
 
             // Update CurrentSituationId
             CurrentSituationId = transition.DestinationSituationId;
+            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' advanced to situation '{CurrentSituationId}'");
 
             // Compare contexts to determine routing
-            return CompareContexts(completedSituation, nextSituation);
+            SceneRoutingDecision decision = CompareContexts(completedSituation, nextSituation);
+            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' routing decision: {decision}");
+            return decision;
         }
         else
         {
             // No valid transition - scene complete
+            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' has no valid transition - marking as complete");
             CurrentSituationId = null;
             State = SceneState.Completed;
             return SceneRoutingDecision.SceneComplete;
@@ -324,15 +331,26 @@ public class Scene
     /// <returns>True if scene should resume at this context</returns>
     public bool ShouldActivateAtContext(string locationId, string npcId, GameWorld gameWorld)
     {
+        Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' checking activation at location '{locationId}', npc '{npcId}'");
+
         if (State != SceneState.Active)
+        {
+            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - State is {State}, not Active");
             return false;
+        }
 
         if (string.IsNullOrEmpty(CurrentSituationId))
+        {
+            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - CurrentSituationId is null or empty");
             return false;
+        }
 
         Situation currentSituation = gameWorld.Situations.FirstOrDefault(s => s.Id == CurrentSituationId);
         if (currentSituation == null || currentSituation.Template == null)
+        {
+            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - Cannot find Situation '{CurrentSituationId}' or template is null");
             return false;
+        }
 
         // MARKER RESOLUTION: Use resolved IDs if present (self-contained scenes)
         // Resolved IDs populated during finalization for markers like "generated:private_room"
@@ -340,14 +358,23 @@ public class Scene
         string requiredLocationId = currentSituation.ResolvedRequiredLocationId ?? currentSituation.Template.RequiredLocationId;
         string requiredNpcId = currentSituation.ResolvedRequiredNpcId ?? currentSituation.Template.RequiredNpcId;
 
+        Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' requires location '{requiredLocationId}', npc '{requiredNpcId}' | Player at '{locationId}', '{npcId}'");
+
         // Check location match
         if (requiredLocationId != locationId)
+        {
+            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - Location mismatch");
             return false;
+        }
 
         // Check NPC match (both null = match, both non-null = compare values)
         if (requiredNpcId != npcId)
+        {
+            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - NPC mismatch");
             return false;
+        }
 
+        Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' ACTIVATED - All conditions met!");
         return true;
     }
 
