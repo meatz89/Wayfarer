@@ -490,9 +490,15 @@ public class ObligationActivity
             return;
         }
 
-        // Build SceneSpawnContext based on placement relation
-        // Obligation rewards use Specific* placement, so resolve entity from SpecificPlacementId
-        SceneSpawnContext context = BuildContextForObligationReward(sceneSpawn);
+        Player player = _gameWorld.GetPlayer();
+
+        SceneSpawnContext context = SceneSpawnContextBuilder.BuildContext(
+            _gameWorld,
+            player,
+            sceneSpawn.PlacementRelation,
+            sceneSpawn.SpecificPlacementId,
+            null);
+
         if (context == null)
         {
             _messageSystem.AddSystemMessage(
@@ -511,61 +517,6 @@ public class ObligationActivity
             SystemMessageTypes.Warning);
     }
 
-    /// <summary>
-    /// Build SceneSpawnContext for Obligation rewards
-    /// Obligation rewards use SpecificLocation/SpecificNPC/SpecificRoute placement
-    /// Resolve entities from SpecificPlacementId
-    /// </summary>
-    private SceneSpawnContext BuildContextForObligationReward(SceneSpawnReward sceneSpawn)
-    {
-        SceneSpawnContext context = new SceneSpawnContext
-        {
-            CurrentSituation = null // Obligation rewards spawn independent of Situations
-        };
-
-        switch (sceneSpawn.PlacementRelation)
-        {
-            case PlacementRelation.SpecificLocation:
-                Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == sceneSpawn.SpecificPlacementId);
-                if (location == null) return null;
-
-                context.CurrentLocation = location; // Location is source of truth
-                break;
-
-            case PlacementRelation.SpecificNPC:
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == sceneSpawn.SpecificPlacementId);
-                if (npc == null) return null;
-                context.CurrentNPC = npc;
-
-                string npcLocationId = npc.WorkLocationId ?? npc.HomeLocationId;
-                if (!string.IsNullOrEmpty(npcLocationId))
-                {
-                    Location npcLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == npcLocationId);
-                    if (npcLocation != null)
-                    {
-                        context.CurrentLocation = npcLocation;
-                    }
-                }
-                break;
-
-            case PlacementRelation.SpecificRoute:
-                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == sceneSpawn.SpecificPlacementId);
-                if (route == null) return null;
-                context.CurrentRoute = route;
-
-                if (route.OriginLocation != null)
-                {
-                    context.CurrentLocation = route.OriginLocation;
-                }
-                break;
-
-            default:
-                // Obligation rewards should ONLY use Specific* placement
-                return null;
-        }
-
-        return context;
-    }
 
     /// <summary>
     /// Get human-readable placement description for system message

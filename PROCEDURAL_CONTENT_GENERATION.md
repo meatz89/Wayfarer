@@ -431,40 +431,7 @@ The architecture separates generic situation patterns from scenario-specific rew
 
 These generic choices define cost/requirement structure but not rewards. The archetype doesn't know what unlocks - that's scenario-specific.
 
-**SceneArchetypeCatalog**: Generates scenario-specific scenes. Method `GenerateServiceWithLocationAccess` calls SituationArchetypeCatalog to get generic choices, then enriches them with scenario rewards:
-
-```
-// Get generic negotiation choices
-var genericChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(SituationArchetype.Negotiation);
-
-// Enrich with lodging-specific rewards
-var enrichedChoices = genericChoices.Select(choice => {
-  if (choice.Id.EndsWith("_rapport") || choice.Id.EndsWith("_money")) {
-    // Stat-gated and money choices grant unlock immediately
-    return new ChoiceTemplate {
-      ...choice properties...,
-      RewardTemplate = new ChoiceReward {
-        LocationsToUnlock = new List<string> { "generated:private_room" },
-        ItemIds = new List<string> { "generated:room_key" }
-      }
-    };
-  }
-  else if (choice.Id.EndsWith("_challenge")) {
-    // Challenge choice grants unlock only on success
-    return new ChoiceTemplate {
-      ...choice properties...,
-      OnSuccessReward = new ChoiceReward {
-        LocationsToUnlock = new List<string> { "generated:private_room" },
-        ItemIds = new List<string> { "generated:room_key" }
-      }
-    };
-  }
-  else {
-    // Fallback choice grants nothing
-    return choice;
-  }
-}).ToList();
-```
+**SceneArchetypeCatalog**: Generates scenario-specific scenes. Method `GenerateServiceWithLocationAccess` calls SituationArchetypeCatalog to get generic choices, then enriches them with scenario rewards.
 
 Enrichment creates NEW ChoiceTemplate instances with populated reward properties. Never mutates returned objects - catalogues generate immutable structures.
 
@@ -507,6 +474,48 @@ Player can have multiple active scenes simultaneously. UI queries GameWorld.Scen
 **CleanupCompleted(scene):** Scene completed. Calls GrantTags(player, scene.GrantedTags). Removes scene from GameWorld.Scenes. Archives scene metadata for replay/debugging.
 
 **CleanupAbandoned(scene):** Scene abandoned. No tag grants. Removes scene from GameWorld. Calls ResourceCleanup() to remove dynamically-created locations/items if scene created them.
+
+### Scene Spawning Context
+
+SceneSpawnContext is a data structure carrying information about WHERE and HOW a scene should spawn. Context building is orchestration-level logic centralized in SceneSpawnContextBuilder utility (HIGHLANDER principle: one concept, one implementation).
+
+**Context Properties**:
+- **Player**: Player entity (always required)
+- **CurrentLocation**: Location where scene takes place (required for dependent location generation)
+- **CurrentNPC**: NPC involved in scene (optional, depends on placement type)
+- **CurrentRoute**: Travel route where scene occurs (optional, for journey encounters)
+- **CurrentSituation**: Parent situation that triggered spawn (optional, null for starter/procedural scenes)
+
+**Context Purposes**:
+- Resolves placement ambiguity (which NPC? which location?)
+- Provides spatial anchoring for dependent resource generation (VenueIdSource.SameAsBase uses context.CurrentLocation.VenueId)
+- Enables situational validation (can this scene spawn here?)
+- Carries state for narrative customization
+
+**SceneSpawnContextBuilder.BuildContext()**: Static utility method accepting GameWorld, Player, PlacementRelation, SpecificPlacementId, and optional CurrentSituation. Returns fully populated SceneSpawnContext through entity resolution switch pattern:
+
+**SpecificNPC Resolution**:
+1. Find NPC entity by ID in GameWorld.NPCs
+2. Use NPC.Location (object reference resolved at parse time from locationId)
+3. Set both CurrentNPC and CurrentLocation in context
+4. Log warning if NPC exists but Location is null
+
+**SpecificLocation Resolution**:
+1. Find Location entity by ID
+2. Set CurrentLocation in context
+
+**SpecificRoute Resolution**:
+1. Find Route entity by ID
+2. Set CurrentRoute in context
+3. If route has OriginLocation, set CurrentLocation as well
+4. Enables contexts needing both route and spatial anchoring
+
+**Generic/Same* Resolution**:
+- Return context with only Player set
+- Let SceneInstantiator handle placement resolution from filters
+- Relies on categorical filtering rather than concrete binding
+
+**HIGHLANDER Enforcement**: SceneSpawnContextBuilder is the SOLE implementation of context building logic. No duplicate context building allowed. Any code needing SceneSpawnContext calls this utility. Six previous duplicate implementations (GameFacade.SpawnStarterScenes, ObligationActivity.BuildContextForObligationReward, RewardApplicationService, SceneFacade, SpawnFacade, tests) consolidated into single shared utility. This prevents inconsistency, reduces maintenance burden, simplifies testing.
 
 ### Parse-Time Catalogue Pattern
 
@@ -1426,14 +1435,6 @@ Tags enable dependency-inverted progression. Scenes grant/require tags instead o
 
 All resource costs calculated via consistent formulas. Prevents economic broken-ness.
 
-**Base Cost Formula:** `Cost = ArchetypeBase + (DifficultyModifier * DifficultyScalar) + LocationPremium`. Service lodging base=10 coins. Difficulty +2 (premium room). Scalar=2. Location premium +3 (luxury inn). Total=10 + 4 + 3 = 17 coins.
-
-**Restoration Formula:** `RestoreAmount = BaseRestore * ComfortMultiplier * DangerMultiplier`. Rest stamina base=80. Comfort premium=1.5x. Danger safe=1.0x. Total=80 * 1.5 * 1.0 = 120 stamina restored.
-
-**Time Cost Formula:** `TimeCost = BaseTime * ServiceTier * UrgencyMultiplier`. Rest base=6 segments. Service standard=1.0x. Urgency none=1.0x. Total=6 segments. If urgent=2.0x, total=12 segments (rushing takes longer, worse quality).
-
-**Item Value Formula:** `ItemWorth = BaseMaterial + CraftQualityBonus + Enchantment`. Simple key base=1. Quality standard+2. No enchant+0. Total=3 coin value. Lost key means replacing=3 coin cost.
-
 **Difficulty Scaling:** Difficulty modifier ranges -2 (very easy) to +4 (very hard). Each point adds (DifficultyScalar * modifier) to cost. Ensures harder challenges cost more resources, easier challenges cost less. Player makes strategic choice: attempt hard challenge with high cost, or find easier alternative.
 
 **Balance Validation:** Generation time, formulas verified to produce positive values. No negative costs, no zero costs (except free interactions). No overflow (max difficulty capped preventing astronomical costs). Comprehensive unit tests verify formula correctness across all difficulty ranges and property combinations.
@@ -1683,6 +1684,8 @@ The architecture enforces specific constraints preventing entire classes of bugs
 
 **HIGHLANDER at Field Level**: Scene archetype identification requires exactly ONE field: `sceneArchetypeId`. No alternative fields for special cases. Never `sceneArchetypeId` OR `situationArchetypeId` depending on archetype type. The presence of alternative identification fields signals architecture confusion. If different scene types need different identification mechanisms, the archetype system is wrong. Fix catalogues, not JSON schema.
 
+**HIGHLANDER for Context Building**: SceneSpawnContextBuilder is the SOLE implementation of context building logic. Never duplicate context resolution in facades, services, or tests. Any code needing SceneSpawnContext calls the shared utility. This prevents six duplicate implementations with inconsistent NPC→Location resolution behavior. Context building is orchestration-level logic (requires GameWorld queries) centralized in static utility accessible everywhere.
+
 **Why Parameterization Fails**: Making archetype selection a parameter (e.g., "standalone" archetype taking `situationArchetypeId` parameter) moves design decisions to configuration space. This creates:
 - Configuration creep (structure choices in JSON)
 - Catalogue bypass (parser calls SituationArchetypeCatalog directly)
@@ -1725,8 +1728,8 @@ This architecture supports procedural generation of complete multi-situation nar
 
 **Hex grid provides spatial foundation for all locations.** Every location occupies one hex using axial coordinates (Q, R). Venues are 7-hex clusters (center + 6 adjacent). Intra-venue movement between adjacent hexes instant and free. Inter-venue movement between non-adjacent hexes uses routes with resource costs. Location.HexPosition is core identity enabling movement system participation. Dependent locations get hex positions via FindAdjacentHex at creation time. Parser-JSON-Entity triangle complete: DTO embeds Q/R, parser reads coordinates, entity has HexPosition.
 
-**Design vs configuration separation maintains architectural clarity.** Design (structure, patterns, content) lives exclusively in catalogue code. Configuration (placement, timing, eligibility) lives exclusively in JSON data. Never blur this boundary. If JSON authors need structural choices, catalogues are incomplete. PlacementFilter determines WHERE scenes spawn. SpawnConditions determine WHEN scenes become eligible. Neither affects WHAT scenes contain.
+**Design vs configuration separation maintains architectural clarity.** Design (structure, patterns, content) lives exclusively in catalogue code. Configuration (placement, timing, eligibility) lives exclusively in JSON data. Never blur this boundary. If JSON authors need structural choices, catalogues are incomplete. PlacementFilter determines WHERE scenes spawn. SpawnConditions determine WHEN scenes become eligible. Neither affects WHAT scenes contain. SceneSpawnContextBuilder resolves placement into fully populated context (HIGHLANDER: single shared implementation, no duplication).
 
-**Parse-time generation eliminates runtime performance cost.** All catalogue calls occur at game initialization. Templates immutable after parse. Runtime queries pre-generated collections. Facades never import catalogues. This timing separation is sacred - breaking it introduces performance problems and architectural confusion.
+**Parse-time generation eliminates runtime performance cost.** All catalogue calls occur at game initialization. Templates immutable after parse. Runtime queries pre-generated collections. Facades never import catalogues. This timing separation is sacred - breaking it introduces performance problems and architectural confusion. Context building operates at runtime (entity resolution from GameWorld) using orchestration-level utility, distinct from parse-time catalogue pattern.
 
-**Reliability is paramount.** Pure generation core with zero dependencies enables isolated testing. Parse-time validation prevents structural errors from reaching runtime. Explicit contracts and state machines provide complete traceability. Comprehensive automated test suite (1000+ unit, 100+ integration, 20+ end-to-end tests) catches regressions immediately. Debug visualization tools enable rapid diagnosis. Atomic pipeline guarantees complete success or clean failure. LET IT CRASH philosophy surfaces problems immediately rather than masking with fallbacks. This system architecture ensures rock-solid procedural content generation where failure is not an option.
+**Reliability is paramount.** Pure generation core with zero dependencies enables isolated testing. Parse-time validation prevents structural errors from reaching runtime. Explicit contracts and state machines provide complete traceability. Comprehensive automated test suite (1000+ unit, 100+ integration, 20+ end-to-end tests) catches regressions immediately. Debug visualization tools enable rapid diagnosis. Atomic pipeline guarantees complete success or clean failure. LET IT CRASH philosophy surfaces problems immediately rather than masking with fallbacks. SceneSpawnContextBuilder fails fast with clear errors when entity resolution fails, forcing data quality fixes rather than silent null propagation. This system architecture ensures rock-solid procedural content generation where failure is not an option.

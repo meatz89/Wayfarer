@@ -1738,8 +1738,6 @@ public class GameFacade
             .Where(t => t.IsStarter)
             .ToList();
 
-        Console.WriteLine($"[StarterScenes] Found {starterTemplates.Count} starter templates to spawn");
-
         foreach (SceneTemplate template in starterTemplates)
         {
             PlacementRelation placementRelation = DeterminePlacementRelation(template.PlacementFilter);
@@ -1761,20 +1759,18 @@ public class GameFacade
                 DelayDays = 0
             };
 
-            SceneSpawnContext spawnContext = new SceneSpawnContext
-            {
-                Player = player,
-                CurrentSituation = null
-            };
+            SceneSpawnContext spawnContext = SceneSpawnContextBuilder.BuildContext(
+                _gameWorld,
+                player,
+                placementRelation,
+                specificPlacementId,
+                null);
 
-            Console.WriteLine($"[StarterScenes] Spawning '{template.Id}' (PlacementRelation: {placementRelation}, SpecificPlacementId: {specificPlacementId})");
+            if (spawnContext == null)
+                continue;
 
             Scene scene = SpawnSceneWithDynamicContent(template, spawnReward, spawnContext);
-
-            Console.WriteLine($"[StarterScenes] Spawned scene '{scene.Id}' successfully");
         }
-
-        Console.WriteLine($"[StarterScenes] Completed spawning {starterTemplates.Count} starter scenes");
     }
 
     /// <summary>

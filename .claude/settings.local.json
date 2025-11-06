@@ -101,7 +101,8 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:7000\" dotnet run:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:7100\" dotnet run:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:7100\" timeout 10 dotnet run:*)",
-      "Bash(dir /s /b *.json)"
+      "Bash(dir /s /b *.json)",
+      "WebFetch(domain:)"
     ],
     "deny": [],
     "ask": []

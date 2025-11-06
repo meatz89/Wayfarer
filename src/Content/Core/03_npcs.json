@@ -32,6 +32,8 @@
         "profession": "Warehouse Foreman",
         "venueId": "brass_bell_inn",
         "locationId": "common_room",
+        "workLocationId": "common_room",
+        "homeLocationId": "common_room",
         "description": "A warehouse foreman sitting at a corner table, looking for labor help with tonight's shipment. Direct, no-nonsense, pays fair for honest work.",
         "personality": "Straightforward and business-minded. Always needs capable hands. Values hard work over idle conversation.",
         "personalityType": "STEADFAST",
