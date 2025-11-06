@@ -304,7 +304,7 @@
           "r": -3,
           "terrain": "Road",
           "dangerLevel": 2,
-          "locationId": null,
+          "locationId": "mill_courtyard",
           "isDiscovered": false
         },
         {

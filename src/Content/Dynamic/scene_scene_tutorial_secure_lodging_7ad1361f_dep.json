@@ -1,7 +1,7 @@
 {
-  "packageId": "scene_scene_tutorial_secure_lodging_34abeb2c_dep",
+  "packageId": "scene_scene_tutorial_secure_lodging_7ad1361f_dep",
   "metadata": {
-    "name": "Scene scene_tutorial_secure_lodging_34abeb2c Dependent Resources",
+    "name": "Scene scene_tutorial_secure_lodging_7ad1361f Dependent Resources",
     "timestamp": "0001-01-01T00:00:00",
     "description": null,
     "author": "Scene System",
@@ -16,7 +16,7 @@
     "venues": null,
     "locations": [
       {
-        "id": "scene_tutorial_secure_lodging_34abeb2c_private_room",
+        "id": "scene_tutorial_secure_lodging_7ad1361f_private_room",
         "name": "Elena\u0027s Lodging Room",
         "type": "Room",
         "description": "A private room where Elena provides lodging services.",
@@ -60,7 +60,7 @@
     "pathCards": null,
     "items": [
       {
-        "id": "scene_tutorial_secure_lodging_34abeb2c_room_key",
+        "id": "scene_tutorial_secure_lodging_7ad1361f_room_key",
         "name": "Room Key",
         "initiativeCost": 1,
         "buyPrice": 0,

@@ -24,6 +24,14 @@
         "districtId": "town_center",
         "tier": 1,
         "locationType": "Market"
+      },
+      {
+        "id": "old_mill",
+        "name": "The Old Mill",
+        "description": "An abandoned mill on the outskirts of town. The waterwheel still turns slowly, creaking with age.",
+        "districtId": "town_outskirts",
+        "tier": 1,
+        "locationType": "Wilderness"
       }
     ],
     "locations": [
@@ -68,6 +76,21 @@
             "public",
             "commercial",
             "busy"
+          ]
+        },
+        "canInvestigate": false
+      },
+      {
+        "id": "mill_courtyard",
+        "venueId": "old_mill",
+        "name": "Mill Courtyard",
+        "description": "The courtyard outside the old mill. Overgrown paths lead to the mill entrance and surrounding areas.",
+        "properties": {
+          "base": [
+            "crossroads",
+            "public",
+            "quiet",
+            "outdoor"
           ]
         },
         "canInvestigate": false
