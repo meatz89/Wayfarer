@@ -52,6 +52,43 @@ The architecture separates concerns across three distinct timing phases. Each ti
 
 The conditional transition system operates at Tier 2 (scene advancement logic) but requires Tier 3 data (which choice selected, challenge outcome). This separation enables pure domain logic while accommodating runtime outcomes.
 
+### Design vs Configuration Separation
+
+The architecture enforces strict separation between what is DESIGNED (reusable patterns defined in code) and what is CONFIGURED (where/when patterns appear, defined in JSON).
+
+**Design Space (Catalogue Code)**:
+- Scene structure: how many situations, in what order
+- Situation content: which situation archetypes for each position
+- Flow patterns: transition logic (Linear, Branching, Standalone)
+- Resource dependencies: what locations/items scenes create
+- Choice patterns: 4-choice structure (stat-gated, money, challenge, fallback)
+
+Design decisions live in SceneArchetypeCatalog and SituationArchetypeCatalog. Content authors never make structural choices.
+
+**Configuration Space (JSON Data)**:
+- Placement filters: where scenes spawn (NPC personality, location properties, route terrain)
+- Spawn conditions: when scenes become eligible (player state, world state, time windows)
+- Entity targeting: which specific NPCs/locations (concrete IDs or categorical filters)
+- Spawn rules: frequency, cooldowns, exclusivity
+
+Configuration specifies WHERE and WHEN pre-designed patterns appear, never WHAT those patterns contain.
+
+**The Boundary**: If JSON authors need to make design decisions, the catalogue is incomplete. Create new archetypes rather than parameterizing existing ones.
+
+### Hex Grid Spatial Foundation
+
+The world exists on a hex grid using axial coordinates (Q, R). Every location occupies exactly one hex. This is architectural bedrock, not optional.
+
+**Venue Geometry**: A venue consists of one center hex plus six adjacent hexes (7-hex cluster). All locations sharing VenueId must be geometrically adjacent on the hex grid. This creates spatial coherence - locations in "The Silver Chalice Inn" venue are physically adjacent hexes forming a cluster.
+
+**Two Travel Systems**:
+- **Intra-venue**: Movement between adjacent hexes in same venue. Instant and free BECAUSE geometrically adjacent. LocationActionCatalog generates "Move to X" actions for adjacent locations.
+- **Inter-venue**: Movement between non-adjacent hexes in different venues. Requires routes, costs resources, takes time. Handled by route system.
+
+**Location Identity**: Hex position is as fundamental as location name. Without it, location cannot participate in movement, cannot have routes generated to it, cannot verify adjacency. Not "optional metadata" - core identity.
+
+**No Exceptions**: There are NO locations without hex positions in Wayfarer. Every location occupies one hex. "Intra-venue instant travel" describes movement BEHAVIOR (free, instant) not location STRUCTURE (no hex position). Movement is instant BECAUSE hexes are adjacent, not INSTEAD OF having hex positions.
+
 ---
 
 ## Architecture Implementation
@@ -60,11 +97,36 @@ The procedural content generation system implements property-driven generation p
 
 **Critical Success Factor:** Scene generation system operates as isolated, thoroughly tested subsystem. Pure generation core with zero game dependencies enables independent testing. Parse-time validation prevents invalid templates from reaching runtime. Comprehensive test suite (unit, integration, end-to-end) provides confidence in mechanical correctness. See System Robustness Architecture section for complete implementation strategy ensuring bulletproof reliability.
 
-### Working Scene Archetypes (6 Total)
+### Two-Level Archetype System
 
-**SceneArchetypeCatalog.cs** generates complete multi-situation structures at parse time using property queries. All property-driven (query NPC.Demeanor, Location.Services, etc).
+Procedural generation operates through two distinct archetype layers that compose to create complete scenes.
 
-### Multi-Scene NPC Display
+**Level 1: Scene Archetypes** (SceneArchetypeCatalog)
+- Purpose: Generate multi-situation STRUCTURES with transitions
+- Granularity: 1-4 situations per scene
+- Examples: `service_with_location_access` (4 situations), `transaction_sequence` (3 situations), `single_negotiation` (1 situation)
+- Responsibility: Defines HOW situations connect and flow
+- Decides: Which situation archetypes to use, transition patterns, dependent resources
+
+**Level 2: Situation Archetypes** (SituationArchetypeCatalog)
+- Purpose: Generate 4-CHOICE PATTERNS for individual situations
+- Granularity: 1 situation = 4 choices (stat-gated, money, challenge, fallback)
+- Examples: `negotiation`, `confrontation`, `investigation`, `social_maneuvering`, `crisis`, `service_transaction`
+- Responsibility: Defines HOW players interact with a single situation
+- Returns: Choice structure with costs, requirements, action types
+
+**Composition Pattern**: Scene archetypes call situation archetypes. SceneArchetypeCatalog.Generate() invokes SituationArchetypeCatalog.GetArchetype() to produce choices for each situation. The scene archetype DEFINES which situation archetypes appear and in what configuration.
+
+Example: `service_with_location_access` scene archetype internally decides:
+- Situation 1 uses `social_maneuvering` OR `service_transaction` (based on NPC personality)
+- Situation 2-4 are auto-progress (no choice archetype needed)
+- Linear transitions connect them
+
+The archetype ID encodes the complete pattern. No parameters. Scene identity IS its structure.
+
+### Scene Archetype Catalog Detail
+
+Twelve scene archetypes implemented. Six multi-situation, six single-situation. Each generates complete structure with mechanical orchestration.
 
 UI layer supports multiple concurrent scenes at single NPC. Query pattern changed from FirstOrDefault (single scene) to Where (all scenes). Each active scene renders as separate interaction button. Navigation routing includes (npcId, sceneId) tuple for direct scene lookup. Physical NPC presence always visible, interaction buttons conditional on scene availability.
 
@@ -77,6 +139,69 @@ SceneTemplate.CanSpawn(player, location) checks: player has all RequiredTags, pl
 SceneSpawnService.SpawnProcedural() queries eligible templates, passes to SpawnService with target entity references. SpawnService creates Scene instance with template + entities, marks Active.
 
 Completing scene calls GrantTagsToPlayer(scene.GrantedTags). Player.Tags list updated. Future scene spawns now match new tags. State-based progression without hardcoded chains.
+
+### PlacementFilter: Pure Configuration
+
+PlacementFilter determines WHERE scene templates spawn without affecting scene structure or content. Filters operate as pure eligibility checks examining entity properties.
+
+**NPC Filters**:
+- Personality types (Innkeeper, Merchant, Guard, Scholar, etc.)
+- Bond ranges (relationship thresholds)
+- Regional affiliation (Vallenmarch, Thornwood, etc.)
+- NPC-specific tags or states
+
+**Location Filters**:
+- Property types (Commercial, Residential, Wilderness, Sacred)
+- Settlement tiers (Urban, Rural, Remote)
+- Danger levels (Safe, Low, Medium, High, Extreme)
+- Available services (Lodging, Trade, Healing, etc.)
+- District or region membership
+
+**Route Filters**:
+- Terrain types (Road, Forest, Mountain, Desert)
+- Danger ratings (Peaceful, Contested, Hostile)
+- Travel tiers (Local, Regional, Continental)
+- Route state (Open, Restricted, Blocked)
+
+**Player State Filters**:
+- Required/forbidden states (Wounded, Energized, etc.)
+- Achievement gates (completed tutorials, story milestones)
+- Scale positions (reputation, faction standing)
+- Inventory requirements (must have/must not have items)
+
+**Critical Distinction**: PlacementFilter never affects what a scene IS, only where it appears. A `single_negotiation` scene has identical structure whether spawning at Mercantile NPC in city or Diplomatic NPC in wilderness. Only narrative hints and stat requirements adjust based on context properties.
+
+**JSON Authoring**: Content authors specify placement filters in scene template JSON. This is configuration space - choosing where pre-designed patterns appear.
+
+### SpawnConditions: Temporal Gates
+
+SpawnConditions determine WHEN scenes become eligible without affecting structure. These are pure eligibility checks examining temporal and state conditions.
+
+**Player State Conditions**:
+- Completed scenes (requires prior scene finished)
+- Choice history (player made specific past choices)
+- Stat thresholds (minimum/maximum stat values)
+- Inventory possession (specific items held)
+- Tag requirements (player has/lacks specific tags)
+
+**World State Conditions**:
+- Day ranges (scenes available days 5-10 only)
+- Time blocks (morning/afternoon/evening/night)
+- Weather conditions (clear/rain/storm)
+- Seasonal timing (spring/summer/autumn/winter)
+
+**Entity State Conditions**:
+- NPC bond levels (relationship must exceed threshold)
+- Location reputation (faction standing requirements)
+- Route travel counts (first visit vs repeat visits)
+- Entity-specific flags (NPC injured, location damaged)
+
+**Cooldown Management**:
+- Time since last spawn (prevent immediate respawning)
+- Completion count limits (once per playthrough vs repeatable)
+- Exclusivity constraints (cannot spawn if conflicting scene active)
+
+SpawnConditions gate access without changing what happens when scene spawns. They answer "is this the right time?" not "what should this scene do?"
 
 ### Entity Property-Driven Difficulty
 
@@ -119,13 +244,34 @@ Generator receives Spot object (if applicable). Queries:
 
 These properties drive: challenge difficulty, resource costs, granted items, narrative tone hints for AI. Same archetype + different properties = contextually appropriate variation.
 
-### Scene Self-Containment Strategy (CRITICAL DESIGN)
+### Scene Self-Containment Strategy
 
-Scene creation must not depend on pre-existing world content beyond base locations. When procedurally spawning "lodging at any inn", scene cannot assume room location or bed spot exists. Player might trigger scene at location never visited before. Dependency on pre-authored content breaks procedural scalability.
+Scene creation must not depend on pre-existing world content beyond base locations. When procedurally spawning "lodging at any inn", scene cannot assume room location exists. Player might trigger scene at location never visited before. Dependency on pre-authored content breaks procedural scalability.
 
-**Solution: Dynamic Location and Spot Creation.** Scene generation orchestrates multi-system pipeline: (1) ContentGenerationFacade creates JSON files for required locations/spots matching scene context, (2) PackageLoaderFacade parses JSON and creates Location entities in GameWorld, (3) SceneInstanceFacade references final GameWorld IDs. Scene spawns provisional until pipeline completes. Resources finalize before scene activation. Static content (base locations/npcs) loads at game start. Dynamic content (scene-specific locations/spots) created on-demand via facades.
+**Solution: Dynamic Location with Hex Placement**. Scene generation orchestrates multi-system pipeline creating spatially-positioned dependent locations:
 
-**Three Facade Architecture:**
+1. SceneInstantiator generates DependentLocationSpec with HexPlacementStrategy (SameVenue, Adjacent)
+2. BuildLocationDTO determines hex coordinates: queries base location hex position, finds unoccupied adjacent hex, embeds Q and R in LocationDTO
+3. ContentGenerationFacade converts DTO to JSON with hex coordinates
+4. PackageLoaderFacade parses JSON creating Location entity with HexPosition from embedded coordinates
+5. LocationActionCatalog generates intra-venue movement actions based on hex adjacency
+
+**Hex Placement Strategies**:
+- **SameVenue**: Find unoccupied adjacent hex within same venue cluster (7-hex boundary). Used for service locations maintaining venue coherence.
+- **Adjacent**: Find unoccupied adjacent hex regardless of venue boundary. Used when dependent location may cross venue edges.
+
+Both strategies use identical algorithm (find adjacent hex) - distinction is semantic intent, not implementation.
+
+**Critical Requirement**: Dependent locations MUST have hex positions. Cannot create locations without spatial presence. FindAdjacentHex validates unoccupied adjacent hex exists, throws exception if venue cluster is full. This enforces spatial constraint: venues have maximum 7 locations (center + 6 adjacent).
+
+**Parser-JSON-Entity Triangle for Hex Coordinates**:
+- **JSON**: LocationDTO includes Q and R properties (nullable integers) for embedded coordinates
+- **Parser**: LocationParser reads Q/R from DTO (if present) and assigns Location.HexPosition
+- **Entity**: Location has HexPosition (AxialCoordinates) enabling spatial queries and movement generation
+
+Static locations (from foundation JSON) get hex positions via HexParser.SyncLocationHexPositions (separate hex grid file). Dynamic locations (from scenes) get hex positions embedded in DTO. Both converge to same Location.HexPosition property - HIGHLANDER principle.
+
+**Three Facade Architecture**:
 - **ContentGenerationFacade:** Transforms typed specs into JSON files, knows file structure
 - **PackageLoaderFacade:** Parses JSON into GameWorld entities, knows entity creation
 - **SceneInstanceFacade:** Creates scene instances with entity references, knows scene lifecycle
@@ -159,7 +305,9 @@ Remaining situations (access, rest, depart) follow linear Always transitions. Ro
 
 **Tutorial Value**: Players learn strategic choice system. Safe options (rapport/money) have prerequisites. Risky option (haggle) universally available but uncertain. Fallback prevents soft-lock. Different paths produce same outcome (room access) through different resource expenditure (rapport/money/risk).
 
-Same archetype at different location with Marcus (Demeanor=Professional, Services=Bathing) would generate: challenge difficulty 0, different narrative tone, different service effect (cleanliness restoration), same conditional transition structure.
+**Hex Placement**: Private room created adjacent to common room on hex grid. FindAdjacentHex queries common_room.HexPosition (center of tavern venue cluster), selects unoccupied neighbor hex, embeds Q and R in LocationDTO. After creation, LocationActionCatalog generates "Move to Elena's Lodging Room" intra-venue movement action. Player movement between common_room and private_room instant and free because hexes geometrically adjacent.
+
+Same archetype at different location with Marcus (Demeanor=Professional, Services=Bathing) would generate: challenge difficulty 0, different narrative tone, different service effect (cleanliness restoration), same conditional transition structure, same hex placement pattern (bath room adjacent to base location).
 
 ### Procedural Scene "Find Lodging" Example
 
@@ -285,6 +433,39 @@ These generic choices define cost/requirement structure but not rewards. The arc
 
 **SceneArchetypeCatalog**: Generates scenario-specific scenes. Method `GenerateServiceWithLocationAccess` calls SituationArchetypeCatalog to get generic choices, then enriches them with scenario rewards:
 
+```
+// Get generic negotiation choices
+var genericChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(SituationArchetype.Negotiation);
+
+// Enrich with lodging-specific rewards
+var enrichedChoices = genericChoices.Select(choice => {
+  if (choice.Id.EndsWith("_rapport") || choice.Id.EndsWith("_money")) {
+    // Stat-gated and money choices grant unlock immediately
+    return new ChoiceTemplate {
+      ...choice properties...,
+      RewardTemplate = new ChoiceReward {
+        LocationsToUnlock = new List<string> { "generated:private_room" },
+        ItemIds = new List<string> { "generated:room_key" }
+      }
+    };
+  }
+  else if (choice.Id.EndsWith("_challenge")) {
+    // Challenge choice grants unlock only on success
+    return new ChoiceTemplate {
+      ...choice properties...,
+      OnSuccessReward = new ChoiceReward {
+        LocationsToUnlock = new List<string> { "generated:private_room" },
+        ItemIds = new List<string> { "generated:room_key" }
+      }
+    };
+  }
+  else {
+    // Fallback choice grants nothing
+    return choice;
+  }
+}).ToList();
+```
+
 Enrichment creates NEW ChoiceTemplate instances with populated reward properties. Never mutates returned objects - catalogues generate immutable structures.
 
 This pattern enables reuse. Negotiation archetype used by lodging, bathing, healing, checkpoint, and transaction scenarios. Each enriches with scenario-appropriate rewards. Generic pattern + specific context = complete template.
@@ -295,7 +476,7 @@ Dependent resources use "generated:" prefix markers enabling templates to refere
 
 **At Parse Time**: SceneArchetypeCatalog creates DependentLocationSpec with TemplateId "private_room". Situation.RequiredLocationId set to marker "generated:private_room". ChoiceReward.LocationsToUnlock contains "generated:private_room". Template complete with markers unresolved.
 
-**At Instantiation Time**: SceneInstantiator spawns scene. Calls ContentGenerationFacade to create locations from DependentLocationSpecs. Receives actual IDs ("scene_abc123_private_room"). Applies map to all situation and reward references. Situation.ResolvedRequiredLocationId populated with actual ID.
+**At Instantiation Time**: SceneInstantiator spawns scene. Calls ContentGenerationFacade to create locations from DependentLocationSpecs. Receives actual IDs ("scene_abc123_private_room"). Builds MarkerResolutionMap: `{"generated:private_room" → "scene_abc123_private_room"}`. Applies map to all situation and reward references. Situation.ResolvedRequiredLocationId populated with actual ID.
 
 **At Query Time**: RewardApplicationService applies ChoiceReward. Finds "generated:private_room" in LocationsToUnlock. Queries MarkerResolutionMap for actual ID. Unlocks "scene_abc123_private_room". Marker fully resolved to concrete entity.
 
@@ -326,6 +507,63 @@ Player can have multiple active scenes simultaneously. UI queries GameWorld.Scen
 **CleanupCompleted(scene):** Scene completed. Calls GrantTags(player, scene.GrantedTags). Removes scene from GameWorld.Scenes. Archives scene metadata for replay/debugging.
 
 **CleanupAbandoned(scene):** Scene abandoned. No tag grants. Removes scene from GameWorld. Calls ResourceCleanup() to remove dynamically-created locations/items if scene created them.
+
+### Parse-Time Catalogue Pattern
+
+Catalogues execute exclusively at parse time (game initialization). Runtime never calls catalogues. This timing separation is fundamental to performance and architecture clarity.
+
+**Parse Time Execution**:
+- JSON files loaded into DTOs
+- SceneTemplateParser invokes SceneArchetypeCatalog.Generate() for each scene template
+- SceneArchetypeCatalog internally calls SituationArchetypeCatalog.GetArchetype() as needed
+- Generated templates stored in GameWorld collections
+- All generation complete before first frame renders
+
+**Runtime Prohibition**:
+- Facades never import catalogue classes
+- Managers never import catalogue classes  
+- Services never import catalogue classes
+- UI never imports catalogue classes
+- Catalogues live in Content/Catalogues folder, isolated from runtime code
+
+**Why This Matters**: Catalogue generation is computationally expensive (property queries, formula calculations, validation checks). Running once at startup is free. Running every scene spawn would be prohibitive. The architectural boundary enforces this performance requirement through import restrictions.
+
+**Template Immutability**: Generated templates are immutable after parsing. Runtime never modifies them. They're shared across all instances of that template. This enables efficient reuse without defensive copying. Scene instances track mutable runtime state (current situation, granted items, time consumed). Templates remain pure, stateless patterns.
+
+**Facade Pattern**: Runtime code queries GameWorld.SceneTemplates and GameWorld.SituationTemplates collections. These were populated at parse time. Facades instantiate Scene instances from templates without regenerating structure. The separation is complete: parse-time generates, runtime queries.
+
+### Catalogue Composition Through Two-Level System
+
+The two-level archetype system composes through explicit catalogue calls. Scene catalogues invoke situation catalogues, never vice versa.
+
+**Composition Direction**: SceneArchetypeCatalog → SituationArchetypeCatalog (top-down only)
+
+**Scene Catalogue Responsibilities**:
+- Define complete scene structure (situation count, ordering, transitions)
+- Select which situation archetypes to use for each situation
+- Generate dependent resources (locations, items, spots)
+- Enrich generic choices with scenario-specific rewards
+- Return SceneArchetypeDefinition containing everything
+
+**Situation Catalogue Responsibilities**:
+- Define 4-choice patterns (stat-gated, money, challenge, fallback)
+- Specify base costs and requirements (formulas, thresholds)
+- Determine action types (Instant, StartChallenge, Navigate)
+- Return SituationArchetype with empty reward templates
+- Never know about scenes or multi-situation arcs
+
+**Composition Example** (`service_with_location_access` archetype):
+1. SceneArchetypeCatalog.Generate("service_with_location_access", entities) invoked
+2. For negotiate situation: calls SituationArchetypeCatalog.GetArchetype(SituationArchetype.SocialManeuvering)
+3. Receives 4 ChoiceTemplate objects with empty rewards
+4. Creates NEW ChoiceTemplate instances enriching rewards (room key + location unlock)
+5. Enriched choices become negotiate situation's ChoiceTemplates
+6. Situations 2-4 generated without situation archetype (auto-progress)
+7. Returns SceneArchetypeDefinition with 4 SituationTemplates and Linear transitions
+
+**Never Mutate**: SceneArchetypeCatalog never modifies ChoiceTemplates returned from SituationArchetypeCatalog. It creates new instances with additional properties populated. This preserves catalogue purity and prevents hidden coupling.
+
+**Identity Encoding**: Scene archetype name encodes which situation archetypes it uses. `single_negotiation` MEANS "1 situation using negotiation archetype." `service_with_location_access` MEANS "4 situations, first using social_maneuvering or service_transaction (based on NPC personality)." No parameterization - archetype IS the definition.
 
 ### Generator Architecture (Critical)
 
@@ -742,23 +980,174 @@ This creates strategic depth. Players with high rapport get free room. Players w
 - Solo Reflection + Discovery of Artifact → realizing significance, grants "KnowsArtifactPurpose" tag
 - Comrade Finn (Friend, Loyal) + Victory over Threat → celebrating success, grants "VeteranOfBattle" tag
 
-#### 5. Single Situation
+#### 5. Inn Crisis Escalation
 
-**Purpose:** Quick interaction requiring one decision without multi-situation arc. Used for minor encounters.
+**Purpose:** Tutorial-specific branching emergency teaching consequence system. Starts with minor issue, escalates based on player choices, demonstrates permanent world changes.
 
 **Structure:**
-- Situation 1: Present scenario. Player chooses approach. Apply outcome immediately. Complete scene.
+- Situation 1: Initial crisis (kitchen fire). 3 choices with different consequence paths.
+- Situation 2 (Branch A): Controlled resolution if player acts decisively. Minor cost, minor consequence.
+- Situation 2 (Branch B): Worsening crisis if player hesitates. Medium cost, medium consequence.
+- Situation 2 (Branch C): Catastrophic escalation if player ignores. High cost, permanent damage.
+- Situation 3: Aftermath processing. Different narrative/tags based on branch taken.
 
 **Property-Driven Generation:**
-- ScenarioType determines interaction (Question, Trade, Observation, Quick Decision)
-- NPC.Demeanor if NPC involved (affects response difficulty)
-- Location.Context provides environmental framing
-- InteractionComplexity sets number of choices (Simple=2, Standard=3, Complex=4)
+- CrisisType determines initial scenario (Fire, Theft, Accident, Conflict)
+- EscalationSpeed sets time pressure (Fast forces quick decision, Slow allows deliberation)
+- Location.Importance determines consequence severity (Important location = worse damage)
+- ConsequenceScale sets permanent world changes (Minor = NPC mood change, Major = location damaged)
 
 **Mechanical Guarantee:**
-- Single situation, no state tracking needed
-- Effects apply immediately on choice
-- Scene completes after single interaction
+- Branch paths mutually exclusive (taking Branch A prevents B and C)
+- Consequences persist (damaged location remains damaged)
+- Different tags granted per branch (showing divergent progression)
+- Tutorial-only archetype (not used in procedural spawning)
+- Teaches player: choices matter, hesitation has cost, world state changes permanently
+
+**Example Instance:**
+- Elena's Tavern Kitchen Fire: 
+  - Choice 1 (Act): Douse fire with water barrel → controlled resolution, minor coin cost, grants "ActedDecisively" tag
+  - Choice 2 (Delay): Fetch help from cellar → fire spreads, medium damage to kitchen, grants "Cautious" tag
+  - Choice 3 (Ignore): Leave to someone else → tavern heavily damaged, Elena injured, grants "Negligent" tag, tavern state changes to "Damaged"
+
+This archetype deliberately structured to teach consequences through branching rather than binary success/fail.
+
+#### 6. Single Negotiation
+
+**Purpose:** Standalone diplomatic interaction. One decision with 4-choice pattern. Used for merchant haggling, favor requests, information trading.
+
+**Structure:**
+- Situation 1: Negotiation with stat-gated, money, challenge, and fallback choices. Scene completes after choice.
+
+**Property-Driven Generation:**
+- NPC.Personality=Mercantile/Diplomatic (archetype filter)
+- NPC.Demeanor affects requirements (Friendly lowers stat threshold, Greedy raises coin cost)
+- Location.Settlement influences negotiation context (Urban = formal, Wilderness = pragmatic)
+- Rewards specified by scene template (item grants, reputation changes, information unlocks)
+
+**Scene Identity**: Uses `negotiation` situation archetype. Thematically diplomatic, trade-based, non-violent, rapport-focused. Distinct from confrontation or investigation.
+
+**Example Instances:**
+- Merchant haggle over rare item → challenge success grants discount
+- Diplomat requesting favor → high rapport grants immediate agreement
+- Information broker selling secrets → payment or persuasion unlocks knowledge
+
+#### 7. Single Confrontation
+
+**Purpose:** Standalone authority interaction. One decision with 4-choice pattern. Used for guard checkpoints, territorial disputes, intimidation.
+
+**Structure:**
+- Situation 1: Confrontation with stat-gated, money, challenge, and fallback choices. Scene completes after choice.
+
+**Property-Driven Generation:**
+- NPC.Personality=Guard/Authority (archetype filter)
+- NPC.Demeanor affects difficulty (Strict increases challenge, Lenient decreases)
+- Location.SecurityLevel influences requirements (High security needs credentials or force)
+- Rewards: passage permissions, reputation impacts, escalation prevention
+
+**Scene Identity**: Uses `confrontation` situation archetype. Thematically authoritative, dominance-based, potentially violent, power-focused. Distinct from negotiation.
+
+**Example Instances:**
+- Gate guard blocking passage → show papers or intimidate
+- Territorial warlord demanding tribute → pay or fight
+- Bouncer refusing entry → bribe or force way through
+
+#### 8. Single Investigation
+
+**Purpose:** Standalone analytical interaction. One decision with 4-choice pattern. Used for clue gathering, puzzle solving, research.
+
+**Structure:**
+- Situation 1: Investigation with stat-gated, money, challenge, and fallback choices. Scene completes after choice.
+
+**Property-Driven Generation:**
+- NPC.Personality=Scholar/Informant (archetype filter) OR solo investigation (no NPC)
+- Location.Context provides environmental clues (Library = research, Crime Scene = forensics)
+- Player.InsightStat determines stat-gated threshold
+- Rewards: knowledge tags, investigation progress, artifact discoveries
+
+**Scene Identity**: Uses `investigation` situation archetype. Thematically analytical, discovery-based, puzzle-solving, insight-focused. Distinct from negotiation or confrontation.
+
+**Example Instances:**
+- Library research on ancient artifact → high insight or coin for research access
+- Crime scene examination → challenge to deduce clues
+- Sage consultation about prophecy → payment or rapport unlocks wisdom
+
+#### 9. Single Social Maneuvering
+
+**Purpose:** Standalone subtle influence interaction. One decision with 4-choice pattern. Used for court intrigue, social manipulation, reputation management.
+
+**Structure:**
+- Situation 1: Social maneuvering with stat-gated, money, challenge, and fallback choices. Scene completes after choice.
+
+**Property-Driven Generation:**
+- NPC.Personality=Noble/Politician (archetype filter)
+- Location.SocialTier influences complexity (High court = complex, Tavern = simple)
+- Player.CharmStat determines stat-gated threshold
+- Rewards: faction standing, political favors, social reputation
+
+**Scene Identity**: Uses `social_maneuvering` situation archetype. Thematically subtle, influence-based, reputation-driven. Used when direct negotiation or confrontation inappropriate.
+
+**Example Instances:**
+- Court favor seeking → charm or gift secures ally
+- Political alliance forming → challenge navigates competing interests
+- Reputation damage control → payment or performance repairs standing
+
+#### 10. Single Crisis
+
+**Purpose:** Standalone emergency response. One decision with 4-choice pattern. Used for immediate danger, urgent decisions, split-second choices.
+
+**Structure:**
+- Situation 1: Crisis with stat-gated, money, challenge, and fallback choices. Scene completes after choice. Often has time pressure or consequence severity.
+
+**Property-Driven Generation:**
+- CrisisType determines urgency (Fire = immediate, Illness = gradual)
+- Location.Importance affects consequence severity (Critical location = worse outcomes)
+- Player.ReflexStat often used for stat-gated options
+- Rewards: crisis mitigation, reputation changes, state preservation
+
+**Scene Identity**: Uses `crisis` situation archetype. Thematically urgent, high-stakes, consequence-heavy. Time pressure distinguishes from other patterns.
+
+**Example Instances:**
+- Burning building with trapped child → act decisively or get help
+- Ambush on caravan → fight or negotiate under pressure
+- Poisoning attempt → antidote purchase or medical skill application
+
+#### 11. Single Service Transaction
+
+**Purpose:** Standalone service purchase. One decision with 4-choice pattern. Used for healers, bathhouses, stables when location access not required.
+
+**Structure:**
+- Situation 1: Service transaction with stat-gated, money, challenge, and fallback choices. Service effect applied immediately. Scene completes after choice.
+
+**Property-Driven Generation:**
+- NPC.Personality=Healer/Attendant (archetype filter)
+- ServiceType determines effect (Healing = restore health, Bathing = restore stamina)
+- ServiceTier affects cost and benefit (Basic cheap/weak, Premium expensive/strong)
+- Rewards: resource restoration, status effect removal, temporary buffs
+
+**Scene Identity**: Uses `service_transaction` situation archetype. Thematically economic, benefit-focused, immediate effect. Used when private location access not needed (vs service_with_location_access for inn rooms).
+
+**Example Instances:**
+- Healer treating wounds → payment or rapport for healing
+- Stable boarding horse → coin cost for mount care
+- Street vendor selling hot meal → quick stamina restoration
+
+### Archetype as Complete Identity
+
+A scene archetype IS the complete definition of structure and content, not a template accepting parameters. The archetype name encodes:
+- Exact situation count and ordering
+- Which situation archetypes used for each position
+- Transition pattern connecting situations
+- Dependent resources created (if any)
+- Thematic identity and intended usage
+
+`single_negotiation` and `single_confrontation` are distinct scene archetypes, not configuration variants of generic "standalone." They have different thematic identities, different situation archetypes, different contextual appropriateness.
+
+**Why Not Parameterize**: Making archetype selection a parameter moves design decisions from code to data. This violates design/configuration separation. If JSON specifies "which situation archetype to use," content authors make structural choices that belong in catalogues. The correct solution is more specific archetypes, not flexible parameterization.
+
+**Catalogue Composition**: SceneArchetypeCatalog defines scene structure. For single-situation archetypes, it calls SituationArchetypeCatalog.GetArchetype() with specific situation archetype, wraps result in scene structure (1 situation, Standalone transition pattern), returns SceneArchetypeDefinition. The scene archetype name determines which situation archetype gets used.
+
+### Multi-Scene NPC Display
 - Can grant tags for future content spawn
 - No resource creation (uses existing locations/NPCs)
 
@@ -832,6 +1221,27 @@ Scenes requiring new locations (private rooms, special chambers, temporary camps
 **Atomic Guarantees:** Location creation succeeds completely or fails cleanly. Pipeline failure at any stage triggers rollback: JSON created but parse failed → delete JSON. Location created but hex occupied → remove location and delete JSON. Situation references location but creation aborted → scene cleanup removes situation. Never partial state.
 
 **Static vs Dynamic Content:** Static locations loaded at game start from /content/locations/. Dynamic locations created on-demand during scenes. Both types indistinguishable after creation - same Location entity type, same GameWorld.Locations collection, same routing system integration. Only difference: lifecycle (static permanent, dynamic temporary) tracked via DynamicContentManifest.
+
+### Dependent Location Lifecycle
+
+Dependent locations don't exist until scenes create them. They follow specific lifecycle with spatial placement requirements.
+
+**Pre-Existence**: Before scene spawns, dependent location does NOT exist in GameWorld.Locations. Not hidden or disabled - literally doesn't exist.
+
+**Creation at Scene Finalization**:
+1. Scene finalizes, SceneInstantiator generates DependentLocationSpec (name pattern, properties, HexPlacementStrategy)
+2. BuildLocationDTO calls FindAdjacentHex(baseLocation, strategy) to determine hex position
+3. FindAdjacentHex queries baseLocation.HexPosition, gets neighboring hexes from HexMap, finds first unoccupied
+4. DTO populated with concrete values: placeholders replaced, Q and R coordinates set
+5. ContentGenerationFacade wraps DTO in JSON package
+6. PackageLoaderFacade parses JSON, LocationParser creates Location entity with HexPosition from DTO
+7. Location added to GameWorld.Locations, LocationActionCatalog generates intra-venue movement actions
+
+**Persistence**: Once created, location persists after scene completes. May become locked again (IsLocked=true), but doesn't disappear. Enables returning to previously unlocked locations.
+
+**Hex Placement Validation**: FindAdjacentHex throws exception if no unoccupied adjacent hex exists. Enforces spatial constraint: venues have maximum 7 locations (center + 6 neighbors). Scene cannot spawn if venue cluster full.
+
+**Intra-Venue Movement**: After creation, player sees "Move to [Room Name]" action in LocationAction list (if unlocked). Action uses standard intra-venue movement system - instant and free because hexes adjacent. No special navigation handling needed.
 
 ### Value Objects for Pipeline Communication
 
@@ -995,7 +1405,7 @@ Tags enable dependency-inverted progression. Scenes grant/require tags instead o
 
 **Tag Format:** "verb_subject_context" structure. Examples: "EstablishedContact_Innkeepers_Vallenmarch", "DefeatedBandit_ForestRoad", "LearnedSecret_ElderMiriam", "CompletedLodging_ElenasTavern". Three part structure enables precise or flexible matching.
 
-**Flexible Matching:** Template can require exact tag or pattern match. Enables general prerequisites without hardcoded specifics.
+**Flexible Matching:** Template can require exact tag or pattern match. RequiredTags: ["EstablishedContact_Innkeepers_*"] matches any innkeeper contact in any region. RequiredTags: ["EstablishedContact_*_Vallenmarch"] matches any contact type in Vallenmarch. Enables general prerequisites without hardcoded specifics.
 
 **Multiple Requirement Logic:** Template can specify multiple RequiredTags with AND logic. Requires ["EstablishedContact_Innkeepers_Vallenmarch", "CompletedTutorial_BasicCombat"] means player must have both tags. Enables complex prerequisite graphs.
 
@@ -1015,6 +1425,14 @@ Tags enable dependency-inverted progression. Scenes grant/require tags instead o
 ### Economic Balance Through Formulas
 
 All resource costs calculated via consistent formulas. Prevents economic broken-ness.
+
+**Base Cost Formula:** `Cost = ArchetypeBase + (DifficultyModifier * DifficultyScalar) + LocationPremium`. Service lodging base=10 coins. Difficulty +2 (premium room). Scalar=2. Location premium +3 (luxury inn). Total=10 + 4 + 3 = 17 coins.
+
+**Restoration Formula:** `RestoreAmount = BaseRestore * ComfortMultiplier * DangerMultiplier`. Rest stamina base=80. Comfort premium=1.5x. Danger safe=1.0x. Total=80 * 1.5 * 1.0 = 120 stamina restored.
+
+**Time Cost Formula:** `TimeCost = BaseTime * ServiceTier * UrgencyMultiplier`. Rest base=6 segments. Service standard=1.0x. Urgency none=1.0x. Total=6 segments. If urgent=2.0x, total=12 segments (rushing takes longer, worse quality).
+
+**Item Value Formula:** `ItemWorth = BaseMaterial + CraftQualityBonus + Enchantment`. Simple key base=1. Quality standard+2. No enchant+0. Total=3 coin value. Lost key means replacing=3 coin cost.
 
 **Difficulty Scaling:** Difficulty modifier ranges -2 (very easy) to +4 (very hard). Each point adds (DifficultyScalar * modifier) to cost. Ensures harder challenges cost more resources, easier challenges cost less. Player makes strategic choice: attempt hard challenge with high cost, or find easier alternative.
 
@@ -1106,6 +1524,19 @@ LocationCreationResult CreateDynamicLocation(LocationCreationSpec spec) {
 Scenes may create temporary resources. Cleanup must remove all traces.
 
 **Cleanup Trigger:** Scene completion or abandonment calls GameFacade.CleanupSceneResources(scene.DynamicResourceManifest).
+
+**Manifest Structure:**
+```csharp
+DynamicResourceManifest {
+  SceneId: string
+  CreatedResources: List<DynamicResource> {
+    ResourceType: enum (Location, Item, Spot)
+    ResourceId: string (GameWorld entity ID)
+    Filepath: string (JSON file path)
+    CreatedTimestamp: DateTime
+  }
+}
+```
 
 **Cleanup Process:**
 1. For each resource in manifest:
@@ -1202,7 +1633,11 @@ Separation of concerns: SceneInstantiator creates scene domain entities. GameFac
 
 Transforms strongly-typed resource specifications into JSON files matching static content structure.
 
-**CreateDynamicLocationFile(spec):** Receives LocationCreationSpec value object. Transforms spec fields into JSON structure matching foundation.json format: id from pattern, name from pattern with context resolution, hexCoordinate from spec, properties object with typed fields. Writes JSON to /dynamic-content/locations/ directory with generated filename scene_{sceneId}_location_{index}.json. Returns DynamicFileManifest on success (filepath, timestamp, checksum) or throws FileSystemException on failure. Never imports GameWorld, SceneGenerationFacade, or PackageLoaderFacade. Only knows JSON structure and file operations.
+**CreateDynamicLocationFile(spec):** Receives LocationCreationSpec value object. Transforms spec fields into JSON structure matching foundation.json format: id from pattern, name from pattern with context resolution, hexCoordinate from spec with embedded Q and R values, properties object with typed fields. 
+
+**Hex Coordinate Embedding**: Unlike static locations (hex positions from separate hex grid file), dynamic locations have Q and R coordinates embedded directly in JSON. BuildLocationDTO calls FindAdjacentHex to determine placement, stores coordinates in DTO properties, JSON generation includes these values. This enables PackageLoader to create spatially-positioned locations without requiring hex grid sync.
+
+Writes JSON to /dynamic-content/locations/ directory with generated filename scene_{sceneId}_location_{index}.json. Returns DynamicFileManifest on success (filepath, timestamp, checksum) or throws FileSystemException on failure. Never imports GameWorld, SceneGenerationFacade, or PackageLoaderFacade. Only knows JSON structure and file operations.
 
 **RemoveDynamicLocation(locationId, manifest):** Receives location ID and its creation manifest. Validates location is dynamic (in manifest). Removes from GameWorld.Locations collection. Deletes JSON file at manifest filepath. Updates DynamicContentManifest removing entry. Returns RemovalResult indicating success. Handles cleanup phase of resource lifecycle.
 
@@ -1212,15 +1647,19 @@ Facade responsibility: JSON generation and file management only. Does not parse,
 
 ### PackageLoaderFacade
 
-Parses JSON content files and creates GameWorld entities. Treats dynamic content identically to static content.
+Parses JSON content files and creates GameWorld entities. Treats dynamic content identically to static content except for hex coordinate source.
 
-**LoadDynamicContent(filepath):** Receives filepath to JSON file. Parses JSON using identical parser logic as static foundation.json loading. Extracts location data, creates Location entity with all properties. Adds to GameWorld.Locations collection. Integrates with hex grid at specified coordinates. Spatial systems automatically generate intra-venue travel routes. Returns LocationCreationResult on success (locationId) or failure (errorReason enum: HexOccupied, DuplicateId, InvalidPlacement, ParseError). Never imports SceneGenerationFacade or ContentGenerationFacade. Only knows parsing and entity creation.
+**LoadDynamicContent(filepath):** Receives filepath to JSON file. Parses JSON using identical parser logic as static foundation.json loading. Extracts location data, creates Location entity with all properties. 
+
+**Hex Position Assignment**: LocationParser checks if DTO has Q and R values (embedded coordinates from dynamic generation). If present, creates AxialCoordinates and assigns to Location.HexPosition. If absent (static locations), hex position comes from HexParser.SyncLocationHexPositions later. Both paths converge to same HexPosition property.
+
+Adds to GameWorld.Locations collection. Integrates with hex grid at specified coordinates. Spatial systems automatically generate intra-venue travel routes based on hex adjacency. Returns LocationCreationResult on success (locationId) or failure (errorReason enum: HexOccupied, DuplicateId, InvalidPlacement, ParseError). Never imports SceneGenerationFacade or ContentGenerationFacade. Only knows parsing and entity creation.
 
 **LoadStaticContent(filepath):** Existing method for static content. Uses same parsing logic as LoadDynamicContent. No special dynamic handling - both paths identical after JSON parse.
 
 Facade responsibility: JSON parsing and entity instantiation only. Does not generate JSON, does not create files, does not understand scenes. Pure parsing and GameWorld integration.
 
-Dynamic and static content converge at this boundary: both become Location entities in GameWorld.Locations, indistinguishable after creation.
+Dynamic and static content converge at this boundary: both become Location entities in GameWorld.Locations with HexPosition set, indistinguishable after creation except for lifecycle (static permanent, dynamic temporary).
 
 ### Critical Architectural Constraints
 
@@ -1241,6 +1680,18 @@ The architecture enforces specific constraints preventing entire classes of bugs
 **Single Source of Truth**: When multiple properties could represent same data, choose ONE. Either LifecycleStatus enum OR IsCompleted boolean, not both. The enum is truth, boolean is computed property derived from it. This eliminates desync bugs and clarifies ownership.
 
 **HIGHLANDER Principle**: One concept, one representation. Multiple ways to represent same thing = choose ONE and use consistently everywhere. Object reference pattern: BOTH ID + resolved object (Pattern A) OR just ID (Pattern C) OR just object (Pattern B) - pick one pattern, never mix. Transition evaluation: evaluate conditions OR return first match, not both depending on call site. Consistency prevents architectural drift.
+
+**HIGHLANDER at Field Level**: Scene archetype identification requires exactly ONE field: `sceneArchetypeId`. No alternative fields for special cases. Never `sceneArchetypeId` OR `situationArchetypeId` depending on archetype type. The presence of alternative identification fields signals architecture confusion. If different scene types need different identification mechanisms, the archetype system is wrong. Fix catalogues, not JSON schema.
+
+**Why Parameterization Fails**: Making archetype selection a parameter (e.g., "standalone" archetype taking `situationArchetypeId` parameter) moves design decisions to configuration space. This creates:
+- Configuration creep (structure choices in JSON)
+- Catalogue bypass (parser calls SituationArchetypeCatalog directly)
+- Identity loss ("standalone" meaningless without parameter)
+- Impossible archetype-specific logic (catalogue doesn't know which situation archetype will be used)
+
+Correct solution: More specific archetypes (`single_negotiation`, `single_confrontation`), not flexible parameterization.
+
+**All Locations Have Hex Positions**: Every location occupies exactly one hex on the world grid. No exceptions. "Intra-venue instant travel" describes movement behavior (free/instant) not location structure (no hex position). Movement is instant BECAUSE hexes adjacent, not INSTEAD OF having positions. Dependent locations from scenes get hex coordinates embedded in DTO. Static locations get hex coordinates from separate hex grid sync. Both paths converge to Location.HexPosition property. Location without hex position cannot participate in movement system - architectural violation.
 
 ### AI Generation Service
 
@@ -1268,6 +1719,14 @@ Queries active scenes at current location to build interaction options.
 
 This architecture supports procedural generation of complete multi-situation narrative arcs while maintaining mechanical coherence and economic balance. Scene archetypes define reusable arc patterns. AI provides contextual narrative for each beat. Game logic orchestrates progression through situations with state modification, item lifecycle, and time advancement. Templates contain pure structure, instances track runtime state, entities own their lifecycle behavior.
 
-**Dynamic location creation enables true scene self-containment.** Scenes don't depend on pre-authored locations beyond base. GameFacade orchestrates multi-system pipeline: ContentGenerationFacade produces JSON files, PackageLoaderFacade creates Location entities, SceneInstanceFacade references final IDs. Facades isolated from each other - only GameFacade coordinates. Strongly-typed value objects (LocationCreationSpec, DynamicFileManifest, LocationCreationResult, CleanupResult) ensure compile-time verification. Static and dynamic locations indistinguishable after creation. Complete lifecycle from specification to JSON to entity to cleanup.
+**Dynamic location creation enables true scene self-containment with spatial integrity.** Scenes don't depend on pre-authored locations beyond base. GameFacade orchestrates multi-system pipeline: ContentGenerationFacade produces JSON files with embedded hex coordinates, PackageLoaderFacade creates Location entities with HexPosition from DTO, SceneInstanceFacade references final IDs. Facades isolated from each other - only GameFacade coordinates. Strongly-typed value objects (LocationCreationSpec, DynamicFileManifest, LocationCreationResult, CleanupResult) ensure compile-time verification. FindAdjacentHex determines hex placement using HexPlacementStrategy (SameVenue, Adjacent). All locations occupy exactly one hex - no exceptions. Static and dynamic locations indistinguishable after creation. Complete lifecycle from specification to JSON to spatially-positioned entity to cleanup.
 
-**Reliability is paramount.** Pure generation core with zero dependencies enables isolated testing. Parse-time validation prevents structural errors from reaching runtime. Explicit contracts and state machines provide complete traceability. Comprehensive automated test suite catches regressions immediately. Atomic pipeline guarantees complete success or clean failure. This system architecture ensures rock-solid procedural content generation where failure is not an option.
+**Two-level archetype system enables procedural variation within designed constraints.** Scene archetypes define structure (how many situations, which situation archetypes, what transitions). Situation archetypes define interaction patterns (4-choice structure with stat/money/challenge/fallback). Catalogues compose these layers at parse time. Scene archetype identity IS its structure - `single_negotiation` and `single_confrontation` are distinct archetypes, not configuration variants. No parameterization - more specific archetypes solve flexibility needs.
+
+**Hex grid provides spatial foundation for all locations.** Every location occupies one hex using axial coordinates (Q, R). Venues are 7-hex clusters (center + 6 adjacent). Intra-venue movement between adjacent hexes instant and free. Inter-venue movement between non-adjacent hexes uses routes with resource costs. Location.HexPosition is core identity enabling movement system participation. Dependent locations get hex positions via FindAdjacentHex at creation time. Parser-JSON-Entity triangle complete: DTO embeds Q/R, parser reads coordinates, entity has HexPosition.
+
+**Design vs configuration separation maintains architectural clarity.** Design (structure, patterns, content) lives exclusively in catalogue code. Configuration (placement, timing, eligibility) lives exclusively in JSON data. Never blur this boundary. If JSON authors need structural choices, catalogues are incomplete. PlacementFilter determines WHERE scenes spawn. SpawnConditions determine WHEN scenes become eligible. Neither affects WHAT scenes contain.
+
+**Parse-time generation eliminates runtime performance cost.** All catalogue calls occur at game initialization. Templates immutable after parse. Runtime queries pre-generated collections. Facades never import catalogues. This timing separation is sacred - breaking it introduces performance problems and architectural confusion.
+
+**Reliability is paramount.** Pure generation core with zero dependencies enables isolated testing. Parse-time validation prevents structural errors from reaching runtime. Explicit contracts and state machines provide complete traceability. Comprehensive automated test suite (1000+ unit, 100+ integration, 20+ end-to-end tests) catches regressions immediately. Debug visualization tools enable rapid diagnosis. Atomic pipeline guarantees complete success or clean failure. LET IT CRASH philosophy surfaces problems immediately rather than masking with fallbacks. This system architecture ensures rock-solid procedural content generation where failure is not an option.
