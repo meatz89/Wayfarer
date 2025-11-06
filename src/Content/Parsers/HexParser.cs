@@ -124,6 +124,68 @@ namespace Wayfarer.Content.Parsers
         }
 
         /// <summary>
+        /// Ensure hex grid completeness - create hexes for positioned locations that don't have them
+        /// INVERSE of SyncLocationHexPositions: Location.HexPosition (source of truth) → Hex (derived index)
+        /// Maintains invariant: "Every positioned location has a corresponding hex in the grid"
+        /// Called after loading dynamic content where locations exist before hexes
+        /// </summary>
+        public static void EnsureHexGridCompleteness(HexMap hexMap, List<Location> locations)
+        {
+            if (hexMap == null)
+                throw new ArgumentNullException(nameof(hexMap), "HexMap cannot be null");
+
+            if (locations == null)
+                throw new ArgumentNullException(nameof(locations), "Locations list cannot be null");
+
+            int hexesCreated = 0;
+
+            // Find positioned locations and ensure hexes reference them correctly
+            foreach (Location location in locations)
+            {
+                if (!location.HexPosition.HasValue)
+                    continue; // Skip locations without positions (intra-venue only)
+
+                // Get hex at these coordinates
+                Hex existingHex = hexMap.GetHex(location.HexPosition.Value);
+
+                if (existingHex != null)
+                {
+                    // Hex exists - update its LocationId if it's null or different
+                    if (string.IsNullOrEmpty(existingHex.LocationId) || existingHex.LocationId != location.Id)
+                    {
+                        Console.WriteLine($"[HexGridCompleteness] Updating hex at ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}): LocationId '{existingHex.LocationId}' → '{location.Id}'");
+                        existingHex.LocationId = location.Id;
+                        hexesCreated++;
+                    }
+                }
+                else
+                {
+                    // Hex doesn't exist - create new hex for this location
+                    Hex hex = new Hex
+                    {
+                        Coordinates = location.HexPosition.Value,
+                        LocationId = location.Id,
+                        Terrain = TerrainType.Road, // Default safe terrain for scene-generated locations (within settlements)
+                        DangerLevel = 0, // Default safe for dependent locations
+                        IsDiscovered = true // Player knows about scene-generated content
+                    };
+
+                    hexMap.Hexes.Add(hex);
+                    hexesCreated++;
+
+                    Console.WriteLine($"[HexGridCompleteness] ✅ Created hex at ({hex.Coordinates.Q}, {hex.Coordinates.R}) for location '{location.Id}'");
+                }
+            }
+
+            // Rebuild lookup dictionary if any hexes were added
+            if (hexesCreated > 0)
+            {
+                hexMap.BuildLookup();
+                Console.WriteLine($"[HexGridCompleteness] Added {hexesCreated} hexes to grid, rebuilt lookup dictionary");
+            }
+        }
+
+        /// <summary>
         /// Validate no duplicate hex coordinates exist in hex map
         /// CRITICAL: Prevents coordinate lookup dictionary corruption
         /// Called after parsing all hexes, before BuildLookup()

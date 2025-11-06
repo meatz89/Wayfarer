@@ -433,6 +433,39 @@ These generic choices define cost/requirement structure but not rewards. The arc
 
 **SceneArchetypeCatalog**: Generates scenario-specific scenes. Method `GenerateServiceWithLocationAccess` calls SituationArchetypeCatalog to get generic choices, then enriches them with scenario rewards:
 
+```
+// Get generic negotiation choices
+var genericChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(SituationArchetype.Negotiation);
+
+// Enrich with lodging-specific rewards
+var enrichedChoices = genericChoices.Select(choice => {
+  if (choice.Id.EndsWith("_rapport") || choice.Id.EndsWith("_money")) {
+    // Stat-gated and money choices grant unlock immediately
+    return new ChoiceTemplate {
+      ...choice properties...,
+      RewardTemplate = new ChoiceReward {
+        LocationsToUnlock = new List<string> { "generated:private_room" },
+        ItemIds = new List<string> { "generated:room_key" }
+      }
+    };
+  }
+  else if (choice.Id.EndsWith("_challenge")) {
+    // Challenge choice grants unlock only on success
+    return new ChoiceTemplate {
+      ...choice properties...,
+      OnSuccessReward = new ChoiceReward {
+        LocationsToUnlock = new List<string> { "generated:private_room" },
+        ItemIds = new List<string> { "generated:room_key" }
+      }
+    };
+  }
+  else {
+    // Fallback choice grants nothing
+    return choice;
+  }
+}).ToList();
+```
+
 Enrichment creates NEW ChoiceTemplate instances with populated reward properties. Never mutates returned objects - catalogues generate immutable structures.
 
 This pattern enables reuse. Negotiation archetype used by lodging, bathing, healing, checkpoint, and transaction scenarios. Each enriches with scenario-appropriate rewards. Generic pattern + specific context = complete template.
@@ -1282,6 +1315,38 @@ Dependent locations don't exist until scenes create them. They follow specific l
 
 **Intra-Venue Movement**: After creation, player sees "Move to [Room Name]" action in LocationAction list (if unlocked). Action uses standard intra-venue movement system - instant and free because hexes adjacent. No special navigation handling needed.
 
+### Location Locking System
+
+Locations have lifecycle state beyond existence. IsLocked property represents whether location is accessible for player navigation. Distinct from visibility (locked locations appear on map) and routing (locked locations have movement actions generated).
+
+**Location Entity State**: Location owns locked state through IsLocked boolean (HIGHLANDER: one owner, no duplicate tracking). Defaults false (open-world assumption), explicitly set true for locked locations.
+
+**Parser Translation**: LocationParser translates InitialState string from DTO to IsLocked boolean during parsing (Parser-JSON-Entity Triangle completion). When InitialState equals "Locked", parser sets IsLocked to true. Translation happens once at parse time - runtime uses concrete boolean, never string matching.
+
+**Dependent Location Locking**: Scene archetypes specify IsLockedInitially flag on dependent locations. SceneInstantiator sets InitialState="Locked" in LocationDTO during generation. Parser translates to IsLocked=true during package loading. Dependent locations integrate as locked, inaccessible until unlocked.
+
+**Choice Rewards Unlock**: ChoiceReward has LocationsToUnlock and LocationsToLock lists containing location IDs. RewardApplicationService iterates lists, finds Location entities, directly modifies IsLocked properties. Player choices unlock locations through typed reward application.
+
+**Movement Action Availability**: LocationActionCatalog generates intra-venue movement actions for all adjacent hex locations regardless of lock state. LocationActionManager queries Location.IsLocked at availability check, sets LocationAction.IsAvailable to false for locked destinations. Separates action existence (spatial relationships) from action executability (lock state).
+
+**UI Rendering**: Landing.razor conditionally adds "locked" CSS class to action cards where IsAvailable is false. Renders lock icons with reason text. Visual feedback communicates lock state.
+
+**Player Agency**: When location unlocks, player does NOT automatically move there. System unlocks access, player manually chooses to navigate. Preserves exploration mental model.
+
+### Hex Grid Integration for Dynamic Locations
+
+WorldHexGrid provides spatial indexing using two-level lookup: Hexes list containing all Hex objects, _hexLookup dictionary mapping AxialCoordinates to hexes. Both must be updated when dependent locations spawn.
+
+**Dynamic Location Integration**: When location with HexPosition loads through dynamic package loading, create corresponding Hex object at those coordinates. Hex assigned location ID, added to Hexes list, _hexLookup dictionary rebuilt to include new coordinates. Maintains invariant: every location with HexPosition has corresponding hex in grid at exact coordinates.
+
+**Timing**: Hex creation occurs after location entity creation (so location ID valid) but before action generation or navigation (so spatial queries work). PackageLoader.LoadDynamicPackageFromJson sequence: load content → create hexes → generate actions → create routes.
+
+**Navigation Dependency**: GetPlayerCurrentLocation queries WorldHexGrid.GetHex with player coordinates. Lookup must succeed for navigation. Without hex at coordinates, lookup returns null causing NullReferenceException when code accesses null.Venue. Hex grid is spatial index for ALL locations, not optional or parallel system.
+
+**Architectural Consistency**: Dynamic locations use same hex grid systems as static locations. No special navigation paths, no bypass logic, no "virtual locations." One spatial index, one navigation system (HIGHLANDER principle for spatial systems).
+
+**Integration Pattern**: Any system creating locations dynamically follows pattern: create DTO with coordinates, parse through standard pipeline, add to hex grid if positioned, generate actions. Dependent resources leverage same infrastructure as authored content.
+
 ### Value Objects for Pipeline Communication
 
 **LocationCreationSpec:** Input specification for new location.
@@ -1738,6 +1803,10 @@ Correct solution: More specific archetypes (`single_negotiation`, `single_confro
 
 **Parse-Time Object References Preferred**: When entity references exist as both parse-time objects and runtime IDs, prefer parse-time objects. NPC.Location (object reference from locationId) over WorkLocationId (runtime string). Parse-time resolution runs once (cheaper), uses object references (safer), enables direct navigation (simpler). Runtime string-based resolution only when parse-time insufficient (dynamic state, non-existent entities at parse time).
 
+**Parser-JSON-Entity Triangle Completeness**: Every categorical property in JSON must translate to concrete typed property on domain entity during parsing. InitialState string translates to IsLocked boolean. Terrain string translates to TerrainType enum. Runtime code never does string matching, dictionary lookups, or catalogue calls. Ensures type safety, eliminates runtime parsing overhead, makes domain model self-contained.
+
+**Hex Grid as Universal Spatial Index**: All locations with HexPosition must have corresponding Hex objects in WorldHexGrid at exact coordinates. Grid is not optional, not parallel to another system, not only for authored content. Dynamic locations integrate into same hex grid as static locations. Navigation, adjacency queries, route validation all depend on hex grid completeness. Without hex at coordinates, spatial queries fail with null reference crashes.
+
 ### AI Generation Service
 
 Context bundling per situation: collect NPC/Location/Spot entity objects, situation position indicator, service type, player state, items held. Package as typed context.
@@ -1764,11 +1833,13 @@ Queries active scenes at current location to build interaction options.
 
 This architecture supports procedural generation of complete multi-situation narrative arcs while maintaining mechanical coherence and economic balance. Scene archetypes define reusable arc patterns. AI provides contextual narrative for each beat. Game logic orchestrates progression through situations with state modification, item lifecycle, and time advancement. Templates contain pure structure, instances track runtime state, entities own their lifecycle behavior.
 
-**Dynamic location creation enables true scene self-containment with spatial integrity.** Scenes don't depend on pre-authored locations beyond base. GameFacade orchestrates multi-system pipeline: ContentGenerationFacade produces JSON files with embedded hex coordinates, PackageLoaderFacade creates Location entities with HexPosition from DTO, SceneInstanceFacade references final IDs. Facades isolated from each other - only GameFacade coordinates. Strongly-typed value objects (LocationCreationSpec, DynamicFileManifest, LocationCreationResult, CleanupResult) ensure compile-time verification. FindAdjacentHex determines hex placement using HexPlacementStrategy (SameVenue, Adjacent). All locations occupy exactly one hex - no exceptions. Static and dynamic locations indistinguishable after creation. Complete lifecycle from specification to JSON to spatially-positioned entity to cleanup.
+**Dynamic location creation enables true scene self-containment with spatial integrity.** Scenes don't depend on pre-authored locations beyond base. GameFacade orchestrates multi-system pipeline: ContentGenerationFacade produces JSON files with embedded hex coordinates, PackageLoaderFacade creates Location entities with HexPosition from DTO, SceneInstanceFacade references final IDs. FindAdjacentHex determines hex placement using HexPlacementStrategy (SameVenue, Adjacent). All locations occupy exactly one hex with corresponding Hex object in WorldHexGrid - no exceptions. Parser translates InitialState string to IsLocked boolean (Parser-JSON-Entity Triangle). Dynamic locations integrate as locked, unlock through choice rewards, enable manual navigation preserving player agency. Static and dynamic locations indistinguishable after creation. Complete lifecycle from specification to JSON to spatially-positioned, lockable entity to cleanup.
 
 **Two-level archetype system enables procedural variation within designed constraints.** Scene archetypes define structure (how many situations, which situation archetypes, what transitions). Situation archetypes define interaction patterns (4-choice structure with stat/money/challenge/fallback). Catalogues compose these layers at parse time. Scene archetype identity IS its structure - `single_negotiation` and `single_confrontation` are distinct archetypes, not configuration variants. No parameterization - more specific archetypes solve flexibility needs.
 
-**Hex grid provides spatial foundation for all locations.** Every location occupies one hex using axial coordinates (Q, R). Venues are 7-hex clusters (center + 6 adjacent). Intra-venue movement between adjacent hexes instant and free. Inter-venue movement between non-adjacent hexes uses routes with resource costs. Location.HexPosition is core identity enabling movement system participation. Dependent locations get hex positions via FindAdjacentHex at creation time. Parser-JSON-Entity triangle complete: DTO embeds Q/R, parser reads coordinates, entity has HexPosition.
+**Hex grid provides spatial foundation for all locations.** Every location occupies one hex using axial coordinates (Q, R). Venues are 7-hex clusters (center + 6 adjacent). Intra-venue movement between adjacent hexes instant and free. Inter-venue movement between non-adjacent hexes uses routes with resource costs. Location.HexPosition is core identity enabling movement system participation. WorldHexGrid.Hexes and _hexLookup dictionary updated when any location (static or dynamic) added. Navigation depends on hex grid completeness - missing hex at coordinates causes null reference crashes.
+
+**Location locking system enables dynamic world expansion with access control.** Locations own IsLocked state (HIGHLANDER: one owner). Parser translates categorical InitialState to concrete IsLocked boolean. Dependent locations spawn locked. Choice rewards modify IsLocked directly through LocationsToUnlock/LocationsToLock lists. Action generation creates movement actions for all adjacent locations regardless of lock state. Availability checks query IsLocked at action execution time. UI renders locked state visually. Players unlock locations through scene choices, manually navigate to unlocked areas maintaining agency.
 
 **Design vs configuration separation maintains architectural clarity.** Design (structure, patterns, content) lives exclusively in catalogue code. Configuration (placement, timing, eligibility) lives exclusively in JSON data. Never blur this boundary. If JSON authors need structural choices, catalogues are incomplete. PlacementFilter determines WHERE scenes spawn. SpawnConditions determine WHEN scenes become eligible. Neither affects WHAT scenes contain. SceneSpawnContextBuilder resolves placement into fully populated context using parse-time object references (HIGHLANDER: single shared implementation).
 
@@ -1776,4 +1847,4 @@ This architecture supports procedural generation of complete multi-situation nar
 
 **Parse-time generation eliminates runtime performance cost.** All catalogue calls occur at game initialization. Templates immutable after parse. Runtime queries pre-generated collections. Facades never import catalogues. This timing separation is sacred - breaking it introduces performance problems and architectural confusion. Context building operates at runtime (entity resolution from GameWorld) using orchestration-level utility, distinct from parse-time catalogue pattern. LocationActionCatalog generates actions at initialization and after dynamic content loads, not continuously.
 
-**Reliability is paramount.** Pure generation core with zero dependencies enables isolated testing. Parse-time validation prevents structural errors from reaching runtime. Explicit contracts and state machines provide complete traceability. Comprehensive automated test suite (1000+ unit, 100+ integration, 20+ end-to-end tests) catches regressions immediately. Debug visualization tools enable rapid diagnosis. Atomic pipeline guarantees complete success or clean failure. LET IT CRASH philosophy surfaces problems immediately rather than masking with fallbacks. SceneSpawnContextBuilder fails fast with null returns when entity resolution fails, forcing data quality fixes rather than silent null propagation. Action generation validates all locations have hex positions, preventing spatial system violations. This system architecture ensures rock-solid procedural content generation where failure is not an option.
+**Reliability is paramount.** Pure generation core with zero dependencies enables isolated testing. Parse-time validation prevents structural errors from reaching runtime. Parser-JSON-Entity Triangle completeness ensures all categorical properties translate to concrete typed properties. Explicit contracts and state machines provide complete traceability. Comprehensive automated test suite (1000+ unit, 100+ integration, 20+ end-to-end tests) catches regressions immediately. Debug visualization tools enable rapid diagnosis. Atomic pipeline guarantees complete success or clean failure. LET IT CRASH philosophy surfaces problems immediately rather than masking with fallbacks. SceneSpawnContextBuilder fails fast with null returns when entity resolution fails, forcing data quality fixes. Action generation validates all locations have hex positions. Hex grid integration prevents spatial system violations. This system architecture ensures rock-solid procedural content generation where failure is not an option.
