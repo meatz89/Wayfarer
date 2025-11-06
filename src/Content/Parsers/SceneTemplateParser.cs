@@ -122,7 +122,6 @@ public class SceneTemplateParser
             Tier = dto.Tier,
             PresentationMode = presentationMode,
             ProgressionMode = progressionMode,
-            IsForced = dto.IsForced,
             DependentLocations = dependentLocations,
             DependentItems = dependentItems
         };

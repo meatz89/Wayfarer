@@ -10,7 +10,7 @@ namespace Wayfarer.Pages.Components
     /// </summary>
     public class SceneContentBase : ComponentBase
     {
-        [Parameter] public ModalSceneContext Context { get; set; }
+        [Parameter] public SceneContext Context { get; set; }
         [Parameter] public EventCallback OnSceneEnd { get; set; }
         [CascadingParameter] public GameScreenBase GameScreen { get; set; }
 

@@ -65,15 +65,6 @@ public class Scene
     /// </summary>
     public ProgressionMode ProgressionMode { get; set; } = ProgressionMode.Breathe;
 
-    /// <summary>
-    /// IsForced - whether this Scene auto-starts on location entry (forced interruption)
-    /// true: Scene triggers immediately when player enters location (emergency, critical story beat)
-    /// false: Scene waits for player action to trigger (NPC engagement, player-initiated)
-    /// Defaults to false - most Modal scenes are player-initiated, not forced
-    /// Used by GameScreen.OnInitializedAsync() to filter GetModalSceneAtLocation() results
-    /// </summary>
-    public bool IsForced { get; set; } = false;
-
     // ==================== CONTENT PROPERTIES ====================
 
     /// <summary>

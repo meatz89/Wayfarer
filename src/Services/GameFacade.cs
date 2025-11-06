@@ -359,10 +359,6 @@ public class GameFacade
                     // Check for procedural scenes that become eligible when entering this location
                     // Handoff implementation: Phase 4 (lines 254-260)
                     _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Location, destSpot.Id);
-
-                    // MODAL SCENE FORCING: Check for forced modal scene at new location
-                    // If found, sets GameWorld.PendingForcedSceneId for UI to detect
-                    CheckForForcedModalScene();
                 }
             }
 
@@ -847,10 +843,6 @@ public class GameFacade
         {
             // TRIGGER POINT 1: Record location visit after successful movement
             RecordLocationVisit(targetSpotId);
-
-            // MODAL SCENE FORCING: Check for forced modal scene at new location
-            // If found, sets GameWorld.PendingForcedSceneId for UI to detect
-            CheckForForcedModalScene();
         }
 
         return success ? IntentResult.Executed(requiresRefresh: true) : IntentResult.Failed();
@@ -1157,25 +1149,6 @@ public class GameFacade
     }
 
     // ========== PRIVATE HELPERS ==========
-
-    /// <summary>
-    /// Check for forced modal scenes at player's current location
-    /// Modal scenes with IsForced = true should auto-trigger when player enters the location
-    /// HIGHLANDER: Single check point for forced scene detection after movement
-    /// Sets GameWorld.PendingForcedSceneId if found, UI layer reads and navigates
-    /// </summary>
-    private void CheckForForcedModalScene()
-    {
-        Location currentLocation = GetPlayerCurrentLocation();
-        if (currentLocation == null)
-            return;
-
-        Scene forcedScene = _sceneFacade.GetModalSceneAtLocation(currentLocation.Id);
-        if (forcedScene != null)
-        {
-            _gameWorld.PendingForcedSceneId = forcedScene.Id;
-        }
-    }
 
     /// <summary>
     /// HIGHLANDER: THE ONLY place for processing time advancement side effects.

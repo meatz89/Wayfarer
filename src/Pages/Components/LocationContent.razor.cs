@@ -64,12 +64,12 @@ namespace Wayfarer.Pages.Components
                 // MULTI-SITUATION SCENE RESUMPTION: Check if player navigated to location required by waiting scene
                 // Scene completed Situation 1 with ExitToWorld routing (different context required)
                 // Player navigated to required location - auto-resume scene to continue progression
-                List<Scene> resumableScenes = SceneFacade.GetResumableModalScenesAtContext(locationId, null);
+                List<Scene> resumableScenes = SceneFacade.GetResumableScenesAtContext(locationId, null);
                 if (resumableScenes.Count > 0)
                 {
                     // Auto-resume first waiting scene (should only be one per location context)
                     Scene resumableScene = resumableScenes[0];
-                    await GameScreen.StartModalScene(resumableScene.Id);
+                    await GameScreen.StartScene(resumableScene.Id);
                 }
             }
 
@@ -151,7 +151,7 @@ namespace Wayfarer.Pages.Components
                         string forcedSceneId = GameWorld.PendingForcedSceneId;
                         GameWorld.PendingForcedSceneId = null; // Clear pending flag
 
-                        await GameScreen.StartModalScene(forcedSceneId);
+                        await GameScreen.StartScene(forcedSceneId);
                     }
                 }
             }
@@ -228,7 +228,7 @@ namespace Wayfarer.Pages.Components
                     string forcedSceneId = GameWorld.PendingForcedSceneId;
                     GameWorld.PendingForcedSceneId = null; // Clear pending flag
 
-                    await GameScreen.StartModalScene(forcedSceneId);
+                    await GameScreen.StartScene(forcedSceneId);
                 }
             }
         }

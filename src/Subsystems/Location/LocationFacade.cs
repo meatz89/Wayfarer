@@ -232,17 +232,6 @@ public class LocationFacade
         return _gameWorld.NPCs;
     }
 
-    /// <summary>
-    /// Get modal scene at location (if one exists)
-    /// Modal scenes take over the full screen on location entry (Sir Brante forced moment)
-    /// Returns null if no modal scene at this location
-    /// Called by UI when player enters location to check for modal takeover
-    /// </summary>
-    public Scene GetModalSceneAtLocation(string locationId)
-    {
-        return _sceneFacade.GetModalSceneAtLocation(locationId);
-    }
-
     // Private helper methods
 
     private List<NPCInteractionViewModel> GetNPCsWithInteractions(Location location, TimeBlocks currentTime, List<NPCConversationOptions> npcConversationOptions)

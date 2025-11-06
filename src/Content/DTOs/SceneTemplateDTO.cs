@@ -75,14 +75,6 @@ public class SceneTemplateDTO
     public string ProgressionMode { get; set; }
 
     /// <summary>
-    /// IsForced - whether this Scene auto-starts on location entry (forced interruption)
-    /// true: Scene triggers immediately when player enters location (emergency, critical story beat)
-    /// false: Scene waits for player action to trigger (NPC engagement, player-initiated)
-    /// Defaults to false if not specified
-    /// </summary>
-    public bool IsForced { get; set; } = false;
-
-    /// <summary>
     /// Scene archetype ID for procedural scene generation
     /// SceneArchetypeCatalog generates complete SituationTemplates array at PARSE TIME
     /// REQUIRED for all scenes - defines both structure and content

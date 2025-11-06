@@ -91,7 +91,6 @@ public class SceneInstantiator
             PlacementId = placementId,
             PresentationMode = sceneTemplate.PresentationMode,
             ProgressionMode = sceneTemplate.ProgressionMode,
-            IsForced = sceneTemplate.IsForced,
             State = SceneState.Provisional, // KEY: Provisional state
             SourceSituationId = context.CurrentSituation?.Id, // Track source for cleanup
             ExpiresOnDay = expiresOnDay, // Time-limited content (enforced in ProcessTimeAdvancement)

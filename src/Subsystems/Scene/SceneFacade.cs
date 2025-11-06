@@ -30,93 +30,22 @@ public class SceneFacade
     // ==================== LOCATION CONTEXT ====================
 
     /// <summary>
-    /// Get modal scene at location (if one exists)
-    /// Modal scenes take over the full screen on location entry (Sir Brante forced moment)
-    /// Returns null if no modal scene at this location
-    /// Called by UI when player enters location to check for modal takeover
-    /// PLACEMENT-AGNOSTIC: Finds scenes placed at Location/NPC/Route that are present at this location
-    /// </summary>
-    public Scene GetModalSceneAtLocation(string locationId)
-    {
-        List<Scene> allActive = _gameWorld.Scenes.Where(s => s.State == SceneState.Active).ToList();
-        Console.WriteLine($"[SceneFacade] GetModalSceneAtLocation('{locationId}')");
-        Console.WriteLine($"  Total active scenes: {allActive.Count}");
-        foreach (Scene s in allActive)
-        {
-            Console.WriteLine($"    - {s.Id}: {s.PlacementType}/{s.PlacementId}, Modal={s.PresentationMode == PresentationMode.Modal}");
-        }
-
-        return _gameWorld.Scenes
-            .FirstOrDefault(s => s.State == SceneState.Active &&
-                               s.PresentationMode == PresentationMode.Modal &&
-                               s.IsForced &&
-                               IsSceneAtLocation(s, locationId));
-    }
-
-    /// <summary>
-    /// Get resumable modal scenes at given context (location + optional NPC)
+    /// Get resumable scenes at given context (location + optional NPC)
     /// Used for multi-situation scene resumption after navigation
     /// Returns scenes that should auto-activate when player navigates to their required context
     /// Example: Player completes Situation 1 at common_room, navigates to upper_floor,
     ///          this method finds the scene waiting at upper_floor and returns it for resumption
+    /// ALL ACTIVE SCENES auto-activate when you enter their context (no "modal" vs "atmospheric" distinction)
     /// </summary>
     /// <param name="locationId">Location player is currently at</param>
     /// <param name="npcId">NPC player is currently interacting with (null if none)</param>
     /// <returns>List of scenes that should resume at this context</returns>
-    public List<Scene> GetResumableModalScenesAtContext(string locationId, string npcId)
+    public List<Scene> GetResumableScenesAtContext(string locationId, string npcId)
     {
         return _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.PresentationMode == PresentationMode.Modal &&
                        s.ShouldActivateAtContext(locationId, npcId, _gameWorld))
             .ToList();
-    }
-
-    /// <summary>
-    /// Check if scene is present at this location (placement-agnostic)
-    /// Handles three placement types:
-    /// - Location: Direct placement at location
-    /// - NPC: NPC is at this location
-    /// - Route: Route departs from this location
-    /// </summary>
-    private bool IsSceneAtLocation(Scene scene, string locationId)
-    {
-        // Direct location placement
-        if (scene.PlacementType == PlacementType.Location)
-        {
-            bool matches = scene.PlacementId == locationId;
-            if (matches)
-            {
-                Console.WriteLine($"  [IsSceneAtLocation] Scene '{scene.Id}' MATCHES: Location placement '{scene.PlacementId}'");
-            }
-            else
-            {
-                Console.WriteLine($"  [IsSceneAtLocation] Scene '{scene.Id}' Location placement: '{scene.PlacementId}' (target: '{locationId}') - no match");
-            }
-            return matches;
-        }
-
-        // NPC placement - check if NPC is at this location
-        if (scene.PlacementType == PlacementType.NPC)
-        {
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.PlacementId);
-            string npcLocationId = npc?.Location?.Id;
-            bool matches = npcLocationId == locationId;
-            Console.WriteLine($"  [IsSceneAtLocation] Scene '{scene.Id}' NPC placement: NPC '{scene.PlacementId}' at location '{npcLocationId}' (target: '{locationId}') - {(matches ? "MATCH" : "no match")}");
-            return matches;
-        }
-
-        // Route placement - check if route departs from this location
-        if (scene.PlacementType == PlacementType.Route)
-        {
-            RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == scene.PlacementId);
-            bool matches = route?.OriginLocationId == locationId;
-            Console.WriteLine($"  [IsSceneAtLocation] Scene '{scene.Id}' Route placement: Route '{scene.PlacementId}' origin '{route?.OriginLocationId}' (target: '{locationId}') - {(matches ? "MATCH" : "no match")}");
-            return matches;
-        }
-
-        Console.WriteLine($"  [IsSceneAtLocation] Scene '{scene.Id}' - Unknown placement type: {scene.PlacementType}");
-        return false;
     }
 
     /// <summary>

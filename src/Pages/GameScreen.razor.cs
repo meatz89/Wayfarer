@@ -62,8 +62,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     // Navigation State
     protected ExchangeContext CurrentExchangeContext { get; set; }
-    protected TravelSceneContext CurrentSceneContext { get; set; }
-    protected ModalSceneContext CurrentModalSceneContext { get; set; }
+    protected TravelSceneContext CurrentTravelSceneContext { get; set; }
+    protected SceneContext CurrentSceneContext { get; set; }
     protected SocialChallengeContext CurrentSocialContext { get; set; }
     protected MentalChallengeContext CurrentMentalContext { get; set; }
     protected PhysicalChallengeContext CurrentPhysicalContext { get; set; }
@@ -88,16 +88,16 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
 
         // Check for resumable modal scenes at current context (multi-situation scene resumption)
-        // Uses GetResumableModalScenesAtContext which checks CurrentSituation.RequiredLocationId
+        // Uses GetResumableScenesAtContext which checks CurrentSituation.RequiredLocationId
         // This enables scenes to span multiple locations as situations progress
         Location currentLocation = GameFacade.GetCurrentLocation();
         if (currentLocation != null)
         {
-            List<Scene> resumableScenes = SceneFacade.GetResumableModalScenesAtContext(currentLocation.Id, null);
+            List<Scene> resumableScenes = SceneFacade.GetResumableScenesAtContext(currentLocation.Id, null);
             if (resumableScenes.Count > 0)
             {
                 Scene modalScene = resumableScenes.First();
-                await StartModalScene(modalScene.Id);
+                await StartScene(modalScene.Id);
                 return; // Modal scene takes priority over normal location display
             }
         }
@@ -558,7 +558,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartModalScene(string sceneId)
+    public async Task StartScene(string sceneId)
     {
         Scene scene = GameWorld.Scenes.FirstOrDefault(s => s.Id == sceneId);
         if (scene == null)
@@ -573,7 +573,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
         // Create modal scene context
         Location currentLocation = GameFacade.GetCurrentLocation();
-        CurrentModalSceneContext = new ModalSceneContext
+        CurrentSceneContext = new SceneContext
         {
             IsValid = true,
             Scene = scene,
@@ -619,7 +619,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
         // Create modal scene context
         Location currentLocation = GameFacade.GetCurrentLocation();
-        CurrentModalSceneContext = new ModalSceneContext
+        CurrentSceneContext = new SceneContext
         {
             IsValid = true,
             Scene = scene,
@@ -637,9 +637,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task HandleModalSceneEnd()
+    public async Task HandleSceneEnd()
     {
-        CurrentModalSceneContext = null;
+        CurrentSceneContext = null;
 
         // Always refresh UI after modal scene ends
         await RefreshResourceDisplay();

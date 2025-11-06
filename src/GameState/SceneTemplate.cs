@@ -120,14 +120,6 @@ public class SceneTemplate
     public ProgressionMode ProgressionMode { get; init; } = ProgressionMode.Breathe;
 
     /// <summary>
-    /// IsForced - whether Scenes spawned from this template auto-start on location entry (forced interruption)
-    /// true: Scene triggers immediately when player enters location (emergency, critical story beat)
-    /// false: Scene waits for player action to trigger (NPC engagement, player-initiated)
-    /// Defaults to false - most Modal scenes are player-initiated, not forced
-    /// </summary>
-    public bool IsForced { get; init; } = false;
-
-    /// <summary>
     /// Dependent locations that this Scene creates dynamically at spawn time
     /// Self-contained pattern: Scene generates JSON package → PackageLoader → Standard parsing
     /// Each spec becomes LocationDTO, flows through normal JSON → DTO → Domain pipeline
