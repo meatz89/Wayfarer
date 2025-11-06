@@ -215,7 +215,7 @@ public abstract class PhysicalServiceType : ServiceType
 
         if (contextNPC.PersonalityType == PersonalityType.MERCANTILE)
         {
-            return SituationArchetypeCatalog.GetArchetype("negotiation");
+            return SituationArchetypeCatalog.GetArchetype("service_transaction");
         }
 
         return SituationArchetypeCatalog.GetArchetype("service_transaction");
