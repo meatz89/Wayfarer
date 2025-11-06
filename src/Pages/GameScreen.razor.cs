@@ -87,13 +87,16 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             return; // Emergency takes priority, skip normal initialization
         }
 
-        // Check for modal scene at current location spot (Sir Brante forced moment)
+        // Check for resumable modal scenes at current context (multi-situation scene resumption)
+        // Uses GetResumableModalScenesAtContext which checks CurrentSituation.RequiredLocationId
+        // This enables scenes to span multiple locations as situations progress
         Location currentLocation = GameFacade.GetCurrentLocation();
         if (currentLocation != null)
         {
-            Scene modalScene = SceneFacade.GetModalSceneAtLocation(currentLocation.Id);
-            if (modalScene != null)
+            List<Scene> resumableScenes = SceneFacade.GetResumableModalScenesAtContext(currentLocation.Id, null);
+            if (resumableScenes.Count > 0)
             {
+                Scene modalScene = resumableScenes.First();
                 await StartModalScene(modalScene.Id);
                 return; // Modal scene takes priority over normal location display
             }
