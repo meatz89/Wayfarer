@@ -266,8 +266,11 @@ public class Scene
             return null;
 
         // Find all transitions from this source situation
+        // CRITICAL: Use TemplateId for matching (HIGHLANDER Pattern D)
+        // Template transitions reference template IDs, runtime situations have instance IDs
+        // TemplateId bridges template-defined rules to runtime instances
         List<SituationTransition> candidateTransitions = SpawnRules.Transitions
-            .Where(t => t.SourceSituationId == completedSituation.Id)
+            .Where(t => t.SourceSituationId == completedSituation.TemplateId)
             .ToList();
 
         if (candidateTransitions.Count == 0)
