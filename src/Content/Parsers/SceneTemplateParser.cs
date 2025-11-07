@@ -315,21 +315,15 @@ public class SceneTemplateParser
         }
 
         // ARCHETYPE-BASED GENERATION: archetypeId generates 4 ChoiceTemplates from catalogue
-        // Situations with autoProgressRewards have no choices (narrative auto-executes)
         List<ChoiceTemplate> choiceTemplates;
         if (!string.IsNullOrEmpty(dto.ArchetypeId))
         {
             // PARSE-TIME ARCHETYPE GENERATION
             choiceTemplates = GenerateChoiceTemplatesFromArchetype(dto.ArchetypeId, sceneTemplateId, dto.Id);
         }
-        else if (dto.AutoProgressRewards != null)
-        {
-            // AUTO-PROGRESS SITUATION (no choices, narrative observation)
-            choiceTemplates = new List<ChoiceTemplate>();
-        }
         else
         {
-            throw new InvalidDataException($"SituationTemplate '{dto.Id}' in SceneTemplate '{sceneTemplateId}' must have EITHER 'archetypeId' (archetype-driven choices) OR 'autoProgressRewards' (auto-progress). Hand-authored choiceTemplates are not allowed.");
+            throw new InvalidDataException($"SituationTemplate '{dto.Id}' in SceneTemplate '{sceneTemplateId}' must have 'archetypeId' for archetype-driven choice generation. All situations require player choices.");
         }
 
         SituationTemplate template = new SituationTemplate
@@ -339,8 +333,7 @@ public class SceneTemplateParser
             NarrativeTemplate = dto.NarrativeTemplate,
             ChoiceTemplates = choiceTemplates,
             Priority = dto.Priority,
-            NarrativeHints = ParseNarrativeHints(dto.NarrativeHints),
-            AutoProgressRewards = ParseChoiceReward(dto.AutoProgressRewards)
+            NarrativeHints = ParseNarrativeHints(dto.NarrativeHints)
         };
 
         return template;
@@ -351,15 +344,6 @@ public class SceneTemplateParser
     /// </summary>
     private List<ChoiceTemplate> ParseChoiceTemplates(List<ChoiceTemplateDTO> dtos, string sceneTemplateId, string situationTemplateId, SpawnPattern archetype)
     {
-        // AutoAdvance scenes have no choices (narrative auto-executes)
-        if (archetype == SpawnPattern.AutoAdvance)
-        {
-            if (dtos != null && dtos.Any())
-                throw new InvalidDataException($"AutoAdvance SceneTemplate '{sceneTemplateId}' SituationTemplate '{situationTemplateId}' should have EMPTY ChoiceTemplates (choices not allowed for AutoAdvance)");
-
-            return new List<ChoiceTemplate>(); // Empty list for AutoAdvance
-        }
-
         // Normal scenes require 2-4 choices (Sir Brante pattern)
         if (dtos == null || !dtos.Any())
             throw new InvalidDataException($"SituationTemplate '{situationTemplateId}' in SceneTemplate '{sceneTemplateId}' must have at least 2 ChoiceTemplates (Sir Brante pattern: 2-4 choices)");

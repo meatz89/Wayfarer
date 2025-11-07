@@ -5,7 +5,7 @@ using Wayfarer.Services;
 
 /// <summary>
 /// Centralized service for applying ChoiceReward consequences
-/// Used by GameFacade (instant actions), challenge facades (on completion), and SceneFacade (AutoAdvance)
+/// Used by GameFacade (instant actions), challenge facades (on completion), and SceneFacade (choice completion)
 /// Handles: resources, bonds, scales, states, achievements, items, scene spawning, time advancement
 /// Tutorial system relies on this for reward application after challenges complete
 /// </summary>

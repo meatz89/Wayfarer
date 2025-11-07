@@ -97,24 +97,10 @@ public class SceneFacade
     /// Activate dormant Situation for Location context
     /// Instantiates ChoiceTemplates → LocationActions
     /// Creates provisional Scenes for actions with spawn rewards
-    /// AutoAdvance situations execute rewards immediately
     /// </summary>
     private void ActivateSituationForLocation(Situation situation, Scene scene, Player player)
     {
         situation.InstantiationState = InstantiationState.Instantiated;
-
-        // AutoAdvance detection: Execute AutoProgressRewards immediately
-        if (situation.IsAutoAdvance)
-        {
-            _rewardApplicationService.ApplyChoiceReward(situation.Template.AutoProgressRewards, situation);
-
-            // MULTI-SITUATION SCENE: Complete AutoAdvance situation and advance scene
-            // Scene.AdvanceToNextSituation() called by completion handler
-            // Enables automatic progression through narrative-only situations
-            _situationCompletionHandler.CompleteSituation(situation);
-
-            return; // No actions to instantiate for AutoAdvance situations
-        }
 
         // Instantiate actions from ChoiceTemplates
         foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
@@ -196,24 +182,10 @@ public class SceneFacade
     /// Activate dormant Situation for NPC context
     /// Instantiates ChoiceTemplates → NPCActions
     /// Creates provisional Scenes for actions with spawn rewards
-    /// AutoAdvance situations execute rewards immediately
     /// </summary>
     private void ActivateSituationForNPC(Situation situation, Scene scene, Player player)
     {
         situation.InstantiationState = InstantiationState.Instantiated;
-
-        // AutoAdvance detection: Execute AutoProgressRewards immediately
-        if (situation.IsAutoAdvance)
-        {
-            _rewardApplicationService.ApplyChoiceReward(situation.Template.AutoProgressRewards, situation);
-
-            // MULTI-SITUATION SCENE: Complete AutoAdvance situation and advance scene
-            // Scene.AdvanceToNextSituation() called by completion handler
-            // Enables automatic progression through narrative-only situations
-            _situationCompletionHandler.CompleteSituation(situation);
-
-            return; // No actions to instantiate for AutoAdvance situations
-        }
 
         NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.PlacementId);
 
@@ -290,24 +262,10 @@ public class SceneFacade
     /// Activate dormant Situation for Route context
     /// Instantiates ChoiceTemplates → PathCards
     /// Creates provisional Scenes for actions with spawn rewards
-    /// AutoAdvance situations execute rewards immediately
     /// </summary>
     private void ActivateSituationForRoute(Situation situation, Scene scene, Player player)
     {
         situation.InstantiationState = InstantiationState.Instantiated;
-
-        // AutoAdvance detection: Execute AutoProgressRewards immediately
-        if (situation.IsAutoAdvance)
-        {
-            _rewardApplicationService.ApplyChoiceReward(situation.Template.AutoProgressRewards, situation);
-
-            // MULTI-SITUATION SCENE: Complete AutoAdvance situation and advance scene
-            // Scene.AdvanceToNextSituation() called by completion handler
-            // Enables automatic progression through narrative-only situations
-            _situationCompletionHandler.CompleteSituation(situation);
-
-            return; // No actions to instantiate for AutoAdvance situations
-        }
 
         foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
         {

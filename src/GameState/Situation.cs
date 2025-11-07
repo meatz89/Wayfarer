@@ -35,15 +35,6 @@ public class Situation
     public InstantiationState InstantiationState { get; set; } = InstantiationState.Deferred;
 
     /// <summary>
-    /// Indicates this Situation auto-advances without player input
-    /// Used when parent Scene has Archetype = AutoAdvance
-    /// Situation displays narrative then immediately applies AutoProgressRewards
-    /// No player choices created - automatic progression
-    /// Tutorial Night Rest scene uses this pattern
-    /// </summary>
-    public bool IsAutoAdvance { get; set; } = false;
-
-    /// <summary>
     /// Routing decision for multi-situation scene progression
     /// Set by SituationCompletionHandler after Scene.AdvanceToNextSituation
     /// Read by SceneContent.HandleChoiceSelected to determine UI routing

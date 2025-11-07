@@ -73,7 +73,8 @@ public static class SituationArchetypeCatalog
             "trade_dispute" => CreateTradeDispute(),
             "cultural_faux_pas" => CreateCulturalFauxPas(),
             "recruitment" => CreateRecruitment(),
-            _ => throw new InvalidDataException($"Unknown archetype ID: '{archetypeId}'. Valid values: confrontation, negotiation, investigation, social_maneuvering, crisis, service_transaction, access_control, information_gathering, skill_demonstration, reputation_challenge, emergency_aid, administrative_procedure, trade_dispute, cultural_faux_pas, recruitment")
+            "rest_preparation" => CreateRestPreparation(),
+            _ => throw new InvalidDataException($"Unknown archetype ID: '{archetypeId}'. Valid values: confrontation, negotiation, investigation, social_maneuvering, crisis, service_transaction, access_control, information_gathering, skill_demonstration, reputation_challenge, emergency_aid, administrative_procedure, trade_dispute, cultural_faux_pas, recruitment, rest_preparation")
         };
     }
 
@@ -527,6 +528,36 @@ public static class SituationArchetypeCatalog
         };
     }
 
+    /// <summary>
+    /// REST PREPARATION archetype
+    ///
+    /// When Used: Preparing to rest in private space, optimizing recovery
+    /// Common In: Physical domain (lodging, safe havens, private rooms)
+    /// Player Learns: "Preparation affects recovery quality"
+    ///
+    /// Choice Pattern:
+    /// 1. Insight 3+ → Optimize rest conditions (best, maximum recovery)
+    /// 2. 8 coins → Use comfort items (decent, good recovery + bonus)
+    /// 3. Mental challenge → Force relaxation despite anxiety (risky, variable)
+    /// 4. Fallback → Collapse from exhaustion (poor, minimal recovery)
+    /// </summary>
+    private static SituationArchetype CreateRestPreparation()
+    {
+        return new SituationArchetype
+        {
+            Id = "rest_preparation",
+            Name = "Rest Preparation",
+            Domain = Domain.Physical,
+            PrimaryStat = PlayerStatType.Insight,
+            SecondaryStat = PlayerStatType.Authority,
+            StatThreshold = 3,
+            CoinCost = 8,
+            ChallengeType = TacticalSystemType.Mental,
+            ResolveCost = 1,
+            FallbackTimeCost = 1
+        };
+    }
+
     public static List<ChoiceTemplate> GenerateChoiceTemplates(
         SituationArchetype archetype,
         string situationTemplateId)
@@ -643,6 +674,7 @@ public static class SituationArchetypeCatalog
             "trade_dispute" => "Leverage your position",
             "cultural_faux_pas" => "Apologize gracefully",
             "recruitment" => "Negotiate terms",
+            "rest_preparation" => "Optimize rest conditions",
             _ => "Use your expertise"
         };
     }
@@ -666,6 +698,7 @@ public static class SituationArchetypeCatalog
             "trade_dispute" => "Offer settlement",
             "cultural_faux_pas" => "Offer gift as amends",
             "recruitment" => "Buy time",
+            "rest_preparation" => "Use comfort items for better rest",
             _ => "Pay to resolve"
         };
     }
@@ -689,6 +722,7 @@ public static class SituationArchetypeCatalog
             "trade_dispute" => "Escalate to arbitration",
             "cultural_faux_pas" => "Defend your action",
             "recruitment" => "Counter-offer boldly",
+            "rest_preparation" => "Force yourself to relax despite anxiety",
             _ => "Accept the challenge"
         };
     }
@@ -712,6 +746,7 @@ public static class SituationArchetypeCatalog
             "trade_dispute" => "Accept the loss",
             "cultural_faux_pas" => "Ignore and act oblivious",
             "recruitment" => "Refuse bluntly",
+            "rest_preparation" => "Collapse from exhaustion immediately",
             _ => "Accept poor outcome"
         };
     }

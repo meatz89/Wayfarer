@@ -13,7 +13,7 @@ public enum TimeBlocks
 
 /// <summary>
 /// Day advancement options for ChoiceReward time progression
-/// Used by AutoAdvance scenes to control day transitions
+/// Used by single-choice instant situations to control day transitions
 /// </summary>
 public enum DayAdvancement
 {

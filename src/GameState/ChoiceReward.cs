@@ -22,7 +22,7 @@ public class ChoiceReward
 
     /// <summary>
     /// Advance to specific time block (overrides TimeSegments)
-    /// Used by AutoAdvance scenes for major time jumps (e.g., sleep until morning)
+    /// Used for major time jumps (e.g., sleep until morning)
     /// </summary>
     public TimeBlocks? AdvanceToBlock { get; set; }
 

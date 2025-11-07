@@ -35,11 +35,11 @@ Within a single scene, situations flow sequentially without interruption:
 
 1. Player clicks "Secure Lodging" button
 2. Scene activates, shows Situation 1: "Enter"
-3. Player completes Situation 1
-4. Scene auto-advances to Situation 2: "Lodging" (no return to location view)
-5. Player completes Situation 2
-6. Scene auto-advances to Situation 3: "Leave"
-7. Player completes Situation 3
+3. Player selects choice in Situation 1
+4. Scene cascades to Situation 2: "Lodging" (no return to location view)
+5. Player selects choice in Situation 2
+6. Scene cascades to Situation 3: "Leave"
+7. Player selects choice in Situation 3
 8. Scene completes, returns to location view
 
 The scene state machine manages CurrentSituationId and AdvanceToNextSituation() for seamless narrative flow.

@@ -80,12 +80,4 @@ public class SituationTemplate
     /// Provides tone, theme, context, style guidance
     /// </summary>
     public NarrativeHints NarrativeHints { get; init; }
-
-    /// <summary>
-    /// Rewards applied automatically when Situation activates (no player input)
-    /// Only used when SceneTemplate.Archetype = AutoAdvance
-    /// Scene displays narrative then immediately applies these rewards
-    /// Used for narrative transitions (sleep, travel, forced progression)
-    /// </summary>
-    public ChoiceReward AutoProgressRewards { get; init; }
 }

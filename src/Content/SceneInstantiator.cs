@@ -363,8 +363,6 @@ public class SceneInstantiator
             Description = template.NarrativeTemplate,
             NarrativeHints = template.NarrativeHints,
             InstantiationState = InstantiationState.Deferred,  // START deferred - actions created at query time
-            IsAutoAdvance = (template.ChoiceTemplates == null || template.ChoiceTemplates.Count == 0)
-                             && template.AutoProgressRewards != null,  // Detect per-situation auto-advance
 
             // PLACEMENT INHERITANCE: ParentScene reference enables GetPlacementId() queries
             // Scene is single source of truth for placement (HIGHLANDER Pattern C)

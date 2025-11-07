@@ -6,7 +6,7 @@ namespace Wayfarer.Pages.Components
     /// <summary>
     /// Scene screen component for Modal Scenes (Sir Brante forced moments).
     /// Full-screen takeover showing scene narrative with 2-4 choices.
-    /// Handles both Cascade (auto-advance) and Breathe (return to location) progression modes.
+    /// Handles both Cascade (continue in scene) and Breathe (return to location) progression modes.
     /// </summary>
     public class SceneContentBase : ComponentBase
     {
@@ -58,6 +58,12 @@ namespace Wayfarer.Pages.Components
             if (CurrentSituation?.Template?.ChoiceTemplates == null)
             {
                 Console.WriteLine($"[SceneContent.LoadChoices] EARLY RETURN - CurrentSituation/Template/ChoiceTemplates is null");
+                return;
+            }
+
+            if (CurrentSituation.Template.ChoiceTemplates.Count == 0)
+            {
+                Console.WriteLine($"[SceneContent.LoadChoices] ERROR - Situation '{CurrentSituation.Id}' has empty ChoiceTemplates (soft-lock risk)");
                 return;
             }
 
@@ -460,7 +466,7 @@ namespace Wayfarer.Pages.Components
 
                 if (nextSituation != null)
                 {
-                    Console.WriteLine($"[SceneContent.HandleChoiceSelected] Next situation: '{nextSituation.Id}', IsAutoAdvance={nextSituation.IsAutoAdvance}");
+                    Console.WriteLine($"[SceneContent.HandleChoiceSelected] Next situation: '{nextSituation.Id}'");
                     // Reload modal with next situation - no exit to world
                     // Situations are fully instantiated during FinalizeScene, no on-demand instantiation needed
                     CurrentSituation = nextSituation;

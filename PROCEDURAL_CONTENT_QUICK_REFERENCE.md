@@ -245,7 +245,7 @@ PlacementFilter
 ### SpawnPattern (Scene archetype)
 ```
 Linear, HubAndSpoke, Branching, Converging, Conditional,
-Exclusive, Sequential, Recursive, Hybrid, Standalone, AutoAdvance
+Exclusive, Sequential, Recursive, Hybrid, Standalone
 ```
 
 ### SceneState (Lifecycle)

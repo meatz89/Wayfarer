@@ -119,7 +119,7 @@ Procedural generation operates through two distinct archetype layers that compos
 
 Example: `service_with_location_access` scene archetype internally decides:
 - Situation 1 uses `social_maneuvering` OR `service_transaction` (based on NPC personality)
-- Situation 2-4 are auto-progress (no choice archetype needed)
+- Situation 2-4 have single-choice instant actions (inline ChoiceTemplates, no archetype)
 - Linear transitions connect them
 
 The archetype ID encodes the complete pattern. No parameters. Scene identity IS its structure.
@@ -359,42 +359,50 @@ Scene lifecycle through typed states with explicit transitions. No boolean flags
 
 State transitions logged for debugging. Audit trail shows: spawn → activate → pause → resume → complete. Diagnostic errors reference state history.
 
-### Scene State Machine with Transition Matching
+### Scene State Machine with Direct Situation Ownership
 
-Scenes follow two-phase lifecycle then progress through explicit states via situation completion.
+Scenes follow two-phase lifecycle using direct object ownership throughout execution.
+
+**Direct Ownership Architecture**: Scene owns Situations like Car owns Wheels. Scene.Situations collection (List<Situation>) owns situation objects directly. Scene.CurrentSituation reference (Situation object, not string ID) points to active situation. GameWorld owns Scenes, Scenes own Situations. Single source of truth - situations exist ONLY in Scene.Situations, nowhere else. No parallel GameWorld.Situations collection, no ID tracking lists.
 
 **Two-Phase Scene Lifecycle**:
-- **Provisional Phase**: Scene created with metadata only, no situations instantiated. Enables dependent resource specification before full commitment. Provisional scenes cannot activate or present content to players.
-- **Finalization Phase**: Situations instantiated, AI narratives generated, dependent resources resolved, CurrentSituationId initialized to first situation, scene transitions to Active state. Only Active scenes can activate at player contexts.
+- **Provisional Phase**: Scene created with empty Situations collection. Enables dependent resource specification before full commitment. Provisional scenes cannot activate or present content.
+- **Finalization Phase**: Situations instantiated from templates and added to Scene.Situations collection. CurrentSituation set to first element (direct object reference). Scene transitions to Active state. Only Active scenes can activate.
 
-Architectural rationale: Provisional phase enables procedural content generation (new locations, items) with complete specification before instantiation. System knows what to generate before committing resources.
+Architectural rationale: Provisional phase enables procedural content generation (new locations, items) with complete specification before instantiation. Finalization converts specification into owned situation objects.
 
-**Scene States**: Provisional (not yet playable), Active (currently available), Completed (all situations exhausted), Expired (time limit exceeded). State machine enforces only Active scenes present content to players.
+**Scene States**: Provisional (not yet playable), Active (currently available), Completed (all situations exhausted), Expired (time limit exceeded). State machine enforces only Active scenes present content.
 
-**CurrentSituationId Initialization**: During finalization, after instantiating all situations, CurrentSituationId set to first element of SituationIds list. Initializes state machine pointer to beginning of narrative sequence. Scene cannot activate without CurrentSituationId (ShouldActivateAtContext checks this first).
+**CurrentSituation Initialization**: During finalization, after instantiating all situations into Scene.Situations, CurrentSituation assigned to first situation object. Direct object reference assignment (O(1)), no ID lookups. Scene cannot activate without CurrentSituation (ShouldActivateAtContext checks this first).
 
-**Situation Identity Duality (HIGHLANDER Pattern D)**: Each runtime situation has TWO identifiers serving distinct purposes:
-- **Id**: Unique instance identifier (GUID). Ensures runtime uniqueness when same template spawns multiple times.
-- **TemplateId**: References source SituationTemplate. Enables matching against template-defined rules.
+**Situation Identity Duality (HIGHLANDER Pattern D)**: Each runtime situation has TWO identifiers:
+- **Id**: Unique instance identifier (GUID). Ensures uniqueness when same template spawns multiple times. Generated at creation.
+- **TemplateId**: References source SituationTemplate. Enables matching against template-defined rules. Copied from template during instantiation, immutable.
 
-Both stored on Situation entity. Template ID copied from template during instantiation, never changes. Instance ID generated at creation, ensures global uniqueness.
+ParentScene reference points back to owning Scene. Lifecycle coupling: when scene destroyed, situations destroyed.
 
-**Transition Matching Logic**: SituationTransition objects define SourceSituationId and DestinationSituationId using template IDs (not instance IDs). Template authors define transitions at authoring time using template identifiers. Runtime matching uses completedSituation.TemplateId to find transitions, connecting template-defined rules to runtime instances.
+**Transition Matching Logic**: SituationTransition objects use template IDs for source/destination. Runtime matching searches Scene.Situations by TemplateId: `scene.Situations.FirstOrDefault(s => s.TemplateId == transition.DestinationSituationId)`. Direct collection iteration (small collections, 2-5 situations typically), no cross-scene queries needed for progression.
 
-**Automatic Situation Progression**: When situation completes, SituationCompletionHandler calls scene.AdvanceToNextSituation. Scene examines SpawnRules transitions, evaluates conditions, updates CurrentSituationId to next situation, returns routing decision. Scene owns state machine logic - facades don't orchestrate transitions.
+**Automatic Situation Progression**: When situation completes, SituationCompletionHandler calls scene.AdvanceToNextSituation(completedSituation). Scene examines SpawnRules transitions using completedSituation.TemplateId for matching, finds next situation in Scene.Situations, updates CurrentSituation to next situation object, returns routing decision. Direct object reference assignment, no ID storage. Scene owns state machine logic completely.
 
-**Routing Decisions**: AdvanceToNextSituation returns routing decision determining UI flow:
-- **ContinueInScene**: Next situation has same context as completed one, scene cascades seamlessly
-- **ExitToWorld**: Next situation requires different context, player must navigate there manually
-- **SceneComplete**: No matching transition found (legitimate end of narrative), scene marks Completed and despawns
+**Routing Decisions**: AdvanceToNextSituation returns decision:
+- **ContinueInScene**: Next situation has same context, scene cascades seamlessly
+- **ExitToWorld**: Next situation requires different context, player must navigate
+- **SceneComplete**: No matching transition (narrative end), scene sets CurrentSituation to null, marks Completed, despawns
 
-**Context-Aware Activation**: Situations activate when player context matches required context. Each situation specifies RequiredLocationId and optional RequiredNpcId. Scene.ShouldActivateAtContext continuously checks: scene state is Active AND CurrentSituationId is not null AND player's current context matches current situation's required context. All three conditions must be true simultaneously.
+**Context-Aware Activation**: Scene.ShouldActivateAtContext checks: scene state is Active AND CurrentSituation is not null AND player's context matches CurrentSituation's required context. Direct property access - no GameWorld parameter, no situation lookups. Returns true when all conditions met, false otherwise.
 
-Creates seamless narrative flow: completing Situation 1 at Location A automatically updates CurrentSituationId to Situation 2. When player travels to Location B (Situation 2's required context), Situation 2 presents itself without manual triggering.
+Creates seamless narrative flow: completing Situation 1 automatically updates CurrentSituation to Situation 2 object. When player navigates to Situation 2's required context, situation activates without manual triggering.
 
-**Pattern Rationale**: Templates authored before instances exist. Transition rules defined in templates using template IDs. Runtime situations store both IDs enabling template-based matching (transition logic) and instance-based uniqueness (state tracking). This is HIGHLANDER Pattern D specialization where "persistence ID" is actually template ID.
+**Performance Benefits**: O(1) property access (CurrentSituation) instead of O(n) linear search through global collection. No redundant ID storage. Direct object references eliminate lookup overhead. Situations list small (2-5 elements typically), iteration negligible.
 
-**Starter Scene Semantics**: Scenes marked IsStarter=true represent guaranteed tutorial content that must spawn unconditionally at game initialization. Not subject to spawn condition evaluation, temporal gating, or progression requirements. Starter scenes define initial player experience and form tutorial sequence. Spawn conditions apply only to procedural/emergent content that appears based on game state.
+**Cross-Scene Queries (Rare)**: When querying situations across ALL scenes (obligation system only), use SelectMany pattern: `gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId)`. Acceptable O(n) complexity for rare cross-scene operations. Within scene context, always use scene.CurrentSituation or scene.Situations directly.
+
+**Runtime Situation Spawning**: When situations spawn from choices (SuccessSpawns, FailureSpawns), spawned situation added to parent scene's collection: `spawnedSituation.ParentScene = parentSituation.ParentScene` and `parentSituation.ParentScene.Situations.Add(spawnedSituation)`. Ensures spawned situations owned by scene, participate in scene lifecycle. Maintains ownership invariant throughout gameplay.
+
+**Starter Scene Semantics**: Scenes marked IsStarter=true represent guaranteed tutorial content spawning unconditionally at game initialization. Bypass spawn condition evaluation entirely. Not subject to temporal gating or progression requirements. Spawn conditions apply only to procedural/emergent content.
+
+**Template-Only Situation Definitions**: All situations must be defined within SceneTemplates. Standalone situation definitions deprecated (PackageLoader.LoadSituations() ignores with warning). Situations cannot exist without owning scene - lifecycle coupling enforces architecturally.
 
 ### Conditional Transition Architecture
 
@@ -560,11 +568,11 @@ Scenes separate creation from activation enabling procedural content generation 
 - FinalizeScene instantiates all situations from templates
 - Resolves marker-based references to procedurally generated content ({{generated:location}})
 - Generates AI narratives if templates specify generation hints
-- **Initializes CurrentSituationId to first situation** (enables state machine)
+- **Initializes CurrentSituation to first situation object** (enables state machine)
 - Transitions scene state from Provisional → Active
 - Only Active scenes can present content to player
 
-**Critical Requirement**: FinalizeScene must set CurrentSituationId to first element in SituationIds list. Without this initialization, scene cannot activate at any context because ShouldActivateAtContext checks CurrentSituationId not null. CurrentSituationId acts as pointer to "which situation should activate next" and drives all scene activation logic.
+**Critical Requirement**: FinalizeScene must set CurrentSituation to first element in Scene.Situations collection. Direct object reference (not ID string). Without this initialization, scene cannot activate at any context because ShouldActivateAtContext checks CurrentSituation not null. CurrentSituation acts as pointer to "which situation should activate next" and drives all scene activation logic.
 
 **Starter Scene Semantics**: Scenes with IsStarter=true represent guaranteed tutorial content spawning unconditionally at game initialization. Bypass spawn condition evaluation entirely for starter scenes. Not subject to temporal gating, progression requirements, or stat thresholds. Domain rule: spawn conditions gate emergent/procedural content, NOT tutorial content defining initial player experience. At game initialization, player has zero progression, so starter scenes must spawn regardless of conditions.
 
@@ -572,20 +580,20 @@ Scenes separate creation from activation enabling procedural content generation 
 
 ### Automatic Situation Progression and Context-Aware Activation
 
-Scenes own their state machine logic. When situation completes, SituationCompletionHandler calls scene.AdvanceToNextSituation. Scene examines SpawnRules transitions, evaluates conditions, updates CurrentSituationId to next situation, returns routing decision.
+Scenes own their state machine logic. When situation completes, SituationCompletionHandler calls scene.AdvanceToNextSituation(completedSituation). Scene examines SpawnRules transitions, evaluates conditions, queries Scene.Situations for matching situation by TemplateId, sets CurrentSituation to found object, returns routing decision.
 
 **Routing Decisions**: 
 - **ContinueInScene**: Next situation has same context as completed one, scene cascades seamlessly
 - **ExitToWorld**: Next situation requires different context, player must navigate manually
 - **SceneComplete**: No more situations exist, scene marks Completed and despawns
 
-**Context-Aware Activation**: Situations activate based on context matching. Each situation specifies required context (location, NPC, or both). Scene system continuously checks whether player's current context matches required context for scene's CurrentSituationId. If matches, situation automatically activates and presents itself. If doesn't match, scene waits quietly until player navigates to correct context.
+**Context-Aware Activation**: Situations activate based on context matching. Each situation specifies required context (location, NPC, or both). Scene system continuously checks whether player's current context matches required context for scene's CurrentSituation. If matches, situation automatically activates and presents itself. If doesn't match, scene waits quietly until player navigates to correct context.
 
-**Domain Invariant**: Situation cannot activate unless parent scene is Active AND scene's CurrentSituationId points to that situation's ID AND player's current context matches situation's required context. All three conditions must be true simultaneously.
+**Domain Invariant**: Situation cannot activate unless parent scene is Active AND scene.CurrentSituation points to that situation object AND player's current context matches situation's required context. All three conditions must be true simultaneously.
 
-**Seamless Narrative Flow**: Completing Situation 1 at Location A automatically updates CurrentSituationId to Situation 2. When player travels to Location B (Situation 2's required context), Situation 2 presents itself without manual triggering. Multi-situation scenes flow like cohesive interactive narratives, not disconnected encounters.
+**Seamless Narrative Flow**: Completing Situation 1 at Location A automatically updates CurrentSituation to Situation 2 object. When player travels to Location B (Situation 2's required context), Situation 2 presents itself without manual triggering. Multi-situation scenes flow like cohesive interactive narratives, not disconnected encounters. Direct object references enable O(1) property access instead of O(n) ID lookups.
 
-**Scene Owns State Machine**: Facades and services don't orchestrate scene state transitions. Scenes encapsulate state machine logic in AdvanceToNextSituation method. External code asks scene to advance, but scene itself examines SpawnRules, evaluates transitions, updates CurrentSituationId. Separation maintains single responsibility.
+**Scene Owns State Machine**: Facades and services don't orchestrate scene state transitions. Scenes encapsulate state machine logic in AdvanceToNextSituation method. External code asks scene to advance, scene examines SpawnRules, evaluates transitions, queries Scene.Situations collection for matching situation, sets CurrentSituation to found object. Direct object ownership - no ID lookups, no parallel tracking. Separation maintains single responsibility.
 
 ### Scene Spawning Context Architecture
 
@@ -709,7 +717,7 @@ The two-level archetype system composes through explicit catalogue calls. Scene 
 3. Receives 4 ChoiceTemplate objects with empty rewards
 4. Creates NEW ChoiceTemplate instances enriching rewards (room key + location unlock)
 5. Enriched choices become negotiate situation's ChoiceTemplates
-6. Situations 2-4 generated without situation archetype (auto-progress)
+6. Situations 2-4 generated with inline single-choice ChoiceTemplates (instant actions)
 7. Returns SceneArchetypeDefinition with 4 SituationTemplates and Linear transitions
 
 **Never Mutate**: SceneArchetypeCatalog never modifies ChoiceTemplates returned from SituationArchetypeCatalog. It creates new instances with additional properties populated. This preserves catalogue purity and prevents hidden coupling.
@@ -810,7 +818,7 @@ When situation completes, scene evaluates transitions to determine next situatio
 3. Check Always transitions. Return first Always transition from source situation.
 4. No matching transition found - complete scene.
 
-**Next Situation Activation**: Returned transition specifies DestinationSituationId. Scene.CurrentSituationId updated to destination. New situation activated. If destination dormant, instantiate its choices. Player sees new situation options.
+**Next Situation Activation**: Returned transition specifies DestinationSituationId (template ID). Scene queries Scene.Situations for situation with matching TemplateId. Sets CurrentSituation to found object. New situation activated. If destination dormant, instantiate its choices. Player sees new situation options. Direct object reference eliminates ID lookup overhead.
 
 **Example Flow - Lodging Negotiate**:
 - Player selects "Haggle" choice (challenge)
@@ -1882,6 +1890,8 @@ The architecture enforces specific constraints preventing entire classes of bugs
 
 **HIGHLANDER Pattern D (Template + Instance IDs)**: Entities spawned from templates at runtime store BOTH TemplateId (references source template) AND Id (unique instance identifier). Template ID enables matching against template-defined rules. Instance ID ensures uniqueness when same template spawns multiple times. Never compute one from other at query time. Situation uses Pattern D: transitions match on TemplateId (template-defined rules), state tracking uses Id (instance uniqueness). Consistency prevents desync bugs.
 
+**Scene Owns Situations (Direct Object Ownership)**: Scene owns situations directly like Car owns Wheels. Situations exist ONLY in Scene.Situations collection (List<Situation>), never in separate global collection. CurrentSituation is direct object reference (not ID string). When scene destroyed, situations destroyed. Lifecycle coupling enforces conceptual clarity. No parallel ID tracking (no SituationIds property), no redundant storage (eliminated GameWorld.Situations collection). Single source of truth: Scene is authority for its situations. Query pattern: `scene.CurrentSituation` (O(1) property access), `scene.Situations` (direct collection access). Cross-scene queries (rare) use SelectMany: `gameWorld.Scenes.SelectMany(s => s.Situations)`.
+
 **Why Parameterization Fails**: Making archetype selection a parameter (e.g., "standalone" archetype taking `situationArchetypeId` parameter) moves design decisions to configuration space. This creates:
 - Configuration creep (structure choices in JSON)
 - Catalogue bypass (parser calls SituationArchetypeCatalog directly)
@@ -1904,7 +1914,7 @@ Correct solution: More specific archetypes (`single_negotiation`, `single_confro
 
 **Starter Scene Bypass**: Scenes with IsStarter=true bypass spawn condition evaluation entirely. Represent guaranteed tutorial content that must spawn unconditionally at game initialization. Spawn conditions gate emergent/procedural content, NOT tutorial content. New players have zero progression, so starter scenes cannot have progression requirements. Playability over conditional spawning.
 
-**Scene Owns State Machine**: Facades and services don't orchestrate scene transitions. Scene.AdvanceToNextSituation encapsulates state machine logic. Scene examines SpawnRules, evaluates transitions, updates CurrentSituationId. External code asks scene to advance, scene decides how. Separation maintains single responsibility, keeps domain logic in domain entity.
+**Scene Owns State Machine**: Facades and services don't orchestrate scene transitions. Scene.AdvanceToNextSituation encapsulates state machine logic. Scene examines SpawnRules, evaluates transitions, queries Scene.Situations for matching situation by TemplateId, sets CurrentSituation to found object. Direct object ownership eliminates ID lookups (O(1) property access). External code asks scene to advance, scene decides how. Separation maintains single responsibility, keeps domain logic in domain entity.
 
 ### AI Generation Service
 
@@ -1940,7 +1950,7 @@ This architecture supports procedural generation of complete multi-situation nar
 
 **Two-level archetype system enables procedural variation within designed constraints.** Scene archetypes define structure (how many situations, which situation archetypes, what transitions). Situation archetypes define interaction patterns (4-choice structure with stat/money/challenge/fallback). Catalogues compose these layers at parse time. Scene archetype identity IS its structure - `single_negotiation` and `single_confrontation` are distinct archetypes, not configuration variants. No parameterization - more specific archetypes solve flexibility needs.
 
-**Scene state machine with template-based transition matching.** Scenes follow two-phase lifecycle: Provisional (metadata only, dependent resources specified) → Finalization (situations instantiated, CurrentSituationId initialized, transitions to Active). Only Active scenes can activate. When situation completes, SituationCompletionHandler calls scene.AdvanceToNextSituation. Scene examines SpawnRules transitions using TemplateId matching, updates CurrentSituationId to next situation, returns routing decision (ContinueInScene/ExitToWorld/SceneComplete). Context-aware activation: situations activate when player context matches required context. Seamless narrative flow emerges from automatic progression. Starter scenes (IsStarter=true) bypass spawn condition evaluation entirely - represent guaranteed tutorial content accessible from game start.
+**Scene state machine with direct situation ownership.** Scenes follow two-phase lifecycle: Provisional (empty Situations collection, dependent resources specified) → Finalization (situations instantiated into Scene.Situations collection, CurrentSituation initialized as direct object reference, transitions to Active). Scene owns situations like Car owns Wheels - situations exist ONLY in Scene.Situations, nowhere else. No global GameWorld.Situations collection, no ID tracking lists (SituationIds eliminated). CurrentSituation is direct object reference (O(1) property access) not ID string requiring lookup. When situation completes, SituationCompletionHandler calls scene.AdvanceToNextSituation(completedSituation). Scene examines SpawnRules transitions using completedSituation.TemplateId for matching, searches owned Scene.Situations collection for next situation by TemplateId, assigns CurrentSituation to next situation object (direct assignment, no lookups), returns routing decision. Context-aware activation: situations activate when player context matches CurrentSituation's required context. Seamless narrative flow emerges from automatic progression with direct object references. Cross-scene queries (rare, obligation system only) use SelectMany pattern: `gameWorld.Scenes.SelectMany(s => s.Situations)`. Runtime-spawned situations (SuccessSpawns/FailureSpawns) added directly to parent scene's Situations collection maintaining ownership invariant. Starter scenes (IsStarter=true) bypass spawn condition evaluation - guaranteed tutorial content accessible from game start.
 
 **Hex grid provides spatial foundation for all locations.** Every location occupies one hex using axial coordinates (Q, R). Venues are 7-hex clusters (center + 6 adjacent). Intra-venue movement between adjacent hexes instant and free. Inter-venue movement between non-adjacent hexes uses routes with resource costs. Location.HexPosition is core identity enabling movement system participation. WorldHexGrid.Hexes and _hexLookup dictionary updated through bidirectional sync pattern: SyncLocationHexPositions (hex→location) for initial load, EnsureHexGridCompleteness (location→hex) for runtime creation. Navigation depends on hex grid completeness - missing hex at coordinates causes null reference crashes.
 
