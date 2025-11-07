@@ -88,10 +88,10 @@ public static class SceneArchetypeCatalog
     ///   - Choices: 4 (stat-gated, money, challenge, fallback)
     ///   - Rewards: Unlock room, grant key on successful negotiation
     ///
-    /// Situation 2 - Access: Enter private location
-    ///   - Archetype: access_control
+    /// Situation 2 - Access: Inspect and prepare private space
+    ///   - Archetype: entering_private_space
     ///   - Choices: 4 (stat-gated, money, challenge, fallback)
-    ///   - Action: Navigate to unlocked private location
+    ///   - Action: Assess room quality and prepare for rest
     ///
     /// Situation 3 - Service: Receive service benefit
     ///   - Archetype: rest_preparation
@@ -192,7 +192,7 @@ public static class SceneArchetypeCatalog
             RequiredNpcId = context.NpcId
         };
 
-        SituationArchetype accessArchetype = SituationArchetypeCatalog.GetArchetype("access_control");
+        SituationArchetype accessArchetype = SituationArchetypeCatalog.GetArchetype("entering_private_space");
         List<ChoiceTemplate> accessChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(accessArchetype, accessSitId);
 
         SituationTemplate accessSituation = new SituationTemplate

@@ -74,7 +74,8 @@ public static class SituationArchetypeCatalog
             "cultural_faux_pas" => CreateCulturalFauxPas(),
             "recruitment" => CreateRecruitment(),
             "rest_preparation" => CreateRestPreparation(),
-            _ => throw new InvalidDataException($"Unknown archetype ID: '{archetypeId}'. Valid values: confrontation, negotiation, investigation, social_maneuvering, crisis, service_transaction, access_control, information_gathering, skill_demonstration, reputation_challenge, emergency_aid, administrative_procedure, trade_dispute, cultural_faux_pas, recruitment, rest_preparation")
+            "entering_private_space" => CreateEnteringPrivateSpace(),
+            _ => throw new InvalidDataException($"Unknown archetype ID: '{archetypeId}'. Valid values: confrontation, negotiation, investigation, social_maneuvering, crisis, service_transaction, access_control, information_gathering, skill_demonstration, reputation_challenge, emergency_aid, administrative_procedure, trade_dispute, cultural_faux_pas, recruitment, rest_preparation, entering_private_space")
         };
     }
 
@@ -558,6 +559,37 @@ public static class SituationArchetypeCatalog
         };
     }
 
+    /// <summary>
+    /// ENTERING PRIVATE SPACE archetype
+    ///
+    /// When Used: First entry into private room/space player has rented/unlocked
+    /// Common In: Physical domain (lodging, private chambers, secured areas)
+    /// Player Learns: "Room quality assessment affects comfort"
+    ///
+    /// Choice Pattern:
+    /// 1. Insight 3+ → Thoroughly inspect and optimize space (best, detailed assessment)
+    /// 2. 8 coins → Request comfort amenities (decent, service upgrade)
+    /// 3. Mental challenge → Push through discomfort mentally (risky, force adaptation)
+    /// 4. Fallback → Collapse immediately without preparation (poor, exhausted entry)
+    ///
+    /// </summary>
+    private static SituationArchetype CreateEnteringPrivateSpace()
+    {
+        return new SituationArchetype
+        {
+            Id = "entering_private_space",
+            Name = "Entering Private Space",
+            Domain = Domain.Physical,
+            PrimaryStat = PlayerStatType.Insight,
+            SecondaryStat = PlayerStatType.Authority,
+            StatThreshold = 3,
+            CoinCost = 8,
+            ChallengeType = TacticalSystemType.Mental,
+            ResolveCost = 1,
+            FallbackTimeCost = 1
+        };
+    }
+
     public static List<ChoiceTemplate> GenerateChoiceTemplates(
         SituationArchetype archetype,
         string situationTemplateId)
@@ -675,6 +707,7 @@ public static class SituationArchetypeCatalog
             "cultural_faux_pas" => "Apologize gracefully",
             "recruitment" => "Negotiate terms",
             "rest_preparation" => "Optimize rest conditions",
+            "entering_private_space" => "Thoroughly inspect and optimize the space",
             _ => "Use your expertise"
         };
     }
@@ -699,6 +732,7 @@ public static class SituationArchetypeCatalog
             "cultural_faux_pas" => "Offer gift as amends",
             "recruitment" => "Buy time",
             "rest_preparation" => "Use comfort items for better rest",
+            "entering_private_space" => "Request comfort amenities",
             _ => "Pay to resolve"
         };
     }
@@ -723,6 +757,7 @@ public static class SituationArchetypeCatalog
             "cultural_faux_pas" => "Defend your action",
             "recruitment" => "Counter-offer boldly",
             "rest_preparation" => "Force yourself to relax despite anxiety",
+            "entering_private_space" => "Push through discomfort mentally",
             _ => "Accept the challenge"
         };
     }
@@ -747,6 +782,7 @@ public static class SituationArchetypeCatalog
             "cultural_faux_pas" => "Ignore and act oblivious",
             "recruitment" => "Refuse bluntly",
             "rest_preparation" => "Collapse from exhaustion immediately",
+            "entering_private_space" => "Collapse immediately without preparation",
             _ => "Accept poor outcome"
         };
     }
