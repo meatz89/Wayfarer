@@ -75,7 +75,8 @@ public static class SituationArchetypeCatalog
             "recruitment" => CreateRecruitment(),
             "rest_preparation" => CreateRestPreparation(),
             "entering_private_space" => CreateEnteringPrivateSpace(),
-            _ => throw new InvalidDataException($"Unknown archetype ID: '{archetypeId}'. Valid values: confrontation, negotiation, investigation, social_maneuvering, crisis, service_transaction, access_control, information_gathering, skill_demonstration, reputation_challenge, emergency_aid, administrative_procedure, trade_dispute, cultural_faux_pas, recruitment, rest_preparation, entering_private_space")
+            "departing_private_space" => CreateDepartingPrivateSpace(),
+            _ => throw new InvalidDataException($"Unknown archetype ID: '{archetypeId}'. Valid values: confrontation, negotiation, investigation, social_maneuvering, crisis, service_transaction, access_control, information_gathering, skill_demonstration, reputation_challenge, emergency_aid, administrative_procedure, trade_dispute, cultural_faux_pas, recruitment, rest_preparation, entering_private_space, departing_private_space")
         };
     }
 
@@ -590,6 +591,29 @@ public static class SituationArchetypeCatalog
         };
     }
 
+    /// <summary>
+    /// Departing Private Space: Leaving lodging after rest
+    /// Domain: Physical (organizing departure)
+    /// Primary: Insight (noticing forgotten items)
+    /// Challenge: Mental (emotional transition)
+    /// </summary>
+    private static SituationArchetype CreateDepartingPrivateSpace()
+    {
+        return new SituationArchetype
+        {
+            Id = "departing_private_space",
+            Name = "Departing Private Space",
+            Domain = Domain.Physical,
+            PrimaryStat = PlayerStatType.Insight,
+            SecondaryStat = PlayerStatType.Cunning,
+            StatThreshold = 2,
+            CoinCost = 5,
+            ChallengeType = TacticalSystemType.Mental,
+            ResolveCost = 1,
+            FallbackTimeCost = 2
+        };
+    }
+
     public static List<ChoiceTemplate> GenerateChoiceTemplates(
         SituationArchetype archetype,
         string situationTemplateId)
@@ -708,6 +732,7 @@ public static class SituationArchetypeCatalog
             "recruitment" => "Negotiate terms",
             "rest_preparation" => "Optimize rest conditions",
             "entering_private_space" => "Thoroughly inspect and optimize the space",
+            "departing_private_space" => "Systematically prepare and check everything",
             _ => "Use your expertise"
         };
     }
@@ -733,6 +758,7 @@ public static class SituationArchetypeCatalog
             "recruitment" => "Buy time",
             "rest_preparation" => "Use comfort items for better rest",
             "entering_private_space" => "Request comfort amenities",
+            "departing_private_space" => "Leave generous gratuity for staff",
             _ => "Pay to resolve"
         };
     }
@@ -758,6 +784,7 @@ public static class SituationArchetypeCatalog
             "recruitment" => "Counter-offer boldly",
             "rest_preparation" => "Force yourself to relax despite anxiety",
             "entering_private_space" => "Push through discomfort mentally",
+            "departing_private_space" => "Force yourself to leave promptly",
             _ => "Accept the challenge"
         };
     }
@@ -783,6 +810,7 @@ public static class SituationArchetypeCatalog
             "recruitment" => "Refuse bluntly",
             "rest_preparation" => "Collapse from exhaustion immediately",
             "entering_private_space" => "Collapse immediately without preparation",
+            "departing_private_space" => "Rush out without proper preparation",
             _ => "Accept poor outcome"
         };
     }

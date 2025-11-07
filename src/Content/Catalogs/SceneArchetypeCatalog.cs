@@ -98,9 +98,10 @@ public static class SceneArchetypeCatalog
     ///   - Choices: 4 (stat-gated, money, challenge, fallback)
     ///   - Rewards: Tier-scaled health/stamina restoration + time advancement
     ///
-    /// Situation 4 - Depart: Leave and cleanup
-    ///   - Archetype: social_maneuvering
+    /// Situation 4 - Depart: Organize departure and cleanup
+    ///   - Archetype: departing_private_space
     ///   - Choices: 4 (stat-gated, money, challenge, fallback)
+    ///   - Action: Pack belongings, return key, prepare for journey
     ///   - Rewards: Remove key, lock location, return to base
     ///
     /// Creates dependent resources:
@@ -331,7 +332,7 @@ public static class SceneArchetypeCatalog
             RequiredNpcId = null
         };
 
-        SituationArchetype departArchetype = SituationArchetypeCatalog.GetArchetype("social_maneuvering");
+        SituationArchetype departArchetype = SituationArchetypeCatalog.GetArchetype("departing_private_space");
         List<ChoiceTemplate> departChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(departArchetype, departSitId);
 
         // Enrich choices with departure cleanup (return key, lock room)
