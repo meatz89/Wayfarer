@@ -44,7 +44,8 @@
           "base": [
             "crossroads",
             "public",
-            "busy"
+            "busy",
+            "outdoor"
           ]
         },
         "canInvestigate": false
@@ -75,7 +76,8 @@
           "base": [
             "public",
             "commercial",
-            "busy"
+            "busy",
+            "outdoor"
           ]
         },
         "canInvestigate": false

@@ -672,11 +672,16 @@ public class LocationFacade
 
         foreach (PlayerAction action in sortedActions)
         {
-            // Filter: Don't show "Sleep Outside" when player is INSIDE (at Indoor location)
-            if (action.ActionType == PlayerActionType.SleepOutside &&
-                spot.LocationProperties.Contains(LocationPropertyType.Indoor))
+            // Filter: Check if location has ALL required properties for this action
+            if (action.RequiredLocationProperties.Count > 0)
             {
-                continue;  // Skip this action - player is inside, not outside
+                bool hasAllRequiredProperties = action.RequiredLocationProperties
+                    .All(required => spot.LocationProperties.Contains(required));
+
+                if (!hasAllRequiredProperties)
+                {
+                    continue;  // Skip - location missing required properties
+                }
             }
 
             playerActions.Add(new LocationActionViewModel

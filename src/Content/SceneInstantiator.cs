@@ -1056,7 +1056,10 @@ public class SceneInstantiator
         // Map properties
         if (spec.Properties != null && spec.Properties.Any())
         {
-            dto.DomainTags = spec.Properties;
+            dto.Properties = new LocationPropertiesDTO
+            {
+                Base = spec.Properties
+            };
         }
 
         return dto;

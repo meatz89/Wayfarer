@@ -78,6 +78,7 @@ public enum LocationPropertyType
     Urban,          // Urban environment
     Rural,          // Rural environment
     Indoor,         // Enclosed space (building interior, shelter)
+    Outdoor,        // Open-air space (wilderness, streets, courtyards)
 
     // Activity level properties
     Busy,           // Generally busy location
