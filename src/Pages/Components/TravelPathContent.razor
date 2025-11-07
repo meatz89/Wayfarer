@@ -137,8 +137,8 @@
                             <div class="situations-list">
                                 <div class="situations-title">Available Approaches</div>
                                 @{
-                                    // HIGHLANDER: Query GameWorld.Situations using scene.SituationIds
-                                    var situations = GameWorld.Situations.Where(s => scene.SituationIds.Contains(s.Id)).ToList();
+                                    // Direct access to scene's situations (Scene owns Situations)
+                                    var situations = scene.Situations.ToList();
                                 }
                                 @foreach (var situation in situations)
                                 {

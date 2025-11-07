@@ -73,7 +73,7 @@ public class SituationCompletionHandler
         if (situation.ParentScene != null)
         {
             Scene scene = situation.ParentScene;
-            SceneRoutingDecision routingDecision = scene.AdvanceToNextSituation(situation.Id, _gameWorld);
+            SceneRoutingDecision routingDecision = scene.AdvanceToNextSituation(situation);
 
             // Store routing decision on situation for UI to query
             situation.RoutingDecision = routingDecision;
@@ -95,7 +95,9 @@ public class SituationCompletionHandler
     private void CheckObligationProgress(string situationId, string obligationId)
     {
         // Check if this is an intro action (Discovered → Active transition)
-        Situation situation = _gameWorld.Situations.FirstOrDefault(g => g.Id == situationId);
+        Situation situation = _gameWorld.Scenes
+            .SelectMany(s => s.Situations)
+            .FirstOrDefault(sit => sit.Id == situationId);
         if (situation != null && situation.IsIntroAction)
         {
             // This is intro completion - activate obligation and spawn Phase 1
@@ -339,9 +341,10 @@ public class SituationCompletionHandler
         if (!player.ActiveObligationIds.Contains(completedSituation.Obligation?.Id))
             return;
 
-        // Find all situations for this obligation
-        List<Situation> obligationSituations = _gameWorld.Situations
-            .Where(g => g.Obligation?.Id == completedSituation.Obligation?.Id)
+        // Find all situations for this obligation (cross-scene query)
+        List<Situation> obligationSituations = _gameWorld.Scenes
+            .SelectMany(s => s.Situations)
+            .Where(sit => sit.Obligation?.Id == completedSituation.Obligation?.Id)
             .ToList();
 
         // Check if ALL situations are complete

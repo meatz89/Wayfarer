@@ -44,7 +44,7 @@ public class SceneFacade
     {
         return _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.ShouldActivateAtContext(locationId, npcId, _gameWorld))
+                       s.ShouldActivateAtContext(locationId, npcId))
             .ToList();
     }
 
@@ -71,9 +71,8 @@ public class SceneFacade
             // PHASE 1.3: Skip completed scenes (state machine method)
             if (scene.IsComplete()) continue;
 
-            // Get current Situation from GameWorld.Situations using scene.CurrentSituationId
-            Situation situation = _gameWorld.Situations
-                .FirstOrDefault(s => s.Id == scene.CurrentSituationId);
+            // Get current Situation (direct object reference)
+            Situation situation = scene.CurrentSituation;
 
             if (situation == null) continue;
 
@@ -171,9 +170,8 @@ public class SceneFacade
             // PHASE 1.3: Skip completed scenes (state machine method)
             if (scene.IsComplete()) continue;
 
-            // Get current Situation from GameWorld.Situations using scene.CurrentSituationId
-            Situation situation = _gameWorld.Situations
-                .FirstOrDefault(s => s.Id == scene.CurrentSituationId);
+            // Get current Situation (direct object reference)
+            Situation situation = scene.CurrentSituation;
 
             if (situation == null) continue;
 
@@ -266,9 +264,8 @@ public class SceneFacade
             // PHASE 1.3: Skip completed scenes (state machine method)
             if (scene.IsComplete()) continue;
 
-            // Get current Situation from GameWorld.Situations using scene.CurrentSituationId
-            Situation situation = _gameWorld.Situations
-                .FirstOrDefault(s => s.Id == scene.CurrentSituationId);
+            // Get current Situation (direct object reference)
+            Situation situation = scene.CurrentSituation;
 
             if (situation == null) continue;
 

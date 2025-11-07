@@ -56,7 +56,9 @@ public class SituationFacade
     /// </summary>
     public SituationSelectionResult SelectAndExecuteSituation(string situationId)
     {
-        Situation situation = _gameWorld.Situations.FirstOrDefault(s => s.Id == situationId);
+        Situation situation = _gameWorld.Scenes
+            .SelectMany(s => s.Situations)
+            .FirstOrDefault(sit => sit.Id == situationId);
         if (situation == null)
             return SituationSelectionResult.Failed($"Situation '{situationId}' not found");
 

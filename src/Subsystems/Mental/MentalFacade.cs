@@ -62,7 +62,9 @@ public class MentalFacade
         }
 
         // Get situation for costs and situation cards
-        Situation situation = _gameWorld.Situations.FirstOrDefault(g => g.Id == situationId);
+        Situation situation = _gameWorld.Scenes
+            .SelectMany(s => s.Situations)
+            .FirstOrDefault(sit => sit.Id == situationId);
         if (situation == null)
         {
             return null;
@@ -189,7 +191,9 @@ public class MentalFacade
         {
 
             // Complete situation through SituationCompletionHandler (handles obligation progress)
-            Situation completedSituation = _gameWorld.Situations.FirstOrDefault(g => g.Id == _gameWorld.CurrentMentalSituationId);
+            Situation completedSituation = _gameWorld.Scenes
+                .SelectMany(s => s.Situations)
+                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentMentalSituationId);
             if (completedSituation != null)
             {
                 _situationCompletionHandler.CompleteSituation(completedSituation);

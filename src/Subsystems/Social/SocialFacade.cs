@@ -63,7 +63,7 @@ public class SocialFacade
         }
 
         // Get the request that drives this conversation - from centralized GameWorld storage
-        Situation situation = _gameWorld.Situations.FirstOrDefault(g => g.Id == requestId);
+        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == requestId);
         if (situation == null)
         {
             throw new ArgumentException($"Situation {requestId} not found in GameWorld.Situations");
@@ -280,7 +280,7 @@ public class SocialFacade
         {
 
             // Complete situation through SituationCompletionHandler (applies rewards: coins, StoryCubes, equipment)
-            Situation completedSituation = _gameWorld.Situations.FirstOrDefault(g => g.Id == _gameWorld.CurrentSocialSession.RequestId);
+            Situation completedSituation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == _gameWorld.CurrentSocialSession.RequestId);
             if (completedSituation != null)
             {
                 _situationCompletionHandler.CompleteSituation(completedSituation);
@@ -436,7 +436,7 @@ public class SocialFacade
         }
 
         // Get request to determine attention cost - from centralized GameWorld storage
-        Situation situation = _gameWorld.Situations.FirstOrDefault(g => g.Id == requestId);
+        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == requestId);
         if (situation == null)
         {
             return SocialContextFactory.CreateInvalidContext($"Situation {requestId} not found in GameWorld.Situations");

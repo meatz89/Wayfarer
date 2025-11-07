@@ -565,8 +565,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             return;
 
         // Get current situation from scene
-        Situation currentSituation = GameWorld.Situations
-            .FirstOrDefault(s => s.Id == scene.CurrentSituationId);
+        Situation currentSituation = scene.CurrentSituation;
 
         if (currentSituation == null)
             return;
@@ -608,8 +607,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
 
         // Get current situation from scene
-        Situation currentSituation = GameWorld.Situations
-            .FirstOrDefault(s => s.Id == scene.CurrentSituationId);
+        Situation currentSituation = scene.CurrentSituation;
 
         if (currentSituation == null)
         {

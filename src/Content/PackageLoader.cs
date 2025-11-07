@@ -755,41 +755,13 @@ public class PackageLoader
 
     private void LoadSituations(List<SituationDTO> situationDtos, bool allowSkeletons)
     {
-        if (situationDtos == null) return;
-
-        foreach (SituationDTO dto in situationDtos)
+        // LEGACY CODE PATH - DEPRECATED
+        // Standalone situations no longer supported
+        // All situations are owned by Scenes and created by SceneInstantiator
+        // If a package contains situations, they will be ignored
+        if (situationDtos != null && situationDtos.Any())
         {
-            // Parse situation using SituationParser
-            Situation situation = SituationParser.ConvertDTOToSituation(dto, _gameWorld);
-
-            // Add to centralized GameWorld.Situations storage
-            _gameWorld.Situations.Add(situation);
-
-            // PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
-            // Assign situation to NPC or Location based on placement from Scene
-            string npcId = situation.GetPlacementId(PlacementType.NPC);
-            if (!string.IsNullOrEmpty(npcId))
-            {
-                // Social situation - assign to NPC.ActiveSituationIds (reference only, situation lives in GameWorld.Situations)
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-                if (npc != null)
-                {
-                    npc.ActiveSituationIds.Add(situation.Id);
-                }
-            }
-            else
-            {
-                string locationId = situation.GetPlacementId(PlacementType.Location);
-                if (!string.IsNullOrEmpty(locationId))
-                {
-                    // Mental/Physical situation - assign to Location.ActiveSituationIds (reference only, situation lives in GameWorld.Situations)
-                    Location location = _gameWorld.GetLocation(locationId);
-                    if (location != null)
-                    {
-                        location.ActiveSituationIds.Add(situation.Id);
-                    }
-                }
-            }
+            Console.WriteLine($"[PackageLoader] WARNING: Package contains {situationDtos.Count} standalone situations - these are IGNORED in new architecture. Situations must be part of SceneTemplates.");
         }
     }
 

@@ -72,7 +72,7 @@ public class SpawnFacade
             }
 
             // Find template situation
-            Situation template = _gameWorld.Situations.FirstOrDefault(s => s.Id == rule.TemplateId);
+            Situation template = _gameWorld.Scenes.SelectMany(sc => sc.Situations).FirstOrDefault(sit => sit.Id == rule.TemplateId);
             if (template == null)
             {
                 // Template not found - skip this spawn
@@ -83,8 +83,17 @@ public class SpawnFacade
             // Clone template and apply spawn modifications
             Situation spawnedSituation = CloneTemplateWithModifications(template, parentSituation, rule);
 
-            // Add to GameWorld.Situations
-            _gameWorld.Situations.Add(spawnedSituation);
+            // Add spawned situation to parent's Scene (Scene owns Situations)
+            if (parentSituation.ParentScene != null)
+            {
+                spawnedSituation.ParentScene = parentSituation.ParentScene;
+                parentSituation.ParentScene.Situations.Add(spawnedSituation);
+                Console.WriteLine($"[SpawnFacade] Spawned situation '{spawnedSituation.Id}' added to scene '{parentSituation.ParentScene.Id}'");
+            }
+            else
+            {
+                Console.WriteLine($"[SpawnFacade] WARNING: Parent situation '{parentSituation.Id}' has no ParentScene - spawned situation orphaned!");
+            }
 
             // Add to ActiveSituationIds based on placement
             AddToActiveSituations(spawnedSituation);

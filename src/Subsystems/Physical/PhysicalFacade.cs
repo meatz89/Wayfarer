@@ -92,7 +92,7 @@ public class PhysicalFacade
         _gameWorld.CurrentPhysicalSession.Deck = _gameWorld.CurrentPhysicalSession.Deck;
 
         // Extract SituationCards from Situation and add to session deck (MATCH SOCIAL PATTERN)
-        Situation situation = _gameWorld.Situations.FirstOrDefault(g => g.Id == situationId);
+        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
         if (!string.IsNullOrEmpty(situationId) && situation != null)
         {
             if (situation.SituationCards.Any())
@@ -209,7 +209,7 @@ public class PhysicalFacade
         {
 
             // Complete situation through SituationCompletionHandler (applies rewards: coins, StoryCubes, equipment)
-            Situation completedSituation = _gameWorld.Situations.FirstOrDefault(g => g.Id == _gameWorld.CurrentPhysicalSituationId);
+            Situation completedSituation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == _gameWorld.CurrentPhysicalSituationId);
             if (completedSituation != null)
             {
                 _situationCompletionHandler.CompleteSituation(completedSituation);

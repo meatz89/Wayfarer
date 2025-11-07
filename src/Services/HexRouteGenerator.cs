@@ -360,20 +360,18 @@ namespace Wayfarer.Services
                 Archetype = template.Archetype,
                 DisplayName = template.DisplayNameTemplate,
                 IntroNarrative = template.IntroNarrativeTemplate,
-                SpawnRules = template.SpawnRules,
-                SituationIds = new List<string>()
+                SpawnRules = template.SpawnRules
             };
 
             // Create Situations from SituationTemplates
             foreach (SituationTemplate sitTemplate in template.SituationTemplates)
             {
                 Situation situation = InstantiateSituation(sitTemplate, scene, route);
-                _gameWorld.Situations.Add(situation);
-                scene.SituationIds.Add(situation.Id);
+                scene.Situations.Add(situation);
             }
 
-            // Set CurrentSituationId to first Situation
-            scene.CurrentSituationId = scene.SituationIds.FirstOrDefault();
+            // Set CurrentSituation to first Situation (direct object reference)
+            scene.CurrentSituation = scene.Situations.FirstOrDefault();
 
             // Add to GameWorld.Scenes (permanent storage)
             _gameWorld.Scenes.Add(scene);

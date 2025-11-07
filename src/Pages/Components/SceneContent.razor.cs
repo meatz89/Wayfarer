@@ -40,8 +40,26 @@ namespace Wayfarer.Pages.Components
 
         private void LoadChoices()
         {
+            Console.WriteLine($"[SceneContent.LoadChoices] ENTER - CurrentSituation null? {CurrentSituation == null}");
+            if (CurrentSituation != null)
+            {
+                Console.WriteLine($"[SceneContent.LoadChoices] CurrentSituation.Id = {CurrentSituation.Id}");
+                Console.WriteLine($"[SceneContent.LoadChoices] CurrentSituation.Template null? {CurrentSituation.Template == null}");
+                if (CurrentSituation.Template != null)
+                {
+                    Console.WriteLine($"[SceneContent.LoadChoices] CurrentSituation.Template.ChoiceTemplates null? {CurrentSituation.Template.ChoiceTemplates == null}");
+                    if (CurrentSituation.Template.ChoiceTemplates != null)
+                    {
+                        Console.WriteLine($"[SceneContent.LoadChoices] CurrentSituation.Template.ChoiceTemplates.Count = {CurrentSituation.Template.ChoiceTemplates.Count}");
+                    }
+                }
+            }
+
             if (CurrentSituation?.Template?.ChoiceTemplates == null)
+            {
+                Console.WriteLine($"[SceneContent.LoadChoices] EARLY RETURN - CurrentSituation/Template/ChoiceTemplates is null");
                 return;
+            }
 
             Choices.Clear();
 
@@ -427,19 +445,22 @@ namespace Wayfarer.Pages.Components
             // MULTI-SITUATION SCENE: Complete situation and advance
             // Scene entity owns state machine via Scene.AdvanceToNextSituation()
             // UI queries new current situation after completion
+            Console.WriteLine($"[SceneContent.HandleChoiceSelected] Completing situation '{CurrentSituation.Id}'");
             SituationCompletionHandler.CompleteSituation(CurrentSituation);
 
             // CONTEXT-AWARE ROUTING: Query routing decision from completed situation
             SceneRoutingDecision routingDecision = CurrentSituation.RoutingDecision;
+            Console.WriteLine($"[SceneContent.HandleChoiceSelected] RoutingDecision: {routingDecision}");
 
             if (routingDecision == SceneRoutingDecision.ContinueInScene)
             {
+                Console.WriteLine($"[SceneContent.HandleChoiceSelected] CONTINUE IN SCENE - reloading modal");
                 // Same context (location + NPC) - seamless cascade to next situation
-                string nextSituationId = Scene.CurrentSituationId;
-                Situation nextSituation = GameWorld.Situations.FirstOrDefault(s => s.Id == nextSituationId);
+                Situation nextSituation = Scene.CurrentSituation;
 
                 if (nextSituation != null)
                 {
+                    Console.WriteLine($"[SceneContent.HandleChoiceSelected] Next situation: '{nextSituation.Id}', IsAutoAdvance={nextSituation.IsAutoAdvance}");
                     // Reload modal with next situation - no exit to world
                     // Situations are fully instantiated during FinalizeScene, no on-demand instantiation needed
                     CurrentSituation = nextSituation;
@@ -449,11 +470,13 @@ namespace Wayfarer.Pages.Components
                 else
                 {
                     // Safety fallback - scene should have marked complete
+                    Console.WriteLine($"[SceneContent.HandleChoiceSelected] Next situation is NULL - closing modal");
                     await OnSceneEnd.InvokeAsync();
                 }
             }
             else if (routingDecision == SceneRoutingDecision.ExitToWorld)
             {
+                Console.WriteLine($"[SceneContent.HandleChoiceSelected] EXIT TO WORLD - closing modal");
                 // Different context (location or NPC changed) - player must navigate
                 // Scene persists with updated CurrentSituationId
                 // Will resume when player navigates to required context
@@ -461,6 +484,7 @@ namespace Wayfarer.Pages.Components
             }
             else // SceneRoutingDecision.SceneComplete
             {
+                Console.WriteLine($"[SceneContent.HandleChoiceSelected] SCENE COMPLETE - closing modal");
                 // Scene complete - no more situations
                 await OnSceneEnd.InvokeAsync();
             }

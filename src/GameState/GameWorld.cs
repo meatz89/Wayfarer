@@ -51,8 +51,7 @@ public class GameWorld
     public List<SocialCard> PlayerObservationCards { get; set; } = new List<SocialCard>();
     // Exchange definitions loaded from JSON for lookup
     public List<ExchangeDTO> ExchangeDefinitions { get; set; } = new List<ExchangeDTO>();
-    // Mental cards for obligation system
-    public List<Situation> Situations { get; set; } = new List<Situation>();
+    // Mental cards for obligation system - REMOVED: Situations now owned by Scene
     public List<SocialCard> SocialCards { get; set; } = new List<SocialCard>();
     public List<MentalCard> MentalCards { get; set; } = new List<MentalCard>();
     // Physical cards for physical challenge system
@@ -360,11 +359,14 @@ public class GameWorld
     }
 
     /// <summary>
-    /// Get a Situation by ID from centralized Situations list
+    /// Get a Situation by ID by searching across all scenes
+    /// Used for cross-scene queries (e.g., obligation system)
     /// </summary>
     public Situation GetSituationById(string id)
     {
-        return Situations.FirstOrDefault(g => g.Id == id);
+        return Scenes
+            .SelectMany(s => s.Situations)
+            .FirstOrDefault(sit => sit.Id == id);
     }
 
     /// <summary>

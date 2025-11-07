@@ -301,7 +301,7 @@ namespace Wayfarer.Pages.Components
 
         protected void HandleNavigateToSituation(string situationId)
         {
-            Situation situation = GameWorld.Situations.FirstOrDefault(g => g.Id == situationId);
+            Situation situation = GameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
             if (situation != null)
             {
                 NavigateToView(LocationViewState.SituationDetail, situation);

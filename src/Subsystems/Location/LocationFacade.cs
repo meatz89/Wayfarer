@@ -756,9 +756,9 @@ public class LocationFacade
                 {
                     label = scene.DisplayName;
                 }
-                else if (scene.SituationIds.Count > 0)
+                else if (scene.Situations.Any())
                 {
-                    Situation firstSituation = _gameWorld.Situations.FirstOrDefault(s => s.Id == scene.SituationIds[0]);
+                    Situation firstSituation = scene.Situations.First();
                     if (firstSituation != null && !string.IsNullOrEmpty(firstSituation.Name))
                     {
                         label = firstSituation.Name;
@@ -887,14 +887,9 @@ public class LocationFacade
                        s.PlacementId == spot.Id)
             .ToList();
 
-        // Collect all Situation IDs from these scenes
-        List<string> situationIds = scenesAtLocation
-            .SelectMany(scene => scene.SituationIds)
-            .ToList();
-
-        // Query GameWorld.Situations for these IDs (HIGHLANDER: single source of truth)
-        List<Situation> allVisibleSituations = _gameWorld.Situations
-            .Where(s => situationIds.Contains(s.Id))
+        // Get all situations from scenes at this location (direct object ownership)
+        List<Situation> allVisibleSituations = scenesAtLocation
+            .SelectMany(scene => scene.Situations)
             .ToList();
 
         // Filter to this system type only
@@ -950,7 +945,7 @@ public class LocationFacade
             .Where(s => s.PlacementType == PlacementType.Location)
             .Where(s => s.PlacementId == spot.Id)
             .Where(s => s.State == SceneState.Active)
-            .FirstOrDefault(s => s.SituationIds.Contains(situation.Id));
+            .FirstOrDefault(s => s.Situations.Any(sit => sit.Id == situation.Id));
     }
 
     private ChallengeBuildResult GroupSituationsByScene(
@@ -1005,7 +1000,7 @@ public class LocationFacade
             .Where(s => s.PlacementType == PlacementType.NPC)
             .Where(s => s.PlacementId == npc.ID)
             .Where(s => s.State == SceneState.Active)
-            .FirstOrDefault(s => s.SituationIds.Contains(situation.Id));
+            .FirstOrDefault(s => s.Situations.Any(sit => sit.Id == situation.Id));
     }
 
     private SceneWithSituationsViewModel BuildSceneWithSituations(Scene scene, List<Situation> situations, string systemTypeStr, string difficultyLabel)

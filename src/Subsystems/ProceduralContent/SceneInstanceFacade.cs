@@ -109,12 +109,8 @@ public class SceneInstanceFacade
 
         foreach (Scene scene in _gameWorld.Scenes)
         {
-            // Query GameWorld.Situations filtered by scene's SituationIds (HIGHLANDER Pattern A)
-            List<Situation> sceneSituations = _gameWorld.Situations
-                .Where(s => scene.SituationIds.Contains(s.Id))
-                .ToList();
-
-            foreach (Situation situation in sceneSituations)
+            // Get situations directly from scene (direct object ownership)
+            foreach (Situation situation in scene.Situations)
             {
                 // Skip if situation already completed
                 if (situation.IsCompleted)

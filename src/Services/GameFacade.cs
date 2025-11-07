@@ -1591,8 +1591,8 @@ public class GameFacade
             throw new InvalidOperationException($"Location '{locationId}' not found in GameWorld - cannot query situations!");
 
         // Query all Situations (both legacy and Scene-embedded) at this location
-        return _gameWorld.Situations
-            .Where(s => s.GetPlacementId(PlacementType.Location) == locationId)
+        return _gameWorld.Scenes.SelectMany(s => s.Situations)
+            .Where(sit => sit.GetPlacementId(PlacementType.Location) == locationId)
             .ToList();
     }
 
@@ -1607,8 +1607,8 @@ public class GameFacade
         if (npc == null) return new List<Situation>();
 
         // Query all Situations (both legacy and Scene-embedded) for this NPC
-        return _gameWorld.Situations
-            .Where(s => s.GetPlacementId(PlacementType.NPC) == npcId)
+        return _gameWorld.Scenes.SelectMany(s => s.Situations)
+            .Where(sit => sit.GetPlacementId(PlacementType.NPC) == npcId)
             .ToList();
     }
 
@@ -1791,7 +1791,7 @@ public class GameFacade
         Player player = _gameWorld.GetPlayer();
 
         // Verify Situation exists
-        Situation situation = _gameWorld.Situations.FirstOrDefault(s => s.Id == situationId);
+        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
         if (situation == null)
             return IntentResult.Failed();
 
@@ -1901,7 +1901,7 @@ public class GameFacade
         Player player = _gameWorld.GetPlayer();
 
         // Verify Situation exists
-        Situation situation = _gameWorld.Situations.FirstOrDefault(s => s.Id == situationId);
+        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
         if (situation == null)
             return IntentResult.Failed();
 
@@ -2019,7 +2019,7 @@ public class GameFacade
         Player player = _gameWorld.GetPlayer();
 
         // Verify Situation exists
-        Situation situation = _gameWorld.Situations.FirstOrDefault(s => s.Id == situationId);
+        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
         if (situation == null)
             return IntentResult.Failed();
 
@@ -2215,7 +2215,7 @@ public class GameFacade
 
         // STATE MACHINE: Reset Situation to Dormant for re-entry
         // Next time player enters context, SceneFacade will recreate actions fresh
-        Situation situation = _gameWorld.Situations.FirstOrDefault(s => s.Id == situationId);
+        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
         if (situation != null)
         {
             situation.InstantiationState = InstantiationState.Deferred;
@@ -2316,8 +2316,8 @@ public class GameFacade
         if (_gameWorld.LastSocialOutcome?.Success == true &&
             _gameWorld.PendingSocialContext?.CompletionReward != null)
         {
-            Situation currentSituation = _gameWorld.Situations
-                .FirstOrDefault(s => s.Id == _gameWorld.CurrentSocialSession?.RequestId);
+            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
+                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentSocialSession?.RequestId);
             _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingSocialContext.CompletionReward,
                 currentSituation);
@@ -2334,8 +2334,8 @@ public class GameFacade
         if (_gameWorld.LastMentalOutcome?.Success == true &&
             _gameWorld.PendingMentalContext?.CompletionReward != null)
         {
-            Situation currentSituation = _gameWorld.Situations
-                .FirstOrDefault(s => s.Id == _gameWorld.CurrentMentalSituationId);
+            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
+                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentMentalSituationId);
             _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingMentalContext.CompletionReward,
                 currentSituation);
@@ -2352,8 +2352,8 @@ public class GameFacade
         if (_gameWorld.LastPhysicalOutcome?.Success == true &&
             _gameWorld.PendingPhysicalContext?.CompletionReward != null)
         {
-            Situation currentSituation = _gameWorld.Situations
-                .FirstOrDefault(s => s.Id == _gameWorld.CurrentPhysicalSituationId);
+            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
+                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentPhysicalSituationId);
             _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingPhysicalContext.CompletionReward,
                 currentSituation);

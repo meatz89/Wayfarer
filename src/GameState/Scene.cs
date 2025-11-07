@@ -68,13 +68,12 @@ public class Scene
     // ==================== CONTENT PROPERTIES ====================
 
     /// <summary>
-    /// Situation IDs within this Scene
-    /// HIGHLANDER Pattern A: Scene stores IDs, GameWorld.Situations is single source of truth
-    /// SceneInstantiator creates Situations and adds to GameWorld.Situations, stores IDs here
-    /// Query time: Filter GameWorld.Situations.Where(s => scene.SituationIds.Contains(s.Id))
+    /// Situations owned by this Scene
+    /// Scene owns its Situations directly (like Car owns Wheels)
+    /// SceneInstantiator creates Situations and adds to this collection
     /// SHALLOW PROVISIONAL: Empty list for provisional scenes (no Situations instantiated yet)
     /// </summary>
-    public List<string> SituationIds { get; set; } = new List<string>();
+    public List<Situation> Situations { get; set; } = new List<Situation>();
 
     /// <summary>
     /// Number of situations in this Scene (metadata for provisional scenes)
@@ -100,11 +99,12 @@ public class Scene
     public SituationSpawnRules SpawnRules { get; set; }
 
     /// <summary>
-    /// Current Situation identifier tracking player progress
-    /// References Situation.Id in GameWorld.Situations (filtered by this Scene's SituationIds)
+    /// Current Situation tracking player progress
+    /// Direct object reference (no ID lookup needed)
     /// Player sees this Situation when they enter placement
+    /// null = scene not started or completed
     /// </summary>
-    public string CurrentSituationId { get; set; }
+    public Situation CurrentSituation { get; set; }
 
     // ==================== STATE PROPERTIES ====================
 
@@ -207,33 +207,31 @@ public class Scene
     /// <param name="completedSituationId">Situation that was just completed</param>
     /// <param name="gameWorld">GameWorld for situation lookup</param>
     /// <returns>Routing decision for UI (ContinueInScene, ExitToWorld, or SceneComplete)</returns>
-    public SceneRoutingDecision AdvanceToNextSituation(string completedSituationId, GameWorld gameWorld)
+    public SceneRoutingDecision AdvanceToNextSituation(Situation completedSituation)
     {
-        Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' advancing from situation '{completedSituationId}'");
+        Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' advancing from situation '{completedSituation.Id}'");
 
         if (SpawnRules == null || SpawnRules.Transitions == null || SpawnRules.Transitions.Count == 0)
         {
             // No transitions defined - scene complete after first situation
             Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' has no transitions - marking as complete");
-            CurrentSituationId = null;
+            CurrentSituation = null;
             State = SceneState.Completed;
             return SceneRoutingDecision.SceneComplete;
         }
-
-        // Get completed situation for conditional transition evaluation
-        Situation completedSituation = gameWorld.Situations.FirstOrDefault(s => s.Id == completedSituationId);
 
         // Find transition from completed situation (evaluates conditions)
         SituationTransition transition = GetTransitionForCompletedSituation(completedSituation);
 
         if (transition != null)
         {
-            // Valid transition found - get next situation for context comparison
-            Situation nextSituation = gameWorld.Situations.FirstOrDefault(s => s.Id == transition.DestinationSituationId);
+            // Valid transition found - find next situation by TemplateId match
+            Situation nextSituation = Situations
+                .FirstOrDefault(s => s.TemplateId == transition.DestinationSituationId);
 
-            // Update CurrentSituationId
-            CurrentSituationId = transition.DestinationSituationId;
-            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' advanced to situation '{CurrentSituationId}'");
+            // Update CurrentSituation (direct object reference)
+            CurrentSituation = nextSituation;
+            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' advanced to situation '{(nextSituation != null ? nextSituation.Id : "NULL")}'");
 
             // Compare contexts to determine routing
             SceneRoutingDecision decision = CompareContexts(completedSituation, nextSituation);
@@ -244,7 +242,7 @@ public class Scene
         {
             // No valid transition - scene complete
             Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' has no valid transition - marking as complete");
-            CurrentSituationId = null;
+            CurrentSituation = null;
             State = SceneState.Completed;
             return SceneRoutingDecision.SceneComplete;
         }
@@ -313,7 +311,7 @@ public class Scene
     /// <returns>True if scene complete, false otherwise</returns>
     public bool IsComplete()
     {
-        return CurrentSituationId == null || State == SceneState.Completed;
+        return CurrentSituation == null || State == SceneState.Completed;
     }
 
     /// <summary>
@@ -321,15 +319,14 @@ public class Scene
     /// Used for multi-situation scene resumption after navigation
     /// Scene resumes if:
     /// - Scene is Active
-    /// - CurrentSituationId is set (scene has next situation waiting)
+    /// - CurrentSituation is set (scene has next situation waiting)
     /// - Current situation's RequiredLocationId matches locationId
     /// - Current situation's RequiredNpcId matches npcId (or both null)
     /// </summary>
     /// <param name="locationId">Location player is currently at</param>
     /// <param name="npcId">NPC player is currently interacting with (null if none)</param>
-    /// <param name="gameWorld">GameWorld for situation lookup</param>
     /// <returns>True if scene should resume at this context</returns>
-    public bool ShouldActivateAtContext(string locationId, string npcId, GameWorld gameWorld)
+    public bool ShouldActivateAtContext(string locationId, string npcId)
     {
         Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' checking activation at location '{locationId}', npc '{npcId}'");
 
@@ -339,24 +336,23 @@ public class Scene
             return false;
         }
 
-        if (string.IsNullOrEmpty(CurrentSituationId))
+        if (CurrentSituation == null)
         {
-            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - CurrentSituationId is null or empty");
+            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - CurrentSituation is null");
             return false;
         }
 
-        Situation currentSituation = gameWorld.Situations.FirstOrDefault(s => s.Id == CurrentSituationId);
-        if (currentSituation == null || currentSituation.Template == null)
+        if (CurrentSituation.Template == null)
         {
-            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - Cannot find Situation '{CurrentSituationId}' or template is null");
+            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - CurrentSituation template is null");
             return false;
         }
 
         // MARKER RESOLUTION: Use resolved IDs if present (self-contained scenes)
         // Resolved IDs populated during finalization for markers like "generated:private_room"
         // Fall back to template properties for non-self-contained scenes
-        string requiredLocationId = currentSituation.ResolvedRequiredLocationId ?? currentSituation.Template.RequiredLocationId;
-        string requiredNpcId = currentSituation.ResolvedRequiredNpcId ?? currentSituation.Template.RequiredNpcId;
+        string requiredLocationId = CurrentSituation.ResolvedRequiredLocationId ?? CurrentSituation.Template.RequiredLocationId;
+        string requiredNpcId = CurrentSituation.ResolvedRequiredNpcId ?? CurrentSituation.Template.RequiredNpcId;
 
         Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' requires location '{requiredLocationId}', npc '{requiredNpcId}' | Player at '{locationId}', '{npcId}'");
 
@@ -400,14 +396,21 @@ public class Scene
         string prevNpcId = previousSituation.ResolvedRequiredNpcId ?? previousSituation.Template.RequiredNpcId;
         string nextNpcId = nextSituation.ResolvedRequiredNpcId ?? nextSituation.Template.RequiredNpcId;
 
+        Console.WriteLine($"[Scene.CompareContexts] Previous: location='{prevLocationId}', npc='{prevNpcId}'");
+        Console.WriteLine($"[Scene.CompareContexts] Next: location='{nextLocationId}', npc='{nextNpcId}'");
+
         // Compare location context
         bool sameLocation = prevLocationId == nextLocationId;
 
         // Compare NPC context
         bool sameNpc = prevNpcId == nextNpcId;
 
+        Console.WriteLine($"[Scene.CompareContexts] sameLocation={sameLocation}, sameNpc={sameNpc}");
+
         // Same context = seamless cascade, different context = exit to world
-        return (sameLocation && sameNpc) ? SceneRoutingDecision.ContinueInScene : SceneRoutingDecision.ExitToWorld;
+        SceneRoutingDecision decision = (sameLocation && sameNpc) ? SceneRoutingDecision.ContinueInScene : SceneRoutingDecision.ExitToWorld;
+        Console.WriteLine($"[Scene.CompareContexts] Final decision: {decision}");
+        return decision;
     }
 }
 

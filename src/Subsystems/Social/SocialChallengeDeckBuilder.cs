@@ -24,7 +24,7 @@ public class SocialChallengeDeckBuilder
         string sessionId = Guid.NewGuid().ToString();
 
         // Get the situation which drives everything - from centralized GameWorld storage
-        Situation situation = _gameWorld.Situations.FirstOrDefault(g => g.Id == requestId);
+        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == requestId);
         if (situation == null)
         {
             throw new ArgumentException($"Situation {requestId} not found in GameWorld.Situations");

@@ -100,10 +100,9 @@ public class SceneInstantiator
             DisplayName = sceneTemplate.DisplayNameTemplate, // Placeholders NOT replaced until finalization
             IntroNarrative = sceneTemplate.IntroNarrativeTemplate, // Placeholders NOT replaced until finalization
             SpawnRules = sceneTemplate.SpawnRules,
-            SituationIds = new List<string>(), // EMPTY - Situations instantiated in FinalizeScene()
             SituationCount = situationCount, // Metadata for perfect information display
             EstimatedDifficulty = estimatedDifficulty, // Metadata for perfect information display
-            CurrentSituationId = null // Will be set in FinalizeScene() after Situations created
+            CurrentSituation = null // Will be set in FinalizeScene() after Situations created
         };
 
         // PHASE 1.4: Store in unified Scenes collection (filtered by State property)
@@ -111,7 +110,7 @@ public class SceneInstantiator
 
         Console.WriteLine($"[SceneInstantiator] Created Scene '{scene.Id}'");
         Console.WriteLine($"  State: {scene.State}, Placement: {scene.PlacementType}/{scene.PlacementId}");
-        Console.WriteLine($"  Presentation: {scene.PresentationMode}, Situations: {scene.SituationIds.Count}");
+        Console.WriteLine($"  Presentation: {scene.PresentationMode}, Situations: {scene.Situations.Count}");
 
         return scene;
     }
@@ -158,10 +157,8 @@ public class SceneInstantiator
         foreach (SituationTemplate sitTemplate in scene.Template.SituationTemplates)
         {
             Situation situation = InstantiateSituation(sitTemplate, scene, context);
-            // HIGHLANDER Pattern A: Add to GameWorld.Situations on finalization only
-            _gameWorld.Situations.Add(situation);
-            // Track ID in Scene
-            scene.SituationIds.Add(situation.Id);
+            // Scene owns Situations directly (like Car owns Wheels)
+            scene.Situations.Add(situation);
 
             // MARKER RESOLUTION: Resolve markers in situation template properties
             // Self-contained scenes use markers like "generated:private_room" that must resolve to actual IDs
@@ -210,23 +207,19 @@ public class SceneInstantiator
         }
 
         // PLAYABILITY VALIDATION: Scene must have at least one Situation after instantiation
-        if (!scene.SituationIds.Any())
-            throw new InvalidOperationException($"Scene '{scene.Id}' (template '{scene.Template.Id}') has no SituationIds after finalization - player cannot interact!");
+        if (!scene.Situations.Any())
+            throw new InvalidOperationException($"Scene '{scene.Id}' (template '{scene.Template.Id}') has no Situations after finalization - player cannot interact!");
 
-        // Set CurrentSituationId to first Situation ID
-        scene.CurrentSituationId = scene.SituationIds.First();
-        Console.WriteLine($"[SceneInstantiator] Set CurrentSituationId = '{scene.CurrentSituationId}' for scene '{scene.Id}'");
+        // Set CurrentSituation to first Situation (direct object reference)
+        scene.CurrentSituation = scene.Situations.First();
+        Console.WriteLine($"[SceneInstantiator] Set CurrentSituation = '{scene.CurrentSituation.Id}' for scene '{scene.Id}'");
 
         // PLACEHOLDER REPLACEMENT: Convert template text to concrete narrative
         scene.DisplayName = PlaceholderReplacer.ReplaceAll(scene.DisplayName, context, _gameWorld);
         scene.IntroNarrative = PlaceholderReplacer.ReplaceAll(scene.IntroNarrative, context, _gameWorld);
 
-        // Replace placeholders in all Situations (query GameWorld.Situations using scene.SituationIds)
-        List<Situation> sceneSituations = _gameWorld.Situations
-            .Where(s => scene.SituationIds.Contains(s.Id))
-            .ToList();
-
-        foreach (Situation situation in sceneSituations)
+        // Replace placeholders in all Situations (use scene.Situations directly)
+        foreach (Situation situation in scene.Situations)
         {
             situation.Description = PlaceholderReplacer.ReplaceAll(situation.Description, context, _gameWorld);
 
@@ -238,7 +231,7 @@ public class SceneInstantiator
 
         // PHASE 1.4: Change state to Active (no collection movement needed - unified storage)
         scene.State = SceneState.Active;
-        Console.WriteLine($"[SceneInstantiator] Scene '{scene.Id}' finalized successfully - State: {scene.State}, CurrentSituationId: {scene.CurrentSituationId}, SituationCount: {scene.SituationIds.Count}");
+        Console.WriteLine($"[SceneInstantiator] Scene '{scene.Id}' finalized successfully - State: {scene.State}, CurrentSituation: {scene.CurrentSituation?.Id}, SituationCount: {scene.Situations.Count}");
 
         return new SceneFinalizationResult(scene, dependentSpecs);
     }

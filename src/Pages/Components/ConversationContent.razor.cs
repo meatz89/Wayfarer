@@ -686,9 +686,9 @@ namespace Wayfarer.Pages.Components
 
         private Situation FindParentSituation(string situationCardId)
         {
-            if (GameWorld?.Situations == null) return null;
+            if (GameWorld?.Scenes == null) return null;
 
-            foreach (Situation situation in GameWorld.Situations)
+            foreach (Situation situation in GameWorld.Scenes.SelectMany(s => s.Situations))
             {
                 if (situation.SituationCards != null && situation.SituationCards.Any(gc => gc.Id == situationCardId))
                 {

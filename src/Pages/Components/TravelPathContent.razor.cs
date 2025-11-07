@@ -721,10 +721,8 @@ namespace Wayfarer.Pages.Components
             if (scene == null)
                 return new List<SituationPreviewData>();
 
-            // Query GameWorld.Situations using scene.SituationIds (HIGHLANDER: single source of truth)
-            List<Situation> situations = GameWorld.Situations
-                .Where(s => scene.SituationIds.Contains(s.Id))
-                .ToList();
+            // Query scene.Situations directly (HIGHLANDER: Scene owns Situations)
+            List<Situation> situations = scene.Situations.ToList();
 
             // Convert to preview data
             List<SituationPreviewData> previews = new List<SituationPreviewData>();
