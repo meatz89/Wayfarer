@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Represents the reward structure for an exchange.
 /// All rewards are granted atomically upon successful exchange.

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 /// <summary>
 /// Data Transfer Object for deserializing venue data from JSON.
 /// Venue is a CONTAINER for locations - has minimal organizational properties only.

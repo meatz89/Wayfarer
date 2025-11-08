@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components
 {
@@ -15,8 +14,8 @@ namespace Wayfarer.Pages.Components
 
         protected double GetProgressPercent()
         {
-            if (Data.TotalGoalCount == 0) return 0;
-            return ((double)Data.CompletedGoalCount / Data.TotalGoalCount) * 100.0;
+            if (Data.TotalSituationCount == 0) return 0;
+            return ((double)Data.CompletedSituationCount / Data.TotalSituationCount) * 100.0;
         }
     }
 }

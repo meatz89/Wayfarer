@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 // Simple ViewModels for UI data transfer - no business logic
 // All content comes from JSON or mechanical states
 
@@ -24,6 +21,7 @@ public class LocationScreenViewModel
 
 public class LocationActionViewModel
 {
+    public string Id { get; set; }
     public string Icon { get; set; }
     public string Title { get; set; }
     public string Detail { get; set; }
@@ -33,6 +31,14 @@ public class LocationActionViewModel
     public string LockReason { get; set; }
     public string EngagementType { get; set; }
     public string ObligationLabel { get; set; }
+
+    /// <summary>
+    /// Destination location for IntraVenueMove actions (strongly-typed property)
+    /// Replaces ID string parsing antipattern
+    /// Only populated for ActionType == "intravenuemove"
+    /// null for all other action types
+    /// </summary>
+    public string DestinationLocationId { get; set; }
 }
 
 public class NPCInteractionViewModel
@@ -184,22 +190,25 @@ public class LocationContentViewModel
 
     // Landing view data
     public List<LocationActionViewModel> TravelActions { get; set; } = new();
+    public List<LocationActionViewModel> LocationSpecificActions { get; set; } = new();
     public List<LocationActionViewModel> PlayerActions { get; set; } = new();
-    public bool HasSpots { get; set; }
+    // REMOVED: HasSpots (intra-venue movement now data-driven from LocationActionCatalog)
 
-    // LookingAround view data (NPCs with their social goals PRE-GROUPED)
-    public List<NpcWithGoalsViewModel> NPCsWithGoals { get; set; } = new();
+    // LookingAround view data (NPCs with their social situations PRE-GROUPED)
+    public List<NpcWithSituationsViewModel> NPCsWithSituations { get; set; } = new();
 
-    // Mental challenges - grouped by obstacles
-    public List<GoalCardViewModel> AmbientMentalGoals { get; set; } = new();  // Goals without obstacles
-    public List<ObstacleWithGoalsViewModel> MentalObstacles { get; set; } = new();  // Goals from obstacles
+    // Mental challenges - grouped by scenes
+    public List<SituationCardViewModel> AmbientMentalSituations { get; set; } = new();  // Situations without scenes
+    public List<SceneWithSituationsViewModel> MentalScenes { get; set; } = new();  // Situations from scenes
 
-    // Physical challenges - grouped by obstacles
-    public List<GoalCardViewModel> AmbientPhysicalGoals { get; set; } = new();  // Goals without obstacles
-    public List<ObstacleWithGoalsViewModel> PhysicalObstacles { get; set; } = new();  // Goals from obstacles
+    // Physical challenges - grouped by scenes
+    public List<SituationCardViewModel> AmbientPhysicalSituations { get; set; } = new();  // Situations without scenes
+    public List<SceneWithSituationsViewModel> PhysicalScenes { get; set; } = new();  // Situations from scenes
 
-    // Spots view data
-    public List<SpotWithNpcsViewModel> AvailableSpots { get; set; } = new();
+
+    // Scene-Situation Architecture: Locked situations with requirement gaps
+    // Perfect information: player sees what they need to unlock
+    public List<LockedSituationViewModel> LockedSituations { get; set; } = new();
 }
 
 /// <summary>
@@ -217,10 +226,11 @@ public class LocationHeaderViewModel
 }
 
 /// <summary>
-/// NPC with their social goals already filtered and attached
-/// NO FILTERING NEEDED IN UI - backend pre-groups goals by NPC and obstacles
+/// NPC present at location - simplified for "Look Around" view
+/// Shows basic NPC metadata with conditional interaction button
+/// NPCs ALWAYS visible (physical presence), button conditional on scene availability
 /// </summary>
-public class NpcWithGoalsViewModel
+public class NpcWithSituationsViewModel
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -229,25 +239,34 @@ public class NpcWithGoalsViewModel
     public string StateClass { get; set; }  // CSS class for connection state
     public string Description { get; set; }
 
-    // Social goals FOR THIS NPC - grouped by obstacles
-    public List<GoalCardViewModel> AmbientSocialGoals { get; set; } = new();  // Goals without obstacles
-    public List<ObstacleWithGoalsViewModel> SocialObstacles { get; set; } = new();  // Goals from obstacles
-
     // Exchange availability for MERCANTILE NPCs
     public bool HasExchange { get; set; }
     public string ExchangeDescription { get; set; }
+
+    // Available scenes for this NPC - each scene becomes a separate interaction button
+    // Empty list = no buttons shown (NPC has no active scenes)
+    // Multiple scenes = multiple buttons (one per scene)
+    public List<NpcSceneViewModel> AvailableScenes { get; set; } = new();
+}
+
+public class NpcSceneViewModel
+{
+    public Scene Scene { get; set; }
+    public string Label { get; set; }
+    public string Description { get; set; }
 }
 
 /// <summary>
-/// Goal card for display - simplified from domain Goal entity
+/// Situation card for display - simplified from domain Situation entity
 /// Contains all display information pre-calculated
 /// </summary>
-public class GoalCardViewModel
+public class SituationCardViewModel
 {
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string SystemType { get; set; }  // "social", "mental", "physical"
+    public string Type { get; set; }  // "Normal" or "Crisis" - for UI visual weight
     public int Difficulty { get; set; }  // Pre-calculated difficulty
     public string DifficultyLabel { get; set; }  // "Doubt", "Exposure", "Danger"
     public string ObligationId { get; set; }
@@ -259,10 +278,120 @@ public class GoalCardViewModel
 }
 
 /// <summary>
-/// Obstacle with its goals for hierarchical display
-/// Shows obstacle context (name, description, intensity, contexts) with nested goals
+/// Action card for display - executable choice from ChoiceTemplate
+/// Three-tier timing model: Actions are query-time entities created from ChoiceTemplates
 /// </summary>
-public class ObstacleWithGoalsViewModel
+public class ActionCardViewModel
+{
+    public string Id { get; set; }
+    public string SituationId { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string SystemType { get; set; }  // "social", "mental", "physical"
+
+    // Costs (from CostTemplate)
+    public int ResolveCost { get; set; }
+    public int CoinsCost { get; set; }
+    public int TimeSegments { get; set; }
+    public int HealthCost { get; set; }
+    public int StaminaCost { get; set; }
+    public int FocusCost { get; set; }
+    public int HungerCost { get; set; }
+
+    // Action type determines execution path
+    public string ActionType { get; set; }  // "Instant", "StartChallenge", "Navigate"
+    public string ChallengeType { get; set; }  // "Social", "Mental", "Physical" (if StartChallenge)
+
+    // Requirements met indicator
+    public bool RequirementsMet { get; set; }
+    public string LockReason { get; set; }
+
+    // Rewards (from ChoiceReward) - Perfect Information principle
+    public int CoinsReward { get; set; }
+    public int ResolveReward { get; set; }
+    public int HealthReward { get; set; }
+    public int StaminaReward { get; set; }
+    public int FocusReward { get; set; }
+    public int HungerChange { get; set; }
+    public bool FullRecovery { get; set; }
+
+    // Final values after this choice (for Sir Brante-style display)
+    public int FinalCoins { get; set; }
+    public int FinalResolve { get; set; }
+    public int FinalHealth { get; set; }
+    public int FinalStamina { get; set; }
+    public int FinalFocus { get; set; }
+    public int FinalHunger { get; set; }
+
+    // Affordability check - separate from requirements
+    // Requirements = prerequisites (stats, relationships, items)
+    // Affordability = resource availability (coins, resolve, stamina, focus, health)
+    public bool IsAffordable { get; set; }
+
+    // Current player resources (for Sir Brante display in COSTS section)
+    public int CurrentCoins { get; set; }
+    public int CurrentResolve { get; set; }
+    public int CurrentHealth { get; set; }
+    public int CurrentStamina { get; set; }
+    public int CurrentFocus { get; set; }
+    public int CurrentHunger { get; set; }
+
+    // Relationship consequences (transparent before selection)
+    public List<BondChangeVM> BondChanges { get; set; } = new();
+
+    // Reputation consequences (transparent before selection)
+    public List<ScaleShiftVM> ScaleShifts { get; set; } = new();
+
+    // Condition consequences (transparent before selection)
+    public List<StateApplicationVM> StateApplications { get; set; } = new();
+
+    // Progression unlocks (transparent before selection)
+    public List<string> AchievementsGranted { get; set; } = new();
+    public List<string> ItemsGranted { get; set; } = new();
+    public List<string> LocationsUnlocked { get; set; } = new();
+    public List<string> ScenesUnlocked { get; set; } = new();
+
+    // Detailed requirement gaps (replaces vague LockReason)
+    public List<RequirementPathVM> RequirementPaths { get; set; } = new();
+}
+
+public class BondChangeVM
+{
+    public string NpcName { get; set; }
+    public int Delta { get; set; }
+    public string Reason { get; set; }
+    public int CurrentBond { get; set; }
+    public int FinalBond { get; set; }
+}
+
+public class ScaleShiftVM
+{
+    public string ScaleName { get; set; }
+    public int Delta { get; set; }
+    public string Reason { get; set; }
+    public int CurrentScale { get; set; }
+    public int FinalScale { get; set; }
+}
+
+public class StateApplicationVM
+{
+    public string StateName { get; set; }
+    public bool Apply { get; set; }
+    public string Reason { get; set; }
+}
+
+public class RequirementPathVM
+{
+    public List<string> Requirements { get; set; } = new();
+    public bool PathSatisfied { get; set; }
+    public List<string> MissingRequirements { get; set; } = new();
+}
+
+/// <summary>
+/// Scene with its situations for hierarchical display
+/// Shows scene context (name, description, intensity, contexts) with nested situations
+/// </summary>
+public class SceneWithSituationsViewModel
 {
     public string Id { get; set; }
     public string Name { get; set; }
@@ -271,27 +400,43 @@ public class ObstacleWithGoalsViewModel
     public List<string> Contexts { get; set; } = new();  // e.g., ["Search", "Deduction", "Pattern"]
     public string ContextsDisplay { get; set; }  // e.g., "Search, Deduction, Pattern"
 
-    // Goals that belong to this obstacle
-    public List<GoalCardViewModel> Goals { get; set; } = new();
+    // Situations that belong to this scene
+    public List<SituationCardViewModel> Situations { get; set; } = new();
 }
 
-/// <summary>
-/// Spot with NPCs already attached
-/// NO FILTERING NEEDED IN UI - backend pre-attaches NPCs to spots
-/// </summary>
-public class SpotWithNpcsViewModel
-{
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public bool IsCurrentSpot { get; set; }
-    public List<NpcAtSpotViewModel> NPCs { get; set; } = new();
-}
 
 /// <summary>
-/// Simplified NPC info for spot list
+/// Locked situation with strongly-typed requirement gaps for UI rendering
+/// Perfect information pattern: player sees exactly what they need to unlock
+/// Each requirement type enables different UI execution context
 /// </summary>
-public class NpcAtSpotViewModel
+public class LockedSituationViewModel
 {
+    public string SituationId { get; set; }
     public string Name { get; set; }
-    public string ConnectionState { get; set; }
+    public string Description { get; set; }
+    public string SystemType { get; set; }  // "social", "mental", "physical", "instant", "navigation"
+    public string LockReason { get; set; }  // Human-readable summary "Requires X OR Y"
+
+    // CONTEXTUAL PROPERTIES - each enables type-specific UI rendering
+    // Bond requirements: Render NPC portrait + progress bar + "Talk to X" guidance
+    public List<UnmetBondRequirement> UnmetBonds { get; set; } = new List<UnmetBondRequirement>();
+
+    // Scale requirements: Render behavioral spectrum visualization with current position
+    public List<UnmetScaleRequirement> UnmetScales { get; set; } = new List<UnmetScaleRequirement>();
+
+    // Resolve requirements: Render progress bar with current/required resolve
+    public List<UnmetResolveRequirement> UnmetResolve { get; set; } = new List<UnmetResolveRequirement>();
+
+    // Coins requirements: Render coin amount with "Earn X more coins" guidance
+    public List<UnmetCoinsRequirement> UnmetCoins { get; set; } = new List<UnmetCoinsRequirement>();
+
+    // Situation count requirements: Render completion counter "Complete X more situations"
+    public List<UnmetSituationCountRequirement> UnmetSituationCount { get; set; } = new List<UnmetSituationCountRequirement>();
+
+    // Achievement requirements: Render achievement badge with link to earning situation
+    public List<UnmetAchievementRequirement> UnmetAchievements { get; set; } = new List<UnmetAchievementRequirement>();
+
+    // State requirements: Render state icon with "Gain/Remove X state" guidance
+    public List<UnmetStateRequirement> UnmetStates { get; set; } = new List<UnmetStateRequirement>();
 }

@@ -1,11 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Service for calculating final difficulty based on base difficulty and player state
-/// Replaces GoalRequirementsChecker (which was boolean gate system)
-/// No boolean gates: All goals always visible, difficulty varies transparently
+/// Replaces SituationRequirementsChecker (which was boolean gate system)
+/// No boolean gates: All situations always visible, difficulty varies transparently
 /// </summary>
 public class DifficultyCalculationService
 {
@@ -17,23 +13,23 @@ public class DifficultyCalculationService
     }
 
     /// <summary>
-    /// Calculate final difficulty for a goal
+    /// Calculate final difficulty for a situation
     /// Returns base difficulty plus/minus modifiers
-    /// Goal ALWAYS visible regardless of difficulty
+    /// Situation ALWAYS visible regardless of difficulty
     /// </summary>
-    public DifficultyResult CalculateDifficulty(Goal goal, int baseDifficulty, ItemRepository itemRepository)
+    public DifficultyResult CalculateDifficulty(Situation situation, int baseDifficulty, ItemRepository itemRepository)
     {
-        if (goal == null)
-            throw new ArgumentNullException(nameof(goal));
+        if (situation == null)
+            throw new ArgumentNullException(nameof(situation));
 
         Player player = _gameWorld.GetPlayer();
         int finalDifficulty = baseDifficulty;
         List<string> appliedModifiers = new List<string>();
         List<string> unappliedModifiers = new List<string>();
 
-        foreach (DifficultyModifier mod in goal.DifficultyModifiers)
+        foreach (DifficultyModifier mod in situation.DifficultyModifiers)
         {
-            if (CheckModifier(mod, player, goal, itemRepository))
+            if (CheckModifier(mod, player, situation, itemRepository))
             {
                 finalDifficulty += mod.Effect;  // Usually negative (reduction)
                 appliedModifiers.Add(FormatModifier(mod, true));
@@ -57,7 +53,7 @@ public class DifficultyCalculationService
     /// Check if modifier threshold is met
     /// NO ID MATCHING: Only mechanical properties and numerical resources
     /// </summary>
-    private bool CheckModifier(DifficultyModifier mod, Player player, Goal goal, ItemRepository itemRepository)
+    private bool CheckModifier(DifficultyModifier mod, Player player, Situation situation, ItemRepository itemRepository)
     {
         switch (mod.Type)
         {
@@ -72,25 +68,19 @@ public class DifficultyCalculationService
 
             case ModifierType.Familiarity:
                 // Location understanding (0-3 per Location)
-                // Uses Location ID from the goal's placement
-                if (string.IsNullOrEmpty(goal.PlacementLocationId)) return false;
-                int familiarity = player.GetLocationFamiliarity(goal.PlacementLocationId);
+                // PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+                string locationId = situation.GetPlacementId(PlacementType.Location);
+                if (string.IsNullOrEmpty(locationId)) return false;
+                int familiarity = player.GetLocationFamiliarity(locationId);
                 return familiarity >= mod.Threshold;
 
             case ModifierType.ConnectionTokens:
                 // NPC relationship strength (0-15 per NPC)
-                // NO ID MATCHING: Uses goal's PlacementNpcId (mechanical property)
-                if (string.IsNullOrEmpty(goal.PlacementNpcId)) return false;
-                int tokens = player.NPCTokens.GetTokenCount(goal.PlacementNpcId, ConnectionType.Trust);
+                // PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+                string npcId = situation.GetPlacementId(PlacementType.NPC);
+                if (string.IsNullOrEmpty(npcId)) return false;
+                int tokens = player.GetNPCTokenCount(npcId, ConnectionType.Trust);
                 return tokens >= mod.Threshold;
-
-            case ModifierType.ObstacleProperty:
-                // Check obstacle property threshold
-                Obstacle obstacle = FindParentObstacle(goal);
-                if (obstacle == null) return false;
-
-                int propertyValue = GetObstaclePropertyValue(obstacle, mod.Context);
-                return propertyValue <= mod.Threshold;  // Inverted: lower is better
 
             case ModifierType.HasItemCategory:
                 // Equipment category presence (MECHANICAL PROPERTY, NOT ID)
@@ -129,31 +119,6 @@ public class DifficultyCalculationService
         return categories.Distinct().ToList();
     }
 
-    /// <summary>
-    /// Find parent obstacle for a goal
-    /// Goal placement doesn't determine ownership - must search GameWorld.Obstacles
-    /// </summary>
-    private Obstacle FindParentObstacle(Goal goal)
-    {
-        // Search all obstacles in GameWorld for one that contains this goal
-        foreach (Obstacle obstacle in _gameWorld.Obstacles)
-        {
-            if (obstacle.GoalIds != null && obstacle.GoalIds.Contains(goal.Id))
-            {
-                return obstacle;
-            }
-        }
-        return null;
-    }
-
-    /// <summary>
-    /// Get obstacle property value by name
-    /// </summary>
-    private int GetObstaclePropertyValue(Obstacle obstacle, string propertyName)
-    {
-        // All obstacle types now use single Intensity property
-        return obstacle.Intensity;
-    }
 
     /// <summary>
     /// Format modifier for UI display
@@ -176,9 +141,6 @@ public class DifficultyCalculationService
 
             case ModifierType.ConnectionTokens:
                 return $"{status} Connection(NPC) ≥ {mod.Threshold}: {effectStr}";
-
-            case ModifierType.ObstacleProperty:
-                return $"{status} {mod.Context} ≤ {mod.Threshold}: {effectStr}";
 
             case ModifierType.HasItemCategory:
                 return $"{status} Has {mod.Context}: {effectStr}";

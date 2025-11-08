@@ -40,18 +40,18 @@
                          ShowMaxValue="true" />
         </div>
 
-        <!-- Goal Thresholds Display -->
-        <div class="goals-section">
-            <div class="goals-container">
-                <div class="goal-card @(Session.CurrentProgress >= 10 ? "achievable" : "")">
-                    <div class="goal-threshold">10</div>
-                    <div class="goal-name">Partial Understanding</div>
-                    <div class="goal-reward">1 Clue</div>
+        <!-- Situation Thresholds Display -->
+        <div class="situations-section">
+            <div class="situations-container">
+                <div class="situation-card @(Session.CurrentProgress >= 10 ? "achievable" : "")">
+                    <div class="situation-threshold">10</div>
+                    <div class="situation-name">Partial Understanding</div>
+                    <div class="situation-reward">1 Clue</div>
                 </div>
-                <div class="goal-card @(Session.CurrentProgress >= 20 ? "achievable active" : "")">
-                    <div class="goal-threshold">20</div>
-                    <div class="goal-name">Full Obligation</div>
-                    <div class="goal-reward">Complete + Knowledge</div>
+                <div class="situation-card @(Session.CurrentProgress >= 20 ? "achievable active" : "")">
+                    <div class="situation-threshold">20</div>
+                    <div class="situation-name">Full Obligation</div>
+                    <div class="situation-reward">Complete + Knowledge</div>
                 </div>
             </div>
         </div>
@@ -151,24 +151,24 @@
             </div>
         </div>
 
-        <!-- Available Goal Cards (Victory Conditions) -->
-        @if (GetAvailableGoalCards().Any())
+        <!-- Available Situation Cards (Victory Conditions) -->
+        @if (GetAvailableSituationCards().Any())
         {
-            <div class="available-goals-section">
+            <div class="available-situations-section">
                 <div class="pile-display">
                     <div class="pile-count">
-                        <span>Available Goals:</span>
-                        <span class="pile-number">@GetAvailableGoalCards().Count</span>
+                        <span>Available Situations:</span>
+                        <span class="pile-number">@GetAvailableSituationCards().Count</span>
                     </div>
                 </div>
 
-                <div class="goal-cards-grid">
-                    @foreach (var goalCard in GetAvailableGoalCards())
+                <div class="situation-cards-grid">
+                    @foreach (var situationCard in GetAvailableSituationCards())
                     {
-                        <GoalCard Card="@goalCard"
+                        <SituationCard Card="@situationCard"
                                   CurrentProgress="@Session.CurrentProgress"
-                                  CalculatedDifficulty="@GetGoalDifficulty(goalCard)"
-                                  OnCardClick="@PlayGoalCard" />
+                                  CalculatedDifficulty="@GetSituationDifficulty(situationCard)"
+                                  OnCardClick="@PlaySituationCard" />
                     }
                 </div>
             </div>

@@ -1,8 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components
 {
@@ -33,12 +29,12 @@ namespace Wayfarer.Pages.Components
             if (string.IsNullOrEmpty(VenueId))
             {
                 // Get current Venue if not specified
-                Venue currentLocation = GameFacade.GetCurrentLocation();
-                if (currentLocation == null)
+                Venue currentVenue = GameFacade.GetCurrentLocation().Venue;
+                if (currentVenue == null)
                 {
                     throw new InvalidOperationException("Current location not found");
                 }
-                VenueId = currentLocation.Id;
+                VenueId = currentVenue.Id;
             }
 
             AvailableStrangers = GameFacade.GetAvailableStrangers(VenueId);
@@ -103,16 +99,16 @@ namespace Wayfarer.Pages.Components
             };
         }
 
-        protected string GetRewardsPreview(Goal goal)
+        protected string GetRewardsPreview(Situation situation)
         {
-            if (goal?.GoalCards == null || !goal.GoalCards.Any())
+            if (situation?.SituationCards == null || !situation.SituationCards.Any())
             {
                 return "Experience and insights";
             }
 
-            // Show first goal card's rewards as preview
-            GoalCard firstGoalCard = goal.GoalCards.First();
-            GoalCardRewards rewards = firstGoalCard.Rewards;
+            // Show first situation card's rewards as preview
+            SituationCard firstSituationCard = situation.SituationCards.First();
+            SituationCardRewards rewards = firstSituationCard.Rewards;
 
             if (rewards == null)
             {

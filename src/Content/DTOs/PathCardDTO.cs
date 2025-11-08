@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for path card data from JSON packages
 /// </summary>
@@ -38,7 +36,7 @@ public class PathCardDTO
     // Stat Requirements - minimum stat levels required to use this path
     public Dictionary<string, int> StatRequirements { get; set; } // e.g., {"insight": 2, "cunning": 3}
 
-    // Core Loop: Optional obstacle on this path (references GameWorld.Obstacles)
-    // Player can preview obstacle and see equipment applicability before committing
-    public string ObstacleId { get; set; }
+    // Core Loop: Optional scene on this path (references GameWorld.Scenes)
+    // Player can preview scene and see equipment applicability before committing
+    public string SceneId { get; set; }
 }

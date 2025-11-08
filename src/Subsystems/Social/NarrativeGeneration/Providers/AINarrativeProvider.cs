@@ -1,11 +1,5 @@
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
 
 /// <summary>
 /// AI-powered narrative provider using Ollama for conversation generation.

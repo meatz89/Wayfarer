@@ -1,6 +1,6 @@
 ﻿public enum CardTypes
 {
-    Goal,
+    Situation,
     Social,
     Mental,
     Physical

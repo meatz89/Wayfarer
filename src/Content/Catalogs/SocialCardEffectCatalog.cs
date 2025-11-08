@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Comprehensive catalog of all card effect formulas.
 /// Organized by stat and depth with multiple variants per combination.

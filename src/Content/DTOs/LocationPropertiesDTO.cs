@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for the properties object structure in Venue Locations JSON.
 /// Maps time periods to property lists.
@@ -7,8 +5,6 @@ using System.Collections.Generic;
 public class LocationPropertiesDTO
 {
     public List<string> Base { get; set; } = new List<string>();
-
-    public List<string> All { get; set; } = new List<string>();
 
     public List<string> Morning { get; set; } = new List<string>();
 

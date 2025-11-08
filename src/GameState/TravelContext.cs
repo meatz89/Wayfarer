@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Context for active travel UI containing all necessary state
 /// </summary>

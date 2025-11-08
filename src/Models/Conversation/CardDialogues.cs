@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Container for card dialogues and narrative templates loaded from JSON.
 /// </summary>

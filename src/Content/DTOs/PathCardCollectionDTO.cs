@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// DTO for path card collections used in FixedPath segments and event collections
 /// </summary>

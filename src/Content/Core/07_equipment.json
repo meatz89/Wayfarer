@@ -69,7 +69,7 @@
       {
         "Id": "rations",
         "Name": "Rations",
-        "Description": "Emergency food that can resolve unexpected obstacles",
+        "Description": "Emergency food that can resolve unexpected situations",
         "BuyPrice": 5,
         "SellPrice": 2,
         "Categories": ["Equipment"],
@@ -88,6 +88,17 @@
         "IntensityReduction": 2,
         "UsageType": "Exhaustible",
         "Durability": "Durable"
+      },
+      {
+        "Id": "room_key",
+        "Name": "Room Key",
+        "Description": "Key to a rented room at the inn",
+        "BuyPrice": 0,
+        "SellPrice": 0,
+        "Categories": ["Quest Item"],
+        "ApplicableContexts": [],
+        "IntensityReduction": 0,
+        "UsageType": "Temporary"
       }
     ]
   }

@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 /// <summary>
 /// V4 Mental Session - runtime state for active obligation
 /// Unified architecture with ConversationSession
@@ -9,7 +6,7 @@ public class MentalSession
 {
     public string SessionId { get; init; } = Guid.NewGuid().ToString();
     public string ObligationId { get; set; }
-    public string VenueId { get; set; } // Track Venue for familiarity bonuses
+    public string LocationId { get; set; } // Track Location for familiarity bonuses
     public MentalSessionDeck Deck { get; set; }
     public int CurrentPhaseIndex { get; set; } = 0; // Which phase (0-based)
 
@@ -46,7 +43,7 @@ public class MentalSession
     public bool ShouldEnd()
     {
         // ONLY check failure condition - Exposure threshold reached
-        // Victory condition (GoalCard play) is handled by facade
+        // Victory condition (SituationCard play) is handled by facade
         return CurrentExposure >= MaxExposure;
     }
 

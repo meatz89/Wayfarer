@@ -1,49 +1,46 @@
 {
   "packageId": "core_travel",
   "metadata": {
-    "name": "Tutorial Travel - Town Square to Inn",
-    "timestamp": "2025-10-21T00:00:00Z",
-    "description": "Simple tutorial route: cross square to Brass Bell Inn",
+    "name": "Core Travel System - POC (Empty)",
+    "timestamp": "2025-09-11T00:00:00Z",
+    "description": "No travel routes in POC - staying at Old Mill only",
     "author": "Wayfarer Team",
-    "version": "3.0.0"
+    "version": "2.0.0"
   },
   "content": {
     "pathCards": [],
     "eventCards": [],
     "travelEvents": [],
-    "pathCardCollections": [
-      {
-        "id": "tutorial_square_to_inn_paths",
-        "pathCards": [
-          {
-            "id": "walk_to_inn",
-            "name": "Walk to the Inn",
-            "narrativeText": "A short walk across the square. The warm glow of the Brass Bell Inn beckons. Inside: warmth, food, safety.",
-            "staminaCost": 0,
-            "travelTimeSegments": 0,
-            "startsRevealed": true,
-            "explorationThreshold": 0,
-            "obstacleId": null
-          }
-        ]
-      }
-    ],
+    "pathCardCollections": [],
     "routes": [
       {
-        "id": "square_to_inn",
-        "name": "Cross to Brass Bell Inn",
-        "originVenueId": "town_square",
+        "id": "square_to_mill",
+        "name": "Path to Old Mill",
         "originSpotId": "square_center",
-        "destinationVenueId": "brass_bell_inn",
-        "destinationSpotId": "common_room",
-        "createBidirectional": true,
-        "description": "Walk across the town square to the warm glow of the Brass Bell Inn",
+        "destinationSpotId": "mill_courtyard",
+        "description": "Follow the path from town square to the abandoned mill on the outskirts",
         "segments": [
           {
-            "segmentNumber": 1,
-            "type": "FixedPath",
-            "narrativeDescription": "You cross the square toward the inn. Lamplight spills from its windows. Inside: warmth, food, safety.",
-            "pathCollectionId": "tutorial_square_to_inn_paths"
+            "position": 1,
+            "narrativeDescription": "The path leads through overgrown fields toward the old mill. The waterwheel's creaking grows louder as you approach.",
+            "availablePaths": [
+              {
+                "id": "main_road",
+                "description": "Follow the main road - longer but easier walking",
+                "timeSegments": 2,
+                "staminaCost": 0,
+                "optionalObstacleId": null,
+                "hiddenUntilExploration": 0
+              },
+              {
+                "id": "shortcut_field",
+                "description": "Cut through the overgrown field - shorter but more tiring",
+                "timeSegments": 1,
+                "staminaCost": 1,
+                "optionalObstacleId": null,
+                "hiddenUntilExploration": 0
+              }
+            ]
           }
         ]
       }

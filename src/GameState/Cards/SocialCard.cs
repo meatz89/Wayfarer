@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 public class SocialCard
 {
     // Core identity
@@ -45,7 +42,7 @@ public class SocialCard
     // Personality targeting - which NPCs can use this card
     public IReadOnlyList<string> PersonalityTypes { get; init; } = new List<string>();
 
-    // Momentum threshold for goal cards (Letter, Promise, BurdenGoal)
+    // Momentum threshold for situation cards (Letter, Promise, BurdenSituation)
     public int MomentumThreshold { get; init; } = 0;
 
     // Promise card specific properties

@@ -615,6 +615,33 @@ body * {
     border-color: #c4a684;
 }
 
+/* Locked action card state (for locked locations/unavailable actions) */
+.action-card.locked {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background: #e8dcc4;
+    border-color: #a68b6f;
+    border-style: dashed;
+}
+
+.action-card.locked:hover {
+    background: #e8dcc4;
+    border-color: #a68b6f;
+    transform: none;
+}
+
+.action-card .lock-icon {
+    margin-left: 6px;
+    opacity: 0.7;
+}
+
+.action-card .lock-reason {
+    font-size: 10px;
+    color: #8b4726;
+    font-style: italic;
+    margin-top: 4px;
+}
+
 .action-name {
     font-size: 14px;
     color: #5c4a3a;
@@ -1411,8 +1438,8 @@ body * {
 }
 
 /* .back-button moved to common.css */
-/* Obligation Goal Action Buttons */
-.goal-action-btn {
+/* Obligation Situation Action Buttons */
+.situation-action-btn {
     background: #f9f3e9;
     border: 2px solid #d4c5a0;
     border-radius: 4px;
@@ -1423,25 +1450,97 @@ body * {
     position: relative;
 }
 
-.goal-action-btn:hover {
+.situation-action-btn:hover {
     background: #fff9ef;
     border-color: #b88a4a;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
-.goal-action-btn.intro-action {
+.situation-action-btn.intro-action {
     border-color: #8b6726;
     border-width: 3px;
     background: #fffacd;
     box-shadow: 0 0 12px rgba(139, 103, 38, 0.3);
 }
 
-.goal-action-btn.intro-action:hover {
+.situation-action-btn.intro-action:hover {
     background: #ffffe0;
     box-shadow: 0 4px 16px rgba(139, 103, 38, 0.4);
 }
 
-.goal-system-badge {
+.situation-action-btn.crisis-situation {
+    border-color: #b22222;
+    border-width: 3px;
+    background: #ffe4e4;
+    box-shadow: 0 0 12px rgba(178, 34, 34, 0.3);
+}
+
+.situation-action-btn.crisis-situation:hover {
+    background: #ffcccc;
+    border-color: #8b0000;
+    box-shadow: 0 4px 16px rgba(178, 34, 34, 0.5);
+}
+
+.situation-action-btn.crisis-situation::before {
+    content: "⚠️";
+    position: absolute;
+    top: 8px;
+    right: 12px;
+    font-size: 18px;
+}
+
+/* Sir Brante pattern: Locked action state (requirements not met) */
+.situation-action-btn.locked {
+    opacity: 0.7;
+    cursor: not-allowed;
+    background: #e8dcc4;
+    border-color: #a68b6f;
+    border-style: dashed;
+}
+
+.situation-action-btn.locked:hover {
+    transform: none;
+    box-shadow: none;
+    background: #e8dcc4;
+    border-color: #a68b6f;
+}
+
+/* Lock overlay - absolute positioned over action card content */
+.action-locked-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(44, 36, 26, 0.75);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    backdrop-filter: blur(2px);
+    z-index: 10;
+}
+
+.lock-icon {
+    font-size: 28px;
+    filter: grayscale(100%);
+    opacity: 0.8;
+}
+
+.lock-text {
+    color: #e8dcc4;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    text-align: center;
+    padding: 0 15px;
+    line-height: 1.4;
+}
+
+.situation-system-badge {
     display: inline-block;
     padding: 4px 10px;
     border-radius: 3px;
@@ -1452,41 +1551,51 @@ body * {
     margin-bottom: 8px;
 }
 
-.goal-system-badge.social {
+.situation-system-badge.social {
     background: linear-gradient(to right, #7a8b5a, #9eb87a);
     color: white;
 }
 
-.goal-system-badge.mental {
+.situation-system-badge.mental {
     background: linear-gradient(to right, #5a7a8b, #7a9eb8);
     color: white;
 }
 
-.goal-system-badge.physical {
+.situation-system-badge.physical {
     background: linear-gradient(to right, #8b5a7a, #b87a9e);
     color: white;
 }
 
-.goal-system-badge.exchange {
+.situation-system-badge.exchange {
     background: linear-gradient(to right, #8b7a5a, #b89e7a);
     color: white;
 }
 
-.goal-name {
+.situation-system-badge.conversation {
+    background: linear-gradient(to right, #d4a76a, #e8c494);
+    color: white;
+}
+
+.situation-system-badge.observation {
+    background: linear-gradient(to right, #5a8b8b, #7ab8b8);
+    color: white;
+}
+
+.situation-name {
     font-size: 16px;
     font-weight: bold;
     color: #2c241a;
     margin-bottom: 6px;
 }
 
-.goal-description {
+.situation-description {
     font-size: 13px;
     color: #5c4a3a;
     margin-bottom: 6px;
     font-style: italic;
 }
 
-.goal-obligation-tag {
+.situation-obligation-tag {
     display: inline-block;
     padding: 3px 8px;
     background: #d4a76a;
@@ -1498,11 +1607,11 @@ body * {
     margin-top: 6px;
 }
 
-.goal-obligation-tag.intro-tag {
+.situation-obligation-tag.intro-tag {
     background: #8b6726;
 }
 
-.goal-difficulty {
+.situation-difficulty {
     font-size: 12px;
     color: #7a6250;
     margin-top: 6px;
@@ -1526,7 +1635,7 @@ body * {
 .location-npc-list-view,
 .location-npc-detail-view,
 .location-challenges-view,
-.location-goal-detail-view,
+.location-situation-detail-view,
 .location-spots-view {
     padding: 20px;
     background: #faf4ea;
@@ -1549,10 +1658,10 @@ body * {
 }
 
 /* ============================================
-   GOAL DETAIL VIEW SPECIFIC STYLES
+   SITUATION DETAIL VIEW SPECIFIC STYLES
    ============================================ */
 
-.goal-detail-header {
+.situation-detail-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -1561,13 +1670,13 @@ body * {
     border-bottom: 2px solid #d4c5a0;
 }
 
-.goal-detail-name {
+.situation-detail-name {
     font-size: 18px;
     font-weight: bold;
     color: #2c241a;
 }
 
-.goal-detail-description {
+.situation-detail-description {
     font-size: 14px;
     color: #5c4a3a;
     font-style: italic;
@@ -1578,7 +1687,7 @@ body * {
     border-left: 3px solid #c4a684;
 }
 
-.goal-detail-info {
+.situation-detail-info {
     background: #f9f3e9;
     border: 1px solid #d4c5a0;
     border-radius: 4px;
@@ -1608,7 +1717,7 @@ body * {
     font-weight: bold;
 }
 
-.goal-detail-actions {
+.situation-detail-actions {
     display: flex;
     gap: 10px;
     justify-content: flex-end;
@@ -1686,10 +1795,10 @@ body * {
 }
 
 /* ============================================
-   OBSTACLE CARDS - Hierarchical Challenge Display
+   SCENE CARDS - Hierarchical Challenge Display
    ============================================ */
 
-.obstacle-card {
+.scene-card {
     background: #f4e8d0;
     border: 2px solid #c4a684;
     border-radius: 6px;
@@ -1697,27 +1806,27 @@ body * {
     margin-bottom: 15px;
 }
 
-.obstacle-header {
+.scene-header {
     margin-bottom: 10px;
     padding-bottom: 8px;
     border-bottom: 1px dashed #d4c5a0;
 }
 
-.obstacle-name {
+.scene-name {
     font-size: 14px;
     color: #5c4a3a;
     font-weight: bold;
     margin-bottom: 6px;
 }
 
-.obstacle-meta {
+.scene-meta {
     display: flex;
     gap: 15px;
     flex-wrap: wrap;
     align-items: center;
 }
 
-.obstacle-intensity {
+.scene-intensity {
     font-size: 11px;
     color: #8b4726;
     font-weight: bold;
@@ -1726,14 +1835,14 @@ body * {
     border-radius: 2px;
 }
 
-.obstacle-contexts {
+.scene-contexts {
     font-size: 11px;
     color: #5a7a8b;
     font-weight: bold;
     font-style: italic;
 }
 
-.obstacle-description {
+.scene-description {
     font-size: 12px;
     color: #7a6250;
     line-height: 1.4;
@@ -1741,11 +1850,11 @@ body * {
     margin-bottom: 12px;
 }
 
-/* Goals within obstacles have tighter spacing */
-.obstacle-card .actions-grid {
+/* Situations within scenes have tighter spacing */
+.scene-card .actions-grid {
     margin-top: 10px;
 }
 
-.obstacle-card .goal-action-btn {
+.scene-card .situation-action-btn {
     margin-bottom: 8px;
 }

@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 public class MentalFacade
 {
     private readonly GameWorld _gameWorld;
@@ -10,7 +5,7 @@ public class MentalFacade
     private readonly MentalNarrativeService _narrativeService;
     private readonly MentalDeckBuilder _deckBuilder;
     private readonly TimeManager _timeManager;
-    private readonly GoalCompletionHandler _goalCompletionHandler;
+    private readonly SituationCompletionHandler _situationCompletionHandler;
 
     public MentalFacade(
         GameWorld gameWorld,
@@ -18,14 +13,14 @@ public class MentalFacade
         MentalNarrativeService narrativeService,
         MentalDeckBuilder deckBuilder,
         TimeManager timeManager,
-        GoalCompletionHandler goalCompletionHandler)
+        SituationCompletionHandler situationCompletionHandler)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
         _deckBuilder = deckBuilder ?? throw new ArgumentNullException(nameof(deckBuilder));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
-        _goalCompletionHandler = goalCompletionHandler ?? throw new ArgumentNullException(nameof(goalCompletionHandler));
+        _situationCompletionHandler = situationCompletionHandler ?? throw new ArgumentNullException(nameof(situationCompletionHandler));
     }
 
     public MentalSession GetCurrentSession()
@@ -59,29 +54,31 @@ public class MentalFacade
     }
 
     public MentalSession StartSession(MentalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
-        string goalId, string obligationId)
+        string situationId, string obligationId)
     {
         if (IsSessionActive())
         {
             EndSession();
         }
 
-        // Get goal for costs and goal cards
-        Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
-        if (goal == null)
+        // Get situation for costs and situation cards
+        Situation situation = _gameWorld.Scenes
+            .SelectMany(s => s.Situations)
+            .FirstOrDefault(sit => sit.Id == situationId);
+        if (situation == null)
         {
             return null;
         }
 
         // Track obligation context
-        _gameWorld.CurrentMentalGoalId = goalId;
+        _gameWorld.CurrentMentalSituationId = situationId;
         _gameWorld.CurrentMentalObligationId = obligationId;
 
         Player player = _gameWorld.GetPlayer();
-        Location location = player.CurrentLocation;
+        Location location = _gameWorld.GetPlayerCurrentLocation();
 
-        // PROGRESSION SYSTEM: Focus cost from Goal (single source of truth from JSON)
-        int focusCost = goal.Costs.Focus;
+        // PROGRESSION SYSTEM: Focus cost from Situation (single source of truth from JSON)
+        int focusCost = situation.Costs.Focus;
         if (player.Focus < focusCost)
         {
             return null;
@@ -91,34 +88,34 @@ public class MentalFacade
         _gameWorld.CurrentMentalSession = new MentalSession
         {
             ObligationId = engagement.Id,
-            VenueId = location.VenueId,
+            LocationId = location.Id,
             CurrentAttention = 10,
             MaxAttention = 10,
             CurrentUnderstanding = 0,
             CurrentProgress = 0,
             CurrentExposure = 0, // Starts at 0, accumulates during play
             MaxExposure = engagement.DangerThreshold // Max from deck (varies by difficulty)
-            // VictoryThreshold removed - GoalCard play determines success, not Progress threshold
+            // VictoryThreshold removed - SituationCard play determines success, not Progress threshold
         };
 
         // Use MentalSessionDeck with Pile abstraction
         _gameWorld.CurrentMentalSession.Deck = MentalSessionDeck.CreateFromInstances(deck, startingHand);
         _gameWorld.CurrentMentalSession.Deck = _gameWorld.CurrentMentalSession.Deck;
 
-        // SYMMETRY RESTORATION: Extract GoalCards from Goal and add to session deck (MATCH SOCIAL PATTERN)
-        if (goal.GoalCards.Any())
+        // SYMMETRY RESTORATION: Extract SituationCards from Situation and add to session deck (MATCH SOCIAL PATTERN)
+        if (situation.SituationCards.Any())
         {
-            foreach (GoalCard goalCard in goal.GoalCards)
+            foreach (SituationCard situationCard in situation.SituationCards)
             {
-                // Create CardInstance from GoalCard (constructor sets CardType automatically)
-                CardInstance goalCardInstance = new CardInstance(goalCard)
+                // Create CardInstance from SituationCard (constructor sets CardType automatically)
+                CardInstance situationCardInstance = new CardInstance(situationCard)
                 {
-                    Context = new CardContext { threshold = goalCard.threshold },
+                    Context = new CardContext { threshold = situationCard.threshold },
                     IsPlayable = false // Unlocked when Progress reaches threshold
                 };
 
                 // Add to session deck's requestPile
-                _gameWorld.CurrentMentalSession.Deck.AddGoalCard(goalCardInstance);
+                _gameWorld.CurrentMentalSession.Deck.AddSituationCard(situationCardInstance);
             }
         }
 
@@ -148,8 +145,8 @@ public class MentalFacade
         _gameWorld.CurrentMentalSession.Deck.DrawToHand(cardsToDraw);// Consume Leads after drawing
         _gameWorld.CurrentMentalSession.CurrentLeads = 0;
 
-        // Check and unlock goal cards if Progress threshold met
-        _gameWorld.CurrentMentalSession.Deck.CheckGoalThresholds(_gameWorld.CurrentMentalSession.CurrentProgress);
+        // Check and unlock situation cards if Progress threshold met
+        _gameWorld.CurrentMentalSession.Deck.CheckSituationThresholds(_gameWorld.CurrentMentalSession.CurrentProgress);
 
         return new MentalTurnResult
         {
@@ -188,91 +185,27 @@ public class MentalFacade
             throw new InvalidOperationException("Card not in hand");
         }
 
-        // SYMMETRY RESTORATION: Check goal card type BEFORE template check
-        // Goal cards have no MentalCardTemplate, so must be checked first
-        if (card.CardType == CardTypes.Goal)
-        {// Apply obstacle effects via containment pattern (THREE PARALLEL SYSTEMS symmetry)
-            // DISTRIBUTED INTERACTION: Find parent obstacle from Goal.ParentObstacle
-            Player currentPlayer = _gameWorld.GetPlayer();
-            Location location = currentPlayer.CurrentLocation;
+        // SYMMETRY RESTORATION: Check situation card type BEFORE template check
+        // Situation cards have no MentalCardTemplate, so must be checked first
+        if (card.CardType == CardTypes.Situation)
+        {
 
-            // Get goal and its parent obstacle via object references
-            Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == _gameWorld.CurrentMentalGoalId);
-            if (goal == null)
-                return null; // Goal not found
-
-            Obstacle parentObstacle = goal.ParentObstacle;
-
-            if (parentObstacle != null)
-            {// PHASE 2: Five Consequence Types
-                switch (goal.ConsequenceType)
-                {
-                    case Wayfarer.GameState.Enums.ConsequenceType.Resolution:
-                        // Permanently overcome - mark as Resolved, remove from play
-                        parentObstacle.State = Wayfarer.GameState.Enums.ObstacleState.Resolved;
-                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
-
-                        if (!parentObstacle.IsPermanent)
-                        {
-                            location.ObstacleIds.Remove(parentObstacle.Id);
-                        }
-                        break;
-
-                    case Wayfarer.GameState.Enums.ConsequenceType.Bypass:
-                        // Player passes, obstacle persists
-                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome; break;
-
-                    case Wayfarer.GameState.Enums.ConsequenceType.Transform:
-                        // Fundamentally changed - intensity to 0, new description
-                        parentObstacle.State = Wayfarer.GameState.Enums.ObstacleState.Transformed;
-                        parentObstacle.Intensity = 0;
-
-                        if (!string.IsNullOrEmpty(goal.TransformDescription))
-                        {
-                            parentObstacle.TransformedDescription = goal.TransformDescription;
-                        }
-
-                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome; break;
-
-                    case Wayfarer.GameState.Enums.ConsequenceType.Modify:
-                        // Intensity reduced - other goals may unlock
-                        parentObstacle.Intensity = Math.Max(0,
-                            parentObstacle.Intensity - goal.PropertyReduction.ReduceIntensity);
-
-                        parentObstacle.ResolutionMethod = Wayfarer.GameState.Enums.ResolutionMethod.Preparation;
-
-                        // Check if intensity now at 0 (auto-transform)
-                        if (parentObstacle.Intensity == 0)
-                        {
-                            parentObstacle.State = Wayfarer.GameState.Enums.ObstacleState.Transformed;
-                        }
-                        break;
-
-                    case Wayfarer.GameState.Enums.ConsequenceType.Grant:
-                        // Grant items/knowledge, no obstacle change
-                        // (Knowledge cards handled in Phase 3, items already handled by reward system)
-                        break;
-                }
-            }
-            // Else: ambient goal with no obstacle parent
-
-            // Complete goal through GoalCompletionHandler (handles obligation progress)
-            Goal completedGoal = _gameWorld.Goals.FirstOrDefault(g => g.Id == _gameWorld.CurrentMentalGoalId);
-            if (completedGoal != null)
+            // Complete situation through SituationCompletionHandler (handles obligation progress)
+            Situation completedSituation = _gameWorld.Scenes
+                .SelectMany(s => s.Situations)
+                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentMentalSituationId);
+            if (completedSituation != null)
             {
-                _goalCompletionHandler.CompleteGoal(completedGoal);
+                _situationCompletionHandler.CompleteSituation(completedSituation);
             }
 
             _gameWorld.CurrentMentalSession.Deck.PlayCard(card); // Mark card as played
-            EndSession(); // Immediate end on GoalCard play
+            EndSession(); // Immediate end on SituationCard play
 
             return new MentalTurnResult
             {
                 Success = true,
-                Narrative = $"You completed the obligation: {card.GoalCardTemplate.Name}",
+                Narrative = $"You completed the obligation: {card.SituationCardTemplate.Name}",
                 CurrentProgress = 0,
                 CurrentExposure = 0,
                 SessionEnded = true
@@ -300,9 +233,9 @@ public class MentalFacade
         // Apply projection to session state
         ApplyProjectionToSession(projection, _gameWorld.CurrentMentalSession, player);
 
-        // Check and unlock goal cards if Progress threshold met
-        List<CardInstance> unlockedGoals = _gameWorld.CurrentMentalSession.Deck.CheckGoalThresholds(_gameWorld.CurrentMentalSession.CurrentProgress);
-        foreach (CardInstance goalCard in unlockedGoals)
+        // Check and unlock situation cards if Progress threshold met
+        List<CardInstance> unlockedSituations = _gameWorld.CurrentMentalSession.Deck.CheckSituationThresholds(_gameWorld.CurrentMentalSession.CurrentProgress);
+        foreach (CardInstance situationCard in unlockedSituations)
         { }
 
         // Track categories for obligation depth
@@ -435,8 +368,8 @@ public class MentalFacade
             return null;
         }
 
-        // SYMMETRY RESTORATION: Success determined by GoalCard play (match Social pattern)
-        bool success = _gameWorld.CurrentMentalSession.Deck.PlayedCards.Any(c => c.CardType == CardTypes.Goal);
+        // SYMMETRY RESTORATION: Success determined by SituationCard play (match Social pattern)
+        bool success = _gameWorld.CurrentMentalSession.Deck.PlayedCards.Any(c => c.CardType == CardTypes.Situation);
 
         MentalOutcome outcome = new MentalOutcome
         {
@@ -446,20 +379,24 @@ public class MentalFacade
             SessionSaved = false
         };
 
-        // Obligation progress now handled by GoalCompletionHandler (system-agnostic)
+        // Obligation progress now handled by SituationCompletionHandler (system-agnostic)
 
         Player player = _gameWorld.GetPlayer();
 
-        // PROGRESSION SYSTEM: Award Venue familiarity on success
-        if (success && !string.IsNullOrEmpty(_gameWorld.CurrentMentalSession.VenueId))
+        // PROGRESSION SYSTEM: Award Location familiarity on success
+        if (success && !string.IsNullOrEmpty(_gameWorld.CurrentMentalSession.LocationId))
         {
-            int currentFamiliarity = player.LocationFamiliarity.GetFamiliarity(_gameWorld.CurrentMentalSession.VenueId);
+            int currentFamiliarity = player.GetLocationFamiliarity(_gameWorld.CurrentMentalSession.LocationId);
             int newFamiliarity = Math.Min(3, currentFamiliarity + 1); // Max familiarity is 3
-            player.LocationFamiliarity.SetFamiliarity(_gameWorld.CurrentMentalSession.VenueId, newFamiliarity);
+            player.SetLocationFamiliarity(_gameWorld.CurrentMentalSession.LocationId, newFamiliarity);
         }
 
+        // TACTICAL LAYER: Do NOT apply CompletionReward here
+        // Rewards are strategic layer concern - GameFacade applies them after receiving outcome
+        // PendingContext stays alive for GameFacade to process
+
         // Clear obligation context
-        _gameWorld.CurrentMentalGoalId = null;
+        _gameWorld.CurrentMentalSituationId = null;
         _gameWorld.CurrentMentalObligationId = null;
 
         _gameWorld.CurrentMentalSession.Deck.Clear();

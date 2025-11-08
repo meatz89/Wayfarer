@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// STATELESS calculator for momentum and doubt mechanics.
 /// All state lives in SocialSession. Methods accept session as parameter.
@@ -170,9 +166,9 @@ public class MomentumManager
     /// Get current state for UI display
     /// </summary>
     /// <param name="session">The conversation session to read from</param>
-    /// <returns>Tuple of momentum, doubt, and doubt penalty</returns>
-    public (int momentum, int doubt, int doubtPenalty) GetCurrentState(SocialSession session)
+    /// <returns>Current momentum state with momentum, doubt, and doubt penalty</returns>
+    public MomentumState GetCurrentState(SocialSession session)
     {
-        return (session.CurrentMomentum, session.CurrentDoubt, GetDoubtPenalty(session));
+        return new MomentumState(session.CurrentMomentum, session.CurrentDoubt, GetDoubtPenalty(session));
     }
 }

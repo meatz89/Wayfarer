@@ -13,9 +13,9 @@
     <div class="obligation-outcome-section">
         <div class="outcome-text">@Data.OutcomeNarrative</div>
 
-        <div class="goal-completed-box">
-            <div class="completed-label">Goal Completed</div>
-            <div class="completed-goal-name">@Data.CompletedGoalName</div>
+        <div class="situation-completed-box">
+            <div class="completed-label">Situation Completed</div>
+            <div class="completed-situation-name">@Data.CompletedSituationName</div>
         </div>
     </div>
 
@@ -33,7 +33,7 @@
                     <div class="lead-item">
                         <div class="lead-marker"></div>
                         <div class="lead-content">
-                            <div class="lead-text">@lead.GoalName</div>
+                            <div class="lead-text">@lead.SituationName</div>
                             <div class="lead-location">Available at: @lead.LocationName - @lead.SpotName</div>
                         </div>
                     </div>
@@ -47,7 +47,7 @@
         <div class="progress-bar">
             <div class="progress-fill" style="width: @GetProgressPercent()%"></div>
         </div>
-        <div class="progress-text">@Data.CompletedGoalCount of @Data.TotalGoalCount goals completed</div>
+        <div class="progress-text">@Data.CompletedSituationCount of @Data.TotalSituationCount situations completed</div>
     </div>
 
     <div class="action-section">

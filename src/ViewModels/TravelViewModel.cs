@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// ViewModel for the Travel Selection UI - contains only display data
 /// </summary>

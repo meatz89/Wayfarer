@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 /// <summary>
 /// Calculates time block transitions and availability windows.
 /// </summary>

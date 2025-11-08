@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Manages route operations and availability.
 /// </summary>
@@ -19,33 +15,27 @@ public class RouteManager
     /// <summary>
     /// Get all routes from a specific location.
     /// </summary>
-    public List<RouteOption> GetRoutesFromLocation(string venueId)
+    public List<RouteOption> GetRoutesFromLocation(string locationId)
     {
-        return _routeRepository.GetRoutesFromLocation(venueId).ToList();
+        return _routeRepository.GetRoutesFromLocation(locationId).ToList();
     }
 
     /// <summary>
     /// Get a specific route between two locations.
     /// </summary>
-    public RouteOption GetRouteBetweenLocations(string fromVenueId, string toVenueId)
+    public RouteOption GetRouteBetweenLocations(string fromLocationId, string toLocationId)
     {
-        List<RouteOption> routes = GetRoutesFromLocation(fromVenueId);
-        // RouteOption uses DestinationLocationSpot to track where it goes
-        // We need to find routes that go to any location in the target location
-        return routes.FirstOrDefault(r =>
-        {
-            // Get the destination location and check if it belongs to the target location
-            Location destSpot = _gameWorld.GetLocation(r.DestinationLocationSpot);
-            return destSpot?.VenueId == toVenueId;
-        });
+        List<RouteOption> routes = GetRoutesFromLocation(fromLocationId);
+        // RouteOption uses DestinationLocationId for exact destination
+        return routes.FirstOrDefault(r => r.DestinationLocationId == toLocationId);
     }
 
     /// <summary>
     /// Check if a route exists between two locations.
     /// </summary>
-    public bool RouteExists(string fromVenueId, string toVenueId)
+    public bool RouteExists(string fromLocationId, string toLocationId)
     {
-        return GetRouteBetweenLocations(fromVenueId, toVenueId) != null;
+        return GetRouteBetweenLocations(fromLocationId, toLocationId) != null;
     }
 
     /// <summary>
@@ -54,7 +44,11 @@ public class RouteManager
     public List<RouteOption> GetAvailableRoutesFromCurrentLocation()
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocation.VenueId;
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
+        if (currentLocation == null)
+            return new List<RouteOption>();
+
+        string currentVenueId = currentLocation.VenueId;
         return GetRoutesFromLocation(currentVenueId);
     }
 

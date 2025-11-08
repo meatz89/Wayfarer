@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-
 /// <summary>
 /// Parser for PlayerAction entities with strong typing and enum validation.
 /// Validates actionType against PlayerActionType enum - throws on unknown types.
@@ -28,12 +24,42 @@ public static class PlayerActionParser
             Name = dto.Name,
             Description = dto.Description,
             ActionType = actionType,  // Strongly typed enum
-            Cost = dto.Cost ?? new Dictionary<string, int>(),
+            Costs = ParseCosts(dto.Cost),
+            Rewards = ParseRewards(dto.Reward),
             TimeRequired = dto.TimeRequired,
             Priority = dto.Priority
         };
 
         return action;
+    }
+
+    private static ActionCosts ParseCosts(ActionCostsDTO dto)
+    {
+        if (dto == null)
+            return ActionCosts.None();
+
+        return new ActionCosts
+        {
+            Coins = dto.Coins,
+            Focus = dto.Focus,
+            Stamina = dto.Stamina,
+            Health = dto.Health
+        };
+    }
+
+    private static ActionRewards ParseRewards(ActionRewardsDTO dto)
+    {
+        if (dto == null)
+            return ActionRewards.None();
+
+        return new ActionRewards
+        {
+            CoinReward = dto.Coins,
+            HealthRecovery = dto.Health,
+            FocusRecovery = dto.Focus,
+            StaminaRecovery = dto.Stamina,
+            FullRecovery = dto.FullRecovery
+        };
     }
 
     private static void ValidateRequiredFields(PlayerActionDTO dto)

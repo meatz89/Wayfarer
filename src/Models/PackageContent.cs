@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using Wayfarer.Content.DTOs;
 
 /// <summary>
 /// Container for all game content in a package - uses DTOs consistently
@@ -14,6 +14,14 @@ public class PackageContent
     /// District definitions - subdivisions of regions
     /// </summary>
     public List<DistrictDTO> Districts { get; set; }
+
+    /// <summary>
+    /// Hex map grid - spatial scaffolding for procedural world generation
+    /// Defines terrain, danger levels, and location placement on hex grid
+    /// Part of hex-based travel system
+    /// NOTE: This is a single HexMapDTO (not a List) - one world grid per package
+    /// </summary>
+    public HexMapDTO HexMap { get; set; }
 
     /// <summary>
     /// Social card definitions - uses DTO for consistency
@@ -53,10 +61,10 @@ public class PackageContent
     public List<StandingObligationDTO> StandingObligations { get; set; }
 
     /// <summary>
-    /// Goals - strategic layer entities that define UI actions (replaces inline NPC requests)
+    /// Situations - strategic layer entities that define UI actions (replaces inline NPC requests)
     /// Universal across all three tactical systems (Social/Mental/Physical)
     /// </summary>
-    public List<GoalDTO> Goals { get; set; }
+    public List<SituationDTO> Situations { get; set; }
 
     /// <summary>
     /// Promise cards - special cards that can force queue positions or make commitments
@@ -145,9 +153,9 @@ public class PackageContent
     public List<ObligationDTO> Obligations { get; set; }
 
     /// <summary>
-    /// Travel obstacle definitions - challenges encountered during travel that require preparation (V2)
+    /// Travel scene definitions - challenges encountered during travel that require preparation (V2)
     /// </summary>
-    public List<TravelObstacleDTO> TravelObstacles { get; set; }
+    public List<TravelSceneDTO> TravelScenes { get; set; }
 
     /// <summary>
     /// Mental cards for obligation system - parallel to conversation cards for mental tactical challenges
@@ -164,9 +172,41 @@ public class PackageContent
     public List<MentalChallengeDeckDTO> MentalChallengeDecks { get; set; } = new List<MentalChallengeDeckDTO>();
     public List<PhysicalChallengeDeckDTO> PhysicalChallengeDecks { get; set; } = new List<PhysicalChallengeDeckDTO>();
 
+    // NOTE: Old SceneDTO system removed - NEW Scene-Situation architecture
+    // Scenes now spawn via Situation spawn rewards (SceneSpawnReward) instead of package-level definitions
+
     /// <summary>
-    /// Obstacle definitions - challenges with multiple resolution paths and property-based gating
-    /// Can be placed on Locations, NPCs, or Routes
+    /// Conversation tree definitions - simple dialogue trees that can escalate to Social challenges
     /// </summary>
-    public List<ObstacleDTO> Obstacles { get; set; } = new List<ObstacleDTO>();
+    public List<ConversationTreeDTO> ConversationTrees { get; set; } = new List<ConversationTreeDTO>();
+
+    /// <summary>
+    /// Observation scene definitions - scene investigation with multiple examination points
+    /// </summary>
+    public List<ObservationSceneDTO> ObservationScenes { get; set; } = new List<ObservationSceneDTO>();
+
+    /// <summary>
+    /// Emergency situation definitions - urgent situations demanding immediate response
+    /// </summary>
+    public List<EmergencySituationDTO> EmergencySituations { get; set; } = new List<EmergencySituationDTO>();
+
+    // SCENE-SITUATION ARCHITECTURE (Sir Brante Integration)
+
+    /// <summary>
+    /// State definitions - metadata about temporary player conditions (Physical/Mental/Social)
+    /// Defines blocked actions, enabled actions, clear conditions, and duration
+    /// </summary>
+    public List<StateDTO> States { get; set; } = new List<StateDTO>();
+
+    /// <summary>
+    /// Achievement definitions - milestone templates with grant conditions
+    /// Tracks player accomplishments across categories (Combat/Social/Investigation/Economic/Political)
+    /// </summary>
+    public List<AchievementDTO> Achievements { get; set; } = new List<AchievementDTO>();
+
+    /// <summary>
+    /// Scene templates - immutable archetypes for procedural narrative spawning
+    /// Defines multi-situation branching narratives with placement filters (Sir Brante pattern)
+    /// </summary>
+    public List<SceneTemplateDTO> SceneTemplates { get; set; } = new List<SceneTemplateDTO>();
 }

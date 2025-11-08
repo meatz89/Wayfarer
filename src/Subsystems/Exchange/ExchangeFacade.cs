@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 /// <summary>
 /// Public facade for all exchange-related operations.
 /// Handles resource trades, exchange validation, and NPC inventory management.
@@ -75,7 +70,7 @@ public class ExchangeFacade
 
         // Get exchanges from GameWorld directly
         // Query GameWorld.NPCExchangeCards first, then check NPC.ExchangeDeck
-        NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FindById(npcId);
+        NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FirstOrDefault(x => x.NpcId == npcId);
         List<ExchangeCard> npcExchanges = entry.ExchangeCards;
 
         // Also check NPC.ExchangeDeck
@@ -89,12 +84,12 @@ public class ExchangeFacade
 
         // Get player's current Venue for domain validation
         Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocation == null)
+        if (_gameWorld.GetPlayerCurrentLocation() == null)
         {
             throw new InvalidOperationException("Player has no current location");
         }
         Location currentSpot = _gameWorld.Locations
-            .FirstOrDefault(s => s.Id == player.CurrentLocation.Id);
+            .FirstOrDefault(s => s.Id == _gameWorld.GetPlayerCurrentLocation().Id);
 
         // Convert SpotProperties to domain strings for validation
         List<string> spotDomains = currentSpot.LocationProperties
@@ -126,7 +121,7 @@ public class ExchangeFacade
                     Reward = FormatReward(exchange.GetRewardAsList()),
                     CanAfford = validation.CanAfford,
                     ExchangeCard = exchange,
-                    ValidationResult = new global::ExchangeValidationResult
+                    ValidationResult = new ExchangeValidationResult
                     {
                         IsValid = validation.IsValid,
                         IsVisible = validation.IsVisible,
@@ -158,7 +153,7 @@ public class ExchangeFacade
         }
 
         // Get exchange data from GameWorld// Query GameWorld for the exchange
-        NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FindById(npcId);
+        NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FirstOrDefault(x => x.NpcId == npcId);
         ExchangeCard exchange = entry.ExchangeCards.FirstOrDefault(e => e.Id == exchangeId);
 
         // Also check NPC.ExchangeDeck if not found
@@ -216,6 +211,7 @@ public class ExchangeFacade
         {
             ExchangeId = exchangeId,
             ExchangeName = exchange.Name,
+            NpcId = npcId,  // ✅ Strongly-typed property (no ID parsing)
             Timestamp = DateTime.Now,
             Day = _gameWorld.CurrentDay,
             TimeBlock = _gameWorld.CurrentTimeBlock,
@@ -252,11 +248,12 @@ public class ExchangeFacade
 
     /// <summary>
     /// Get exchange history for an NPC
+    /// Uses strongly-typed NpcId property (no ID parsing)
     /// </summary>
     public List<ExchangeHistoryEntry> GetExchangeHistory(string npcId)
     {
         return _gameWorld.ExchangeHistory
-            .Where(h => h.ExchangeId.StartsWith(npcId) || h.ExchangeName.Contains(npcId))
+            .Where(h => h.NpcId == npcId)
             .ToList();
     }
 
@@ -537,6 +534,7 @@ public class ExchangeHistoryEntry
 {
     public string ExchangeId { get; set; }
     public string ExchangeName { get; set; }
+    public string NpcId { get; set; }  // ✅ Strongly-typed property for NPC reference (no ID parsing)
     public DateTime Timestamp { get; set; }
     public int Day { get; set; }
     public TimeBlocks TimeBlock { get; set; }

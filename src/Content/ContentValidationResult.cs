@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
-
-public class ContentValidationResult
+﻿public class ContentValidationResult
 {
-    public List<MissingLocationSpotReference> MissingLocationSpots { get; } = new List<MissingLocationSpotReference>();
+    public List<MissingLocationReference> MissingLocations { get; } = new List<MissingLocationReference>();
     public List<MissingConnectedLocationReference> MissingConnectedLocations { get; } = new List<MissingConnectedLocationReference>();
 
-    public void AddMissingLocationSpot(string locationSpotId, Venue referencingLocation)
+    public void AddMissingLocation(string locationId, Venue referencingLocation)
     {
-        MissingLocationSpots.Add(new MissingLocationSpotReference(locationSpotId, referencingLocation));
+        MissingLocations.Add(new MissingLocationReference(locationId, referencingLocation));
     }
 
     public void AddMissingConnectedLocation(string venueId, Venue referencingLocation)
@@ -15,18 +13,18 @@ public class ContentValidationResult
         MissingConnectedLocations.Add(new MissingConnectedLocationReference(venueId, referencingLocation));
     }
 
-    public bool HasMissingReferences => MissingLocationSpots.Count > 0 ||
+    public bool HasMissingReferences => MissingLocations.Count > 0 ||
                 MissingConnectedLocations.Count > 0;
 }
 
-public class MissingLocationSpotReference
+public class MissingLocationReference
 {
-    public string LocationSpotId { get; }
+    public string LocationId { get; }
     public Venue ReferencingLocation { get; }
 
-    public MissingLocationSpotReference(string locationSpotId, Venue referencingLocation)
+    public MissingLocationReference(string locationId, Venue referencingLocation)
     {
-        LocationSpotId = locationSpotId;
+        LocationId = locationId;
         ReferencingLocation = referencingLocation;
     }
 }

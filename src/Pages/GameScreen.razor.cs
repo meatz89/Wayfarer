@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Main game screen component that manages the unified UI with fixed header/footer and dynamic content area.
@@ -23,6 +24,8 @@ using Microsoft.AspNetCore.Components;
 public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 {
     [Inject] protected GameFacade GameFacade { get; set; }
+    [Inject] protected GameWorld GameWorld { get; set; }
+    [Inject] protected SceneFacade SceneFacade { get; set; }
     [Inject] protected LoadingStateService LoadingStateService { get; set; }
     [Inject] protected ObligationActivity ObligationActivity { get; set; }
 
@@ -41,8 +44,13 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     // Resources Display - Made public for child components to access for Perfect Information principle
     public int Coins { get; set; }
+    public int MaxCoins { get; set; }
     public int Health { get; set; }
+    public int MaxHealth { get; set; }
     public int Hunger { get; set; }
+    public int MaxHunger { get; set; }
+    public int Focus { get; set; }
+    public int MaxFocus { get; set; }
 
     // Time Display - Made public for child components to access for Perfect Information principle
     public string CurrentTime { get; set; }
@@ -54,10 +62,14 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     // Navigation State
     protected ExchangeContext CurrentExchangeContext { get; set; }
-    protected TravelObstacleContext CurrentObstacleContext { get; set; }
+    protected RouteObstacleContext CurrentRouteObstacleContext { get; set; }
+    protected SceneContext CurrentSceneContext { get; set; }
     protected SocialChallengeContext CurrentSocialContext { get; set; }
     protected MentalChallengeContext CurrentMentalContext { get; set; }
     protected PhysicalChallengeContext CurrentPhysicalContext { get; set; }
+    protected ConversationTreeContext CurrentConversationTreeContext { get; set; }
+    protected ObservationContext CurrentObservationContext { get; set; }
+    protected EmergencyContext CurrentEmergencyContext { get; set; }
     protected int PendingLetterCount { get; set; }
     public string CurrentDeckViewerNpcId { get; set; } // For dev mode deck viewer
 
@@ -66,6 +78,30 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
         await RefreshLocationDisplay();
+
+        // Check for active emergency - interrupts normal gameplay
+        EmergencySituation activeEmergency = GameFacade.GetActiveEmergency();
+        if (activeEmergency != null)
+        {
+            await StartEmergency(activeEmergency.Id);
+            return; // Emergency takes priority, skip normal initialization
+        }
+
+        // Check for resumable modal scenes at current context (multi-situation scene resumption)
+        // Uses GetResumableScenesAtContext which checks CurrentSituation.RequiredLocationId
+        // This enables scenes to span multiple locations as situations progress
+        Location currentLocation = GameFacade.GetCurrentLocation();
+        if (currentLocation != null)
+        {
+            List<Scene> resumableScenes = SceneFacade.GetResumableScenesAtContext(currentLocation.Id, null);
+            if (resumableScenes.Count > 0)
+            {
+                Scene modalScene = resumableScenes.First();
+                await StartScene(modalScene.Id);
+                return; // Modal scene takes priority over normal location display
+            }
+        }
+
         await base.OnInitializedAsync();
     }
 
@@ -84,7 +120,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
         Coins = player.Coins;
         Health = player.Health;
-        Hunger = player.Hunger;
+        Focus = player.Focus;
+        MaxFocus = player.MaxFocus;
     }
 
     protected async Task RefreshTimeDisplay()
@@ -99,8 +136,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected async Task RefreshLocationDisplay()
     {
-        Venue venue = GameFacade.GetCurrentLocation();
-        Location location = GameFacade.GetCurrentLocationSpot();
+        Venue venue = GameFacade.GetCurrentLocation().Venue;
+        Location location = GameFacade.GetCurrentLocation();
 
         if (venue != null)
         {
@@ -121,7 +158,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     private string BuildLocationPath(string locationName)
     {
         // Get the current venue directly from GameFacade by ID
-        Venue venue = GameFacade.GetCurrentLocation();
+        Venue venue = GameFacade.GetCurrentLocation().Venue;
         if (venue == null) return locationName;
 
         // Get the district from the venue's district ID
@@ -255,19 +292,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshTimeDisplay();
     }
 
-    public async Task HandleNavigation(string target)
-    {
-        switch (target.ToLower())
-        {
-            case "location":
-                await NavigateToScreen(ScreenMode.Location);
-                break;
-            case "travel":
-                await NavigateToScreen(ScreenMode.Travel);
-                break;
-        }
-    }
-
     public async Task StartExchange(string npcId)
     {
         CurrentExchangeContext = await GameFacade.CreateExchangeContext(npcId);
@@ -302,9 +326,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await NavigateToScreen(ScreenMode.Location);
     }
 
-    public async Task StartConversationSession(string npcId, string goalId)
+    public async Task StartConversationSession(string npcId, string situationId)
     {
-        CurrentSocialContext = await GameFacade.CreateConversationContext(npcId, goalId);
+        CurrentSocialContext = await GameFacade.CreateConversationContext(npcId, situationId);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -324,6 +348,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected async Task HandleConversationEnd()
     {
+        // STRATEGIC LAYER: Process challenge outcome and apply rewards
+        GameFacade.ProcessSocialChallengeOutcome();
+
         CurrentSocialContext = null;
 
         // Always refresh UI after conversation ends
@@ -340,9 +367,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartMentalSession(string deckId, string locationSpotId, string goalId, string obligationId)
+    public async Task StartMentalSession(string deckId, string locationId, string situationId, string obligationId)
     {
-        MentalSession session = GameFacade.StartMentalSession(deckId, locationSpotId, goalId, obligationId);
+        MentalSession session = GameFacade.StartMentalSession(deckId, locationId, situationId, obligationId);
 
         // Create context parallel to Social pattern
         CurrentMentalContext = new MentalChallengeContext
@@ -351,7 +378,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             ErrorMessage = session == null ? "Failed to start Mental session" : string.Empty,
             DeckId = deckId,
             Session = session,
-            Venue = GameFacade.GetCurrentLocation(),
+            Venue = GameFacade.GetCurrentLocation().Venue,
             LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"
         };
 
@@ -371,6 +398,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task HandleMentalEnd()
     {
+        // STRATEGIC LAYER: Process challenge outcome and apply rewards
+        GameFacade.ProcessMentalChallengeOutcome();
+
         CurrentMentalContext = null;
 
         // Always refresh UI after mental session ends
@@ -386,9 +416,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartPhysicalSession(string deckId, string locationSpotId, string goalId, string obligationId)
+    public async Task StartPhysicalSession(string deckId, string locationId, string situationId, string obligationId)
     {
-        PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationSpotId, goalId, obligationId);
+        PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationId, situationId, obligationId);
 
         // Create context parallel to Social pattern
         CurrentPhysicalContext = new PhysicalChallengeContext
@@ -397,7 +427,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             ErrorMessage = session == null ? "Failed to start Physical session" : string.Empty,
             DeckId = deckId,
             Session = session,
-            Venue = GameFacade.GetCurrentLocation(),
+            Venue = GameFacade.GetCurrentLocation().Venue,
             LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"
         };
 
@@ -415,8 +445,59 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         { }
     }
 
+    public async Task StartConversationTree(string treeId)
+    {
+        CurrentConversationTreeContext = GameFacade.CreateConversationTreeContext(treeId);
+
+        // Always refresh UI after GameFacade action
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+
+        if (CurrentConversationTreeContext != null && CurrentConversationTreeContext.IsValid)
+        {
+            CurrentScreen = ScreenMode.ConversationTree;
+            ContentVersion++;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public async Task StartObservationScene(string sceneId)
+    {
+        CurrentObservationContext = GameFacade.CreateObservationContext(sceneId);
+
+        // Always refresh UI after GameFacade action
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+
+        if (CurrentObservationContext != null && CurrentObservationContext.IsValid)
+        {
+            CurrentScreen = ScreenMode.Observation;
+            ContentVersion++;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    public async Task StartEmergency(string emergencyId)
+    {
+        CurrentEmergencyContext = GameFacade.CreateEmergencyContext(emergencyId);
+
+        // Always refresh UI after GameFacade action
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+
+        if (CurrentEmergencyContext != null && CurrentEmergencyContext.IsValid)
+        {
+            CurrentScreen = ScreenMode.Emergency;
+            ContentVersion++;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
     public async Task HandlePhysicalEnd()
     {
+        // STRATEGIC LAYER: Process challenge outcome and apply rewards
+        GameFacade.ProcessPhysicalChallengeOutcome();
+
         CurrentPhysicalContext = null;
 
         // Always refresh UI after physical session ends
@@ -432,56 +513,159 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    protected async Task HandleTravelRoute(string routeId)
+    public async Task HandleConversationTreeEnd()
     {
-        RouteOption route = GameFacade.GetRouteById(routeId);
+        CurrentConversationTreeContext = null;
 
-        TravelIntent travelIntent = new TravelIntent(routeId);
-        await GameFacade.ProcessIntent(travelIntent);
-
-        // Refresh UI after action
+        // Always refresh UI after conversation tree ends
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
         await RefreshLocationDisplay();
 
-        // Force UI update to show the new time
+        CurrentScreen = ScreenMode.Location;
+        ContentVersion++;
         await InvokeAsync(StateHasChanged);
-
-        await NavigateToScreen(ScreenMode.Location);
     }
 
-    protected async Task HandleObstacleEnd(bool success)
-    {// If obstacle was successfully overcome, complete the pending travel
-        if (success && CurrentObstacleContext?.Route != null)
+    public async Task HandleObservationEnd()
+    {
+        CurrentObservationContext = null;
+
+        // Always refresh UI after observation ends
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+        await RefreshLocationDisplay();
+
+        CurrentScreen = ScreenMode.Location;
+        ContentVersion++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task HandleEmergencyEnd()
+    {
+        CurrentEmergencyContext = null;
+
+        // Clear the active emergency in GameWorld
+        GameFacade.ClearActiveEmergency();
+
+        // Always refresh UI after emergency ends
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+        await RefreshLocationDisplay();
+
+        CurrentScreen = ScreenMode.Location;
+        ContentVersion++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task StartScene(string sceneId)
+    {
+        Scene scene = GameWorld.Scenes.FirstOrDefault(s => s.Id == sceneId);
+        if (scene == null)
+            return;
+
+        // Get current situation from scene
+        Situation currentSituation = scene.CurrentSituation;
+
+        if (currentSituation == null)
+            return;
+
+        // Create modal scene context
+        Location currentLocation = GameFacade.GetCurrentLocation();
+        CurrentSceneContext = new SceneContext
         {
-            string routeId = CurrentObstacleContext.Route.Id;// Clear obstacle context before travel
-            CurrentObstacleContext = null;
+            IsValid = true,
+            Scene = scene,
+            CurrentSituation = currentSituation,
+            LocationId = currentLocation?.Id,
+            LocationName = currentLocation?.Name
+        };
 
-            // Execute travel via intent system
-            TravelIntent travelIntent = new TravelIntent(routeId);
-            await GameFacade.ProcessIntent(travelIntent);
+        // Always refresh UI before modal scene
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
 
-            await RefreshResourceDisplay();
-            await RefreshTimeDisplay();
-            await RefreshLocationDisplay();
+        CurrentScreen = ScreenMode.Scene;
+        ContentVersion++;
+        await InvokeAsync(StateHasChanged);
+    }
 
-            await NavigateToScreen(ScreenMode.Location);
-        }
-        else
+    public async Task StartNPCEngagement(string npcId, Scene scene)
+    {
+        // Direct scene object passed from UI (HIGHLANDER Pattern B - no lookup needed)
+        // Defensive validation: Scene must be active and belong to this NPC
+        if (scene.State != SceneState.Active)
         {
-            // Failed obstacle or no route - just return to locationCurrentObstacleContext = null;
-
-            await RefreshResourceDisplay();
-            await RefreshTimeDisplay();
-            await RefreshLocationDisplay();
-
-            await NavigateToScreen(ScreenMode.Location);
+            Console.WriteLine($"[GameScreen] Scene {scene.Id} is not active (state: {scene.State})");
+            return;
         }
+
+        if (scene.PlacementType != PlacementType.NPC || scene.PlacementId != npcId)
+        {
+            Console.WriteLine($"[GameScreen] Scene {scene.Id} does not belong to NPC {npcId}");
+            return;
+        }
+
+        // Get current situation from scene
+        Situation currentSituation = scene.CurrentSituation;
+
+        if (currentSituation == null)
+        {
+            Console.WriteLine($"[GameScreen] No current situation found for scene {scene.Id}");
+            return;
+        }
+
+        // Create modal scene context
+        Location currentLocation = GameFacade.GetCurrentLocation();
+        CurrentSceneContext = new SceneContext
+        {
+            IsValid = true,
+            Scene = scene,
+            CurrentSituation = currentSituation,
+            LocationId = currentLocation?.Id,
+            LocationName = currentLocation?.Name
+        };
+
+        // Always refresh UI before scene
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+
+        CurrentScreen = ScreenMode.Scene;
+        ContentVersion++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public async Task HandleSceneEnd()
+    {
+        CurrentSceneContext = null;
+
+        // Always refresh UI after modal scene ends
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+        await RefreshLocationDisplay();
+
+        CurrentScreen = ScreenMode.Location;
+        ContentVersion++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected async Task HandleSceneEnd(bool success)
+    {
+        // Clear scene context
+        CurrentSceneContext = null;
+
+        // Refresh displays
+        await RefreshResourceDisplay();
+        await RefreshTimeDisplay();
+        await RefreshLocationDisplay();
+
+        // Return to location
+        await NavigateToScreen(ScreenMode.Location);
     }
 
     protected string GetCurrentLocation()
     {
-        Venue venue = GameFacade.GetCurrentLocation();
+        Venue venue = GameFacade.GetCurrentLocation().Venue;
         return venue?.Name ?? "Unknown";
     }
 
@@ -588,6 +772,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         return "0/0";
     }
 
+    protected DeliveryJob GetActiveDeliveryJob()
+    {
+        return GameFacade.GetActiveDeliveryJob();
+    }
+
     // Discovery Journal
     protected bool _showJournal = false;
 
@@ -595,6 +784,19 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     {
         _showJournal = !_showJournal;
         StateHasChanged();
+    }
+
+    // Hex Map Navigation
+    protected async Task ToggleMap()
+    {
+        if (CurrentScreen == ScreenMode.HexMap)
+        {
+            await NavigateToScreen(ScreenMode.Location);
+        }
+        else
+        {
+            await NavigateToScreen(ScreenMode.HexMap);
+        }
     }
 
     // Obligation Modals
@@ -695,7 +897,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         string obligationId = _obligationDiscoveryResult.ObligationId;
         _obligationDiscoveryResult = null;
 
-        // Activate obligation and spawn Phase 1 obstacle
+        // Activate obligation and spawn Phase 1 scene
         ObligationActivity.CompleteIntroAction(obligationId);
 
         // Refresh UI after activation
@@ -735,7 +937,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         string obligationId = _obligationIntroResult.ObligationId;
         _obligationIntroResult = null;
 
-        // Activate obligation and spawn Phase 1 obstacle
+        // Activate obligation and spawn Phase 1 scene
         GameFacade.CompleteObligationIntro(obligationId);
 
         // Refresh UI after activation
@@ -746,16 +948,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
         await InvokeAsync(StateHasChanged);
     }
-}
-
-public enum ScreenMode
-{
-    Location,
-    Exchange,
-    Travel,
-    SocialChallenge,
-    MentalChallenge,
-    PhysicalChallenge
 }
 
 public class ScreenContext

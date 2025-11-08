@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Manages all meeting-related obligations including scheduling, completion, and deadline tracking.
 /// Handles NPC meeting requests, appointment management, and meeting outcome processing.
@@ -331,12 +327,12 @@ public class MeetingManager
     private bool IsPlayerAtNPCLocation(string npcId)
     {
         Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocation == null) return false;
+        if (_gameWorld.GetPlayerCurrentLocation() == null) return false;
 
         // Get current time block for NPC Venue checking
         TimeBlocks currentTime = GetCurrentTimeBlock();
         List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationAndTime(
-            player.CurrentLocation.Id,
+            _gameWorld.GetPlayerCurrentLocation().Id,
             currentTime);
 
         return npcsAtCurrentSpot.Any(npc => npc.ID == npcId);

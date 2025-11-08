@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Dialogue options for a card category
 /// </summary>

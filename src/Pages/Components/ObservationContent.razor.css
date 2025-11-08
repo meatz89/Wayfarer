@@ -1,0 +1,215 @@
+.observation-content {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.scene-header {
+    background: var(--surface-color);
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid var(--accent-color);
+}
+
+.scene-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.location-context {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 0.25rem;
+}
+
+.scene-description {
+    background: var(--surface-secondary);
+    padding: 1rem;
+    border-radius: 6px;
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+}
+
+.progress-display {
+    display: flex;
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--surface-color);
+    border-radius: 6px;
+    align-items: center;
+}
+
+.progress-label {
+    color: var(--text-secondary);
+    font-weight: bold;
+}
+
+.progress-value {
+    color: var(--text-primary);
+    font-size: 1.1rem;
+}
+
+.examination-section h3,
+.examined-section h3 {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.examination-point {
+    background: var(--surface-color);
+    padding: 1rem;
+    border-radius: 6px;
+    border: 2px solid transparent;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s;
+}
+
+.examination-point.available {
+    cursor: pointer;
+    border-color: var(--border-subtle, #555);
+}
+
+.examination-point.available:hover {
+    border-color: var(--accent-color, #4a9eff);
+    background: var(--surface-hover, #353545);
+    transform: translateX(4px);
+}
+
+.examination-point.blocked {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.examination-point.examined {
+    opacity: 0.7;
+    border-color: var(--border-subtle, #555);
+}
+
+.point-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.point-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--text-primary);
+}
+
+.point-description {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    line-height: 1.5;
+}
+
+.point-costs {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.85rem;
+}
+
+.cost-focus, .cost-time {
+    color: var(--cost-color, #ffaa44);
+}
+
+.blocked-reason {
+    font-size: 0.85rem;
+    color: var(--error-color, #ff4444);
+    margin-top: 0.5rem;
+}
+
+.examined-marker {
+    color: var(--success-color, #44ff88);
+    font-size: 0.9rem;
+}
+
+.no-points {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+.examined-section {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-subtle, #555);
+}
+
+.resource-display {
+    display: flex;
+    gap: 1.5rem;
+    padding: 1rem;
+    background: var(--surface-secondary);
+    border-radius: 6px;
+}
+
+.resource-item {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.resource-label {
+    color: var(--text-secondary);
+}
+
+.resource-value {
+    color: var(--text-primary);
+    font-weight: bold;
+}
+
+.action-section {
+    display: flex;
+    justify-content: center;
+    padding-top: 1rem;
+}
+
+.leave-button {
+    padding: 0.75rem 2rem;
+    background: var(--surface-secondary);
+    border: 2px solid var(--border-subtle, #555);
+    border-radius: 6px;
+    color: var(--text-primary);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.leave-button:hover {
+    background: var(--surface-hover, #353545);
+    border-color: var(--accent-color, #4a9eff);
+}
+
+.error-message {
+    text-align: center;
+    padding: 2rem;
+    color: var(--error-color, #ff4444);
+}
+
+.error-message button {
+    margin-top: 1rem;
+    padding: 0.75rem 2rem;
+    background: var(--surface-color);
+    border: 2px solid var(--border-subtle, #555);
+    border-radius: 6px;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}

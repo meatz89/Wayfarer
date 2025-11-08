@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Calculates resource formulas and interdependencies.
 /// Central Venue for all resource calculation logic.
@@ -11,7 +9,7 @@ public class ResourceCalculator
 
     /// <summary>
     /// Calculate focus carrying capacity based on health.
-    /// Injured players have reduced carrying capacity.
+    /// Injured The Single Player have reduced carrying capacity.
     /// </summary>
     public int CalculateFocusLimit(int health)
     {

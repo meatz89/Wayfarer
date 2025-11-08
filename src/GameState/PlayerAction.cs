@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Global player action available everywhere regardless of location context.
 /// Unlike LocationActions which are matched by location properties,
@@ -25,7 +23,12 @@ public class PlayerAction
     /// <summary>
     /// Resource costs required to perform this action
     /// </summary>
-    public Dictionary<string, int> Cost { get; set; } = new Dictionary<string, int>();
+    public ActionCosts Costs { get; set; } = new ActionCosts();
+
+    /// <summary>
+    /// Resources rewarded for performing this action
+    /// </summary>
+    public ActionRewards Rewards { get; set; } = new ActionRewards();
 
     /// <summary>
     /// Time required to complete this action in segments
@@ -41,4 +44,11 @@ public class PlayerAction
     /// Action type for execution dispatch - strongly typed enum validated by parser
     /// </summary>
     public PlayerActionType ActionType { get; set; }
+
+    /// <summary>
+    /// Location properties required for this action to be available
+    /// Action only appears if location has ALL listed properties
+    /// Empty list = available everywhere (default)
+    /// </summary>
+    public List<LocationPropertyType> RequiredLocationProperties { get; set; } = new List<LocationPropertyType>();
 }

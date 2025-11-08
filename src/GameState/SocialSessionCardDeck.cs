@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// HIGHLANDER PRINCIPLE: This is the ONE AND ONLY card deck system for conversations.
 /// ALL card collections live here. NO EXCEPTIONS.
@@ -17,7 +13,7 @@ using System.Linq;
 public class SocialSessionCardDeck
 {
     // CORRECT PILE SYSTEM: Deck → Mind → Spoken
-    private readonly Pile goalPile = new();      // Cards to draw from
+    private readonly Pile situationPile = new();      // Cards to draw from
     private readonly Pile deckPile = new();      // Cards to draw from
     private readonly Pile spokenPile = new();    // Spoken pile - conversation memory
     private readonly Pile mindPile = new();      // Mind pile - cards in hand
@@ -33,7 +29,7 @@ public class SocialSessionCardDeck
 
     // ENCAPSULATED: Read-only access to pile contents through Pile's IReadOnlyList property
     public IReadOnlyList<CardInstance> HandCards => mindPile.Cards;
-    public IReadOnlyList<CardInstance> GoalCards => requestPile.Cards;
+    public IReadOnlyList<CardInstance> SituationCards => requestPile.Cards;
     public IReadOnlyList<CardInstance> SpokenCards => spokenPile.Cards;
 
     // Read-only properties for deck state
@@ -87,9 +83,9 @@ public class SocialSessionCardDeck
     }
 
     /// <summary>
-    /// Add a request/goal card that requires rapport threshold
+    /// Add a request/situation card that requires rapport threshold
     /// </summary>
-    public void AddGoalCard(CardInstance card)
+    public void AddSituationCard(CardInstance card)
     {
         if (card != null)
             requestPile.Add(card);

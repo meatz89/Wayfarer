@@ -1,0 +1,38 @@
+{
+  "packageId": "tutorial_scenes",
+  "metadata": {
+    "name": "Tutorial Scene Templates",
+    "timestamp": "2025-10-30T00:00:00Z",
+    "description": "Entity-agnostic tutorial demonstrating procedural scene generation via SceneArchetypeCatalog",
+    "author": "Wayfarer Team",
+    "version": "3.0.0"
+  },
+  "content": {
+    "sceneTemplates": [
+      {
+        "id": "tutorial_secure_lodging",
+        "archetype": "Linear",
+        "sceneArchetypeId": "service_with_location_access",
+        "serviceType": "lodging",
+        "presentationMode": "Modal",
+        "tier": 0,
+        "isStarter": true,
+        "placementFilter": {
+          "placementType": "NPC",
+          "npcId": "elena"
+        }
+      },
+      {
+        "id": "tutorial_rough_morning",
+        "archetype": "Standalone",
+        "sceneArchetypeId": "consequence_reflection",
+        "presentationMode": "Modal",
+        "tier": 0,
+        "placementFilter": {
+          "placementType": "Location",
+          "locationId": "fountain_plaza"
+        }
+      }
+    ]
+  }
+}

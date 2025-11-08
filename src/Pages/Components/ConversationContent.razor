@@ -72,23 +72,23 @@
                          ShowMaxValue="false" />
         </div>
 
-        <!-- Goal Thresholds Display (matching mockup) -->
-        <div class="goals-section">
-            <div class="goals-container">
-                <div class="goal-card @(GetCurrentMomentum() >= 8 ? "achievable" : "")">
-                    <div class="goal-threshold">8</div>
-                    <div class="goal-name">Basic Delivery</div>
-                    <div class="goal-reward">1 Trust token</div>
+        <!-- Situation Thresholds Display (matching mockup) -->
+        <div class="situations-section">
+            <div class="situations-container">
+                <div class="situation-card @(GetCurrentMomentum() >= 8 ? "achievable" : "")">
+                    <div class="situation-threshold">8</div>
+                    <div class="situation-name">Basic Delivery</div>
+                    <div class="situation-reward">1 Trust token</div>
                 </div>
-                <div class="goal-card @(GetCurrentMomentum() >= 12 ? "achievable" : "") @(GetCurrentMomentum() >= 12 ? "active" : "")">
-                    <div class="goal-threshold">12</div>
-                    <div class="goal-name">Priority Delivery</div>
-                    <div class="goal-reward">2 Trust + Observation</div>
+                <div class="situation-card @(GetCurrentMomentum() >= 12 ? "achievable" : "") @(GetCurrentMomentum() >= 12 ? "active" : "")">
+                    <div class="situation-threshold">12</div>
+                    <div class="situation-name">Priority Delivery</div>
+                    <div class="situation-reward">2 Trust + Observation</div>
                 </div>
-                <div class="goal-card @(GetCurrentMomentum() >= 16 ? "achievable" : "")">
-                    <div class="goal-threshold">16</div>
-                    <div class="goal-name">Immediate Action</div>
-                    <div class="goal-reward">3 Trust + Permit</div>
+                <div class="situation-card @(GetCurrentMomentum() >= 16 ? "achievable" : "")">
+                    <div class="situation-threshold">16</div>
+                    <div class="situation-name">Immediate Action</div>
+                    <div class="situation-reward">3 Trust + Permit</div>
                 </div>
             </div>
         </div>
@@ -239,24 +239,24 @@
             </div>
         </div>
 
-        <!-- Available Goal Cards (Victory Conditions) -->
-        @if (GetAvailableGoalCards().Any())
+        <!-- Available Situation Cards (Victory Conditions) -->
+        @if (GetAvailableSituationCards().Any())
         {
-            <div class="available-goals-section">
+            <div class="available-situations-section">
                 <div class="pile-display">
                     <div class="pile-count">
-                        <span>Available Goals:</span>
-                        <span class="pile-number">@GetAvailableGoalCards().Count</span>
+                        <span>Available Situations:</span>
+                        <span class="pile-number">@GetAvailableSituationCards().Count</span>
                     </div>
                 </div>
 
-                <div class="goal-cards-grid">
-                    @foreach (var goalCard in GetAvailableGoalCards())
+                <div class="situation-cards-grid">
+                    @foreach (var situationCard in GetAvailableSituationCards())
                     {
-                        <GoalCard Card="@goalCard"
+                        <SituationCard Card="@situationCard"
                                   CurrentProgress="@Session.CurrentMomentum"
-                                  CalculatedDifficulty="@GetGoalDifficulty(goalCard)"
-                                  OnCardClick="@PlayGoalCard" />
+                                  CalculatedDifficulty="@GetSituationDifficulty(situationCard)"
+                                  OnCardClick="@PlaySituationCard" />
                     }
                 </div>
             </div>

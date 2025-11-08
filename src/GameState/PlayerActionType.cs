@@ -5,8 +5,9 @@
 ///
 /// ADD NEW ACTIONS:
 /// 1. Add enum value here
-/// 2. Add handler in GameFacade.ExecutePlayerAction()
-/// 3. Add JSON entry in playerActions array
+/// 2. Create intent class in PlayerIntent.cs
+/// 3. Add handler in GameFacade.ProcessIntent()
+/// 4. Add JSON entry in playerActions array
 /// </summary>
 public enum PlayerActionType
 {
@@ -26,5 +27,12 @@ public enum PlayerActionType
     /// Effect: -2 Health, no time advancement, no recovery
     /// Tutorial: Save coins but take damage and risk
     /// </summary>
-    SleepOutside
+    SleepOutside,
+
+    /// <summary>
+    /// Look around at current location
+    /// Effect: Navigate to LookingAround view showing NPCs, challenges, and opportunities
+    /// UI: Always available at any location
+    /// </summary>
+    LookAround
 }

@@ -18,24 +18,6 @@ else
         </div>
     </div>
 
-    <!-- Time Status Bar with Segment Dots -->
-    <div class="time-status-bar">
-        <div class="current-time-display">
-            <span class="time-label">Current:</span>
-            <span class="time-value">@CurrentTimeBlock</span>
-            <div class="segment-dots-display">
-                @foreach (var dotClass in GetSegmentDotClasses())
-                {
-                    <div class="@dotClass"></div>
-                }
-            </div>
-        </div>
-        <div class="resources-inline">
-            <span class="resource-inline">💰 @CurrentPlayer.Coins</span>
-            <span class="resource-inline">🍖 @CurrentPlayer.Hunger/@CurrentPlayer.MaxHunger</span>
-        </div>
-    </div>
-
     <!-- Route List -->
     <div class="route-list">
         @if (AvailableRoutes.Any())

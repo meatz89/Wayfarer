@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Catalog of Physical card effect calculations from categorical properties.
 /// Parser calls this at load time to calculate card base effects from card properties.

@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Stateless parser for converting conversation card DTOs to domain models.
 ///
@@ -15,7 +11,7 @@ public static class SocialCardParser
     /// <summary>
     /// Get request card for conversation type from provided card data
     /// </summary>
-    public static SocialCard GetGoalCard(string conversationTypeId, string npcId, string npcName,
+    public static SocialCard GetSituationCard(string conversationTypeId, string npcId, string npcName,
         Dictionary<string, SocialCardDTO> cardTemplates)
     {
         // Use conversation type ID directly to find request card template
@@ -338,7 +334,7 @@ public class CardSuccessEffectsDTO
     public int? DrawCards { get; set; }
     public decimal? MomentumMultiplier { get; set; }
 
-    // Custom game effects for request/goal cards
+    // Custom game effects for request/situation cards
     public string OfferLetter { get; set; }
     public string AddObligation { get; set; }
     public int? GainCoins { get; set; }

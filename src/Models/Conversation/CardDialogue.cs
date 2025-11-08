@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Represents dialogue text for a card, including player text and contextual variations.
 /// </summary>

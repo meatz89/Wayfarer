@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 public class NPC
 {
     // Identity
@@ -9,7 +5,6 @@ public class NPC
     public string Name { get; set; }
     public string Role { get; set; }
     public string Description { get; set; }
-    public string LocationId { get; set; }
 
     // Skeleton tracking
     public bool IsSkeleton { get; set; } = false;
@@ -33,11 +28,7 @@ public class NPC
     public int ConversationDifficulty { get; set; } = 1;
 
     // NPCs are always available - no schedule system
-    public List<ServiceTypes> ProvidedServices { get; set; } = new List<ServiceTypes>();
     public NPCRelationship PlayerRelationship { get; set; } = NPCRelationship.Neutral;
-
-    // Work Properties
-    public bool OffersWork => ProvidedServices.Contains(ServiceTypes.Work);
 
     // Confrontation Tracking
     public int LastConfrontationCount { get; set; } = 0;  // Track confrontations already shown
@@ -64,6 +55,15 @@ public class NPC
     // 0-10 scale: 0 cubes = full doubt, 10 cubes = complete understanding (no doubt)
     public int StoryCubes { get; set; } = 0;
 
+    // Scene-Situation Architecture addition: Bond Strength
+    /// <summary>
+    /// Bond Strength - relationship depth with this NPC (0-30 scale)
+    /// Used for CompoundRequirement unlock paths and achievement tracking
+    /// Different from RelationshipFlow (which tracks connection state/battery)
+    /// BondStrength = depth of relationship, Flow = current emotional state
+    /// </summary>
+    public int BondStrength { get; set; } = 0;
+
     // Calculated properties from single flow value
     public ConnectionState CurrentState => GetConnectionState();
 
@@ -71,28 +71,18 @@ public class NPC
     // ObservationDeck and BurdenDeck systems eliminated - replaced by transparent resource competition
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
 
-    // Active goal IDs for this NPC (Social challenges)
-    // References goals in GameWorld.Goals dictionary (single source of truth)
-    public List<string> ActiveGoalIds { get; set; } = new List<string>();
+    // Active situation IDs for this NPC (Social challenges)
+    // References situations in GameWorld.Situations dictionary (single source of truth)
+    public List<string> ActiveSituationIds { get; set; } = new List<string>();
 
-    // Obstacle IDs for this NPC (Social barriers only - NPCs can only have SocialDifficulty obstacles)
-    // References obstacles in GameWorld.Obstacles list
-    public List<string> ObstacleIds { get; set; } = new List<string>();
+    // NOTE: Old SceneIds property removed - NEW Scene-Situation architecture
+    // Scenes now spawn via Situation spawn rewards (SceneSpawnReward) instead of NPC ownership
+    // NPCs no longer directly own scenes - scenes are managed by Situation lifecycle
 
     /// <summary>
     /// Object reference to location (for runtime navigation)
     /// </summary>
     public Location Location { get; set; }
-
-    /// <summary>
-    /// Object references to active goals (for runtime navigation)
-    /// </summary>
-    public List<Goal> ActiveGoals { get; set; } = new List<Goal>();
-
-    /// <summary>
-    /// Object references to obstacles (for runtime navigation)
-    /// </summary>
-    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
 
     // Equipment IDs available for purchase from this vendor NPC (Core Loop design)
     // References equipment in GameWorld.Equipment list (single source of truth)
@@ -149,27 +139,19 @@ public class NPC
 
     public string ScheduleDescription => "Always available";
 
-    public string ProvidedServicesDescription => ProvidedServices.Any()
-        ? $"Services: {string.Join(", ", ProvidedServices.Select(s => s.ToString().Replace('_', ' ')))}"
-        : "No services available";
-
     public bool IsAvailable(TimeBlocks currentTime)
     {
         // NPCs are always available by default
         return true;
     }
 
-    public bool IsAvailableAtTime(string locationSpotId, TimeBlocks currentTime)
+    public bool IsAvailableAtTime(string locationId, TimeBlocks currentTime)
     {
         // NPCs are always available by default
         // Check if NPC is at the specified Venue location
-        return LocationId == locationSpotId && IsAvailable(currentTime);
+        return Location?.Id == locationId && IsAvailable(currentTime);
     }
 
-    public bool CanProvideService(ServiceTypes requestedService)
-    {
-        return ProvidedServices.Contains(requestedService);
-    }
 
     // Method for adding known routes (used by HELP verb)
     public void AddKnownRoute(RouteOption route)

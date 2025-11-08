@@ -1,8 +1,4 @@
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -11,6 +7,7 @@ using System.Text.RegularExpressions;
 /// Loads markdown templates from Data/Prompts subdirectories and replaces {{placeholders}}
 /// with actual conversation context, NPC data, and card analysis results.
 /// Supports conditional blocks like {{#if condition}}...{{/if}} and caching for performance.
+/// REFACTORED: Uses strongly-typed TemplatePlaceholders instead of Dictionary<string, object>.
 /// </summary>
 public class PromptBuilder
 {
@@ -20,96 +17,49 @@ public class PromptBuilder
     private readonly Regex conditionalRegex = new Regex(@"\{\{#if\s+([^}]+)\}\}(.*?)\{\{/if\}\}", RegexOptions.Compiled | RegexOptions.Singleline);
     private readonly Regex eachLoopRegex = new Regex(@"\{\{#each\s+([^}]+)\}\}(.*?)\{\{/each\}\}", RegexOptions.Compiled | RegexOptions.Singleline);
 
-    /// <summary>
-    /// Initializes the prompt builder with content directory path.
-    /// </summary>
-    /// <param name="contentDirectory">Content directory for loading prompt templates</param>
     public PromptBuilder(IContentDirectory contentDirectory)
     {
         this.contentDirectory = contentDirectory;
     }
 
-    /// <summary>
-    /// Builds an NPC introduction prompt using template-based generation.
-    /// </summary>
-    /// <param name="state">Current conversation mechanical state</param>
-    /// <param name="npc">NPC data for context</param>
-    /// <param name="cards">Active cards for backwards construction</param>
-    /// <param name="analysis">Card analysis results</param>
-    /// <param name="conversationType">Type of conversation being started</param>
-    /// <returns>Complete prompt ready for AI generation</returns>
     public string BuildIntroductionPrompt(SocialChallengeState state, NPCData npc, CardCollection cards, CardAnalysis analysis, string conversationType = "standard")
     {
         string template = LoadTemplateFromPath("npc/introduction.md");
-        Dictionary<string, object> placeholders = ExtractPlaceholders(state, npc, cards, analysis);
-        placeholders["conversation_type"] = conversationType;
+        TemplatePlaceholders placeholders = BuildPlaceholders(state, npc, cards, analysis);
+        placeholders.ConversationType = conversationType;
 
         return ProcessTemplate(template, placeholders);
     }
 
-    /// <summary>
-    /// Builds an NPC dialogue prompt for LISTEN actions using template-based generation.
-    /// </summary>
-    /// <param name="state">Current conversation mechanical state</param>
-    /// <param name="npc">NPC data for context</param>
-    /// <param name="cards">Active cards for backwards construction</param>
-    /// <param name="analysis">Card analysis results</param>
-    /// <param name="conversationHistory">Previous turns in the conversation</param>
-    /// <returns>Complete prompt ready for AI generation</returns>
     public string BuildDialoguePrompt(SocialChallengeState state, NPCData npc, CardCollection cards, CardAnalysis analysis, List<string> conversationHistory)
     {
         string template = LoadTemplateFromPath("npc/dialogue.md");
-        Dictionary<string, object> placeholders = ExtractPlaceholders(state, npc, cards, analysis);
+        TemplatePlaceholders placeholders = BuildPlaceholders(state, npc, cards, analysis);
 
-        // Add conversation history
-        placeholders["conversation_history"] = conversationHistory.Any()
+        placeholders.ConversationHistory = conversationHistory.Any()
             ? string.Join("\n", conversationHistory)
             : "No previous dialogue.";
 
         return ProcessTemplate(template, placeholders);
     }
 
-    /// <summary>
-    /// Builds a batch card narrative generation prompt using template-based generation.
-    /// </summary>
-    /// <param name="state">Current conversation mechanical state</param>
-    /// <param name="npc">NPC data for context</param>
-    /// <param name="cards">Active cards for narrative generation</param>
-    /// <param name="npcDialogue">The NPC's current dialogue that cards need to respond to</param>
-    /// <returns>Complete prompt ready for AI generation</returns>
     public string BuildBatchCardGenerationPrompt(SocialChallengeState state, NPCData npc, CardCollection cards, string npcDialogue)
     {
         if (string.IsNullOrEmpty(npcDialogue))
             throw new ArgumentException("NPC dialogue cannot be null or empty", nameof(npcDialogue));
 
         string template = LoadTemplateFromPath("cards/batch_generation.md");
-        Dictionary<string, object> placeholders = ExtractPlaceholders(state, npc, cards, null);
-        placeholders["npc_dialogue"] = npcDialogue;
+        TemplatePlaceholders placeholders = BuildPlaceholders(state, npc, cards, null);
+        placeholders.NPCDialogue = npcDialogue;
 
         return ProcessTemplate(template, placeholders);
     }
 
-    /// <summary>
-    /// Builds a conversation prompt from templates and current context (legacy method).
-    /// Loads the base conversation template and replaces placeholders with
-    /// actual game state, NPC data, and card analysis results.
-    /// </summary>
-    /// <param name="state">Current conversation mechanical state</param>
-    /// <param name="npc">NPC data for context</param>
-    /// <param name="cards">Active cards for backwards construction</param>
-    /// <param name="analysis">Card analysis results</param>
-    /// <returns>Complete prompt ready for AI generation</returns>
     public string BuildConversationPrompt(SocialChallengeState state, NPCData npc, CardCollection cards, CardAnalysis analysis)
     {
-        // Legacy method - use dialogue prompt as fallback
         return BuildDialoguePrompt(state, npc, cards, analysis, new List<string>());
     }
 
-    /// <summary>
-    /// Loads a template from the Prompts directory with caching.
-    /// </summary>
-    /// <param name="templatePath">Relative path from Prompts directory (e.g., "npc/introduction.md")</param>
-    /// <returns>Template content or fallback if not found</returns>
     private string LoadTemplateFromPath(string templatePath)
     {
         return templateCache.GetOrAdd(templatePath, path =>
@@ -120,22 +70,14 @@ public class PromptBuilder
                 return File.ReadAllText(fullPath);
             }
 
-            // Fallback template for missing files
             return GetFallbackTemplate(path);
         });
     }
 
-    /// <summary>
-    /// Processes a template by replacing placeholders and handling conditionals and loops.
-    /// </summary>
-    /// <param name="template">Template content with {{placeholders}}</param>
-    /// <param name="placeholders">Dictionary of placeholder values</param>
-    /// <returns>Processed template with placeholders replaced</returns>
-    private string ProcessTemplate(string template, Dictionary<string, object> placeholders)
+    private string ProcessTemplate(string template, TemplatePlaceholders placeholders)
     {
         string processed = template;
 
-        // First handle base_system inclusion
         if (processed.Contains("{{base_system}}"))
         {
             string baseSystem = LoadTemplateFromPath("system/base_system.md");
@@ -143,151 +85,86 @@ public class PromptBuilder
             processed = processed.Replace("{{base_system}}", baseSystemProcessed);
         }
 
-        // Handle each loops first (they can contain conditionals)
         processed = ProcessEachLoops(processed, placeholders);
-
-        // Handle conditional blocks
         processed = ProcessConditionals(processed, placeholders);
-
-        // Handle regular placeholders
         processed = ProcessPlaceholders(processed, placeholders);
 
         return processed;
     }
 
-    /// <summary>
-    /// Processes each loops in templates like {{#each collection}}...{{/each}}.
-    /// </summary>
-    /// <param name="template">Template content</param>
-    /// <param name="placeholders">Placeholder values including collections</param>
-    /// <returns>Template with each loops processed</returns>
-    private string ProcessEachLoops(string template, Dictionary<string, object> placeholders)
+    private string ProcessEachLoops(string template, TemplatePlaceholders placeholders)
     {
         return eachLoopRegex.Replace(template, match =>
         {
             string collectionName = match.Groups[1].Value.Trim();
             string loopContent = match.Groups[2].Value;
 
-            if (!placeholders.TryGetValue(collectionName, out object collectionObj))
-            {
-                return string.Empty; // Collection not found
-            }
+            if (collectionName != "cards")
+                return string.Empty;
 
-            // Handle different collection types
-            if (collectionObj is System.Collections.IEnumerable collection && collectionObj is not string)
-            {
-                StringBuilder result = new StringBuilder();
-                object[] items = collection.Cast<object>().ToArray();
+            if (placeholders.Cards == null || !placeholders.Cards.Any())
+                return string.Empty;
 
-                for (int i = 0; i < items.Length; i++)
+            StringBuilder result = new StringBuilder();
+            List<CardInfo> cards = placeholders.Cards;
+
+            for (int i = 0; i < cards.Count; i++)
+            {
+                CardInfo card = cards[i];
+                CardPlaceholders cardPlaceholders = new CardPlaceholders
                 {
-                    object item = items[i];
-                    Dictionary<string, object> itemPlaceholders = CreateItemPlaceholders(item, i, items.Length);
+                    Index = i,
+                    IsFirst = i == 0,
+                    IsLast = i == cards.Count - 1,
+                    Count = cards.Count,
+                    Id = card.Id,
+                    InitiativeCost = card.InitiativeCost.ToString(),
+                    Effect = card.Effect.ToString(),
+                    Persistence = card.Persistence.ToString(),
+                    NarrativeCategory = card.NarrativeCategory
+                };
 
-                    // Process the loop content for this item
-                    string processedContent = ProcessItemTemplate(loopContent, itemPlaceholders);
-                    result.Append(processedContent);
-                }
-
-                return result.ToString();
+                string processedContent = ProcessCardTemplate(loopContent, cardPlaceholders);
+                result.Append(processedContent);
             }
 
-            return string.Empty; // Not a valid collection
+            return result.ToString();
         });
     }
 
-    /// <summary>
-    /// Creates placeholder dictionary for a single item in a loop.
-    /// </summary>
-    /// <param name="item">The current item in the loop</param>
-    /// <param name="index">The current index in the loop</param>
-    /// <param name="totalCount">Total number of items in the collection</param>
-    /// <returns>Dictionary of placeholders for this item</returns>
-    private Dictionary<string, object> CreateItemPlaceholders(object item, int index, int totalCount)
-    {
-        Dictionary<string, object> itemPlaceholders = new Dictionary<string, object>
-        {
-            ["@index"] = index,
-            ["@first"] = index == 0,
-            ["@last"] = index == totalCount - 1,
-            ["@count"] = totalCount
-        };
-
-        // Add item properties using reflection
-        Type itemType = item.GetType();
-        PropertyInfo[] properties = itemType.GetProperties();
-
-        foreach (PropertyInfo prop in properties)
-        {
-            try
-            {
-                object? value = prop.GetValue(item);
-                string key = char.ToLowerInvariant(prop.Name[0]) + prop.Name.Substring(1); // camelCase
-                itemPlaceholders[key] = value;
-            }
-            catch
-            {
-                // Skip properties that can't be read
-            }
-        }
-
-        return itemPlaceholders;
-    }
-
-    /// <summary>
-    /// Processes a template for a single item in a loop.
-    /// </summary>
-    /// <param name="template">The loop content template</param>
-    /// <param name="itemPlaceholders">Placeholders for this specific item</param>
-    /// <returns>Processed template for this item</returns>
-    private string ProcessItemTemplate(string template, Dictionary<string, object> itemPlaceholders)
+    private string ProcessCardTemplate(string template, CardPlaceholders cardPlaceholders)
     {
         string processed = template;
 
-        // Handle {{#unless @last}} for commas
         Regex unlessLastRegex = new Regex(@"\{\{#unless\s+@last\}\}(.*?)\{\{/unless\}\}", RegexOptions.Compiled | RegexOptions.Singleline);
         processed = unlessLastRegex.Replace(processed, match =>
         {
             string content = match.Groups[1].Value;
-            bool isLast = itemPlaceholders.TryGetValue("@last", out object lastValue) &&
-                        lastValue is bool lastBool && lastBool;
-            return isLast ? string.Empty : content;
+            return cardPlaceholders.IsLast ? string.Empty : content;
         });
 
-        // Replace placeholders in the processed content
-        Regex placeholderRegex = new Regex(@"\{\{([^}]+)\}\}", RegexOptions.Compiled);
-        processed = placeholderRegex.Replace(processed, match =>
+        Regex cardPlaceholderRegex = new Regex(@"\{\{([^}]+)\}\}", RegexOptions.Compiled);
+        processed = cardPlaceholderRegex.Replace(processed, match =>
         {
             string placeholder = match.Groups[1].Value.Trim();
+            string value = cardPlaceholders.GetValue(placeholder);
 
-            if (itemPlaceholders.TryGetValue(placeholder, out object value))
-            {
-                if (value == null)
-                    throw new InvalidOperationException($"Placeholder '{placeholder}' has null value");
-                return value.ToString();
-            }
+            if (value == null)
+                throw new InvalidOperationException($"Placeholder '{placeholder}' has null value");
 
-            // Return placeholder unchanged if not found (for debugging)
-            return match.Value;
+            return value;
         });
 
         return processed;
     }
 
-    /// <summary>
-    /// Processes conditional blocks in templates like {{#if condition}}...{{/if}}.
-    /// </summary>
-    /// <param name="template">Template content</param>
-    /// <param name="placeholders">Placeholder values for condition evaluation</param>
-    /// <returns>Template with conditionals processed</returns>
-    private string ProcessConditionals(string template, Dictionary<string, object> placeholders)
+    private string ProcessConditionals(string template, TemplatePlaceholders placeholders)
     {
         return conditionalRegex.Replace(template, match =>
         {
             string condition = match.Groups[1].Value.Trim();
             string content = match.Groups[2].Value;
 
-            // Evaluate condition
             if (EvaluateCondition(condition, placeholders))
             {
                 return content;
@@ -299,121 +176,80 @@ public class PromptBuilder
         });
     }
 
-    /// <summary>
-    /// Evaluates a condition for conditional blocks.
-    /// </summary>
-    /// <param name="condition">Condition to evaluate</param>
-    /// <param name="placeholders">Available placeholder values</param>
-    /// <returns>True if condition is met</returns>
-    private bool EvaluateCondition(string condition, Dictionary<string, object> placeholders)
+    private bool EvaluateCondition(string condition, TemplatePlaceholders placeholders)
     {
-        // Handle boolean conditions
-        if (placeholders.TryGetValue(condition, out object value))
-        {
-            if (value is bool boolValue)
-            {
-                return boolValue;
-            }
+        string value = placeholders.GetValue(condition);
 
-            if (value is string stringValue)
-            {
-                if (bool.TryParse(stringValue, out bool parsedBool))
-                {
-                    return parsedBool;
-                }
+        if (value == null)
+            return false;
 
-                // Non-empty string is true
-                return !string.IsNullOrEmpty(stringValue);
-            }
+        if (value == "true")
+            return true;
 
-            // Non-null object is true
-            return value != null;
-        }
+        if (value == "false")
+            return false;
 
-        return false;
+        return !string.IsNullOrEmpty(value);
     }
 
-    /// <summary>
-    /// Replaces {{placeholder}} patterns with actual values.
-    /// </summary>
-    /// <param name="template">Template content</param>
-    /// <param name="placeholders">Placeholder values</param>
-    /// <returns>Template with placeholders replaced</returns>
-    private string ProcessPlaceholders(string template, Dictionary<string, object> placeholders)
+    private string ProcessPlaceholders(string template, TemplatePlaceholders placeholders)
     {
         return placeholderRegex.Replace(template, match =>
         {
             string placeholder = match.Groups[1].Value.Trim();
+            string value = placeholders.GetValue(placeholder);
 
-            if (placeholders.TryGetValue(placeholder, out object value))
-            {
-                if (value == null)
-                    throw new InvalidOperationException($"Placeholder '{placeholder}' has null value");
-                return value.ToString();
-            }
+            if (value == null)
+                throw new InvalidOperationException($"Placeholder '{placeholder}' has null value");
 
-            // Return placeholder unchanged if not found (for debugging)
-            return match.Value;
+            return value;
         });
     }
 
-    /// <summary>
-    /// Extracts all placeholder values from game state objects.
-    /// </summary>
-    /// <param name="state">Conversation state</param>
-    /// <param name="npc">NPC data</param>
-    /// <param name="cards">Card collection</param>
-    /// <param name="analysis">Card analysis (can be null)</param>
-    /// <returns>Dictionary of placeholder names to values</returns>
-    private Dictionary<string, object> ExtractPlaceholders(SocialChallengeState state, NPCData npc, CardCollection cards, CardAnalysis analysis)
+    private TemplatePlaceholders BuildPlaceholders(SocialChallengeState state, NPCData npc, CardCollection cards, CardAnalysis analysis)
     {
-        Dictionary<string, object> placeholders = new Dictionary<string, object>
+        return new TemplatePlaceholders
         {
             // Mechanical values
-            ["flow"] = state.Flow.ToString(),
-            ["rapport"] = state.Momentum.ToString(),
-            ["connection_state"] = state.CurrentState.ToString(),
-            ["focus_available"] = state.Focus.ToString(),
-            ["patience"] = state.Doubt.ToString(),
-            ["turn_count"] = state.TotalTurns.ToString(),
-            ["topic_layer"] = state.CurrentTopicLayer.ToString(),
+            Flow = state.Flow.ToString(),
+            Rapport = state.Momentum.ToString(),
+            ConnectionState = state.CurrentState.ToString(),
+            FocusAvailable = state.Focus.ToString(),
+            Patience = state.Doubt.ToString(),
+            TurnCount = state.TotalTurns.ToString(),
+            TopicLayer = state.CurrentTopicLayer.ToString(),
 
             // NPC properties
-            ["npc_name"] = npc.Name,
-            ["npc_personality"] = npc.Personality.ToString(),
-            ["npc_crisis"] = npc.CurrentCrisis,
-            ["npc_activity"] = "Current activity", // Could be added to NPCData later
-            ["npc_emotional_state"] = "Determined by flow and rapport", // Derived value
-            ["current_topic"] = npc.CurrentTopic,
+            NPCName = npc.Name,
+            NPCPersonality = npc.Personality.ToString(),
+            NPCCrisis = npc.CurrentCrisis,
+            NPCActivity = "Current activity",
+            NPCEmotionalState = "Determined by flow and rapport",
+            CurrentTopic = npc.CurrentTopic,
 
             // Card properties
-            ["card_count"] = cards.Cards.Count.ToString(),
-            ["focus_pattern"] = analysis != null ? analysis.InitiativePattern.ToString() : "Unknown",
+            CardCount = cards.Cards.Count.ToString(),
+            FocusPattern = analysis != null ? analysis.InitiativePattern.ToString() : "Unknown",
 
             // Boolean flags
-            ["has_observation"] = "false", // Could be determined from card analysis
+            HasObservation = "false",
 
             // Template-specific placeholders
-            ["card_summary"] = BuildCardSummary(cards),
-            ["cards_detail"] = BuildCardsDetail(cards),
-            ["card_narrative_template"] = BuildCardNarrativeTemplate(cards),
+            CardSummary = BuildCardSummary(cards),
+            CardsDetail = BuildCardsDetail(cards),
+            CardNarrativeTemplate = BuildCardNarrativeTemplate(cards),
 
             // Additional context
-            ["previous_conversations"] = "0", // Could be tracked
-            ["time_of_day"] = "Unknown", // Could be added
-            ["location"] = "Unknown", // Could be added
-            ["conversation_type"] = "standard", // Default value, can be overridden
+            PreviousConversations = "0",
+            TimeOfDay = "Unknown",
+            Location = "Unknown",
+            ConversationType = "standard",
 
             // Collections for {{#each}} loops
-            ["cards"] = cards.Cards // Pass actual card objects for iteration
+            Cards = cards.Cards
         };
-
-        return placeholders;
     }
 
-    /// <summary>
-    /// Builds a summary of cards for templates.
-    /// </summary>
     private string BuildCardSummary(CardCollection cards)
     {
         StringBuilder summary = new StringBuilder();
@@ -427,9 +263,6 @@ public class PromptBuilder
         return summary.ToString().Trim();
     }
 
-    /// <summary>
-    /// Builds detailed card information for templates.
-    /// </summary>
     private string BuildCardsDetail(CardCollection cards)
     {
         StringBuilder detail = new StringBuilder();
@@ -447,9 +280,6 @@ public class PromptBuilder
         return detail.ToString().Trim();
     }
 
-    /// <summary>
-    /// Builds card narrative template for JSON structure.
-    /// </summary>
     private string BuildCardNarrativeTemplate(CardCollection cards)
     {
         StringBuilder template = new StringBuilder();
@@ -471,18 +301,138 @@ public class PromptBuilder
         return template.ToString();
     }
 
-    /// <summary>
-    /// Provides fallback templates for missing files.
-    /// </summary>
     private string GetFallbackTemplate(string templatePath)
     {
         return templatePath switch
         {
             "npc/introduction.md" => "Generate an NPC introduction for {{npc_name}} with {{npc_personality}} personality. Flow: {{flow}}, Rapport: {{rapport}}. Create dialogue that allows all {{card_count}} cards to respond meaningfully.",
-            "npc/dialogue.md" => "Generate NPC dialogue for {{npc_name}} ({{npc_personality}}). Current state: Flow {{flow}}, Rapport {{rapport}}, {{atmosphere}}. Create response that all cards can address.",
+            "npc/dialogue.md" => "Generate NPC dialogue for {{npc_name}} ({{npc_personality}}). Current state: Flow {{flow}}, Rapport {{rapport}}. Create response that all cards can address.",
             "cards/batch_generation.md" => "Generate narratives for all cards responding to: \"{{npc_dialogue}}\". Cards: {{cards_detail}}",
-            "system/base_system.md" => "You are generating dialogue for Wayfarer. Current context: {{npc_name}} ({{npc_personality}}), Flow: {{flow}}, Rapport: {{rapport}}, Atmosphere: {{atmosphere}}.",
+            "system/base_system.md" => "You are generating dialogue for Wayfarer. Current context: {{npc_name}} ({{npc_personality}}), Flow: {{flow}}, Rapport: {{rapport}}.",
             _ => $"Template missing: {templatePath}. Using fallback generation."
+        };
+    }
+}
+
+/// <summary>
+/// Strongly-typed placeholder container for template processing.
+/// Replaces Dictionary<string, object> with explicit properties and switch-based lookup.
+/// All properties return strings for template compatibility.
+/// </summary>
+public class TemplatePlaceholders
+{
+    // Mechanical values
+    public string Flow { get; set; }
+    public string Rapport { get; set; }
+    public string ConnectionState { get; set; }
+    public string FocusAvailable { get; set; }
+    public string Patience { get; set; }
+    public string TurnCount { get; set; }
+    public string TopicLayer { get; set; }
+
+    // NPC properties
+    public string NPCName { get; set; }
+    public string NPCPersonality { get; set; }
+    public string NPCCrisis { get; set; }
+    public string NPCActivity { get; set; }
+    public string NPCEmotionalState { get; set; }
+    public string CurrentTopic { get; set; }
+
+    // Card properties
+    public string CardCount { get; set; }
+    public string FocusPattern { get; set; }
+
+    // Boolean flags
+    public string HasObservation { get; set; }
+
+    // Template-specific content
+    public string CardSummary { get; set; }
+    public string CardsDetail { get; set; }
+    public string CardNarrativeTemplate { get; set; }
+
+    // Conversation-specific
+    public string ConversationType { get; set; }
+    public string ConversationHistory { get; set; }
+
+    // Additional context
+    public string PreviousConversations { get; set; }
+    public string TimeOfDay { get; set; }
+    public string Location { get; set; }
+    public string NPCDialogue { get; set; }
+
+    // Collections for loops (not strings)
+    public List<CardInfo> Cards { get; set; }
+
+    /// <summary>
+    /// Switch-based placeholder lookup (acceptable pattern like catalogues).
+    /// Returns placeholder value or null if not found.
+    /// </summary>
+    public string GetValue(string placeholderName)
+    {
+        return placeholderName switch
+        {
+            "flow" => Flow,
+            "rapport" => Rapport,
+            "connection_state" => ConnectionState,
+            "focus_available" => FocusAvailable,
+            "patience" => Patience,
+            "turn_count" => TurnCount,
+            "topic_layer" => TopicLayer,
+            "npc_name" => NPCName,
+            "npc_personality" => NPCPersonality,
+            "npc_crisis" => NPCCrisis,
+            "npc_activity" => NPCActivity,
+            "npc_emotional_state" => NPCEmotionalState,
+            "current_topic" => CurrentTopic,
+            "card_count" => CardCount,
+            "focus_pattern" => FocusPattern,
+            "has_observation" => HasObservation,
+            "card_summary" => CardSummary,
+            "cards_detail" => CardsDetail,
+            "card_narrative_template" => CardNarrativeTemplate,
+            "conversation_type" => ConversationType,
+            "conversation_history" => ConversationHistory,
+            "previous_conversations" => PreviousConversations,
+            "time_of_day" => TimeOfDay,
+            "location" => Location,
+            "npc_dialogue" => NPCDialogue,
+            _ => $"{{{{{placeholderName}}}}}" // Preserve unknown placeholders for debugging
+        };
+    }
+}
+
+/// <summary>
+/// Strongly-typed placeholders for card iteration in {{#each cards}} loops.
+/// </summary>
+public class CardPlaceholders
+{
+    public int Index { get; set; }
+    public bool IsFirst { get; set; }
+    public bool IsLast { get; set; }
+    public int Count { get; set; }
+    public string Id { get; set; }
+    public string InitiativeCost { get; set; }
+    public string Effect { get; set; }
+    public string Persistence { get; set; }
+    public string NarrativeCategory { get; set; }
+
+    /// <summary>
+    /// Switch-based placeholder lookup for card properties.
+    /// </summary>
+    public string GetValue(string placeholderName)
+    {
+        return placeholderName switch
+        {
+            "@index" => Index.ToString(),
+            "@first" => IsFirst.ToString().ToLower(),
+            "@last" => IsLast.ToString().ToLower(),
+            "@count" => Count.ToString(),
+            "id" => Id,
+            "initiativeCost" => InitiativeCost,
+            "effect" => Effect,
+            "persistence" => Persistence,
+            "narrativeCategory" => NarrativeCategory,
+            _ => $"{{{{{placeholderName}}}}}"
         };
     }
 }

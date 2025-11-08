@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Facade for localized mastery cube management
 /// Handles all four cube systems (0-10 scale each):

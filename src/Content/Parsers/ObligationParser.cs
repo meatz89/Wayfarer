@@ -1,11 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Parser for Obligation definitions - converts DTOs to domain models
-/// Creates Obligation entities with phase definitions for goal spawning
+/// Creates Obligation entities with phase definitions for situation spawning
 /// Validates challenge type IDs against GameWorld at parse time
 /// </summary>
 public class ObligationParser
@@ -53,7 +50,7 @@ public class ObligationParser
             Name = dto.Name,
             Description = dto.Description,
             OutcomeNarrative = dto.OutcomeNarrative,
-            // GoalRequirements system eliminated - phases progress through actual goal completion tracking
+            // SituationRequirements system eliminated - phases progress through actual situation completion tracking
             CompletionReward = ParseCompletionReward(dto.CompletionReward)
         };
     }
@@ -67,37 +64,46 @@ public class ObligationParser
             UnderstandingReward = dto.UnderstandingReward
         };
 
-        // Parse obstacle spawns - DTO has inline init, trust it
-        foreach (ObstacleSpawnInfoDTO spawnDto in dto.ObstaclesSpawned)
+        // Parse scene spawns using Scene-Situation template architecture
+        // Convert SceneSpawnInfoDTO → SceneSpawnReward
+        if (dto.ScenesSpawned != null)
         {
-            ObstacleSpawnTargetType targetType = ParseObstacleSpawnTargetType(spawnDto.TargetType);
-            Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(spawnDto.Obstacle, spawnDto.TargetEntityId, _gameWorld);
-
-            reward.ObstaclesSpawned.Add(new ObstacleSpawnInfo
+            foreach (SceneSpawnInfoDTO spawnDto in dto.ScenesSpawned)
             {
-                TargetType = targetType,
-                TargetEntityId = spawnDto.TargetEntityId,
-                Obstacle = obstacle
-            });
+                SceneSpawnReward sceneSpawn = new SceneSpawnReward
+                {
+                    SceneTemplateId = spawnDto.SceneTemplateId,
+                    PlacementRelation = ParsePlacementRelationFromTargetType(spawnDto.TargetType),
+                    SpecificPlacementId = spawnDto.TargetEntityId,
+                    DelayDays = 0 // Obligation rewards spawn immediately
+                };
+
+                reward.ScenesToSpawn.Add(sceneSpawn);
+            }
         }
 
         return reward;
     }
 
-    private ObstacleSpawnTargetType ParseObstacleSpawnTargetType(string typeString)
+    /// <summary>
+    /// Convert legacy TargetType (Location/Route/NPC) to PlacementRelation (Specific*)
+    /// Obligation phase rewards always use specific placement (not Same* relations)
+    /// </summary>
+    private PlacementRelation ParsePlacementRelationFromTargetType(string targetType)
     {
-        if (string.IsNullOrEmpty(typeString))
-            throw new InvalidDataException("ObstacleSpawnInfo missing required 'targetType' field");
+        if (string.IsNullOrEmpty(targetType))
+            throw new InvalidDataException("SceneSpawnInfo missing required 'targetType' field");
 
-        return typeString.ToLowerInvariant() switch
+        return targetType.ToLowerInvariant() switch
         {
-            "location" => ObstacleSpawnTargetType.Location,
-            "route" => ObstacleSpawnTargetType.Route,
-            "npc" => ObstacleSpawnTargetType.NPC,
+            "location" => PlacementRelation.SpecificLocation,
+            "route" => PlacementRelation.SpecificRoute,
+            "npc" => PlacementRelation.SpecificNPC,
             _ => throw new InvalidDataException(
-                $"Invalid ObstacleSpawnTargetType '{typeString}'. Valid values: Location, Route, NPC")
+                $"Invalid TargetType '{targetType}'. Valid values: Location, Route, NPC")
         };
     }
+
 
     private void ValidateDeckId(string deckId, TacticalSystemType systemType, string phaseId)
     {

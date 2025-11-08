@@ -86,7 +86,7 @@ public class NPCRepository
         {
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
-        List<NPC> locationNpcs = npcs.Where(n => n.LocationId == locationId).ToList();
+        List<NPC> locationNpcs = npcs.Where(n => n.Location?.Id == locationId).ToList();
         return FilterByVisibility(locationNpcs);
     }
 
@@ -112,16 +112,6 @@ public class NPCRepository
         return FilterByVisibility(professionNpcs);
     }
 
-    public List<NPC> GetNPCsProvidingService(ServiceTypes service)
-    {
-        List<NPC> npcs = _gameWorld.GetCharacters();
-        if (npcs == null)
-        {
-            throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
-        }
-        List<NPC> serviceNpcs = npcs.Where(n => n.ProvidedServices.Contains(service)).ToList();
-        return FilterByVisibility(serviceNpcs);
-    }
 
     public List<NPC> GetNPCsForLocationAndTimeDeprecated(string locationId, TimeBlocks currentTime)
     {
@@ -147,7 +137,13 @@ public class NPCRepository
         _debugLogger?.LogNPCActivity("GetNPCsForLocationAndTime", null,
             $"Looking for NPCs at location '{LocationId}' during {currentTime}");
 
-        List<NPC> npcsAtLocation = npcs.Where(n => n.LocationId == LocationId).ToList();
+        Console.WriteLine($"[NPCRepository] Checking {npcs.Count} NPCs for location '{LocationId}'");
+        foreach (NPC npc in npcs)
+        {
+            Console.WriteLine($"[NPCRepository]   NPC '{npc.Name}' (ID={npc.ID}) - Location: {(npc.Location != null ? $"'{npc.Location.Id}'" : "NULL")}");
+        }
+
+        List<NPC> npcsAtLocation = npcs.Where(n => n.Location?.Id == LocationId).ToList();
 
         // Apply visibility filtering
         npcsAtLocation = FilterByVisibility(npcsAtLocation);
@@ -161,14 +157,14 @@ public class NPCRepository
     /// <summary>
     /// Gets the primary NPC for a specific location if available at the current time
     /// </summary>
-    public NPC GetPrimaryNPCForSpot(string locationSpotId, TimeBlocks currentTime)
+    public NPC GetPrimaryNPCForSpot(string locationId, TimeBlocks currentTime)
     {
         List<NPC> npcs = _gameWorld.GetCharacters();
         if (npcs == null)
         {
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
-        NPC? npc = npcs.FirstOrDefault(n => n.LocationId == locationSpotId && n.IsAvailable(currentTime));
+        NPC? npc = npcs.FirstOrDefault(n => n.Location?.Id == locationId && n.IsAvailable(currentTime));
         if (npc != null && !IsNPCVisible(npc))
             return null;
         return npc;
@@ -187,13 +183,12 @@ public class NPCRepository
         foreach (TimeBlocks timeBlock in allTimeBlocks)
         {
             List<NPC> availableNPCs = locationNPCs.Where(npc => npc.IsAvailable(timeBlock)).ToList();
-            List<ServiceTypes> availableServices = availableNPCs.SelectMany(npc => npc.ProvidedServices).Distinct().ToList();
 
             timeBlockPlan.Add(new TimeBlockServiceInfo
             {
                 TimeBlock = timeBlock,
                 AvailableNPCs = availableNPCs,
-                AvailableServices = availableServices,
+                AvailableServices = new(),
                 IsCurrentTimeBlock = timeBlock == _gameWorld.CurrentTimeBlock
             });
         }
@@ -201,40 +196,6 @@ public class NPCRepository
         return timeBlockPlan;
     }
 
-    /// <summary>
-    /// Get all unique services available at a Location across all time blocks
-    /// </summary>
-    public List<ServiceTypes> GetAllLocationServices(string locationId)
-    {
-        List<NPC> locationNPCs = GetNPCsForLocation(locationId);
-        return locationNPCs.SelectMany(npc => npc.ProvidedServices).Distinct().ToList();
-    }
-
-    /// <summary>
-    /// Get service availability summary for a specific service across all time blocks
-    /// </summary>
-    public ServiceAvailabilityPlan GetServiceAvailabilityPlan(string locationId, ServiceTypes service)
-    {
-        TimeBlocks[] allTimeBlocks = Enum.GetValues<TimeBlocks>();
-        List<NPC> locationNPCs = GetNPCsForLocation(locationId);
-        List<NPC> serviceProviders = locationNPCs.Where(npc => npc.ProvidedServices.Contains(service)).ToList();
-
-        List<TimeBlocks> availableTimeBlocks = new List<TimeBlocks>();
-        foreach (TimeBlocks timeBlock in allTimeBlocks)
-        {
-            if (serviceProviders.Any(npc => npc.IsAvailable(timeBlock)))
-            {
-                availableTimeBlocks.Add(timeBlock);
-            }
-        }
-
-        return new ServiceAvailabilityPlan
-        {
-            Service = service,
-            AvailableTimeBlocks = availableTimeBlocks,
-            ServiceProviders = serviceProviders
-        };
-    }
 
     #endregion
 

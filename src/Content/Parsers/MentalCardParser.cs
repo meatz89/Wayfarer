@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Parser for Mental Cards - converts DTOs to domain models
 /// Parallel to ConversationCardParser
@@ -59,6 +55,10 @@ public class MentalCardParser
             // COSTS DERIVED FROM CATEGORICAL PROPERTIES VIA CATALOG
             CoinCost = MentalCardEffectCatalog.GetCoinCost(category, dto.Depth),
             XPReward = MentalCardEffectCatalog.GetXPReward(dto.Depth),
+
+            // BASE EFFECTS CALCULATED AT PARSE TIME (no runtime catalogue calls!)
+            BaseProgress = MentalCardEffectCatalog.GetProgressFromProperties(dto.Depth, category),
+            BaseExposure = MentalCardEffectCatalog.GetExposureFromProperties(dto.Depth, method),
 
             // Requirements
             EquipmentCategory = EquipmentCategory.None,  // Fixed value until JSON needs variation

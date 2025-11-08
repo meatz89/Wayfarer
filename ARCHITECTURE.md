@@ -216,31 +216,6 @@ Wayfarer is a **low-fantasy tactical RPG** with **three parallel challenge syste
 
 ### 1. JSON Content Structure
 
-**Location**: `src/Content/Core/*.json`
-
-**Package Loading Order** (numbered files loaded alphabetically):
-```
-01_foundation.json     → Player stats, time blocks, base configuration
-03_npcs.json          → NPC definitions with personalities and initial tokens
-04_connections.json   → Routes and travel connections
-05_goals.json         → Goal definitions (strategic-tactical bridge)
-06_gameplay.json      → Venues, locations, game rules
-07_equipment.json     → Items and equipment definitions
-08_social_cards.json  → Social challenge cards (conversations)
-09_mental_cards.json  → Mental challenge cards (investigations)
-10_physical_cards.json → Physical challenge cards (obstacles)
-12_challenge_decks.json → Deck configurations for all three systems
-13_investigations.json  → Multi-phase investigation templates
-14_knowledge.json      → Knowledge entries and discovery system
-```
-
-**Content Relationships**:
-- **Goals**: First-class entities with `npcId` OR `locationId` for assignment
-- **Challenge Decks**: Reference card IDs for Social/Mental/Physical systems
-- **Investigations**: Reference goals via phase definitions
-- **Cards**: Bind to unified 5-stat system (Insight/Rapport/Authority/Diplomacy/Cunning)
-- All relationships use string IDs for loose coupling
-
 ### 2. Static Parser Layer
 
 **Location**: `src/Content/*Parser.cs`
@@ -455,215 +430,48 @@ Startup → GameWorldInitializer.CreateGameWorld()
 
 ### 1. Action System Overview
 
+**⚠️ CRITICAL ARCHITECTURE CHANGE: Actions are NO LONGER defined in JSON**
+
+**Actions are PROCEDURALLY GENERATED from categorical location properties at parse time.**
+
 **Two Action Types**:
-- **PlayerActions**: Global actions available everywhere (e.g., "Check Belongings", "Wait")
-- **LocationActions**: Context-specific actions available at certain locations (e.g., "Travel", "Rest", "Work")
+- **PlayerActions**: Universal actions available everywhere (e.g., "Check Belongings", "Wait", "Sleep Outside")
+- **LocationActions**: Property-driven actions generated from LocationPropertyType enums
 
-**Architecture Goal**: Eliminate "Dictionary Disease" (string-based matching) through strongly-typed enum catalogues with parser validation and single-point dispatch through GameFacade.
+**Architecture Goals**:
+1. **Catalogue Pattern**: Actions generated from categorical properties (parse-time ONLY)
+2. **No JSON Bloat**: Locations define properties, catalogues generate complete actions
+3. **Strong Typing**: All action types, costs, rewards strongly-typed
+4. **No Dictionary Disease**: Zero string-based matching or dictionary lookups
 
-### 2. Enum Catalogues (Action Type Definition)
+### 2. Complete System Documentation
 
-**Location**: `src/Content/PlayerActionType.cs`, `src/Content/LocationActionType.cs`
+**⚠️ FULL DOCUMENTATION**: See [LOCATION_PROPERTY_ACTION_SYSTEM.md](./LOCATION_PROPERTY_ACTION_SYSTEM.md) for comprehensive documentation of:
+- Location Property → Action Generation pattern
+- Catalogue implementation details
+- Parse-time integration
+- Runtime querying and filtering
+- Property → Action mapping table
+- Adding new action types
+- Testing and debugging
 
-**PlayerActionType Enum** - Global actions available everywhere:
-```csharp
-public enum PlayerActionType
-{
-    CheckBelongings,  // View inventory/equipment screen
-    Wait              // Skip 1 time segment, no resource recovery
-}
-```
+### 3. Quick Reference
 
-**LocationActionType Enum** - Location-specific actions:
-```csharp
-public enum LocationActionType
-{
-    Travel,      // Navigate to connected routes
-    Rest,        // Recover +1 health, +1 stamina (requires "rest"/"restful" property)
-    Work,        // Earn coins based on location opportunities
-    Investigate  // Gain location familiarity through observation
-}
-```
+**Location Property → Action Mapping**:
 
-**Purpose**: Single source of truth for valid action types, enables compile-time type safety and parser validation.
+| Property | Generated Action | Costs | Rewards |
+|----------|-----------------|-------|---------|
+| Crossroads | Travel | None | None |
+| Commercial | Work | Time + Stamina | 8 Coins |
+| Restful | Rest | Time | +1 Health, +1 Stamina |
+| Lodging | Secure Room | 10 Coins | Full Recovery |
 
-### 3. Domain Entities with Strong Typing
+**Universal Player Actions**:
+- Check Belongings
+- Wait
+- Sleep Outside
 
-**Location**: `src/GameState/PlayerAction.cs`, `src/GameState/LocationAction.cs`
-
-**PlayerAction** - Global action entity:
-```csharp
-public class PlayerAction
-{
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public PlayerActionType ActionType { get; set; }  // STRONGLY TYPED ENUM
-    public Dictionary<string, int> Cost { get; set; }
-    public int TimeRequired { get; set; }
-    public int Priority { get; set; }
-}
-```
-
-**LocationAction** - Location-specific action entity:
-```csharp
-public class LocationAction
-{
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public LocationActionType ActionType { get; set; }  // STRONGLY TYPED ENUM
-    public Dictionary<string, int> Cost { get; set; }
-    public Dictionary<string, int> Reward { get; set; }
-    public int TimeRequired { get; set; }
-    public List<string> Availability { get; set; }
-    public int Priority { get; set; }
-    public string InvestigationId { get; set; }
-    public List<LocationPropertyType> RequiredProperties { get; set; }  // Property-based matching
-    public List<LocationPropertyType> OptionalProperties { get; set; }
-    public List<LocationPropertyType> ExcludedProperties { get; set; }
-}
-```
-
-**Critical**: `ActionType` is strongly-typed enum, NOT string. This eliminates runtime string matching errors.
-
-### 4. Parsers with Enum Validation
-
-**Location**: `src/Content/Parsers/PlayerActionParser.cs`, `src/Content/Parsers/LocationActionParser.cs`
-
-**PlayerActionParser** - Validates actionType against enum catalogue:
-```csharp
-public static PlayerAction ParsePlayerAction(PlayerActionDTO dto)
-{
-    ValidateRequiredFields(dto);
-
-    // ENUM VALIDATION - throws InvalidDataException if unknown action type
-    if (!Enum.TryParse<PlayerActionType>(dto.ActionType, true, out PlayerActionType actionType))
-    {
-        string validTypes = string.Join(", ", Enum.GetNames(typeof(PlayerActionType)));
-        throw new InvalidDataException(
-            $"PlayerAction '{dto.Id}' has unknown actionType '{dto.ActionType}'. " +
-            $"Valid types: {validTypes}");
-    }
-
-    return new PlayerAction
-    {
-        Id = dto.Id,
-        Name = dto.Name,
-        Description = dto.Description,
-        ActionType = actionType,  // Strongly typed enum assigned
-        Cost = dto.Cost ?? new Dictionary<string, int>(),
-        TimeRequired = dto.TimeRequired,
-        Priority = dto.Priority
-    };
-}
-```
-
-**LocationActionParser** - Validates actionType and converts property strings to enums:
-```csharp
-public static LocationAction ParseLocationAction(LocationActionDTO dto)
-{
-    ValidateRequiredFields(dto);
-
-    // ENUM VALIDATION - throws InvalidDataException if unknown action type
-    if (!Enum.TryParse<LocationActionType>(dto.ActionType, true, out LocationActionType actionType))
-    {
-        string validTypes = string.Join(", ", Enum.GetNames(typeof(LocationActionType)));
-        throw new InvalidDataException(
-            $"LocationAction '{dto.Id}' has unknown actionType '{dto.ActionType}'. " +
-            $"Valid types: {validTypes}");
-    }
-
-    return new LocationAction
-    {
-        Id = dto.Id,
-        Name = dto.Name,
-        Description = dto.Description,
-        ActionType = actionType,  // Strongly typed enum assigned
-        Cost = dto.Cost ?? new Dictionary<string, int>(),
-        Reward = dto.Reward ?? new Dictionary<string, int>(),
-        TimeRequired = dto.TimeRequired,
-        Availability = dto.Availability ?? new List<string>(),
-        Priority = dto.Priority,
-        InvestigationId = dto.InvestigationId,
-        RequiredProperties = ParseLocationProperties(dto.RequiredProperties),
-        OptionalProperties = ParseLocationProperties(dto.OptionalProperties),
-        ExcludedProperties = ParseLocationProperties(dto.ExcludedProperties)
-    };
-}
-
-// Converts property strings to LocationPropertyType enums
-private static List<LocationPropertyType> ParseLocationProperties(List<string> propertyStrings)
-{
-    // Returns empty list if null, logs warning if property doesn't match enum
-}
-```
-
-**Parser Integration**: `PackageLoader.cs` calls these parsers during content loading:
-```csharp
-// In PackageLoader.LoadLocationActions()
-LocationAction action = LocationActionParser.ParseLocationAction(dto);
-
-// In PackageLoader.LoadPlayerActions()
-PlayerAction action = PlayerActionParser.ParsePlayerAction(dto);
-```
-
-**Why This Matters**: Unknown action types crash at startup with descriptive error messages, preventing runtime bugs from malformed JSON.
-
-### 5. JSON Content Definition
-
-**Location**: `src/Content/Core/01_foundation.json`
-
-**PlayerAction JSON Example**:
-```json
-{
-  "playerActions": [
-    {
-      "id": "wait",
-      "name": "Wait",
-      "description": "Pass time without activity. Skips 1 time segment with no resource recovery.",
-      "actionType": "Wait",
-      "timeRequired": 1,
-      "priority": 200
-    },
-    {
-      "id": "check_belongings",
-      "name": "Check Belongings",
-      "description": "Review your current equipment and inventory.",
-      "actionType": "CheckBelongings",
-      "priority": 100
-    }
-  ]
-}
-```
-
-**LocationAction JSON Example**:
-```json
-{
-  "locationActions": [
-    {
-      "id": "rest",
-      "name": "Rest",
-      "description": "Take time to rest and recover. Restores +1 Health and +1 Stamina.",
-      "actionType": "Rest",
-      "timeRequired": 1,
-      "requiredProperties": ["rest", "restful"],
-      "priority": 50
-    },
-    {
-      "id": "travel",
-      "name": "Travel",
-      "description": "Choose a route to travel to a connected location.",
-      "actionType": "Travel",
-      "priority": 10
-    }
-  ]
-}
-```
-
-**Property-Based Matching**: LocationActions use `requiredProperties`, `optionalProperties`, and `excludedProperties` to match against location properties. For example, "Rest" action only appears at locations with "rest" or "restful" property.
-
-### 6. GameFacade Orchestration (Single Dispatch Point)
+### 5. GameFacade Orchestration (Single Dispatch Point)
 
 **Location**: `src/Services/GameFacade.cs`
 
@@ -1190,6 +998,101 @@ Infrastructure    → Parsers, JSON Files
 - When duplicate state found, identify single source of truth
 - Other objects delegate to canonical source
 - **NO caching layers** that can become stale
+
+### 7. Catalogue Pattern: No String Matching, No Dictionaries
+
+**THE FUNDAMENTAL PRINCIPLE:**
+
+**JSON describes entities categorically. Parsers translate categorical descriptions to concrete values via Catalogues. Runtime code uses only concrete, strongly-typed properties. No strings, no dictionaries, no lookups.**
+
+#### Three Phases of Data Flow
+
+**PHASE 1: AUTHORING (JSON - Categorical/Descriptive)**
+- Content creators describe entities in human-readable categorical terms
+- Properties are descriptive ("Full", "Partial", "Fragile", "Simple")
+- Some properties are absolute concrete values (coinCost: 10, time: 1)
+- NO runtime semantics embedded in JSON - JSON describes WHAT, not HOW
+
+**PHASE 2: PARSING (Translation - One Time Only)**
+- Parser reads JSON via DTO
+- Parser calls Catalogue to translate categorical → concrete
+- Catalogue returns strongly-typed concrete values (int, bool, object)
+- Parser stores concrete values directly on entity properties
+- Entity persisted to GameWorld
+- Translation happens ONCE at game initialization, NEVER during gameplay
+
+**PHASE 3: RUNTIME (Concrete Values Only)**
+- GameFacade/Facades fetch entities from GameWorld
+- Use concrete properties directly (action.HealthRecovery, action.CoinCost)
+- NO catalogue lookups - values already calculated
+- NO string matching - no "if (id == 'something')" ever
+- NO dictionary lookups - no Cost["coins"] ever
+- PURE strongly-typed property access - compiler-enforced correctness
+
+#### What This Eliminates
+
+**FORBIDDEN FOREVER:**
+1. String matching: `if (action.Id == "secure_room")`
+2. Dictionary lookups: `Cost["coins"]`, `Cost.ContainsKey("coins")`
+3. Dictionary properties: `Dictionary<string, int> Cost`
+4. Enum routing at runtime: `switch (recoveryType)` in GameFacade
+5. Catalogue calls at runtime: Catalogues live in Parsers folder, never imported by Facades
+6. ID-based behavior branching: Entity IDs are for reference only, never control logic
+
+**Why these are forbidden:**
+- String matching = runtime typo bugs, no IntelliSense, couples code to JSON IDs
+- Dictionaries = no type safety, hidden properties, runtime string keys
+- Runtime catalogues = wasted CPU, violates parse-time translation principle
+- ID-based logic = magic behavior tied to JSON string values, brittle
+
+#### Benefits of Parse-Time Translation
+
+1. **Fail Fast**: Bad JSON crashes at game init with clear error, not during gameplay
+2. **Zero Runtime Overhead**: All calculations done once, not on every action execution
+3. **Type Safety**: Compiler catches property access errors, no runtime string bugs
+4. **IntelliSense Works**: Developers see real properties (action.HealthRecovery: int)
+5. **AI Content Generation**: AI describes effects categorically, parser scales to current game state
+6. **No Magic Strings**: Eliminates entire class of typo bugs ("coins" vs "coin")
+7. **Testable**: Can unit test catalogues independently from runtime logic
+8. **Maintainable**: Change catalogue = affects all entities, change entity property = compiler finds usages
+
+#### Existing Catalogue Examples
+
+- **EquipmentDurabilityCatalog**: JSON "Fragile" → (uses: 2, repairCost: 10) stored on entity
+- **SocialCardEffectCatalog**: JSON (stat, depth) → CardEffectFormula with concrete values
+- **PhysicalCardEffectCatalog, MentalCardEffectCatalog**: Same pattern
+
+#### Code Review Enforcement
+
+**Parser Code:**
+- All categorical JSON properties translated via catalogue?
+- All concrete values stored on entity properties (int, bool, object)?
+- NO Dictionary<string, X> on entities?
+- Catalogue throws on unknown categorical values?
+
+**Runtime Code (GameFacade, Facades, Services):**
+- NO catalogue imports?
+- NO string comparisons (`action.Id == "something"`)?
+- NO dictionary lookups?
+- ONLY concrete property access?
+
+**Entity Classes:**
+- Properties are concrete types (int, bool, strongly-typed classes)?
+- NO Dictionary<string, X> properties?
+- Property names describe mechanics, not categories?
+
+**If you see Dictionary or string matching in runtime code, STOP. The architecture is violated.**
+
+#### The Complete Principle
+
+**JSON is descriptive. Parsers translate descriptions to mechanics. Runtime executes mechanics.**
+
+Content creators describe WHAT entities do in human terms.
+Parsers translate WHAT to HOW using catalogues.
+Runtime executes HOW using strongly-typed properties.
+
+No strings in runtime. No dictionaries in entities. No catalogue lookups after initialization.
+**Parse once. Execute forever with pure data access.**
 
 ---
 

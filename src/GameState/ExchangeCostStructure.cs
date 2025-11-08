@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Represents the cost structure for an exchange.
 /// Supports multiple resource costs and token requirements.

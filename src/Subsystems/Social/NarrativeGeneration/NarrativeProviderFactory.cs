@@ -1,7 +1,3 @@
-using Microsoft.Extensions.Configuration;
-using System;
-using System.Threading.Tasks;
-
 /// <summary>
 /// Factory for selecting appropriate narrative provider based on configuration and availability.
 /// Handles selection logic between AI providers and JSON fallback provider.

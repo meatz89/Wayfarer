@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Models for the observation system
 /// </summary>

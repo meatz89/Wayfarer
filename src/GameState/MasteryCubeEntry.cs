@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Physical challenge mastery tracking - list-based, not dictionary.
 /// Parallel to StoryCubes on NPC entity and InvestigationCubes on Location entity.

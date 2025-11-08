@@ -1,12 +1,20 @@
-using System.Collections.Generic;
-using System.Linq;
-
 public class Location
 {
     public string Id { get; set; }
     public string Name { get; set; }
     public string VenueId { get; set; }
     public Venue Venue { get; internal set; }
+
+    // HEX-BASED TRAVEL SYSTEM: Location is THE primary spatial entity
+    /// <summary>
+    /// Hex grid position of this location (nullable only during initialization - ALL locations MUST have positions after parsing)
+    /// VENUE = 7-hex cluster (center + 6 adjacent hexes). Each location occupies ONE hex in the cluster.
+    /// Same-venue movement = moving between ADJACENT hexes in the same cluster (instant/free BECAUSE adjacent).
+    /// Cross-venue travel = moving between non-adjacent hexes (requires routes, costs resources).
+    /// Source of truth for location spatial positioning - ALL routes connect locations via hex paths.
+    /// HIGHLANDER: Location.HexPosition is source of truth, Hex.LocationId is derived lookup.
+    /// </summary>
+    public AxialCoordinates? HexPosition { get; set; }
 
     // Skeleton tracking
     public bool IsSkeleton { get; set; } = false;
@@ -18,20 +26,12 @@ public class Location
     public string InitialState { get; set; }
     // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 
-    // Active goal IDs for this location (Mental/Physical challenges)
-    // References goals in GameWorld.Goals dictionary (single source of truth)
-    public List<string> ActiveGoalIds { get; set; } = new List<string>();
-    public List<string> ObstacleIds { get; set; } = new List<string>();
+    // Active situation IDs for this location (Mental/Physical challenges)
+    // References situations in GameWorld.Situations (single source of truth)
+    public List<string> ActiveSituationIds { get; set; } = new List<string>();
 
-    /// <summary>
-    /// Object references to active goals (for runtime navigation)
-    /// </summary>
-    public List<Goal> ActiveGoals { get; set; } = new List<Goal>();
-
-    /// <summary>
-    /// Object references to obstacles (for runtime navigation)
-    /// </summary>
-    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
+    // NOTE: SceneIds removed - OLD equipment-based Scene system deleted
+    // NEW Scene-Situation architecture: Query GameWorld.Scenes by PlacementType/PlacementId
     public List<LocationPropertyType> LocationProperties { get; set; } = new List<LocationPropertyType>();
     public List<string> Properties => LocationProperties.Select(p => p.ToString()).ToList();
 
@@ -44,7 +44,6 @@ public class Location
     public int TravelTimeSegments { get; set; }
     public string TravelDescription { get; set; }
     public int Difficulty { get; set; }
-    public List<ServiceTypes> AvailableServices { get; set; } = new List<ServiceTypes>();
     public bool HasBeenVisited { get; set; }
     public int VisitCount { get; set; }
     public List<NPC> NPCsPresent { get; set; } = new List<NPC>();
@@ -71,6 +70,16 @@ public class Location
     public List<string> DomainTags { get; set; } = new List<string>();
     public LocationTypes LocationType { get; set; } = LocationTypes.Crossroads;
     public bool IsStartingLocation { get; set; } = false;
+
+    /// <summary>
+    /// Lock state for location access control
+    /// Used by multi-situation scene pattern: locked locations require items to access
+    /// Scene rewards can modify this state (unlock), cleanup restores original state (relock)
+    /// Tutorial: Upper floor locked until player has room_key, relocked on departure
+    /// HIGHLANDER: Location entity owns its lock state, no duplicate tracking
+    /// </summary>
+    public bool IsLocked { get; set; } = false;
+
     public string? Description { get; internal set; }
 
     public Location(string id, string name)

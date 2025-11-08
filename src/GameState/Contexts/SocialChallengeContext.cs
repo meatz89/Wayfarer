@@ -1,7 +1,7 @@
 /// <summary>
 /// Context for Social challenges containing session and metadata.
 /// Parallel to MentalChallengeContext and PhysicalChallengeContext for architectural consistency.
-/// Domain logic now lives in goal cards, not context subclasses.
+/// Domain logic now lives in situation cards, not context subclasses.
 /// </summary>
 public class SocialChallengeContext
 {
@@ -18,6 +18,14 @@ public class SocialChallengeContext
     public string LocationName { get; set; }
     public string TimeDisplay { get; set; }
     public string RequestText { get; set; }  // Text displayed when NPC presents a request
+
+    /// <summary>
+    /// Reward to apply if conversation succeeds
+    /// Set when challenge started from Choice with ActionType = StartChallenge
+    /// Applied in SocialFacade.EndConversation() when outcome.Success == true
+    /// Tutorial Elena path uses this to grant coins and bond after social challenge
+    /// </summary>
+    public ChoiceReward CompletionReward { get; set; }
 
     public SocialChallengeContext()
     {

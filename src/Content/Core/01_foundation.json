@@ -15,7 +15,7 @@
         "description": "A warm inn where lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations.",
         "districtId": "town_center",
         "tier": 1,
-        "locationType": "Urban"
+        "locationType": "Tavern"
       },
       {
         "id": "town_square",
@@ -23,7 +23,15 @@
         "description": "The heart of the town, where traders gather and townsfolk meet. The Brass Bell Inn beckons from across the square.",
         "districtId": "town_center",
         "tier": 1,
-        "locationType": "Urban"
+        "locationType": "Market"
+      },
+      {
+        "id": "old_mill",
+        "name": "The Old Mill",
+        "description": "An abandoned mill on the outskirts of town. The waterwheel still turns slowly, creaking with age.",
+        "districtId": "town_outskirts",
+        "tier": 1,
+        "locationType": "Wilderness"
       }
     ],
     "locations": [
@@ -34,17 +42,13 @@
         "description": "You've been walking since dawn. Your legs ache, your coin purse feels light, and the sun is setting. The warm glow of The Brass Bell Inn beckons from across the square.",
         "properties": {
           "base": [
-            "crossroads"
-          ],
-          "all": [
+            "crossroads",
             "public",
-            "busy"
+            "busy",
+            "outdoor"
           ]
         },
-        "canInvestigate": false,
-        "obligationScaling": {
-          "default": 1
-        }
+        "canInvestigate": false
       },
       {
         "id": "common_room",
@@ -53,79 +57,46 @@
         "description": "Lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations. Elena, the innkeeper, wipes down tables while watching travelers settle in for the night.",
         "properties": {
           "base": [
-            "crossroads"
-          ],
-          "all": [
+            "crossroads",
+            "commercial",
             "public",
             "busy",
-            "restful"
+            "restful",
+            "indoor"
           ]
         },
-        "canInvestigate": false,
-        "obligationScaling": {
-          "default": 1
-        }
-      }
-    ],
-    "locationActions": [
-      {
-        "id": "rest",
-        "name": "Rest",
-        "description": "Take time to rest and recover. Advances 1 time segment. Restores +1 Health and +1 Stamina. Hunger increases by +5 automatically.",
-        "actionType": "Rest",
-        "priority": 50,
-        "cost": {},
-        "timeRequired": 1,
-        "availability": ["Morning", "Midday", "Afternoon", "Evening"],
-        "requiredProperties": ["restful"],
-        "optionalProperties": [],
-        "excludedProperties": []
+        "canInvestigate": false
       },
       {
-        "id": "secure_room",
-        "name": "Secure a Room (10 coins)",
-        "description": "Purchase a room for the night. Full recovery of all resources. A bed, a roof, safety through the night.",
-        "actionType": "Rest",
-        "priority": 100,
-        "cost": {
-          "coins": 10
+        "id": "fountain_plaza",
+        "venueId": "town_square",
+        "name": "Fountain Plaza",
+        "description": "The town fountain. Locals gather here to chat and trade news. A courier's board posts delivery opportunities.",
+        "properties": {
+          "base": [
+            "public",
+            "commercial",
+            "busy",
+            "outdoor"
+          ]
         },
-        "timeRequired": 1,
-        "availability": ["Evening"],
-        "requiredProperties": [],
-        "optionalProperties": [],
-        "excludedProperties": []
-      }
-    ],
-    "playerActions": [
-      {
-        "id": "check_belongings",
-        "name": "Check Belongings",
-        "description": "Review your current equipment and inventory",
-        "actionType": "CheckBelongings",
-        "priority": 100,
-        "cost": {},
-        "timeRequired": 0
+        "canInvestigate": false
       },
       {
-        "id": "wait",
-        "name": "Wait",
-        "description": "Pass time without activity. Advances 1 time segment with no resource recovery. Hunger increases by +5 automatically.",
-        "actionType": "Wait",
-        "priority": 200,
-        "cost": {},
-        "timeRequired": 1
-      },
-      {
-        "id": "sleep_outside",
-        "name": "Sleep Outside",
-        "description": "Sleep rough without shelter. Saves coins but costs 2 Health and provides no recovery. Cold, uncomfortable, risky.",
-        "actionType": "SleepOutside",
-        "priority": 300,
-        "cost": {},
-        "timeRequired": 0
+        "id": "mill_courtyard",
+        "venueId": "old_mill",
+        "name": "Mill Courtyard",
+        "description": "The courtyard outside the old mill. Overgrown paths lead to the mill entrance and surrounding areas.",
+        "properties": {
+          "base": [
+            "crossroads",
+            "public",
+            "quiet",
+            "outdoor"
+          ]
+        },
+        "canInvestigate": false
       }
-    ],
-    "obstacles": []
+    ]
   }
 }

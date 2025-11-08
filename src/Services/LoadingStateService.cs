@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Simple loading state service for UI
 /// </summary>

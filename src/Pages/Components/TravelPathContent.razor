@@ -83,7 +83,7 @@
         <div class="encounter-banner">
             <div class="encounter-icon">⚔</div>
             <div class="encounter-title">CHALLENGE AHEAD</div>
-            <div class="encounter-subtitle">You must overcome this obstacle to proceed</div>
+            <div class="encounter-subtitle">You must overcome this scene to proceed</div>
         </div>
 
         <!-- Current State Info -->
@@ -116,37 +116,40 @@
                 <div class="challenge-icon">⚔</div>
                 <div class="encounter-text">
                     <div class="encounter-primary">Mandatory Challenge</div>
-                    <div class="encounter-secondary">You must resolve this obstacle before continuing your journey</div>
+                    <div class="encounter-secondary">You must resolve this scene before continuing your journey</div>
                 </div>
             </div>
 
-            <!-- Obstacle Display -->
+            <!-- Scene Display -->
             @{
                 var segment = GetCurrentRouteSegment();
-                if (segment != null && !string.IsNullOrEmpty(segment.MandatoryObstacleId))
+                if (segment != null && !string.IsNullOrEmpty(segment.MandatorySceneId))
                 {
-                    var obstacle = ObstacleFacade.GetObstacleById(segment.MandatoryObstacleId);
-                    if (obstacle != null)
+                    var scene = GameWorld.Scenes.FirstOrDefault(s => s.Id == segment.MandatorySceneId);
+                    if (scene != null)
                     {
-                        <div class="obstacle-display">
-                            <div class="obstacle-name">@obstacle.Name</div>
-                            <div class="obstacle-description">@obstacle.Description</div>
-                            <div class="obstacle-intensity">Intensity: @obstacle.Intensity</div>
+                        <div class="scene-display">
+                            <div class="scene-name">@scene.DisplayName</div>
+                            <div class="scene-description">@scene.IntroNarrative</div>
+                            @* ARCHITECTURE UPDATE: Scene.Intensity removed *@
 
-                            <!-- Available Goals -->
-                            <div class="goals-list">
-                                <div class="goals-title">Available Approaches</div>
-                                @foreach (var goalId in obstacle.GoalIds)
+                            <!-- Available Situations -->
+                            <div class="situations-list">
+                                <div class="situations-title">Available Approaches</div>
+                                @{
+                                    // Direct access to scene's situations (Scene owns Situations)
+                                    var situations = scene.Situations.ToList();
+                                }
+                                @foreach (var situation in situations)
                                 {
-                                    var goal = GameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
-                                    if (goal != null)
+                                    if (situation != null)
                                     {
-                                        <div class="goal-card">
-                                            <div class="goal-header">
-                                                <div class="goal-name">@goal.Name</div>
-                                                <div class="goal-system">@goal.SystemType</div>
+                                        <div class="situation-card">
+                                            <div class="situation-header">
+                                                <div class="situation-name">@situation.Name</div>
+                                                <div class="situation-system">@situation.SystemType</div>
                                             </div>
-                                            <div class="goal-description">@goal.Description</div>
+                                            <div class="situation-description">@situation.Description</div>
                                         </div>
                                     }
                                 }
@@ -160,7 +163,7 @@
             <div class="encounter-actions">
                 <div class="encounter-button primary">
                     <div class="encounter-button-text">ENGAGE CHALLENGE</div>
-                    <div class="encounter-button-subtitle">Begin obstacle resolution</div>
+                    <div class="encounter-button-subtitle">Begin scene resolution</div>
                 </div>
                 <div class="encounter-button secondary" @onclick="TurnBack">
                     <div class="encounter-button-text">TURN BACK</div>
@@ -458,10 +461,6 @@
                         <span class="property-label">Distance</span>
                         <span class="property-value">@GetSegmentCount() segments</span>
                     </div>
-                    <div class="route-property">
-                        <span class="property-label">Base Time</span>
-                        <span class="property-value">@GetBaseTravelTime() min</span>
-                    </div>
                 </div>
             </div>
         </div>
@@ -581,45 +580,27 @@
                                             </div>
                                         }
 
-                                        @if (!string.IsNullOrEmpty(card.ObstacleId))
+                                        @if (!string.IsNullOrEmpty(card.SceneId))
                                         {
-                                            var goalPreviews = GetGoalPreviewsForPath(card.ObstacleId);
-                                            if (goalPreviews != null && goalPreviews.Any())
+                                            var situationPreviews = GetSituationPreviewsForPath(card.SceneId);
+                                            if (situationPreviews != null && situationPreviews.Any())
                                             {
                                                 <div class="path-challenges-preview">
                                                     <div class="challenges-header">Challenges ahead:</div>
 
-                                                    @foreach (var goalPreview in goalPreviews)
+                                                    @foreach (var situationPreview in situationPreviews)
                                                     {
-                                                        <div class="goal-preview-card">
-                                                            <div class="goal-preview-header">
-                                                                <span class="goal-preview-name">@goalPreview.Name</span>
-                                                                <span class="goal-preview-system">@goalPreview.SystemType</span>
+                                                        <div class="situation-preview-card">
+                                                            <div class="situation-preview-header">
+                                                                <span class="situation-preview-name">@situationPreview.Name</span>
+                                                                <span class="situation-preview-system">@situationPreview.SystemType</span>
                                                             </div>
 
-                                                            @if (!string.IsNullOrEmpty(goalPreview.Description))
+                                                            @if (!string.IsNullOrEmpty(situationPreview.Description))
                                                             {
-                                                                <div class="goal-preview-description">@goalPreview.Description</div>
+                                                                <div class="situation-preview-description">@situationPreview.Description</div>
                                                             }
 
-                                                            @if (goalPreview.Contexts != null && goalPreview.Contexts.Any())
-                                                            {
-                                                                <div class="goal-preview-contexts">
-                                                                    @foreach (var context in goalPreview.Contexts)
-                                                                    {
-                                                                        <ContextTag ContextName="@context.ToString()" IsMatch="false" />
-                                                                    }
-                                                                </div>
-                                                            }
-
-                                                            @if (goalPreview.MatchingEquipment.Any())
-                                                            {
-                                                                <div class="goal-equipment-help">
-                                                                    <span class="help-icon">⚙</span>
-                                                                    <span class="help-text">Equipment can help: @string.Join(", ", goalPreview.MatchingEquipment.Select(e => e.EquipmentName))</span>
-                                                                    <span class="help-reduction">(-@goalPreview.TotalReduction intensity)</span>
-                                                                </div>
-                                                            }
                                                         </div>
                                                     }
                                                 </div>
@@ -747,18 +728,18 @@
                 }
             </div>
 
-            @* Encounter Deck Preview - Show possible encounters from obstacle goals *@
+            @* Encounter Deck Preview - Show possible encounters from scene situations *@
             @{
-                var encounterGoals = GetEncounterGoalsForCurrentSegment();
+                var encounterSituations = GetEncounterSituationsForCurrentSegment();
             }
-            @if (encounterGoals.Any())
+            @if (encounterSituations.Any())
             {
                 <div class="encounter-preview">
                     <div class="encounter-title">Possible Encounters:</div>
                     <div class="encounter-list">
-                        @foreach (var goalName in encounterGoals)
+                        @foreach (var situationName in encounterSituations)
                         {
-                            <span class="encounter-item">@goalName</span>
+                            <span class="encounter-item">@situationName</span>
                         }
                     </div>
                 </div>
@@ -778,7 +759,7 @@
                 <div class="action-button @(!CanRest() ? "disabled" : "")"
                      @onclick="RestAction">
                     <div>REST</div>
-                    <div class="action-details">Restore stamina (+1 segment to travel time)</div>
+                    <div class="action-details">+1 stamina, +1 segment)</div>
                 </div>
                 <div class="action-button @(!MustTurnBack() ? "disabled" : "")"
                      @onclick="TurnBack">
@@ -807,9 +788,10 @@ else
             return "Origin";
 
         var player = GameFacade.GetPlayer();
-        if (player?.CurrentLocation?.VenueId != null)
+        Location currentLocation = GameFacade.GetPlayerCurrentLocation();
+        if (currentLocation?.VenueId != null)
         {
-            var Venue = GameFacade.GetLocationById(player.CurrentLocation.VenueId);
+            var Venue = GameFacade.GetLocation(currentLocation.VenueId).Venue;
             return Venue?.Name ?? "Origin";
         }
 

@@ -1,0 +1,321 @@
+{
+  "packageId": "core_hex_grid",
+  "metadata": {
+    "name": "Core Hex Grid - World Spatial Scaffolding",
+    "timestamp": "2025-10-30T00:00:00Z",
+    "description": "Fundamental hex-based spatial layer for procedural world generation. Defines terrain, danger levels, and location placement on hex grid.",
+    "author": "Wayfarer Team",
+    "version": "1.0.0"
+  },
+  "content": {
+    "hexMap": {
+      "width": 7,
+      "height": 7,
+      "originQ": 0,
+      "originR": 0,
+      "hexes": [
+        // Town center hexes - Safe, road/plains terrain
+        {
+          "q": 0,
+          "r": 0,
+          "terrain": "Road",
+          "dangerLevel": 0,
+          "locationId": "square_center",
+          "isDiscovered": true
+        },
+        {
+          "q": 1,
+          "r": 0,
+          "terrain": "Road",
+          "dangerLevel": 0,
+          "locationId": "common_room",
+          "isDiscovered": true
+        },
+        {
+          "q": -1,
+          "r": 0,
+          "terrain": "Plains",
+          "dangerLevel": 0,
+          "locationId": "fountain_plaza",
+          "isDiscovered": true
+        },
+        {
+          "q": 0,
+          "r": 1,
+          "terrain": "Plains",
+          "dangerLevel": 0,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 0,
+          "r": -1,
+          "terrain": "Plains",
+          "dangerLevel": 0,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 1,
+          "r": -1,
+          "terrain": "Road",
+          "dangerLevel": 0,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": -1,
+          "r": 1,
+          "terrain": "Plains",
+          "dangerLevel": 1,
+          "locationId": null,
+          "isDiscovered": false
+        },
+
+        // Ring 2 - Transition to wilderness
+        {
+          "q": 2,
+          "r": 0,
+          "terrain": "Forest",
+          "dangerLevel": 2,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 2,
+          "r": -1,
+          "terrain": "Plains",
+          "dangerLevel": 1,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 2,
+          "r": -2,
+          "terrain": "Forest",
+          "dangerLevel": 3,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 1,
+          "r": 1,
+          "terrain": "Plains",
+          "dangerLevel": 1,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 0,
+          "r": 2,
+          "terrain": "Forest",
+          "dangerLevel": 2,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": -1,
+          "r": 2,
+          "terrain": "Forest",
+          "dangerLevel": 3,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": -2,
+          "r": 2,
+          "terrain": "Mountains",
+          "dangerLevel": 4,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": -2,
+          "r": 1,
+          "terrain": "Forest",
+          "dangerLevel": 2,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": -2,
+          "r": 0,
+          "terrain": "Plains",
+          "dangerLevel": 1,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": -1,
+          "r": -1,
+          "terrain": "Plains",
+          "dangerLevel": 1,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 0,
+          "r": -2,
+          "terrain": "Plains",
+          "dangerLevel": 1,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 1,
+          "r": -2,
+          "terrain": "Road",
+          "dangerLevel": 1,
+          "locationId": null,
+          "isDiscovered": false
+        },
+
+        // Ring 3 - Outer wilderness (higher danger)
+        {
+          "q": 3,
+          "r": 0,
+          "terrain": "Forest",
+          "dangerLevel": 4,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 3,
+          "r": -1,
+          "terrain": "Forest",
+          "dangerLevel": 4,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 3,
+          "r": -2,
+          "terrain": "Mountains",
+          "dangerLevel": 5,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 3,
+          "r": -3,
+          "terrain": "Mountains",
+          "dangerLevel": 6,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 2,
+          "r": 1,
+          "terrain": "Forest",
+          "dangerLevel": 3,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 1,
+          "r": 2,
+          "terrain": "Forest",
+          "dangerLevel": 3,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 0,
+          "r": 3,
+          "terrain": "Mountains",
+          "dangerLevel": 5,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": -1,
+          "r": 3,
+          "terrain": "Mountains",
+          "dangerLevel": 5,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": -2,
+          "r": 3,
+          "terrain": "Mountains",
+          "dangerLevel": 6,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": -3,
+          "r": 3,
+          "terrain": "Mountains",
+          "dangerLevel": 7,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": -3,
+          "r": 2,
+          "terrain": "Mountains",
+          "dangerLevel": 6,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": -3,
+          "r": 1,
+          "terrain": "Forest",
+          "dangerLevel": 4,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": -3,
+          "r": 0,
+          "terrain": "Forest",
+          "dangerLevel": 4,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": -2,
+          "r": -1,
+          "terrain": "Plains",
+          "dangerLevel": 2,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": -1,
+          "r": -2,
+          "terrain": "Plains",
+          "dangerLevel": 2,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 0,
+          "r": -3,
+          "terrain": "Plains",
+          "dangerLevel": 2,
+          "locationId": null,
+          "isDiscovered": false
+        },
+        {
+          "q": 1,
+          "r": -3,
+          "terrain": "Road",
+          "dangerLevel": 2,
+          "locationId": "mill_courtyard",
+          "isDiscovered": false
+        },
+        {
+          "q": 2,
+          "r": -3,
+          "terrain": "Forest",
+          "dangerLevel": 4,
+          "locationId": null,
+          "isDiscovered": false
+        }
+      ]
+    }
+  }
+}

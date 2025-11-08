@@ -1,8 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components
 {
@@ -30,8 +26,7 @@ namespace Wayfarer.Pages.Components
     public class TravelContentBase : ComponentBase
     {
         [Parameter] public string CurrentLocation { get; set; }
-        [Parameter] public EventCallback<string> OnTravelRoute { get; set; }
-        [Parameter] public EventCallback<string> OnNavigate { get; set; }
+        [Parameter] public EventCallback OnNavigate { get; set; }
 
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected TimeManager TimeManager { get; set; }
@@ -70,8 +65,8 @@ namespace Wayfarer.Pages.Components
 
         private void LoadAvailableRoutes()
         {
-            Venue currentLoc = GameFacade.GetCurrentLocation();
-            if (currentLoc == null)
+            Venue currentVenue = GameFacade.GetCurrentLocation().Venue;
+            if (currentVenue == null)
             {
                 return;
             }
@@ -82,9 +77,9 @@ namespace Wayfarer.Pages.Components
             {
                 Id = r.Id,
                 Name = r.Name,  // Store the actual route name from JSON
-                DestinationName = GetDestinationLocationName(r.DestinationLocationSpot),
-                DestinationSpotName = GetDestinationLocationSpotName(r.DestinationLocationSpot),
-                District = GetDestinationDistrict(r.DestinationLocationSpot),
+                DestinationName = GetDestinationVenueName(r.DestinationLocationId),
+                DestinationSpotName = GetDestinationLocationName(r.DestinationLocationId),
+                District = GetDestinationDistrict(r.DestinationLocationId),
                 TransportType = FormatTransportType(r.Method),
                 TravelTime = r.TravelTimeSegments,
                 Cost = r.BaseCoinCost,
@@ -95,23 +90,23 @@ namespace Wayfarer.Pages.Components
             }).ToList();
         }
 
-        private string GetDestinationLocationName(string destinationSpotId)
+        private string GetDestinationVenueName(string destinationSpotId)
         {
-            // Get the actual Venue location from GameWorld to find its name
-            Location location = GameFacade.GetLocationSpot(destinationSpotId);
-            Venue venue = GameFacade.GetLocationById(location.VenueId);
+            // Get the Venue name for this destination Location
+            Location location = GameFacade.GetLocation(destinationSpotId);
+            Venue venue = GameFacade.GetLocation(location.VenueId).Venue;
 
             if (venue != null)
             {
                 return venue.Name;
             }
-            return "Unknown Location";
+            return "Unknown Venue";
         }
 
-        private string GetDestinationLocationSpotName(string destinationSpotId)
+        private string GetDestinationLocationName(string destinationSpotId)
         {
             // Get the actual Venue location from GameWorld to find its name
-            Location location = GameFacade.GetLocationSpot(destinationSpotId);
+            Location location = GameFacade.GetLocation(destinationSpotId);
             if (location == null)
             {
                 throw new InvalidOperationException($"Location spot not found: {destinationSpotId}");
@@ -132,7 +127,7 @@ namespace Wayfarer.Pages.Components
             // Find the venue containing this location
             foreach (Venue venue in locations)
             {
-                if (venue.LocationSpotIds.Contains(destinationSpotId))
+                if (venue.LocationIds.Contains(destinationSpotId))
                 {
                     // Get the district for this venue
                     District district = GameFacade.GetDistrictForLocation(venue.Id);
@@ -348,7 +343,7 @@ namespace Wayfarer.Pages.Components
 
         protected async Task ReturnToLocation()
         {
-            await OnNavigate.InvokeAsync("location");
+            await OnNavigate.InvokeAsync();
         }
 
         protected string GetRouteTypeClass(RouteViewModel route)

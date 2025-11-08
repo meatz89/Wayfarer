@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// ViewModel for the Market UI - contains only display data, no game logic
 /// </summary>

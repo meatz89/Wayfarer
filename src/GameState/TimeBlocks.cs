@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-/// <summary>
+﻿/// <summary>
 /// Time blocks for the day. Each block contains 1-4 segments.
 /// CRITICAL: Segments are RELATIVE to each block (1-4), NOT absolute day positions.
 /// </summary>
@@ -11,6 +9,16 @@ public enum TimeBlocks
     Afternoon,  // 4 segments (1-4 within Afternoon) = day segments 9-12: 2-6 PM
     Evening     // 4 segments (1-4 within Evening) = day segments 13-16: 6-10 PM
     // Day ends at segment 16 (Evening segment 4), sleep/recovery happens automatically
+}
+
+/// <summary>
+/// Day advancement options for ChoiceReward time progression
+/// Used by single-choice instant situations to control day transitions
+/// </summary>
+public enum DayAdvancement
+{
+    CurrentDay,  // Stay on current day
+    NextDay      // Advance to next day
 }
 
 public static class TimeBlockSegments

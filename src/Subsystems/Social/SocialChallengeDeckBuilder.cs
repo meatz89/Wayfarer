@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Builds conversation decks from conversation type cards.
 /// NO PLAYER DECK - cards come from conversation types defined in JSON.
@@ -21,24 +17,24 @@ public class SocialChallengeDeckBuilder
     /// Create a conversation deck from conversation type cards.
     /// Request drives everything - it determines the conversation type and connection type.
     /// </summary>
-    public (SocialSessionCardDeck deck, List<CardInstance> GoalCards) CreateConversationDeck(
+    public SocialDeckBuildResult CreateConversationDeck(
         NPC npc,
         string requestId)
     {
         string sessionId = Guid.NewGuid().ToString();
 
-        // Get the goal which drives everything - from centralized GameWorld storage
-        Goal goal = _gameWorld.Goals.FirstOrDefault(g => g.Id == requestId);
-        if (goal == null)
+        // Get the situation which drives everything - from centralized GameWorld storage
+        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == requestId);
+        if (situation == null)
         {
-            throw new ArgumentException($"Goal {requestId} not found in GameWorld.Goals");
+            throw new ArgumentException($"Situation {requestId} not found in GameWorld.Situations");
         }
 
         // THREE PARALLEL SYSTEMS: Get Social engagement deck directly (no Types, just Decks)
-        SocialChallengeDeck deckDefinition = _gameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == goal.DeckId);
+        SocialChallengeDeck deckDefinition = _gameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
         if (deckDefinition == null)
         {
-            throw new InvalidOperationException($"[ConversationDeckBuilder] Conversation deck '{goal.DeckId}' not found in GameWorld.SocialChallengeDecks");
+            throw new InvalidOperationException($"[ConversationDeckBuilder] Conversation deck '{situation.DeckId}' not found in GameWorld.SocialChallengeDecks");
         }
 
         // Build card instances from engagement deck (no depth distribution - deck has explicit card list)
@@ -69,49 +65,49 @@ public class SocialChallengeDeckBuilder
         // Create session deck
         SocialSessionCardDeck deck = SocialSessionCardDeck.CreateFromInstances(deckInstances, sessionId);
 
-        // Process goal cards (victory conditions)
-        List<CardInstance> goalCardInstances = CreateGoalCardInstances(goal, npc);
+        // Process situation cards (victory conditions)
+        List<CardInstance> situationCardInstances = CreateSituationCardInstances(situation, npc);
 
-        // Add goal cards to deck's request pile
-        foreach (CardInstance goalCard in goalCardInstances)
+        // Add situation cards to deck's request pile
+        foreach (CardInstance situationCard in situationCardInstances)
         {
-            deck.AddGoalCard(goalCard);
+            deck.AddSituationCard(situationCard);
         }
 
         // Shuffle the deck after all cards have been added
         deck.ShuffleDeckPile();
 
         // Return deck with empty request cards (they're in the deck's request pile)
-        return (deck, new List<CardInstance>());
+        return new SocialDeckBuildResult(deck, new List<CardInstance>());
     }
 
     /// <summary>
-    /// Create goal card instances from goal's victory conditions
-    /// Goal cards are self-contained templates - no lookup required
+    /// Create situation card instances from situation's victory conditions
+    /// Situation cards are self-contained templates - no lookup required
     /// </summary>
-    private List<CardInstance> CreateGoalCardInstances(Goal goal, NPC npc)
+    private List<CardInstance> CreateSituationCardInstances(Situation situation, NPC npc)
     {
-        List<CardInstance> goalCardInstances = new List<CardInstance>();
+        List<CardInstance> situationCardInstances = new List<CardInstance>();
 
-        foreach (GoalCard goalCard in goal.GoalCards)
+        foreach (SituationCard situationCard in situation.SituationCards)
         {
-            // Create CardInstance directly from GoalCard (self-contained template)
-            CardInstance instance = new CardInstance(goalCard);
+            // Create CardInstance directly from SituationCard (self-contained template)
+            CardInstance instance = new CardInstance(situationCard);
 
             // Set context for threshold checking
             instance.Context = new CardContext
             {
-                threshold = goalCard.threshold,
-                RequestId = goal.Id
+                threshold = situationCard.threshold,
+                RequestId = situation.Id
             };
 
-            // Goal cards start unplayable until momentum threshold met
+            // Situation cards start unplayable until momentum threshold met
             instance.IsPlayable = false;
 
-            goalCardInstances.Add(instance);
+            situationCardInstances.Add(instance);
         }
 
-        return goalCardInstances;
+        return situationCardInstances;
     }
 
     /// <summary>

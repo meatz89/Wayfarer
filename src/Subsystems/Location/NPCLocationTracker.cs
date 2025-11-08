@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Tracks NPC positions and availability across locations and Locations.
 /// Manages NPC scheduling and focus based on time blocks.
@@ -61,16 +57,6 @@ public class NPCLocationTracker
         return _npcRepository.GetPrimaryNPCForSpot(LocationId, timeBlock);
     }
 
-    /// <summary>
-    /// Get all services available at a location.
-    /// </summary>
-    public List<ServiceTypes> GetAllLocationServices(string locationId)
-    {
-        if (string.IsNullOrEmpty(locationId)) return new List<ServiceTypes>();
-
-        // Use NPCRepository method
-        return _npcRepository.GetAllLocationServices(locationId);
-    }
 
     /// <summary>
     /// Check if an NPC is at a specific location.
@@ -80,9 +66,9 @@ public class NPCLocationTracker
         if (string.IsNullOrEmpty(npcId) || string.IsNullOrEmpty(LocationId)) return false;
 
         NPC npc = _npcRepository.GetById(npcId);
-        if (npc == null) return false;
+        if (npc == null || npc.Location == null) return false;
 
-        return npc.LocationId.Equals(LocationId, StringComparison.OrdinalIgnoreCase);
+        return npc.Location.Id.Equals(LocationId, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -114,7 +100,7 @@ public class NPCLocationTracker
         {
             NPCId = npcId,
             NPCName = npc.Name,
-            LocationId = npc.LocationId,
+            LocationId = npc.Location?.Id,
             TimeSlots = new List<NPCTimeSlot>()
         };
 
@@ -125,7 +111,7 @@ public class NPCLocationTracker
             {
                 TimeBlock = timeBlock,
                 IsAvailable = npc.IsAvailable(timeBlock),
-                LocationId = npc.LocationId
+                LocationId = npc.Location?.Id
             });
         }
 
@@ -151,7 +137,7 @@ public class NPCLocationTracker
                         NPCId = npc.ID,
                         NPCName = npc.Name,
                         TimeBlock = timeBlock,
-                        LocationId = npc.LocationId
+                        LocationId = npc.Location?.Id
                     });
                 }
             }
@@ -174,18 +160,11 @@ public class NPCLocationTracker
         {
             NPCId = npc.ID,
             NPCName = npc.Name,
-            LocationId = npc.LocationId,
+            LocationId = npc.Location?.Id,
             IsCurrentlyAvailable = npc.IsAvailable(_gameWorld.CurrentTimeBlock)
         };
     }
 
-    /// <summary>
-    /// Get NPCs that provide a specific service.
-    /// </summary>
-    public List<NPC> GetNPCsProvidingService(ServiceTypes service)
-    {
-        return _npcRepository.GetNPCsProvidingService(service);
-    }
 
     /// <summary>
     /// Get NPCs by profession.

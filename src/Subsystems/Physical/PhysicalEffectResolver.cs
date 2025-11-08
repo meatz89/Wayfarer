@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// PROJECTION PRINCIPLE: Pure projection function that returns what WOULD happen
 /// without modifying any game state. The resolver NEVER modifies state directly.
@@ -106,8 +102,8 @@ public class PhysicalEffectResolver
         result.BalanceChange = actionBalance + approachBalance;
 
         // ===== BREAKTHROUGH (Victory Resource) =====
-        // BASE: Breakthrough from card categorical properties
-        result.BaseBreakthrough = PhysicalCardEffectCatalog.GetProgressFromProperties(template.Depth, template.Category);
+        // BASE: Breakthrough from card (PRE-CALCULATED at parse time, stored on card)
+        result.BaseBreakthrough = template.BaseBreakthrough;
 
         // BONUS 2: Stat Level (Player progression)
         if (template.BoundStat != PlayerStatType.None)
@@ -129,8 +125,8 @@ public class PhysicalEffectResolver
         result.BreakthroughChange = result.BaseBreakthrough + result.BreakthroughBonuses.Sum(b => b.Amount);
 
         // ===== DANGER (Consequence Resource) =====
-        // BASE: Danger from card approach and depth
-        result.BaseDanger = PhysicalCardEffectCatalog.GetDangerFromProperties(template.Depth, template.Approach);
+        // BASE: Danger from card (PRE-CALCULATED at parse time, stored on card)
+        result.BaseDanger = template.BaseDanger;
 
         // BONUS 2: Exertion Risk Modifier
         int riskModifier = exertion.GetRiskModifier();

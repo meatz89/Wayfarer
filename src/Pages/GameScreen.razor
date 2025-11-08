@@ -36,6 +36,13 @@
                     <div class="resource-value">@Hunger</div>
                 </div>
             </div>
+            <div class="resource @(Focus < 3 ? "low" : "") @(Focus < 2 ? "critical" : "")">
+                <div class="resource-icon"><span class="icon-focus"></span></div>
+                <div class="resource-info">
+                    <div class="resource-label">Focus</div>
+                    <div class="resource-value">@Focus/@MaxFocus</div>
+                </div>
+            </div>
             <div class="resource">
                 <div class="resource-icon"><span class="icon-attention"></span></div>
                 <div class="resource-info">
@@ -53,9 +60,24 @@
         </div>
     </div>
 
-    <!-- Journal Button -->
-    <div class="journal-button-container">
+    <!-- Active Delivery Job Banner -->
+    @if (GetActiveDeliveryJob() != null)
+    {
+        var activeJob = GetActiveDeliveryJob();
+        <div class="active-job-banner">
+            <div class="active-job-icon">📦</div>
+            <div class="active-job-info">
+                <div class="active-job-label">Active Delivery:</div>
+                <div class="active-job-description">@activeJob.JobDescription</div>
+            </div>
+            <div class="active-job-payment">@activeJob.Payment coins</div>
+        </div>
+    }
+
+    <!-- Fixed Buttons Container (Journal + Map) -->
+    <div class="fixed-buttons-container">
         <button class="journal-btn" @onclick="ToggleJournal">📖 Journal</button>
+        <button class="map-btn" @onclick="ToggleMap">🗺️ Map</button>
     </div>
 
     <!-- Journal Modal -->
@@ -137,12 +159,15 @@
                 case ScreenMode.Exchange:
                     <ExchangeContent Context="@CurrentExchangeContext" OnExchangeEnd="HandleExchangeEnd" />
                     break;
-                    
+
+                case ScreenMode.Inventory:
+                    <InventoryContent OnClose="() => NavigateToScreen(ScreenMode.Location)" />
+                    break;
+
                 case ScreenMode.Travel:
-                    <TravelContent 
+                    <TravelContent
                         CurrentLocation="@GetCurrentLocation()"
-                        OnTravelRoute="HandleTravelRoute"
-                        OnNavigate="HandleNavigation" />
+                        OnNavigate="() => NavigateToScreen(ScreenMode.Location)" />
                     break;
                     
                 case ScreenMode.SocialChallenge:
@@ -155,6 +180,26 @@
 
                 case ScreenMode.PhysicalChallenge:
                     <PhysicalContent Context="@CurrentPhysicalContext" OnChallengeEnd="HandlePhysicalEnd" />
+                    break;
+
+                case ScreenMode.ConversationTree:
+                    <ConversationTreeContent Context="@CurrentConversationTreeContext" OnConversationEnd="HandleConversationTreeEnd" />
+                    break;
+
+                case ScreenMode.Observation:
+                    <ObservationContent Context="@CurrentObservationContext" OnObservationEnd="HandleObservationEnd" />
+                    break;
+
+                case ScreenMode.Scene:
+                    <SceneContent Context="@CurrentSceneContext" OnSceneEnd="HandleSceneEnd" />
+                    break;
+
+                case ScreenMode.Emergency:
+                    <EmergencyContent Context="@CurrentEmergencyContext" OnEmergencyEnd="HandleEmergencyEnd" />
+                    break;
+
+                case ScreenMode.HexMap:
+                    <HexMapContent />
                     break;
 
                 default:

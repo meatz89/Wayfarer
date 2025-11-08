@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for Physical Card
 /// Field optionality contract documented in field-optionality-contract.md

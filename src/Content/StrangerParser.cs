@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text.Json;
-
 /// <summary>
 /// Parser for stranger NPC content from JSON packages
 /// Returns regular NPC objects with IsStranger flag set
@@ -12,7 +8,7 @@ public static class StrangerParser
     /// <summary>
     /// Convert StrangerNPCDTO to NPC domain model with IsStranger flag
     /// </summary>
-    public static NPC ConvertDTOToNPC(StrangerNPCDTO dto)
+    public static NPC ConvertDTOToNPC(StrangerNPCDTO dto, GameWorld gameWorld)
     {
         // Parse personality type
         if (!Enum.TryParse<PersonalityType>(dto.Personality, true, out PersonalityType personalityType))
@@ -38,7 +34,6 @@ public static class StrangerParser
         {
             ID = dto.Id,
             Name = dto.Name,
-            LocationId = dto.LocationId,
             PersonalityType = personalityType,
             IsStranger = true,
             AvailableTimeBlock = timeBlock,
@@ -47,6 +42,12 @@ public static class StrangerParser
             Tier = dto.Level, // Use level as tier for difficulty
             Description = $"Level {dto.Level} stranger"
         };
+
+        // Resolve location object reference during parsing (HIGHLANDER: ID is parsing artifact)
+        if (!string.IsNullOrEmpty(dto.LocationId))
+        {
+            stranger.Location = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId);
+        }
 
         return stranger;
     }

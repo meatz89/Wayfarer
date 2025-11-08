@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿using Wayfarer.GameState.Enums;
 
 public class Venue
 {
@@ -14,10 +14,15 @@ public class Venue
     public string SkeletonSource { get; set; } // What created this skeleton
 
     // Tier system (1-5) for difficulty/content progression
-    public string LocationTypeString { get; set; } // Mechanical property for display type (e.g., "Tavern", "Crossroads")
+    public VenueType Type { get; set; } = VenueType.Wilderness;  // Strongly-typed venue category (replaces LocationTypeString)
     public int Tier { get; set; } = 1;
 
-    public List<string> LocationSpotIds { get; set; } = new List<string>();
+    public List<string> LocationIds { get; set; } = new List<string>();
+
+    // HEX-BASED TRAVEL SYSTEM: Venue is ONLY a wrapper for travel cost rules
+    // Venue has NO spatial position - Locations are the spatial entities
+    // Same Venue = instant free travel between locations
+    // Different Venue = Route required with hex path, costs, scenes
 
     public Venue(string id, string name)
     {

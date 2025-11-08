@@ -1,0 +1,270 @@
+/* ========================================
+   HEX MAP SCREEN STYLES
+   ======================================== */
+
+.hex-map-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    background-color: #faf4ea;
+    color: #3a2d1f;
+}
+
+/* ========================================
+   MAP HEADER
+   ======================================== */
+
+.map-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 2px solid #c4a684;
+    background-color: #f5efe3;
+}
+
+.map-title {
+    font-family: 'Cinzel', serif;
+    font-size: 24px;
+    font-weight: 600;
+    color: #3a2d1f;
+}
+
+.close-map-btn {
+    padding: 8px 16px;
+    background: linear-gradient(to bottom, #b89968, #a67c52);
+    border: 2px solid #8b6f47;
+    border-radius: 4px;
+    color: #faf4ea;
+    font-family: 'Cinzel', serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.close-map-btn:hover {
+    background: linear-gradient(to bottom, #c9aa78, #b68c62);
+    border-color: #9b7f57;
+    transform: translateY(-1px);
+}
+
+.close-map-btn:active {
+    transform: translateY(0);
+}
+
+/* ========================================
+   MAP VIEWPORT
+   ======================================== */
+
+.map-viewport {
+    flex: 1;
+    overflow: auto;
+    position: relative;
+    background-color: #faf4ea;
+}
+
+.hex-grid-container {
+    position: relative;
+    width: 1200px;
+    height: 800px;
+    margin: 40px auto;
+}
+
+/* ========================================
+   CSS HEXAGONS (FLAT-TOP)
+   ======================================== */
+
+.hex {
+    position: absolute;
+    width: 70px;
+    height: 80px;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    box-shadow: inset 0 0 0 1px rgba(139, 111, 71, 0.2);
+}
+
+.hex:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+    z-index: 10;
+}
+
+/* ========================================
+   HEX TERRAIN COLORS
+   ======================================== */
+
+.hex-plains {
+    background-color: #f4e8d0;
+}
+
+.hex-road {
+    background-color: #e8dcc4;
+}
+
+.hex-forest {
+    background-color: #7a8b5a;
+}
+
+.hex-mountains {
+    background-color: #8b7355;
+}
+
+.hex-swamp {
+    background-color: #6b7355;
+}
+
+.hex-water {
+    background-color: #6a8ba5;
+}
+
+/* ========================================
+   PLAYER MARKER
+   ======================================== */
+
+.player-marker {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    color: #d4a76a;
+    text-shadow:
+        -1px -1px 0 #8b6f47,
+        1px -1px 0 #8b6f47,
+        -1px 1px 0 #8b6f47,
+        1px 1px 0 #8b6f47,
+        0 0 8px rgba(212, 167, 106, 0.6);
+    z-index: 20;
+    pointer-events: none;
+}
+
+/* ========================================
+   LOCATION MARKER
+   ======================================== */
+
+.location-marker {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    z-index: 15;
+    pointer-events: none;
+}
+
+.location-pin {
+    width: 12px;
+    height: 12px;
+    background-color: #a67c52;
+    border: 2px solid #6b5433;
+    border-radius: 50%;
+    margin: 0 auto 4px;
+}
+
+.location-name {
+    font-family: 'Cinzel', serif;
+    font-size: 10px;
+    color: #3a2d1f;
+    white-space: nowrap;
+    background-color: rgba(250, 244, 234, 0.9);
+    padding: 2px 6px;
+    border-radius: 3px;
+    border: 1px solid #c4a684;
+}
+
+/* ========================================
+   MAP LEGEND
+   ======================================== */
+
+.map-legend {
+    padding: 20px;
+    border-top: 2px solid #c4a684;
+    background-color: #f5efe3;
+}
+
+.legend-title {
+    font-family: 'Cinzel', serif;
+    font-size: 16px;
+    font-weight: 600;
+    color: #3a2d1f;
+    margin-bottom: 12px;
+}
+
+.legend-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.legend-color {
+    width: 28px;
+    height: 32px;
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+}
+
+.player-marker-legend {
+    background-color: #d4a76a;
+    width: 30px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    border: 1.5px solid #8b7355;
+    border-radius: 3px;
+}
+
+.player-marker-legend::before {
+    content: "★";
+    color: #faf4ea;
+}
+
+.location-marker-legend {
+    background-color: #a67c52;
+    border: 1.5px solid #6b5433;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+}
+
+.legend-label {
+    font-family: 'Lora', serif;
+    font-size: 14px;
+    color: #3a2d1f;
+}
+
+/* ========================================
+   RESPONSIVE ADJUSTMENTS
+   ======================================== */
+
+@media (max-width: 768px) {
+    .map-title {
+        font-size: 20px;
+    }
+
+    .hex-grid-container {
+        width: 100%;
+        height: 600px;
+        margin: 20px auto;
+    }
+
+    .hex {
+        width: 60px;
+        height: 52px;
+    }
+
+    .legend-items {
+        gap: 12px;
+    }
+
+    .legend-label {
+        font-size: 12px;
+    }
+}

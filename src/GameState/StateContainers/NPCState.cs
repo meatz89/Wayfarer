@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 /// <summary>
@@ -16,7 +15,6 @@ public sealed class NPCState
 
     // Categorical Properties
     public Professions Profession { get; }
-    public ImmutableList<ServiceTypes> ProvidedServices { get; }
     public NPCRelationship PlayerRelationship { get; }
 
     public NPCState(
@@ -26,7 +24,6 @@ public sealed class NPCState
         string description,
         string locationId,
         Professions profession,
-        IEnumerable<ServiceTypes> providedServices,
         NPCRelationship playerRelationship)
     {
         ID = id;
@@ -35,7 +32,6 @@ public sealed class NPCState
         Description = description;
         LocationId = locationId;
         Profession = profession;
-        ProvidedServices = providedServices == null ? ImmutableList<ServiceTypes>.Empty : providedServices.ToImmutableList();
         PlayerRelationship = playerRelationship;
     }
 
@@ -46,7 +42,7 @@ public sealed class NPCState
     {
         return new NPCState(
         ID, Name, Role, Description, LocationId,
-        Profession, ProvidedServices, relationship);
+        Profession, relationship);
     }
 
     /// <summary>
@@ -56,17 +52,7 @@ public sealed class NPCState
     {
         return new NPCState(
         ID, Name, Role, Description, newSpotId,
-        Profession, ProvidedServices, PlayerRelationship);
-    }
-
-    /// <summary>
-    /// Creates a new NPCState with added service.
-    /// </summary>
-    public NPCState WithAddedService(ServiceTypes service)
-    {
-        return new NPCState(
-        ID, Name, Role, Description, LocationId,
-        Profession, ProvidedServices.Add(service), PlayerRelationship);
+        Profession, PlayerRelationship);
     }
 
     /// <summary>
@@ -79,9 +65,8 @@ public sealed class NPCState
             npc.Name,
             npc.Role,
             npc.Description,
-            npc.LocationId,
+            npc.Location?.Id,
             npc.Profession,
-            npc.ProvidedServices,
             npc.PlayerRelationship);
     }
 
@@ -95,10 +80,5 @@ public sealed class NPCState
     public bool IsAvailable(TimeBlocks currentTime)
     {
         return true; // NPCs are always available
-    }
-
-    public bool CanProvideService(ServiceTypes requestedService)
-    {
-        return ProvidedServices.Contains(requestedService);
     }
 }

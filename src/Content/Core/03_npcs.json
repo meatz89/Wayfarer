@@ -18,7 +18,7 @@
         "locationId": "common_room",
         "description": "The innkeeper, efficient and observant, managing the evening crowd with practiced ease. She wipes down tables while watching travelers settle in for the night.",
         "personality": "Practical but warm. Takes care of travelers. Has seen many road-worn wanderers stumble through her door.",
-        "personalityType": "DEVOTED",
+        "personalityType": "MERCANTILE",
         "currentState": "NEUTRAL",
         "initialTokens": {
           "Trust": 0
@@ -32,9 +32,27 @@
         "profession": "Warehouse Foreman",
         "venueId": "brass_bell_inn",
         "locationId": "common_room",
+        "workLocationId": "common_room",
+        "homeLocationId": "common_room",
         "description": "A warehouse foreman sitting at a corner table, looking for labor help with tonight's shipment. Direct, no-nonsense, pays fair for honest work.",
         "personality": "Straightforward and business-minded. Always needs capable hands. Values hard work over idle conversation.",
         "personalityType": "STEADFAST",
+        "currentState": "NEUTRAL",
+        "initialTokens": {
+          "Trust": 0
+        },
+        "conversationDifficulty": 1
+      },
+      {
+        "id": "merchant_general",
+        "name": "General Merchant",
+        "level": 1,
+        "profession": "Merchant",
+        "venueId": "town_square",
+        "locationId": "square_center",
+        "description": "A traveling merchant with various goods for sale. Practical equipment for travelers and adventurers.",
+        "personality": "Business-minded and efficient. Knows the value of good equipment.",
+        "personalityType": "MERCANTILE",
         "currentState": "NEUTRAL",
         "initialTokens": {
           "Trust": 0

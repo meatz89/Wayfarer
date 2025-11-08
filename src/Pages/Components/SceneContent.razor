@@ -1,0 +1,254 @@
+@inherits SceneContentBase
+
+@namespace Wayfarer.Pages.Components
+
+@* ARCHITECTURAL PRINCIPLE: Screen components are rendered INSIDE GameScreen's game-container.
+   They must NEVER define their own game-container, header, or resource bars - those are managed by the parent GameScreen.
+   Screen components should only contain their specific content wrapped in a semantic class like 'scene-content'. *@
+
+@if (Scene != null && CurrentSituation != null)
+{
+    <div class="scene-content">
+        <!-- Scene Header -->
+        <div class="scene-header">
+            <h2 class="scene-title">@Scene.DisplayName</h2>
+        </div>
+
+        <!-- Narrative Section -->
+        <div class="scene-narrative">
+            @CurrentSituation.Description
+        </div>
+
+        <!-- Choices Section -->
+        <div class="scene-choices">
+            @if (Choices != null && Choices.Any())
+            {
+                @foreach (var choice in Choices)
+                {
+                    <div class="scene-choice-card @((!choice.RequirementsMet || !choice.IsAffordable) ? "locked" : "")"
+                         @onclick="() => HandleChoiceSelected(choice)">
+                        @if (!choice.RequirementsMet || !choice.IsAffordable)
+                        {
+                            <div class="scene-locked-indicator">
+                                <div class="lock-header">
+                                    <span class="lock-icon">🔒</span>
+                                    <span class="lock-title">UNAVAILABLE</span>
+                                </div>
+                                @if (!choice.RequirementsMet && choice.RequirementPaths.Any())
+                                {
+                                    @foreach (var path in choice.RequirementPaths)
+                                    {
+                                        <div class="requirement-path">
+                                            @foreach (var req in path.MissingRequirements)
+                                            {
+                                                <div class="requirement-gap">@req</div>
+                                            }
+                                        </div>
+                                        @if (choice.RequirementPaths.Count > 1 && path != choice.RequirementPaths.Last())
+                                        {
+                                            <div class="requirement-or">OR</div>
+                                        }
+                                    }
+                                }
+                                @if (!choice.IsAffordable)
+                                {
+                                    <div class="requirement-gap">Insufficient resources (see costs below)</div>
+                                }
+                            </div>
+                        }
+                        <div class="choice-name">@choice.Name</div>
+                        @if (!string.IsNullOrEmpty(choice.Description))
+                        {
+                            <div class="choice-description">@choice.Description</div>
+                        }
+
+                        @* ALL CONSEQUENCES - Perfect Information - Always visible *@
+                        <div class="choice-section">
+                            <div class="choice-section-title">CONSEQUENCES:</div>
+                            <div class="choice-consequences">
+                                @if (choice.ResolveCost == 0 && choice.CoinsCost == 0 && choice.TimeSegments == 0 &&
+                                     choice.HealthCost == 0 && choice.StaminaCost == 0 && choice.FocusCost == 0 && choice.HungerCost == 0 &&
+                                     choice.CoinsReward == 0 && choice.ResolveReward == 0 && choice.HealthReward == 0 &&
+                                     choice.StaminaReward == 0 && choice.FocusReward == 0 && choice.HungerChange == 0 &&
+                                     !choice.FullRecovery && !choice.BondChanges.Any() && !choice.ScaleShifts.Any() &&
+                                     !choice.StateApplications.Any() && !choice.AchievementsGranted.Any() &&
+                                     !choice.ItemsGranted.Any() && !choice.LocationsUnlocked.Any() && !choice.ScenesUnlocked.Any())
+                                {
+                                    <div class="consequence-item consequence-none">(None)</div>
+                                }
+                                else
+                                {
+                                    @* COSTS as negative consequences (listed FIRST - Sir Brante pattern) *@
+                                    @if (choice.ResolveCost > 0)
+                                    {
+                                        <div class="consequence-item">
+                                            🎯 -@choice.ResolveCost Resolve (now @choice.CurrentResolve, will have @choice.FinalResolve)
+                                        </div>
+                                    }
+                                    @if (choice.CoinsCost > 0)
+                                    {
+                                        <div class="consequence-item">
+                                            💰 -@choice.CoinsCost Coins (now @choice.CurrentCoins, will have @choice.FinalCoins)
+                                        </div>
+                                    }
+                                    @if (choice.HealthCost > 0)
+                                    {
+                                        <div class="consequence-item">
+                                            ❤️ -@choice.HealthCost Health (now @choice.CurrentHealth, will have @choice.FinalHealth)
+                                        </div>
+                                    }
+                                    @if (choice.StaminaCost > 0)
+                                    {
+                                        <div class="consequence-item">
+                                            💪 -@choice.StaminaCost Stamina (now @choice.CurrentStamina, will have @choice.FinalStamina)
+                                        </div>
+                                    }
+                                    @if (choice.FocusCost > 0)
+                                    {
+                                        <div class="consequence-item">
+                                            🔷 -@choice.FocusCost Focus (now @choice.CurrentFocus, will have @choice.FinalFocus)
+                                        </div>
+                                    }
+                                    @if (choice.HungerCost > 0)
+                                    {
+                                        <div class="consequence-item">
+                                            🍽️ +@choice.HungerCost Hunger (now @choice.CurrentHunger, will have @choice.FinalHunger)
+                                        </div>
+                                    }
+                                    @if (choice.TimeSegments > 0)
+                                    {
+                                        <div class="consequence-item">
+                                            ⏱️ @choice.TimeSegments Segments
+                                        </div>
+                                    }
+
+                                    @* Resource rewards *@
+                                    @if (choice.FullRecovery)
+                                    {
+                                        <div class="consequence-item">✨ Full Recovery (all resources restored)</div>
+                                    }
+                                    @if (choice.CoinsReward != 0)
+                                    {
+                                        <div class="consequence-item">
+                                            💰 @(choice.CoinsReward > 0 ? "+" : "")@choice.CoinsReward Coins
+                                            <span class="final-value">(will have @choice.FinalCoins)</span>
+                                        </div>
+                                    }
+                                    @if (choice.ResolveReward != 0)
+                                    {
+                                        <div class="consequence-item">
+                                            🎯 @(choice.ResolveReward > 0 ? "+" : "")@choice.ResolveReward Resolve
+                                            <span class="final-value">(will have @choice.FinalResolve)</span>
+                                        </div>
+                                    }
+                                    @if (choice.HealthReward != 0)
+                                    {
+                                        <div class="consequence-item">
+                                            ❤️ @(choice.HealthReward > 0 ? "+" : "")@choice.HealthReward Health
+                                            <span class="final-value">(will have @choice.FinalHealth)</span>
+                                        </div>
+                                    }
+                                    @if (choice.StaminaReward != 0)
+                                    {
+                                        <div class="consequence-item">
+                                            💪 @(choice.StaminaReward > 0 ? "+" : "")@choice.StaminaReward Stamina
+                                            <span class="final-value">(will have @choice.FinalStamina)</span>
+                                        </div>
+                                    }
+                                    @if (choice.FocusReward != 0)
+                                    {
+                                        <div class="consequence-item">
+                                            🔷 @(choice.FocusReward > 0 ? "+" : "")@choice.FocusReward Focus
+                                            <span class="final-value">(will have @choice.FinalFocus)</span>
+                                        </div>
+                                    }
+                                    @if (choice.HungerChange != 0)
+                                    {
+                                        <div class="consequence-item">
+                                            🍽️ @(choice.HungerChange > 0 ? "+" : "")@choice.HungerChange Hunger
+                                            <span class="final-value">(will have @choice.FinalHunger)</span>
+                                        </div>
+                                    }
+
+                                    @* Relationship consequences *@
+                                    @foreach (var bondChange in choice.BondChanges)
+                                    {
+                                        <div class="consequence-item consequence-bond">
+                                            💙 @(bondChange.Delta > 0 ? "+" : "")@bondChange.Delta Bond with @bondChange.NpcName
+                                            <span class="final-value">(now @bondChange.CurrentBond, will have @bondChange.FinalBond)</span>
+                                            @if (!string.IsNullOrEmpty(bondChange.Reason))
+                                            {
+                                                <div class="consequence-reason">@bondChange.Reason</div>
+                                            }
+                                        </div>
+                                    }
+
+                                    @* Reputation consequences *@
+                                    @foreach (var scaleShift in choice.ScaleShifts)
+                                    {
+                                        <div class="consequence-item consequence-scale">
+                                            ⚖️ @(scaleShift.Delta > 0 ? "+" : "")@scaleShift.Delta @scaleShift.ScaleName
+                                            <span class="final-value">(now @scaleShift.CurrentScale, will have @scaleShift.FinalScale)</span>
+                                            @if (!string.IsNullOrEmpty(scaleShift.Reason))
+                                            {
+                                                <div class="consequence-reason">@scaleShift.Reason</div>
+                                            }
+                                        </div>
+                                    }
+
+                                    @* Condition consequences *@
+                                    @foreach (var stateApp in choice.StateApplications)
+                                    {
+                                        <div class="consequence-item consequence-state">
+                                            @(stateApp.Apply ? "✅ Gain" : "❌ Remove") State: @stateApp.StateName
+                                            @if (!string.IsNullOrEmpty(stateApp.Reason))
+                                            {
+                                                <div class="consequence-reason">@stateApp.Reason</div>
+                                            }
+                                        </div>
+                                    }
+
+                                    @* Progression unlocks *@
+                                    @if (choice.AchievementsGranted.Any())
+                                    {
+                                        <div class="consequence-item consequence-unlock">
+                                            🏆 Achievements: @string.Join(", ", choice.AchievementsGranted)
+                                        </div>
+                                    }
+                                    @if (choice.ItemsGranted.Any())
+                                    {
+                                        <div class="consequence-item consequence-unlock">
+                                            🎒 Items: @string.Join(", ", choice.ItemsGranted)
+                                        </div>
+                                    }
+                                    @if (choice.LocationsUnlocked.Any())
+                                    {
+                                        <div class="consequence-item consequence-unlock">
+                                            🗺️ Unlocks: @string.Join(", ", choice.LocationsUnlocked)
+                                        </div>
+                                    }
+                                    @if (choice.ScenesUnlocked.Any())
+                                    {
+                                        <div class="consequence-item consequence-unlock">
+                                            📖 Unlocks Scenes: @string.Join(", ", choice.ScenesUnlocked)
+                                        </div>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="no-choices-message">No choices available</div>
+            }
+        </div>
+    </div>
+}
+else
+{
+    <div class="scene-error">
+        <p>Scene or situation not found</p>
+    </div>
+}

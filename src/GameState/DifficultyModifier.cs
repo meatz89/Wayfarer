@@ -1,6 +1,6 @@
 /// <summary>
 /// Difficulty modifier - reduces challenge difficulty based on player resources
-/// No boolean gates: All goals always visible, difficulty varies transparently
+/// No boolean gates: All situations always visible, difficulty varies transparently
 /// Graduated benefits: Higher resources = greater difficulty reduction
 /// </summary>
 public class DifficultyModifier
@@ -12,12 +12,12 @@ public class DifficultyModifier
 
     /// <summary>
     /// Context for the modifier (if needed)
-    /// NO ID MATCHING: Familiarity and ConnectionTokens use goal's properties, not Context
+    /// NO ID MATCHING: Familiarity and ConnectionTokens use situation's placement via GetPlacementId(), not Context
     /// - Understanding: null (global resource)
     /// - Mastery: Challenge type ("Combat", "Athletics", etc.)
-    /// - Familiarity: NOT USED (uses goal.PlacementLocationId instead)
-    /// - ConnectionTokens: NOT USED (uses goal.NpcId instead)
-    /// - ObstacleProperty: Property name (always "Intensity" now)
+    /// - Familiarity: NOT USED (uses situation.GetPlacementId(PlacementType.Location) instead)
+    /// - ConnectionTokens: NOT USED (uses situation.GetPlacementId(PlacementType.NPC) instead)
+    /// - SceneProperty: Property name (always "Intensity" now)
     /// - HasItemCategory: ItemCategory enum value as string ("Light_Source", "Navigation_Tools", etc.)
     /// </summary>
     public string Context { get; set; }
@@ -28,7 +28,7 @@ public class DifficultyModifier
     /// - Mastery: 0-3
     /// - Familiarity: 0-3
     /// - ConnectionTokens: 0-15
-    /// - ObstacleProperty: Maximum threshold (inverted: lower is better)
+    /// - SceneProperty: Maximum threshold (inverted: lower is better)
     /// - HasItemCategory: Not used (presence check only)
     /// </summary>
     public int Threshold { get; set; }
@@ -44,7 +44,7 @@ public class DifficultyModifier
 /// <summary>
 /// Types of difficulty modifiers
 /// NO ID MATCHING: Only mechanical properties and numerical resources
-/// All goals always visible, difficulty varies based on player state
+/// All situations always visible, difficulty varies based on player state
 /// </summary>
 public enum ModifierType
 {
@@ -63,7 +63,7 @@ public enum ModifierType
     /// Physical expertise per challenge type (0-3 scale per type)
     /// Accumulated through Physical challenges of specific types
     /// Never depletes (cumulative per-type growth)
-    /// Competition: Multiple physical obstacles need it, limited Stamina to accumulate
+    /// Competition: Multiple physical scenes need it, limited Stamina to accumulate
     /// Context: Challenge type ("Combat", "Athletics", "Finesse", etc.)
     /// Threshold: Minimum Mastery needed for that type (e.g., 2)
     /// Effect: Danger reduction (e.g., -3)
@@ -75,7 +75,7 @@ public enum ModifierType
     /// Accumulated through Mental challenges at that specific location
     /// Never depletes (cumulative per-location growth)
     /// Competition: Multiple locations need obligation, limited Focus
-    /// Context: NOT USED (service uses goal.PlacementLocationId instead - NO ID MATCHING)
+    /// Context: NOT USED (service uses situation.GetPlacementId(PlacementType.Location) instead - NO ID MATCHING)
     /// Threshold: Minimum Familiarity needed (e.g., 2)
     /// Effect: Exposure or Doubt reduction (e.g., -2)
     /// </summary>
@@ -86,22 +86,22 @@ public enum ModifierType
     /// Accumulated through Social challenges with that specific NPC
     /// Can decrease through obligation failures
     /// Competition: Multiple NPCs need relationship building, limited Time
-    /// Context: NOT USED (service uses goal.NpcId instead - NO ID MATCHING)
+    /// Context: NOT USED (service uses situation.NpcId instead - NO ID MATCHING)
     /// Threshold: Minimum Connection Tokens needed (e.g., 5)
     /// Effect: Doubt rate reduction (e.g., -4)
     /// </summary>
     ConnectionTokens,
 
     /// <summary>
-    /// Obstacle property threshold check
-    /// Checks if obstacle intensity meets threshold
+    /// Scene property threshold check
+    /// Checks if scene intensity meets threshold
     /// Context: Property name (always "Intensity" now)
     /// Threshold: Maximum intensity value (inverted logic: lower is better)
     /// Effect: Difficulty change (can be positive or negative)
     /// Example: If Intensity <= 2, reduce difficulty by 3
     /// Example: If Intensity > 3, increase difficulty by 2
     /// </summary>
-    ObstacleProperty,
+    SceneProperty,
 
     /// <summary>
     /// Equipment category presence (MECHANICAL PROPERTY, NOT ID)

@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Base class for all player intents. Intents represent what the player wants to do,
 /// without any execution logic or context. They are pure data objects.
@@ -43,19 +41,6 @@ public class TalkIntent : PlayerIntent
     }
 }
 
-/// <summary>
-/// Intent to rest for a certain number of segments
-/// </summary>
-public class RestIntent : PlayerIntent
-{
-    public int Segments { get; }
-
-    public RestIntent(int segments)
-    {
-        // No validation - let it fail naturally if segments <= 0
-        Segments = segments;
-    }
-}
 
 /// <summary>
 /// Intent to wait until the next time period (refreshes attention)
@@ -121,5 +106,115 @@ public class DiscoverRouteIntent : PlayerIntent
         NpcId = npcId;
         RouteId = routeId;
     }
+}
+
+/// <summary>
+/// Intent to view player's equipment and inventory
+/// Triggers navigation to equipment screen - backend decides
+/// </summary>
+public class CheckBelongingsIntent : PlayerIntent
+{
+}
+
+/// <summary>
+/// Intent to engage with an NPC
+/// Spawns scene for NPC engagement, shows situations/choices
+/// This is the CORRECT way to interact with NPCs (not direct challenge execution)
+/// </summary>
+public class EngageNPCIntent : PlayerIntent
+{
+    public string NpcId { get; }
+
+    public EngageNPCIntent(string npcId)
+    {
+        NpcId = npcId ?? throw new ArgumentNullException(nameof(npcId));
+    }
+}
+
+/// <summary>
+/// Intent to look around at current location
+/// Triggers navigation to LookingAround view showing NPCs, challenges, opportunities
+/// </summary>
+public class LookAroundIntent : PlayerIntent
+{
+}
+
+/// <summary>
+/// Intent to sleep rough without shelter
+/// Uses PlayerAction entity for data-driven health cost
+/// </summary>
+public class SleepOutsideIntent : PlayerIntent
+{
+}
+
+/// <summary>
+/// Intent to rest at current location
+/// Uses LocationAction entity for data-driven recovery rewards
+/// Replaces old RestIntent(int segments) with data-driven approach
+/// </summary>
+public class RestAtLocationIntent : PlayerIntent
+{
+}
+
+/// <summary>
+/// Intent to secure a paid room for full recovery
+/// Uses LocationAction entity for cost and fullRecovery flag
+/// </summary>
+public class SecureRoomIntent : PlayerIntent
+{
+}
+
+/// <summary>
+/// Intent to work at current location for coins
+/// Uses LocationAction entity for data-driven coin rewards
+/// </summary>
+public class WorkIntent : PlayerIntent
+{
+}
+
+/// <summary>
+/// Intent to investigate current location for familiarity
+/// Delegates to LocationFacade
+/// </summary>
+public class InvestigateLocationIntent : PlayerIntent
+{
+}
+
+/// <summary>
+/// Intent to open the Travel screen to view available routes
+/// Different from TravelIntent which executes travel to a specific destination
+/// </summary>
+public class OpenTravelScreenIntent : PlayerIntent
+{
+}
+
+/// <summary>
+/// Intent to view job board at current Commercial location
+/// Opens modal showing available delivery jobs
+/// </summary>
+public class ViewJobBoardIntent : PlayerIntent
+{
+}
+
+/// <summary>
+/// Intent to accept a delivery job
+/// Player can only have ONE active job at a time
+/// </summary>
+public class AcceptDeliveryJobIntent : PlayerIntent
+{
+    public string JobId { get; }
+
+    public AcceptDeliveryJobIntent(string jobId)
+    {
+        JobId = jobId;
+    }
+}
+
+/// <summary>
+/// Intent to complete active delivery job at destination
+/// Pays player and clears active job
+/// </summary>
+public class CompleteDeliveryIntent : PlayerIntent
+{
 }
 

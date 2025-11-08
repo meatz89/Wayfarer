@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Data Transfer Object for deserializing global Player action data from JSON.
 /// PlayerActions are available everywhere, not location-specific like LocationActions.
@@ -23,9 +21,14 @@ public class PlayerActionDTO
     public string Description { get; set; }
 
     /// <summary>
-    /// Resource costs required to perform this action (e.g., attention, coins)
+    /// Resource costs required to perform this action
     /// </summary>
-    public Dictionary<string, int> Cost { get; set; } = new Dictionary<string, int>();
+    public ActionCostsDTO Cost { get; set; } = new ActionCostsDTO();
+
+    /// <summary>
+    /// Resources rewarded for performing this action
+    /// </summary>
+    public ActionRewardsDTO Reward { get; set; } = new ActionRewardsDTO();
 
     /// <summary>
     /// Time required to complete this action in segments

@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for loading PhysicalChallengeDeck from JSON
 /// </summary>

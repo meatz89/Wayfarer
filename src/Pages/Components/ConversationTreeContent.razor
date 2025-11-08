@@ -1,0 +1,89 @@
+@inherits ConversationTreeContentBase
+
+@namespace Wayfarer.Pages.Components
+
+<link rel="stylesheet" href="css/conversation-tree-screen.css" />
+
+@* ARCHITECTURAL PRINCIPLE: Screen components (LocationContent, ConversationContent, ExchangeContent, etc.) are rendered INSIDE GameScreen's game-container.
+   They must NEVER define their own game-container, header, or resource bars - those are managed by the parent GameScreen.
+   Screen components should only contain their specific content wrapped in a semantic class like 'conversation-tree-content'. *@
+
+@if (Context != null && Context.IsValid)
+{
+    <div class="conversation-tree-content">
+        <!-- NPC Header -->
+        <div class="npc-header">
+            <div class="npc-name">@Context.Npc.Name</div>
+            <div class="location-context">@Context.LocationName - @Context.TimeDisplay</div>
+        </div>
+
+        <!-- Relationship Display -->
+        <div class="relationship-display">
+            <span class="relationship-label">Relationship:</span>
+            <span class="relationship-value">@Context.CurrentRelationship</span>
+        </div>
+
+        <!-- NPC Dialogue -->
+        <div class="npc-dialogue-section">
+            <div class="dialogue-text">@Context.CurrentNode.NpcDialogue</div>
+        </div>
+
+        <!-- Player Responses -->
+        <div class="responses-section">
+            <h3>Your Response:</h3>
+
+            @foreach (var response in Context.GetAvailableResponses())
+            {
+                <div class="response-option available" @onclick="() => HandleSelectResponse(response.Id)">
+                    <div class="response-text">@response.ResponseText</div>
+                    <div class="response-costs">
+                        @if (response.FocusCost > 0)
+                        {
+                            <span class="cost-focus">Focus: @response.FocusCost</span>
+                        }
+                        @if (response.TimeCost > 0)
+                        {
+                            <span class="cost-time">Time: @response.TimeCost segment(s)</span>
+                        }
+                    </div>
+                    @if (response.EscalatesToSocialChallenge)
+                    {
+                        <div class="escalation-indicator">⚠️ This will start a negotiation</div>
+                    }
+                </div>
+            }
+
+            @foreach (var response in Context.GetBlockedResponses())
+            {
+                <div class="response-option blocked">
+                    <div class="response-text">@response.ResponseText</div>
+                    <div class="blocked-reason">@Context.GetBlockReason(response)</div>
+                </div>
+            }
+        </div>
+
+        <!-- Resource Display -->
+        <div class="resource-display">
+            <div class="resource-item">
+                <span class="resource-label">Focus:</span>
+                <span class="resource-value">@Context.CurrentFocus / @Context.MaxFocus</span>
+            </div>
+        </div>
+
+        <!-- Leave Button -->
+        <div class="action-section">
+            <button class="leave-button" @onclick="HandleReturn">Leave Conversation</button>
+        </div>
+    </div>
+}
+else if (Context != null)
+{
+    <div class="error-message">
+        <p>@Context.ErrorMessage</p>
+        <button @onclick="HandleReturn">Return</button>
+    </div>
+}
+else
+{
+    <div class="loading">Loading conversation...</div>
+}

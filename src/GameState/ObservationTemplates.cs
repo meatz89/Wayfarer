@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Templated observation system to generate varied content without explosion
 /// Based on Alex's recommendation: 24 base templates + 120 detail phrases = 1000+ combinations
@@ -367,5 +363,5 @@ public class ObservationTemplates
 /// </summary>
 public class ObservationTemplate
 {
-    public List<string> Variations { get; set; } = new();
+    public List<string> Variations { get; init; } = new();
 }

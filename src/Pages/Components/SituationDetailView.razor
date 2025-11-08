@@ -1,0 +1,64 @@
+@inherits SituationDetailViewBase
+
+@namespace Wayfarer.Pages.Components
+
+@if (SelectedSituation != null)
+{
+    <div class="location-situation-detail-view">
+        <div class="situation-detail-header">
+            <div class="situation-detail-name">@SelectedSituation.Name</div>
+            <div class="situation-system-badge @SelectedSituation.SystemTypeLowercase">@SelectedSituation.SystemType</div>
+        </div>
+
+        @if (!string.IsNullOrEmpty(SelectedSituation.Description))
+        {
+            <div class="situation-detail-description">@SelectedSituation.Description</div>
+        }
+
+        <div class="situation-detail-info">
+            <div class="info-section">
+                <div class="info-label">Difficulty</div>
+                <div class="info-value">
+                    @if (SelectedSituation.SystemType == TacticalSystemType.Social)
+                    {
+                        <span>Doubt Rate: @SelectedSituation.Difficulty</span>
+                    }
+                    else if (SelectedSituation.SystemType == TacticalSystemType.Mental)
+                    {
+                        <span>Exposure: @SelectedSituation.Difficulty</span>
+                    }
+                    else if (SelectedSituation.SystemType == TacticalSystemType.Physical)
+                    {
+                        <span>Danger: @SelectedSituation.Difficulty</span>
+                    }
+                </div>
+            </div>
+
+            @if (SelectedSituation.HasCosts)
+            {
+                <div class="info-section">
+                    <div class="info-label">Costs</div>
+                    <div class="info-value">
+                        @if (SelectedSituation.FocusCost > 0)
+                        {
+                            <span>Focus: @SelectedSituation.FocusCost</span>
+                        }
+                        @if (SelectedSituation.StaminaCost > 0)
+                        {
+                            <span>Stamina: @SelectedSituation.StaminaCost</span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="situation-detail-actions">
+            <button class="action-button primary" @onclick="async () => await OnCommitToSituation.InvokeAsync(SelectedSituation.Situation)">
+                BEGIN CHALLENGE
+            </button>
+            <button class="action-button" @onclick="() => OnNavigateBack.InvokeAsync()">
+                Cancel
+            </button>
+        </div>
+    </div>
+}

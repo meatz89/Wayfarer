@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Metadata about a content package
 /// </summary>

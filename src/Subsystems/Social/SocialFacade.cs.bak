@@ -66,9 +66,9 @@ public class SocialFacade
         }
 
         // Get the request that drives this conversation - from centralized GameWorld storage
-        if (!_gameWorld.Goals.TryGetValue(requestId, out Goal goal))
+        if (!_gameWorld.Situations.TryGetValue(requestId, out Situation situation))
         {
-            throw new ArgumentException($"Goal {requestId} not found in GameWorld.Goals");
+            throw new ArgumentException($"Situation {requestId} not found in GameWorld.Situations");
         }
 
         // Get connection state from NPC for session initialization
@@ -83,7 +83,7 @@ public class SocialFacade
         Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
 
         // Create session deck and get request cards from the request
-        (SocialSessionCardDeck deck, List<CardInstance> GoalCards) = _deckBuilder.CreateConversationDeck(npc, requestId);
+        (SocialSessionCardDeck deck, List<CardInstance> SituationCards) = _deckBuilder.CreateConversationDeck(npc, requestId);
 
         // Calculate starting resources based on player's highest stat
         Player player = _gameWorld.GetPlayer();
@@ -97,15 +97,15 @@ public class SocialFacade
 
         Console.WriteLine($"[ConversationFacade] Starting resources - Understanding: {startingUnderstanding}, Momentum: {startingMomentum}, Initiative: {startingInitiative} (highest stat: {highestStat}, bonus: {statBonus})");
 
-        // Get request text from the goal description
-        string requestText = goal.Description;
+        // Get request text from the situation description
+        string requestText = situation.Description;
 
         // Create session with new properties
         _gameWorld.CurrentSocialSession = new SocialSession
         {
             NPC = npc,
             RequestId = requestId,
-            DeckId = goal.DeckId,
+            DeckId = situation.DeckId,
             CurrentState = initialState,
             InitialState = initialState,
             CurrentInitiative = startingInitiative,
@@ -133,7 +133,7 @@ public class SocialFacade
         _gameWorld.CurrentSocialSession.Deck.DrawToHand(drawCount, _gameWorld.CurrentSocialSession, player.Stats);
 
         // Update request card playability based on initiative
-        UpdateGoalCardPlayability(_gameWorld.CurrentSocialSession);
+        UpdateSituationCardPlayability(_gameWorld.CurrentSocialSession);
 
         // Update card playability based on starting initiative (already set from formula)
         UpdateCardPlayabilityBasedOnInitiative(_gameWorld.CurrentSocialSession);
@@ -180,7 +180,7 @@ public class SocialFacade
 
     /// <summary>
     /// Execute LISTEN action - Complete 4-Resource System Implementation
-    /// Sequence: Apply Cadence Effects → Handle Card Persistence → Fixed Card Draw → Refresh Initiative → Check Goal Cards
+    /// Sequence: Apply Cadence Effects → Handle Card Persistence → Fixed Card Draw → Refresh Initiative → Check Situation Cards
     /// </summary>
     public async Task<SocialTurnResult> ExecuteListen()
     {
@@ -210,8 +210,8 @@ public class SocialFacade
         // 5. NO Initiative refresh (must be earned through cards like Steamworld Quest)
         // Initiative stays at current value - only Foundation cards can build it
 
-        // 6. Check Goal Card Activation
-        CheckGoalCardActivation(_gameWorld.CurrentSocialSession);
+        // 6. Check Situation Card Activation
+        CheckSituationCardActivation(_gameWorld.CurrentSocialSession);
 
         // 7. Reset Turn-Based Effects
         _personalityEnforcer?.OnListen(); // Resets Proud personality turn state
@@ -267,42 +267,42 @@ public class SocialFacade
         // Advance time by 1 segment per conversation round (per documentation)
         _timeManager.AdvanceSegments(1);
 
-        // THREE PARALLEL SYSTEMS SYMMETRY: Check goal card type BEFORE validation
-        // Goal cards have no SocialCardTemplate, so must be checked first
-        if (selectedCard.CardType == CardTypes.Goal)
+        // THREE PARALLEL SYSTEMS SYMMETRY: Check situation card type BEFORE validation
+        // Situation cards have no SocialCardTemplate, so must be checked first
+        if (selectedCard.CardType == CardTypes.Situation)
         {
-            Console.WriteLine($"[SocialFacade] GoalCard played - ending conversation with success");
+            Console.WriteLine($"[SocialFacade] SituationCard played - ending conversation with success");
 
             // Apply obstacle effects via containment pattern (THREE PARALLEL SYSTEMS symmetry)
-            // Find parent obstacle containing this goal (distributed interaction pattern)
+            // Find parent obstacle containing this situation (distributed interaction pattern)
             NPC npc = _gameWorld.CurrentSocialSession.NPC;
 
             Obstacle parentObstacle = _gameWorld.Obstacles
-                .FirstOrDefault(o => o.GoalIds.Contains(_gameWorld.CurrentSocialSession.RequestId));
+                .FirstOrDefault(o => o.SituationIds.Contains(_gameWorld.CurrentSocialSession.RequestId));
 
-            if (parentObstacle != null && _gameWorld.Goals.TryGetValue(_gameWorld.CurrentSocialSession.RequestId, out Goal goal))
+            if (parentObstacle != null && _gameWorld.Situations.TryGetValue(_gameWorld.CurrentSocialSession.RequestId, out Situation situation))
             {
-                switch (goal.ConsequenceType)
+                switch (situation.ConsequenceType)
                 {
                     case ConsequenceType.Resolution:
                         // Permanently overcome
                         parentObstacle.State = ObstacleState.Resolved;
-                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
+                        parentObstacle.ResolutionMethod = situation.SetsResolutionMethod;
+                        parentObstacle.RelationshipOutcome = situation.SetsRelationshipOutcome;
                         // Remove from active play (but keep in GameWorld for history)
                         if (!parentObstacle.IsPermanent)
                         {
                             npc.ObstacleIds.Remove(parentObstacle.Id);
                         }
                         _messageSystem.AddSystemMessage(
-                            $"Obstacle '{parentObstacle.Name}' permanently resolved via {goal.SetsResolutionMethod}",
+                            $"Obstacle '{parentObstacle.Name}' permanently resolved via {situation.SetsResolutionMethod}",
                             SystemMessageTypes.Success);
                         break;
 
                     case ConsequenceType.Bypass:
                         // Player passes, obstacle persists
-                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
+                        parentObstacle.ResolutionMethod = situation.SetsResolutionMethod;
+                        parentObstacle.RelationshipOutcome = situation.SetsRelationshipOutcome;
                         Console.WriteLine($"[SocialFacade] Bypassed obstacle '{parentObstacle.Name}', obstacle persists");
                         break;
 
@@ -310,10 +310,10 @@ public class SocialFacade
                         // Fundamentally changed
                         parentObstacle.State = ObstacleState.Transformed;
                         parentObstacle.Intensity = 0;
-                        if (!string.IsNullOrEmpty(goal.TransformDescription))
-                            parentObstacle.TransformedDescription = goal.TransformDescription;
-                        parentObstacle.ResolutionMethod = goal.SetsResolutionMethod;
-                        parentObstacle.RelationshipOutcome = goal.SetsRelationshipOutcome;
+                        if (!string.IsNullOrEmpty(situation.TransformDescription))
+                            parentObstacle.TransformedDescription = situation.TransformDescription;
+                        parentObstacle.ResolutionMethod = situation.SetsResolutionMethod;
+                        parentObstacle.RelationshipOutcome = situation.SetsRelationshipOutcome;
                         _messageSystem.AddSystemMessage(
                             $"Obstacle '{parentObstacle.Name}' transformed, intensity set to 0",
                             SystemMessageTypes.Success);
@@ -321,10 +321,10 @@ public class SocialFacade
 
                     case ConsequenceType.Modify:
                         // Intensity reduced
-                        if (goal.PropertyReduction != null)
+                        if (situation.PropertyReduction != null)
                         {
                             parentObstacle.Intensity = Math.Max(0,
-                                parentObstacle.Intensity - goal.PropertyReduction.ReduceIntensity);
+                                parentObstacle.Intensity - situation.PropertyReduction.ReduceIntensity);
                         }
                         parentObstacle.ResolutionMethod = ResolutionMethod.Preparation;
                         // Check if intensity is now 0 (fully modified)
@@ -343,22 +343,22 @@ public class SocialFacade
                         break;
                 }
             }
-            // Else: ambient goal with no obstacle parent
+            // Else: ambient situation with no obstacle parent
 
             _gameWorld.CurrentSocialSession.Deck.PlayCard(selectedCard);
             EndConversation();
 
             // Generate narrative and return
-            List<CardInstance> goalActiveCards = _gameWorld.CurrentSocialSession.Deck.HandCards.ToList();
-            NarrativeOutput goalNarrative = await _narrativeService.GenerateNarrativeAsync(
-                _gameWorld.CurrentSocialSession, _gameWorld.CurrentSocialSession.NPC, goalActiveCards);
+            List<CardInstance> situationActiveCards = _gameWorld.CurrentSocialSession.Deck.HandCards.ToList();
+            NarrativeOutput situationNarrative = await _narrativeService.GenerateNarrativeAsync(
+                _gameWorld.CurrentSocialSession, _gameWorld.CurrentSocialSession.NPC, situationActiveCards);
 
             return new SocialTurnResult
             {
                 Success = true,
                 NewState = _gameWorld.CurrentSocialSession.CurrentState,
-                NPCResponse = goalNarrative.NPCDialogue,
-                Narrative = goalNarrative,
+                NPCResponse = situationNarrative.NPCDialogue,
+                Narrative = situationNarrative,
                 EndsConversation = true
             };
         }
@@ -495,9 +495,9 @@ public class SocialFacade
         }
 
         // Get request to determine attention cost - from centralized GameWorld storage
-        if (!_gameWorld.Goals.TryGetValue(requestId, out Goal goal))
+        if (!_gameWorld.Situations.TryGetValue(requestId, out Situation situation))
         {
-            return SocialContextFactory.CreateInvalidContext($"Goal {requestId} not found in GameWorld.Goals");
+            return SocialContextFactory.CreateInvalidContext($"Situation {requestId} not found in GameWorld.Situations");
         }
 
         // Start conversation with the request
@@ -505,7 +505,7 @@ public class SocialFacade
 
         // Create typed context based on request's conversation type
         SocialChallengeContext context = SocialContextFactory.CreateContext(
-            goal.DeckId,
+            situation.DeckId,
             npc,
             session,
             new List<CardInstance>(), // observationCards - empty for now
@@ -513,7 +513,7 @@ public class SocialFacade
             _gameWorld.GetPlayer().CurrentLocation.ToString(),
             _timeManager.GetCurrentTimeBlock().ToString());
 
-        // Goal cards now handle domain logic - no context-specific initialization needed
+        // Situation cards now handle domain logic - no context-specific initialization needed
 
         return context;
     }
@@ -555,9 +555,9 @@ public class SocialFacade
         if (!canAfford)
             return false;
 
-        // Additional checks for goal cards that are still in RequestPile
+        // Additional checks for situation cards that are still in RequestPile
         // Cards that have been moved to ActiveCards have already met their threshold
-        if (card.CardType == CardTypes.Goal)
+        if (card.CardType == CardTypes.Situation)
         {
             // If card is in RequestPile, check momentum threshold
             if (session.Deck?.IsCardInRequestPile(card) == true)
@@ -701,10 +701,10 @@ public class SocialFacade
     }
 
     /// <summary>
-    /// Check if goal cards should become active based on momentum thresholds
+    /// Check if situation cards should become active based on momentum thresholds
     /// Basic: 8, Enhanced: 12, Premium: 16
     /// </summary>
-    private void CheckGoalCardActivation(SocialSession session)
+    private void CheckSituationCardActivation(SocialSession session)
     {
         int currentMomentum = session.CurrentMomentum;
 
@@ -742,7 +742,7 @@ public class SocialFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Skip request cards - their playability is based on momentum thresholds
-            if (card.CardType == CardTypes.Goal)
+            if (card.CardType == CardTypes.Situation)
             {
                 continue;
             }
@@ -810,7 +810,7 @@ public class SocialFacade
         }
 
         // Check if card ends conversation (Request, Promise, Burden cards)
-        bool endsConversation = selectedCard.CardType == CardTypes.Goal;
+        bool endsConversation = selectedCard.CardType == CardTypes.Situation;
 
         // Create play result
         return new CardPlayResult
@@ -968,7 +968,7 @@ public class SocialFacade
         if (session.TurnHistory != null && session.TurnHistory.Any())
         {
             SocialTurn lastTurn = session.TurnHistory.Last();
-            if (lastTurn?.CardPlayed?.CardType == CardTypes.Goal)
+            if (lastTurn?.CardPlayed?.CardType == CardTypes.Situation)
             {
                 return true;
             }
@@ -1013,8 +1013,8 @@ public class SocialFacade
         // Calculate token rewards based on final state
         int tokensEarned = CalculateTokenReward(session.CurrentState, session.CurrentMomentum);
 
-        // Check if any request cards were played (Letter, Promise, or BurdenGoal types)
-        bool requestAchieved = session.Deck.SpokenCards.Any(c => c.CardType == CardTypes.Goal);
+        // Check if any request cards were played (Letter, Promise, or BurdenSituation types)
+        bool requestAchieved = session.Deck.SpokenCards.Any(c => c.CardType == CardTypes.Situation);
         if (requestAchieved)
         {
             tokensEarned += 2; // Bonus for completing request
@@ -1050,7 +1050,7 @@ public class SocialFacade
         };
 
         // Bonus for high momentum achievement
-        if (finalMomentum >= 12) // Enhanced goal threshold
+        if (finalMomentum >= 12) // Enhanced situation threshold
             baseReward += 1;
         else if (finalMomentum < 4) // Very low momentum penalty
             baseReward -= 1;
@@ -1102,26 +1102,26 @@ public class SocialFacade
         // Get the drawn cards for return value
         List<CardInstance> drawnCards = session.Deck.HandCards.TakeLast(baseDrawCount).ToList();
 
-        // Check if any goal cards should become playable based on rapport
-        UpdateGoalCardPlayabilityAfterListen(session);
+        // Check if any situation cards should become playable based on rapport
+        UpdateSituationCardPlayabilityAfterListen(session);
 
         return drawnCards;
     }
 
 
     /// <summary>
-    /// Check if goal cards should become playable after LISTEN based on momentum threshold
+    /// Check if situation cards should become playable after LISTEN based on momentum threshold
     /// </summary>
-    private void UpdateGoalCardPlayabilityAfterListen(SocialSession session)
+    private void UpdateSituationCardPlayabilityAfterListen(SocialSession session)
     {
         // Get current momentum
         int currentMomentum = session.MomentumManager?.CurrentMomentum ?? 0;
 
-        // Check all goal cards in active hand
+        // Check all situation cards in active hand
         foreach (CardInstance card in session.Deck.HandCards)
         {
-            // Only process goal cards that are currently Unplayable
-            if ((card.CardType == CardTypes.Goal)
+            // Only process situation cards that are currently Unplayable
+            if ((card.CardType == CardTypes.Situation)
                 && !card.IsPlayable)
             {
                 // Check if momentum threshold is met
@@ -1134,7 +1134,7 @@ public class SocialFacade
                     // Request cards already have Impulse + Opening persistence set
 
                     // Mark that a request card is now playable
-                    session.GoalCardDrawn = true;
+                    session.SituationCardDrawn = true;
                 }
             }
         }
@@ -1143,15 +1143,15 @@ public class SocialFacade
     /// <summary>
     /// Mark request card presence in conversation session
     /// </summary>
-    private void UpdateGoalCardPlayability(SocialSession session)
+    private void UpdateSituationCardPlayability(SocialSession session)
     {
-        // This is called at conversation start - just check for goal card presence
-        bool hasGoalCard = session.Deck.HandCards
-            .Any(c => c.CardType == CardTypes.Goal);
+        // This is called at conversation start - just check for situation card presence
+        bool hasSituationCard = session.Deck.HandCards
+            .Any(c => c.CardType == CardTypes.Situation);
 
-        if (hasGoalCard)
+        if (hasSituationCard)
         {
-            session.GoalCardDrawn = true;
+            session.SituationCardDrawn = true;
         }
     }
 
@@ -1166,7 +1166,7 @@ public class SocialFacade
         foreach (CardInstance card in session.Deck.HandCards)
         {
             // Skip request/promise cards - their playability is based on momentum, not Initiative
-            if (card.CardType == CardTypes.Goal)
+            if (card.CardType == CardTypes.Situation)
             {
                 continue; // Don't modify request card playability here
             }
@@ -1201,12 +1201,12 @@ public class SocialFacade
 
     /// <summary>
     /// Check if completed NPC request is part of an active investigation and trigger progress
-    /// RPG PATTERN: Intro actions are NOT goals - they're quest acceptance buttons
-    /// This method ONLY checks for phase goals in ACTIVE investigations
+    /// RPG PATTERN: Intro actions are NOT situations - they're quest acceptance buttons
+    /// This method ONLY checks for phase situations in ACTIVE investigations
     /// </summary>
     private void CheckInvestigationProgress(string npcId, string requestId)
     {
-        // SCORCHED EARTH: Removed intro action check - intro is NOT a goal, it's a button
+        // SCORCHED EARTH: Removed intro action check - intro is NOT a situation, it's a button
         // Intro action completion happens via GameFacade.CompleteInvestigationIntro(), not through conversations
 
         // Search active investigations for a phase matching this npcId + requestId
@@ -1215,24 +1215,24 @@ public class SocialFacade
             Investigation investigation = _gameWorld.Investigations.FirstOrDefault(i => i.Id == activeInv.InvestigationId);
             if (investigation == null) continue;
 
-            // Find phase that matches this phase ID (phases no longer reference goals)
+            // Find phase that matches this phase ID (phases no longer reference situations)
             // Match directly by phase ID (phase.Id == requestId)
             InvestigationPhaseDefinition matchingPhase = investigation.PhaseDefinitions.FirstOrDefault(p => p.Id == requestId);
 
             if (matchingPhase != null)
             {
-                // This request is part of an investigation - mark goal as complete
-                InvestigationProgressResult progressResult = _investigationActivity.CompleteGoal(matchingPhase.Id, investigation.Id);
+                // This request is part of an investigation - mark situation as complete
+                InvestigationProgressResult progressResult = _investigationActivity.CompleteSituation(matchingPhase.Id, investigation.Id);
 
                 // Log progress for UI modal display (UI will handle modal)
-                Console.WriteLine($"[ConversationFacade] Investigation '{investigation.Name}' progress: {progressResult.CompletedGoalCount}/{progressResult.TotalGoalCount} goals complete");
+                Console.WriteLine($"[ConversationFacade] Investigation '{investigation.Name}' progress: {progressResult.CompletedSituationCount}/{progressResult.TotalSituationCount} situations complete");
 
                 if (progressResult.NewLeads != null && progressResult.NewLeads.Count > 0)
                 {
                     foreach (NewLeadInfo lead in progressResult.NewLeads)
                     {
                         _messageSystem.AddSystemMessage(
-                            $"New lead unlocked: {lead.GoalName} at {lead.LocationName}",
+                            $"New lead unlocked: {lead.SituationName} at {lead.LocationName}",
                             SystemMessageTypes.Info);
                     }
                 }

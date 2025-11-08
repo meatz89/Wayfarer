@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Calculates player exertion state from current Health/Stamina
 /// Used by tactical systems to apply dynamic cost modifiers

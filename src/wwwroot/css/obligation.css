@@ -71,7 +71,7 @@
     margin-bottom: 15px;
 }
 
-.goal-completed-box {
+.situation-completed-box {
     background: #f4e8d0;
     border-left: 4px solid #7a8b5a;
     padding: 12px 15px;
@@ -86,7 +86,7 @@
     margin-bottom: 5px;
 }
 
-.completed-goal-name {
+.completed-situation-name {
     font-size: 15px;
     color: #3d3429;
     font-weight: bold;
@@ -199,11 +199,6 @@
 .progress-text {
     font-size: 13px;
     color: #5c4a3a;
-    text-align: center;
-}
-
-.action-section {
-    background: #e8dcc4;
     text-align: center;
 }
 

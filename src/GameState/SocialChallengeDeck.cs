@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Deck definition for Social tactical challenges
 /// Contains card IDs that appear in this specific social challenge

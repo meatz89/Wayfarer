@@ -1,8 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
-/// Represents a location-specific action that players can take.
+/// Represents a location-specific action that The Single Player can take.
 /// Uses property-based matching to dynamically determine availability at different locations.
 /// </summary>
 public class LocationAction
@@ -11,6 +8,21 @@ public class LocationAction
     /// Unique identifier for this action
     /// </summary>
     public string Id { get; set; }
+
+    /// <summary>
+    /// Source location where this action was generated (if location-specific)
+    /// null = global action available at any matching location
+    /// non-null = only available at this specific location
+    /// </summary>
+    public string SourceLocationId { get; set; }
+
+    /// <summary>
+    /// Destination location for IntraVenueMove actions
+    /// Strongly-typed property replacing ID string parsing antipattern
+    /// Only populated for LocationActionType.IntraVenueMove
+    /// null for all other action types
+    /// </summary>
+    public string DestinationLocationId { get; set; }
 
     /// <summary>
     /// Display name shown to the player
@@ -41,14 +53,14 @@ public class LocationAction
     public List<LocationPropertyType> ExcludedProperties { get; set; } = new List<LocationPropertyType>();
 
     /// <summary>
-    /// Resource costs required to perform this action (e.g., attention, coins)
+    /// Resource costs required to perform this action
     /// </summary>
-    public Dictionary<string, int> Cost { get; set; } = new Dictionary<string, int>();
+    public ActionCosts Costs { get; set; } = new ActionCosts();
 
     /// <summary>
-    /// Resources rewarded for performing this action (e.g., coins, stamina)
+    /// Resources rewarded for performing this action
     /// </summary>
-    public Dictionary<string, int> Reward { get; set; } = new Dictionary<string, int>();
+    public ActionRewards Rewards { get; set; } = new ActionRewards();
 
     /// <summary>
     /// Time required to complete this action in minutes
@@ -56,9 +68,9 @@ public class LocationAction
     public int TimeRequired { get; set; }
 
     /// <summary>
-    /// Time blocks when this action is available (e.g., Morning, Afternoon)
+    /// Time blocks when this action is available (strongly-typed enum)
     /// </summary>
-    public List<string> Availability { get; set; } = new List<string>();
+    public List<TimeBlocks> Availability { get; set; } = new List<TimeBlocks>();
 
     /// <summary>
     /// Priority for sorting when multiple actions match (lower = higher priority)
@@ -81,11 +93,53 @@ public class LocationAction
     public string ObligationId { get; set; }
 
     /// <summary>
+    /// ChoiceTemplate source (Sir Brante layer - Scene-Situation architecture)
+    /// COMPOSITION not copy - access CompoundRequirement, ChoiceCost, ChoiceReward through this reference
+    ///
+    /// null = Always-available action parsed directly from JSON (legacy pattern)
+    ///        Uses direct Costs/Rewards properties above
+    ///
+    /// non-null = Scene-spawned action generated from ChoiceTemplate at spawn time
+    ///            ChoiceTemplate provides:
+    ///            - RequirementFormula (CompoundRequirement with OR paths)
+    ///            - CostTemplate (ChoiceCost with Coins/Resolve/TimeSegments)
+    ///            - RewardTemplate (ChoiceReward with bonds/scales/states/scene spawns)
+    ///
+    /// Enables unified action execution: All actions check ChoiceTemplate if present,
+    /// fall back to direct properties if null (legacy coexistence pattern)
+    /// </summary>
+    public ChoiceTemplate ChoiceTemplate { get; set; }
+
+    /// <summary>
+    /// THREE-TIER TIMING MODEL: Source Situation ID
+    /// Links ephemeral action to source Situation for cleanup after execution
+    /// Actions are QUERY-TIME instances (Tier 3), created when Situation activates
+    /// After action executes, GameFacade deletes ALL actions for this Situation
+    /// Next time player enters context, actions recreated fresh from ChoiceTemplates
+    /// </summary>
+    public string SituationId { get; set; }
+
+    /// <summary>
+    /// PERFECT INFORMATION: Provisional Scene ID
+    /// If this action spawns a Scene (ChoiceTemplate.RewardTemplate.ScenesToSpawn),
+    /// SceneFacade creates that Scene with State = Provisional immediately
+    /// Player sees WHERE Scene will spawn BEFORE selecting action
+    /// If action selected: Provisional Scene → Active (finalized)
+    /// If OTHER action selected: Provisional Scene → Deleted
+    /// Enables strategic decision-making with full knowledge of consequences
+    /// </summary>
+    public string ProvisionalSceneId { get; set; }
+
+    /// <summary>
     /// Check if this action matches a given location's properties
     /// </summary>
     public bool MatchesLocation(Location location, TimeBlocks currentTime)
     {
         if (location == null) return false;
+
+        // Check location identity first (if action is location-specific)
+        if (!string.IsNullOrEmpty(SourceLocationId) && location.Id != SourceLocationId)
+            return false; // Location-specific action at wrong location
 
         // Get all active properties for the current time
         List<LocationPropertyType> activeProperties = location.GetActiveProperties(currentTime);

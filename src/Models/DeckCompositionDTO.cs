@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Defines the card composition for NPC decks
 /// </summary>

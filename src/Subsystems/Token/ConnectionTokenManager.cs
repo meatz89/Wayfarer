@@ -27,7 +27,7 @@ public class ConnectionTokenManager
         Player player = _gameWorld.GetPlayer();
         List<NPCTokenEntry> npcTokens = player.NPCTokens;
 
-        NPCTokenEntry? entry = npcTokens.FindById(npcId);
+        NPCTokenEntry? entry = npcTokens.FirstOrDefault(x => x.NpcId == npcId);
         if (entry != null)
         {
             // Build dictionary from properties
@@ -72,7 +72,7 @@ public class ConnectionTokenManager
         EnsureNPCTokensInitialized(npcId);
 
         // Get or create NPC token entry
-        NPCTokenEntry npcEntry = npcTokens.GetNPCTokenEntry(npcId);
+        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npcId);
 
         // Track old token count for messaging
         int oldTokenCount = npcEntry.GetTokenCount(type);
@@ -111,8 +111,12 @@ public class ConnectionTokenManager
         Player player = _gameWorld.GetPlayer();
         EnsureNPCTokensInitialized(npcId);
 
+        // Get current token count
+        int currentCount = player.GetNPCTokenCount(npcId, type);
+
         // Reduce from NPC relationship (can go negative)
-        player.NPCTokens.GetTokens(npcId)[type] -= count;
+        player.SetNPCTokenCount(npcId, type, currentCount - count);
+        int newCount = player.GetNPCTokenCount(npcId, type);
 
         // Add narrative feedback
         NPC npc = _npcRepository.GetById(npcId);
@@ -123,7 +127,7 @@ public class ConnectionTokenManager
                 SystemMessageTypes.Info
             );
 
-            if (player.NPCTokens.GetTokens(npcId)[type] < 0)
+            if (newCount < 0)
             {
                 _messageSystem.AddSystemMessage(
                     $"You now owe {npc.Name} for this favor.",
@@ -146,10 +150,11 @@ public class ConnectionTokenManager
         EnsureNPCTokensInitialized(npcId);
 
         // Track old count for messaging
-        int oldCount = player.NPCTokens.GetTokens(npcId)[type];
+        int oldCount = player.GetNPCTokenCount(npcId, type);
 
         // Remove tokens from NPC relationship (can go negative)
-        player.NPCTokens.GetTokens(npcId)[type] -= count;
+        player.SetNPCTokenCount(npcId, type, oldCount - count);
+        int newCount = player.GetNPCTokenCount(npcId, type);
 
         // Add narrative feedback for relationship damage
         NPC npc = _npcRepository.GetById(npcId);
@@ -160,7 +165,7 @@ public class ConnectionTokenManager
                 SystemMessageTypes.Warning
             );
 
-            if (oldCount >= 0 && player.NPCTokens.GetTokens(npcId)[type] < 0)
+            if (oldCount >= 0 && newCount < 0)
             {
                 _messageSystem.AddSystemMessage(
                     $"{npc.Name} feels you owe them for past failures.",
@@ -297,7 +302,7 @@ public class ConnectionTokenManager
         if (!player.NPCTokens.Any(t => t.NpcId == npcId))
         {
             // The GetNPCTokenEntry method will create a new entry if needed
-            player.NPCTokens.GetNPCTokenEntry(npcId);
+            player.GetNPCTokenEntry(npcId);
         }
     }
 }

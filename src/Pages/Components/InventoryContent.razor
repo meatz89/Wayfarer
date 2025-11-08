@@ -1,0 +1,49 @@
+@inherits InventoryContentBase
+@namespace Wayfarer.Pages.Components
+
+<div class="inventory-screen">
+    <div class="inventory-header">
+        <h2>🎒 Belongings</h2>
+        <button class="close-btn" @onclick="CloseInventory">✕</button>
+    </div>
+
+    <div class="inventory-content">
+        <!-- Weight Status -->
+        <div class="weight-status">
+            <div class="weight-label">Carrying: @CurrentWeight / @MaxWeight weight</div>
+            <div class="weight-bar">
+                <div class="weight-fill" style="width: @GetWeightPercent()%"></div>
+            </div>
+        </div>
+
+        <!-- Inventory Items -->
+        <div class="inventory-section">
+            <h3>Carried Items</h3>
+            @if (InventoryItems.Any())
+            {
+                <div class="items-list">
+                    @foreach (var itemGroup in InventoryItems)
+                    {
+                        <div class="item-card">
+                            <div class="item-header">
+                                <span class="item-name">@itemGroup.Item.Name</span>
+                                @if (itemGroup.Count > 1)
+                                {
+                                    <span class="item-count">×@itemGroup.Count</span>
+                                }
+                            </div>
+                            <div class="item-description">@itemGroup.Item.Description</div>
+                            <div class="item-weight">Weight: @itemGroup.Item.GetWeight() (@(itemGroup.Item.GetWeight() * itemGroup.Count) total)</div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-message">
+                    <p>You're carrying nothing.</p>
+                </div>
+            }
+        </div>
+    </div>
+</div>

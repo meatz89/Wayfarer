@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Generated narrative output from a narrative provider.
 /// Contains all text content needed to display the current conversation turn.

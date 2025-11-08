@@ -201,12 +201,15 @@ body {
    SHARED BUTTON STYLES
    ========================================== */
 
-/* Journal Button */
-.journal-button-container {
+/* Fixed Buttons Container (Journal + Map) */
+.fixed-buttons-container {
     position: fixed;
     top: 180px;
     right: 20px;
     z-index: 900;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
 }
 
 .journal-btn {
@@ -226,6 +229,27 @@ body {
 
 .journal-btn:hover {
     background: linear-gradient(to bottom, #9b8365, #8b7355);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+.map-btn {
+    padding: 10px 20px;
+    background: linear-gradient(to bottom, #7a8b5a, #6a7b4a);
+    color: #faf4ea;
+    border: 2px solid #5a6b3a;
+    border-radius: 6px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    text-transform: none;
+    letter-spacing: 0;
+}
+
+.map-btn:hover {
+    background: linear-gradient(to bottom, #8a9b6a, #7a8b5a);
     transform: translateY(-2px);
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
 }

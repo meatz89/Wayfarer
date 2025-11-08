@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Time-specific property mapping (strongly-typed, no Dictionary)
 /// </summary>

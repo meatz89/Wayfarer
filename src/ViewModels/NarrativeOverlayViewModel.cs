@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 public class NarrativeOverlayViewModel
 {
     public bool IsVisible { get; set; }

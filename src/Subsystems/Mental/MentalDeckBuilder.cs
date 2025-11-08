@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Builds Mental tactical system decks from engagement types
 /// Parallel to ConversationDeckBuilder in Social system
@@ -18,9 +14,9 @@ public class MentalDeckBuilder
     /// <summary>
     /// Build deck from engagement deck (parallel to Social system)
     /// Signature deck knowledge cards added to starting hand (NOT shuffled into deck)
-    /// Returns (deck to draw from, starting hand with knowledge cards)
+    /// Returns deck to draw from and starting hand with knowledge cards
     /// </summary>
-    public (List<CardInstance> deck, List<CardInstance> startingHand) BuildDeckWithStartingHand(MentalChallengeDeck challengeDeck, Player player)
+    public MentalDeckBuildResult BuildDeckWithStartingHand(MentalChallengeDeck challengeDeck, Player player)
     {
         List<CardInstance> startingHand = new List<CardInstance>();
 
@@ -48,37 +44,37 @@ public class MentalDeckBuilder
             return true;
         }).ToList();
 
-        return (deck, startingHand);
+        return new MentalDeckBuildResult(deck, startingHand);
     }
 
     /// <summary>
-    /// Create goal card instances for Mental challenges
-    /// Goal cards are self-contained templates - no lookup required
-    /// Goal cards start unplayable until Progress threshold met
+    /// Create situation card instances for Mental challenges
+    /// Situation cards are self-contained templates - no lookup required
+    /// Situation cards start unplayable until Progress threshold met
     /// </summary>
-    private List<CardInstance> CreateGoalCardInstances(Goal goal)
+    private List<CardInstance> CreateSituationCardInstances(Situation situation)
     {
-        List<CardInstance> goalCardInstances = new List<CardInstance>();
+        List<CardInstance> situationCardInstances = new List<CardInstance>();
 
-        foreach (GoalCard goalCard in goal.GoalCards)
+        foreach (SituationCard situationCard in situation.SituationCards)
         {
-            // Create CardInstance directly from GoalCard (self-contained template)
-            CardInstance instance = new CardInstance(goalCard);
+            // Create CardInstance directly from SituationCard (self-contained template)
+            CardInstance instance = new CardInstance(situationCard);
 
             // Set context for threshold checking (Mental system uses Progress threshold)
             instance.Context = new CardContext
             {
-                threshold = goalCard.threshold,
-                RequestId = goal.Id
+                threshold = situationCard.threshold,
+                RequestId = situation.Id
             };
 
-            // Goal cards start unplayable until threshold met
+            // Situation cards start unplayable until threshold met
             instance.IsPlayable = false;
 
-            goalCardInstances.Add(instance);
+            situationCardInstances.Add(instance);
         }
 
-        return goalCardInstances;
+        return situationCardInstances;
     }
 
     private List<EquipmentCategory> GetPlayerEquipmentCategories(Player player)

@@ -54,8 +54,13 @@ public class RouteOption
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public string OriginLocationSpot { get; set; }
-    public string DestinationLocationSpot { get; set; }
+
+    // HIGHLANDER Pattern A (BOTH ID + Object)
+    // From JSON, frequent runtime navigation
+    public string OriginLocationId { get; set; }
+    public Location OriginLocation { get; set; }
+    public string DestinationLocationId { get; set; }
+    public Location DestinationLocation { get; set; }
 
     public TravelMethods Method { get; set; }
     public int BaseCoinCost { get; set; }
@@ -83,13 +88,67 @@ public class RouteOption
     // Starting stamina for this route
     public int StartingStamina { get; set; } = 3;
 
-    // Obstacles on this route (bandits, flooding, difficult terrain challenges)
-    // References obstacles in GameWorld.Obstacles (single source of truth)
-    public List<string> ObstacleIds { get; set; } = new List<string>();
+    // NOTE: Old SceneIds property removed - NEW Scene-Situation architecture
+    // Scenes now spawn via Situation spawn rewards (SceneSpawnReward) instead of Route ownership
+    // Routes no longer directly own scenes - scenes are managed by Situation lifecycle
 
     // Localized mastery - ExplorationCubes reveal hidden path options on THIS route only
     // 0-10 scale: 0 cubes = only basic paths visible, 10 cubes = all optimal paths revealed
     public int ExplorationCubes { get; set; } = 0;
+
+    // HEX-BASED TRAVEL SYSTEM - Procedural route generation from spatial scaffolding
+    /// <summary>
+    /// Underlying hex path connecting origin to destination
+    /// Procedurally generated via A* pathfinding through HexMap
+    /// Source of truth for route terrain/danger properties
+    /// Empty list for legacy manually-authored routes
+    /// </summary>
+    public List<AxialCoordinates> HexPath { get; set; } = new List<AxialCoordinates>();
+
+    /// <summary>
+    /// Total danger rating (0-100) summed from hex danger levels along HexPath
+    /// Calculated from: Sum(hex.DangerLevel for hex in HexPath)
+    /// Used for Scene template filtering and risk assessment
+    /// 0 for legacy manually-authored routes
+    /// </summary>
+    public int DangerRating { get; set; } = 0;
+
+    /// <summary>
+    /// Route difficulty tier calculated from DangerRating
+    /// Tier 1 (Safe): 0-20 danger
+    /// Tier 2 (Moderate): 21-40 danger
+    /// Tier 3 (Dangerous): 41-60 danger
+    /// Tier 4 (Perilous): 61-80 danger
+    /// Tier 5 (Deadly): 81-100 danger
+    /// Used for Scene template filtering
+    /// </summary>
+    public int Tier
+    {
+        get
+        {
+            if (DangerRating <= 20) return 1;
+            if (DangerRating <= 40) return 2;
+            if (DangerRating <= 60) return 3;
+            if (DangerRating <= 80) return 4;
+            return 5;
+        }
+    }
+
+    /// <summary>
+    /// Get dominant terrain type from HexPath for Scene template filtering
+    /// Returns first terrain category as string, or "Urban" if no categories
+    /// PlacementFilter expects List of string terrain types, not enum
+    /// </summary>
+    public string GetDominantTerrainType()
+    {
+        if (TerrainCategories == null || TerrainCategories.Count == 0)
+            return "Urban"; // Default for legacy routes without terrain
+
+        // Convert first terrain category enum to string for filtering
+        // Remove "Requires_" prefix to get base terrain type
+        string firstTerrain = TerrainCategories[0].ToString();
+        return firstTerrain.Replace("Requires_", "").Replace("_", " ");
+    }
 
     public bool CanTravel(ItemRepository itemRepository, Player player, int totalFocus)
     {

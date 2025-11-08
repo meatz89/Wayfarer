@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Manages location-specific actions and generates action options for Locations.
 /// Handles work, rest, services, and other location-based activities.
@@ -9,18 +5,16 @@ using System.Linq;
 public class LocationActionManager
 {
     private readonly GameWorld _gameWorld;
-    private readonly ActionGenerator _actionGenerator;
+    // ActionGenerator DELETED - violates three-tier timing (actions created at wrong time)
     private readonly TimeManager _timeManager;
     private readonly NPCRepository _npcRepository;
 
     public LocationActionManager(
         GameWorld gameWorld,
-        ActionGenerator actionGenerator,
         TimeManager timeManager,
         NPCRepository npcRepository)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-        _actionGenerator = actionGenerator ?? throw new ArgumentNullException(nameof(actionGenerator));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _npcRepository = npcRepository ?? throw new ArgumentNullException(nameof(npcRepository));
     }
@@ -38,15 +32,11 @@ public class LocationActionManager
         // Get dynamic actions from GameWorld data
         List<LocationActionViewModel> dynamicActions = GetDynamicLocationActions(venue.Id, location.Id);
 
-        // Get actions from ActionGenerator (only needs Location - all gameplay properties are there)
-        List<LocationActionViewModel> generatedActions = _actionGenerator.GenerateActionsForSpot(location);
+        // ActionGenerator DELETED - generated actions now come from SceneFacade at query time
+        // Property-based actions (from LocationPropertyType) remain here as legacy system
+        // Scene-based actions (from ChoiceTemplates) created by SceneFacade when Situation activates
 
-        // Combine both
-        List<LocationActionViewModel> allActions = new List<LocationActionViewModel>();
-        allActions.AddRange(dynamicActions);
-        allActions.AddRange(generatedActions);
-
-        return allActions;
+        return dynamicActions;
     }
 
     /// <summary>
@@ -57,12 +47,10 @@ public class LocationActionManager
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
-        // Get the location to check its properties
         Location location = _gameWorld.GetLocation(LocationId);
         if (location == null)
             throw new InvalidOperationException($"Location not found: {LocationId}");
 
-        // Get actions that match this location's properties
         List<LocationAction> availableActions = _gameWorld.LocationActions
             .Where(action => action.MatchesLocation(location, currentTime) &&
                             IsTimeAvailable(action, currentTime))
@@ -70,16 +58,53 @@ public class LocationActionManager
             .ThenBy(action => action.Name)
             .ToList();
 
+        // DELIVERY JOB SYSTEM: Add dynamic CompleteDelivery action if player is at destination
+        Player player = _gameWorld.GetPlayer();
+        if (player.HasActiveDeliveryJob)
+        {
+            DeliveryJob activeJob = _gameWorld.GetJobById(player.ActiveDeliveryJobId);
+            if (activeJob != null && activeJob.DestinationLocationId == LocationId)
+            {
+                // Create dynamic ViewModel directly (no domain entity for dynamic actions)
+                actions.Add(new LocationActionViewModel
+                {
+                    Id = $"complete_delivery_{activeJob.Id}",
+                    ActionType = "completedelivery",
+                    Title = $"Complete Delivery ({activeJob.Payment} coins)",
+                    Detail = $"Deliver {activeJob.CargoDescription} and receive {activeJob.Payment} coins payment.",
+                    Cost = "",  // No cost to complete
+                    IsAvailable = true,
+                    EngagementType = "Action"  // String, not enum
+                });
+            }
+        }
+
         foreach (LocationAction action in availableActions)
         {
+            bool isAvailable = CanPerformAction(action);
+            string lockReason = null;
+
+            if (action.ActionType == LocationActionType.IntraVenueMove && !string.IsNullOrEmpty(action.DestinationLocationId))
+            {
+                Location destination = _gameWorld.GetLocation(action.DestinationLocationId);
+                if (destination != null && destination.IsLocked)
+                {
+                    isAvailable = false;
+                    lockReason = "Location is locked";
+                }
+            }
+
             LocationActionViewModel viewModel = new LocationActionViewModel
             {
-                ActionType = action.ActionType.ToString().ToLower(),  // Convert enum to lowercase string for ViewModel
+                Id = action.Id,
+                ActionType = action.ActionType.ToString().ToLower(),
                 Title = action.Name,
                 Detail = action.Description,
-                Cost = GetCostDisplay(action.Cost),
-                IsAvailable = CanPerformAction(action),
-                EngagementType = action.EngagementType
+                Cost = GetCostDisplay(action.Costs),
+                IsAvailable = isAvailable,
+                LockReason = lockReason,
+                EngagementType = action.EngagementType,
+                DestinationLocationId = action.DestinationLocationId
             };
             actions.Add(viewModel);
         }
@@ -94,18 +119,32 @@ public class LocationActionManager
     {
         if (action.Availability.Count == 0) return true; // Available at all times
 
-        return action.Availability.Contains(currentTime.ToString());
+        return action.Availability.Contains(currentTime);
     }
 
     /// <summary>
     /// Get display string for action costs.
     /// </summary>
-    private string GetCostDisplay(Dictionary<string, int> costs)
+    private string GetCostDisplay(ActionCosts costs)
     {
-        if (costs.Count == 0) return "Free!";
+        List<string> costParts = new List<string>();
 
-        List<string> costStrings = costs.Select(kvp => $"{kvp.Value} {kvp.Key}").ToList();
-        return string.Join(", ", costStrings);
+        if (costs.Coins > 0)
+            costParts.Add($"{costs.Coins} coins");
+
+        if (costs.Focus > 0)
+            costParts.Add($"{costs.Focus} focus");
+
+        if (costs.Stamina > 0)
+            costParts.Add($"{costs.Stamina} stamina");
+
+        if (costs.Health > 0)
+            costParts.Add($"{costs.Health} health");
+
+        if (costParts.Count == 0)
+            return "Free!";
+
+        return string.Join(", ", costParts);
     }
 
     /// <summary>
@@ -116,9 +155,9 @@ public class LocationActionManager
         Player player = _gameWorld.GetPlayer();
 
         // Check coin cost
-        if (action.Cost.ContainsKey("coins"))
+        if (action.Costs.Coins > 0)
         {
-            return player.Coins >= action.Cost["coins"];
+            return player.Coins >= action.Costs.Coins;
         }
 
         return true;
@@ -188,60 +227,11 @@ public class LocationActionManager
         // Get NPCs at this location
         List<NPC> npcs = _npcRepository.GetNPCsForLocationAndTime(location.Id, currentTime);
 
-        foreach (NPC npc in npcs)
-        {
-            // Check what services this NPC provides
-            foreach (ServiceTypes service in npc.ProvidedServices)
-            {
-                LocationActionViewModel serviceAction = GenerateServiceAction(service, npc);
-                if (serviceAction == null)
-                    throw new InvalidOperationException($"Unsupported service type: {service}");
-                actions.Add(serviceAction);
-            }
-        }
+        // Service-based actions removed - use Scene-Situation architecture instead
 
         return actions;
     }
 
-    /// <summary>
-    /// Generate an action for a specific service.
-    /// </summary>
-    private LocationActionViewModel GenerateServiceAction(ServiceTypes service, NPC provider)
-    {
-        switch (service)
-        {
-            case ServiceTypes.Trading:
-                return new LocationActionViewModel
-                {
-                    ActionType = "letter_board",
-                    Title = $"Check {provider.Name}'s Letter Board",
-                    Detail = "View available letters for delivery",
-                    IsAvailable = true
-                };
-
-            case ServiceTypes.Market:
-                return new LocationActionViewModel
-                {
-                    ActionType = "trade",
-                    Title = $"Trade with {provider.Name}",
-                    Detail = "Buy or sell goods",
-                    IsAvailable = true
-                };
-
-            case ServiceTypes.Information:
-                return new LocationActionViewModel
-                {
-                    ActionType = "inquire",
-                    Title = $"Ask {provider.Name} for Information",
-                    Detail = "Learn about local events and opportunities",
-                    Cost = "Free!",
-                    IsAvailable = true
-                };
-
-            default:
-                throw new InvalidOperationException($"Unsupported service type: {service}");
-        }
-    }
 
     // Method removed - LocationActionsViewModel doesn't have ClosedServices property
     // This functionality would need to be redesigned if needed
@@ -342,13 +332,13 @@ public class LocationActionManager
     }
 
     /// <summary>
-    /// Evaluate goal prerequisites
-    /// GoalRequirements system eliminated - goals always visible, difficulty varies via DifficultyModifiers
-    /// Boolean gate elimination: No more hiding goals based on equipment/knowledge/stats
+    /// Evaluate situation prerequisites
+    /// SituationRequirements system eliminated - situations always visible, difficulty varies via DifficultyModifiers
+    /// Boolean gate elimination: No more hiding situations based on equipment/knowledge/stats
     /// </summary>
-    private bool EvaluateGoalPrerequisites(Goal goal, Player player, string currentVenueId)
+    private bool EvaluateSituationPrerequisites(Situation situation, Player player, string currentVenueId)
     {
-        // Goals always visible - difficulty adjusts based on DifficultyModifiers instead
+        // Situations always visible - difficulty adjusts based on DifficultyModifiers instead
         return true;
     }
 }

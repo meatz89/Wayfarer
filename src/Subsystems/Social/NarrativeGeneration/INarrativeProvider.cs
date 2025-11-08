@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Threading.Tasks;
-
 /// <summary>
 /// Interface for narrative content generation providers.
 /// Implements the backwards construction principle - analyzing available cards

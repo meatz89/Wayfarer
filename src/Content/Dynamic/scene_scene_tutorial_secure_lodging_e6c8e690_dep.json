@@ -1,0 +1,107 @@
+{
+  "packageId": "scene_scene_tutorial_secure_lodging_e6c8e690_dep",
+  "metadata": {
+    "name": "Scene scene_tutorial_secure_lodging_e6c8e690 Dependent Resources",
+    "timestamp": "0001-01-01T00:00:00",
+    "description": null,
+    "author": "Scene System",
+    "version": "1.0.0"
+  },
+  "content": {
+    "regions": null,
+    "districts": null,
+    "hexMap": null,
+    "socialCards": null,
+    "npcs": null,
+    "venues": null,
+    "locations": [
+      {
+        "id": "scene_tutorial_secure_lodging_e6c8e690_private_room",
+        "name": "Elena\u0027s Lodging Room",
+        "type": "Room",
+        "description": "A private room where Elena provides lodging services.",
+        "initialState": "Locked",
+        "venueId": "brass_bell_inn",
+        "q": 1,
+        "r": -1,
+        "currentTimeBlocks": [],
+        "domainTags": [],
+        "properties": {
+          "base": [
+            "sleepingSpace",
+            "restful",
+            "indoor",
+            "private"
+          ],
+          "morning": [],
+          "midday": [],
+          "afternoon": [],
+          "evening": [],
+          "night": [],
+          "dawn": []
+        },
+        "canInvestigate": false,
+        "canWork": false,
+        "workType": "",
+        "workPay": 0,
+        "locationType": null,
+        "isStartingLocation": false,
+        "obligationProfile": null,
+        "availableProfessionsByTime": {},
+        "availableWork": []
+      }
+    ],
+    "routes": null,
+    "observations": null,
+    "standingObligations": null,
+    "situations": null,
+    "promiseCards": null,
+    "exchangeCards": null,
+    "pathCards": null,
+    "items": [
+      {
+        "id": "scene_tutorial_secure_lodging_e6c8e690_room_key",
+        "name": "Room Key",
+        "initiativeCost": 1,
+        "buyPrice": 0,
+        "sellPrice": 0,
+        "inventorySlots": 1,
+        "sizeCategory": null,
+        "categories": [
+          "Special_Access"
+        ],
+        "itemCategories": [],
+        "toolCategories": [],
+        "description": "A key that unlocks access to Elena\u0027s private lodging room.",
+        "staminaBonus": null,
+        "tokenGenerationModifiers": {},
+        "enablesTokenGeneration": []
+      }
+    ],
+    "locationActions": null,
+    "playerActions": null,
+    "deckCompositions": null,
+    "exchanges": null,
+    "pathCardCollections": null,
+    "travelEvents": null,
+    "eventCards": null,
+    "dialogueTemplates": null,
+    "playerStatsConfig": null,
+    "strangers": null,
+    "listenDrawCounts": null,
+    "obligations": null,
+    "travelScenes": null,
+    "mentalCards": null,
+    "physicalCards": null,
+    "socialChallengeDecks": [],
+    "mentalChallengeDecks": [],
+    "physicalChallengeDecks": [],
+    "conversationTrees": [],
+    "observationScenes": [],
+    "emergencySituations": [],
+    "states": [],
+    "achievements": [],
+    "sceneTemplates": []
+  },
+  "startingConditions": null
+}

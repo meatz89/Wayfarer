@@ -34,7 +34,7 @@
       {
         "id": "physical_sprint_forward",
         "name": "Sprint Forward",
-        "description": "Use speed to overcome the obstacle.",
+        "description": "Use speed to overcome the situation.",
         "depth": 1,
         "boundStat": "Diplomacy",
         "approach": "Standard",

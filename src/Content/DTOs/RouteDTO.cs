@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 /// <summary>
 /// Data Transfer Object for deserializing route data from JSON.
 /// Maps to the structure in routes.json.
@@ -25,8 +24,8 @@ public class RouteDTO
     // Controls whether a reverse route should be automatically generated
     public bool CreateBidirectional { get; set; } = true;
 
-    // Obstacles on this route (bandits, flooding, difficult terrain)
-    public List<ObstacleDTO> Obstacles { get; set; } = new List<ObstacleDTO>();
+    // NOTE: Old SceneDTO system deleted - NEW Scene-Situation architecture
+    // Scenes now spawn via Situation spawn rewards (SceneSpawnReward) instead of inline definitions
 
     // Travel path cards system properties
     public int StartingStamina { get; set; } = 3;
@@ -51,8 +50,8 @@ public class RouteSegmentDTO
     // For Event segments: the event collection containing events to randomly select from
     public string EventCollectionId { get; set; }
 
-    // For Encounter segments: mandatory obstacle that must be resolved to proceed
-    public string MandatoryObstacleId { get; set; }
+    // For Encounter segments: mandatory scene that must be resolved to proceed
+    public string MandatorySceneId { get; set; }
 
     // Narrative description of this segment location
     public string NarrativeDescription { get; set; }

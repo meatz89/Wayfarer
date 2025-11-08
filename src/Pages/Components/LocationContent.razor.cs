@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Components;
-using System.Threading.Tasks;
+using Wayfarer.GameState.Enums;
 
 namespace Wayfarer.Pages.Components
 {
@@ -12,6 +12,7 @@ namespace Wayfarer.Pages.Components
     {
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected GameWorld GameWorld { get; set; }
+        [Inject] protected SceneFacade SceneFacade { get; set; }
 
         [Parameter] public EventCallback OnActionExecuted { get; set; }
 
@@ -20,10 +21,14 @@ namespace Wayfarer.Pages.Components
         // VISUAL NOVEL NAVIGATION STATE
         protected LocationViewState ViewState { get; set; } = LocationViewState.Landing;
         protected Stack<LocationViewState> NavigationStack { get; set; } = new();
-        protected Goal SelectedGoal { get; set; }
+        protected Situation SelectedSituation { get; set; }
 
         // VIEW MODEL STORAGE - all pre-built by facade
         protected LocationContentViewModel ViewModel { get; set; } = new();
+
+        // SCREEN EXPANSION - Conversation trees and observation scenes
+        protected List<ConversationTree> AvailableConversationTrees { get; set; } = new();
+        protected List<ObservationScene> AvailableObservationScenes { get; set; } = new();
 
         protected override async Task OnInitializedAsync()
         {
@@ -48,85 +53,160 @@ namespace Wayfarer.Pages.Components
             // ONE call to backend - receives ALL data pre-built
             ViewModel = GameFacade.GetLocationFacade().GetLocationContentViewModel();
 
+            // Load available conversation trees and observation scenes for current location
+            Location currentLocation = GameWorld.GetPlayerCurrentLocation();
+            string locationId = currentLocation?.Id;
+            if (locationId != null)
+            {
+                AvailableConversationTrees = GameFacade.GetAvailableConversationTreesAtLocation(locationId);
+                AvailableObservationScenes = GameFacade.GetAvailableObservationScenesAtLocation(locationId);
+
+                // MULTI-SITUATION SCENE RESUMPTION: Check if player navigated to location required by waiting scene
+                // Scene completed Situation 1 with ExitToWorld routing (different context required)
+                // Player navigated to required location - auto-resume scene to continue progression
+                List<Scene> resumableScenes = SceneFacade.GetResumableScenesAtContext(locationId, null);
+                if (resumableScenes.Count > 0)
+                {
+                    // Auto-resume first waiting scene (should only be one per location context)
+                    Scene resumableScene = resumableScenes[0];
+                    await GameScreen.StartScene(resumableScene.Id);
+                }
+            }
+
             await Task.CompletedTask;
         }
 
         // ============================================
-        // ACTION DELEGATION - pass to backend
+        // ACTION DELEGATION - Intent-based execution
+        // Backend authority: UI creates intent, backend determines effects
+        // UI interprets result without making decisions
         // ============================================
 
         protected async Task ExecuteLocationAction(LocationActionViewModel action)
         {
-            // Parse action type and delegate to GameFacade
+            PlayerIntent intent = null;
+
+            // Parse enum and create strongly-typed intent
             if (Enum.TryParse<PlayerActionType>(action.ActionType, true, out PlayerActionType playerActionType))
             {
-                if (playerActionType == PlayerActionType.CheckBelongings)
+                intent = playerActionType switch
                 {
-                    NavigateToView(LocationViewState.Equipment);
-                }
-                else
-                {
-                    await GameFacade.ExecutePlayerAction(playerActionType);
-                    await RefreshLocationData();
-                    await OnActionExecuted.InvokeAsync();
-                }
+                    PlayerActionType.CheckBelongings => new CheckBelongingsIntent(),
+                    PlayerActionType.Wait => new WaitIntent(),
+                    PlayerActionType.SleepOutside => new SleepOutsideIntent(),
+                    PlayerActionType.LookAround => new LookAroundIntent(),
+                    _ => null
+                };
             }
             else if (Enum.TryParse<LocationActionType>(action.ActionType, true, out LocationActionType locationActionType))
             {
-                if (locationActionType == LocationActionType.Travel)
+                intent = locationActionType switch
                 {
-                    if (GameScreen != null)
-                    {
-                        await GameScreen.HandleNavigation("travel");
-                    }
-                }
-                else
-                {
-                    Location currentSpot = GameFacade.GetCurrentLocationSpot();
-                    if (currentSpot != null)
-                    {
-                        await GameFacade.ExecuteLocationAction(locationActionType, currentSpot.Id);
-                        await RefreshLocationData();
-                        await OnActionExecuted.InvokeAsync();
-                    }
-                }
+                    LocationActionType.Rest => new RestAtLocationIntent(),
+                    LocationActionType.SecureRoom => new SecureRoomIntent(),
+                    LocationActionType.Work => new WorkIntent(),
+                    LocationActionType.Investigate => new InvestigateLocationIntent(),
+                    LocationActionType.Travel => new OpenTravelScreenIntent(),
+                    LocationActionType.IntraVenueMove => CreateIntraVenueMoveIntent(action),
+                    LocationActionType.ViewJobBoard => new ViewJobBoardIntent(),
+                    LocationActionType.CompleteDelivery => new CompleteDeliveryIntent(),
+                    _ => null
+                };
             }
-            else
+
+            if (intent == null)
             {
-                throw new InvalidOperationException($"Unknown action type: {action.ActionType}");
+                throw new InvalidOperationException($"No intent mapping for action type: {action.ActionType}");
+            }
+
+            // Execute via intent system - backend decides everything
+            IntentResult result = await GameFacade.ProcessIntent(intent);
+
+            // Interpret result without making decisions - just follow backend instructions
+            if (result.Success)
+            {
+                // Screen-level navigation (GameScreen handles)
+                if (result.NavigateToScreen.HasValue)
+                {
+                    await GameScreen.NavigateToScreen(result.NavigateToScreen.Value);
+                }
+
+                // View-level navigation (LocationContent handles)
+                if (result.NavigateToView.HasValue)
+                {
+                    NavigateToView(result.NavigateToView.Value);
+                }
+
+                // Refresh if backend says to refresh
+                if (result.RequiresLocationRefresh)
+                {
+                    await RefreshLocationData();
+                    await OnActionExecuted.InvokeAsync();
+
+                    // MODAL SCENE FORCING: Check if action triggered a forced modal scene
+                    // GameFacade sets PendingForcedSceneId after successful movement actions
+                    // If found, navigate to forced scene immediately (Sir Brante forced moment pattern)
+                    if (!string.IsNullOrEmpty(GameWorld.PendingForcedSceneId))
+                    {
+                        string forcedSceneId = GameWorld.PendingForcedSceneId;
+                        GameWorld.PendingForcedSceneId = null; // Clear pending flag
+
+                        await GameScreen.StartScene(forcedSceneId);
+                    }
+                }
             }
         }
 
-        protected async Task HandleCommitToGoal(Goal goal)
+        protected async Task HandleCommitToSituation(Situation situation)
         {
-            if (goal.SystemType == TacticalSystemType.Social)
+            // STRATEGIC LAYER: Validate requirements, consume Resolve/Time/Coins, route to appropriate subsystem
+            SituationSelectionResult result = GameFacade.GetSituationFacade().SelectAndExecuteSituation(situation.Id);
+
+            if (!result.Success)
             {
-                if (GameScreen != null)
+                // Failed validation or resource check - show error
+                return;
+            }
+
+            // Handle result based on type
+            if (result.ResultType == SituationResultType.InstantResolution)
+            {
+                // Instant resolution - consequences already applied, refresh location
+                await RefreshLocationData();
+                await OnActionExecuted.InvokeAsync();
+                StateHasChanged();
+            }
+            else if (result.ResultType == SituationResultType.LaunchChallenge)
+            {
+                // TACTICAL LAYER: Route to appropriate challenge facade
+                // Strategic costs already consumed (Resolve, Time, Coins)
+                // Challenge facade will consume tactical costs (Focus/Stamina)
+                if (result.ChallengeType == TacticalSystemType.Social)
                 {
-                    await GameScreen.StartConversationSession(goal.PlacementNpcId, goal.Id);
+                    await GameScreen.StartConversationSession(result.ChallengeTargetId, result.ChallengeSituationId);
+                }
+                else if (result.ChallengeType == TacticalSystemType.Mental)
+                {
+                    Player player = GameWorld.GetPlayer();
+                    await GameScreen.StartMentalSession(result.ChallengeDeckId, result.ChallengeTargetId, result.ChallengeSituationId, situation.Obligation?.Id);
+                }
+                else if (result.ChallengeType == TacticalSystemType.Physical)
+                {
+                    Player player = GameWorld.GetPlayer();
+                    await GameScreen.StartPhysicalSession(result.ChallengeDeckId, result.ChallengeTargetId, result.ChallengeSituationId, situation.Obligation?.Id);
                 }
             }
-            else if (goal.SystemType == TacticalSystemType.Mental)
+            else if (result.ResultType == SituationResultType.Navigation)
             {
-                if (GameScreen == null)
-                    throw new InvalidOperationException("GameScreen not available");
-
-                Player player = GameWorld.GetPlayer();
-                if (player.CurrentLocation == null)
-                    throw new InvalidOperationException("Player has no current location");
-
-                await GameScreen.StartMentalSession(goal.DeckId, player.CurrentLocation.Id, goal.Id, goal.ObligationId);
-            }
-            else if (goal.SystemType == TacticalSystemType.Physical)
-            {
-                if (GameScreen == null)
-                    throw new InvalidOperationException("GameScreen not available");
-
-                Player player = GameWorld.GetPlayer();
-                if (player.CurrentLocation == null)
-                    throw new InvalidOperationException("Player has no current location");
-
-                await GameScreen.StartPhysicalSession(goal.DeckId, player.CurrentLocation.Id, goal.Id, goal.ObligationId);
+                // Navigation - move player and optionally trigger scene at destination
+                bool success = GameFacade.MoveToSpot(result.NavigationDestinationId);
+                if (success)
+                {
+                    ResetNavigation();
+                    await RefreshLocationData();
+                    await OnActionExecuted.InvokeAsync();
+                    StateHasChanged();
+                }
             }
         }
 
@@ -139,6 +219,17 @@ namespace Wayfarer.Pages.Components
                 ResetNavigation();
                 await RefreshLocationData();
                 await OnActionExecuted.InvokeAsync();
+
+                // MODAL SCENE FORCING: Check if movement triggered a forced modal scene
+                // GameFacade sets PendingForcedSceneId after successful movement
+                // If found, navigate to forced scene immediately (Sir Brante forced moment pattern)
+                if (!string.IsNullOrEmpty(GameWorld.PendingForcedSceneId))
+                {
+                    string forcedSceneId = GameWorld.PendingForcedSceneId;
+                    GameWorld.PendingForcedSceneId = null; // Clear pending flag
+
+                    await GameScreen.StartScene(forcedSceneId);
+                }
             }
         }
 
@@ -158,9 +249,9 @@ namespace Wayfarer.Pages.Components
             NavigationStack.Push(ViewState);
             ViewState = newView;
 
-            if (newView == LocationViewState.GoalDetail && context is Goal goal)
+            if (newView == LocationViewState.SituationDetail && context is Situation situation)
             {
-                SelectedGoal = goal;
+                SelectedSituation = situation;
             }
 
             StateHasChanged();
@@ -173,9 +264,9 @@ namespace Wayfarer.Pages.Components
                 LocationViewState previousView = NavigationStack.Pop();
                 ViewState = previousView;
 
-                if (ViewState != LocationViewState.GoalDetail)
+                if (ViewState != LocationViewState.SituationDetail)
                 {
-                    SelectedGoal = null;
+                    SelectedSituation = null;
                 }
 
                 StateHasChanged();
@@ -190,7 +281,7 @@ namespace Wayfarer.Pages.Components
         {
             ViewState = LocationViewState.Landing;
             NavigationStack.Clear();
-            SelectedGoal = null;
+            SelectedSituation = null;
             StateHasChanged();
         }
 
@@ -208,12 +299,12 @@ namespace Wayfarer.Pages.Components
             await ExecuteLocationAction(action);
         }
 
-        protected void HandleNavigateToGoal(string goalId)
+        protected void HandleNavigateToSituation(string situationId)
         {
-            Goal goal = GameWorld.Goals.FirstOrDefault(g => g.Id == goalId);
-            if (goal != null)
+            Situation situation = GameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
+            if (situation != null)
             {
-                NavigateToView(LocationViewState.GoalDetail, goal);
+                NavigateToView(LocationViewState.SituationDetail, situation);
             }
         }
 
@@ -224,9 +315,25 @@ namespace Wayfarer.Pages.Components
 
         protected async Task HandleStartExchange(string npcId)
         {
-            if (GameScreen != null)
+            await GameScreen.StartExchange(npcId);
+        }
+
+        protected async Task HandleTalkToNPC(string npcId, Scene scene)
+        {
+            await GameScreen.StartNPCEngagement(npcId, scene);
+        }
+
+        protected async Task HandleAcceptJob(string jobId)
+        {
+            // Execute through intent system - backend handles validation
+            IntentResult result = await GameFacade.ProcessIntent(new AcceptDeliveryJobIntent(jobId));
+
+            if (result.Success)
             {
-                await GameScreen.StartExchange(npcId);
+                // Job accepted - close modal and refresh
+                NavigateBack();
+                await RefreshLocationData();
+                await OnActionExecuted.InvokeAsync();
             }
         }
 
@@ -234,77 +341,112 @@ namespace Wayfarer.Pages.Components
         // VIEWMODEL PREPARATION - trivial wrappers
         // ============================================
 
-        protected GoalDetailViewModel GetGoalDetailViewModel()
+        protected SituationDetailViewModel GetSituationDetailViewModel()
         {
-            if (SelectedGoal == null) return null;
+            if (SelectedSituation == null) return null;
 
-            // Find the goal in view model to get pre-calculated difficulty
-            // Search in Social goals (ambient + obstacles)
-            GoalCardViewModel goalCard = ViewModel.NPCsWithGoals
-                .SelectMany(npc => npc.AmbientSocialGoals)
-                .FirstOrDefault(g => g.Id == SelectedGoal.Id);
+            // Find the situation in view model to get pre-calculated difficulty
+            // NOTE: Social situations from NPCs removed - they appear in Scene view after engagement
+            SituationCardViewModel situationCard = null;
 
-            if (goalCard == null)
+            // Search in Mental situations (ambient + scenes)
+            if (situationCard == null)
             {
-                goalCard = ViewModel.NPCsWithGoals
-                    .SelectMany(npc => npc.SocialObstacles)
-                    .SelectMany(obstacle => obstacle.Goals)
-                    .FirstOrDefault(g => g.Id == SelectedGoal.Id);
+                situationCard = ViewModel.AmbientMentalSituations.FirstOrDefault(g => g.Id == SelectedSituation.Id);
             }
 
-            // Search in Mental goals (ambient + obstacles)
-            if (goalCard == null)
+            if (situationCard == null)
             {
-                goalCard = ViewModel.AmbientMentalGoals.FirstOrDefault(g => g.Id == SelectedGoal.Id);
+                situationCard = ViewModel.MentalScenes
+                    .SelectMany(scene => scene.Situations)
+                    .FirstOrDefault(g => g.Id == SelectedSituation.Id);
             }
 
-            if (goalCard == null)
+            // Search in Physical situations (ambient + scenes)
+            if (situationCard == null)
             {
-                goalCard = ViewModel.MentalObstacles
-                    .SelectMany(obstacle => obstacle.Goals)
-                    .FirstOrDefault(g => g.Id == SelectedGoal.Id);
+                situationCard = ViewModel.AmbientPhysicalSituations.FirstOrDefault(g => g.Id == SelectedSituation.Id);
             }
 
-            // Search in Physical goals (ambient + obstacles)
-            if (goalCard == null)
+            if (situationCard == null)
             {
-                goalCard = ViewModel.AmbientPhysicalGoals.FirstOrDefault(g => g.Id == SelectedGoal.Id);
+                situationCard = ViewModel.PhysicalScenes
+                    .SelectMany(scene => scene.Situations)
+                    .FirstOrDefault(g => g.Id == SelectedSituation.Id);
             }
 
-            if (goalCard == null)
-            {
-                goalCard = ViewModel.PhysicalObstacles
-                    .SelectMany(obstacle => obstacle.Goals)
-                    .FirstOrDefault(g => g.Id == SelectedGoal.Id);
-            }
+            int difficulty = situationCard?.Difficulty ?? 0;
 
-            int difficulty = goalCard?.Difficulty ?? 0;
-
-            return new GoalDetailViewModel
+            return new SituationDetailViewModel
             {
-                Goal = SelectedGoal,
-                Name = SelectedGoal.Name,
-                Description = SelectedGoal.Description,
-                SystemType = SelectedGoal.SystemType,
-                SystemTypeLowercase = SelectedGoal.SystemType.ToString().ToLower(),
+                Situation = SelectedSituation,
+                Name = SelectedSituation.Name,
+                Description = SelectedSituation.Description,
+                SystemType = SelectedSituation.SystemType,
+                SystemTypeLowercase = SelectedSituation.SystemType.ToString().ToLower(),
                 Difficulty = difficulty.ToString(),
-                HasCosts = SelectedGoal.Costs.Focus > 0 || SelectedGoal.Costs.Stamina > 0,
-                FocusCost = SelectedGoal.Costs.Focus,
-                StaminaCost = SelectedGoal.Costs.Stamina
+                HasCosts = SelectedSituation.Costs.Focus > 0 || SelectedSituation.Costs.Stamina > 0,
+                FocusCost = SelectedSituation.Costs.Focus,
+                StaminaCost = SelectedSituation.Costs.Stamina
             };
         }
-    }
 
-    // ============================================
-    // VIEW STATE ENUM
-    // ============================================
+        // ============================================
+        // SCREEN EXPANSION HANDLERS
+        // ============================================
 
-    public enum LocationViewState
-    {
-        Landing,
-        LookingAround,
-        GoalDetail,
-        Spots,
-        Equipment
+        protected async Task HandleStartConversationTree(string treeId)
+        {
+            await GameScreen.StartConversationTree(treeId);
+        }
+
+        protected async Task HandleStartObservationScene(string sceneId)
+        {
+            await GameScreen.StartObservationScene(sceneId);
+        }
+
+        // ============================================
+        // SCENE-SITUATION ARCHITECTURE: NPCAction Execution
+        // ============================================
+
+        protected async Task HandleExecuteNPCAction(ActionCardViewModel action)
+        {
+            // Execute NPCAction through GameFacade (unified action architecture)
+            IntentResult result = await GameFacade.ExecuteNPCAction(action.SituationId, action.Id);
+
+            if (result.Success)
+            {
+                // Screen-level navigation (GameScreen handles)
+                if (result.NavigateToScreen.HasValue)
+                {
+                    await GameScreen.NavigateToScreen(result.NavigateToScreen.Value);
+                }
+
+                // View-level navigation (LocationContent handles)
+                if (result.NavigateToView.HasValue)
+                {
+                    NavigateToView(result.NavigateToView.Value);
+                }
+
+                // Refresh if backend says to refresh
+                if (result.RequiresLocationRefresh)
+                {
+                    await RefreshLocationData();
+                    await OnActionExecuted.InvokeAsync();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Create MoveIntent from intra-venue movement action
+        /// Uses strongly-typed DestinationLocationId property (no ID parsing)
+        /// </summary>
+        private MoveIntent CreateIntraVenueMoveIntent(LocationActionViewModel action)
+        {
+            if (string.IsNullOrEmpty(action.DestinationLocationId))
+                throw new InvalidOperationException("IntraVenueMove action missing DestinationLocationId property");
+
+            return new MoveIntent(action.DestinationLocationId);
+        }
     }
 }

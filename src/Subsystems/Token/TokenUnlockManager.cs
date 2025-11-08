@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Manages what gets unlocked with tokens - conversation options, letter categories, special actions.
+/// Uses strongly-typed UnlockDefinition objects instead of string-based dictionaries.
 /// </summary>
 public class TokenUnlockManager
 {
@@ -12,37 +9,140 @@ public class TokenUnlockManager
     private readonly NPCRepository _npcRepository;
     private readonly MessageSystem _messageSystem;
 
-    // Token thresholds for unlocking content
-    private readonly Dictionary<int, string> _trustUnlocks = new Dictionary<int, string>
+    private readonly List<UnlockDefinition> _trustUnlocks = new List<UnlockDefinition>
     {
-        { 3, "Personal letters" },
-        { 5, "Intimate conversations" },
-        { 8, "Secret sharing" },
-        { 12, "Life-changing favors" }
+        new UnlockDefinition
+        {
+            Threshold = 3,
+            Name = "Personal letters",
+            Description = "Unlocked through Trust tokens: Personal letters. Can now carry intimate correspondence.",
+            Guidance = "You can now accept personal letters from this NPC, which offer higher rewards."
+        },
+        new UnlockDefinition
+        {
+            Threshold = 5,
+            Name = "Intimate conversations",
+            Description = "Unlocked through Trust tokens: Intimate conversations. Access to deeper personal dialogue.",
+            Guidance = "You can now engage in intimate conversations, revealing personal struggles and bonds."
+        },
+        new UnlockDefinition
+        {
+            Threshold = 8,
+            Name = "Secret sharing",
+            Description = "Unlocked through Trust tokens: Secret sharing. Share and receive confidential information.",
+            Guidance = "This NPC now trusts you with their secrets and will accept yours in return."
+        },
+        new UnlockDefinition
+        {
+            Threshold = 12,
+            Name = "Life-changing favors",
+            Description = "Unlocked through Trust tokens: Life-changing favors. Major personal commitments available.",
+            Guidance = "You can now ask for or offer life-changing favors that reshape destinies."
+        }
     };
 
-    private readonly Dictionary<int, string> _diplomacyUnlocks = new Dictionary<int, string>
+    private readonly List<UnlockDefinition> _diplomacyUnlocks = new List<UnlockDefinition>
     {
-        { 2, "Trade discounts" },
-        { 4, "Business letters" },
-        { 6, "Investment opportunities" },
-        { 10, "Exclusive contracts" }
+        new UnlockDefinition
+        {
+            Threshold = 2,
+            Name = "Trade discounts",
+            Description = "Unlocked through Diplomacy tokens: Trade discounts. Receive better prices in markets.",
+            Guidance = "Your diplomatic relationship grants you favorable pricing."
+        },
+        new UnlockDefinition
+        {
+            Threshold = 4,
+            Name = "Business letters",
+            Description = "Unlocked through Diplomacy tokens: Business letters. Formal commercial correspondence.",
+            Guidance = "Business correspondence is now available, providing diplomacy tokens and coin bonuses."
+        },
+        new UnlockDefinition
+        {
+            Threshold = 6,
+            Name = "Investment opportunities",
+            Description = "Unlocked through Diplomacy tokens: Investment opportunities. Access to profitable ventures.",
+            Guidance = "This NPC will now offer you investment opportunities in their business ventures."
+        },
+        new UnlockDefinition
+        {
+            Threshold = 10,
+            Name = "Exclusive contracts",
+            Description = "Unlocked through Diplomacy tokens: Exclusive contracts. Major business partnerships.",
+            Guidance = "You can now negotiate exclusive contracts with significant financial implications."
+        }
     };
 
-    private readonly Dictionary<int, string> _statusUnlocks = new Dictionary<int, string>
+    private readonly List<UnlockDefinition> _statusUnlocks = new List<UnlockDefinition>
     {
-        { 2, "Formal introductions" },
-        { 5, "Social invitations" },
-        { 8, "Noble correspondence" },
-        { 12, "Court influence" }
+        new UnlockDefinition
+        {
+            Threshold = 2,
+            Name = "Formal introductions",
+            Description = "Unlocked through Status tokens: Formal introductions. Access to their social circle.",
+            Guidance = "This NPC will now introduce you to members of their social circle."
+        },
+        new UnlockDefinition
+        {
+            Threshold = 5,
+            Name = "Social invitations",
+            Description = "Unlocked through Status tokens: Social invitations. Access to exclusive social events.",
+            Guidance = "You will now receive invitations to exclusive gatherings and social functions."
+        },
+        new UnlockDefinition
+        {
+            Threshold = 8,
+            Name = "Noble correspondence",
+            Description = "Unlocked through Status tokens: Noble correspondence. Formal noble communication.",
+            Guidance = "Noble letters grant status tokens and may unlock new locations."
+        },
+        new UnlockDefinition
+        {
+            Threshold = 12,
+            Name = "Court influence",
+            Description = "Unlocked through Status tokens: Court influence. Sway in political circles.",
+            Guidance = "Your standing grants you influence in court politics and noble affairs."
+        }
     };
 
-    private readonly Dictionary<int, string> _shadowUnlocks = new Dictionary<int, string>
+    private readonly List<UnlockDefinition> _shadowUnlocks = new List<UnlockDefinition>
     {
-        { 2, "Rumor trading" },
-        { 4, "Secret messages" },
-        { 7, "Blackmail letters" },
-        { 10, "Criminal contacts" }
+        new UnlockDefinition
+        {
+            Threshold = 2,
+            Name = "Rumor trading",
+            Description = "Unlocked through Shadow tokens: Rumor trading. Exchange of sensitive information.",
+            Guidance = "You can now trade rumors and gather intelligence through this NPC."
+        },
+        new UnlockDefinition
+        {
+            Threshold = 4,
+            Name = "Secret messages",
+            Description = "Unlocked through Shadow tokens: Secret messages. Can transport clandestine information.",
+            Guidance = "Secret letters are risky but highly rewarding. Handle with care."
+        },
+        new UnlockDefinition
+        {
+            Threshold = 7,
+            Name = "Blackmail letters",
+            Description = "Unlocked through Shadow tokens: Blackmail letters. Leverage sensitive information.",
+            Guidance = "You can now engage in blackmail operations through this contact."
+        },
+        new UnlockDefinition
+        {
+            Threshold = 10,
+            Name = "Criminal contacts",
+            Description = "Unlocked through Shadow tokens: Criminal contacts. Access to underground network.",
+            Guidance = "This NPC will connect you with criminal elements and illicit opportunities."
+        }
+    };
+
+    private readonly List<RelationshipMilestone> _relationshipMilestones = new List<RelationshipMilestone>
+    {
+        new RelationshipMilestone { Threshold = 5, Name = "Trusted associate" },
+        new RelationshipMilestone { Threshold = 10, Name = "Close ally" },
+        new RelationshipMilestone { Threshold = 15, Name = "Inner circle" },
+        new RelationshipMilestone { Threshold = 20, Name = "Lifelong bond" }
     };
 
     public TokenUnlockManager(
@@ -67,23 +167,16 @@ public class TokenUnlockManager
         NPC npc = _npcRepository.GetById(npcId);
         if (npc == null) return;
 
-        // Get unlock thresholds for this token type
-        Dictionary<int, string> unlockThresholds = GetUnlockThresholds(tokenType);
+        List<UnlockDefinition> unlocks = GetUnlockDefinitions(tokenType);
 
-        // Check each threshold
-        foreach (KeyValuePair<int, string> unlock in unlockThresholds)
+        foreach (UnlockDefinition unlock in unlocks)
         {
-            int threshold = unlock.Key;
-            string unlockName = unlock.Value;
-
-            // Check if we just crossed this threshold
-            if (newTokenCount >= threshold && (newTokenCount - 1) < threshold)
+            if (newTokenCount >= unlock.Threshold && (newTokenCount - 1) < unlock.Threshold)
             {
-                ProcessUnlock(npcId, npc.Name, tokenType, unlockName, threshold);
+                ProcessUnlock(npcId, npc.Name, tokenType, unlock);
             }
         }
 
-        // Check total token unlocks (relationship milestones)
         int totalTokens = GetTotalTokensWithNPC(npcId);
         CheckRelationshipUnlocks(npcId, npc.Name, totalTokens);
     }
@@ -103,22 +196,22 @@ public class TokenUnlockManager
             int tokenCount = tokens.GetValueOrDefault(type, 0);
             if (tokenCount <= 0) continue;
 
-            Dictionary<int, string> unlockThresholds = GetUnlockThresholds(type);
+            List<UnlockDefinition> unlocks = GetUnlockDefinitions(type);
 
-            foreach (KeyValuePair<int, string> unlock in unlockThresholds)
+            foreach (UnlockDefinition unlock in unlocks)
             {
-                if (tokenCount >= unlock.Key)
+                if (tokenCount >= unlock.Threshold)
                 {
                     availableUnlocks.Add(new TokenUnlock
                     {
-                        UnlockId = $"{npcId}_{type}_{unlock.Key}",
-                        Name = unlock.Value,
-                        Description = GetUnlockDescription(type, unlock.Value),
+                        UnlockId = $"{npcId}_{type}_{unlock.Threshold}",
+                        Name = unlock.Name,
+                        Description = unlock.Description,
                         Requirement = new TokenRequirement
                         {
                             NPCId = npcId,
                             TokenType = type,
-                            MinimumCount = unlock.Key
+                            MinimumCount = unlock.Threshold
                         },
                         IsAvailable = true
                     });
@@ -149,16 +242,16 @@ public class TokenUnlockManager
         {
             if (type == ConnectionType.None) continue;
 
-            Dictionary<int, string> unlockThresholds = GetUnlockThresholds(type);
+            List<UnlockDefinition> unlocks = GetUnlockDefinitions(type);
 
-            foreach (KeyValuePair<int, string> unlock in unlockThresholds)
+            foreach (UnlockDefinition unlock in unlocks)
             {
-                string unlockId = $"{npcId}_{type}_{unlock.Key}";
+                string unlockId = $"{npcId}_{type}_{unlock.Threshold}";
                 requirements[unlockId] = new TokenRequirement
                 {
                     NPCId = npcId,
                     TokenType = type,
-                    MinimumCount = unlock.Key
+                    MinimumCount = unlock.Threshold
                 };
             }
         }
@@ -166,179 +259,43 @@ public class TokenUnlockManager
         return requirements;
     }
 
-    /// <summary>
-    /// Check if player meets requirements for a conversation type
-    /// </summary>
-    public bool MeetsConversationRequirements(string npcId, string conversationType)
+    private void ProcessUnlock(string npcId, string npcName, ConnectionType tokenType, UnlockDefinition unlock)
     {
-        // Map conversation types to token requirements
-        switch (conversationType.ToLower())
-        {
-            case "intimate":
-            case "personal":
-                return _tokenManager.GetTokenCount(npcId, ConnectionType.Trust) >= 5;
-
-            case "business":
-            case "trade":
-                return _tokenManager.GetTokenCount(npcId, ConnectionType.Diplomacy) >= 2;
-
-            case "formal":
-            case "noble":
-                return _tokenManager.GetTokenCount(npcId, ConnectionType.Status) >= 3;
-
-            case "secret":
-            case "clandestine":
-                return _tokenManager.GetTokenCount(npcId, ConnectionType.Shadow) >= 2;
-
-            case "standard":
-            case "friendlychat":
-            case "friendly":
-                return true; // Standard/friendly conversations have no requirements
-
-            default:
-                throw new InvalidOperationException($"Unknown conversation type: '{conversationType}'. Valid types are: intimate, personal, business, trade, formal, noble, secret, clandestine, standard, friendly");
-        }
-    }
-
-    /// <summary>
-    /// Get available letter categories based on tokens
-    /// </summary>
-    public List<string> GetAvailableLetterCategories(string npcId)
-    {
-        List<string> categories = new List<string> { "standard" }; // Always available
-
-        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
-
-        // Trust unlocks personal letters
-        if (tokens.GetValueOrDefault(ConnectionType.Trust, 0) >= 3)
-        {
-            categories.Add("personal");
-        }
-        if (tokens.GetValueOrDefault(ConnectionType.Trust, 0) >= 8)
-        {
-            categories.Add("secret");
-        }
-
-        // Diplomacy unlocks business letters
-        if (tokens.GetValueOrDefault(ConnectionType.Diplomacy, 0) >= 4)
-        {
-            categories.Add("business");
-            categories.Add("contract");
-        }
-
-        // Status unlocks noble letters
-        if (tokens.GetValueOrDefault(ConnectionType.Status, 0) >= 5)
-        {
-            categories.Add("noble");
-            categories.Add("invitation");
-        }
-
-        // Shadow unlocks clandestine letters
-        if (tokens.GetValueOrDefault(ConnectionType.Shadow, 0) >= 4)
-        {
-            categories.Add("rumor");
-            categories.Add("blackmail");
-        }
-
-        return categories;
-    }
-
-    // ========== PRIVATE HELPER METHODS ==========
-
-    private void ProcessUnlock(string npcId, string npcName, ConnectionType tokenType, string unlockName, int threshold)
-    {
-        // Store unlock in game world (if we had an unlock tracking system)
-        // For now, just announce it
-
         _messageSystem.AddSystemMessage(
-            $"🔓 New {tokenType} unlock with {npcName}: {unlockName}",
+            $"🔓 New {tokenType} unlock with {npcName}: {unlock.Name}",
             SystemMessageTypes.Success
         );
 
-        // Provide specific guidance based on unlock type
-        string guidance = GetUnlockGuidance(tokenType, unlockName);
-        if (!string.IsNullOrEmpty(guidance))
+        if (!string.IsNullOrEmpty(unlock.Guidance))
         {
-            _messageSystem.AddSystemMessage(guidance, SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage(unlock.Guidance, SystemMessageTypes.Info);
         }
     }
 
     private void CheckRelationshipUnlocks(string npcId, string npcName, int totalTokens)
     {
-        // Relationship tier unlocks (across all token types)
-        Dictionary<int, string> relationshipMilestones = new Dictionary<int, string>
+        foreach (RelationshipMilestone milestone in _relationshipMilestones)
         {
-            { 5, "Trusted associate" },
-            { 10, "Close ally" },
-            { 15, "Inner circle" },
-            { 20, "Lifelong bond" }
-        };
-
-        foreach (KeyValuePair<int, string> milestone in relationshipMilestones)
-        {
-            if (totalTokens == milestone.Key)
+            if (totalTokens == milestone.Threshold)
             {
                 _messageSystem.AddSystemMessage(
-                    $"💫 Relationship milestone with {npcName}: {milestone.Value}",
+                    $"💫 Relationship milestone with {npcName}: {milestone.Name}",
                     SystemMessageTypes.Success
                 );
             }
         }
     }
 
-    private Dictionary<int, string> GetUnlockThresholds(ConnectionType type)
+    private List<UnlockDefinition> GetUnlockDefinitions(ConnectionType type)
     {
-        switch (type)
+        return type switch
         {
-            case ConnectionType.Trust:
-                return _trustUnlocks;
-            case ConnectionType.Diplomacy:
-                return _diplomacyUnlocks;
-            case ConnectionType.Status:
-                return _statusUnlocks;
-            case ConnectionType.Shadow:
-                return _shadowUnlocks;
-            default:
-                throw new InvalidOperationException($"No unlock thresholds defined for ConnectionType: {type}");
-        }
-    }
-
-    private string GetUnlockDescription(ConnectionType type, string unlockName)
-    {
-        // Provide detailed descriptions for each unlock
-        string baseDescription = $"Unlocked through {type} tokens: {unlockName}";
-
-        // Add specific benefits
-        switch (unlockName.ToLower())
-        {
-            case "personal letters":
-                return $"{baseDescription}. Can now carry intimate correspondence.";
-            case "trade discounts":
-                return $"{baseDescription}. Receive better prices in markets.";
-            case "social invitations":
-                return $"{baseDescription}. Access to exclusive social events.";
-            case "secret messages":
-                return $"{baseDescription}. Can transport clandestine information.";
-            default:
-                throw new InvalidOperationException($"Unknown unlock name: '{unlockName}' for ConnectionType: {type}");
-        }
-    }
-
-    private string GetUnlockGuidance(ConnectionType type, string unlockName)
-    {
-        switch (unlockName.ToLower())
-        {
-            case "personal letters":
-                return "You can now accept personal letters from this NPC, which offer higher rewards.";
-            case "business letters":
-                return "Business correspondence is now available, providing diplomacy tokens and coin bonuses.";
-            case "noble correspondence":
-                return "Noble letters grant status tokens and may unlock new locations.";
-            case "secret messages":
-                return "Secret letters are risky but highly rewarding. Handle with care.";
-            default:
-                throw new InvalidOperationException($"Unknown unlock name for guidance: '{unlockName}' for ConnectionType: {type}");
-        }
+            ConnectionType.Trust => _trustUnlocks,
+            ConnectionType.Diplomacy => _diplomacyUnlocks,
+            ConnectionType.Status => _statusUnlocks,
+            ConnectionType.Shadow => _shadowUnlocks,
+            _ => throw new InvalidOperationException($"No unlock definitions for ConnectionType: {type}")
+        };
     }
 
     private int GetTotalTokensWithNPC(string npcId)
@@ -346,4 +303,24 @@ public class TokenUnlockManager
         Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
         return tokens.Values.Where(v => v > 0).Sum();
     }
+}
+
+/// <summary>
+/// Strongly-typed unlock definition with all properties explicit
+/// </summary>
+public class UnlockDefinition
+{
+    public int Threshold { get; init; }
+    public string Name { get; init; }
+    public string Description { get; init; }
+    public string Guidance { get; init; }
+}
+
+/// <summary>
+/// Relationship milestone definition
+/// </summary>
+public class RelationshipMilestone
+{
+    public int Threshold { get; init; }
+    public string Name { get; init; }
 }

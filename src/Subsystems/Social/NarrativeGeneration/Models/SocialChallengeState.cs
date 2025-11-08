@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Wrapper for conversation mechanical state used in narrative generation.
 /// Contains all the game state information needed to generate contextually appropriate narratives.

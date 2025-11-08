@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text.Json;
-
 public static class NPCParser
 {
     /// <summary>
@@ -22,7 +18,6 @@ public static class NPCParser
             Name = dto.Name,
             Role = !string.IsNullOrEmpty(dto.Role) ? dto.Role : dto.Name, // Use name as role if role not specified
             Description = dto.Description, // Description is optional
-            LocationId = dto.LocationId,
             Tier = dto.Tier,
             Level = dto.Level > 0 ? dto.Level : 1, // Default to level 1 if not specified
             ConversationDifficulty = dto.ConversationDifficulty > 0 ? dto.ConversationDifficulty : 1
@@ -48,19 +43,6 @@ public static class NPCParser
         {
             // NO FALLBACKS - crash if personalityType not in DTO
             throw new InvalidOperationException($"NPC '{npc.Name}' (ID: {npc.ID}) is missing 'personalityType' in DTO or has invalid value '{dto.PersonalityType}' - fix DTO data");
-        }
-
-        // Parse services and map to ServiceTypes enum
-        if (dto.Services != null)
-        {
-            foreach (string serviceStr in dto.Services)
-            {
-                ServiceTypes? mappedService = MapServiceFromJson(serviceStr);
-                if (mappedService.HasValue)
-                {
-                    npc.ProvidedServices.Add(mappedService.Value);
-                }
-            }
         }
 
         // Set default player relationship
@@ -106,27 +88,15 @@ public static class NPCParser
             }
         }
 
-        // Parse obstacles for this NPC (Social barriers only)
-        if (dto.Obstacles != null && dto.Obstacles.Count > 0)
+        // Resolve Location object reference during parsing (HIGHLANDER: ID is parsing artifact)
+        if (!string.IsNullOrEmpty(dto.LocationId))
         {
-            foreach (ObstacleDTO obstacleDto in dto.Obstacles)
-            {
-                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, npc.ID, gameWorld);
-
-                // Duplicate ID protection - prevent data corruption
-                if (!gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
-                {
-                    gameWorld.Obstacles.Add(obstacle);
-                    npc.ObstacleIds.Add(obstacle.Id);
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"Duplicate obstacle ID '{obstacle.Id}' found in NPC '{npc.Name}'. " +
-                        $"Obstacle IDs must be globally unique across all packages.");
-                }
-            }
+            npc.Location = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId);
         }
+
+        // NOTE: Old inline scene parsing removed - NEW Scene-Situation architecture
+        // Scenes now spawn via Situation spawn rewards (SceneSpawnReward) instead of inline definitions
+        // NPCs will receive Scene references through the spawning system, not direct parsing
 
         return npc;
     }
@@ -155,34 +125,6 @@ public static class NPCParser
         };
     }
 
-    private static ServiceTypes? MapServiceFromJson(string jsonService)
-    {
-        return jsonService switch
-        {
-            "Trade" => ServiceTypes.Trade,
-            "Work" => ServiceTypes.Work,
-            "Information" => ServiceTypes.Information,
-            "Lodging" => ServiceTypes.Rest,
-            "equipment_commissioning" => ServiceTypes.EquipmentRepair,
-            "workshop_contracts" => ServiceTypes.Training,
-            "trade_goods" => ServiceTypes.Trade,
-            "delivery_contracts" => ServiceTypes.Trading,
-            "rest_services" => ServiceTypes.Rest,
-            "labor_contracts" => ServiceTypes.Training,
-            "lumber_sales" => ServiceTypes.Trade,
-            "logging_contracts" => ServiceTypes.Training,
-            "herb_sales" => ServiceTypes.Trade,
-            "gathering_contracts" => ServiceTypes.Training,
-            "heavy_labor" => ServiceTypes.Training,
-            "equipment_repair" => ServiceTypes.EquipmentRepair,
-            "fish_sales" => ServiceTypes.Trade,
-            "dock_work" => ServiceTypes.Training,
-            "transport_contracts" => ServiceTypes.Trading,
-            "simple_labor" => ServiceTypes.Training,
-            "boat_maintenance" => ServiceTypes.EquipmentRepair,
-            _ => null // Unknown service
-        };
-    }
 
     private static ConnectionType? ParseConnectionType(string connectionTypeStr)
     {

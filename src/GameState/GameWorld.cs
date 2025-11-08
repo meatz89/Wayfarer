@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 public class GameWorld
 {
     // Game mode determines content loading and tutorial state
@@ -12,7 +8,21 @@ public class GameWorld
     public List<Venue> Venues { get; set; } = new List<Venue>();
     public List<Location> Locations { get; set; } = new List<Location>();
     public List<NPC> NPCs { get; set; } = new List<NPC>();
+
+    // HEX-BASED TRAVEL SYSTEM - Spatial scaffolding for procedural generation
+    // World hex grid with terrain, danger levels, and location placement
+    // Source of truth for spatial positioning and hex-based pathfinding
+    // HIGHLANDER: GameWorld.WorldHexGrid owns all Hex entities
+    public HexMap WorldHexGrid { get; set; } = new HexMap();
+
+    // ==================== EPHEMERAL ACTION COLLECTIONS (QUERY-TIME INSTANTIATION) ====================
+    // Actions created by SceneFacade when player enters context (Situation: Dormant → Active)
+    // NOT persisted in save files - recreated from Situation.Template.ChoiceTemplates on load
+    // Flat collections for executor access (HIGHLANDER Pattern A)
     public List<LocationAction> LocationActions { get; set; } = new List<LocationAction>();
+    public List<NPCAction> NPCActions { get; set; } = new List<NPCAction>();
+    public List<PathCard> PathCards { get; set; } = new List<PathCard>();
+
     public List<PlayerAction> PlayerActions { get; set; } = new List<PlayerAction>();
 
     // TimeBlock tracking for stranger refresh
@@ -41,8 +51,7 @@ public class GameWorld
     public List<SocialCard> PlayerObservationCards { get; set; } = new List<SocialCard>();
     // Exchange definitions loaded from JSON for lookup
     public List<ExchangeDTO> ExchangeDefinitions { get; set; } = new List<ExchangeDTO>();
-    // Mental cards for obligation system
-    public List<Goal> Goals { get; set; } = new List<Goal>();
+    // Mental cards for obligation system - REMOVED: Situations now owned by Scene
     public List<SocialCard> SocialCards { get; set; } = new List<SocialCard>();
     public List<MentalCard> MentalCards { get; set; } = new List<MentalCard>();
     // Physical cards for physical challenge system
@@ -57,6 +66,22 @@ public class GameWorld
     // Observations from packages
     public List<Observation> Observations { get; set; } = new List<Observation>();
 
+    // ObservationScenes - Mental challenge system for scene investigation
+    public List<ObservationScene> ObservationScenes { get; set; } = new List<ObservationScene>();
+
+    // ConversationTrees - Simple dialogue without tactical challenge
+    public List<ConversationTree> ConversationTrees { get; set; } = new List<ConversationTree>();
+    // EmergencySituations - Urgent situations demanding immediate response
+    public List<EmergencySituation> EmergencySituations { get; set; } = new List<EmergencySituation>();
+    // ActiveEmergency - Currently triggering emergency that interrupts gameplay (set at sync points)
+    public EmergencySituation ActiveEmergency { get; set; }
+
+    // PendingForcedSceneId - Modal scene that should auto-trigger on location entry
+    // Set by movement methods (ProcessMoveIntent, TravelToDestinationAsync) after checking for forced scenes
+    // Checked by UI layer (LocationContent) after movement completes
+    // HIGHLANDER: Single pending forced scene at any time
+    public string PendingForcedSceneId { get; set; }
+
     // Dialogue templates from packages
     public DialogueTemplates DialogueTemplates { get; set; }
     public List<Obligation> Obligations { get; private set; } = new List<Obligation>();
@@ -64,10 +89,9 @@ public class GameWorld
 
     // Travel System
     public List<RouteImprovement> RouteImprovements { get; set; } = new List<RouteImprovement>();
-    public List<TravelObstacle> TravelObstacles { get; private set; } = new List<TravelObstacle>();
 
     // Initialization data - stored in GameWorld, not passed between phases
-    public string InitialLocationSpotId { get; set; }
+    public string InitialLocationId { get; set; }
     public PlayerInitialConfig InitialPlayerConfig { get; set; }
 
     // Time initialization (applied to TimeModel after DI initialization)
@@ -99,15 +123,24 @@ public class GameWorld
     public PhysicalSession CurrentPhysicalSession { get; set; }
 
     // Session context (obligation tracking for Mental/Physical)
-    public string CurrentMentalGoalId { get; set; }
+    public string CurrentMentalSituationId { get; set; }
     public string CurrentMentalObligationId { get; set; }
-    public string CurrentPhysicalGoalId { get; set; }
+    public string CurrentPhysicalSituationId { get; set; }
     public string CurrentPhysicalObligationId { get; set; }
 
     // Last outcomes (UI display after session ends)
     public SocialChallengeOutcome LastSocialOutcome { get; set; }
     public MentalOutcome LastMentalOutcome { get; set; }
     public PhysicalOutcome LastPhysicalOutcome { get; set; }
+
+    // Pending challenge contexts (for reward application after challenge completion)
+    // Set when challenge starts from Choice with ActionType = StartChallenge
+    // Contains CompletionReward to apply when challenge succeeds
+    // Cleared after challenge ends (success or failure)
+    // Tutorial system uses this: store reward when Elena social challenge starts, apply when succeeds
+    public SocialChallengeContext PendingSocialContext { get; set; }
+    public MentalChallengeContext PendingMentalContext { get; set; }
+    public PhysicalChallengeContext PendingPhysicalContext { get; set; }
 
     // PATH SYSTEM - For FixedPath segments that always show the same cards
     // Path card collections for FixedPath route segments (collections contain the actual cards)
@@ -120,9 +153,22 @@ public class GameWorld
     // Event collections for Event route segments (containing eventIds, not pathCardIds)
     public List<PathCollectionEntry> AllEventCollections { get; set; } = new List<PathCollectionEntry>();
 
-    // OBSTACLE SYSTEM - Single source of truth for all obstacles
-    // Obstacles are location-agnostic, referenced by Location.ObstacleIds and NPC.ObstacleIds
-    public List<Obstacle> Obstacles { get; set; } = new List<Obstacle>();
+    // SCENE-SITUATION TEMPLATE SYSTEM - Templates for procedural Scene generation
+    // SceneTemplates define Scene archetypes with categorical filters
+    // At spawn time, SceneInstantiator queries GameWorld for matching entities and creates Scene instances
+    public List<SceneTemplate> SceneTemplates { get; set; } = new List<SceneTemplate>();
+
+    // SCENE SYSTEM - Persistent Scene instances spawned from SceneTemplates
+    // PHASE 1.4: Unified collection for all scenes (Active, Provisional, Completed)
+    // Scenes stored here, queried by PlacementType and PlacementId
+    // Contains embedded Situations with 2-4 Choices (Sir Brante pattern)
+    public List<Scene> Scenes { get; set; } = new List<Scene>();
+
+    // SCENE-SITUATION ARCHITECTURE - Sir Brante integration
+    // State definitions (metadata about temporary player conditions)
+    public List<State> States { get; set; } = new List<State>();
+    // Achievement definitions (milestone templates)
+    public List<Achievement> Achievements { get; set; } = new List<Achievement>();
 
     // Hierarchical world organization
     public List<Region> Regions { get; set; } = new();
@@ -131,7 +177,6 @@ public class GameWorld
     // Core data collections
     public List<StandingObligation> StandingObligationTemplates { get; set; } = new();
 
-    public List<LocationVisitCount> LocationVisitCounts { get; set; } = new List<LocationVisitCount>();
     public List<string> CompletedConversations { get; } = new List<string>();
 
     // Weather conditions (no seasons - game timeframe is only days/weeks)
@@ -144,35 +189,15 @@ public class GameWorld
     public List<Item> Items { get; set; } = new List<Item>();
     public List<RouteOption> Routes { get; set; } = new List<RouteOption>();
 
+    // Delivery Job System - Core game loop (Phase 3)
+    // Jobs generated procedurally at parse time from routes by DeliveryJobCatalog
+    // Players can accept ONE active job at a time (tracked in Player.ActiveDeliveryJobId)
+    public List<DeliveryJob> AvailableDeliveryJobs { get; set; } = new();
+
     // Card system removed - using conversation and Venue action systems
 
     // Progression tracking
     public List<RouteDiscovery> RouteDiscoveries { get; set; } = new List<RouteDiscovery>();
-
-    public void RecordLocationVisit(string venueId)
-    {
-        LocationVisitCount visitCount = LocationVisitCounts.FirstOrDefault(lvc => lvc.LocationId == venueId);
-        if (visitCount == null)
-        {
-            visitCount = new LocationVisitCount { LocationId = venueId, Count = 0 };
-            LocationVisitCounts.Add(visitCount);
-        }
-
-        visitCount.Count++;
-    }
-
-    public int GetLocationVisitCount(string venueId)
-    {
-        LocationVisitCount visitCount = LocationVisitCounts.FirstOrDefault(lvc => lvc.LocationId == venueId);
-        if (visitCount == null)
-            return 0;
-        return visitCount.Count;
-    }
-
-    public bool IsFirstVisit(string venueId)
-    {
-        return GetLocationVisitCount(venueId) == 0;
-    }
 
     public bool IsConversationCompleted(string actionId)
     {
@@ -319,11 +344,29 @@ public class GameWorld
     }
 
     /// <summary>
-    /// Get a Goal by ID from centralized Goals list
+    /// Get player's current location via hex-first architecture
+    /// HEX-FIRST PATTERN: player.CurrentPosition → hex → locationId → Location
+    /// Returns null if player position has no location or location not found
     /// </summary>
-    public Goal GetGoalById(string id)
+    public Location GetPlayerCurrentLocation()
     {
-        return Goals.FirstOrDefault(g => g.Id == id);
+        Player player = GetPlayer();
+        Hex currentHex = WorldHexGrid.GetHex(player.CurrentPosition);
+        if (currentHex == null || string.IsNullOrEmpty(currentHex.LocationId))
+            return null;
+
+        return GetLocation(currentHex.LocationId);
+    }
+
+    /// <summary>
+    /// Get a Situation by ID by searching across all scenes
+    /// Used for cross-scene queries (e.g., obligation system)
+    /// </summary>
+    public Situation GetSituationById(string id)
+    {
+        return Scenes
+            .SelectMany(s => s.Situations)
+            .FirstOrDefault(sit => sit.Id == id);
     }
 
     /// <summary>
@@ -367,7 +410,7 @@ public class GameWorld
     public void AddStrangerToLocation(string locationId, NPC stranger)
     {
         if (stranger == null) return;
-        stranger.LocationId = locationId;
+        stranger.Location = Locations.FirstOrDefault(l => l.Id == locationId);
         stranger.IsStranger = true;
         NPCs.Add(stranger);
     }
@@ -380,7 +423,7 @@ public class GameWorld
         List<NPC> availableStrangers = new List<NPC>();
         foreach (NPC npc in NPCs)
         {
-            if (npc.IsStranger && npc.LocationId == locationId && npc.IsAvailableAtTime(currentTimeBlock))
+            if (npc.IsStranger && npc.Location?.Id == locationId && npc.IsAvailableAtTime(currentTimeBlock))
             {
                 availableStrangers.Add(npc);
             }
@@ -517,6 +560,31 @@ public class GameWorld
                 patron.RelationshipFlow = Math.Min(24, patron.RelationshipFlow + 2);
             }
         }
+    }
+
+    // ============================================
+    // DELIVERY JOB MANAGEMENT (Core Loop - Phase 3)
+    // ============================================
+
+    /// <summary>
+    /// Get all available delivery jobs at a specific location for current time
+    /// Used by LocationActionManager to show job board actions
+    /// </summary>
+    public List<DeliveryJob> GetJobsAvailableAt(string locationId, TimeBlocks currentTime)
+    {
+        return AvailableDeliveryJobs
+            .Where(job => job.OriginLocationId == locationId)
+            .Where(job => job.IsAvailable)
+            .Where(job => job.AvailableAt.Count == 0 || job.AvailableAt.Contains(currentTime))
+            .ToList();
+    }
+
+    /// <summary>
+    /// Get delivery job by ID
+    /// </summary>
+    public DeliveryJob GetJobById(string jobId)
+    {
+        return AvailableDeliveryJobs.FirstOrDefault(j => j.Id == jobId);
     }
 
     /// <summary>
@@ -709,6 +777,265 @@ public class GameWorld
     {
         Player player = GetPlayer();
         player.MasteryCubes.AddMastery(deckId, amount);
+    }
+
+    // ============================================
+    // SCENE-SITUATION ARCHITECTURE (Sir Brante Integration)
+    // ============================================
+
+    /// <summary>
+    /// Get a State definition by type
+    /// Returns metadata about a state (blocked actions, clear conditions, etc.)
+    /// </summary>
+    public State GetStateDefinition(StateType stateType)
+    {
+        return States.FirstOrDefault(s => s.Type == stateType);
+    }
+
+    /// <summary>
+    /// Get an Achievement definition by ID
+    /// </summary>
+    public Achievement GetAchievementById(string achievementId)
+    {
+        return Achievements.FirstOrDefault(a => a.Id == achievementId);
+    }
+
+    /// <summary>
+    /// Check if player has earned a specific achievement
+    /// </summary>
+    public bool HasAchievement(string achievementId)
+    {
+        return Player.EarnedAchievements.Any(pa => pa.AchievementId == achievementId);
+    }
+
+    /// <summary>
+    /// Grant achievement to player with current time tracking
+    /// </summary>
+    public void GrantAchievement(string achievementId, int currentDay, TimeBlocks currentTimeBlock, int currentSegment)
+    {
+        if (HasAchievement(achievementId))
+            return; // Already earned, don't grant again
+
+        PlayerAchievement playerAchievement = new PlayerAchievement
+        {
+            AchievementId = achievementId,
+            EarnedDay = currentDay,
+            EarnedTimeBlock = currentTimeBlock,
+            EarnedSegment = currentSegment
+        };
+
+        Player.EarnedAchievements.Add(playerAchievement);
+    }
+
+    /// <summary>
+    /// Apply a state to the player
+    /// </summary>
+    public void ApplyState(StateType stateType, int currentDay, TimeBlocks currentTimeBlock, int currentSegment)
+    {
+        // Check if player already has this state active
+        if (Player.ActiveStates.Any(s => s.Type == stateType))
+            return; // Already active, don't apply again
+
+        State stateDefinition = GetStateDefinition(stateType);
+        if (stateDefinition == null)
+            throw new InvalidOperationException($"State definition not found for type: {stateType}");
+
+        ActiveState activeState = new ActiveState
+        {
+            Type = stateType,
+            Category = stateDefinition.Category,
+            AppliedDay = currentDay,
+            AppliedTimeBlock = currentTimeBlock,
+            AppliedSegment = currentSegment,
+            DurationSegments = stateDefinition.Duration
+        };
+
+        Player.ActiveStates.Add(activeState);
+    }
+
+    /// <summary>
+    /// Clear a state from the player
+    /// </summary>
+    public void ClearState(StateType stateType)
+    {
+        ActiveState activeState = Player.ActiveStates.FirstOrDefault(s => s.Type == stateType);
+        if (activeState != null)
+        {
+            Player.ActiveStates.Remove(activeState);
+        }
+    }
+
+    /// <summary>
+    /// Check and auto-clear expired states based on duration
+    /// </summary>
+    public void ProcessExpiredStates(int currentDay, TimeBlocks currentTimeBlock, int currentSegment)
+    {
+        List<ActiveState> expiredStates = new List<ActiveState>();
+
+        foreach (ActiveState state in Player.ActiveStates)
+        {
+            if (state.ShouldAutoClear(currentDay, currentTimeBlock, currentSegment))
+            {
+                expiredStates.Add(state);
+            }
+        }
+
+        foreach (ActiveState expiredState in expiredStates)
+        {
+            Player.ActiveStates.Remove(expiredState);
+        }
+    }
+
+    // ============================================
+    // PATH COLLECTION MANAGEMENT (Travel system)
+    // ============================================
+
+    /// <summary>
+    /// Get path collection by ID
+    /// </summary>
+    public PathCardCollectionDTO GetPathCollection(string collectionId)
+    {
+        PathCollectionEntry entry = AllPathCollections.FirstOrDefault(c => c.CollectionId == collectionId);
+        if (entry == null)
+            throw new InvalidOperationException($"No collection entry found for collection '{collectionId}' - ensure collection exists before accessing");
+        return entry.Collection;
+    }
+
+    /// <summary>
+    /// Add or update path collection
+    /// </summary>
+    public void AddOrUpdatePathCollection(string collectionId, PathCardCollectionDTO collection)
+    {
+        PathCollectionEntry existing = AllPathCollections.FirstOrDefault(c => c.CollectionId == collectionId);
+        if (existing != null)
+        {
+            existing.Collection = collection;
+        }
+        else
+        {
+            AllPathCollections.Add(new PathCollectionEntry { CollectionId = collectionId, Collection = collection });
+        }
+    }
+
+    // ============================================
+    // TRAVEL EVENT MANAGEMENT (Travel system)
+    // ============================================
+
+    /// <summary>
+    /// Get travel event by ID
+    /// </summary>
+    public TravelEventDTO GetTravelEvent(string eventId)
+    {
+        TravelEventEntry entry = AllTravelEvents.FirstOrDefault(e => e.EventId == eventId);
+        if (entry == null)
+            throw new InvalidOperationException($"No event entry found for event '{eventId}' - ensure event exists before accessing");
+        return entry.TravelEvent;
+    }
+
+    // ============================================
+    // SKELETON REGISTRY MANAGEMENT (Lazy loading)
+    // ============================================
+
+    /// <summary>
+    /// Add skeleton to registry for lazy resolution
+    /// </summary>
+    public void AddSkeleton(string key, string contentType)
+    {
+        if (!SkeletonRegistry.Any(r => r.SkeletonKey == key))
+        {
+            SkeletonRegistry.Add(new SkeletonRegistryEntry { SkeletonKey = key, ContentType = contentType });
+        }
+    }
+
+    // ============================================
+    // EVENT DECK POSITION MANAGEMENT (Deterministic draws)
+    // ============================================
+
+    /// <summary>
+    /// Get event deck position
+    /// </summary>
+    public int GetEventDeckPosition(string deckId)
+    {
+        EventDeckPositionEntry entry = EventDeckPositions.FirstOrDefault(p => p.DeckId == deckId);
+        if (entry == null)
+            throw new InvalidOperationException($"No event deck position entry found for deck '{deckId}' - ensure deck exists before accessing position");
+        return entry.Position;
+    }
+
+    /// <summary>
+    /// Set event deck position
+    /// </summary>
+    public void SetEventDeckPosition(string deckId, int position)
+    {
+        EventDeckPositionEntry existing = EventDeckPositions.FirstOrDefault(p => p.DeckId == deckId);
+        if (existing != null)
+        {
+            existing.Position = position;
+        }
+        else
+        {
+            EventDeckPositions.Add(new EventDeckPositionEntry { DeckId = deckId, Position = position });
+        }
+    }
+
+    // ============================================
+    // PATH CARD DISCOVERY MANAGEMENT (Progression tracking)
+    // ============================================
+
+    /// <summary>
+    /// Check if path card is discovered
+    /// </summary>
+    public bool IsPathCardDiscovered(string cardId)
+    {
+        PathCardDiscoveryEntry entry = PathCardDiscoveries.FirstOrDefault(d => d.CardId == cardId);
+        if (entry == null)
+            throw new InvalidOperationException($"No discovery entry found for card '{cardId}' - ensure card exists before checking discovery status");
+        return entry.IsDiscovered;
+    }
+
+    /// <summary>
+    /// Set path card discovery status
+    /// </summary>
+    public void SetPathCardDiscovered(string cardId, bool discovered)
+    {
+        PathCardDiscoveryEntry existing = PathCardDiscoveries.FirstOrDefault(d => d.CardId == cardId);
+        if (existing != null)
+        {
+            existing.IsDiscovered = discovered;
+        }
+        else
+        {
+            PathCardDiscoveries.Add(new PathCardDiscoveryEntry { CardId = cardId, IsDiscovered = discovered });
+        }
+    }
+
+    // ============================================
+    // LOCATION MANAGEMENT (GameWorld owns locations)
+    // ============================================
+
+    /// <summary>
+    /// Add or update location spot
+    /// </summary>
+    public void AddOrUpdateLocation(string locationId, Location location)
+    {
+        Location existing = Locations.FirstOrDefault(l => l.Id == locationId);
+        if (existing != null)
+        {
+            Locations.Remove(existing);
+        }
+        Locations.Add(location);
+    }
+
+    /// <summary>
+    /// Remove location spot
+    /// </summary>
+    public void RemoveLocation(string locationId)
+    {
+        Location existing = Locations.FirstOrDefault(l => l.Id == locationId);
+        if (existing != null)
+        {
+            Locations.Remove(existing);
+        }
     }
 
 }

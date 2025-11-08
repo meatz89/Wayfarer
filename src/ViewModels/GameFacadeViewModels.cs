@@ -1,10 +1,8 @@
-using System.Collections.Generic;
-
 // ========== TRAVEL VIEW MODELS ==========
 
 public class TravelDestinationViewModel
 {
-    public string VenueId { get; set; }
+    public string LocationId { get; set; }
     public string LocationName { get; set; }
     public string Description { get; set; }
     public bool CanTravel { get; set; }
@@ -201,7 +199,7 @@ public class TimeBlockServiceViewModel
 {
     public TimeBlocks TimeBlock { get; set; }
     public bool IsCurrentTimeBlock { get; set; }
-    public List<ServiceTypes> AvailableServices { get; set; }
+    public List<string> AvailableServices { get; set; }
     public List<string> AvailableNPCs { get; set; }
 }
 

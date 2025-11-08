@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// DTO for Mental Card
 /// Field optionality contract documented in field-optionality-contract.md

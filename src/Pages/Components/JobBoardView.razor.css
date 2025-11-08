@@ -1,0 +1,197 @@
+.location-job-board-view {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    padding: 1rem;
+    background-color: var(--parchment-light);
+    border-radius: 8px;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.job-board-header {
+    text-align: center;
+    border-bottom: 2px solid var(--accent-brown);
+    padding-bottom: 1rem;
+}
+
+.job-board-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--text-dark);
+    margin-bottom: 0.5rem;
+}
+
+.job-board-subtitle {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+/* Jobs Grid */
+.jobs-grid {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+}
+
+.job-card {
+    background-color: var(--parchment);
+    border: 2px solid var(--accent-brown);
+    border-radius: 6px;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.job-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Difficulty-based styling */
+.job-card.Easy {
+    border-color: var(--success-color);
+}
+
+.job-card.Medium {
+    border-color: var(--warning-color);
+}
+
+.job-card.Hard {
+    border-color: var(--danger-color);
+}
+
+.job-card.VeryHard {
+    border-color: #8B0000;
+}
+
+/* Job Header */
+.job-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.job-description {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+    flex: 1;
+}
+
+.job-difficulty-badge {
+    font-size: 0.75rem;
+    font-weight: bold;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.job-difficulty-badge.Easy {
+    background-color: var(--success-color);
+    color: white;
+}
+
+.job-difficulty-badge.Medium {
+    background-color: var(--warning-color);
+    color: white;
+}
+
+.job-difficulty-badge.Hard {
+    background-color: var(--danger-color);
+    color: white;
+}
+
+.job-difficulty-badge.VeryHard {
+    background-color: #8B0000;
+    color: white;
+}
+
+/* Job Details */
+.job-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0.75rem 0;
+}
+
+.job-detail-item {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.9rem;
+}
+
+.detail-label {
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+.detail-value {
+    color: var(--text-dark);
+    font-weight: 600;
+}
+
+/* Job Actions */
+.job-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 0.5rem;
+}
+
+.job-actions .action-button {
+    width: 100%;
+    max-width: 200px;
+}
+
+/* No Jobs Message */
+.no-jobs-message {
+    text-align: center;
+    padding: 2rem;
+    background-color: var(--background-overlay);
+    border-radius: 6px;
+    border: 1px dashed var(--border-color);
+}
+
+.no-jobs-message p {
+    margin: 0.5rem 0;
+    color: var(--text-muted);
+}
+
+.no-jobs-message p:first-child {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+/* Bottom Actions */
+.job-board-actions {
+    display: flex;
+    justify-content: center;
+    border-top: 2px solid var(--accent-brown);
+    padding-top: 1rem;
+}
+
+.job-board-actions .action-button {
+    min-width: 150px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .jobs-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .location-job-board-view {
+        padding: 0.75rem;
+    }
+
+    .job-board-title {
+        font-size: 1.25rem;
+    }
+}

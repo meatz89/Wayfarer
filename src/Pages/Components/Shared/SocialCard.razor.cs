@@ -1,7 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Wayfarer.Pages.Components.Shared
 {
@@ -41,9 +38,9 @@ namespace Wayfarer.Pages.Components.Shared
             if (Card.SocialCardTemplate == null)
                 throw new InvalidOperationException("SocialCardTemplate is required");
 
-            // Goal cards use special styling
-            if (Card.CardType == CardTypes.Goal)
-                return "goal";
+            // Situation cards use special styling
+            if (Card.CardType == CardTypes.Situation)
+                return "situation";
 
             // Conversation cards use BoundStat for styling
             if (Card.SocialCardTemplate.BoundStat == null) return "";

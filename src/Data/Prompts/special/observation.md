@@ -17,7 +17,7 @@ CONVERSATION CONTEXT:
 PLAYER CONTEXT:
 - Previous Knowledge: {{player_knowledge}}
 - Relationship with {{npc_name}}: {{relationship_type}}
-- Current Goal: {{player_intent}}
+- Current Situation: {{player_intent}}
 
 The player is using their knowledge or insight to contribute meaningfully to the conversation. Generate narrative that:
 1. Shows the player character sharing their observation naturally

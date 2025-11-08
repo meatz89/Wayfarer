@@ -1,8 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components
 {
@@ -109,7 +105,7 @@ namespace Wayfarer.Pages.Components
         protected int GetBreakthroughPercentage()
         {
             if (Session == null) return 0;
-            // Physical victory is determined by GoalCard play, not thresholds
+            // Physical victory is determined by SituationCard play, not thresholds
             // This percentage is for UI display only (max progress ~20)
             int maxProgress = 20;
             return (int)((Session.CurrentBreakthrough / (double)maxProgress) * 100);
@@ -189,17 +185,14 @@ namespace Wayfarer.Pages.Components
                     SelectedCard = null;
 
                     // Refresh resource display after action
-                    if (GameScreen != null)
-                    {
-                        await GameScreen.RefreshResourceDisplay();
-                    }
+                    await GameScreen.RefreshResourceDisplay();
 
                     // Check if challenge should end
                     if (Session != null && Session.ShouldEnd())
                     {
                         IsChallengeEnded = true;
                         // Physical sessions only end on Danger threshold (failure)
-                        // Victory is determined by GoalCard play in facade
+                        // Victory is determined by SituationCard play in facade
                         EndReason = "Maximum danger reached";
                     }
                 }
@@ -234,17 +227,14 @@ namespace Wayfarer.Pages.Components
                     SelectedCard = null;
 
                     // Refresh resource display after action
-                    if (GameScreen != null)
-                    {
-                        await GameScreen.RefreshResourceDisplay();
-                    }
+                    await GameScreen.RefreshResourceDisplay();
 
                     // Check if challenge should end
                     if (Session != null && Session.ShouldEnd())
                     {
                         IsChallengeEnded = true;
                         // Physical sessions only end on Danger threshold (failure)
-                        // Victory is determined by GoalCard play in facade
+                        // Victory is determined by SituationCard play in facade
                         EndReason = "Maximum danger reached";
                     }
                 }
@@ -514,7 +504,7 @@ namespace Wayfarer.Pages.Components
 
         protected int GetVictoryThreshold()
         {
-            // Physical sessions don't use VictoryThreshold - victory is determined by GoalCard play
+            // Physical sessions don't use VictoryThreshold - victory is determined by SituationCard play
             // This is for UI display only
             return 20;
         }
@@ -522,7 +512,7 @@ namespace Wayfarer.Pages.Components
         protected bool IsChallengeComplete()
         {
             // Physical sessions don't complete via Breakthrough threshold
-            // Victory is determined by GoalCard play (handled in facade)
+            // Victory is determined by SituationCard play (handled in facade)
             return false;
         }
 
@@ -541,7 +531,7 @@ namespace Wayfarer.Pages.Components
 
         protected int GetBreakthroughThreshold()
         {
-            // Physical sessions don't use VictoryThreshold - victory is determined by GoalCard play
+            // Physical sessions don't use VictoryThreshold - victory is determined by SituationCard play
             // This is for UI display only (typical max progress ~20)
             return 20;
         }
@@ -626,13 +616,13 @@ namespace Wayfarer.Pages.Components
             if (GameFacade == null)
                 throw new InvalidOperationException("GameFacade is null");
 
-            Venue currentLocation = GameFacade.GetCurrentLocation();
-            Location currentSpot = GameFacade.GetCurrentLocationSpot();
+            Venue currentVenue = GameFacade.GetCurrentLocation().Venue;
+            Location currentSpot = GameFacade.GetCurrentLocation();
 
-            if (currentLocation == null || currentSpot == null)
+            if (currentVenue == null || currentSpot == null)
                 throw new InvalidOperationException("Current location or spot is null");
 
-            string locationName = currentLocation.Name;
+            string locationName = currentVenue.Name;
             string spotName = currentSpot.Name;
             string spotTraits = GetSpotTraits(currentSpot);
 
@@ -689,29 +679,29 @@ namespace Wayfarer.Pages.Components
         }
 
         // =============================================
-        // GOAL CARD DETECTION & FILTERING
+        // SITUATION CARD DETECTION & FILTERING
         // =============================================
 
         /// <summary>
-        /// Detect if a card is a goal card (self-contained victory condition)
-        /// Goal cards have Context.threshold but NO PhysicalCardTemplate
+        /// Detect if a card is a situation card (self-contained victory condition)
+        /// Situation cards have Context.threshold but NO PhysicalCardTemplate
         /// </summary>
-        protected bool IsGoalCard(CardInstance card)
+        protected bool IsSituationCard(CardInstance card)
         {
             if (card == null) return false;
 
-            // Goal cards have threshold in Context and no system-specific template
+            // Situation cards have threshold in Context and no system-specific template
             return card.Context?.threshold > 0 && card.PhysicalCardTemplate == null;
         }
 
         /// <summary>
-        /// Get all goal cards currently in hand (unlocked at Breakthrough thresholds)
+        /// Get all situation cards currently in hand (unlocked at Breakthrough thresholds)
         /// </summary>
-        protected List<CardInstance> GetAvailableGoalCards()
+        protected List<CardInstance> GetAvailableSituationCards()
         {
             if (Hand == null)
                 throw new InvalidOperationException("Hand is null");
-            return Hand.Where(c => IsGoalCard(c)).ToList();
+            return Hand.Where(c => IsSituationCard(c)).ToList();
         }
 
         // =============================================
@@ -723,8 +713,8 @@ namespace Wayfarer.Pages.Components
             List<CardInstance> handCards = Hand ?? new List<CardInstance>();
             List<CardDisplayInfo> displayCards = new List<CardDisplayInfo>();
 
-            // FILTER OUT GOAL CARDS - they render separately
-            foreach (CardInstance card in handCards.Where(c => !IsGoalCard(c)))
+            // FILTER OUT SITUATION CARDS - they render separately
+            foreach (CardInstance card in handCards.Where(c => !IsSituationCard(c)))
             {
                 displayCards.Add(new CardDisplayInfo(card));
             }
@@ -768,7 +758,7 @@ namespace Wayfarer.Pages.Components
             int danger = Session.CurrentDanger;
             int maxDanger = Session.MaxDanger;
 
-            // Physical victory is determined by GoalCard play, not thresholds
+            // Physical victory is determined by SituationCard play, not thresholds
             return $"Breakthrough: {breakthrough} | Danger: {danger}/{maxDanger}";
         }
 
@@ -818,59 +808,59 @@ namespace Wayfarer.Pages.Components
         }
 
         // =============================================
-        // GOAL CARD PLAY
+        // SITUATION CARD PLAY
         // =============================================
 
         /// <summary>
-        /// Calculate difficulty for a goal card using DifficultyCalculationService
+        /// Calculate difficulty for a situation card using DifficultyCalculationService
         /// Returns calculated difficulty based on player's current modifiers (Understanding, tokens, familiarity)
         /// </summary>
-        protected int GetGoalDifficulty(CardInstance goalCard)
+        protected int GetSituationDifficulty(CardInstance situationCard)
         {
-            if (goalCard?.GoalCardTemplate == null) return 0;
-            if (DifficultyService == null || ItemRepository == null) return goalCard.GoalCardTemplate.threshold;
+            if (situationCard?.SituationCardTemplate == null) return 0;
+            if (DifficultyService == null || ItemRepository == null) return situationCard.SituationCardTemplate.threshold;
 
-            // Find parent Goal from GameWorld by searching for GoalCard ID
-            Goal parentGoal = FindParentGoal(goalCard.GoalCardTemplate.Id);
-            if (parentGoal == null) return goalCard.GoalCardTemplate.threshold;
+            // Find parent Situation from GameWorld by searching for SituationCard ID
+            Situation parentSituation = FindParentSituation(situationCard.SituationCardTemplate.Id);
+            if (parentSituation == null) return situationCard.SituationCardTemplate.threshold;
 
             // Get base difficulty from deck
-            int baseDifficulty = GetBaseDifficultyForGoal(parentGoal);
+            int baseDifficulty = GetBaseDifficultyForSituation(parentSituation);
 
             // Calculate actual difficulty using DifficultyCalculationService with all modifiers
-            DifficultyResult result = DifficultyService.CalculateDifficulty(parentGoal, baseDifficulty, ItemRepository);
+            DifficultyResult result = DifficultyService.CalculateDifficulty(parentSituation, baseDifficulty, ItemRepository);
             return result.FinalDifficulty;
         }
 
-        private int GetBaseDifficultyForGoal(Goal goal)
+        private int GetBaseDifficultyForSituation(Situation situation)
         {
             if (GameWorld == null) return 10;
 
-            PhysicalChallengeDeck deck = GameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == goal.DeckId);
+            PhysicalChallengeDeck deck = GameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
             return deck?.DangerThreshold ?? 10;
         }
 
-        private Goal FindParentGoal(string goalCardId)
+        private Situation FindParentSituation(string situationCardId)
         {
-            if (GameWorld?.Goals == null) return null;
+            if (GameWorld?.Scenes == null) return null;
 
-            foreach (Goal goal in GameWorld.Goals)
+            foreach (Situation situation in GameWorld.Scenes.SelectMany(s => s.Situations))
             {
-                if (goal.GoalCards != null && goal.GoalCards.Any(gc => gc.Id == goalCardId))
+                if (situation.SituationCards != null && situation.SituationCards.Any(gc => gc.Id == situationCardId))
                 {
-                    return goal;
+                    return situation;
                 }
             }
             return null;
         }
 
         /// <summary>
-        /// Play a goal card to complete the challenge
-        /// Goal cards end the session immediately with success
+        /// Play a situation card to complete the challenge
+        /// Situation cards end the session immediately with success
         /// </summary>
-        protected async Task PlayGoalCard(CardInstance goalCard)
+        protected async Task PlaySituationCard(CardInstance situationCard)
         {
-            if (goalCard == null || !IsGoalCard(goalCard)) return;
+            if (situationCard == null || !IsSituationCard(situationCard)) return;
             if (IsProcessing) return;
 
             IsProcessing = true;
@@ -878,8 +868,8 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                // Goal cards use ExecuteExecute - PhysicalFacade handles goal card logic
-                PhysicalTurnResult result = await GameFacade.ExecuteExecute(goalCard);
+                // Situation cards use ExecuteExecute - PhysicalFacade handles situation card logic
+                PhysicalTurnResult result = await GameFacade.ExecuteExecute(situationCard);
 
                 if (result != null && result.Success)
                 {
@@ -888,10 +878,7 @@ namespace Wayfarer.Pages.Components
                     EndReason = "Challenge complete";
 
                     // Refresh resource display
-                    if (GameScreen != null)
-                    {
-                        await GameScreen.RefreshResourceDisplay();
-                    }
+                    await GameScreen.RefreshResourceDisplay();
                 }
             }
             finally

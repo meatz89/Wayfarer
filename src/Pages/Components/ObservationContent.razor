@@ -1,0 +1,113 @@
+@inherits ObservationContentBase
+
+@namespace Wayfarer.Pages.Components
+
+<link rel="stylesheet" href="css/observation-screen.css" />
+
+@* ARCHITECTURAL PRINCIPLE: Screen components (LocationContent, ConversationContent, ExchangeContent, etc.) are rendered INSIDE GameScreen's game-container.
+   They must NEVER define their own game-container, header, or resource bars - those are managed by the parent GameScreen.
+   Screen components should only contain their specific content wrapped in a semantic class like 'observation-content'. *@
+
+@if (Context != null && Context.IsValid)
+{
+    <div class="observation-content">
+        <!-- Scene Header -->
+        <div class="scene-header">
+            <div class="scene-name">@Context.Scene.Name</div>
+            <div class="location-context">@Context.Location.Name - @Context.TimeDisplay</div>
+        </div>
+
+        <!-- Scene Description -->
+        <div class="scene-description">
+            <p>@Context.Scene.Description</p>
+        </div>
+
+        <!-- Progress Display -->
+        <div class="progress-display">
+            <div class="progress-label">Examined:</div>
+            <div class="progress-value">@Context.GetTotalExaminations() / @(Context.GetTotalExaminations() + Context.GetAvailableExaminations())</div>
+        </div>
+
+        <!-- Examination Points Section -->
+        <div class="examination-section">
+            <h3>Available Examination Points:</h3>
+
+            <!-- Affordable Points -->
+            @foreach (var point in Context.GetAffordablePoints())
+            {
+                <div class="examination-point available" @onclick="() => HandleExaminePoint(point.Id)">
+                    <div class="point-header">
+                        <div class="point-title">@point.Title</div>
+                    </div>
+                    <div class="point-description">@point.Description</div>
+                    <div class="point-costs">
+                        @if (point.FocusCost > 0)
+                        {
+                            <span class="cost-focus">Focus: @point.FocusCost</span>
+                        }
+                        @if (point.TimeCost > 0)
+                        {
+                            <span class="cost-time">Time: @point.TimeCost segment(s)</span>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- Blocked Points -->
+            @foreach (var point in Context.GetBlockedPoints())
+            {
+                <div class="examination-point blocked">
+                    <div class="point-header">
+                        <div class="point-title">@point.Title</div>
+                    </div>
+                    <div class="point-description">@point.Description</div>
+                    <div class="blocked-reason">@Context.GetBlockReason(point)</div>
+                </div>
+            }
+
+            @if (!Context.GetAffordablePoints().Any() && !Context.GetBlockedPoints().Any())
+            {
+                <div class="no-points">No more points available to examine.</div>
+            }
+        </div>
+
+        <!-- Examined Points Section (if any) -->
+        @if (Context.GetExaminedPoints().Any())
+        {
+            <div class="examined-section">
+                <h3>Already Examined:</h3>
+                @foreach (var point in Context.GetExaminedPoints())
+                {
+                    <div class="examination-point examined">
+                        <div class="point-title">@point.Title</div>
+                        <span class="examined-marker">✓ Examined</span>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Resource Display -->
+        <div class="resource-display">
+            <div class="resource-item">
+                <span class="resource-label">Focus:</span>
+                <span class="resource-value">@Context.CurrentFocus / @Context.MaxFocus</span>
+            </div>
+        </div>
+
+        <!-- Leave Button -->
+        <div class="action-section">
+            <button class="leave-button" @onclick="HandleReturn">Leave Scene</button>
+        </div>
+    </div>
+}
+else if (Context != null)
+{
+    <div class="error-message">
+        <p>@Context.ErrorMessage</p>
+        <button @onclick="HandleReturn">Return</button>
+    </div>
+}
+else
+{
+    <div class="loading">Loading observation scene...</div>
+}

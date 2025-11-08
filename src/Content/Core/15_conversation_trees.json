@@ -1,0 +1,367 @@
+{
+  "packageId": "core_conversation_trees",
+  "metadata": {
+    "version": "1.0",
+    "author": "Wayfarer Core",
+    "description": "Core conversation trees for Brass Bell Inn and Town Square tutorial area"
+  },
+  "conversationTrees": [
+    {
+      "id": "elena_welcome",
+      "name": "Welcome to the Brass Bell",
+      "description": "The innkeeper greets you warmly.",
+      "npcId": "elena_innkeeper",
+      "minimumRelationship": 0,
+      "requiredKnowledge": [],
+      "availableTimeBlocks": ["Evening", "Night"],
+      "startingNodeId": "welcome_node",
+      "isRepeatable": false,
+      "nodes": [
+        {
+          "id": "welcome_node",
+          "npcDialogue": "Welcome to the Brass Bell Inn, traveler. I'm Elena. You look like you've had a long journey. Can I help you with something?",
+          "responses": [
+            {
+              "id": "ask_about_room",
+              "responseText": "I need a room for the night.",
+              "focusCost": 0,
+              "timeCost": 1,
+              "nextNodeId": "room_response",
+              "relationshipDelta": 1,
+              "grantedKnowledge": ["knows_room_cost"]
+            },
+            {
+              "id": "ask_about_work",
+              "responseText": "I'm looking for work. Anything available?",
+              "focusCost": 0,
+              "timeCost": 1,
+              "nextNodeId": "work_response",
+              "relationshipDelta": 0,
+              "grantedKnowledge": ["knows_work_available"]
+            },
+            {
+              "id": "polite_exit",
+              "responseText": "Just looking around for now. Thank you.",
+              "focusCost": 0,
+              "timeCost": 0,
+              "nextNodeId": null,
+              "relationshipDelta": 0
+            }
+          ]
+        },
+        {
+          "id": "room_response",
+          "npcDialogue": "A room costs 15 coins per night. We have secure rooms with locks - worth the peace of mind. You can rest safely here.",
+          "responses": [
+            {
+              "id": "ask_work_after",
+              "responseText": "That's more than I have. Any work I could do to earn coin?",
+              "focusCost": 0,
+              "timeCost": 1,
+              "nextNodeId": "work_response",
+              "relationshipDelta": 1,
+              "grantedKnowledge": ["knows_work_available"]
+            },
+            {
+              "id": "thank_leave",
+              "responseText": "I'll think about it. Thank you.",
+              "focusCost": 0,
+              "timeCost": 0,
+              "nextNodeId": null,
+              "relationshipDelta": 0
+            }
+          ]
+        },
+        {
+          "id": "work_response",
+          "npcDialogue": "You might talk to Thomas over there - he's been complaining about missing a delivery hand. Or you could help around the inn. Either way, honest work gets honest pay.",
+          "responses": [
+            {
+              "id": "agree_work",
+              "responseText": "I appreciate the direction. I'll see what I can do.",
+              "focusCost": 0,
+              "timeCost": 0,
+              "nextNodeId": null,
+              "relationshipDelta": 2,
+              "grantedKnowledge": ["elena_suggested_thomas"]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "thomas_introduction",
+      "name": "Grain Shortage Concerns",
+      "description": "The foreman seems troubled by supply issues.",
+      "npcId": "thomas_foreman",
+      "minimumRelationship": 0,
+      "requiredKnowledge": [],
+      "availableTimeBlocks": ["Evening"],
+      "startingNodeId": "thomas_intro",
+      "isRepeatable": false,
+      "nodes": [
+        {
+          "id": "thomas_intro",
+          "npcDialogue": "Hmm? Oh, another face. I'm Thomas, foreman for the mill. If you're looking for grain, you're out of luck - we're running low. Delivery should've been here days ago.",
+          "responses": [
+            {
+              "id": "ask_delivery",
+              "responseText": "What happened to the delivery?",
+              "focusCost": 1,
+              "timeCost": 1,
+              "requiredStat": "Insight",
+              "requiredStatLevel": 2,
+              "nextNodeId": "delivery_explanation",
+              "relationshipDelta": 1,
+              "grantedKnowledge": ["thomas_grain_missing"]
+            },
+            {
+              "id": "offer_help",
+              "responseText": "I might be able to help. I'm good with... problem-solving.",
+              "focusCost": 0,
+              "timeCost": 1,
+              "nextNodeId": "help_response",
+              "relationshipDelta": 0
+            },
+            {
+              "id": "polite_leave",
+              "responseText": "I see. Good luck with that.",
+              "focusCost": 0,
+              "timeCost": 0,
+              "nextNodeId": null,
+              "relationshipDelta": 0
+            }
+          ]
+        },
+        {
+          "id": "delivery_explanation",
+          "npcDialogue": "The route should be safe. Merchant's been reliable for years. Something's wrong, but I can't leave the mill to check. If someone doesn't figure it out soon, people will start going hungry.",
+          "responses": [
+            {
+              "id": "volunteer_investigate",
+              "responseText": "I could investigate if you make it worth my while.",
+              "focusCost": 0,
+              "timeCost": 1,
+              "nextNodeId": "investigation_offered",
+              "relationshipDelta": -1,
+              "grantedKnowledge": ["can_investigate_grain"]
+            },
+            {
+              "id": "sympathize",
+              "responseText": "Sounds like a real problem. I hope it gets resolved.",
+              "focusCost": 0,
+              "timeCost": 0,
+              "nextNodeId": null,
+              "relationshipDelta": 1
+            }
+          ]
+        },
+        {
+          "id": "help_response",
+          "npcDialogue": "Problem-solving, huh? Well, if you're serious, I could use someone to track down what happened to our grain merchant. Can't pay much until the delivery comes in, but I'll remember the help.",
+          "responses": [
+            {
+              "id": "accept_quest",
+              "responseText": "I'll see what I can find out.",
+              "focusCost": 0,
+              "timeCost": 0,
+              "nextNodeId": null,
+              "relationshipDelta": 2,
+              "grantedKnowledge": ["thomas_grain_investigation_accepted"]
+            },
+            {
+              "id": "decline",
+              "responseText": "On second thought, I have my own concerns right now.",
+              "focusCost": 0,
+              "timeCost": 0,
+              "nextNodeId": null,
+              "relationshipDelta": -1
+            }
+          ]
+        },
+        {
+          "id": "investigation_offered",
+          "npcDialogue": "Worth your while? I can scrape together 20 coins if you bring me real answers. Deal?",
+          "responses": [
+            {
+              "id": "accept_deal",
+              "responseText": "Deal. I'll find your answers.",
+              "focusCost": 0,
+              "timeCost": 0,
+              "nextNodeId": null,
+              "relationshipDelta": 1,
+              "grantedKnowledge": ["thomas_grain_investigation_accepted", "thomas_payment_promised"]
+            },
+            {
+              "id": "decline_deal",
+              "responseText": "Not enough. I'll pass.",
+              "focusCost": 0,
+              "timeCost": 0,
+              "nextNodeId": null,
+              "relationshipDelta": -2
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "elena_late_night",
+      "name": "Late Night Conversation",
+      "description": "Elena shares insights about the town after hours.",
+      "npcId": "elena_innkeeper",
+      "minimumRelationship": 3,
+      "requiredKnowledge": ["knows_room_cost"],
+      "availableTimeBlocks": ["Night"],
+      "startingNodeId": "late_night_start",
+      "isRepeatable": true,
+      "nodes": [
+        {
+          "id": "late_night_start",
+          "npcDialogue": "Still awake? The inn quiets down at this hour. It's when you really get to know a place - when the performances end and people stop pretending.",
+          "responses": [
+            {
+              "id": "ask_about_town",
+              "responseText": "What's this town really like?",
+              "focusCost": 2,
+              "timeCost": 2,
+              "requiredStat": "Rapport",
+              "requiredStatLevel": 3,
+              "nextNodeId": "town_truth",
+              "relationshipDelta": 2,
+              "grantedKnowledge": ["elena_town_insight"]
+            },
+            {
+              "id": "ask_about_elena",
+              "responseText": "You seem to understand people well. How long have you been here?",
+              "focusCost": 1,
+              "timeCost": 1,
+              "nextNodeId": "elena_background",
+              "relationshipDelta": 1
+            },
+            {
+              "id": "bid_goodnight",
+              "responseText": "Wise words. I should get some sleep.",
+              "focusCost": 0,
+              "timeCost": 0,
+              "nextNodeId": null,
+              "relationshipDelta": 0
+            }
+          ]
+        },
+        {
+          "id": "town_truth",
+          "npcDialogue": "Honest answer? This town survives on routines and quiet agreements. People know more than they say. The grain shortage isn't the first problem to appear unexpectedly, and it won't be the last. Keep your eyes open.",
+          "responses": [
+            {
+              "id": "probe_deeper",
+              "responseText": "Are you saying someone's causing these problems deliberately?",
+              "focusCost": 2,
+              "timeCost": 1,
+              "requiredStat": "Insight",
+              "requiredStatLevel": 4,
+              "nextNodeId": null,
+              "relationshipDelta": 1,
+              "grantedKnowledge": ["elena_hints_conspiracy"]
+            },
+            {
+              "id": "accept_wisdom",
+              "responseText": "I'll remember that. Thank you for the honesty.",
+              "focusCost": 0,
+              "timeCost": 0,
+              "nextNodeId": null,
+              "relationshipDelta": 1
+            }
+          ]
+        },
+        {
+          "id": "elena_background",
+          "npcDialogue": "Long enough to recognize a drifter when I see one. You're not the first to arrive with nothing but questions and ambition. Some stay, some move on. We'll see which you are.",
+          "responses": [
+            {
+              "id": "acknowledge",
+              "responseText": "Fair enough. Time will tell.",
+              "focusCost": 0,
+              "timeCost": 0,
+              "nextNodeId": null,
+              "relationshipDelta": 1
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "merchant_small_talk",
+      "name": "Market Gossip",
+      "description": "The general merchant shares news and rumors.",
+      "npcId": "merchant_general",
+      "minimumRelationship": 0,
+      "requiredKnowledge": [],
+      "availableTimeBlocks": ["Morning", "Afternoon"],
+      "startingNodeId": "merchant_greeting",
+      "isRepeatable": true,
+      "nodes": [
+        {
+          "id": "merchant_greeting",
+          "npcDialogue": "Welcome, welcome! Looking to buy or sell? Or perhaps you've heard some interesting news? I trade in both goods and information, you see.",
+          "responses": [
+            {
+              "id": "ask_news",
+              "responseText": "What news have you heard lately?",
+              "focusCost": 0,
+              "timeCost": 1,
+              "nextNodeId": "news_response",
+              "relationshipDelta": 0
+            },
+            {
+              "id": "ask_grain",
+              "responseText": "I heard there's a grain shortage. Know anything about that?",
+              "focusCost": 1,
+              "timeCost": 1,
+              "requiredKnowledge": ["thomas_grain_missing"],
+              "nextNodeId": "grain_response",
+              "relationshipDelta": 1,
+              "grantedKnowledge": ["merchant_knows_routes"]
+            },
+            {
+              "id": "just_browsing",
+              "responseText": "Just browsing for now.",
+              "focusCost": 0,
+              "timeCost": 0,
+              "nextNodeId": null,
+              "relationshipDelta": 0
+            }
+          ]
+        },
+        {
+          "id": "news_response",
+          "npcDialogue": "Oh, the usual. Prices are up, tempers are short, and everyone's wondering when the next caravan will arrive. Nothing moves in this town without someone noticing - and someone complaining.",
+          "responses": [
+            {
+              "id": "end_chat",
+              "responseText": "I'll keep that in mind. Thank you.",
+              "focusCost": 0,
+              "timeCost": 0,
+              "nextNodeId": null,
+              "relationshipDelta": 0
+            }
+          ]
+        },
+        {
+          "id": "grain_response",
+          "npcDialogue": "Ah yes, poor Thomas is beside himself. The route from the eastern farms is usually reliable. If I were investigating, I'd start by talking to travelers who've used that road recently. Someone must have seen something.",
+          "responses": [
+            {
+              "id": "thank_merchant",
+              "responseText": "That's helpful. I appreciate it.",
+              "focusCost": 0,
+              "timeCost": 0,
+              "nextNodeId": null,
+              "relationshipDelta": 1,
+              "grantedKnowledge": ["investigate_eastern_road"]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

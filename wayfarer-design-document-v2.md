@@ -4,13 +4,51 @@
 
 ### Fundamental Principles
 
-Wayfarer creates strategic depth through impossible choices, not mechanical complexity. Every decision forces players to choose between multiple suboptimal paths, revealing character through constraint.
+Wayfarer creates strategic depth through impossible choices, not mechanical complexity. Every decision forces the single player of this single-player rpg to choose between multiple suboptimal paths, revealing character through constraint.
 
 - **Elegance Over Complexity**: Every mechanic serves exactly one purpose
 - **Verisimilitude Throughout**: All mechanics make narrative sense in a grounded historical-fantasy world
-- **Perfect Information**: All calculations visible to players
+- **Perfect Information**: All calculations visible to the single player of this single-player rpg
 - **No Soft-Lock Architecture**: Always a path forward, even if suboptimal
 - **Atmosphere Through Mechanics**: Danger, preparation, and discovery create immersion
+- **⚠️ PLAYABILITY OVER IMPLEMENTATION**: A game that compiles but is unplayable is WORSE than a game that crashes
+
+### ⚠️ PRIME DIRECTIVE: PLAYABILITY FIRST ⚠️
+
+**Before ANY content is marked complete, answer with 9/10 certainty:**
+
+1. **Can the player REACH this content from game start?**
+   - Trace EXACT player action path from spawn to content
+   - Verify ALL links (routes, scenes, NPCs, locations)
+   - No missing connections, broken references, or inaccessible islands
+
+2. **Can the player SEE this content in UI?**
+   - Actions appear as clickable buttons/cards
+   - Scene cards render in location view
+   - Routes visible in travel screen
+   - NPCs show interaction options
+
+3. **Can the player EXECUTE this content?**
+   - Actions execute without errors
+   - Costs deducted correctly
+   - Rewards applied as expected
+   - Navigation works (challenge → location → challenge)
+
+4. **Does player have FORWARD PROGRESS from every state?**
+   - No soft-locks (trapped states)
+   - No dead-ends (locations with no exits)
+   - No orphaned content (systems with no entry points)
+
+**The Playability Test:**
+
+Can you trace a COMPLETE PATH of player actions from game start to your content? If ANY link is broken, missing, or inaccessible, the content is NOT PLAYABLE.
+
+- Path EXISTS (all links present in JSON/code)
+- Path is FUNCTIONAL (all links execute correctly)
+- Path is DISCOVERABLE (player can find through normal play)
+- No BROKEN LINKS (no null routes, missing scenes, inaccessible NPCs)
+
+**The number of actions is IRRELEVANT. What matters: Path exists, path works, player can find it.**
 
 ### Genre Definition
 
@@ -55,6 +93,48 @@ Strong typing forces explicit relationships. Collections of specific entity type
 **Why:** Generic containers hide relationships. They enable lazy design where "anything can be anything." Strong typing forces clarity about what connects to what and why.
 
 **Test:** Can you draw the object graph with boxes and arrows where every arrow has a clear semantic meaning? If not, add structure.
+
+## Principle 2.5: Catalogue Pattern - Parse-Time Entity Generation
+
+**⚠️ PRIME PRINCIPLE: CATALOGUES ARE PARSE-TIME ONLY ⚠️**
+
+**ABSOLUTE RULE - NO EXCEPTIONS:**
+
+**Catalogues are ONLY called from PARSER. NEVER from game logic. NEVER from facades. NEVER at runtime.**
+
+**THE ENTITY IS COMPLETE AFTER PARSING.**
+
+Once the parser finishes, the entity has ALL properties populated. Runtime code queries GameWorld.
+Runtime code NEVER generates entities. Runtime code NEVER calls catalogues.
+
+**THIS IS NOT A GUIDELINE. THIS IS AN ARCHITECTURAL CONSTRAINT.**
+
+**⚠️ CATALOGUES GENERATE ENTITIES AT PARSE TIME, NEVER AT RUNTIME ⚠️**
+
+**THE PATTERN:**
+
+JSON stores CATEGORICAL PROPERTIES (enums) → Parser calls CATALOGUE → Catalogue procedurally GENERATES ENTITIES → Entities stored in GameWorld → Runtime queries GameWorld (NO catalogue calls)
+
+**Example Flow:**
+```
+JSON: Location has property "Crossroads"
+  ↓ (Parse Time)
+Parser reads LocationPropertyType.Crossroads enum
+  ↓ (Parse Time)
+Parser calls LocationActionCatalog.GenerateActionsForLocation(location)
+  ↓ (Parse Time)
+Catalogue sees Crossroads → Generates "Travel" LocationAction entity
+  ↓ (Parse Time)
+Parser adds action to GameWorld.LocationActions
+  ↓ (Runtime)
+LocationActionManager queries GameWorld.LocationActions (NO catalogue)
+```
+
+**Why This Matters:**
+- **Entities complete after parsing** - No runtime generation overhead
+- **Catalogues never imported by facades** - Clean separation
+- **String/ID never stored in entities** - Only strongly-typed enums
+- **No JSON bloat** - Actions generated from minimal categorical data
 
 ## Principle 3: Ownership vs Placement vs Reference
 
@@ -103,12 +183,6 @@ Strong typing forces explicit relationships. Collections of specific entity type
 - Multiple valid paths with genuine trade-offs
 - ALWAYS USE THIS PATTERN
 
-**Examples:**
-- ❌ "Complete conversation to discover investigation" (boolean gate)
-- ✅ "Reach 10 Momentum to play GoalCard that discovers investigation" (resource cost)
-- ❌ "Have knowledge token to unlock location" (boolean gate)
-- ✅ "Spend 15 Focus to complete Mental challenge that grants knowledge" (resource cost)
-
 **Test:** Does the player make a strategic trade-off (accepting one cost to avoid another)? If no, it's a boolean gate.
 
 ## Principle 5: Typed Rewards as System Boundaries
@@ -132,12 +206,6 @@ System A sets boolean flag
 ```
 
 **Why:** Typed rewards are explicit connections. Boolean gates are implicit dependencies. Explicit connections maintain system boundaries.
-
-**Examples:**
-- ✅ GoalCard.Rewards.DiscoverInvestigation (typed reward)
-- ✅ GoalCard.Rewards.PropertyReduction (typed reward)
-- ❌ Investigation.Prerequisites.CompletedGoalId (boolean gate)
-- ❌ Continuous evaluation of HasKnowledge() (state query)
 
 **Test:** Is the connection a one-time application of a typed effect, or a continuous check of boolean state? First is correct, second is wrong.
 
@@ -230,7 +298,7 @@ System A sets boolean flag
 - Precise challenge flow
 - Tactical decision complexity
 
-**Why:** Players make strategic decisions based on perfect information, then execute tactically with skill-based play.
+**Why:** the single player of this single-player rpg make strategic decisions based on perfect information, then execute tactically with skill-based play.
 
 **Test:** Can the player make an informed decision about WHETHER to attempt a goal before entering the challenge? If not, strategic layer is leaking tactical complexity.
 
@@ -322,7 +390,7 @@ The same stat manifests differently depending on challenge type, creating themat
 
 **Thematic Coherence**: Stats represent fundamental character traits that manifest differently in different contexts. A highly Insightful character excels at observation (Mental), structural analysis (Physical), and reading people (Social).
 
-**Build Variety**: Players can specialize (focus on few stats) or generalize (develop all stats evenly), creating distinct playstyles that affect all three challenge types simultaneously.
+**Build Variety**: the single player of this single-player rpg can specialize (focus on few stats) or generalize (develop all stats evenly), creating distinct playstyles that affect all three challenge types simultaneously.
 
 **No Wasted Effort**: Every card played in every system contributes to unified character progression.
 
@@ -337,7 +405,7 @@ The strategic layer handles **what** and **where** decisions:
 - **Resource Planning**: Evaluate equipment, knowledge, and stat requirements
 - **Risk Assessment**: Consider danger levels, time limits, exposure thresholds
 
-Strategic decisions happen in safe spaces (taverns, towns, travel map) with perfect information. Players can see all requirements, evaluate all options, and make informed choices about which tactical challenges to attempt.
+Strategic decisions happen in safe spaces (taverns, towns, travel map) with perfect information. the single player of this single-player rpg can see all requirements, evaluate all options, and make informed choices about which tactical challenges to attempt.
 
 ### Tactical Layer
 The tactical layer handles **how** execution through three parallel challenge systems:
@@ -857,7 +925,7 @@ This follows the Core Design Principle: Prerequisites check game state propertie
 
 **Obstacles are strategic information entities, not mechanical modifiers.**
 
-The Obstacle system solves the strategic-tactical disconnect: players encounter situations offering multiple tactical approaches (Physical combat, Social negotiation, Mental investigation) to overcome the same strategic challenge. Obstacles bridge strategy (what to tackle) to tactics (how to tackle it) through minimal elegant design.
+The Obstacle system solves the strategic-tactical disconnect: the single player of this single-player rpg encounter situations offering multiple tactical approaches (Physical combat, Social negotiation, Mental investigation) to overcome the same strategic challenge. Obstacles bridge strategy (what to tackle) to tactics (how to tackle it) through minimal elegant design.
 
 **Core Purpose:**
 - Provide multiple tactical approaches to same strategic situation
@@ -1188,7 +1256,7 @@ Investigation exists as template but not yet discovered by player. Not visible i
 **2. Investigation Discovery: Motivation / Problem / Solution**
 
 **Motivation:**
-Players need to discover investigations through gameplay, creating natural narrative flow and meaningful player agency.
+the single player of this single-player rpg need to discover investigations through gameplay, creating natural narrative flow and meaningful player agency.
 
 **Problem (Boolean Gate Anti-Pattern):**
 Traditional trigger systems create Cookie Clicker progression:
@@ -1730,7 +1798,7 @@ Relationship depth through accumulated interactions:
 
 **Cross-System Growth**: All three systems contribute to unified stat progression (Insight/Rapport/Authority/Diplomacy/Cunning), while also building system-specific expertise (InvestigationCubes/MasteryTokens/StoryCubes and Understanding tiers).
 
-**Specialization vs Generalization**: Players can:
+**Specialization vs Generalization**: the single player of this single-player rpg can:
 - Specialize in one challenge type (master Mental investigations)
 - Generalize across all three (competent at everything)
 - Mix strategies (expert Mental + competent Physical/Social)
@@ -2351,7 +2419,7 @@ All deterministic systems:
 
 ### Authored Layer (Structural, Sparse)
 
-Memorable moments identical for all players:
+Memorable moments identical for all the single player of this single-player rpg:
 - NPC introduction scenes (first meeting)
 - Venue first-visit vignettes (atmospheric establishment)
 - Relationship milestone scenes (at relationship thresholds)
@@ -2382,10 +2450,9 @@ System states have narrative meaning:
 - High Cadence = dominating conversation
 - Burden cards = damaged relationship
 - Investigation progress = location expertise
-- Equipment owned = preparedness
 - NPC knowledge = trusted advisor
 
-Players read story through mechanical state.
+the single player of this single-player rpg read story through mechanical state.
 
 ### Systems Create Impossible Choices
 

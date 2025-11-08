@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Container for all dialogue templates loaded from JSON
 /// </summary>

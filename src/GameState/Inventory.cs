@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-public class Inventory
+﻿public class Inventory
 {
     // Weight-based inventory system: 10 weight capacity, items have 1-6 weight
     private const int BASE_WEIGHT_CAPACITY = 10;

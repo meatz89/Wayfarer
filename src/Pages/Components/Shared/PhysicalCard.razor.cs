@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.Components;
-using System;
-using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components.Shared
 {
     /// <summary>
-    /// Physical (Obstacle/Challenge) tactical card component
+    /// Physical (Scene/Challenge) tactical card component
     /// ONLY knows about PhysicalCard - parallel to SocialCard and MentalCard
     /// THREE PARALLEL SYSTEMS: Each card type has its own component with NO coupling
     /// </summary>

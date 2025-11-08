@@ -1,7 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Wayfarer.Pages.Components
 {
@@ -13,12 +10,27 @@ namespace Wayfarer.Pages.Components
     {
         // REMOVED: HasNPCs (Look Around always visible now)
         // REMOVED: HasLocationChallenges (consolidated into Look Around)
-        [Parameter] public bool HasSpots { get; set; }
+        // REMOVED: HasSpots (intra-venue movement now data-driven from LocationActionCatalog)
         [Parameter] public string CurrentLocationName { get; set; }
         [Parameter] public List<LocationActionViewModel> TravelActions { get; set; } = new();
+        [Parameter] public List<LocationActionViewModel> LocationSpecificActions { get; set; } = new();
         [Parameter] public List<LocationActionViewModel> PlayerActions { get; set; } = new();
 
         [Parameter] public EventCallback<LocationViewState> OnNavigateToView { get; set; }
         [Parameter] public EventCallback<LocationActionViewModel> OnExecuteLocationAction { get; set; }
+
+        /// <summary>
+        /// Get CSS class for action based on type
+        /// </summary>
+        protected string GetActionClass(LocationActionViewModel action)
+        {
+            return action.ActionType switch
+            {
+                "rest" => "rest",
+                "secureroom" => "lodging",
+                "work" => "work",
+                _ => ""
+            };
+        }
     }
 }

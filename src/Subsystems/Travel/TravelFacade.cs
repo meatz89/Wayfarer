@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using Wayfarer.GameState.Enums;
-
 /// <summary>
 /// Public facade for all travel-related operations.
 /// Single entry point for travel, routes, and exploration.
@@ -52,9 +47,8 @@ public class TravelFacade
 
         foreach (RouteOption route in routes)
         {
-            // Extract Venue ID from destination location (format: venueId.spotName)
-            string venueId = route.DestinationLocationSpot.Split('.')[0];
-            Venue? destination = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
+            // Get destination Location directly (DestinationLocationId is the ID)
+            Location destination = _gameWorld.GetLocation(route.DestinationLocationId);
             if (destination != null)
             {
                 // Core Loop: All routes physically exist and are visible from game start
@@ -63,7 +57,7 @@ public class TravelFacade
 
                 destinations.Add(new TravelDestinationViewModel
                 {
-                    VenueId = destination.Id,
+                    LocationId = destination.Id,
                     LocationName = destination.Name,
                     Description = destination.Description,
                     CanTravel = hasPermit,
@@ -79,24 +73,25 @@ public class TravelFacade
         return destinations;
     }
 
-    public RouteOption GetRouteBetweenLocations(string fromVenueId, string toVenueId)
+    public RouteOption GetRouteBetweenLocations(string fromLocationId, string toLocationId)
     {
-        return _routeManager.GetRouteBetweenLocations(fromVenueId, toVenueId);
+        return _routeManager.GetRouteBetweenLocations(fromLocationId, toLocationId);
     }
 
     // ========== TRAVEL OPERATIONS ==========
 
-    public bool CanTravelTo(string venueId)
+    public bool CanTravelTo(string locationId)
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocation?.VenueId;
-        if (currentVenueId == null)
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
+        string currentLocationId = currentLocation?.Id;
+        if (currentLocationId == null)
         {
             return false;
         }
 
         // Check if route exists
-        RouteOption route = GetRouteBetweenLocations(currentVenueId, venueId);
+        RouteOption route = GetRouteBetweenLocations(currentLocationId, locationId);
         if (route == null)
         {
             return false;
@@ -113,21 +108,22 @@ public class TravelFacade
         return true;
     }
 
-    public TravelResult TravelTo(string venueId, TravelMethods transportMethod)
+    public TravelResult TravelTo(string locationId, TravelMethods transportMethod)
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocation?.VenueId;
-        if (currentVenueId == null)
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
+        string currentLocationId = currentLocation?.Id;
+        if (currentLocationId == null)
         {
             return new TravelResult
             {
                 Success = false,
-                Reason = "Current Venue is unknown"
+                Reason = "Current Location is unknown"
             };
         }
 
         // Get route
-        RouteOption route = GetRouteBetweenLocations(currentVenueId, venueId);
+        RouteOption route = GetRouteBetweenLocations(currentLocationId, locationId);
         if (route == null)
         {
             return new TravelResult
@@ -161,7 +157,7 @@ public class TravelFacade
         }
 
         // Calculate time and cost
-        int travelTime = _travelTimeCalculator.CalculateTravelTime(currentVenueId, venueId, transportMethod);
+        int travelTime = _travelTimeCalculator.CalculateTravelTime(currentLocationId, locationId, transportMethod);
         int coinCost = _travelTimeCalculator.CalculateTravelCost(route, transportMethod);
 
         // Check if player can afford
@@ -175,7 +171,7 @@ public class TravelFacade
         }
 
         // Return travel information for GameFacade to execute
-        // GameFacade will handle coin deduction and Venue update
+        // GameFacade will handle coin deduction and Location update
         return new TravelResult
         {
             Success = true,
@@ -183,7 +179,7 @@ public class TravelFacade
             SegmentCost = travelTime, // Direct segments usage
             CoinCost = coinCost,
             RouteId = route.Id,
-            DestinationId = venueId,
+            DestinationId = locationId,
             TransportMethod = transportMethod
         };
     }
@@ -212,31 +208,21 @@ public class TravelFacade
 
     // ========== TIME CALCULATIONS ==========
 
-    public int CalculateTravelTime(string toVenueId, TravelMethods transportMethod)
+    public int CalculateTravelTime(string toLocationId, TravelMethods transportMethod)
     {
         Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocation?.VenueId;
-        if (currentVenueId == null)
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
+        string currentLocationId = currentLocation?.Id;
+        if (currentLocationId == null)
         {
             return 0;
         }
-        return _travelTimeCalculator.CalculateTravelTime(currentVenueId, toVenueId, transportMethod);
+        return _travelTimeCalculator.CalculateTravelTime(currentLocationId, toLocationId, transportMethod);
     }
 
     public int CalculateTravelCost(RouteOption route, TravelMethods transportMethod)
     {
         return _travelTimeCalculator.CalculateTravelCost(route, transportMethod);
-    }
-
-    public Dictionary<string, int> GetTravelTimesFromCurrentLocation()
-    {
-        Player player = _gameWorld.GetPlayer();
-        string currentVenueId = player.CurrentLocation?.VenueId;
-        if (currentVenueId == null)
-        {
-            return new Dictionary<string, int>();
-        }
-        return _travelTimeCalculator.GetTravelTimesFrom(currentVenueId);
     }
 
     // ========== TRANSPORT METHODS ==========
@@ -348,7 +334,7 @@ public class TravelFacade
         }
 
         // Check one-time card usage
-        if (card.IsOneTime && _gameWorld.PathCardRewardsClaimed.IsDiscovered(pathCardId))
+        if (card.IsOneTime && _gameWorld.IsPathCardDiscovered(pathCardId))
         {
             return new PathCardAvailability { CanPlay = false, Reason = "Already used this one-time path" };
         }
@@ -409,7 +395,7 @@ public class TravelFacade
             // Event segments: cards are ALWAYS face-up (IsDiscovered = true)
             // FixedPath segments: check PathCardDiscoveries dictionary
             bool isDiscovered = isEventSegment ||
-                              _gameWorld.PathCardDiscoveries.IsDiscovered(card.Id);
+                              _gameWorld.IsPathCardDiscovered(card.Id);
 
             bool canPlay = CanPlayPathCard(card.Id);
 
@@ -557,7 +543,7 @@ public class TravelFacade
         if (!string.IsNullOrEmpty(session.CurrentEventId) &&
             _gameWorld.AllPathCollections.Any(p => p.CollectionId == session.CurrentEventId))
         {
-            PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetCollection(session.CurrentEventId);
+            PathCardCollectionDTO collection = _gameWorld.GetPathCollection(session.CurrentEventId);
             return collection.NarrativeText;
         }
 
@@ -590,7 +576,7 @@ public class TravelFacade
             if (!string.IsNullOrEmpty(session.CurrentEventId) &&
                 _gameWorld.AllTravelEvents.Any(e => e.EventId == session.CurrentEventId))
             {
-                TravelEventDTO travelEvent = _gameWorld.AllTravelEvents.GetEvent(session.CurrentEventId);
+                TravelEventDTO travelEvent = _gameWorld.GetTravelEvent(session.CurrentEventId);
                 return travelEvent.EventCards?.FirstOrDefault(c => c.Id == cardId);
             }
         }
@@ -604,7 +590,7 @@ public class TravelFacade
                 return null;
             }
 
-            PathCardCollectionDTO collection = _gameWorld.AllPathCollections.GetCollection(collectionId);
+            PathCardCollectionDTO collection = _gameWorld.GetPathCollection(collectionId);
 
             // Look in embedded path cards
             return collection.PathCards?.FirstOrDefault(c => c.Id == cardId);
@@ -647,58 +633,18 @@ public class TravelFacade
     }
 
     /// <summary>
-    /// Resolve pending obstacle after player completes obstacle goals
-    /// Called after obstacle intensity reaches 0
+    /// Resolve pending scene after player completes scene situations
+    /// Called after scene intensity reaches 0
     /// </summary>
-    public bool ResolveObstacle(string obstacleId)
+    public bool ResolveScene(string sceneId)
     {
-        return _travelManager.ResolveObstacle(obstacleId);
+        return _travelManager.ResolveScene(sceneId);
     }
 
     // ========== CORE LOOP: PATH FILTERING ==========
 
     /// <summary>
     /// Get available paths for route segment (filtered by exploration cubes)
-    /// <summary>
-    /// Calculate obstacle intensity after equipment reductions
-    /// Uses equipment contexts to reduce base intensity
-    /// </summary>
-    private int CalculateObstacleIntensityWithEquipment(Obstacle obstacle, Player player)
-    {
-        int baseIntensity = obstacle.Intensity;
-        int totalReduction = 0;
-
-        foreach (ObstacleContext context in obstacle.Contexts)
-        {
-            int contextReduction = GetContextReductionFromEquipment(context, player);
-            totalReduction += contextReduction;
-        }
-
-        int finalIntensity = Math.Max(0, baseIntensity - totalReduction);
-        return finalIntensity;
-    }
-
-    /// <summary>
-    /// Get total intensity reduction for a context from player equipment
-    /// </summary>
-    private int GetContextReductionFromEquipment(ObstacleContext context, Player player)
-    {
-        int totalReduction = 0;
-
-        foreach (string itemId in player.Inventory.GetAllItems())
-        {
-            if (!string.IsNullOrEmpty(itemId))
-            {
-                Item item = _itemRepository.GetItemById(itemId);
-                if (item is Equipment equipment && equipment.MatchesContext(context))
-                {
-                    totalReduction += equipment.IntensityReduction;
-                }
-            }
-        }
-
-        return totalReduction;
-    }
 }
 
 /// <summary>

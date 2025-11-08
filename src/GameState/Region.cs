@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 public class Region
 {
     public string Id { get; set; }

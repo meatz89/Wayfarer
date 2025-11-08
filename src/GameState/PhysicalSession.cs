@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 /// <summary>
 /// V4 Physical Session - runtime state for active physical challenge
 /// Unified architecture with MentalSession
@@ -61,7 +58,7 @@ public class PhysicalSession
     public bool ShouldEnd()
     {
         // ONLY check failure condition - danger threshold reached
-        // Victory condition (GoalCard play) is handled by facade
+        // Victory condition (SituationCard play) is handled by facade
         return CurrentDanger >= MaxDanger;
     }
 

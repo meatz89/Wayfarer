@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Manages location-specific operations within locations.
 /// Handles location discovery, properties, and area navigation.
@@ -16,22 +12,12 @@ public class LocationManager
     }
 
     /// <summary>
-    /// Get the player's current Venue based on their current location.
+    /// Get the player's current Location (spatial position).
+    /// Venue is derived: GetCurrentLocation().Venue
     /// </summary>
-    public Venue GetCurrentLocation()
+    public Location GetCurrentLocation()
     {
-        Player player = _gameWorld.GetPlayer();
-        if (player.CurrentLocation == null)
-            throw new InvalidOperationException("Player has no current location set");
-        return GetVenue(player.CurrentLocation.VenueId);
-    }
-
-    /// <summary>
-    /// Get the player's current Venue location.
-    /// </summary>
-    public Location GetCurrentLocationSpot()
-    {
-        return _gameWorld.GetPlayer().CurrentLocation;
+        return _gameWorld.GetPlayerCurrentLocation();
     }
 
     /// <summary>
@@ -84,7 +70,7 @@ public class LocationManager
     /// <summary>
     /// Add a new venue to the world.
     /// </summary>
-    public void AddLocation(Venue venue)
+    public void AddVenue(Venue venue)
     {
         if (venue == null) throw new ArgumentNullException(nameof(venue));
 
@@ -100,7 +86,7 @@ public class LocationManager
     /// <summary>
     /// Add a new location to the world.
     /// </summary>
-    public void AddLocationSpot(Location location)
+    public void AddLocation(Location location)
     {
         if (location == null) throw new ArgumentNullException(nameof(location));
 
@@ -126,7 +112,10 @@ public class LocationManager
             throw new InvalidOperationException($"location {location.Id} does not belong to venue {venue.Id}");
         }
 
-        _gameWorld.GetPlayer().CurrentLocation = location;
+        if (!location.HexPosition.HasValue)
+            throw new InvalidOperationException($"Location '{location.Id}' has no HexPosition - cannot set player position");
+
+        _gameWorld.GetPlayer().CurrentPosition = location.HexPosition.Value;
     }
 
     /// <summary>
@@ -134,41 +123,26 @@ public class LocationManager
     /// </summary>
     public void SetCurrentSpot(Location location)
     {
-        _gameWorld.GetPlayer().CurrentLocation = location;
-    }
+        if (!location.HexPosition.HasValue)
+            throw new InvalidOperationException($"Location '{location.Id}' has no HexPosition - cannot set player position");
 
-    /// <summary>
-    /// Record that the player has visited a location.
-    /// </summary>
-    public void RecordLocationVisit(string venueId)
-    {
-        if (string.IsNullOrEmpty(venueId)) return;
-        _gameWorld.RecordLocationVisit(venueId);
-    }
-
-    /// <summary>
-    /// Check if this is the player's first visit to a location.
-    /// </summary>
-    public bool IsFirstVisit(string venueId)
-    {
-        if (string.IsNullOrEmpty(venueId)) return false;
-        return _gameWorld.IsFirstVisit(venueId);
+        _gameWorld.GetPlayer().CurrentPosition = location.HexPosition.Value;
     }
 
     /// <summary>
     /// Check if a Venue exists.
     /// </summary>
-    public bool LocationExists(string venueId)
+    public bool VenueExists(string venueId)
     {
         return GetVenue(venueId) != null;
     }
 
     /// <summary>
-    /// Check if a location exists by its ID.
+    /// Check if a Location exists by its ID.
     /// </summary>
-    public bool SpotExists(string LocationId)
+    public bool LocationExists(string locationId)
     {
-        return GetLocation(LocationId) != null;
+        return GetLocation(locationId) != null;
     }
 
     /// <summary>
@@ -419,31 +393,4 @@ public class LocationManager
             .ToList();
     }
 
-    /// <summary>
-    /// Get Locations that provide a specific service.
-    /// </summary>
-    public List<Location> GetServiceLocations(string venueId, ServiceTypes service, TimeBlocks timeBlock)
-    {
-        List<Location> Locations = GetLocationsForVenue(venueId);
-        List<Location> serviceSpots = new List<Location>();
-
-        foreach (Location location in Locations)
-        {
-            // Check if location has properties that indicate this service
-            List<LocationPropertyType> properties = GetActiveLocationProperties(location, timeBlock);
-
-            bool hasService = service switch
-            {
-                ServiceTypes.Market => properties.Contains(LocationPropertyType.Commercial),
-                _ => false
-            };
-
-            if (hasService)
-            {
-                serviceSpots.Add(location);
-            }
-        }
-
-        return serviceSpots;
-    }
 }

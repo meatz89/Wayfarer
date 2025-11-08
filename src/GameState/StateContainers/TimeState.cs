@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Immutable state container for time tracking using segments instead of minutes/hours.
 /// Provides tactical decision-making with clear opportunity costs through segment-based time management.

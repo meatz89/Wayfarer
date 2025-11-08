@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Public facade for all resource-related operations.
 /// Manages coins, health, hunger, and attention across the game.
@@ -10,23 +8,23 @@ public class ResourceFacade
     private readonly ResourceCalculator _resourceCalculator;
     private readonly MessageSystem _messageSystem;
     private readonly TimeManager _timeManager;
-    private readonly TimeFacade _timeFacade;
     private readonly ItemRepository _itemRepository;
+    private readonly StateClearingResolver _stateClearingResolver;
 
     public ResourceFacade(
         GameWorld gameWorld,
         ResourceCalculator resourceCalculator,
         MessageSystem messageSystem,
         TimeManager timeManager,
-        TimeFacade timeFacade,
-        ItemRepository itemRepository)
+        ItemRepository itemRepository,
+        StateClearingResolver stateClearingResolver)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _resourceCalculator = resourceCalculator ?? throw new ArgumentNullException(nameof(resourceCalculator));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
-        _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
         _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
+        _stateClearingResolver = stateClearingResolver ?? throw new ArgumentNullException(nameof(stateClearingResolver));
     }
 
     // ========== COIN OPERATIONS ==========
@@ -280,36 +278,55 @@ public class ResourceFacade
     // ========== WORK AND REST OPERATIONS ==========
 
     /// <summary>
-    /// Execute Rest action: Advance 1 time segment and recover +1 Health and +1 Stamina.
+    /// Execute Rest action: Advance 1 time segment and restore resources based on action rewards.
     /// Hunger increases by +5 automatically via time progression.
-    /// Only available at locations with "rest" or "restful" property.
+    /// Data-driven: rewards from JSON action definition.
+    /// Now also clears states that have ClearsOnRest behavior.
     /// </summary>
-    public void ExecuteRest()
+    public void ExecuteRest(ActionRewards rewards)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Advance 1 time segment
-        _timeFacade.AdvanceSegments(1);
-
+        // TIME PROGRESSION: Handled by GameFacade orchestration (calls TimeFacade.AdvanceSegments before this method)
         // Hunger increases by +5 per segment (automatic via time progression)
         // No need to manually modify hunger here
 
-        // Resource recovery
+        // Resource recovery - data-driven from action rewards
         int healthBefore = player.Health;
         int staminaBefore = player.Stamina;
 
-        player.Health = Math.Min(player.Health + 1, player.MaxHealth);      // +1 health (16.7% of 6-point max)
-        player.Stamina = Math.Min(player.Stamina + 1, player.MaxStamina);   // +1 stamina (16.7% of 6-point max)
+        player.Health = Math.Min(player.Health + rewards.HealthRecovery, player.MaxHealth);
+        player.Stamina = Math.Min(player.Stamina + rewards.StaminaRecovery, player.MaxStamina);
 
         int healthRecovered = player.Health - healthBefore;
         int staminaRecovered = player.Stamina - staminaBefore;
 
+        // STATE CLEARING: Get projection of states to clear on rest
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
+        bool isSafe = currentLocation != null && currentLocation.LocationProperties.Contains(LocationPropertyType.Secure);
+        List<StateType> statesToClear = _stateClearingResolver.GetStatesToClearOnRest(isSafe);
+
+        // Apply state clearing
+        int statesCleared = 0;
+        foreach (StateType stateType in statesToClear)
+        {
+            _gameWorld.ClearState(stateType);
+            statesCleared++;
+        }
+
+        // TODO Phase 6: Trigger cascade after clearing states
+        // if (statesToClear.Any())
+        // {
+        //     await _spawnFacade.EvaluateDormantSituations();
+        // }
+
         // Generate message about recovery
-        if (healthRecovered > 0 || staminaRecovered > 0)
+        if (healthRecovered > 0 || staminaRecovered > 0 || statesCleared > 0)
         {
             string recoveryMessage = "💤 Rested for 1 segment.";
             if (healthRecovered > 0) recoveryMessage += $" Health +{healthRecovered}";
             if (staminaRecovered > 0) recoveryMessage += $" Stamina +{staminaRecovered}";
+            if (statesCleared > 0) recoveryMessage += $" Cleared {statesCleared} state{(statesCleared == 1 ? "" : "s")}";
             _messageSystem.AddSystemMessage(recoveryMessage, SystemMessageTypes.Success);
         }
         else
@@ -319,15 +336,61 @@ public class ResourceFacade
     }
 
     /// <summary>
-    /// Execute Wait action: Advance 1 time segment with no resource recovery.
+    /// Consume an item and clear states based on item type
+    /// TODO: Requires Item entity to have ItemType property (Medical, Food, Remedy, Provisions)
+    /// </summary>
+    public bool ConsumeItem(string itemId)
+    {
+        Player player = _gameWorld.GetPlayer();
+
+        // TODO: Verify item exists in inventory
+        // if (!player.Inventory.HasItem(itemId)) return false;
+
+        // TODO: Get item from GameWorld.Items
+        // Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
+        // if (item == null) return false;
+
+        // TODO: Determine ItemType from item
+        // This requires Item entity to have ItemType property
+        // For now, we can map ItemCategory to ItemType:
+        // - ItemCategory.Medicine → ItemType.Medical
+        // - ItemCategory.Hunger → ItemType.Food
+        // - etc.
+
+        // TODO: Remove item from inventory
+        // player.Inventory.RemoveItem(itemId);
+
+        // TODO: Get projection of states to clear
+        // ItemType itemType = DetermineItemType(item);
+        // List<StateType> statesToClear = _stateClearingResolver.GetStatesToClearOnItemConsumption(itemType);
+
+        // TODO: Apply state clearing
+        // foreach (StateType stateType in statesToClear)
+        // {
+        //     _gameWorld.ClearState(stateType);
+        // }
+
+        // TODO Phase 6: Trigger cascade
+        // if (statesToClear.Any())
+        // {
+        //     await _spawnFacade.EvaluateDormantSituations();
+        // }
+
+        // TODO: Add system message
+        // _messageSystem.AddSystemMessage($"Consumed {item.Name}, cleared {statesToClear.Count} states", SystemMessageTypes.Success);
+
+        return false; // Stub - not yet implemented
+    }
+
+    /// <summary>
+    /// Execute Wait action: Pass time with no resource recovery.
+    /// TIME PROGRESSION: Handled by GameFacade orchestration (calls TimeFacade.AdvanceSegments before this method)
     /// Hunger increases by +5 automatically via time progression.
     /// Global action available everywhere.
     /// </summary>
     public void ExecuteWait()
     {
-        // Advance 1 time segment
-        _timeFacade.AdvanceSegments(1);
-
+        // TIME PROGRESSION: Handled by GameFacade orchestration (calls TimeFacade.AdvanceSegments before this method)
         // Hunger increases by +5 per segment (automatic via time progression)
         // No resource recovery - just passing time
 
@@ -335,12 +398,13 @@ public class ResourceFacade
     }
 
     /// <summary>
-    /// Perform work to earn coins with hunger-based scaling
+    /// Perform work to earn coins with hunger-based scaling.
+    /// Data-driven: base pay from action rewards JSON.
     /// </summary>
-    public WorkResult PerformWork()
+    public WorkResult PerformWork(ActionRewards rewards)
     {
-        // Base work payment
-        int baseAmount = 8;
+        // Base work payment - data-driven from action rewards
+        int baseAmount = rewards.CoinReward;
 
         // Apply hunger penalty: coins = base_amount - floor(hunger/25)
         int currentHunger = GetHunger();

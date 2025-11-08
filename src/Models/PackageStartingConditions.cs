@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Starting conditions for a game - uses DTO for JSON deserialization
 /// </summary>

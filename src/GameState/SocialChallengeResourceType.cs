@@ -7,7 +7,7 @@ public enum SocialChallengeResourceType
     /// <summary>Initiative - Action economy within turn (Cunning stat PRIMARY)</summary>
     Initiative,
 
-    /// <summary>Momentum - Goal progress (Authority stat PRIMARY)</summary>
+    /// <summary>Momentum - Situation progress (Authority stat PRIMARY)</summary>
     Momentum,
 
     /// <summary>Doubt - Failure timer (Diplomacy stat reduces PRIMARY)</summary>

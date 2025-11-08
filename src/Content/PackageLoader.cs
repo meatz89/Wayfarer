@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Text.Json;
+using Wayfarer.Content.Catalogs;
+using Wayfarer.Content.DTOs;
+using Wayfarer.Content.Parsers;
+using Wayfarer.Services;
 
 /// <summary>
 /// Helper class for exchange card lookups
@@ -43,9 +43,12 @@ public class PackageLoader
     // Track loaded packages to prevent reloading
     private List<string> _loadedPackageIds = new List<string>();
 
-    public PackageLoader(GameWorld gameWorld)
+    private readonly SceneGenerationFacade _sceneGenerationFacade;
+
+    public PackageLoader(GameWorld gameWorld, SceneGenerationFacade sceneGenerationFacade)
     {
         _gameWorld = gameWorld;
+        _sceneGenerationFacade = sceneGenerationFacade;
     }
 
     /// <summary>
@@ -62,11 +65,15 @@ public class PackageLoader
         // Load each package sequentially
         foreach (string packagePath in sortedPackages)
         {
+            string packageFileName = Path.GetFileName(packagePath);
+            Console.WriteLine($"[PackageLoader] Loading package: {packageFileName}");
+
             string json = File.ReadAllText(packagePath);
             Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
-                AllowTrailingCommas = true
+                AllowTrailingCommas = true,
+                ReadCommentHandling = JsonCommentHandling.Skip
             });
 
             // Check if already loaded
@@ -82,6 +89,13 @@ public class PackageLoader
             // Load with no skeletons allowed for static content
             LoadPackageContent(package, allowSkeletons: false);
         }
+
+        // CATALOGUE PATTERN: Generate content from loaded entities (ONCE after all packages loaded)
+        // Must happen AFTER all packages loaded because catalogues need complete entity lists
+        GeneratePlayerActionsFromCatalogue();
+        GenerateLocationActionsFromCatalogue();
+        GenerateProceduralRoutes();
+        GenerateDeliveryJobsFromCatalogue();
 
         // Final validation and initialization
         ValidateCrossroadsConfiguration();
@@ -110,15 +124,26 @@ public class PackageLoader
 
         // Load in strict dependency order
         // 1. Foundation entities (no dependencies)
+        // HEX-BASED TRAVEL SYSTEM: Load hex grid FIRST - fundamental spatial scaffolding
+        LoadHexMap(package.Content.HexMap, allowSkeletons);
         LoadPlayerStatsConfiguration(package.Content.PlayerStatsConfig, allowSkeletons);
         LoadListenDrawCounts(package.Content.ListenDrawCounts);
+        LoadStates(package.Content.States, allowSkeletons); // Scene-Situation: State definitions
+        LoadAchievements(package.Content.Achievements, allowSkeletons); // Scene-Situation: Achievement definitions
         LoadRegions(package.Content.Regions, allowSkeletons);
         LoadDistricts(package.Content.Districts, allowSkeletons);
         LoadItems(package.Content.Items, allowSkeletons);
 
-        // 2. Venues and Locations (may reference regions/districts)
+        // 2. Venues and Locations (may reference regions/districts and hex grid)
         LoadLocations(package.Content.Venues, allowSkeletons);
-        LoadLocationSpots(package.Content.Locations, allowSkeletons);
+        LoadLocations(package.Content.Locations, allowSkeletons);
+        // HEX-BASED TRAVEL SYSTEM: Sync Location.HexPosition after locations loaded
+        SyncLocationHexPositions();
+        // HOLISTIC HEX GRID INTEGRATION: Ensure all positioned locations have hexes (for dependent locations)
+        EnsureHexGridCompleteness();
+
+        // NOTE: Action/route/job generation moved to LoadStaticPackages() - runs ONCE after all packages loaded
+        // CATALOGUE PATTERN: Generate actions from categorical properties (PARSE TIME ONLY)
 
         // 3. Cards (foundation for NPCs and conversations)
         LoadSocialCards(package.Content.SocialCards, allowSkeletons);
@@ -132,8 +157,13 @@ public class PackageLoader
 
         // 3.5 Obligation Templates (strategic multi-phase activities)
         LoadObligations(package.Content.Obligations, allowSkeletons);
-        LoadGoals(package.Content.Goals, allowSkeletons);
-        LoadObstacles(package.Content.Obstacles, allowSkeletons);
+        LoadSituations(package.Content.Situations, allowSkeletons);
+        LoadSceneTemplates(package.Content.SceneTemplates, allowSkeletons); // NEW: Scene-Situation architecture templates
+
+        // 3.6 Screen Expansion Systems (conversation trees, observation scenes, emergencies)
+        LoadConversationTrees(package.Content.ConversationTrees, allowSkeletons);
+        LoadObservationScenes(package.Content.ObservationScenes, allowSkeletons);
+        LoadEmergencySituations(package.Content.EmergencySituations, allowSkeletons);
 
         // 4. NPCs (reference locations, Locations, and cards)
         LoadNPCs(package.Content.Npcs, allowSkeletons);
@@ -141,6 +171,7 @@ public class PackageLoader
 
         // 5. Routes (reference Locations which now have VenueId set)
         LoadRoutes(package.Content.Routes, allowSkeletons);
+        // NOTE: Route generation and job generation moved to LoadStaticPackages() - runs ONCE after all packages loaded
 
         // 6. Relationship entities (depend on NPCs and cards)
         LoadExchanges(package.Content.Exchanges, allowSkeletons);
@@ -149,8 +180,9 @@ public class PackageLoader
         // 7. Complex entities
         LoadDialogueTemplates(package.Content.DialogueTemplates, allowSkeletons);
         LoadStandingObligations(package.Content.StandingObligations, allowSkeletons);
-        LoadLocationActions(package.Content.LocationActions, allowSkeletons);
-        LoadPlayerActions(package.Content.PlayerActions, allowSkeletons);
+        // NOTE: LocationActions and PlayerActions NO LONGER loaded from JSON
+        // Actions are now GENERATED from catalogues at parse time (see GeneratePlayerActionsFromCatalogue/GenerateLocationActionsFromCatalogue)
+        // CATALOGUE PATTERN: Actions generated from categorical properties, never from JSON
 
         // 8. Travel content
         List<PathCardEntry> pathCardLookup = LoadPathCards(package.Content.PathCards, allowSkeletons);
@@ -159,7 +191,7 @@ public class PackageLoader
         LoadEventCollections(package.Content.PathCardCollections, pathCardLookup, eventCardLookup, allowSkeletons);
 
         // 9. V2 Obligation and Travel Systems
-        LoadTravelObstacles(package.Content.TravelObstacles, allowSkeletons);
+        LoadTravelScenes(package.Content.TravelScenes, allowSkeletons);
     }
 
     /// <summary>
@@ -184,7 +216,8 @@ public class PackageLoader
         Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
         {
             PropertyNameCaseInsensitive = true,
-            AllowTrailingCommas = true
+            AllowTrailingCommas = true,
+            ReadCommentHandling = JsonCommentHandling.Skip
         });
 
         // Check if already loaded
@@ -238,6 +271,11 @@ public class PackageLoader
         // Load with skeletons allowed for dynamic content
         LoadPackageContent(package, allowSkeletons: true);
 
+        // Regenerate location actions for newly added locations
+        // Dynamic packages may add locations that need intra-venue movement actions
+        // Must regenerate for ALL locations because adjacency relationships may have changed
+        GenerateLocationActionsFromCatalogue();
+
         // Return skeleton IDs for AI completion
         return _gameWorld.SkeletonRegistry.Select(r => r.SkeletonKey).ToList();
     }
@@ -254,11 +292,16 @@ public class PackageLoader
             _gameWorld.ApplyInitialPlayerConfiguration();
         }
 
-        // Set starting location
-        if (!string.IsNullOrEmpty(conditions.StartingSpotId))
-        {
-            _gameWorld.InitialLocationSpotId = conditions.StartingSpotId;
-        }
+        // Set starting location - CRITICAL for playability
+        if (string.IsNullOrEmpty(conditions.StartingSpotId))
+            throw new InvalidOperationException("StartingSpotId is required in starting conditions - player has no spawn location!");
+
+        // Validate starting location exists in parsed locations
+        Location startingLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == conditions.StartingSpotId);
+        if (startingLocation == null)
+            throw new InvalidOperationException($"StartingSpotId '{conditions.StartingSpotId}' not found in parsed locations - player cannot spawn!");
+
+        _gameWorld.InitialLocationId = conditions.StartingSpotId;
 
         // Apply starting obligations
         if (conditions.StartingObligations != null)
@@ -278,7 +321,7 @@ public class PackageLoader
             {
                 // Token relationships will be applied when NPCs are loaded
                 // Store for later application
-                NPCTokenEntry tokenEntry = _gameWorld.GetPlayer().NPCTokens.GetNPCTokenEntry(kvp.Key);
+                NPCTokenEntry tokenEntry = _gameWorld.GetPlayer().GetNPCTokenEntry(kvp.Key);
                 tokenEntry.Trust = kvp.Value.Trust;
                 tokenEntry.Diplomacy = kvp.Value.Diplomacy;
                 tokenEntry.Status = kvp.Value.Status;
@@ -309,6 +352,82 @@ public class PackageLoader
         if (conditions.StartingSegment.HasValue)
         {
             _gameWorld.InitialSegment = conditions.StartingSegment.Value;
+        }
+    }
+
+    /// <summary>
+    /// Generate universal player actions from PlayerActionCatalog (PARSE TIME ONLY)
+    /// Called ONCE after all locations loaded, not per location
+    /// CATALOGUE PATTERN: Actions generated from categorical properties, never from JSON
+    /// </summary>
+    private void GeneratePlayerActionsFromCatalogue()
+    {
+        // Generate universal player actions (CheckBelongings, Wait, SleepOutside)
+        List<PlayerAction> playerActions = PlayerActionCatalog.GenerateUniversalActions();
+
+        // Add to GameWorld (check for duplicates if multiple packages)
+        foreach (PlayerAction action in playerActions)
+        {
+            // Avoid duplicates if multiple packages loaded
+            if (!_gameWorld.PlayerActions.Any(a => a.Id == action.Id))
+            {
+                _gameWorld.PlayerActions.Add(action);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Generate location actions from LocationActionCatalog (PARSE TIME ONLY)
+    /// Called ONCE after all locations loaded (needs complete location list for intra-venue movement)
+    /// CATALOGUE PATTERN: Actions generated from categorical properties, never from JSON
+    /// </summary>
+    private void GenerateLocationActionsFromCatalogue()
+    {
+        // Get all locations for intra-venue movement calculation
+        List<Location> allLocations = _gameWorld.Locations.ToList();
+
+        // Generate actions for each location based on its categorical properties
+        foreach (Location location in allLocations)
+        {
+            List<LocationAction> generatedActions = LocationActionCatalog.GenerateActionsForLocation(
+                location,
+                allLocations // Pass all locations for intra-venue movement calculation
+            );
+
+            // Add generated actions to GameWorld
+            foreach (LocationAction action in generatedActions)
+            {
+                // Avoid duplicates if multiple packages loaded
+                if (!_gameWorld.LocationActions.Any(a => a.Id == action.Id))
+                {
+                    _gameWorld.LocationActions.Add(action);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Generate delivery jobs from DeliveryJobCatalog (PARSE TIME ONLY)
+    /// Called ONCE after routes and locations loaded
+    /// CATALOGUE PATTERN: Jobs generated procedurally from routes, never from JSON
+    /// </summary>
+    private void GenerateDeliveryJobsFromCatalogue()
+    {
+        // Get all routes and locations
+        List<RouteOption> allRoutes = _gameWorld.Routes.ToList();
+        List<Location> allLocations = _gameWorld.Locations.ToList();
+
+        // Generate delivery jobs from routes
+        List<DeliveryJob> generatedJobs = DeliveryJobCatalog.GenerateJobsFromRoutes(allRoutes, allLocations);
+
+        // Add generated jobs to GameWorld
+        foreach (DeliveryJob job in generatedJobs)
+        {
+            // Avoid duplicates if multiple packages loaded
+            if (!_gameWorld.AvailableDeliveryJobs.Any(j => j.Id == job.Id))
+            {
+                _gameWorld.AvailableDeliveryJobs.Add(job);
+            }
         }
     }
 
@@ -359,10 +478,92 @@ public class PackageLoader
         foreach (StrangerNPCDTO dto in strangerDtos)
         {
             // Convert DTO to domain model using StrangerParser
-            NPC stranger = StrangerParser.ConvertDTOToNPC(dto);
+            NPC stranger = StrangerParser.ConvertDTOToNPC(dto, _gameWorld);
 
             // Add stranger to the unified NPCs list
             _gameWorld.NPCs.Add(stranger);
+        }
+    }
+
+    /// <summary>
+    /// Load hex map grid - fundamental spatial scaffolding
+    /// HEX-BASED TRAVEL SYSTEM: Loads world hex grid with terrain, danger, and location placement
+    /// </summary>
+    private void LoadHexMap(HexMapDTO hexMapDto, bool allowSkeletons)
+    {
+        if (hexMapDto == null) return;
+
+        // Parse hex map using HexParser
+        HexMap hexMap = HexParser.ParseHexMap(hexMapDto);
+
+        // Store in GameWorld
+        _gameWorld.WorldHexGrid = hexMap;
+    }
+
+    /// <summary>
+    /// Sync Location.HexPosition from hex grid after locations loaded
+    /// HEX-BASED TRAVEL SYSTEM: HIGHLANDER synchronization - Location.HexPosition is source of truth
+    /// </summary>
+    private void SyncLocationHexPositions()
+    {
+        if (_gameWorld.WorldHexGrid == null || _gameWorld.WorldHexGrid.Hexes.Count == 0)
+            return; // No hex grid loaded, skip sync
+
+        // Sync Location.HexPosition (source of truth) with Hex.LocationId (derived lookup)
+        HexParser.SyncLocationHexPositions(_gameWorld.WorldHexGrid, _gameWorld.Locations);
+    }
+
+    /// <summary>
+    /// Ensure hex grid completeness - create hexes for positioned locations without them
+    /// HOLISTIC FIX: Maintains invariant "every positioned location has a hex"
+    /// Critical for dependent locations generated by scenes at runtime
+    /// </summary>
+    private void EnsureHexGridCompleteness()
+    {
+        Console.WriteLine("[HexGridCompleteness] Method called");
+
+        if (_gameWorld.WorldHexGrid == null)
+        {
+            Console.WriteLine("[HexGridCompleteness] WorldHexGrid is null, returning early");
+            return;
+        }
+
+        Console.WriteLine($"[HexGridCompleteness] Processing {_gameWorld.Locations.Count} locations");
+        HexParser.EnsureHexGridCompleteness(_gameWorld.WorldHexGrid, _gameWorld.Locations);
+    }
+
+    /// <summary>
+    /// Generate procedural routes between locations using hex-based pathfinding
+    /// HEX-BASED TRAVEL SYSTEM: Creates routes from hex paths with calculated properties
+    /// Only generates routes between locations in DIFFERENT venues (same venue = instant travel)
+    /// </summary>
+    private void GenerateProceduralRoutes()
+    {
+        if (_gameWorld.WorldHexGrid == null || _gameWorld.WorldHexGrid.Hexes.Count == 0)
+            return; // No hex grid, skip procedural generation
+
+        // Create route generator
+        HexRouteGenerator generator = new HexRouteGenerator(_gameWorld);
+
+        // Generate all inter-venue routes
+        List<RouteOption> generatedRoutes = generator.GenerateAllRoutes();
+
+        // Add generated routes to GameWorld, avoiding duplicates with manually-authored routes
+        int addedCount = 0;
+        int skippedCount = 0;
+        foreach (RouteOption route in generatedRoutes)
+        {
+            // Check if route already exists (manually-authored routes take precedence)
+            bool routeExists = _gameWorld.Routes.Any(r => r.Id == route.Id);
+            if (!routeExists)
+            {
+                _gameWorld.Routes.Add(route);
+                addedCount++;
+            }
+            else
+            {
+                skippedCount++;
+            }
         }
     }
 
@@ -552,64 +753,23 @@ public class PackageLoader
         }
     }
 
-    private void LoadGoals(List<GoalDTO> goalDtos, bool allowSkeletons)
+    private void LoadSituations(List<SituationDTO> situationDtos, bool allowSkeletons)
     {
-        if (goalDtos == null) return;
-
-        foreach (GoalDTO dto in goalDtos)
+        // LEGACY CODE PATH - DEPRECATED
+        // Standalone situations no longer supported
+        // All situations are owned by Scenes and created by SceneInstantiator
+        // If a package contains situations, they will be ignored
+        if (situationDtos != null && situationDtos.Any())
         {
-            // Parse goal using GoalParser
-            Goal goal = GoalParser.ConvertDTOToGoal(dto, _gameWorld);
-
-            // Add to centralized GameWorld.Goals storage
-            _gameWorld.Goals.Add(goal);// Assign goal to NPC or Location based on PlacementNpcId/PlacementLocationId
-            if (!string.IsNullOrEmpty(goal.PlacementNpcId))
-            {
-                // Social goal - assign to NPC.ActiveGoalIds (reference only, goal lives in GameWorld.Goals)
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == goal.PlacementNpcId);
-                if (npc != null)
-                {
-                    npc.ActiveGoalIds.Add(goal.Id);
-                }
-                else
-                { }
-            }
-            else if (!string.IsNullOrEmpty(goal.PlacementLocationId))
-            {
-                // Mental/Physical goal - assign to Location.ActiveGoalIds (reference only, goal lives in GameWorld.Goals)
-                Location location = _gameWorld.GetLocation(goal.PlacementLocationId);
-                if (location != null)
-                {
-                    location.ActiveGoalIds.Add(goal.Id);
-                }
-                else
-                { }
-            }
+            Console.WriteLine($"[PackageLoader] WARNING: Package contains {situationDtos.Count} standalone situations - these are IGNORED in new architecture. Situations must be part of SceneTemplates.");
         }
     }
 
-    private void LoadObstacles(List<ObstacleDTO> obstacleDtos, bool allowSkeletons)
-    {
-        if (obstacleDtos == null) return;
-
-        foreach (ObstacleDTO dto in obstacleDtos)
-        {
-            // Parse obstacle using ObstacleParser
-            Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(dto, _currentPackageId, _gameWorld);
-
-            // Duplicate ID protection - prevent data corruption
-            if (!_gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
-            {
-                _gameWorld.Obstacles.Add(obstacle);
-            }
-            else
-            {
-                throw new InvalidOperationException(
-                    $"Duplicate obstacle ID '{obstacle.Id}' found in package '{_currentPackageId}'. " +
-                    $"Obstacle IDs must be globally unique across all packages.");
-            }
-        }
-    }
+    // NOTE: LoadScenes method removed - OLD equipment-based Scene system deleted
+    // NEW Scene-Situation architecture:
+    // - Scenes spawn via SceneSpawnReward (not package-level definitions)
+    // - Scene templates live in GameWorld.SceneTemplates
+    // - Scene instances live in GameWorld.Scenes (spawned dynamically)
 
     private void LoadLocations(List<VenueDTO> venueDtos, bool allowSkeletons)
     {
@@ -626,7 +786,7 @@ public class PackageLoader
             if (existingSkeleton != null)
             {
                 _gameWorld.Venues.Remove(existingSkeleton);
-                SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FindById(dto.Id);
+                SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FirstOrDefault(x => x.SkeletonKey == dto.Id);
                 if (skeletonEntry != null)
                 {
                     _gameWorld.SkeletonRegistry.Remove(skeletonEntry);
@@ -637,7 +797,7 @@ public class PackageLoader
         }
     }
 
-    private void LoadLocationSpots(List<LocationDTO> spotDtos, bool allowSkeletons)
+    private void LoadLocations(List<LocationDTO> spotDtos, bool allowSkeletons)
     {
         if (spotDtos == null) return;
 
@@ -648,20 +808,20 @@ public class PackageLoader
 
             if (existingSkeleton != null && existingSkeleton.IsSkeleton)
             {
-                SkeletonRegistryEntry? spotSkeletonEntry = _gameWorld.SkeletonRegistry.FindById(dto.Id);
+                SkeletonRegistryEntry? spotSkeletonEntry = _gameWorld.SkeletonRegistry.FirstOrDefault(x => x.SkeletonKey == dto.Id);
                 if (spotSkeletonEntry != null)
                 {
                     _gameWorld.SkeletonRegistry.Remove(spotSkeletonEntry);
                 }
 
                 // Remove from primary Locations dictionary if exists
-                _gameWorld.Locations.RemoveSpot(dto.Id);
+                _gameWorld.RemoveLocation(dto.Id);
             }
 
             Location location = LocationParser.ConvertDTOToLocation(dto, _gameWorld);
 
             // Add to primary Locations dictionary
-            _gameWorld.Locations.AddOrUpdateSpot(location.Id, location);
+            _gameWorld.AddOrUpdateLocation(location.Id, location);
         }
     }
 
@@ -681,7 +841,7 @@ public class PackageLoader
                     $"npc_{dto.Id}_reference");
 
                 _gameWorld.Venues.Add(skeletonVenue);
-                _gameWorld.SkeletonRegistry.AddSkeleton(dto.VenueId, "Venue");
+                _gameWorld.AddSkeleton(dto.VenueId, "Venue");
 
                 // Also create a skeleton location for the location
                 string hubSpotId = $"{dto.VenueId}_hub";
@@ -690,8 +850,8 @@ public class PackageLoader
                     dto.VenueId,
                     $"location_{dto.VenueId}_hub");
 
-                _gameWorld.Locations.AddOrUpdateSpot(hubSpotId, hubSpot);
-                _gameWorld.SkeletonRegistry.AddSkeleton(hubSpot.Id, "Location");
+                _gameWorld.AddOrUpdateLocation(hubSpotId, hubSpot);
+                _gameWorld.AddSkeleton(hubSpot.Id, "Location");
             }
 
             // Check if NPC references a location that doesn't exist
@@ -707,8 +867,8 @@ public class PackageLoader
                     dto.VenueId,
                     $"npc_{dto.Id}_spot_reference");
 
-                _gameWorld.Locations.AddOrUpdateSpot(dto.LocationId, skeletonSpot);
-                _gameWorld.SkeletonRegistry.AddSkeleton(dto.LocationId, "Location");
+                _gameWorld.AddOrUpdateLocation(dto.LocationId, skeletonSpot);
+                _gameWorld.AddSkeleton(dto.LocationId, "Location");
             }
 
             // Check if this NPC was previously a skeleton, if so replace it and preserve persistent decks
@@ -719,7 +879,7 @@ public class PackageLoader
 
                 int totalPreservedCards = preservedExchangeCards.Count;// Remove skeleton from game world
                 _gameWorld.NPCs.Remove(existingSkeleton);
-                SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FindById(dto.Id);
+                SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FirstOrDefault(x => x.SkeletonKey == dto.Id);
                 if (skeletonEntry != null)
                 {
                     _gameWorld.SkeletonRegistry.Remove(skeletonEntry);
@@ -776,8 +936,8 @@ public class PackageLoader
                         originSpot.LocationProperties.Add(LocationPropertyType.Crossroads);
                     }
 
-                    _gameWorld.Locations.AddOrUpdateSpot(dto.OriginSpotId, originSpot);
-                    _gameWorld.SkeletonRegistry.AddSkeleton(dto.OriginSpotId, "Location");
+                    _gameWorld.AddOrUpdateLocation(dto.OriginSpotId, originSpot);
+                    _gameWorld.AddSkeleton(dto.OriginSpotId, "Location");
                 }
                 else
                 {
@@ -807,8 +967,8 @@ public class PackageLoader
                         destSpot.LocationProperties.Add(LocationPropertyType.Crossroads);
                     }
 
-                    _gameWorld.Locations.AddOrUpdateSpot(dto.DestinationSpotId, destSpot);
-                    _gameWorld.SkeletonRegistry.AddSkeleton(dto.DestinationSpotId, "Location");
+                    _gameWorld.AddOrUpdateLocation(dto.DestinationSpotId, destSpot);
+                    _gameWorld.AddSkeleton(dto.DestinationSpotId, "Location");
                 }
                 else
                 {
@@ -1031,27 +1191,10 @@ public class PackageLoader
         }
     }
 
-    private void LoadLocationActions(List<LocationActionDTO> locationActionDtos, bool allowSkeletons)
-    {
-        if (locationActionDtos == null) return;
-
-        foreach (LocationActionDTO dto in locationActionDtos)
-        {
-            LocationAction locationAction = LocationActionParser.ParseLocationAction(dto);
-            _gameWorld.LocationActions.Add(locationAction);
-        }
-    }
-
-    private void LoadPlayerActions(List<PlayerActionDTO> playerActionDtos, bool allowSkeletons)
-    {
-        if (playerActionDtos == null) return;
-
-        foreach (PlayerActionDTO dto in playerActionDtos)
-        {
-            PlayerAction playerAction = PlayerActionParser.ParsePlayerAction(dto);
-            _gameWorld.PlayerActions.Add(playerAction);
-        }
-    }
+    // NOTE: LoadLocationActions and LoadPlayerActions methods REMOVED
+    // Actions are NO LONGER loaded from JSON - they are GENERATED from catalogues at parse time
+    // See GeneratePlayerActionsFromCatalogue() and GenerateLocationActionsFromCatalogue() above
+    // CATALOGUE PATTERN: Actions generated from categorical properties (LocationPropertyType enums), never from JSON
 
     // Conversion methods that don't have dedicated parsers yet
 
@@ -1072,8 +1215,10 @@ public class PackageLoader
         {
             Id = dto.Id,
             Name = dto.Name,
-            OriginLocationSpot = dto.OriginSpotId,
-            DestinationLocationSpot = dto.DestinationSpotId,
+            OriginLocationId = dto.OriginSpotId,
+            OriginLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == dto.OriginSpotId),
+            DestinationLocationId = dto.DestinationSpotId,
+            DestinationLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == dto.DestinationSpotId),
             Method = Enum.TryParse<TravelMethods>(dto.Method, out TravelMethods method) ? method : TravelMethods.Walking,
             BaseCoinCost = dto.BaseCoinCost,
             BaseStaminaCost = dto.BaseStaminaCost,
@@ -1133,9 +1278,9 @@ public class PackageLoader
                 }
                 else if (segmentType == SegmentType.Encounter)
                 {
-                    // Encounter segments have mandatory obstacle that MUST be resolved
-                    segment.MandatoryObstacleId = segmentDto.MandatoryObstacleId;
-                    if (!string.IsNullOrEmpty(segment.MandatoryObstacleId))
+                    // Encounter segments have mandatory scene that MUST be resolved
+                    segment.MandatorySceneId = segmentDto.MandatorySceneId;
+                    if (!string.IsNullOrEmpty(segment.MandatorySceneId))
                     { }
                 }
 
@@ -1149,27 +1294,9 @@ public class PackageLoader
             route.EncounterDeckIds.AddRange(dto.EncounterDeckIds);
         }
 
-        // Parse obstacles on this route (bandits, flooding, difficult terrain)
-        if (dto.Obstacles != null && dto.Obstacles.Count > 0)
-        {
-            foreach (ObstacleDTO obstacleDto in dto.Obstacles)
-            {
-                Obstacle obstacle = ObstacleParser.ConvertDTOToObstacle(obstacleDto, route.Id, _gameWorld);
-
-                // Duplicate ID protection - prevent data corruption
-                if (!_gameWorld.Obstacles.Any(o => o.Id == obstacle.Id))
-                {
-                    _gameWorld.Obstacles.Add(obstacle);
-                    route.ObstacleIds.Add(obstacle.Id);
-                }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"Duplicate obstacle ID '{obstacle.Id}' found in route '{route.Name}'. " +
-                        $"Obstacle IDs must be globally unique across all packages.");
-                }
-            }
-        }
+        // NOTE: Old inline scene parsing removed - NEW Scene-Situation architecture
+        // Scenes now spawn via Situation spawn rewards (SceneSpawnReward) instead of inline definitions
+        // Routes will receive Scene references through the spawning system, not direct parsing
 
         return route;
     }
@@ -1203,20 +1330,20 @@ public class PackageLoader
     private void InitializeTravelDiscoverySystem()
     {// Initialize PathCardDiscoveries from cards embedded in collections
         // First from path collections
-        foreach (PathCardCollectionDTO collection in _gameWorld.AllPathCollections.GetAllCollections())
+        foreach (PathCardCollectionDTO collection in _gameWorld.AllPathCollections.Select(c => c.Collection))
         {
             foreach (PathCardDTO pathCard in collection.PathCards)
             {
-                _gameWorld.PathCardDiscoveries.SetDiscovered(pathCard.Id, pathCard.StartsRevealed);
+                _gameWorld.SetPathCardDiscovered(pathCard.Id, pathCard.StartsRevealed);
             }
         }
 
         // Also initialize discovery states for event cards in event collections
-        foreach (PathCardCollectionDTO collection in _gameWorld.AllEventCollections.GetAllCollections())
+        foreach (PathCardCollectionDTO collection in _gameWorld.AllEventCollections.Select(c => c.Collection))
         {
             foreach (PathCardDTO eventCard in collection.EventCards)
             {
-                _gameWorld.PathCardDiscoveries.SetDiscovered(eventCard.Id, eventCard.StartsRevealed);
+                _gameWorld.SetPathCardDiscovered(eventCard.Id, eventCard.StartsRevealed);
             }
         }
 
@@ -1230,7 +1357,7 @@ public class PackageLoader
             string deckKey = $"route_{routeId}_events";
 
             // Start at position 0 for deterministic event drawing
-            _gameWorld.EventDeckPositions.SetPosition(deckKey, 0);
+            _gameWorld.SetEventDeckPosition(deckKey, 0);
 
             int eventCount = entry.Collection.Events?.Count ?? 0;
         }
@@ -1264,8 +1391,8 @@ public class PackageLoader
     private RouteOption GenerateReverseRoute(RouteOption forwardRoute)
     {
         // Extract Venue IDs from the location IDs for naming
-        string originVenueId = GetVenueIdFromSpotId(forwardRoute.OriginLocationSpot);
-        string destVenueId = GetVenueIdFromSpotId(forwardRoute.DestinationLocationSpot);
+        string originVenueId = GetVenueIdFromSpotId(forwardRoute.OriginLocationId);
+        string destVenueId = GetVenueIdFromSpotId(forwardRoute.DestinationLocationId);
 
         // Generate reverse route ID by swapping origin and destination
         string[] idParts = forwardRoute.Id.Split("_to_");
@@ -1277,9 +1404,11 @@ public class PackageLoader
         {
             Id = reverseId,
             Name = $"Return to {GetLocationNameFromId(originVenueId)}",
-            // Swap origin and destination
-            OriginLocationSpot = forwardRoute.DestinationLocationSpot,
-            DestinationLocationSpot = forwardRoute.OriginLocationSpot,
+            // Swap origin and destination (both IDs and objects)
+            OriginLocationId = forwardRoute.DestinationLocationId,
+            OriginLocation = forwardRoute.DestinationLocation,
+            DestinationLocationId = forwardRoute.OriginLocationId,
+            DestinationLocation = forwardRoute.OriginLocation,
 
             // Keep the same properties for both directions
             Method = forwardRoute.Method,
@@ -1317,7 +1446,7 @@ public class PackageLoader
                 // Keep the same collections - they represent the same physical locations
                 PathCollectionId = originalSegment.PathCollectionId,
                 EventCollectionId = originalSegment.EventCollectionId,
-                MandatoryObstacleId = originalSegment.MandatoryObstacleId
+                MandatorySceneId = originalSegment.MandatorySceneId
             };
             reverseRoute.Segments.Add(reverseSegment);
         }
@@ -1326,10 +1455,15 @@ public class PackageLoader
         reverseRoute.EncounterDeckIds.AddRange(forwardRoute.EncounterDeckIds);
 
         // If the forward route has a route-level event pool, copy it to the reverse route
-        PathCollectionEntry? forwardEntry = _gameWorld.AllEventCollections.FindById(forwardRoute.Id);
+        PathCollectionEntry? forwardEntry = _gameWorld.AllEventCollections.FirstOrDefault(x => x.CollectionId == forwardRoute.Id);
         if (forwardEntry != null)
         {
-            _gameWorld.AllEventCollections.AddOrUpdateCollection(reverseRoute.Id, forwardEntry.Collection);
+            PathCollectionEntry reverseEntry = new PathCollectionEntry
+            {
+                CollectionId = reverseRoute.Id,
+                Collection = forwardEntry.Collection
+            };
+            _gameWorld.AllEventCollections.Add(reverseEntry);
         }
 
         return reverseRoute;
@@ -1395,10 +1529,10 @@ public class PackageLoader
         List<string> routeSpotIds = new List<string>();
         foreach (RouteOption route in _gameWorld.Routes)
         {
-            if (!routeSpotIds.Contains(route.OriginLocationSpot))
-                routeSpotIds.Add(route.OriginLocationSpot);
-            if (!routeSpotIds.Contains(route.DestinationLocationSpot))
-                routeSpotIds.Add(route.DestinationLocationSpot);
+            if (!routeSpotIds.Contains(route.OriginLocationId))
+                routeSpotIds.Add(route.OriginLocationId);
+            if (!routeSpotIds.Contains(route.DestinationLocationId))
+                routeSpotIds.Add(route.DestinationLocationId);
         }
 
         foreach (string LocationId in routeSpotIds)
@@ -1418,8 +1552,8 @@ public class PackageLoader
                     location.LocationProperties.Add(LocationPropertyType.Crossroads);
                 }
 
-                _gameWorld.Locations.AddOrUpdateSpot(LocationId, location);
-                _gameWorld.SkeletonRegistry.AddSkeleton(LocationId, "Location");
+                _gameWorld.AddOrUpdateLocation(LocationId, location);
+                _gameWorld.AddSkeleton(LocationId, "Location");
             }
 
             if (!location.LocationProperties?.Contains(LocationPropertyType.Crossroads) == true)
@@ -1429,15 +1563,102 @@ public class PackageLoader
         }
     }
 
-    private void LoadTravelObstacles(List<TravelObstacleDTO> obstacleDtos, bool allowSkeletons)
+    private void LoadTravelScenes(List<TravelSceneDTO> sceneDtos, bool allowSkeletons)
     {
-        if (obstacleDtos == null) return;
+        if (sceneDtos == null) return;
 
-        TravelObstacleParser parser = new TravelObstacleParser();
-        foreach (TravelObstacleDTO dto in obstacleDtos)
+        // STUBBED OUT: TravelScene parsing removed (legacy Scene architecture deleted)
+        // TravelScene functionality moved to Phase 5 (Scene initialization pipeline)
+        // TravelSceneParser parser = new TravelSceneParser();
+        // foreach (TravelSceneDTO dto in sceneDtos)
+        // {
+        //     TravelScene scene = parser.ParseTravelScene(dto);
+        //     _gameWorld.TravelScenes.Add(scene);
+        // }
+    }
+
+    private void LoadConversationTrees(List<ConversationTreeDTO> conversationTrees, bool allowSkeletons)
+    {
+        if (conversationTrees == null) return;
+
+        foreach (ConversationTreeDTO dto in conversationTrees)
         {
-            TravelObstacle obstacle = parser.ParseTravelObstacle(dto);
-            _gameWorld.TravelObstacles.Add(obstacle);
+            ConversationTree tree = ConversationTreeParser.Parse(dto, _gameWorld);
+            _gameWorld.ConversationTrees.Add(tree);
+        }
+    }
+
+    private void LoadObservationScenes(List<ObservationSceneDTO> observationScenes, bool allowSkeletons)
+    {
+        if (observationScenes == null) return;
+
+        foreach (ObservationSceneDTO dto in observationScenes)
+        {
+            ObservationScene scene = ObservationSceneParser.Parse(dto, _gameWorld);
+            _gameWorld.ObservationScenes.Add(scene);
+        }
+    }
+
+    private void LoadEmergencySituations(List<EmergencySituationDTO> emergencySituations, bool allowSkeletons)
+    {
+        if (emergencySituations == null) return;
+
+        foreach (EmergencySituationDTO dto in emergencySituations)
+        {
+            EmergencySituation emergency = EmergencyParser.Parse(dto, _gameWorld);
+            _gameWorld.EmergencySituations.Add(emergency);
+        }
+    }
+
+    /// <summary>
+    /// Load State definitions - metadata about temporary player conditions
+    /// Scene-Situation Architecture (Sir Brante integration)
+    /// </summary>
+    private void LoadStates(List<StateDTO> stateDtos, bool allowSkeletons)
+    {
+        if (stateDtos == null) return;
+
+        List<State> states = StateParser.ParseStates(stateDtos);
+        foreach (State state in states)
+        {
+            _gameWorld.States.Add(state);
+        }
+    }
+
+    /// <summary>
+    /// Load Achievement definitions - milestone templates with grant conditions
+    /// Scene-Situation Architecture (Sir Brante integration)
+    /// </summary>
+    private void LoadAchievements(List<AchievementDTO> achievementDtos, bool allowSkeletons)
+    {
+        if (achievementDtos == null) return;
+
+        List<Achievement> achievements = AchievementParser.ParseAchievements(achievementDtos);
+        foreach (Achievement achievement in achievements)
+        {
+            _gameWorld.Achievements.Add(achievement);
+        }
+    }
+
+    /// <summary>
+    /// Load SceneTemplate definitions - immutable archetypes for procedural narrative spawning
+    /// Scene-Situation Architecture (Sir Brante integration)
+    /// </summary>
+    private void LoadSceneTemplates(List<SceneTemplateDTO> sceneTemplateDtos, bool allowSkeletons)
+    {
+        if (sceneTemplateDtos == null) return;
+
+        SceneTemplateParser parser = new SceneTemplateParser(_gameWorld, _sceneGenerationFacade);
+        foreach (SceneTemplateDTO dto in sceneTemplateDtos)
+        {
+            SceneTemplate template = parser.ParseSceneTemplate(dto);
+            _gameWorld.SceneTemplates.Add(template);
+        }
+
+        // Only log when templates were actually loaded from this package (reduce log noise)
+        if (sceneTemplateDtos.Count > 0)
+        {
+            Console.WriteLine($"[PackageLoader] Loaded {sceneTemplateDtos.Count} SceneTemplates from this package");
         }
     }
 

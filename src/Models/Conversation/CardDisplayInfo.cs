@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Simple presentation model for cards in the conversation UI.
 /// Static display only - no animations, no transitions, no DOM manipulation.

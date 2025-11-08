@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Type of route segment
 /// </summary>
@@ -7,7 +5,7 @@ public enum SegmentType
 {
     FixedPath,  // Walking - predetermined path cards, player chooses path
     Event,      // Caravan - random event from event collection, narrative responses
-    Encounter   // Challenge - mandatory obstacle engagement, must resolve to proceed
+    Encounter   // Challenge - mandatory scene engagement, must resolve to proceed
 }
 
 /// <summary>
@@ -24,8 +22,8 @@ public class RouteSegment
     // For Event segments
     public string EventCollectionId { get; set; }  // References AllEventCollections
 
-    // For Encounter segments - mandatory obstacle that must be resolved
-    public string MandatoryObstacleId { get; set; }  // References Obstacle that player MUST engage
+    // For Encounter segments - mandatory scene that must be resolved
+    public string MandatorySceneId { get; set; }  // References Scene that player MUST engage
 
     // Narrative description of this segment location
     // Example: "Forest Approach" or "Creek Crossing"

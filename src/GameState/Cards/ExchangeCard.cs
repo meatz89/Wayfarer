@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Represents a card for resource exchanges.
 /// Completely independent from ConversationCard - no inheritance, no shared mechanics.

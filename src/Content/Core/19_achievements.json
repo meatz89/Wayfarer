@@ -1,0 +1,212 @@
+{
+  "packageId": "core_achievements",
+  "metadata": {
+    "name": "Core Achievements",
+    "timestamp": "2025-01-27T00:00:00Z",
+    "description": "Player achievement definitions for tracking milestones",
+    "author": "Wayfarer Team",
+    "version": "1.0.0"
+  },
+  "content": {
+    "achievements": [
+    {
+      "id": "first_bond",
+      "category": "Social",
+      "name": "First Bond",
+      "description": "Formed a meaningful connection with another person",
+      "grantConditions": {
+        "bondStrengthWithAnyNpc": 10
+      }
+    },
+    {
+      "id": "deep_friendship",
+      "category": "Social",
+      "name": "Deep Friendship",
+      "description": "Earned the trust and loyalty of a true friend",
+      "grantConditions": {
+        "bondStrengthWithAnyNpc": 25
+      }
+    },
+    {
+      "id": "master_diplomat",
+      "category": "Social",
+      "name": "Master Diplomat",
+      "description": "Successfully navigated complex social challenges with grace",
+      "grantConditions": {
+        "completedSocialSituations": 20
+      }
+    },
+    {
+      "id": "first_mystery",
+      "category": "Investigation",
+      "name": "First Mystery",
+      "description": "Solved your first investigation from start to finish",
+      "grantConditions": {
+        "completedObligations": 1
+      }
+    },
+    {
+      "id": "master_sleuth",
+      "category": "Investigation",
+      "name": "Master Sleuth",
+      "description": "Uncovered the truth in many complex investigations",
+      "grantConditions": {
+        "completedObligations": 10
+      }
+    },
+    {
+      "id": "keen_observer",
+      "category": "Investigation",
+      "name": "Keen Observer",
+      "description": "Noticed details others overlook through careful observation",
+      "grantConditions": {
+        "completedMentalSituations": 15
+      }
+    },
+    {
+      "id": "first_steps",
+      "category": "Physical",
+      "name": "First Steps",
+      "description": "Overcame your first physical challenge",
+      "grantConditions": {
+        "completedPhysicalSituations": 1
+      }
+    },
+    {
+      "id": "endurance",
+      "category": "Physical",
+      "name": "Endurance",
+      "description": "Pushed through exhaustion and pain repeatedly",
+      "grantConditions": {
+        "completedPhysicalSituations": 10
+      }
+    },
+    {
+      "id": "wealth_seeker",
+      "category": "Economic",
+      "name": "Wealth Seeker",
+      "description": "Accumulated significant resources through cunning",
+      "grantConditions": {
+        "coinsEarned": 1000
+      }
+    },
+    {
+      "id": "merchant_prince",
+      "category": "Economic",
+      "name": "Merchant Prince",
+      "description": "Mastered the art of commerce and trade",
+      "grantConditions": {
+        "coinsEarned": 5000
+      }
+    },
+    {
+      "id": "moral_compass",
+      "category": "Political",
+      "name": "Moral Compass",
+      "description": "Demonstrated consistent altruistic behavior",
+      "grantConditions": {
+        "moralityScale": 8
+      }
+    },
+    {
+      "id": "pragmatic_survivor",
+      "category": "Political",
+      "name": "Pragmatic Survivor",
+      "description": "Made difficult choices for the greater good",
+      "grantConditions": {
+        "moralityScale": -8
+      }
+    },
+    {
+      "id": "law_abiding",
+      "category": "Political",
+      "name": "Law Abiding",
+      "description": "Upheld the law even when it cost you",
+      "grantConditions": {
+        "lawfulnessScale": 8
+      }
+    },
+    {
+      "id": "rebel_spirit",
+      "category": "Political",
+      "name": "Rebel Spirit",
+      "description": "Challenged authority and fought for change",
+      "grantConditions": {
+        "lawfulnessScale": -8
+      }
+    },
+    {
+      "id": "peaceful_resolution",
+      "category": "Political",
+      "name": "Peaceful Resolution",
+      "description": "Resolved conflicts through words, not violence",
+      "grantConditions": {
+        "methodScale": 8
+      }
+    },
+    {
+      "id": "decisive_action",
+      "category": "Political",
+      "name": "Decisive Action",
+      "description": "Took swift and forceful action when needed",
+      "grantConditions": {
+        "methodScale": -8
+      }
+    },
+    {
+      "id": "cautious_planner",
+      "category": "Political",
+      "name": "Cautious Planner",
+      "description": "Carefully considered every move and its consequences",
+      "grantConditions": {
+        "cautionScale": 8
+      }
+    },
+    {
+      "id": "daring_risk_taker",
+      "category": "Political",
+      "name": "Daring Risk Taker",
+      "description": "Embraced danger and uncertainty with confidence",
+      "grantConditions": {
+        "cautionScale": -8
+      }
+    },
+    {
+      "id": "transparent_honesty",
+      "category": "Political",
+      "name": "Transparent Honesty",
+      "description": "Valued truth and openness above all",
+      "grantConditions": {
+        "transparencyScale": 8
+      }
+    },
+    {
+      "id": "secretive_manipulator",
+      "category": "Political",
+      "name": "Secretive Manipulator",
+      "description": "Kept secrets and worked from the shadows",
+      "grantConditions": {
+        "transparencyScale": -8
+      }
+    },
+    {
+      "id": "celebrated_hero",
+      "category": "Political",
+      "name": "Celebrated Hero",
+      "description": "Earned fame and recognition for your deeds",
+      "grantConditions": {
+        "fameScale": 8
+      }
+    },
+    {
+      "id": "notorious_figure",
+      "category": "Political",
+      "name": "Notorious Figure",
+      "description": "Gained infamy for your controversial actions",
+      "grantConditions": {
+        "fameScale": -8
+      }
+    }
+  ]
+  }
+}

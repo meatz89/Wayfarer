@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Named clue discovered during obligation
 /// </summary>

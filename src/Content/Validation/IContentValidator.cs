@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Interface for content validators that can be added to the validation pipeline.
 /// </summary>

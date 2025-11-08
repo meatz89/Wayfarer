@@ -1,8 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Wayfarer.Pages.Components
 {
@@ -69,7 +65,7 @@ namespace Wayfarer.Pages.Components
             if (Context.LocationInfo != null)
             {
                 string timeStr = GetTimeBlockDisplay(Context.CurrentTimeBlock);
-                return $"{timeStr} - {Context.LocationInfo.Name}";
+                return $"{timeStr} - {Context.LocationInfo.VenueName}";
             }
             return "Unknown Location";
         }
@@ -157,7 +153,7 @@ namespace Wayfarer.Pages.Components
             else if (Context.LocationInfo != null)
             {
                 // Location-based exchange
-                CurrentNarrative = $"You examine the available services at {Context.LocationInfo.Name}.";
+                CurrentNarrative = $"You examine the available services at {Context.LocationInfo.VenueName}.";
             }
             else
             {
@@ -387,10 +383,7 @@ namespace Wayfarer.Pages.Components
             await OnExchangeEnd.InvokeAsync();
 
             // Return to Venue through GameScreen
-            if (GameScreen != null)
-            {
-                await GameScreen.ReturnToLocation();
-            }
+            await GameScreen.ReturnToLocation();
         }
 
         /// <summary>

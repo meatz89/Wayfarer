@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// PROJECTION PRINCIPLE: This resolver is a pure projection function that returns
 /// what WOULD happen without modifying any game state. Both UI (for preview display)
@@ -62,10 +58,10 @@ public class SocialEffectResolver
     /// </summary>
     public bool CheckCardSuccess(CardInstance card, SocialSession session)
     {
-        // Goal cards succeed if momentum threshold is met
-        if (card.CardType == CardTypes.Goal)
+        // Situation cards succeed if momentum threshold is met
+        if (card.CardType == CardTypes.Situation)
         {
-            return session.CurrentMomentum >= card.GoalCardTemplate.threshold;
+            return session.CurrentMomentum >= card.SituationCardTemplate.threshold;
         }
 
         // Regular conversation cards ALWAYS succeed - no failure possible

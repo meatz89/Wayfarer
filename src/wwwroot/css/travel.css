@@ -604,7 +604,7 @@
     background: #d4a76a;
 }
 
-/* Encounter Deck Preview (from travel-screens.html) - Shows possible goals/encounters */
+/* Encounter Deck Preview (from travel-screens.html) - Shows possible situations/encounters */
 .encounter-preview {
     padding: 15px 20px;
     background: #f9f3e9;
@@ -1413,8 +1413,8 @@
     font-style: italic;
 }
 
-/* Obstacle Display */
-.obstacle-display {
+/* Scene Display */
+.scene-display {
     background: #faf4ea;
     border: 3px solid #8b5a8b;
     border-radius: 4px;
@@ -1424,7 +1424,7 @@
     box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
-.obstacle-name {
+.scene-name {
     background: linear-gradient(to bottom, #f9f3e9, #f4e8d0);
     padding: 15px 20px;
     border-bottom: 2px solid #8b5a8b;
@@ -1433,7 +1433,7 @@
     color: #5c4a3a;
 }
 
-.obstacle-description {
+.scene-description {
     padding: 15px 20px;
     font-size: 15px;
     line-height: 1.6;
@@ -1443,7 +1443,7 @@
     border-bottom: 1px solid #e8dcc4;
 }
 
-.obstacle-intensity {
+.scene-intensity {
     padding: 10px 20px;
     background: #f9f3e9;
     border-bottom: 2px solid #c4a684;
@@ -1453,13 +1453,13 @@
     text-transform: uppercase;
 }
 
-/* Goals List */
-.goals-list {
+/* Situations List */
+.situations-list {
     padding: 20px;
     background: #f4e8d0;
 }
 
-.goals-title {
+.situations-title {
     font-size: 13px;
     color: #7a6250;
     text-transform: uppercase;
@@ -1468,7 +1468,7 @@
     letter-spacing: 1px;
 }
 
-.goal-card {
+.situation-card {
     background: #faf4ea;
     border: 2px solid #c4a684;
     border-radius: 4px;
@@ -1478,27 +1478,27 @@
     transition: all 0.3s ease;
 }
 
-.goal-card:hover {
+.situation-card:hover {
     background: #fefaf0;
     border-color: #8b5a8b;
     transform: translateX(5px);
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.goal-header {
+.situation-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
     margin-bottom: 8px;
 }
 
-.goal-name {
+.situation-name {
     font-size: 15px;
     font-weight: bold;
     color: #5c4a3a;
 }
 
-.goal-system {
+.situation-system {
     font-size: 11px;
     color: #7a6250;
     text-transform: uppercase;
@@ -1507,7 +1507,7 @@
     border-radius: 2px;
 }
 
-.goal-description {
+.situation-description {
     font-size: 13px;
     line-height: 1.5;
     color: #2c241a;

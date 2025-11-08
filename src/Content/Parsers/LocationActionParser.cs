@@ -1,8 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
 /// <summary>
 /// Parser for LocationAction entities with strong typing and enum validation.
 /// Validates actionType against LocationActionType enum - throws on unknown types.
@@ -29,10 +24,10 @@ public static class LocationActionParser
             Name = dto.Name,
             Description = dto.Description,
             ActionType = actionType,  // Strongly typed enum
-            Cost = dto.Cost ?? new Dictionary<string, int>(),
-            Reward = dto.Reward ?? new Dictionary<string, int>(),
+            Costs = ParseCosts(dto.Cost),
+            Rewards = ParseRewards(dto.Reward),
             TimeRequired = dto.TimeRequired,
-            Availability = dto.Availability ?? new List<string>(),
+            Availability = ParseTimeBlocks(dto.Availability),
             Priority = dto.Priority,
             ObligationId = dto.ObligationId,
             RequiredProperties = ParseLocationProperties(dto.RequiredProperties),
@@ -41,6 +36,59 @@ public static class LocationActionParser
         };
 
         return action;
+    }
+
+    private static List<TimeBlocks> ParseTimeBlocks(List<string> timeBlockStrings)
+    {
+        List<TimeBlocks> result = new List<TimeBlocks>();
+
+        if (timeBlockStrings == null || timeBlockStrings.Count == 0)
+            return result;
+
+        foreach (string blockStr in timeBlockStrings)
+        {
+            if (Enum.TryParse<TimeBlocks>(blockStr, true, out TimeBlocks timeBlock))
+            {
+                result.Add(timeBlock);
+            }
+            else
+            {
+                throw new InvalidDataException(
+                    $"LocationAction has unknown availability time block '{blockStr}'. " +
+                    $"Valid values: {string.Join(", ", Enum.GetNames(typeof(TimeBlocks)))}");
+            }
+        }
+
+        return result;
+    }
+
+    private static ActionCosts ParseCosts(ActionCostsDTO dto)
+    {
+        if (dto == null)
+            return ActionCosts.None();
+
+        return new ActionCosts
+        {
+            Coins = dto.Coins,
+            Focus = dto.Focus,
+            Stamina = dto.Stamina,
+            Health = dto.Health
+        };
+    }
+
+    private static ActionRewards ParseRewards(ActionRewardsDTO dto)
+    {
+        if (dto == null)
+            return ActionRewards.None();
+
+        return new ActionRewards
+        {
+            CoinReward = dto.Coins,
+            HealthRecovery = dto.Health,
+            FocusRecovery = dto.Focus,
+            StaminaRecovery = dto.Stamina,
+            FullRecovery = dto.FullRecovery
+        };
     }
 
     private static void ValidateRequiredFields(LocationActionDTO dto)

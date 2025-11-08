@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-
 /// <summary>
 /// Generates atmospheric descriptions from categorical location properties.
 /// All text is systematically derived from game state - no hardcoded strings.
@@ -234,7 +230,9 @@ public class LocationDescriptionGenerator
             LocationPropertyType.Social => "Social hub",
             LocationPropertyType.Service => "Service point",
             LocationPropertyType.Rest => "Rest area",
-            LocationPropertyType.Lodging => "Lodging",
+            LocationPropertyType.SleepingSpace => "Sleeping quarters",
+            LocationPropertyType.LodgingProvider => "Accommodation available",
+            LocationPropertyType.Indoor => "Indoor",
             LocationPropertyType.Tavern => "Tavern",
             LocationPropertyType.Market => "Market",
             LocationPropertyType.Temple => "Temple",

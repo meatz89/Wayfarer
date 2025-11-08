@@ -1,5 +1,3 @@
-using System;
-
 /// <summary>
 /// Parser for player initial configuration
 /// Translates categorical properties (verisimilitude) to concrete mechanical values
@@ -64,6 +62,13 @@ public static class PlayerInitialConfigParser
         config.Personality = dto.Personality;
         config.Archetype = dto.Archetype;
         config.InitialItems = dto.InitialItems;
+
+        // Scene-Situation Architecture properties (direct passthrough from DTO)
+        config.Resolve = dto.Resolve;
+        config.Scales = dto.Scales;
+        config.ActiveStates = dto.ActiveStates;
+        config.EarnedAchievements = dto.EarnedAchievements;
+        config.CompletedSituationIds = dto.CompletedSituationIds;
 
         // Use direct values if provided, otherwise translate categorical
         if (dto.Health.HasValue && dto.MaxHealth.HasValue)

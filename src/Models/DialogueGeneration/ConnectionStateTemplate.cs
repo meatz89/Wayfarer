@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 /// <summary>
 /// Template for dialogue based on connection state
 /// </summary>
