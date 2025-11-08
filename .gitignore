@@ -371,3 +371,6 @@ FodyWeavers.xsd
 /blob-report/
 /playwright/.cache/
 /playwright/.auth/
+
+# Runtime-generated content (cleared on app restart)
+src/Content/Dynamic/
