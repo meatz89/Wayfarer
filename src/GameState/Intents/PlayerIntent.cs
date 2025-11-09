@@ -4,15 +4,15 @@
 /// </summary>
 public abstract class PlayerIntent
 {
-    /// <summary>
-    /// Unique identifier for this intent instance
-    /// </summary>
-    public string IntentId { get; } = Guid.NewGuid().ToString();
+/// <summary>
+/// Unique identifier for this intent instance
+/// </summary>
+public string IntentId { get; } = Guid.NewGuid().ToString();
 
-    /// <summary>
-    /// When this intent was created
-    /// </summary>
-    public DateTime CreatedAt { get; } = DateTime.UtcNow;
+/// <summary>
+/// When this intent was created
+/// </summary>
+public DateTime CreatedAt { get; } = DateTime.UtcNow;
 }
 
 /// <summary>
@@ -20,12 +20,12 @@ public abstract class PlayerIntent
 /// </summary>
 public class MoveIntent : PlayerIntent
 {
-    public string TargetSpotId { get; }
+public string TargetSpotId { get; }
 
-    public MoveIntent(string targetSpotId)
-    {
-        TargetSpotId = targetSpotId;
-    }
+public MoveIntent(string targetSpotId)
+{
+    TargetSpotId = targetSpotId;
+}
 }
 
 /// <summary>
@@ -33,22 +33,22 @@ public class MoveIntent : PlayerIntent
 /// </summary>
 public class TalkIntent : PlayerIntent
 {
-    public string NpcId { get; }
+public string NpcId { get; }
 
-    public TalkIntent(string npcId)
-    {
-        NpcId = npcId;
-    }
+public TalkIntent(string npcId)
+{
+    NpcId = npcId;
+}
 }
 /// <summary>
 /// Intent to wait until the next time period (refreshes attention)
 /// </summary>
 public class WaitIntent : PlayerIntent
 {
-    public WaitIntent()
-    {
-        // No parameters needed - always advances to next time block
-    }
+public WaitIntent()
+{
+    // No parameters needed - always advances to next time block
+}
 }
 
 /// <summary>
@@ -56,12 +56,12 @@ public class WaitIntent : PlayerIntent
 /// </summary>
 public class DeliverLetterIntent : PlayerIntent
 {
-    public string LetterId { get; }
+public string LetterId { get; }
 
-    public DeliverLetterIntent(string letterId)
-    {
-        LetterId = letterId;
-    }
+public DeliverLetterIntent(string letterId)
+{
+    LetterId = letterId;
+}
 }
 
 /// <summary>
@@ -83,12 +83,12 @@ public class ExploreAreaIntent : PlayerIntent
 /// </summary>
 public class TravelIntent : PlayerIntent
 {
-    public string RouteId { get; }
+public string RouteId { get; }
 
-    public TravelIntent(string routeId)
-    {
-        RouteId = routeId;
-    }
+public TravelIntent(string routeId)
+{
+    RouteId = routeId;
+}
 }
 
 /// <summary>
@@ -96,14 +96,14 @@ public class TravelIntent : PlayerIntent
 /// </summary>
 public class DiscoverRouteIntent : PlayerIntent
 {
-    public string NpcId { get; }
-    public string RouteId { get; }
+public string NpcId { get; }
+public string RouteId { get; }
 
-    public DiscoverRouteIntent(string npcId, string routeId)
-    {
-        NpcId = npcId;
-        RouteId = routeId;
-    }
+public DiscoverRouteIntent(string npcId, string routeId)
+{
+    NpcId = npcId;
+    RouteId = routeId;
+}
 }
 
 /// <summary>
@@ -121,12 +121,12 @@ public class CheckBelongingsIntent : PlayerIntent
 /// </summary>
 public class EngageNPCIntent : PlayerIntent
 {
-    public string NpcId { get; }
+public string NpcId { get; }
 
-    public EngageNPCIntent(string npcId)
-    {
-        NpcId = npcId ?? throw new ArgumentNullException(nameof(npcId));
-    }
+public EngageNPCIntent(string npcId)
+{
+    NpcId = npcId ?? throw new ArgumentNullException(nameof(npcId));
+}
 }
 
 /// <summary>
@@ -200,12 +200,12 @@ public class ViewJobBoardIntent : PlayerIntent
 /// </summary>
 public class AcceptDeliveryJobIntent : PlayerIntent
 {
-    public string JobId { get; }
+public string JobId { get; }
 
-    public AcceptDeliveryJobIntent(string jobId)
-    {
-        JobId = jobId;
-    }
+public AcceptDeliveryJobIntent(string jobId)
+{
+    JobId = jobId;
+}
 }
 
 /// <summary>

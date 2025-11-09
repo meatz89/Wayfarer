@@ -9,28 +9,28 @@
 /// </summary>
 public enum ObligationDiscipline
 {
-    /// <summary>
-    /// Archives, books, documents, scholarly obligation
-    /// </summary>
-    Research,
+/// <summary>
+/// Archives, books, documents, scholarly obligation
+/// </summary>
+Research,
 
-    /// <summary>
-    /// Perception, noticing details, surveillance, watching
-    /// </summary>
-    Observation,
+/// <summary>
+/// Perception, noticing details, surveillance, watching
+/// </summary>
+Observation,
 
-    /// <summary>
-    /// Logic, reasoning, connecting clues, analytical thinking
-    /// </summary>
-    Deduction,
+/// <summary>
+/// Logic, reasoning, connecting clues, analytical thinking
+/// </summary>
+Deduction,
 
-    /// <summary>
-    /// Questioning people, social obligation, interpersonal inquiry
-    /// </summary>
-    Interrogation,
+/// <summary>
+/// Questioning people, social obligation, interpersonal inquiry
+/// </summary>
+Interrogation,
 
-    /// <summary>
-    /// Stealth obligation, unauthorized access, covert examination
-    /// </summary>
-    Infiltration
+/// <summary>
+/// Stealth obligation, unauthorized access, covert examination
+/// </summary>
+Infiltration
 }

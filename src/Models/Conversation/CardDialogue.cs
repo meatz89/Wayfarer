@@ -3,6 +3,6 @@
 /// </summary>
 public class CardDialogue
 {
-    public string playerText { get; set; }
-    public Dictionary<string, string> contextual { get; set; }
+public string playerText { get; set; }
+public Dictionary<string, string> contextual { get; set; }
 }

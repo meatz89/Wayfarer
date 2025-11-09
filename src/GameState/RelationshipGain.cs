@@ -1,5 +1,5 @@
 ﻿public class RelationshipGain
 {
-    public string CharacterName { get; set; }
-    public int ChangeAmount { get; set; }
+public string CharacterName { get; set; }
+public int ChangeAmount { get; set; }
 }

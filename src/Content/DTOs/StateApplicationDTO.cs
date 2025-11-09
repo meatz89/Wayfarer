@@ -3,7 +3,7 @@
 /// </summary>
 public class StateApplicationDTO
 {
-    public string StateType { get; set; }
-    public bool Apply { get; set; }
-    public string Reason { get; set; }
+public string StateType { get; set; }
+public bool Apply { get; set; }
+public string Reason { get; set; }
 }

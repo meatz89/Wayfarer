@@ -3,7 +3,7 @@
 /// </summary>
 public class BondChangeDTO
 {
-    public string NpcId { get; set; }
-    public int Delta { get; set; }
-    public string Reason { get; set; }
+public string NpcId { get; set; }
+public int Delta { get; set; }
+public string Reason { get; set; }
 }

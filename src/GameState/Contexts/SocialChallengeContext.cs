@@ -5,47 +5,47 @@
 /// </summary>
 public class SocialChallengeContext
 {
-    public bool IsValid { get; set; }
-    public string ErrorMessage { get; set; }
-    public string NpcId { get; set; }
-    public NPC Npc { get; set; }
-    public string RequestId { get; set; }
-    public string ConversationTypeId { get; set; }
-    public ConnectionState InitialState { get; set; }
-    public SocialSession Session { get; set; }
-    public List<CardInstance> ObservationCards { get; set; }
-    public ResourceState PlayerResources { get; set; }
-    public string LocationName { get; set; }
-    public string TimeDisplay { get; set; }
-    public string RequestText { get; set; }  // Text displayed when NPC presents a request
+public bool IsValid { get; set; }
+public string ErrorMessage { get; set; }
+public string NpcId { get; set; }
+public NPC Npc { get; set; }
+public string RequestId { get; set; }
+public string ConversationTypeId { get; set; }
+public ConnectionState InitialState { get; set; }
+public SocialSession Session { get; set; }
+public List<CardInstance> ObservationCards { get; set; }
+public ResourceState PlayerResources { get; set; }
+public string LocationName { get; set; }
+public string TimeDisplay { get; set; }
+public string RequestText { get; set; }  // Text displayed when NPC presents a request
 
-    /// <summary>
-    /// Situation ID for scene progression tracking
-    /// Set when challenge started from scene choice
-    /// Used to find situation for LastChallengeSucceeded tracking
-    /// </summary>
-    public string SituationId { get; set; }
+/// <summary>
+/// Situation ID for scene progression tracking
+/// Set when challenge started from scene choice
+/// Used to find situation for LastChallengeSucceeded tracking
+/// </summary>
+public string SituationId { get; set; }
 
-    /// <summary>
-    /// Reward to apply if conversation succeeds
-    /// Set when challenge started from Choice with ActionType = StartChallenge
-    /// Applied in SocialFacade.EndConversation() when outcome.Success == true
-    /// Tutorial Elena path uses this to grant coins and bond after social challenge
-    /// </summary>
-    public ChoiceReward CompletionReward { get; set; }
+/// <summary>
+/// Reward to apply if conversation succeeds
+/// Set when challenge started from Choice with ActionType = StartChallenge
+/// Applied in SocialFacade.EndConversation() when outcome.Success == true
+/// Tutorial Elena path uses this to grant coins and bond after social challenge
+/// </summary>
+public ChoiceReward CompletionReward { get; set; }
 
-    /// <summary>
-    /// Reward to apply if conversation fails
-    /// Set when challenge started from Choice with ActionType = StartChallenge
-    /// Applied when player abandons or fails conversation
-    /// Enables OnFailure transitions in scene state machine
-    /// </summary>
-    public ChoiceReward FailureReward { get; set; }
+/// <summary>
+/// Reward to apply if conversation fails
+/// Set when challenge started from Choice with ActionType = StartChallenge
+/// Applied when player abandons or fails conversation
+/// Enables OnFailure transitions in scene state machine
+/// </summary>
+public ChoiceReward FailureReward { get; set; }
 
-    public SocialChallengeContext()
-    {
-        ObservationCards = new List<CardInstance>();
-        IsValid = true;
-        ErrorMessage = string.Empty;
-    }
+public SocialChallengeContext()
+{
+    ObservationCards = new List<CardInstance>();
+    IsValid = true;
+    ErrorMessage = string.Empty;
+}
 }

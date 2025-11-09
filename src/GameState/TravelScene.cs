@@ -6,15 +6,15 @@
 /// </summary>
 public class TravelScene
 {
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public SceneType Type { get; set; }
+public string Id { get; set; }
+public string Name { get; set; }
+public string Description { get; set; }
+public SceneType Type { get; set; }
 
-    // Placement context (NOT ownership)
-    public string VenueId { get; set; }
-    public string RouteId { get; set; }
+// Placement context (NOT ownership)
+public string VenueId { get; set; }
+public string RouteId { get; set; }
 
-    // Approach options
-    public List<SceneApproach> Approaches { get; set; } = new List<SceneApproach>();
+// Approach options
+public List<SceneApproach> Approaches { get; set; } = new List<SceneApproach>();
 }

@@ -8,8 +8,8 @@
 /// </summary>
 public class ResourceEntry
 {
-    public string ResourceType { get; set; }
-    public int Amount { get; set; }
+public string ResourceType { get; set; }
+public int Amount { get; set; }
 }
 
 /// <summary>
@@ -17,42 +17,42 @@ public class ResourceEntry
 /// </summary>
 public class NPCTokenEntry
 {
-    public string NpcId { get; set; }
-    public int Trust { get; set; }
-    public int Diplomacy { get; set; }
-    public int Status { get; set; }
-    public int Shadow { get; set; }
+public string NpcId { get; set; }
+public int Trust { get; set; }
+public int Diplomacy { get; set; }
+public int Status { get; set; }
+public int Shadow { get; set; }
 
-    public int GetTokenCount(ConnectionType type)
+public int GetTokenCount(ConnectionType type)
+{
+    return type switch
     {
-        return type switch
-        {
-            ConnectionType.Trust => Trust,
-            ConnectionType.Diplomacy => Diplomacy,
-            ConnectionType.Status => Status,
-            ConnectionType.Shadow => Shadow,
-            _ => 0
-        };
-    }
+        ConnectionType.Trust => Trust,
+        ConnectionType.Diplomacy => Diplomacy,
+        ConnectionType.Status => Status,
+        ConnectionType.Shadow => Shadow,
+        _ => 0
+    };
+}
 
-    public void SetTokenCount(ConnectionType type, int value)
+public void SetTokenCount(ConnectionType type, int value)
+{
+    switch (type)
     {
-        switch (type)
-        {
-            case ConnectionType.Trust:
-                Trust = value;
-                break;
-            case ConnectionType.Diplomacy:
-                Diplomacy = value;
-                break;
-            case ConnectionType.Status:
-                Status = value;
-                break;
-            case ConnectionType.Shadow:
-                Shadow = value;
-                break;
-        }
+        case ConnectionType.Trust:
+            Trust = value;
+            break;
+        case ConnectionType.Diplomacy:
+            Diplomacy = value;
+            break;
+        case ConnectionType.Status:
+            Status = value;
+            break;
+        case ConnectionType.Shadow:
+            Shadow = value;
+            break;
     }
+}
 }
 
 /// <summary>
@@ -60,8 +60,8 @@ public class NPCTokenEntry
 /// </summary>
 public class KnownRouteEntry
 {
-    public string OriginSpotId { get; set; }
-    public List<RouteOption> Routes { get; set; } = new List<RouteOption>();
+public string OriginSpotId { get; set; }
+public List<RouteOption> Routes { get; set; } = new List<RouteOption>();
 }
 
 /// <summary>
@@ -69,8 +69,8 @@ public class KnownRouteEntry
 /// </summary>
 public class FamiliarityEntry
 {
-    public string EntityId { get; set; }
-    public int Level { get; set; }
+public string EntityId { get; set; }
+public int Level { get; set; }
 }
 
 /// <summary>
@@ -78,8 +78,8 @@ public class FamiliarityEntry
 /// </summary>
 public class CardDeckEntry
 {
-    public string CardId { get; set; }
-    public int Count { get; set; }
+public string CardId { get; set; }
+public int Count { get; set; }
 }
 
 /// <summary>
@@ -87,8 +87,8 @@ public class CardDeckEntry
 /// </summary>
 public class NPCExchangeCardEntry
 {
-    public string NpcId { get; set; }
-    public List<ExchangeCard> ExchangeCards { get; set; } = new List<ExchangeCard>();
+public string NpcId { get; set; }
+public List<ExchangeCard> ExchangeCards { get; set; } = new List<ExchangeCard>();
 }
 
 /// <summary>
@@ -96,8 +96,8 @@ public class NPCExchangeCardEntry
 /// </summary>
 public class SkeletonRegistryEntry
 {
-    public string SkeletonKey { get; set; }
-    public string ContentType { get; set; }
+public string SkeletonKey { get; set; }
+public string ContentType { get; set; }
 }
 
 /// <summary>
@@ -105,8 +105,8 @@ public class SkeletonRegistryEntry
 /// </summary>
 public class PathCardDiscoveryEntry
 {
-    public string CardId { get; set; }
-    public bool IsDiscovered { get; set; }
+public string CardId { get; set; }
+public bool IsDiscovered { get; set; }
 }
 
 /// <summary>
@@ -114,8 +114,8 @@ public class PathCardDiscoveryEntry
 /// </summary>
 public class EventDeckPositionEntry
 {
-    public string DeckId { get; set; }
-    public int Position { get; set; }
+public string DeckId { get; set; }
+public int Position { get; set; }
 }
 
 /// <summary>
@@ -123,8 +123,8 @@ public class EventDeckPositionEntry
 /// </summary>
 public class PathCollectionEntry
 {
-    public string CollectionId { get; set; }
-    public PathCardCollectionDTO Collection { get; set; }
+public string CollectionId { get; set; }
+public PathCardCollectionDTO Collection { get; set; }
 }
 
 /// <summary>
@@ -132,8 +132,8 @@ public class PathCollectionEntry
 /// </summary>
 public class TravelEventEntry
 {
-    public string EventId { get; set; }
-    public TravelEventDTO TravelEvent { get; set; }
+public string EventId { get; set; }
+public TravelEventDTO TravelEvent { get; set; }
 }
 
 /// <summary>
@@ -141,8 +141,8 @@ public class TravelEventEntry
 /// </summary>
 public class TokenUnlockEntry
 {
-    public int TokenCount { get; set; }
-    public List<string> UnlockedIds { get; set; } = new List<string>();
+public int TokenCount { get; set; }
+public List<string> UnlockedIds { get; set; } = new List<string>();
 }
 
 // ALL EXTENSION METHODS DELETED - Domain logic moved to Player.cs and GameWorld.cs

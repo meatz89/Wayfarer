@@ -5,15 +5,15 @@
 /// </summary>
 public class DependentResourceSpecs
 {
-    public List<LocationDTO> Locations { get; set; } = new();
-    public List<ItemDTO> Items { get; set; } = new();
-    public string PackageId { get; set; }
-    public string PackageJson { get; set; }
-    public List<string> CreatedLocationIds { get; set; } = new();
-    public List<string> CreatedItemIds { get; set; } = new();
-    public List<string> ItemsToAddToInventory { get; set; } = new();
+public List<LocationDTO> Locations { get; set; } = new();
+public List<ItemDTO> Items { get; set; } = new();
+public string PackageId { get; set; }
+public string PackageJson { get; set; }
+public List<string> CreatedLocationIds { get; set; } = new();
+public List<string> CreatedItemIds { get; set; } = new();
+public List<string> ItemsToAddToInventory { get; set; } = new();
 
-    public static DependentResourceSpecs Empty => new DependentResourceSpecs();
+public static DependentResourceSpecs Empty => new DependentResourceSpecs();
 
-    public bool HasResources => Locations.Any() || Items.Any();
+public bool HasResources => Locations.Any() || Items.Any();
 }

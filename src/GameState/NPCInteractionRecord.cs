@@ -7,26 +7,26 @@
 /// </summary>
 public class NPCInteractionRecord
 {
-    /// <summary>
-    /// NPC entity ID this record tracks
-    /// </summary>
-    public string NPCId { get; set; }
+/// <summary>
+/// NPC entity ID this record tracks
+/// </summary>
+public string NPCId { get; set; }
 
-    /// <summary>
-    /// Day of last interaction with this NPC
-    /// Updated each time player interacts with this NPC (replaces previous value)
-    /// </summary>
-    public int LastInteractionDay { get; set; }
+/// <summary>
+/// Day of last interaction with this NPC
+/// Updated each time player interacts with this NPC (replaces previous value)
+/// </summary>
+public int LastInteractionDay { get; set; }
 
-    /// <summary>
-    /// Time block of last interaction (Morning, Afternoon, Evening, Night)
-    /// Updated each time player interacts with this NPC (replaces previous value)
-    /// </summary>
-    public TimeBlocks LastInteractionTimeBlock { get; set; }
+/// <summary>
+/// Time block of last interaction (Morning, Afternoon, Evening, Night)
+/// Updated each time player interacts with this NPC (replaces previous value)
+/// </summary>
+public TimeBlocks LastInteractionTimeBlock { get; set; }
 
-    /// <summary>
-    /// Segment of last interaction within time block (0-5)
-    /// Updated each time player interacts with this NPC (replaces previous value)
-    /// </summary>
-    public int LastInteractionSegment { get; set; }
+/// <summary>
+/// Segment of last interaction within time block (0-5)
+/// Updated each time player interacts with this NPC (replaces previous value)
+/// </summary>
+public int LastInteractionSegment { get; set; }
 }

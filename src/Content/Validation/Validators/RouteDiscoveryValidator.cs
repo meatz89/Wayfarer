@@ -5,155 +5,155 @@ using System.Text.Json;
 /// </summary>
 public class RouteDiscoveryValidator : IContentValidator
 {
-    private readonly List<string> _requiredFields = new List<string>
-        {
-            "routeId", "knownByNPCs"
-        };
-
-    public bool CanValidate(string fileName)
+private readonly List<string> _requiredFields = new List<string>
     {
-        return fileName.Equals("route_discovery.json", StringComparison.OrdinalIgnoreCase) ||
-               fileName.EndsWith("_route_discovery.json", StringComparison.OrdinalIgnoreCase);
-    }
+        "routeId", "knownByNPCs"
+    };
 
-    public IEnumerable<ValidationError> Validate(string content, string fileName)
+public bool CanValidate(string fileName)
+{
+    return fileName.Equals("route_discovery.json", StringComparison.OrdinalIgnoreCase) ||
+           fileName.EndsWith("_route_discovery.json", StringComparison.OrdinalIgnoreCase);
+}
+
+public IEnumerable<ValidationError> Validate(string content, string fileName)
+{
+    List<ValidationError> errors = new List<ValidationError>();
+
+    using JsonDocument doc = JsonDocument.Parse(content);
+    JsonElement root = doc.RootElement;
+
+    if (root.ValueKind != JsonValueKind.Array)
     {
-        List<ValidationError> errors = new List<ValidationError>();
-
-        using JsonDocument doc = JsonDocument.Parse(content);
-        JsonElement root = doc.RootElement;
-
-        if (root.ValueKind != JsonValueKind.Array)
-        {
-            errors.Add(new ValidationError(
-                fileName,
-                "Route discovery file must contain a JSON array",
-                ValidationSeverity.Critical));
-            return errors;
-        }
-
-        List<string> routeIds = new List<string>();
-        int index = 0;
-
-        foreach (JsonElement discoveryElement in root.EnumerateArray())
-        {
-            ValidateRouteDiscovery(discoveryElement, index, fileName, errors, routeIds);
-            index++;
-        }
-
+        errors.Add(new ValidationError(
+            fileName,
+            "Route discovery file must contain a JSON array",
+            ValidationSeverity.Critical));
         return errors;
     }
 
-    private void ValidateRouteDiscovery(JsonElement discovery, int index, string fileName, List<ValidationError> errors, List<string> routeIds)
+    List<string> routeIds = new List<string>();
+    int index = 0;
+
+    foreach (JsonElement discoveryElement in root.EnumerateArray())
     {
-        // Use index as fallback identifier if routeId field is missing (for error reporting only)
-        string routeId = GetStringProperty(discovery, "routeId") ?? $"RouteDiscovery[{index}]";
+        ValidateRouteDiscovery(discoveryElement, index, fileName, errors, routeIds);
+        index++;
+    }
 
-        // Check for duplicate route IDs
-        if (!string.IsNullOrEmpty(routeId) && routeId != $"RouteDiscovery[{index}]")
+    return errors;
+}
+
+private void ValidateRouteDiscovery(JsonElement discovery, int index, string fileName, List<ValidationError> errors, List<string> routeIds)
+{
+    // Use index as fallback identifier if routeId field is missing (for error reporting only)
+    string routeId = GetStringProperty(discovery, "routeId") ?? $"RouteDiscovery[{index}]";
+
+    // Check for duplicate route IDs
+    if (!string.IsNullOrEmpty(routeId) && routeId != $"RouteDiscovery[{index}]")
+    {
+        if (routeIds.Contains(routeId))
         {
-            if (routeIds.Contains(routeId))
-            {
-                errors.Add(new ValidationError(
-                    $"{fileName}:route-{routeId}",
-                    $"Duplicate route discovery for route: {routeId}",
-                    ValidationSeverity.Warning));
-            }
-            else
-            {
-                routeIds.Add(routeId);
-            }
+            errors.Add(new ValidationError(
+                $"{fileName}:route-{routeId}",
+                $"Duplicate route discovery for route: {routeId}",
+                ValidationSeverity.Warning));
         }
-
-        // Check required fields
-        foreach (string field in _requiredFields)
+        else
         {
-            if (!discovery.TryGetProperty(field, out _))
-            {
-                errors.Add(new ValidationError(
-                    $"{fileName}:route-{routeId}",
-                    $"Missing required field: {field}",
-                    ValidationSeverity.Critical));
-            }
+            routeIds.Add(routeId);
         }
+    }
 
-        // Validate knownByNPCs array
-        if (discovery.TryGetProperty("knownByNPCs", out JsonElement npcs) &&
-            npcs.ValueKind == JsonValueKind.Array)
+    // Check required fields
+    foreach (string field in _requiredFields)
+    {
+        if (!discovery.TryGetProperty(field, out _))
         {
-            if (npcs.GetArrayLength() == 0)
-            {
-                errors.Add(new ValidationError(
-                    $"{fileName}:route-{routeId}",
-                    "knownByNPCs array cannot be empty",
-                    ValidationSeverity.Warning));
-            }
+            errors.Add(new ValidationError(
+                $"{fileName}:route-{routeId}",
+                $"Missing required field: {field}",
+                ValidationSeverity.Critical));
         }
+    }
 
-        // Validate discoveryContexts
-        if (discovery.TryGetProperty("discoveryContexts", out JsonElement contexts) &&
-            contexts.ValueKind == JsonValueKind.Object)
+    // Validate knownByNPCs array
+    if (discovery.TryGetProperty("knownByNPCs", out JsonElement npcs) &&
+        npcs.ValueKind == JsonValueKind.Array)
+    {
+        if (npcs.GetArrayLength() == 0)
         {
-            foreach (JsonProperty context in contexts.EnumerateObject())
-            {
-                ValidateDiscoveryContext(context.Value, routeId, context.Name, fileName, errors);
-            }
+            errors.Add(new ValidationError(
+                $"{fileName}:route-{routeId}",
+                "knownByNPCs array cannot be empty",
+                ValidationSeverity.Warning));
         }
+    }
 
-        // Validate requiredTokensWithNPC
-        if (discovery.TryGetProperty("requiredTokensWithNPC", out JsonElement tokenReqs) &&
-            tokenReqs.ValueKind == JsonValueKind.Object)
+    // Validate discoveryContexts
+    if (discovery.TryGetProperty("discoveryContexts", out JsonElement contexts) &&
+        contexts.ValueKind == JsonValueKind.Object)
+    {
+        foreach (JsonProperty context in contexts.EnumerateObject())
         {
-            foreach (JsonProperty req in tokenReqs.EnumerateObject())
+            ValidateDiscoveryContext(context.Value, routeId, context.Name, fileName, errors);
+        }
+    }
+
+    // Validate requiredTokensWithNPC
+    if (discovery.TryGetProperty("requiredTokensWithNPC", out JsonElement tokenReqs) &&
+        tokenReqs.ValueKind == JsonValueKind.Object)
+    {
+        foreach (JsonProperty req in tokenReqs.EnumerateObject())
+        {
+            if (req.Value.ValueKind == JsonValueKind.Number)
             {
-                if (req.Value.ValueKind == JsonValueKind.Number)
+                int tokens = req.Value.GetInt32();
+                if (tokens < 0)
                 {
-                    int tokens = req.Value.GetInt32();
-                    if (tokens < 0)
-                    {
-                        errors.Add(new ValidationError(
-                            $"{fileName}:route-{routeId}",
-                            $"Required tokens for NPC '{req.Name}' must be non-negative (got {tokens})",
-                            ValidationSeverity.Warning));
-                    }
+                    errors.Add(new ValidationError(
+                        $"{fileName}:route-{routeId}",
+                        $"Required tokens for NPC '{req.Name}' must be non-negative (got {tokens})",
+                        ValidationSeverity.Warning));
                 }
             }
         }
     }
+}
 
-    private void ValidateDiscoveryContext(JsonElement context, string routeId, string npcId, string fileName, List<ValidationError> errors)
+private void ValidateDiscoveryContext(JsonElement context, string routeId, string npcId, string fileName, List<ValidationError> errors)
+{
+    string contextId = $"route-{routeId}:npc-{npcId}";
+
+    // Validate requiredEquipment array
+    if (context.TryGetProperty("requiredEquipment", out JsonElement equipment) &&
+        equipment.ValueKind == JsonValueKind.Array)
     {
-        string contextId = $"route-{routeId}:npc-{npcId}";
-
-        // Validate requiredEquipment array
-        if (context.TryGetProperty("requiredEquipment", out JsonElement equipment) &&
-            equipment.ValueKind == JsonValueKind.Array)
+        foreach (JsonElement equip in equipment.EnumerateArray())
         {
-            foreach (JsonElement equip in equipment.EnumerateArray())
+            if (equip.ValueKind == JsonValueKind.String)
             {
-                if (equip.ValueKind == JsonValueKind.String)
+                string? equipStr = equip.GetString();
+                if (!string.IsNullOrEmpty(equipStr) &&
+                    !EnumParser.TryParse<ItemCategory>(equipStr, out _))
                 {
-                    string? equipStr = equip.GetString();
-                    if (!string.IsNullOrEmpty(equipStr) &&
-                        !EnumParser.TryParse<ItemCategory>(equipStr, out _))
-                    {
-                        errors.Add(new ValidationError(
-                            $"{fileName}:{contextId}",
-                            $"Invalid equipment category: '{equipStr}'",
-                            ValidationSeverity.Warning));
-                    }
+                    errors.Add(new ValidationError(
+                        $"{fileName}:{contextId}",
+                        $"Invalid equipment category: '{equipStr}'",
+                        ValidationSeverity.Warning));
                 }
             }
         }
     }
+}
 
-    private string GetStringProperty(JsonElement element, string propertyName)
+private string GetStringProperty(JsonElement element, string propertyName)
+{
+    if (element.TryGetProperty(propertyName, out JsonElement property) &&
+        property.ValueKind == JsonValueKind.String)
     {
-        if (element.TryGetProperty(propertyName, out JsonElement property) &&
-            property.ValueKind == JsonValueKind.String)
-        {
-            return property.GetString();
-        }
-        return null;
+        return property.GetString();
     }
+    return null;
+}
 }

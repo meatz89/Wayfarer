@@ -5,320 +5,320 @@
 /// </summary>
 public class SocialNarrativeGenerator
 {
-    /// <summary>
-    /// Generates narrative content using backwards construction.
-    /// Analyzes active cards to determine narrative constraints, then generates
-    /// NPC dialogue that all cards can respond to appropriately.
-    /// </summary>
-    /// <param name="state">Current conversation mechanical state</param>
-    /// <param name="npc">NPC data for personality and context</param>
-    /// <param name="cards">Active cards available to player</param>
-    /// <returns>Generated narrative output with NPC dialogue and card responses</returns>
-    public NarrativeOutput GenerateNarrative(SocialChallengeState state, NPCData npc, CardCollection cards)
+/// <summary>
+/// Generates narrative content using backwards construction.
+/// Analyzes active cards to determine narrative constraints, then generates
+/// NPC dialogue that all cards can respond to appropriately.
+/// </summary>
+/// <param name="state">Current conversation mechanical state</param>
+/// <param name="npc">NPC data for personality and context</param>
+/// <param name="cards">Active cards available to player</param>
+/// <returns>Generated narrative output with NPC dialogue and card responses</returns>
+public NarrativeOutput GenerateNarrative(SocialChallengeState state, NPCData npc, CardCollection cards)
+{
+    // Phase 1: Analyze what cards player has available
+    CardAnalysis analysis = AnalyzeActiveCards(cards);
+
+    // Phase 2: Determine what kind of NPC dialogue is needed
+    NarrativeConstraints constraints = DetermineNarrativeConstraints(analysis);
+
+    // Phase 3: Generate NPC dialogue that works for all cards
+    string npcDialogue = GenerateNPCDialogue(constraints, npc, state);
+
+    // Phase 4: Map each card to appropriate response narrative
+    List<CardNarrative> cardNarratives = MapCardNarratives(cards, npcDialogue, state.Momentum);
+
+    return new NarrativeOutput
     {
-        // Phase 1: Analyze what cards player has available
-        CardAnalysis analysis = AnalyzeActiveCards(cards);
+        NPCDialogue = npcDialogue,
+        NarrativeText = GenerateEnvironmentalNarrative(state, npc),
+        CardNarratives = cardNarratives,
+        ProgressionHint = GenerateProgressionHint(state, npc, analysis)
+    };
+}
 
-        // Phase 2: Determine what kind of NPC dialogue is needed
-        NarrativeConstraints constraints = DetermineNarrativeConstraints(analysis);
+/// <summary>
+/// Analyzes active cards to understand player options and constraints.
+/// Identifies persistence requirements, focus patterns, and dominant categories.
+/// </summary>
+/// <param name="cards">Active cards to analyze</param>
+/// <returns>Analysis results for narrative generation</returns>
+public CardAnalysis AnalyzeActiveCards(CardCollection cards)
+{
+    CardAnalysis analysis = new CardAnalysis();
 
-        // Phase 3: Generate NPC dialogue that works for all cards
-        string npcDialogue = GenerateNPCDialogue(constraints, npc, state);
-
-        // Phase 4: Map each card to appropriate response narrative
-        List<CardNarrative> cardNarratives = MapCardNarratives(cards, npcDialogue, state.Momentum);
-
-        return new NarrativeOutput
-        {
-            NPCDialogue = npcDialogue,
-            NarrativeText = GenerateEnvironmentalNarrative(state, npc),
-            CardNarratives = cardNarratives,
-            ProgressionHint = GenerateProgressionHint(state, npc, analysis)
-        };
-    }
-
-    /// <summary>
-    /// Analyzes active cards to understand player options and constraints.
-    /// Identifies persistence requirements, focus patterns, and dominant categories.
-    /// </summary>
-    /// <param name="cards">Active cards to analyze</param>
-    /// <returns>Analysis results for narrative generation</returns>
-    public CardAnalysis AnalyzeActiveCards(CardCollection cards)
+    // Categorize each card
+    foreach (CardInfo card in cards.Cards)
     {
-        CardAnalysis analysis = new CardAnalysis();
+        analysis.CategoryBreakdown[card.Id] = card.NarrativeCategory;
 
-        // Categorize each card
-        foreach (CardInfo card in cards.Cards)
+        // Identify risk cards
+        if (card.NarrativeCategory.StartsWith("risk"))
         {
-            analysis.CategoryBreakdown[card.Id] = card.NarrativeCategory;
-
-            // Identify risk cards
-            if (card.NarrativeCategory.StartsWith("risk"))
-            {
-                analysis.RiskCards.Add(card.Id);
-            }
-
-            // Identify atmosphere setters
-            if (card.NarrativeCategory.Contains("atmosphere") ||
-                card.NarrativeCategory.Contains("volatile") ||
-                card.NarrativeCategory.Contains("pressured"))
-            {
-                analysis.AtmosphereSetters.Add(card.Id);
-            }
+            analysis.RiskCards.Add(card.Id);
         }
 
-        // Determine focus pattern and dominant category
-        analysis.InitiativePattern = DetermineInitiativePattern(cards);
-        analysis.DominantCategory = DetermineDominantCategory(cards);
-
-        // Set urgency requirements
-        analysis.RequiresUrgency = analysis.RiskCards.Any();
-
-        return analysis;
-    }
-
-    /// <summary>
-    /// Determines narrative constraints based on card analysis.
-    /// Creates requirements for NPC dialogue generation.
-    /// </summary>
-    /// <param name="analysis">Card analysis results</param>
-    /// <returns>Narrative constraints for dialogue generation</returns>
-    public NarrativeConstraints DetermineNarrativeConstraints(CardAnalysis analysis)
-    {
-        return new NarrativeConstraints
+        // Identify atmosphere setters
+        if (card.NarrativeCategory.Contains("atmosphere") ||
+            card.NarrativeCategory.Contains("volatile") ||
+            card.NarrativeCategory.Contains("pressured"))
         {
-            MustIncludeUrgency = analysis.RequiresUrgency,
-            IntensityLevel = GetIntensityFromInitiativePattern(analysis.InitiativePattern),
-            NarrativeStyle = analysis.DominantCategory
-        };
-    }
-
-    /// <summary>
-    /// Generates NPC dialogue that all cards can respond to appropriately.
-    /// Uses backwards construction principle to ensure narrative coherence.
-    /// </summary>
-    /// <param name="constraints">Narrative requirements from card analysis</param>
-    /// <param name="npc">NPC personality and context data</param>
-    /// <param name="state">Current conversation state</param>
-    /// <returns>NPC dialogue text</returns>
-    public string GenerateNPCDialogue(NarrativeConstraints constraints, NPCData npc, SocialChallengeState state)
-    {
-        RapportStage rapportStage = GetRapportStage(state.Momentum);
-        TopicLayer topicLayer = GetTopicLayer(state.Momentum, npc.CurrentCrisis);
-
-        // Build base statement appropriate for rapport level and topic
-        string baseStatement = GenerateBaseStatement(npc, rapportStage, topicLayer);
-
-        // Add persistence hooks if needed
-        string persistenceHook = GeneratePersistenceHook(constraints);
-
-        return CombineDialogueElements(baseStatement, persistenceHook, npc.Personality);
-    }
-
-    /// <summary>
-    /// Maps each card to appropriate response narrative based on NPC dialogue.
-    /// Ensures each card's response makes sense in context.
-    /// </summary>
-    /// <param name="cards">Active cards to map</param>
-    /// <param name="npcDialogue">Generated NPC dialogue to respond to</param>
-    /// <param name="rapport">Current rapport level for response scaling</param>
-    /// <returns>List of card narratives with provider source</returns>
-    public List<CardNarrative> MapCardNarratives(CardCollection cards, string npcDialogue, int rapport)
-    {
-        List<CardNarrative> narratives = new List<CardNarrative>();
-        RapportStage rapportStage = GetRapportStage(rapport);
-
-        foreach (CardInfo card in cards.Cards)
-        {
-            string narrative = GenerateCardResponse(card, npcDialogue, rapportStage);
-            narratives.Add(new CardNarrative
-            {
-                CardId = card.Id,
-                NarrativeText = narrative,
-                ProviderSource = NarrativeProviderType.JsonFallback // This generator is used as fallback
-            });
+            analysis.AtmosphereSetters.Add(card.Id);
         }
-
-        return narratives;
     }
 
-    /// <summary>
-    /// Determines rapport stage based on current rapport value.
-    /// Used to gate narrative depth and topic accessibility.
-    /// </summary>
-    /// <param name="rapport">Current rapport value (-50 to +50)</param>
-    /// <returns>Rapport stage for narrative generation</returns>
-    public RapportStage GetRapportStage(int rapport)
+    // Determine focus pattern and dominant category
+    analysis.InitiativePattern = DetermineInitiativePattern(cards);
+    analysis.DominantCategory = DetermineDominantCategory(cards);
+
+    // Set urgency requirements
+    analysis.RequiresUrgency = analysis.RiskCards.Any();
+
+    return analysis;
+}
+
+/// <summary>
+/// Determines narrative constraints based on card analysis.
+/// Creates requirements for NPC dialogue generation.
+/// </summary>
+/// <param name="analysis">Card analysis results</param>
+/// <returns>Narrative constraints for dialogue generation</returns>
+public NarrativeConstraints DetermineNarrativeConstraints(CardAnalysis analysis)
+{
+    return new NarrativeConstraints
     {
-        if (rapport <= 5) return RapportStage.Surface;
-        if (rapport <= 10) return RapportStage.Gateway;
-        if (rapport <= 15) return RapportStage.Personal;
-        return RapportStage.Intimate;
-    }
+        MustIncludeUrgency = analysis.RequiresUrgency,
+        IntensityLevel = GetIntensityFromInitiativePattern(analysis.InitiativePattern),
+        NarrativeStyle = analysis.DominantCategory
+    };
+}
 
-    /// <summary>
-    /// Determines topic layer based on rapport and crisis presence.
-    /// Controls how directly NPC addresses their core problem.
-    /// </summary>
-    /// <param name="rapport">Current rapport level</param>
-    /// <param name="crisis">NPC's current crisis description</param>
-    /// <returns>Topic layer for dialogue generation</returns>
-    public TopicLayer GetTopicLayer(int rapport, string crisis)
+/// <summary>
+/// Generates NPC dialogue that all cards can respond to appropriately.
+/// Uses backwards construction principle to ensure narrative coherence.
+/// </summary>
+/// <param name="constraints">Narrative requirements from card analysis</param>
+/// <param name="npc">NPC personality and context data</param>
+/// <param name="state">Current conversation state</param>
+/// <returns>NPC dialogue text</returns>
+public string GenerateNPCDialogue(NarrativeConstraints constraints, NPCData npc, SocialChallengeState state)
+{
+    RapportStage rapportStage = GetRapportStage(state.Momentum);
+    TopicLayer topicLayer = GetTopicLayer(state.Momentum, npc.CurrentCrisis);
+
+    // Build base statement appropriate for rapport level and topic
+    string baseStatement = GenerateBaseStatement(npc, rapportStage, topicLayer);
+
+    // Add persistence hooks if needed
+    string persistenceHook = GeneratePersistenceHook(constraints);
+
+    return CombineDialogueElements(baseStatement, persistenceHook, npc.Personality);
+}
+
+/// <summary>
+/// Maps each card to appropriate response narrative based on NPC dialogue.
+/// Ensures each card's response makes sense in context.
+/// </summary>
+/// <param name="cards">Active cards to map</param>
+/// <param name="npcDialogue">Generated NPC dialogue to respond to</param>
+/// <param name="rapport">Current rapport level for response scaling</param>
+/// <returns>List of card narratives with provider source</returns>
+public List<CardNarrative> MapCardNarratives(CardCollection cards, string npcDialogue, int rapport)
+{
+    List<CardNarrative> narratives = new List<CardNarrative>();
+    RapportStage rapportStage = GetRapportStage(rapport);
+
+    foreach (CardInfo card in cards.Cards)
     {
-        if (string.IsNullOrEmpty(crisis)) return TopicLayer.Deflection;
-
-        if (rapport <= 5) return TopicLayer.Deflection;
-        if (rapport <= 10) return TopicLayer.Gateway;
-        return TopicLayer.Core;
-    }
-
-    private InitiativePattern DetermineInitiativePattern(CardCollection cards)
-    {
-        int[] initiativeCosts = cards.Cards.Select(c => c.InitiativeCost).ToArray();
-
-        if (initiativeCosts.All(f => f <= 2)) return InitiativePattern.AllFoundation;
-        if (initiativeCosts.All(f => f >= 3)) return InitiativePattern.AllHighTier;
-        return InitiativePattern.Mixed;
-    }
-
-    private string DetermineDominantCategory(CardCollection cards)
-    {
-        Dictionary<string, int> categoryCounts = new Dictionary<string, int>();
-
-        foreach (CardInfo card in cards.Cards)
+        string narrative = GenerateCardResponse(card, npcDialogue, rapportStage);
+        narratives.Add(new CardNarrative
         {
-            string category = card.NarrativeCategory ?? "utility";
-            categoryCounts[category] = categoryCounts.GetValueOrDefault(category, 0) + 1;
-        }
-
-        return categoryCounts.OrderByDescending(kv => kv.Value).First().Key;
+            CardId = card.Id,
+            NarrativeText = narrative,
+            ProviderSource = NarrativeProviderType.JsonFallback // This generator is used as fallback
+        });
     }
 
-    private int GetIntensityFromInitiativePattern(InitiativePattern pattern)
+    return narratives;
+}
+
+/// <summary>
+/// Determines rapport stage based on current rapport value.
+/// Used to gate narrative depth and topic accessibility.
+/// </summary>
+/// <param name="rapport">Current rapport value (-50 to +50)</param>
+/// <returns>Rapport stage for narrative generation</returns>
+public RapportStage GetRapportStage(int rapport)
+{
+    if (rapport <= 5) return RapportStage.Surface;
+    if (rapport <= 10) return RapportStage.Gateway;
+    if (rapport <= 15) return RapportStage.Personal;
+    return RapportStage.Intimate;
+}
+
+/// <summary>
+/// Determines topic layer based on rapport and crisis presence.
+/// Controls how directly NPC addresses their core problem.
+/// </summary>
+/// <param name="rapport">Current rapport level</param>
+/// <param name="crisis">NPC's current crisis description</param>
+/// <returns>Topic layer for dialogue generation</returns>
+public TopicLayer GetTopicLayer(int rapport, string crisis)
+{
+    if (string.IsNullOrEmpty(crisis)) return TopicLayer.Deflection;
+
+    if (rapport <= 5) return TopicLayer.Deflection;
+    if (rapport <= 10) return TopicLayer.Gateway;
+    return TopicLayer.Core;
+}
+
+private InitiativePattern DetermineInitiativePattern(CardCollection cards)
+{
+    int[] initiativeCosts = cards.Cards.Select(c => c.InitiativeCost).ToArray();
+
+    if (initiativeCosts.All(f => f <= 2)) return InitiativePattern.AllFoundation;
+    if (initiativeCosts.All(f => f >= 3)) return InitiativePattern.AllHighTier;
+    return InitiativePattern.Mixed;
+}
+
+private string DetermineDominantCategory(CardCollection cards)
+{
+    Dictionary<string, int> categoryCounts = new Dictionary<string, int>();
+
+    foreach (CardInfo card in cards.Cards)
     {
-        return pattern switch
-        {
-            InitiativePattern.AllFoundation => 1,
-            InitiativePattern.Mixed => 2,
-            InitiativePattern.AllHighTier => 3,
-            _ => 2
-        };
+        string category = card.NarrativeCategory ?? "utility";
+        categoryCounts[category] = categoryCounts.GetValueOrDefault(category, 0) + 1;
     }
 
-    private string GenerateBaseStatement(NPCData npc, RapportStage rapportStage, TopicLayer topicLayer)
+    return categoryCounts.OrderByDescending(kv => kv.Value).First().Key;
+}
+
+private int GetIntensityFromInitiativePattern(InitiativePattern pattern)
+{
+    return pattern switch
     {
-        // Generate context-appropriate base statement
-        // This would typically use templates or a more sophisticated system
-        string topic = DetermineCurrentTopic(npc, topicLayer);
-        return FormatStatementForRapport(topic, rapportStage, npc.Personality);
-    }
+        InitiativePattern.AllFoundation => 1,
+        InitiativePattern.Mixed => 2,
+        InitiativePattern.AllHighTier => 3,
+        _ => 2
+    };
+}
 
-    private string DetermineCurrentTopic(NPCData npc, TopicLayer layer)
+private string GenerateBaseStatement(NPCData npc, RapportStage rapportStage, TopicLayer topicLayer)
+{
+    // Generate context-appropriate base statement
+    // This would typically use templates or a more sophisticated system
+    string topic = DetermineCurrentTopic(npc, topicLayer);
+    return FormatStatementForRapport(topic, rapportStage, npc.Personality);
+}
+
+private string DetermineCurrentTopic(NPCData npc, TopicLayer layer)
+{
+    return layer switch
     {
-        return layer switch
-        {
-            TopicLayer.Deflection => "general_conversation",
-            TopicLayer.Gateway => "related_concerns",
-            TopicLayer.Core => npc.CurrentCrisis ?? "personal_matters",
-            _ => "general_conversation"
-        };
-    }
+        TopicLayer.Deflection => "general_conversation",
+        TopicLayer.Gateway => "related_concerns",
+        TopicLayer.Core => npc.CurrentCrisis ?? "personal_matters",
+        _ => "general_conversation"
+    };
+}
 
-    private string FormatStatementForRapport(string topic, RapportStage stage, PersonalityType personality)
+private string FormatStatementForRapport(string topic, RapportStage stage, PersonalityType personality)
+{
+    // Placeholder implementation - in real system this would use templates
+    return stage switch
     {
-        // Placeholder implementation - in real system this would use templates
-        return stage switch
-        {
-            RapportStage.Surface => "Making polite observations about the situation",
-            RapportStage.Gateway => "Sharing related experiences and showing understanding",
-            RapportStage.Personal => "Opening up about personal concerns and challenges",
-            RapportStage.Intimate => "Being vulnerable about deep fears and needs",
-            _ => "Having a conversation"
-        };
-    }
+        RapportStage.Surface => "Making polite observations about the situation",
+        RapportStage.Gateway => "Sharing related experiences and showing understanding",
+        RapportStage.Personal => "Opening up about personal concerns and challenges",
+        RapportStage.Intimate => "Being vulnerable about deep fears and needs",
+        _ => "Having a conversation"
+    };
+}
 
-    private string GeneratePersistenceHook(NarrativeConstraints constraints)
+private string GeneratePersistenceHook(NarrativeConstraints constraints)
+{
+    if (constraints.MustIncludeUrgency && constraints.MustIncludeInvitation)
+        return "requiring both immediate response and follow-up";
+    if (constraints.MustIncludeUrgency)
+        return "demanding immediate attention";
+    if (constraints.MustIncludeInvitation)
+        return "inviting further discussion";
+    return "";
+}
+
+private string CombineDialogueElements(string baseStatement, string persistenceHook, PersonalityType personality)
+{
+    // Combine elements into coherent NPC dialogue
+    string combined = baseStatement;
+    if (!string.IsNullOrEmpty(persistenceHook))
+        combined += $", {persistenceHook}";
+
+    return FormatForPersonality(combined, personality);
+}
+
+private string FormatForPersonality(string dialogue, PersonalityType personality)
+{
+    // Apply personality-specific formatting
+    return personality switch
     {
-        if (constraints.MustIncludeUrgency && constraints.MustIncludeInvitation)
-            return "requiring both immediate response and follow-up";
-        if (constraints.MustIncludeUrgency)
-            return "demanding immediate attention";
-        if (constraints.MustIncludeInvitation)
-            return "inviting further discussion";
-        return "";
-    }
+        PersonalityType.DEVOTED => $"Speaking with emotional sincerity: \"{dialogue}\"",
+        PersonalityType.MERCANTILE => $"In a business-like tone: \"{dialogue}\"",
+        PersonalityType.PROUD => $"With dignity and composure: \"{dialogue}\"",
+        _ => $"\"{dialogue}\""
+    };
+}
 
-    private string CombineDialogueElements(string baseStatement, string persistenceHook, PersonalityType personality)
+private string GenerateCardResponse(CardInfo card, string npcDialogue, RapportStage rapportStage)
+{
+    // Generate response narrative based on card type and context
+    string baseResponse = GenerateResponseByCategory(card.NarrativeCategory, card.Effect);
+    return ScaleResponseToRapport(baseResponse, rapportStage, card.InitiativeCost);
+}
+
+private string GenerateResponseByCategory(string category, string effect)
+{
+    return category switch
     {
-        // Combine elements into coherent NPC dialogue
-        string combined = baseStatement;
-        if (!string.IsNullOrEmpty(persistenceHook))
-            combined += $", {persistenceHook}";
+        "risk" => "Taking a bold stance on the matter",
+        "support" => "Offering understanding and assistance",
+        "atmosphere" => "Shifting the emotional tone",
+        "utility" => "Gathering more information",
+        _ => "Responding thoughtfully"
+    };
+}
 
-        return FormatForPersonality(combined, personality);
-    }
-
-    private string FormatForPersonality(string dialogue, PersonalityType personality)
+private string ScaleResponseToRapport(string response, RapportStage stage, int focus)
+{
+    string intensity = focus switch
     {
-        // Apply personality-specific formatting
-        return personality switch
-        {
-            PersonalityType.DEVOTED => $"Speaking with emotional sincerity: \"{dialogue}\"",
-            PersonalityType.MERCANTILE => $"In a business-like tone: \"{dialogue}\"",
-            PersonalityType.PROUD => $"With dignity and composure: \"{dialogue}\"",
-            _ => $"\"{dialogue}\""
-        };
-    }
+        1 => "gently",
+        2 => "directly",
+        >= 3 => "boldly",
+        _ => "carefully"
+    };
 
-    private string GenerateCardResponse(CardInfo card, string npcDialogue, RapportStage rapportStage)
-    {
-        // Generate response narrative based on card type and context
-        string baseResponse = GenerateResponseByCategory(card.NarrativeCategory, card.Effect);
-        return ScaleResponseToRapport(baseResponse, rapportStage, card.InitiativeCost);
-    }
+    return $"{intensity.Substring(0, 1).ToUpper()}{intensity.Substring(1)} {response.ToLower()}";
+}
 
-    private string GenerateResponseByCategory(string category, string effect)
-    {
-        return category switch
-        {
-            "risk" => "Taking a bold stance on the matter",
-            "support" => "Offering understanding and assistance",
-            "atmosphere" => "Shifting the emotional tone",
-            "utility" => "Gathering more information",
-            _ => "Responding thoughtfully"
-        };
-    }
+private string GenerateEnvironmentalNarrative(SocialChallengeState state, NPCData npc)
+{
+    // Generate environmental description based on current state
+    return "The conversation continues with growing understanding";
+}
 
-    private string ScaleResponseToRapport(string response, RapportStage stage, int focus)
-    {
-        string intensity = focus switch
-        {
-            1 => "gently",
-            2 => "directly",
-            >= 3 => "boldly",
-            _ => "carefully"
-        };
+private string GenerateProgressionHint(SocialChallengeState state, NPCData npc, CardAnalysis analysis)
+{
+    // Generate hint about conversation progression
+    if (state.Momentum >= 15 && !string.IsNullOrEmpty(npc.CurrentCrisis))
+        return "The conversation has reached a point where deeper trust might unlock new possibilities";
 
-        return $"{intensity.Substring(0, 1).ToUpper()}{intensity.Substring(1)} {response.ToLower()}";
-    }
+    if (analysis.RequiresUrgency)
+        return "Some opportunities require immediate action";
 
-    private string GenerateEnvironmentalNarrative(SocialChallengeState state, NPCData npc)
-    {
-        // Generate environmental description based on current state
-        return "The conversation continues with growing understanding";
-    }
-
-    private string GenerateProgressionHint(SocialChallengeState state, NPCData npc, CardAnalysis analysis)
-    {
-        // Generate hint about conversation progression
-        if (state.Momentum >= 15 && !string.IsNullOrEmpty(npc.CurrentCrisis))
-            return "The conversation has reached a point where deeper trust might unlock new possibilities";
-
-        if (analysis.RequiresUrgency)
-            return "Some opportunities require immediate action";
-
-        return null;
-    }
+    return null;
+}
 }
 
 /// <summary>
@@ -327,10 +327,10 @@ public class SocialNarrativeGenerator
 /// </summary>
 public class NarrativeConstraints
 {
-    public bool MustIncludeUrgency { get; set; }
-    public bool MustIncludeInvitation { get; set; }
-    public int IntensityLevel { get; set; }
-    public string NarrativeStyle { get; set; }
+public bool MustIncludeUrgency { get; set; }
+public bool MustIncludeInvitation { get; set; }
+public int IntensityLevel { get; set; }
+public string NarrativeStyle { get; set; }
 }
 
 /// <summary>
@@ -338,10 +338,10 @@ public class NarrativeConstraints
 /// </summary>
 public enum RapportStage
 {
-    Surface,   // 0-5: Observations, deflections
-    Gateway,   // 6-10: Understanding, sharing  
-    Personal,  // 11-15: Emotional support
-    Intimate   // 16+: Vulnerability, deep support
+Surface,   // 0-5: Observations, deflections
+Gateway,   // 6-10: Understanding, sharing  
+Personal,  // 11-15: Emotional support
+Intimate   // 16+: Vulnerability, deep support
 }
 
 /// <summary>
@@ -349,9 +349,9 @@ public enum RapportStage
 /// </summary>
 public enum TopicLayer
 {
-    Deflection, // Avoiding real issues
-    Gateway,    // Related but indirect topics
-    Core        // Direct crisis discussion
+Deflection, // Avoiding real issues
+Gateway,    // Related but indirect topics
+Core        // Direct crisis discussion
 }
 
 /// <summary>
@@ -359,12 +359,12 @@ public enum TopicLayer
 /// </summary>
 public enum ConversationBeat
 {
-    Opening,      // Initial greeting/acknowledgment
-    Deflection,   // Avoiding the real topic
-    Probing,      // Player asking questions
-    Gateway,      // Starting to open up
-    Revelation,   // Core crisis revealed
-    Support,      // Player offering help
-    Request,      // NPC makes request (letter/promise)
-    Resolution    // Request accepted/declined
+Opening,      // Initial greeting/acknowledgment
+Deflection,   // Avoiding the real topic
+Probing,      // Player asking questions
+Gateway,      // Starting to open up
+Revelation,   // Core crisis revealed
+Support,      // Player offering help
+Request,      // NPC makes request (letter/promise)
+Resolution    // Request accepted/declined
 }

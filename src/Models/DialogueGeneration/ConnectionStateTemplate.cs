@@ -3,7 +3,7 @@
 /// </summary>
 public class ConnectionStateTemplate
 {
-    public Dictionary<string, List<string>> Personality { get; set; }
+public Dictionary<string, List<string>> Personality { get; set; }
 
-    public List<string> Default { get; set; }
+public List<string> Default { get; set; }
 }

@@ -4,31 +4,31 @@
 /// </summary>
 public class NPCVisibilityService
 {
-    private readonly List<INPCVisibilityRule> _visibilityRules = new List<INPCVisibilityRule>();
+private readonly List<INPCVisibilityRule> _visibilityRules = new List<INPCVisibilityRule>();
 
-    /// <summary>
-    /// Check if an NPC should be visible based on all registered rules
-    /// </summary>
-    public bool IsNPCVisible(string npcId)
-    {
-        // If no rules are registered, all NPCs are visible
-        if (!_visibilityRules.Any())
-            return true;
+/// <summary>
+/// Check if an NPC should be visible based on all registered rules
+/// </summary>
+public bool IsNPCVisible(string npcId)
+{
+    // If no rules are registered, all NPCs are visible
+    if (!_visibilityRules.Any())
+        return true;
 
-        // All rules must allow visibility
-        return _visibilityRules.All(rule => rule.IsNPCVisible(npcId));
-    }
+    // All rules must allow visibility
+    return _visibilityRules.All(rule => rule.IsNPCVisible(npcId));
+}
 
-    /// <summary>
-    /// Filter a list of NPCs based on visibility rules
-    /// </summary>
-    public List<NPC> FilterVisibleNPCs(List<NPC> npcs)
-    {
-        if (!_visibilityRules.Any())
-            return npcs;
+/// <summary>
+/// Filter a list of NPCs based on visibility rules
+/// </summary>
+public List<NPC> FilterVisibleNPCs(List<NPC> npcs)
+{
+    if (!_visibilityRules.Any())
+        return npcs;
 
-        return npcs.Where(npc => IsNPCVisible(npc.ID)).ToList();
-    }
+    return npcs.Where(npc => IsNPCVisible(npc.ID)).ToList();
+}
 }
 
 /// <summary>
@@ -36,5 +36,5 @@ public class NPCVisibilityService
 /// </summary>
 public interface INPCVisibilityRule
 {
-    bool IsNPCVisible(string npcId);
+bool IsNPCVisible(string npcId);
 }

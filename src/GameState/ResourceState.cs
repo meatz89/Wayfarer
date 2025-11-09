@@ -2,38 +2,38 @@
 // Player's current resource state for UI display
 public class ResourceState
 {
-    public int Coins { get; set; }
-    public int Health { get; set; }
-    public int Hunger { get; set; }
-    public int Stamina { get; set; }
-    public Dictionary<ConnectionType, int> Tokens { get; set; }
+public int Coins { get; set; }
+public int Health { get; set; }
+public int Hunger { get; set; }
+public int Stamina { get; set; }
+public Dictionary<ConnectionType, int> Tokens { get; set; }
 
-    public ResourceState()
-    {
-        Tokens = new Dictionary<ConnectionType, int>();
-    }
+public ResourceState()
+{
+    Tokens = new Dictionary<ConnectionType, int>();
+}
 
-    public static ResourceState FromPlayer(Player player)
+public static ResourceState FromPlayer(Player player)
+{
+    return new ResourceState
     {
-        return new ResourceState
-        {
-            Coins = player.Coins,
-            Health = player.Health,
-            Hunger = player.Hunger,
-            Stamina = player.Stamina,
-            Tokens = new Dictionary<ConnectionType, int>()
-        };
-    }
+        Coins = player.Coins,
+        Health = player.Health,
+        Hunger = player.Hunger,
+        Stamina = player.Stamina,
+        Tokens = new Dictionary<ConnectionType, int>()
+    };
+}
 
-    public static ResourceState FromPlayerResourceState(PlayerResourceState playerState)
+public static ResourceState FromPlayerResourceState(PlayerResourceState playerState)
+{
+    return new ResourceState
     {
-        return new ResourceState
-        {
-            Coins = playerState.Coins,
-            Health = playerState.Health,
-            Hunger = playerState.Hunger,
-            Stamina = playerState.Stamina,
-            Tokens = new Dictionary<ConnectionType, int>()
-        };
-    }
+        Coins = playerState.Coins,
+        Health = playerState.Health,
+        Hunger = playerState.Hunger,
+        Stamina = playerState.Stamina,
+        Tokens = new Dictionary<ConnectionType, int>()
+    };
+}
 }

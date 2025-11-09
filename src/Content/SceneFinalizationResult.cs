@@ -5,12 +5,12 @@
 /// </summary>
 public class SceneFinalizationResult
 {
-    public Scene Scene { get; init; }
-    public DependentResourceSpecs DependentSpecs { get; init; }
+public Scene Scene { get; init; }
+public DependentResourceSpecs DependentSpecs { get; init; }
 
-    public SceneFinalizationResult(Scene scene, DependentResourceSpecs dependentSpecs)
-    {
-        Scene = scene;
-        DependentSpecs = dependentSpecs;
-    }
+public SceneFinalizationResult(Scene scene, DependentResourceSpecs dependentSpecs)
+{
+    Scene = scene;
+    DependentSpecs = dependentSpecs;
+}
 }

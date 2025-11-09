@@ -14,7 +14,7 @@
 /// </summary>
 public enum SocialStakes
 {
-    Private,    // One-on-one, no witnesses, no reputation impact
-    Witnessed,  // Small group aware, minor reputation effects
-    Public      // Many observers, major reputation impact, face-saving required
+Private,    // One-on-one, no witnesses, no reputation impact
+Witnessed,  // Small group aware, minor reputation effects
+Public      // Many observers, major reputation impact, face-saving required
 }

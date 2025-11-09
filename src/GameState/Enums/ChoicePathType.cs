@@ -13,24 +13,24 @@
 /// </summary>
 public enum ChoicePathType
 {
-    /// <summary>
-    /// Instant success path: Stat-gated or money-gated choice.
-    /// Rewards applied immediately upon selection.
-    /// Examples: Pay coins, use rapport/authority/insight stat check
-    /// </summary>
-    InstantSuccess,
+/// <summary>
+/// Instant success path: Stat-gated or money-gated choice.
+/// Rewards applied immediately upon selection.
+/// Examples: Pay coins, use rapport/authority/insight stat check
+/// </summary>
+InstantSuccess,
 
-    /// <summary>
-    /// Challenge path: Starts tactical challenge (Social/Mental/Physical).
-    /// Rewards split between OnSuccessReward and OnFailureReward.
-    /// Examples: Negotiate (Social), Work puzzle (Mental), Fight (Physical)
-    /// </summary>
-    Challenge,
+/// <summary>
+/// Challenge path: Starts tactical challenge (Social/Mental/Physical).
+/// Rewards split between OnSuccessReward and OnFailureReward.
+/// Examples: Negotiate (Social), Work puzzle (Mental), Fight (Physical)
+/// </summary>
+Challenge,
 
-    /// <summary>
-    /// Fallback path: Always available, minimal/no rewards.
-    /// Player can always choose this (no gating).
-    /// Examples: Politely decline, Give up, Submit, Flee
-    /// </summary>
-    Fallback
+/// <summary>
+/// Fallback path: Always available, minimal/no rewards.
+/// Player can always choose this (no gating).
+/// Examples: Politely decline, Give up, Submit, Flee
+/// </summary>
+Fallback
 }

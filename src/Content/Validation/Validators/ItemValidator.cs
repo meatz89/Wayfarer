@@ -5,117 +5,117 @@ using System.Text.Json;
 /// </summary>
 public class ItemValidator : BaseValidator
 {
-    private readonly List<string> _requiredFields = new List<string>
-        {
-            "id", "name", "focus", "buyPrice", "sellPrice", "inventorySlots"
-        };
-
-    public override bool CanValidate(string fileName)
+private readonly List<string> _requiredFields = new List<string>
     {
-        return fileName.Equals("items.json", StringComparison.OrdinalIgnoreCase) ||
-               fileName.EndsWith("_items.json", StringComparison.OrdinalIgnoreCase);
-    }
+        "id", "name", "focus", "buyPrice", "sellPrice", "inventorySlots"
+    };
 
-    public override IEnumerable<ValidationError> Validate(string content, string fileName)
+public override bool CanValidate(string fileName)
+{
+    return fileName.Equals("items.json", StringComparison.OrdinalIgnoreCase) ||
+           fileName.EndsWith("_items.json", StringComparison.OrdinalIgnoreCase);
+}
+
+public override IEnumerable<ValidationError> Validate(string content, string fileName)
+{
+    List<ValidationError> errors = new List<ValidationError>();
+
+    using JsonDocument doc = JsonDocument.Parse(content);
+    JsonElement root = doc.RootElement;
+
+    if (root.ValueKind != JsonValueKind.Array)
     {
-        List<ValidationError> errors = new List<ValidationError>();
-
-        using JsonDocument doc = JsonDocument.Parse(content);
-        JsonElement root = doc.RootElement;
-
-        if (root.ValueKind != JsonValueKind.Array)
-        {
-            errors.Add(new ValidationError(
-                fileName,
-                "Items file must contain a JSON array",
-                ValidationSeverity.Critical));
-            return errors;
-        }
-
-        int index = 0;
-        foreach (JsonElement itemElement in root.EnumerateArray())
-        {
-            ValidateItem(itemElement, index, fileName, errors);
-            index++;
-        }
-
+        errors.Add(new ValidationError(
+            fileName,
+            "Items file must contain a JSON array",
+            ValidationSeverity.Critical));
         return errors;
     }
 
-    private void ValidateItem(JsonElement item, int index, string fileName, List<ValidationError> errors)
+    int index = 0;
+    foreach (JsonElement itemElement in root.EnumerateArray())
     {
-        // Use index as fallback identifier if id field is missing (for error reporting only)
-        string itemId = GetStringProperty(item, "id") ?? $"Item[{index}]";
+        ValidateItem(itemElement, index, fileName, errors);
+        index++;
+    }
 
-        // Check required fields
-        foreach (string field in _requiredFields)
+    return errors;
+}
+
+private void ValidateItem(JsonElement item, int index, string fileName, List<ValidationError> errors)
+{
+    // Use index as fallback identifier if id field is missing (for error reporting only)
+    string itemId = GetStringProperty(item, "id") ?? $"Item[{index}]";
+
+    // Check required fields
+    foreach (string field in _requiredFields)
+    {
+        if (!TryGetPropertyCaseInsensitive(item, field, out _))
         {
-            if (!TryGetPropertyCaseInsensitive(item, field, out _))
-            {
-                errors.Add(new ValidationError(
-                    $"{fileName}:{itemId}",
-                    $"Missing required field: {field}",
-                    ValidationSeverity.Critical));
-            }
+            errors.Add(new ValidationError(
+                $"{fileName}:{itemId}",
+                $"Missing required field: {field}",
+                ValidationSeverity.Critical));
         }
+    }
 
-        // Validate categories
-        if (TryGetPropertyCaseInsensitive(item, "categories", out JsonElement categories) ||
-            TryGetPropertyCaseInsensitive(item, "itemCategories", out categories))
+    // Validate categories
+    if (TryGetPropertyCaseInsensitive(item, "categories", out JsonElement categories) ||
+        TryGetPropertyCaseInsensitive(item, "itemCategories", out categories))
+    {
+        if (categories.ValueKind == JsonValueKind.Array)
         {
-            if (categories.ValueKind == JsonValueKind.Array)
+            foreach (JsonElement cat in categories.EnumerateArray())
             {
-                foreach (JsonElement cat in categories.EnumerateArray())
+                if (cat.ValueKind == JsonValueKind.String)
                 {
-                    if (cat.ValueKind == JsonValueKind.String)
+                    string? catStr = cat.GetString();
+                    if (!string.IsNullOrEmpty(catStr) &&
+                        !EnumParser.TryParse<ItemCategory>(catStr, out _))
                     {
-                        string? catStr = cat.GetString();
-                        if (!string.IsNullOrEmpty(catStr) &&
-                            !EnumParser.TryParse<ItemCategory>(catStr, out _))
-                        {
-                            errors.Add(new ValidationError(
-                                $"{fileName}:{itemId}",
-                                $"Invalid item category: '{catStr}'",
-                                ValidationSeverity.Warning));
-                        }
+                        errors.Add(new ValidationError(
+                            $"{fileName}:{itemId}",
+                            $"Invalid item category: '{catStr}'",
+                            ValidationSeverity.Warning));
                     }
                 }
             }
         }
+    }
 
-        // Validate size
-        if (TryGetPropertyCaseInsensitive(item, "size", out JsonElement size) &&
-            size.ValueKind == JsonValueKind.String)
+    // Validate size
+    if (TryGetPropertyCaseInsensitive(item, "size", out JsonElement size) &&
+        size.ValueKind == JsonValueKind.String)
+    {
+        string? sizeStr = size.GetString();
+        if (!string.IsNullOrEmpty(sizeStr) &&
+            !EnumParser.TryParse<SizeCategory>(sizeStr, out _))
         {
-            string? sizeStr = size.GetString();
-            if (!string.IsNullOrEmpty(sizeStr) &&
-                !EnumParser.TryParse<SizeCategory>(sizeStr, out _))
-            {
-                errors.Add(new ValidationError(
-                    $"{fileName}:{itemId}",
-                    $"Invalid size category: '{sizeStr}'",
-                    ValidationSeverity.Warning));
-            }
-        }
-
-        // Validate price consistency
-        if (TryGetPropertyCaseInsensitive(item, "buyPrice", out JsonElement buyPrice) &&
-            TryGetPropertyCaseInsensitive(item, "sellPrice", out JsonElement sellPrice))
-        {
-            if (buyPrice.TryGetInt32(out int buy) && sellPrice.TryGetInt32(out int sell))
-            {
-                if (buy > sell * 2)
-                {
-                    errors.Add(new ValidationError(
-                        $"{fileName}:{itemId}",
-                        $"Buy price ({buy}) is more than double sell price ({sell})",
-                        ValidationSeverity.Warning));
-                }
-            }
+            errors.Add(new ValidationError(
+                $"{fileName}:{itemId}",
+                $"Invalid size category: '{sizeStr}'",
+                ValidationSeverity.Warning));
         }
     }
 
-    // ValidateNumericField is now inherited from BaseValidator
+    // Validate price consistency
+    if (TryGetPropertyCaseInsensitive(item, "buyPrice", out JsonElement buyPrice) &&
+        TryGetPropertyCaseInsensitive(item, "sellPrice", out JsonElement sellPrice))
+    {
+        if (buyPrice.TryGetInt32(out int buy) && sellPrice.TryGetInt32(out int sell))
+        {
+            if (buy > sell * 2)
+            {
+                errors.Add(new ValidationError(
+                    $"{fileName}:{itemId}",
+                    $"Buy price ({buy}) is more than double sell price ({sell})",
+                    ValidationSeverity.Warning));
+            }
+        }
+    }
+}
 
-    // GetStringProperty is now inherited from BaseValidator
+// ValidateNumericField is now inherited from BaseValidator
+
+// GetStringProperty is now inherited from BaseValidator
 }

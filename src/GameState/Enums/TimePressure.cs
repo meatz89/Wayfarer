@@ -14,7 +14,7 @@
 /// </summary>
 public enum TimePressure
 {
-    Leisurely,  // Can take time, multiple attempts, all options available
-    Urgent,     // Limited time, immediate action needed, some options unavailable
-    Desperate   // Right now or never, minimal choices, no retry
+Leisurely,  // Can take time, multiple attempts, all options available
+Urgent,     // Limited time, immediate action needed, some options unavailable
+Desperate   // Right now or never, minimal choices, no retry
 }

@@ -14,7 +14,7 @@
 /// </summary>
 public enum EmotionalTone
 {
-    Cold,       // Professional, transactional, distant (low Bond 0-7)
-    Warm,       // Friendly, trusting, comfortable (mid Bond 8-14)
-    Passionate  // Intense emotions: love OR hate (high Bond 15+ or very negative)
+Cold,       // Professional, transactional, distant (low Bond 0-7)
+Warm,       // Friendly, trusting, comfortable (mid Bond 8-14)
+Passionate  // Intense emotions: love OR hate (high Bond 15+ or very negative)
 }

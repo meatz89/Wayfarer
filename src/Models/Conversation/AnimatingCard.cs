@@ -3,9 +3,9 @@
 /// </summary>
 public enum CardAnimationType
 {
-    PlayedSuccess,  // Card played successfully
-    PlayedFailure,  // Card played but failed
-    Exhausting      // Card being exhausted (removed from hand)
+PlayedSuccess,  // Card played successfully
+PlayedFailure,  // Card played but failed
+Exhausting      // Card being exhausted (removed from hand)
 }
 
 /// <summary>
@@ -14,8 +14,8 @@ public enum CardAnimationType
 /// </summary>
 public class AnimatingCard
 {
-    public CardInstance Card { get; set; }
-    public CardAnimationType AnimationType { get; set; }
-    public DateTime AddedAt { get; set; }
-    public int OriginalPosition { get; set; } // Track original position in hand
+public CardInstance Card { get; set; }
+public CardAnimationType AnimationType { get; set; }
+public DateTime AddedAt { get; set; }
+public int OriginalPosition { get; set; } // Track original position in hand
 }

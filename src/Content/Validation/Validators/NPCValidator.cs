@@ -5,118 +5,118 @@ using System.Text.Json;
 /// </summary>
 public class NPCValidator : IContentValidator
 {
-    private readonly List<string> _requiredFields = new List<string>
-        {
-            "id", "name", "profession", "venueId"
-        };
-
-    public bool CanValidate(string fileName)
+private readonly List<string> _requiredFields = new List<string>
     {
-        return fileName.Equals("npcs.json", StringComparison.OrdinalIgnoreCase) ||
-               fileName.EndsWith("_npcs.json", StringComparison.OrdinalIgnoreCase);
-    }
+        "id", "name", "profession", "venueId"
+    };
 
-    public IEnumerable<ValidationError> Validate(string content, string fileName)
+public bool CanValidate(string fileName)
+{
+    return fileName.Equals("npcs.json", StringComparison.OrdinalIgnoreCase) ||
+           fileName.EndsWith("_npcs.json", StringComparison.OrdinalIgnoreCase);
+}
+
+public IEnumerable<ValidationError> Validate(string content, string fileName)
+{
+    List<ValidationError> errors = new List<ValidationError>();
+
+    using JsonDocument doc = JsonDocument.Parse(content);
+    JsonElement root = doc.RootElement;
+
+    if (root.ValueKind != JsonValueKind.Array)
     {
-        List<ValidationError> errors = new List<ValidationError>();
-
-        using JsonDocument doc = JsonDocument.Parse(content);
-        JsonElement root = doc.RootElement;
-
-        if (root.ValueKind != JsonValueKind.Array)
-        {
-            errors.Add(new ValidationError(
-                fileName,
-                "NPCs file must contain a JSON array",
-                ValidationSeverity.Critical));
-            return errors;
-        }
-
-        int index = 0;
-        foreach (JsonElement npcElement in root.EnumerateArray())
-        {
-            ValidateNPC(npcElement, index, fileName, errors);
-            index++;
-        }
-
+        errors.Add(new ValidationError(
+            fileName,
+            "NPCs file must contain a JSON array",
+            ValidationSeverity.Critical));
         return errors;
     }
 
-    private void ValidateNPC(JsonElement npc, int index, string fileName, List<ValidationError> errors)
+    int index = 0;
+    foreach (JsonElement npcElement in root.EnumerateArray())
     {
-        // Use index as fallback identifier if id field is missing (for error reporting only)
-        string npcId = GetStringProperty(npc, "id") ?? $"NPC[{index}]";
+        ValidateNPC(npcElement, index, fileName, errors);
+        index++;
+    }
 
-        // Check required fields
-        foreach (string field in _requiredFields)
+    return errors;
+}
+
+private void ValidateNPC(JsonElement npc, int index, string fileName, List<ValidationError> errors)
+{
+    // Use index as fallback identifier if id field is missing (for error reporting only)
+    string npcId = GetStringProperty(npc, "id") ?? $"NPC[{index}]";
+
+    // Check required fields
+    foreach (string field in _requiredFields)
+    {
+        if (!npc.TryGetProperty(field, out _))
         {
-            if (!npc.TryGetProperty(field, out _))
-            {
-                errors.Add(new ValidationError(
-                    $"{fileName}:{npcId}",
-                    $"Missing required field: {field}",
-                    ValidationSeverity.Critical));
-            }
+            errors.Add(new ValidationError(
+                $"{fileName}:{npcId}",
+                $"Missing required field: {field}",
+                ValidationSeverity.Critical));
         }
+    }
 
-        // Validate profession
-        if (npc.TryGetProperty("profession", out JsonElement profession) &&
-            profession.ValueKind == JsonValueKind.String)
+    // Validate profession
+    if (npc.TryGetProperty("profession", out JsonElement profession) &&
+        profession.ValueKind == JsonValueKind.String)
+    {
+        string? profStr = profession.GetString();
+        if (!string.IsNullOrEmpty(profStr) &&
+            !EnumParser.TryParse<Professions>(profStr, out _))
         {
-            string? profStr = profession.GetString();
-            if (!string.IsNullOrEmpty(profStr) &&
-                !EnumParser.TryParse<Professions>(profStr, out _))
-            {
-                errors.Add(new ValidationError(
-                    $"{fileName}:{npcId}",
-                    $"Invalid profession: '{profStr}'",
-                    ValidationSeverity.Critical));
-            }
+            errors.Add(new ValidationError(
+                $"{fileName}:{npcId}",
+                $"Invalid profession: '{profStr}'",
+                ValidationSeverity.Critical));
         }
+    }
 
-        // Validate services
-        if (npc.TryGetProperty("services", out JsonElement services) &&
-            services.ValueKind == JsonValueKind.Array)
+    // Validate services
+    if (npc.TryGetProperty("services", out JsonElement services) &&
+        services.ValueKind == JsonValueKind.Array)
+    {
+        foreach (JsonElement service in services.EnumerateArray())
         {
-            foreach (JsonElement service in services.EnumerateArray())
+            if (service.ValueKind == JsonValueKind.String)
             {
-                if (service.ValueKind == JsonValueKind.String)
-                {
-                    string? serviceStr = service.GetString();
-                    // Services are now free-form strings, no validation needed
-                }
-            }
-        }
-
-        // Validate token types
-        if (npc.TryGetProperty("tokenTypes", out JsonElement tokenTypes) &&
-            tokenTypes.ValueKind == JsonValueKind.Array)
-        {
-            foreach (JsonElement tokenType in tokenTypes.EnumerateArray())
-            {
-                if (tokenType.ValueKind == JsonValueKind.String)
-                {
-                    string? tokenStr = tokenType.GetString();
-                    if (!string.IsNullOrEmpty(tokenStr) &&
-                        !EnumParser.TryParse<ConnectionType>(tokenStr, out _))
-                    {
-                        errors.Add(new ValidationError(
-                            $"{fileName}:{npcId}",
-                            $"Invalid token type: '{tokenStr}'",
-                            ValidationSeverity.Warning));
-                    }
-                }
+                string? serviceStr = service.GetString();
+                // Services are now free-form strings, no validation needed
             }
         }
     }
 
-    private string GetStringProperty(JsonElement element, string propertyName)
+    // Validate token types
+    if (npc.TryGetProperty("tokenTypes", out JsonElement tokenTypes) &&
+        tokenTypes.ValueKind == JsonValueKind.Array)
     {
-        if (element.TryGetProperty(propertyName, out JsonElement property) &&
-            property.ValueKind == JsonValueKind.String)
+        foreach (JsonElement tokenType in tokenTypes.EnumerateArray())
         {
-            return property.GetString();
+            if (tokenType.ValueKind == JsonValueKind.String)
+            {
+                string? tokenStr = tokenType.GetString();
+                if (!string.IsNullOrEmpty(tokenStr) &&
+                    !EnumParser.TryParse<ConnectionType>(tokenStr, out _))
+                {
+                    errors.Add(new ValidationError(
+                        $"{fileName}:{npcId}",
+                        $"Invalid token type: '{tokenStr}'",
+                        ValidationSeverity.Warning));
+                }
+            }
         }
-        return null;
     }
+}
+
+private string GetStringProperty(JsonElement element, string propertyName)
+{
+    if (element.TryGetProperty(propertyName, out JsonElement property) &&
+        property.ValueKind == JsonValueKind.String)
+    {
+        return property.GetString();
+    }
+    return null;
+}
 }

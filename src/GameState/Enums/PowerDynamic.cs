@@ -14,7 +14,7 @@
 /// </summary>
 public enum PowerDynamic
 {
-    Dominant,    // Player has authority/status over NPC (easier persuasion, intimidation)
-    Equal,       // Balanced relationship (standard difficulty)
-    Submissive   // NPC has power over player (harder to influence, must defer)
+Dominant,    // Player has authority/status over NPC (easier persuasion, intimidation)
+Equal,       // Balanced relationship (standard difficulty)
+Submissive   // NPC has power over player (harder to influence, must defer)
 }

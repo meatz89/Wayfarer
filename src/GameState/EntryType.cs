@@ -1,4 +1,4 @@
 ﻿public enum EntryType
 {
-    Place, Bond, Insight
+Place, Bond, Insight
 }

@@ -14,7 +14,7 @@
 /// </summary>
 public enum DangerLevel
 {
-    Safe,    // Minor penalties, can retry, no permanent loss
-    Risky,   // Significant consequences, hard to recover
-    Deadly   // Permanent loss possible, character death risk
+Safe,    // Minor penalties, can retry, no permanent loss
+Risky,   // Significant consequences, hard to recover
+Deadly   // Permanent loss possible, character death risk
 }

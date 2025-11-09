@@ -1,5 +1,5 @@
 public enum ObservationDecayState
 {
-    Fresh,
-    Expired
+Fresh,
+Expired
 }

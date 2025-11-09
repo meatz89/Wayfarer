@@ -17,74 +17,74 @@ using System.Text.Json;
 /// </summary>
 public class ContentGenerationFacade
 {
-    private const string DynamicContentDirectory = "Content/Dynamic";
+private const string DynamicContentDirectory = "Content/Dynamic";
 
-    /// <summary>
-    /// Create JSON file for dynamically generated package
-    /// Writes to Content/Dynamic/{packageId}.json
-    /// </summary>
-    public DynamicFileResult CreateDynamicPackageFile(string packageJson, string packageId)
+/// <summary>
+/// Create JSON file for dynamically generated package
+/// Writes to Content/Dynamic/{packageId}.json
+/// </summary>
+public DynamicFileResult CreateDynamicPackageFile(string packageJson, string packageId)
+{
+    Directory.CreateDirectory(DynamicContentDirectory);
+
+    string filePath = Path.Combine(DynamicContentDirectory, $"{packageId}.json");
+
+    File.WriteAllText(filePath, packageJson);
+
+    return new DynamicFileResult
     {
-        Directory.CreateDirectory(DynamicContentDirectory);
+        FilePath = filePath,
+        PackageId = packageId,
+        Timestamp = DateTime.UtcNow
+    };
+}
 
-        string filePath = Path.Combine(DynamicContentDirectory, $"{packageId}.json");
+/// <summary>
+/// Remove dynamic content file
+/// </summary>
+public void RemoveDynamicLocation(string packageId)
+{
+    if (string.IsNullOrEmpty(packageId)) throw new ArgumentException("PackageId cannot be empty", nameof(packageId));
 
-        File.WriteAllText(filePath, packageJson);
+    string filePath = Path.Combine(DynamicContentDirectory, $"{packageId}.json");
 
-        return new DynamicFileResult
-        {
-            FilePath = filePath,
-            PackageId = packageId,
-            Timestamp = DateTime.UtcNow
-        };
+    if (File.Exists(filePath))
+    {
+        File.Delete(filePath);
     }
+}
 
-    /// <summary>
-    /// Remove dynamic content file
-    /// </summary>
-    public void RemoveDynamicLocation(string packageId)
+/// <summary>
+/// Get manifest of all dynamic content files
+/// Used for debugging and cleanup
+/// </summary>
+public DynamicContentManifest GetDynamicContentManifest()
+{
+    DynamicContentManifest manifest = new DynamicContentManifest();
+
+    if (!Directory.Exists(DynamicContentDirectory))
     {
-        if (string.IsNullOrEmpty(packageId)) throw new ArgumentException("PackageId cannot be empty", nameof(packageId));
-
-        string filePath = Path.Combine(DynamicContentDirectory, $"{packageId}.json");
-
-        if (File.Exists(filePath))
-        {
-            File.Delete(filePath);
-        }
-    }
-
-    /// <summary>
-    /// Get manifest of all dynamic content files
-    /// Used for debugging and cleanup
-    /// </summary>
-    public DynamicContentManifest GetDynamicContentManifest()
-    {
-        DynamicContentManifest manifest = new DynamicContentManifest();
-
-        if (!Directory.Exists(DynamicContentDirectory))
-        {
-            return manifest;
-        }
-
-        List<string> jsonFiles = Directory.GetFiles(DynamicContentDirectory, "*.json").ToList();
-
-        foreach (string filePath in jsonFiles)
-        {
-            FileInfo fileInfo = new FileInfo(filePath);
-            manifest.Files.Add(new DynamicFileInfo
-            {
-                FilePath = filePath,
-                FileName = fileInfo.Name,
-                PackageId = Path.GetFileNameWithoutExtension(filePath),
-                SizeBytes = fileInfo.Length,
-                CreatedUtc = fileInfo.CreationTimeUtc,
-                ModifiedUtc = fileInfo.LastWriteTimeUtc
-            });
-        }
-
         return manifest;
     }
+
+    List<string> jsonFiles = Directory.GetFiles(DynamicContentDirectory, "*.json").ToList();
+
+    foreach (string filePath in jsonFiles)
+    {
+        FileInfo fileInfo = new FileInfo(filePath);
+        manifest.Files.Add(new DynamicFileInfo
+        {
+            FilePath = filePath,
+            FileName = fileInfo.Name,
+            PackageId = Path.GetFileNameWithoutExtension(filePath),
+            SizeBytes = fileInfo.Length,
+            CreatedUtc = fileInfo.CreationTimeUtc,
+            ModifiedUtc = fileInfo.LastWriteTimeUtc
+        });
+    }
+
+    return manifest;
+}
 
 }
 
@@ -93,9 +93,9 @@ public class ContentGenerationFacade
 /// </summary>
 public class DynamicFileResult
 {
-    public string FilePath { get; set; } = "";
-    public string PackageId { get; set; } = "";
-    public DateTime Timestamp { get; set; }
+public string FilePath { get; set; } = "";
+public string PackageId { get; set; } = "";
+public DateTime Timestamp { get; set; }
 }
 
 /// <summary>
@@ -103,12 +103,12 @@ public class DynamicFileResult
 /// </summary>
 public class DynamicFileInfo
 {
-    public string FilePath { get; set; } = "";
-    public string FileName { get; set; } = "";
-    public string PackageId { get; set; } = "";
-    public long SizeBytes { get; set; }
-    public DateTime CreatedUtc { get; set; }
-    public DateTime ModifiedUtc { get; set; }
+public string FilePath { get; set; } = "";
+public string FileName { get; set; } = "";
+public string PackageId { get; set; } = "";
+public long SizeBytes { get; set; }
+public DateTime CreatedUtc { get; set; }
+public DateTime ModifiedUtc { get; set; }
 }
 
 /// <summary>
@@ -116,7 +116,7 @@ public class DynamicFileInfo
 /// </summary>
 public class DynamicContentManifest
 {
-    public List<DynamicFileInfo> Files { get; set; } = new();
-    public int TotalFiles => Files.Count;
-    public long TotalSizeBytes => Files.Sum(f => f.SizeBytes);
+public List<DynamicFileInfo> Files { get; set; } = new();
+public int TotalFiles => Files.Count;
+public long TotalSizeBytes => Files.Sum(f => f.SizeBytes);
 }

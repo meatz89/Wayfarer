@@ -4,17 +4,17 @@
 /// </summary>
 public class LocationPropertiesDTO
 {
-    public List<string> Base { get; set; } = new List<string>();
+public List<string> Base { get; set; } = new List<string>();
 
-    public List<string> Morning { get; set; } = new List<string>();
+public List<string> Morning { get; set; } = new List<string>();
 
-    public List<string> Midday { get; set; } = new List<string>();
+public List<string> Midday { get; set; } = new List<string>();
 
-    public List<string> Afternoon { get; set; } = new List<string>();
+public List<string> Afternoon { get; set; } = new List<string>();
 
-    public List<string> Evening { get; set; } = new List<string>();
+public List<string> Evening { get; set; } = new List<string>();
 
-    public List<string> Night { get; set; } = new List<string>();
+public List<string> Night { get; set; } = new List<string>();
 
-    public List<string> Dawn { get; set; } = new List<string>();
+public List<string> Dawn { get; set; } = new List<string>();
 }

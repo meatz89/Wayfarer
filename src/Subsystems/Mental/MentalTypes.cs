@@ -8,54 +8,54 @@
 /// </summary>
 public class MentalCardEffectResult
 {
-    public CardInstance Card { get; set; }
+public CardInstance Card { get; set; }
 
-    // Builder resource (parallel to Initiative in Social)
-    public int AttentionChange { get; set; }
-    public int BaseAttention { get; set; }
-    public List<EffectBonus> AttentionBonuses { get; set; } = new List<EffectBonus>();
+// Builder resource (parallel to Initiative in Social)
+public int AttentionChange { get; set; }
+public int BaseAttention { get; set; }
+public List<EffectBonus> AttentionBonuses { get; set; } = new List<EffectBonus>();
 
-    // Victory resource (parallel to Momentum in Social)
-    public int ProgressChange { get; set; }
-    public int BaseProgress { get; set; }
-    public List<EffectBonus> ProgressBonuses { get; set; } = new List<EffectBonus>();
+// Victory resource (parallel to Momentum in Social)
+public int ProgressChange { get; set; }
+public int BaseProgress { get; set; }
+public List<EffectBonus> ProgressBonuses { get; set; } = new List<EffectBonus>();
 
-    // Consequence resource (parallel to Doubt in Social)
-    public int ExposureChange { get; set; }
-    public int BaseExposure { get; set; }
-    public List<EffectBonus> ExposureBonuses { get; set; } = new List<EffectBonus>();
+// Consequence resource (parallel to Doubt in Social)
+public int ExposureChange { get; set; }
+public int BaseExposure { get; set; }
+public List<EffectBonus> ExposureBonuses { get; set; } = new List<EffectBonus>();
 
-    // Persistent progress resource
-    public int UnderstandingChange { get; set; }
+// Persistent progress resource
+public int UnderstandingChange { get; set; }
 
-    // Strategic resource costs
-    public int HealthCost { get; set; }
-    public int StaminaCost { get; set; }
-    public int CoinsCost { get; set; }
+// Strategic resource costs
+public int HealthCost { get; set; }
+public int StaminaCost { get; set; }
+public int CoinsCost { get; set; }
 
-    // Card draw
-    public int CardsToDraw { get; set; }
+// Card draw
+public int CardsToDraw { get; set; }
 
-    // Session control
-    public bool EndsSession { get; set; }
+// Session control
+public bool EndsSession { get; set; }
 
-    // UI display
-    public string EffectDescription { get; set; }
+// UI display
+public string EffectDescription { get; set; }
 }
 
 public class MentalOutcome
 {
-    public bool Success { get; set; }
-    public int FinalProgress { get; set; }
-    public int FinalExposure { get; set; }
-    public bool SessionSaved { get; set; } = false; // True if player left obligation to return later
+public bool Success { get; set; }
+public int FinalProgress { get; set; }
+public int FinalExposure { get; set; }
+public bool SessionSaved { get; set; } = false; // True if player left obligation to return later
 }
 
 public class MentalTurnResult
 {
-    public bool Success { get; set; }
-    public string Narrative { get; set; }
-    public int CurrentProgress { get; set; }
-    public int CurrentExposure { get; set; }
-    public bool SessionEnded { get; set; }
+public bool Success { get; set; }
+public string Narrative { get; set; }
+public int CurrentProgress { get; set; }
+public int CurrentExposure { get; set; }
+public bool SessionEnded { get; set; }
 }

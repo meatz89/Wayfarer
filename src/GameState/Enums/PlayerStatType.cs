@@ -3,10 +3,10 @@
 /// </summary>
 public enum PlayerStatType
 {
-    None,      // Card not bound to any stat
-    Insight,
-    Rapport,
-    Authority,
-    Diplomacy,
-    Cunning
+None,      // Card not bound to any stat
+Insight,
+Rapport,
+Authority,
+Diplomacy,
+Cunning
 }

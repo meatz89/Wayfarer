@@ -1,44 +1,44 @@
 ﻿public class MessageSystem
 {
-    private readonly GameWorld _gameWorld;
+private readonly GameWorld _gameWorld;
 
-    public MessageSystem(GameWorld gameWorld)
+public MessageSystem(GameWorld gameWorld)
+{
+    _gameWorld = gameWorld;
+}
+
+public void AddSystemMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info)
+{
+    // Different durations based on message importance
+    int duration = type switch
     {
-        _gameWorld = gameWorld;
-    }
+        SystemMessageTypes.Danger => 15000,   // 15 seconds for critical messages
+        SystemMessageTypes.Warning => 12000,  // 12 seconds for warnings
+        SystemMessageTypes.Success => 10000,  // 10 seconds for success
+        SystemMessageTypes.Tutorial => 12000, // 12 seconds for tutorial
+        SystemMessageTypes.Info => 8000,     // 8 seconds for info
+        _ => 10000
+    };
 
-    public void AddSystemMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info)
-    {
-        // Different durations based on message importance
-        int duration = type switch
-        {
-            SystemMessageTypes.Danger => 15000,   // 15 seconds for critical messages
-            SystemMessageTypes.Warning => 12000,  // 12 seconds for warnings
-            SystemMessageTypes.Success => 10000,  // 10 seconds for success
-            SystemMessageTypes.Tutorial => 12000, // 12 seconds for tutorial
-            SystemMessageTypes.Info => 8000,     // 8 seconds for info
-            _ => 10000
-        };
+    SystemMessage systemMessage = new SystemMessage(message, type, duration);
+    _gameWorld.SystemMessages.Add(systemMessage);
+    // Also add to permanent event log
+    _gameWorld.EventLog.Add(systemMessage);
+}
 
-        SystemMessage systemMessage = new SystemMessage(message, type, duration);
-        _gameWorld.SystemMessages.Add(systemMessage);
-        // Also add to permanent event log
-        _gameWorld.EventLog.Add(systemMessage);
-    }
+/// <summary>
+/// Get all current system messages
+/// </summary>
+public List<SystemMessage> GetMessages()
+{
+    return _gameWorld.SystemMessages.ToList();
+}
 
-    /// <summary>
-    /// Get all current system messages
-    /// </summary>
-    public List<SystemMessage> GetMessages()
-    {
-        return _gameWorld.SystemMessages.ToList();
-    }
-
-    /// <summary>
-    /// Clear all current system messages
-    /// </summary>
-    public void ClearMessages()
-    {
-        _gameWorld.SystemMessages.Clear();
-    }
+/// <summary>
+/// Clear all current system messages
+/// </summary>
+public void ClearMessages()
+{
+    _gameWorld.SystemMessages.Clear();
+}
 }

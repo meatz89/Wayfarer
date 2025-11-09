@@ -23,211 +23,211 @@
 /// </summary>
 public class SituationFacade
 {
-    private readonly GameWorld _gameWorld;
-    private readonly MessageSystem _messageSystem;
-    private readonly TimeFacade _timeFacade;
-    private readonly MentalFacade _mentalFacade;
-    private readonly PhysicalFacade _physicalFacade;
-    private readonly SocialFacade _socialFacade;
-    private readonly ConsequenceFacade _consequenceFacade;
+private readonly GameWorld _gameWorld;
+private readonly MessageSystem _messageSystem;
+private readonly TimeFacade _timeFacade;
+private readonly MentalFacade _mentalFacade;
+private readonly PhysicalFacade _physicalFacade;
+private readonly SocialFacade _socialFacade;
+private readonly ConsequenceFacade _consequenceFacade;
 
-    public SituationFacade(
-        GameWorld gameWorld,
-        MessageSystem messageSystem,
-        TimeFacade timeFacade,
-        MentalFacade mentalFacade,
-        PhysicalFacade physicalFacade,
-        SocialFacade socialFacade,
-        ConsequenceFacade consequenceFacade)
+public SituationFacade(
+    GameWorld gameWorld,
+    MessageSystem messageSystem,
+    TimeFacade timeFacade,
+    MentalFacade mentalFacade,
+    PhysicalFacade physicalFacade,
+    SocialFacade socialFacade,
+    ConsequenceFacade consequenceFacade)
+{
+    _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+    _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
+    _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
+    _mentalFacade = mentalFacade ?? throw new ArgumentNullException(nameof(mentalFacade));
+    _physicalFacade = physicalFacade ?? throw new ArgumentNullException(nameof(physicalFacade));
+    _socialFacade = socialFacade ?? throw new ArgumentNullException(nameof(socialFacade));
+    _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
+}
+
+/// <summary>
+/// Select and execute a situation - STRATEGIC LAYER ENTRY POINT
+/// Validates requirements, consumes strategic costs, routes to appropriate subsystem
+/// </summary>
+public SituationSelectionResult SelectAndExecuteSituation(string situationId)
+{
+    Situation situation = _gameWorld.Scenes
+        .SelectMany(s => s.Situations)
+        .FirstOrDefault(sit => sit.Id == situationId);
+    if (situation == null)
+        return SituationSelectionResult.Failed($"Situation '{situationId}' not found");
+
+    Player player = _gameWorld.GetPlayer();
+
+    // Validate CompoundRequirements (if present)
+    if (situation.CompoundRequirement != null && situation.CompoundRequirement.OrPaths.Count > 0)
     {
-        _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-        _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-        _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
-        _mentalFacade = mentalFacade ?? throw new ArgumentNullException(nameof(mentalFacade));
-        _physicalFacade = physicalFacade ?? throw new ArgumentNullException(nameof(physicalFacade));
-        _socialFacade = socialFacade ?? throw new ArgumentNullException(nameof(socialFacade));
-        _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
+        bool requirementsMet = situation.CompoundRequirement.IsAnySatisfied(player, _gameWorld);
+        if (!requirementsMet)
+        {
+            return SituationSelectionResult.Failed("Requirements not met for this situation");
+        }
     }
 
-    /// <summary>
-    /// Select and execute a situation - STRATEGIC LAYER ENTRY POINT
-    /// Validates requirements, consumes strategic costs, routes to appropriate subsystem
-    /// </summary>
-    public SituationSelectionResult SelectAndExecuteSituation(string situationId)
+    // Validate strategic costs (player has enough resources)
+    if (player.Resolve < situation.Costs.Resolve)
     {
-        Situation situation = _gameWorld.Scenes
-            .SelectMany(s => s.Situations)
-            .FirstOrDefault(sit => sit.Id == situationId);
-        if (situation == null)
-            return SituationSelectionResult.Failed($"Situation '{situationId}' not found");
-
-        Player player = _gameWorld.GetPlayer();
-
-        // Validate CompoundRequirements (if present)
-        if (situation.CompoundRequirement != null && situation.CompoundRequirement.OrPaths.Count > 0)
-        {
-            bool requirementsMet = situation.CompoundRequirement.IsAnySatisfied(player, _gameWorld);
-            if (!requirementsMet)
-            {
-                return SituationSelectionResult.Failed("Requirements not met for this situation");
-            }
-        }
-
-        // Validate strategic costs (player has enough resources)
-        if (player.Resolve < situation.Costs.Resolve)
-        {
-            return SituationSelectionResult.Failed($"Not enough Resolve (need {situation.Costs.Resolve}, have {player.Resolve})");
-        }
-
-        if (player.Coins < situation.Costs.Coins)
-        {
-            return SituationSelectionResult.Failed($"Not enough Coins (need {situation.Costs.Coins}, have {player.Coins})");
-        }
-
-        // Consume strategic costs (RESOLVE, TIME, COINS)
-        // NOTE: Focus/Stamina are TACTICAL costs consumed by challenge facades
-        if (situation.Costs.Resolve > 0)
-        {
-            player.Resolve -= situation.Costs.Resolve;
-            _messageSystem.AddSystemMessage($"Resolve consumed: {situation.Costs.Resolve} (now {player.Resolve})", SystemMessageTypes.Warning);
-        }
-
-        if (situation.Costs.Coins > 0)
-        {
-            player.Coins -= situation.Costs.Coins;
-            _messageSystem.AddSystemMessage($"Coins spent: {situation.Costs.Coins}", SystemMessageTypes.Info);
-        }
-
-        if (situation.Costs.Time > 0)
-        {
-            _timeFacade.AdvanceSegments(situation.Costs.Time);
-            _messageSystem.AddSystemMessage($"Time passed: {situation.Costs.Time} segments", SystemMessageTypes.Info);
-        }
-
-        // Mark situation as in progress
-        situation.LifecycleStatus = LifecycleStatus.InProgress;
-
-        // Route based on InteractionType
-        return situation.InteractionType switch
-        {
-            SituationInteractionType.Instant => ResolveInstantSituation(situation),
-            SituationInteractionType.Mental => InitiateMentalChallenge(situation),
-            SituationInteractionType.Physical => InitiatePhysicalChallenge(situation),
-            SituationInteractionType.Social => InitiateSocialChallenge(situation),
-            SituationInteractionType.Navigation => HandleNavigation(situation),
-            _ => SituationSelectionResult.Failed($"Unknown interaction type: {situation.InteractionType}")
-        };
+        return SituationSelectionResult.Failed($"Not enough Resolve (need {situation.Costs.Resolve}, have {player.Resolve})");
     }
 
-    /// <summary>
-    /// Resolve instant situation - apply consequences immediately without challenge
-    /// Used for quick decisions, work actions, simple events
-    /// </summary>
-    private SituationSelectionResult ResolveInstantSituation(Situation situation)
+    if (player.Coins < situation.Costs.Coins)
     {
-        // Apply ProjectedConsequences to game state
-        _consequenceFacade.ApplyConsequences(
-            situation.ProjectedBondChanges,
-            situation.ProjectedScaleShifts,
-            situation.ProjectedStates
-        );
-
-        // Mark situation as completed
-        situation.Complete();
-
-        situation.Lifecycle.CompletedDay = _timeFacade.GetCurrentDay();
-        situation.Lifecycle.CompletedTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        situation.Lifecycle.CompletedSegment = _timeFacade.GetCurrentSegment();
-
-        // TODO Phase D: Execute spawn rules via SpawnFacade
-
-        return SituationSelectionResult.InstantResolution(situation);
+        return SituationSelectionResult.Failed($"Not enough Coins (need {situation.Costs.Coins}, have {player.Coins})");
     }
 
-    /// <summary>
-    /// Initiate Mental challenge - route to MentalFacade with challenge payload
-    /// MentalFacade consumes tactical costs (Focus) during challenge execution
-    /// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
-    /// </summary>
-    private SituationSelectionResult InitiateMentalChallenge(Situation situation)
+    // Consume strategic costs (RESOLVE, TIME, COINS)
+    // NOTE: Focus/Stamina are TACTICAL costs consumed by challenge facades
+    if (situation.Costs.Resolve > 0)
     {
-        // Tactical layer receives payload only (deck, target, goal cards)
-        // MentalFacade will consume Focus (tactical cost) during challenge
-        // SituationFacade has already consumed Resolve (strategic cost)
-
-        string locationId = situation.GetPlacementId(PlacementType.Location);
-        return SituationSelectionResult.LaunchChallenge(
-            TacticalSystemType.Mental,
-            situation.Id,
-            situation.DeckId,
-            locationId
-        );
+        player.Resolve -= situation.Costs.Resolve;
+        _messageSystem.AddSystemMessage($"Resolve consumed: {situation.Costs.Resolve} (now {player.Resolve})", SystemMessageTypes.Warning);
     }
 
-    /// <summary>
-    /// Initiate Physical challenge - route to PhysicalFacade with challenge payload
-    /// PhysicalFacade consumes tactical costs (Stamina) during challenge execution
-    /// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
-    /// </summary>
-    private SituationSelectionResult InitiatePhysicalChallenge(Situation situation)
+    if (situation.Costs.Coins > 0)
     {
-        // Tactical layer receives payload only
-        // PhysicalFacade will consume Stamina (tactical cost) during challenge
-        // SituationFacade has already consumed Resolve (strategic cost)
-
-        string locationId = situation.GetPlacementId(PlacementType.Location);
-        return SituationSelectionResult.LaunchChallenge(
-            TacticalSystemType.Physical,
-            situation.Id,
-            situation.DeckId,
-            locationId
-        );
+        player.Coins -= situation.Costs.Coins;
+        _messageSystem.AddSystemMessage($"Coins spent: {situation.Costs.Coins}", SystemMessageTypes.Info);
     }
 
-    /// <summary>
-    /// Initiate Social challenge - route to SocialFacade with challenge payload
-    /// SocialFacade consumes tactical costs during challenge execution
-    /// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
-    /// </summary>
-    private SituationSelectionResult InitiateSocialChallenge(Situation situation)
+    if (situation.Costs.Time > 0)
     {
-        // Tactical layer receives payload only
-        // SocialFacade will consume tactical costs during challenge
-        // SituationFacade has already consumed Resolve (strategic cost)
-
-        string npcId = situation.GetPlacementId(PlacementType.NPC);
-        return SituationSelectionResult.LaunchChallenge(
-            TacticalSystemType.Social,
-            situation.Id,
-            null, // Social uses NPC, not deck
-            npcId
-        );
+        _timeFacade.AdvanceSegments(situation.Costs.Time);
+        _messageSystem.AddSystemMessage($"Time passed: {situation.Costs.Time} segments", SystemMessageTypes.Info);
     }
 
-    /// <summary>
-    /// Handle navigation situation - move player to destination
-    /// May trigger scene at destination
-    /// </summary>
-    private SituationSelectionResult HandleNavigation(Situation situation)
+    // Mark situation as in progress
+    situation.LifecycleStatus = LifecycleStatus.InProgress;
+
+    // Route based on InteractionType
+    return situation.InteractionType switch
     {
-        if (situation.NavigationPayload == null)
-        {
-            return SituationSelectionResult.Failed("Navigation situation missing NavigationPayload");
-        }
+        SituationInteractionType.Instant => ResolveInstantSituation(situation),
+        SituationInteractionType.Mental => InitiateMentalChallenge(situation),
+        SituationInteractionType.Physical => InitiatePhysicalChallenge(situation),
+        SituationInteractionType.Social => InitiateSocialChallenge(situation),
+        SituationInteractionType.Navigation => HandleNavigation(situation),
+        _ => SituationSelectionResult.Failed($"Unknown interaction type: {situation.InteractionType}")
+    };
+}
 
-        // Mark situation as completed
-        situation.Complete();
+/// <summary>
+/// Resolve instant situation - apply consequences immediately without challenge
+/// Used for quick decisions, work actions, simple events
+/// </summary>
+private SituationSelectionResult ResolveInstantSituation(Situation situation)
+{
+    // Apply ProjectedConsequences to game state
+    _consequenceFacade.ApplyConsequences(
+        situation.ProjectedBondChanges,
+        situation.ProjectedScaleShifts,
+        situation.ProjectedStates
+    );
 
-        situation.Lifecycle.CompletedDay = _timeFacade.GetCurrentDay();
-        situation.Lifecycle.CompletedTimeBlock = _timeFacade.GetCurrentTimeBlock();
-        situation.Lifecycle.CompletedSegment = _timeFacade.GetCurrentSegment();
+    // Mark situation as completed
+    situation.Complete();
 
-        // Navigation result will tell UI to move player and optionally trigger scene
-        return SituationSelectionResult.Navigation(
-            situation.NavigationPayload.DestinationId,
-            situation.NavigationPayload.AutoTriggerScene
-        );
+    situation.Lifecycle.CompletedDay = _timeFacade.GetCurrentDay();
+    situation.Lifecycle.CompletedTimeBlock = _timeFacade.GetCurrentTimeBlock();
+    situation.Lifecycle.CompletedSegment = _timeFacade.GetCurrentSegment();
+
+    // TODO Phase D: Execute spawn rules via SpawnFacade
+
+    return SituationSelectionResult.InstantResolution(situation);
+}
+
+/// <summary>
+/// Initiate Mental challenge - route to MentalFacade with challenge payload
+/// MentalFacade consumes tactical costs (Focus) during challenge execution
+/// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+/// </summary>
+private SituationSelectionResult InitiateMentalChallenge(Situation situation)
+{
+    // Tactical layer receives payload only (deck, target, goal cards)
+    // MentalFacade will consume Focus (tactical cost) during challenge
+    // SituationFacade has already consumed Resolve (strategic cost)
+
+    string locationId = situation.GetPlacementId(PlacementType.Location);
+    return SituationSelectionResult.LaunchChallenge(
+        TacticalSystemType.Mental,
+        situation.Id,
+        situation.DeckId,
+        locationId
+    );
+}
+
+/// <summary>
+/// Initiate Physical challenge - route to PhysicalFacade with challenge payload
+/// PhysicalFacade consumes tactical costs (Stamina) during challenge execution
+/// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+/// </summary>
+private SituationSelectionResult InitiatePhysicalChallenge(Situation situation)
+{
+    // Tactical layer receives payload only
+    // PhysicalFacade will consume Stamina (tactical cost) during challenge
+    // SituationFacade has already consumed Resolve (strategic cost)
+
+    string locationId = situation.GetPlacementId(PlacementType.Location);
+    return SituationSelectionResult.LaunchChallenge(
+        TacticalSystemType.Physical,
+        situation.Id,
+        situation.DeckId,
+        locationId
+    );
+}
+
+/// <summary>
+/// Initiate Social challenge - route to SocialFacade with challenge payload
+/// SocialFacade consumes tactical costs during challenge execution
+/// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+/// </summary>
+private SituationSelectionResult InitiateSocialChallenge(Situation situation)
+{
+    // Tactical layer receives payload only
+    // SocialFacade will consume tactical costs during challenge
+    // SituationFacade has already consumed Resolve (strategic cost)
+
+    string npcId = situation.GetPlacementId(PlacementType.NPC);
+    return SituationSelectionResult.LaunchChallenge(
+        TacticalSystemType.Social,
+        situation.Id,
+        null, // Social uses NPC, not deck
+        npcId
+    );
+}
+
+/// <summary>
+/// Handle navigation situation - move player to destination
+/// May trigger scene at destination
+/// </summary>
+private SituationSelectionResult HandleNavigation(Situation situation)
+{
+    if (situation.NavigationPayload == null)
+    {
+        return SituationSelectionResult.Failed("Navigation situation missing NavigationPayload");
     }
+
+    // Mark situation as completed
+    situation.Complete();
+
+    situation.Lifecycle.CompletedDay = _timeFacade.GetCurrentDay();
+    situation.Lifecycle.CompletedTimeBlock = _timeFacade.GetCurrentTimeBlock();
+    situation.Lifecycle.CompletedSegment = _timeFacade.GetCurrentSegment();
+
+    // Navigation result will tell UI to move player and optionally trigger scene
+    return SituationSelectionResult.Navigation(
+        situation.NavigationPayload.DestinationId,
+        situation.NavigationPayload.AutoTriggerScene
+    );
+}
 }
 
 /// <summary>
@@ -236,76 +236,76 @@ public class SituationFacade
 /// </summary>
 public class SituationSelectionResult
 {
-    public bool Success { get; set; }
-    public string Message { get; set; }
-    public SituationResultType ResultType { get; set; }
+public bool Success { get; set; }
+public string Message { get; set; }
+public SituationResultType ResultType { get; set; }
 
-    // For instant resolution
-    public Situation ResolvedSituation { get; set; }
+// For instant resolution
+public Situation ResolvedSituation { get; set; }
 
-    // For challenge launch
-    public TacticalSystemType? ChallengeType { get; set; }
-    public string ChallengeSituationId { get; set; }
-    public string ChallengeDeckId { get; set; }
-    public string ChallengeTargetId { get; set; }
+// For challenge launch
+public TacticalSystemType? ChallengeType { get; set; }
+public string ChallengeSituationId { get; set; }
+public string ChallengeDeckId { get; set; }
+public string ChallengeTargetId { get; set; }
 
-    // For navigation
-    public string NavigationDestinationId { get; set; }
-    public bool NavigationAutoTriggerScene { get; set; }
+// For navigation
+public string NavigationDestinationId { get; set; }
+public bool NavigationAutoTriggerScene { get; set; }
 
-    public static SituationSelectionResult Failed(string message)
+public static SituationSelectionResult Failed(string message)
+{
+    return new SituationSelectionResult
     {
-        return new SituationSelectionResult
-        {
-            Success = false,
-            Message = message,
-            ResultType = SituationResultType.Failure
-        };
-    }
+        Success = false,
+        Message = message,
+        ResultType = SituationResultType.Failure
+    };
+}
 
-    public static SituationSelectionResult InstantResolution(Situation situation)
+public static SituationSelectionResult InstantResolution(Situation situation)
+{
+    return new SituationSelectionResult
     {
-        return new SituationSelectionResult
-        {
-            Success = true,
-            ResultType = SituationResultType.InstantResolution,
-            ResolvedSituation = situation
-        };
-    }
+        Success = true,
+        ResultType = SituationResultType.InstantResolution,
+        ResolvedSituation = situation
+    };
+}
 
-    public static SituationSelectionResult LaunchChallenge(
-        TacticalSystemType challengeType,
-        string situationId,
-        string deckId,
-        string targetId)
+public static SituationSelectionResult LaunchChallenge(
+    TacticalSystemType challengeType,
+    string situationId,
+    string deckId,
+    string targetId)
+{
+    return new SituationSelectionResult
     {
-        return new SituationSelectionResult
-        {
-            Success = true,
-            ResultType = SituationResultType.LaunchChallenge,
-            ChallengeType = challengeType,
-            ChallengeSituationId = situationId,
-            ChallengeDeckId = deckId,
-            ChallengeTargetId = targetId
-        };
-    }
+        Success = true,
+        ResultType = SituationResultType.LaunchChallenge,
+        ChallengeType = challengeType,
+        ChallengeSituationId = situationId,
+        ChallengeDeckId = deckId,
+        ChallengeTargetId = targetId
+    };
+}
 
-    public static SituationSelectionResult Navigation(string destinationId, bool autoTriggerScene)
+public static SituationSelectionResult Navigation(string destinationId, bool autoTriggerScene)
+{
+    return new SituationSelectionResult
     {
-        return new SituationSelectionResult
-        {
-            Success = true,
-            ResultType = SituationResultType.Navigation,
-            NavigationDestinationId = destinationId,
-            NavigationAutoTriggerScene = autoTriggerScene
-        };
-    }
+        Success = true,
+        ResultType = SituationResultType.Navigation,
+        NavigationDestinationId = destinationId,
+        NavigationAutoTriggerScene = autoTriggerScene
+    };
+}
 }
 
 public enum SituationResultType
 {
-    Failure,
-    InstantResolution,
-    LaunchChallenge,
-    Navigation
+Failure,
+InstantResolution,
+LaunchChallenge,
+Navigation
 }

@@ -3,12 +3,12 @@
 /// </summary>
 public class PlayerStatDefinitionDTO
 {
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public string Description { get; set; }
-    public string ConversationBenefit { get; set; }
-    public string ObligationUnlock { get; set; }
-    public string TravelUnlock { get; set; }
+public string Id { get; set; }
+public string Name { get; set; }
+public string Description { get; set; }
+public string ConversationBenefit { get; set; }
+public string ObligationUnlock { get; set; }
+public string TravelUnlock { get; set; }
 }
 
 /// <summary>
@@ -16,8 +16,8 @@ public class PlayerStatDefinitionDTO
 /// </summary>
 public class StatProgressionDTO
 {
-    public List<int> XpThresholds { get; set; }
-    public List<StatLevelBonusDTO> LevelBonuses { get; set; }
+public List<int> XpThresholds { get; set; }
+public List<StatLevelBonusDTO> LevelBonuses { get; set; }
 }
 
 /// <summary>
@@ -25,8 +25,8 @@ public class StatProgressionDTO
 /// </summary>
 public class StatLevelBonusDTO
 {
-    public int Level { get; set; }
-    public int SuccessBonus { get; set; }
-    public string Effect { get; set; }
-    public string Description { get; set; }
+public int Level { get; set; }
+public int SuccessBonus { get; set; }
+public string Effect { get; set; }
+public string Description { get; set; }
 }

@@ -4,34 +4,34 @@
 /// </summary>
 public class SocialCardDTO
 {
-    // ========== REQUIRED FIELDS (100% frequency in JSON) ==========
-    // Parser must crash if these are missing
-    public string Id { get; set; }
-    public string Type { get; set; }
-    public string Title { get; set; }
-    public string DialogueText { get; set; }
-    public string Persistence { get; set; } // Echo/Statement
-    public string Delivery { get; set; } // "Standard" (+1), "Commanding" (+2), "Measured" (+0), "Yielding" (-1)
+// ========== REQUIRED FIELDS (100% frequency in JSON) ==========
+// Parser must crash if these are missing
+public string Id { get; set; }
+public string Type { get; set; }
+public string Title { get; set; }
+public string DialogueText { get; set; }
+public string Persistence { get; set; } // Echo/Statement
+public string Delivery { get; set; } // "Standard" (+1), "Commanding" (+2), "Measured" (+0), "Yielding" (-1)
 
-    // ========== CONDITIONAL FIELDS (95% frequency - conversation cards only) ==========
-    // These appear in conversation cards but not request cards
-    public string ConversationalMove { get; set; } // Remark/Observation/Argument - CORE categorical property
-    public string BoundStat { get; set; } // insight/rapport/authority/diplomacy/cunning
-    public int? Depth { get; set; } // 1-10 depth system (nullable for request cards that don't have depth)
-    public List<string> PersonalityTypes { get; set; }
+// ========== CONDITIONAL FIELDS (95% frequency - conversation cards only) ==========
+// These appear in conversation cards but not request cards
+public string ConversationalMove { get; set; } // Remark/Observation/Argument - CORE categorical property
+public string BoundStat { get; set; } // insight/rapport/authority/diplomacy/cunning
+public int? Depth { get; set; } // 1-10 depth system (nullable for request cards that don't have depth)
+public List<string> PersonalityTypes { get; set; }
 
-    // ========== RARE FIELDS (4% frequency - request cards only) ==========
-    public int? MomentumThreshold { get; set; } // For request cards
+// ========== RARE FIELDS (4% frequency - request cards only) ==========
+public int? MomentumThreshold { get; set; } // For request cards
 
-    // ========== OPTIONAL FIELDS (0% frequency - parser handles null gracefully) ==========
-    // These fields are NOT in JSON currently but parser checks for them
-    // Parser handles null with semantically valid defaults, not bug hiding
-    public string ConnectionType { get; set; } // Token type (Trust/Diplomacy/Status/Shadow) - defaults to Trust
-    public CardEffectsDTO Effects { get; set; } // Legacy effects structure - returns None if null
-    public Dictionary<string, int> TokenRequirement { get; set; } // Signature card requirements - empty dict if null
+// ========== OPTIONAL FIELDS (0% frequency - parser handles null gracefully) ==========
+// These fields are NOT in JSON currently but parser checks for them
+// Parser handles null with semantically valid defaults, not bug hiding
+public string ConnectionType { get; set; } // Token type (Trust/Diplomacy/Status/Shadow) - defaults to Trust
+public CardEffectsDTO Effects { get; set; } // Legacy effects structure - returns None if null
+public Dictionary<string, int> TokenRequirement { get; set; } // Signature card requirements - empty dict if null
 
-    // DEPRECATED FIELDS REMOVED (0% frequency in JSON, truly unused):
-    // - MinimumTokensRequired → parser used ?? 0 to hide bugs, deleted
-    // - NpcSpecific → parsed but never meaningfully used, deleted
-    // - SecretsGranted → parser used ?? new List() to hide bugs, deleted
+// DEPRECATED FIELDS REMOVED (0% frequency in JSON, truly unused):
+// - MinimumTokensRequired → parser used ?? 0 to hide bugs, deleted
+// - NpcSpecific → parsed but never meaningfully used, deleted
+// - SecretsGranted → parser used ?? new List() to hide bugs, deleted
 }

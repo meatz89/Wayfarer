@@ -8,26 +8,26 @@
 /// </summary>
 public class LocationVisitRecord
 {
-    /// <summary>
-    /// Location entity ID this record tracks
-    /// </summary>
-    public string LocationId { get; set; }
+/// <summary>
+/// Location entity ID this record tracks
+/// </summary>
+public string LocationId { get; set; }
 
-    /// <summary>
-    /// Day of last visit to this location
-    /// Updated each time player enters this location (replaces previous value)
-    /// </summary>
-    public int LastVisitDay { get; set; }
+/// <summary>
+/// Day of last visit to this location
+/// Updated each time player enters this location (replaces previous value)
+/// </summary>
+public int LastVisitDay { get; set; }
 
-    /// <summary>
-    /// Time block of last visit (Morning, Afternoon, Evening, Night)
-    /// Updated each time player enters this location (replaces previous value)
-    /// </summary>
-    public TimeBlocks LastVisitTimeBlock { get; set; }
+/// <summary>
+/// Time block of last visit (Morning, Afternoon, Evening, Night)
+/// Updated each time player enters this location (replaces previous value)
+/// </summary>
+public TimeBlocks LastVisitTimeBlock { get; set; }
 
-    /// <summary>
-    /// Segment of last visit within time block (0-5)
-    /// Updated each time player enters this location (replaces previous value)
-    /// </summary>
-    public int LastVisitSegment { get; set; }
+/// <summary>
+/// Segment of last visit within time block (0-5)
+/// Updated each time player enters this location (replaces previous value)
+/// </summary>
+public int LastVisitSegment { get; set; }
 }
