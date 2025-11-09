@@ -388,9 +388,20 @@ public class SceneTemplateParser
             }
         }
 
+        // Parse PathType (defaults to Fallback if not specified)
+        ChoicePathType pathType = ChoicePathType.Fallback;
+        if (!string.IsNullOrEmpty(dto.PathType))
+        {
+            if (!Enum.TryParse<ChoicePathType>(dto.PathType, true, out pathType))
+            {
+                throw new InvalidDataException($"ChoiceTemplate '{dto.Id}' has invalid PathType: '{dto.PathType}'. Valid values: InstantSuccess, Challenge, Fallback");
+            }
+        }
+
         ChoiceTemplate template = new ChoiceTemplate
         {
             Id = dto.Id,
+            PathType = pathType,
             ActionTextTemplate = dto.ActionTextTemplate,
             RequirementFormula = RequirementParser.ConvertDTOToCompoundRequirement(dto.RequirementFormula),
             CostTemplate = ParseChoiceCost(dto.CostTemplate),

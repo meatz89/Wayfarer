@@ -758,17 +758,65 @@ public static class SituationArchetypeCatalog
         return GenerateChoiceTemplates(archetype, situationTemplateId);
     }
 
+    /// <summary>
+    /// Generate 4 standard choices from archetype with UNIVERSAL PROPERTY SCALING.
+    ///
+    /// Context parameter enables universal scaling:
+    /// - StatThreshold scales by PowerDynamic (Dominant 0.6x, Equal 1.0x, Submissive 1.4x)
+    /// - CoinCost scales by Quality (Basic 0.6x, Standard 1.0x, Premium 1.6x, Luxury 2.4x)
+    ///
+    /// If context null, uses archetype base values (no scaling).
+    /// ALL 18 base archetypes benefit from universal scaling.
+    /// </summary>
     public static List<ChoiceTemplate> GenerateChoiceTemplates(
         SituationArchetype archetype,
-        string situationTemplateId)
+        string situationTemplateId,
+        GenerationContext context = null)
     {
+        // Scale by universal properties if context provided
+        int scaledStatThreshold = archetype.StatThreshold;
+        int scaledCoinCost = archetype.CoinCost;
+
+        if (context != null)
+        {
+            // Scale stat threshold by PowerDynamic (easier if dominant, harder if submissive)
+            scaledStatThreshold = context.Power switch
+            {
+                PowerDynamic.Dominant => (int)(archetype.StatThreshold * 0.6),
+                PowerDynamic.Equal => archetype.StatThreshold,
+                PowerDynamic.Submissive => (int)(archetype.StatThreshold * 1.4),
+                _ => archetype.StatThreshold
+            };
+
+            // Scale coin cost by Quality (cheaper if basic, expensive if luxury)
+            scaledCoinCost = context.Quality switch
+            {
+                Quality.Basic => (int)(archetype.CoinCost * 0.6),
+                Quality.Standard => archetype.CoinCost,
+                Quality.Premium => (int)(archetype.CoinCost * 1.6),
+                Quality.Luxury => (int)(archetype.CoinCost * 2.4),
+                _ => archetype.CoinCost
+            };
+
+            // Could also scale by NpcDemeanor for additional nuance
+            if (context.NpcDemeanor == NPCDemeanor.Hostile)
+            {
+                scaledStatThreshold = (int)(scaledStatThreshold * 1.2); // Hostile NPCs harder to influence
+            }
+            else if (context.NpcDemeanor == NPCDemeanor.Friendly)
+            {
+                scaledStatThreshold = (int)(scaledStatThreshold * 0.8); // Friendly NPCs easier
+            }
+        }
+
         List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
 
         ChoiceTemplate statGatedChoice = new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_stat",
+            PathType = ChoicePathType.InstantSuccess,
             ActionTextTemplate = GenerateStatGatedActionText(archetype),
-            RequirementFormula = CreateStatRequirement(archetype),
+            RequirementFormula = CreateStatRequirement(archetype, scaledStatThreshold),
             CostTemplate = new ChoiceCost(),
             RewardTemplate = new ChoiceReward(),
             ActionType = ChoiceActionType.Instant
@@ -778,9 +826,10 @@ public static class SituationArchetypeCatalog
         ChoiceTemplate moneyChoice = new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_money",
+            PathType = ChoicePathType.InstantSuccess,
             ActionTextTemplate = GenerateMoneyActionText(archetype),
             RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost { Coins = archetype.CoinCost },
+            CostTemplate = new ChoiceCost { Coins = scaledCoinCost },
             RewardTemplate = new ChoiceReward(),
             ActionType = ChoiceActionType.Instant
         };
@@ -789,6 +838,7 @@ public static class SituationArchetypeCatalog
         ChoiceTemplate challengeChoice = new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_challenge",
+            PathType = ChoicePathType.Challenge,
             ActionTextTemplate = GenerateChallengeActionText(archetype),
             RequirementFormula = new CompoundRequirement(),
             CostTemplate = new ChoiceCost { Resolve = archetype.ResolveCost },
@@ -802,6 +852,7 @@ public static class SituationArchetypeCatalog
         ChoiceTemplate fallbackChoice = new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_fallback",
+            PathType = ChoicePathType.Fallback,
             ActionTextTemplate = GenerateFallbackActionText(archetype),
             RequirementFormula = new CompoundRequirement(),
             CostTemplate = new ChoiceCost { TimeSegments = archetype.FallbackTimeCost },
@@ -813,21 +864,25 @@ public static class SituationArchetypeCatalog
         return choices;
     }
 
-    private static CompoundRequirement CreateStatRequirement(SituationArchetype archetype)
+    /// <summary>
+    /// Create stat requirement with scaled threshold.
+    /// Threshold parameter allows universal property scaling.
+    /// </summary>
+    private static CompoundRequirement CreateStatRequirement(SituationArchetype archetype, int scaledThreshold)
     {
         CompoundRequirement requirement = new CompoundRequirement();
 
         OrPath primaryPath = new OrPath
         {
-            Label = $"{archetype.PrimaryStat} {archetype.StatThreshold}+",
+            Label = $"{archetype.PrimaryStat} {scaledThreshold}+",
             NumericRequirements = new List<NumericRequirement>
             {
                 new NumericRequirement
                 {
                     Type = "PlayerStat",
                     Context = archetype.PrimaryStat.ToString(),
-                    Threshold = archetype.StatThreshold,
-                    Label = $"{archetype.PrimaryStat} {archetype.StatThreshold}+"
+                    Threshold = scaledThreshold,
+                    Label = $"{archetype.PrimaryStat} {scaledThreshold}+"
                 }
             }
         };
@@ -837,15 +892,15 @@ public static class SituationArchetypeCatalog
         {
             OrPath secondaryPath = new OrPath
             {
-                Label = $"{archetype.SecondaryStat} {archetype.StatThreshold}+",
+                Label = $"{archetype.SecondaryStat} {scaledThreshold}+",
                 NumericRequirements = new List<NumericRequirement>
                 {
                     new NumericRequirement
                     {
                         Type = "PlayerStat",
                         Context = archetype.SecondaryStat.ToString(),
-                        Threshold = archetype.StatThreshold,
-                        Label = $"{archetype.SecondaryStat} {archetype.StatThreshold}+"
+                        Threshold = scaledThreshold,
+                        Label = $"{archetype.SecondaryStat} {scaledThreshold}+"
                     }
                 }
             };
@@ -853,6 +908,14 @@ public static class SituationArchetypeCatalog
         }
 
         return requirement;
+    }
+
+    /// <summary>
+    /// Overload for backwards compatibility - uses base archetype threshold.
+    /// </summary>
+    private static CompoundRequirement CreateStatRequirement(SituationArchetype archetype)
+    {
+        return CreateStatRequirement(archetype, archetype.StatThreshold);
     }
 
     private static string GenerateStatGatedActionText(SituationArchetype archetype)
