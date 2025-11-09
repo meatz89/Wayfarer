@@ -37,6 +37,17 @@ public class SituationCompletionHandler
         // Mark situation as complete
         situation.Complete();
 
+        // TRANSITION TRACKING: Set LastChallengeSucceeded if completing from challenge
+        // Challenge facades call CompleteSituation when player plays SituationCard (success)
+        // This enables OnSuccess/OnFailure transitions in scene state machine
+        if (_gameWorld.PendingMentalContext?.SituationId == situation.Id ||
+            _gameWorld.PendingPhysicalContext?.SituationId == situation.Id ||
+            _gameWorld.PendingSocialContext?.SituationId == situation.Id)
+        {
+            situation.LastChallengeSucceeded = true;
+            Console.WriteLine($"[SituationCompletionHandler] Challenge succeeded for situation '{situation.Id}'");
+        }
+
         // Scene-Situation Architecture: Apply ProjectedConsequences (bonds, scales, states)
         _consequenceFacade.ApplyConsequences(
             situation.ProjectedBondChanges,
