@@ -143,9 +143,10 @@ public class SceneInstantiator
                 InitialSituationId = template.SpawnRules.InitialSituationId,
                 Transitions = template.SpawnRules.Transitions?.Select(t => new SituationTransitionDTO
                 {
-                    FromSituationId = t.FromSituationId,
-                    ToSituationId = t.ToSituationId,
-                    Trigger = t.Trigger.ToString()
+                    SourceSituationId = t.SourceSituationId,
+                    DestinationSituationId = t.DestinationSituationId,
+                    Condition = t.Condition.ToString(),
+                    SpecificChoiceId = t.SpecificChoiceId
                 }).ToList()
             };
         }
@@ -224,29 +225,15 @@ public class SceneInstantiator
                 PlacementNpcId = resolvedNpcId
             };
 
-            // Copy navigation payload if present
-            if (sitTemplate.NavigationPayload != null)
-            {
-                string resolvedDestinationId = _markerResolutionService.ResolveMarker(
-                    sitTemplate.NavigationPayload.DestinationId,
-                    markerResolutionMap);
-
-                situationDto.NavigationPayload = new NavigationPayloadDTO
-                {
-                    DestinationType = sitTemplate.NavigationPayload.DestinationType.ToString(),
-                    DestinationId = resolvedDestinationId
-                };
-            }
-
             // Copy narrative hints if present
             if (sitTemplate.NarrativeHints != null)
             {
                 situationDto.NarrativeHints = new NarrativeHintsDTO
                 {
-                    Mood = sitTemplate.NarrativeHints.Mood,
                     Tone = sitTemplate.NarrativeHints.Tone,
-                    Focus = sitTemplate.NarrativeHints.Focus,
-                    Keywords = sitTemplate.NarrativeHints.Keywords
+                    Theme = sitTemplate.NarrativeHints.Theme,
+                    Context = sitTemplate.NarrativeHints.Context,
+                    Style = sitTemplate.NarrativeHints.Style
                 };
             }
 

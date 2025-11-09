@@ -188,16 +188,17 @@ public static class SceneParser
     /// </summary>
     private static SituationTransition ParseTransition(SituationTransitionDTO dto)
     {
-        if (!Enum.TryParse<TransitionTrigger>(dto.Trigger, true, out TransitionTrigger trigger))
+        if (!Enum.TryParse<TransitionCondition>(dto.Condition, true, out TransitionCondition condition))
         {
-            throw new InvalidDataException($"Invalid TransitionTrigger value: '{dto.Trigger}'");
+            throw new InvalidDataException($"Invalid TransitionCondition value: '{dto.Condition}'");
         }
 
         return new SituationTransition
         {
-            FromSituationId = dto.FromSituationId,
-            ToSituationId = dto.ToSituationId,
-            Trigger = trigger
+            SourceSituationId = dto.SourceSituationId,
+            DestinationSituationId = dto.DestinationSituationId,
+            Condition = condition,
+            SpecificChoiceId = dto.SpecificChoiceId
         };
     }
 }
