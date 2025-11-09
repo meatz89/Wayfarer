@@ -27,6 +27,7 @@
         "sceneArchetypeId": "consequence_reflection",
         "presentationMode": "Modal",
         "tier": 0,
+        "isStarter": true,
         "placementFilter": {
           "placementType": "Location",
           "locationId": "fountain_plaza"
