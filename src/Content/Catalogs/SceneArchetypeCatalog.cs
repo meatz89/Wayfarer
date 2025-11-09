@@ -21,8 +21,8 @@ namespace Wayfarer.Content.Catalogues;
 /// JSON specifies sceneArchetypeId → Parser calls catalogue → Receives SituationTemplates + SpawnRules
 /// → Parser stores in SceneTemplate → Runtime queries GameWorld.SceneTemplates (NO catalogue calls)
 ///
-/// TUTORIAL SCENE ARCHETYPES:
-/// - inn_lodging_tutorial: 3-situation inn lodging flow (negotiate → rest → depart)
+/// SCENE ARCHETYPES (Reusable patterns):
+/// - inn_lodging: 3-situation inn lodging flow (negotiate → rest → depart)
 /// - consequence_reflection: Single-situation consequence acknowledgment
 ///
 /// Each archetype defines:
@@ -46,18 +46,18 @@ public static class SceneArchetypeCatalog
     {
         return archetypeId?.ToLowerInvariant() switch
         {
-            "inn_lodging_tutorial" => GenerateInnLodgingTutorial(tier, context),
+            "inn_lodging" => GenerateInnLodging(tier, context),
             "consequence_reflection" => GenerateConsequenceReflection(tier, context),
 
-            _ => throw new InvalidDataException($"Unknown scene archetype ID: '{archetypeId}'. Valid archetypes: inn_lodging_tutorial, consequence_reflection")
+            _ => throw new InvalidDataException($"Unknown scene archetype ID: '{archetypeId}'. Valid archetypes: inn_lodging, consequence_reflection")
         };
     }
 
     /// <summary>
-    /// INN_LODGING_TUTORIAL archetype
+    /// INN_LODGING archetype
     ///
-    /// FICTIONAL CONTEXT: Player arrives at inn exhausted, needs lodging for the night
-    /// TUTORIAL PURPOSE: Teaches basic scene mechanics, resource costs, choice consequences
+    /// FICTIONAL CONTEXT: Player arrives at inn, needs lodging for the night
+    /// REUSABLE: Works for any inn NPC in the game
     ///
     /// Situation Count: 3
     /// Pattern: Linear (negotiate → rest → depart)
@@ -84,9 +84,9 @@ public static class SceneArchetypeCatalog
     ///   - room_key: Generated item (granted on negotiation, removed on departure)
     ///
     /// VERISIMILITUDE: Lodging at inn follows realistic flow - you negotiate access,
-    /// use the room, then leave. Not generic - specific to inn lodging fiction.
+    /// use the room, then leave. Specific to inn lodging fiction, reusable anywhere.
     /// </summary>
-    private static SceneArchetypeDefinition GenerateInnLodgingTutorial(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateInnLodging(int tier, GenerationContext context)
     {
         string sceneId = "inn_lodging";
         string negotiateSitId = $"{sceneId}_negotiate";
@@ -297,8 +297,8 @@ public static class SceneArchetypeCatalog
     /// <summary>
     /// CONSEQUENCE_REFLECTION archetype
     ///
-    /// FICTIONAL CONTEXT: Player faces consequences of previous choices (morning after rough night)
-    /// TUTORIAL PURPOSE: Shows choices have consequences, introduces consequence mechanics
+    /// FICTIONAL CONTEXT: Player faces consequences of previous choices
+    /// REUSABLE: Works anywhere player needs to acknowledge consequences
     ///
     /// Situation Count: 1 (Standalone)
     /// Pattern: Standalone (single situation, no progression)
@@ -311,7 +311,7 @@ public static class SceneArchetypeCatalog
     ///
     /// No Dependent Resources: Uses existing world locations
     ///
-    /// VERISIMILITUDE: Morning reflection after poor choices. Player must acknowledge
+    /// VERISIMILITUDE: Reflective moment after consequences. Player must acknowledge
     /// reality and decide how to move forward. Single beat, then returns to world.
     /// </summary>
     private static SceneArchetypeDefinition GenerateConsequenceReflection(int tier, GenerationContext context)
@@ -338,7 +338,7 @@ public static class SceneArchetypeCatalog
                 Context = "morning_after",
                 Style = "somber"
             },
-            RequiredLocationId = context.NpcLocationId,  // Fountain plaza (from JSON)
+            RequiredLocationId = context.NpcLocationId,  // From placement filter
             RequiredNpcId = null  // No NPC for solo reflection
         };
 

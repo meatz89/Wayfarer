@@ -12,7 +12,7 @@
       {
         "id": "tutorial_secure_lodging",
         "archetype": "Linear",
-        "sceneArchetypeId": "inn_lodging_tutorial",
+        "sceneArchetypeId": "inn_lodging",
         "presentationMode": "Modal",
         "tier": 0,
         "isStarter": true,
