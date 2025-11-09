@@ -112,13 +112,15 @@ public class NPCAction
     public string SituationId { get; set; }
 
     /// <summary>
-    /// PERFECT INFORMATION: Provisional Scene ID
-    /// If this action spawns a Scene (ChoiceTemplate.RewardTemplate.ScenesToSpawn),
-    /// SceneFacade creates that Scene with State = Provisional immediately
-    /// Player sees WHERE Scene will spawn BEFORE selecting action
-    /// If action selected: Provisional Scene → Active (finalized)
-    /// If OTHER action selected: Provisional Scene → Deleted
+    /// PERFECT INFORMATION: Scene spawn previews
+    /// If this action spawns scenes (ChoiceTemplate.RewardTemplate.ScenesToSpawn),
+    /// SceneFacade generates ScenePreview from SceneTemplate metadata
+    /// Player sees WHERE scene will spawn, WHAT it contains, BEFORE selecting action
     /// Enables strategic decision-making with full knowledge of consequences
+    ///
+    /// HIGHLANDER COMPLIANCE: Replaces provisional scene pattern
+    /// - OLD: Create Scene entity with State=Provisional, delete if not selected
+    /// - NEW: Generate ScenePreview DTO from template, no entity until action executes
     /// </summary>
-    public string ProvisionalSceneId { get; set; }
+    public List<ScenePreview> ScenePreviews { get; set; } = new List<ScenePreview>();
 }

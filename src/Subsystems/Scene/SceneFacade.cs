@@ -124,8 +124,8 @@ public class SceneFacade
                 Priority = 100
             };
 
-            // NO provisional scenes in HIGHLANDER flow - scenes spawn when action selected
-            // Perfect information shown from SceneTemplate metadata
+            // PERFECT INFORMATION: Generate scene previews from template metadata
+            action.ScenePreviews = GenerateScenePreviews(choiceTemplate, scene, player);
 
             _gameWorld.LocationActions.Add(action);
         }
@@ -204,8 +204,8 @@ public class SceneFacade
                 ChallengeType = choiceTemplate.ChallengeType
             };
 
-            // NO provisional scenes in HIGHLANDER flow - scenes spawn when action selected
-            // Perfect information shown from SceneTemplate metadata
+            // PERFECT INFORMATION: Generate scene previews from template metadata
+            action.ScenePreviews = GenerateScenePreviews(choiceTemplate, scene, player);
 
             _gameWorld.NPCActions.Add(action);
         }
@@ -329,6 +329,110 @@ public class SceneFacade
         else // ChoiceActionType.Instant
         {
             return NPCActionType.Instant;
+        }
+    }
+
+    /// <summary>
+    /// Generate scene previews from ChoiceTemplate reward spawns
+    /// PERFECT INFORMATION: Shows player WHERE scenes will spawn and WHAT they contain
+    /// Replaces provisional scene pattern with DTO generation from template metadata
+    /// </summary>
+    private List<ScenePreview> GenerateScenePreviews(ChoiceTemplate choiceTemplate, Scene parentScene, Player player)
+    {
+        List<ScenePreview> previews = new List<ScenePreview>();
+
+        if (choiceTemplate.RewardTemplate == null || !choiceTemplate.RewardTemplate.ScenesToSpawn.Any())
+            return previews; // No scenes to preview
+
+        foreach (SceneSpawnReward spawnReward in choiceTemplate.RewardTemplate.ScenesToSpawn)
+        {
+            SceneTemplate template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == spawnReward.SceneTemplateId);
+            if (template == null)
+            {
+                Console.WriteLine($"[SceneFacade] WARNING: SceneTemplate '{spawnReward.SceneTemplateId}' not found for preview");
+                continue;
+            }
+
+            // Resolve placement if possible at generation time
+            string resolvedPlacementId = ResolvePreviewPlacement(spawnReward, parentScene, player);
+            PlacementType? placementType = DeterminePlacementType(spawnReward.PlacementRelation);
+
+            // Collect unique challenge types from situation templates
+            List<TacticalSystemType> challengeTypes = template.SituationTemplates
+                .SelectMany(st => st.ChoiceTemplates)
+                .Where(ct => ct.ChallengeType.HasValue)
+                .Select(ct => ct.ChallengeType.Value)
+                .Distinct()
+                .ToList();
+
+            ScenePreview preview = new ScenePreview
+            {
+                SceneTemplateId = template.Id,
+                DisplayName = template.DisplayNameTemplate, // Will have placeholders
+                Tier = template.Tier,
+                PlacementRelation = spawnReward.PlacementRelation,
+                ResolvedPlacementId = resolvedPlacementId,
+                PlacementType = placementType,
+                SituationCount = template.SituationTemplates.Count,
+                ChallengeTypes = challengeTypes,
+                ExpiresInDays = template.ExpirationDays,
+                Archetype = template.Archetype
+            };
+
+            previews.Add(preview);
+        }
+
+        return previews;
+    }
+
+    /// <summary>
+    /// Resolve placement ID for scene preview if determinable at action generation time
+    /// Returns null if placement depends on execution-time context
+    /// </summary>
+    private string ResolvePreviewPlacement(SceneSpawnReward spawnReward, Scene parentScene, Player player)
+    {
+        switch (spawnReward.PlacementRelation)
+        {
+            case PlacementRelation.SameLocation:
+            case PlacementRelation.SameNPC:
+                return parentScene.PlacementId; // Same as parent scene
+
+            case PlacementRelation.SpecificLocation:
+            case PlacementRelation.SpecificNPC:
+                return spawnReward.SpecificPlacementId; // Concrete ID from reward
+
+            case PlacementRelation.Player:
+                return player.ID; // Player ID
+
+            default:
+                return null; // Cannot resolve without execution context
+        }
+    }
+
+    /// <summary>
+    /// Determine placement type from placement relation
+    /// Used for scene preview display
+    /// </summary>
+    private PlacementType? DeterminePlacementType(PlacementRelation relation)
+    {
+        switch (relation)
+        {
+            case PlacementRelation.SameLocation:
+            case PlacementRelation.SpecificLocation:
+                return PlacementType.Location;
+
+            case PlacementRelation.SameNPC:
+            case PlacementRelation.SpecificNPC:
+                return PlacementType.NPC;
+
+            case PlacementRelation.CurrentRoute:
+                return PlacementType.Route;
+
+            case PlacementRelation.Player:
+                return PlacementType.Location; // Player is always at a location
+
+            default:
+                return null;
         }
     }
 }
