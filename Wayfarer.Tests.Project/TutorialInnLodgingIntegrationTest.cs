@@ -283,7 +283,7 @@ public class TutorialInnLodgingIntegrationTest
 
         // ASSERT: Complete integration succeeds
         Assert.Equal(SceneState.Active, finalizedScene.State);
-        Assert.NotEmpty(finalizedScene.SituationIds);
+        Assert.NotEmpty(finalizedScene.Situations);
 
         // Dependent resources generated
         Assert.True(specs.HasResources);
@@ -296,9 +296,7 @@ public class TutorialInnLodgingIntegrationTest
             Assert.False(resolvedId.Contains("generated:"), "Markers should be resolved to actual IDs"));
 
         // Situations created and can be queried
-        List<Situation> situations = gameWorld.Situations
-            .Where(s => finalizedScene.SituationIds.Contains(s.Id))
-            .ToList();
+        List<Situation> situations = finalizedScene.Situations;
 
         Assert.NotEmpty(situations);
         Assert.All(situations, situation =>
