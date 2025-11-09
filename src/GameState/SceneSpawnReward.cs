@@ -1,4 +1,3 @@
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Defines a Scene to be spawned as a Choice reward

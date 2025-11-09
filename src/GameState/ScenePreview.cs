@@ -1,4 +1,3 @@
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Perfect information preview of scene that will spawn when action is selected

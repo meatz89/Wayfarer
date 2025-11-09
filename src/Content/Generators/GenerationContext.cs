@@ -1,5 +1,3 @@
-using Wayfarer.GameState;
-using Wayfarer.GameState.Enums;
 /// <summary>
 /// UNIVERSAL generation context for ALL scene and situation archetypes.
 ///

@@ -1,4 +1,3 @@
-using Wayfarer.Content.DTOs;
 
 {
     /// <summary>

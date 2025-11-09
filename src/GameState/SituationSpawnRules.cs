@@ -1,4 +1,3 @@
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Defines how Situations within a Scene lead into each other

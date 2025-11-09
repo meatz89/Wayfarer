@@ -1,5 +1,3 @@
-using Wayfarer.GameState;
-using Wayfarer.Models;
 
 /// <summary>
 /// Service that generates narrative text for Scenes and Situations from entity context.

@@ -1,4 +1,3 @@
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Numeric Requirement - individual threshold check

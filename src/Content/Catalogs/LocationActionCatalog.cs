@@ -1,4 +1,3 @@
-using Wayfarer.GameState.Enums;
 /// <summary>
 /// Catalogue for generating LocationActions from location categorical properties.
 /// Called by Parser ONLY - runtime never touches this.

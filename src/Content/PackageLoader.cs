@@ -1,8 +1,4 @@
 using System.Text.Json;
-using Wayfarer.Content.Catalogs;
-using Wayfarer.Content.DTOs;
-using Wayfarer.Content.Parsers;
-using Wayfarer.Services;
 
 /// <summary>
 /// Helper class for exchange card lookups

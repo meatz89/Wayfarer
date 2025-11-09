@@ -1,5 +1,3 @@
-using Wayfarer.Content;
-using Wayfarer.Services;
 
 public static class ServiceConfiguration
 {

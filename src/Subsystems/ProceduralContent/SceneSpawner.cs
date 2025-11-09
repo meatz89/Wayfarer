@@ -1,4 +1,3 @@
-using Wayfarer.GameState;
 public static class SceneSpawner
 {
     public static SpawnResult CalculateSpawn(SpawnRequest request, IGameStateQuery gameState)

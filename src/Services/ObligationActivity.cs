@@ -1,5 +1,3 @@
-using Wayfarer.Content;
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Obligation service - provides operations for obligation lifecycle

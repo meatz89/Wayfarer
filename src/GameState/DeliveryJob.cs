@@ -1,4 +1,3 @@
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Represents a procedurally generated delivery job connecting two Commercial locations.

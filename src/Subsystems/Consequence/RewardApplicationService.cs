@@ -1,7 +1,3 @@
-using Wayfarer.Content;
-using Wayfarer.GameState;
-using Wayfarer.GameState.Enums;
-using Wayfarer.Services;
 
 /// <summary>
 /// Centralized service for applying ChoiceReward consequences

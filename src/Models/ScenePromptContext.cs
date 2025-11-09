@@ -1,4 +1,3 @@
-using Wayfarer.GameState;
 /// <summary>
 /// Strongly-typed context for Scene/Situation narrative prompt generation.
 /// Bundles entity objects (NPC, Location, Player) with complete properties for AI generation.

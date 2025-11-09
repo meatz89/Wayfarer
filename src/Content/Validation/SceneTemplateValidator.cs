@@ -1,4 +1,3 @@
-using Wayfarer.GameState;
 public static class SceneTemplateValidator
 {
     public static ValidationResult Validate(SceneTemplate template)

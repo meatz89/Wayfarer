@@ -1,5 +1,3 @@
-using Wayfarer.GameState;
-using Wayfarer.GameState.Enums;
 /// <summary>
 /// Parser for converting SceneDTO to Scene domain model
 /// HIGHLANDER: JSON → PackageLoader → Parser → Entity (single instantiation path)

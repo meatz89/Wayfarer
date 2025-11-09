@@ -1,4 +1,3 @@
-using Wayfarer.GameState;
 public class SpawnRequest
 {
     public SceneTemplate Template { get; set; }

@@ -1,5 +1,3 @@
-using Wayfarer.GameState;
-using Wayfarer.GameState.Enums;
 /// <summary>
 /// ⚠️ PARSE-TIME ONLY CATALOGUE ⚠️
 ///

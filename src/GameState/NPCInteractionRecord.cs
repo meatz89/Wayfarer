@@ -1,4 +1,3 @@
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Tracks LAST interaction timestamp per NPC for LeastRecent selection strategy

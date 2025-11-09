@@ -1,4 +1,3 @@
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Spawn Rule - defines how a situation spawns child situations on completion

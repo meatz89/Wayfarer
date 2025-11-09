@@ -1,4 +1,3 @@
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// TravelScene - Physical challenge system for route obstacles.

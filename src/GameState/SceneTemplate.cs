@@ -1,4 +1,3 @@
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// SceneTemplate - immutable archetype for procedural Scene generation

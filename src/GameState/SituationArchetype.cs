@@ -1,4 +1,3 @@
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// SituationArchetype - mechanical template for procedural situation generation

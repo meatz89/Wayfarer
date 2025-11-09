@@ -1,4 +1,3 @@
-using Wayfarer.Content.DTOs;
 
 /// <summary>
 /// Container for all game content in a package - uses DTOs consistently

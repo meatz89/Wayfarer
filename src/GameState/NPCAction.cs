@@ -1,4 +1,3 @@
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// NPCAction - Runtime entity for NPC interaction choices

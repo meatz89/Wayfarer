@@ -1,4 +1,3 @@
-using Wayfarer.Content;
 
 /// <summary>
 /// FACADE: Clean boundary for dynamic package loading

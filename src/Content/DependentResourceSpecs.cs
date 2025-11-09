@@ -1,4 +1,3 @@
-using Wayfarer.Content.DTOs;
 /// <summary>
 /// ISOLATION BOUNDARY: Specs returned from SceneInstantiator to orchestrator
 /// SceneInstantiator generates these specs (pure domain logic)

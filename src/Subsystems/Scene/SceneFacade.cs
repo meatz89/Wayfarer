@@ -1,5 +1,3 @@
-using Wayfarer.Content;
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// SceneFacade - Query layer for Scene/Situation display

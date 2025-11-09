@@ -1,5 +1,3 @@
-using Wayfarer.GameState;
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Public facade for all location-related operations.
