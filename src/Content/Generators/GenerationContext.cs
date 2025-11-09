@@ -45,7 +45,77 @@ public class GenerationContext
             NpcId = npc?.ID,
             NpcName = npc?.Name ?? "",
             PlayerCoins = player?.Coins ?? 0,
-            LocationProperties = location?.LocationProperties ?? new()
+            LocationProperties = location?.LocationProperties ?? new(),
+
+            // Derive categorical properties from entity state
+            ServiceQuality = DeriveServiceQuality(location),
+            SpotComfort = DeriveSpotComfort(location),
+            NPCDemeanor = DeriveNPCDemeanor(npc)
+        };
+    }
+
+    /// <summary>
+    /// Derive service quality tier from location tier.
+    /// Maps location.Tier (1-4+) to categorical quality (Basic/Standard/Premium/Luxury).
+    /// </summary>
+    private static ServiceQuality DeriveServiceQuality(Location location)
+    {
+        if (location == null) return ServiceQuality.Standard;
+
+        return location.Tier switch
+        {
+            1 => ServiceQuality.Basic,
+            2 => ServiceQuality.Standard,
+            3 => ServiceQuality.Premium,
+            >= 4 => ServiceQuality.Luxury,
+            _ => ServiceQuality.Standard
+        };
+    }
+
+    /// <summary>
+    /// Derive spot comfort from location properties.
+    /// Checks LocationProperties for comfort-related descriptors.
+    /// </summary>
+    private static SpotComfort DeriveSpotComfort(Location location)
+    {
+        if (location == null || location.LocationProperties == null || location.LocationProperties.Count == 0)
+            return SpotComfort.Standard;
+
+        // Check for premium indicators
+        if (location.LocationProperties.Contains(LocationPropertyType.luxurious) ||
+            location.LocationProperties.Contains(LocationPropertyType.opulent))
+        {
+            return SpotComfort.Premium;
+        }
+
+        // Check for standard comfort indicators
+        if (location.LocationProperties.Contains(LocationPropertyType.restful) ||
+            location.LocationProperties.Contains(LocationPropertyType.comfortable))
+        {
+            return SpotComfort.Standard;
+        }
+
+        // Default to basic
+        return SpotComfort.Basic;
+    }
+
+    /// <summary>
+    /// Derive NPC demeanor from relationship flow.
+    /// Maps RelationshipFlow ranges to Hostile/Neutral/Friendly demeanor.
+    /// Ranges based on ConnectionState thresholds:
+    /// - <= 9: DISCONNECTED/GUARDED → Hostile
+    /// - <= 14: NEUTRAL → Neutral
+    /// - >= 15: RECEPTIVE/TRUSTING → Friendly
+    /// </summary>
+    private static NPCDemeanor DeriveNPCDemeanor(NPC npc)
+    {
+        if (npc == null) return NPCDemeanor.Neutral;
+
+        return npc.RelationshipFlow switch
+        {
+            <= 9 => NPCDemeanor.Hostile,   // DISCONNECTED (<=4) or GUARDED (<=9)
+            <= 14 => NPCDemeanor.Neutral,  // NEUTRAL (<=14)
+            _ => NPCDemeanor.Friendly      // RECEPTIVE (<=19) or TRUSTING (>19)
         };
     }
 }

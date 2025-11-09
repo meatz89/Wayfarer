@@ -1,5 +1,6 @@
 using Wayfarer.GameState;
 using Wayfarer.GameState.Enums;
+using Wayfarer.Content.Generators;
 
 namespace Wayfarer.Content.Catalogues;
 
@@ -724,6 +725,39 @@ public static class SituationArchetypeCatalog
         };
     }
 
+    /// <summary>
+    /// CONTEXT-AWARE CHOICE GENERATION (for service archetypes)
+    ///
+    /// Generates choices with context-driven scaling:
+    /// - service_negotiation: Scales stat thresholds by NPC.Demeanor, costs by Service.Quality
+    /// - service_execution_rest: Generates 4 rest choices with contextual rewards (NOT archetype pattern)
+    /// - service_departure: Generates 2 departure choices (NOT archetype pattern)
+    ///
+    /// For other archetypes, delegates to GenerateChoiceTemplates().
+    /// </summary>
+    public static List<ChoiceTemplate> GenerateChoiceTemplatesWithContext(
+        SituationArchetype archetype,
+        string situationTemplateId,
+        GenerationContext context)
+    {
+        // Specialized generation for service archetypes
+        if (archetype.Id == "service_negotiation")
+        {
+            return GenerateServiceNegotiationChoices(archetype, situationTemplateId, context);
+        }
+        else if (archetype.Id == "service_execution_rest")
+        {
+            return GenerateServiceExecutionRestChoices(situationTemplateId, context);
+        }
+        else if (archetype.Id == "service_departure")
+        {
+            return GenerateServiceDepartureChoices(situationTemplateId, context);
+        }
+
+        // Fallback to standard generation
+        return GenerateChoiceTemplates(archetype, situationTemplateId);
+    }
+
     public static List<ChoiceTemplate> GenerateChoiceTemplates(
         SituationArchetype archetype,
         string situationTemplateId)
@@ -923,5 +957,264 @@ public static class SituationArchetypeCatalog
             "departing_private_space" => "Rush out without proper preparation",
             _ => "Accept poor outcome"
         };
+    }
+
+    /// <summary>
+    /// Generate service_negotiation choices with context-aware scaling.
+    /// Scales stat thresholds by NPC.Demeanor and coin costs by Service.Quality.
+    /// Returns 4 choices with EMPTY RewardTemplate (SceneArchetypeCatalog enriches them).
+    /// </summary>
+    private static List<ChoiceTemplate> GenerateServiceNegotiationChoices(
+        SituationArchetype archetype,
+        string situationTemplateId,
+        GenerationContext context)
+    {
+        // Scale stat threshold by NPC demeanor
+        int scaledStatThreshold = context.NpcDemeanor switch
+        {
+            NPCDemeanor.Friendly => (int)(archetype.StatThreshold * 0.6),  // Easier
+            NPCDemeanor.Neutral => archetype.StatThreshold,                 // Baseline
+            NPCDemeanor.Hostile => (int)(archetype.StatThreshold * 1.4),   // Harder
+            _ => archetype.StatThreshold
+        };
+
+        // Scale coin cost by service quality
+        int scaledCoinCost = context.ServiceQuality switch
+        {
+            ServiceQuality.Basic => (int)(archetype.CoinCost * 0.6),    // 3 coins
+            ServiceQuality.Standard => archetype.CoinCost,                // 5 coins
+            ServiceQuality.Premium => (int)(archetype.CoinCost * 1.6),   // 8 coins
+            ServiceQuality.Luxury => (int)(archetype.CoinCost * 2.4),    // 12 coins
+            _ => archetype.CoinCost
+        };
+
+        List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
+
+        // Choice 1: Rapport-gated (free if you have relationship)
+        CompoundRequirement rapportReq = new CompoundRequirement();
+        rapportReq.OrPaths.Add(new OrPath
+        {
+            Label = $"Rapport {scaledStatThreshold}+",
+            NumericRequirements = new List<NumericRequirement>
+            {
+                new NumericRequirement
+                {
+                    Type = "PlayerStat",
+                    Context = "Rapport",
+                    Threshold = scaledStatThreshold,
+                    Label = $"Rapport {scaledStatThreshold}+"
+                }
+            }
+        });
+
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_stat",
+            ActionTextTemplate = "Leverage your rapport",
+            RequirementFormula = rapportReq,
+            CostTemplate = new ChoiceCost(),
+            RewardTemplate = new ChoiceReward(),  // Empty, enriched by scene archetype
+            ActionType = ChoiceActionType.Instant
+        });
+
+        // Choice 2: Pay coins (scaled by quality)
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_money",
+            ActionTextTemplate = $"Pay {scaledCoinCost} coins for the service",
+            RequirementFormula = new CompoundRequirement(),
+            CostTemplate = new ChoiceCost { Coins = scaledCoinCost },
+            RewardTemplate = new ChoiceReward(),  // Empty, enriched by scene archetype
+            ActionType = ChoiceActionType.Instant
+        });
+
+        // Choice 3: Challenge (negotiate better terms)
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_challenge",
+            ActionTextTemplate = "Attempt to negotiate better terms",
+            RequirementFormula = new CompoundRequirement(),
+            CostTemplate = new ChoiceCost { Resolve = archetype.ResolveCost },
+            RewardTemplate = new ChoiceReward(),  // Empty
+            ActionType = ChoiceActionType.StartChallenge,
+            ChallengeType = archetype.ChallengeType
+        });
+
+        // Choice 4: Decline
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_fallback",
+            ActionTextTemplate = "Politely decline",
+            RequirementFormula = new CompoundRequirement(),
+            CostTemplate = new ChoiceCost(),
+            RewardTemplate = new ChoiceReward(),
+            ActionType = ChoiceActionType.Instant
+        });
+
+        return choices;
+    }
+
+    /// <summary>
+    /// Generate service_execution_rest choices with context-aware restoration scaling.
+    /// Returns 4 rest choices that all advance to next morning.
+    /// Restoration amounts scale by Spot.Comfort (1x/2x/3x).
+    /// </summary>
+    private static List<ChoiceTemplate> GenerateServiceExecutionRestChoices(
+        string situationTemplateId,
+        GenerationContext context)
+    {
+        // Comfort multiplier for restoration
+        int comfortMultiplier = context.SpotComfort switch
+        {
+            SpotComfort.Basic => 1,
+            SpotComfort.Standard => 2,
+            SpotComfort.Premium => 3,
+            _ => 2
+        };
+
+        int baseHealth = 10 * comfortMultiplier;
+        int baseStamina = 10 * comfortMultiplier;
+        int baseFocus = 7 * comfortMultiplier;
+
+        List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
+
+        // Choice 1: Balanced restoration
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_balanced",
+            ActionTextTemplate = "Sleep peacefully",
+            RequirementFormula = new CompoundRequirement(),
+            CostTemplate = new ChoiceCost(),
+            RewardTemplate = new ChoiceReward
+            {
+                Health = baseHealth + baseHealth / 2,      // 15/30/45
+                Stamina = baseStamina + baseStamina / 2,   // 15/30/45
+                Focus = baseFocus + baseFocus / 2,         // 10/21/31
+                AdvanceToDay = DayAdvancement.NextDay,
+                AdvanceToBlock = TimeBlocks.Morning
+            },
+            ActionType = ChoiceActionType.Instant
+        });
+
+        // Choice 2: Physical focus
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_physical",
+            ActionTextTemplate = "Rest deeply",
+            RequirementFormula = new CompoundRequirement(),
+            CostTemplate = new ChoiceCost(),
+            RewardTemplate = new ChoiceReward
+            {
+                Health = baseHealth * 2 + baseHealth / 2,  // 25/50/75
+                Stamina = baseStamina,                      // 10/20/30
+                Focus = baseFocus / 2,                      // 3/7/10
+                AdvanceToDay = DayAdvancement.NextDay,
+                AdvanceToBlock = TimeBlocks.Morning
+            },
+            ActionType = ChoiceActionType.Instant
+        });
+
+        // Choice 3: Mental focus
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_mental",
+            ActionTextTemplate = "Meditate before sleeping",
+            RequirementFormula = new CompoundRequirement(),
+            CostTemplate = new ChoiceCost(),
+            RewardTemplate = new ChoiceReward
+            {
+                Health = baseHealth / 2,                    // 5/10/15
+                Stamina = baseStamina,                      // 10/20/30
+                Focus = baseFocus * 2 + baseFocus / 2,     // 17/35/52
+                AdvanceToDay = DayAdvancement.NextDay,
+                AdvanceToBlock = TimeBlocks.Morning
+            },
+            ActionType = ChoiceActionType.Instant
+        });
+
+        // Choice 4: Special (balanced + buff)
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_special",
+            ActionTextTemplate = "Dream vividly",
+            RequirementFormula = new CompoundRequirement(),
+            CostTemplate = new ChoiceCost(),
+            RewardTemplate = new ChoiceReward
+            {
+                Health = baseHealth + baseFocus / 2,        // 13/27/40
+                Stamina = baseStamina + baseFocus / 2,      // 13/27/40
+                Focus = baseFocus + baseFocus / 2,          // 10/21/31
+                AdvanceToDay = DayAdvancement.NextDay,
+                AdvanceToBlock = TimeBlocks.Morning,
+                StateApplications = new List<StateApplication>
+                {
+                    new StateApplication
+                    {
+                        StateType = StateType.Inspired,
+                        Operation = StateOperation.Apply,
+                        DurationSegments = 4
+                    }
+                }
+            },
+            ActionType = ChoiceActionType.Instant
+        });
+
+        return choices;
+    }
+
+    /// <summary>
+    /// Generate service_departure choices (only 2, not 4).
+    /// Context determines which buff is granted (Focused for lodging, etc.).
+    /// Returns choices with EMPTY RewardTemplate (SceneArchetypeCatalog adds cleanup).
+    /// </summary>
+    private static List<ChoiceTemplate> GenerateServiceDepartureChoices(
+        string situationTemplateId,
+        GenerationContext context)
+    {
+        // Determine buff by service type
+        StateType buffType = context.ServiceType switch
+        {
+            ServiceType.Lodging => StateType.Focused,      // Organization
+            ServiceType.Bathing => StateType.Rested,        // Appearance (no WellGroomed in enum, using Rested)
+            ServiceType.Healing => StateType.Rested,        // Treatment knowledge
+            _ => StateType.Focused
+        };
+
+        List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
+
+        // Choice 1: Leave immediately (no cost, no buff)
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_immediate",
+            ActionTextTemplate = "Leave immediately",
+            RequirementFormula = new CompoundRequirement(),
+            CostTemplate = new ChoiceCost(),
+            RewardTemplate = new ChoiceReward(),  // Empty, enriched with cleanup by scene archetype
+            ActionType = ChoiceActionType.Instant
+        });
+
+        // Choice 2: Gather carefully (costs 1 segment, grants buff)
+        choices.Add(new ChoiceTemplate
+        {
+            Id = $"{situationTemplateId}_careful",
+            ActionTextTemplate = "Gather your belongings carefully",
+            RequirementFormula = new CompoundRequirement(),
+            CostTemplate = new ChoiceCost { TimeSegments = 1 },
+            RewardTemplate = new ChoiceReward
+            {
+                StateApplications = new List<StateApplication>
+                {
+                    new StateApplication
+                    {
+                        StateType = buffType,
+                        Operation = StateOperation.Apply,
+                        DurationSegments = 4
+                    }
+                }
+            },
+            ActionType = ChoiceActionType.Instant
+        });
+
+        return choices;
     }
 }
