@@ -33,7 +33,7 @@ public class TutorialSystemIntegrationTest : IntegrationTestBase
     /// Player Experience: Player should see BOTH tutorial scenes available
     /// </summary>
     [Fact]
-    public void AllTutorialScenesSpawnAtGameStart()
+    public async Task AllTutorialScenesSpawnAtGameStart()
     {
         // ARRANGE: Start new game
         GameWorld gameWorld = GetGameWorld();
@@ -41,7 +41,7 @@ public class TutorialSystemIntegrationTest : IntegrationTestBase
 
         // ACT: Start game (triggers SpawnStarterScenes)
         Player player = gameWorld.GetPlayer();
-        gameFacade.StartGameAsync().Wait();
+        await gameFacade.StartGameAsync();
 
         // ASSERT: Both tutorial scenes should exist in GameWorld
         Scene innLodgingScene = gameWorld.Scenes.FirstOrDefault(s =>
@@ -70,13 +70,13 @@ public class TutorialSystemIntegrationTest : IntegrationTestBase
     /// Player Experience: Tutorial should ALWAYS be completable, never soft-lock
     /// </summary>
     [Fact]
-    public void StartingPlayerCanCompleteTutorial()
+    public async Task StartingPlayerCanCompleteTutorial()
     {
         // ARRANGE: Start new game
         GameWorld gameWorld = GetGameWorld();
         GameFacade gameFacade = GetGameFacade();
         Player player = gameWorld.GetPlayer();
-        gameFacade.StartGameAsync().Wait();
+        await gameFacade.StartGameAsync();
 
         // Get tutorial scene
         Scene innLodgingScene = gameWorld.Scenes.FirstOrDefault(s =>
@@ -150,13 +150,13 @@ public class TutorialSystemIntegrationTest : IntegrationTestBase
     /// Player Experience: Reward-spawned scenes should work identically to starter scenes
     /// </summary>
     [Fact]
-    public void RewardSpawnedSceneLoadsDependentResources()
+    public async Task RewardSpawnedSceneLoadsDependentResources()
     {
         // ARRANGE: Start new game, get starter scene
         GameWorld gameWorld = GetGameWorld();
         GameFacade gameFacade = GetGameFacade();
         Player player = gameWorld.GetPlayer();
-        gameFacade.StartGameAsync().Wait();
+        await gameFacade.StartGameAsync();
 
         Scene innLodgingScene = gameWorld.Scenes.FirstOrDefault(s =>
             s.TemplateId == "tutorial_secure_lodging");
@@ -253,13 +253,13 @@ public class TutorialSystemIntegrationTest : IntegrationTestBase
     /// Player Experience: Complete end-to-end flow from game start to tutorial completion
     /// </summary>
     [Fact]
-    public void TutorialCompleteFlowFromStartToCompletion()
+    public async Task TutorialCompleteFlowFromStartToCompletion()
     {
         // ARRANGE: Start new game
         GameWorld gameWorld = GetGameWorld();
         GameFacade gameFacade = GetGameFacade();
         Player player = gameWorld.GetPlayer();
-        gameFacade.StartGameAsync().Wait();
+        await gameFacade.StartGameAsync();
 
         // ACT & ASSERT: Verify complete tutorial flow
 

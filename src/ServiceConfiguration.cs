@@ -139,6 +139,7 @@ public static class ServiceConfiguration
         services.AddSingleton<HexRouteGenerator>();
         services.AddSingleton<MarkerResolutionService>();
         services.AddSingleton<SceneInstantiator>();
+        services.AddSingleton<DependentResourceOrchestrationService>();
 
         // Scene Generation and Instance Facades (clean boundaries for procedural content)
         services.AddSingleton<SceneGenerationFacade>();

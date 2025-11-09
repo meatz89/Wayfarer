@@ -11,6 +11,7 @@ public class ObligationActivity
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
     private readonly SceneInstanceFacade _sceneInstanceFacade;
+    private readonly DependentResourceOrchestrationService _dependentResourceOrchestrationService;
 
     private ObligationDiscoveryResult _pendingDiscoveryResult;
     private ObligationActivationResult _pendingActivationResult;
@@ -21,11 +22,13 @@ public class ObligationActivity
     public ObligationActivity(
         GameWorld gameWorld,
         MessageSystem messageSystem,
-        SceneInstanceFacade sceneInstanceFacade)
+        SceneInstanceFacade sceneInstanceFacade,
+        DependentResourceOrchestrationService dependentResourceOrchestrationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
         _sceneInstanceFacade = sceneInstanceFacade ?? throw new ArgumentNullException(nameof(sceneInstanceFacade));
+        _dependentResourceOrchestrationService = dependentResourceOrchestrationService ?? throw new ArgumentNullException(nameof(dependentResourceOrchestrationService));
     }
 
     /// <summary>
@@ -511,6 +514,9 @@ public class ObligationActivity
 
         SceneFinalizationResult finalizationResult = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, context);
         Scene finalizedScene = finalizationResult.Scene;
+        DependentResourceSpecs dependentSpecs = finalizationResult.DependentSpecs;
+
+        _dependentResourceOrchestrationService.LoadDependentResources(finalizedScene, dependentSpecs, player);
 
         string placementDescription = GetPlacementDescription(finalizedScene);
         _messageSystem.AddSystemMessage(

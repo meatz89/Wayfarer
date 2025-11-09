@@ -35,17 +35,20 @@ public class SpawnFacade
     private readonly TimeManager _timeManager;
     private readonly SpawnConditionsEvaluator _conditionsEvaluator;
     private readonly SceneInstanceFacade _sceneInstanceFacade;
+    private readonly DependentResourceOrchestrationService _dependentResourceOrchestrationService;
 
     public SpawnFacade(
         GameWorld gameWorld,
         TimeManager timeManager,
         SpawnConditionsEvaluator conditionsEvaluator,
-        SceneInstanceFacade sceneInstanceFacade)
+        SceneInstanceFacade sceneInstanceFacade,
+        DependentResourceOrchestrationService dependentResourceOrchestrationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _conditionsEvaluator = conditionsEvaluator ?? throw new ArgumentNullException(nameof(conditionsEvaluator));
         _sceneInstanceFacade = sceneInstanceFacade ?? throw new ArgumentNullException(nameof(sceneInstanceFacade));
+        _dependentResourceOrchestrationService = dependentResourceOrchestrationService ?? throw new ArgumentNullException(nameof(dependentResourceOrchestrationService));
     }
 
     /// <summary>
@@ -401,6 +404,9 @@ public class SpawnFacade
 
                     SceneFinalizationResult finalizationResult = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, spawnContext);
                     Scene finalizedScene = finalizationResult.Scene;
+                    DependentResourceSpecs dependentSpecs = finalizationResult.DependentSpecs;
+
+                    _dependentResourceOrchestrationService.LoadDependentResources(finalizedScene, dependentSpecs, player);
 
                     spawned++;
                     Console.WriteLine($"[SpawnOrchestration] Scene '{provisionalScene.Id}' spawned and finalized");
