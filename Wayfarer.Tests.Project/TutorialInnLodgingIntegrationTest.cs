@@ -248,7 +248,18 @@ public class TutorialInnLodgingIntegrationTest
         SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
         MarkerResolutionService markerService = new MarkerResolutionService();
         SceneInstantiator instantiator = new SceneInstantiator(gameWorld, spawnEvaluator, narrativeService, markerService);
-        SceneInstanceFacade sceneInstanceFacade = new SceneInstanceFacade(instantiator, gameWorld);
+        ContentGenerationFacade contentGenerationFacade = new ContentGenerationFacade();
+        PackageLoaderFacade packageLoaderFacade = new PackageLoaderFacade(gameWorld);
+        HexRouteGenerator hexRouteGenerator = new HexRouteGenerator(gameWorld);
+        TimeManager timeManager = new TimeManager(gameWorld);
+
+        SceneInstanceFacade sceneInstanceFacade = new SceneInstanceFacade(
+            instantiator,
+            contentGenerationFacade,
+            packageLoaderFacade,
+            hexRouteGenerator,
+            timeManager,
+            gameWorld);
 
         SceneTemplate template = new SceneTemplate
         {
@@ -275,29 +286,38 @@ public class TutorialInnLodgingIntegrationTest
             CurrentSituation = null
         };
 
-        // ACT: Create and finalize scene
-        Scene provisionalScene = sceneInstanceFacade.CreateProvisionalScene(template, spawnReward, spawnContext);
-        SceneFinalizationResult result = sceneInstanceFacade.FinalizeScene(provisionalScene.Id, spawnContext);
-        Scene finalizedScene = result.Scene;
-        DependentResourceSpecs specs = result.DependentSpecs;
+        // HIGHLANDER FLOW: Single method spawns scene as Active immediately
+        Scene spawnedScene = sceneInstanceFacade.SpawnScene(template, spawnReward, spawnContext);
 
         // ASSERT: Complete integration succeeds
-        Assert.Equal(SceneState.Active, finalizedScene.State);
-        Assert.NotEmpty(finalizedScene.Situations);
+        Assert.NotNull(spawnedScene);
+        Assert.Equal(SceneState.Active, spawnedScene.State);
+        Assert.NotEmpty(spawnedScene.Situations);
 
-        // Dependent resources generated
-        Assert.True(specs.HasResources);
-        Assert.NotEmpty(specs.Locations);
-        Assert.NotEmpty(specs.Items);
+        // Dependent resources generated and added to GameWorld
+        Assert.NotEmpty(spawnedScene.CreatedLocationIds);
+        Assert.NotEmpty(spawnedScene.CreatedItemIds);
+
+        // Verify dependent resources exist in GameWorld
+        foreach (string locationId in spawnedScene.CreatedLocationIds)
+        {
+            Location location = gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
+            Assert.NotNull(location);
+        }
+        
+        foreach (string itemId in spawnedScene.CreatedItemIds)
+        {
+            Item item = gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
+            Assert.NotNull(item);
+        }
 
         // Markers resolved to actual IDs
-        Assert.NotEmpty(finalizedScene.MarkerResolutionMap);
-        Assert.All(finalizedScene.MarkerResolutionMap.Values, resolvedId =>
+        Assert.NotEmpty(spawnedScene.MarkerResolutionMap);
+        Assert.All(spawnedScene.MarkerResolutionMap.Values, resolvedId =>
             Assert.False(resolvedId.Contains("generated:"), "Markers should be resolved to actual IDs"));
 
         // Situations created and can be queried
-        List<Situation> situations = finalizedScene.Situations;
-
+        List<Situation> situations = spawnedScene.Situations;
         Assert.NotEmpty(situations);
         Assert.All(situations, situation =>
         {

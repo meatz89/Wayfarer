@@ -286,8 +286,8 @@ public class SceneFacade
                 StatRequirements = new Dictionary<string, int>()
             };
 
-            // NO provisional scenes in HIGHLANDER flow - scenes spawn when action selected
-            // Perfect information shown from SceneTemplate metadata
+            // PERFECT INFORMATION: Generate scene previews from template metadata
+            pathCard.ScenePreviews = GenerateScenePreviews(choiceTemplate, scene, player);
 
             _gameWorld.PathCards.Add(pathCard);
         }

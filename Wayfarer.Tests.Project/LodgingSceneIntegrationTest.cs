@@ -11,7 +11,8 @@ namespace Wayfarer.Tests.Project;
 
 /// <summary>
 /// Integration test using REAL facades with TEST GameWorld
-/// Validates: Stateless facades + Test JSON = Clean integration testing
+/// Validates: HIGHLANDER scene spawning flow (JSON → PackageLoader → Parser → Entity)
+/// Replaces provisional scene pattern with direct Active scene creation
 /// </summary>
 public class LodgingSceneIntegrationTest
 {
@@ -56,6 +57,7 @@ public class LodgingSceneIntegrationTest
         Assert.Single(definition.DependentLocations);
         Assert.Single(definition.DependentItems);
 
+        // HIGHLANDER FLOW: Construct full dependency chain
         SpawnConditionsEvaluator spawnEvaluator = new SpawnConditionsEvaluator(gameWorld);
         SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
         MarkerResolutionService markerService = new MarkerResolutionService();
@@ -65,7 +67,18 @@ public class LodgingSceneIntegrationTest
             narrativeService,
             markerService);
 
-        SceneInstanceFacade sceneInstanceFacade = new SceneInstanceFacade(instantiator, gameWorld);
+        ContentGenerationFacade contentGenerationFacade = new ContentGenerationFacade();
+        PackageLoaderFacade packageLoaderFacade = new PackageLoaderFacade(gameWorld);
+        HexRouteGenerator hexRouteGenerator = new HexRouteGenerator(gameWorld);
+        TimeManager timeManager = new TimeManager(gameWorld);
+
+        SceneInstanceFacade sceneInstanceFacade = new SceneInstanceFacade(
+            instantiator,
+            contentGenerationFacade,
+            packageLoaderFacade,
+            hexRouteGenerator,
+            timeManager,
+            gameWorld);
 
         SceneTemplate template = new SceneTemplate
         {
@@ -92,53 +105,70 @@ public class LodgingSceneIntegrationTest
             CurrentSituation = null
         };
 
-        Scene provisionalScene = sceneInstanceFacade.CreateProvisionalScene(template, spawnReward, spawnContext);
+        // HIGHLANDER FLOW: Single method spawns scene as Active immediately
+        Scene spawnedScene = sceneInstanceFacade.SpawnScene(template, spawnReward, spawnContext);
 
-        Assert.NotNull(provisionalScene);
-        Assert.Equal(SceneState.Provisional, provisionalScene.State);
-        Assert.Equal(template.Id, provisionalScene.TemplateId);
+        // Assert scene spawned successfully
+        Assert.NotNull(spawnedScene);
+        Assert.Equal(SceneState.Active, spawnedScene.State); // HIGHLANDER: No provisional state
+        Assert.Equal(template.Id, spawnedScene.TemplateId);
 
-        SceneFinalizationResult result = sceneInstanceFacade.FinalizeScene(provisionalScene.Id, spawnContext);
-        Scene finalizedScene = result.Scene;
-        DependentResourceSpecs specs = result.DependentSpecs;
+        // Assert situations were created
+        Assert.NotEmpty(spawnedScene.Situations);
+        Assert.Equal(4, spawnedScene.Situations.Count);
 
-        Assert.NotNull(finalizedScene);
-        Assert.Equal(SceneState.Active, finalizedScene.State);
-        Assert.NotEmpty(finalizedScene.SituationIds);
-        Assert.Equal(4, finalizedScene.SituationIds.Count);
+        // Assert dependent resources were created and added to GameWorld
+        Assert.NotEmpty(spawnedScene.CreatedLocationIds);
+        Assert.NotEmpty(spawnedScene.CreatedItemIds);
+        Assert.Single(spawnedScene.CreatedLocationIds);
+        Assert.Single(spawnedScene.CreatedItemIds);
 
-        Assert.NotNull(specs);
-        Assert.True(specs.HasResources);
-        Assert.Single(specs.Locations);
-        Assert.Single(specs.Items);
+        // Verify dependent location exists in GameWorld
+        string createdLocationId = spawnedScene.CreatedLocationIds[0];
+        Location privateRoom = gameWorld.Locations.FirstOrDefault(l => l.Id == createdLocationId);
+        Assert.NotNull(privateRoom);
+        Assert.Contains("private_room", privateRoom.Id);
+        Assert.Contains(innkeeper.Name, privateRoom.Name);
+        Assert.Equal("test_inn_venue", privateRoom.VenueId);
 
-        LocationDTO privateRoomDto = specs.Locations[0];
-        Assert.Contains("private_room", privateRoomDto.Id);
-        Assert.Contains(innkeeper.Name, privateRoomDto.Name);
-        Assert.Equal("test_inn_venue", privateRoomDto.VenueId);
+        // Verify dependent item exists in GameWorld
+        string createdItemId = spawnedScene.CreatedItemIds[0];
+        Item roomKey = gameWorld.Items.FirstOrDefault(i => i.Id == createdItemId);
+        Assert.NotNull(roomKey);
+        Assert.Contains("room_key", roomKey.Id);
 
-        ItemDTO roomKeyDto = specs.Items[0];
-        Assert.Contains("room_key", roomKeyDto.Id);
+        // Assert marker resolution map populated
+        Assert.NotEmpty(spawnedScene.MarkerResolutionMap);
+        Assert.True(spawnedScene.MarkerResolutionMap.ContainsKey("generated:private_room"));
+        Assert.True(spawnedScene.MarkerResolutionMap.ContainsKey("generated:room_key"));
 
-        Assert.NotEmpty(finalizedScene.MarkerResolutionMap);
-        Assert.True(finalizedScene.MarkerResolutionMap.ContainsKey("generated:private_room"));
-        Assert.True(finalizedScene.MarkerResolutionMap.ContainsKey("generated:room_key"));
+        // Verify marker resolution: "generated:private_room" → concrete location ID
+        Assert.Equal(createdLocationId, spawnedScene.MarkerResolutionMap["generated:private_room"]);
+        Assert.Equal(createdItemId, spawnedScene.MarkerResolutionMap["generated:room_key"]);
 
-        List<Situation> situations = gameWorld.Situations
-            .Where(s => finalizedScene.SituationIds.Contains(s.Id))
-            .ToList();
-
-        Assert.Equal(4, situations.Count);
-
-        Situation negotiateSituation = situations.FirstOrDefault(s => s.Template.Id == "secure_lodging_negotiate");
+        // Assert situations have correct structure
+        Situation negotiateSituation = spawnedScene.Situations.FirstOrDefault(s => s.Template.Id == "secure_lodging_negotiate");
         Assert.NotNull(negotiateSituation);
         Assert.NotEmpty(negotiateSituation.Template.ChoiceTemplates);
 
-        Situation accessSituation = situations.FirstOrDefault(s => s.Template.Id == "secure_lodging_access");
+        Situation accessSituation = spawnedScene.Situations.FirstOrDefault(s => s.Template.Id == "secure_lodging_access");
         Assert.NotNull(accessSituation);
-        Assert.NotNull(accessSituation.ResolvedRequiredLocationId);
-        Assert.NotEqual("generated:private_room", accessSituation.ResolvedRequiredLocationId);
+        Assert.NotNull(accessSituation.PlacementLocationId);
+        Assert.NotEqual("generated:private_room", accessSituation.PlacementLocationId); // Should be resolved
+        Assert.Equal(createdLocationId, accessSituation.PlacementLocationId); // Marker resolved to concrete ID
 
-        Assert.NotEmpty(finalizedScene.CreatedLocationIds);
+        // Assert ParentScene relationships set
+        foreach (Situation situation in spawnedScene.Situations)
+        {
+            Assert.NotNull(situation.ParentScene);
+            Assert.Equal(spawnedScene.Id, situation.ParentScene.Id);
+        }
+
+        // Assert Template relationships set
+        foreach (Situation situation in spawnedScene.Situations)
+        {
+            Assert.NotNull(situation.Template);
+            Assert.Contains(situation.Template, template.SituationTemplates);
+        }
     }
 }

@@ -176,7 +176,23 @@ public class PathCard
     /// Path cards are QUERY-TIME instances (Tier 3), created when Situation activates
     /// After card executes, GameFacade deletes ALL path cards for this Situation
     /// Next time player enters route context, cards recreated fresh from ChoiceTemplates
-    /// NOTE: SceneId property above serves as ProvisionalSceneId for perfect information
+    /// NOTE: SceneId property (line 151) is for EXISTING scenes on route, NOT for scene spawns
     /// </summary>
     public string SituationId { get; set; }
+
+    /// <summary>
+    /// PERFECT INFORMATION: Scene spawn previews
+    /// If this path card spawns scenes (ChoiceTemplate.RewardTemplate.ScenesToSpawn),
+    /// SceneFacade generates ScenePreview from SceneTemplate metadata
+    /// Player sees WHERE scene will spawn, WHAT it contains, BEFORE selecting path card
+    /// Enables strategic decision-making with full knowledge of consequences
+    ///
+    /// HIGHLANDER COMPLIANCE: Replaces provisional scene pattern
+    /// - OLD: Create Scene entity with State=Provisional, delete if not selected
+    /// - NEW: Generate ScenePreview DTO from template, no entity until card executes
+    ///
+    /// DISTINCTION: SceneId (line 151) = EXISTING scene on route (already spawned)
+    ///              ScenePreviews = Scenes that WILL spawn if this card selected
+    /// </summary>
+    public List<ScenePreview> ScenePreviews { get; set; } = new List<ScenePreview>();
 }
