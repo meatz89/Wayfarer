@@ -12,6 +12,11 @@ public class GenerationContext
     public int PlayerCoins { get; set; }
     public List<LocationPropertyType> LocationProperties { get; set; } = new();
 
+    public ServiceType ServiceType { get; set; } = ServiceType.Lodging;
+    public ServiceQuality ServiceQuality { get; set; } = ServiceQuality.Standard;
+    public SpotComfort SpotComfort { get; set; } = SpotComfort.Standard;
+    public NPCDemeanor NpcDemeanor { get; set; } = NPCDemeanor.Neutral;
+
     public static GenerationContext Categorical(int tier)
     {
         return new GenerationContext

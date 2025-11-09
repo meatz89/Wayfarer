@@ -76,7 +76,10 @@ public static class SituationArchetypeCatalog
             "rest_preparation" => CreateRestPreparation(),
             "entering_private_space" => CreateEnteringPrivateSpace(),
             "departing_private_space" => CreateDepartingPrivateSpace(),
-            _ => throw new InvalidDataException($"Unknown archetype ID: '{archetypeId}'. Valid values: confrontation, negotiation, investigation, social_maneuvering, crisis, service_transaction, access_control, information_gathering, skill_demonstration, reputation_challenge, emergency_aid, administrative_procedure, trade_dispute, cultural_faux_pas, recruitment, rest_preparation, entering_private_space, departing_private_space")
+            "service_negotiation" => CreateServiceNegotiation(),
+            "service_execution_rest" => CreateServiceExecutionRest(),
+            "service_departure" => CreateServiceDeparture(),
+            _ => throw new InvalidDataException($"Unknown archetype ID: '{archetypeId}'. Valid values: confrontation, negotiation, investigation, social_maneuvering, crisis, service_transaction, access_control, information_gathering, skill_demonstration, reputation_challenge, emergency_aid, administrative_procedure, trade_dispute, cultural_faux_pas, recruitment, rest_preparation, entering_private_space, departing_private_space, service_negotiation, service_execution_rest, service_departure")
         };
     }
 
@@ -611,6 +614,113 @@ public static class SituationArchetypeCatalog
             ChallengeType = TacticalSystemType.Mental,
             ResolveCost = 1,
             FallbackTimeCost = 2
+        };
+    }
+
+    /// <summary>
+    /// SERVICE_NEGOTIATION archetype (REUSABLE)
+    ///
+    /// When Used: Negotiating access to any service (lodging, bathing, healing)
+    /// Domain: Economic (service transaction)
+    /// Player Learns: "Services require payment or goodwill"
+    ///
+    /// Choice Pattern (4 choices):
+    /// 1. Rapport 3+ (scaled by NPC.Demeanor) → Leverage relationship (best, free)
+    /// 2. 5 coins (scaled by Service.Quality) → Pay for service (decent, straightforward)
+    /// 3. Social challenge → Negotiate better terms (risky, variable)
+    /// 4. Fallback → Politely decline (poor, no service)
+    ///
+    /// Context-Aware Scaling:
+    /// - NPC.Demeanor: Friendly (0.6x threshold), Neutral (1.0x), Hostile (1.4x)
+    /// - Service.Quality: Basic (0.6x cost), Standard (1.0x), Premium (1.6x), Luxury (2.4x)
+    /// - Service.Type: Determines which item granted (room_key, bathhouse_token, treatment_receipt)
+    /// </summary>
+    private static SituationArchetype CreateServiceNegotiation()
+    {
+        return new SituationArchetype
+        {
+            Id = "service_negotiation",
+            Name = "Service Negotiation",
+            Domain = Domain.Economic,
+            PrimaryStat = PlayerStatType.Rapport,
+            SecondaryStat = PlayerStatType.Diplomacy,
+            StatThreshold = 3,
+            CoinCost = 5,
+            ChallengeType = TacticalSystemType.Social,
+            ResolveCost = 1,
+            FallbackTimeCost = 0
+        };
+    }
+
+    /// <summary>
+    /// SERVICE_EXECUTION_REST archetype (REUSABLE)
+    ///
+    /// When Used: Using service in private space (lodging, bathing, healing)
+    /// Domain: Physical (rest and recovery)
+    /// Player Learns: "Different rest approaches restore different resources"
+    ///
+    /// Choice Pattern (4 choices, all succeed):
+    /// 1. Balanced → Restore health/stamina/focus evenly
+    /// 2. Physical focus → Restore health/stamina primarily
+    /// 3. Mental focus → Restore stamina/focus primarily
+    /// 4. Special → Balanced restoration + unique buff
+    ///
+    /// All choices advance time to next day Morning.
+    ///
+    /// Context-Aware Scaling:
+    /// - Service.Type: Determines which stats restore (Lodging: all 3, Bathing: cleanliness, Healing: health)
+    /// - Spot.Comfort: Scales restoration amounts (Basic: 1x, Standard: 2x, Premium: 3x)
+    /// </summary>
+    private static SituationArchetype CreateServiceExecutionRest()
+    {
+        return new SituationArchetype
+        {
+            Id = "service_execution_rest",
+            Name = "Service Execution (Rest)",
+            Domain = Domain.Physical,
+            PrimaryStat = PlayerStatType.None,
+            SecondaryStat = PlayerStatType.None,
+            StatThreshold = 0,
+            CoinCost = 0,
+            ChallengeType = TacticalSystemType.None,
+            ResolveCost = 0,
+            FallbackTimeCost = 0
+        };
+    }
+
+    /// <summary>
+    /// SERVICE_DEPARTURE archetype (REUSABLE)
+    ///
+    /// When Used: Leaving service space (lodging, bathing, healing)
+    /// Domain: Physical (organization and preparation)
+    /// Player Learns: "Taking time to prepare grants bonuses"
+    ///
+    /// Choice Pattern (2 choices, both succeed):
+    /// 1. Leave immediately → Quick exit, no bonus (free, 0 time)
+    /// 2. Gather carefully → Organized exit, preparation buff (costs 1 time segment)
+    ///
+    /// Both choices clean up service (remove key, lock location).
+    ///
+    /// Context-Aware Scaling:
+    /// - Service.Type: Determines which buff granted
+    ///   - Lodging: Focused (organization/preparation)
+    ///   - Bathing: WellGroomed (appearance/social)
+    ///   - Healing: Rested (health management)
+    /// </summary>
+    private static SituationArchetype CreateServiceDeparture()
+    {
+        return new SituationArchetype
+        {
+            Id = "service_departure",
+            Name = "Service Departure",
+            Domain = Domain.Physical,
+            PrimaryStat = PlayerStatType.Insight,
+            SecondaryStat = PlayerStatType.Cunning,
+            StatThreshold = 2,
+            CoinCost = 0,
+            ChallengeType = TacticalSystemType.Mental,
+            ResolveCost = 0,
+            FallbackTimeCost = 1
         };
     }
 
