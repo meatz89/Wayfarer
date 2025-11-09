@@ -12,8 +12,7 @@
       {
         "id": "tutorial_secure_lodging",
         "archetype": "Linear",
-        "sceneArchetypeId": "service_with_location_access",
-        "serviceType": "lodging",
+        "sceneArchetypeId": "tutorial_secure_lodging",
         "presentationMode": "Modal",
         "tier": 0,
         "isStarter": true,
