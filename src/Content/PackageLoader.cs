@@ -159,6 +159,7 @@ public class PackageLoader
         LoadObligations(package.Content.Obligations, allowSkeletons);
         LoadSituations(package.Content.Situations, allowSkeletons);
         LoadSceneTemplates(package.Content.SceneTemplates, allowSkeletons); // NEW: Scene-Situation architecture templates
+        LoadScenes(package.Content.Scenes, allowSkeletons); // NEW: Scene runtime instances (dynamically spawned)
 
         // 3.6 Screen Expansion Systems (conversation trees, observation scenes, emergencies)
         LoadConversationTrees(package.Content.ConversationTrees, allowSkeletons);
@@ -1659,6 +1660,28 @@ public class PackageLoader
         if (sceneTemplateDtos.Count > 0)
         {
             Console.WriteLine($"[PackageLoader] Loaded {sceneTemplateDtos.Count} SceneTemplates from this package");
+        }
+    }
+
+    /// <summary>
+    /// Load Scene runtime instances from dynamic packages
+    /// HIGHLANDER: JSON → PackageLoader → Parser → Entity (single instantiation path)
+    /// Scenes are NEVER in static packages - only in dynamic packages generated at spawn time
+    /// </summary>
+    private void LoadScenes(List<SceneDTO> sceneDtos, bool allowSkeletons)
+    {
+        if (sceneDtos == null) return;
+
+        foreach (SceneDTO dto in sceneDtos)
+        {
+            Scene scene = SceneParser.ConvertDTOToScene(dto, _gameWorld);
+            _gameWorld.Scenes.Add(scene);
+        }
+
+        // Only log when scenes were actually loaded from this package
+        if (sceneDtos.Count > 0)
+        {
+            Console.WriteLine($"[PackageLoader] Loaded {sceneDtos.Count} Scene instances from this package");
         }
     }
 

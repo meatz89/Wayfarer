@@ -209,4 +209,11 @@ public class PackageContent
     /// Defines multi-situation branching narratives with placement filters (Sir Brante pattern)
     /// </summary>
     public List<SceneTemplateDTO> SceneTemplates { get; set; } = new List<SceneTemplateDTO>();
+
+    /// <summary>
+    /// Scene instances - runtime instances spawned from templates with concrete placements
+    /// Generated dynamically at spawn time, stored in dynamic packages
+    /// DISTINCTION: SceneTemplates = reusable blueprints, Scenes = specific playthrough instances
+    /// </summary>
+    public List<SceneDTO> Scenes { get; set; } = new List<SceneDTO>();
 }
