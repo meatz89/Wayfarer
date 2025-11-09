@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Social impact of how scene was resolved

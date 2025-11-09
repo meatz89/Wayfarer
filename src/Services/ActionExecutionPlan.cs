@@ -1,7 +1,4 @@
 using Wayfarer.GameState.Enums;
-
-namespace Wayfarer.Services;
-
 /// <summary>
 /// ActionExecutionPlan - Instructions for GameFacade on how to execute an action
 /// PURE DATA - No logic, just validated instructions

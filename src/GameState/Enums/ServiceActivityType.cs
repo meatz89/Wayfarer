@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Categorical property: Type of service activity offered

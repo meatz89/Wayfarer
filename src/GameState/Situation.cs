@@ -69,8 +69,6 @@ public class Situation
     /// </summary>
     public string DeckId { get; set; }
 
-
-
     // Scene-Situation Architecture additions (spawn tracking, completion tracking, template system)
 
     /// <summary>

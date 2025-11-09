@@ -1,4 +1,3 @@
-namespace Wayfarer.Content;
 
 /// <summary>
 /// Static utility for replacing template placeholders with concrete entity names

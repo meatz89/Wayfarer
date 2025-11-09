@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState.Enums;
 
 /// <summary>
 /// UNIVERSAL categorical property: Environmental comfort/amenity level

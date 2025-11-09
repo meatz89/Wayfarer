@@ -118,8 +118,6 @@ public class DifficultyCalculationService
 
         return categories.Distinct().ToList();
     }
-
-
     /// <summary>
     /// Format modifier for UI display
     /// </summary>

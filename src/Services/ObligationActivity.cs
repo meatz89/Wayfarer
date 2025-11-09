@@ -526,8 +526,6 @@ public class ObligationActivity
             $"New scene appeared: {scene.DisplayName} {placementDescription}",
             SystemMessageTypes.Warning);
     }
-
-
     /// <summary>
     /// Get human-readable placement description for system message
     /// </summary>

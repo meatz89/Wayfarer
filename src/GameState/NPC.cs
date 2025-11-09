@@ -151,8 +151,6 @@ public class NPC
         // Check if NPC is at the specified Venue location
         return Location?.Id == locationId && IsAvailable(currentTime);
     }
-
-
     // Method for adding known routes (used by HELP verb)
     public void AddKnownRoute(RouteOption route)
     {

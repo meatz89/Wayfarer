@@ -30,8 +30,6 @@ public record SpawnConditions
     /// Internal use only - evaluator checks this flag first
     /// </summary>
     internal bool IsAlwaysEligible { get; init; } = false;
-
-
     /// <summary>
     /// Player state conditions - progression and history requirements
     /// Checks player's completed content, choices made, stats, items, location visits

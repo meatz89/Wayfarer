@@ -103,8 +103,6 @@ public class ObligationParser
                 $"Invalid TargetType '{targetType}'. Valid values: Location, Route, NPC")
         };
     }
-
-
     private void ValidateDeckId(string deckId, TacticalSystemType systemType, string phaseId)
     {
         if (string.IsNullOrEmpty(deckId))

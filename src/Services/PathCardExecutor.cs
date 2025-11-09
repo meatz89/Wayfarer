@@ -1,7 +1,4 @@
 using Wayfarer.GameState.Enums;
-
-namespace Wayfarer.Services;
-
 /// <summary>
 /// PathCardExecutor - PURE validator/extractor for PathCards
 /// NO FACADE DEPENDENCIES - Returns ActionExecutionPlan for GameFacade to execute

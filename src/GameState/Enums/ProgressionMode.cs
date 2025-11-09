@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState.Enums
 {
     /// <summary>
     /// Determines how situations within a Scene progress after each choice execution.

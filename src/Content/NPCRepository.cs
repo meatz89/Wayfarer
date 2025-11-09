@@ -1,5 +1,3 @@
-
-
 public class NPCRepository
 {
     private readonly GameWorld _gameWorld;
@@ -111,8 +109,6 @@ public class NPCRepository
         List<NPC> professionNpcs = npcs.Where(n => n.Profession == profession).ToList();
         return FilterByVisibility(professionNpcs);
     }
-
-
     public List<NPC> GetNPCsForLocationAndTimeDeprecated(string locationId, TimeBlocks currentTime)
     {
         // DEPRECATED: Use GetNPCsForLocationAndTime instead
@@ -195,8 +191,6 @@ public class NPCRepository
 
         return timeBlockPlan;
     }
-
-
     #endregion
 
     #region Write Methods

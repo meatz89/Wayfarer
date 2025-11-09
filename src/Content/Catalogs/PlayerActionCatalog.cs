@@ -1,4 +1,3 @@
-namespace Wayfarer.Content.Catalogs;
 
 /// <summary>
 /// Catalogue for generating universal PlayerActions available at all locations.

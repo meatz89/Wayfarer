@@ -405,10 +405,12 @@ public class SceneFacade
         {
             case PlacementRelation.SameLocation:
             case PlacementRelation.SameNPC:
+            case PlacementRelation.SameRoute:
                 return parentScene.PlacementId; // Same as parent scene
 
             case PlacementRelation.SpecificLocation:
             case PlacementRelation.SpecificNPC:
+            case PlacementRelation.SpecificRoute:
                 // Check for markers - cannot resolve until scene spawns with marker resolution map
                 if (!string.IsNullOrEmpty(spawnReward.SpecificPlacementId) &&
                     spawnReward.SpecificPlacementId.StartsWith("generated:"))
@@ -416,9 +418,6 @@ public class SceneFacade
                     return null; // Marker - cannot resolve at preview time
                 }
                 return spawnReward.SpecificPlacementId; // Concrete ID
-
-            case PlacementRelation.Player:
-                return player.ID; // Player ID
 
             default:
                 return null; // Cannot resolve without execution context
@@ -441,11 +440,9 @@ public class SceneFacade
             case PlacementRelation.SpecificNPC:
                 return PlacementType.NPC;
 
-            case PlacementRelation.CurrentRoute:
+            case PlacementRelation.SameRoute:
+            case PlacementRelation.SpecificRoute:
                 return PlacementType.Route;
-
-            case PlacementRelation.Player:
-                return PlacementType.Location; // Player is always at a location
 
             default:
                 return null;

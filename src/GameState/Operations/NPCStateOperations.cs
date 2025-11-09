@@ -38,8 +38,6 @@ public static class NPCStateOperations
         return NPCOperationResult.Success(newState,
             $"Moved {state.Name} to location {LocationId}");
     }
-
-
     /// <summary>
     /// Validates if an NPC is available at a specific time.
     /// </summary>

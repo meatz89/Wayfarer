@@ -1,5 +1,3 @@
-
-
 public enum ItemCategory
 {
     // Equipment types
@@ -89,8 +87,6 @@ public class Item
         ? $"Categories: {string.Join(", ", Categories.Select(c => c.ToString().Replace('_', ' ')))}"
         : "";
 
-
-
     public string SizeCategoryDescription => $"Size: {Size.ToString()}";
     public string AllCategoriesDescription
     {
@@ -104,8 +100,6 @@ public class Item
         }
     }
 
-
-
     public bool IsEquipment => Categories.Any(c =>
                                             c == ItemCategory.Climbing_Equipment ||
                                             c == ItemCategory.Water_Transport ||
@@ -114,15 +108,11 @@ public class Item
                                             c == ItemCategory.Weather_Protection ||
                                             c == ItemCategory.Load_Distribution ||
                                             c == ItemCategory.Light_Source);
-
-
     // Categorical matching helper methods
     public bool HasCategory(ItemCategory category)
     {
         return Categories.Contains(category);
     }
-
-
 
     public bool IsAvailable { get; internal set; }
 
@@ -145,9 +135,5 @@ public class Item
             _ => 1
         };
     }
-
-
-
-
 
 }

@@ -36,8 +36,6 @@ public class NPCService
 
         return timeBlockPlan;
     }
-
-
     /// <summary>
     /// Check if a specific NPC is available to interact with at the current time
     /// </summary>

@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Classification of what happens when player selects a Choice

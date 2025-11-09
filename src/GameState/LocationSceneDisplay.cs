@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState;
 
 /// <summary>
 /// Display object for location/NPC scene presentation

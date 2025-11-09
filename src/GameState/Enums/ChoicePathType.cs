@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState.Enums;
 
 /// <summary>
 /// UNIVERSAL categorical property: Type of choice path for reward/consequence routing.

@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState.Enums;
 
 /// <summary>
 /// UNIVERSAL categorical property: How urgent is the situation?

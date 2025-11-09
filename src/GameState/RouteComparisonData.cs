@@ -1,5 +1,3 @@
-
-
 /// <summary>
 /// Represents a comprehensive analysis of a single route option for informed travel decisions.
 /// Includes cost calculations, efficiency scoring, and resource requirements.

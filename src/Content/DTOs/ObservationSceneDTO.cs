@@ -1,4 +1,3 @@
-namespace Wayfarer.Content.DTOs
 {
     /// <summary>
     /// DTO for deserializing ObservationScene from JSON.

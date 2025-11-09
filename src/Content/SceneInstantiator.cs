@@ -3,9 +3,6 @@ using Wayfarer.Content.DTOs;
 using Wayfarer.GameState.Enums;
 using Wayfarer.Models;
 using Wayfarer.Services;
-
-namespace Wayfarer.Content;
-
 /// <summary>
 /// Domain Service for generating Scene instance DTOs and JSON packages from SceneTemplates
 ///

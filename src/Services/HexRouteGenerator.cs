@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using Wayfarer.GameState.Enums;
 
-namespace Wayfarer.Services
 {
     /// <summary>
     /// Procedural route generator using hex-based pathfinding.

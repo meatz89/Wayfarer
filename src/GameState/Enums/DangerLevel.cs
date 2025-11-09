@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState.Enums;
 
 /// <summary>
 /// UNIVERSAL categorical property: How risky is failure in this context?

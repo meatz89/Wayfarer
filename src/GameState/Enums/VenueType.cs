@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Categorical venue types that determine atmosphere and market pricing characteristics.

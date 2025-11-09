@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Controls whether ChoiceTemplate actions have been materialized into GameWorld collections

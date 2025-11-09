@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState.Enums;
 
 /// <summary>
 /// UNIVERSAL categorical property: Who is observing this interaction?

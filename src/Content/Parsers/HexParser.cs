@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-namespace Wayfarer.Content.Parsers
 {
     /// <summary>
     /// Parses hex map data from JSON DTOs to domain entities.

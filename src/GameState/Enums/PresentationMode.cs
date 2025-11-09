@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState.Enums
 {
     /// <summary>
     /// Determines how a Scene is presented to the player when they arrive at a location.

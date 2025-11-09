@@ -1,6 +1,5 @@
 using Wayfarer.Content.DTOs;
 
-namespace Wayfarer.Content.Parsers
 {
     /// <summary>
     /// Parser for ObservationScene - Mental challenge system for scene investigation.

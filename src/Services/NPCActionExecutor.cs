@@ -1,7 +1,4 @@
 using Wayfarer.GameState.Enums;
-
-namespace Wayfarer.Services;
-
 /// <summary>
 /// NPCActionExecutor - PURE validator/extractor for NPCActions
 /// NO FACADE DEPENDENCIES - Returns ActionExecutionPlan for GameFacade to execute

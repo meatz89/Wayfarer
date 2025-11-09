@@ -231,8 +231,6 @@ public class LocationActionManager
 
         return actions;
     }
-
-
     // Method removed - LocationActionsViewModel doesn't have ClosedServices property
     // This functionality would need to be redesigned if needed
 

@@ -1,7 +1,4 @@
 using Wayfarer.GameState.Enums;
-
-namespace Wayfarer.Content;
-
 /// <summary>
 /// Static utility for building SceneSpawnContext from placement information
 /// HIGHLANDER: ONE method for context building, used by all spawning code

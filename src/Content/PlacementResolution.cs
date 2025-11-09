@@ -1,4 +1,3 @@
-namespace Wayfarer.Content;
 
 /// <summary>
 /// Result of resolving concrete placement from PlacementRelation enum

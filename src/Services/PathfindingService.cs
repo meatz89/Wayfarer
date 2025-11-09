@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Wayfarer.Services
 {
     /// <summary>
     /// A* pathfinding service for hex-based travel system.

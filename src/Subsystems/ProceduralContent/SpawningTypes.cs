@@ -1,7 +1,4 @@
 using Wayfarer.GameState;
-
-namespace Wayfarer.Subsystems.ProceduralContent;
-
 public class SpawnRequest
 {
     public SceneTemplate Template { get; set; }

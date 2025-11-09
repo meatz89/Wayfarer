@@ -40,8 +40,6 @@ public class TalkIntent : PlayerIntent
         NpcId = npcId;
     }
 }
-
-
 /// <summary>
 /// Intent to wait until the next time period (refreshes attention)
 /// </summary>

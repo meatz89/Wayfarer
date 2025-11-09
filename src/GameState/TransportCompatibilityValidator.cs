@@ -1,5 +1,3 @@
-
-
 /// <summary>
 /// Validates transport method compatibility with terrain, equipment, and item constraints.
 /// Implements the logical transport restrictions outlined in UserStories.md.

@@ -1,7 +1,4 @@
 using Wayfarer.GameState.Enums;
-
-namespace Wayfarer.Services;
-
 /// <summary>
 /// LocationActionExecutor - PURE validator/extractor for LocationActions
 /// NO FACADE DEPENDENCIES - Returns ActionExecutionPlan for GameFacade to execute

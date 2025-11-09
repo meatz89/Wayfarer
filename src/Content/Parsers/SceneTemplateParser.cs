@@ -2,9 +2,6 @@ using Wayfarer.Content.Catalogues;
 using Wayfarer.GameState;
 using Wayfarer.GameState.Enums;
 using Wayfarer.Subsystems.ProceduralContent;
-
-namespace Wayfarer.Content.Parsers;
-
 /// <summary>
 /// Parser for SceneTemplate definitions - converts DTOs to domain models
 /// Handles recursive parsing of embedded SituationTemplates and ChoiceTemplates

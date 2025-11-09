@@ -1,4 +1,3 @@
-namespace Wayfarer.Content;
 
 /// <summary>
 /// Result of finalizing a provisional scene into an active scene

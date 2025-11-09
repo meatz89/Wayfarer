@@ -2192,8 +2192,6 @@ public class GameFacade
 
         // TokenGains, RevealsPaths, etc. would be handled by PathCard-specific logic
     }
-
-
     private IntentResult RouteToTacticalChallenge(ActionExecutionPlan plan)
     {
         // Store CompletionReward in appropriate PendingContext

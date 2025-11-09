@@ -124,8 +124,6 @@ public static class NPCParser
             _ => throw new ArgumentException($"Unknown profession in JSON: '{jsonProfession}' - add to profession mapping")
         };
     }
-
-
     private static ConnectionType? ParseConnectionType(string connectionTypeStr)
     {
         return connectionTypeStr.ToLower() switch

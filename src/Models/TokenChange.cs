@@ -1,5 +1,3 @@
-
-
 /// <summary>
 /// Strongly-typed representation of a token change operation.
 /// Replaces tuple usage in GameRuleEngine.TokenChanges.

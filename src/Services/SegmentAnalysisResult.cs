@@ -1,4 +1,3 @@
-namespace Wayfarer.Services;
 
 /// <summary>
 /// Result of analyzing hex segment terrain and danger

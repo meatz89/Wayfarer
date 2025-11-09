@@ -204,8 +204,6 @@ public class LocationContentViewModel
     // Physical challenges - grouped by scenes
     public List<SituationCardViewModel> AmbientPhysicalSituations { get; set; } = new();  // Situations without scenes
     public List<SceneWithSituationsViewModel> PhysicalScenes { get; set; } = new();  // Situations from scenes
-
-
     // Scene-Situation Architecture: Locked situations with requirement gaps
     // Perfect information: player sees what they need to unlock
     public List<LockedSituationViewModel> LockedSituations { get; set; } = new();
@@ -403,8 +401,6 @@ public class SceneWithSituationsViewModel
     // Situations that belong to this scene
     public List<SituationCardViewModel> Situations { get; set; } = new();
 }
-
-
 /// <summary>
 /// Locked situation with strongly-typed requirement gaps for UI rendering
 /// Perfect information pattern: player sees exactly what they need to unlock

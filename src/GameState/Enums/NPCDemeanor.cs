@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState.Enums
 {
     /// <summary>
     /// Current demeanor/disposition of NPC toward player.

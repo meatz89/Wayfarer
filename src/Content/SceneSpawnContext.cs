@@ -1,4 +1,3 @@
-namespace Wayfarer.Content;
 
 /// <summary>
 /// Context object containing all data needed to create a provisional Scene from a SceneTemplate

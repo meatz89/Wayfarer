@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState.Enums
 {
     /// <summary>
     /// Type of TravelScene encounter on a route.

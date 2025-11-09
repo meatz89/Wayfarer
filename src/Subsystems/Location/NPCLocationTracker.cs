@@ -56,8 +56,6 @@ public class NPCLocationTracker
 
         return _npcRepository.GetPrimaryNPCForSpot(LocationId, timeBlock);
     }
-
-
     /// <summary>
     /// Check if an NPC is at a specific location.
     /// </summary>
@@ -164,8 +162,6 @@ public class NPCLocationTracker
             IsCurrentlyAvailable = npc.IsAvailable(_gameWorld.CurrentTimeBlock)
         };
     }
-
-
     /// <summary>
     /// Get NPCs by profession.
     /// </summary>

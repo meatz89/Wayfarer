@@ -1,8 +1,5 @@
 using Wayfarer.GameState;
 using Wayfarer.GameState.Enums;
-
-namespace Wayfarer.Content.Catalogues;
-
 /// <summary>
 /// ⚠️ PARSE-TIME ONLY CATALOGUE ⚠️
 ///
