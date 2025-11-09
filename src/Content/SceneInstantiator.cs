@@ -7,17 +7,19 @@ using Wayfarer.Services;
 namespace Wayfarer.Content;
 
 /// <summary>
-/// Domain Service for creating and finalizing Scene instances from SceneTemplates
-/// Implements provisional Scene architecture:
-/// 1. CreateProvisionalScene: Creates Scene from template (eager creation for perfect information)
-/// 2. FinalizeScene: Activate Scene and move to permanent storage (when Choice selected)
-/// 3. DeleteProvisionalScene: Cleanup (when Choice NOT selected)
+/// Domain Service for generating Scene instance DTOs and JSON packages from SceneTemplates
 ///
-/// ARCHITECTURE PRINCIPLE: Scenes created from SceneTemplates with PlacementRelation enum
-/// Determines concrete placement (SameLocation, SameNPC, SpecificLocation, etc.) at spawn time
+/// HIGHLANDER COMPLIANCE: Generates DTOs/JSON only - NEVER creates entities directly
+/// Entity creation MUST flow through: JSON → PackageLoader → SceneParser → Entity
 ///
-/// AI GENERATION INTEGRATION: SceneNarrativeService called at finalization time
-/// Generates situation narratives from entity context when template has no hardcoded narrative
+/// RESPONSIBILITIES:
+/// 1. GenerateScenePackageJson: Main entry point - generates complete package JSON
+/// 2. Placement resolution: Evaluates PlacementFilters to find concrete placements
+/// 3. DTO generation: Creates SceneDTO, SituationDTOs, ChoiceTemplateDTOs
+/// 4. Dependent resources: Generates LocationDTO/ItemDTO specs for self-contained scenes
+///
+/// AI GENERATION INTEGRATION: SceneNarrativeService generates narratives during DTO generation
+/// Placeholders replaced before serialization to JSON
 /// </summary>
 public class SceneInstantiator
 {
@@ -38,15 +40,268 @@ public class SceneInstantiator
         _markerResolutionService = markerResolutionService ?? throw new ArgumentNullException(nameof(markerResolutionService));
     }
 
+    // ==================== PHASE 2: DTO GENERATION METHODS (NEW ARCHITECTURE) ====================
+
     /// <summary>
-    /// Create provisional Scene from template
-    /// EAGER CREATION: Called when Situation instantiated for each Choice with SceneSpawnReward
-    /// Scene has concrete placement and narrative (not finalized until Choice selected)
+    /// Generate complete scene package JSON from template
+    /// HIGHLANDER: Returns JSON string for ContentGenerationFacade to write, PackageLoaderFacade to load
+    /// NEVER creates entities directly - only DTOs and JSON
     /// </summary>
-    /// <param name="sceneTemplate">SceneTemplate to instantiate from</param>
-    /// <param name="spawnReward">Scene spawn reward containing placement relation and delay info</param>
-    /// <param name="context">Spawn context with current entities for resolution</param>
-    /// <returns>Provisional Scene with State = Provisional, stored in gameWorld.Scenes (unified collection)</returns>
+    public string GenerateScenePackageJson(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
+    {
+        // Evaluate spawn conditions (same as old CreateProvisionalScene)
+        bool isEligible = template.IsStarter || _spawnConditionsEvaluator.EvaluateAll(
+            template.SpawnConditions,
+            context.Player,
+            placementId: null
+        );
+
+        if (!isEligible)
+        {
+            Console.WriteLine($"[SceneInstantiator] Scene '{template.Id}' REJECTED by spawn conditions");
+            return null; // Scene not eligible - return null
+        }
+
+        // Resolve placement (categorical → concrete ID)
+        PlacementResolution placement = ResolvePlacement(template, spawnReward, context);
+
+        // Generate Scene DTO
+        SceneDTO sceneDto = GenerateSceneDTO(template, placement, context);
+
+        // Generate dependent resource DTOs (if self-contained scene)
+        List<LocationDTO> dependentLocations = new List<LocationDTO>();
+        List<ItemDTO> dependentItems = new List<ItemDTO>();
+        Dictionary<string, string> markerResolutionMap = new Dictionary<string, string>();
+
+        if (template.DependentLocations.Any() || template.DependentItems.Any())
+        {
+            // Generate dependent location DTOs
+            foreach (DependentLocationSpec spec in template.DependentLocations)
+            {
+                LocationDTO locationDto = BuildLocationDTO(spec, sceneDto.Id, context);
+                dependentLocations.Add(locationDto);
+
+                // Build marker resolution map
+                string marker = $"generated:{spec.TemplateId}";
+                markerResolutionMap[marker] = locationDto.Id;
+            }
+
+            // Generate dependent item DTOs
+            foreach (DependentItemSpec spec in template.DependentItems)
+            {
+                ItemDTO itemDto = BuildItemDTO(spec, sceneDto.Id, context, dependentLocations);
+                dependentItems.Add(itemDto);
+
+                string marker = $"generated:{spec.TemplateId}";
+                markerResolutionMap[marker] = itemDto.Id;
+            }
+
+            // Store marker map in scene DTO
+            sceneDto.MarkerResolutionMap = markerResolutionMap;
+            sceneDto.CreatedLocationIds = dependentLocations.Select(dto => dto.Id).ToList();
+            sceneDto.CreatedItemIds = dependentItems.Select(dto => dto.Id).ToList();
+            sceneDto.DependentPackageId = $"scene_{sceneDto.Id}_dep";
+        }
+
+        // Generate Situation DTOs (CRITICAL: This replaces InstantiateSituation())
+        List<SituationDTO> situationDtos = GenerateSituationDTOs(template, sceneDto, markerResolutionMap, context);
+        sceneDto.Situations = situationDtos;
+
+        // Build complete package
+        string packageJson = BuildScenePackage(sceneDto, dependentLocations, dependentItems);
+
+        Console.WriteLine($"[SceneInstantiator] Generated scene package '{sceneDto.Id}' with {situationDtos.Count} situations");
+
+        return packageJson;
+    }
+
+    /// <summary>
+    /// Generate SceneDTO from template with concrete placement
+    /// Replaces placeholders in display name and intro narrative
+    /// </summary>
+    private SceneDTO GenerateSceneDTO(SceneTemplate template, PlacementResolution placement, SceneSpawnContext context)
+    {
+        // Generate unique Scene ID
+        string sceneId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+
+        // Calculate expiration day
+        int? expiresOnDay = template.ExpirationDays.HasValue
+            ? _gameWorld.CurrentDay + template.ExpirationDays.Value
+            : null;
+
+        // Replace placeholders in display name and intro narrative
+        string displayName = PlaceholderReplacer.ReplaceAll(template.DisplayNameTemplate, context, _gameWorld);
+        string introNarrative = PlaceholderReplacer.ReplaceAll(template.IntroNarrativeTemplate, context, _gameWorld);
+
+        // Parse spawn rules DTO
+        SituationSpawnRulesDTO spawnRulesDto = null;
+        if (template.SpawnRules != null)
+        {
+            spawnRulesDto = new SituationSpawnRulesDTO
+            {
+                Pattern = template.SpawnRules.Pattern.ToString(),
+                InitialSituationId = template.SpawnRules.InitialSituationId,
+                Transitions = template.SpawnRules.Transitions?.Select(t => new SituationTransitionDTO
+                {
+                    FromSituationId = t.FromSituationId,
+                    ToSituationId = t.ToSituationId,
+                    Trigger = t.Trigger.ToString()
+                }).ToList()
+            };
+        }
+
+        SceneDTO dto = new SceneDTO
+        {
+            Id = sceneId,
+            TemplateId = template.Id,
+            PlacementType = placement.PlacementType.ToString(),
+            PlacementId = placement.PlacementId,
+            State = "Active", // NEW: Scenes spawn directly as Active (no provisional state)
+            ExpiresOnDay = expiresOnDay,
+            Archetype = template.Archetype.ToString(),
+            DisplayName = displayName,
+            IntroNarrative = introNarrative,
+            PresentationMode = template.PresentationMode.ToString(),
+            ProgressionMode = template.ProgressionMode.ToString(),
+            SpawnRules = spawnRulesDto,
+            CurrentSituationId = null, // Will be set to first situation ID after situations generated
+            SourceSituationId = context.CurrentSituation?.Id
+        };
+
+        return dto;
+    }
+
+    /// <summary>
+    /// Generate SituationDTOs from template's SituationTemplates
+    /// Replaces InstantiateSituation() - generates DTOs instead of entities
+    /// </summary>
+    private List<SituationDTO> GenerateSituationDTOs(
+        SceneTemplate template,
+        SceneDTO sceneDto,
+        Dictionary<string, string> markerResolutionMap,
+        SceneSpawnContext context)
+    {
+        List<SituationDTO> situationDtos = new List<SituationDTO>();
+
+        foreach (SituationTemplate sitTemplate in template.SituationTemplates)
+        {
+            // Generate unique Situation ID
+            string situationId = $"situation_{sitTemplate.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+
+            // Resolve markers in required location/NPC IDs
+            string resolvedLocationId = _markerResolutionService.ResolveMarker(sitTemplate.RequiredLocationId, markerResolutionMap);
+            string resolvedNpcId = _markerResolutionService.ResolveMarker(sitTemplate.RequiredNpcId, markerResolutionMap);
+
+            // Generate narrative (AI or template)
+            string description = sitTemplate.NarrativeTemplate;
+            if (string.IsNullOrEmpty(description) && sitTemplate.NarrativeHints != null)
+            {
+                try
+                {
+                    ScenePromptContext promptContext = BuildScenePromptContext(sceneDto, context);
+                    description = _narrativeService.GenerateSituationNarrative(promptContext, sitTemplate.NarrativeHints);
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[SceneInstantiator] Narrative generation failed for Situation '{situationId}': {ex.Message}");
+                    description = "A situation unfolds before you.";
+                }
+            }
+
+            // Replace placeholders
+            description = PlaceholderReplacer.ReplaceAll(description, context, _gameWorld);
+
+            // Build Situation DTO from template
+            SituationDTO situationDto = new SituationDTO
+            {
+                Id = situationId,
+                TemplateId = sitTemplate.Id,
+                Name = sitTemplate.Name,
+                Description = description,
+                Tier = sitTemplate.Tier,
+                InteractionType = sitTemplate.Type.ToString(),
+                PlacementLocationId = resolvedLocationId,
+                PlacementNpcId = resolvedNpcId
+            };
+
+            // Copy navigation payload if present
+            if (sitTemplate.NavigationPayload != null)
+            {
+                string resolvedDestinationId = _markerResolutionService.ResolveMarker(
+                    sitTemplate.NavigationPayload.DestinationId,
+                    markerResolutionMap);
+
+                situationDto.NavigationPayload = new NavigationPayloadDTO
+                {
+                    DestinationType = sitTemplate.NavigationPayload.DestinationType.ToString(),
+                    DestinationId = resolvedDestinationId
+                };
+            }
+
+            // Copy narrative hints if present
+            if (sitTemplate.NarrativeHints != null)
+            {
+                situationDto.NarrativeHints = new NarrativeHintsDTO
+                {
+                    Mood = sitTemplate.NarrativeHints.Mood,
+                    Tone = sitTemplate.NarrativeHints.Tone,
+                    Focus = sitTemplate.NarrativeHints.Focus,
+                    Keywords = sitTemplate.NarrativeHints.Keywords
+                };
+            }
+
+            situationDtos.Add(situationDto);
+        }
+
+        // Set CurrentSituationId to first situation
+        if (situationDtos.Any())
+        {
+            sceneDto.CurrentSituationId = situationDtos.First().Id;
+        }
+
+        return situationDtos;
+    }
+
+    /// <summary>
+    /// Build complete package JSON with scene, situations, and dependent resources
+    /// </summary>
+    private string BuildScenePackage(SceneDTO sceneDto, List<LocationDTO> dependentLocations, List<ItemDTO> dependentItems)
+    {
+        Package package = new Package
+        {
+            PackageId = $"scene_{sceneDto.Id}_package",
+            Metadata = new PackageMetadata
+            {
+                Name = $"Scene {sceneDto.DisplayName}",
+                Author = "Scene System",
+                Version = "1.0.0"
+            },
+            Content = new PackageContent
+            {
+                Scenes = new List<SceneDTO> { sceneDto },
+                Locations = dependentLocations,
+                Items = dependentItems
+            }
+        };
+
+        JsonSerializerOptions jsonOptions = new JsonSerializerOptions
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+            WriteIndented = true
+        };
+
+        return JsonSerializer.Serialize(package, jsonOptions);
+    }
+
+    // ==================== OLD METHODS (DEPRECATED - DELETE AFTER PHASE 2) ====================
+    // THESE METHODS CREATE ENTITIES DIRECTLY - VIOLATES HIGHLANDER PRINCIPLE
+    // Use SpawnScene() in SceneInstanceFacade instead (HIGHLANDER flow)
+
+    /// <summary>
+    /// DEPRECATED: Use SceneInstanceFacade.SpawnScene() instead
+    /// OLD METHOD - Creates entities directly (violates HIGHLANDER)
+    /// </summary>
+    [Obsolete("Use SceneInstanceFacade.SpawnScene() - this method violates HIGHLANDER (direct entity creation)")]
     public Scene CreateProvisionalScene(SceneTemplate sceneTemplate, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
         // STARTER SCENES BYPASS: IsStarter means guaranteed spawn (tutorial/intro content)
@@ -884,43 +1139,55 @@ public class SceneInstantiator
     }
 
     /// <summary>
-    /// Build ScenePromptContext for AI narrative generation from Scene and spawn context.
-    /// Bundles entity objects (NPC, Location, Route) with complete properties for rich context.
-    /// Called at finalization when concrete placement is resolved.
+    /// Build ScenePromptContext for AI narrative generation from SceneDTO and spawn context
+    /// Bundles entity objects (NPC, Location, Route) with complete properties for rich context
+    /// Called during DTO generation when concrete placement is resolved
     /// </summary>
-    private ScenePromptContext BuildScenePromptContext(Scene scene, SceneSpawnContext context)
+    private ScenePromptContext BuildScenePromptContext(SceneDTO sceneDto, SceneSpawnContext context)
     {
+        // Parse PlacementType from string
+        if (!Enum.TryParse<PlacementType>(sceneDto.PlacementType, true, out PlacementType placementType))
+        {
+            throw new InvalidOperationException($"Invalid PlacementType: {sceneDto.PlacementType}");
+        }
+
+        // Get template for archetype/tier
+        SceneTemplate template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == sceneDto.TemplateId);
+        if (template == null)
+        {
+            throw new InvalidOperationException($"SceneTemplate '{sceneDto.TemplateId}' not found");
+        }
+
         ScenePromptContext promptContext = new ScenePromptContext
         {
             Player = context.Player,
-            ArchetypeId = scene.Template.Archetype.ToString(),
-            Tier = scene.Template.Tier,
-            SceneDisplayName = scene.DisplayName,
+            ArchetypeId = template.Archetype.ToString(),
+            Tier = template.Tier,
+            SceneDisplayName = sceneDto.DisplayName,
             CurrentTimeBlock = _gameWorld.CurrentTimeBlock,
             CurrentWeather = _gameWorld.CurrentWeather.ToString().ToLower(),
             CurrentDay = _gameWorld.CurrentDay
         };
 
         // Resolve entity references based on placement type
-        switch (scene.PlacementType)
+        switch (placementType)
         {
             case PlacementType.NPC:
-                promptContext.NPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.PlacementId);
+                promptContext.NPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == sceneDto.PlacementId);
                 if (promptContext.NPC != null)
                 {
                     promptContext.NPCBondLevel = promptContext.NPC.BondStrength;
                     // Also populate location if NPC has one
                     promptContext.Location = promptContext.NPC.Location;
-                    // TODO: Populate PriorChoicesWithNPC from Player.ChoiceHistory when implemented
                 }
                 break;
 
             case PlacementType.Location:
-                promptContext.Location = _gameWorld.Locations.FirstOrDefault(l => l.Id == scene.PlacementId);
+                promptContext.Location = _gameWorld.Locations.FirstOrDefault(l => l.Id == sceneDto.PlacementId);
                 break;
 
             case PlacementType.Route:
-                promptContext.Route = _gameWorld.Routes.FirstOrDefault(r => r.Id == scene.PlacementId);
+                promptContext.Route = _gameWorld.Routes.FirstOrDefault(r => r.Id == sceneDto.PlacementId);
                 break;
         }
 
@@ -1013,10 +1280,10 @@ public class SceneInstantiator
     /// Build LocationDTO from DependentLocationSpec
     /// Replaces tokens, determines venue, finds hex placement
     /// </summary>
-    private LocationDTO BuildLocationDTO(DependentLocationSpec spec, Scene scene, SceneSpawnContext context)
+    private LocationDTO BuildLocationDTO(DependentLocationSpec spec, string sceneId, SceneSpawnContext context)
     {
         // Generate unique ID
-        string locationId = $"{scene.Id}_{spec.TemplateId}";
+        string locationId = $"{sceneId}_{spec.TemplateId}";
 
         // Replace tokens in name and description
         string locationName = PlaceholderReplacer.ReplaceAll(spec.NamePattern, context, _gameWorld);
@@ -1069,10 +1336,10 @@ public class SceneInstantiator
     /// Build ItemDTO from DependentItemSpec
     /// Replaces tokens, maps categories, handles inventory placement
     /// </summary>
-    private ItemDTO BuildItemDTO(DependentItemSpec spec, Scene scene, SceneSpawnContext context, List<LocationDTO> createdLocations)
+    private ItemDTO BuildItemDTO(DependentItemSpec spec, string sceneId, SceneSpawnContext context, List<LocationDTO> createdLocations)
     {
         // Generate unique ID
-        string itemId = $"{scene.Id}_{spec.TemplateId}";
+        string itemId = $"{sceneId}_{spec.TemplateId}";
 
         // Replace tokens in name and description
         string itemName = PlaceholderReplacer.ReplaceAll(spec.NamePattern, context, _gameWorld);

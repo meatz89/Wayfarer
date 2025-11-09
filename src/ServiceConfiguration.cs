@@ -142,10 +142,11 @@ public static class ServiceConfiguration
         services.AddSingleton<DependentResourceOrchestrationService>();
 
         // Scene Generation and Instance Facades (clean boundaries for procedural content)
-        services.AddSingleton<SceneGenerationFacade>();
-        services.AddSingleton<SceneInstanceFacade>();
+        // IMPORTANT: Register dependencies BEFORE SceneInstanceFacade
         services.AddSingleton<PackageLoaderFacade>();
         services.AddSingleton<ContentGenerationFacade>();
+        services.AddSingleton<SceneGenerationFacade>();
+        services.AddSingleton<SceneInstanceFacade>(); // Depends on PackageLoaderFacade + ContentGenerationFacade
 
         // State Clearing System (needed by TimeFacade)
         services.AddSingleton<StateClearingResolver>();

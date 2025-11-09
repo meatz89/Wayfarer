@@ -7,92 +7,92 @@ using Wayfarer.Services;
 /// <summary>
 /// FACADE: Clean boundary between game code and scene lifecycle/spawning subsystem
 ///
+/// HIGHLANDER COMPLIANCE: Orchestrates JSON generation → File Write → PackageLoader flow
+/// NEVER creates entities directly - delegates to proper HIGHLANDER pipeline
+///
 /// PURPOSE:
 /// - Isolates game code from SceneInstantiator internals
-/// - Provides clean interface for scene lifecycle operations
-/// - Wraps provisional scene creation, activation, and cleanup
-/// - ORCHESTRATES dynamic content generation (JSON files + PackageLoader)
+/// - Orchestrates dynamic content generation (JSON files + PackageLoader)
+/// - Provides clean interface for scene spawning operations
+///
+/// FLOW:
+/// 1. SceneInstantiator.GenerateScenePackageJson() → JSON string
+/// 2. ContentGenerationFacade.CreateDynamicPackageFile() → Write to disk
+/// 3. PackageLoaderFacade.LoadDynamicPackage() → PackageLoader → SceneParser → Scene entity
 ///
 /// USAGE:
 /// - Called from: SceneFacade, RewardApplicationService, SpawnFacade, ObligationActivity
-/// - Replaces direct SceneInstantiator calls
-/// - Centralizes all scene instance operations
-///
-/// ORCHESTRATION:
-/// - SceneInstantiator generates specs (pure domain logic)
-/// - Facade creates JSON files and loads via PackageLoader (infrastructure)
-/// - Full isolation: generation knows nothing about file I/O
+/// - Replaces direct Scene entity creation
+/// - Centralizes all scene spawning operations
 ///
 /// TESTABILITY:
 /// - Facade is integration layer (thin wrapper)
-/// - SceneInstantiator tested separately (pure functions)
+/// - SceneInstantiator tested separately (pure DTO generation)
 /// - Game code tests can mock this facade
 /// </summary>
 public class SceneInstanceFacade
 {
     private readonly SceneInstantiator _sceneInstantiator;
+    private readonly ContentGenerationFacade _contentGenerationFacade;
+    private readonly PackageLoaderFacade _packageLoaderFacade;
     private readonly GameWorld _gameWorld;
 
     public SceneInstanceFacade(
         SceneInstantiator sceneInstantiator,
+        ContentGenerationFacade contentGenerationFacade,
+        PackageLoaderFacade packageLoaderFacade,
         GameWorld gameWorld)
     {
         _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
+        _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
+        _packageLoaderFacade = packageLoaderFacade ?? throw new ArgumentNullException(nameof(packageLoaderFacade));
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
     }
 
     /// <summary>
-    /// Create AND activate a scene in one operation (for immediate spawns)
+    /// Spawn scene immediately (HIGHLANDER flow)
     ///
-    /// Flow:
-    /// 1. CreateProvisionalScene (eager creation for perfect information)
-    /// 2. FinalizeScene (activate and add to GameWorld)
+    /// FLOW:
+    /// 1. Generate JSON package from template
+    /// 2. Write JSON to Content/Dynamic/{packageId}.json
+    /// 3. Load package via PackageLoader → SceneParser → Scene entity
+    /// 4. Return spawned scene
     ///
     /// Used when scene should spawn immediately (rewards, obligations, auto-spawn)
-    /// Returns fully activated Scene instance
+    /// Returns fully activated Scene instance (State = Active)
     /// </summary>
     public Scene SpawnScene(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
-        Scene provisionalScene = _sceneInstantiator.CreateProvisionalScene(template, spawnReward, context);
+        // PHASE 2.1: Generate JSON package (DTO generation only - no entity creation)
+        string packageJson = _sceneInstantiator.GenerateScenePackageJson(template, spawnReward, context);
 
-        SceneFinalizationResult finalizationResult = FinalizeScene(provisionalScene.Id, context);
-        Scene finalizedScene = finalizationResult.Scene;
+        if (packageJson == null)
+        {
+            // Scene not eligible (spawn conditions failed)
+            return null;
+        }
 
-        return finalizedScene;
-    }
+        // PHASE 2.2: Write JSON to disk
+        string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}_package";
+        _contentGenerationFacade.CreateDynamicPackageFile(packageJson, packageId);
 
-    /// <summary>
-    /// Create provisional scene (eager creation, not yet activated)
-    ///
-    /// Used when player needs to see scene BEFORE choosing (perfect information pattern)
-    /// Scene is created but not added to GameWorld until FinalizeScene() called
-    ///
-    /// Returns provisional Scene instance
-    /// </summary>
-    public Scene CreateProvisionalScene(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
-    {
-        return _sceneInstantiator.CreateProvisionalScene(template, spawnReward, context);
-    }
+        // PHASE 2.3: Load package via PackageLoader (HIGHLANDER: JSON → Parser → Entity)
+        _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
 
-    /// <summary>
-    /// Activate a provisional scene (scene lifecycle only - NO orchestration)
-    /// Calls SceneInstantiator to finalize scene and instantiate situations
-    /// Returns Scene with State=Active AND DependentResourceSpecs for orchestrator
-    /// </summary>
-    public SceneFinalizationResult FinalizeScene(string sceneId, SceneSpawnContext context)
-    {
-        return _sceneInstantiator.FinalizeScene(sceneId, context);
-    }
+        // PHASE 2.4: Retrieve spawned scene from GameWorld
+        // Scene was added to GameWorld by PackageLoader
+        Scene spawnedScene = _gameWorld.Scenes
+            .OrderByDescending(s => s.Id) // Most recently added
+            .FirstOrDefault(s => s.TemplateId == template.Id);
 
-    /// <summary>
-    /// Delete a provisional scene (cleanup unselected choice)
-    ///
-    /// Called when player selects a different provisional scene
-    /// Cleans up resources for unselected scene
-    /// </summary>
-    public void DeleteProvisionalScene(string sceneId)
-    {
-        _sceneInstantiator.DeleteProvisionalScene(sceneId);
+        if (spawnedScene == null)
+        {
+            throw new InvalidOperationException($"Scene from template '{template.Id}' failed to load via PackageLoader");
+        }
+
+        Console.WriteLine($"[SceneInstanceFacade] Spawned scene '{spawnedScene.Id}' via HIGHLANDER flow");
+
+        return spawnedScene;
     }
 
     /// <summary>
