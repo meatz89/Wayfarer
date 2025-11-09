@@ -324,6 +324,437 @@ public class GameWorld
 
 ---
 
+## PROCEDURAL SCENE GENERATION
+
+### Authoring Flow: JSON → Template → Runtime
+
+**Step 1: JSON Authoring**
+Author writes SceneTemplate JSON with minimal specification:
+```json
+{
+  "id": "scene_template_id",
+  "sceneArchetypeId": "inn_lodging",  // References archetype catalogue
+  "tier": 2,
+  "placementFilter": { /* entity selection criteria */ }
+}
+```
+
+**Step 2: Parse-Time Generation**
+Parser calls `SceneGenerationFacade.GenerateSceneFromArchetype()`:
+- Resolves placement entities (NPC, Location) from placementFilter
+- Builds GenerationContext from entity properties (NPCDemeanor, Quality, etc.)
+- Calls SceneArchetypeCatalog with context
+- Receives complete SceneArchetypeDefinition (situations + spawn rules + dependent resources)
+- Creates SceneTemplate with generated List<SituationTemplate>
+- Stores in GameWorld.SceneTemplates
+
+**Step 3: Spawn-Time Instantiation**
+When scene spawns, SceneInstantiator:
+- Creates Scene from SceneTemplate
+- Iterates Template.SituationTemplates
+- Instantiates each Situation and embeds in Scene.Situations list
+- Resolves markers ("generated:location_id" → actual IDs) via MarkerResolutionMap
+- Generates AI narrative if Description null + NarrativeHints present
+- Replaces placeholders ({npcName}, {locationName}) with concrete values
+- Sets Scene.CurrentSituation to first situation
+- **Actions NOT created yet** (deferred until query time)
+
+**Step 4: Query-Time Action Instantiation**
+When player enters context, SceneFacade:
+- Checks Situation.InstantiationState == Deferred
+- Creates LocationActions/NPCActions/PathCards from ChoiceTemplates
+- Sets InstantiationState = Instantiated
+- Adds to GameWorld collections
+
+### Two-Tier Archetype Composition System
+
+**Tier 1: SituationArchetypeCatalog (Base Generation)**
+
+Generates single-situation mechanical patterns:
+```csharp
+Input: archetype ID ("service_negotiation"), tier, GenerationContext
+Process:
+  - Retrieve archetype definition (base costs, stat thresholds)
+  - Scale values by context (NPCDemeanor, Quality, PowerDynamic)
+  - Generate List<ChoiceTemplate> with PathType assignments
+  - RewardTemplate = EMPTY (scene will enrich)
+Output: List<ChoiceTemplate> with mechanical structure only
+```
+
+**Tier 2: SceneArchetypeCatalog (Composition + Enrichment)**
+
+Composes multiple situations into complete scenes:
+```csharp
+Input: scene archetype ID ("inn_lodging"), tier, GenerationContext
+Process:
+  FOR EACH situation in scene:
+    - Call SituationArchetypeCatalog.GenerateChoiceTemplates()
+    - Receive base choices with PathType
+    - Switch on PathType to enrich rewards:
+      * InstantSuccess → Add immediate rewards (LocationsToUnlock, ItemIds)
+      * Challenge → Add OnSuccessReward (conditional rewards)
+      * Fallback → Pass through unchanged
+    - Create SituationTemplate with enriched choices
+  - Define SituationSpawnRules (Pattern + Transitions)
+  - Declare DependentResources (locations/items to generate)
+Output: SceneArchetypeDefinition (situations + rules + resources)
+```
+
+**Why Two Tiers:**
+- **Reusability:** Same situation archetype used by multiple scene archetypes
+- **Separation:** Situations define HOW (mechanical paths), Scenes define WHAT (specific resources)
+- **Modularity:** Change negotiation mechanics once, affects all services
+
+**Enrichment Pattern:**
+Situation catalogue returns choices with NO scene-specific rewards. Scene catalogue adds rewards based on PathType routing. This enables situation reuse across different scene contexts.
+
+### Context-Aware Scaling Mechanism
+
+**GenerationContext Flow:**
+```
+JSON entities → Parser resolves IDs → Loads NPC/Location from GameWorld
+→ Extracts categorical properties (NPCDemeanor, Quality, PowerDynamic, etc.)
+→ Builds GenerationContext struct
+→ Passes to catalogue methods
+```
+
+**Scaling Application:**
+Catalogues apply universal formulas to base archetype values:
+```csharp
+// Base archetype defines: StatThreshold = 5, CoinCost = 5
+// Context has: NPCDemeanor.Friendly, Quality.Premium
+
+scaledStatThreshold = context.NpcDemeanor switch {
+  Friendly => (int)(5 * 0.6),  // = 3 (easier)
+  Neutral => 5,                 // = 5 (baseline)
+  Hostile => (int)(5 * 1.4)     // = 7 (harder)
+};
+
+scaledCoinCost = context.Quality switch {
+  Basic => (int)(5 * 0.6),     // = 3 (cheap)
+  Standard => 5,                // = 5 (baseline)
+  Premium => (int)(5 * 1.6),   // = 8 (expensive)
+  Luxury => (int)(5 * 2.4)      // = 12 (very expensive)
+};
+```
+
+**Result:** Same archetype + different entity properties = contextually appropriate difficulty. AI authors entities with categorical properties, system handles numeric balance.
+
+### Marker Resolution for Self-Contained Scenes
+
+Scenes with dependent resources use marker syntax in templates:
+```
+SituationTemplate.RequiredLocationId = "generated:private_room"
+ChoiceReward.LocationsToUnlock = ["generated:private_room"]
+```
+
+**Resolution Flow:**
+1. Parse time: DependentLocationSpec declares id = "private_room", creates actual Location
+2. Spawn time: Build MarkerResolutionMap: {"generated:private_room" → "location_actual_guid"}
+3. Situation instantiation: Resolve markers via map
+4. Store resolved ID in Situation.ResolvedRequiredLocationId
+5. Runtime: Use resolved IDs (no marker syntax remains)
+
+**Purpose:** Templates reference resources that don't exist until scene spawns. Markers enable static template definitions with dynamic resource binding.
+
+### AI Narrative Generation Integration
+
+Archetype-generated situations support AI narrative:
+```csharp
+SituationTemplate {
+  NarrativeTemplate = null,  // Signals: generate from context
+  NarrativeHints = new NarrativeHints {
+    Tone = "transactional",
+    Theme = "negotiation",
+    Context = "securing_lodging"
+  }
+}
+```
+
+**Generation Flow:**
+1. SceneInstantiator detects: Situation.Description == null + NarrativeHints != null
+2. Builds ScenePromptContext from entities (NPC personality, location atmosphere)
+3. Calls NarrativeService.GenerateSituationNarrative(context, hints)
+4. AI generates narrative appropriate to entity context and hints
+5. Sets Situation.Description to generated text
+6. Replaces placeholders in generated narrative
+
+**Result:** Archetype defines mechanical structure + narrative hints, AI generates concrete narrative from entity context. Same archetype produces contextually appropriate text.
+
+---
+
+## RUNTIME EXECUTION FLOW
+
+### Context Activation & Auto-Activation
+
+Situations activate when player location/NPC context matches situation requirements.
+
+**Activation Check (SceneFacade):**
+```csharp
+1. Player enters location OR interacts with NPC
+2. SceneFacade.GetActionsAtLocation(locationId, npcId) called
+3. For each active Scene:
+   - Check Scene.ShouldActivateAtContext(locationId, npcId)
+   - Scene checks: CurrentSituation matches RequiredLocationId/RequiredNpcId
+   - If match: Activate situation
+```
+
+**Activation Requirements:**
+- **Location + NPC:** Both must match (service negotiation, NPC conversation)
+- **Location Only:** Location matches, NPC null or ignored (private room rest, solo investigation)
+- **NPC Only:** NPC matches, location optional (traveling merchant, roaming character)
+
+**Auto-Activation Flow:**
+```
+Scene completes Situation 1
+→ Scene.AdvanceToNextSituation() returns ContinueInScene
+→ Scene.CurrentSituation = Situation 2
+→ Player enters Situation 2's required location
+→ SceneFacade detects context match
+→ Situation 2 auto-activates
+→ Choices appear immediately (no additional player action needed)
+```
+
+**Purpose:** Seamless multi-situation progression. Player completes negotiation, enters unlocked room, next situation's choices immediately available. No artificial navigation steps.
+
+### Action Instantiation (Query-Time Creation)
+
+Actions created on-demand when situation activates to reduce memory footprint.
+
+**InstantiationState Transition:**
+```csharp
+// Initial state at situation creation:
+Situation.InstantiationState = InstantiationState.Deferred
+// NO actions in GameWorld.LocationActions/NPCActions/PathCards yet
+
+// Query-time instantiation (SceneFacade.GetActionsAtLocation):
+if (situation.InstantiationState == InstantiationState.Deferred)
+{
+    foreach (ChoiceTemplate template in situation.Template.ChoiceTemplates)
+    {
+        LocationAction action = new LocationAction {
+            ChoiceTemplate = template,  // Reference to template
+            SituationId = situation.Id
+        };
+        _gameWorld.LocationActions.Add(action);
+    }
+    situation.InstantiationState = InstantiationState.Instantiated;
+}
+```
+
+**Why Query-Time:**
+- **Memory Efficiency:** Actions only exist when contextually relevant
+- **Lazy Evaluation:** Thousands of template choices, only instantiate what player can access
+- **Clean Lifecycle:** Actions deleted when situation completes, recreated fresh if situation re-activates
+
+**Action Properties:**
+- `ChoiceTemplate`: Reference to template (requirements, costs, rewards)
+- `SituationId`: Parent situation for cleanup
+- Ephemeral: Exists only while situation active, deleted on completion
+
+### Choice Execution Routing
+
+ChoiceTemplate.PathType determines execution flow when player selects choice.
+
+**Routing Logic (GameFacade.ExecuteChoice):**
+```csharp
+switch (choice.PathType)
+{
+    case ChoicePathType.InstantSuccess:
+        // Evaluate requirements immediately
+        // Apply costs immediately
+        // Apply RewardTemplate immediately
+        // Mark situation complete
+        → Advance to next situation
+
+    case ChoicePathType.Challenge:
+        // Evaluate requirements immediately
+        // Apply costs immediately
+        // Store OnSuccessReward/OnFailureReward in PendingContext
+        // Navigate to tactical screen (Social/Mental/Physical)
+        → Wait for challenge completion
+        → Apply OnSuccessReward or OnFailureReward based on outcome
+        → Advance to next situation
+
+    case ChoicePathType.Fallback:
+        // NO requirements (always available)
+        // NO costs (free forward progress)
+        // Minimal or no rewards
+        // Mark situation complete
+        → Advance to next situation (may exit scene)
+}
+```
+
+**ActionType Bridge (within PathType):**
+```csharp
+if (choice.ActionType == ChoiceActionType.Navigate)
+{
+    // Apply rewards first
+    // Then move player to destination
+    // Scene may continue if next situation at new location
+}
+else if (choice.ActionType == ChoiceActionType.StartChallenge)
+{
+    // Cross strategic-tactical bridge
+    // Store CompletionReward in PendingContext
+    // Navigate to challenge screen
+}
+else // Instant
+{
+    // Apply rewards, stay in scene
+}
+```
+
+**Execution Order:**
+1. Check requirements → Lock if failed, continue if passed
+2. Apply costs → Deduct resources
+3. Route by PathType/ActionType → Determine next step
+4. Apply rewards → Immediate (InstantSuccess) or Conditional (Challenge)
+5. Update situation state → Mark complete
+6. Evaluate transitions → Determine next situation
+
+### Scene Progression & Transition Evaluation
+
+Scene.AdvanceToNextSituation() evaluates transition rules to determine next situation.
+
+**Transition Evaluation:**
+```csharp
+1. Get completed situation
+2. Lookup transition from SituationSpawnRules.Transitions
+3. Evaluate Transition.Condition:
+   - Always: Unconditional progression
+   - OnChoice: Check LastChoiceId matches SpecificChoiceId
+   - OnSuccess: Check LastChallengeSucceeded == true
+   - OnFailure: Check LastChallengeSucceeded == false
+4. If match found:
+   - Set Scene.CurrentSituation = destination situation
+   - Return SceneRoutingDecision (ContinueInScene or ExitToWorld)
+5. If no match:
+   - Scene complete (no more situations)
+   - Return SceneRoutingDecision.SceneComplete
+```
+
+**SceneRoutingDecision:**
+- **ContinueInScene:** Next situation shares same location/NPC context → Auto-activate immediately
+- **ExitToWorld:** Next situation requires different context → Player must navigate
+- **SceneComplete:** No more situations → Scene ends
+
+**Context Comparison:**
+```csharp
+// Scene.CompareContexts() determines routing:
+Current context: LocationId, NpcId
+Next context: Situation.RequiredLocationId, Situation.RequiredNpcId
+
+if (Same context):
+    return ContinueInScene  // Seamless cascade
+else:
+    return ExitToWorld      // Player must travel/find NPC
+```
+
+**Progression State Machine:**
+```
+Situation 1 Active
+→ Player selects choice
+→ Choice executes
+→ AdvanceToNextSituation() called
+→ Evaluate transitions
+→ Update CurrentSituation
+→ Compare contexts
+→ ContinueInScene: Situation 2 auto-activates
+→ ExitToWorld: Await player navigation
+→ SceneComplete: Scene ends
+```
+
+### Dependent Resource Lifecycle
+
+Complete flow from declaration to removal for scene-generated resources.
+
+**Phase 1: Declaration (Parse Time)**
+```csharp
+// SceneArchetypeCatalog declares resources:
+SceneArchetypeDefinition {
+    DependentLocations = [
+        new DependentLocationSpec {
+            Id = "private_room",
+            NameTemplate = "{npcName}'s Private Room",
+            Properties = [LocationProperty.Safe, LocationProperty.Restful]
+        }
+    ],
+    DependentItems = [
+        new DependentItemSpec {
+            Id = "room_key",
+            NameTemplate = "Key to {locationName}",
+            ItemType = ItemType.Key
+        }
+    ]
+}
+```
+
+**Phase 2: Creation (Parse Time)**
+```csharp
+// SceneTemplateParser creates actual entities:
+foreach (DependentLocationSpec spec in archetypeDef.DependentLocations)
+{
+    Location location = new Location {
+        Id = GenerateGuid(),  // Actual GUID
+        Name = spec.NameTemplate,  // Placeholders remain
+        IsLocked = true,  // Starts locked
+        Properties = spec.Properties
+    };
+    _gameWorld.Locations.Add(location);
+
+    // Store mapping: "private_room" → actual GUID
+    dependentLocationIds.Add(spec.Id, location.Id);
+}
+```
+
+**Phase 3: Marker Resolution (Spawn Time)**
+```csharp
+// Scene spawns, MarkerResolutionMap built:
+Scene.MarkerResolutionMap = {
+    "generated:private_room" → "location_guid_12345"
+}
+
+// Situations resolve markers:
+SituationTemplate.RequiredLocationId = "generated:private_room"
+→ Situation.ResolvedRequiredLocationId = "location_guid_12345"
+
+ChoiceReward.LocationsToUnlock = ["generated:private_room"]
+→ Resolved at execution: Unlock location_guid_12345
+```
+
+**Phase 4: Grant (Runtime - Choice Execution)**
+```csharp
+// Choice rewards grant access:
+RewardTemplate.LocationsToUnlock → Set Location.IsLocked = false
+RewardTemplate.ItemIds → Add Item to Player.Inventory
+```
+
+**Phase 5: Usage (Runtime - Situation Activation)**
+```csharp
+// Situation requires access:
+Situation.RequiredLocationId = "location_guid_12345"
+→ Player can only activate if Location.IsLocked = false
+→ Auto-activates when player enters
+```
+
+**Phase 6: Removal (Runtime - Cleanup)**
+```csharp
+// Departure choice cleans up:
+RewardTemplate.ItemsToRemove → Remove from Player.Inventory
+RewardTemplate.LocationsToLock → Set Location.IsLocked = true
+```
+
+**Lifecycle Complete:**
+```
+Declare → Create → Resolve → Grant → Use → Remove
+Parse    Parse    Spawn    Choice  Situation  Choice
+```
+
+**Purpose:** Resources exist throughout but access controlled. Player can't re-enter locked room after departure. Key removed from inventory. Location persists (for potential future scenes) but inaccessible.
+
+---
+
 ## THREE-TIER TIMING MODEL
 
 ### Why Three Tiers Exist

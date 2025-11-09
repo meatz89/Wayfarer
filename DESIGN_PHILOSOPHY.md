@@ -184,6 +184,310 @@ All strategic information visible to player. All tactical complexity hidden in e
 
 ---
 
+### Principle 11: Balanced Choice Design Through Path Diversity
+
+Balanced choices require **orthogonal resource costs** with equivalent utility. Players face meaningful trade-offs when different choices consume different resource types.
+
+**Standard Four-Choice Pattern:**
+
+Every situation presents 4 choices following standardized path types:
+
+1. **Stat-Gated Success Path** (PathType.InstantSuccess)
+   - Requires stat threshold (Rapport ≥ threshold, Authority ≥ threshold)
+   - Free (no consumable cost)
+   - Best rewards (player invested permanently in character build)
+   - Gated by character progression
+
+2. **Money-Gated Success Path** (PathType.InstantSuccess)
+   - Requires coins (scaled by Quality property)
+   - Guaranteed success
+   - Good rewards (reliable but depletes consumable resource)
+   - Always available if player has coins
+
+3. **Challenge Path** (PathType.Challenge)
+   - Costs Resolve (willingness to engage tactical layer)
+   - Routes to Social/Mental/Physical challenge
+   - Variable rewards based on success/failure
+   - Demonstrates tactical skill, no guarantee
+
+4. **Fallback Path** (PathType.Fallback)
+   - Always available (no requirements)
+   - Minimal or no rewards
+   - Poor outcome (decline service, walk away)
+   - Guarantees forward progress (prevents soft-locks)
+
+**Why Four Choices:**
+- **Two instant success paths** (stat OR money) give player options based on character build
+- **One challenge path** for tactical skill demonstration and variety
+- **One fallback** prevents soft-locks (no forced failure states)
+
+**Resource Orthogonality:**
+Each choice costs a DIFFERENT resource type:
+- Stat path: Permanent character build (invested XP, irreversible)
+- Money path: Consumable currency (depleted, must be replenished)
+- Challenge path: Time + Resolve (opportunity cost of engagement)
+- Fallback path: Narrative outcome (poor result, but forward progress)
+
+**Test for Balance:** Does each choice cost a DIFFERENT resource? If two choices cost the same resource type, one dominates and creates false choice. Player picks higher utility option, other option never used.
+
+**Example of Imbalance (FORBIDDEN):**
+- Choice 1: Pay 5 coins → Success
+- Choice 2: Pay 8 coins → Better success
+- **PROBLEM:** Both cost coins. Choice 2 strictly dominates if player has 8 coins. Choice 1 becomes dead option.
+
+**Example of Balance (CORRECT):**
+- Choice 1: Rapport ≥3 → Success (stat cost)
+- Choice 2: Pay 5 coins → Success (money cost)
+- Choice 3: Social challenge → Variable (time + resolve cost)
+- Choice 4: Decline → Poor outcome (narrative cost)
+- **CORRECT:** All four choices cost different resources. Player picks based on availability and preference.
+
+**Relationship to Principle 6 (Resource Scarcity):**
+Path diversity creates impossible choices ONLY when combined with resource scarcity. Player has high Rapport OR lots of coins, rarely both. Must choose which resource to spend based on strategic priorities.
+
+---
+
+### Principle 12: Archetype Reusability Through Categorical Scaling
+
+Situation archetypes define **mechanical structure independent of narrative content**. Same archetype generates contextually appropriate difficulty via **categorical property scaling**.
+
+**Archetype as Mechanical Pattern:**
+Situation archetype specifies:
+- Number of choices (usually 4)
+- Path types (InstantSuccess/Challenge/Fallback distribution)
+- Base cost formulas (stat threshold, coin cost, challenge difficulty)
+- Base reward formulas (resource restoration, state changes)
+- Requirement formulas (who can attempt)
+
+Archetype does NOT specify:
+- Narrative text (generated from entity context)
+- Specific entity IDs (uses placement context)
+- Absolute numeric values (uses scaling multipliers)
+- Domain-specific properties (works across all service types)
+
+**Universal Scaling Properties:**
+
+Entity properties scale archetypes WITHOUT modifying archetype definition:
+
+1. **NPCDemeanor** (Friendly/Neutral/Hostile): Scales stat thresholds
+   - Friendly: 0.8× threshold (easier to persuade)
+   - Neutral: 1.0× threshold (baseline)
+   - Hostile: 1.2× threshold (harder to persuade)
+
+2. **Quality** (Basic/Standard/Premium/Luxury): Scales coin costs
+   - Basic: 0.6× cost (cheap services)
+   - Standard: 1.0× cost (baseline)
+   - Premium: 1.6× cost (expensive services)
+   - Luxury: 2.4× cost (very expensive services)
+
+3. **PowerDynamic** (Dominant/Equal/Submissive): Scales authority checks
+   - Dominant: 0.6× threshold (player has power)
+   - Equal: 1.0× threshold (balanced)
+   - Submissive: 1.4× threshold (NPC has power)
+
+4. **EnvironmentQuality** (Basic/Standard/Premium): Scales rewards
+   - Basic: 1.0× restoration (minimal comfort)
+   - Standard: 2.0× restoration (good comfort)
+   - Premium: 3.0× restoration (exceptional comfort)
+
+**Procedural Variety Through Property Combinations:**
+
+Same archetype + different entity property combinations = infinite contextually appropriate variations.
+
+**Example: How Archetype + Context = Scaled Difficulty:**
+
+Same archetype archetype with different entity property combinations produces contextually appropriate difficulty:
+
+**Low-Difficulty Instance** (Friendly NPC + Basic Quality):
+- Stat threshold: baseValue × 0.6 (Friendly scaling)
+- Coin cost: baseValue × 0.6 (Basic scaling)
+- Challenge difficulty: Reduced
+- Result: Accessible interaction for early game or friendly relationships
+
+**High-Difficulty Instance** (Hostile NPC + Luxury Quality):
+- Stat threshold: baseValue × 1.4 (Hostile scaling)
+- Coin cost: baseValue × 2.4 (Luxury scaling)
+- Challenge difficulty: Increased
+- Result: Exclusive interaction for late game or powerful entities
+
+**SAME archetype definition, DIFFERENT entity properties, CONTEXTUALLY APPROPRIATE difficulty via universal scaling formulas.**
+
+**AI Content Generation Enablement:**
+
+This pattern enables AI to generate balanced content without global game state knowledge:
+
+1. **AI writes entity with categorical properties:**
+   ```json
+   {
+     "npcId": "elena",
+     "demeanor": "Friendly",
+     "serviceType": "Lodging",
+     "quality": "Standard"
+   }
+   ```
+
+2. **AI references archetype (not specific values):**
+   ```json
+   {
+     "sceneArchetypeId": "inn_lodging"
+   }
+   ```
+
+3. **Parser derives context from entities at load time:**
+   ```csharp
+   GenerationContext context = new GenerationContext {
+     NpcDemeanor = NPCDemeanor.Friendly,
+     Quality = Quality.Standard,
+     // ... other categorical properties
+   };
+   ```
+
+4. **Catalogue generates scaled choices automatically:**
+   ```csharp
+   scaledStatThreshold = baseThreshold * 0.8; // Friendly scaling
+   scaledCoinCost = baseCost * 1.0; // Standard scaling
+   ```
+
+**Why This Matters:**
+- AI writes fiction-appropriate entities ("This innkeeper seems friendly")
+- AI doesn't need to know player progression state
+- AI doesn't need to calculate balance
+- System handles mechanical balance via universal formulas
+- Same archetype reusable across entire game
+
+**Mathematical Variety:**
+- 21 archetypes
+- 3 NPCDemeanor values × 4 Quality values × 3 PowerDynamic values × 3 EnvironmentQuality values
+- = 21 × 3 × 4 × 3 × 3 = **2,268 mechanical variations** from property combinations alone
+- Add narrative variety from entity-specific context = effectively infinite content
+
+**Test for Reusability:** Can same archetype apply to 5+ different fictional contexts without modification? If yes, properly reusable. If requires modification, archetype too specific.
+
+**Reusability Across Interaction Types:**
+
+Same mechanical archetype applies to different fictional contexts:
+- **Negotiation pattern** (stat/money/challenge/decline): Access control, service purchase, information acquisition, passage rights, trade agreements
+- **Investigation pattern** (gather/analyze/deduce/abandon): Crime scenes, ancient texts, natural phenomena, social dynamics, historical events
+- **Crisis pattern** (immediate/calculated/risky/retreat): Combat emergencies, social disasters, environmental hazards, political crises, medical urgencies
+
+Each instance generates contextually appropriate narrative from entity properties (NPC personality, location atmosphere, item descriptions) while maintaining identical mechanical structure. NO archetype modifications needed for different fictional applications.
+
+---
+
+### Principle 13: Archetype Abstraction Level Guidelines
+
+Archetypes must balance between **too specific** (limited reuse) and **too generic** (no useful structure).
+
+**Correct Abstraction Level:**
+
+An archetype defines:
+- **Mechanical Structure:** Number of choices, PathType assignments, cost/requirement patterns
+- **Scaling Behavior:** Which context properties affect difficulty
+- **Narrative Hints:** Tone, theme, context (not specific narrative text)
+
+An archetype does NOT define:
+- **Specific Entities:** No hardcoded NPC IDs, location IDs, item IDs
+- **Absolute Values:** No fixed numeric costs (use base values + scaling)
+- **Domain-Specific Logic:** No "if service type == lodging" branches
+- **Narrative Text:** No specific dialogue (use ActionTextTemplate with placeholders)
+
+**Abstraction Test Questions:**
+
+1. **Can this archetype apply to 5+ different fictional contexts?**
+   - Yes → Correct abstraction
+   - No → Too specific, extract common pattern
+
+2. **Does this archetype require entity-specific branches?**
+   - Yes → Too specific, use categorical scaling instead
+   - No → Correct abstraction
+
+3. **Can I describe this archetype without mentioning concrete entities?**
+   - Yes → Correct abstraction
+   - No → Too specific, abstract the pattern
+
+4. **Does this archetype provide useful structure?**
+   - Yes → Correct abstraction
+   - No → Too generic, add mechanical constraints
+
+**Creating vs Reusing:**
+
+**Create NEW Situation Archetype when:**
+- **Different Choice Count:** Not 4 choices (e.g., binary choice 2-choice archetype)
+- **Different PathType Distribution:** Not stat/money/challenge/fallback pattern
+- **Different Scaling Properties:** New categorical properties affect difficulty
+- **Different Cost Structure:** New resource types involved
+
+Example: Investigation archetype needs Attention cost (not Resolve), different from negotiation.
+
+**Reuse EXISTING Situation Archetype when:**
+- **Same Mechanical Pattern:** 4 choices with same PathType distribution
+- **Same Scaling Properties:** NPCDemeanor/Quality/PowerDynamic apply same way
+- **Different Fictional Context:** Access bathhouse vs access library (same mechanics)
+
+Example: Negotiation archetype applies to services, information, passage, access control.
+
+**Create NEW Scene Archetype when:**
+- **Different Situation Count:** Not 3 situations (e.g., 2-situation branching choice)
+- **Different Transition Pattern:** Not linear Always transitions (e.g., OnSuccess/OnFailure branching)
+- **Different Resource Dependencies:** New types of generated locations/items
+- **Different Progression Structure:** New relationship between situations
+
+Example: Investigation scene needs hub-and-spoke (3 parallel leads + convergence), not linear.
+
+**Reuse EXISTING Scene Archetype when:**
+- **Same Situation Count:** 3 situations
+- **Same Transition Pattern:** Linear Always transitions
+- **Different Domain:** Inn lodging vs bathhouse service vs healer treatment
+
+Example: All services follow negotiate → execute → depart pattern regardless of service type.
+
+**Anti-Pattern Examples:**
+
+**TOO SPECIFIC (Over-Specialized):**
+```csharp
+// WRONG: Hardcoded entity types
+if (npc.ServiceType == ServiceType.Lodging) {
+    grantItem = "room_key";
+} else if (npc.ServiceType == ServiceType.Bathing) {
+    grantItem = "bathhouse_token";
+}
+
+// CORRECT: Scene archetype specifies resource
+DependentItems = [new DependentItemSpec { Id = "access_key" }]
+```
+
+**TOO GENERIC (No Useful Structure):**
+```csharp
+// WRONG: Generic "interaction" archetype with no constraints
+GenerateInteraction(int choiceCount, List<string> pathTypes, ...)
+
+// CORRECT: Specific mechanical pattern
+GenerateNegotiation() // Always 4 choices, stat/money/challenge/fallback
+```
+
+**Correct Layering:**
+
+**Layer 1 - Core Archetypes (5):** Fundamental interaction types (Confrontation, Negotiation, Investigation, Social, Crisis)
+- Broadest patterns, minimal mechanical specification
+- Define interaction philosophy, not exact structure
+
+**Layer 2 - Expanded Archetypes (10):** Domain-specific mechanical patterns
+- Specific choice counts and PathType distributions
+- Scaling formulas and cost structures
+- Reusable across similar interactions
+
+**Layer 3 - Specialized Archetypes (6):** Multi-phase composition archetypes
+- Combine Layer 2 archetypes into complete flows
+- Define situation sequences and transitions
+- Used by scene archetypes
+
+**Design Heuristic:** If you're writing "if entity.SpecificProperty" branches in archetype code, abstraction level wrong. Extract to categorical property and add universal scaling rule.
+
+**Test for Correct Abstraction:**
+After implementing archetype, try to use it in 3 unrelated fictional contexts. If it works without modification, abstraction correct. If it needs changes, too specific. If it provides no value, too generic.
+
+---
+
 ## Meta-Principle: Design Constraint as Quality Filter
 
 When you find yourself reaching for:

@@ -113,6 +113,243 @@ Templates are immutable archetypes that define reusable patterns. They exist ind
 
 This hierarchy remains stable. Templates never change during gameplay. They are the design language authors use to define content patterns.
 
+### Scene Archetypes vs Situation Archetypes
+
+The template generation system operates at two levels: **SceneArchetypeCatalog** and **SituationArchetypeCatalog**. Understanding their relationship is critical for content authoring.
+
+**SituationArchetypeCatalog** generates single-situation mechanical patterns:
+- Defines number of choices (typically 4)
+- Defines path types (stat-gated/money-gated/challenge/fallback)
+- Defines base cost formulas (scaled by entity properties)
+- Defines base reward formulas (scaled by environmental properties)
+- Returns List<ChoiceTemplate> ready for embedding in SituationTemplate
+
+**SceneArchetypeCatalog** composes multiple situations into complete narrative arcs:
+- Calls SituationArchetypeCatalog to generate choices for each situation
+- **Enriches** choices with scene-specific rewards (location unlocks, item grants, cleanup)
+- Defines SituationSpawnRules (how situations transition)
+- Declares DependentResources (locations/items scene will create)
+- Returns complete SceneArchetypeDefinition with multiple situations
+
+**The Enrichment Layer:**
+
+Situation archetypes define BASE mechanical structure. Scene archetypes ADD context-specific rewards.
+
+Example:
+```
+SituationArchetypeCatalog.Generate("service_negotiation") returns:
+  Choice 1: Stat-gated path (base structure, no specific rewards)
+  Choice 2: Money-gated path (base structure, no specific rewards)
+  Choice 3: Challenge path (base structure, no specific rewards)
+  Choice 4: Fallback path (base structure, no specific rewards)
+
+SceneArchetypeCatalog.Generate("inn_lodging") receives these choices and enriches:
+  Choice 1: + Unlock private_room, Grant room_key
+  Choice 2: + Unlock private_room, Grant room_key
+  Choice 3: + OnSuccess: Unlock private_room, Grant room_key
+  Choice 4: (no enrichment - fallback remains poor outcome)
+```
+
+**Why Two Levels:**
+
+1. **Reusability:** Same situation archetype used by multiple scene archetypes
+   - `service_negotiation` used by: inn_lodging, bathhouse_service, healer_treatment, ferry_passage
+   - Each scene enriches with different resources (room_key vs bathhouse_token vs treatment_pass)
+
+2. **Separation of Concerns:** Situations define HOW (mechanical paths), Scenes define WHAT (specific resources)
+
+3. **Modularity:** Change negotiation mechanics once (situation archetype), affects all services
+
+**Composition Flow:**
+1. JSON references: `"sceneArchetypeId": "inn_lodging"`
+2. Parser calls: `SceneArchetypeCatalog.Generate("inn_lodging", tier, context)`
+3. Scene archetype calls: `SituationArchetypeCatalog.Generate("service_negotiation", ...)`
+4. Situation archetype returns: List<ChoiceTemplate> with base structure
+5. Scene archetype enriches: Adds LocationsToUnlock, ItemIds, etc.
+6. Scene archetype repeats for all situations in scene (negotiate, execute, depart)
+7. Returns complete SceneArchetypeDefinition to parser
+
+### Implementing New Situation Archetype
+
+Situation archetypes generate base choice structures reusable across multiple scene types.
+
+**Method Signature:**
+```csharp
+private static List<ChoiceTemplate> GenerateMyArchetypeChoices(
+    SituationArchetype archetype,
+    string situationTemplateId,
+    GenerationContext context)
+```
+
+**Implementation Structure:**
+```csharp
+1. Scale base values by context properties
+   scaledStatThreshold = context.NpcDemeanor switch { ... }
+   scaledCoinCost = context.Quality switch { ... }
+
+2. Build requirement formulas
+   CompoundRequirement rapportReq = new CompoundRequirement {
+       OrPaths = [new OrPath { NumericRequirements = [...] }]
+   };
+
+3. Create 4 choices with PathType assignments:
+
+   Choice 1: Stat-Gated (PathType.InstantSuccess)
+   - RequirementFormula = rapportReq (scaled)
+   - CostTemplate = empty (free)
+   - RewardTemplate = EMPTY (scene enriches)
+   - ActionType = Instant
+
+   Choice 2: Money-Gated (PathType.InstantSuccess)
+   - RequirementFormula = empty (always available if has coins)
+   - CostTemplate = scaledCoinCost
+   - RewardTemplate = EMPTY
+   - ActionType = Instant
+
+   Choice 3: Challenge (PathType.Challenge)
+   - RequirementFormula = empty (always available)
+   - CostTemplate = Resolve cost
+   - RewardTemplate = EMPTY
+   - ActionType = StartChallenge
+   - ChallengeType = Social/Mental/Physical
+   - ChallengeId = deck reference
+
+   Choice 4: Fallback (PathType.Fallback)
+   - RequirementFormula = empty
+   - CostTemplate = empty
+   - RewardTemplate = EMPTY
+   - ActionType = Instant
+   - ActionTextTemplate = "Decline/Leave/Abandon"
+
+4. Return List<ChoiceTemplate>
+```
+
+**Key Patterns:**
+- **RewardTemplate ALWAYS EMPTY:** Scene archetype enriches based on PathType
+- **Scale by context:** Use universal scaling properties (NPCDemeanor, Quality, PowerDynamic)
+- **Consistent PathType assignment:** 2 InstantSuccess, 1 Challenge, 1 Fallback
+- **ActionTextTemplate uses placeholders:** `{npcName}`, `{locationName}`, `{serviceType}`
+
+### Implementing New Scene Archetype
+
+Scene archetypes compose multiple situations with enriched rewards.
+
+**Method Signature:**
+```csharp
+private static SceneArchetypeDefinition GenerateMyScene(
+    int tier,
+    GenerationContext context)
+```
+
+**Implementation Structure:**
+```csharp
+1. Define situation IDs:
+   string sceneId = "my_scene";
+   string sit1Id = $"{sceneId}_situation1";
+   string sit2Id = $"{sceneId}_situation2";
+
+2. FOR EACH SITUATION:
+   a. Get archetype:
+      SituationArchetype arch = SituationArchetypeCatalog.GetArchetype("archetype_id");
+
+   b. Generate base choices:
+      List<ChoiceTemplate> baseChoices =
+          SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(arch, sitId, context);
+
+   c. Enrich choices by PathType:
+      List<ChoiceTemplate> enriched = new List<ChoiceTemplate>();
+      foreach (ChoiceTemplate choice in baseChoices) {
+          switch (choice.PathType) {
+              case InstantSuccess:
+                  // Add immediate rewards
+                  enriched.Add(new ChoiceTemplate {
+                      ...choice properties...,
+                      RewardTemplate = new ChoiceReward {
+                          LocationsToUnlock = [...],
+                          ItemIds = [...]
+                      }
+                  });
+              case Challenge:
+                  // Add OnSuccessReward
+                  enriched.Add(new ChoiceTemplate {
+                      ...choice properties...,
+                      OnSuccessReward = new ChoiceReward { ... }
+                  });
+              case Fallback:
+                  // Pass through unchanged
+                  enriched.Add(choice);
+          }
+      }
+
+   d. Create SituationTemplate:
+      SituationTemplate sit = new SituationTemplate {
+          Id = sitId,
+          Name = "Situation Name",
+          Type = SituationType.Normal,
+          NarrativeTemplate = null,  // AI generates
+          ChoiceTemplates = enriched,
+          Priority = 100,
+          NarrativeHints = new NarrativeHints { ... },
+          RequiredLocationId = context.LocationId or "generated:resource_id",
+          RequiredNpcId = context.NpcId or null
+      };
+
+3. Define spawn rules:
+   SituationSpawnRules rules = new SituationSpawnRules {
+       Pattern = SpawnPattern.Linear,
+       InitialSituationId = sit1Id,
+       Transitions = new List<SituationTransition> {
+           new SituationTransition {
+               SourceSituationId = sit1Id,
+               DestinationSituationId = sit2Id,
+               Condition = TransitionCondition.Always
+           }
+       }
+   };
+
+4. Declare dependent resources (if needed):
+   DependentResourceCatalog.DependentResources resources =
+       DependentResourceCatalog.GenerateForActivity(ServiceActivityType.MyActivity);
+
+5. Return SceneArchetypeDefinition:
+   return new SceneArchetypeDefinition {
+       SituationTemplates = [sit1, sit2, ...],
+       SpawnRules = rules,
+       DependentLocations = [resources.LocationSpec],
+       DependentItems = [resources.ItemSpec]
+   };
+```
+
+**Key Patterns:**
+- **Enrichment by PathType:** Switch on PathType to determine reward placement
+- **InstantSuccess:** Add RewardTemplate (immediate rewards)
+- **Challenge:** Add OnSuccessReward (conditional rewards)
+- **Fallback:** Pass through unchanged (no rewards)
+- **Dependent resources:** Use "generated:id" markers, resolve at spawn time
+- **Transitions:** Define Pattern + explicit Transition list
+
+### Archetype Reuse Decision Criteria
+
+**Create New Situation Archetype When:**
+- New mechanical pattern (different number/types of choices)
+- New scaling requirements (different properties affect difficulty)
+- New cost/reward structure (different resource types)
+
+**Reuse Existing Situation Archetype When:**
+- Same mechanical pattern, different narrative context
+- Same 4-choice structure (stat/money/challenge/fallback)
+- Same scaling properties apply
+
+**Create New Scene Archetype When:**
+- New multi-situation structure (different situation count/transitions)
+- New resource dependency pattern (different locations/items generated)
+- New narrative arc structure
+
+**Reuse Existing Scene Archetype When:**
+- Same situation count and transition pattern
+- Same dependent resource types
+- Different fictional context (same structure, different domain)
+
 ---
 
 ### The Runtime Entity Hierarchy
@@ -617,6 +854,74 @@ Completing A prevents B from spawning. Permanent choice. Used for:
 - Faction exclusivity
 - Meaningful decisions with regret
 - Replayability creation
+
+### Multi-Situation Scene Composition Patterns
+
+Scene archetypes compose multiple situations to create complete narrative arcs. Common composition patterns:
+
+**Linear Progression Pattern:**
+Situations cascade sequentially with forced progression. Scene defines N situations with linear transitions.
+
+Structure:
+- Situation 1 completes → Transition(Always) → Situation 2
+- Situation 2 completes → Transition(Always) → Situation 3
+- Situation 3 completes → Scene ends
+
+Usage: Tutorial sequences, narrative arcs with clear beginning/middle/end, phased interactions requiring completion order.
+
+**Branching Outcome Pattern:**
+Situation completion routes to different next situations based on success/failure.
+
+Structure:
+- Situation 1 with challenge → OnSuccess → Situation 2A (success path)
+- Situation 1 with challenge → OnFailure → Situation 2B (failure path)
+- Both paths eventually converge or diverge permanently
+
+Usage: High-stakes decisions, skill-gated progression, consequence management.
+
+**Hub-and-Spoke Pattern:**
+Central situation spawns multiple situations simultaneously, player chooses engagement order.
+
+Structure:
+- Hub situation completes → Spawns Situations A, B, C simultaneously
+- Player pursues in any order
+- Completing all three unlocks convergence situation
+
+Usage: Investigation with parallel leads, multi-faceted problems, player agency moments.
+
+**Choice-Conditional Transitions:**
+Specific choice selection determines next situation (not just success/failure).
+
+Structure:
+- Situation 1 with multiple endings → OnChoice(choice_id_1) → Situation 2A
+- Same situation → OnChoice(choice_id_2) → Situation 2B
+- Different choices route to completely different continuations
+
+Usage: Branching narratives, faction selection, mutually exclusive paths.
+
+**Scene Completeness Criteria:**
+
+Complete scene fulfills conceptual goal through situation sequence:
+- Can player initiate the interaction? (Entry situation exists)
+- Can player accomplish the goal? (Core situation(s) present)
+- Can player exit cleanly? (Conclusion situation handles cleanup)
+- Are resources properly managed? (Generated entities granted/removed)
+- Does player have forward progress? (Fallback paths prevent soft-locks)
+
+**Test:** Trace player action path from scene start to completion. If any situation leaves player with abandoned state (unreachable locations, undeletable items, perpetual flags), scene incomplete.
+
+**Archetype Flexibility:**
+
+Scene archetypes define STRUCTURE (how many situations, transition pattern) independent of DOMAIN (what fictional context). Same structural pattern applies to multiple domains:
+
+- **Linear 3-phase:** Access negotiation → Primary activity → Cleanup/exit
+  - Applies to: Services, resource acquisition, staged interactions
+- **Branching 2-phase:** Decisive moment → Success/failure consequences
+  - Applies to: Challenges, pivotal decisions, skill demonstrations
+- **Hub 4-phase:** Investigation start → 3 parallel leads → Convergence conclusion
+  - Applies to: Mysteries, complex problems, thorough examination
+
+Situation archetypes provide MECHANICS (4 choices with PathType), Scene archetypes provide STRUCTURE (how situations connect), Entity properties provide SCALING (difficulty adjustment), AI provides NARRATIVE (contextually appropriate text).
 
 Templates combine these primitives to create rich narrative structures. Content authors think in patterns, not specific instances.
 
