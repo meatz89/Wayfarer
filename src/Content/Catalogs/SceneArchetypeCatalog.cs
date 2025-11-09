@@ -58,7 +58,7 @@ public static class SceneArchetypeCatalog
         return archetypeId?.ToLowerInvariant() switch
         {
             "service_with_location_access" => GenerateServiceWithLocationAccess(tier, context),
-            "tutorial_secure_lodging" => GenerateTutorialSecureLodging(tier, context),
+            "service_simplified" => GenerateServiceSimplified(tier, context),
             "transaction_sequence" => GenerateTransactionSequence(tier, context),
             "gatekeeper_sequence" => GenerateGatekeeperSequence(tier, context),
             "consequence_reflection" => GenerateConsequenceReflection(tier, context),
@@ -73,7 +73,7 @@ public static class SceneArchetypeCatalog
             "single_service_transaction" => GenerateSingleSituationScene("service_transaction", tier, context, "service_request", "transactional"),
             "single_access_control" => GenerateSingleSituationScene("access_control", tier, context, "restricted_access", "authoritative"),
 
-            _ => throw new InvalidDataException($"Unknown scene archetype ID: '{archetypeId}'. Valid archetypes: service_with_location_access, tutorial_secure_lodging, transaction_sequence, gatekeeper_sequence, consequence_reflection, inn_crisis_escalation, single_negotiation, single_confrontation, single_investigation, single_social_maneuvering, single_crisis, single_service_transaction, single_access_control")
+            _ => throw new InvalidDataException($"Unknown scene archetype ID: '{archetypeId}'. Valid archetypes: service_with_location_access, service_simplified, transaction_sequence, gatekeeper_sequence, consequence_reflection, inn_crisis_escalation, single_negotiation, single_confrontation, single_investigation, single_social_maneuvering, single_crisis, single_service_transaction, single_access_control")
         };
     }
 
@@ -117,9 +117,9 @@ public static class SceneArchetypeCatalog
         string serviceSitId = $"{serviceId}_service";
         string departSitId = $"{serviceId}_depart";
 
-        SituationArchetype negotiateArchetype = DetermineNegotiationArchetype(context);
+        SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype("service_negotiation");
         NarrativeHints negotiateHints = GenerateServiceNegotiationHints(context, serviceId);
-        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(negotiateArchetype, negotiateSitId);
+        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(negotiateArchetype, negotiateSitId, context);
 
         // Add unlock rewards to negotiate choices (all successful negotiation paths grant room access)
         // Stat-gated and money choices get immediate rewards
@@ -215,105 +215,8 @@ public static class SceneArchetypeCatalog
             RequiredNpcId = null
         };
 
-        SituationArchetype serviceArchetype = SituationArchetypeCatalog.GetArchetype("rest_preparation");
-        List<ChoiceTemplate> serviceChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(serviceArchetype, serviceSitId);
-
-        // Enrich choices with tier-scaled recovery rewards
-        List<ChoiceTemplate> enrichedServiceChoices = new List<ChoiceTemplate>();
-        foreach (ChoiceTemplate choice in serviceChoices)
-        {
-            if (choice.Id.EndsWith("_stat"))
-            {
-                // Stat-gated: Maximum recovery
-                enrichedServiceChoices.Add(new ChoiceTemplate
-                {
-                    Id = choice.Id,
-                    ActionTextTemplate = choice.ActionTextTemplate,
-                    RequirementFormula = choice.RequirementFormula,
-                    CostTemplate = choice.CostTemplate,
-                    RewardTemplate = new ChoiceReward
-                    {
-                        TimeSegments = 8,
-                        Health = tier + 3,
-                        Stamina = tier + 3
-                    },
-                    ActionType = choice.ActionType,
-                    ChallengeId = choice.ChallengeId,
-                    ChallengeType = choice.ChallengeType,
-                    NavigationPayload = choice.NavigationPayload
-                });
-            }
-            else if (choice.Id.EndsWith("_money"))
-            {
-                // Money: Good recovery + comfort
-                enrichedServiceChoices.Add(new ChoiceTemplate
-                {
-                    Id = choice.Id,
-                    ActionTextTemplate = choice.ActionTextTemplate,
-                    RequirementFormula = choice.RequirementFormula,
-                    CostTemplate = choice.CostTemplate,
-                    RewardTemplate = new ChoiceReward
-                    {
-                        TimeSegments = 8,
-                        Health = tier + 2,
-                        Stamina = tier + 2
-                    },
-                    ActionType = choice.ActionType,
-                    ChallengeId = choice.ChallengeId,
-                    ChallengeType = choice.ChallengeType,
-                    NavigationPayload = choice.NavigationPayload
-                });
-            }
-            else if (choice.Id.EndsWith("_challenge"))
-            {
-                // Challenge: Variable recovery (applied by challenge completion)
-                enrichedServiceChoices.Add(new ChoiceTemplate
-                {
-                    Id = choice.Id,
-                    ActionTextTemplate = choice.ActionTextTemplate,
-                    RequirementFormula = choice.RequirementFormula,
-                    CostTemplate = choice.CostTemplate,
-                    RewardTemplate = choice.RewardTemplate,
-                    OnSuccessReward = new ChoiceReward
-                    {
-                        TimeSegments = 8,
-                        Health = tier + 4,
-                        Stamina = tier + 4
-                    },
-                    OnFailureReward = new ChoiceReward
-                    {
-                        TimeSegments = 8,
-                        Health = tier,
-                        Stamina = tier
-                    },
-                    ActionType = choice.ActionType,
-                    ChallengeId = choice.ChallengeId,
-                    ChallengeType = choice.ChallengeType,
-                    NavigationPayload = choice.NavigationPayload
-                });
-            }
-            else
-            {
-                // Fallback: Minimal recovery
-                enrichedServiceChoices.Add(new ChoiceTemplate
-                {
-                    Id = choice.Id,
-                    ActionTextTemplate = choice.ActionTextTemplate,
-                    RequirementFormula = choice.RequirementFormula,
-                    CostTemplate = choice.CostTemplate,
-                    RewardTemplate = new ChoiceReward
-                    {
-                        TimeSegments = 8,
-                        Health = tier,
-                        Stamina = tier
-                    },
-                    ActionType = choice.ActionType,
-                    ChallengeId = choice.ChallengeId,
-                    ChallengeType = choice.ChallengeType,
-                    NavigationPayload = choice.NavigationPayload
-                });
-            }
-        }
+        SituationArchetype serviceArchetype = SituationArchetypeCatalog.GetArchetype("service_execution_rest");
+        List<ChoiceTemplate> enrichedServiceChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(serviceArchetype, serviceSitId, context);
 
         SituationTemplate serviceSituation = new SituationTemplate
         {
@@ -333,83 +236,33 @@ public static class SceneArchetypeCatalog
             RequiredNpcId = null
         };
 
-        SituationArchetype departArchetype = SituationArchetypeCatalog.GetArchetype("departing_private_space");
-        List<ChoiceTemplate> departChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(departArchetype, departSitId);
+        SituationArchetype departArchetype = SituationArchetypeCatalog.GetArchetype("service_departure");
+        List<ChoiceTemplate> departChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(departArchetype, departSitId, context);
 
         // Enrich choices with departure cleanup (return key, lock room)
+        // Merge archetype rewards (buffs) with service-specific cleanup
         List<ChoiceTemplate> enrichedDepartChoices = new List<ChoiceTemplate>();
         foreach (ChoiceTemplate choice in departChoices)
         {
-            if (choice.Id.EndsWith("_stat") || choice.Id.EndsWith("_money"))
+            ChoiceReward mergedReward = new ChoiceReward
             {
-                // Stat-gated and Money: Positive departure with cleanup
-                enrichedDepartChoices.Add(new ChoiceTemplate
-                {
-                    Id = choice.Id,
-                    ActionTextTemplate = choice.ActionTextTemplate,
-                    RequirementFormula = choice.RequirementFormula,
-                    CostTemplate = choice.CostTemplate,
-                    RewardTemplate = new ChoiceReward
-                    {
-                        TimeSegments = 1,
-                        ItemsToRemove = new List<string> { "generated:room_key" },
-                        LocationsToLock = new List<string> { "generated:private_room" }
-                    },
-                    ActionType = choice.ActionType,
-                    ChallengeId = choice.ChallengeId,
-                    ChallengeType = choice.ChallengeType,
-                    NavigationPayload = choice.NavigationPayload
-                });
-            }
-            else if (choice.Id.EndsWith("_challenge"))
+                ItemsToRemove = new List<string> { "generated:room_key" },
+                LocationsToLock = new List<string> { "generated:private_room" },
+                StateApplications = choice.RewardTemplate?.StateApplications ?? new List<StateApplication>()
+            };
+
+            enrichedDepartChoices.Add(new ChoiceTemplate
             {
-                // Challenge: Cleanup on success, awkward on failure
-                enrichedDepartChoices.Add(new ChoiceTemplate
-                {
-                    Id = choice.Id,
-                    ActionTextTemplate = choice.ActionTextTemplate,
-                    RequirementFormula = choice.RequirementFormula,
-                    CostTemplate = choice.CostTemplate,
-                    RewardTemplate = choice.RewardTemplate,
-                    OnSuccessReward = new ChoiceReward
-                    {
-                        TimeSegments = 1,
-                        ItemsToRemove = new List<string> { "generated:room_key" },
-                        LocationsToLock = new List<string> { "generated:private_room" }
-                    },
-                    OnFailureReward = new ChoiceReward
-                    {
-                        TimeSegments = 1,
-                        ItemsToRemove = new List<string> { "generated:room_key" },
-                        LocationsToLock = new List<string> { "generated:private_room" }
-                    },
-                    ActionType = choice.ActionType,
-                    ChallengeId = choice.ChallengeId,
-                    ChallengeType = choice.ChallengeType,
-                    NavigationPayload = choice.NavigationPayload
-                });
-            }
-            else
-            {
-                // Fallback: Quick exit with cleanup (no social benefit, but room still cleaned)
-                enrichedDepartChoices.Add(new ChoiceTemplate
-                {
-                    Id = choice.Id,
-                    ActionTextTemplate = choice.ActionTextTemplate,
-                    RequirementFormula = choice.RequirementFormula,
-                    CostTemplate = choice.CostTemplate,
-                    RewardTemplate = new ChoiceReward
-                    {
-                        TimeSegments = 1,
-                        ItemsToRemove = new List<string> { "generated:room_key" },
-                        LocationsToLock = new List<string> { "generated:private_room" }
-                    },
-                    ActionType = choice.ActionType,
-                    ChallengeId = choice.ChallengeId,
-                    ChallengeType = choice.ChallengeType,
-                    NavigationPayload = choice.NavigationPayload
-                });
-            }
+                Id = choice.Id,
+                ActionTextTemplate = choice.ActionTextTemplate,
+                RequirementFormula = choice.RequirementFormula,
+                CostTemplate = choice.CostTemplate,
+                RewardTemplate = mergedReward,
+                ActionType = choice.ActionType,
+                ChallengeId = choice.ChallengeId,
+                ChallengeType = choice.ChallengeType,
+                NavigationPayload = choice.NavigationPayload
+            });
         }
 
         SituationTemplate departureSituation = new SituationTemplate
@@ -499,135 +352,97 @@ public static class SceneArchetypeCatalog
     }
 
     /// <summary>
-    /// TUTORIAL_SECURE_LODGING archetype
+    /// SERVICE_SIMPLIFIED archetype
     ///
-    /// When Used: Tutorial-specific simplified lodging flow for teaching the secure room mechanic
-    /// Situation Count: 3 (simplified from service_with_location_access which has 4)
+    /// When Used: Simplified 3-situation service flow (tutorial, straightforward service transactions)
+    /// Situation Count: 3
     /// Pattern: Linear (negotiate → service → depart)
     ///
-    /// Situation 1 - Negotiate: Player arranges lodging with Elena
-    ///   - Archetype: service_transaction
-    ///   - Choices: 4 (pay coins, use rapport, attempt challenge, politely decline)
-    ///   - Success paths: Unlock room, grant key
-    ///   - Failure paths: Situation remains active, player can retry
-    ///   - Appears as: Conversation option with Elena
+    /// Situation 1 - Negotiate: Player arranges service access
+    ///   - Archetype: service_negotiation (context-aware scaling)
+    ///   - Choices: 4 (stat-gated, money, challenge, fallback)
+    ///   - Rewards: Unlock room, grant key on successful negotiation
     ///
-    /// Situation 2 - Service: Rest in private room
-    ///   - Custom 4 choices (all succeed, all advance to next morning)
-    ///   - Choice 1: Sleep peacefully (balanced recovery)
-    ///   - Choice 2: Rest your weary body (physical focus)
-    ///   - Choice 3: Meditate before sleep (mental focus)
-    ///   - Choice 4: Dream deeply (special with buff)
-    ///   - ALL advance to next day Morning block
-    ///   - Appears when: Player enters private room
+    /// Situation 2 - Service: Receive service benefit
+    ///   - Archetype: service_execution_rest (context-aware scaling)
+    ///   - Choices: 4 (balanced, physical, mental, special)
+    ///   - Rewards: Comfort-scaled restoration + time advancement to next morning
     ///
-    /// Situation 3 - Depart: Leave the private room
-    ///   - Custom 2 choices (simplified from 4)
-    ///   - Choice 1: Leave immediately (no cost, basic cleanup)
-    ///   - Choice 2: Gather belongings carefully (1 time segment, grants buff)
-    ///   - Both choices: Remove key, lock room, scene complete
-    ///   - Appears: Next morning in private room
+    /// Situation 3 - Depart: Leave and cleanup
+    ///   - Archetype: service_departure (context-aware scaling)
+    ///   - Choices: 2 (immediate, careful)
+    ///   - Rewards: Remove key, lock room, optional service-type buff
     ///
     /// Creates dependent resources:
     ///   - generated:private_room (unlocked by room_key)
     ///   - generated:room_key (removed on departure)
+    ///
+    /// Difference from service_with_location_access:
+    ///   - Skips "Access" situation (inspection/preparation)
+    ///   - 3 situations instead of 4
+    ///   - More streamlined for tutorial/simple service flows
     /// </summary>
-    private static SceneArchetypeDefinition GenerateTutorialSecureLodging(int tier, GenerationContext context)
+    private static SceneArchetypeDefinition GenerateServiceSimplified(int tier, GenerationContext context)
     {
-        string serviceId = "tutorial_lodging";
+        string serviceId = "service_simplified";
         string negotiateSitId = $"{serviceId}_negotiate";
         string serviceSitId = $"{serviceId}_service";
         string departSitId = $"{serviceId}_depart";
 
-        // SITUATION 1: NEGOTIATE (with Elena at inn common room)
-        SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype("service_transaction");
-        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(negotiateArchetype, negotiateSitId);
+        // SITUATION 1: NEGOTIATE (context-aware scaling)
+        SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype("service_negotiation");
+        NarrativeHints negotiateHints = GenerateServiceNegotiationHints(context, serviceId);
+        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(negotiateArchetype, negotiateSitId, context);
 
-        // Enrich negotiate choices with unlock rewards
+        // Enrich with service-specific rewards (unlock room, grant key)
         List<ChoiceTemplate> enrichedNegotiateChoices = new List<ChoiceTemplate>();
         foreach (ChoiceTemplate choice in negotiateChoices)
         {
-            if (choice.Id.EndsWith("_money"))
+            if (choice.Id.EndsWith("_stat") || choice.Id.EndsWith("_money"))
             {
-                // Choice 1: Pay 5 coins for the room
+                // Instant success paths: unlock room and grant key immediately
                 enrichedNegotiateChoices.Add(new ChoiceTemplate
                 {
                     Id = choice.Id,
-                    ActionTextTemplate = "Pay 5 coins for the room",
+                    ActionTextTemplate = choice.ActionTextTemplate,
                     RequirementFormula = choice.RequirementFormula,
-                    CostTemplate = new ChoiceCost { Coins = 5 },
+                    CostTemplate = choice.CostTemplate,
                     RewardTemplate = new ChoiceReward
                     {
                         LocationsToUnlock = new List<string> { "generated:private_room" },
                         ItemIds = new List<string> { "generated:room_key" }
                     },
-                    ActionType = ChoiceActionType.Instant
-                });
-            }
-            else if (choice.Id.EndsWith("_stat"))
-            {
-                // Choice 2: Use rapport with Elena (Rapport >= 3)
-                CompoundRequirement rapportReq = new CompoundRequirement();
-                rapportReq.OrPaths.Add(new OrPath
-                {
-                    Label = "Rapport 3+",
-                    NumericRequirements = new List<NumericRequirement>
-                    {
-                        new NumericRequirement
-                        {
-                            Type = "PlayerStat",
-                            Context = "Rapport",
-                            Threshold = 3,
-                            Label = "Rapport 3+"
-                        }
-                    }
-                });
-
-                enrichedNegotiateChoices.Add(new ChoiceTemplate
-                {
-                    Id = choice.Id,
-                    ActionTextTemplate = "Ask Elena for a favor (use your rapport)",
-                    RequirementFormula = rapportReq,
-                    CostTemplate = new ChoiceCost(),
-                    RewardTemplate = new ChoiceReward
-                    {
-                        LocationsToUnlock = new List<string> { "generated:private_room" },
-                        ItemIds = new List<string> { "generated:room_key" }
-                    },
-                    ActionType = ChoiceActionType.Instant
+                    ActionType = choice.ActionType,
+                    ChallengeId = choice.ChallengeId,
+                    ChallengeType = choice.ChallengeType,
+                    NavigationPayload = choice.NavigationPayload
                 });
             }
             else if (choice.Id.EndsWith("_challenge"))
             {
-                // Choice 3: Negotiate for a better rate (Social challenge)
+                // Challenge path: unlock room and grant key on success only
                 enrichedNegotiateChoices.Add(new ChoiceTemplate
                 {
                     Id = choice.Id,
-                    ActionTextTemplate = "Negotiate for a better rate",
-                    RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost { Resolve = 1 },
-                    RewardTemplate = new ChoiceReward(),
+                    ActionTextTemplate = choice.ActionTextTemplate,
+                    RequirementFormula = choice.RequirementFormula,
+                    CostTemplate = choice.CostTemplate,
+                    RewardTemplate = choice.RewardTemplate,
                     OnSuccessReward = new ChoiceReward
                     {
                         LocationsToUnlock = new List<string> { "generated:private_room" },
                         ItemIds = new List<string> { "generated:room_key" }
                     },
-                    ActionType = ChoiceActionType.StartChallenge,
-                    ChallengeType = TacticalSystemType.Social
+                    ActionType = choice.ActionType,
+                    ChallengeId = choice.ChallengeId,
+                    ChallengeType = choice.ChallengeType,
+                    NavigationPayload = choice.NavigationPayload
                 });
             }
-            else if (choice.Id.EndsWith("_fallback"))
+            else
             {
-                // Choice 4: Politely decline (no service, scene ends)
-                enrichedNegotiateChoices.Add(new ChoiceTemplate
-                {
-                    Id = choice.Id,
-                    ActionTextTemplate = "Politely decline",
-                    RequirementFormula = new CompoundRequirement(),
-                    CostTemplate = new ChoiceCost(),
-                    RewardTemplate = new ChoiceReward(),
-                    ActionType = ChoiceActionType.Instant
-                });
+                // Fallback path: no rewards (player leaves without service)
+                enrichedNegotiateChoices.Add(choice);
             }
         }
 
@@ -639,94 +454,14 @@ public static class SceneArchetypeCatalog
             NarrativeTemplate = null,
             ChoiceTemplates = enrichedNegotiateChoices,
             Priority = 100,
-            NarrativeHints = new NarrativeHints
-            {
-                Tone = "welcoming",
-                Theme = "service_negotiation",
-                Context = "inn_lodging_request"
-            },
+            NarrativeHints = negotiateHints,
             RequiredLocationId = context.NpcLocationId,
             RequiredNpcId = context.NpcId
         };
 
-        // SITUATION 2: SERVICE (rest in private room)
-        // All 4 choices advance to next morning
-        List<ChoiceTemplate> serviceChoices = new List<ChoiceTemplate>
-        {
-            new ChoiceTemplate
-            {
-                Id = $"{serviceSitId}_peaceful",
-                ActionTextTemplate = "Sleep peacefully",
-                RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost(),
-                RewardTemplate = new ChoiceReward
-                {
-                    Health = 30,
-                    Stamina = 30,
-                    Focus = 20,
-                    AdvanceToDay = DayAdvancement.NextDay,
-                    AdvanceToBlock = TimeBlocks.Morning
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
-            {
-                Id = $"{serviceSitId}_physical",
-                ActionTextTemplate = "Rest your weary body",
-                RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost(),
-                RewardTemplate = new ChoiceReward
-                {
-                    Health = 50,
-                    Stamina = 20,
-                    Focus = 10,
-                    AdvanceToDay = DayAdvancement.NextDay,
-                    AdvanceToBlock = TimeBlocks.Morning
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
-            {
-                Id = $"{serviceSitId}_mental",
-                ActionTextTemplate = "Meditate before sleep",
-                RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost(),
-                RewardTemplate = new ChoiceReward
-                {
-                    Health = 20,
-                    Stamina = 20,
-                    Focus = 40,
-                    AdvanceToDay = DayAdvancement.NextDay,
-                    AdvanceToBlock = TimeBlocks.Morning
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
-            {
-                Id = $"{serviceSitId}_dream",
-                ActionTextTemplate = "Dream deeply",
-                RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost(),
-                RewardTemplate = new ChoiceReward
-                {
-                    Health = 25,
-                    Stamina = 25,
-                    Focus = 25,
-                    AdvanceToDay = DayAdvancement.NextDay,
-                    AdvanceToBlock = TimeBlocks.Morning,
-                    StateApplications = new List<StateApplication>
-                    {
-                        new StateApplication
-                        {
-                            StateType = StateType.Inspired,
-                            Operation = StateOperation.Apply,
-                            DurationSegments = 4
-                        }
-                    }
-                },
-                ActionType = ChoiceActionType.Instant
-            }
-        };
+        // SITUATION 2: SERVICE (context-aware scaling, complete rewards from archetype)
+        SituationArchetype serviceArchetype = SituationArchetypeCatalog.GetArchetype("service_execution_rest");
+        List<ChoiceTemplate> serviceChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(serviceArchetype, serviceSitId, context);
 
         SituationTemplate serviceSituation = new SituationTemplate
         {
@@ -740,52 +475,40 @@ public static class SceneArchetypeCatalog
             {
                 Tone = "restorative",
                 Theme = "rest",
-                Context = "inn_lodging_rest"
+                Context = $"{serviceId}_provision"
             },
             RequiredLocationId = "generated:private_room",
             RequiredNpcId = null
         };
 
-        // SITUATION 3: DEPART (leave the private room next morning)
-        // Only 2 choices (simplified from the 4-choice archetype pattern)
-        List<ChoiceTemplate> departChoices = new List<ChoiceTemplate>
+        // SITUATION 3: DEPART (context-aware scaling, merge archetype buffs with cleanup)
+        SituationArchetype departArchetype = SituationArchetypeCatalog.GetArchetype("service_departure");
+        List<ChoiceTemplate> departChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(departArchetype, departSitId, context);
+
+        // Enrich with service-specific cleanup (return key, lock room)
+        List<ChoiceTemplate> enrichedDepartChoices = new List<ChoiceTemplate>();
+        foreach (ChoiceTemplate choice in departChoices)
         {
-            new ChoiceTemplate
+            ChoiceReward mergedReward = new ChoiceReward
             {
-                Id = $"{departSitId}_immediate",
-                ActionTextTemplate = "Leave immediately",
-                RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost(),
-                RewardTemplate = new ChoiceReward
-                {
-                    ItemsToRemove = new List<string> { "generated:room_key" },
-                    LocationsToLock = new List<string> { "generated:private_room" }
-                },
-                ActionType = ChoiceActionType.Instant
-            },
-            new ChoiceTemplate
+                ItemsToRemove = new List<string> { "generated:room_key" },
+                LocationsToLock = new List<string> { "generated:private_room" },
+                StateApplications = choice.RewardTemplate?.StateApplications ?? new List<StateApplication>()
+            };
+
+            enrichedDepartChoices.Add(new ChoiceTemplate
             {
-                Id = $"{departSitId}_careful",
-                ActionTextTemplate = "Gather your belongings carefully",
-                RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost { TimeSegments = 1 },
-                RewardTemplate = new ChoiceReward
-                {
-                    ItemsToRemove = new List<string> { "generated:room_key" },
-                    LocationsToLock = new List<string> { "generated:private_room" },
-                    StateApplications = new List<StateApplication>
-                    {
-                        new StateApplication
-                        {
-                            StateType = StateType.Focused,
-                            Operation = StateOperation.Apply,
-                            DurationSegments = 4
-                        }
-                    }
-                },
-                ActionType = ChoiceActionType.Instant
-            }
-        };
+                Id = choice.Id,
+                ActionTextTemplate = choice.ActionTextTemplate,
+                RequirementFormula = choice.RequirementFormula,
+                CostTemplate = choice.CostTemplate,
+                RewardTemplate = mergedReward,
+                ActionType = choice.ActionType,
+                ChallengeId = choice.ChallengeId,
+                ChallengeType = choice.ChallengeType,
+                NavigationPayload = choice.NavigationPayload
+            });
+        }
 
         SituationTemplate departureSituation = new SituationTemplate
         {
@@ -793,13 +516,13 @@ public static class SceneArchetypeCatalog
             Name = "Leave",
             Type = SituationType.Normal,
             NarrativeTemplate = null,
-            ChoiceTemplates = departChoices,
+            ChoiceTemplates = enrichedDepartChoices,
             Priority = 80,
             NarrativeHints = new NarrativeHints
             {
                 Tone = "conclusive",
                 Theme = "departure",
-                Context = "inn_lodging_conclusion"
+                Context = $"{serviceId}_conclusion"
             },
             RequiredLocationId = "generated:private_room",
             RequiredNpcId = null
@@ -827,12 +550,12 @@ public static class SceneArchetypeCatalog
             }
         };
 
-        // Dependent resources (same as service_with_location_access)
+        // Dependent resources
         DependentLocationSpec privateRoomSpec = new DependentLocationSpec
         {
             TemplateId = "private_room",
             NamePattern = "{NPCName}'s Room",
-            DescriptionPattern = "A simple private room at {NPCName}'s inn.",
+            DescriptionPattern = "A private room at {NPCName}'s establishment.",
             VenueIdSource = VenueIdSource.SameAsBase,
             HexPlacement = HexPlacementStrategy.SameVenue,
             Properties = new List<string> { "sleepingSpace", "restful", "indoor", "private" },
@@ -845,7 +568,7 @@ public static class SceneArchetypeCatalog
         {
             TemplateId = "room_key",
             NamePattern = "Room Key",
-            DescriptionPattern = "A key to {NPCName}'s private lodging room.",
+            DescriptionPattern = "A key to {NPCName}'s private room.",
             Categories = new List<ItemCategory> { ItemCategory.Special_Access },
             Weight = 1,
             BuyPrice = 0,
@@ -867,6 +590,7 @@ public static class SceneArchetypeCatalog
             DependentItems = new List<DependentItemSpec> { roomKeySpec }
         };
     }
+
 
     private static SituationArchetype DetermineNegotiationArchetype(GenerationContext context)
     {
