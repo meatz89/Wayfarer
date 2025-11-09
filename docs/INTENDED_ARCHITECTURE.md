@@ -244,10 +244,10 @@ If validation failed, GameFacade immediately returns failure result to UI. No st
 **Step 4: Cost Application**  
 GameFacade applies strategic costs using domain facades. It consumes Resolve through ResourceFacade. Consumes Coins through ResourceFacade. Advances Time through TimeFacade. Each facade handles its domain concern.
 
-**Step 5: Action Routing**  
+**Step 5: Action Routing**
 Based on the Choice's ActionType:
 - If Instant: Apply rewards immediately and complete
-- If StartChallenge: Route player to appropriate tactical system (Social, Mental, Physical)
+- If StartChallenge: Route player to appropriate tactical system (Social, Mental, Physical) - see Bridge to Tactical Layer below
 - If Navigate: Apply navigation payload to move player
 
 **Step 6: Scene Lifecycle**  
@@ -279,6 +279,212 @@ The orchestrator pattern provides:
 - Easy testing (executors are pure functions)
 - Extensibility (add new action types by adding executors)
 - Maintainability (all execution flows follow same pattern)
+
+---
+
+## Part 5: Bridge to Tactical Layer
+
+### Strategic vs Tactical Layers
+
+Wayfarer has two distinct gameplay layers that must never be confused:
+
+**Strategic Layer** (Scene → Situation → Choice):
+- Perfect information: All costs, requirements, rewards visible before selection
+- Player decides WHAT to attempt
+- Persistent entities in GameWorld
+- State machine progression via Scene.AdvanceToNextSituation()
+
+**Tactical Layer** (Mental/Physical/Social Challenges):
+- Hidden complexity: Card draws, exact flow not visible before entry
+- Player demonstrates skill in HOW to execute
+- Temporary sessions created/destroyed per engagement
+- Victory thresholds via SituationCards
+
+### The Bridge Mechanism
+
+ChoiceTemplate.ActionType is the ONLY connection between layers:
+
+```csharp
+public enum ChoiceActionType
+{
+    Instant,         // Stay in strategic layer
+    Navigate,        // Stay in strategic layer
+    StartChallenge   // Cross to tactical layer
+}
+```
+
+When ActionType = StartChallenge:
+- `ChallengeType` (TacticalSystemType): Social/Mental/Physical
+- `ChallengeId` (string): Which deck to load for tactical cards
+- `OnSuccessReward` / `OnFailureReward`: Applied after challenge outcome
+
+### Challenge Spawning Flow
+
+**Step 1: Bridge Detection**
+GameFacade checks `plan.ActionType == ChoiceActionType.StartChallenge`
+
+**Step 2: Context Storage**
+GameFacade stores reward in pending context for later application:
+```csharp
+_gameWorld.PendingSocialContext = new SocialChallengeContext
+{
+    CompletionReward = plan.OnSuccessReward
+};
+```
+
+**Step 3: Navigation**
+Returns `IntentResult.NavigateScreen(ScreenMode.SocialChallenge)` to UI
+
+**Step 4: Session Creation**
+Appropriate facade (SocialFacade/MentalFacade/PhysicalFacade) creates temporary session
+
+**Step 5: SituationCard Extraction**
+Challenge extracts `Situation.SituationCards` for victory conditions:
+- SituationCards stored in strategic layer (Situation.SituationCards list)
+- Challenges READ them when spawned (tactical layer usage)
+- Define victory thresholds: "Reach 8 Momentum = basic reward, 15 Momentum = optimal reward"
+
+**Step 6: Tactical Gameplay**
+Player plays tactical cards (SocialCard/MentalCard/PhysicalCard) to build resources
+
+**Step 7: Victory/Failure**
+When threshold reached or failure condition met, challenge ends
+
+**Step 8: Return to Strategic**
+GameFacade applies `OnSuccessReward` or `OnFailureReward` based on outcome, then Scene.AdvanceToNextSituation()
+
+### Three Parallel Challenge Systems
+
+**Social Challenges** (NPC conversations):
+- Resources: Initiative, Momentum (builder), Doubt (threshold), Cadence (balance)
+- Victory: Reach Momentum threshold from SituationCards
+- Action Pair: SPEAK / LISTEN
+
+**Mental Challenges** (location investigations):
+- Resources: Attention (session), Progress (builder), Exposure (threshold), Leads (flow)
+- Victory: Reach Progress threshold from SituationCards
+- Action Pair: ACT / OBSERVE
+
+**Physical Challenges** (location obstacles):
+- Resources: Exertion (session), Breakthrough (builder), Danger (threshold), Aggression (balance)
+- Victory: Reach Breakthrough threshold from SituationCards
+- Action Pair: EXECUTE / ASSESS
+
+All three systems have equivalent depth and follow parallel architecture.
+
+### Critical Distinctions
+
+**ChoiceTemplate vs SituationCard:**
+- ChoiceTemplate: Strategic choice presented to player ("Persuade", "Intimidate", "Bribe")
+- SituationCard: Tactical victory tier ("8 Momentum", "12 Momentum", "15 Momentum")
+- Player selects ChoiceTemplate BEFORE entering tactical layer
+- Player achieves SituationCard thresholds DURING tactical layer
+
+**Storage vs Usage:**
+- Storage: SituationCards stored in `Situation.SituationCards`
+- Usage: Challenges extract and use them at spawn time
+- Purpose: Define tactical victory conditions, NOT strategic choices
+
+---
+
+## Part 6: Three-Tier Timing Model
+
+### Why Three Tiers
+
+The three-tier timing model enables lazy instantiation, reducing memory and preventing action bloat in GameWorld.
+
+### Tier 1: Templates (Parse Time)
+
+Created once at game startup from JSON:
+- SceneTemplate → SituationTemplate → ChoiceTemplate hierarchy
+- Immutable archetypes stored in GameWorld.SceneTemplates
+- Never modified during gameplay
+- Design language for content authors
+
+### Tier 2: Scenes/Situations (Spawn Time)
+
+Created when Scene spawns from Obligation or SceneSpawnReward:
+- Scene instance created with embedded Situations
+- Situation.Template reference stored (ChoiceTemplates NOT instantiated yet)
+- InstantiationState = Deferred
+- NO actions created in GameWorld.LocationActions/NPCActions yet
+
+**Why Deferred:**
+Situations may require specific context (location + NPC combo) that player hasn't reached yet. Creating actions prematurely bloats GameWorld with thousands of inaccessible actions.
+
+### Tier 3: Actions (Query Time)
+
+Created ONLY when player enters matching context:
+
+**Context Check:**
+```csharp
+// Player at Location X
+SceneFacade queries: Which Situations require Location X?
+For each matching Situation:
+    If InstantiationState == Deferred:
+        Instantiate actions from Template.ChoiceTemplates
+        Set InstantiationState = Instantiated
+        Add to GameWorld.LocationActions/NPCActions
+```
+
+**Ephemeral Lifecycle:**
+- Actions created when context matches
+- Actions displayed in UI
+- Actions executed by GameFacade
+- Actions deleted when Situation completes
+- If player returns to same context later, actions recreated from Template
+
+**Why Ephemeral:**
+Prevents duplicate actions accumulating in GameWorld. Template is single source of truth. Actions are view projections generated on demand.
+
+### Example Flow
+
+**Spawn Time (Tier 2):**
+```
+Obligation spawns Scene "Secure Lodging"
+  └─ Scene contains 3 Situations:
+      ├─ Situation 1 (requires Location: Inn Common Room)
+      │   └─ Template has 3 ChoiceTemplates (NOT instantiated)
+      ├─ Situation 2 (requires Location: Inn Upper Floor)
+      │   └─ Template has 2 ChoiceTemplates (NOT instantiated)
+      └─ Situation 3 (requires Location: Private Room)
+          └─ Template has 2 ChoiceTemplates (NOT instantiated)
+```
+
+**Query Time (Tier 3):**
+```
+Player enters Inn Common Room
+  → SceneFacade queries: Situations at this location?
+  → Finds Situation 1 (InstantiationState = Deferred)
+  → Instantiates 3 LocationActions from Template.ChoiceTemplates
+  → Adds to GameWorld.LocationActions
+  → UI displays 3 action buttons
+
+Player selects action, Situation 1 completes
+  → Delete 3 LocationActions from GameWorld.LocationActions
+  → Scene.AdvanceToNextSituation() → CurrentSituation = Situation 2
+
+Player navigates to Inn Upper Floor
+  → SceneFacade queries: Situations at this location?
+  → Finds Situation 2 (InstantiationState = Deferred)
+  → Instantiates 2 LocationActions from Template.ChoiceTemplates
+  → Adds to GameWorld.LocationActions
+  → UI displays 2 action buttons
+```
+
+### Benefits
+
+**Memory Efficiency:**
+Only actions at current context exist in GameWorld. No bloat from future/past situations.
+
+**Single Source of Truth:**
+Template defines ChoiceTemplates once. Runtime actions reference Template, never duplicate.
+
+**Clean Lifecycle:**
+Actions created when needed, deleted when done. No orphaned actions from completed situations.
+
+**Easy Debugging:**
+Query SceneFacade to see which Situations should appear at location. If InstantiationState = Deferred, actions haven't materialized yet.
 
 ---
 

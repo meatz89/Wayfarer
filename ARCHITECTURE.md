@@ -2,6 +2,8 @@
 
 **CRITICAL: This document MUST be read and understood before making ANY changes to the Wayfarer codebase.**
 
+**For design philosophy and principles, see [DESIGN_PHILOSOPHY.md](DESIGN_PHILOSOPHY.md)**
+
 ## TABLE OF CONTENTS
 
 1. [System Overview](#system-overview)
@@ -20,179 +22,540 @@
 
 **⚠️ READ THIS FIRST - THIS IS THE MOST IMPORTANT SECTION ⚠️**
 
-### THE CORE PROGRESSION FLOW
+## TWO-LAYER ARCHITECTURE: STRATEGIC vs TACTICAL
 
-**This is the single most important diagram in the entire codebase. Every feature must fit into this flow:**
+Wayfarer has TWO DISTINCT LAYERS that must NEVER be confused:
+
+1. **STRATEGIC LAYER** - Scene → Situation → Choice (narrative, perfect information, WHAT to attempt)
+2. **TACTICAL LAYER** - Mental/Physical/Social Challenges (card gameplay, hidden complexity, HOW to execute)
+
+These layers are connected by the **BRIDGE** (ChoiceTemplate.ActionType) but are fundamentally different systems.
+
+### LAYER 1: STRATEGIC (Perfect Information)
+
+**Purpose**: Narrative progression and player decision-making with complete transparency.
 
 ```
-Obligation (multi-phase mystery structure - domain entity)
+Obligation (multi-phase quest)
   ↓ spawns
-Obstacles (challenges in the world - domain entity)
-  ↓ contain
-Goals (approaches to overcome obstacles - domain entity)
-  ↓ appear at
-Locations/NPCs/Routes (placement context - NOT ownership)
-  ↓ when player engages, Goals become
-Challenges (Social/Mental/Physical - gameplay subsystems)
-  ↓ player plays
-GoalCards (tactical victory conditions - domain entity)
-  ↓ achieve
-Goal Completion (mechanical outcomes)
-  ↓ contributes to
-Obstacle Progress (tracked progress)
-  ↓ leads to
-Obstacle Defeated
-  ↓ advances
-Obligation Phase Completion
-  ↓ unlocks
-Next Obligation Phase / Completion
+Scene (persistent narrative container)
+  ↓ contains
+Situation (narrative moment with 2-4 choices)
+  ↓ presents
+Choices (player options with visible costs/rewards/requirements)
+  ↓ player selects one
+Choice Execution (THREE OUTCOMES):
+  1. Instant → Apply costs/rewards immediately
+  2. Navigate → Move to location/NPC/route
+  3. StartChallenge → Spawn tactical subsystem ──┐
+                                                  │
+                                            BRIDGE CROSSES HERE
 ```
 
-### CRITICAL TERMINOLOGY DISTINCTIONS
+**Key Strategic Layer Entities:**
+- **Scene**: Persistent container in GameWorld.Scenes, owns List<Situation>, tracks CurrentSituation
+- **Situation**: Narrative moment embedded in Scene, has Template.ChoiceTemplates (2-4 options)
+- **ChoiceTemplate**: Player option with ActionType, costs, requirements, rewards
+- **NO victory thresholds** - strategic layer uses state machine progression, not resource accumulation
 
-**These terms are NOT interchangeable - using them incorrectly breaks the architecture:**
+### LAYER 2: TACTICAL (Hidden Complexity)
 
-#### Obligation ≠ Card
-- **Obligation** = Multi-phase mystery/quest structure (e.g., "Investigate the Missing Grain")
-- **GoalCard** = Tactical card played during challenges (e.g., "Sharp Remark" card)
-- **NEVER** create "ObligationCard" entities - this makes no architectural sense
-- There is NO such thing as an "obligation card" in the game
+**Purpose**: Card-based gameplay execution with emergent tactical depth.
 
-#### Goal ≠ GoalCard
-- **Goal** = Strategic approach to overcome an obstacle (e.g., "Persuade the guard")
-  - Appears at specific location/NPC
-  - Defines challenge type (Social/Mental/Physical)
-  - Contains GoalCards as victory conditions
-- **GoalCard** = Tactical card played to achieve goal (e.g., "Reach 15 Understanding")
-  - Has mechanical costs and effects
-  - Played during active challenge
-- **Goals CONTAIN GoalCards**, not the other way around
+```
+                                            BRIDGE CROSSES HERE
+                                                  │
+Choice with ActionType=StartChallenge ────────────┘
+  ↓ spawns
+Challenge Session (temporary tactical gameplay)
+  ├─ Mental: Progress/Attention/Exposure (investigations)
+  ├─ Physical: Breakthrough/Exertion/Danger (obstacles)
+  └─ Social: Momentum/Initiative/Doubt (conversations)
+  ↓ uses
+SituationCards (victory conditions extracted from parent Situation)
+  ↓ player builds resource via card play
+Threshold Reached (Momentum/Progress/Breakthrough ≥ threshold)
+  ↓ grants
+SituationCard.Rewards (coins, items, cubes, unlocks)
+  ↓ returns to
+Strategic Layer (Scene.AdvanceToNextSituation)
+```
 
-#### Obstacle ≠ Challenge
-- **Obstacle** = Persistent barrier in the world (e.g., "Suspicious Guard", "Locked Gate")
-  - Exists in GameWorld permanently
-  - Contains multiple Goals (different approaches)
-  - Tracks progress across all goal attempts
-- **Challenge** = Active tactical gameplay session (Social/Mental/Physical subsystem)
-  - Temporary - starts when player engages a Goal
-  - Ends when Goal succeeds/fails
-  - NOT a persistent entity
+**Key Tactical Layer Entities:**
+- **Challenge Session**: Temporary gameplay (SocialSession, MentalSession, PhysicalSession)
+- **SituationCard**: Victory condition with threshold + rewards (stored in Situation.SituationCards)
+- **Tactical Cards**: SocialCard, MentalCard, PhysicalCard (playable cards from deck)
+- **YES victory thresholds** - tactical layer requires resource accumulation to win
 
-#### Location/NPC ≠ Owner
-- **Locations** and **NPCs** are PLACEMENT CONTEXT where Goals appear
-- They do NOT own Goals
-- **Obstacles** own Goals (lifecycle control)
-- **Obligations** own Obstacles (lifecycle control)
-- Locations/NPCs just provide spatial/narrative context for where Goals are accessible
+### THE BRIDGE: ChoiceTemplate.ActionType
+
+**How Layers Connect:**
+
+ChoiceTemplate sits at the boundary. Its ActionType property determines execution path:
+
+```csharp
+public enum ChoiceActionType
+{
+    Instant,         // Stay in strategic layer - apply rewards immediately
+    Navigate,        // Stay in strategic layer - move player to new context
+    StartChallenge   // Cross to tactical layer - spawn challenge session
+}
+```
+
+**If ActionType = StartChallenge**, additional properties specify the challenge:
+- `ChallengeType` (TacticalSystemType): Social/Mental/Physical
+- `ChallengeId` (string): Which deck to use for tactical cards
+- `OnSuccessReward` / `OnFailureReward`: Applied after challenge outcome
+
+**Bridge Flow:**
+1. Player selects Choice with ActionType=StartChallenge
+2. GameFacade reads ChallengeType + ChallengeId
+3. Appropriate facade (SocialFacade/MentalFacade/PhysicalFacade) creates session
+4. Session extracts SituationCards from parent Situation for victory conditions
+5. Player plays tactical cards until threshold reached or failure
+6. On completion, return to strategic layer with outcome
+
+### CRITICAL: SituationCards Are Tactical, Not Strategic
+
+**WRONG THINKING:**
+> "Situation contains SituationCards, so SituationCards are strategic choices."
+
+**CORRECT THINKING:**
+> "Situation.SituationCards stores tactical victory conditions. Challenges READ these when spawned. They are NOT strategic choices - they're tactical win conditions."
+
+**Storage vs Usage:**
+- **Storage**: SituationCards stored in `Situation.SituationCards` (List<SituationCard>)
+- **Usage**: When challenge spawns, it extracts these cards and uses them to determine victory
+- **Purpose**: Define "reach 8 Momentum = basic reward" vs "reach 15 Momentum = optimal reward"
+
+**ChoiceTemplates vs SituationCards:**
+- **ChoiceTemplate**: Strategic choice presented to player ("Persuade", "Intimidate", "Bribe")
+- **SituationCard**: Tactical victory tier ("8 Momentum", "12 Momentum", "15 Momentum")
+- Player selects ChoiceTemplate before entering tactical layer
+- Player achieves SituationCard thresholds during tactical layer
 
 ### ENTITY OWNERSHIP HIERARCHY
 
 ```
 GameWorld (single source of truth)
  │
- ├─ Obligations (List<Obligation>)
- │   ├─ Spawns Obstacles (by ID reference)
- │   └─ Tracks multi-phase progress
+ ├─ Scenes (List<Scene>)
+ │   ├─ Owns Situations directly (List<Situation>, NOT ID references)
+ │   ├─ Tracks CurrentSituation (direct object reference)
+ │   ├─ Manages SpawnRules (situation flow)
+ │   └─ References placement (PlacementType + PlacementId)
  │
- ├─ Obstacles (List<Obstacle>)
- │   ├─ Owned by Obligations
- │   ├─ Contains Goals (by ID reference)
- │   └─ Tracks progress across goal attempts
+ ├─ Situations (EMBEDDED IN SCENES - NOT separate GameWorld collection)
+ │   ├─ Owned by parent Scene
+ │   ├─ References Template (SituationTemplate with ChoiceTemplates)
+ │   ├─ Has SystemType (Social/Mental/Physical - for bridge routing)
+ │   └─ Stores SituationCards (tactical victory conditions - used by challenges)
  │
- ├─ Goals (List<Goal>)
- │   ├─ Owned by Obstacles
- │   ├─ Has locationId (PLACEMENT - appears at location)
- │   ├─ Has npcId (PLACEMENT - optional social context)
- │   ├─ Defines challenge type (Social/Mental/Physical)
- │   └─ Contains GoalCards (List<GoalCard> inline - OWNERSHIP)
+ ├─ SituationCards (EMBEDDED IN SITUATIONS - tactical victory conditions)
+ │   ├─ Stored in Situation.SituationCards list
+ │   ├─ Extracted by challenges when spawned (challenges READ them)
+ │   ├─ Define threshold (momentum/progress/breakthrough)
+ │   └─ Grant rewards on achievement
  │
  ├─ Locations (List<Location>)
- │   └─ Does NOT own Goals - just placement context
+ │   └─ PLACEMENT CONTEXT (Scenes appear here, NOT owned by Location)
  │
  └─ NPCs (List<NPC>)
-     └─ Does NOT own Goals - just social context
+     └─ PLACEMENT CONTEXT (Scenes appear here, NOT owned by NPC)
+```
+
+### LAYER SEPARATION EXAMPLES
+
+**Strategic Layer Flow (No Challenge):**
+```
+Player at Inn Common Room
+  → Sees Situation "Pay for Room"
+  → Selects Choice "Pay 20 coins"
+  → ActionType = Instant
+  → Costs applied (20 coins deducted)
+  → Rewards applied (room key granted)
+  → Scene advances to next Situation
+```
+
+**Bridge to Tactical Layer:**
+```
+Player at Inn Common Room
+  → Sees Situation "Negotiate for Better Rate"
+  → Selects Choice "Persuade Innkeeper"
+  → ActionType = StartChallenge
+  → ChallengeType = Social
+  → Social challenge spawns
+  → Challenge extracts Situation.SituationCards for victory conditions
+  → Player enters tactical card gameplay
+```
+
+**Tactical Layer Flow:**
+```
+Social Challenge Active
+  → Player has Initiative=8, Momentum=0, Doubt=0
+  → Plays SocialCard "Build Rapport" (+2 Momentum, -2 Initiative)
+  → Plays SocialCard "Appeal to Greed" (+3 Momentum, +1 Doubt)
+  → Momentum=5, Doubt=1
+  → Plays SocialCard "Final Push" (+4 Momentum, -3 Initiative)
+  → Momentum=9, reaches SituationCard threshold (8 Momentum)
+  → SituationCard.Rewards applied (room key + 5 coins)
+  → Challenge ends, return to strategic layer
+  → Scene advances to next Situation
 ```
 
 ### DATA FLOW EXAMPLE
 
-**Player discovers obligation "Investigate the Missing Grain":**
+**Player discovers obligation "Secure Lodging":**
 
-1. **Discovery**: `ObligationDiscoveryModal` shows narrative
-2. **Spawn**: Obligation spawns Obstacle "Merchant's Suspicion"
-3. **Goals Created**: Obstacle contains 3 Goals:
-   - Goal A: "Persuade merchant" (Social) → appears at Market, NPC=Merchant
-   - Goal B: "Search ledger" (Mental) → appears at Storage Room
-   - Goal C: "Follow suspicious patron" (Physical) → appears at Market
-4. **Player Engagement**: Player clicks Goal A "Persuade merchant"
-5. **Challenge Starts**: Social challenge begins with Goal A's GoalCards
-6. **Tactical Play**: Player plays GoalCards to build Understanding/Trust/etc.
-7. **Goal Completion**: Player reaches victory condition (e.g., 15 Understanding)
-8. **Progress**: Obstacle "Merchant's Suspicion" progress increases
-9. **Obstacle Defeated**: When enough goals completed, obstacle defeated
-10. **Obligation Phase**: Current phase completes, next phase unlocks
+1. **Spawn (Strategic)**: SceneInstantiator spawns Scene with 3 Situations
+2. **Placement (Strategic)**: Scene placed at Location "Inn Common Room"
+3. **Activation (Strategic)**: Scene.CurrentSituation = Situation 1 "Obtain Room Key"
+4. **Choice Presentation (Strategic)**: Player sees 3 ChoiceTemplates:
+   - "Pay 20 coins" (Instant)
+   - "Negotiate" (StartChallenge → Social)
+   - "Steal key" (StartChallenge → Physical)
+5. **Player Selects "Negotiate" (Bridge)**
+6. **Challenge Spawn (Tactical)**: SocialFacade creates session, extracts SituationCards
+7. **Tactical Play (Tactical)**: Player plays SocialCards to build Momentum
+8. **Victory (Tactical)**: Reach 15 Momentum threshold, SituationCard.Rewards applied
+9. **Return (Bridge)**: Challenge ends, back to strategic layer
+10. **Scene Progression (Strategic)**: Scene.AdvanceToNextSituation() → Situation 2
+11. **Context Change (Strategic)**: Player navigates to "Inn Upper Floor"
+12. **Next Situation (Strategic)**: Situation 2 "Access Locked Room" activates
 
 ### FORBIDDEN PATTERNS (DELETE ON SIGHT)
 
 ```csharp
-// ❌ WRONG - "ObligationCard" as entity (NO SUCH THING)
-public class ObligationCard { }
-public class ObligationCardDTO { }
+// ❌ WRONG - Showing SituationCards in strategic progression flow
+Obligation → Scene → Situation → SituationCard  // NO! SituationCard is tactical!
 
-// ❌ WRONG - Locations owning Goals
-public class Location
+// ❌ WRONG - Treating SituationCards as strategic choices
+Situation.ChoiceTemplates = situation.SituationCards  // NO! Different layers!
+
+// ❌ WRONG - GameWorld owning separate Situations collection
+public class GameWorld
 {
-    public List<Goal> Goals { get; set; } // NO! Placement, not ownership!
+    public List<Situation> Situations { get; set; } // NO! Scenes own Situations!
 }
 
-// ❌ WRONG - NPCs owning Obstacles
-public class NPC
-{
-    public List<Obstacle> Obstacles { get; set; } // NO! Context, not ownership!
-}
+// ❌ WRONG - Situations as tactical layer
+"Strategic Layer: Scene/Obligation"
+"Tactical Layer: Situation/Challenge"  // NO! Situation is strategic!
 
-// ❌ WRONG - Goals owning Obstacles (backwards!)
-public class Goal
-{
-    public List<Obstacle> Obstacles { get; set; } // NO! Obstacles own Goals!
-}
+// ❌ WRONG - SituationCard as separate reusable Card entity
+public class SituationCard : Card { }  // NO! Inline victory condition, not playable card!
+
+// ❌ WRONG - "Obstacle" or "Goal" entities (legacy, deleted)
+public class Obstacle { }  // DELETED
+public class Goal { }      // DELETED
+public class GoalCard { }  // DELETED - replaced by SituationCard
 ```
 
 ### CORRECT PATTERNS
 
 ```csharp
-// ✅ CORRECT - Obligation spawns Obstacles
-public class Obligation
+// ✅ CORRECT - Scene owns Situations directly (strategic layer)
+public class Scene
 {
-    public List<string> ActiveObstacleIds { get; set; }  // Owns obstacles by ID
-    public List<ObligationPhase> Phases { get; set; }    // Phase structure
+    public List<Situation> Situations { get; set; } = new List<Situation>();
+    public Situation CurrentSituation { get; set; }  // Direct object reference
+    public SituationSpawnRules SpawnRules { get; set; }
+    public PlacementType PlacementType { get; set; }
+    public string PlacementId { get; set; }
 }
 
-// ✅ CORRECT - Obstacle owns Goals
-public class Obstacle
-{
-    public string ObligationId { get; set; }      // Parent reference
-    public List<string> GoalIds { get; set; }     // Owns goals by ID
-    public int RequiredGoalsToDefeat { get; set; }
-}
-
-// ✅ CORRECT - Goal references placement context
-public class Goal
-{
-    public string ObstacleId { get; set; }        // Parent reference
-    public string LocationId { get; set; }        // PLACEMENT context
-    public string NpcId { get; set; }             // PLACEMENT context (optional)
-    public ChallengeType ChallengeType { get; set; }  // Social/Mental/Physical
-    public List<GoalCard> GoalCards { get; set; } // OWNS victory conditions
-}
-
-// ✅ CORRECT - GoalCard is tactical mechanic
-public class GoalCard
+// ✅ CORRECT - Situation stores SituationCards for tactical use
+public class Situation
 {
     public string Id { get; set; }
-    public string Title { get; set; }
-    public GoalCardCosts Costs { get; set; }      // Resources to play
-    public GoalCardEffect Effect { get; set; }    // Mechanical outcome
+    public TacticalSystemType SystemType { get; set; }  // Bridge metadata
+    public SituationTemplate Template { get; set; }  // Contains ChoiceTemplates
+    public List<SituationCard> SituationCards { get; set; }  // Tactical victory conditions
 }
+
+// ✅ CORRECT - ChoiceTemplate bridges layers via ActionType
+public class ChoiceTemplate
+{
+    public ChoiceActionType ActionType { get; set; }  // Instant/Navigate/StartChallenge
+    public TacticalSystemType? ChallengeType { get; set; }  // If StartChallenge
+    public string ChallengeId { get; set; }  // If StartChallenge
+    public ChoiceReward OnSuccessReward { get; set; }  // Applied after challenge
+}
+
+// ✅ CORRECT - SituationCard defines tactical victory condition
+public class SituationCard
+{
+    public int threshold { get; set; }  // Universal (Momentum/Progress/Breakthrough)
+    public SituationCardRewards Rewards { get; set; }  // On achievement
+    public bool IsAchieved { get; set; }  // Runtime tracking
+}
+
+// ✅ CORRECT - GameWorld owns Scenes only (strategic layer)
+public class GameWorld
+{
+    public List<Scene> Scenes { get; set; } = new List<Scene>();
+    // NO separate Situations - Scenes own them
+    // NO Challenges collection - challenges are temporary sessions
+}
+```
+
+### KEY ARCHITECTURAL RULES
+
+**Strategic Layer Rules:**
+1. Scene → Situation → Choice is the COMPLETE strategic flow
+2. Situations do NOT progress to SituationCards (different layer)
+3. Perfect information: All costs, requirements, rewards visible before selection
+4. State machine: Scene.AdvanceToNextSituation() manages progression
+5. Persistent: Scenes exist until completed/expired
+
+**Tactical Layer Rules:**
+1. Challenge sessions are TEMPORARY (created/destroyed per engagement)
+2. SituationCards define victory conditions with thresholds
+3. Three parallel systems: Social/Mental/Physical with equivalent depth
+4. Hidden complexity: Card draw, exact challenge flow not visible before entry
+5. Return to strategic layer on completion with success/failure outcome
+
+**Bridge Rules:**
+1. ChoiceTemplate.ActionType determines if bridge crosses
+2. Only StartChallenge crosses to tactical layer
+3. Instant and Navigate stay in strategic layer
+4. One-way: Strategic spawns tactical, tactical returns outcome to strategic
+5. SituationCards extracted when challenge spawns, NOT before
+
+---
+
+## THREE-TIER TIMING MODEL
+
+### Why Three Tiers Exist
+
+The three-tier timing model enables **lazy instantiation**, drastically reducing memory usage and preventing GameWorld from bloating with thousands of inaccessible actions.
+
+### Tier 1: Templates (Parse Time)
+
+**When**: Game startup, JSON parsing
+**What**: Immutable archetypes defining reusable patterns
+
+```
+SceneTemplate
+  └─ List<SituationTemplate>
+       └─ List<ChoiceTemplate>
+```
+
+**Properties**:
+- Created once from JSON at parse time
+- Stored in GameWorld.SceneTemplates
+- Never modified during gameplay
+- Design language for content authors
+
+### Tier 2: Scenes/Situations (Spawn Time)
+
+**When**: Scene spawns from Obligation or SceneSpawnReward
+**What**: Runtime instances with lifecycle and state
+
+```
+Scene (spawned from SceneTemplate)
+  └─ List<Situation> (created and embedded)
+       └─ Template reference (ChoiceTemplates NOT instantiated)
+```
+
+**Properties**:
+- Scene created with embedded Situations
+- Situation.Template reference stored (points back to SituationTemplate)
+- Situation.InstantiationState = Deferred
+- **NO actions created in GameWorld collections yet**
+
+**Why Deferred:**
+Situations may require specific context (Location X + NPC Y) that player hasn't reached. Creating actions prematurely bloats GameWorld with thousands of buttons player can't see.
+
+**Example:**
+```
+Scene "Elena's Favor" spawns with 5 Situations:
+  - Situation 1: Requires Location "Market Square" + NPC "Elena"
+  - Situation 2: Requires Location "Elena's Workshop"
+  - Situation 3: Requires Location "Market Square" (different time)
+  - Situation 4: Requires Location "Town Hall" + NPC "Elena"
+  - Situation 5: Requires Location "Elena's Home"
+
+At spawn time: 0 actions created in GameWorld
+If all actions created immediately: 15+ action buttons in GameWorld (3 choices × 5 situations)
+Most are inaccessible until player navigates to correct context
+```
+
+### Tier 3: Actions (Query Time)
+
+**When**: Player enters matching context (Location + optional NPC)
+**What**: Ephemeral UI projections of ChoiceTemplates
+
+```
+Player at Location "Market Square" with NPC "Elena" present
+  ↓
+SceneFacade queries: Which Situations match this context?
+  ↓
+Finds Situation 1 (InstantiationState = Deferred)
+  ↓
+Instantiates 3 NPCActions from Situation.Template.ChoiceTemplates
+  ↓
+Adds to GameWorld.NPCActions
+  ↓
+UI displays 3 action buttons
+```
+
+**Ephemeral Lifecycle:**
+1. **Creation**: Actions instantiated when player enters context
+2. **Display**: Actions rendered in UI as clickable cards/buttons
+3. **Execution**: Player selects action, GameFacade executes
+4. **Deletion**: When Situation completes, actions deleted from GameWorld
+5. **Regeneration**: If player returns to same context, actions recreated from Template
+
+**Why Ephemeral:**
+- Template is single source of truth (HIGHLANDER)
+- Actions are view projections generated on demand
+- Prevents duplicate actions accumulating
+- No orphaned actions from completed situations
+
+### InstantiationState Tracking
+
+```csharp
+public enum InstantiationState
+{
+    Deferred,      // Situation exists, NO actions in GameWorld
+    Instantiated   // Player entered context, actions materialized
+}
+```
+
+**State Transitions:**
+```
+Situation spawned → InstantiationState = Deferred
+Player enters matching context → SceneFacade instantiates actions → InstantiationState = Instantiated
+Situation completes → Actions deleted, Situation deleted or marked complete
+```
+
+### Complete Example Flow
+
+**Parse Time (Tier 1):**
+```
+JSON defines SceneTemplate "secure_lodging_tutorial"
+  ├─ SituationTemplate "obtain_key"
+  │   └─ 3 ChoiceTemplates (pay coins, negotiate, steal)
+  ├─ SituationTemplate "access_room"
+  │   └─ 2 ChoiceTemplates (unlock door, break window)
+  └─ SituationTemplate "claim_space"
+      └─ 2 ChoiceTemplates (rest immediately, inspect first)
+
+Stored in GameWorld.SceneTemplates
+```
+
+**Spawn Time (Tier 2):**
+```
+Obligation spawns Scene from template
+  ├─ Scene.Situations created (3 Situations embedded)
+  │   ├─ Situation 1: RequiredLocationId = "inn_common_room"
+  │   │   └─ InstantiationState = Deferred
+  │   ├─ Situation 2: RequiredLocationId = "inn_upper_floor"
+  │   │   └─ InstantiationState = Deferred
+  │   └─ Situation 3: RequiredLocationId = "generated:private_room"
+  │       └─ InstantiationState = Deferred
+  └─ Scene.CurrentSituation = Situation 1
+
+GameWorld.Scenes += 1 scene
+GameWorld.LocationActions += 0 actions (nothing instantiated yet)
+```
+
+**Query Time (Tier 3):**
+```
+Player navigates to "inn_common_room"
+  ↓
+LocationContent.razor calls SceneFacade.GetActionsForLocation("inn_common_room")
+  ↓
+SceneFacade finds Situation 1 (matches location, InstantiationState = Deferred)
+  ↓
+SceneFacade instantiates 3 LocationActions from Situation.Template.ChoiceTemplates:
+  - LocationAction "Pay 20 coins for key"
+  - LocationAction "Negotiate for better rate" (StartChallenge)
+  - LocationAction "Attempt to steal key" (StartChallenge)
+  ↓
+Situation 1.InstantiationState = Instantiated
+GameWorld.LocationActions += 3 actions
+  ↓
+UI renders 3 action cards
+
+Player selects "Negotiate for better rate"
+  ↓
+GameFacade executes (spawns Social challenge if StartChallenge)
+  ↓
+Challenge succeeds, Situation 1 completes
+  ↓
+Delete 3 LocationActions from GameWorld.LocationActions
+Scene.AdvanceToNextSituation() → CurrentSituation = Situation 2
+Situation 1.InstantiationState remains Instantiated (but situation complete)
+  ↓
+GameWorld.LocationActions -= 3 actions (cleaned up)
+
+Player navigates to "inn_upper_floor"
+  ↓
+SceneFacade finds Situation 2 (matches location, InstantiationState = Deferred)
+  ↓
+Instantiates 2 LocationActions from Situation 2.Template.ChoiceTemplates
+  ↓
+GameWorld.LocationActions += 2 actions
+UI renders 2 action cards
+```
+
+### Benefits
+
+**Memory Efficiency:**
+Only actions for current context exist in GameWorld. Scene with 5 Situations × 3 Choices each = 15 potential actions, but only 3 exist at any time.
+
+**Performance:**
+UI queries GameWorld.LocationActions (3 items) instead of scanning all Situations in all Scenes (hundreds).
+
+**Single Source of Truth:**
+ChoiceTemplate defined once in SituationTemplate. Runtime actions reference Template, never duplicate data.
+
+**Clean Lifecycle:**
+Actions created when needed, deleted when done. No orphaned references, no stale data.
+
+**Easy Debugging:**
+Check InstantiationState to see if actions should exist. If Deferred, player hasn't entered context yet.
+
+### Forbidden Patterns
+
+```csharp
+// ❌ WRONG - Creating actions at spawn time (Tier 2)
+Scene spawned → Immediately instantiate ALL actions for ALL Situations
+  → GameWorld bloats with inaccessible actions
+  → Memory waste, performance penalty
+
+// ❌ WRONG - Storing actions permanently
+Situation.Actions = new List<LocationAction>()  // NO! Actions are ephemeral!
+  → Violates lazy instantiation
+  → Creates duplicate action collections
+
+// ❌ WRONG - Instantiating without context check
+for (Situation in Scene.Situations) {
+    Instantiate actions  // NO! Check context first!
+}
+```
+
+### Correct Patterns
+
+```csharp
+// ✅ CORRECT - Query time instantiation with context check
+SceneFacade.GetActionsForLocation(locationId):
+    For each Scene in GameWorld.Scenes:
+        For each Situation in Scene.Situations:
+            If Situation.RequiredLocationId == locationId:
+                If Situation.InstantiationState == Deferred:
+                    Instantiate actions from Template.ChoiceTemplates
+                    Set InstantiationState = Instantiated
+                Return actions
+
+// ✅ CORRECT - Cleanup after execution
+GameFacade.ExecuteLocationAction():
+    Execute action
+    If Situation completes:
+        Delete all actions for that Situation
+        Scene.AdvanceToNextSituation()
 ```
 
 ---
