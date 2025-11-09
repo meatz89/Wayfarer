@@ -295,12 +295,17 @@ public class SceneFacade
 
     // ==================== SHARED HELPERS ====================
 
+    /// <summary>
+    /// Build SceneSpawnContext from parent scene placement for placeholder resolution
+    /// Used to resolve {NPCName}, {LocationName}, {PlayerName} in scene preview display names
+    /// </summary>
+    private SceneSpawnContext BuildContextFromParentScene(Scene parentScene, Player player)
     {
         return new SceneSpawnContext
         {
             Player = player,
             CurrentLocation = parentScene.PlacementType == PlacementType.Location ?
-                _gameWorld.Locations.FirstOrDefault(l => l.Id == parentScene.PlacementId) : null, // Location is source of truth
+                _gameWorld.Locations.FirstOrDefault(l => l.Id == parentScene.PlacementId) : null,
             CurrentNPC = parentScene.PlacementType == PlacementType.NPC ?
                 _gameWorld.NPCs.FirstOrDefault(n => n.ID == parentScene.PlacementId) : null,
             CurrentRoute = parentScene.PlacementType == PlacementType.Route ?
@@ -365,10 +370,14 @@ public class SceneFacade
                 .Distinct()
                 .ToList();
 
+            // Resolve placeholders in display name using parent scene context
+            SceneSpawnContext previewContext = BuildContextFromParentScene(parentScene, player);
+            string resolvedDisplayName = PlaceholderReplacer.ReplaceAll(template.DisplayNameTemplate, previewContext, _gameWorld);
+
             ScenePreview preview = new ScenePreview
             {
                 SceneTemplateId = template.Id,
-                DisplayName = template.DisplayNameTemplate, // Will have placeholders
+                DisplayName = resolvedDisplayName, // Placeholders resolved
                 Tier = template.Tier,
                 PlacementRelation = spawnReward.PlacementRelation,
                 ResolvedPlacementId = resolvedPlacementId,
@@ -387,7 +396,8 @@ public class SceneFacade
 
     /// <summary>
     /// Resolve placement ID for scene preview if determinable at action generation time
-    /// Returns null if placement depends on execution-time context
+    /// Returns null if placement depends on execution-time context OR contains markers
+    /// Markers (generated:x) cannot be resolved until scene spawns
     /// </summary>
     private string ResolvePreviewPlacement(SceneSpawnReward spawnReward, Scene parentScene, Player player)
     {
@@ -399,7 +409,13 @@ public class SceneFacade
 
             case PlacementRelation.SpecificLocation:
             case PlacementRelation.SpecificNPC:
-                return spawnReward.SpecificPlacementId; // Concrete ID from reward
+                // Check for markers - cannot resolve until scene spawns with marker resolution map
+                if (!string.IsNullOrEmpty(spawnReward.SpecificPlacementId) &&
+                    spawnReward.SpecificPlacementId.StartsWith("generated:"))
+                {
+                    return null; // Marker - cannot resolve at preview time
+                }
+                return spawnReward.SpecificPlacementId; // Concrete ID
 
             case PlacementRelation.Player:
                 return player.ID; // Player ID
