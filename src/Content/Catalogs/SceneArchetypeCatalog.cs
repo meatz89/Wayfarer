@@ -315,31 +315,8 @@ public static class SceneArchetypeCatalog
             }
         };
 
-        DependentLocationSpec privateRoomSpec = new DependentLocationSpec
-        {
-            TemplateId = "private_room",
-            NamePattern = "{NPCName}'s Lodging Room",
-            DescriptionPattern = "A private room where {NPCName} provides lodging services.",
-            VenueIdSource = VenueIdSource.SameAsBase,
-            HexPlacement = HexPlacementStrategy.SameVenue,
-            Properties = new List<string> { "sleepingSpace", "restful", "indoor", "private" },
-            IsLockedInitially = true,
-            UnlockItemTemplateId = "room_key",
-            CanInvestigate = false
-        };
-
-        DependentItemSpec roomKeySpec = new DependentItemSpec
-        {
-            TemplateId = "room_key",
-            NamePattern = "Room Key",
-            DescriptionPattern = "A key that unlocks access to {NPCName}'s private lodging room.",
-            Categories = new List<ItemCategory> { ItemCategory.Special_Access },
-            Weight = 1,
-            BuyPrice = 0,
-            SellPrice = 0,
-            AddToInventoryOnCreation = false,
-            SpawnLocationTemplateId = null
-        };
+        // Generate dependent resources procedurally based on service activity type
+        DependentResourceCatalog.DependentResources resources = DependentResourceCatalog.GenerateForActivity(ServiceActivityType.Lodging);
 
         return new SceneArchetypeDefinition
         {
@@ -351,8 +328,8 @@ public static class SceneArchetypeCatalog
                 departureSituation
             },
             SpawnRules = spawnRules,
-            DependentLocations = new List<DependentLocationSpec> { privateRoomSpec },
-            DependentItems = new List<DependentItemSpec> { roomKeySpec }
+            DependentLocations = new List<DependentLocationSpec> { resources.LocationSpec },
+            DependentItems = new List<DependentItemSpec> { resources.ItemSpec }
         };
     }
 
@@ -563,32 +540,8 @@ public static class SceneArchetypeCatalog
             }
         };
 
-        // Dependent resources
-        DependentLocationSpec privateRoomSpec = new DependentLocationSpec
-        {
-            TemplateId = "private_room",
-            NamePattern = "{NPCName}'s Room",
-            DescriptionPattern = "A private room at {NPCName}'s establishment.",
-            VenueIdSource = VenueIdSource.SameAsBase,
-            HexPlacement = HexPlacementStrategy.SameVenue,
-            Properties = new List<string> { "sleepingSpace", "restful", "indoor", "private" },
-            IsLockedInitially = true,
-            UnlockItemTemplateId = "room_key",
-            CanInvestigate = false
-        };
-
-        DependentItemSpec roomKeySpec = new DependentItemSpec
-        {
-            TemplateId = "room_key",
-            NamePattern = "Room Key",
-            DescriptionPattern = "A key to {NPCName}'s private room.",
-            Categories = new List<ItemCategory> { ItemCategory.Special_Access },
-            Weight = 1,
-            BuyPrice = 0,
-            SellPrice = 0,
-            AddToInventoryOnCreation = false,
-            SpawnLocationTemplateId = null
-        };
+        // Generate dependent resources procedurally based on service activity type
+        DependentResourceCatalog.DependentResources resources = DependentResourceCatalog.GenerateForActivity(ServiceActivityType.Lodging);
 
         return new SceneArchetypeDefinition
         {
@@ -599,8 +552,8 @@ public static class SceneArchetypeCatalog
                 departureSituation
             },
             SpawnRules = spawnRules,
-            DependentLocations = new List<DependentLocationSpec> { privateRoomSpec },
-            DependentItems = new List<DependentItemSpec> { roomKeySpec }
+            DependentLocations = new List<DependentLocationSpec> { resources.LocationSpec },
+            DependentItems = new List<DependentItemSpec> { resources.ItemSpec }
         };
     }
 
