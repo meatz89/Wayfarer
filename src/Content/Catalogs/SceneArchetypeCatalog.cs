@@ -121,58 +121,63 @@ public static class SceneArchetypeCatalog
         NarrativeHints negotiateHints = GenerateServiceNegotiationHints(context, serviceId);
         List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(negotiateArchetype, negotiateSitId, context);
 
-        // Add unlock rewards to negotiate choices (all successful negotiation paths grant room access)
-        // Stat-gated and money choices get immediate rewards
-        // Challenge choice gets OnSuccessReward (applied after challenge completion)
-        // Fallback choice gets no rewards (represents leaving without service)
+        // Add unlock rewards to negotiate choices (route by PathType, NOT ID string matching)
+        // InstantSuccess: Unlock room and grant key immediately
+        // Challenge: Unlock room and grant key on success only
+        // Fallback: No rewards (player leaves without service)
         List<ChoiceTemplate> enrichedChoices = new List<ChoiceTemplate>();
         foreach (ChoiceTemplate choice in negotiateChoices)
         {
-            if (choice.Id.EndsWith("_stat") || choice.Id.EndsWith("_money"))
+            switch (choice.PathType)
             {
-                // Instant success paths: unlock room and grant key immediately
-                enrichedChoices.Add(new ChoiceTemplate
-                {
-                    Id = choice.Id,
-                    ActionTextTemplate = choice.ActionTextTemplate,
-                    RequirementFormula = choice.RequirementFormula,
-                    CostTemplate = choice.CostTemplate,
-                    RewardTemplate = new ChoiceReward
+                case ChoicePathType.InstantSuccess:
+                    // Instant success paths: unlock room and grant key immediately
+                    enrichedChoices.Add(new ChoiceTemplate
                     {
-                        LocationsToUnlock = new List<string> { "generated:private_room" },
-                        ItemIds = new List<string> { "generated:room_key" }
-                    },
-                    ActionType = choice.ActionType,
-                    ChallengeId = choice.ChallengeId,
-                    ChallengeType = choice.ChallengeType,
-                    NavigationPayload = choice.NavigationPayload
-                });
-            }
-            else if (choice.Id.EndsWith("_challenge"))
-            {
-                // Challenge path: unlock room and grant key on success only
-                enrichedChoices.Add(new ChoiceTemplate
-                {
-                    Id = choice.Id,
-                    ActionTextTemplate = choice.ActionTextTemplate,
-                    RequirementFormula = choice.RequirementFormula,
-                    CostTemplate = choice.CostTemplate,
-                    RewardTemplate = choice.RewardTemplate,
-                    OnSuccessReward = new ChoiceReward
+                        Id = choice.Id,
+                        PathType = choice.PathType,
+                        ActionTextTemplate = choice.ActionTextTemplate,
+                        RequirementFormula = choice.RequirementFormula,
+                        CostTemplate = choice.CostTemplate,
+                        RewardTemplate = new ChoiceReward
+                        {
+                            LocationsToUnlock = new List<string> { "generated:private_room" },
+                            ItemIds = new List<string> { "generated:room_key" }
+                        },
+                        ActionType = choice.ActionType,
+                        ChallengeId = choice.ChallengeId,
+                        ChallengeType = choice.ChallengeType,
+                        NavigationPayload = choice.NavigationPayload
+                    });
+                    break;
+
+                case ChoicePathType.Challenge:
+                    // Challenge path: unlock room and grant key on success only
+                    enrichedChoices.Add(new ChoiceTemplate
                     {
-                        LocationsToUnlock = new List<string> { "generated:private_room" },
-                        ItemIds = new List<string> { "generated:room_key" }
-                    },
-                    ActionType = choice.ActionType,
-                    ChallengeId = choice.ChallengeId,
-                    ChallengeType = choice.ChallengeType,
-                    NavigationPayload = choice.NavigationPayload
-                });
-            }
-            else
-            {
-                // Fallback path: no rewards (player leaves without securing lodging)
-                enrichedChoices.Add(choice);
+                        Id = choice.Id,
+                        PathType = choice.PathType,
+                        ActionTextTemplate = choice.ActionTextTemplate,
+                        RequirementFormula = choice.RequirementFormula,
+                        CostTemplate = choice.CostTemplate,
+                        RewardTemplate = choice.RewardTemplate,
+                        OnSuccessReward = new ChoiceReward
+                        {
+                            LocationsToUnlock = new List<string> { "generated:private_room" },
+                            ItemIds = new List<string> { "generated:room_key" }
+                        },
+                        ActionType = choice.ActionType,
+                        ChallengeId = choice.ChallengeId,
+                        ChallengeType = choice.ChallengeType,
+                        NavigationPayload = choice.NavigationPayload
+                    });
+                    break;
+
+                case ChoicePathType.Fallback:
+                default:
+                    // Fallback path: no rewards (player leaves without securing lodging)
+                    enrichedChoices.Add(choice);
+                    break;
             }
         }
 
@@ -394,55 +399,63 @@ public static class SceneArchetypeCatalog
         NarrativeHints negotiateHints = GenerateServiceNegotiationHints(context, serviceId);
         List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(negotiateArchetype, negotiateSitId, context);
 
-        // Enrich with service-specific rewards (unlock room, grant key)
+        // Enrich with service-specific rewards (route by PathType, NOT ID string matching)
+        // InstantSuccess: Unlock room and grant key immediately
+        // Challenge: Unlock room and grant key on success only
+        // Fallback: No rewards (player leaves without service)
         List<ChoiceTemplate> enrichedNegotiateChoices = new List<ChoiceTemplate>();
         foreach (ChoiceTemplate choice in negotiateChoices)
         {
-            if (choice.Id.EndsWith("_stat") || choice.Id.EndsWith("_money"))
+            switch (choice.PathType)
             {
-                // Instant success paths: unlock room and grant key immediately
-                enrichedNegotiateChoices.Add(new ChoiceTemplate
-                {
-                    Id = choice.Id,
-                    ActionTextTemplate = choice.ActionTextTemplate,
-                    RequirementFormula = choice.RequirementFormula,
-                    CostTemplate = choice.CostTemplate,
-                    RewardTemplate = new ChoiceReward
+                case ChoicePathType.InstantSuccess:
+                    // Instant success paths: unlock room and grant key immediately
+                    enrichedNegotiateChoices.Add(new ChoiceTemplate
                     {
-                        LocationsToUnlock = new List<string> { "generated:private_room" },
-                        ItemIds = new List<string> { "generated:room_key" }
-                    },
-                    ActionType = choice.ActionType,
-                    ChallengeId = choice.ChallengeId,
-                    ChallengeType = choice.ChallengeType,
-                    NavigationPayload = choice.NavigationPayload
-                });
-            }
-            else if (choice.Id.EndsWith("_challenge"))
-            {
-                // Challenge path: unlock room and grant key on success only
-                enrichedNegotiateChoices.Add(new ChoiceTemplate
-                {
-                    Id = choice.Id,
-                    ActionTextTemplate = choice.ActionTextTemplate,
-                    RequirementFormula = choice.RequirementFormula,
-                    CostTemplate = choice.CostTemplate,
-                    RewardTemplate = choice.RewardTemplate,
-                    OnSuccessReward = new ChoiceReward
+                        Id = choice.Id,
+                        PathType = choice.PathType,
+                        ActionTextTemplate = choice.ActionTextTemplate,
+                        RequirementFormula = choice.RequirementFormula,
+                        CostTemplate = choice.CostTemplate,
+                        RewardTemplate = new ChoiceReward
+                        {
+                            LocationsToUnlock = new List<string> { "generated:private_room" },
+                            ItemIds = new List<string> { "generated:room_key" }
+                        },
+                        ActionType = choice.ActionType,
+                        ChallengeId = choice.ChallengeId,
+                        ChallengeType = choice.ChallengeType,
+                        NavigationPayload = choice.NavigationPayload
+                    });
+                    break;
+
+                case ChoicePathType.Challenge:
+                    // Challenge path: unlock room and grant key on success only
+                    enrichedNegotiateChoices.Add(new ChoiceTemplate
                     {
-                        LocationsToUnlock = new List<string> { "generated:private_room" },
-                        ItemIds = new List<string> { "generated:room_key" }
-                    },
-                    ActionType = choice.ActionType,
-                    ChallengeId = choice.ChallengeId,
-                    ChallengeType = choice.ChallengeType,
-                    NavigationPayload = choice.NavigationPayload
-                });
-            }
-            else
-            {
-                // Fallback path: no rewards (player leaves without service)
-                enrichedNegotiateChoices.Add(choice);
+                        Id = choice.Id,
+                        PathType = choice.PathType,
+                        ActionTextTemplate = choice.ActionTextTemplate,
+                        RequirementFormula = choice.RequirementFormula,
+                        CostTemplate = choice.CostTemplate,
+                        RewardTemplate = choice.RewardTemplate,
+                        OnSuccessReward = new ChoiceReward
+                        {
+                            LocationsToUnlock = new List<string> { "generated:private_room" },
+                            ItemIds = new List<string> { "generated:room_key" }
+                        },
+                        ActionType = choice.ActionType,
+                        ChallengeId = choice.ChallengeId,
+                        ChallengeType = choice.ChallengeType,
+                        NavigationPayload = choice.NavigationPayload
+                    });
+                    break;
+
+                case ChoicePathType.Fallback:
+                default:
+                    // Fallback path: no rewards (player leaves without service)
+                    enrichedNegotiateChoices.Add(choice);
+                    break;
             }
         }
 

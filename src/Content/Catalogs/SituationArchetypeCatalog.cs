@@ -1010,6 +1010,7 @@ public static class SituationArchetypeCatalog
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_stat",
+            PathType = ChoicePathType.InstantSuccess,  // Stat-gated instant success
             ActionTextTemplate = "Leverage your rapport",
             RequirementFormula = rapportReq,
             CostTemplate = new ChoiceCost(),
@@ -1021,6 +1022,7 @@ public static class SituationArchetypeCatalog
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_money",
+            PathType = ChoicePathType.InstantSuccess,  // Money-gated instant success
             ActionTextTemplate = $"Pay {scaledCoinCost} coins for the service",
             RequirementFormula = new CompoundRequirement(),
             CostTemplate = new ChoiceCost { Coins = scaledCoinCost },
@@ -1032,6 +1034,7 @@ public static class SituationArchetypeCatalog
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_challenge",
+            PathType = ChoicePathType.Challenge,  // Challenge path
             ActionTextTemplate = "Attempt to negotiate better terms",
             RequirementFormula = new CompoundRequirement(),
             CostTemplate = new ChoiceCost { Resolve = archetype.ResolveCost },
@@ -1044,6 +1047,7 @@ public static class SituationArchetypeCatalog
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_fallback",
+            PathType = ChoicePathType.Fallback,  // Fallback path
             ActionTextTemplate = "Politely decline",
             RequirementFormula = new CompoundRequirement(),
             CostTemplate = new ChoiceCost(),
@@ -1082,6 +1086,7 @@ public static class SituationArchetypeCatalog
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_balanced",
+            PathType = ChoicePathType.InstantSuccess,  // Standard rest choice
             ActionTextTemplate = "Sleep peacefully",
             RequirementFormula = new CompoundRequirement(),
             CostTemplate = new ChoiceCost(),
@@ -1100,6 +1105,7 @@ public static class SituationArchetypeCatalog
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_physical",
+            PathType = ChoicePathType.InstantSuccess,  // Physical variant
             ActionTextTemplate = "Rest deeply",
             RequirementFormula = new CompoundRequirement(),
             CostTemplate = new ChoiceCost(),
@@ -1118,6 +1124,7 @@ public static class SituationArchetypeCatalog
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_mental",
+            PathType = ChoicePathType.InstantSuccess,  // Mental variant
             ActionTextTemplate = "Meditate before sleeping",
             RequirementFormula = new CompoundRequirement(),
             CostTemplate = new ChoiceCost(),
@@ -1136,6 +1143,7 @@ public static class SituationArchetypeCatalog
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_special",
+            PathType = ChoicePathType.InstantSuccess,  // Special variant with buff
             ActionTextTemplate = "Dream vividly",
             RequirementFormula = new CompoundRequirement(),
             CostTemplate = new ChoiceCost(),
@@ -1180,6 +1188,7 @@ public static class SituationArchetypeCatalog
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_immediate",
+            PathType = ChoicePathType.Fallback,  // Quick exit, minimal benefit
             ActionTextTemplate = "Leave immediately",
             RequirementFormula = new CompoundRequirement(),
             CostTemplate = new ChoiceCost(),
@@ -1191,6 +1200,7 @@ public static class SituationArchetypeCatalog
         choices.Add(new ChoiceTemplate
         {
             Id = $"{situationTemplateId}_careful",
+            PathType = ChoicePathType.InstantSuccess,  // Careful preparation, grants buff
             ActionTextTemplate = "Gather your belongings carefully",
             RequirementFormula = new CompoundRequirement(),
             CostTemplate = new ChoiceCost { TimeSegments = 1 },
