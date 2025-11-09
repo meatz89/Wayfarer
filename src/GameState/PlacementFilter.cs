@@ -1,9 +1,9 @@
 /// <summary>
-/// Filter for selecting placement entities at spawn time
-/// SUPPORTS TWO PATTERNS:
-/// 1. CONCRETE BINDING (Tutorial): NpcId/LocationId specified → spawn at specific entity
-/// 2. CATEGORICAL SEARCH (Procedural): Only categorical properties → search for matches
-/// Implements AI content generation pattern: JSON describes categories OR concrete IDs, spawner resolves placement
+/// Filter for selecting placement entities at spawn time via CATEGORICAL PROPERTIES ONLY
+/// Implements AI content generation pattern: JSON describes categories (PersonalityTypes, LocationProperties),
+/// spawner queries GameWorld entities and applies SelectionStrategy to choose from matches
+/// Tutorial pattern uses SceneSpawnReward.SpecificPlacementId for concrete binding (NOT this filter)
+/// HIGHLANDER: One pattern only - categorical queries, no concrete IDs
 /// </summary>
 public class PlacementFilter
 {
@@ -13,24 +13,7 @@ public class PlacementFilter
     /// </summary>
     public PlacementType PlacementType { get; init; }
 
-    // ==================== CONCRETE BINDING (Tutorial Pattern) ====================
-    // When specified, these bypass categorical filtering and bind to specific entities
-
-    /// <summary>
-    /// Concrete NPC ID for tutorial/explicit binding
-    /// When specified, scene spawns at this specific NPC (bypasses categorical filtering)
-    /// null = use categorical NPC filters
-    /// </summary>
-    public string NpcId { get; init; }
-
-    /// <summary>
-    /// Concrete Location ID for tutorial/explicit binding
-    /// When specified, scene spawns at this specific Location (bypasses categorical filtering)
-    /// null = use categorical Location filters
-    /// </summary>
-    public string LocationId { get; init; }
-
-    // ==================== CATEGORICAL SEARCH (Procedural Pattern) ====================
+    // ==================== CATEGORICAL SEARCH ====================
 
     /// <summary>
     /// Strategy for selecting ONE entity when multiple candidates match the filter

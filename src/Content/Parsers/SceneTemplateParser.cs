@@ -69,22 +69,13 @@ public class SceneTemplateParser
 
         Console.WriteLine($"[SceneArchetypeGeneration] Generating scene '{dto.Id}' using archetype '{dto.SceneArchetypeId}'");
 
-        // Resolve entity IDs from placementFilter for context-aware generation
-        // NPC can be null for location-only scenes (consequence, environmental, etc.)
-        NPC contextNPC = ResolveNPCFromPlacementFilter(dto.PlacementFilter, dto.Id);
-        Location contextLocation = ResolveLocationFromPlacementFilter(dto.PlacementFilter, contextNPC, dto.Id);
+        // CATEGORICAL PARSING: No entity resolution at parse time
+        // Concrete binding happens at instantiation time via SceneInstantiator
+        // All scenes use categorical properties for procedural placement
+        string npcId = null;
+        string locationId = null;
 
-        string npcId = contextNPC?.ID;
-        string locationId = contextLocation?.Id;
-
-        if (contextNPC != null && contextLocation != null)
-        {
-            Console.WriteLine($"[SceneGeneration] Context: NPC={contextNPC.Name} (Personality={contextNPC.PersonalityType}), Location={contextLocation.Name}, Tier={dto.Tier}");
-        }
-        else
-        {
-            Console.WriteLine($"[SceneGeneration] Categorical context: Tier={dto.Tier}");
-        }
+        Console.WriteLine($"[SceneGeneration] Categorical context: Tier={dto.Tier}");
 
         SceneArchetypeDefinition archetypeDefinition = _generationFacade.GenerateSceneFromArchetype(
             dto.SceneArchetypeId,
@@ -901,81 +892,5 @@ public class SceneTemplateParser
         Console.WriteLine($"[SingleSituationGeneration] Created SituationTemplate '{situationId}' with {choices.Count} choices");
 
         return template;
-    }
-
-    /// <summary>
-    /// Resolve NPC entity from PlacementFilter for context-aware archetype generation
-    /// Returns null for location-only scenes (PlacementType = Location)
-    /// Supports concrete NPC binding (npcId field) for tutorial
-    /// Supports categorical selection (personalityTypes) for procedural content
-    /// </summary>
-    private NPC ResolveNPCFromPlacementFilter(PlacementFilterDTO placementFilter, string sceneTemplateId)
-    {
-        if (placementFilter == null)
-            throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' with sceneArchetypeId requires placementFilter");
-
-        // Location-only scene (no NPC interaction)
-        if (placementFilter.PlacementType == "Location")
-        {
-            Console.WriteLine($"[EntityResolution] Location-only scene (no NPC)");
-            return null;
-        }
-
-        // Concrete NPC binding (tutorial pattern)
-        if (!string.IsNullOrEmpty(placementFilter.NpcId))
-        {
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == placementFilter.NpcId);
-            if (npc == null)
-                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' placementFilter references invalid NpcId: '{placementFilter.NpcId}'");
-
-            Console.WriteLine($"[EntityResolution] Resolved concrete NPC: {npc.Name} (ID={npc.ID})");
-            return npc;
-        }
-
-        // Categorical selection (procedural pattern)
-        // Scene uses categorical filters (personalityTypes, locationProperties) for procedural spawning
-        // No concrete entity at parse time, so return null
-        // GenerateSingleSituation will use generic hints without entity-specific context
-        Console.WriteLine($"[EntityResolution] Categorical NPC scene (no concrete NPC at parse time)");
-        return null;
-    }
-
-    /// <summary>
-    /// Resolve Location entity from PlacementFilter
-    /// For NPC scenes: derives location from NPC.Location
-    /// For Location scenes: resolves from locationId
-    /// </summary>
-    private Location ResolveLocationFromPlacementFilter(PlacementFilterDTO placementFilter, NPC contextNPC, string sceneTemplateId)
-    {
-        if (placementFilter == null)
-            throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' with sceneArchetypeId requires placementFilter");
-
-        // NPC scene: derive location from NPC
-        if (contextNPC != null)
-        {
-            if (contextNPC.Location == null)
-                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' NPC '{contextNPC.ID}' has null Location");
-
-            Console.WriteLine($"[EntityResolution] Location derived from NPC: {contextNPC.Location.Name}");
-            return contextNPC.Location;
-        }
-
-        // Location scene: resolve from locationId
-        if (!string.IsNullOrEmpty(placementFilter.LocationId))
-        {
-            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == placementFilter.LocationId);
-            if (location == null)
-                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' placementFilter references invalid LocationId: '{placementFilter.LocationId}'");
-
-            Console.WriteLine($"[EntityResolution] Resolved concrete Location: {location.Name} (ID={location.Id})");
-            return location;
-        }
-
-        // Categorical location selection (procedural pattern)
-        // Scene uses categorical filters (locationProperties, locationTags) for procedural spawning
-        // No concrete location at parse time, so return null
-        // GenerateSingleSituation will use generic hints without location-specific context
-        Console.WriteLine($"[EntityResolution] Categorical location scene (no concrete location at parse time)");
-        return null;
     }
 }

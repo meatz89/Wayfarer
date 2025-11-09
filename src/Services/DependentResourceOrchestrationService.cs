@@ -20,19 +20,22 @@ public class DependentResourceOrchestrationService
     private readonly PackageLoaderFacade _packageLoaderFacade;
     private readonly HexRouteGenerator _hexRouteGenerator;
     private readonly SceneInstantiator _sceneInstantiator;
+    private readonly TimeManager _timeManager;
 
     public DependentResourceOrchestrationService(
         GameWorld gameWorld,
         ContentGenerationFacade contentGenerationFacade,
         PackageLoaderFacade packageLoaderFacade,
         HexRouteGenerator hexRouteGenerator,
-        SceneInstantiator sceneInstantiator)
+        SceneInstantiator sceneInstantiator,
+        TimeManager timeManager)
     {
         _gameWorld = gameWorld;
         _contentGenerationFacade = contentGenerationFacade;
         _packageLoaderFacade = packageLoaderFacade;
         _hexRouteGenerator = hexRouteGenerator;
         _sceneInstantiator = sceneInstantiator;
+        _timeManager = timeManager;
     }
 
     /// <summary>
@@ -71,6 +74,15 @@ public class DependentResourceOrchestrationService
             Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
             if (item != null)
             {
+                // Set provenance tracking
+                item.Provenance = new SceneProvenance
+                {
+                    SceneId = scene.Id,
+                    CreatedDay = _timeManager.CurrentDay,
+                    CreatedTimeBlock = _timeManager.CurrentTimeBlock,
+                    CreatedSegment = _timeManager.CurrentSegment
+                };
+
                 player.Inventory.AddItem(item);
                 Console.WriteLine($"[DependentResources] Added item to inventory: {item.Name} ({item.Id})");
             }
@@ -81,6 +93,15 @@ public class DependentResourceOrchestrationService
             Location createdLocation = _gameWorld.GetLocation(locationId);
             if (createdLocation != null)
             {
+                // Set provenance tracking
+                createdLocation.Provenance = new SceneProvenance
+                {
+                    SceneId = scene.Id,
+                    CreatedDay = _timeManager.CurrentDay,
+                    CreatedTimeBlock = _timeManager.CurrentTimeBlock,
+                    CreatedSegment = _timeManager.CurrentSegment
+                };
+
                 Console.WriteLine($"[DependentResources] Created location: {createdLocation.Name} ({createdLocation.Id})");
                 Console.WriteLine($"[DependentResources]   VenueId: {createdLocation.VenueId}, HexPosition: {(createdLocation.HexPosition.HasValue ? createdLocation.HexPosition.Value.ToString() : "NONE (intra-venue)")}");
 

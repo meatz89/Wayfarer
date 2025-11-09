@@ -1677,16 +1677,10 @@ public class GameFacade
 
         foreach (SceneTemplate template in starterTemplates)
         {
-            PlacementRelation placementRelation = DeterminePlacementRelation(template.PlacementFilter);
-
-            string specificPlacementId = null;
-            if (template.PlacementFilter != null)
-            {
-                if (!string.IsNullOrEmpty(template.PlacementFilter.NpcId))
-                    specificPlacementId = template.PlacementFilter.NpcId;
-                else if (!string.IsNullOrEmpty(template.PlacementFilter.LocationId))
-                    specificPlacementId = template.PlacementFilter.LocationId;
-            }
+            // TUTORIAL PATTERN: Starter scenes use concrete binding via SceneSpawnReward.SpecificPlacementId
+            // PlacementFilter only contains categorical properties for procedural resolution
+            PlacementRelation placementRelation = PlacementRelation.Generic;
+            string specificPlacementId = null; // Starter scenes should define placement in template, not filter
 
             SceneSpawnReward spawnReward = new SceneSpawnReward
             {
@@ -1714,26 +1708,6 @@ public class GameFacade
                 continue;
             }
         }
-    }
-
-    /// <summary>
-    /// Determine PlacementRelation from PlacementFilter
-    /// TWO PATTERNS:
-    /// 1. CONCRETE BINDING: NpcId/LocationId present → SpecificNPC/SpecificLocation
-    /// 2. CATEGORICAL SEARCH: Only categorical properties → Generic
-    /// </summary>
-    private PlacementRelation DeterminePlacementRelation(PlacementFilter filter)
-    {
-        if (filter == null)
-            return PlacementRelation.SpecificLocation;
-
-        if (!string.IsNullOrEmpty(filter.NpcId))
-            return PlacementRelation.SpecificNPC;
-
-        if (!string.IsNullOrEmpty(filter.LocationId))
-            return PlacementRelation.SpecificLocation;
-
-        return PlacementRelation.Generic;
     }
 
     // ========== UNIFIED ACTION ARCHITECTURE - EXECUTE METHODS ==========

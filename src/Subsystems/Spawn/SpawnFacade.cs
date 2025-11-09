@@ -375,18 +375,9 @@ public class SpawnFacade
             {
                 Console.WriteLine($"[SpawnOrchestration] Template '{template.Id}' is ELIGIBLE - spawning scene");
 
-                // Build spawn context for instantiation
-                PlacementRelation placementRelation = DeterminePlacementFromFilter(template.PlacementFilter);
-
-                // For concrete binding (tutorial pattern), copy ID from PlacementFilter to SpawnReward
-                string specificPlacementId = null;
-                if (template.PlacementFilter != null)
-                {
-                    if (!string.IsNullOrEmpty(template.PlacementFilter.NpcId))
-                        specificPlacementId = template.PlacementFilter.NpcId;
-                    else if (!string.IsNullOrEmpty(template.PlacementFilter.LocationId))
-                        specificPlacementId = template.PlacementFilter.LocationId;
-                }
+                // CATEGORICAL SPAWNING: All procedural spawning uses Generic placement with categorical resolution
+                PlacementRelation placementRelation = PlacementRelation.Generic;
+                string specificPlacementId = null; // Procedural spawning never uses concrete IDs
 
                 SceneSpawnReward spawnReward = new SceneSpawnReward
                 {
@@ -422,28 +413,6 @@ public class SpawnFacade
         {
             Console.WriteLine($"[SpawnOrchestration] Spawned {spawned} new scenes");
         }
-    }
-
-    /// <summary>
-    /// Determine PlacementRelation from PlacementFilter
-    /// TWO PATTERNS:
-    /// 1. CONCRETE BINDING: NpcId/LocationId present → SpecificNPC/SpecificLocation
-    /// 2. CATEGORICAL SEARCH: Only categorical properties → Generic
-    /// </summary>
-    private PlacementRelation DeterminePlacementFromFilter(PlacementFilter filter)
-    {
-        if (filter == null)
-            return PlacementRelation.SpecificLocation;
-
-        // CONCRETE BINDING: Presence of concrete ID = Specific placement (tutorial pattern)
-        if (!string.IsNullOrEmpty(filter.NpcId))
-            return PlacementRelation.SpecificNPC;
-
-        if (!string.IsNullOrEmpty(filter.LocationId))
-            return PlacementRelation.SpecificLocation;
-
-        // CATEGORICAL SEARCH: No concrete IDs = Generic categorical resolution (procedural pattern)
-        return PlacementRelation.Generic;
     }
 
     /// <summary>

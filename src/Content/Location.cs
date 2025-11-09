@@ -80,6 +80,13 @@ public class Location
     /// </summary>
     public bool IsLocked { get; set; } = false;
 
+    /// <summary>
+    /// Provenance tracking: which scene created this location (if any)
+    /// null = location from base game content (not dynamically created)
+    /// non-null = location created by scene during gameplay (dependent resource)
+    /// </summary>
+    public SceneProvenance Provenance { get; set; } = null;
+
     public string? Description { get; internal set; }
 
     public Location(string id, string name)

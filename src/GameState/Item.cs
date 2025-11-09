@@ -68,6 +68,13 @@ public class Item
     public int MaxDurability { get; set; } = 100;
     public bool IsDegraded => Durability < MaxDurability;
 
+    /// <summary>
+    /// Provenance tracking: which scene created this item (if any)
+    /// null = item from base game content (not dynamically created)
+    /// non-null = item created by scene during gameplay (dependent resource)
+    /// </summary>
+    public SceneProvenance Provenance { get; set; } = null;
+
     public string InitiativeCostDescription => InitiativeCost switch
     {
         0 => "InitiativeCostless",
@@ -93,7 +100,7 @@ public class Item
             if (!string.IsNullOrEmpty(CategoriesDescription))
                 descriptions.Add(CategoriesDescription);
             descriptions.Add(SizeCategoryDescription);
-            return string.Join(" • ", descriptions);
+            return string.Join(" ï¿½ ", descriptions);
         }
     }
 
