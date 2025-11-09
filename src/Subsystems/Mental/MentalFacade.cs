@@ -361,6 +361,57 @@ public class MentalFacade
         return outcome;
     }
 
+    /// <summary>
+    /// Abandon mental challenge - marks as failed and triggers OnFailure transitions
+    /// Unlike LeaveObligation, this is permanent failure
+    /// TRANSITION TRACKING: Calls FailSituation to enable OnFailure transitions
+    /// </summary>
+    public MentalOutcome AbandonChallenge()
+    {
+        if (!IsSessionActive())
+        {
+            return null;
+        }
+
+        // Apply Exposure consequences if threshold reached
+        Player player = _gameWorld.GetPlayer();
+        if (_gameWorld.CurrentMentalSession.CurrentExposure >= 10)
+        {
+            ApplyExposureConsequences(player);
+        }
+
+        // TRANSITION TRACKING: Find situation and call FailSituation for OnFailure transitions
+        if (!string.IsNullOrEmpty(_gameWorld.CurrentMentalSituationId))
+        {
+            Situation situation = _gameWorld.Scenes
+                .SelectMany(s => s.Situations)
+                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentMentalSituationId);
+
+            if (situation != null)
+            {
+                // Call FailSituation to set LastChallengeSucceeded = false and trigger OnFailure
+                _situationCompletionHandler.FailSituation(situation);
+            }
+        }
+
+        MentalOutcome outcome = new MentalOutcome
+        {
+            Success = false,
+            FinalProgress = _gameWorld.CurrentMentalSession.CurrentProgress,
+            FinalExposure = _gameWorld.CurrentMentalSession.CurrentExposure,
+            SessionSaved = false
+        };
+
+        // Clear obligation context
+        _gameWorld.CurrentMentalSituationId = null;
+        _gameWorld.CurrentMentalObligationId = null;
+
+        _gameWorld.CurrentMentalSession.Deck.Clear();
+        _gameWorld.CurrentMentalSession = null;
+
+        return outcome;
+    }
+
     public MentalOutcome EndSession()
     {
         if (!IsSessionActive())

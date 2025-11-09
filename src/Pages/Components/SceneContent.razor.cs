@@ -464,6 +464,7 @@ namespace Wayfarer.Pages.Components
                     GameWorld.PendingSocialContext = new SocialChallengeContext
                     {
                         CompletionReward = choiceTemplate.OnSuccessReward,
+                        FailureReward = choiceTemplate.OnFailureReward,
                         SituationId = CurrentSituation.Id
                     };
                 }
@@ -473,6 +474,7 @@ namespace Wayfarer.Pages.Components
                     GameWorld.PendingMentalContext = new MentalChallengeContext
                     {
                         CompletionReward = choiceTemplate.OnSuccessReward,
+                        FailureReward = choiceTemplate.OnFailureReward,
                         SituationId = CurrentSituation.Id
                     };
                 }
@@ -482,6 +484,7 @@ namespace Wayfarer.Pages.Components
                     GameWorld.PendingPhysicalContext = new PhysicalChallengeContext
                     {
                         CompletionReward = choiceTemplate.OnSuccessReward,
+                        FailureReward = choiceTemplate.OnFailureReward,
                         SituationId = CurrentSituation.Id
                     };
                 }

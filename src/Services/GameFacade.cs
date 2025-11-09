@@ -2264,7 +2264,7 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Process social challenge outcome - apply CompletionReward if successful
+    /// Process social challenge outcome - apply CompletionReward if successful, FailureReward if failed
     /// STRATEGIC LAYER: GameFacade applies rewards after receiving tactical outcome
     /// </summary>
     public void ProcessSocialChallengeOutcome()
@@ -2278,11 +2278,20 @@ public class GameFacade
                 _gameWorld.PendingSocialContext.CompletionReward,
                 currentSituation);
         }
+        else if (_gameWorld.LastSocialOutcome?.Success == false &&
+                 _gameWorld.PendingSocialContext?.FailureReward != null)
+        {
+            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
+                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingSocialContext.SituationId);
+            _rewardApplicationService.ApplyChoiceReward(
+                _gameWorld.PendingSocialContext.FailureReward,
+                currentSituation);
+        }
         _gameWorld.PendingSocialContext = null;
     }
 
     /// <summary>
-    /// Process mental challenge outcome - apply CompletionReward if successful
+    /// Process mental challenge outcome - apply CompletionReward if successful, FailureReward if failed
     /// STRATEGIC LAYER: GameFacade applies rewards after receiving tactical outcome
     /// </summary>
     public void ProcessMentalChallengeOutcome()
@@ -2296,11 +2305,20 @@ public class GameFacade
                 _gameWorld.PendingMentalContext.CompletionReward,
                 currentSituation);
         }
+        else if (_gameWorld.LastMentalOutcome?.Success == false &&
+                 _gameWorld.PendingMentalContext?.FailureReward != null)
+        {
+            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
+                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingMentalContext.SituationId);
+            _rewardApplicationService.ApplyChoiceReward(
+                _gameWorld.PendingMentalContext.FailureReward,
+                currentSituation);
+        }
         _gameWorld.PendingMentalContext = null;
     }
 
     /// <summary>
-    /// Process physical challenge outcome - apply CompletionReward if successful
+    /// Process physical challenge outcome - apply CompletionReward if successful, FailureReward if failed
     /// STRATEGIC LAYER: GameFacade applies rewards after receiving tactical outcome
     /// </summary>
     public void ProcessPhysicalChallengeOutcome()
@@ -2312,6 +2330,15 @@ public class GameFacade
                 .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentPhysicalSituationId);
             _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingPhysicalContext.CompletionReward,
+                currentSituation);
+        }
+        else if (_gameWorld.LastPhysicalOutcome?.Success == false &&
+                 _gameWorld.PendingPhysicalContext?.FailureReward != null)
+        {
+            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
+                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingPhysicalContext.SituationId);
+            _rewardApplicationService.ApplyChoiceReward(
+                _gameWorld.PendingPhysicalContext.FailureReward,
                 currentSituation);
         }
         _gameWorld.PendingPhysicalContext = null;

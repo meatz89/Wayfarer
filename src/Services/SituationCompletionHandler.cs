@@ -132,6 +132,7 @@ public class SituationCompletionHandler
     /// <summary>
     /// Handle situation failure - situation always remains in ActiveSituations for retry
     /// PHASE 3: Execute FailureSpawns for recursive situation spawning
+    /// TRANSITION TRACKING: Set LastChallengeSucceeded = false for OnFailure transitions
     /// </summary>
     /// <param name="situation">Situation that failed</param>
     public void FailSituation(Situation situation)
@@ -142,10 +143,32 @@ public class SituationCompletionHandler
         // Mark situation as failed
         situation.LifecycleStatus = LifecycleStatus.Failed;
 
+        // TRANSITION TRACKING: Set LastChallengeSucceeded if failing from challenge
+        // Challenge facades call FailSituation when player escapes/abandons (failure)
+        // This enables OnFailure transitions in scene state machine
+        if (_gameWorld.PendingMentalContext?.SituationId == situation.Id ||
+            _gameWorld.PendingPhysicalContext?.SituationId == situation.Id ||
+            _gameWorld.PendingSocialContext?.SituationId == situation.Id)
+        {
+            situation.LastChallengeSucceeded = false;
+            Console.WriteLine($"[SituationCompletionHandler] Challenge failed for situation '{situation.Id}'");
+        }
+
         // PHASE 3: Execute FailureSpawns - recursive situation spawning on failure
         if (situation.FailureSpawns != null && situation.FailureSpawns.Count > 0)
         {
             _spawnFacade.ExecuteSpawnRules(situation.FailureSpawns, situation);
+        }
+
+        // PHASE 1.3: Scene state machine - advance to next situation with OnFailure
+        // Scene owns its lifecycle, not facades
+        if (situation.ParentScene != null)
+        {
+            Scene scene = situation.ParentScene;
+            SceneRoutingDecision routingDecision = scene.AdvanceToNextSituation(situation);
+
+            // Store routing decision on situation for UI to query
+            situation.RoutingDecision = routingDecision;
         }
 
         // Situations remain in ActiveSituations on failure regardless of DeleteOnSuccess

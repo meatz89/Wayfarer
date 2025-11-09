@@ -286,6 +286,7 @@ public class PhysicalFacade
     /// <summary>
     /// Escape physical challenge - costs resources, potentially fails
     /// Physical challenges make retreat difficult
+    /// TRANSITION TRACKING: Calls FailSituation to enable OnFailure transitions
     /// </summary>
     public PhysicalOutcome EscapeChallenge(Player player)
     {
@@ -300,6 +301,20 @@ public class PhysicalFacade
 
         player.Health -= healthCost;
         player.Stamina -= staminaCost;
+
+        // TRANSITION TRACKING: Find situation and call FailSituation for OnFailure transitions
+        if (!string.IsNullOrEmpty(_gameWorld.CurrentPhysicalSituationId))
+        {
+            Situation situation = _gameWorld.Scenes
+                .SelectMany(s => s.Situations)
+                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentPhysicalSituationId);
+
+            if (situation != null)
+            {
+                // Call FailSituation to set LastChallengeSucceeded = false and trigger OnFailure
+                _situationCompletionHandler.FailSituation(situation);
+            }
+        }
 
         PhysicalOutcome outcome = new PhysicalOutcome
         {
