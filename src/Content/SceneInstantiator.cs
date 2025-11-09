@@ -212,13 +212,13 @@ public class SceneInstantiator
             description = PlaceholderReplacer.ReplaceAll(description, context, _gameWorld);
 
             // Build Situation DTO from template
+            // Scene-based situations use templates - most DTO properties are for standalone situations
             SituationDTO situationDto = new SituationDTO
             {
                 Id = situationId,
                 TemplateId = sitTemplate.Id,
                 Name = sitTemplate.Name,
                 Description = description,
-                Tier = sitTemplate.Tier,
                 InteractionType = sitTemplate.Type.ToString(),
                 PlacementLocationId = resolvedLocationId,
                 PlacementNpcId = resolvedNpcId

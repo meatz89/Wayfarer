@@ -121,6 +121,23 @@ public static class SceneParser
         foreach (SituationDTO situationDto in dto.Situations)
         {
             Situation situation = SituationParser.ConvertDTOToSituation(situationDto, gameWorld);
+
+            // CRITICAL: Set composition relationship (Situation → ParentScene)
+            // Required for GetPlacementId() which queries ParentScene.PlacementId
+            situation.ParentScene = scene;
+
+            // CRITICAL: Resolve Template reference for lazy action instantiation
+            // SituationParser sets TemplateId but not Template object
+            if (!string.IsNullOrEmpty(situation.TemplateId))
+            {
+                situation.Template = template.SituationTemplates.FirstOrDefault(t => t.Id == situationDto.TemplateId);
+                if (situation.Template == null)
+                {
+                    Console.WriteLine($"[SceneParser] WARNING: Situation '{situation.Id}' references TemplateId '{situationDto.TemplateId}' " +
+                        $"but no such template found in SceneTemplate '{template.Id}'");
+                }
+            }
+
             scene.Situations.Add(situation);
         }
 

@@ -35,17 +35,23 @@ public class SceneInstanceFacade
     private readonly SceneInstantiator _sceneInstantiator;
     private readonly ContentGenerationFacade _contentGenerationFacade;
     private readonly PackageLoaderFacade _packageLoaderFacade;
+    private readonly HexRouteGenerator _hexRouteGenerator;
+    private readonly TimeManager _timeManager;
     private readonly GameWorld _gameWorld;
 
     public SceneInstanceFacade(
         SceneInstantiator sceneInstantiator,
         ContentGenerationFacade contentGenerationFacade,
         PackageLoaderFacade packageLoaderFacade,
+        HexRouteGenerator hexRouteGenerator,
+        TimeManager timeManager,
         GameWorld gameWorld)
     {
         _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
         _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
         _packageLoaderFacade = packageLoaderFacade ?? throw new ArgumentNullException(nameof(packageLoaderFacade));
+        _hexRouteGenerator = hexRouteGenerator ?? throw new ArgumentNullException(nameof(hexRouteGenerator));
+        _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
     }
 
@@ -90,9 +96,79 @@ public class SceneInstanceFacade
             throw new InvalidOperationException($"Scene from template '{template.Id}' failed to load via PackageLoader");
         }
 
+        // PHASE 2.5: Post-load orchestration (dependent resources)
+        if (spawnedScene.CreatedLocationIds.Any() || spawnedScene.CreatedItemIds.Any())
+        {
+            PostLoadOrchestration(spawnedScene, template, context.Player);
+        }
+
         Console.WriteLine($"[SceneInstanceFacade] Spawned scene '{spawnedScene.Id}' via HIGHLANDER flow");
 
         return spawnedScene;
+    }
+
+    /// <summary>
+    /// Post-load orchestration for dependent resources
+    /// Sets provenance, generates hex routes, adds items to inventory, builds marker map
+    /// </summary>
+    private void PostLoadOrchestration(Scene scene, SceneTemplate template, Player player)
+    {
+        SceneProvenance provenance = new SceneProvenance
+        {
+            SceneId = scene.Id,
+            CreatedDay = _timeManager.CurrentDay,
+            CreatedTimeBlock = _timeManager.CurrentTimeBlock,
+            CreatedSegment = _timeManager.CurrentSegment
+        };
+
+        // Set provenance and generate routes for locations
+        foreach (string locationId in scene.CreatedLocationIds)
+        {
+            Location location = _gameWorld.GetLocation(locationId);
+            if (location != null)
+            {
+                location.Provenance = provenance;
+
+                if (location.HexPosition.HasValue)
+                {
+                    List<RouteOption> routes = _hexRouteGenerator.GenerateRoutesForNewLocation(location);
+                    foreach (RouteOption route in routes)
+                    {
+                        _gameWorld.Routes.Add(route);
+                    }
+                    Console.WriteLine($"[SceneInstanceFacade] Generated {routes.Count} hex routes for location '{location.Name}'");
+                }
+            }
+        }
+
+        // Set provenance and add items to inventory (if specified in spec)
+        foreach (DependentItemSpec itemSpec in template.DependentItems)
+        {
+            if (itemSpec.AddToInventoryOnCreation)
+            {
+                string itemId = $"{scene.Id}_{itemSpec.TemplateId}";
+                Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
+                if (item != null)
+                {
+                    item.Provenance = provenance;
+                    player.Inventory.AddItem(item);
+                    Console.WriteLine($"[SceneInstanceFacade] Added item '{item.Name}' to player inventory");
+                }
+            }
+        }
+
+        // Set provenance for all created items (even those not added to inventory)
+        foreach (string itemId in scene.CreatedItemIds)
+        {
+            Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
+            if (item != null && item.Provenance == null)
+            {
+                item.Provenance = provenance;
+            }
+        }
+
+        // Build marker resolution map
+        _sceneInstantiator.BuildMarkerResolutionMap(scene);
     }
 
     /// <summary>
