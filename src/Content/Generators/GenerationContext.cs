@@ -10,6 +10,8 @@ namespace Wayfarer.Content.Generators;
 /// procedural content generation across all domains: services, combat,
 /// romance, investigation, stealth, politics, etc.
 ///
+/// Supports both NPC-placed scenes (with NPC context) and Location-placed scenes (without NPC).
+///
 /// NO domain-specific properties. All properties are universal and apply
 /// to multiple situation types.
 /// </summary>
@@ -18,10 +20,12 @@ public class GenerationContext
     // Tier (unchanged - universal difficulty scalar)
     public int Tier { get; set; }
 
-    // NPC Context (unchanged - entity references)
+    // Entity IDs for RequiredLocationId/RequiredNpcId in situations
+    public string LocationId { get; set; }  // Base location ID (ALWAYS present)
+    public string NpcId { get; set; }       // NPC ID (null for location-only scenes)
+
+    // NPC Context (for categorical property derivation)
     public PersonalityType? NpcPersonality { get; set; }
-    public string NpcLocationId { get; set; }
-    public string NpcId { get; set; }
     public string NpcName { get; set; }
 
     // Player Context
@@ -52,9 +56,9 @@ public class GenerationContext
         return new GenerationContext
         {
             Tier = tier,
-            NpcPersonality = null,
-            NpcLocationId = null,
+            LocationId = null,
             NpcId = null,
+            NpcPersonality = null,
             NpcName = "",
             PlayerCoins = 0,
             PlayerHealth = 100,
@@ -65,6 +69,17 @@ public class GenerationContext
 
     /// <summary>
     /// Create generation context from entities with automatic categorical property derivation.
+    ///
+    /// Supports two scenarios:
+    /// 1. NPC-placed scenes: npc != null, location = NPC's location
+    ///    - LocationId = NPC's location ID
+    ///    - NpcId = NPC's ID
+    ///    - Full categorical properties (including NPC-derived)
+    ///
+    /// 2. Location-placed scenes: npc == null, location = placement location
+    ///    - LocationId = placement location ID
+    ///    - NpcId = null
+    ///    - Limited categorical properties (no NPC-derived properties)
     ///
     /// ALL universal properties are derived from entity state.
     /// NO manual property setting required.
@@ -79,10 +94,12 @@ public class GenerationContext
         {
             Tier = tier,
 
+            // Entity IDs (for RequiredLocationId/RequiredNpcId)
+            LocationId = location?.Id,  // Base location (NPC's location OR placement location)
+            NpcId = npc?.ID,            // NPC ID (null for location-only scenes)
+
             // NPC context
             NpcPersonality = npc?.PersonalityType,
-            NpcLocationId = npc?.Location?.Id,
-            NpcId = npc?.ID,
             NpcName = npc?.Name ?? "",
 
             // Player context

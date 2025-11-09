@@ -312,4 +312,81 @@ public class TutorialInnLodgingIntegrationTest
             Assert.False(situation.ResolvedRequiredLocationId.Contains("generated:"),
                 "Situation should use resolved location ID, not marker"));
     }
+
+    [Fact]
+    public void ConsequenceReflection_LocationOnly_WorksWithoutNPC()
+    {
+        // ARRANGE: Location-only scene (no NPC)
+        GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
+        Player player = gameWorld.GetPlayer();
+        Location fountainPlaza = gameWorld.Locations.FirstOrDefault(l => l.Id == "fountain_plaza");
+
+        Assert.NotNull(fountainPlaza);
+
+        // ACT: Generate scene with NO NPC (location-only)
+        GenerationContext context = GenerationContext.FromEntities(
+            tier: 0,
+            npc: null,  // NO NPC - location-only scene
+            location: fountainPlaza,
+            player: player);
+
+        SceneArchetypeDefinition definition = SceneArchetypeCatalog.Generate(
+            "consequence_reflection",
+            tier: 0,
+            context);
+
+        // ASSERT: Scene generated successfully
+        Assert.NotNull(definition);
+        Assert.NotEmpty(definition.SituationTemplates);
+
+        SituationTemplate situation = definition.SituationTemplates[0];
+
+        // RequiredLocationId uses base location (fountain_plaza)
+        Assert.Equal(fountainPlaza.Id, situation.RequiredLocationId);
+
+        // No NPC required (solo reflection)
+        Assert.Null(situation.RequiredNpcId);
+
+        // Choices exist (universal scaling applied even without NPC)
+        Assert.NotEmpty(situation.ChoiceTemplates);
+
+        // Context has location properties derived
+        Assert.NotNull(context.LocationId);
+        Assert.Equal(fountainPlaza.Id, context.LocationId);
+        Assert.Null(context.NpcId);
+
+        // Categorical properties derived from location only
+        Assert.NotEqual(default(Quality), context.Quality);
+        Assert.NotEqual(default(EnvironmentQuality), context.Environment);
+
+        // NPC-derived properties use defaults
+        Assert.Equal(NPCDemeanor.Neutral, context.NpcDemeanor);
+        Assert.Equal(PowerDynamic.Equal, context.Power);
+        Assert.Equal(EmotionalTone.Cold, context.Tone);
+    }
+
+    [Fact]
+    public void Tutorial_BothScenesUseCorrectArchetypes()
+    {
+        // ARRANGE
+        GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
+
+        // ACT
+        SceneTemplate innLodgingScene = gameWorld.SceneTemplates
+            .FirstOrDefault(st => st.Id == "tutorial_secure_lodging");
+        SceneTemplate consequenceScene = gameWorld.SceneTemplates
+            .FirstOrDefault(st => st.Id == "tutorial_rough_morning");
+
+        // ASSERT: Both tutorial scenes exist and use correct archetypes
+        Assert.NotNull(innLodgingScene);
+        Assert.NotNull(consequenceScene);
+
+        // inn_lodging = multi-situation with NPC
+        Assert.NotEmpty(innLodgingScene.SituationTemplates);
+        Assert.True(innLodgingScene.SituationTemplates.Count > 1);
+
+        // consequence_reflection = single-situation without NPC
+        Assert.NotEmpty(consequenceScene.SituationTemplates);
+        Assert.Equal(SpawnPattern.Standalone, consequenceScene.SpawnRules.Pattern);
+    }
 }

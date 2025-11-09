@@ -172,7 +172,7 @@ public static class SceneArchetypeCatalog
                 Context = "securing_lodging",
                 Style = "direct"
             },
-            RequiredLocationId = context.NpcLocationId,
+            RequiredLocationId = context.LocationId,
             RequiredNpcId = context.NpcId
         };
 
@@ -321,7 +321,8 @@ public static class SceneArchetypeCatalog
         SituationArchetype reflectionArchetype = SituationArchetypeCatalog.GetArchetype("crisis");
         List<ChoiceTemplate> reflectionChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
             reflectionArchetype,
-            situationId);
+            situationId,
+            context);  // Pass context for universal scaling
 
         SituationTemplate reflectionSituation = new SituationTemplate
         {
@@ -338,7 +339,7 @@ public static class SceneArchetypeCatalog
                 Context = "morning_after",
                 Style = "somber"
             },
-            RequiredLocationId = context.NpcLocationId,  // From placement filter
+            RequiredLocationId = context.LocationId,  // Works for both NPC-placed and Location-placed scenes
             RequiredNpcId = null  // No NPC for solo reflection
         };
 

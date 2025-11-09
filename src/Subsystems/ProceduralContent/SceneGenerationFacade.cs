@@ -79,11 +79,8 @@ public class SceneGenerationFacade
     {
         return new List<string>
         {
-            "service_with_location_access",
-            "transaction_sequence",
-            "gatekeeper_sequence",
-            "consequence_reflection",
-            "inn_crisis_escalation"
+            "inn_lodging",
+            "consequence_reflection"
         };
     }
 }
