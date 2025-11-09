@@ -978,13 +978,13 @@ public static class SituationArchetypeCatalog
             _ => archetype.StatThreshold
         };
 
-        // Scale coin cost by service quality
-        int scaledCoinCost = context.ServiceQuality switch
+        // Scale coin cost by quality (universal property)
+        int scaledCoinCost = context.Quality switch
         {
-            ServiceQuality.Basic => (int)(archetype.CoinCost * 0.6),    // 3 coins
-            ServiceQuality.Standard => archetype.CoinCost,                // 5 coins
-            ServiceQuality.Premium => (int)(archetype.CoinCost * 1.6),   // 8 coins
-            ServiceQuality.Luxury => (int)(archetype.CoinCost * 2.4),    // 12 coins
+            Quality.Basic => (int)(archetype.CoinCost * 0.6),    // 3 coins
+            Quality.Standard => archetype.CoinCost,              // 5 coins
+            Quality.Premium => (int)(archetype.CoinCost * 1.6),  // 8 coins
+            Quality.Luxury => (int)(archetype.CoinCost * 2.4),   // 12 coins
             _ => archetype.CoinCost
         };
 
@@ -1057,24 +1057,24 @@ public static class SituationArchetypeCatalog
     /// <summary>
     /// Generate service_execution_rest choices with context-aware restoration scaling.
     /// Returns 4 rest choices that all advance to next morning.
-    /// Restoration amounts scale by Spot.Comfort (1x/2x/3x).
+    /// Restoration amounts scale by Environment.Quality (1x/2x/3x).
     /// </summary>
     private static List<ChoiceTemplate> GenerateServiceExecutionRestChoices(
         string situationTemplateId,
         GenerationContext context)
     {
-        // Comfort multiplier for restoration
-        int comfortMultiplier = context.SpotComfort switch
+        // Environment quality multiplier for restoration
+        int environmentMultiplier = context.Environment switch
         {
-            SpotComfort.Basic => 1,
-            SpotComfort.Standard => 2,
-            SpotComfort.Premium => 3,
+            EnvironmentQuality.Basic => 1,
+            EnvironmentQuality.Standard => 2,
+            EnvironmentQuality.Premium => 3,
             _ => 2
         };
 
-        int baseHealth = 10 * comfortMultiplier;
-        int baseStamina = 10 * comfortMultiplier;
-        int baseFocus = 7 * comfortMultiplier;
+        int baseHealth = 10 * environmentMultiplier;
+        int baseStamina = 10 * environmentMultiplier;
+        int baseFocus = 7 * environmentMultiplier;
 
         List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
 
@@ -1164,21 +1164,15 @@ public static class SituationArchetypeCatalog
 
     /// <summary>
     /// Generate service_departure choices (only 2, not 4).
-    /// Context determines which buff is granted (Focused for lodging, etc.).
-    /// Returns choices with EMPTY RewardTemplate (SceneArchetypeCatalog adds cleanup).
+    /// Universal buff granted for careful departure (Focused).
+    /// Returns choices with PARTIAL RewardTemplate (SceneArchetypeCatalog adds cleanup).
     /// </summary>
     private static List<ChoiceTemplate> GenerateServiceDepartureChoices(
         string situationTemplateId,
         GenerationContext context)
     {
-        // Determine buff by service type
-        StateType buffType = context.ServiceType switch
-        {
-            ServiceType.Lodging => StateType.Focused,      // Organization
-            ServiceType.Bathing => StateType.Rested,        // Appearance (no WellGroomed in enum, using Rested)
-            ServiceType.Healing => StateType.Rested,        // Treatment knowledge
-            _ => StateType.Focused
-        };
+        // Universal buff for careful preparation (applies to all activity types)
+        StateType buffType = StateType.Focused;
 
         List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
 

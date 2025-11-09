@@ -11,6 +11,13 @@ public class ChoiceTemplateDTO
     public string Id { get; set; }
 
     /// <summary>
+    /// Choice path type for reward routing (REPLACES ID string matching antipattern)
+    /// Values: "InstantSuccess", "Challenge", "Fallback"
+    /// Defaults to "Fallback" if not specified
+    /// </summary>
+    public string PathType { get; set; } = "Fallback";
+
+    /// <summary>
     /// Action text template with {placeholders}
     /// Example: "Persuade {NPCName}", "Search {LocationName} for clues"
     /// </summary>

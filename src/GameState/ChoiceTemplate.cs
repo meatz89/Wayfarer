@@ -15,6 +15,15 @@ public class ChoiceTemplate
     public string Id { get; init; }
 
     /// <summary>
+    /// Choice path type - for scene archetype reward routing (REPLACES ID string matching)
+    /// Situation archetypes set this when generating choices
+    /// Scene archetypes switch on this for reward enrichment
+    /// FORBIDDEN: `if (choice.Id.EndsWith("_stat"))` (ID antipattern)
+    /// CORRECT: `if (choice.PathType == ChoicePathType.InstantSuccess)`
+    /// </summary>
+    public ChoicePathType PathType { get; init; } = ChoicePathType.Fallback;
+
+    /// <summary>
     /// Action text TEMPLATE with placeholders
     /// Example: "Persuade {NPCName}", "Search {LocationName} for clues"
     /// Placeholders replaced at spawn time with actual entity names
