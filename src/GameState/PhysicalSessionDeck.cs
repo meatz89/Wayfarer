@@ -4,9 +4,10 @@
 /// </summary>
 public class PhysicalSessionDeck
 {
-    // THREE-PILE SYSTEM: Deck (draw) → Hand (active) → Locked (exhaust)
+    // FOUR-PILE SYSTEM: Deck (draw) → Hand (active) → Locked (exhaust) | Played (completed)
     private readonly Pile deckPile = new();
     private readonly Pile handPile = new();
+    private readonly Pile playedPile = new();  // PLAYED CARDS (SituationCards) for success detection
     private readonly Pile requestPile = new();  // SITUATION CARDS for this engagement
     private readonly List<CardInstance> lockedCards = new List<CardInstance>();  // EXHAUST PILE - locked for combo execution on ASSESS
 
@@ -14,6 +15,7 @@ public class PhysicalSessionDeck
 
     // Read-only access to pile contents
     public IReadOnlyList<CardInstance> Hand => handPile.Cards;
+    public IReadOnlyList<CardInstance> PlayedCards => playedPile.Cards;
     public IReadOnlyList<CardInstance> SituationCards => requestPile.Cards;
     public IReadOnlyList<CardInstance> LockedCards => lockedCards.AsReadOnly();
     public int RemainingDeckCards => deckPile.Count;
@@ -108,6 +110,21 @@ public class PhysicalSessionDeck
     }
 
     /// <summary>
+    /// Play card from hand (SituationCards)
+    /// Parallel to MentalSessionDeck.PlayCard() for success detection symmetry
+    /// </summary>
+    public void PlayCard(CardInstance card)
+    {
+        if (card == null || !handPile.Contains(card))
+        {
+            return;
+        }
+
+        handPile.Remove(card);
+        playedPile.Add(card);
+    }
+
+    /// <summary>
     /// Lock a card for combo execution
     /// Used on EXECUTE - card is removed from hand and locked for ASSESS combo trigger
     /// </summary>
@@ -175,6 +192,7 @@ public class PhysicalSessionDeck
     {
         deckPile.Clear();
         handPile.Clear();
+        playedPile.Clear();
         requestPile.Clear();
         lockedCards.Clear();
     }

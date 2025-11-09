@@ -216,7 +216,8 @@ public class PhysicalFacade
             }
 
             // SituationCards execute immediately (not locked for combo)
-            _gameWorld.CurrentPhysicalSession.Deck.Hand.ToList().Remove(card); // Remove from hand
+            // Move to PlayedCards for success detection (matches Mental pattern)
+            _gameWorld.CurrentPhysicalSession.Deck.PlayCard(card);
             string narrative = _narrativeService.GenerateActionNarrative(card, _gameWorld.CurrentPhysicalSession);
             EndSession();
 
@@ -337,8 +338,8 @@ public class PhysicalFacade
             return null;
         }
 
-        // Success determined by SituationCard play (SituationCards end session immediately in ExecuteExecute)
-        bool success = !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalSituationId);
+        // SYMMETRY RESTORATION: Success determined by SituationCard play (match Mental pattern)
+        bool success = _gameWorld.CurrentPhysicalSession.Deck.PlayedCards.Any(c => c.CardType == CardTypes.Situation);
 
         PhysicalOutcome outcome = new PhysicalOutcome
         {
@@ -347,6 +348,20 @@ public class PhysicalFacade
             FinalDanger = _gameWorld.CurrentPhysicalSession.CurrentDanger,
             EscapeCost = ""
         };
+
+        // TRANSITION TRACKING: If challenge failed, call FailSituation for OnFailure transitions
+        // Mirrors Social EndConversation pattern (lines 157-169)
+        if (!success && _gameWorld.PendingPhysicalContext?.SituationId != null)
+        {
+            Situation situation = _gameWorld.Scenes
+                .SelectMany(s => s.Situations)
+                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingPhysicalContext.SituationId);
+
+            if (situation != null)
+            {
+                _situationCompletionHandler.FailSituation(situation);
+            }
+        }
 
         // Check for obligation progress if this was an obligation situation
         if (success && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalSituationId) && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalObligationId))
