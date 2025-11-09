@@ -124,8 +124,8 @@ public class SceneFacade
                 Priority = 100
             };
 
-            // Create provisional Scenes for SceneSpawnRewards
-            CreateProvisionalScenesForAction(choiceTemplate, action, scene, player);
+            // NO provisional scenes in HIGHLANDER flow - scenes spawn when action selected
+            // Perfect information shown from SceneTemplate metadata
 
             _gameWorld.LocationActions.Add(action);
         }
@@ -204,8 +204,8 @@ public class SceneFacade
                 ChallengeType = choiceTemplate.ChallengeType
             };
 
-            // Create provisional Scenes for SceneSpawnRewards
-            CreateProvisionalScenesForAction(choiceTemplate, action, scene, player);
+            // NO provisional scenes in HIGHLANDER flow - scenes spawn when action selected
+            // Perfect information shown from SceneTemplate metadata
 
             _gameWorld.NPCActions.Add(action);
         }
@@ -286,8 +286,8 @@ public class SceneFacade
                 StatRequirements = new Dictionary<string, int>()
             };
 
-            // Create provisional Scenes for SceneSpawnRewards
-            CreateProvisionalScenesForAction(choiceTemplate, pathCard, scene, player);
+            // NO provisional scenes in HIGHLANDER flow - scenes spawn when action selected
+            // Perfect information shown from SceneTemplate metadata
 
             _gameWorld.PathCards.Add(pathCard);
         }
@@ -295,48 +295,6 @@ public class SceneFacade
 
     // ==================== SHARED HELPERS ====================
 
-    /// <summary>
-    /// Create provisional Scenes for ChoiceTemplate with SceneSpawnRewards
-    /// Shared across all three action types (Location/NPC/Route)
-    /// Stores provisional sceneID on action for perfect information display
-    /// </summary>
-    private void CreateProvisionalScenesForAction<T>(
-        ChoiceTemplate choiceTemplate,
-        T action,
-        Scene parentScene,
-        Player player) where T : class
-    {
-        if (choiceTemplate.RewardTemplate?.ScenesToSpawn?.Count > 0)
-        {
-            foreach (SceneSpawnReward spawnReward in choiceTemplate.RewardTemplate.ScenesToSpawn)
-            {
-                SceneTemplate template = _gameWorld.SceneTemplates
-                    .FirstOrDefault(t => t.Id == spawnReward.SceneTemplateId);
-
-                if (template != null)
-                {
-                    Scene provisionalScene = _sceneInstanceFacade.CreateProvisionalScene(
-                        template,
-                        spawnReward,
-                        BuildSpawnContext(parentScene, player)
-                    );
-
-                    // Store provisional sceneID on action (perfect information)
-                    if (action is LocationAction locationAction)
-                        locationAction.ProvisionalSceneId = provisionalScene.Id;
-                    else if (action is NPCAction npcAction)
-                        npcAction.ProvisionalSceneId = provisionalScene.Id;
-                    else if (action is PathCard pathCard)
-                        pathCard.SceneId = provisionalScene.Id;
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Build SceneSpawnContext from parent sceneplacement
-    /// </summary>
-    private SceneSpawnContext BuildSpawnContext(Scene parentScene, Player player)
     {
         return new SceneSpawnContext
         {

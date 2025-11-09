@@ -1645,19 +1645,14 @@ public class GameFacade
         SceneSpawnReward spawnReward,
         SceneSpawnContext context)
     {
-        Scene provisionalScene = _sceneInstanceFacade.CreateProvisionalScene(template, spawnReward, context);
+        // HIGHLANDER FLOW: Single method spawns scene with full orchestration (JSON → PackageLoader → Parser)
+        Scene scene = _sceneInstanceFacade.SpawnScene(template, spawnReward, context);
 
-        if (provisionalScene == null)
+        if (scene == null)
         {
-            Console.WriteLine($"[GameFacade] Scene '{template.Id}' failed spawn conditions - cannot finalize");
+            Console.WriteLine($"[GameFacade] Scene '{template.Id}' failed spawn conditions");
             return null;
         }
-
-        SceneFinalizationResult finalizationResult = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, context);
-        Scene scene = finalizationResult.Scene;
-        DependentResourceSpecs dependentSpecs = finalizationResult.DependentSpecs;
-
-        _dependentResourceOrchestrationService.LoadDependentResources(scene, dependentSpecs, context.Player);
 
         return scene;
     }

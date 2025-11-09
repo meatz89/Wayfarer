@@ -391,16 +391,14 @@ public class SpawnFacade
 
                 if (spawnContext != null)
                 {
-                    Scene provisionalScene = _sceneInstanceFacade.CreateProvisionalScene(template, spawnReward, spawnContext);
+                    // HIGHLANDER FLOW: Single method spawns scene (JSON → PackageLoader → Parser)
+                    Scene scene = _sceneInstanceFacade.SpawnScene(template, spawnReward, spawnContext);
 
-                    SceneFinalizationResult finalizationResult = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, spawnContext);
-                    Scene finalizedScene = finalizationResult.Scene;
-                    DependentResourceSpecs dependentSpecs = finalizationResult.DependentSpecs;
-
-                    _dependentResourceOrchestrationService.LoadDependentResources(finalizedScene, dependentSpecs, player);
-
-                    spawned++;
-                    Console.WriteLine($"[SpawnOrchestration] Scene '{provisionalScene.Id}' spawned and finalized");
+                    if (scene != null)
+                    {
+                        spawned++;
+                        Console.WriteLine($"[SpawnOrchestration] Scene '{scene.Id}' spawned via HIGHLANDER flow");
+                    }
                 }
                 else
                 {

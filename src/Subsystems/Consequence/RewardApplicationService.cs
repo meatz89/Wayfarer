@@ -197,8 +197,9 @@ public class RewardApplicationService
     }
 
     /// <summary>
-    /// Finalize provisional Scenes created during action generation
-    /// Provisional Scenes created eagerly (perfect information), now finalize when action selected
+    /// Spawn scenes when action selected (HIGHLANDER FLOW)
+    /// NO provisional scenes - spawns directly as Active
+    /// Perfect information shown from SceneTemplate metadata
     /// </summary>
     private void FinalizeSceneSpawns(ChoiceReward reward, Situation currentSituation)
     {
@@ -206,8 +207,17 @@ public class RewardApplicationService
 
         foreach (SceneSpawnReward sceneSpawn in reward.ScenesToSpawn)
         {
-            // PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
-            // Resolve Route if needed (Situation only has RouteId via Scene)
+            // Get template
+            SceneTemplate template = _gameWorld.SceneTemplates
+                .FirstOrDefault(t => t.Id == sceneSpawn.SceneTemplateId);
+
+            if (template == null)
+            {
+                Console.WriteLine($"[RewardApplicationService] SceneTemplate '{sceneSpawn.SceneTemplateId}' not found");
+                continue;
+            }
+
+            // Resolve placement context
             RouteOption currentRoute = null;
             string routeId = currentSituation?.GetPlacementId(PlacementType.Route);
             if (!string.IsNullOrEmpty(routeId))
@@ -215,12 +225,11 @@ public class RewardApplicationService
                 currentRoute = _gameWorld.Routes.FirstOrDefault(r => r.Id == routeId);
             }
 
-            // Resolve Location/NPC if needed
             Location currentLocation = null;
             string locationId = currentSituation?.GetPlacementId(PlacementType.Location);
             if (!string.IsNullOrEmpty(locationId))
             {
-                currentLocation = _gameWorld.GetLocation(locationId); // Location is source of truth
+                currentLocation = _gameWorld.GetLocation(locationId);
             }
 
             NPC currentNPC = null;
@@ -230,45 +239,26 @@ public class RewardApplicationService
                 currentNPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
             }
 
-            // Build spawn context from Situation placement
+            // Build spawn context
             SceneSpawnContext context = new SceneSpawnContext
             {
                 Player = player,
                 CurrentSituation = currentSituation,
-                CurrentLocation = currentLocation, // Location is source of truth
+                CurrentLocation = currentLocation,
                 CurrentNPC = currentNPC,
                 CurrentRoute = currentRoute
             };
 
-            // Find provisional Scene matching this template and placement
-            // Provisional Scene was created during action generation (eager creation for perfect information)
-            // PHASE 1.4: Query unified Scenes collection with State filter
-            Scene provisionalScene = _gameWorld.Scenes
-                .FirstOrDefault(s => s.State == SceneState.Provisional && s.TemplateId == sceneSpawn.SceneTemplateId);
+            // HIGHLANDER FLOW: Spawn scene directly (JSON → PackageLoader → Parser)
+            Scene scene = _sceneInstanceFacade.SpawnScene(template, sceneSpawn, context);
 
-            SceneFinalizationResult finalizationResult = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, context);
-            Scene finalizedScene = finalizationResult.Scene;
-            DependentResourceSpecs dependentSpecs = finalizationResult.DependentSpecs;
-
-            _dependentResourceOrchestrationService.LoadDependentResources(finalizedScene, dependentSpecs, player);
-        }
-
-        // CLEANUP: Delete provisional Scenes from non-selected actions in this Situation
-        // After finalization, selected action's Scenes have State=Active (no longer provisional)
-        // Delete remaining provisional Scenes from same Situation to prevent accumulation
-        // PHASE 1.4: Query unified Scenes collection with State filter
-        if (currentSituation != null)
-        {
-            List<string> unselectedProvisionalScenes = _gameWorld.Scenes
-                .Where(s => s.State == SceneState.Provisional && s.SourceSituationId == currentSituation.Id)
-                .Select(s => s.Id)
-                .ToList();
-
-            foreach (string? sceneId in unselectedProvisionalScenes)
+            if (scene != null)
             {
-                _sceneInstanceFacade.DeleteProvisionalScene(sceneId);
+                Console.WriteLine($"[RewardApplicationService] Spawned scene '{scene.DisplayName}' ({scene.Id})");
             }
         }
+
+        // NO CLEANUP NEEDED: Provisional scenes don't exist in HIGHLANDER flow
     }
 
 }

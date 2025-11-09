@@ -510,17 +510,20 @@ public class ObligationActivity
             return;
         }
 
-        Scene provisionalScene = _sceneInstanceFacade.CreateProvisionalScene(template, sceneSpawn, context);
+        // HIGHLANDER FLOW: Single method spawns scene with full orchestration
+        Scene scene = _sceneInstanceFacade.SpawnScene(template, sceneSpawn, context);
 
-        SceneFinalizationResult finalizationResult = _sceneInstanceFacade.FinalizeScene(provisionalScene.Id, context);
-        Scene finalizedScene = finalizationResult.Scene;
-        DependentResourceSpecs dependentSpecs = finalizationResult.DependentSpecs;
+        if (scene == null)
+        {
+            _messageSystem.AddSystemMessage(
+                $"Scene '{template.Id}' failed to spawn (spawn conditions not met)",
+                SystemMessageTypes.Warning);
+            return;
+        }
 
-        _dependentResourceOrchestrationService.LoadDependentResources(finalizedScene, dependentSpecs, player);
-
-        string placementDescription = GetPlacementDescription(finalizedScene);
+        string placementDescription = GetPlacementDescription(scene);
         _messageSystem.AddSystemMessage(
-            $"New scene appeared: {finalizedScene.DisplayName} {placementDescription}",
+            $"New scene appeared: {scene.DisplayName} {placementDescription}",
             SystemMessageTypes.Warning);
     }
 
