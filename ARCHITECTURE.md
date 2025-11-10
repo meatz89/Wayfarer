@@ -170,65 +170,111 @@ SceneInstantiator spawns Scene containing multiple Situations. Scene placed at L
 
 ## PROCEDURAL SCENE GENERATION
 
-### Authoring Flow: JSON → Template → Runtime
+### Four-Phase Scene Lifecycle
 
-**Step 1: JSON Authoring**
-Content authors write minimal SceneTemplate JSON containing: unique identifier, sceneArchetypeId referencing archetype catalogue, tier defining difficulty/progression level, placementFilter specifying entity selection criteria.
+**Phase 1: Minimal JSON Authoring**
 
-**Step 2: Parse-Time Generation**
-Parser invokes SceneGenerationFacade which resolves placement entities from placementFilter, builds GenerationContext from resolved entity properties (NPCDemeanor, Quality, environmental properties), calls SceneArchetypeCatalog with context receiving complete SceneArchetypeDefinition containing situations plus spawn rules plus dependent resources, creates SceneTemplate with generated SituationTemplates collection, stores completed template in GameWorld.SceneTemplates.
+Authors write tiny SceneTemplate JSON: identifier, archetype reference, tier, placement filter. Crucially, authors do NOT specify individual situations, choices, costs, or rewards. This defers complexity to catalogues.
 
-**Step 3: Spawn-Time Instantiation**
-When scene spawns SceneInstantiator creates Scene instance from template, iterates template's SituationTemplates instantiating each Situation embedding in Scene.Situations collection, resolves markers (generated resource identifiers to actual IDs) via MarkerResolutionMap, generates AI narrative if description null but narrative hints present, replaces placeholders (entity name tokens) with concrete values from resolved entities, sets Scene.CurrentSituation to first situation. Actions NOT created yet - deferred until query time.
+**Why Minimal Authoring:**
+If authors specified full scene structure (every situation, every choice, every cost formula), content volume explodes. Ten service scenes would require ten copies of negotiation mechanics. Bug in negotiation pattern requires fixing ten files. With minimal authoring, authors specify WHAT (secure lodging at friendly inn) not HOW (4-choice negotiation with stat/money/challenge/fallback). Catalogues encode HOW once, authors instantiate infinite variations.
 
-**Step 4: Query-Time Action Instantiation**
-When player enters matching context SceneFacade checks Situation.InstantiationState. If Deferred state, creates context-appropriate actions (LocationActions/NPCActions/PathCards) from ChoiceTemplates, sets InstantiationState to Instantiated, adds created actions to GameWorld collections for UI access.
+**Phase 2: Parse-Time Catalogue Expansion**
+
+Parser triggers catalogue generation which transforms minimal JSON into complete SceneTemplate with full SituationTemplates. Happens ONCE at game load, not per spawn. Templates stored in GameWorld.SceneTemplates as reusable blueprints.
+
+**Why Parse-Time Not Runtime:**
+Catalogue generation expensive (context building, formula evaluation, reward routing). Doing this per scene spawn would cause lag. Parse-time generation means one-time cost during load screen, zero cost during gameplay. Reusable templates spawned instantly.
+
+**Phase 3: Spawn-Time Template Instantiation**
+
+Spawning converts immutable template into mutable Scene instance. Resolves markers (logical resource references become concrete IDs), generates AI narrative if needed, replaces entity placeholders. Actions NOT created yet.
+
+**Why Deferred Action Creation:**
+Creating actions during spawn wastes work if scene never displayed. Spawn happens during route travel (scene stored for later), display happens when scene becomes active. Actions only needed at display time. Deferral means spawn lightweight, display heavier but only when required.
+
+**Phase 4: Query-Time Action Creation**
+
+When UI queries active scene, lazy instantiation creates context-appropriate actions from ChoiceTemplates. LocationActions for location-based scenes, NPCActions for conversation scenes, PathCards for challenge scenes. Adds actions to appropriate GameWorld collections for UI rendering.
+
+**Why Context-Appropriate Actions:**
+Same ChoiceTemplate spawns different action types based on placement. Template at Location becomes LocationAction, same template at NPC becomes NPCAction. This placement-agnostic design enables template reuse across contexts without special-casing action generation.
 
 ### Two-Tier Archetype Composition System
 
-**Tier 1: SituationArchetypeCatalog (Base Generation)**
+**The Pattern: Mechanics Separate From Rewards**
 
-Generates single-situation mechanical patterns. Takes inputs: archetype ID, tier, GenerationContext. Process retrieves archetype base definition containing costs and stat thresholds, scales values based on context properties (NPCDemeanor, Quality, PowerDynamic), generates ChoiceTemplate collection with PathType assignments, leaves RewardTemplate empty (scene tier will enrich later). Outputs ChoiceTemplate collection with mechanical structure only - no scene-specific rewards.
+Tier 1 (SituationArchetypeCatalog) generates mechanical choice structure without scene-specific rewards. Tier 2 (SceneArchetypeCatalog) composes multiple Tier 1 situations and enriches with context-specific rewards.
 
-**Tier 2: SceneArchetypeCatalog (Composition + Enrichment)**
+**Why This Separation:**
 
-Composes multiple situations into complete scenes. Takes inputs: scene archetype ID, tier, GenerationContext. Process iterates each situation in scene archetype calling SituationArchetypeCatalog receiving base choices, routes on PathType enriching rewards appropriately (InstantSuccess adds immediate rewards like LocationsToUnlock and ItemIds, Challenge adds OnSuccessReward conditional rewards, Fallback passes through unchanged), creates SituationTemplate with enriched choices, defines SituationSpawnRules controlling pattern and transitions, declares DependentResources (locations/items to generate). Outputs complete SceneArchetypeDefinition containing situations plus rules plus dependent resources.
+Negotiation mechanics identical across all service contexts: 4 choices (stat-gated instant, money-gated instant, challenge path, guaranteed fallback), same cost formulas, same PathType routing. Only REWARDS differ - lodging unlocks private room, bathing unlocks bathhouse access, healing unlocks clinic visit.
 
-**Why Two Tiers:**
-**Reusability:** Same situation archetype used by multiple scene archetypes. Service negotiation mechanics reused across inns, bathhouses, healers, merchants.
-**Separation:** Situations define HOW (mechanical paths - stat checks, costs, challenge types), Scenes define WHAT (specific resources - which location to unlock, which item to grant).
-**Modularity:** Change negotiation mechanics once in situation catalogue, affects all service scenes automatically.
+If each scene archetype implemented its own negotiation mechanics, bugs would appear inconsistently. Balancing negotiation difficulty requires updating 20+ scene files. Player confusion when negotiation pattern varies by context.
 
-**Enrichment Pattern:**
-Situation catalogue returns choices with NO scene-specific rewards - purely mechanical structure. Scene catalogue adds rewards based on PathType routing. Enables situation archetype reuse across vastly different scene contexts without code duplication.
+With two-tier separation, situation catalogue encodes negotiation mechanics ONCE. Scene catalogues inherit mechanics, customize only rewards via PathType routing. Bug fix propagates automatically. Balance adjustment affects all contexts uniformly. Player learns pattern once, applies everywhere.
+
+**The Enrichment Flow:**
+
+Tier 1 returns ChoiceTemplates with PathType properties but empty RewardTemplate. Tier 2 routes on PathType: InstantSuccess path gets immediate rewards (LocationsToUnlock, ItemIds), Challenge path gets conditional rewards (OnSuccessReward), Fallback path gets minimal/zero rewards. Same base choices, different reward assignments per scene context.
+
+**The Trade-Off:**
+
+Two-tier pattern adds indirection - must understand both catalogues to grasp full scene generation. Simpler to inline everything in single catalogue. But indirection buys massive reusability - one negotiation archetype supports infinite service types. Architectural complexity chosen over content duplication.
 
 ### Context-Aware Scaling Mechanism
 
-**GenerationContext Flow:**
-JSON entities reference other entities by ID. Parser resolves these IDs loading NPCs and Locations from GameWorld. Parser extracts categorical properties from loaded entities (NPCDemeanor, Quality, PowerDynamic, environmental properties). Parser builds GenerationContext struct containing all categorical properties. GenerationContext passed to catalogue methods during archetype generation.
+**The Principle: Categorical Properties Drive Dynamic Difficulty**
 
-**Scaling Application:**
-Catalogues apply universal formulas to base archetype values using GenerationContext properties. Base archetype defines baseline values (example: StatThreshold 5, CoinCost 5). Catalogues apply scaling multipliers based on categorical properties. NPCDemeanor.Friendly reduces difficulty (0.6x multiplier), Neutral maintains baseline (1.0x), Hostile increases difficulty (1.4x). Quality.Basic reduces cost (0.6x), Standard maintains baseline (1.0x), Premium increases moderately (1.6x), Luxury increases substantially (2.4x).
+Archetypes define baseline numeric values (StatThreshold: 5, CoinCost: 5). Catalogues scale these values using multipliers derived from entity categorical properties (NPCDemeanor, Quality, PowerDynamic). Same archetype + different entity context = automatically balanced difficulty.
 
-**Result:** Same archetype plus different entity properties equals contextually appropriate difficulty. Content authors and AI describe entities using categorical properties (Friendly innkeeper at Premium quality inn). System automatically calculates balanced numeric values from categories. No manual balancing per scene required.
+**Why Categorical Scaling:**
+
+Without scaling, every scene requires manual numeric tuning. "Friendly innkeeper negotiation needs threshold 3, hostile innkeeper needs threshold 8" - multiply across 50 NPCs and hundreds of scenes. Balancing nightmare, maintenance disaster.
+
+With categorical properties, authors/AI specify entity nature descriptively (Friendly, Premium quality). Catalogues translate categories to multipliers (Friendly = 0.6x difficulty, Premium = 1.6x cost). Archetype baseline scales automatically. Add new friendly NPC - scenes auto-balance easier. Mark location luxury - scenes auto-scale more expensive. Zero manual tuning.
+
+**The Formula Pattern:**
+
+Base archetype: StatThreshold 5. NPCDemeanor multipliers: Friendly 0.6x, Neutral 1.0x, Hostile 1.4x. Final threshold: 5 × multiplier. Friendly innkeeper: 5 × 0.6 = 3. Hostile guard: 5 × 1.4 = 7. Same negotiation archetype, contextually appropriate difficulty.
+
+**Why This Enables AI Generation:**
+
+AI can't know global game balance (player level, progression state, economic calibration). But AI CAN describe entities categorically (this innkeeper feels friendly, this inn seems premium quality). System translates categories to balanced numbers using formula context. AI generates infinite content without breaking game balance.
 
 ### Marker Resolution for Self-Contained Scenes
 
-Scenes with dependent resources use marker syntax in templates. Markers use "generated:" prefix followed by resource identifier (example: "generated:private_room"). Situations reference these markers in RequiredLocationId properties. Choice rewards reference markers in LocationsToUnlock lists.
+**The Problem: Templates Can't Reference What Doesn't Exist**
 
-**Resolution Flow:**
-Parse time: DependentLocationSpec declares logical identifier, parser creates actual Location entity with real GUID. Spawn time: Build MarkerResolutionMap mapping logical identifiers to actual GUIDs. Situation instantiation: Resolve all markers via map lookup. Store resolved IDs in Situation properties (ResolvedRequiredLocationId). Runtime: Use only resolved IDs, no marker syntax remains.
+Lodging scene template needs to reference private room location. But room doesn't exist until scene spawns. Can't hardcode room ID (template is reusable, each spawn needs unique room). Can't use null (situations require location references for context).
 
-**Purpose:** Templates must reference resources that don't exist until scene spawns. Markers enable static reusable template definitions with dynamic per-instance resource binding. Same template spawned twice creates two independent resource sets.
+**The Solution: Logical Markers Resolved At Spawn**
+
+Templates reference logical markers ("generated:private_room"). Parser creates DependentLocationSpec declaring marker. At spawn time, system generates actual Location with real GUID, builds MarkerResolutionMap (marker → GUID), resolves all marker references throughout scene's situations and choices. Runtime uses only concrete GUIDs, no marker syntax remains.
+
+**Why This Enables Reusability:**
+
+Single template spawns infinite times, each spawn generates independent resource set. First spawn creates room A with GUID-1, second spawn creates room B with GUID-2. No resource sharing between instances, no collision, no cross-contamination.
+
+Without markers, would need either: (1) Pre-generate all possible rooms and hardcode IDs (doesn't scale), or (2) Use global shared room (first scene locks room, second scene can't spawn). Markers enable true instance isolation.
 
 ### AI Narrative Generation Integration
 
-Archetype-generated situations support AI narrative generation. SituationTemplate with null NarrativeTemplate but non-null NarrativeHints signals: generate narrative from entity context at spawn time. NarrativeHints contain: Tone property (transactional, urgent, mysterious), Theme property (negotiation, investigation, conflict), Context property (securing_lodging, gathering_testimony, confronting_suspect).
+**The Principle: Mechanical Structure + Narrative Hints = AI-Generated Content**
 
-**Generation Flow:**
-SceneInstantiator detects null description with narrative hints. Builds ScenePromptContext from resolved entities extracting NPC personality, location atmosphere, relationship state, recent player actions. Calls NarrativeService passing context and hints. AI generates narrative appropriate to entity properties and hint constraints. Sets Situation.Description to generated text. Replaces entity name placeholders in generated narrative with actual entity names.
+Archetypes define mechanics (costs, choices, rewards) and narrative constraints (tone, theme, context). AI generates actual narrative text at spawn time using entity properties and hint constraints. Mechanical structure reusable, narrative unique per instance.
 
-**Result:** Archetype defines mechanical structure plus narrative hints providing constraints. AI generates concrete narrative from entity context. Same archetype spawned at different NPCs or locations produces contextually appropriate unique text. Zero hand-authored narrative required for procedural scenes.
+**Why Narrative Hints Not Full Text:**
+
+If archetypes contained full narrative text, reusability breaks. "You negotiate with the innkeeper for lodging" doesn't work when NPC is bathhouse attendant or healer. Would need separate text for every entity combination. Content explosion.
+
+With narrative hints, archetype specifies WHAT KIND of narrative (transactional negotiation, urgent tone) not exact text. AI generates text fitting entity context - innkeeper negotiation reads differently than guard negotiation, but both use same mechanical archetype. One archetype, infinite narrative variations.
+
+**Why AI Generation At Spawn Not Parse:**
+
+Parse-time doesn't know which specific entity instance will spawn. Template knows "spawn at Friendly NPC" but doesn't know if that's Elena or Marcus until spawn evaluates game state. Can't generate narrative for unknown entity.
+
+Spawn-time has concrete entity with full properties (personality, relationship history, location atmosphere). AI generates narrative incorporating these details naturally. Marcus negotiation references his gruff demeanor, Elena negotiation references established rapport.
 
 ---
 
