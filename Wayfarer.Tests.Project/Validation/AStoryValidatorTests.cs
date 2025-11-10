@@ -1,0 +1,255 @@
+using Wayfarer.Content.Validation;
+using Wayfarer.GameState;
+using Wayfarer.GameState.Enums;
+using Xunit;
+
+namespace Wayfarer.Tests.Project.Validation;
+
+/// <summary>
+/// Unit tests for A-story specific validation logic.
+/// Tests ValidateAStoryChain and per-template A-story validation.
+/// </summary>
+public class AStoryValidatorTests
+{
+    private SceneTemplate CreateAStoryTemplate(int sequence)
+    {
+        return new SceneTemplate
+        {
+            Id = $"a{sequence}_test",
+            Category = StoryCategory.MainStory,
+            MainStorySequence = sequence,
+            Tier = 0,
+            SituationTemplates = new List<SituationTemplate>
+            {
+                new()
+                {
+                    Id = $"sit{sequence}_1",
+                    ChoiceTemplates = new List<ChoiceTemplate>
+                    {
+                        // Guaranteed success choice (no requirements, instant)
+                        new()
+                        {
+                            Id = $"choice{sequence}_guaranteed",
+                            ActionType = ChoiceActionType.Instant,
+                            RequirementFormula = null,
+                            PathType = ChoicePathType.Fallback
+                        }
+                    }
+                }
+            },
+            SpawnRules = new SituationSpawnRules
+            {
+                Pattern = SpawnPattern.Linear,
+                InitialSituationId = $"sit{sequence}_1",
+                Transitions = new List<SituationTransition>()
+            }
+        };
+    }
+
+    [Fact]
+    public void ValidateAStoryChain_CompleteSequence_ReturnsValid()
+    {
+        // ARRANGE: Complete A1-A3 chain
+        var templates = new List<SceneTemplate>
+        {
+            CreateAStoryTemplate(1),
+            CreateAStoryTemplate(2),
+            CreateAStoryTemplate(3)
+        };
+
+        // ACT
+        ValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
+
+        // ASSERT
+        Assert.True(result.IsValid);
+        Assert.Empty(result.Errors);
+    }
+
+    [Fact]
+    public void ValidateAStoryChain_MissingSequence_ReturnsError()
+    {
+        // ARRANGE: A1, A3 (missing A2)
+        var templates = new List<SceneTemplate>
+        {
+            CreateAStoryTemplate(1),
+            CreateAStoryTemplate(3)
+        };
+
+        // ACT
+        ValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
+
+        // ASSERT
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "ACHAIN_001");
+    }
+
+    [Fact]
+    public void ValidateAStoryChain_DoesNotStartAt1_ReturnsError()
+    {
+        // ARRANGE: A2, A3 (missing A1)
+        var templates = new List<SceneTemplate>
+        {
+            CreateAStoryTemplate(2),
+            CreateAStoryTemplate(3)
+        };
+
+        // ACT
+        ValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
+
+        // ASSERT
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "ACHAIN_003");
+    }
+
+    [Fact]
+    public void ValidateAStoryChain_DuplicateSequence_ReturnsError()
+    {
+        // ARRANGE: Two A2s
+        var templates = new List<SceneTemplate>
+        {
+            CreateAStoryTemplate(1),
+            CreateAStoryTemplate(2),
+            CreateAStoryTemplate(2) // Duplicate
+        };
+
+        // ACT
+        ValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
+
+        // ASSERT
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "ACHAIN_002");
+    }
+
+    [Fact]
+    public void ValidateAStoryChain_NoAStoryScenes_ReturnsValid()
+    {
+        // ARRANGE: No A-story scenes (empty or only B/C stories)
+        var templates = new List<SceneTemplate>();
+
+        // ACT
+        ValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
+
+        // ASSERT: No A-story = valid (allows gradual authoring)
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void ValidateAStoryChain_FlexibleLength_AcceptsAnyComplete()
+    {
+        // ARRANGE: Test various valid lengths
+        var testCases = new[]
+        {
+            new[] { 1, 2, 3 },           // 3 scenes
+            new[] { 1, 2, 3, 4, 5 },     // 5 scenes
+            new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, // 10 scenes
+            new[] { 1 }                   // Single scene (edge case)
+        };
+
+        foreach (var sequences in testCases)
+        {
+            var templates = sequences.Select(CreateAStoryTemplate).ToList();
+
+            // ACT
+            ValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
+
+            // ASSERT
+            Assert.True(result.IsValid,
+                $"Should accept complete sequence: {string.Join(", ", sequences)}");
+        }
+    }
+
+    [Fact]
+    public void Validate_MainStoryWithoutSequence_ReturnsError()
+    {
+        // ARRANGE: MainStory category but no MainStorySequence
+        var template = CreateAStoryTemplate(1);
+        template.MainStorySequence = null;
+
+        // ACT
+        ValidationResult result = SceneTemplateValidator.Validate(template);
+
+        // ASSERT
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "ASTORY_001");
+    }
+
+    [Fact]
+    public void Validate_AStorySituationWithoutGuaranteedPath_ReturnsError()
+    {
+        // ARRANGE: A-story situation with only gated choices (no guaranteed path)
+        var template = CreateAStoryTemplate(1);
+        template.SituationTemplates[0].ChoiceTemplates = new List<ChoiceTemplate>
+        {
+            new()
+            {
+                Id = "gated_choice",
+                ActionType = ChoiceActionType.Instant,
+                RequirementFormula = new RequirementFormula
+                {
+                    OrPaths = new List<RequirementPath>
+                    {
+                        new() { Conditions = new List<Requirement> { new() } }
+                    }
+                }
+            }
+        };
+
+        // ACT
+        ValidationResult result = SceneTemplateValidator.Validate(template);
+
+        // ASSERT
+        Assert.False(result.IsValid);
+        Assert.Contains(result.Errors, e => e.Code == "ASTORY_004");
+    }
+
+    [Fact]
+    public void Validate_AStoryWithGuaranteedChallenge_IsValid()
+    {
+        // ARRANGE: Challenge choice that spawns scenes on both success AND failure
+        var template = CreateAStoryTemplate(1);
+        template.SituationTemplates[0].ChoiceTemplates = new List<ChoiceTemplate>
+        {
+            new()
+            {
+                Id = "challenge_guaranteed",
+                ActionType = ChoiceActionType.StartChallenge,
+                RequirementFormula = null, // No requirements
+                RewardTemplate = new ChoiceReward
+                {
+                    ScenesToSpawn = new List<SceneSpawnReward>
+                    {
+                        new() { SceneTemplateId = "next_scene" }
+                    }
+                },
+                OnFailureReward = new ChoiceReward
+                {
+                    ScenesToSpawn = new List<SceneSpawnReward>
+                    {
+                        new() { SceneTemplateId = "next_scene" }
+                    }
+                }
+            }
+        };
+
+        // ACT
+        ValidationResult result = SceneTemplateValidator.Validate(template);
+
+        // ASSERT: Challenge with both success/failure spawns = guaranteed progression
+        Assert.True(result.IsValid);
+    }
+
+    [Fact]
+    public void Validate_NonAStoryWithoutSequence_IsValid()
+    {
+        // ARRANGE: SideStory without MainStorySequence (correct)
+        var template = CreateAStoryTemplate(1);
+        template.Category = StoryCategory.SideStory;
+        template.MainStorySequence = null;
+
+        // ACT
+        ValidationResult result = SceneTemplateValidator.Validate(template);
+
+        // ASSERT: B/C stories don't need MainStorySequence
+        Assert.True(result.IsValid);
+    }
+}
