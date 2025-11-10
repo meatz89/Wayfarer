@@ -2,11 +2,11 @@
 
 ## The Frieren Principle: Eternal Journey Without Resolution
 
-The game is never-ending. The main storyline is never-ending. Like Frieren's immortal journey across an eternal world, the A-story is an **infinite procedurally-generated spine** that provides structure and progression without resolution.
+The game is never-ending. The main storyline is never-ending. Like an endless road with no final destination, the A-story is an **infinite procedurally-generated spine** that provides structure and progression without resolution.
 
 ### Why Infinite?
 
-**Narrative Coherence**: The pursuit framework establishes a quest that deepens rather than resolves. Each revelation poses new questions. Each answer points to the next member of the scattered order. Each discovery complicates the mystery. The journey IS the point, not the destination.
+**Narrative Coherence**: You travel. You arrive places. You meet people. Each place leads to another. Each person you meet suggests somewhere else worth visiting. The journey itself IS the point, not reaching anywhere specific.
 
 **Mechanical Elegance**: Infinite A-story eliminates the hardest problems of traditional narrative design:
 - No arbitrary ending point to justify
@@ -22,9 +22,12 @@ The game is never-ending. The main storyline is never-ending. Like Frieren's imm
 
 ## Two-Phase A-Story Design
 
-### Phase 1: Authored Tutorial (A1-A10)
+### Phase 1: Authored Tutorial (A1-A3, expandable to A10+)
 
 **Purpose**: Teach mechanics, establish world, introduce core systems.
+
+**Current State**: A1-A3 authored and implemented
+**Design Capacity**: Architecture supports expansion to A10+ tutorial scenes
 
 **Characteristics**:
 - Hand-crafted scene templates in JSON files
@@ -32,8 +35,8 @@ The game is never-ending. The main storyline is never-ending. Like Frieren's imm
 - Gradual mechanical introduction (situation types, choice patterns, resources)
 - Establishes pursuit framework narrative
 - Fixed sequence validating as complete chain
-- Approximately 2-4 hours of gameplay
-- Ends with procedural transition trigger
+- Currently ~30-60 minutes of gameplay (A1-A3), expandable to 2-4 hours (A10+)
+- Ends with procedural transition trigger when tutorial complete
 
 **Tutorial Objectives**:
 - Teach 4-choice pattern (stat-gated, money-gated, challenge, fallback)
@@ -45,14 +48,14 @@ The game is never-ending. The main storyline is never-ending. Like Frieren's imm
 - Trigger infinite procedural continuation
 
 **Narrative Arc**:
-- Village destroyed by mysterious force
-- Dying mentor's last words: "Seek the Order, they know the truth"
-- Journey to first Order member (tutorial challenges)
-- Member reveals: Order scattered across world, hundreds of members
-- Each member knows one piece, points to next
-- Your journey has just begun (transition to infinite pursuit)
+- You arrive at an inn at sunset, tired from the road
+- You need lodging, you meet the innkeeper, you rest
+- Morning comes, you talk with people, you handle what needs handling
+- Someone mentions another town, another place worth visiting
+- You leave, you travel, you arrive somewhere new
+- The pattern repeats, endlessly, naturally
 
-### Phase 2: Procedural Continuation (A11 → ∞)
+### Phase 2: Procedural Continuation (A4+ → ∞)
 
 **Purpose**: Infinite content generation maintaining structural guarantees.
 
@@ -77,13 +80,13 @@ The game is never-ending. The main storyline is never-ending. Like Frieren's imm
 8. Player completes scene → loop repeats
 
 **Narrative Pattern**:
-- Each scene advances pursuit: new lead, new member, new revelation
-- Each revelation complicates rather than resolves
-- Mystery deepens: order has internal schism, members have conflicting knowledge, pursuit itself questioned
-- Callbacks to earlier journey beats create coherence
-- Player's choices in B/C stories inform A-story narrative
-- Geographic variety prevents repetition
-- Thematic variation maintains interest
+- Each scene is arrival somewhere new: new place, new people, new situations
+- Each person you meet is just themselves: their own concerns, their own lives
+- Connections form naturally through conversation and shared experience
+- Sometimes people mention each other, creating loose threads across the journey
+- Player's choices shape reputation: how you treat people affects how others receive you
+- Geographic variety reflects endless travel: always somewhere new to go
+- Thematic variation: arrival, meeting, helping, departing
 
 ---
 
@@ -123,21 +126,21 @@ In an infinite game, a single soft-lock is catastrophic. Player cannot "restart"
 
 **Choice 4: Guaranteed Path (Patient)**
 - Requirement: None (always available)
-- Cost: Time (wait several days, work menial labor, persistent effort)
+- Cost: Time (wait several days, help with their needs, persistent gentle effort)
 - Outcome: Minimal rewards but GUARANTEED advancement
-- Purpose: Prevent soft-lock, narrative justification for inevitability
-- Examples: "Wait patiently", "Beg for mercy", "Work for access", "Find alternative route"
+- Purpose: Prevent soft-lock, reflects how real trust and openness develop
+- Examples: "Wait for them to be ready", "Offer to help with something they need", "Share your own story first", "Ask someone else to introduce you"
 
 ### Final Situation Special Case
 
 The last situation in every A-scene has additional requirement: **ALL FOUR CHOICES** must spawn the next A-scene.
 
 **Different entry states, same progression**:
-- Stat-gated choice: Enter next scene as respected equal
-- Money-gated choice: Enter next scene as generous patron
-- Challenge success: Enter next scene as triumphant victor
-- Challenge failure: Enter next scene as humbled supplicant (but still enter!)
-- Guaranteed path: Enter next scene after patient waiting
+- Stat-gated choice: Enter next conversation as someone who naturally understands
+- Money-gated choice: Enter as someone who showed generosity, earned goodwill
+- Challenge success: Enter having navigated social complexity skillfully
+- Challenge failure: Enter having shown vulnerability, earned sympathy (but still enter!)
+- Guaranteed path: Enter after demonstrating patience and genuine interest
 
 Player chooses HOW they progress (optimal vs reliable vs risky vs patient), not IF they progress.
 
@@ -149,35 +152,35 @@ Player chooses HOW they progress (optimal vs reliable vs risky vs patient), not 
 
 **20-30 reusable A-story archetypes** covering common progression beats:
 
-**Authority & Access**:
-- Seek Audience: Gain access to authority figure (king, guild leader, faction head)
-- Navigate Court: Maneuver through political/social hierarchy
-- Prove Worth: Demonstrate capability to skeptical gatekeeper
-- Secure Patronage: Gain support from powerful benefactor
+**Arrival & Lodging**:
+- Secure Lodging: Arrive tired, need a place to stay, negotiate with innkeeper
+- Find Welcome: Approach a new place, establish yourself, meet initial contacts
+- Navigate Entry: Enter a new social space, figure out how things work here
+- Earn Trust: New arrival in established community, prove you're worth talking to
 
-**Investigation & Discovery**:
-- Investigate Location: Explore mysterious/dangerous place for clues
-- Interrogate Witnesses: Gather information from multiple sources
-- Uncover Secret: Discover hidden knowledge or conspiracy
-- Follow Trail: Track leads across region
+**Exploration & Discovery**:
+- Explore Place: Newly arrived, look around, understand what this place is
+- Talk with Locals: Meet people who live here, hear their perspectives
+- Understand Situation: Figure out what's happening in this place right now
+- Follow Suggestion: Someone mentioned somewhere else interesting, check it out
 
-**Conflict & Challenge**:
-- Confront Antagonist: Face major threat or obstacle
-- Resolve Dispute: Mediate between conflicting factions
-- Escape Pursuit: Flee overwhelming threat to fight another day
-- Defend Position: Hold ground against assault
+**Engagement & Challenge**:
+- Help with Problem: Someone needs help, you're here, you can assist or not
+- Navigate Conflict: Local tensions, you're new but involved now
+- Handle Complexity: Situations where there's no simple right answer
+- Make Choice: Meaningful decision about how to engage with this place and these people
 
-**Resource & Progression**:
-- Secure Resource: Obtain critical item, access, or information
-- Journey to Region: Travel to new area (unlocks new B/C content)
-- Establish Foothold: Gain base of operations in new region
-- Forge Alliance: Create relationship with new faction
+**Practical Needs**:
+- Get Supplies: You need things, you're traveling, acquire what you need
+- Travel to Region: Move to a new area, unlock new locations and opportunities
+- Make Connection: Form genuine relationship with someone here
+- Build Reputation: People here now know you, will vouch for you elsewhere
 
-**Revelation & Complication**:
-- Meet Order Member: Find next scattered member (core pursuit beat)
-- Receive Fragment: Learn piece of truth that raises new questions
-- Discover Schism: Uncover conflict within Order (complicates pursuit)
-- Question Pursuit: Revelation that challenges assumptions (deepens mystery)
+**Departure & Continuation**:
+- Prepare to Leave: Your time here is done, ready to move on
+- Say Goodbyes: Part ways with people you've met, promises to return or not
+- Hear Suggestion: Someone mentions another place worth visiting
+- Hit the Road: Back to traveling, next destination ahead
 
 **Each archetype defines**:
 - Situation count (usually 3-4)
@@ -252,12 +255,12 @@ Procedural scenes use categorical properties, never hardcoded IDs:
 - Player character build (which stats high/low)
 
 **Narrative Requirements**:
-- Reference player journey organically (callbacks to recent scenes)
-- Advance pursuit (new piece of knowledge/clue)
-- Deepen mystery (raise new questions, complicate situation)
-- Justify next step (why pursue next lead)
-- Maintain Frieren-style eternal journey tone
-- Connect to B/C story experiences when relevant
+- Reference player journey organically (callbacks to places visited, people met)
+- Create natural arrival: you've traveled, you're here now, this is what you see
+- People have their own concerns: not waiting for you, living their own lives
+- Next destination emerges naturally: someone suggests a place, you hear about somewhere interesting
+- Maintain quiet realism: real travel, real arrival, real conversations
+- Connect to B/C story experiences when relevant (reputation travels, people hear about you)
 - Use resolved entities naturally ({NPCName}, {LocationName} placeholders)
 
 **AI Generates**:
@@ -284,11 +287,11 @@ Procedural scenes use categorical properties, never hardcoded IDs:
 - Unlock new regions periodically via A-story progression
 
 **Tier Escalation**:
-- A11-A20: Tier 1 (local problems, village-scale)
-- A21-A30: Tier 2 (regional conflicts, city-scale)
-- A31-A40: Tier 3 (continental threats, kingdom-scale)
-- A41+: Tier 4 (cosmic/existential stakes, world-scale)
-- Player feels progression through scope increase
+- A1-A20: Tier 1 (small towns, simple inns, local people)
+- A21-A40: Tier 2 (larger towns, more established places, more complex social situations)
+- A41-A60: Tier 3 (cities, significant locations, deeper relationships)
+- A61+: Tier 4 (major centers, long-term consequences of earlier choices visible)
+- Player feels progression through deepening familiarity with the world, not power
 - Earlier tier content remains accessible (B/C stories at all tiers)
 
 **Entity Rotation**:
@@ -330,15 +333,15 @@ Procedural scenes use categorical properties, never hardcoded IDs:
 ### B/C Stories Reference A-Story Progress
 
 **Spawn Conditions Check A-Completion**:
-- B-story: "Merchant's dilemma" requires A1 complete (player established in region)
-- B-story: "Guild recruitment" requires A5 complete (player achieved notoriety)
-- C-story: "Order member rumors" requires A10 complete (pursuit begun)
+- B-story: "Local scholar's request" requires A1 complete (player established in region, known to be asking questions)
+- B-story: "Archivist's offer" requires A3 complete (player has shown genuine interest in history)
+- C-story: "Old colleague's invitation" requires A5+ complete (pursuit has become known to community)
 
 **Narrative Callbacks**:
 - NPC dialogue references player's A-story journey
-- "I heard you met the King" (if A7 involved King)
-- "The Order is watching you" (if A10+ procedural pursuit active)
-- "Your reputation precedes you" (if high-tier A-scenes completed)
+- "I heard you spoke with Elena - she wrote me about your visit" (if previous scene involved Elena)
+- "You're asking the same questions your mentor did, all those years ago" (if pursuit is active)
+- "Others have come asking about the old days, but you actually listen" (if multiple scenes completed with care)
 
 **Resource Synergy**:
 - A-story provides structure and major region unlocks
@@ -349,9 +352,9 @@ Procedural scenes use categorical properties, never hardcoded IDs:
 ### A-Story Progression Reflected in B/C Content
 
 **Tier-Appropriate Content**:
-- Early A-scenes (A1-A10): Unlock Tier 1 regions with local B/C content
-- Mid A-scenes (A11-A30): Unlock Tier 2 regions with regional B/C content
-- Late A-scenes (A31+): Unlock Tier 3-4 regions with continental/cosmic B/C content
+- Early A-scenes (A1-A20): Unlock Tier 1 regions with local B/C content
+- Mid A-scenes (A21-A40): Unlock Tier 2 regions with regional B/C content
+- Late A-scenes (A41+): Unlock Tier 3-4 regions with continental/cosmic B/C content
 
 **Faction Relationships**:
 - A-story choices affect faction standing
@@ -428,13 +431,13 @@ Player can plan A-story engagement strategically but experiences tactical discov
 ### Verisimilitude Through Narrative Justification
 
 **Every guaranteed progression path has narrative logic**:
-- "Wait patiently for 3 days" → Patience always rewarded eventually
-- "Work menial labor for access" → Honest work always compensated
-- "Beg for mercy" → Humility guarantees acceptance (at dignity cost)
-- "Find alternative route" → Creativity discovers paths
-- "Persistent attempts despite rejection" → Persistence breaks through
+- "Wait patiently, they'll come around" → Given time, most people soften, become willing to share
+- "Help them with something they need" → Honest service builds trust, opens conversations
+- "Share your own vulnerability" → Openness begets openness, people respond to genuine seeking
+- "Find someone else who can introduce you" → Social networks have alternative paths
+- "Return again respectfully" → Persistence with respect eventually breaks down barriers
 
-**Not gamey abstractions**. Real-world principles justifying mechanical guarantees.
+**Not gamey abstractions**. Real human dynamics justifying mechanical guarantees.
 
 ---
 
@@ -442,11 +445,11 @@ Player can plan A-story engagement strategically but experiences tactical discov
 
 ### Authored Phase Validation (Parse-Time)
 
-**Validate A1-A10 tutorial chain**:
-- Complete sequence (1, 2, 3... 10, no gaps)
+**Validate authored tutorial chain**:
+- Complete sequence (1, 2, 3... N, no gaps) where N = highest MainStorySequence
 - Each scene has guaranteed success path in all situations
 - Final situation in each scene spawns next scene (all 4 choices)
-- A10 triggers procedural continuation
+- Final tutorial scene triggers procedural continuation
 
 **Fail-fast on errors**:
 - Missing scene in sequence
@@ -476,12 +479,13 @@ Player can plan A-story engagement strategically but experiences tactical discov
 - Start at A1
 - For each situation, select guaranteed path
 - Verify progression to next scene
-- Continue until A11+ procedural phase
+- Continue through authored scenes (A1-AN)
+- Transition to procedural phase (A[N+1]+)
 - Generate 100 procedural scenes
 - Verify no dead ends, loops, or soft-locks
 
 **Validation output**:
-- Path taken: A1→A2→...→A10→A11→A12→...→A110
+- Path taken: A1→A2→A3→A4→A5→...→A103 (3 authored + 100 procedural)
 - Archetypes used: 23 unique archetypes across 100 procedural scenes
 - Regions visited: 47 different regions
 - Average tier progression: 1.0→1.5→2.3→3.1→3.8
@@ -494,12 +498,12 @@ Player can plan A-story engagement strategically but experiences tactical discov
 ### Phase 1: Minimal A-Story Properties
 
 **Add to SceneTemplate**:
-- StoryType enum (MainAuthored, MainProcedural, Side, Service)
-- SequenceNumber nullable int (for authored A1-A10 only)
-- TriggersProceduralContinuation bool (A10 only)
+- StoryCategory enum (MainStory, SideStory, Service)
+- MainStorySequence nullable int (for authored A1-A3 currently, expandable to A10+)
+- TriggersProceduralContinuation bool (when tutorial complete)
 
 **Add validation**:
-- Authored chain completeness (sequence 1-10 unbroken)
+- Authored chain completeness (sequence 1-N unbroken, currently N=3)
 - Guaranteed success in all A-story situations
 - Final situation all-choices-spawn-next-scene
 
@@ -529,7 +533,7 @@ Player can plan A-story engagement strategically but experiences tactical discov
 - ValidateGenerated: Check structural guarantees
 
 **Integration point**:
-- A10 completion triggers first procedural generation
+- Final tutorial scene completion triggers first procedural generation
 - Each procedural scene completion triggers next generation
 - Infinite loop established
 
@@ -549,9 +553,9 @@ Player can plan A-story engagement strategically but experiences tactical discov
 ### Phase 5: Testing & Refinement
 
 **Integration tests**:
-- Complete A1-A10 tutorial
-- Verify A11 generates procedurally
-- Complete A11, verify A12 generates
+- Complete A1-AN tutorial (currently N=3)
+- Verify A[N+1] generates procedurally
+- Complete A[N+1], verify A[N+2] generates
 - Simulate 10+ procedural scenes
 
 **Validation testing**:
@@ -569,7 +573,7 @@ Player can plan A-story engagement strategically but experiences tactical discov
 
 ## Success Criteria
 
-### Authored Tutorial (A1-A10)
+### Authored Tutorial (A1-AN, currently N=3)
 
 **Player Experience**:
 - Learn all core mechanics through natural play
@@ -578,12 +582,12 @@ Player can plan A-story engagement strategically but experiences tactical discov
 - Transition smoothly into procedural phase
 
 **Technical Validation**:
-- All 10 scenes validate successfully
+- All authored scenes validate successfully
 - All situations have guaranteed paths
 - All final situations spawn next scene consistently
-- A10 triggers procedural continuation
+- Final tutorial scene triggers procedural continuation
 
-### Procedural Continuation (A11+)
+### Procedural Continuation (A[N+1]+)
 
 **Player Experience**:
 - Infinite content feels coherent and connected
@@ -618,8 +622,8 @@ Player can plan A-story engagement strategically but experiences tactical discov
 
 ## The Eternal Journey
 
-The A-story is the spine of an infinite game. It provides structure without constraint, progression without conclusion, purpose without destination. Like Frieren's millennia-spanning journey, it accepts the endlessness and finds meaning in the eternal pursuit itself.
+The A-story is the spine of an infinite game. It provides structure without constraint, progression without conclusion, purpose without destination. Like walking an endless road where each town leads to another, there's always somewhere new to go, someone new to meet, another dawn on another horizon.
 
-Each A-scene is complete. Each revelation satisfies. Each complication intrigues. The journey continues not because it must, but because the mystery deepens, the world expands, and the pursuit itself becomes the purpose.
+Each place is complete in itself. Each person you meet is just themselves. Each conversation, each choice, each moment of connection or conflict stands alone. The journey continues not because it must, but because the road keeps going, and you keep walking.
 
-The player is not racing toward an ending. They are journeying through an endless world, and the A-story is their constant companion, always ready, never demanding, eternally offering the next step forward.
+The player is not racing toward an ending. They are traveling. The A-story is the road itself, always ready, never demanding, eternally offering the next town, the next inn, the next sunrise.

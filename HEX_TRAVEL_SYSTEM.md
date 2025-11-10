@@ -34,28 +34,11 @@ Before implementing ANY travel/route/location system:
 
 ### Fail-Fast Enforcement
 
-**❌ FORBIDDEN - Silent defaults that hide broken player paths:**
-```csharp
-// WRONG - Route exists but player never sees it
-if (routes != null && routes.Any()) { DisplayRoutes(routes); }
+**FORBIDDEN - Silent defaults hiding broken player paths:**
+Checking if routes exist before displaying masks problem when route collection empty. Null-coalescing empty list for unavailable routes hides that player trapped at location with no exit routes.
 
-// WRONG - Starting location has no routes, player trapped
-var availableRoutes = GetRoutesFromLocation(locationId) ?? new List<Route>();
-```
-
-**✅ REQUIRED - Throw exceptions for missing critical connections:**
-```csharp
-// CORRECT - Validates starting location has routes
-Location startLocation = gameWorld.Locations.FirstOrDefault(l => l.Id == startingSpotId);
-if (!gameWorld.Routes.Any(r => r.SourceLocationId == startLocation.Id))
-    throw new InvalidOperationException($"Starting location '{startLocation.Name}' has no routes - player trapped!");
-
-// CORRECT - Validates route destination exists
-Route route = gameWorld.Routes.FirstOrDefault(r => r.Id == routeId);
-Location destination = gameWorld.Locations.FirstOrDefault(l => l.Id == route.DestinationLocationId);
-if (destination == null)
-    throw new InvalidOperationException($"Route '{route.Id}' leads to unknown location - player cannot reach!");
-```
+**REQUIRED - Throw exceptions for missing critical connections:**
+Validate starting location has at least one outgoing route, throw exception if none exist preventing player soft-lock. Validate route destination location exists in GameWorld.Locations, throw exception if route points to nonexistent location. Fail-fast approach forces fixing broken content rather than silently degrading experience.
 
 ### The Playability Test for Travel
 
@@ -77,47 +60,13 @@ For EVERY location/route in the game:
 ### Three-Loop Structure
 
 **SHORT LOOP (10-30 seconds):**
-```
-Situation presents narrative context
-↓
-View 2-4 Choices with visible costs (energy/hunger/coins/time)
-↓
-Select Choice → Pay cost → Receive reward
-↓
-Resources change, progress advances
-↓
-Next Situation or destination reached
-```
+Situation presents narrative context. Player views 2-4 Choices displaying visible costs (energy/hunger/coins/time). Player selects Choice paying cost receiving reward. Resources change and progress advances. Next Situation appears or destination reached.
 
 **MEDIUM LOOP (5-15 minutes):**
-```
-Depart from Tavern (hub)
-↓
-Select Route to delivery destination
-↓
-Travel Route (chain of Situations with choices)
-↓
-Reach destination Location
-↓
-Complete delivery, earn coins
-↓
-Return to Tavern
-↓
-Spend coins on survival (sleep/food)
-```
+Player departs from Tavern hub location. Selects Route to delivery destination from available routes. Travels Route experiencing chain of Situations with choices. Reaches destination Location completing delivery earning coins. Returns to Tavern. Spends coins on survival necessities (sleep/food).
 
 **LONG LOOP (hours):**
-```
-Accumulate coins from deliveries
-↓
-Purchase upgrades (better equipment, faster travel)
-↓
-Access harder/farther delivery routes
-↓
-Discover new Locations/Venues through exploration
-↓
-Unlock new narrative content
-```
+Player accumulates coins from multiple deliveries. Purchases upgrades improving capabilities (better equipment, faster travel). Accesses harder or farther delivery routes. Discovers new Locations and Venues through exploration. Unlocks new narrative content through progression.
 
 ### Resource Management
 
@@ -136,16 +85,8 @@ All resources compete. Choices offer multiple valid approaches with different co
 
 ### Entity Hierarchy
 
-```
-GameWorld
-├── HexMap (procedural scaffolding)
-│   └── Hex[] (grid cells with terrain/danger properties)
-├── Venues (narrative clusters, radius-based)
-│   └── Locations (specific spots within Venue)
-│       └── Location[] (sub-areas within Location)
-└── Routes (inter-venue travel paths)
-    └── RouteSegment[] (generated from hex path)
-```
+**Spatial Hierarchy:**
+GameWorld contains HexMap as procedural scaffolding holding Hex array (grid cells with terrain and danger properties). GameWorld contains Venues as narrative clusters organized by radius containing Locations as specific spots within Venue, Locations contain sub-areas array. GameWorld contains Routes as inter-venue travel paths composed of RouteSegment arrays generated from hex paths.
 
 ### Hex
 
@@ -220,22 +161,7 @@ Bidirectional travel path connecting two venue hub Locations. Generated automati
 Single Route entity represents both directions. UI presents as two separate travel options but references same Route.
 
 **Generation Algorithm:**
-```
-When Location with IsVenueTravelHub = true created:
-  For each existing hub Location in different Venue:
-    Calculate shortest valid hex path (A* pathfinding)
-    
-    If no valid path exists:
-      Skip (no Route created)
-    
-    Calculate Route properties from hex path:
-      DangerRating = Sum(hex.DangerLevel for hex in path)
-      TimeSegments = PathLength × TerrainMultipliers
-      TransportType = MostRestrictive(hex.TerrainType for hex in path)
-    
-    Create Route with calculated properties
-    Add to GameWorld.Routes
-```
+When Location with IsVenueTravelHub true gets created, system iterates each existing hub Location in different Venue. For each potential connection calculates shortest valid hex path using A-star pathfinding algorithm. If no valid path exists skips that connection creating no Route. If path found calculates Route properties from hex path: DangerRating equals sum of DangerLevel values across all hexes in path, TimeSegments equals path length multiplied by terrain-specific multipliers, TransportType equals most restrictive TerrainType encountered in path. Creates Route entity with calculated properties. Adds Route to GameWorld.Routes collection.
 
 **Transport Type Rules:**
 - **Walking**: Traverses all passable terrain
@@ -267,244 +193,88 @@ Route inherits most restrictive transport requirement from its hex path.
 **Player at non-hub Location:**
 Must travel to Venue's hub Location first (instant movement within Venue).
 
-### Route Travel Execution
+### Route Travel as Uniform Experience
 
-**Initialization:**
-```
-Player selects Route
-↓
-GameFacade.InitiateRouteTravel(routeId, direction)
-↓
-SceneInstantiator spawns travel Scenes on Route
-↓
-Scenes contain Situations with choices
-↓
-Number of Situations = Route.TimeSegments
-```
+**Principle: All Gameplay Uses Scene→Situation→Choice**
+Route travel isn't a special system requiring unique mechanics. It uses the exact same Scene→Situation→Choice progression as location visits and NPC interactions. The only difference is PlacementType - scenes spawn on Routes instead of Locations. This architectural uniformity means:
+- Content authors learn one pattern that works everywhere
+- Player experience remains consistent across all contexts
+- No special-case code for "travel sequences" versus "location sequences"
+- Route.TimeSegments simply determines how many Situations appear during travel
 
-**Progression:**
-```
-For each Situation during travel:
-  Player views narrative context
-  Player evaluates 2-4 Choices (costs visible)
-  Player selects Choice
-  Resources consumed (energy/hunger/coins/time)
-  Progress advances toward destination
-  
-  If resources depleted:
-    Travel fails (forced detour or negative consequence)
-  Else:
-    Continue to next Situation
+**Why This Matters:**
+Treating travel as a unique system would fragment the codebase, duplicate mechanics, and force players to learn different interaction patterns for different contexts. Uniform architecture means adding travel complexity is just adding more scene templates with PlacementType=Route.
 
-Reach destination Location (hub)
-Travel complete
-```
+### Placement-Agnostic Content Design
 
-### Scene Spawning on Routes
+**Principle: SceneTemplates Filter, Don't Specialize**
+SceneTemplates specify categorical PlacementFilters (route transport type, danger thresholds, terrain themes) rather than hardcoding behavior for routes versus locations. This means the same situation archetype (negotiation, crisis response, investigation) can spawn anywhere the filters match. A "bandits demand toll" scenario works identically whether spawned at a location checkpoint or mid-route.
 
-**Template Filtering:**
-SceneTemplates have PlacementFilters that specify:
-- PlacementType = Route
-- TransportType compatibility
-- DangerRating thresholds
-- Narrative themes matching terrain
-
-**Spawning:**
-When Route travel initiated, system:
-1. Queries SceneTemplates with matching PlacementFilters
-2. Selects N templates (N = Route.TimeSegments)
-3. Instantiates Scenes at sequential positions along Route
-4. Scenes activate as player progresses
-
-**Example Scene Filter:**
-```json
-{
-  "placementType": "Route",
-  "transportType": "Walking",
-  "minDanger": 30,
-  "maxDanger": 70,
-  "terrainThemes": ["Forest", "Mountains"]
-}
-```
+**Why This Matters:**
+If route scenes required different ChoiceTemplate structure or reward types, content volume explodes. With placement-agnostic design, authors define situations once and let placement filters determine valid spawn contexts. This multiplies content utility without multiplying authoring effort.
 
 ---
 
 ## Fractal Map Generation
 
-### Initial World State
+### Sparse-to-Dense Discovery Principle
 
-**Sparse Configuration:**
-- 3-5 starting Venues widely separated
-- Each Venue has 2-3 Locations
-- Routes connect starting Venues (long distance)
-- Large empty hex spaces between Venues
+**The Core Pattern:**
+The world begins minimally populated (3-5 starting Venues with 2-3 Locations each, long Routes between them, vast empty hex spaces). Player choices during travel trigger SceneSpawnRewards that generate new Locations at specified hex coordinates. New Locations calculate Venue membership (join existing or create new), auto-generate Routes to existing hub Locations, and receive AI-generated narrative content. Over gameplay hours, the initially sparse network densifies into rich clusters.
 
-### Progressive Expansion
+**Why Sparse Start:**
+Pre-generating complete worlds creates overwhelming initial complexity for players while wasting resources on content players may never reach. Starting sparse and expanding through discovery means:
+- New players face manageable early-game navigation
+- World complexity scales with player experience
+- Generated content reflects player choices (travel routes determine where new locations appear)
+- No wasted authoring effort on unreachable areas
 
-**Discovery Mechanism:**
-Player choices during travel can spawn SceneSpawnRewards that:
-1. Generate new Location at specified hex coordinates
-2. Calculate Venue membership (existing or new)
-3. Generate Routes from new hub to existing hubs
-4. AI generates narrative content for new Location
+### Mechanical-Narrative Separation Principle
 
-**Densification:**
-Over time, empty hex spaces fill with new Locations. Initial sparse network becomes dense clusters of Venues connected by Routes.
+**The Division of Labor:**
+Procedural systems generate mechanical skeleton (hex coordinates via spatial algorithms, terrain types via noise functions, danger ratings via distance formulas, Route connections via pathfinding). AI systems generate narrative flesh (location names reflecting local themes, descriptions incorporating terrain and history, atmospheric properties matching danger levels, NPC personalities contextually appropriate to location function).
 
-**AI Integration:**
-- Procedural system generates mechanical skeleton (coordinates, terrain, connections)
-- AI assigned narrative flesh (names, descriptions, themes, atmospheric properties)
-- No code changes needed for new content
-- Templates ensure AI-generated content mechanically valid
+**Why This Separation:**
+Procedural systems excel at consistent mechanical generation but produce generic narratives. AI excels at contextual narrative but can't ensure mechanical balance. Separating concerns means:
+- Procedural ensures valid spatial topology (no unreachable locations)
+- Procedural ensures balanced progression (danger scales with distance)
+- AI ensures narrative coherence (names and descriptions feel authored)
+- AI ensures atmospheric variety (not all forests feel identical)
+- Neither system needs to understand the other's domain
 
-### Hex Map Storage
+### Lazy Expansion Principle
 
-**Structure:**
-```csharp
-public class HexMap
-{
-    public Dictionary<AxialCoordinates, Hex> Hexes { get; set; }
-    public int Radius { get; set; } // Max distance from origin
-}
+**The Pattern:**
+Hex map starts with small radius (20 hexes from origin). As player approaches edges, new hexes generate using procedural noise for terrain and danger. No pre-generation of full world - only create what player can potentially reach.
 
-public class Hex
-{
-    public AxialCoordinates Coordinates { get; set; }
-    public TerrainType Terrain { get; set; }
-    public int DangerLevel { get; set; }
-}
-```
-
-**Generation:**
-- Initial radius: 20 hexes from origin
-- Expands as player discovers edges
-- New hexes generated with procedural noise (terrain/danger)
-- AI enriches with narrative context when Locations placed
+**Why Lazy Generation:**
+Pre-generating infinite hex grids wastes memory. Most hexes never host Locations and serve only as pathfinding substrate. Generate-on-demand means memory usage scales with actual player exploration, not theoretical world size.
 
 ---
 
-## Design Principles Applied
+## Core Architectural Principles
 
-### Principle 1: Single Source of Truth
-- GameWorld owns all Hexes, Venues, Locations, Routes
-- Locations reference Venues by ID
-- Routes reference Locations by ID
-- No nested ownership
+**Single Source of Truth:** GameWorld owns all spatial entities (Hexes, Venues, Locations, Routes). Entities reference each other by ID, never nested ownership. Location knows its VenueId, Venue doesn't store Location list.
 
-### Principle 2: Strong Typing
-- No Dictionary<string, object>
-- TerrainType enum, not string
-- TransportType enum, not string
-- List<Route>, List<Location>, List<Hex>
+**Strong Typing Enforcement:** TerrainType and TransportType use enums not strings. Route and Location collections use typed Lists not generic Dictionaries. This forces type errors at compile time not runtime.
 
-### Principle 3: Ownership vs Placement vs Reference
-- **Ownership**: GameWorld owns Routes
-- **Placement**: Scenes placed on Routes during travel
-- **Reference**: Route references source/destination Locations
+**Ownership Versus Placement Distinction:** GameWorld OWNS Routes (creates/deletes them). Scenes are PLACED on Routes during travel (temporary association). Routes REFERENCE Locations (stores IDs, doesn't own them). Mixing these concepts creates lifecycle bugs.
 
-### Principle 4: Inter-Systemic Rules
-- Choices compete for energy/hunger/coins/time
-- No boolean gates ("have item X to unlock")
-- Arithmetic comparisons ("need 15 energy")
-- Multiple valid paths with different costs
+**Resource Competition Over Boolean Gates:** Choices during travel compete for shared resources (energy/hunger/coins/time). No "have key to proceed" boolean checks. All gates use arithmetic ("need 15 energy"). This forces meaningful trade-offs - choosing expensive option here means fewer resources later.
 
-### Principle 8: Verisimilitude
-- Hex topology defines spatial relationships
-- Routes emerge from terrain, not manual authoring
-- Travel difficulty matches terrain reality
-- Venue clustering matches geographic logic
+**Emergent Complexity From Simple Rules:** Routes emerge from terrain via pathfinding, not manual authoring. Hex danger determines route danger. Terrain types determine transport requirements. Complex travel network emerges from combining simple spatial rules.
 
-### Principle 10: Perfect Information
-- Route properties visible before travel
-- Choice costs visible before selection
-- Resource states always displayed
-- No hidden gates or surprise costs
+**Perfect Information Display:** Route properties (danger, time, transport type) visible before departure. Choice costs visible before selection. Resource states constantly displayed. No hidden requirements discovered mid-journey. Player can make informed decisions, failures come from resource management not hidden information.
 
----
+## Unifying Architectural Vision
 
-## Implementation Notes
+The hex travel system demonstrates core architectural philosophy: **Hidden mechanical complexity supporting visible narrative simplicity**.
 
-### Route Generation Performance
+Players never see hex coordinates, terrain types, or pathfinding algorithms. They see destinations, danger levels, and travel time. The mechanical substrate (hexes, A-star pathfinding, procedural terrain) exists solely to generate meaningful player decisions (which route to take, which resources to spend, which dangers to risk).
 
-**Optimization:**
-Routes generated lazily when hub Location created, not all-at-once. For N venues, generates N-1 new Routes per hub, not N² routes total.
+This separation enables:
+- Procedural systems to ensure mechanical validity (all locations reachable, danger balanced, routes topologically sound)
+- AI systems to ensure narrative quality (names feel authored, descriptions match terrain, atmosphere varies appropriately)
+- Players to focus on strategic decisions (resource management, risk assessment) not mechanical minutiae (coordinate navigation, graph traversal)
 
-**Pathfinding:**
-Use A* algorithm with hex distance heuristic. Cache paths to avoid recalculation.
-
-### Save System
-
-**Persisted:**
-- Complete HexMap state (terrain, danger)
-- All Venues (IDs, coordinates, hub references)
-- All Locations (properties, venue membership)
-- All Routes (properties, hex paths)
-- Player position (current Location)
-
-**Not Persisted:**
-- Active travel Scenes (recreated from Route properties)
-- Scene templates (loaded from content packages)
-- Pathfinding cache (recalculated on load)
-
-### UI Presentation
-
-**Route Selection Screen:**
-```
-Available Destinations:
-- [Location Name] (Venue Name)
-  Danger: ██████░░░░ (60/100)
-  Time: 4 segments
-  Transport: Walking
-  [Depart]
-```
-
-**During Travel:**
-```
-Progress: ███░░░░ (3/4 segments complete)
-Destination: [Location Name]
-
-[Situation narrative text]
-
-Choices:
-1. [Choice 1] - Energy: 10, Time: 1
-2. [Choice 2] - Coins: 5, Hunger: 5
-3. [Choice 3] - Energy: 5, Time: 2
-```
-
-### AI Content Generation
-
-**Mechanical Skeleton (Procedural):**
-```json
-{
-  "locationId": "loc_7f3a9b",
-  "hexCoordinates": {"q": 12, "r": -5},
-  "venueId": "venue_3d8f1c",
-  "isVenueTravelHub": false,
-  "locationType": "Landmark"
-}
-```
-
-**Narrative Flesh (AI):**
-```json
-{
-  "name": "The Crooked Tower",
-  "description": "An ancient watchtower, listing dangerously...",
-  "atmosphericProperties": ["eerie", "abandoned", "mysterious"],
-  "spots": [
-    {
-      "id": "tower_base",
-      "name": "Tower Entrance",
-      "properties": {
-        "morning": ["quiet", "foggy"],
-        "afternoon": ["bright", "exposed"]
-      }
-    }
-  ]
-}
-```
-
-## Conclusion
-
-The hex-based travel system provides elegant spatial structure without exposing complexity to players. Routes emerge naturally from terrain topology, AI enriches mechanical skeletons with narrative content, and the three-loop structure maintains engagement from moment-to-moment choices through long-term world discovery.
-
-By keeping the hex grid transparent and presenting only meaningful travel choices, the system supports both tight resource management gameplay and expansive world exploration without overwhelming players with minutiae.
+The three-loop structure (short: choices, medium: routes, long: discovery) maintains engagement across timescales without fragmenting the core Scene→Situation→Choice progression. Travel isn't a separate system - it's scenes placed on routes instead of locations.

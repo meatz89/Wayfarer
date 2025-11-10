@@ -76,24 +76,14 @@ private static void ValidateAStoryConsistency(SceneTemplate template, List<Valid
     if (!template.MainStorySequence.HasValue)
     {
         errors.Add(new ValidationError("ASTORY_001", $"Template '{template.Id}' has Category=MainStory but no MainStorySequence"));
+        return;
     }
 
-    if (template.MainStorySequence.HasValue)
-    {
-        int sequence = template.MainStorySequence.Value;
-
-        if (sequence >= 1 && sequence <= 10)
-        {
-            ValidateAuthoredAStory(template, errors);
-        }
-        else if (sequence >= 11)
-        {
-            ValidateProceduralAStory(template, errors);
-        }
-    }
+    // All A-story templates (authored and procedural) follow same validation rules
+    ValidateAStoryTemplate(template, errors);
 }
 
-private static void ValidateAuthoredAStory(SceneTemplate template, List<ValidationError> errors)
+private static void ValidateAStoryTemplate(SceneTemplate template, List<ValidationError> errors)
 {
     if (template.SituationTemplates == null || !template.SituationTemplates.Any())
     {
@@ -115,33 +105,6 @@ private static void ValidateAuthoredAStory(SceneTemplate template, List<Validati
             errors.Add(new ValidationError("ASTORY_004",
                 $"A-story situation '{situation.Id}' in '{template.Id}' (A{template.MainStorySequence}) lacks guaranteed success path. " +
                 $"Every A-story situation must have at least one choice with no requirements OR a challenge choice that spawns scenes on both success and failure."));
-        }
-    }
-
-    ValidateFinalSituationAdvancement(template, errors);
-}
-
-private static void ValidateProceduralAStory(SceneTemplate template, List<ValidationError> errors)
-{
-    if (template.SituationTemplates == null || !template.SituationTemplates.Any())
-    {
-        errors.Add(new ValidationError("ASTORY_005", $"Procedural A-story template '{template.Id}' (A{template.MainStorySequence}) has no situations"));
-        return;
-    }
-
-    foreach (var situation in template.SituationTemplates)
-    {
-        if (situation.ChoiceTemplates == null || !situation.ChoiceTemplates.Any())
-        {
-            errors.Add(new ValidationError("ASTORY_006", $"Procedural A-story situation '{situation.Id}' has no choices"));
-            continue;
-        }
-
-        bool hasGuaranteedPath = situation.ChoiceTemplates.Any(IsGuaranteedSuccessChoice);
-        if (!hasGuaranteedPath)
-        {
-            errors.Add(new ValidationError("ASTORY_007",
-                $"Procedural A-story situation '{situation.Id}' in '{template.Id}' (A{template.MainStorySequence}) lacks guaranteed success path."));
         }
     }
 
@@ -227,17 +190,24 @@ public static ValidationResult ValidateAStoryChain(List<SceneTemplate> allTempla
         return new ValidationResult(true, errors);
     }
 
-    for (int expectedSeq = 1; expectedSeq <= 10; expectedSeq++)
+    int minSequence = aStoryTemplates.Min(t => t.MainStorySequence!.Value);
+    int maxSequence = aStoryTemplates.Max(t => t.MainStorySequence!.Value);
+
+    if (minSequence != 1)
+    {
+        errors.Add(new ValidationError("ACHAIN_003", $"Authored A-story must start at sequence 1, but starts at A{minSequence}."));
+    }
+
+    for (int expectedSeq = minSequence; expectedSeq <= maxSequence; expectedSeq++)
     {
         var template = aStoryTemplates.FirstOrDefault(t => t.MainStorySequence == expectedSeq);
         if (template == null)
         {
-            errors.Add(new ValidationError("ACHAIN_001", $"Missing A-story sequence A{expectedSeq}. Authored A-story must have complete sequence A1-A10."));
+            errors.Add(new ValidationError("ACHAIN_001", $"Missing A-story sequence A{expectedSeq}. Authored A-story must have complete sequence with no gaps (found A{minSequence}-A{maxSequence})."));
         }
     }
 
     var duplicateSequences = aStoryTemplates
-        .Where(t => t.MainStorySequence <= 10)
         .GroupBy(t => t.MainStorySequence)
         .Where(g => g.Count() > 1)
         .ToList();

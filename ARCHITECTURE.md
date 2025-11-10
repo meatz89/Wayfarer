@@ -35,85 +35,41 @@ These layers are connected by the **BRIDGE** (ChoiceTemplate.ActionType) but are
 
 **Purpose**: Narrative progression and player decision-making with complete transparency.
 
-```
-Obligation (multi-phase quest)
-  ↓ spawns
-Scene (persistent narrative container)
-  ↓ contains
-Situation (narrative moment with 2-4 choices)
-  ↓ presents
-Choices (player options with visible costs/rewards/requirements)
-  ↓ player selects one
-Choice Execution (THREE OUTCOMES):
-  1. Instant → Apply costs/rewards immediately
-  2. Navigate → Move to location/NPC/route
-  3. StartChallenge → Spawn tactical subsystem ──┐
-                                                  │
-                                            BRIDGE CROSSES HERE
-```
+**Progression Flow:**
+Obligations spawn Scenes which contain Situations. Each Situation presents 2-4 player Choices with visible costs, rewards, and requirements. Player selects one Choice which has three possible execution outcomes: instant effects applied immediately, navigation to new context, or bridging to tactical layer via StartChallenge action type.
 
 **Key Strategic Layer Entities:**
-- **Scene**: Persistent container in GameWorld.Scenes, owns List<Situation>, tracks CurrentSituation
-- **Situation**: Narrative moment embedded in Scene, has Template.ChoiceTemplates (2-4 options)
-- **ChoiceTemplate**: Player option with ActionType, costs, requirements, rewards
+- **Scene**: Persistent container in GameWorld.Scenes, owns embedded Situations collection, tracks current active Situation
+- **Situation**: Narrative moment embedded in Scene, contains ChoiceTemplates defining player options
+- **ChoiceTemplate**: Player option with ActionType determining execution path, visible costs, requirements, and rewards
 - **NO victory thresholds** - strategic layer uses state machine progression, not resource accumulation
 
 ### LAYER 2: TACTICAL (Hidden Complexity)
 
 **Purpose**: Card-based gameplay execution with emergent tactical depth.
 
-```
-                                            BRIDGE CROSSES HERE
-                                                  │
-Choice with ActionType=StartChallenge ────────────┘
-  ↓ spawns
-Challenge Session (temporary tactical gameplay)
-  ├─ Mental: Progress/Attention/Exposure (investigations)
-  ├─ Physical: Breakthrough/Exertion/Danger (obstacles)
-  └─ Social: Momentum/Initiative/Doubt (conversations)
-  ↓ uses
-SituationCards (victory conditions extracted from parent Situation)
-  ↓ player builds resource via card play
-Threshold Reached (Momentum/Progress/Breakthrough ≥ threshold)
-  ↓ grants
-SituationCard.Rewards (coins, items, cubes, unlocks)
-  ↓ returns to
-Strategic Layer (Scene.AdvanceToNextSituation)
-```
+**Progression Flow:**
+Choices with StartChallenge action type spawn temporary Challenge Sessions. Three parallel challenge types exist: Mental challenges use Progress/Attention/Exposure resources, Physical challenges use Breakthrough/Exertion/Danger resources, Social challenges use Momentum/Initiative/Doubt resources. Challenge sessions extract SituationCards from parent Situation defining victory thresholds. Player builds resources through tactical card play until reaching threshold, triggering SituationCard rewards, then returning to strategic layer.
 
 **Key Tactical Layer Entities:**
-- **Challenge Session**: Temporary gameplay (SocialSession, MentalSession, PhysicalSession)
-- **SituationCard**: Victory condition with threshold + rewards (stored in Situation.SituationCards)
-- **Tactical Cards**: SocialCard, MentalCard, PhysicalCard (playable cards from deck)
+- **Challenge Session**: Temporary gameplay instances specific to each challenge type
+- **SituationCard**: Victory condition with threshold plus rewards, stored in parent Situation
+- **Tactical Cards**: Playable cards specific to each challenge type drawn from decks
 - **YES victory thresholds** - tactical layer requires resource accumulation to win
 
 ### THE BRIDGE: ChoiceTemplate.ActionType
 
 **How Layers Connect:**
 
-ChoiceTemplate sits at the boundary. Its ActionType property determines execution path:
-
-```csharp
-public enum ChoiceActionType
-{
-    Instant,         // Stay in strategic layer - apply rewards immediately
-    Navigate,        // Stay in strategic layer - move player to new context
-    StartChallenge   // Cross to tactical layer - spawn challenge session
-}
-```
+ChoiceTemplate sits at the boundary between layers. Its ActionType property determines execution path with three possible values: Instant applies rewards immediately within strategic layer, Navigate moves player to new context within strategic layer, StartChallenge crosses bridge to spawn tactical challenge session.
 
 **If ActionType = StartChallenge**, additional properties specify the challenge:
-- `ChallengeType` (TacticalSystemType): Social/Mental/Physical
-- `ChallengeId` (string): Which deck to use for tactical cards
-- `OnSuccessReward` / `OnFailureReward`: Applied after challenge outcome
+- ChallengeType determines which tactical system to use (Social/Mental/Physical)
+- ChallengeId specifies which deck to use for tactical cards
+- OnSuccessReward and OnFailureReward define conditional outcomes applied after challenge completion
 
 **Bridge Flow:**
-1. Player selects Choice with ActionType=StartChallenge
-2. GameFacade reads ChallengeType + ChallengeId
-3. Appropriate facade (SocialFacade/MentalFacade/PhysicalFacade) creates session
-4. Session extracts SituationCards from parent Situation for victory conditions
-5. Player plays tactical cards until threshold reached or failure
-6. On completion, return to strategic layer with outcome
+Player selects Choice with StartChallenge action type. GameFacade reads challenge specification and delegates to appropriate tactical facade. Facade creates temporary session and extracts SituationCards from parent Situation defining victory conditions. Player plays tactical cards building resources until threshold reached or failure occurs. On completion, apply conditional rewards and return to strategic layer with outcome.
 
 ### CRITICAL: SituationCards Are Tactical, Not Strategic
 
@@ -136,168 +92,56 @@ public enum ChoiceActionType
 
 ### ENTITY OWNERSHIP HIERARCHY
 
-```
-GameWorld (single source of truth)
- │
- ├─ Scenes (List<Scene>)
- │   ├─ Owns Situations directly (List<Situation>, NOT ID references)
- │   ├─ Tracks CurrentSituation (direct object reference)
- │   ├─ Manages SpawnRules (situation flow)
- │   └─ References placement (PlacementType + PlacementId)
- │
- ├─ Situations (EMBEDDED IN SCENES - NOT separate GameWorld collection)
- │   ├─ Owned by parent Scene
- │   ├─ References Template (SituationTemplate with ChoiceTemplates)
- │   ├─ Has SystemType (Social/Mental/Physical - for bridge routing)
- │   └─ Stores SituationCards (tactical victory conditions - used by challenges)
- │
- ├─ SituationCards (EMBEDDED IN SITUATIONS - tactical victory conditions)
- │   ├─ Stored in Situation.SituationCards list
- │   ├─ Extracted by challenges when spawned (challenges READ them)
- │   ├─ Define threshold (momentum/progress/breakthrough)
- │   └─ Grant rewards on achievement
- │
- ├─ Locations (List<Location>)
- │   └─ PLACEMENT CONTEXT (Scenes appear here, NOT owned by Location)
- │
- └─ NPCs (List<NPC>)
-     └─ PLACEMENT CONTEXT (Scenes appear here, NOT owned by NPC)
-```
+**GameWorld** is the single source of truth containing all game entities. It directly owns Scenes collection. Each Scene owns its embedded Situations collection via direct object containment, NOT ID references. Scenes track their CurrentSituation via direct object reference and manage SpawnRules defining situation flow. Scenes reference their placement context via PlacementType and PlacementId properties.
+
+**Situations** are EMBEDDED IN SCENES, not a separate GameWorld collection. Each Situation is owned by its parent Scene. Situations reference their Template containing ChoiceTemplates. Situations have SystemType property (Social/Mental/Physical) for bridge routing. Situations store SituationCards list defining tactical victory conditions.
+
+**SituationCards** are EMBEDDED IN SITUATIONS as tactical victory conditions. They are stored in Situation's SituationCards list property. Challenges extract and READ these cards when spawned. SituationCards define threshold values (momentum/progress/breakthrough) and grant rewards on achievement.
+
+**Locations and NPCs** exist in GameWorld's collections as PLACEMENT CONTEXT ONLY. Scenes appear at Locations and NPCs but are NOT owned by them. This is placement not ownership - Location lifecycle is independent from Scene lifecycle.
 
 ### LAYER SEPARATION EXAMPLES
 
 **Strategic Layer Flow (No Challenge):**
-```
-Player at Inn Common Room
-  → Sees Situation "Pay for Room"
-  → Selects Choice "Pay 20 coins"
-  → ActionType = Instant
-  → Costs applied (20 coins deducted)
-  → Rewards applied (room key granted)
-  → Scene advances to next Situation
-```
+Player at location sees active Situation presenting Choice with Instant action type. Player selects Choice. System applies costs (deducts resources), applies rewards (grants items/access), advances Scene to next Situation. Flow remains entirely within strategic layer.
 
 **Bridge to Tactical Layer:**
-```
-Player at Inn Common Room
-  → Sees Situation "Negotiate for Better Rate"
-  → Selects Choice "Persuade Innkeeper"
-  → ActionType = StartChallenge
-  → ChallengeType = Social
-  → Social challenge spawns
-  → Challenge extracts Situation.SituationCards for victory conditions
-  → Player enters tactical card gameplay
-```
+Player at location sees Situation presenting Choice with StartChallenge action type. Player selects Choice. System spawns challenge session of specified type (Social/Mental/Physical). Challenge session extracts SituationCards from parent Situation defining victory thresholds. Player enters tactical card-based gameplay.
 
 **Tactical Layer Flow:**
-```
-Social Challenge Active
-  → Player has Initiative=8, Momentum=0, Doubt=0
-  → Plays SocialCard "Build Rapport" (+2 Momentum, -2 Initiative)
-  → Plays SocialCard "Appeal to Greed" (+3 Momentum, +1 Doubt)
-  → Momentum=5, Doubt=1
-  → Plays SocialCard "Final Push" (+4 Momentum, -3 Initiative)
-  → Momentum=9, reaches SituationCard threshold (8 Momentum)
-  → SituationCard.Rewards applied (room key + 5 coins)
-  → Challenge ends, return to strategic layer
-  → Scene advances to next Situation
-```
+Challenge session active with initial resource state (Initiative, Momentum, Doubt for Social challenges). Player plays tactical cards that modify resources through card effects. Resources accumulate until reaching SituationCard threshold. Threshold reached triggers SituationCard rewards application. Challenge ends, return to strategic layer. Scene advances to next Situation.
 
 ### DATA FLOW EXAMPLE
 
-**Player discovers obligation "Secure Lodging":**
+**Complete Flow: Securing Lodging**
 
-1. **Spawn (Strategic)**: SceneInstantiator spawns Scene with 3 Situations
-2. **Placement (Strategic)**: Scene placed at Location "Inn Common Room"
-3. **Activation (Strategic)**: Scene.CurrentSituation = Situation 1 "Obtain Room Key"
-4. **Choice Presentation (Strategic)**: Player sees 3 ChoiceTemplates:
-   - "Pay 20 coins" (Instant)
-   - "Negotiate" (StartChallenge → Social)
-   - "Steal key" (StartChallenge → Physical)
-5. **Player Selects "Negotiate" (Bridge)**
-6. **Challenge Spawn (Tactical)**: SocialFacade creates session, extracts SituationCards
-7. **Tactical Play (Tactical)**: Player plays SocialCards to build Momentum
-8. **Victory (Tactical)**: Reach 15 Momentum threshold, SituationCard.Rewards applied
-9. **Return (Bridge)**: Challenge ends, back to strategic layer
-10. **Scene Progression (Strategic)**: Scene.AdvanceToNextSituation() → Situation 2
-11. **Context Change (Strategic)**: Player navigates to "Inn Upper Floor"
-12. **Next Situation (Strategic)**: Situation 2 "Access Locked Room" activates
+SceneInstantiator spawns Scene containing multiple Situations. Scene placed at Location via PlacementFilter resolution. First Situation becomes active. Player sees multiple ChoiceTemplates with different action types (Instant payment, Social negotiation challenge, Physical theft challenge). Player selects negotiation choice with StartChallenge action type. SocialFacade creates challenge session extracting SituationCards for victory conditions. Player plays tactical Social cards building Momentum resource. Momentum reaches threshold defined in SituationCard. System applies SituationCard rewards. Challenge ends returning to strategic layer. Scene progresses to next Situation. Player navigates to new location. Next Situation activates at new context.
 
-### FORBIDDEN PATTERNS (DELETE ON SIGHT)
+### FORBIDDEN PATTERNS
 
-```csharp
-// ❌ WRONG - Showing SituationCards in strategic progression flow
-Obligation → Scene → Situation → SituationCard  // NO! SituationCard is tactical!
+**Layer Confusion:** Showing SituationCards in strategic progression flow (Obligation → Scene → Situation → SituationCard). SituationCards are tactical victory conditions, not strategic progression elements.
 
-// ❌ WRONG - Treating SituationCards as strategic choices
-Situation.ChoiceTemplates = situation.SituationCards  // NO! Different layers!
+**Wrong Collection Assignment:** Treating SituationCards as strategic choices by assigning them to Situation.ChoiceTemplates. These are completely different concepts belonging to different layers.
 
-// ❌ WRONG - GameWorld owning separate Situations collection
-public class GameWorld
-{
-    public List<Situation> Situations { get; set; } // NO! Scenes own Situations!
-}
+**Wrong Ownership:** GameWorld owning separate Situations collection. Situations are owned by their parent Scene through embedded collection, not stored separately in GameWorld.
 
-// ❌ WRONG - Situations as tactical layer
-"Strategic Layer: Scene/Obligation"
-"Tactical Layer: Situation/Challenge"  // NO! Situation is strategic!
+**Layer Misclassification:** Describing Situations as part of tactical layer. Situations are strategic layer entities. Tactical layer consists of Challenge sessions only.
 
-// ❌ WRONG - SituationCard as separate reusable Card entity
-public class SituationCard : Card { }  // NO! Inline victory condition, not playable card!
+**Wrong Entity Type:** Treating SituationCard as separate reusable Card entity inheriting from base Card class. SituationCards are inline victory condition definitions, not playable cards.
 
-// ❌ WRONG - "Obstacle" or "Goal" entities (legacy, deleted)
-public class Obstacle { }  // DELETED
-public class Goal { }      // DELETED
-public class GoalCard { }  // DELETED - replaced by SituationCard
-```
+**Legacy Entities:** Referencing Obstacle, Goal, or GoalCard entities. These were deleted from codebase and replaced by Scene/Situation architecture.
 
 ### CORRECT PATTERNS
 
-```csharp
-// ✅ CORRECT - Scene owns Situations directly (strategic layer)
-public class Scene
-{
-    public List<Situation> Situations { get; set; } = new List<Situation>();
-    public Situation CurrentSituation { get; set; }  // Direct object reference
-    public SituationSpawnRules SpawnRules { get; set; }
-    public PlacementType PlacementType { get; set; }
-    public string PlacementId { get; set; }
-}
+**Scene Ownership:** Scene owns Situations directly through embedded collection property. Scene tracks CurrentSituation via direct object reference. Scene manages SpawnRules defining situation flow. Scene references placement context via PlacementType and PlacementId properties.
 
-// ✅ CORRECT - Situation stores SituationCards for tactical use
-public class Situation
-{
-    public string Id { get; set; }
-    public TacticalSystemType SystemType { get; set; }  // Bridge metadata
-    public SituationTemplate Template { get; set; }  // Contains ChoiceTemplates
-    public List<SituationCard> SituationCards { get; set; }  // Tactical victory conditions
-}
+**Situation Structure:** Situation stores SystemType property for bridge routing metadata. Situation references Template containing ChoiceTemplates. Situation stores SituationCards list defining tactical victory conditions.
 
-// ✅ CORRECT - ChoiceTemplate bridges layers via ActionType
-public class ChoiceTemplate
-{
-    public ChoiceActionType ActionType { get; set; }  // Instant/Navigate/StartChallenge
-    public TacticalSystemType? ChallengeType { get; set; }  // If StartChallenge
-    public string ChallengeId { get; set; }  // If StartChallenge
-    public ChoiceReward OnSuccessReward { get; set; }  // Applied after challenge
-}
+**ChoiceTemplate Bridge:** ChoiceTemplate bridges layers via ActionType property. ChallengeType property specifies which tactical system if StartChallenge. ChallengeId specifies which deck to use. OnSuccessReward and OnFailureReward define conditional outcomes applied after challenge completion.
 
-// ✅ CORRECT - SituationCard defines tactical victory condition
-public class SituationCard
-{
-    public int threshold { get; set; }  // Universal (Momentum/Progress/Breakthrough)
-    public SituationCardRewards Rewards { get; set; }  // On achievement
-    public bool IsAchieved { get; set; }  // Runtime tracking
-}
+**SituationCard Purpose:** SituationCard defines tactical victory condition with threshold property universal across all challenge types. Rewards property defines what player receives on achievement. IsAchieved property tracks runtime completion state.
 
-// ✅ CORRECT - GameWorld owns Scenes only (strategic layer)
-public class GameWorld
-{
-    public List<Scene> Scenes { get; set; } = new List<Scene>();
-    // NO separate Situations - Scenes own them
-    // NO Challenges collection - challenges are temporary sessions
-}
-```
+**GameWorld Collections:** GameWorld owns Scenes collection only for strategic layer. NO separate Situations collection exists - Scenes own them. NO Challenges collection exists - challenges are temporary sessions created and destroyed per engagement.
 
 ### KEY ARCHITECTURAL RULES
 
@@ -326,160 +170,111 @@ public class GameWorld
 
 ## PROCEDURAL SCENE GENERATION
 
-### Authoring Flow: JSON → Template → Runtime
+### Four-Phase Scene Lifecycle
 
-**Step 1: JSON Authoring**
-Author writes SceneTemplate JSON with minimal specification:
-```json
-{
-  "id": "scene_template_id",
-  "sceneArchetypeId": "inn_lodging",  // References archetype catalogue
-  "tier": 2,
-  "placementFilter": { /* entity selection criteria */ }
-}
-```
+**Phase 1: Minimal JSON Authoring**
 
-**Step 2: Parse-Time Generation**
-Parser calls `SceneGenerationFacade.GenerateSceneFromArchetype()`:
-- Resolves placement entities (NPC, Location) from placementFilter
-- Builds GenerationContext from entity properties (NPCDemeanor, Quality, etc.)
-- Calls SceneArchetypeCatalog with context
-- Receives complete SceneArchetypeDefinition (situations + spawn rules + dependent resources)
-- Creates SceneTemplate with generated List<SituationTemplate>
-- Stores in GameWorld.SceneTemplates
+Authors write tiny SceneTemplate JSON: identifier, archetype reference, tier, placement filter. Crucially, authors do NOT specify individual situations, choices, costs, or rewards. This defers complexity to catalogues.
 
-**Step 3: Spawn-Time Instantiation**
-When scene spawns, SceneInstantiator:
-- Creates Scene from SceneTemplate
-- Iterates Template.SituationTemplates
-- Instantiates each Situation and embeds in Scene.Situations list
-- Resolves markers ("generated:location_id" → actual IDs) via MarkerResolutionMap
-- Generates AI narrative if Description null + NarrativeHints present
-- Replaces placeholders ({npcName}, {locationName}) with concrete values
-- Sets Scene.CurrentSituation to first situation
-- **Actions NOT created yet** (deferred until query time)
+**Why Minimal Authoring:**
+If authors specified full scene structure (every situation, every choice, every cost formula), content volume explodes. Ten service scenes would require ten copies of negotiation mechanics. Bug in negotiation pattern requires fixing ten files. With minimal authoring, authors specify WHAT (secure lodging at friendly inn) not HOW (4-choice negotiation with stat/money/challenge/fallback). Catalogues encode HOW once, authors instantiate infinite variations.
 
-**Step 4: Query-Time Action Instantiation**
-When player enters context, SceneFacade:
-- Checks Situation.InstantiationState == Deferred
-- Creates LocationActions/NPCActions/PathCards from ChoiceTemplates
-- Sets InstantiationState = Instantiated
-- Adds to GameWorld collections
+**Phase 2: Parse-Time Catalogue Expansion**
+
+Parser triggers catalogue generation which transforms minimal JSON into complete SceneTemplate with full SituationTemplates. Happens ONCE at game load, not per spawn. Templates stored in GameWorld.SceneTemplates as reusable blueprints.
+
+**Why Parse-Time Not Runtime:**
+Catalogue generation expensive (context building, formula evaluation, reward routing). Doing this per scene spawn would cause lag. Parse-time generation means one-time cost during load screen, zero cost during gameplay. Reusable templates spawned instantly.
+
+**Phase 3: Spawn-Time Template Instantiation**
+
+Spawning converts immutable template into mutable Scene instance. Resolves markers (logical resource references become concrete IDs), generates AI narrative if needed, replaces entity placeholders. Actions NOT created yet.
+
+**Why Deferred Action Creation:**
+Creating actions during spawn wastes work if scene never displayed. Spawn happens during route travel (scene stored for later), display happens when scene becomes active. Actions only needed at display time. Deferral means spawn lightweight, display heavier but only when required.
+
+**Phase 4: Query-Time Action Creation**
+
+When UI queries active scene, lazy instantiation creates context-appropriate actions from ChoiceTemplates. LocationActions for location-based scenes, NPCActions for conversation scenes, PathCards for challenge scenes. Adds actions to appropriate GameWorld collections for UI rendering.
+
+**Why Context-Appropriate Actions:**
+Same ChoiceTemplate spawns different action types based on placement. Template at Location becomes LocationAction, same template at NPC becomes NPCAction. This placement-agnostic design enables template reuse across contexts without special-casing action generation.
 
 ### Two-Tier Archetype Composition System
 
-**Tier 1: SituationArchetypeCatalog (Base Generation)**
+**The Pattern: Mechanics Separate From Rewards**
 
-Generates single-situation mechanical patterns:
-```csharp
-Input: archetype ID ("service_negotiation"), tier, GenerationContext
-Process:
-  - Retrieve archetype definition (base costs, stat thresholds)
-  - Scale values by context (NPCDemeanor, Quality, PowerDynamic)
-  - Generate List<ChoiceTemplate> with PathType assignments
-  - RewardTemplate = EMPTY (scene will enrich)
-Output: List<ChoiceTemplate> with mechanical structure only
-```
+Tier 1 (SituationArchetypeCatalog) generates mechanical choice structure without scene-specific rewards. Tier 2 (SceneArchetypeCatalog) composes multiple Tier 1 situations and enriches with context-specific rewards.
 
-**Tier 2: SceneArchetypeCatalog (Composition + Enrichment)**
+**Why This Separation:**
 
-Composes multiple situations into complete scenes:
-```csharp
-Input: scene archetype ID ("inn_lodging"), tier, GenerationContext
-Process:
-  FOR EACH situation in scene:
-    - Call SituationArchetypeCatalog.GenerateChoiceTemplates()
-    - Receive base choices with PathType
-    - Switch on PathType to enrich rewards:
-      * InstantSuccess → Add immediate rewards (LocationsToUnlock, ItemIds)
-      * Challenge → Add OnSuccessReward (conditional rewards)
-      * Fallback → Pass through unchanged
-    - Create SituationTemplate with enriched choices
-  - Define SituationSpawnRules (Pattern + Transitions)
-  - Declare DependentResources (locations/items to generate)
-Output: SceneArchetypeDefinition (situations + rules + resources)
-```
+Negotiation mechanics identical across all service contexts: 4 choices (stat-gated instant, money-gated instant, challenge path, guaranteed fallback), same cost formulas, same PathType routing. Only REWARDS differ - lodging unlocks private room, bathing unlocks bathhouse access, healing unlocks clinic visit.
 
-**Why Two Tiers:**
-- **Reusability:** Same situation archetype used by multiple scene archetypes
-- **Separation:** Situations define HOW (mechanical paths), Scenes define WHAT (specific resources)
-- **Modularity:** Change negotiation mechanics once, affects all services
+If each scene archetype implemented its own negotiation mechanics, bugs would appear inconsistently. Balancing negotiation difficulty requires updating 20+ scene files. Player confusion when negotiation pattern varies by context.
 
-**Enrichment Pattern:**
-Situation catalogue returns choices with NO scene-specific rewards. Scene catalogue adds rewards based on PathType routing. This enables situation reuse across different scene contexts.
+With two-tier separation, situation catalogue encodes negotiation mechanics ONCE. Scene catalogues inherit mechanics, customize only rewards via PathType routing. Bug fix propagates automatically. Balance adjustment affects all contexts uniformly. Player learns pattern once, applies everywhere.
+
+**The Enrichment Flow:**
+
+Tier 1 returns ChoiceTemplates with PathType properties but empty RewardTemplate. Tier 2 routes on PathType: InstantSuccess path gets immediate rewards (LocationsToUnlock, ItemIds), Challenge path gets conditional rewards (OnSuccessReward), Fallback path gets minimal/zero rewards. Same base choices, different reward assignments per scene context.
+
+**The Trade-Off:**
+
+Two-tier pattern adds indirection - must understand both catalogues to grasp full scene generation. Simpler to inline everything in single catalogue. But indirection buys massive reusability - one negotiation archetype supports infinite service types. Architectural complexity chosen over content duplication.
 
 ### Context-Aware Scaling Mechanism
 
-**GenerationContext Flow:**
-```
-JSON entities → Parser resolves IDs → Loads NPC/Location from GameWorld
-→ Extracts categorical properties (NPCDemeanor, Quality, PowerDynamic, etc.)
-→ Builds GenerationContext struct
-→ Passes to catalogue methods
-```
+**The Principle: Categorical Properties Drive Dynamic Difficulty**
 
-**Scaling Application:**
-Catalogues apply universal formulas to base archetype values:
-```csharp
-// Base archetype defines: StatThreshold = 5, CoinCost = 5
-// Context has: NPCDemeanor.Friendly, Quality.Premium
+Archetypes define baseline numeric values (StatThreshold: 5, CoinCost: 5). Catalogues scale these values using multipliers derived from entity categorical properties (NPCDemeanor, Quality, PowerDynamic). Same archetype + different entity context = automatically balanced difficulty.
 
-scaledStatThreshold = context.NpcDemeanor switch {
-  Friendly => (int)(5 * 0.6),  // = 3 (easier)
-  Neutral => 5,                 // = 5 (baseline)
-  Hostile => (int)(5 * 1.4)     // = 7 (harder)
-};
+**Why Categorical Scaling:**
 
-scaledCoinCost = context.Quality switch {
-  Basic => (int)(5 * 0.6),     // = 3 (cheap)
-  Standard => 5,                // = 5 (baseline)
-  Premium => (int)(5 * 1.6),   // = 8 (expensive)
-  Luxury => (int)(5 * 2.4)      // = 12 (very expensive)
-};
-```
+Without scaling, every scene requires manual numeric tuning. "Friendly innkeeper negotiation needs threshold 3, hostile innkeeper needs threshold 8" - multiply across 50 NPCs and hundreds of scenes. Balancing nightmare, maintenance disaster.
 
-**Result:** Same archetype + different entity properties = contextually appropriate difficulty. AI authors entities with categorical properties, system handles numeric balance.
+With categorical properties, authors/AI specify entity nature descriptively (Friendly, Premium quality). Catalogues translate categories to multipliers (Friendly = 0.6x difficulty, Premium = 1.6x cost). Archetype baseline scales automatically. Add new friendly NPC - scenes auto-balance easier. Mark location luxury - scenes auto-scale more expensive. Zero manual tuning.
+
+**The Formula Pattern:**
+
+Base archetype: StatThreshold 5. NPCDemeanor multipliers: Friendly 0.6x, Neutral 1.0x, Hostile 1.4x. Final threshold: 5 × multiplier. Friendly innkeeper: 5 × 0.6 = 3. Hostile guard: 5 × 1.4 = 7. Same negotiation archetype, contextually appropriate difficulty.
+
+**Why This Enables AI Generation:**
+
+AI can't know global game balance (player level, progression state, economic calibration). But AI CAN describe entities categorically (this innkeeper feels friendly, this inn seems premium quality). System translates categories to balanced numbers using formula context. AI generates infinite content without breaking game balance.
 
 ### Marker Resolution for Self-Contained Scenes
 
-Scenes with dependent resources use marker syntax in templates:
-```
-SituationTemplate.RequiredLocationId = "generated:private_room"
-ChoiceReward.LocationsToUnlock = ["generated:private_room"]
-```
+**The Problem: Templates Can't Reference What Doesn't Exist**
 
-**Resolution Flow:**
-1. Parse time: DependentLocationSpec declares id = "private_room", creates actual Location
-2. Spawn time: Build MarkerResolutionMap: {"generated:private_room" → "location_actual_guid"}
-3. Situation instantiation: Resolve markers via map
-4. Store resolved ID in Situation.ResolvedRequiredLocationId
-5. Runtime: Use resolved IDs (no marker syntax remains)
+Lodging scene template needs to reference private room location. But room doesn't exist until scene spawns. Can't hardcode room ID (template is reusable, each spawn needs unique room). Can't use null (situations require location references for context).
 
-**Purpose:** Templates reference resources that don't exist until scene spawns. Markers enable static template definitions with dynamic resource binding.
+**The Solution: Logical Markers Resolved At Spawn**
+
+Templates reference logical markers ("generated:private_room"). Parser creates DependentLocationSpec declaring marker. At spawn time, system generates actual Location with real GUID, builds MarkerResolutionMap (marker → GUID), resolves all marker references throughout scene's situations and choices. Runtime uses only concrete GUIDs, no marker syntax remains.
+
+**Why This Enables Reusability:**
+
+Single template spawns infinite times, each spawn generates independent resource set. First spawn creates room A with GUID-1, second spawn creates room B with GUID-2. No resource sharing between instances, no collision, no cross-contamination.
+
+Without markers, would need either: (1) Pre-generate all possible rooms and hardcode IDs (doesn't scale), or (2) Use global shared room (first scene locks room, second scene can't spawn). Markers enable true instance isolation.
 
 ### AI Narrative Generation Integration
 
-Archetype-generated situations support AI narrative:
-```csharp
-SituationTemplate {
-  NarrativeTemplate = null,  // Signals: generate from context
-  NarrativeHints = new NarrativeHints {
-    Tone = "transactional",
-    Theme = "negotiation",
-    Context = "securing_lodging"
-  }
-}
-```
+**The Principle: Mechanical Structure + Narrative Hints = AI-Generated Content**
 
-**Generation Flow:**
-1. SceneInstantiator detects: Situation.Description == null + NarrativeHints != null
-2. Builds ScenePromptContext from entities (NPC personality, location atmosphere)
-3. Calls NarrativeService.GenerateSituationNarrative(context, hints)
-4. AI generates narrative appropriate to entity context and hints
-5. Sets Situation.Description to generated text
-6. Replaces placeholders in generated narrative
+Archetypes define mechanics (costs, choices, rewards) and narrative constraints (tone, theme, context). AI generates actual narrative text at spawn time using entity properties and hint constraints. Mechanical structure reusable, narrative unique per instance.
 
-**Result:** Archetype defines mechanical structure + narrative hints, AI generates concrete narrative from entity context. Same archetype produces contextually appropriate text.
+**Why Narrative Hints Not Full Text:**
+
+If archetypes contained full narrative text, reusability breaks. "You negotiate with the innkeeper for lodging" doesn't work when NPC is bathhouse attendant or healer. Would need separate text for every entity combination. Content explosion.
+
+With narrative hints, archetype specifies WHAT KIND of narrative (transactional negotiation, urgent tone) not exact text. AI generates text fitting entity context - innkeeper negotiation reads differently than guard negotiation, but both use same mechanical archetype. One archetype, infinite narrative variations.
+
+**Why AI Generation At Spawn Not Parse:**
+
+Parse-time doesn't know which specific entity instance will spawn. Template knows "spawn at Friendly NPC" but doesn't know if that's Elena or Marcus until spawn evaluates game state. Can't generate narrative for unknown entity.
+
+Spawn-time has concrete entity with full properties (personality, relationship history, location atmosphere). AI generates narrative incorporating these details naturally. Marcus negotiation references his gruff demeanor, Elena negotiation references established rapport.
 
 ---
 
@@ -489,269 +284,97 @@ SituationTemplate {
 
 Situations activate when player location/NPC context matches situation requirements.
 
-**Activation Check (SceneFacade):**
-```csharp
-1. Player enters location OR interacts with NPC
-2. SceneFacade.GetActionsAtLocation(locationId, npcId) called
-3. For each active Scene:
-   - Check Scene.ShouldActivateAtContext(locationId, npcId)
-   - Scene checks: CurrentSituation matches RequiredLocationId/RequiredNpcId
-   - If match: Activate situation
-```
+**Activation Check Process:**
+Player enters location or interacts with NPC triggering SceneFacade query. For each active Scene SceneFacade checks if Scene should activate at current context. Scene compares CurrentSituation's required context (RequiredLocationId, RequiredNpcId) against player's current context. If match found, situation activates.
 
 **Activation Requirements:**
-- **Location + NPC:** Both must match (service negotiation, NPC conversation)
-- **Location Only:** Location matches, NPC null or ignored (private room rest, solo investigation)
-- **NPC Only:** NPC matches, location optional (traveling merchant, roaming character)
+**Location + NPC:** Both properties must match for activation. Used for service negotiation at specific NPC in specific location, NPC conversations requiring privacy.
+**Location Only:** Location must match, NPC null or ignored. Used for private room rest (solo), location-based investigations without NPC involvement.
+**NPC Only:** NPC must match, location optional. Used for traveling merchants appearing at multiple locations, roaming characters.
 
 **Auto-Activation Flow:**
-```
-Scene completes Situation 1
-→ Scene.AdvanceToNextSituation() returns ContinueInScene
-→ Scene.CurrentSituation = Situation 2
-→ Player enters Situation 2's required location
-→ SceneFacade detects context match
-→ Situation 2 auto-activates
-→ Choices appear immediately (no additional player action needed)
-```
+Scene completes Situation causing AdvanceToNextSituation call returning ContinueInScene decision. Scene updates CurrentSituation pointer to next situation. Player enters next situation's required location. SceneFacade detects context match automatically. Next situation auto-activates without explicit player action. Choices appear immediately in UI.
 
-**Purpose:** Seamless multi-situation progression. Player completes negotiation, enters unlocked room, next situation's choices immediately available. No artificial navigation steps.
+**Purpose:** Seamless multi-situation progression without artificial navigation friction. Player completes negotiation acquiring room key, enters unlocked room, next situation's choices immediately available. No "click here to continue" artificial steps.
 
 ### Action Instantiation (Query-Time Creation)
 
-Actions created on-demand when situation activates to reduce memory footprint.
+Actions created on-demand when situation activates reducing memory footprint.
 
 **InstantiationState Transition:**
-```csharp
-// Initial state at situation creation:
-Situation.InstantiationState = InstantiationState.Deferred
-// NO actions in GameWorld.LocationActions/NPCActions/PathCards yet
-
-// Query-time instantiation (SceneFacade.GetActionsAtLocation):
-if (situation.InstantiationState == InstantiationState.Deferred)
-{
-    foreach (ChoiceTemplate template in situation.Template.ChoiceTemplates)
-    {
-        LocationAction action = new LocationAction {
-            ChoiceTemplate = template,  // Reference to template
-            SituationId = situation.Id
-        };
-        _gameWorld.LocationActions.Add(action);
-    }
-    situation.InstantiationState = InstantiationState.Instantiated;
-}
-```
+Initial state at situation creation: Situation.InstantiationState equals Deferred. NO actions exist in GameWorld collections yet. Query-time instantiation occurs when SceneFacade queries actions for location. If InstantiationState equals Deferred, facade iterates situation's ChoiceTemplates creating action instances, each action references its ChoiceTemplate plus parent SituationId, adds actions to appropriate GameWorld collection, sets InstantiationState to Instantiated.
 
 **Why Query-Time:**
-- **Memory Efficiency:** Actions only exist when contextually relevant
-- **Lazy Evaluation:** Thousands of template choices, only instantiate what player can access
-- **Clean Lifecycle:** Actions deleted when situation completes, recreated fresh if situation re-activates
+**Memory Efficiency:** Actions only exist when contextually relevant to player's current state. Scene with 5 situations times 3 choices equals 15 potential actions but only 3 exist at any time.
+**Lazy Evaluation:** Game may contain thousands of template choices across all scenes. Only instantiate subset player can currently access avoiding massive memory bloat.
+**Clean Lifecycle:** Actions deleted when situation completes. If situation re-activates later, actions recreated fresh from template. No stale or orphaned action references.
 
 **Action Properties:**
-- `ChoiceTemplate`: Reference to template (requirements, costs, rewards)
-- `SituationId`: Parent situation for cleanup
-- Ephemeral: Exists only while situation active, deleted on completion
+ChoiceTemplate reference storing requirements, costs, rewards from template. SituationId for parent lookup enabling cleanup. Ephemeral lifecycle - exists only while situation active, deleted on completion.
 
 ### Choice Execution Routing
 
 ChoiceTemplate.PathType determines execution flow when player selects choice.
 
-**Routing Logic (GameFacade.ExecuteChoice):**
-```csharp
-switch (choice.PathType)
-{
-    case ChoicePathType.InstantSuccess:
-        // Evaluate requirements immediately
-        // Apply costs immediately
-        // Apply RewardTemplate immediately
-        // Mark situation complete
-        → Advance to next situation
+**Routing Logic:**
+**InstantSuccess Path:** Evaluate requirements immediately. Apply costs immediately. Apply RewardTemplate immediately. Mark situation complete. Advance to next situation.
 
-    case ChoicePathType.Challenge:
-        // Evaluate requirements immediately
-        // Apply costs immediately
-        // Store OnSuccessReward/OnFailureReward in PendingContext
-        // Navigate to tactical screen (Social/Mental/Physical)
-        → Wait for challenge completion
-        → Apply OnSuccessReward or OnFailureReward based on outcome
-        → Advance to next situation
+**Challenge Path:** Evaluate requirements immediately. Apply costs immediately. Store OnSuccessReward and OnFailureReward in PendingContext for later application. Navigate to tactical screen (Social/Mental/Physical system). Wait for challenge completion. Apply OnSuccessReward if victory OR OnFailureReward if defeat. Advance to next situation.
 
-    case ChoicePathType.Fallback:
-        // NO requirements (always available)
-        // NO costs (free forward progress)
-        // Minimal or no rewards
-        // Mark situation complete
-        → Advance to next situation (may exit scene)
-}
-```
+**Fallback Path:** NO requirements (always available as safety valve). NO costs (free forward progress). Minimal or zero rewards (poor outcome). Mark situation complete. Advance to next situation (may exit scene).
 
-**ActionType Bridge (within PathType):**
-```csharp
-if (choice.ActionType == ChoiceActionType.Navigate)
-{
-    // Apply rewards first
-    // Then move player to destination
-    // Scene may continue if next situation at new location
-}
-else if (choice.ActionType == ChoiceActionType.StartChallenge)
-{
-    // Cross strategic-tactical bridge
-    // Store CompletionReward in PendingContext
-    // Navigate to challenge screen
-}
-else // Instant
-{
-    // Apply rewards, stay in scene
-}
-```
+**ActionType Bridge Integration:**
+**Navigate Action Type:** Apply rewards first modifying game state. Then move player to destination location/NPC. Scene may continue if next situation exists at new location enabling cascading progression.
+
+**StartChallenge Action Type:** Cross strategic-tactical bridge. Store CompletionReward in PendingContext. Navigate to appropriate challenge screen (Social/Mental/Physical). Challenge system takes over until completion or abandonment.
+
+**Instant Action Type:** Apply rewards modifying game state. Player remains in current scene context. Situation advances based on transition rules.
 
 **Execution Order:**
-1. Check requirements → Lock if failed, continue if passed
-2. Apply costs → Deduct resources
-3. Route by PathType/ActionType → Determine next step
-4. Apply rewards → Immediate (InstantSuccess) or Conditional (Challenge)
-5. Update situation state → Mark complete
-6. Evaluate transitions → Determine next situation
+Check requirements, lock choice if failed OR continue if passed. Apply costs deducting resources from player state. Route by PathType and ActionType determining next step. Apply rewards immediately for InstantSuccess OR conditionally for Challenge. Update situation state marking complete. Evaluate transitions determining next situation or scene exit.
 
 ### Scene Progression & Transition Evaluation
 
 Scene.AdvanceToNextSituation() evaluates transition rules to determine next situation.
 
 **Transition Evaluation:**
-```csharp
-1. Get completed situation
-2. Lookup transition from SituationSpawnRules.Transitions
-3. Evaluate Transition.Condition:
-   - Always: Unconditional progression
-   - OnChoice: Check LastChoiceId matches SpecificChoiceId
-   - OnSuccess: Check LastChallengeSucceeded == true
-   - OnFailure: Check LastChallengeSucceeded == false
-4. If match found:
-   - Set Scene.CurrentSituation = destination situation
-   - Return SceneRoutingDecision (ContinueInScene or ExitToWorld)
-5. If no match:
-   - Scene complete (no more situations)
-   - Return SceneRoutingDecision.SceneComplete
-```
+Get completed situation from Scene state. Lookup transition rules from SituationSpawnRules.Transitions collection. Evaluate Transition.Condition types: Always means unconditional progression, OnChoice checks if LastChoiceId matches SpecificChoiceId, OnSuccess checks LastChallengeSucceeded equals true, OnFailure checks LastChallengeSucceeded equals false. If matching transition found, set Scene.CurrentSituation to destination situation, return SceneRoutingDecision (either ContinueInScene or ExitToWorld). If no matching transition found, scene complete with no more situations, return SceneRoutingDecision.SceneComplete.
 
-**SceneRoutingDecision:**
-- **ContinueInScene:** Next situation shares same location/NPC context → Auto-activate immediately
-- **ExitToWorld:** Next situation requires different context → Player must navigate
-- **SceneComplete:** No more situations → Scene ends
+**SceneRoutingDecision Values:**
+**ContinueInScene:** Next situation shares same location/NPC context enabling auto-activation immediately without player navigation.
+**ExitToWorld:** Next situation requires different context forcing player to manually navigate to new location or find different NPC.
+**SceneComplete:** No more situations exist in scene, scene ends releasing resources.
 
 **Context Comparison:**
-```csharp
-// Scene.CompareContexts() determines routing:
-Current context: LocationId, NpcId
-Next context: Situation.RequiredLocationId, Situation.RequiredNpcId
-
-if (Same context):
-    return ContinueInScene  // Seamless cascade
-else:
-    return ExitToWorld      // Player must travel/find NPC
-```
+Scene.CompareContexts determines routing decision. Compare current context (CurrentLocationId, CurrentNpcId) against next context (Situation.RequiredLocationId, Situation.RequiredNpcId). If contexts match return ContinueInScene enabling seamless cascade. If contexts differ return ExitToWorld requiring player navigation.
 
 **Progression State Machine:**
-```
-Situation 1 Active
-→ Player selects choice
-→ Choice executes
-→ AdvanceToNextSituation() called
-→ Evaluate transitions
-→ Update CurrentSituation
-→ Compare contexts
-→ ContinueInScene: Situation 2 auto-activates
-→ ExitToWorld: Await player navigation
-→ SceneComplete: Scene ends
-```
+Situation active, player selects choice, choice executes, AdvanceToNextSituation called, system evaluates transitions, updates CurrentSituation pointer, compares contexts. If ContinueInScene next situation auto-activates. If ExitToWorld system awaits player navigation. If SceneComplete scene ends.
 
 ### Dependent Resource Lifecycle
 
-Complete flow from declaration to removal for scene-generated resources.
+Complete flow from declaration to removal for scene-generated resources spanning six phases across three timing tiers.
 
 **Phase 1: Declaration (Parse Time)**
-```csharp
-// SceneArchetypeCatalog declares resources:
-SceneArchetypeDefinition {
-    DependentLocations = [
-        new DependentLocationSpec {
-            Id = "private_room",
-            NameTemplate = "{npcName}'s Private Room",
-            Properties = [LocationProperty.Safe, LocationProperty.Restful]
-        }
-    ],
-    DependentItems = [
-        new DependentItemSpec {
-            Id = "room_key",
-            NameTemplate = "Key to {locationName}",
-            ItemType = ItemType.Key
-        }
-    ]
-}
-```
+SceneArchetypeCatalog declares dependent resources via DependentLocationSpec and DependentItemSpec. Specifications contain: logical identifier (example: "private_room"), name template with placeholders (example: "{npcName}'s Private Room"), properties defining resource characteristics (example: Safe, Restful location properties), item type classification (example: Key type).
 
 **Phase 2: Creation (Parse Time)**
-```csharp
-// SceneTemplateParser creates actual entities:
-foreach (DependentLocationSpec spec in archetypeDef.DependentLocations)
-{
-    Location location = new Location {
-        Id = GenerateGuid(),  // Actual GUID
-        Name = spec.NameTemplate,  // Placeholders remain
-        IsLocked = true,  // Starts locked
-        Properties = spec.Properties
-    };
-    _gameWorld.Locations.Add(location);
-
-    // Store mapping: "private_room" → actual GUID
-    dependentLocationIds.Add(spec.Id, location.Id);
-}
-```
+SceneTemplateParser creates actual entities from specifications. For each DependentLocationSpec parser generates Location entity with real GUID, name containing unresolved placeholders, IsLocked starting true, properties copied from spec. Adds location to GameWorld.Locations collection. Stores mapping from logical identifier to actual GUID for later marker resolution.
 
 **Phase 3: Marker Resolution (Spawn Time)**
-```csharp
-// Scene spawns, MarkerResolutionMap built:
-Scene.MarkerResolutionMap = {
-    "generated:private_room" → "location_guid_12345"
-}
-
-// Situations resolve markers:
-SituationTemplate.RequiredLocationId = "generated:private_room"
-→ Situation.ResolvedRequiredLocationId = "location_guid_12345"
-
-ChoiceReward.LocationsToUnlock = ["generated:private_room"]
-→ Resolved at execution: Unlock location_guid_12345
-```
+Scene spawns building MarkerResolutionMap mapping logical identifiers to actual GUIDs (example: "generated:private_room" maps to "location_guid_12345"). Situations resolve markers via map lookup. SituationTemplate.RequiredLocationId containing "generated:private_room" becomes Situation.ResolvedRequiredLocationId containing actual GUID. ChoiceReward.LocationsToUnlock containing marker gets resolved at choice execution to actual location GUID.
 
 **Phase 4: Grant (Runtime - Choice Execution)**
-```csharp
-// Choice rewards grant access:
-RewardTemplate.LocationsToUnlock → Set Location.IsLocked = false
-RewardTemplate.ItemIds → Add Item to Player.Inventory
-```
+Choice rewards grant access to dependent resources. RewardTemplate.LocationsToUnlock sets Location.IsLocked to false enabling player entry. RewardTemplate.ItemIds adds items to Player.Inventory enabling possession and usage.
 
 **Phase 5: Usage (Runtime - Situation Activation)**
-```csharp
-// Situation requires access:
-Situation.RequiredLocationId = "location_guid_12345"
-→ Player can only activate if Location.IsLocked = false
-→ Auto-activates when player enters
-```
+Situation requires access checking Situation.RequiredLocationId against player's accessible locations. Player can only activate situation if Location.IsLocked equals false indicating access granted. Situation auto-activates when player enters accessible required location.
 
 **Phase 6: Removal (Runtime - Cleanup)**
-```csharp
-// Departure choice cleans up:
-RewardTemplate.ItemsToRemove → Remove from Player.Inventory
-RewardTemplate.LocationsToLock → Set Location.IsLocked = true
-```
+Departure choice cleans up dependent resources. RewardTemplate.ItemsToRemove removes items from Player.Inventory. RewardTemplate.LocationsToLock sets Location.IsLocked back to true preventing re-entry.
 
-**Lifecycle Complete:**
-```
-Declare → Create → Resolve → Grant → Use → Remove
-Parse    Parse    Spawn    Choice  Situation  Choice
-```
-
-**Purpose:** Resources exist throughout but access controlled. Player can't re-enter locked room after departure. Key removed from inventory. Location persists (for potential future scenes) but inaccessible.
+**Lifecycle Summary:**
+Declare resources at parse time, create entities at parse time, resolve markers at spawn time, grant access via choice execution, use resources during situation activation, remove access via cleanup choice. Resources exist throughout but access controlled. Player cannot re-enter locked room after departure. Key removed from inventory. Location persists for potential future scenes but becomes inaccessible.
 
 ---
 
@@ -759,235 +382,87 @@ Parse    Parse    Spawn    Choice  Situation  Choice
 
 ### Why Three Tiers Exist
 
-The three-tier timing model enables **lazy instantiation**, drastically reducing memory usage and preventing GameWorld from bloating with thousands of inaccessible actions.
+The three-tier timing model enables lazy instantiation drastically reducing memory usage and preventing GameWorld from bloating with thousands of inaccessible actions.
 
 ### Tier 1: Templates (Parse Time)
 
-**When**: Game startup, JSON parsing
-**What**: Immutable archetypes defining reusable patterns
+**When:** Game startup during JSON parsing.
+**What:** Immutable archetypes defining reusable patterns.
 
-```
-SceneTemplate
-  └─ List<SituationTemplate>
-       └─ List<ChoiceTemplate>
-```
+**Structure:** SceneTemplate contains embedded List of SituationTemplates, each SituationTemplate contains embedded List of ChoiceTemplates.
 
-**Properties**:
-- Created once from JSON at parse time
-- Stored in GameWorld.SceneTemplates
-- Never modified during gameplay
-- Design language for content authors
+**Properties:**
+Created once from JSON at parse time. Stored in GameWorld.SceneTemplates collection. Never modified during gameplay. Serves as design language for content authors enabling reusable pattern definitions.
 
 ### Tier 2: Scenes/Situations (Spawn Time)
 
-**When**: Scene spawns from Obligation or SceneSpawnReward
-**What**: Runtime instances with lifecycle and state
+**When:** Scene spawns from Obligation or SceneSpawnReward trigger.
+**What:** Runtime instances with lifecycle and mutable state.
 
-```
-Scene (spawned from SceneTemplate)
-  └─ List<Situation> (created and embedded)
-       └─ Template reference (ChoiceTemplates NOT instantiated)
-```
+**Structure:** Scene spawned from SceneTemplate reference. Scene contains embedded List of Situation instances created during spawn. Each Situation stores Template reference pointing back to immutable SituationTemplate. ChoiceTemplates NOT instantiated as actions yet.
 
-**Properties**:
-- Scene created with embedded Situations
-- Situation.Template reference stored (points back to SituationTemplate)
-- Situation.InstantiationState = Deferred
-- **NO actions created in GameWorld collections yet**
+**Properties:**
+Scene created with embedded Situations collection. Situation.Template reference stored enabling access to ChoiceTemplates. Situation.InstantiationState set to Deferred. NO actions created in GameWorld collections yet avoiding premature memory allocation.
 
 **Why Deferred:**
-Situations may require specific context (Location X + NPC Y) that player hasn't reached. Creating actions prematurely bloats GameWorld with thousands of buttons player can't see.
-
-**Example:**
-```
-Scene "Elena's Favor" spawns with 5 Situations:
-  - Situation 1: Requires Location "Market Square" + NPC "Elena"
-  - Situation 2: Requires Location "Elena's Workshop"
-  - Situation 3: Requires Location "Market Square" (different time)
-  - Situation 4: Requires Location "Town Hall" + NPC "Elena"
-  - Situation 5: Requires Location "Elena's Home"
-
-At spawn time: 0 actions created in GameWorld
-If all actions created immediately: 15+ action buttons in GameWorld (3 choices × 5 situations)
-Most are inaccessible until player navigates to correct context
-```
+Situations may require specific context (Location X plus NPC Y) player hasn't reached yet. Creating actions prematurely bloats GameWorld with thousands of UI elements player cannot see or access. Example: Scene with 5 Situations each having 3 ChoiceTemplates equals 15 potential actions. If all instantiated immediately GameWorld contains 15 action buttons though only 3 contextually accessible. Deferred instantiation creates zero actions at spawn deferring until player enters matching context.
 
 ### Tier 3: Actions (Query Time)
 
-**When**: Player enters matching context (Location + optional NPC)
-**What**: Ephemeral UI projections of ChoiceTemplates
+**When:** Player enters matching context (Location plus optional NPC).
+**What:** Ephemeral UI projections of ChoiceTemplates.
 
-```
-Player at Location "Market Square" with NPC "Elena" present
-  ↓
-SceneFacade queries: Which Situations match this context?
-  ↓
-Finds Situation 1 (InstantiationState = Deferred)
-  ↓
-Instantiates 3 NPCActions from Situation.Template.ChoiceTemplates
-  ↓
-Adds to GameWorld.NPCActions
-  ↓
-UI displays 3 action buttons
-```
+**Process:** Player at specific location with specific NPC present. SceneFacade queries which Situations match current context. Finds matching Situation with InstantiationState equals Deferred. Instantiates action instances from Situation.Template.ChoiceTemplates. Adds actions to appropriate GameWorld collection (NPCActions, LocationActions, PathCards). UI displays action cards/buttons to player.
 
 **Ephemeral Lifecycle:**
-1. **Creation**: Actions instantiated when player enters context
-2. **Display**: Actions rendered in UI as clickable cards/buttons
-3. **Execution**: Player selects action, GameFacade executes
-4. **Deletion**: When Situation completes, actions deleted from GameWorld
-5. **Regeneration**: If player returns to same context, actions recreated from Template
+**Creation:** Actions instantiated when player enters matching context. **Display:** Actions rendered in UI as clickable cards or buttons. **Execution:** Player selects action, GameFacade executes choice logic. **Deletion:** When Situation completes actions deleted from GameWorld collections. **Regeneration:** If player returns to same context later, actions recreated fresh from Template.
 
 **Why Ephemeral:**
-- Template is single source of truth (HIGHLANDER)
-- Actions are view projections generated on demand
-- Prevents duplicate actions accumulating
-- No orphaned actions from completed situations
+Template serves as single source of truth (HIGHLANDER principle). Actions are view projections generated on demand not persistent entities. Prevents duplicate actions accumulating in GameWorld. Eliminates orphaned actions from completed situations. Memory efficient - only contextually relevant actions exist.
 
 ### InstantiationState Tracking
 
-```csharp
-public enum InstantiationState
-{
-    Deferred,      // Situation exists, NO actions in GameWorld
-    Instantiated   // Player entered context, actions materialized
-}
-```
+**InstantiationState Enum:** Deferred value means Situation exists but NO actions in GameWorld. Instantiated value means Player entered context and actions materialized.
 
 **State Transitions:**
-```
-Situation spawned → InstantiationState = Deferred
-Player enters matching context → SceneFacade instantiates actions → InstantiationState = Instantiated
-Situation completes → Actions deleted, Situation deleted or marked complete
-```
+Situation spawned with InstantiationState set to Deferred. Player enters matching context triggering SceneFacade to instantiate actions and set InstantiationState to Instantiated. Situation completes causing actions deletion and Situation marked complete or deleted.
 
 ### Complete Example Flow
 
 **Parse Time (Tier 1):**
-```
-JSON defines SceneTemplate "secure_lodging_tutorial"
-  ├─ SituationTemplate "obtain_key"
-  │   └─ 3 ChoiceTemplates (pay coins, negotiate, steal)
-  ├─ SituationTemplate "access_room"
-  │   └─ 2 ChoiceTemplates (unlock door, break window)
-  └─ SituationTemplate "claim_space"
-      └─ 2 ChoiceTemplates (rest immediately, inspect first)
-
-Stored in GameWorld.SceneTemplates
-```
+JSON defines SceneTemplate for securing lodging tutorial. Contains three SituationTemplates: obtain_key situation with 3 ChoiceTemplates (pay coins, negotiate, steal), access_room situation with 2 ChoiceTemplates (unlock door, break window), claim_space situation with 2 ChoiceTemplates (rest immediately, inspect first). Complete template stored in GameWorld.SceneTemplates collection.
 
 **Spawn Time (Tier 2):**
-```
-Obligation spawns Scene from template
-  ├─ Scene.Situations created (3 Situations embedded)
-  │   ├─ Situation 1: RequiredLocationId = "inn_common_room"
-  │   │   └─ InstantiationState = Deferred
-  │   ├─ Situation 2: RequiredLocationId = "inn_upper_floor"
-  │   │   └─ InstantiationState = Deferred
-  │   └─ Situation 3: RequiredLocationId = "generated:private_room"
-  │       └─ InstantiationState = Deferred
-  └─ Scene.CurrentSituation = Situation 1
-
-GameWorld.Scenes += 1 scene
-GameWorld.LocationActions += 0 actions (nothing instantiated yet)
-```
+Obligation spawns Scene from template creating Scene.Situations collection with 3 embedded Situation instances. Situation 1 requires inn_common_room location with InstantiationState Deferred. Situation 2 requires inn_upper_floor location with InstantiationState Deferred. Situation 3 requires generated private_room marker with InstantiationState Deferred. Scene.CurrentSituation set to Situation 1. GameWorld.Scenes incremented by 1 scene. GameWorld.LocationActions remains at 0 actions - nothing instantiated yet.
 
 **Query Time (Tier 3):**
-```
-Player navigates to "inn_common_room"
-  ↓
-LocationContent.razor calls SceneFacade.GetActionsForLocation("inn_common_room")
-  ↓
-SceneFacade finds Situation 1 (matches location, InstantiationState = Deferred)
-  ↓
-SceneFacade instantiates 3 LocationActions from Situation.Template.ChoiceTemplates:
-  - LocationAction "Pay 20 coins for key"
-  - LocationAction "Negotiate for better rate" (StartChallenge)
-  - LocationAction "Attempt to steal key" (StartChallenge)
-  ↓
-Situation 1.InstantiationState = Instantiated
-GameWorld.LocationActions += 3 actions
-  ↓
-UI renders 3 action cards
-
-Player selects "Negotiate for better rate"
-  ↓
-GameFacade executes (spawns Social challenge if StartChallenge)
-  ↓
-Challenge succeeds, Situation 1 completes
-  ↓
-Delete 3 LocationActions from GameWorld.LocationActions
-Scene.AdvanceToNextSituation() → CurrentSituation = Situation 2
-Situation 1.InstantiationState remains Instantiated (but situation complete)
-  ↓
-GameWorld.LocationActions -= 3 actions (cleaned up)
-
-Player navigates to "inn_upper_floor"
-  ↓
-SceneFacade finds Situation 2 (matches location, InstantiationState = Deferred)
-  ↓
-Instantiates 2 LocationActions from Situation 2.Template.ChoiceTemplates
-  ↓
-GameWorld.LocationActions += 2 actions
-UI renders 2 action cards
-```
+Player navigates to inn_common_room location. UI calls SceneFacade.GetActionsForLocation querying. SceneFacade finds Situation 1 matching location with InstantiationState Deferred. SceneFacade instantiates 3 LocationActions from Situation.Template.ChoiceTemplates: pay coins action, negotiate action with StartChallenge, steal action with StartChallenge. Situation 1.InstantiationState set to Instantiated. GameWorld.LocationActions incremented by 3 actions. UI renders 3 action cards. Player selects negotiate action. GameFacade executes spawning Social challenge. Challenge succeeds completing Situation 1. System deletes 3 LocationActions from GameWorld. Scene.AdvanceToNextSituation updates CurrentSituation to Situation 2. GameWorld.LocationActions decremented by 3 actions. Player navigates to inn_upper_floor. SceneFacade finds Situation 2 matching location with Deferred state. Instantiates 2 LocationActions from Situation 2 templates. GameWorld.LocationActions incremented by 2 actions. UI renders 2 action cards.
 
 ### Benefits
 
-**Memory Efficiency:**
-Only actions for current context exist in GameWorld. Scene with 5 Situations × 3 Choices each = 15 potential actions, but only 3 exist at any time.
+**Memory Efficiency:** Only actions for current context exist in GameWorld. Scene with 5 Situations times 3 Choices equals 15 potential actions but only 3 exist at any time.
 
-**Performance:**
-UI queries GameWorld.LocationActions (3 items) instead of scanning all Situations in all Scenes (hundreds).
+**Performance:** UI queries GameWorld.LocationActions collection (3 items) instead of scanning all Situations across all Scenes (potentially hundreds).
 
-**Single Source of Truth:**
-ChoiceTemplate defined once in SituationTemplate. Runtime actions reference Template, never duplicate data.
+**Single Source of Truth:** ChoiceTemplate defined once in SituationTemplate. Runtime actions reference Template never duplicating data.
 
-**Clean Lifecycle:**
-Actions created when needed, deleted when done. No orphaned references, no stale data.
+**Clean Lifecycle:** Actions created when needed, deleted when done. No orphaned references. No stale data accumulation.
 
-**Easy Debugging:**
-Check InstantiationState to see if actions should exist. If Deferred, player hasn't entered context yet.
+**Easy Debugging:** Check InstantiationState to determine if actions should exist. Deferred state means player hasn't entered required context yet.
 
 ### Forbidden Patterns
 
-```csharp
-// ❌ WRONG - Creating actions at spawn time (Tier 2)
-Scene spawned → Immediately instantiate ALL actions for ALL Situations
-  → GameWorld bloats with inaccessible actions
-  → Memory waste, performance penalty
+**Creating Actions at Spawn Time:** Immediately instantiating ALL actions for ALL Situations when Scene spawns causes GameWorld bloat with inaccessible actions resulting in memory waste and performance penalty.
 
-// ❌ WRONG - Storing actions permanently
-Situation.Actions = new List<LocationAction>()  // NO! Actions are ephemeral!
-  → Violates lazy instantiation
-  → Creates duplicate action collections
+**Storing Actions Permanently:** Adding Actions collection property to Situation entity violates lazy instantiation principle creating duplicate action collections.
 
-// ❌ WRONG - Instantiating without context check
-for (Situation in Scene.Situations) {
-    Instantiate actions  // NO! Check context first!
-}
-```
+**Instantiating Without Context Check:** Iterating all Situations instantiating actions without checking context match creates actions player cannot access.
 
 ### Correct Patterns
 
-```csharp
-// ✅ CORRECT - Query time instantiation with context check
-SceneFacade.GetActionsForLocation(locationId):
-    For each Scene in GameWorld.Scenes:
-        For each Situation in Scene.Situations:
-            If Situation.RequiredLocationId == locationId:
-                If Situation.InstantiationState == Deferred:
-                    Instantiate actions from Template.ChoiceTemplates
-                    Set InstantiationState = Instantiated
-                Return actions
+**Query Time Instantiation with Context Check:** SceneFacade.GetActionsForLocation iterates GameWorld.Scenes, for each Scene iterates Situations, checks if Situation.RequiredLocationId matches queried location, checks if InstantiationState equals Deferred, instantiates actions from Template.ChoiceTemplates, sets InstantiationState to Instantiated, returns actions.
 
-// ✅ CORRECT - Cleanup after execution
-GameFacade.ExecuteLocationAction():
-    Execute action
-    If Situation completes:
-        Delete all actions for that Situation
-        Scene.AdvanceToNextSituation()
-```
+**Cleanup After Execution:** GameFacade.ExecuteLocationAction executes action logic, checks if Situation completes, deletes all actions for that Situation from GameWorld collections, calls Scene.AdvanceToNextSituation updating state machine.
 
 ---
 
@@ -998,7 +473,7 @@ Wayfarer is a **low-fantasy tactical RPG** with **three parallel challenge syste
 ### Core Design Philosophy
 - **GameWorld as Single Source of Truth**: All game state flows through GameWorld with zero external dependencies
 - **Three Parallel Tactical Systems**: Social (conversations), Mental (investigations), Physical (obstacles) with equivalent depth
-- **Strategic-Tactical Bridge**: Goals are first-class entities that connect strategic planning to tactical execution
+- **Strategic-Tactical Bridge**: Scenes spawn Situations with Choices, ChoiceActionType.StartChallenge routes to tactical systems
 - **Static Content Loading**: JSON content parsed once at startup without DI dependencies
 - **Facade Pattern**: Business logic coordinated through specialized facades
 - **Authoritative UI Pattern**: GameScreen owns all UI state, children communicate upward
@@ -1014,27 +489,17 @@ Wayfarer is a **low-fantasy tactical RPG** with **three parallel challenge syste
 
 **Location**: `src/Content/*Parser.cs`
 
-**Parser Responsibilities**:
-```csharp
-SocialCardParser     → SocialCardDTO → SocialCard
-MentalCardParser     → MentalCardDTO → MentalCard
-PhysicalCardParser   → PhysicalCardDTO → PhysicalCard
-NPCParser            → NPCDTO → NPC
-VenueParser          → VenueDTO → Venue
-LocationParser       → LocationDTO → Location
-GoalParser           → GoalDTO → Goal
-InvestigationParser  → InvestigationDTO → Investigation
-KnowledgeParser      → KnowledgeDTO → Knowledge
-```
+**Parser Responsibilities:**
+Each parser converts DTO to domain entity: SocialCardParser converts SocialCardDTO to SocialCard, MentalCardParser converts MentalCardDTO to MentalCard, PhysicalCardParser converts PhysicalCardDTO to PhysicalCard, NPCParser converts NPCDTO to NPC, VenueParser converts VenueDTO to Venue, LocationParser converts LocationDTO to Location, SceneParser converts SceneDTO to Scene, SituationParser converts SituationDTO to Situation.
 
-**CRITICAL PARSER PRINCIPLES**:
-- **PARSE AT THE BOUNDARY**: JSON artifacts NEVER pollute domain layer
-- **NO JsonElement PASSTHROUGH**: Parsers MUST convert to strongly-typed objects
-- **NO Dictionary<string, object>**: Use proper typed properties on domain models
-- **JSON FIELD NAMES MUST MATCH C# PROPERTIES**: No JsonPropertyName attributes to hide mismatches
-- **STATELESS**: Parsers are static classes with no side effects
-- **SINGLE PASS**: Each parser converts DTO to domain entity in one operation
-- **CATEGORICAL → MECHANICAL TRANSLATION**: Parsers translate categorical JSON properties to absolute mechanical values through catalogues (see Categorical Properties Pattern below)
+**CRITICAL PARSER PRINCIPLES:**
+**PARSE AT THE BOUNDARY:** JSON artifacts NEVER pollute domain layer. All conversion happens at parser boundary.
+**NO JsonElement PASSTHROUGH:** Parsers MUST convert to strongly-typed objects. No passing through raw JSON elements.
+**NO Dictionary Properties:** Use proper typed properties on domain models. No generic string-keyed dictionaries.
+**JSON FIELD NAMES MUST MATCH C# PROPERTIES:** Direct mapping without JsonPropertyName attributes hiding mismatches.
+**STATELESS:** Parsers are static classes with no side effects or state storage.
+**SINGLE PASS:** Each parser converts DTO to domain entity in one operation without multiple passes.
+**CATEGORICAL TO MECHANICAL TRANSLATION:** Parsers translate categorical JSON properties to absolute mechanical values through catalogues.
 
 ### 3. Categorical Properties → Dynamic Scaling Pattern (AI Content Generation)
 
@@ -1042,161 +507,43 @@ KnowledgeParser      → KnowledgeDTO → Knowledge
 
 **The Problem: AI-Generated Runtime Content**
 
-AI-generated content (procedural generation, LLM-created entities, user-generated content) CANNOT specify absolute mechanical values because AI doesn't know:
-- Current player progression level (Level 1 vs Level 10)
-- Existing game balance (what items/cards/challenges already exist)
-- Global difficulty curve (early game vs late game tuning)
-- Economy state (coin inflation, resource scarcity)
+AI-generated content (procedural generation, LLM-created entities, user-generated content) CANNOT specify absolute mechanical values because AI doesn't know current player progression level (Level 1 versus Level 10), existing game balance (what items/cards/challenges already exist), global difficulty curve (early game versus late game tuning), or economy state (coin inflation, resource scarcity).
 
-**The Solution: Relative Categorical Properties + Dynamic Scaling Catalogues**
+**The Solution: Relative Categorical Properties Plus Dynamic Scaling Catalogues**
 
-```
-AI generates JSON with categorical properties (relative descriptions)
-    ↓
-Parser reads current game state (player level, difficulty mode, etc.)
-    ↓
-Catalogue translates categorical → absolute values WITH SCALING
-    ↓
-Domain entity receives scaled mechanical values
-```
+AI generates JSON with categorical properties providing relative descriptions. Parser reads current game state (player level, difficulty mode). Catalogue translates categorical properties to absolute values applying scaling based on game state. Domain entity receives scaled mechanical values appropriate to current progression.
 
 **Example: Equipment Durability**
 
-```csharp
-// JSON (AI-generated or hand-authored): Categorical property
-{
-  "id": "worn_rope",
-  "name": "Worn Climbing Rope",
-  "durability": "Fragile"    // ← RELATIVE category, not absolute value
-}
-
-// Parser translates using catalogue + game state
-DurabilityType durability = ParseEnum(dto.Durability);  // Fragile
-int playerLevel = gameWorld.Player.Level;                // Current: 3
-DifficultyMode difficulty = gameWorld.CurrentDifficulty; // Normal
-
-(int uses, int repairCost) = EquipmentDurabilityCatalog.GetDurabilityValues(
-    durability, playerLevel, difficulty);
-
-// Catalogue scales based on game state:
-// Level 1:  Fragile → 2 uses, 10 coins
-// Level 5:  Fragile → 4 uses, 25 coins  (scaled up for progression)
-// Level 10: Fragile → 6 uses, 40 coins  (continues scaling)
-
-// CRITICAL: Fragile ALWAYS weaker than Sturdy (relative consistency maintained)
-```
+JSON authored by AI or humans specifies categorical durability property (example: "Fragile") which is relative category not absolute value. Parser translates using catalogue plus game state parsing enum value, reading player level and difficulty mode. Catalogue returns scaled values: Level 1 Fragile equals 2 uses and 10 coins, Level 5 Fragile equals 4 uses and 25 coins (scaled up for progression), Level 10 Fragile equals 6 uses and 40 coins (continues scaling). Critical principle: Fragile ALWAYS weaker than Sturdy maintaining relative consistency regardless of scaling factors.
 
 **Example: Card Effects**
 
-```csharp
-// JSON: Categorical move type
-{
-  "conversationalMove": "Remark",
-  "boundStat": "Rapport",
-  "depth": 2
-}
-
-// Parser translates with scaling
-CardEffectFormula effect = SocialCardEffectCatalog.GetEffectFromCategoricalProperties(
-    ConversationalMove.Remark,
-    PlayerStatType.Rapport,
-    depth: 2,
-    cardId,
-    playerLevel);  // ← Scaling factor
-
-// Early game (Level 1): Remark/Rapport/Depth2 → +4 Understanding
-// Late game (Level 5): Remark/Rapport/Depth2 → +6 Understanding (scaled)
-```
+JSON specifies categorical conversational move type (example: "Remark"), bound stat type (example: "Rapport"), depth value. Parser translates with scaling calling catalogue method passing categorical properties plus player level as scaling factor. Early game (Level 1) Remark with Rapport at Depth 2 produces +4 Understanding. Late game (Level 5) same categorical properties produce +6 Understanding demonstrating automatic scaling.
 
 **Why This Architecture Exists:**
 
-1. **AI Content Generation**: AI describes entities relatively ("Fragile rope", "Cunning NPC") without needing to know absolute game values
-2. **Dynamic Difficulty Scaling**: Same content scales automatically as player progresses
-3. **Consistent Relative Balance**: "Fragile" ALWAYS weaker than "Sturdy" regardless of scaling factors
-4. **Future-Proof**: Supports procedural generation, LLM content, user mods, runtime content
-5. **Centralized Balance**: Change ONE catalogue formula → ALL entities of that category scale consistently
+**AI Content Generation:** AI describes entities relatively (Fragile rope, Cunning NPC) without needing absolute game values knowledge.
+**Dynamic Difficulty Scaling:** Same content scales automatically as player progresses through game.
+**Consistent Relative Balance:** Fragile ALWAYS weaker than Sturdy regardless of current scaling factors applied.
+**Future-Proof:** Supports procedural generation, LLM content generation, user mods, runtime content creation.
+**Centralized Balance:** Change ONE catalogue formula automatically affects ALL entities of that category consistently.
 
 **Catalogue Implementation Requirements:**
 
-```csharp
-// Location: src/Content/Catalogues/*Catalog.cs
-public static class EquipmentDurabilityCatalog
-{
-    // Context-aware scaling function
-    public static (int exhaustAfterUses, int repairCost) GetDurabilityValues(
-        DurabilityType durability,
-        int playerLevel,           // ← Scaling context
-        DifficultyMode difficulty) // ← Scaling context
-    {
-        // Base values for each category
-        int baseUses = durability switch
-        {
-            DurabilityType.Fragile => 2,
-            DurabilityType.Sturdy => 5,
-            DurabilityType.Durable => 8,
-            _ => throw new InvalidOperationException($"Unknown durability: {durability}")
-        };
-
-        int baseRepair = durability switch
-        {
-            DurabilityType.Fragile => 10,
-            DurabilityType.Sturdy => 25,
-            DurabilityType.Durable => 40,
-            _ => throw new InvalidOperationException($"Unknown durability: {durability}")
-        };
-
-        // Dynamic scaling based on game state
-        float levelScaling = 1.0f + (playerLevel * 0.2f); // +20% per level
-        float difficultyScaling = difficulty switch
-        {
-            DifficultyMode.Easy => 1.2f,
-            DifficultyMode.Normal => 1.0f,
-            DifficultyMode.Hard => 0.8f,
-            _ => 1.0f
-        };
-
-        int scaledUses = (int)(baseUses * levelScaling * difficultyScaling);
-        int scaledRepair = (int)(baseRepair * levelScaling * difficultyScaling);
-
-        return (scaledUses, scaledRepair);
-    }
-}
-```
+Catalogues located in src/Content/Catalogues folder as static classes. Context-aware scaling functions take categorical enum value plus scaling context (player level, difficulty mode). Calculate base values for each category via switch expression. Apply dynamic scaling multipliers based on game state (example: 20 percent per player level, difficulty-based multipliers). Return scaled values as tuple or structured result. Throw exceptions for unknown categorical values ensuring fail-fast behavior.
 
 **Existing Catalogues:**
-- `SocialCardEffectCatalog` (src/Content/Catalogs/SocialCardEffectCatalog.cs)
-- `MentalCardEffectCatalog` (src/Content/Catalogs/MentalCardEffectCatalog.cs)
-- `PhysicalCardEffectCatalog` (src/Content/Catalogs/PhysicalCardEffectCatalog.cs)
-- `EquipmentDurabilityCatalog` (src/Content/Catalogs/EquipmentDurabilityCatalog.cs)
+SocialCardEffectCatalog, MentalCardEffectCatalog, PhysicalCardEffectCatalog, EquipmentDurabilityCatalog located in src/Content/Catalogs folder.
 
 **When to Use Categorical Properties:**
 
-Ask these questions for ANY numeric property in a DTO:
-1. "Could AI generate this entity at runtime without knowing global game state?"
-2. "Should this value scale with player progression or difficulty?"
-3. "Is this RELATIVE (compared to similar entities) rather than ABSOLUTE?"
-
-If YES → Create categorical enum + scaling catalogue
-If NO → Consider if it's truly a design-time constant (rare - most values should scale)
+Ask these questions for ANY numeric property in DTO: Could AI generate this entity at runtime without knowing global game state? Should this value scale with player progression or difficulty? Is this RELATIVE (compared to similar entities) rather than ABSOLUTE? If YES to any question: Create categorical enum plus scaling catalogue. If NO: Consider if truly design-time constant (rare - most values should scale).
 
 **Anti-Pattern: Hardcoded Absolute Values in JSON**
 
-```json
-// ❌ WRONG - Absolute values break AI generation and scaling
-{
-  "exhaustAfterUses": 2,
-  "repairCost": 10,
-  "understanding": 4,
-  "momentum": 2
-}
-
-// ✅ CORRECT - Categorical properties enable AI + scaling
-{
-  "durability": "Fragile",
-  "conversationalMove": "Remark",
-  "depth": 2
-}
-```
+WRONG: JSON with absolute numeric values (exhaustAfterUses 2, repairCost 10, understanding 4, momentum 2) breaks AI generation and prevents scaling.
+CORRECT: JSON with categorical properties (durability "Fragile", conversationalMove "Remark", depth 2) enables AI generation and automatic scaling.
 
 ### 4. Content Loading Orchestration
 
@@ -1502,17 +849,13 @@ public List<MentalCard> MentalCards { get; set; }
 public List<PhysicalCard> PhysicalCards { get; set; }
 
 // Three Parallel Tactical Systems - Challenge Decks
-public Dictionary<string, SocialChallengeDeck> SocialChallengeDecks { get; }
-public Dictionary<string, MentalChallengeDeck> MentalChallengeDecks { get; }
-public Dictionary<string, PhysicalChallengeDeck> PhysicalChallengeDecks { get; }
+public List<SocialChallengeDeck> SocialChallengeDecks { get; }
+public List<MentalChallengeDeck> MentalChallengeDecks { get; }
+public List<PhysicalChallengeDeck> PhysicalChallengeDecks { get; }
 
-// Strategic-Tactical Bridge
-public Dictionary<string, Goal> Goals { get; }
-
-// Investigation System
-public List<Investigation> Investigations { get; }
-public InvestigationJournal InvestigationJournal { get; }
-public Dictionary<string, Knowledge> Knowledge { get; }
+// Strategic Layer - Scene System
+public List<SceneTemplate> SceneTemplates { get; set; }
+public List<Scene> Scenes { get; set; }
 
 // Player Stats System
 public List<PlayerStatDefinition> PlayerStatDefinitions { get; set; }
@@ -1568,11 +911,11 @@ GameFacade (Pure Orchestrator)
 │   ├── TokenFacade (Relationship tokens)
 │   ├── NarrativeFacade (Messages and observations)
 │   └── ExchangeFacade (NPC trading system)
-└── INVESTIGATION & CONTENT
-    ├── InvestigationActivity (Multi-phase investigation management)
-    ├── InvestigationDiscoveryEvaluator (Discovery trigger evaluation)
-    ├── KnowledgeService (Knowledge grants and discovery)
-    └── GoalCompletionHandler (Goal completion and rewards)
+└── SCENES & CONTENT
+    ├── SceneInstantiator (Scene spawning from templates)
+    ├── SpawnFacade (Scene spawn condition evaluation)
+    ├── ContentGenerationFacade (Dynamic package creation)
+    └── RewardApplicationService (Reward application after choices)
 ```
 
 ### Facade Responsibilities
@@ -1615,10 +958,10 @@ Token/          → Relationship tokens, connection tracking
 Travel/         → Route discovery, travel validation
 Narrative/      → Message system, observation rewards
 
-INVESTIGATION & CONTENT SYSTEMS
-Investigation/  → Multi-phase investigation lifecycle, goal spawning
-Knowledge/      → Knowledge discovery, secrets, world state changes
-Goals/          → Strategic-tactical bridge, victory conditions
+SCENE & SPAWN SYSTEMS
+Spawn/          → Scene spawn condition evaluation, template instantiation
+ProceduralContent/ → Procedural scene generation, AI content integration
+Catalogues/     → Parse-time categorical property translation
 ```
 
 ---
@@ -1947,32 +1290,25 @@ services.AddScoped<GameFacade>();
   - One-shot session model (must complete in single attempt)
   - Challenge types (Combat, Athletics, Finesse, Endurance, Strength)
 
-**2. Goals as Strategic-Tactical Bridge**
-- Goals are first-class entities in `GameWorld.Goals` dictionary
-- Goals assigned to NPCs (`NPC.ActiveGoals`) for Social challenges
-- Goals assigned to Locations (`Location.ActiveGoals`) for Mental/Physical challenges
-- Investigations dynamically spawn goals when phase requirements met
-- GoalCards define tiered victory conditions (8/12/16 momentum thresholds)
+**2. Scene System Integration**
+- Scenes spawn from SceneTemplates based on SpawnConditions
+- Situations contain ChoiceTemplates that route to tactical systems
+- ChoiceActionType.StartChallenge bridges strategic to tactical layer
+- Scene.PlacementType determines where scene appears (NPC/Location/Route)
 
-**3. Investigation System Integration**
-- InvestigationActivity manages multi-phase lifecycle (Potential → Discovered → Active → Complete)
-- Discovery triggers: ImmediateVisibility, EnvironmentalObservation, Conversational, Item, Obligation
-- Dynamic goal spawning: Phase completion spawns next phase's goals at NPCs/Locations
-- Knowledge system: Investigations grant knowledge that unlocks future phases
-
-**4. Unified 5-Stat Progression**
+**3. Unified 5-Stat Progression**
 - All cards across all three systems bind to: Insight/Rapport/Authority/Diplomacy/Cunning
 - Stat levels determine card depth access (Level 1: depths 1-2, Level 3: depths 1-4, etc.)
 - Playing cards grants XP to bound stat
 - Stats manifest differently per system (Insight = pattern recognition in Mental, structural analysis in Physical, reading people in Social)
 
-**5. Location System Integration**
+**4. Location System Integration**
 - LocationFacade coordinates NPC placement at locations
 - Integrates with TravelFacade for route validation
 - Coordinates with TimeFacade for time-based availability
-- Manages ActiveGoals for Mental/Physical challenges
+- Scenes can appear at Locations based on PlacementFilter
 
-**6. Resource System Integration**
+**5. Resource System Integration**
 - ResourceFacade manages permanent resources (Health, Stamina, Focus, Hunger, Coins)
 - **Mental challenges cost Focus** (concentration depletes)
 - **Physical challenges cost Health + Stamina** (injury risk + exertion)

@@ -476,56 +476,27 @@ The architecture separates generic situation patterns from scenario-specific rew
 
 These generic choices define cost/requirement structure but not rewards. The archetype doesn't know what unlocks - that's scenario-specific.
 
-**SceneArchetypeCatalog**: Generates scenario-specific scenes. Method `GenerateServiceWithLocationAccess` calls SituationArchetypeCatalog to get generic choices, then enriches them with scenario rewards:
+**SceneArchetypeCatalog Enriches Base Patterns:**
 
-```
-// Get generic negotiation choices
-var genericChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(SituationArchetype.Negotiation);
+**The Principle: Two-Tier Reusability**
 
-// Enrich with lodging-specific rewards
-var enrichedChoices = genericChoices.Select(choice => {
-  if (choice.Id.EndsWith("_rapport") || choice.Id.EndsWith("_money")) {
-    // Stat-gated and money choices grant unlock immediately
-    return new ChoiceTemplate {
-      ...choice properties...,
-      RewardTemplate = new ChoiceReward {
-        LocationsToUnlock = new List<string> { "generated:private_room" },
-        ItemIds = new List<string> { "generated:room_key" }
-      }
-    };
-  }
-  else if (choice.Id.EndsWith("_challenge")) {
-    // Challenge choice grants unlock only on success
-    return new ChoiceTemplate {
-      ...choice properties...,
-      OnSuccessReward = new ChoiceReward {
-        LocationsToUnlock = new List<string> { "generated:private_room" },
-        ItemIds = new List<string> { "generated:room_key" }
-      }
-    };
-  }
-  else {
-    // Fallback choice grants nothing
-    return choice;
-  }
-}).ToList();
-```
+Situation catalogues return choices with mechanical structure only (stat requirements, cost formulas, PathType assignments) but empty rewards. Scene catalogues receive these generic choices and enrich them with scenario-specific rewards based on PathType routing.
 
-Enrichment creates NEW ChoiceTemplate instances with populated reward properties. Never mutates returned objects - catalogues generate immutable structures.
+**Why This Separation:**
 
-This pattern enables reuse. Negotiation archetype used by lodging, bathing, healing, checkpoint, and transaction scenarios. Each enriches with scenario-appropriate rewards. Generic pattern + specific context = complete template.
+Negotiation mechanics (4-choice structure: stat-gated, money, challenge, fallback) are identical across all service scenarios. Only the REWARDS differ - lodging unlocks room, bathing unlocks bath house, healing unlocks clinic.
+
+If each scenario implemented its own negotiation mechanics, mechanical bugs would appear inconsistently. Changing negotiation balance would require updating 20+ scene archetypes. With two-tier pattern, fix negotiation once, all scenarios benefit.
+
+**The Trade-Off:**
+
+Adds complexity (two catalogue tiers instead of one). But multiplies content reusability dramatically. Same negotiation archetype supports lodging, bathing, healing, checkpoint access, merchant transactions, and future service types without code changes.
 
 ### Marker Resolution System
 
-Dependent resources use "generated:" prefix markers enabling templates to reference resources that don't exist yet.
+(See SCENE_INSTANTIATION_ARCHITECTURE.md for detailed marker resolution principles)
 
-**At Parse Time**: SceneArchetypeCatalog creates DependentLocationSpec with TemplateId "private_room". Situation.RequiredLocationId set to marker "generated:private_room". ChoiceReward.LocationsToUnlock contains "generated:private_room". Template complete with markers unresolved.
-
-**At Instantiation Time**: SceneInstantiator spawns scene. Calls ContentGenerationFacade to create locations from DependentLocationSpecs. Receives actual IDs ("scene_abc123_private_room"). Builds MarkerResolutionMap: `{"generated:private_room" → "scene_abc123_private_room"}`. Applies map to all situation and reward references. Situation.ResolvedRequiredLocationId populated with actual ID.
-
-**At Query Time**: RewardApplicationService applies ChoiceReward. Finds "generated:private_room" in LocationsToUnlock. Queries MarkerResolutionMap for actual ID. Unlocks "scene_abc123_private_room". Marker fully resolved to concrete entity.
-
-This enables template composition at parse time while deferring resource creation to instantiation time. Templates remain pure, reusable structures. Instances track concrete entity bindings.
+**Core Concept:** Templates reference logical markers ("generated:private_room"), instantiation resolves to concrete IDs ("scene_abc_private_room_guid"). This enables template reusability - same template spawns 100 times, creates 100 independent resource sets with 100 different GUIDs. No shared state between instances.
 
 
 
@@ -1641,119 +1612,73 @@ All resource costs calculated via consistent formulas. Prevents economic broken-
 
 **Balance Validation:** Generation time, formulas verified to produce positive values. No negative costs, no zero costs (except free interactions). No overflow (max difficulty capped preventing astronomical costs). Comprehensive unit tests verify formula correctness across all difficulty ranges and property combinations.
 
-### AI Context Bundling (Future Implementation)
+### Sequential Coherence Through Context Bundling
 
-When situation activates, AI needs context to generate appropriate narrative.
+**The Principle:**
 
-**Context Bundle Structure:**
-```
-NarrativeContext {
-  Entities: {
-    NPC: { Id, Name, Personality, Demeanor, RegionalAffiliation, KnownFacts }
-    Location: { Id, Name, Settlement, DangerLevel, Services, State }
-    Spot: { Id, Name, AccessControl, PrivacyLevel, Comfort } (if relevant)
-  }
-  SituationMeta: {
-    Position: int (1 of 4)
-    SequenceRole: enum (Opening, Middle, Climax, Resolution)
-    PrecedingOutcome: string (what happened in previous situation)
-  }
-  PlayerState: {
-    TimeOfDay: enum (Morning, Afternoon, Evening, Night)
-    Resources: { Health, Stamina, Focus, Coins }
-    HeldItems: List<ItemId>
-    Conditions: List<string> (Wounded, Tired, Energized, etc)
-  }
-  NarrativeHints: List<string> (derived from properties)
-}
-```
+AI narrative generation receives complete context: entity properties (NPC personality, location atmosphere, spot privacy), situation metadata (position in sequence, preceding outcomes), player state (time of day, resources, conditions). Each situation generation includes previous situation outcomes, enabling AI to reference prior events naturally.
 
-**Hint Derivation:** Generator queries entity properties, produces narrative hints:
-- NPC.Demeanor=Friendly → ["warm greeting", "helpful tone", "casual conversation"]
-- Location.Settlement=Wilderness → ["isolated atmosphere", "natural sounds", "rustic setting"]
-- Spot.Comfort=Luxury → ["plush furnishings", "elegant decor", "attention to detail"]
-- Player.Conditions contains "Wounded" → ["pain evident", "injury limiting", "need rest"]
+**Why This Works:**
 
-**AI Generation Call:** Send NarrativeContext to AI service. AI returns:
-```
-GeneratedNarrative {
-  SituationDescription: string (2-3 sentences setting scene)
-  ChoiceTexts: List<string> (one per choice, 1 sentence action)
-  OutcomeNarratives: Dictionary<ChoiceId, string> (2-3 sentences consequence)
-}
-```
+Without context bundling, AI generates isolated situations - Situation 2 has no awareness Situation 1 involved persuading innkeeper. Player gets jarring narrative disconnects ("You approach the innkeeper" when already negotiated with them last situation).
 
-**Storage:** Store GeneratedNarrative directly on Situation entity properties. Description, choice action texts, outcome texts persist for playthrough. Player sees same narrative on resume (doesn't regenerate).
+With bundling, Situation 2 context includes "player persuaded innkeeper warmly, received key". AI naturally generates continuation ("With the key in hand, you climb the stairs..."). No separate memory system, no complex state tracking - just include previous outcomes in generation context.
 
-**Sequential Coherence:** Situation 2 bundle includes Situation 1 outcome. AI sees "player persuaded innkeeper, was given key warmly" and generates Situation 2 narrative acknowledging this. Situation 3 sees both previous outcomes. Natural continuity emerges from context bundling, no separate memory system needed.
+**The Trade-Off:**
 
-**Regeneration on Replay:** New game spawns same template at same entities. Generation produces same mechanical structure. AI generates new narrative (different sentences, same meaning). Tutorial "Secure Lodging" mechanically identical every playthrough, narratively varied.
+Context bundles grow as scenes progress (Situation 4 includes outcomes from 1, 2, 3). Larger context = slower generation, higher AI costs. But coherent narrative worth the cost versus disconnected situations feeling machine-generated.
 
 ### GameFacade Orchestration Pattern
 
-GameFacade coordinates multi-system operations without implementing domain logic. Acts as composition root for complex workflows.
+**The Principle: Coordination Without Implementation**
 
-**Resource Creation Pipeline Orchestration:**
-```csharp
-LocationCreationResult CreateDynamicLocation(LocationCreationSpec spec) {
-  // Step 1: Create JSON file
-  DynamicFileManifest manifest = contentGenerationFacade.CreateDynamicLocationFile(spec);
-  if (!manifest.Success) {
-    return LocationCreationResult.Failure(manifest.ErrorReason);
-  }
-  
-  // Step 2: Parse and create entity
-  LocationCreationResult result = packageLoaderFacade.LoadDynamicContent(manifest.Filepath);
-  if (!result.Success) {
-    contentGenerationFacade.DeleteFile(manifest.Filepath); // Rollback
-    return result;
-  }
-  
-  // Step 3: Return success with final ID
-  return LocationCreationResult.Success(result.LocationId);
-}
-```
+GameFacade orchestrates multi-system operations but implements zero domain logic. Acts as composition root coordinating specialized facades, each with single responsibility. ContentGenerationFacade creates files, PackageLoaderFacade parses entities, GameFacade coordinates the sequence.
 
-**Facade Isolation:** GameFacade only orchestrates. ContentGenerationFacade only creates files. PackageLoaderFacade only parses and instantiates. Each facade has single responsibility. No facade imports other facades. Only GameFacade imports all facades for coordination.
+**Why This Separation:**
 
-**Transaction Guarantees:** Pipeline fails at any step → rollback previous steps. File created but parse failed → delete file. Entity created but validation failed → remove entity and delete file. Atomic all-or-nothing operations.
+If GameFacade implemented domain logic (file creation + parsing + validation), changes to any subsystem would require modifying GameFacade. File format changes, parsing logic updates, validation rule additions - all would touch the orchestrator. This creates fragile coupling.
 
-**Type-Safe Contracts:** All parameters strongly typed value objects. LocationCreationSpec (input), DynamicFileManifest (stage 1 output), LocationCreationResult (final output). Compiler enforces valid pipeline sequences. Can't pass wrong object to wrong method.
+With facade isolation, each subsystem encapsulates its complexity. ContentGenerationFacade changes file format - GameFacade unchanged (still calls CreateDynamicLocationFile, doesn't care about internal format). PackageLoaderFacade adds validation - GameFacade unchanged (still receives typed result, doesn't implement validation).
 
-**No Business Logic in Facade:** GameFacade doesn't know what a scene is, doesn't understand game rules, doesn't make strategic decisions. Only coordinates: "create this file, then parse that file, then return this ID". SceneInstanceFacade makes decisions (what location needed, when to create). GameFacade just executes.
+**Transaction Guarantees Through Rollback:**
+
+Multi-stage pipelines create partial state risk. File created but parse fails - orphaned JSON file exists. Entity created but validation fails - invalid entity in GameWorld. Partial state corrupts game world.
+
+Pipeline pattern enforces atomicity: Stage 1 succeeds, proceed to Stage 2. Stage 2 fails, rollback Stage 1. File created then parse failed - delete file. All-or-nothing guarantee - operation either completes fully or leaves no trace.
+
+**The Trade-Off:**
+
+Facade coordination adds ceremony - multiple method calls, explicit result checking, manual rollback. Simpler to write monolithic methods doing everything inline. But ceremony buys flexibility - swap implementations, add validation stages, introduce caching layers - all without touching orchestration logic. Architectural clarity chosen over implementation brevity.
+
+**Type-Safe Contracts:**
+
+Strongly-typed value objects (LocationCreationSpec, DynamicFileManifest, LocationCreationResult) as parameters and return types mean compiler enforces valid pipeline sequences. Can't accidentally pass wrong object to wrong method. Can't forget to check result status before proceeding. Contract violations caught at compile time, not runtime.
 
 ### Resource Cleanup on Scene End
 
-Scenes may create temporary resources. Cleanup must remove all traces.
+**The Principle: Dual-Location Tracking Enables Complete Cleanup**
 
-**Cleanup Trigger:** Scene completion or abandonment calls GameFacade.CleanupSceneResources(scene.DynamicResourceManifest).
+Temporary resources exist in two places: GameWorld entity collections (runtime) and JSON files (persistence). Deleting from only one location leaves orphans. Manifest tracks both ResourceId (for GameWorld removal) and Filepath (for file deletion), enabling complete cleanup.
 
-**Manifest Structure:**
-```csharp
-DynamicResourceManifest {
-  SceneId: string
-  CreatedResources: List<DynamicResource> {
-    ResourceType: enum (Location, Item, Spot)
-    ResourceId: string (GameWorld entity ID)
-    Filepath: string (JSON file path)
-    CreatedTimestamp: DateTime
-  }
-}
-```
+**Why Manifests Track Both Locations:**
 
-**Cleanup Process:**
-1. For each resource in manifest:
-2. Query GameWorld for entity by ResourceId
-3. Remove entity from appropriate collection (Locations, Items, Spots)
-4. Call ContentGenerationFacade.DeleteFile(resource.Filepath)
-5. Update spatial systems (hex grid if location, item references if item)
-6. Record cleanup timestamp
+Without manifests, cleanup code must reconstruct which resources belong to which scenes. Query GameWorld for entities matching scene ID - but what if entity already removed? Query file system for dynamic content files - but what if filename doesn't encode ownership? Reconstruction fragile and error-prone.
 
-**Validation:** Verify entity actually removed before marking cleanup complete. If entity removal fails, log diagnostic but continue (don't abort cleanup of other resources). CleanupResult reports successful/failed removals.
+Manifests created during resource generation capture exact relationship: "Scene A created Location B with ID X at filepath Y." Cleanup receives manifest, iterates list, removes from both locations. No reconstruction, no guessing, no orphaned resources.
 
-**Orphan Prevention:** If scene aborts mid-spawn (player crashes game during scene creation), next game load checks for orphaned dynamic resources. Query: files in /dynamic-content/locations/ with no corresponding active scene. Delete orphans. Prevents accumulation of dead content files.
+**Why Timestamp Included:**
 
-**Clean Slate Guarantee:** After cleanup, no evidence of temporary resources remains. GameWorld entity collections contain only permanent content and active dynamic content. File system contains only active resource JSON. No orphans, no dead references, no memory leaks.
+Player crashes mid-scene-creation. Scene partially spawned - some resources created, others not. Scene entity may not exist in GameWorld, but generated JSON files remain on disk. Orphaned files accumulate over time.
+
+Timestamp enables orphan detection: on game load, scan dynamic content directories for files. Check if corresponding scene exists in active GameWorld. Check timestamp - if older than session start but no owning scene, it's orphan. Delete automatically.
+
+**The Trade-Off:**
+
+Manifest bookkeeping adds overhead - every resource creation updates manifest, every cleanup iterates manifest. Simpler to skip tracking and let garbage accumulate. But garbage creates debugging nightmares - "why does this location exist?" Bookkeeping overhead chosen over accumulating technical debt.
+
+**Graceful Degradation:**
+
+If individual resource removal fails (entity already deleted, file permissions issue), log diagnostic but continue cleanup. Don't abort entire cleanup because one resource problematic. CleanupResult reports successful/failed removals, enabling partial recovery. Better to clean 4 out of 5 resources than abandon all cleanup on first failure.
 
 ### Pipeline Error Handling
 

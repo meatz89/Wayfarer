@@ -1,0 +1,77 @@
+{
+  "packageId": "a_story_tutorial",
+  "metadata": {
+    "name": "A-Story: The Journey",
+    "timestamp": "2025-11-10T00:00:00Z",
+    "description": "A-story scenes - you travel, arrive places, meet people, move on. No quest, no mystery. Just the journey itself.",
+    "author": "Wayfarer Team",
+    "version": "2.0.0"
+  },
+  "content": {
+    "sceneTemplates": [
+      {
+        "id": "a1_arrival",
+        "category": "MainStory",
+        "mainStorySequence": 1,
+        "archetype": "Linear",
+        "sceneArchetypeId": "inn_lodging",
+        "displayNameTemplate": "Arrival",
+        "presentationMode": "Modal",
+        "progressionMode": "Cascade",
+        "tier": 0,
+        "isStarter": true,
+        "placementFilter": {
+          "placementType": "NPC",
+          "npcId": "elena"
+        },
+        "introNarrativeTemplate": "You arrive as the sun sets, tired from the road. The inn's windows glow warm against the evening chill. You need a place to sleep."
+      },
+      {
+        "id": "a2_morning",
+        "category": "MainStory",
+        "mainStorySequence": 2,
+        "archetype": "Linear",
+        "sceneArchetypeId": "gather_testimony",
+        "displayNameTemplate": "Morning Conversation",
+        "presentationMode": "Modal",
+        "progressionMode": "Cascade",
+        "tier": 0,
+        "placementFilter": {
+          "placementType": "NPC",
+          "categoryFilter": {
+            "personalityTypes": ["Scholar", "Merchant"]
+          }
+        },
+        "spawnConditions": {
+          "playerState": {
+            "completedScenes": ["a1_arrival"]
+          }
+        },
+        "introNarrativeTemplate": "Morning light filters through the window. You find {NPCName} at {LocationName}, and conversation begins."
+      },
+      {
+        "id": "a3_departure",
+        "category": "MainStory",
+        "mainStorySequence": 3,
+        "archetype": "Linear",
+        "sceneArchetypeId": "investigate_location",
+        "displayNameTemplate": "Departure",
+        "presentationMode": "Modal",
+        "progressionMode": "Cascade",
+        "tier": 0,
+        "placementFilter": {
+          "placementType": "Location",
+          "categoryFilter": {
+            "properties": ["Commerce", "Governance"]
+          }
+        },
+        "spawnConditions": {
+          "playerState": {
+            "completedScenes": ["a2_morning"]
+          }
+        },
+        "introNarrativeTemplate": "You prepare to leave. {LocationName} awaits, and the road calls."
+      }
+    ]
+  }
+}

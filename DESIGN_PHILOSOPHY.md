@@ -441,29 +441,20 @@ Example: Investigation scene needs hub-and-spoke (3 parallel leads + convergence
 
 Example: All services follow negotiate → execute → depart pattern regardless of service type.
 
-**Anti-Pattern Examples:**
+**Why The Goldilocks Zone Matters:**
 
 **TOO SPECIFIC (Over-Specialized):**
-```csharp
-// WRONG: Hardcoded entity types
-if (npc.ServiceType == ServiceType.Lodging) {
-    grantItem = "room_key";
-} else if (npc.ServiceType == ServiceType.Bathing) {
-    grantItem = "bathhouse_token";
-}
+Hardcoding entity types couples archetypes to specific content. Adding new service type requires modifying archetype code - if statements grow, switch cases multiply, archetype becomes unmaintainable. Ten service types = ten branches in every archetype. Content authors can't add services without programmer intervention.
 
-// CORRECT: Scene archetype specifies resource
-DependentItems = [new DependentItemSpec { Id = "access_key" }]
-```
+With dependent resource specifications, archetype generic across service types. Lodging scene specifies "room_key" as dependent item, bathing specifies "bathhouse_token". Archetype grants whichever item the scene specifies. Adding eleventh service type = zero code changes, only new scene template with different dependent resource.
 
 **TOO GENERIC (No Useful Structure):**
-```csharp
-// WRONG: Generic "interaction" archetype with no constraints
-GenerateInteraction(int choiceCount, List<string> pathTypes, ...)
+Generic "interaction" archetype with arbitrary parameters provides no value over direct content authoring. If archetype accepts any choice count, any path types, any cost formulas - it's just a data container, not a reusable pattern. Authors must specify everything manually, defeating archetype purpose.
 
-// CORRECT: Specific mechanical pattern
-GenerateNegotiation() // Always 4 choices, stat/money/challenge/fallback
-```
+Specific mechanical pattern (4 choices, stat/money/challenge/fallback structure) encodes proven interaction design. Authors get consistent negotiation mechanics without specifying choice structure, cost balancing, or fallback guarantees. Archetype embeds game design expertise, not just technical scaffolding.
+
+**The Trade-Off:**
+Specificity enables reusability but constrains flexibility. "4 choices always" means can't have 3-choice or 5-choice negotiations without separate archetype. But constraint is feature - ensures consistent player experience, prevents choice overload, enables difficulty balancing. Strategic constraint chosen over unlimited flexibility.
 
 **Correct Layering:**
 
