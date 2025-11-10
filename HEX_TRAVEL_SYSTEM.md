@@ -34,28 +34,11 @@ Before implementing ANY travel/route/location system:
 
 ### Fail-Fast Enforcement
 
-**❌ FORBIDDEN - Silent defaults that hide broken player paths:**
-```csharp
-// WRONG - Route exists but player never sees it
-if (routes != null && routes.Any()) { DisplayRoutes(routes); }
+**FORBIDDEN - Silent defaults hiding broken player paths:**
+Checking if routes exist before displaying masks problem when route collection empty. Null-coalescing empty list for unavailable routes hides that player trapped at location with no exit routes.
 
-// WRONG - Starting location has no routes, player trapped
-var availableRoutes = GetRoutesFromLocation(locationId) ?? new List<Route>();
-```
-
-**✅ REQUIRED - Throw exceptions for missing critical connections:**
-```csharp
-// CORRECT - Validates starting location has routes
-Location startLocation = gameWorld.Locations.FirstOrDefault(l => l.Id == startingSpotId);
-if (!gameWorld.Routes.Any(r => r.SourceLocationId == startLocation.Id))
-    throw new InvalidOperationException($"Starting location '{startLocation.Name}' has no routes - player trapped!");
-
-// CORRECT - Validates route destination exists
-Route route = gameWorld.Routes.FirstOrDefault(r => r.Id == routeId);
-Location destination = gameWorld.Locations.FirstOrDefault(l => l.Id == route.DestinationLocationId);
-if (destination == null)
-    throw new InvalidOperationException($"Route '{route.Id}' leads to unknown location - player cannot reach!");
-```
+**REQUIRED - Throw exceptions for missing critical connections:**
+Validate starting location has at least one outgoing route, throw exception if none exist preventing player soft-lock. Validate route destination location exists in GameWorld.Locations, throw exception if route points to nonexistent location. Fail-fast approach forces fixing broken content rather than silently degrading experience.
 
 ### The Playability Test for Travel
 
@@ -77,47 +60,13 @@ For EVERY location/route in the game:
 ### Three-Loop Structure
 
 **SHORT LOOP (10-30 seconds):**
-```
-Situation presents narrative context
-↓
-View 2-4 Choices with visible costs (energy/hunger/coins/time)
-↓
-Select Choice → Pay cost → Receive reward
-↓
-Resources change, progress advances
-↓
-Next Situation or destination reached
-```
+Situation presents narrative context. Player views 2-4 Choices displaying visible costs (energy/hunger/coins/time). Player selects Choice paying cost receiving reward. Resources change and progress advances. Next Situation appears or destination reached.
 
 **MEDIUM LOOP (5-15 minutes):**
-```
-Depart from Tavern (hub)
-↓
-Select Route to delivery destination
-↓
-Travel Route (chain of Situations with choices)
-↓
-Reach destination Location
-↓
-Complete delivery, earn coins
-↓
-Return to Tavern
-↓
-Spend coins on survival (sleep/food)
-```
+Player departs from Tavern hub location. Selects Route to delivery destination from available routes. Travels Route experiencing chain of Situations with choices. Reaches destination Location completing delivery earning coins. Returns to Tavern. Spends coins on survival necessities (sleep/food).
 
 **LONG LOOP (hours):**
-```
-Accumulate coins from deliveries
-↓
-Purchase upgrades (better equipment, faster travel)
-↓
-Access harder/farther delivery routes
-↓
-Discover new Locations/Venues through exploration
-↓
-Unlock new narrative content
-```
+Player accumulates coins from multiple deliveries. Purchases upgrades improving capabilities (better equipment, faster travel). Accesses harder or farther delivery routes. Discovers new Locations and Venues through exploration. Unlocks new narrative content through progression.
 
 ### Resource Management
 
@@ -136,16 +85,8 @@ All resources compete. Choices offer multiple valid approaches with different co
 
 ### Entity Hierarchy
 
-```
-GameWorld
-├── HexMap (procedural scaffolding)
-│   └── Hex[] (grid cells with terrain/danger properties)
-├── Venues (narrative clusters, radius-based)
-│   └── Locations (specific spots within Venue)
-│       └── Location[] (sub-areas within Location)
-└── Routes (inter-venue travel paths)
-    └── RouteSegment[] (generated from hex path)
-```
+**Spatial Hierarchy:**
+GameWorld contains HexMap as procedural scaffolding holding Hex array (grid cells with terrain and danger properties). GameWorld contains Venues as narrative clusters organized by radius containing Locations as specific spots within Venue, Locations contain sub-areas array. GameWorld contains Routes as inter-venue travel paths composed of RouteSegment arrays generated from hex paths.
 
 ### Hex
 
@@ -220,22 +161,7 @@ Bidirectional travel path connecting two venue hub Locations. Generated automati
 Single Route entity represents both directions. UI presents as two separate travel options but references same Route.
 
 **Generation Algorithm:**
-```
-When Location with IsVenueTravelHub = true created:
-  For each existing hub Location in different Venue:
-    Calculate shortest valid hex path (A* pathfinding)
-    
-    If no valid path exists:
-      Skip (no Route created)
-    
-    Calculate Route properties from hex path:
-      DangerRating = Sum(hex.DangerLevel for hex in path)
-      TimeSegments = PathLength × TerrainMultipliers
-      TransportType = MostRestrictive(hex.TerrainType for hex in path)
-    
-    Create Route with calculated properties
-    Add to GameWorld.Routes
-```
+When Location with IsVenueTravelHub true gets created, system iterates each existing hub Location in different Venue. For each potential connection calculates shortest valid hex path using A-star pathfinding algorithm. If no valid path exists skips that connection creating no Route. If path found calculates Route properties from hex path: DangerRating equals sum of DangerLevel values across all hexes in path, TimeSegments equals path length multiplied by terrain-specific multipliers, TransportType equals most restrictive TerrainType encountered in path. Creates Route entity with calculated properties. Adds Route to GameWorld.Routes collection.
 
 **Transport Type Rules:**
 - **Walking**: Traverses all passable terrain
