@@ -22,9 +22,12 @@ The game is never-ending. The main storyline is never-ending. Like an endless ro
 
 ## Two-Phase A-Story Design
 
-### Phase 1: Authored Tutorial (A1-A10)
+### Phase 1: Authored Tutorial (A1-A3, expandable to A10+)
 
 **Purpose**: Teach mechanics, establish world, introduce core systems.
+
+**Current State**: A1-A3 authored and implemented
+**Design Capacity**: Architecture supports expansion to A10+ tutorial scenes
 
 **Characteristics**:
 - Hand-crafted scene templates in JSON files
@@ -32,8 +35,8 @@ The game is never-ending. The main storyline is never-ending. Like an endless ro
 - Gradual mechanical introduction (situation types, choice patterns, resources)
 - Establishes pursuit framework narrative
 - Fixed sequence validating as complete chain
-- Approximately 2-4 hours of gameplay
-- Ends with procedural transition trigger
+- Currently ~30-60 minutes of gameplay (A1-A3), expandable to 2-4 hours (A10+)
+- Ends with procedural transition trigger when tutorial complete
 
 **Tutorial Objectives**:
 - Teach 4-choice pattern (stat-gated, money-gated, challenge, fallback)
@@ -52,7 +55,7 @@ The game is never-ending. The main storyline is never-ending. Like an endless ro
 - You leave, you travel, you arrive somewhere new
 - The pattern repeats, endlessly, naturally
 
-### Phase 2: Procedural Continuation (A11 → ∞)
+### Phase 2: Procedural Continuation (A4+ → ∞)
 
 **Purpose**: Infinite content generation maintaining structural guarantees.
 
@@ -331,8 +334,8 @@ Procedural scenes use categorical properties, never hardcoded IDs:
 
 **Spawn Conditions Check A-Completion**:
 - B-story: "Local scholar's request" requires A1 complete (player established in region, known to be asking questions)
-- B-story: "Archivist's offer" requires A5 complete (player has shown genuine interest in history)
-- C-story: "Old colleague's invitation" requires A10 complete (pursuit has become known to community)
+- B-story: "Archivist's offer" requires A3 complete (player has shown genuine interest in history)
+- C-story: "Old colleague's invitation" requires A5+ complete (pursuit has become known to community)
 
 **Narrative Callbacks**:
 - NPC dialogue references player's A-story journey
@@ -349,9 +352,9 @@ Procedural scenes use categorical properties, never hardcoded IDs:
 ### A-Story Progression Reflected in B/C Content
 
 **Tier-Appropriate Content**:
-- Early A-scenes (A1-A10): Unlock Tier 1 regions with local B/C content
-- Mid A-scenes (A11-A30): Unlock Tier 2 regions with regional B/C content
-- Late A-scenes (A31+): Unlock Tier 3-4 regions with continental/cosmic B/C content
+- Early A-scenes (A1-A20): Unlock Tier 1 regions with local B/C content
+- Mid A-scenes (A21-A40): Unlock Tier 2 regions with regional B/C content
+- Late A-scenes (A41+): Unlock Tier 3-4 regions with continental/cosmic B/C content
 
 **Faction Relationships**:
 - A-story choices affect faction standing
@@ -442,11 +445,11 @@ Player can plan A-story engagement strategically but experiences tactical discov
 
 ### Authored Phase Validation (Parse-Time)
 
-**Validate A1-A10 tutorial chain**:
-- Complete sequence (1, 2, 3... 10, no gaps)
+**Validate authored tutorial chain**:
+- Complete sequence (1, 2, 3... N, no gaps) where N = highest MainStorySequence
 - Each scene has guaranteed success path in all situations
 - Final situation in each scene spawns next scene (all 4 choices)
-- A10 triggers procedural continuation
+- Final tutorial scene triggers procedural continuation
 
 **Fail-fast on errors**:
 - Missing scene in sequence
@@ -476,12 +479,13 @@ Player can plan A-story engagement strategically but experiences tactical discov
 - Start at A1
 - For each situation, select guaranteed path
 - Verify progression to next scene
-- Continue until A11+ procedural phase
+- Continue through authored scenes (A1-AN)
+- Transition to procedural phase (A[N+1]+)
 - Generate 100 procedural scenes
 - Verify no dead ends, loops, or soft-locks
 
 **Validation output**:
-- Path taken: A1→A2→...→A10→A11→A12→...→A110
+- Path taken: A1→A2→A3→A4→A5→...→A103 (3 authored + 100 procedural)
 - Archetypes used: 23 unique archetypes across 100 procedural scenes
 - Regions visited: 47 different regions
 - Average tier progression: 1.0→1.5→2.3→3.1→3.8
@@ -494,12 +498,12 @@ Player can plan A-story engagement strategically but experiences tactical discov
 ### Phase 1: Minimal A-Story Properties
 
 **Add to SceneTemplate**:
-- StoryType enum (MainAuthored, MainProcedural, Side, Service)
-- SequenceNumber nullable int (for authored A1-A10 only)
-- TriggersProceduralContinuation bool (A10 only)
+- StoryCategory enum (MainStory, SideStory, Service)
+- MainStorySequence nullable int (for authored A1-A3 currently, expandable to A10+)
+- TriggersProceduralContinuation bool (when tutorial complete)
 
 **Add validation**:
-- Authored chain completeness (sequence 1-10 unbroken)
+- Authored chain completeness (sequence 1-N unbroken, currently N=3)
 - Guaranteed success in all A-story situations
 - Final situation all-choices-spawn-next-scene
 
@@ -529,7 +533,7 @@ Player can plan A-story engagement strategically but experiences tactical discov
 - ValidateGenerated: Check structural guarantees
 
 **Integration point**:
-- A10 completion triggers first procedural generation
+- Final tutorial scene completion triggers first procedural generation
 - Each procedural scene completion triggers next generation
 - Infinite loop established
 
@@ -549,9 +553,9 @@ Player can plan A-story engagement strategically but experiences tactical discov
 ### Phase 5: Testing & Refinement
 
 **Integration tests**:
-- Complete A1-A10 tutorial
-- Verify A11 generates procedurally
-- Complete A11, verify A12 generates
+- Complete A1-AN tutorial (currently N=3)
+- Verify A[N+1] generates procedurally
+- Complete A[N+1], verify A[N+2] generates
 - Simulate 10+ procedural scenes
 
 **Validation testing**:
@@ -569,7 +573,7 @@ Player can plan A-story engagement strategically but experiences tactical discov
 
 ## Success Criteria
 
-### Authored Tutorial (A1-A10)
+### Authored Tutorial (A1-AN, currently N=3)
 
 **Player Experience**:
 - Learn all core mechanics through natural play
@@ -578,12 +582,12 @@ Player can plan A-story engagement strategically but experiences tactical discov
 - Transition smoothly into procedural phase
 
 **Technical Validation**:
-- All 10 scenes validate successfully
+- All authored scenes validate successfully
 - All situations have guaranteed paths
 - All final situations spawn next scene consistently
-- A10 triggers procedural continuation
+- Final tutorial scene triggers procedural continuation
 
-### Procedural Continuation (A11+)
+### Procedural Continuation (A[N+1]+)
 
 **Player Experience**:
 - Infinite content feels coherent and connected

@@ -998,7 +998,7 @@ Wayfarer is a **low-fantasy tactical RPG** with **three parallel challenge syste
 ### Core Design Philosophy
 - **GameWorld as Single Source of Truth**: All game state flows through GameWorld with zero external dependencies
 - **Three Parallel Tactical Systems**: Social (conversations), Mental (investigations), Physical (obstacles) with equivalent depth
-- **Strategic-Tactical Bridge**: Goals are first-class entities that connect strategic planning to tactical execution
+- **Strategic-Tactical Bridge**: Scenes spawn Situations with Choices, ChoiceActionType.StartChallenge routes to tactical systems
 - **Static Content Loading**: JSON content parsed once at startup without DI dependencies
 - **Facade Pattern**: Business logic coordinated through specialized facades
 - **Authoritative UI Pattern**: GameScreen owns all UI state, children communicate upward
@@ -1022,9 +1022,8 @@ PhysicalCardParser   → PhysicalCardDTO → PhysicalCard
 NPCParser            → NPCDTO → NPC
 VenueParser          → VenueDTO → Venue
 LocationParser       → LocationDTO → Location
-GoalParser           → GoalDTO → Goal
-InvestigationParser  → InvestigationDTO → Investigation
-KnowledgeParser      → KnowledgeDTO → Knowledge
+SceneParser          → SceneDTO → Scene
+SituationParser      → SituationDTO → Situation
 ```
 
 **CRITICAL PARSER PRINCIPLES**:
@@ -1502,17 +1501,13 @@ public List<MentalCard> MentalCards { get; set; }
 public List<PhysicalCard> PhysicalCards { get; set; }
 
 // Three Parallel Tactical Systems - Challenge Decks
-public Dictionary<string, SocialChallengeDeck> SocialChallengeDecks { get; }
-public Dictionary<string, MentalChallengeDeck> MentalChallengeDecks { get; }
-public Dictionary<string, PhysicalChallengeDeck> PhysicalChallengeDecks { get; }
+public List<SocialChallengeDeck> SocialChallengeDecks { get; }
+public List<MentalChallengeDeck> MentalChallengeDecks { get; }
+public List<PhysicalChallengeDeck> PhysicalChallengeDecks { get; }
 
-// Strategic-Tactical Bridge
-public Dictionary<string, Goal> Goals { get; }
-
-// Investigation System
-public List<Investigation> Investigations { get; }
-public InvestigationJournal InvestigationJournal { get; }
-public Dictionary<string, Knowledge> Knowledge { get; }
+// Strategic Layer - Scene System
+public List<SceneTemplate> SceneTemplates { get; set; }
+public List<Scene> Scenes { get; set; }
 
 // Player Stats System
 public List<PlayerStatDefinition> PlayerStatDefinitions { get; set; }
@@ -1568,11 +1563,11 @@ GameFacade (Pure Orchestrator)
 │   ├── TokenFacade (Relationship tokens)
 │   ├── NarrativeFacade (Messages and observations)
 │   └── ExchangeFacade (NPC trading system)
-└── INVESTIGATION & CONTENT
-    ├── InvestigationActivity (Multi-phase investigation management)
-    ├── InvestigationDiscoveryEvaluator (Discovery trigger evaluation)
-    ├── KnowledgeService (Knowledge grants and discovery)
-    └── GoalCompletionHandler (Goal completion and rewards)
+└── SCENES & CONTENT
+    ├── SceneInstantiator (Scene spawning from templates)
+    ├── SpawnFacade (Scene spawn condition evaluation)
+    ├── ContentGenerationFacade (Dynamic package creation)
+    └── RewardApplicationService (Reward application after choices)
 ```
 
 ### Facade Responsibilities
@@ -1615,10 +1610,10 @@ Token/          → Relationship tokens, connection tracking
 Travel/         → Route discovery, travel validation
 Narrative/      → Message system, observation rewards
 
-INVESTIGATION & CONTENT SYSTEMS
-Investigation/  → Multi-phase investigation lifecycle, goal spawning
-Knowledge/      → Knowledge discovery, secrets, world state changes
-Goals/          → Strategic-tactical bridge, victory conditions
+SCENE & SPAWN SYSTEMS
+Spawn/          → Scene spawn condition evaluation, template instantiation
+ProceduralContent/ → Procedural scene generation, AI content integration
+Catalogues/     → Parse-time categorical property translation
 ```
 
 ---
@@ -1947,32 +1942,25 @@ services.AddScoped<GameFacade>();
   - One-shot session model (must complete in single attempt)
   - Challenge types (Combat, Athletics, Finesse, Endurance, Strength)
 
-**2. Goals as Strategic-Tactical Bridge**
-- Goals are first-class entities in `GameWorld.Goals` dictionary
-- Goals assigned to NPCs (`NPC.ActiveGoals`) for Social challenges
-- Goals assigned to Locations (`Location.ActiveGoals`) for Mental/Physical challenges
-- Investigations dynamically spawn goals when phase requirements met
-- GoalCards define tiered victory conditions (8/12/16 momentum thresholds)
+**2. Scene System Integration**
+- Scenes spawn from SceneTemplates based on SpawnConditions
+- Situations contain ChoiceTemplates that route to tactical systems
+- ChoiceActionType.StartChallenge bridges strategic to tactical layer
+- Scene.PlacementType determines where scene appears (NPC/Location/Route)
 
-**3. Investigation System Integration**
-- InvestigationActivity manages multi-phase lifecycle (Potential → Discovered → Active → Complete)
-- Discovery triggers: ImmediateVisibility, EnvironmentalObservation, Conversational, Item, Obligation
-- Dynamic goal spawning: Phase completion spawns next phase's goals at NPCs/Locations
-- Knowledge system: Investigations grant knowledge that unlocks future phases
-
-**4. Unified 5-Stat Progression**
+**3. Unified 5-Stat Progression**
 - All cards across all three systems bind to: Insight/Rapport/Authority/Diplomacy/Cunning
 - Stat levels determine card depth access (Level 1: depths 1-2, Level 3: depths 1-4, etc.)
 - Playing cards grants XP to bound stat
 - Stats manifest differently per system (Insight = pattern recognition in Mental, structural analysis in Physical, reading people in Social)
 
-**5. Location System Integration**
+**4. Location System Integration**
 - LocationFacade coordinates NPC placement at locations
 - Integrates with TravelFacade for route validation
 - Coordinates with TimeFacade for time-based availability
-- Manages ActiveGoals for Mental/Physical challenges
+- Scenes can appear at Locations based on PlacementFilter
 
-**6. Resource System Integration**
+**5. Resource System Integration**
 - ResourceFacade manages permanent resources (Health, Stamina, Focus, Hunger, Coins)
 - **Mental challenges cost Focus** (concentration depletes)
 - **Physical challenges cost Health + Stamina** (injury risk + exertion)

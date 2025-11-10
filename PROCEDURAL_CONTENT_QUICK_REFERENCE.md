@@ -108,7 +108,7 @@ SpawnFacade.ExecuteSpawnRules()
 - **Progress:** CurrentSituationId (tracks player position)
 
 ### Situation (Instance)
-- **Where:** GameWorld.Situations
+- **Where:** Scene.Situations (embedded, owned by Scene)
 - **Deferred:** Yes (actions created at query time, not instantiation time)
 - **Placement:** Inherited from parent Scene via GetPlacementId()
 - **Narrative:** From template or AI-generated
