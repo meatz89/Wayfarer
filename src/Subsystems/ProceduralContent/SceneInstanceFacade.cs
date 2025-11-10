@@ -182,6 +182,8 @@ private void PostLoadOrchestration(Scene scene, SceneTemplate template, Player p
 /// Query all active scenes, return situations matching context requirements
 /// Used by UI to determine what choices to show player
 ///
+/// RUNTIME GUARDS: Validates required entities still exist (spawn-to-interaction gap protection)
+///
 /// Returns list of Situation instances matching context
 /// </summary>
 public List<Situation> GetSituationsAtContext(string locationId, string npcId = null)
@@ -190,6 +192,10 @@ public List<Situation> GetSituationsAtContext(string locationId, string npcId = 
 
     foreach (Scene scene in _gameWorld.Scenes)
     {
+        // Skip inactive scenes
+        if (scene.State != SceneState.Active)
+            continue;
+
         // Get situations directly from scene (direct object ownership)
         foreach (Situation situation in scene.Situations)
         {
@@ -199,10 +205,34 @@ public List<Situation> GetSituationsAtContext(string locationId, string npcId = 
 
             // Resolve location requirement (resolved marker or template)
             string requiredLocationId = situation.ResolvedRequiredLocationId ?? situation.Template?.RequiredLocationId;
+
+            // RUNTIME GUARD: Validate required location still exists
+            if (!string.IsNullOrEmpty(requiredLocationId))
+            {
+                Location requiredLocation = _gameWorld.GetLocation(requiredLocationId);
+                if (requiredLocation == null)
+                {
+                    Console.WriteLine($"[SceneInstanceFacade] Situation '{situation.Id}' requires deleted location '{requiredLocationId}' - skipping");
+                    continue; // Entity deleted between spawn and interaction - skip situation
+                }
+            }
+
             bool locationMatches = string.IsNullOrEmpty(requiredLocationId) || requiredLocationId == locationId;
 
             // Resolve NPC requirement (resolved marker or template)
             string requiredNpcId = situation.ResolvedRequiredNpcId ?? situation.Template?.RequiredNpcId;
+
+            // RUNTIME GUARD: Validate required NPC still exists
+            if (!string.IsNullOrEmpty(requiredNpcId))
+            {
+                NPC requiredNpc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == requiredNpcId);
+                if (requiredNpc == null)
+                {
+                    Console.WriteLine($"[SceneInstanceFacade] Situation '{situation.Id}' requires deleted NPC '{requiredNpcId}' - skipping");
+                    continue; // Entity deleted between spawn and interaction - skip situation
+                }
+            }
+
             bool npcMatches = string.IsNullOrEmpty(requiredNpcId) || requiredNpcId == npcId;
 
             if (locationMatches && npcMatches)

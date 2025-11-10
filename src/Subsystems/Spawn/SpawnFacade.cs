@@ -34,6 +34,7 @@ private readonly SpawnConditionsEvaluator _conditionsEvaluator;
 private readonly SceneInstanceFacade _sceneInstanceFacade;
 private readonly DependentResourceOrchestrationService _dependentResourceOrchestrationService;
 private readonly ProceduralAStoryService _proceduralAStoryService;
+private readonly SemaphoreSlim _spawnLock = new SemaphoreSlim(1, 1); // Prevents race conditions in spawn system (async-safe)
 
 public SpawnFacade(
     GameWorld gameWorld,
@@ -347,6 +348,24 @@ private void AddToActiveSituations(Situation situation)
 /// <param name="contextId">Optional context ID (locationId, npcId, etc.)</param>
 public async Task CheckAndSpawnEligibleScenes(SpawnTriggerType triggerType, string contextId = null)
 {
+    // CRITICAL: Semaphore entire method to prevent race conditions
+    // Race 1: Multiple threads checking duplicate spawns simultaneously
+    // Race 2: Multiple threads generating same procedural template
+    // Race 3: Concurrent GameWorld collection modifications
+    // Fail-fast principle: Better to serialize spawns than corrupt A-story progression
+    await _spawnLock.WaitAsync();
+    try
+    {
+        await CheckAndSpawnEligibleScenesInternal(triggerType, contextId);
+    }
+    finally
+    {
+        _spawnLock.Release();
+    }
+}
+
+private async Task CheckAndSpawnEligibleScenesInternal(SpawnTriggerType triggerType, string contextId = null)
+{
     Console.WriteLine($"[SpawnOrchestration] Checking eligible scenes (Trigger: {triggerType}, Context: {contextId ?? "none"})");
 
     Player player = _gameWorld.GetPlayer();
@@ -427,8 +446,24 @@ public async Task CheckAndSpawnEligibleScenes(SpawnTriggerType triggerType, stri
     int spawned = 0;
     foreach (SceneTemplate template in proceduralTemplates)
     {
-        // Skip if already spawned (check GameWorld.Scenes for this templateId)
-        bool alreadySpawned = _gameWorld.Scenes.Any(s => s.TemplateId == template.Id && s.State != SceneState.Completed);
+        // Skip if already spawned - WHITELIST check (State == Active) for robustness
+        // For A-story: Check MainStorySequence (not TemplateId) to prevent sequence duplicates
+        bool alreadySpawned;
+        if (template.Category == StoryCategory.MainStory && template.MainStorySequence.HasValue)
+        {
+            // A-story: Check by sequence number (prevents duplicate A4 with different template IDs)
+            alreadySpawned = _gameWorld.Scenes.Any(s =>
+                s.State == SceneState.Active &&
+                s.MainStorySequence == template.MainStorySequence.Value);
+        }
+        else
+        {
+            // B/C-story: Check by template ID (allows multiple instances of same template)
+            alreadySpawned = _gameWorld.Scenes.Any(s =>
+                s.TemplateId == template.Id &&
+                s.State == SceneState.Active);
+        }
+
         if (alreadySpawned)
         {
             continue; // Scene already active, don't spawn duplicate

@@ -133,7 +133,8 @@ public static IServiceCollection ConfigureServices(this IServiceCollection servi
     // Scene Instantiation System (needed by ObligationActivity)
     services.AddSingleton<SpawnConditionsEvaluator>();
     services.AddSingleton<SceneNarrativeService>();
-    services.AddSingleton<PackageLoader>();
+    services.AddSingleton<SceneGenerationFacade>(); // MOVED: Must be before PackageLoader (dependency)
+    services.AddSingleton<PackageLoader>(); // Depends on SceneGenerationFacade
     services.AddSingleton<HexRouteGenerator>();
     services.AddSingleton<MarkerResolutionService>();
     services.AddSingleton<SceneInstantiator>();
@@ -144,7 +145,6 @@ public static IServiceCollection ConfigureServices(this IServiceCollection servi
     // IMPORTANT: Register dependencies BEFORE SceneInstanceFacade
     services.AddSingleton<PackageLoaderFacade>();
     services.AddSingleton<ContentGenerationFacade>();
-    services.AddSingleton<SceneGenerationFacade>();
     services.AddSingleton<SceneInstanceFacade>(); // Depends on PackageLoaderFacade + ContentGenerationFacade + SpawnedScenePlayabilityValidator
 
     // Infinite A-Story Generation (procedural main story continuation)

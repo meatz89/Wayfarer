@@ -247,7 +247,7 @@ private void ValidateMarkerResolution(Scene scene, List<string> errors)
 /// <summary>
 /// Validate reward template markers are in resolution map
 /// </summary>
-private void ValidateRewardMarkers(RewardTemplate reward, string situationId, string choiceId, Dictionary<string, string> markerMap, List<string> errors)
+private void ValidateRewardMarkers(ChoiceReward reward, string situationId, string choiceId, Dictionary<string, string> markerMap, List<string> errors)
 {
     if (reward == null)
         return;
@@ -267,10 +267,10 @@ private void ValidateRewardMarkers(RewardTemplate reward, string situationId, st
         }
     }
 
-    // Check ItemsToGrant
-    if (reward.ItemsToGrant != null)
+    // Check ItemIds (items to grant)
+    if (reward.ItemIds != null)
     {
-        foreach (string itemId in reward.ItemsToGrant)
+        foreach (string itemId in reward.ItemIds)
         {
             if (!string.IsNullOrEmpty(itemId) && itemId.StartsWith("generated:"))
             {

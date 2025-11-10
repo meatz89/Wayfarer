@@ -3,6 +3,7 @@ using Wayfarer.GameState;
 using Wayfarer.GameState.Enums;
 using Wayfarer.Services;
 using System.Linq;
+using Wayfarer.Content.Validation;
 
 namespace Wayfarer.Tests;
 
