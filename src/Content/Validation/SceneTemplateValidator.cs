@@ -227,17 +227,24 @@ public static ValidationResult ValidateAStoryChain(List<SceneTemplate> allTempla
         return new ValidationResult(true, errors);
     }
 
-    for (int expectedSeq = 1; expectedSeq <= 10; expectedSeq++)
+    int minSequence = aStoryTemplates.Min(t => t.MainStorySequence!.Value);
+    int maxSequence = aStoryTemplates.Max(t => t.MainStorySequence!.Value);
+
+    if (minSequence != 1)
+    {
+        errors.Add(new ValidationError("ACHAIN_003", $"Authored A-story must start at sequence 1, but starts at A{minSequence}."));
+    }
+
+    for (int expectedSeq = minSequence; expectedSeq <= maxSequence; expectedSeq++)
     {
         var template = aStoryTemplates.FirstOrDefault(t => t.MainStorySequence == expectedSeq);
         if (template == null)
         {
-            errors.Add(new ValidationError("ACHAIN_001", $"Missing A-story sequence A{expectedSeq}. Authored A-story must have complete sequence A1-A10."));
+            errors.Add(new ValidationError("ACHAIN_001", $"Missing A-story sequence A{expectedSeq}. Authored A-story must have complete sequence with no gaps (found A{minSequence}-A{maxSequence})."));
         }
     }
 
     var duplicateSequences = aStoryTemplates
-        .Where(t => t.MainStorySequence <= 10)
         .GroupBy(t => t.MainStorySequence)
         .Where(g => g.Count() > 1)
         .ToList();
