@@ -300,4 +300,194 @@ public class AStoryPlayerExperienceTest : IntegrationTestBase
         // Player has successfully progressed through tutorial into infinite generation
         // No soft-locks encountered
     }
+
+    /// <summary>
+    /// TEST: A4→A5 procedural-to-procedural chain (CRITICAL MISSING TEST)
+    ///
+    /// FAILS IF:
+    /// - A4 completes but A5 doesn't generate
+    /// - A5 generates but is unplayable
+    /// - Procedural chain breaks after first procedural scene
+    ///
+    /// This tests the ACTUAL infinite loop: procedural → procedural → procedural...
+    /// Previous tests only validated authored → procedural transition.
+    /// </summary>
+    [Fact]
+    public async Task PlayerCompletesA4_ProceduralA5ActuallyGenerates()
+    {
+        // ARRANGE: Complete chain to A4
+        GameWorld gameWorld = GetGameWorld();
+        GameFacade gameFacade = GetGameFacade();
+        await gameFacade.StartGameAsync();
+
+        // Complete A1 → A2 → A3 → A4
+        Scene a1 = gameWorld.Scenes.First(s => s.MainStorySequence == 1);
+        a1.State = SceneState.Completed;
+        await gameFacade.CheckAndSpawnEligibleScenesAsync();
+
+        Scene a2 = gameWorld.Scenes.First(s => s.MainStorySequence == 2);
+        a2.State = SceneState.Completed;
+        await gameFacade.CheckAndSpawnEligibleScenesAsync();
+
+        Scene a3 = gameWorld.Scenes.First(s => s.MainStorySequence == 3);
+        a3.State = SceneState.Completed;
+        await gameFacade.CheckAndSpawnEligibleScenesAsync();
+
+        Scene a4 = gameWorld.Scenes.First(s => s.MainStorySequence == 4);
+        int sceneCountBeforeA5 = gameWorld.Scenes.Count;
+
+        // ACT: Player completes A4 (first procedural scene)
+        a4.State = SceneState.Completed;
+        await gameFacade.CheckAndSpawnEligibleScenesAsync();
+
+        // ASSERT: A5 was procedurally generated and is playable
+        Scene a5 = gameWorld.Scenes
+            .Where(s => s.State == SceneState.Active)
+            .FirstOrDefault(s => s.MainStorySequence == 5);
+
+        Assert.NotNull(a5); // CRITICAL: Procedural-to-procedural chain works
+
+        Assert.Equal(StoryCategory.MainStory, a5.Category);
+
+        Assert.True(gameWorld.Scenes.Count > sceneCountBeforeA5,
+            "A5 should be a NEW scene, not pre-existing");
+
+        // Generated scene must be playable
+        Assert.NotNull(a5.CurrentSituation);
+        Assert.NotEmpty(a5.CurrentSituation.Template.ChoiceTemplates);
+
+        // Generated scene must have guaranteed progression
+        bool hasGuaranteedPath = a5.CurrentSituation.Template.ChoiceTemplates.Any(choice =>
+            (choice.RequirementFormula == null ||
+             choice.RequirementFormula.OrPaths == null ||
+             !choice.RequirementFormula.OrPaths.Any()) &&
+            (choice.ActionType == ChoiceActionType.Instant || choice.ActionType == ChoiceActionType.Navigate));
+
+        Assert.True(hasGuaranteedPath,
+            "Procedurally generated A5 violates guaranteed progression - SOFT LOCK POSSIBLE");
+    }
+
+    /// <summary>
+    /// TEST: A5→A6 extended procedural chain (validates chain continues beyond A5)
+    ///
+    /// FAILS IF:
+    /// - Procedural chain breaks at any point
+    /// - Generation quality degrades over time
+    ///
+    /// This validates that infinite generation truly works infinitely,
+    /// not just for first few procedural scenes.
+    /// </summary>
+    [Fact]
+    public async Task PlayerCanCompleteExtendedProceduralChain_A1ThroughA6()
+    {
+        // ARRANGE: Start game
+        GameWorld gameWorld = GetGameWorld();
+        GameFacade gameFacade = GetGameFacade();
+        await gameFacade.StartGameAsync();
+
+        // ACT & ASSERT: Complete extended chain A1 → A2 → A3 → A4 → A5 → A6
+        for (int sequence = 1; sequence <= 6; sequence++)
+        {
+            Scene currentScene = gameWorld.Scenes.FirstOrDefault(s => s.MainStorySequence == sequence);
+
+            Assert.NotNull(currentScene);
+            Assert.Equal(SceneState.Active, currentScene.State);
+            Assert.NotNull(currentScene.CurrentSituation);
+            Assert.NotEmpty(currentScene.CurrentSituation.Template.ChoiceTemplates);
+
+            // Verify at least one choice is accessible
+            bool hasAccessibleChoice = currentScene.CurrentSituation.Template.ChoiceTemplates.Any(choice =>
+                choice.RequirementFormula == null ||
+                choice.RequirementFormula.OrPaths == null ||
+                !choice.RequirementFormula.OrPaths.Any());
+
+            Assert.True(hasAccessibleChoice,
+                $"A{sequence} has no accessible choices - SOFT LOCK at sequence {sequence}");
+
+            // Complete current scene and spawn next (if not A6)
+            if (sequence < 6)
+            {
+                currentScene.State = SceneState.Completed;
+                await gameFacade.CheckAndSpawnEligibleScenesAsync();
+            }
+        }
+
+        // If we reached here, player successfully progressed through 6 A-story scenes
+        // Authored (A1-A3) + Procedural (A4-A6) without any soft-locks
+    }
+
+    /// <summary>
+    /// TEST: Playability validation catches unplayable scenes
+    ///
+    /// FAILS IF:
+    /// - Validator doesn't detect missing CurrentSituation
+    /// - Validator doesn't detect missing choices
+    /// - Validator doesn't throw on unplayable scenes
+    ///
+    /// This validates the fail-fast principle: Better to crash than soft-lock
+    /// </summary>
+    [Fact]
+    public async Task PlayabilityValidator_DetectsUnplayableScenes()
+    {
+        // ARRANGE: Start game
+        GameWorld gameWorld = GetGameWorld();
+        GameFacade gameFacade = GetGameFacade();
+        await gameFacade.StartGameAsync();
+
+        Scene a1 = gameWorld.Scenes.First(s => s.MainStorySequence == 1);
+
+        // ACT: Deliberately break scene to make it unplayable
+        a1.CurrentSituation = null; // Remove current situation
+
+        // ASSERT: Validator should detect this and throw
+        SpawnedScenePlayabilityValidator validator = new SpawnedScenePlayabilityValidator(gameWorld);
+
+        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
+            () => validator.ValidatePlayability(a1)
+        );
+
+        Assert.Contains("has no CurrentSituation", exception.Message);
+        Assert.Contains("UNPLAYABLE", exception.Message);
+        Assert.Contains("SOFT LOCKED", exception.Message);
+    }
+
+    /// <summary>
+    /// TEST: All spawned scenes pass playability validation
+    ///
+    /// FAILS IF:
+    /// - Any scene in chain fails playability validation
+    /// - Procedurally generated scenes violate guaranteed progression
+    ///
+    /// This validates that playability validator is correctly integrated
+    /// and catches issues before they reach player.
+    /// </summary>
+    [Fact]
+    public async Task AllSpawnedScenes_PassPlayabilityValidation()
+    {
+        // ARRANGE: Start game and complete chain to A5
+        GameWorld gameWorld = GetGameWorld();
+        GameFacade gameFacade = GetGameFacade();
+        await gameFacade.StartGameAsync();
+
+        SpawnedScenePlayabilityValidator validator = new SpawnedScenePlayabilityValidator(gameWorld);
+
+        // Complete A1 → A2 → A3 → A4 → A5
+        for (int sequence = 1; sequence <= 5; sequence++)
+        {
+            Scene currentScene = gameWorld.Scenes.First(s => s.MainStorySequence == sequence);
+
+            // ACT: Validate playability (should not throw)
+            validator.ValidatePlayability(currentScene);
+
+            // Complete and spawn next
+            if (sequence < 5)
+            {
+                currentScene.State = SceneState.Completed;
+                await gameFacade.CheckAndSpawnEligibleScenesAsync();
+            }
+        }
+
+        // ASSERT: If we reached here, all scenes passed playability validation
+        // No exceptions thrown = all scenes playable
+    }
 }

@@ -34,6 +34,7 @@ private readonly PackageLoaderFacade _packageLoaderFacade;
 private readonly HexRouteGenerator _hexRouteGenerator;
 private readonly TimeManager _timeManager;
 private readonly GameWorld _gameWorld;
+private readonly SpawnedScenePlayabilityValidator _playabilityValidator;
 
 public SceneInstanceFacade(
     SceneInstantiator sceneInstantiator,
@@ -41,7 +42,8 @@ public SceneInstanceFacade(
     PackageLoaderFacade packageLoaderFacade,
     HexRouteGenerator hexRouteGenerator,
     TimeManager timeManager,
-    GameWorld gameWorld)
+    GameWorld gameWorld,
+    SpawnedScenePlayabilityValidator playabilityValidator)
 {
     _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
     _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
@@ -49,6 +51,7 @@ public SceneInstanceFacade(
     _hexRouteGenerator = hexRouteGenerator ?? throw new ArgumentNullException(nameof(hexRouteGenerator));
     _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
     _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+    _playabilityValidator = playabilityValidator ?? throw new ArgumentNullException(nameof(playabilityValidator));
 }
 
 /// <summary>
@@ -98,7 +101,13 @@ public async Task<Scene> SpawnScene(SceneTemplate template, SceneSpawnReward spa
         PostLoadOrchestration(spawnedScene, template, context.Player);
     }
 
-    Console.WriteLine($"[SceneInstanceFacade] Spawned scene '{spawnedScene.Id}' via HIGHLANDER flow");
+    // PHASE 2.6: RUNTIME PLAYABILITY VALIDATION (FAIL-FAST)
+    // Validates spawned scene is actually playable by player
+    // THROWS InvalidOperationException if scene creates soft-lock condition
+    // Architectural principle: "PLAYABILITY OVER COMPILATION" - unplayable scene worse than crash
+    _playabilityValidator.ValidatePlayability(spawnedScene);
+
+    Console.WriteLine($"[SceneInstanceFacade] Spawned scene '{spawnedScene.Id}' via HIGHLANDER flow - playability validated");
 
     return spawnedScene;
 }

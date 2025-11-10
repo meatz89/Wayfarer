@@ -390,29 +390,24 @@ public async Task CheckAndSpawnEligibleScenes(SpawnTriggerType triggerType, stri
             {
                 Console.WriteLine($"[InfiniteAStory] A{nextSequence} template does not exist - generating procedurally");
 
-                try
-                {
-                    // Get or initialize A-story context
-                    AStoryContext context = _proceduralAStoryService.GetOrInitializeContext(player);
+                // Get or initialize A-story context
+                AStoryContext context = _proceduralAStoryService.GetOrInitializeContext(player);
 
-                    // Generate next A-scene template (HIGHLANDER flow: DTO → JSON → PackageLoader → Template)
-                    string templateId = await _proceduralAStoryService.GenerateNextATemplate(nextSequence, context);
+                // Generate next A-scene template (HIGHLANDER flow: DTO → JSON → PackageLoader → Template)
+                // FAIL-FAST: If generation fails, throw immediately (don't catch)
+                // Architectural principle: Soft-lock worse than crash
+                // Player completing A-scene expecting next A-scene is unacceptable failure mode
+                string templateId = await _proceduralAStoryService.GenerateNextATemplate(nextSequence, context);
 
-                    Console.WriteLine($"[InfiniteAStory] A{nextSequence} template generated: {templateId}");
-                    Console.WriteLine($"[InfiniteAStory] Template added to GameWorld.SceneTemplates via HIGHLANDER flow");
+                Console.WriteLine($"[InfiniteAStory] A{nextSequence} template generated: {templateId}");
+                Console.WriteLine($"[InfiniteAStory] Template added to GameWorld.SceneTemplates via HIGHLANDER flow");
 
-                    // Update context after successful generation
-                    context.RecordCompletion(
-                        completedScene.Id,
-                        archetypeId: "unknown", // Would need archetype tracking in Scene
-                        regionId: null, // Would extract from placement
-                        personalityType: null); // Would extract from NPC
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[InfiniteAStory] ERROR generating A{nextSequence} template: {ex.Message}");
-                    Console.WriteLine($"[InfiniteAStory] Stack trace: {ex.StackTrace}");
-                }
+                // Update context after successful generation
+                context.RecordCompletion(
+                    completedScene.Id,
+                    archetypeId: "unknown", // Would need archetype tracking in Scene
+                    regionId: null, // Would extract from placement
+                    personalityType: null); // Would extract from NPC
             }
             else
             {

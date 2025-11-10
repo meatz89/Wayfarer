@@ -138,13 +138,14 @@ public static IServiceCollection ConfigureServices(this IServiceCollection servi
     services.AddSingleton<MarkerResolutionService>();
     services.AddSingleton<SceneInstantiator>();
     services.AddSingleton<DependentResourceOrchestrationService>();
+    services.AddSingleton<SpawnedScenePlayabilityValidator>(); // Runtime validation for soft-lock prevention
 
     // Scene Generation and Instance Facades (clean boundaries for procedural content)
     // IMPORTANT: Register dependencies BEFORE SceneInstanceFacade
     services.AddSingleton<PackageLoaderFacade>();
     services.AddSingleton<ContentGenerationFacade>();
     services.AddSingleton<SceneGenerationFacade>();
-    services.AddSingleton<SceneInstanceFacade>(); // Depends on PackageLoaderFacade + ContentGenerationFacade
+    services.AddSingleton<SceneInstanceFacade>(); // Depends on PackageLoaderFacade + ContentGenerationFacade + SpawnedScenePlayabilityValidator
 
     // Infinite A-Story Generation (procedural main story continuation)
     services.AddSingleton<ProceduralAStoryService>(); // Depends on GameWorld, ContentGenerationFacade, PackageLoaderFacade
