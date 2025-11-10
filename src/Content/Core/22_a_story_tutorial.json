@@ -1,0 +1,77 @@
+{
+  "packageId": "a_story_tutorial",
+  "metadata": {
+    "name": "A-Story Tutorial: Personal Search",
+    "timestamp": "2025-11-10T00:00:00Z",
+    "description": "Authored A-story tutorial scenes establishing the personal search narrative - carrying mentor's journal, seeking scattered colleagues who remember",
+    "author": "Wayfarer Team",
+    "version": "1.0.0"
+  },
+  "content": {
+    "sceneTemplates": [
+      {
+        "id": "a1_first_contact",
+        "category": "MainStory",
+        "mainStorySequence": 1,
+        "archetype": "Linear",
+        "sceneArchetypeId": "meet_order_member",
+        "displayNameTemplate": "First Contact",
+        "presentationMode": "Modal",
+        "progressionMode": "Cascade",
+        "tier": 0,
+        "isStarter": true,
+        "placementFilter": {
+          "placementType": "NPC",
+          "npcId": "elena"
+        },
+        "introNarrativeTemplate": "You arrive in the evening, road-worn and carrying little besides your mentor's journal. The pages are filled with half-finished thoughts, questions without answers, and names of people scattered across regions you've never visited. Elena's name appears several times - old friend, the notes say. Knew them well in the early years. You push open the inn door, hoping she might remember."
+      },
+      {
+        "id": "a2_following_thread",
+        "category": "MainStory",
+        "mainStorySequence": 2,
+        "archetype": "Linear",
+        "sceneArchetypeId": "gather_testimony",
+        "displayNameTemplate": "Following the Thread",
+        "presentationMode": "Modal",
+        "progressionMode": "Cascade",
+        "tier": 0,
+        "placementFilter": {
+          "placementType": "NPC",
+          "categoryFilter": {
+            "personalityTypes": ["Scholar", "Merchant"]
+          }
+        },
+        "spawnConditions": {
+          "playerState": {
+            "completedScenes": ["a1_first_contact"]
+          }
+        },
+        "introNarrativeTemplate": "Elena mentioned {NPCName} - someone your mentor knew in later years. The journal has their name too, just once, with a note: 'different perspective, uncomfortable questions.' You find them at {LocationName}, uncertain how they'll receive you or what they'll remember."
+      },
+      {
+        "id": "a3_complications",
+        "category": "MainStory",
+        "mainStorySequence": 3,
+        "archetype": "Linear",
+        "sceneArchetypeId": "investigate_location",
+        "displayNameTemplate": "Complications",
+        "presentationMode": "Modal",
+        "progressionMode": "Cascade",
+        "tier": 0,
+        "placementFilter": {
+          "placementType": "Location",
+          "categoryFilter": {
+            "properties": ["Archives", "Sacred"]
+          }
+        },
+        "spawnConditions": {
+          "playerState": {
+            "completedScenes": ["a2_following_thread"]
+          }
+        },
+        "introNarrativeTemplate": "Two people, two different memories of the same events. Elena spoke warmly of shared work, easy friendship. {PreviousNPCName} described tension, unspoken disagreements, a friendship that frayed. Your mentor's journal offers no clarity - just more questions, more names. The trail leads to {LocationName}, where older records might hold answers. Or more complications."
+      }
+    ]
+  }
+}
