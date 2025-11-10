@@ -31,69 +31,81 @@ Static package JSON loaded by PackageLoader. SceneTemplateParser parses template
 
 ### Phase 2: Instance Spawning (Dynamic Content)
 
-**Scenes** = Runtime instances with concrete placements
+**Principle: JSON as Universal Serialization Boundary**
 
-**Generation Flow:**
-SpawnFacade or RewardApplicationService triggers spawn. SceneInstantiator.GenerateScenePackageJson() executes: ResolvePlacement() converts categorical filters to concrete NPC/Location ID, GenerateSceneDTO() creates scene metadata, GenerateSituationDTOs() creates embedded situations collection, GenerateResourceDTOs() creates dependent locations and items. Returns complete JSON string. ContentGenerationFacade.CreateDynamicPackageFile() writes JSON to Content/Dynamic folder with unique package identifier. PackageLoaderFacade.LoadDynamicPackage() reads JSON invoking PackageLoader. SceneParser.ConvertDTOToScene() plus SituationParser process embedded situations. Scene entity with embedded Situation entities created. Added to GameWorld.Scenes collection.
+Even dynamically-generated scenes serialize to JSON before becoming entities. This isn't just consistency for consistency's sake - it serves critical functions:
 
-**Dynamic Package Structure:**
-Package contains: unique package identifier, content object with scenes array. Each scene contains: unique scene identifier, template identifier reference, placement type (NPC/Location/Route), resolved placement identifier (concrete entity ID from filter), scene state (Active/Completed/Expired), display name for UI, intro narrative text, embedded situations array containing complete SituationDTOs with nested ChoiceTemplateDTOs, optional locations array for dependent resources if scene is self-contained, optional items array for dependent resources if scene is self-contained.
+**Debuggability:** Inspect generated JSON files to verify procedural systems produce correct structures before parsing. Catches malformed generation early.
 
-## PlacementFilter Resolution (Categorical → Concrete)
+**Save/Load Parity:** Generated scenes serialize identically to authored scenes. No special cases for "was this authored or generated?" during save/load.
 
-**The Core Pattern:**
+**Validation Uniformity:** Generated content flows through same parser validation as authored content. Can't accidentally bypass validation by constructing entities directly.
 
-**Step 1: SceneTemplate has PlacementFilter** (categorical properties)
-PlacementFilter contains: PlacementType enum value (NPC/Location/Route), PersonalityTypes array for NPC filtering, BondThreshold numeric value for relationship minimum, SelectionStrategy enum (HighestBond/Random/Nearest) determining selection logic.
+**Why This Matters:**
+Direct entity construction (bypassing JSON) creates two code paths: one for authored content, one for generated. Bugs in generated path don't surface during authored content testing. JSON serialization forces single path - if parsing works for authored content, it works for generated content.
 
-**Step 2: SceneInstantiator resolves to concrete ID** (spawn time)
-FindMatchingNPC() queries GameWorld.NPCs collection. Filters candidates by PersonalityTypes inclusion, filters by BondThreshold minimum, filters by any additional criteria. ApplySelectionStrategy() applies selection logic: HighestBond selects NPC with maximum bond value, Random selects randomly from candidates, Nearest selects by proximity. Returns concrete entity identifier string.
+## Categorical-to-Concrete Resolution Principle
 
-**Step 3: SceneDTO contains concrete placement**
-SceneDTO contains PlacementId property with concrete entity identifier (no longer categorical filter), PlacementType enum value specifying entity type.
+**Why Categorical Filters Instead of Concrete IDs**
 
-**Step 4: SceneParser validates reference** (load time)
-PlacementId is string reference to existing entity. UI and navigation query GameWorld.NPCs or GameWorld.Locations using this identifier. No object resolution occurs during parsing - Scene stores only identifier string.
+Templates describe WHAT KIND of entity ("Trusted NPC with bond ≥15"), not WHICH specific entity ("Elena"). This separation serves fundamental architectural goals:
 
-## Composition Pattern: Scene OWNS Situations
+**Template Reusability:** Same template spawns with different concrete entities based on current game state. "Plea for help" template spawns with Elena on Day 5 (when her bond reaches 15), then spawns again with Marcus on Day 10 (when his bond reaches 15). One template, infinite instances.
 
-**Scenes embed Situations via direct ownership:**
-Scene entity contains Situations property as List collection directly owning Situation instances. SceneDTO mirrors this structure with embedded SituationDTO collection property. Situations have no meaning outside Scene context. Scene lifecycle completely controls Situation lifecycle. Scene completion makes all Situations inaccessible automatically. Situations exist ONLY in Scene.Situations collection, NOT in separate GameWorld.Situations collection.
+**State-Dependent Selection:** Resolution happens at spawn time when game state is known. Templates authored at design time can't know which NPCs exist, what bonds player has formed, or where player is located. Categorical filters defer these decisions until runtime.
 
-**Why Composition:**
-Situations semantically belong to their parent Scene. Deletion of Scene should delete all Situations. Situations cannot be shared between Scenes. Scene completion invalidates all child Situations simultaneously.
+**Graceful Degradation:** If no entities match categorical filter, spawn fails cleanly (no scene instance). Better than hardcoding "elena" and crashing when Elena doesn't exist in procedurally-generated worlds.
 
-**Parsing Flow:**
-SceneParser.ConvertDTOToScene iterates SceneDTO.Situations collection. For each SituationDTO invokes SituationParser.ConvertDTOToSituation passing GameWorld context. Adds resulting Situation entity to Scene.Situations collection establishing ownership.
+**Why This Matters:**
+Hardcoding concrete entity IDs in templates couples content to specific world states. "Find Elena and ask for help" only works if Elena exists. Categorical version "Find Trusted NPC with bond ≥15 and ask for help" works in any world state with appropriate NPCs. This enables procedural worlds where entity sets differ per playthrough.
 
-## Self-Contained Scenes Pattern
+## Ownership Through Embedding Principle
 
-**Self-contained scenes generate dependent resources:**
-SceneTemplate contains DependentLocationSpecs defining: logical identifier with "generated:" prefix, name template with placeholder tokens, venue identifier for spatial placement, placement strategy enum (AdjacentToNPC/AdjacentToLocation/SameVenue).
+**Why Situations Embed in Scenes Instead of Separate Collection**
 
-At spawn time SceneInstantiator generates LocationDTO containing: concrete scene-prefixed identifier, name with placeholders resolved to actual values, venue identifier for grouping, hex position calculated via placement strategy.
+Situations stored directly in Scene.Situations list (not GameWorld.Situations with ID references) eliminates entire categories of bugs:
 
-Package contains all related entities: scenes array, locations array with dependent locations, items array with dependent items. Single atomic package load.
+**No Orphans:** Scene deletion automatically cascades to embedded Situations. No separate garbage collection pass to find orphaned Situations. No "Situation references deleted Scene" errors.
 
-Scene tracks created resource identifiers in CreatedLocationIds list. MarkerResolutionMap translates logical identifiers ("generated:safe_house") to concrete identifiers ("scene_elena_plea_001_safe_house") enabling template marker resolution.
+**No Shared Ownership Confusion:** Situation belongs to exactly one Scene. Can't accidentally reference same Situation from multiple Scenes. No "which Scene owns this Situation?" questions.
 
-**Marker Resolution:**
-SituationTemplates reference markers using "generated:" prefix. ChoiceTemplate navigation targets use marker syntax. MarkerResolutionMap performs marker-to-ID translation at runtime. Enables template reusability without hardcoding concrete identifiers.
+**No Reference Consistency Errors:** Scene serialization includes all Situations. Can't have Scene referencing Situation IDs that don't exist in save file. Can't have Situation existing without owning Scene.
 
-## Complete Data Flow
+**Why This Matters:**
+ID-based references create temporal coupling - must load entities in specific order to resolve references. Embedding eliminates ordering constraints. Situations come into existence when Scene does, cease to exist when Scene does. Single atomic operation, impossible to get into inconsistent state.
 
-**STATIC CONTENT (One-time at game load):**
-SceneTemplateDTO loaded from JSON containing categorical PlacementFilter and SceneArchetypeId reference. PackageLoader invokes SceneTemplateParser. Parser invokes SceneArchetypeCatalogue generating complete SituationTemplates. PlacementFilter stored as-is maintaining categorical properties. SceneTemplate entity added to GameWorld.SceneTemplates collection.
+## Marker Resolution Enables Template-Generated Resources
 
-**DYNAMIC CONTENT (Every scene spawn):**
-SpawnFacade.CheckAndSpawnEligibleScenes evaluates SpawnConditions against player state and world state. Eligible templates trigger spawn. SceneInstantiator.GenerateScenePackageJson executes multi-step generation: ResolvePlacement converts categorical filter to concrete ID via FindMatchingNPC/Location/Route querying GameWorld, ApplySelectionStrategy (Closest/HighestBond/LeastRecent/Random) selects ONE entity from candidates returning PlacementResolution. GenerateSceneDTO creates scene metadata with unique identifier, concrete placement ID, display name with placeholders resolved. GenerateSituationDTOs converts each SituationTemplate to SituationDTO with embedded ChoiceTemplateDTOs and narrative generation (AI or template). GenerateResourceDTOs creates LocationDTOs and ItemDTOs for dependent resources with marker-to-ID mapping. BuildPackage assembles complete package serializing to JSON string.
+**The Problem: Templates Can't Reference Resources That Don't Exist Yet**
 
-ContentGenerationFacade.CreateDynamicPackageFile writes JSON to Content/Dynamic folder with unique package filename. PackageLoaderFacade.LoadDynamicPackage reads JSON invoking PackageLoader.LoadPackageContent which performs: LoadScenes converting SceneDTOs via SceneParser resolving TemplateId reference and parsing enums, iterating embedded SituationDTOs invoking SituationParser, adding Scene to GameWorld.Scenes. LoadLocations converting LocationDTOs via LocationParser adding to GameWorld.Locations. LoadItems converting ItemDTOs via ItemParser adding to GameWorld.Items.
+Scene template defines "secure lodging" scenario requiring private room location. Template written at design time can't know concrete ID of room (doesn't exist until scene spawns). Hardcoding placeholder ID ("private_room_001") fails when same template spawns twice - second instance would reference first instance's room.
 
-DependentResourceOrchestrationService post-processes: Sets Location/Item provenance metadata (SceneId, timestamp), generates hex routes for newly created locations, adds items to player inventory if specified.
+**The Solution: Logical Markers Resolved at Spawn Time**
 
-**RUNTIME STATE:**
-GameWorld.Scenes contains Scene entities with concrete placement. GameWorld.Locations contains dependent locations if any generated. GameWorld.Items contains dependent items if any generated. Player.Inventory contains items from scene if specified.
+Templates reference logical markers ("generated:private_room") instead of concrete IDs. When scene spawns:
+- System generates actual Location with real GUID
+- Builds resolution map: "generated:private_room" → "scene_abc_private_room_guid"
+- Replaces all marker references with concrete IDs
+
+Each spawn creates independent resource set. Template spawns 10 times, creates 10 different private rooms with 10 different GUIDs.
+
+**Why This Matters:**
+Without marker resolution, templates can only reference pre-existing global resources. "Secure lodging" template would need global "private_room" location shared across all instances. First player completes scene and locks room, second player can't access it. Markers enable resource isolation - each scene instance gets its own resources, no cross-contamination between instances.
+
+## Runtime Generation Uses Same Path as Static Content
+
+**The Unifying Principle**
+
+Dynamically-generated scenes (spawned during gameplay) flow through identical JSON→Parser→Entity path as hand-authored scenes (loaded at startup). No special constructors for generated content, no separate validation logic, no "runtime entity creation" bypass.
+
+**Why Single Path Matters:**
+
+Authored content gets thorough testing during development. Generated content might spawn combinations never tested. If generated content uses different code path, bugs in that path remain hidden until runtime. Single path means: if validation works for authored content, it works for generated content.
+
+Save files serialize scenes identically regardless of origin. Player saves game with mix of authored and generated scenes. Load code doesn't need to distinguish which is which - all scenes deserialize through same parser.
+
+**The Trade-Off:**
+JSON serialization adds overhead versus direct entity construction. But overhead is negligible compared to debugging cost of maintaining two parallel systems. Architectural uniformity chosen over micro-optimization.
 
 ## Key Architectural Decisions
 
@@ -155,43 +167,15 @@ Save operation: Serialize Scene to SceneDTO including embedded Situations. Conve
 - No need to instantiate Scene for preview
 - Spawn = commitment (player already decided)
 
-## File Organization
+## The Deleted Provisional Pattern and Why
 
-**Content Folder:**
-DTOs subfolder contains: SceneTemplateDTO for static blueprints, SceneDTO for runtime instances, SituationDTO embedded in Scene. Parsers subfolder contains SceneTemplateParser for template parsing. SceneParser handles instance parsing. SceneInstantiator performs DTO generation (refactored). PackageLoader loads both templates and instances.
+**Old Pattern:** Scenes had "Provisional" state - lightweight skeletons created for preview. Player could inspect basic info (situation count, estimated difficulty) before committing. FinalizeScene() would then create full instance or DeleteProvisionalScene() if player declined.
 
-**GameState Folder:**
-SceneTemplate stores immutable blueprints. Scene stores runtime instances. Situation owned by Scene. SceneProvenance tracks resource relationships.
+**Why Deleted:**
+Optimization solving the wrong problem. Preview data (situation count, difficulty tier) available directly from SceneTemplate - no need to instantiate Scene at all. Provisional state added complexity (extra state transitions, cleanup logic, partial instance handling) for negligible benefit.
 
-**Models Folder:**
-Package serves as container. PackageContent updated to contain both SceneTemplates and Scenes collections.
-
-**Services Folder:**
-DependentResourceOrchestrationService handles package loading orchestration.
-
-## Migration from Old Architecture
-
-### What Was Deleted
-
-SceneInstantiator deleted methods: CreateProvisionalScene for direct Scene entity creation, FinalizeScene for direct Situation entity creation, InstantiateSituation for direct entity creation, DeleteProvisionalScene for provisional state management, CalculateEstimatedDifficulty for provisional metadata, BuildScenePromptContext moved to generation service, BuildMarkerResolutionMap now happens in parser.
-
-### What Was Added
-
-SceneInstantiator new methods: GenerateScenePackageJson as main entry point, GenerateSceneDTO for Scene DTO generation, GenerateSituationDTOs for Situation DTO generation, GenerateChoiceDTOs for Choice DTO generation, BuildScenePackage for package assembly.
-
-### What Was Kept (Categorical Queries)
-
-SceneInstantiator unchanged methods: ResolvePlacement as entry point, EvaluatePlacementFilter as dispatcher, FindMatchingNPC/Location/Route for categorical queries, ApplySelectionStrategy methods for selection algorithms, CheckPlayerStateFilters for player validation. These methods correctly perform categorical queries returning identifiers without entity creation.
-
-## Testing Strategy
-
-### Unit Tests
-
-**GenerateSceneDTO Validation:** Arrange template with PlacementFilter containing categorical properties. Act by generating JSON via SceneInstantiator. Deserialize JSON to Package. Assert SceneDTO contains concrete placement identifier (not categorical filter), assert PlacementType enum correct.
-
-### Integration Tests
-
-**End-to-End Scene Spawn:** Arrange by loading SceneTemplate from test data. Act by generating JSON via instantiator, creating dynamic package file via ContentGenerationFacade, loading package via PackageLoader. Assert Scene exists in GameWorld.Scenes collection, assert concrete placement identifier matches expected value, assert Situations collection contains expected count.
+**New Pattern:**
+Spawn means commitment. Template metadata provides perfect information for player decision. No need for trial instantiation.
 
 ## Summary
 
