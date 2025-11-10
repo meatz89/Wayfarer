@@ -1702,6 +1702,16 @@ public async Task SpawnStarterScenes()
     }
 }
 
+/// <summary>
+/// Check for and spawn eligible scenes based on current game state
+/// Used by tests to manually trigger spawn checks after simulating scene completion
+/// In production, spawns happen automatically via SituationCompletionHandler
+/// </summary>
+public async Task CheckAndSpawnEligibleScenesAsync()
+{
+    await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Scene, contextId: null);
+}
+
 // ========== UNIFIED ACTION ARCHITECTURE - EXECUTE METHODS ==========
 
 /// <summary>

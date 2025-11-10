@@ -353,9 +353,26 @@ public async Task CheckAndSpawnEligibleScenes(SpawnTriggerType triggerType, stri
 
     // === INFINITE A-STORY INTEGRATION ===
     // Detect A-story scene completion and generate next A-scene template
-    if (triggerType == SpawnTriggerType.Scene && !string.IsNullOrEmpty(contextId))
+    if (triggerType == SpawnTriggerType.Scene)
     {
-        Scene completedScene = _gameWorld.Scenes.FirstOrDefault(s => s.Id == contextId);
+        // If contextId provided, use it directly
+        // If not provided (tests/manual trigger), find most recently completed A-story scene
+        Scene completedScene = null;
+
+        if (!string.IsNullOrEmpty(contextId))
+        {
+            completedScene = _gameWorld.Scenes.FirstOrDefault(s => s.Id == contextId);
+        }
+        else
+        {
+            // Find most recently completed A-story scene (highest sequence number)
+            completedScene = _gameWorld.Scenes
+                .Where(s => s.State == SceneState.Completed &&
+                           s.Category == StoryCategory.MainStory &&
+                           s.MainStorySequence.HasValue)
+                .OrderByDescending(s => s.MainStorySequence.Value)
+                .FirstOrDefault();
+        }
 
         if (completedScene != null &&
             completedScene.Category == StoryCategory.MainStory &&
