@@ -156,6 +156,22 @@ public SpawnPattern Archetype { get; set; }
 /// </summary>
 public string DisplayName { get; set; }
 
+/// <summary>
+/// Story category classification (copied from template)
+/// MainStory = A-story progression (sequential A1-A10, then procedural A11+)
+/// SideStory = B-story content (optional, unlocked by A-story)
+/// Service = C-story content (repeatable transactional)
+/// </summary>
+public StoryCategory Category { get; set; } = StoryCategory.SideStory;
+
+/// <summary>
+/// Main story sequence number (copied from template)
+/// 1-10 = Authored tutorial scenes
+/// 11+ = Procedural continuation (infinite)
+/// null = Not part of A-story
+/// </summary>
+public int? MainStorySequence { get; set; }
+
 // ==================== DEPENDENT RESOURCE TRACKING ====================
 
 /// <summary>

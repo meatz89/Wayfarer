@@ -103,6 +103,25 @@ public string IntroNarrativeTemplate { get; init; }
 public int Tier { get; init; } = 1;
 
 /// <summary>
+/// Story category classification for narrative role
+/// MainStory = A-story progression (sequential A1-A10, then procedural A11+)
+/// SideStory = B-story content (optional, unlocked by A-story progression)
+/// Service = C-story content (repeatable transactional scenes)
+/// Defaults to SideStory for backward compatibility with existing content
+/// </summary>
+public StoryCategory Category { get; init; } = StoryCategory.SideStory;
+
+/// <summary>
+/// Main story sequence number for A-story scenes
+/// 1-10 = Authored tutorial scenes (A1-A10, sequential progression)
+/// 11+ = Procedural continuation (A11, A12, A13... infinity)
+/// null = Not part of A-story (SideStory or Service content)
+/// CONSTRAINT: Non-null value requires Category = MainStory
+/// Used for A-story chain validation and sequence tracking
+/// </summary>
+public int? MainStorySequence { get; init; }
+
+/// <summary>
 /// Presentation mode - how Scenes spawned from this template appear to the player
 /// Atmospheric: Scene appears as menu option (existing behavior)
 /// Modal: Scene takes over full screen on location entry (Sir Brante forced moment)

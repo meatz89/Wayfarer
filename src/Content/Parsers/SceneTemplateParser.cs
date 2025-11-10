@@ -54,6 +54,31 @@ public SceneTemplate ParseSceneTemplate(SceneTemplateDTO dto)
         }
     }
 
+    // Parse StoryCategory (defaults to SideStory if not specified)
+    StoryCategory category = StoryCategory.SideStory;
+    if (!string.IsNullOrEmpty(dto.Category))
+    {
+        if (!Enum.TryParse<StoryCategory>(dto.Category, true, out category))
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid Category value: '{dto.Category}'. Valid values: MainStory, SideStory, Service");
+        }
+    }
+
+    // Validate MainStorySequence constraints
+    int? mainStorySequence = dto.MainStorySequence;
+    if (mainStorySequence.HasValue)
+    {
+        if (category != StoryCategory.MainStory)
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' has MainStorySequence={mainStorySequence} but Category is '{category}'. MainStorySequence requires Category='MainStory'.");
+        }
+
+        if (mainStorySequence.Value < 1 || mainStorySequence.Value > 99)
+        {
+            throw new InvalidDataException($"SceneTemplate '{dto.Id}' has invalid MainStorySequence={mainStorySequence}. Must be between 1 and 99.");
+        }
+    }
+
     // SCENE ARCHETYPE GENERATION: All scenes use sceneArchetypeId (HIGHLANDER: ONE path)
     // Scene archetype defines BOTH structure (how many situations) AND content (which situation types)
     // NO special handling for Standalone vs Multi-situation - catalogue handles all variation
@@ -104,6 +129,8 @@ public SceneTemplate ParseSceneTemplate(SceneTemplateDTO dto)
         IsStarter = dto.IsStarter,
         IntroNarrativeTemplate = dto.IntroNarrativeTemplate,
         Tier = dto.Tier,
+        Category = category,
+        MainStorySequence = mainStorySequence,
         PresentationMode = presentationMode,
         ProgressionMode = progressionMode,
         DependentLocations = dependentLocations,
