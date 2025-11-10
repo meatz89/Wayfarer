@@ -2,11 +2,11 @@
 
 ## The Frieren Principle: Eternal Journey Without Resolution
 
-The game is never-ending. The main storyline is never-ending. Like assembling a family history from scattered memories and fading letters, the A-story is an **infinite procedurally-generated spine** that provides structure and progression without resolution.
+The game is never-ending. The main storyline is never-ending. Like an endless road with no final destination, the A-story is an **infinite procedurally-generated spine** that provides structure and progression without resolution.
 
 ### Why Infinite?
 
-**Narrative Coherence**: The pursuit framework establishes a search that deepens rather than resolves. Each conversation poses new questions. Each shared memory points to another person who might remember more. Each discovery complicates your understanding. The journey of understanding IS the point, not reaching a final truth.
+**Narrative Coherence**: You travel. You arrive places. You meet people. Each place leads to another. Each person you meet suggests somewhere else worth visiting. The journey itself IS the point, not reaching anywhere specific.
 
 **Mechanical Elegance**: Infinite A-story eliminates the hardest problems of traditional narrative design:
 - No arbitrary ending point to justify
@@ -45,13 +45,12 @@ The game is never-ending. The main storyline is never-ending. Like assembling a 
 - Trigger infinite procedural continuation
 
 **Narrative Arc**:
-- You leave home carrying your mentor's unfinished journal and cryptic final questions
-- The journal speaks of scattered colleagues, old friends who drifted apart over decades
-- Each held one piece of understanding about a shared past, a common search
-- Journey to first contact (tutorial challenges introduce mechanics through human obstacles)
-- They remember your mentor fondly, share what they know, mention others who might remember more
-- Each person you find deepens the picture, complicates the story, raises new questions
-- Your search has just begun (transition to infinite pursuit of understanding)
+- You arrive at an inn at sunset, tired from the road
+- You need lodging, you meet the innkeeper, you rest
+- Morning comes, you talk with people, you handle what needs handling
+- Someone mentions another town, another place worth visiting
+- You leave, you travel, you arrive somewhere new
+- The pattern repeats, endlessly, naturally
 
 ### Phase 2: Procedural Continuation (A11 → ∞)
 
@@ -78,13 +77,13 @@ The game is never-ending. The main storyline is never-ending. Like assembling a 
 8. Player completes scene → loop repeats
 
 **Narrative Pattern**:
-- Each scene advances understanding: new person, new memory, new perspective
-- Each conversation complicates rather than resolves: differing recollections, contradictory interpretations
-- Understanding deepens: people remember differently, relationships were more complex than simple records suggest
-- Callbacks to earlier conversations create coherent personal history
-- Player's choices in B/C stories inform A-story narrative (how people perceive you shapes what they share)
-- Geographic variety reflects the scattered nature of lives lived over decades
-- Thematic variation: loss, reconciliation, understanding, acceptance, connection
+- Each scene is arrival somewhere new: new place, new people, new situations
+- Each person you meet is just themselves: their own concerns, their own lives
+- Connections form naturally through conversation and shared experience
+- Sometimes people mention each other, creating loose threads across the journey
+- Player's choices shape reputation: how you treat people affects how others receive you
+- Geographic variety reflects endless travel: always somewhere new to go
+- Thematic variation: arrival, meeting, helping, departing
 
 ---
 
@@ -150,35 +149,35 @@ Player chooses HOW they progress (optimal vs reliable vs risky vs patient), not 
 
 **20-30 reusable A-story archetypes** covering common progression beats:
 
-**Authority & Access**:
-- Seek Audience: Approach someone who guards their privacy, their time, or old wounds
-- Navigate Circles: Navigate social barriers between you and someone who knew your mentor
-- Prove Trustworthiness: Demonstrate you're genuinely seeking understanding, not scandal or gossip
-- Earn Confidence: Gain trust of someone reluctant to share difficult memories
+**Arrival & Lodging**:
+- Secure Lodging: Arrive tired, need a place to stay, negotiate with innkeeper
+- Find Welcome: Approach a new place, establish yourself, meet initial contacts
+- Navigate Entry: Enter a new social space, figure out how things work here
+- Earn Trust: New arrival in established community, prove you're worth talking to
 
-**Investigation & Discovery**:
-- Investigate Location: Visit a place significant to your mentor's past - their old home, workshop, favorite gathering place
-- Gather Perspectives: Talk to multiple people who remember the same event differently
-- Uncover Hidden History: Discover something your mentor never spoke about - old relationships, unfinished work, private struggles
-- Follow Correspondence: Trace old letters, follow references from one person to another across regions
+**Exploration & Discovery**:
+- Explore Place: Newly arrived, look around, understand what this place is
+- Talk with Locals: Meet people who live here, hear their perspectives
+- Understand Situation: Figure out what's happening in this place right now
+- Follow Suggestion: Someone mentioned somewhere else interesting, check it out
 
-**Conflict & Challenge**:
-- Confront Difficult Truth: Face someone who blames your mentor for old hurts, or holds bitter memories
-- Resolve Old Tensions: Help reconcile people your mentor knew, or understand why they couldn't reconcile
-- Navigate Complexity: Handle situations where simple understanding isn't possible, where people were both right and wrong
-- Defend Memory: Respond to harsh judgments of your mentor with understanding of their full context
+**Engagement & Challenge**:
+- Help with Problem: Someone needs help, you're here, you can assist or not
+- Navigate Conflict: Local tensions, you're new but involved now
+- Handle Complexity: Situations where there's no simple right answer
+- Make Choice: Meaningful decision about how to engage with this place and these people
 
-**Resource & Progression**:
-- Secure Keepsake: Obtain letters, journals, photographs, or items that hold memories
-- Journey to Region: Travel where your mentor once lived, worked, or studied (unlocks new B/C content)
-- Establish Connection: Gain acceptance in a community that knew your mentor
-- Build Relationship: Form genuine connection with someone who shares your interest in understanding the past
+**Practical Needs**:
+- Get Supplies: You need things, you're traveling, acquire what you need
+- Travel to Region: Move to a new area, unlock new locations and opportunities
+- Make Connection: Form genuine relationship with someone here
+- Build Reputation: People here now know you, will vouch for you elsewhere
 
-**Revelation & Complication**:
-- Reconnect: Find someone who knew your mentor, shares memories and letters
-- Understand Relationship: Learn how two people saw the same events differently
-- Discover Rift: Uncover old disagreements, friendships that ended, words never spoken
-- Question Understanding: Revelation that challenges what you thought you knew about your mentor
+**Departure & Continuation**:
+- Prepare to Leave: Your time here is done, ready to move on
+- Say Goodbyes: Part ways with people you've met, promises to return or not
+- Hear Suggestion: Someone mentions another place worth visiting
+- Hit the Road: Back to traveling, next destination ahead
 
 **Each archetype defines**:
 - Situation count (usually 3-4)
@@ -253,12 +252,12 @@ Procedural scenes use categorical properties, never hardcoded IDs:
 - Player character build (which stats high/low)
 
 **Narrative Requirements**:
-- Reference player journey organically (callbacks to people met, conversations had)
-- Advance understanding (new memory shared, new perspective gained, new connection revealed)
-- Deepen complexity (differing accounts, contradictory feelings, unresolved relationships)
-- Justify next step (this person mentions another who might remember, points to old letters or places)
-- Maintain contemplative tone: like assembling a family history from scattered photographs and fading memories
-- Connect to B/C story experiences when relevant (how you treat people affects what they share)
+- Reference player journey organically (callbacks to places visited, people met)
+- Create natural arrival: you've traveled, you're here now, this is what you see
+- People have their own concerns: not waiting for you, living their own lives
+- Next destination emerges naturally: someone suggests a place, you hear about somewhere interesting
+- Maintain quiet realism: real travel, real arrival, real conversations
+- Connect to B/C story experiences when relevant (reputation travels, people hear about you)
 - Use resolved entities naturally ({NPCName}, {LocationName} placeholders)
 
 **AI Generates**:
@@ -285,11 +284,11 @@ Procedural scenes use categorical properties, never hardcoded IDs:
 - Unlock new regions periodically via A-story progression
 
 **Tier Escalation**:
-- A11-A20: Tier 1 (local connections, intimate circles - your mentor's close friends and students)
-- A21-A30: Tier 2 (wider network, older colleagues - those who studied together, worked together decades past)
-- A31-A40: Tier 3 (historical figures, institutional memory - archivists, keepers of old records, those who remember the beginning)
-- A41+: Tier 4 (deep patterns, inherited questions - understanding what drove this search across generations)
-- Player feels progression through deepening personal significance, not power scale
+- A1-A20: Tier 1 (small towns, simple inns, local people)
+- A21-A40: Tier 2 (larger towns, more established places, more complex social situations)
+- A41-A60: Tier 3 (cities, significant locations, deeper relationships)
+- A61+: Tier 4 (major centers, long-term consequences of earlier choices visible)
+- Player feels progression through deepening familiarity with the world, not power
 - Earlier tier content remains accessible (B/C stories at all tiers)
 
 **Entity Rotation**:
@@ -619,8 +618,8 @@ Player can plan A-story engagement strategically but experiences tactical discov
 
 ## The Eternal Journey
 
-The A-story is the spine of an infinite game. It provides structure without constraint, progression without conclusion, purpose without destination. Like sorting through a beloved relative's letters and journals, there's always one more person to find, one more memory to understand, one more question that leads to another.
+The A-story is the spine of an infinite game. It provides structure without constraint, progression without conclusion, purpose without destination. Like walking an endless road where each town leads to another, there's always somewhere new to go, someone new to meet, another dawn on another horizon.
 
-Each conversation is complete in itself. Each memory satisfies even as it complicates. Each person met enriches your understanding. The journey continues not because it must, but because understanding deepens, connections reveal new connections, and the act of seeking itself becomes meaningful.
+Each place is complete in itself. Each person you meet is just themselves. Each conversation, each choice, each moment of connection or conflict stands alone. The journey continues not because it must, but because the road keeps going, and you keep walking.
 
-The player is not racing toward an ending or a revelation. They are assembling a picture of lives lived, relationships formed and broken, questions asked across generations. The A-story is their thread through time, always ready, never demanding, eternally offering the next conversation, the next memory, the next step toward understanding.
+The player is not racing toward an ending. They are traveling. The A-story is the road itself, always ready, never demanding, eternally offering the next town, the next inn, the next sunrise.
