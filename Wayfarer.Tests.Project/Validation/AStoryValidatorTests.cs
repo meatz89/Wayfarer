@@ -6,8 +6,16 @@ using Xunit;
 namespace Wayfarer.Tests.Project.Validation;
 
 /// <summary>
-/// Unit tests for A-story specific validation logic.
-/// Tests ValidateAStoryChain and per-template A-story validation.
+/// PARSE-TIME validation tests for A-story JSON authoring.
+/// These tests validate JSON structure BEFORE runtime.
+/// They catch authoring errors, not player experience failures.
+///
+/// IMPORTANT: These tests check if content will PARSE correctly.
+/// They do NOT test if player can actually PLAY the content.
+/// See AStoryPlayerExperienceTest for actual gameplay validation.
+///
+/// Use case: Author writes A4.json with missing sequence, parser catches error.
+/// Not use case: Checking if player can complete A4 (that's player experience test).
 /// </summary>
 public class AStoryValidatorTests
 {
