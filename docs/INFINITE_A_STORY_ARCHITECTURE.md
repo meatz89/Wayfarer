@@ -2,11 +2,11 @@
 
 ## The Frieren Principle: Eternal Journey Without Resolution
 
-The game is never-ending. The main storyline is never-ending. Like Frieren's immortal journey across an eternal world, the A-story is an **infinite procedurally-generated spine** that provides structure and progression without resolution.
+The game is never-ending. The main storyline is never-ending. Like assembling a family history from scattered memories and fading letters, the A-story is an **infinite procedurally-generated spine** that provides structure and progression without resolution.
 
 ### Why Infinite?
 
-**Narrative Coherence**: The pursuit framework establishes a quest that deepens rather than resolves. Each revelation poses new questions. Each answer points to the next member of the scattered order. Each discovery complicates the mystery. The journey IS the point, not the destination.
+**Narrative Coherence**: The pursuit framework establishes a search that deepens rather than resolves. Each conversation poses new questions. Each shared memory points to another person who might remember more. Each discovery complicates your understanding. The journey of understanding IS the point, not reaching a final truth.
 
 **Mechanical Elegance**: Infinite A-story eliminates the hardest problems of traditional narrative design:
 - No arbitrary ending point to justify
@@ -45,12 +45,13 @@ The game is never-ending. The main storyline is never-ending. Like Frieren's imm
 - Trigger infinite procedural continuation
 
 **Narrative Arc**:
-- Village destroyed by mysterious force
-- Dying mentor's last words: "Seek the Order, they know the truth"
-- Journey to first Order member (tutorial challenges)
-- Member reveals: Order scattered across world, hundreds of members
-- Each member knows one piece, points to next
-- Your journey has just begun (transition to infinite pursuit)
+- You leave home carrying your mentor's unfinished journal and cryptic final questions
+- The journal speaks of scattered colleagues, old friends who drifted apart over decades
+- Each held one piece of understanding about a shared past, a common search
+- Journey to first contact (tutorial challenges introduce mechanics through human obstacles)
+- They remember your mentor fondly, share what they know, mention others who might remember more
+- Each person you find deepens the picture, complicates the story, raises new questions
+- Your search has just begun (transition to infinite pursuit of understanding)
 
 ### Phase 2: Procedural Continuation (A11 → ∞)
 
@@ -77,13 +78,13 @@ The game is never-ending. The main storyline is never-ending. Like Frieren's imm
 8. Player completes scene → loop repeats
 
 **Narrative Pattern**:
-- Each scene advances pursuit: new lead, new member, new revelation
-- Each revelation complicates rather than resolves
-- Mystery deepens: order has internal schism, members have conflicting knowledge, pursuit itself questioned
-- Callbacks to earlier journey beats create coherence
-- Player's choices in B/C stories inform A-story narrative
-- Geographic variety prevents repetition
-- Thematic variation maintains interest
+- Each scene advances understanding: new person, new memory, new perspective
+- Each conversation complicates rather than resolves: differing recollections, contradictory interpretations
+- Understanding deepens: people remember differently, relationships were more complex than simple records suggest
+- Callbacks to earlier conversations create coherent personal history
+- Player's choices in B/C stories inform A-story narrative (how people perceive you shapes what they share)
+- Geographic variety reflects the scattered nature of lives lived over decades
+- Thematic variation: loss, reconciliation, understanding, acceptance, connection
 
 ---
 
@@ -123,21 +124,21 @@ In an infinite game, a single soft-lock is catastrophic. Player cannot "restart"
 
 **Choice 4: Guaranteed Path (Patient)**
 - Requirement: None (always available)
-- Cost: Time (wait several days, work menial labor, persistent effort)
+- Cost: Time (wait several days, help with their needs, persistent gentle effort)
 - Outcome: Minimal rewards but GUARANTEED advancement
-- Purpose: Prevent soft-lock, narrative justification for inevitability
-- Examples: "Wait patiently", "Beg for mercy", "Work for access", "Find alternative route"
+- Purpose: Prevent soft-lock, reflects how real trust and openness develop
+- Examples: "Wait for them to be ready", "Offer to help with something they need", "Share your own story first", "Ask someone else to introduce you"
 
 ### Final Situation Special Case
 
 The last situation in every A-scene has additional requirement: **ALL FOUR CHOICES** must spawn the next A-scene.
 
 **Different entry states, same progression**:
-- Stat-gated choice: Enter next scene as respected equal
-- Money-gated choice: Enter next scene as generous patron
-- Challenge success: Enter next scene as triumphant victor
-- Challenge failure: Enter next scene as humbled supplicant (but still enter!)
-- Guaranteed path: Enter next scene after patient waiting
+- Stat-gated choice: Enter next conversation as someone who naturally understands
+- Money-gated choice: Enter as someone who showed generosity, earned goodwill
+- Challenge success: Enter having navigated social complexity skillfully
+- Challenge failure: Enter having shown vulnerability, earned sympathy (but still enter!)
+- Guaranteed path: Enter after demonstrating patience and genuine interest
 
 Player chooses HOW they progress (optimal vs reliable vs risky vs patient), not IF they progress.
 
@@ -150,34 +151,34 @@ Player chooses HOW they progress (optimal vs reliable vs risky vs patient), not 
 **20-30 reusable A-story archetypes** covering common progression beats:
 
 **Authority & Access**:
-- Seek Audience: Gain access to authority figure (king, guild leader, faction head)
-- Navigate Court: Maneuver through political/social hierarchy
-- Prove Worth: Demonstrate capability to skeptical gatekeeper
-- Secure Patronage: Gain support from powerful benefactor
+- Seek Audience: Approach someone who guards their privacy, their time, or old wounds
+- Navigate Circles: Navigate social barriers between you and someone who knew your mentor
+- Prove Trustworthiness: Demonstrate you're genuinely seeking understanding, not scandal or gossip
+- Earn Confidence: Gain trust of someone reluctant to share difficult memories
 
 **Investigation & Discovery**:
-- Investigate Location: Explore mysterious/dangerous place for clues
-- Interrogate Witnesses: Gather information from multiple sources
-- Uncover Secret: Discover hidden knowledge or conspiracy
-- Follow Trail: Track leads across region
+- Investigate Location: Visit a place significant to your mentor's past - their old home, workshop, favorite gathering place
+- Gather Perspectives: Talk to multiple people who remember the same event differently
+- Uncover Hidden History: Discover something your mentor never spoke about - old relationships, unfinished work, private struggles
+- Follow Correspondence: Trace old letters, follow references from one person to another across regions
 
 **Conflict & Challenge**:
-- Confront Antagonist: Face major threat or obstacle
-- Resolve Dispute: Mediate between conflicting factions
-- Escape Pursuit: Flee overwhelming threat to fight another day
-- Defend Position: Hold ground against assault
+- Confront Difficult Truth: Face someone who blames your mentor for old hurts, or holds bitter memories
+- Resolve Old Tensions: Help reconcile people your mentor knew, or understand why they couldn't reconcile
+- Navigate Complexity: Handle situations where simple understanding isn't possible, where people were both right and wrong
+- Defend Memory: Respond to harsh judgments of your mentor with understanding of their full context
 
 **Resource & Progression**:
-- Secure Resource: Obtain critical item, access, or information
-- Journey to Region: Travel to new area (unlocks new B/C content)
-- Establish Foothold: Gain base of operations in new region
-- Forge Alliance: Create relationship with new faction
+- Secure Keepsake: Obtain letters, journals, photographs, or items that hold memories
+- Journey to Region: Travel where your mentor once lived, worked, or studied (unlocks new B/C content)
+- Establish Connection: Gain acceptance in a community that knew your mentor
+- Build Relationship: Form genuine connection with someone who shares your interest in understanding the past
 
 **Revelation & Complication**:
-- Meet Order Member: Find next scattered member (core pursuit beat)
-- Receive Fragment: Learn piece of truth that raises new questions
-- Discover Schism: Uncover conflict within Order (complicates pursuit)
-- Question Pursuit: Revelation that challenges assumptions (deepens mystery)
+- Reconnect: Find someone who knew your mentor, shares memories and letters
+- Understand Relationship: Learn how two people saw the same events differently
+- Discover Rift: Uncover old disagreements, friendships that ended, words never spoken
+- Question Understanding: Revelation that challenges what you thought you knew about your mentor
 
 **Each archetype defines**:
 - Situation count (usually 3-4)
@@ -252,12 +253,12 @@ Procedural scenes use categorical properties, never hardcoded IDs:
 - Player character build (which stats high/low)
 
 **Narrative Requirements**:
-- Reference player journey organically (callbacks to recent scenes)
-- Advance pursuit (new piece of knowledge/clue)
-- Deepen mystery (raise new questions, complicate situation)
-- Justify next step (why pursue next lead)
-- Maintain Frieren-style eternal journey tone
-- Connect to B/C story experiences when relevant
+- Reference player journey organically (callbacks to people met, conversations had)
+- Advance understanding (new memory shared, new perspective gained, new connection revealed)
+- Deepen complexity (differing accounts, contradictory feelings, unresolved relationships)
+- Justify next step (this person mentions another who might remember, points to old letters or places)
+- Maintain contemplative tone: like assembling a family history from scattered photographs and fading memories
+- Connect to B/C story experiences when relevant (how you treat people affects what they share)
 - Use resolved entities naturally ({NPCName}, {LocationName} placeholders)
 
 **AI Generates**:
@@ -284,11 +285,11 @@ Procedural scenes use categorical properties, never hardcoded IDs:
 - Unlock new regions periodically via A-story progression
 
 **Tier Escalation**:
-- A11-A20: Tier 1 (local problems, village-scale)
-- A21-A30: Tier 2 (regional conflicts, city-scale)
-- A31-A40: Tier 3 (continental threats, kingdom-scale)
-- A41+: Tier 4 (cosmic/existential stakes, world-scale)
-- Player feels progression through scope increase
+- A11-A20: Tier 1 (local connections, intimate circles - your mentor's close friends and students)
+- A21-A30: Tier 2 (wider network, older colleagues - those who studied together, worked together decades past)
+- A31-A40: Tier 3 (historical figures, institutional memory - archivists, keepers of old records, those who remember the beginning)
+- A41+: Tier 4 (deep patterns, inherited questions - understanding what drove this search across generations)
+- Player feels progression through deepening personal significance, not power scale
 - Earlier tier content remains accessible (B/C stories at all tiers)
 
 **Entity Rotation**:
@@ -330,15 +331,15 @@ Procedural scenes use categorical properties, never hardcoded IDs:
 ### B/C Stories Reference A-Story Progress
 
 **Spawn Conditions Check A-Completion**:
-- B-story: "Merchant's dilemma" requires A1 complete (player established in region)
-- B-story: "Guild recruitment" requires A5 complete (player achieved notoriety)
-- C-story: "Order member rumors" requires A10 complete (pursuit begun)
+- B-story: "Local scholar's request" requires A1 complete (player established in region, known to be asking questions)
+- B-story: "Archivist's offer" requires A5 complete (player has shown genuine interest in history)
+- C-story: "Old colleague's invitation" requires A10 complete (pursuit has become known to community)
 
 **Narrative Callbacks**:
 - NPC dialogue references player's A-story journey
-- "I heard you met the King" (if A7 involved King)
-- "The Order is watching you" (if A10+ procedural pursuit active)
-- "Your reputation precedes you" (if high-tier A-scenes completed)
+- "I heard you spoke with Elena - she wrote me about your visit" (if previous scene involved Elena)
+- "You're asking the same questions your mentor did, all those years ago" (if pursuit is active)
+- "Others have come asking about the old days, but you actually listen" (if multiple scenes completed with care)
 
 **Resource Synergy**:
 - A-story provides structure and major region unlocks
@@ -428,13 +429,13 @@ Player can plan A-story engagement strategically but experiences tactical discov
 ### Verisimilitude Through Narrative Justification
 
 **Every guaranteed progression path has narrative logic**:
-- "Wait patiently for 3 days" → Patience always rewarded eventually
-- "Work menial labor for access" → Honest work always compensated
-- "Beg for mercy" → Humility guarantees acceptance (at dignity cost)
-- "Find alternative route" → Creativity discovers paths
-- "Persistent attempts despite rejection" → Persistence breaks through
+- "Wait patiently, they'll come around" → Given time, most people soften, become willing to share
+- "Help them with something they need" → Honest service builds trust, opens conversations
+- "Share your own vulnerability" → Openness begets openness, people respond to genuine seeking
+- "Find someone else who can introduce you" → Social networks have alternative paths
+- "Return again respectfully" → Persistence with respect eventually breaks down barriers
 
-**Not gamey abstractions**. Real-world principles justifying mechanical guarantees.
+**Not gamey abstractions**. Real human dynamics justifying mechanical guarantees.
 
 ---
 
@@ -618,8 +619,8 @@ Player can plan A-story engagement strategically but experiences tactical discov
 
 ## The Eternal Journey
 
-The A-story is the spine of an infinite game. It provides structure without constraint, progression without conclusion, purpose without destination. Like Frieren's millennia-spanning journey, it accepts the endlessness and finds meaning in the eternal pursuit itself.
+The A-story is the spine of an infinite game. It provides structure without constraint, progression without conclusion, purpose without destination. Like sorting through a beloved relative's letters and journals, there's always one more person to find, one more memory to understand, one more question that leads to another.
 
-Each A-scene is complete. Each revelation satisfies. Each complication intrigues. The journey continues not because it must, but because the mystery deepens, the world expands, and the pursuit itself becomes the purpose.
+Each conversation is complete in itself. Each memory satisfies even as it complicates. Each person met enriches your understanding. The journey continues not because it must, but because understanding deepens, connections reveal new connections, and the act of seeking itself becomes meaningful.
 
-The player is not racing toward an ending. They are journeying through an endless world, and the A-story is their constant companion, always ready, never demanding, eternally offering the next step forward.
+The player is not racing toward an ending or a revelation. They are assembling a picture of lives lived, relationships formed and broken, questions asked across generations. The A-story is their thread through time, always ready, never demanding, eternally offering the next conversation, the next memory, the next step toward understanding.
