@@ -446,7 +446,7 @@ public async Task CheckAndSpawnEligibleScenes(SpawnTriggerType triggerType, stri
             if (spawnContext != null)
             {
                 // HIGHLANDER FLOW: Single method spawns scene (JSON → PackageLoader → Parser)
-                Scene scene = _sceneInstanceFacade.SpawnScene(template, spawnReward, spawnContext);
+                Scene scene = await _sceneInstanceFacade.SpawnScene(template, spawnReward, spawnContext);
 
                 if (scene != null)
                 {

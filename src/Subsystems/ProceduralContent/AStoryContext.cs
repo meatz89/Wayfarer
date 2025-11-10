@@ -7,12 +7,10 @@
 /// - A1-A10: Authored tutorial introducing mechanics and narrative foundation
 /// - A11+: Infinite procedural continuation deepening mystery without resolution
 ///
-/// TIER ESCALATION:
-/// - A11-A20: Local stakes (village/town level)
-/// - A21-A30: Regional stakes (district level)
-/// - A31-A40: Continental stakes (empire level)
-/// - A41-A50: Cosmic stakes (reality level)
-/// - A51+: Infinite cycling at cosmic tier with archetype variation
+/// TIER ESCALATION (GROUNDED, CHARACTER-DRIVEN):
+/// - A11-A30: Personal stakes (individual relationships, internal conflict, character growth)
+/// - A31-A50: Local stakes (community dynamics, village/town consequences)
+/// - A51+: Regional stakes (district/province scope, infinite at maximum grounding)
 ///
 /// ANTI-REPETITION:
 /// Track recent archetypes, regions, NPC personality types to ensure variety
@@ -63,20 +61,17 @@ public List<PersonalityType> RecentPersonalityTypes { get; set; } = new List<Per
 
 /// <summary>
 /// Current tier (calculated from sequence)
-/// Tier 1: A11-A20 (local stakes)
-/// Tier 2: A21-A30 (regional stakes)
-/// Tier 3: A31-A40 (continental stakes)
-/// Tier 4: A41-A50 (cosmic stakes)
-/// Tier 4+: A51+ (infinite cosmic)
+/// Tier 1: A11-A30 (personal stakes - relationships, internal conflict)
+/// Tier 2: A31-A50 (local stakes - community, village/town)
+/// Tier 3: A51+ (regional stakes - district/province, maximum scope)
 /// </summary>
 public int CalculatedTier
 {
     get
     {
-        if (CurrentSequence <= 20) return 1;
-        if (CurrentSequence <= 30) return 2;
-        if (CurrentSequence <= 40) return 3;
-        return 4; // Cosmic tier continues infinitely
+        if (CurrentSequence <= 30) return 1; // Personal
+        if (CurrentSequence <= 50) return 2; // Local
+        return 3; // Regional (infinite)
     }
 }
 
@@ -204,30 +199,29 @@ public static AStoryContext InitializeForProceduralGeneration()
 /// <summary>
 /// Get narrative framing for current sequence
 /// Provides AI generation context for scene narrative tone/scope
+/// Grounded character-driven narrative (Le Guin/Rothfuss style)
 /// </summary>
 public string GetNarrativeFraming()
 {
     return CurrentSequence switch
     {
-        <= 20 => "local_investigation",  // Village/town scale
-        <= 30 => "regional_conspiracy",  // District/regional scale
-        <= 40 => "continental_intrigue", // Empire-wide scale
-        _     => "cosmic_mystery"        // Reality-threatening scale
+        <= 30 => "personal_investigation",  // Individual relationships, character stakes
+        <= 50 => "local_conspiracy",        // Community dynamics, village/town
+        _     => "regional_intrigue"        // District/province scope
     };
 }
 
 /// <summary>
 /// Get story stakes description for AI narrative generation
-/// Escalates dramatically as sequence increases
+/// Grounded personal escalation (never fantasy-tropey)
 /// </summary>
 public string GetStakesDescription()
 {
     return CurrentSequence switch
     {
-        <= 20 => "The mystery deepens in your immediate surroundings. Local figures may know more than they reveal.",
-        <= 30 => "The conspiracy extends beyond local borders. Regional powers are involved, and the stakes rise.",
-        <= 40 => "The truth you seek threatens the stability of entire nations. Continental forces align against discovery.",
-        _     => "Reality itself bends around the secrets you pursue. The very fabric of existence hangs in balance."
+        <= 30 => "The mystery is deeply personal. Relationships you trust may harbor secrets. Your understanding of yourself is at stake.",
+        <= 50 => "The truth affects those around you. Your community's fabric unravels as you discover what lies beneath familiar faces.",
+        _     => "What you uncover reaches across the province. The regional order you knew was built on foundations of deception."
     };
 }
 }

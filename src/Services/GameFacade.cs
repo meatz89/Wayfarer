@@ -187,14 +187,14 @@ public Location GetCurrentLocation()
     return _locationFacade.GetCurrentLocation();
 }
 
-public bool MoveToSpot(string locationId)
+public async Task<bool> MoveToSpot(string locationId)
 {
     bool success = _locationFacade.MoveToSpot(locationId);
 
     // Movement to new Venue may unlock obligation discovery (ImmediateVisibility, EnvironmentalObservation triggers)
     if (success)
     {
-        EvaluateObligationDiscovery();
+        await EvaluateObligationDiscovery();
     }
 
     return success;
@@ -358,14 +358,14 @@ public async Task<bool> TravelToDestinationAsync(string routeId)
                 // AUTOMATIC SPAWNING ORCHESTRATION - Location trigger
                 // Check for procedural scenes that become eligible when entering this location
                 // Handoff implementation: Phase 4 (lines 254-260)
-                _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Location, destSpot.Id);
+                await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Location, destSpot.Id);
             }
         }
 
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
         TimeBlocks newTimeBlock = _timeFacade.AdvanceSegments(travelResult.SegmentCost);
 
-        ProcessTimeAdvancement(new TimeAdvancementResult
+        await ProcessTimeAdvancement(new TimeAdvancementResult
         {
             OldTimeBlock = oldTimeBlock,
             NewTimeBlock = newTimeBlock,
@@ -412,7 +412,7 @@ public async Task<WorkResult> PerformWork(ActionRewards rewards)
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
         TimeBlocks newTimeBlock = _timeFacade.JumpToNextPeriod(); // Work takes 4 segments (full period)
 
-        ProcessTimeAdvancement(new TimeAdvancementResult
+        await ProcessTimeAdvancement(new TimeAdvancementResult
         {
             OldTimeBlock = oldTimeBlock,
             NewTimeBlock = newTimeBlock,
@@ -771,7 +771,7 @@ public async Task StartGameAsync()
     _gameWorld.IsGameStarted = true;
 
     // Spawn starter scenes (tutorial content, initial situations)
-    SpawnStarterScenes();
+    await SpawnStarterScenes();
 
     _messageSystem.AddSystemMessage("Game started", SystemMessageTypes.Success);
 }
@@ -792,10 +792,10 @@ public async Task<IntentResult> ProcessIntent(PlayerIntent intent)
         TravelIntent travel => await ProcessTravelIntentAsync(travel.RouteId),
 
         // Movement intents
-        MoveIntent move => ProcessMoveIntent(move.TargetSpotId),
+        MoveIntent move => await ProcessMoveIntent(move.TargetSpotId),
 
         // Player action intents
-        WaitIntent => ProcessWaitIntent(),
+        WaitIntent => await ProcessWaitIntent(),
         SleepOutsideIntent => ProcessSleepOutsideIntent(),
         LookAroundIntent => ProcessLookAroundIntent(),
         CheckBelongingsIntent => ProcessCheckBelongingsIntent(),
@@ -809,7 +809,7 @@ public async Task<IntentResult> ProcessIntent(PlayerIntent intent)
         // Delivery job intents (Core Loop Phase 3)
         ViewJobBoardIntent => ProcessViewJobBoardIntent(),
         AcceptDeliveryJobIntent accept => ProcessAcceptDeliveryJobIntent(accept.JobId),
-        CompleteDeliveryIntent => ProcessCompleteDeliveryIntent(),
+        CompleteDeliveryIntent => await ProcessCompleteDeliveryIntent(),
 
         // Conversation/NPC intents
         TalkIntent talk => await ProcessTalkIntent(talk.NpcId),
@@ -835,9 +835,9 @@ private async Task<IntentResult> ProcessTravelIntentAsync(string routeId)
 
 // ========== MOVEMENT INTENT HANDLERS ==========
 
-private IntentResult ProcessMoveIntent(string targetSpotId)
+private async Task<IntentResult> ProcessMoveIntent(string targetSpotId)
 {
-    bool success = MoveToSpot(targetSpotId);
+    bool success = await MoveToSpot(targetSpotId);
 
     if (success)
     {
@@ -850,7 +850,7 @@ private IntentResult ProcessMoveIntent(string targetSpotId)
 
 // ========== PLAYER ACTION INTENT HANDLERS ==========
 
-private IntentResult ProcessWaitIntent()
+private async Task<IntentResult> ProcessWaitIntent()
 {
     // Fetch entity for data-driven execution
     PlayerAction action = _gameWorld.PlayerActions.FirstOrDefault(a => a.ActionType == PlayerActionType.Wait);
@@ -866,7 +866,7 @@ private IntentResult ProcessWaitIntent()
     _resourceFacade.ExecuteWait(); // Resource effects only, no time progression
     TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
 
-    ProcessTimeAdvancement(new TimeAdvancementResult
+    await ProcessTimeAdvancement(new TimeAdvancementResult
     {
         OldTimeBlock = oldTimeBlock,
         NewTimeBlock = newTimeBlock,
@@ -931,7 +931,7 @@ private async Task<IntentResult> ProcessRestAtLocationIntent()
     _resourceFacade.ExecuteRest(action.Rewards); // Resource effects only, no time progression
     TimeBlocks newTimeBlock = _timeFacade.GetCurrentTimeBlock();
 
-    ProcessTimeAdvancement(new TimeAdvancementResult
+    await ProcessTimeAdvancement(new TimeAdvancementResult
     {
         OldTimeBlock = oldTimeBlock,
         NewTimeBlock = newTimeBlock,
@@ -994,7 +994,7 @@ private async Task<IntentResult> ProcessSecureRoomIntent()
 
     // Advance to next day morning
     TimeAdvancementResult timeResult = _timeFacade.AdvanceToNextDay();
-    ProcessTimeAdvancement(timeResult);
+    await ProcessTimeAdvancement(timeResult);
     // NOTE: Time-based spawn trigger now fires inside ProcessTimeAdvancement (HIGHLANDER principle)
     // No need to call CheckAndSpawnEligibleScenes here - it's handled automatically
 
@@ -1068,7 +1068,7 @@ private IntentResult ProcessAcceptDeliveryJobIntent(string jobId)
     return IntentResult.Executed(requiresRefresh: true);
 }
 
-private IntentResult ProcessCompleteDeliveryIntent()
+private async Task<IntentResult> ProcessCompleteDeliveryIntent()
 {
     Player player = _gameWorld.GetPlayer();
 
@@ -1097,7 +1097,7 @@ private IntentResult ProcessCompleteDeliveryIntent()
     TimeBlocks newTimeBlock = _timeFacade.AdvanceSegments(1);
 
     // HIGHLANDER: Process time advancement side effects (hunger, emergencies, time-based spawns)
-    ProcessTimeAdvancement(new TimeAdvancementResult
+    await ProcessTimeAdvancement(new TimeAdvancementResult
     {
         OldTimeBlock = oldTimeBlock,
         NewTimeBlock = newTimeBlock,
@@ -1117,7 +1117,7 @@ private async Task<IntentResult> ProcessTalkIntent(string npcId)
     // AUTOMATIC SPAWNING ORCHESTRATION - NPC trigger
     // Check for procedural scenes that become eligible when interacting with this NPC
     // GameFacade orchestrates: Player talks to NPC, then SpawnFacade checks for eligible scenes
-    _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.NPC, npcId);
+    await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.NPC, npcId);
 
     // TODO: Implement conversation initiation
     _messageSystem.AddSystemMessage($"Talking to NPC {npcId} not yet implemented", SystemMessageTypes.Info);
@@ -1155,7 +1155,7 @@ public LocationActionManager GetLocationActionManager()
 /// All time-based resource changes happen here (hunger, day transitions, emergency checking).
 /// Called after EVERY time advancement (Wait, Rest, Work, Travel, etc.).
 /// </summary>
-private void ProcessTimeAdvancement(TimeAdvancementResult result)
+private async Task ProcessTimeAdvancement(TimeAdvancementResult result)
 {
     // HUNGER: +5 per segment (universal time cost)
     // This is THE ONLY place hunger increases due to time
@@ -1203,7 +1203,7 @@ private void ProcessTimeAdvancement(TimeAdvancementResult result)
     // Check for procedural scenes with time-based spawn conditions (morning, evening, day ranges)
     // HIGHLANDER: This ensures time-based spawns fire after EVERY time advancement
     // (Wait, Rest, Work, Travel, SecureRoom, Delivery, Action execution, etc.)
-    _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Time, contextId: null);
+    await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Time, contextId: null);
 }
 
 /// <summary>
@@ -1437,14 +1437,14 @@ public void DebugTeleportToLocation(string venueId, string LocationId)
 /// Discovered obligations will have their intro situations added to the appropriate location
 /// and discovery modals will be triggered via pending results
 /// </summary>
-public void EvaluateObligationDiscovery()
+public async Task EvaluateObligationDiscovery()
 {
     Player player = _gameWorld.GetPlayer();// Evaluate which obligations can be discovered
     List<Obligation> discoverable = _obligationDiscoveryEvaluator.EvaluateDiscoverableObligations(player);// For each discovered obligation, trigger discovery flow
     foreach (Obligation obligation in discoverable)
     {// DiscoverObligation moves Potential→Discovered and spawns intro situation at location
         // No return value - situation is added directly to Location.ActiveSituations
-        _obligationActivity.DiscoverObligation(obligation.Id);
+        await _obligationActivity.DiscoverObligation(obligation.Id);
 
         // Pending discovery result is now set in ObligationActivity
         // GameScreen will check for it and display the modal
@@ -1458,9 +1458,9 @@ public void EvaluateObligationDiscovery()
 /// Complete obligation intro action - activates obligation and spawns Phase 1
 /// RPG quest acceptance pattern: Player clicks button → Obligation activates immediately
 /// </summary>
-public void CompleteObligationIntro(string obligationId)
+public async Task CompleteObligationIntro(string obligationId)
 {
-    _obligationActivity.CompleteIntroAction(obligationId);
+    await _obligationActivity.CompleteIntroAction(obligationId);
 }
 
 /// <summary>
@@ -1637,13 +1637,13 @@ public void ClearActiveEmergency()
 /// GameFacade is SOLE orchestrator for multi-facade operations
 /// LET IT CRASH: Pipeline succeeds completely or throws exception with stack trace
 /// </summary>
-public Scene SpawnSceneWithDynamicContent(
+public async Task<Scene> SpawnSceneWithDynamicContent(
     SceneTemplate template,
     SceneSpawnReward spawnReward,
     SceneSpawnContext context)
 {
     // HIGHLANDER FLOW: Single method spawns scene with full orchestration (JSON → PackageLoader → Parser)
-    Scene scene = _sceneInstanceFacade.SpawnScene(template, spawnReward, context);
+    Scene scene = await _sceneInstanceFacade.SpawnScene(template, spawnReward, context);
 
     if (scene == null)
     {
@@ -1659,7 +1659,7 @@ public Scene SpawnSceneWithDynamicContent(
 /// HIGHLANDER: Called ONCE from StartGameAsync() after IsGameStarted = true
 /// Starter scenes provide initial gameplay content (tutorial, intro situations)
 /// </summary>
-public void SpawnStarterScenes()
+public async Task SpawnStarterScenes()
 {
     Player player = _gameWorld.GetPlayer();
 
@@ -1692,7 +1692,7 @@ public void SpawnStarterScenes()
         if (spawnContext == null)
             continue;
 
-        Scene scene = SpawnSceneWithDynamicContent(template, spawnReward, spawnContext);
+        Scene scene = await SpawnSceneWithDynamicContent(template, spawnReward, spawnContext);
 
         if (scene == null)
         {
@@ -1763,7 +1763,7 @@ public async Task<IntentResult> ExecuteLocationAction(string situationId, string
         // Apply rewards
         if (plan.ChoiceReward != null)
         {
-            _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
+            await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
         }
         else if (plan.LegacyRewards != null)
         {
@@ -1780,11 +1780,11 @@ public async Task<IntentResult> ExecuteLocationAction(string situationId, string
         // Enables linear progression through multi-situation arcs
         if (situation != null)
         {
-            _situationCompletionHandler.CompleteSituation(situation);
+            await _situationCompletionHandler.CompleteSituation(situation);
         }
 
         // Process time advancement (HIGHLANDER: single sync point)
-        ProcessTimeAdvancement(new TimeAdvancementResult
+        await ProcessTimeAdvancement(new TimeAdvancementResult
         {
             OldTimeBlock = oldTimeBlock,
             NewTimeBlock = newTimeBlock,
@@ -1881,7 +1881,7 @@ public async Task<IntentResult> ExecuteNPCAction(string situationId, string acti
         // Apply rewards
         if (plan.ChoiceReward != null)
         {
-            _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
+            await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
         }
         else if (plan.LegacyRewards != null)
         {
@@ -1898,11 +1898,11 @@ public async Task<IntentResult> ExecuteNPCAction(string situationId, string acti
         // Enables linear progression through multi-situation arcs
         if (situation != null)
         {
-            _situationCompletionHandler.CompleteSituation(situation);
+            await _situationCompletionHandler.CompleteSituation(situation);
         }
 
         // Process time advancement (HIGHLANDER: single sync point)
-        ProcessTimeAdvancement(new TimeAdvancementResult
+        await ProcessTimeAdvancement(new TimeAdvancementResult
         {
             OldTimeBlock = oldTimeBlock,
             NewTimeBlock = newTimeBlock,
@@ -1975,7 +1975,7 @@ public async Task<IntentResult> ExecutePathCard(string situationId, string cardI
         // Apply rewards
         if (plan.ChoiceReward != null)
         {
-            _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
+            await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
         }
         else if (plan.IsLegacyAction)
         {
@@ -1993,11 +1993,11 @@ public async Task<IntentResult> ExecutePathCard(string situationId, string cardI
         // Enables linear progression through multi-situation arcs
         if (situation != null)
         {
-            _situationCompletionHandler.CompleteSituation(situation);
+            await _situationCompletionHandler.CompleteSituation(situation);
         }
 
         // Process time advancement (HIGHLANDER: single sync point)
-        ProcessTimeAdvancement(new TimeAdvancementResult
+        await ProcessTimeAdvancement(new TimeAdvancementResult
         {
             OldTimeBlock = oldTimeBlock,
             NewTimeBlock = newTimeBlock,
@@ -2231,14 +2231,14 @@ private IntentResult RouteToTacticalChallenge(ActionExecutionPlan plan)
 /// Process social challenge outcome - apply CompletionReward if successful, FailureReward if failed
 /// STRATEGIC LAYER: GameFacade applies rewards after receiving tactical outcome
 /// </summary>
-public void ProcessSocialChallengeOutcome()
+public async Task ProcessSocialChallengeOutcome()
 {
     if (_gameWorld.LastSocialOutcome?.Success == true &&
         _gameWorld.PendingSocialContext?.CompletionReward != null)
     {
         Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
             .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentSocialSession?.RequestId);
-        _rewardApplicationService.ApplyChoiceReward(
+        await _rewardApplicationService.ApplyChoiceReward(
             _gameWorld.PendingSocialContext.CompletionReward,
             currentSituation);
     }
@@ -2247,7 +2247,7 @@ public void ProcessSocialChallengeOutcome()
     {
         Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
             .FirstOrDefault(sit => sit.Id == _gameWorld.PendingSocialContext.SituationId);
-        _rewardApplicationService.ApplyChoiceReward(
+        await _rewardApplicationService.ApplyChoiceReward(
             _gameWorld.PendingSocialContext.FailureReward,
             currentSituation);
     }
@@ -2258,14 +2258,14 @@ public void ProcessSocialChallengeOutcome()
 /// Process mental challenge outcome - apply CompletionReward if successful, FailureReward if failed
 /// STRATEGIC LAYER: GameFacade applies rewards after receiving tactical outcome
 /// </summary>
-public void ProcessMentalChallengeOutcome()
+public async Task ProcessMentalChallengeOutcome()
 {
     if (_gameWorld.LastMentalOutcome?.Success == true &&
         _gameWorld.PendingMentalContext?.CompletionReward != null)
     {
         Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
             .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentMentalSituationId);
-        _rewardApplicationService.ApplyChoiceReward(
+        await _rewardApplicationService.ApplyChoiceReward(
             _gameWorld.PendingMentalContext.CompletionReward,
             currentSituation);
     }
@@ -2274,7 +2274,7 @@ public void ProcessMentalChallengeOutcome()
     {
         Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
             .FirstOrDefault(sit => sit.Id == _gameWorld.PendingMentalContext.SituationId);
-        _rewardApplicationService.ApplyChoiceReward(
+        await _rewardApplicationService.ApplyChoiceReward(
             _gameWorld.PendingMentalContext.FailureReward,
             currentSituation);
     }
@@ -2285,14 +2285,14 @@ public void ProcessMentalChallengeOutcome()
 /// Process physical challenge outcome - apply CompletionReward if successful, FailureReward if failed
 /// STRATEGIC LAYER: GameFacade applies rewards after receiving tactical outcome
 /// </summary>
-public void ProcessPhysicalChallengeOutcome()
+public async Task ProcessPhysicalChallengeOutcome()
 {
     if (_gameWorld.LastPhysicalOutcome?.Success == true &&
         _gameWorld.PendingPhysicalContext?.CompletionReward != null)
     {
         Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
             .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentPhysicalSituationId);
-        _rewardApplicationService.ApplyChoiceReward(
+        await _rewardApplicationService.ApplyChoiceReward(
             _gameWorld.PendingPhysicalContext.CompletionReward,
             currentSituation);
     }
@@ -2301,7 +2301,7 @@ public void ProcessPhysicalChallengeOutcome()
     {
         Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
             .FirstOrDefault(sit => sit.Id == _gameWorld.PendingPhysicalContext.SituationId);
-        _rewardApplicationService.ApplyChoiceReward(
+        await _rewardApplicationService.ApplyChoiceReward(
             _gameWorld.PendingPhysicalContext.FailureReward,
             currentSituation);
     }

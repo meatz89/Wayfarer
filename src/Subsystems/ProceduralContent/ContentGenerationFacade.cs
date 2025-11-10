@@ -23,13 +23,13 @@ private const string DynamicContentDirectory = "Content/Dynamic";
 /// Create JSON file for dynamically generated package
 /// Writes to Content/Dynamic/{packageId}.json
 /// </summary>
-public DynamicFileResult CreateDynamicPackageFile(string packageJson, string packageId)
+public async Task<DynamicFileResult> CreateDynamicPackageFile(string packageJson, string packageId)
 {
     Directory.CreateDirectory(DynamicContentDirectory);
 
     string filePath = Path.Combine(DynamicContentDirectory, $"{packageId}.json");
 
-    File.WriteAllText(filePath, packageJson);
+    await File.WriteAllTextAsync(filePath, packageJson);
 
     return new DynamicFileResult
     {

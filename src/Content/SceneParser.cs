@@ -65,6 +65,15 @@ public static Scene ConvertDTOToScene(SceneDTO dto, GameWorld gameWorld)
         }
     }
 
+    StoryCategory category = StoryCategory.SideStory;
+    if (!string.IsNullOrEmpty(dto.Category))
+    {
+        if (!Enum.TryParse<StoryCategory>(dto.Category, true, out category))
+        {
+            throw new InvalidDataException($"Scene '{dto.Id}' has invalid Category value: '{dto.Category}'");
+        }
+    }
+
     // =====================================================
     // HIGHLANDER PATTERN A: Template Reference Resolution
     // =====================================================
@@ -94,6 +103,8 @@ public static Scene ConvertDTOToScene(SceneDTO dto, GameWorld gameWorld)
         IntroNarrative = dto.IntroNarrative ?? "",
         PresentationMode = presentationMode,
         ProgressionMode = progressionMode,
+        Category = category,
+        MainStorySequence = dto.MainStorySequence,
         SourceSituationId = dto.SourceSituationId,
         CreatedLocationIds = dto.CreatedLocationIds ?? new List<string>(),
         CreatedItemIds = dto.CreatedItemIds ?? new List<string>(),

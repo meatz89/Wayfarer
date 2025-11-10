@@ -63,7 +63,7 @@ public SceneInstanceFacade(
 /// Used when scene should spawn immediately (rewards, obligations, auto-spawn)
 /// Returns fully activated Scene instance (State = Active)
 /// </summary>
-public Scene SpawnScene(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
+public async Task<Scene> SpawnScene(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
 {
     // PHASE 2.1: Generate JSON package (DTO generation only - no entity creation)
     string packageJson = _sceneInstantiator.GenerateScenePackageJson(template, spawnReward, context);
@@ -76,10 +76,10 @@ public Scene SpawnScene(SceneTemplate template, SceneSpawnReward spawnReward, Sc
 
     // PHASE 2.2: Write JSON to disk
     string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}_package";
-    _contentGenerationFacade.CreateDynamicPackageFile(packageJson, packageId);
+    await _contentGenerationFacade.CreateDynamicPackageFile(packageJson, packageId);
 
     // PHASE 2.3: Load package via PackageLoader (HIGHLANDER: JSON → Parser → Entity)
-    _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
+    await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
 
     // PHASE 2.4: Retrieve spawned scene from GameWorld
     // Scene was added to GameWorld by PackageLoader

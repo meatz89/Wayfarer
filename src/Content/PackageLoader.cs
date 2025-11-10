@@ -576,6 +576,7 @@ private void LoadRegions(List<RegionDTO> regionDtos, bool allowSkeletons)
             Name = dto.Name,
             Description = dto.Description,
             DistrictIds = dto.DistrictIds,
+            Tier = dto.Tier,
             Government = dto.Government,
             Culture = dto.Culture,
             Population = dto.Population,

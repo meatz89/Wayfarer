@@ -46,7 +46,7 @@ public DependentResourceOrchestrationService(
 /// <param name="scene">Scene that generated the resources</param>
 /// <param name="dependentSpecs">Resource specifications from finalization</param>
 /// <param name="player">Player to receive items</param>
-public void LoadDependentResources(Scene scene, DependentResourceSpecs dependentSpecs, Player player)
+public async Task LoadDependentResources(Scene scene, DependentResourceSpecs dependentSpecs, Player player)
 {
     if (!dependentSpecs.HasResources)
     {
@@ -56,10 +56,10 @@ public void LoadDependentResources(Scene scene, DependentResourceSpecs dependent
     Console.WriteLine($"[DependentResources] Scene '{scene.Id}' has dependent resources");
     Console.WriteLine($"[DependentResources]   Locations: {dependentSpecs.CreatedLocationIds.Count}, Items: {dependentSpecs.ItemsToAddToInventory.Count}");
 
-    _contentGenerationFacade.CreateDynamicPackageFile(dependentSpecs.PackageJson, dependentSpecs.PackageId);
+    await _contentGenerationFacade.CreateDynamicPackageFile(dependentSpecs.PackageJson, dependentSpecs.PackageId);
     Console.WriteLine($"[DependentResources] Created dynamic package file: {dependentSpecs.PackageId}");
 
-    _packageLoaderFacade.LoadDynamicPackage(dependentSpecs.PackageJson, dependentSpecs.PackageId);
+    await _packageLoaderFacade.LoadDynamicPackage(dependentSpecs.PackageJson, dependentSpecs.PackageId);
     Console.WriteLine($"[DependentResources] Loaded dynamic package via PackageLoader");
 
     foreach (string itemId in dependentSpecs.ItemsToAddToInventory)

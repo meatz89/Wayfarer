@@ -156,7 +156,7 @@ public void ActivateObligation(string obligationId)
 /// Mark situation complete - checks for obligation progress
 /// Returns ObligationProgressResult for UI modal display
 /// </summary>
-public ObligationProgressResult CompleteSituation(string situationId, string obligationId)
+public async Task<ObligationProgressResult> CompleteSituation(string situationId, string obligationId)
 {
     // Find active obligation
     ActiveObligation activeInv = _gameWorld.ObligationJournal.ActiveObligations
@@ -200,7 +200,7 @@ public ObligationProgressResult CompleteSituation(string situationId, string obl
     {
         foreach (SceneSpawnReward sceneSpawn in completedPhase.CompletionReward.ScenesToSpawn)
         {
-            SpawnSceneFromTemplate(sceneSpawn, null);
+            await SpawnSceneFromTemplate(sceneSpawn, null);
         }
     }
 
@@ -346,7 +346,7 @@ private void GrantObligationRewards(Obligation obligation)
 /// DISCOVERED = ACTIVE: No intermediate state, discovery immediately activates obligation
 /// Sets pending discovery result for UI modal display
 /// </summary>
-public void DiscoverObligation(string obligationId)
+public async Task DiscoverObligation(string obligationId)
 {
     Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
     if (obligation == null)
@@ -370,7 +370,7 @@ public void DiscoverObligation(string obligationId)
     {
         foreach (SceneSpawnReward sceneSpawn in obligation.IntroAction.CompletionReward.ScenesToSpawn)
         {
-            SpawnSceneFromTemplate(sceneSpawn, null);
+            await SpawnSceneFromTemplate(sceneSpawn, null);
         }
     }
 
@@ -418,7 +418,7 @@ public void DiscoverObligation(string obligationId)
 /// DiscoverObligation() now immediately activates and spawns scenes
 /// This method is safe to call but does nothing if obligation already active
 /// </summary>
-public void CompleteIntroAction(string obligationId)
+public async Task CompleteIntroAction(string obligationId)
 {
     // Check if already active - discovery now activates immediately
     ActiveObligation activeInv = _gameWorld.ObligationJournal.ActiveObligations
@@ -445,7 +445,7 @@ public void CompleteIntroAction(string obligationId)
     {
         foreach (SceneSpawnReward sceneSpawn in obligation.IntroAction.CompletionReward.ScenesToSpawn)
         {
-            SpawnSceneFromTemplate(sceneSpawn, null);
+            await SpawnSceneFromTemplate(sceneSpawn, null);
         }
     }
 
@@ -479,7 +479,7 @@ public void CompleteIntroAction(string obligationId)
 /// Uses Scene-Situation template architecture with SceneInstantiator
 /// Obligation rewards use SpecificLocation/SpecificNPC/SpecificRoute placement
 /// </summary>
-private void SpawnSceneFromTemplate(SceneSpawnReward sceneSpawn, Situation sourceSituation)
+private async Task SpawnSceneFromTemplate(SceneSpawnReward sceneSpawn, Situation sourceSituation)
 {
     // Get SceneTemplate from GameWorld
     SceneTemplate template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == sceneSpawn.SceneTemplateId);
@@ -509,7 +509,7 @@ private void SpawnSceneFromTemplate(SceneSpawnReward sceneSpawn, Situation sourc
     }
 
     // HIGHLANDER FLOW: Single method spawns scene with full orchestration
-    Scene scene = _sceneInstanceFacade.SpawnScene(template, sceneSpawn, context);
+    Scene scene = await _sceneInstanceFacade.SpawnScene(template, sceneSpawn, context);
 
     if (scene == null)
     {

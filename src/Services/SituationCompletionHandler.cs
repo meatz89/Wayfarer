@@ -69,7 +69,7 @@ public async Task CompleteSituation(Situation situation)
     // Check for obligation progress (phase-based ObligationJournal system)
     if (!string.IsNullOrEmpty(situation.Obligation?.Id))
     {
-        CheckObligationProgress(situation.Id, situation.Obligation?.Id);
+        await CheckObligationProgress(situation.Id, situation.Obligation?.Id);
     }
 
     // PHASE 3: Execute SuccessSpawns - recursive situation spawning
@@ -102,7 +102,7 @@ public async Task CompleteSituation(Situation situation)
 /// Check for obligation progress when situation completes
 /// Handles both intro actions (Discovered → Active) and regular situations (phase progression)
 /// </summary>
-private void CheckObligationProgress(string situationId, string obligationId)
+private async Task CheckObligationProgress(string situationId, string obligationId)
 {
     // Check if this is an intro action (Discovered → Active transition)
     Situation situation = _gameWorld.Scenes
@@ -111,12 +111,12 @@ private void CheckObligationProgress(string situationId, string obligationId)
     if (situation != null && situation.IsIntroAction)
     {
         // This is intro completion - activate obligation and spawn Phase 1
-        _obligationActivity.CompleteIntroAction(obligationId);
+        await _obligationActivity.CompleteIntroAction(obligationId);
         return;
     }
 
     // Regular situation completion
-    ObligationProgressResult progressResult = _obligationActivity.CompleteSituation(situationId, obligationId);
+    ObligationProgressResult progressResult = await _obligationActivity.CompleteSituation(situationId, obligationId);
 
     // Log progress for UI modal display (UI will handle modal)
 

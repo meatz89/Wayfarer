@@ -23,6 +23,14 @@ public string Id { get; init; }
 public SpawnPattern Archetype { get; init; }
 
 /// <summary>
+/// Scene archetype ID used for generation
+/// For A-story scenes: "seek_audience", "investigate_location", etc.
+/// Used for anti-repetition tracking and narrative generation context
+/// null for manually-authored scenes (not generated from catalogue)
+/// </summary>
+public string SceneArchetypeId { get; init; }
+
+/// <summary>
 /// Display name template for this Scene
 /// May contain placeholders like {NPCName}, {LocationName}
 /// Replaced at spawn time with actual entity names

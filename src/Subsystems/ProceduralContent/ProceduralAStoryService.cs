@@ -16,7 +16,7 @@
 /// ARCHETYPE SELECTION STRATEGY:
 /// - Rotate through archetype categories (investigation → social → confrontation → discovery → crisis)
 /// - Avoid recent archetypes (5-scene anti-repetition window)
-/// - Match tier escalation (local → regional → continental → cosmic)
+/// - Match tier escalation (personal → local → regional, grounded character-driven)
 /// - Balance narrative variety and mechanical consistency
 ///
 /// GUARANTEED PROGRESSION:
@@ -151,18 +151,16 @@ private string SelectArchetype(int sequence, AStoryContext context)
 }
 
 /// <summary>
-/// Calculate tier from sequence number
-/// Tier 1: A11-A20 (local stakes)
-/// Tier 2: A21-A30 (regional stakes)
-/// Tier 3: A31-A40 (continental stakes)
-/// Tier 4: A41+ (cosmic stakes, infinite)
+/// Calculate tier from sequence number (grounded character-driven escalation)
+/// Tier 1: A11-A30 (personal stakes - relationships, internal conflict)
+/// Tier 2: A31-A50 (local stakes - community, village/town)
+/// Tier 3: A51+ (regional stakes - district/province, maximum scope)
 /// </summary>
 private int CalculateTier(int sequence)
 {
-    if (sequence <= 20) return 1;
-    if (sequence <= 30) return 2;
-    if (sequence <= 40) return 3;
-    return 4; // Cosmic tier continues infinitely
+    if (sequence <= 30) return 1; // Personal
+    if (sequence <= 50) return 2; // Local
+    return 3; // Regional (infinite at maximum grounding)
 }
 
 /// <summary>
@@ -463,10 +461,33 @@ public AStoryContext GetOrInitializeContext(Player player)
     foreach (Scene scene in recentScenes)
     {
         // Extract archetype from template (if available)
-        if (scene.Template != null)
+        if (scene.Template != null && !string.IsNullOrEmpty(scene.Template.SceneArchetypeId))
         {
-            // Archetype stored in template after generation
-            // For now, placeholder - would need archetype tracking
+            context.RecentArchetypeIds.Add(scene.Template.SceneArchetypeId);
+        }
+
+        // Extract region from placement location
+        if (!string.IsNullOrEmpty(scene.PlacementId))
+        {
+            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == scene.PlacementId);
+            if (location != null && !string.IsNullOrEmpty(location.RegionId))
+            {
+                if (!context.RecentRegionIds.Contains(location.RegionId))
+                {
+                    context.RecentRegionIds.Add(location.RegionId);
+                }
+            }
+        }
+
+        // Extract NPC personality from scene placement (if NPC-placed)
+        // For A-story scenes, typically Location-placed, but check anyway
+        if (scene.PlacementType == PlacementType.NPC && !string.IsNullOrEmpty(scene.PlacementId))
+        {
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.PlacementId);
+            if (npc != null && !context.RecentPersonalityTypes.Contains(npc.PersonalityType))
+            {
+                context.RecentPersonalityTypes.Add(npc.PersonalityType);
+            }
         }
     }
 

@@ -15,6 +15,11 @@ public class GenerationContext
 // Tier (unchanged - universal difficulty scalar)
 public int Tier { get; set; }
 
+// A-Story Sequence (for infinite main story progression)
+// null for non-A-story scenes, sequence number (11+) for A-story scenes
+// Used to calculate next A-scene ID for final situation spawn rewards
+public int? AStorySequence { get; set; }
+
 // Entity IDs for RequiredLocationId/RequiredNpcId in situations
 public string LocationId { get; set; }  // Base location ID (ALWAYS present)
 public string NpcId { get; set; }       // NPC ID (null for location-only scenes)
@@ -83,11 +88,13 @@ public static GenerationContext FromEntities(
     int tier,
     NPC npc,
     Location location,
-    Player player)
+    Player player,
+    int? mainStorySequence = null)
 {
     return new GenerationContext
     {
         Tier = tier,
+        AStorySequence = mainStorySequence,
 
         // Entity IDs (for RequiredLocationId/RequiredNpcId)
         LocationId = location?.Id,  // Base location (NPC's location OR placement location)

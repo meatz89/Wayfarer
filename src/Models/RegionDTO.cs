@@ -10,6 +10,9 @@ public string Description { get; set; }
 // Regions contain multiple districts
 public List<string> DistrictIds { get; set; } = new List<string>();
 
+// Region tier (defaults to 1 if not specified in JSON)
+public int Tier { get; set; } = 1;
+
 // Region-level properties
 public string Government { get; set; }
 public string Culture { get; set; }

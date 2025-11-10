@@ -31,9 +31,9 @@ public PackageLoaderFacade(PackageLoader packageLoader)
 /// Creates Location/Item/NPC entities in GameWorld
 /// Returns list of skeleton IDs requiring AI completion
 /// </summary>
-public List<string> LoadDynamicPackage(string packageJson, string packageId)
+public async Task<List<string>> LoadDynamicPackage(string packageJson, string packageId)
 {
-    return _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
+    return await Task.Run(() => _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId));
 }
 
 /// <summary>

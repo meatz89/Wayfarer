@@ -93,13 +93,14 @@ public SceneTemplate ParseSceneTemplate(SceneTemplateDTO dto)
     string npcId = null;
     string locationId = null;
 
-    Console.WriteLine($"[SceneGeneration] Categorical context: Tier={dto.Tier}");
+    Console.WriteLine($"[SceneGeneration] Categorical context: Tier={dto.Tier}, MainStorySequence={dto.MainStorySequence}");
 
     SceneArchetypeDefinition archetypeDefinition = _generationFacade.GenerateSceneFromArchetype(
         dto.SceneArchetypeId,
         dto.Tier,
         npcId,
-        locationId);
+        locationId,
+        dto.MainStorySequence);
 
     List<SituationTemplate> situationTemplates = archetypeDefinition.SituationTemplates;
     SituationSpawnRules spawnRules = archetypeDefinition.SpawnRules;
@@ -120,6 +121,7 @@ public SceneTemplate ParseSceneTemplate(SceneTemplateDTO dto)
     {
         Id = dto.Id,
         Archetype = archetype,
+        SceneArchetypeId = dto.SceneArchetypeId,
         DisplayNameTemplate = dto.DisplayNameTemplate,
         PlacementFilter = ParsePlacementFilter(dto.PlacementFilter, dto.Id),
         SpawnConditions = SpawnConditionsParser.ParseSpawnConditions(dto.SpawnConditions),

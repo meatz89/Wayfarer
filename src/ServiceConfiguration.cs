@@ -146,6 +146,9 @@ public static IServiceCollection ConfigureServices(this IServiceCollection servi
     services.AddSingleton<SceneGenerationFacade>();
     services.AddSingleton<SceneInstanceFacade>(); // Depends on PackageLoaderFacade + ContentGenerationFacade
 
+    // Infinite A-Story Generation (procedural main story continuation)
+    services.AddSingleton<ProceduralAStoryService>(); // Depends on GameWorld, ContentGenerationFacade, PackageLoaderFacade
+
     // State Clearing System (needed by TimeFacade)
     services.AddSingleton<StateClearingResolver>();
 

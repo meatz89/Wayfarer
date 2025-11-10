@@ -199,13 +199,18 @@ private static SceneArchetypeDefinition GenerateSeekAudience(int tier, Generatio
         CanInvestigate = false
     };
 
+    List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        negotiateSituation,
+        audienceSituation
+    };
+
+    // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+    EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
     return new SceneArchetypeDefinition
     {
-        SituationTemplates = new List<SituationTemplate>
-        {
-            negotiateSituation,
-            audienceSituation
-        },
+        SituationTemplates = situations,
         SpawnRules = spawnRules,
         DependentLocations = new List<DependentLocationSpec> { meetingChamber },
         DependentItems = new List<DependentItemSpec>()
@@ -357,14 +362,19 @@ private static SceneArchetypeDefinition GenerateInvestigateLocation(int tier, Ge
         SpawnLocationTemplateId = null
     };
 
+    List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        searchSituation,
+        analyzeSituation,
+        concludeSituation
+    };
+
+    // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+    EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
     return new SceneArchetypeDefinition
     {
-        SituationTemplates = new List<SituationTemplate>
-        {
-            searchSituation,
-            analyzeSituation,
-            concludeSituation
-        },
+        SituationTemplates = situations,
         SpawnRules = spawnRules,
         DependentLocations = new List<DependentLocationSpec>(),
         DependentItems = new List<DependentItemSpec> { evidence }
@@ -447,13 +457,18 @@ private static SceneArchetypeDefinition GenerateGatherTestimony(int tier, Genera
         }
     };
 
+    List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        approachSituation,
+        interviewSituation
+    };
+
+    // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+    EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
     return new SceneArchetypeDefinition
     {
-        SituationTemplates = new List<SituationTemplate>
-        {
-            approachSituation,
-            interviewSituation
-        },
+        SituationTemplates = situations,
         SpawnRules = spawnRules,
         DependentLocations = new List<DependentLocationSpec>(),
         DependentItems = new List<DependentItemSpec>()
@@ -536,13 +551,18 @@ private static SceneArchetypeDefinition GenerateConfrontAntagonist(int tier, Gen
         }
     };
 
+    List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        accuseSituation,
+        resolveSituation
+    };
+
+    // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+    EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
     return new SceneArchetypeDefinition
     {
-        SituationTemplates = new List<SituationTemplate>
-        {
-            accuseSituation,
-            resolveSituation
-        },
+        SituationTemplates = situations,
         SpawnRules = spawnRules,
         DependentLocations = new List<DependentLocationSpec>(),
         DependentItems = new List<DependentItemSpec>()
@@ -655,14 +675,19 @@ private static SceneArchetypeDefinition GenerateMeetOrderMember(int tier, Genera
         }
     };
 
+    List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        contactSituation,
+        negotiateSituation,
+        revelationSituation
+    };
+
+    // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+    EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
     return new SceneArchetypeDefinition
     {
-        SituationTemplates = new List<SituationTemplate>
-        {
-            contactSituation,
-            negotiateSituation,
-            revelationSituation
-        },
+        SituationTemplates = situations,
         SpawnRules = spawnRules,
         DependentLocations = new List<DependentLocationSpec>(),
         DependentItems = new List<DependentItemSpec>()
@@ -778,13 +803,18 @@ private static SceneArchetypeDefinition GenerateDiscoverArtifact(int tier, Gener
         SpawnLocationTemplateId = null
     };
 
+    List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        locateSituation,
+        acquireSituation
+    };
+
+    // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+    EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
     return new SceneArchetypeDefinition
     {
-        SituationTemplates = new List<SituationTemplate>
-        {
-            locateSituation,
-            acquireSituation
-        },
+        SituationTemplates = situations,
         SpawnRules = spawnRules,
         DependentLocations = new List<DependentLocationSpec>(),
         DependentItems = new List<DependentItemSpec> { artifact }
@@ -927,15 +957,20 @@ private static SceneArchetypeDefinition GenerateUncoverConspiracy(int tier, Gene
         }
     };
 
+    List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        suspectSituation,
+        proofSituation,
+        exposeSituation,
+        consequenceSituation
+    };
+
+    // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+    EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
     return new SceneArchetypeDefinition
     {
-        SituationTemplates = new List<SituationTemplate>
-        {
-            suspectSituation,
-            proofSituation,
-            exposeSituation,
-            consequenceSituation
-        },
+        SituationTemplates = situations,
         SpawnRules = spawnRules,
         DependentLocations = new List<DependentLocationSpec>(),
         DependentItems = new List<DependentItemSpec>()
@@ -1018,13 +1053,18 @@ private static SceneArchetypeDefinition GenerateUrgentDecision(int tier, Generat
         }
     };
 
+    List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        crisisSituation,
+        decisionSituation
+    };
+
+    // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+    EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
     return new SceneArchetypeDefinition
     {
-        SituationTemplates = new List<SituationTemplate>
-        {
-            crisisSituation,
-            decisionSituation
-        },
+        SituationTemplates = situations,
         SpawnRules = spawnRules,
         DependentLocations = new List<DependentLocationSpec>(),
         DependentItems = new List<DependentItemSpec>()
@@ -1137,18 +1177,93 @@ private static SceneArchetypeDefinition GenerateMoralCrossroads(int tier, Genera
         }
     };
 
+    List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        dilemmaSituation,
+        choiceSituation,
+        consequenceSituation
+    };
+
+    // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+    EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
     return new SceneArchetypeDefinition
     {
-        SituationTemplates = new List<SituationTemplate>
-        {
-            dilemmaSituation,
-            choiceSituation,
-            consequenceSituation
-        },
+        SituationTemplates = situations,
         SpawnRules = spawnRules,
         DependentLocations = new List<DependentLocationSpec>(),
         DependentItems = new List<DependentItemSpec>()
     };
+}
+
+// ===================================================================
+// INFINITE A-STORY PROGRESSION: Final Situation Enrichment
+// ===================================================================
+
+/// <summary>
+/// Enrich final situation to spawn next A-scene (CRITICAL for infinite progression)
+///
+/// GUARANTEED PROGRESSION PATTERN:
+/// - Final situation ALL choices spawn next A-scene
+/// - Ensures forward progress regardless of player choices
+/// - Infinite A-story loop: A11 → A12 → A13 → ... → infinity
+///
+/// Called after generating situation templates, before returning definition
+/// Modifies final situation's choice templates in-place
+/// </summary>
+private static void EnrichFinalSituationWithNextASceneSpawn(
+    List<SituationTemplate> situations,
+    GenerationContext context)
+{
+    if (!context.AStorySequence.HasValue)
+    {
+        return; // Not an A-story scene, no enrichment needed
+    }
+
+    if (situations.Count == 0)
+    {
+        return; // No situations to enrich
+    }
+
+    // Final situation = last situation in list
+    SituationTemplate finalSituation = situations[situations.Count - 1];
+
+    // Next A-scene ID
+    string nextASceneId = $"a_story_{context.AStorySequence.Value + 1}";
+
+    // Enrich ALL choices with SceneSpawnReward
+    List<ChoiceTemplate> enrichedChoices = new List<ChoiceTemplate>();
+    foreach (ChoiceTemplate choice in finalSituation.ChoiceTemplates)
+    {
+        ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
+
+        // Add next A-scene spawn reward
+        reward.SceneSpawns = new List<SceneSpawnReward>
+        {
+            new SceneSpawnReward
+            {
+                SceneTemplateId = nextASceneId,
+                IsProvisional = false
+            }
+        };
+
+        enrichedChoices.Add(new ChoiceTemplate
+        {
+            Id = choice.Id,
+            PathType = choice.PathType,
+            ActionTextTemplate = choice.ActionTextTemplate,
+            RequirementFormula = choice.RequirementFormula,
+            CostTemplate = choice.CostTemplate,
+            RewardTemplate = reward,
+            ActionType = choice.ActionType,
+            ChallengeType = choice.ChallengeType
+        });
+    }
+
+    // Replace final situation's choices with enriched versions
+    finalSituation.ChoiceTemplates = enrichedChoices;
+
+    Console.WriteLine($"[AStoryArchetype] Enriched final situation '{finalSituation.Id}' - ALL {enrichedChoices.Count} choices spawn next A-scene '{nextASceneId}'");
 }
 
 // Remaining archetypes follow same pattern - abbreviated for brevity

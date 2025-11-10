@@ -42,13 +42,14 @@ public SceneArchetypeDefinition GenerateSceneFromArchetype(
     string archetypeId,
     int tier,
     string npcId,
-    string locationId)
+    string locationId,
+    int? mainStorySequence = null)
 {
     NPC contextNPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
     Location contextLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
     Player contextPlayer = _gameWorld.GetPlayer();
 
-    GenerationContext context = GenerationContext.FromEntities(tier, contextNPC, contextLocation, contextPlayer);
+    GenerationContext context = GenerationContext.FromEntities(tier, contextNPC, contextLocation, contextPlayer, mainStorySequence);
 
     // Route to appropriate catalogue based on archetype category
     SceneArchetypeDefinition definition;

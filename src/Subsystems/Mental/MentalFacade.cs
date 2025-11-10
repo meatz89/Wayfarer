@@ -196,7 +196,7 @@ private async Task<MentalTurnResult> ExecuteCard(CardInstance card, MentalAction
             .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentMentalSituationId);
         if (completedSituation != null)
         {
-            _situationCompletionHandler.CompleteSituation(completedSituation);
+            await _situationCompletionHandler.CompleteSituation(completedSituation);
         }
 
         _gameWorld.CurrentMentalSession.Deck.PlayCard(card); // Mark card as played

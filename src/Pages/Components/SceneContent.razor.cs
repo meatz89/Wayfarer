@@ -499,14 +499,14 @@ namespace Wayfarer.Pages.Components
             // INSTANT PATH: Apply rewards immediately and complete situation
             if (choiceTemplate.RewardTemplate != null)
             {
-                RewardApplicationService.ApplyChoiceReward(choiceTemplate.RewardTemplate, CurrentSituation);
+                await RewardApplicationService.ApplyChoiceReward(choiceTemplate.RewardTemplate, CurrentSituation);
             }
 
             // MULTI-SITUATION SCENE: Complete situation and advance
             // Scene entity owns state machine via Scene.AdvanceToNextSituation()
             // UI queries new current situation after completion
             Console.WriteLine($"[SceneContent.HandleChoiceSelected] Completing situation '{CurrentSituation.Id}'");
-            SituationCompletionHandler.CompleteSituation(CurrentSituation);
+            await SituationCompletionHandler.CompleteSituation(CurrentSituation);
 
             // CONTEXT-AWARE ROUTING: Query routing decision from completed situation
             SceneRoutingDecision routingDecision = CurrentSituation.RoutingDecision;

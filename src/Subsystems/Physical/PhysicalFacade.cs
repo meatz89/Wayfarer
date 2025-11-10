@@ -212,7 +212,7 @@ public async Task<PhysicalTurnResult> ExecuteExecute(CardInstance card)
         Situation completedSituation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == _gameWorld.CurrentPhysicalSituationId);
         if (completedSituation != null)
         {
-            _situationCompletionHandler.CompleteSituation(completedSituation);
+            await _situationCompletionHandler.CompleteSituation(completedSituation);
         }
 
         // SituationCards execute immediately (not locked for combo)

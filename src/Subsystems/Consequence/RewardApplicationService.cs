@@ -33,7 +33,7 @@ public RewardApplicationService(
 /// <summary>
 /// Apply all components of a ChoiceReward
 /// </summary>
-public void ApplyChoiceReward(ChoiceReward reward, Situation currentSituation)
+public async Task ApplyChoiceReward(ChoiceReward reward, Situation currentSituation)
 {
     if (reward == null)
         return;
@@ -152,7 +152,7 @@ public void ApplyChoiceReward(ChoiceReward reward, Situation currentSituation)
     }
 
     // Finalize scene spawns
-    FinalizeSceneSpawns(reward, currentSituation);
+    await FinalizeSceneSpawns(reward, currentSituation);
 }
 
 /// <summary>
@@ -197,7 +197,7 @@ private void AdvanceToNextDayAtBlock(TimeBlocks targetBlock)
 /// NO provisional scenes - spawns directly as Active
 /// Perfect information shown from SceneTemplate metadata
 /// </summary>
-private void FinalizeSceneSpawns(ChoiceReward reward, Situation currentSituation)
+private async Task FinalizeSceneSpawns(ChoiceReward reward, Situation currentSituation)
 {
     Player player = _gameWorld.GetPlayer();
 
@@ -246,7 +246,7 @@ private void FinalizeSceneSpawns(ChoiceReward reward, Situation currentSituation
         };
 
         // HIGHLANDER FLOW: Spawn scene directly (JSON → PackageLoader → Parser)
-        Scene scene = _sceneInstanceFacade.SpawnScene(template, sceneSpawn, context);
+        Scene scene = await _sceneInstanceFacade.SpawnScene(template, sceneSpawn, context);
 
         if (scene != null)
         {

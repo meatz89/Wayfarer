@@ -298,7 +298,7 @@ public async Task<SocialTurnResult> ExecuteSpeakSingleCard(CardInstance selected
         Situation completedSituation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == _gameWorld.CurrentSocialSession.RequestId);
         if (completedSituation != null)
         {
-            _situationCompletionHandler.CompleteSituation(completedSituation);
+            await _situationCompletionHandler.CompleteSituation(completedSituation);
         }
 
         _gameWorld.CurrentSocialSession.Deck.PlayCard(selectedCard);
