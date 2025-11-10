@@ -79,6 +79,23 @@ public string PresentationMode { get; set; }
 public string ProgressionMode { get; set; }
 
 /// <summary>
+/// Story category classification (copied from template)
+/// Values: "MainStory", "SideStory", "Service"
+/// MainStory = A-story progression (infinite main quest)
+/// SideStory = B-story content (optional side content)
+/// Service = C-story content (repeatable services)
+/// </summary>
+public string Category { get; set; }
+
+/// <summary>
+/// Main story sequence number (copied from template)
+/// 1-10 = Authored tutorial scenes
+/// 11+ = Procedural continuation (infinite)
+/// null = Not part of A-story
+/// </summary>
+public int? MainStorySequence { get; set; }
+
+/// <summary>
 /// Situation ID player is currently engaged with
 /// null = scene not started or completed
 /// References Situation.Id in embedded Situations collection

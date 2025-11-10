@@ -33,19 +33,22 @@ private readonly TimeManager _timeManager;
 private readonly SpawnConditionsEvaluator _conditionsEvaluator;
 private readonly SceneInstanceFacade _sceneInstanceFacade;
 private readonly DependentResourceOrchestrationService _dependentResourceOrchestrationService;
+private readonly ProceduralAStoryService _proceduralAStoryService;
 
 public SpawnFacade(
     GameWorld gameWorld,
     TimeManager timeManager,
     SpawnConditionsEvaluator conditionsEvaluator,
     SceneInstanceFacade sceneInstanceFacade,
-    DependentResourceOrchestrationService dependentResourceOrchestrationService)
+    DependentResourceOrchestrationService dependentResourceOrchestrationService,
+    ProceduralAStoryService proceduralAStoryService)
 {
     _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
     _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
     _conditionsEvaluator = conditionsEvaluator ?? throw new ArgumentNullException(nameof(conditionsEvaluator));
     _sceneInstanceFacade = sceneInstanceFacade ?? throw new ArgumentNullException(nameof(sceneInstanceFacade));
     _dependentResourceOrchestrationService = dependentResourceOrchestrationService ?? throw new ArgumentNullException(nameof(dependentResourceOrchestrationService));
+    _proceduralAStoryService = proceduralAStoryService ?? throw new ArgumentNullException(nameof(proceduralAStoryService));
 }
 
 /// <summary>
@@ -342,11 +345,65 @@ private void AddToActiveSituations(Situation situation)
 /// </summary>
 /// <param name="triggerType">What triggered the spawn check (Time, Location, NPC, Scene)</param>
 /// <param name="contextId">Optional context ID (locationId, npcId, etc.)</param>
-public void CheckAndSpawnEligibleScenes(SpawnTriggerType triggerType, string contextId = null)
+public async Task CheckAndSpawnEligibleScenes(SpawnTriggerType triggerType, string contextId = null)
 {
     Console.WriteLine($"[SpawnOrchestration] Checking eligible scenes (Trigger: {triggerType}, Context: {contextId ?? "none"})");
 
     Player player = _gameWorld.GetPlayer();
+
+    // === INFINITE A-STORY INTEGRATION ===
+    // Detect A-story scene completion and generate next A-scene template
+    if (triggerType == SpawnTriggerType.Scene && !string.IsNullOrEmpty(contextId))
+    {
+        Scene completedScene = _gameWorld.Scenes.FirstOrDefault(s => s.Id == contextId);
+
+        if (completedScene != null &&
+            completedScene.Category == StoryCategory.MainStory &&
+            completedScene.MainStorySequence.HasValue)
+        {
+            int completedSequence = completedScene.MainStorySequence.Value;
+            int nextSequence = completedSequence + 1;
+
+            Console.WriteLine($"[InfiniteAStory] A{completedSequence} completed - checking for A{nextSequence} template");
+
+            // Check if next A-scene template already exists
+            bool nextTemplateExists = _proceduralAStoryService.NextTemplateExists(nextSequence);
+
+            if (!nextTemplateExists)
+            {
+                Console.WriteLine($"[InfiniteAStory] A{nextSequence} template does not exist - generating procedurally");
+
+                try
+                {
+                    // Get or initialize A-story context
+                    AStoryContext context = _proceduralAStoryService.GetOrInitializeContext(player);
+
+                    // Generate next A-scene template (HIGHLANDER flow: DTO → JSON → PackageLoader → Template)
+                    string templateId = await _proceduralAStoryService.GenerateNextATemplate(nextSequence, context);
+
+                    Console.WriteLine($"[InfiniteAStory] A{nextSequence} template generated: {templateId}");
+                    Console.WriteLine($"[InfiniteAStory] Template added to GameWorld.SceneTemplates via HIGHLANDER flow");
+
+                    // Update context after successful generation
+                    context.RecordCompletion(
+                        completedScene.Id,
+                        archetypeId: "unknown", // Would need archetype tracking in Scene
+                        regionId: null, // Would extract from placement
+                        personalityType: null); // Would extract from NPC
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"[InfiniteAStory] ERROR generating A{nextSequence} template: {ex.Message}");
+                    Console.WriteLine($"[InfiniteAStory] Stack trace: {ex.StackTrace}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"[InfiniteAStory] A{nextSequence} template already exists - skipping generation");
+            }
+        }
+    }
+    // === END INFINITE A-STORY INTEGRATION ===
 
     // Query procedural SceneTemplates (isStarter=false, has spawnConditions)
     List<SceneTemplate> proceduralTemplates = _gameWorld.SceneTemplates

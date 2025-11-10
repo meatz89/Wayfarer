@@ -157,6 +157,8 @@ private SceneDTO GenerateSceneDTO(SceneTemplate template, PlacementResolution pl
         IntroNarrative = introNarrative,
         PresentationMode = template.PresentationMode.ToString(),
         ProgressionMode = template.ProgressionMode.ToString(),
+        Category = template.Category.ToString(), // Copy from template for A-story tracking
+        MainStorySequence = template.MainStorySequence, // Copy from template for A-story sequence tracking
         SpawnRules = spawnRulesDto,
         CurrentSituationId = null, // Will be set to first situation ID after situations generated
         SourceSituationId = context.CurrentSituation?.Id

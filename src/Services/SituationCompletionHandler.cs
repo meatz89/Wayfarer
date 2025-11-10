@@ -28,7 +28,7 @@ public SituationCompletionHandler(
 /// Complete a situation - mark as complete, remove from ActiveSituations if DeleteOnSuccess=true, and check obligation progress
 /// </summary>
 /// <param name="situation">Situation that was successfully completed</param>
-public void CompleteSituation(Situation situation)
+public async Task CompleteSituation(Situation situation)
 {
     if (situation == null)
         throw new ArgumentNullException(nameof(situation));
@@ -88,12 +88,12 @@ public void CompleteSituation(Situation situation)
         // Store routing decision on situation for UI to query
         situation.RoutingDecision = routingDecision;
 
-        // AUTOMATIC SPAWNING ORCHESTRATION - Scene completion trigger (cascade spawning)
+        // AUTOMATIC SPAWNING ORCHESTRATION - Scene completion trigger (cascade spawning + infinite A-story generation)
         // If scene just completed, check for procedural scenes that become eligible
-        // This enables cascading content: completing one scene spawns follow-up scenes
+        // CRITICAL: A-story completion triggers next A-scene template generation here
         if (scene.State == SceneState.Completed)
         {
-            _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Scene, scene.Id);
+            await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Scene, scene.Id);
         }
     }
 }

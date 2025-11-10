@@ -31,10 +31,12 @@ public SceneGenerationFacade(GameWorld gameWorld)
 ///
 /// Flow:
 /// 1. Extract properties from entities into GenerationContext
-/// 2. Call SceneArchetypeCatalog.Generate() (pure function)
+/// 2. Route to appropriate catalogue based on archetype ID
+///    - A-story archetypes → AStorySceneArchetypeCatalog
+///    - Standard archetypes → SceneArchetypeCatalog
 /// 3. Return generated SceneArchetypeDefinition
 ///
-/// Called at parse time with fully loaded entities from GameWorld
+/// Called at parse time (or via dynamic package generation) with entities from GameWorld
 /// </summary>
 public SceneArchetypeDefinition GenerateSceneFromArchetype(
     string archetypeId,
@@ -48,9 +50,43 @@ public SceneArchetypeDefinition GenerateSceneFromArchetype(
 
     GenerationContext context = GenerationContext.FromEntities(tier, contextNPC, contextLocation, contextPlayer);
 
-    SceneArchetypeDefinition definition = SceneArchetypeCatalog.Generate(archetypeId, tier, context);
+    // Route to appropriate catalogue based on archetype category
+    SceneArchetypeDefinition definition;
+
+    // A-story archetypes: investigation/social/confrontation/discovery/crisis patterns
+    if (IsAStoryArchetype(archetypeId))
+    {
+        definition = AStorySceneArchetypeCatalog.Generate(archetypeId, tier, context);
+    }
+    else
+    {
+        // Standard service/consequence archetypes
+        definition = SceneArchetypeCatalog.Generate(archetypeId, tier, context);
+    }
 
     return definition;
+}
+
+/// <summary>
+/// Check if archetype ID is an A-story archetype
+/// A-story archetypes: investigation, social, confrontation, discovery, crisis patterns
+/// Standard archetypes: service-based patterns (inn_lodging, consequence_reflection, etc.)
+/// </summary>
+private bool IsAStoryArchetype(string archetypeId)
+{
+    List<string> aStoryArchetypes = new List<string>
+    {
+        // Investigation
+        "investigate_location", "gather_testimony", "discover_artifact", "uncover_conspiracy",
+        // Social
+        "meet_order_member", "gain_trust", "social_infiltration",
+        // Confrontation
+        "seek_audience", "confront_antagonist", "challenge_authority", "expose_corruption",
+        // Crisis/Decision
+        "urgent_decision", "moral_crossroads", "sacrifice_choice", "reveal_truth"
+    };
+
+    return aStoryArchetypes.Contains(archetypeId?.ToLowerInvariant());
 }
 
 /// <summary>
