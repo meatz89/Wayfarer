@@ -8,28 +8,28 @@
 /// </summary>
 public enum PhysicalDiscipline
 {
-    /// <summary>
-    /// Offensive confrontations, fighting, combat techniques
-    /// </summary>
-    Combat,
+/// <summary>
+/// Offensive confrontations, fighting, combat techniques
+/// </summary>
+Combat,
 
-    /// <summary>
-    /// Climbing, jumping, running, acrobatic physical feats
-    /// </summary>
-    Athletics,
+/// <summary>
+/// Climbing, jumping, running, acrobatic physical feats
+/// </summary>
+Athletics,
 
-    /// <summary>
-    /// Precision work, lockpicking, delicate manipulation
-    /// </summary>
-    Finesse,
+/// <summary>
+/// Precision work, lockpicking, delicate manipulation
+/// </summary>
+Finesse,
 
-    /// <summary>
-    /// Sustained effort, resistance, stamina-based challenges
-    /// </summary>
-    Endurance,
+/// <summary>
+/// Sustained effort, resistance, stamina-based challenges
+/// </summary>
+Endurance,
 
-    /// <summary>
-    /// Raw power, breaking, forcing, overwhelming strength
-    /// </summary>
-    Strength
+/// <summary>
+/// Raw power, breaking, forcing, overwhelming strength
+/// </summary>
+Strength
 }

@@ -1,7 +1,3 @@
-using Wayfarer.Content.Catalogues;
-using Wayfarer.Content.Generators;
-using Wayfarer.Content.Validation;
-using Wayfarer.GameState;
 
 /// <summary>
 /// FACADE: Clean boundary between game code and scene generation subsystem
@@ -23,67 +19,101 @@ using Wayfarer.GameState;
 /// </summary>
 public class SceneGenerationFacade
 {
-    private readonly GameWorld _gameWorld;
+private readonly GameWorld _gameWorld;
 
-    public SceneGenerationFacade(GameWorld gameWorld)
+public SceneGenerationFacade(GameWorld gameWorld)
+{
+    _gameWorld = gameWorld;
+}
+
+/// <summary>
+/// Generate scene structure from archetype ID with entity context
+///
+/// Flow:
+/// 1. Extract properties from entities into GenerationContext
+/// 2. Route to appropriate catalogue based on archetype ID
+///    - A-story archetypes → AStorySceneArchetypeCatalog
+///    - Standard archetypes → SceneArchetypeCatalog
+/// 3. Return generated SceneArchetypeDefinition
+///
+/// Called at parse time (or via dynamic package generation) with entities from GameWorld
+/// </summary>
+public SceneArchetypeDefinition GenerateSceneFromArchetype(
+    string archetypeId,
+    int tier,
+    string npcId,
+    string locationId,
+    int? mainStorySequence = null)
+{
+    NPC contextNPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+    Location contextLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
+    Player contextPlayer = _gameWorld.GetPlayer();
+
+    GenerationContext context = GenerationContext.FromEntities(tier, contextNPC, contextLocation, contextPlayer, mainStorySequence);
+
+    // Route to appropriate catalogue based on archetype category
+    SceneArchetypeDefinition definition;
+
+    // A-story archetypes: investigation/social/confrontation/discovery/crisis patterns
+    if (IsAStoryArchetype(archetypeId))
     {
-        _gameWorld = gameWorld;
+        definition = AStorySceneArchetypeCatalog.Generate(archetypeId, tier, context);
+    }
+    else
+    {
+        // Standard service/consequence archetypes
+        definition = SceneArchetypeCatalog.Generate(archetypeId, tier, context);
     }
 
-    /// <summary>
-    /// Generate scene structure from archetype ID with entity context
-    ///
-    /// Flow:
-    /// 1. Extract properties from entities into GenerationContext
-    /// 2. Call SceneArchetypeCatalog.Generate() (pure function)
-    /// 3. Return generated SceneArchetypeDefinition
-    ///
-    /// Called at parse time with fully loaded entities from GameWorld
-    /// </summary>
-    public SceneArchetypeDefinition GenerateSceneFromArchetype(
-        string archetypeId,
-        int tier,
-        string npcId,
-        string locationId)
+    return definition;
+}
+
+/// <summary>
+/// Check if archetype ID is an A-story archetype
+/// A-story archetypes: investigation, social, confrontation, discovery, crisis patterns
+/// Standard archetypes: service-based patterns (inn_lodging, consequence_reflection, etc.)
+/// </summary>
+private bool IsAStoryArchetype(string archetypeId)
+{
+    List<string> aStoryArchetypes = new List<string>
     {
-        NPC contextNPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-        Location contextLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
-        Player contextPlayer = _gameWorld.GetPlayer();
+        // Investigation
+        "investigate_location", "gather_testimony", "discover_artifact", "uncover_conspiracy",
+        // Social
+        "meet_order_member", "gain_trust", "social_infiltration",
+        // Confrontation
+        "seek_audience", "confront_antagonist", "challenge_authority", "expose_corruption",
+        // Crisis/Decision
+        "urgent_decision", "moral_crossroads", "sacrifice_choice", "reveal_truth"
+    };
 
-        GenerationContext context = GenerationContext.FromEntities(tier, contextNPC, contextLocation, contextPlayer);
+    return aStoryArchetypes.Contains(archetypeId?.ToLowerInvariant());
+}
 
-        SceneArchetypeDefinition definition = SceneArchetypeCatalog.Generate(archetypeId, tier, context);
+/// <summary>
+/// Validate scene template completeness and correctness
+///
+/// Wraps SceneTemplateValidator.Validate() (pure validation logic)
+///
+/// Called after generation, before storing template in GameWorld
+/// </summary>
+public Wayfarer.Content.Validation.ValidationResult ValidateTemplate(SceneTemplate template)
+{
+    return SceneTemplateValidator.Validate(template);
+}
 
-        return definition;
-    }
-
-    /// <summary>
-    /// Validate scene template completeness and correctness
-    ///
-    /// Wraps SceneTemplateValidator.Validate() (pure validation logic)
-    ///
-    /// Called after generation, before storing template in GameWorld
-    /// </summary>
-    public Wayfarer.Content.Validation.ValidationResult ValidateTemplate(SceneTemplate template)
+/// <summary>
+/// Get list of available scene archetype IDs
+///
+/// Hardcoded list of supported archetypes
+/// Used for developer tools, debug visualization, error messages
+/// </summary>
+public List<string> GetAvailableArchetypes()
+{
+    return new List<string>
     {
-        return SceneTemplateValidator.Validate(template);
-    }
-
-    /// <summary>
-    /// Get list of available scene archetype IDs
-    ///
-    /// Hardcoded list of supported archetypes
-    /// Used for developer tools, debug visualization, error messages
-    /// </summary>
-    public List<string> GetAvailableArchetypes()
-    {
-        return new List<string>
-        {
-            "service_with_location_access",
-            "transaction_sequence",
-            "gatekeeper_sequence",
-            "consequence_reflection",
-            "inn_crisis_escalation"
-        };
-    }
+        "inn_lodging",
+        "consequence_reflection"
+    };
+}
 }

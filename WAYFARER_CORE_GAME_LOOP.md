@@ -8,7 +8,9 @@
 
 ## Executive Summary
 
-Wayfarer is a single-player visual novel RPG where you play a courier managing scarce resources across a hex-based city. The core loop is **accepting delivery jobs → navigating route segments with choice-driven situations → earning coins → spending on survival → repeat**. Resource pressure creates impossible choices. Optimization skill determines success. Visual novel scenes provide narrative content but gameplay comes first.
+Wayfarer is a single-player visual novel RPG where you play a courier managing scarce resources across a hex-based city. The core loop is **accepting delivery jobs → navigating route segments with choice-driven encounters → earning coins → spending on survival → repeat**. Resource pressure creates impossible choices. Optimization skill determines success. Visual novel scenes provide narrative content but gameplay comes first.
+
+**Note on Terminology**: This document uses "encounter" for route segment events to distinguish them from Scene.Situations (the strategic architecture entity). Route encounters are procedural travel events, not the Scene→Situation→Choice progression system.
 
 **Design Philosophy:** GAME first, story simulator second. Tight economy where delivery earnings barely cover survival costs. Every choice has clear resource trade-offs. No boolean gates, only graduated costs competing for shared scarce resources.
 
@@ -19,16 +21,16 @@ Wayfarer is a single-player visual novel RPG where you play a courier managing s
 ### Three-Tier Loop Hierarchy
 
 **SHORT LOOP (10-30 seconds):**
-- Situation presents narrative context
+- Encounter presents narrative context
 - Player evaluates 2-4 choices showing visible costs
 - Player selects choice
 - Resources change immediately
-- Progress advances to next situation
+- Progress advances to next encounter
 
 **MEDIUM LOOP (5-15 minutes):**
 - Wake at location
 - Accept delivery job
-- Travel route segments (chain of situation-choice cycles)
+- Travel route segments (chain of encounter-choice cycles)
 - Reach destination, earn coins
 - Return to starting location
 - Spend coins on survival (food, lodging)
@@ -51,7 +53,7 @@ Every choice shows exact costs before selection. Multiple valid approaches exist
 Energy and hunger deplete during travel. Must balance "advance quickly" vs "conserve resources". Running out forces failure or costly detours.
 
 **Route Opacity:**
-Don't know exactly how many situations remain on unknown routes. Must estimate if current resources sufficient. Risk assessment becomes core skill.
+Don't know exactly how many encounters remain on unknown routes. Must estimate if current resources sufficient. Risk assessment becomes core skill.
 
 **Optimization Rewards:**
 Learning routes reveals fixed segment costs. Mastering resource management enables profit. Skill improvement is measurable and satisfying.
@@ -138,10 +140,10 @@ Routes connect locations across different venues (districts). Each route consist
 
 **Fixed Environmental Segment:**
 
-Face-down card on first travel. Situation presents, player makes choice, card flips face-up revealing exact effect. On subsequent travels, face-up card shows cost before entry.
+Face-down card on first travel. Encounter presents, player makes choice, card flips face-up revealing exact effect. On subsequent travels, face-up card shows cost before entry.
 
 **Characteristics:**
-- Consistent situation each time traveled
+- Consistent encounter each time traveled
 - Learnable and optimizable
 - Forms route "personality"
 - Rewards route mastery
@@ -153,7 +155,7 @@ Face-down card on first travel. Situation presents, player makes choice, card fl
 
 **Event Segment:**
 
-Always face-down. Random situation drawn from event pool each time traveled. Never predictable, never learned.
+Always face-down. Random encounter drawn from event pool each time traveled. Never predictable, never learned.
 
 **Characteristics:**
 - Different every time
@@ -163,14 +165,14 @@ Always face-down. Random situation drawn from event pool each time traveled. Nev
 
 **Examples:**
 - Might encounter helpful merchant OR desperate bandit OR injured traveler
-- Same segment location, different situation each trip
+- Same segment location, different encounter each trip
 - Some routes have more event segments (higher variance, higher risk)
 
-### Situation-Choice Structure
+### Encounter-Choice Structure
 
-**Each segment presents one situation with 2-4 choices.**
+**Each segment presents one encounter with 2-4 choices.**
 
-**Example Situation: "Muddy Road Ahead"**
+**Example Encounter: "Muddy Road Ahead"**
 
 **Choice 1: "Push through with determination"**
 - Costs: 3 energy, 1 time segment
@@ -319,7 +321,7 @@ Higher relevant stat makes challenges easier, increases success probability, red
 Some NPCs require minimum stat level to begin bonding. Merchant needs Rapport 3. Guard captain needs Authority 2. Thief contact needs Cunning 3.
 
 **Choice Availability:**
-Route situation choices sometimes require stats. "Spot hidden path" needs Insight 2. "Intimidate bandits" needs Authority 3. Locked choices visible with requirement path shown.
+Route encounter choices sometimes require stats. "Spot hidden path" needs Insight 2. "Intimidate bandits" needs Authority 3. Locked choices visible with requirement path shown.
 
 ### Stat Progression
 
@@ -507,7 +509,7 @@ Atmospheric actions are primary content. Location description sets mood but game
 
 **Example cycle:**
 - Accept delivery: earn 30 coins
-- Route requires: 6 time segments, various energy/hunger costs during situations
+- Route requires: 6 time segments, various energy/hunger costs during encounters
 - Return to hub: mandatory food purchase 10 coins, lodging 15 coins
 - Net profit: 5 coins
 - Equipment upgrade costs: 60 coins (12 successful deliveries needed)
@@ -525,7 +527,7 @@ Atmospheric actions are primary content. Location description sets mood but game
 
 **Wayfarer examples:**
 
-**Route situation:**
+**Route encounter:**
 - Spend energy now (tire yourself) OR spend time segments (delay return, risk missing next job) OR spend coins (reduce profit margin)
 
 **Daily priority:**

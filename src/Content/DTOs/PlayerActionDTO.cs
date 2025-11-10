@@ -5,43 +5,43 @@
 /// </summary>
 public class PlayerActionDTO
 {
-    /// <summary>
-    /// Unique identifier for this action
-    /// </summary>
-    public string Id { get; set; }
+/// <summary>
+/// Unique identifier for this action
+/// </summary>
+public string Id { get; set; }
 
-    /// <summary>
-    /// Display name shown to the player
-    /// </summary>
-    public string Name { get; set; }
+/// <summary>
+/// Display name shown to the player
+/// </summary>
+public string Name { get; set; }
 
-    /// <summary>
-    /// Detailed description of what this action does
-    /// </summary>
-    public string Description { get; set; }
+/// <summary>
+/// Detailed description of what this action does
+/// </summary>
+public string Description { get; set; }
 
-    /// <summary>
-    /// Resource costs required to perform this action
-    /// </summary>
-    public ActionCostsDTO Cost { get; set; } = new ActionCostsDTO();
+/// <summary>
+/// Resource costs required to perform this action
+/// </summary>
+public ActionCostsDTO Cost { get; set; } = new ActionCostsDTO();
 
-    /// <summary>
-    /// Resources rewarded for performing this action
-    /// </summary>
-    public ActionRewardsDTO Reward { get; set; } = new ActionRewardsDTO();
+/// <summary>
+/// Resources rewarded for performing this action
+/// </summary>
+public ActionRewardsDTO Reward { get; set; } = new ActionRewardsDTO();
 
-    /// <summary>
-    /// Time required to complete this action in segments
-    /// </summary>
-    public int TimeRequired { get; set; }
+/// <summary>
+/// Time required to complete this action in segments
+/// </summary>
+public int TimeRequired { get; set; }
 
-    /// <summary>
-    /// Priority for sorting when multiple actions are available (lower = higher priority)
-    /// </summary>
-    public int Priority { get; set; } = 100;
+/// <summary>
+/// Priority for sorting when multiple actions are available (lower = higher priority)
+/// </summary>
+public int Priority { get; set; } = 100;
 
-    /// <summary>
-    /// Action type for special handling (e.g., "check_belongings", "open_journal")
-    /// </summary>
-    public string ActionType { get; set; }
+/// <summary>
+/// Action type for special handling (e.g., "check_belongings", "open_journal")
+/// </summary>
+public string ActionType { get; set; }
 }

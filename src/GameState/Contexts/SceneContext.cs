@@ -5,16 +5,16 @@
 /// </summary>
 public class SceneContext
 {
-    public bool IsValid { get; set; }
-    public string ErrorMessage { get; set; }
-    public Scene Scene { get; set; }
-    public Situation CurrentSituation { get; set; }
-    public string LocationId { get; set; }
-    public string LocationName { get; set; }
+public bool IsValid { get; set; }
+public string ErrorMessage { get; set; }
+public Scene Scene { get; set; }
+public Situation CurrentSituation { get; set; }
+public string LocationId { get; set; }
+public string LocationName { get; set; }
 
-    public SceneContext()
-    {
-        IsValid = true;
-        ErrorMessage = string.Empty;
-    }
+public SceneContext()
+{
+    IsValid = true;
+    ErrorMessage = string.Empty;
+}
 }

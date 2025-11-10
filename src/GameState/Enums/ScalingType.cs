@@ -4,31 +4,31 @@
 /// </summary>
 public enum ScalingType
 {
-    None = 0,
+None = 0,
 
-    // Standing Obligation scaling types
-    Linear,        // Linear scaling: effect = base + (tokens * scalingFactor)
-    Stepped,       // Stepped scaling: effect changes at specific thresholds
-    Threshold,     // Threshold scaling: effect only applies above/below threshold
+// Standing Obligation scaling types
+Linear,        // Linear scaling: effect = base + (tokens * scalingFactor)
+Stepped,       // Stepped scaling: effect changes at specific thresholds
+Threshold,     // Threshold scaling: effect only applies above/below threshold
 
-    // Visible resource scaling (Initiative, Cadence, Momentum, Doubt)
-    CurrentInitiative,     // = current initiative
-    CurrentCadence,        // = current cadence value
-    CurrentMomentum,       // = current momentum
-    CurrentDoubt,          // = current doubt
-    DoubleMomentum,        // Double current momentum
+// Visible resource scaling (Initiative, Cadence, Momentum, Doubt)
+CurrentInitiative,     // = current initiative
+CurrentCadence,        // = current cadence value
+CurrentMomentum,       // = current momentum
+CurrentDoubt,          // = current doubt
+DoubleMomentum,        // Double current momentum
 
-    // Visible pile scaling (Mind, Spoken, Deck)
-    CardsInMind,           // = cards in Mind pile
-    CardsInSpoken,         // = cards in Spoken pile
-    CardsInDeck,           // = cards remaining in deck
+// Visible pile scaling (Mind, Spoken, Deck)
+CardsInMind,           // = cards in Mind pile
+CardsInSpoken,         // = cards in Spoken pile
+CardsInDeck,           // = cards remaining in deck
 
-    // Resource conversion (Momentum spending)
-    SpendMomentumForDoubt, // Spend momentum → reduce doubt
-    SpendMomentumForInitiative, // Spend momentum → gain initiative
+// Resource conversion (Momentum spending)
+SpendMomentumForDoubt, // Spend momentum → reduce doubt
+SpendMomentumForInitiative, // Spend momentum → gain initiative
 
-    // Conditional scaling based on visible state
-    DoubtMultiplier,       // Effect scales with current doubt level
-    CadenceBonus,          // Effect scales with cadence (positive/negative)
-    InitiativeThreshold    // Effect only applies above/below initiative threshold
+// Conditional scaling based on visible state
+DoubtMultiplier,       // Effect scales with current doubt level
+CadenceBonus,          // Effect scales with cadence (positive/negative)
+InitiativeThreshold    // Effect only applies above/below initiative threshold
 }

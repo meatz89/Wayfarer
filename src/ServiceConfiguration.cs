@@ -1,232 +1,235 @@
-using Wayfarer.Content;
-using Wayfarer.Services;
 
 public static class ServiceConfiguration
 {
-    public static IServiceCollection ConfigureServices(this IServiceCollection services)
+public static IServiceCollection ConfigureServices(this IServiceCollection services)
+{
+    // Register dev mode service (needs to be early for other services to use)
+    services.AddSingleton<DevModeService>();
+
+    // Register configuration
+    services.AddSingleton<IContentDirectory, ContentDirectory>();
+
+    // Register game configuration and rule engine
+    services.AddSingleton<GameConfiguration>();
+    services.AddSingleton<IGameRuleEngine, GameRuleEngine>();
+
+    // Register GameWorld using static GameWorldInitializer
+    services.AddSingleton<GameWorld>(_ =>
     {
-        // Register dev mode service (needs to be early for other services to use)
-        services.AddSingleton<DevModeService>();
+        // Call GameWorldInitializer statically - no DI dependencies needed
+        GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();
+        return gameWorld;
+    });
 
-        // Register configuration
-        services.AddSingleton<IContentDirectory, ContentDirectory>();
+    // Register the content validator
+    services.AddSingleton<ContentValidator>();
 
-        // Register game configuration and rule engine
-        services.AddSingleton<GameConfiguration>();
-        services.AddSingleton<IGameRuleEngine, GameRuleEngine>();
+    // Core services that have no dependencies
+    services.AddSingleton<NPCVisibilityService>();
 
-        // Register GameWorld using static GameWorldInitializer
-        services.AddSingleton<GameWorld>(_ =>
-        {
-            // Call GameWorldInitializer statically - no DI dependencies needed
-            GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();
-            return gameWorld;
-        });
+    // Register repositories
+    services.AddSingleton<ItemRepository>();
+    services.AddSingleton<NPCRepository>();
+    services.AddSingleton<RouteRepository>();
+    services.AddSingleton<StandingObligationRepository>();
+    services.AddSingleton<RouteDiscoveryRepository>();
 
-        // Register the content validator
-        services.AddSingleton<ContentValidator>();
+    services.AddSingleton<MessageSystem>();
+    services.AddSingleton<DebugLogger>();
 
-        // Core services that have no dependencies
-        services.AddSingleton<NPCVisibilityService>();
+    // V3 Card-Based Obligation System - DELETED (wrong architecture)
+    // Obligation is strategic activity, not tactical system
+    // Mental/Physical facades will be added in refactor
 
-        // Register repositories
-        services.AddSingleton<ItemRepository>();
-        services.AddSingleton<NPCRepository>();
-        services.AddSingleton<RouteRepository>();
-        services.AddSingleton<StandingObligationRepository>();
-        services.AddSingleton<RouteDiscoveryRepository>();
+    services.AddTimeSystem();
 
-        services.AddSingleton<MessageSystem>();
-        services.AddSingleton<DebugLogger>();
+    // Managers that depend on TimeManager
+    services.AddSingleton<TravelManager>();
+    services.AddSingleton<TransportCompatibilityValidator>();
 
-        // V3 Card-Based Obligation System - DELETED (wrong architecture)
-        // Obligation is strategic activity, not tactical system
-        // Mental/Physical facades will be added in refactor
+    // DeliveryObligation Queue System
+    services.AddSingleton<StandingObligationManager>();
 
-        services.AddTimeSystem();
+    // ConversationSubsystem services
+    services.AddSingleton<MomentumManager>();
+    services.AddSingleton<SocialEffectResolver>();
+    services.AddSingleton<SocialChallengeDeckBuilder>();
+    services.AddSingleton<SocialFacade>();
+    services.AddSingleton<MentalFacade>();
+    services.AddSingleton<PhysicalFacade>();
 
-        // Managers that depend on TimeManager
-        services.AddSingleton<TravelManager>();
-        services.AddSingleton<TransportCompatibilityValidator>();
+    // Scene-Situation Architecture
+    services.AddSingleton<ConsequenceFacade>();
+    services.AddSingleton<SituationFacade>();
+    services.AddSingleton<SceneFacade>();
+    services.AddSingleton<SpawnFacade>();
+    services.AddSingleton<RewardApplicationService>();
 
-        // DeliveryObligation Queue System
-        services.AddSingleton<StandingObligationManager>();
+    // Unified Action Architecture - Three Parallel Executors
+    services.AddSingleton<LocationActionExecutor>();
+    services.AddSingleton<NPCActionExecutor>();
+    services.AddSingleton<PathCardExecutor>();
 
-        // ConversationSubsystem services
-        services.AddSingleton<MomentumManager>();
-        services.AddSingleton<SocialEffectResolver>();
-        services.AddSingleton<SocialChallengeDeckBuilder>();
-        services.AddSingleton<SocialFacade>();
-        services.AddSingleton<MentalFacade>();
-        services.AddSingleton<PhysicalFacade>();
+    // Player exertion calculator for dynamic cost modifiers (required by Mental/Physical effect resolvers)
+    services.AddSingleton<PlayerExertionCalculator>();
 
-        // Scene-Situation Architecture
-        services.AddSingleton<ConsequenceFacade>();
-        services.AddSingleton<SituationFacade>();
-        services.AddSingleton<SceneFacade>();
-        services.AddSingleton<SpawnFacade>();
-        services.AddSingleton<RewardApplicationService>();
+    // Mental services
+    services.AddSingleton<MentalEffectResolver>();
+    services.AddSingleton<MentalNarrativeService>();
+    services.AddSingleton<MentalDeckBuilder>();
 
-        // Unified Action Architecture - Three Parallel Executors
-        services.AddSingleton<LocationActionExecutor>();
-        services.AddSingleton<NPCActionExecutor>();
-        services.AddSingleton<PathCardExecutor>();
+    // Physical services
+    services.AddSingleton<PhysicalEffectResolver>();
+    services.AddSingleton<PhysicalNarrativeService>();
+    services.AddSingleton<PhysicalDeckBuilder>();
 
-        // Player exertion calculator for dynamic cost modifiers (required by Mental/Physical effect resolvers)
-        services.AddSingleton<PlayerExertionCalculator>();
+    // Obligation Activity - Strategic orchestrator for multi-phase obligations
+    services.AddSingleton<ObligationActivity>();
+    services.AddSingleton<ObligationDiscoveryEvaluator>();
 
-        // Mental services
-        services.AddSingleton<MentalEffectResolver>();
-        services.AddSingleton<MentalNarrativeService>();
-        services.AddSingleton<MentalDeckBuilder>();
+    // Scene and Situation Services - Situation visibility filtering with property + access requirements
+    services.AddSingleton<SituationCompletionHandler>();
+    services.AddSingleton<DifficultyCalculationService>();
+    // SceneFacade removed - old architecture deleted
 
-        // Physical services
-        services.AddSingleton<PhysicalEffectResolver>();
-        services.AddSingleton<PhysicalNarrativeService>();
-        services.AddSingleton<PhysicalDeckBuilder>();
+    // NPC deck initialization handled directly in PackageLoader
 
-        // Obligation Activity - Strategic orchestrator for multi-phase obligations
-        services.AddSingleton<ObligationActivity>();
-        services.AddSingleton<ObligationDiscoveryEvaluator>();
+    // Dialogue generation services (NO hardcoded text)
+    services.AddSingleton<DialogueGenerationService>();
 
-        // Scene and Situation Services - Situation visibility filtering with property + access requirements
-        services.AddSingleton<SituationCompletionHandler>();
-        services.AddSingleton<DifficultyCalculationService>();
-        // SceneFacade removed - old architecture deleted
+    // Narrative Generation System (AI and JSON fallback)
+    // Infrastructure for Ollama  
+    services.AddHttpClient<OllamaClient>(client =>
+    {
+        // Short timeout to prevent hanging when Ollama unavailable
+        client.Timeout = TimeSpan.FromSeconds(5);
+    });
+    services.AddSingleton<OllamaConfiguration>();
 
-        // NPC deck initialization handled directly in PackageLoader
+    // Narrative Generation Services
+    services.AddSingleton<NarrativeStreamingService>();
+    services.AddSingleton<JsonNarrativeRepository>();
+    services.AddSingleton<SocialNarrativeService>();
 
-        // Dialogue generation services (NO hardcoded text)
-        services.AddSingleton<DialogueGenerationService>();
+    // AI Narrative Generation Support Components
+    services.AddSingleton<SocialNarrativeGenerator>();
+    services.AddSingleton<PromptBuilder>();
 
-        // Narrative Generation System (AI and JSON fallback)
-        // Infrastructure for Ollama  
-        services.AddHttpClient<OllamaClient>(client =>
-        {
-            // Short timeout to prevent hanging when Ollama unavailable
-            client.Timeout = TimeSpan.FromSeconds(5);
-        });
-        services.AddSingleton<OllamaConfiguration>();
+    // Always register both providers as concrete types
+    services.AddSingleton<JsonNarrativeProvider>();
+    services.AddSingleton<AINarrativeProvider>();
 
-        // Narrative Generation Services
-        services.AddSingleton<NarrativeStreamingService>();
-        services.AddSingleton<JsonNarrativeRepository>();
-        services.AddSingleton<SocialNarrativeService>();
+    // NarrativeProviderFactory will handle selection based on config
+    services.AddSingleton<NarrativeProviderFactory>();
 
-        // AI Narrative Generation Support Components
-        services.AddSingleton<SocialNarrativeGenerator>();
-        services.AddSingleton<PromptBuilder>();
+    // Wire up circular dependencies after initial creation
+    services.AddSingleton<TokenMechanicsManager>();
 
-        // Always register both providers as concrete types
-        services.AddSingleton<JsonNarrativeProvider>();
-        services.AddSingleton<AINarrativeProvider>();
+    // Environmental Storytelling Systems
+    // ObservationManager eliminated - observation system removed
+    services.AddSingleton<ObservationSystem>();
+    services.AddSingleton<BindingObligationSystem>();
 
-        // NarrativeProviderFactory will handle selection based on config
-        services.AddSingleton<NarrativeProviderFactory>();
+    // Scene Instantiation System (needed by ObligationActivity)
+    services.AddSingleton<SpawnConditionsEvaluator>();
+    services.AddSingleton<SceneNarrativeService>();
+    services.AddSingleton<PackageLoader>();
+    services.AddSingleton<HexRouteGenerator>();
+    services.AddSingleton<MarkerResolutionService>();
+    services.AddSingleton<SceneInstantiator>();
+    services.AddSingleton<DependentResourceOrchestrationService>();
 
-        // Wire up circular dependencies after initial creation
-        services.AddSingleton<TokenMechanicsManager>();
+    // Scene Generation and Instance Facades (clean boundaries for procedural content)
+    // IMPORTANT: Register dependencies BEFORE SceneInstanceFacade
+    services.AddSingleton<PackageLoaderFacade>();
+    services.AddSingleton<ContentGenerationFacade>();
+    services.AddSingleton<SceneGenerationFacade>();
+    services.AddSingleton<SceneInstanceFacade>(); // Depends on PackageLoaderFacade + ContentGenerationFacade
 
-        // Environmental Storytelling Systems
-        // ObservationManager eliminated - observation system removed
-        services.AddSingleton<ObservationSystem>();
-        services.AddSingleton<BindingObligationSystem>();
+    // Infinite A-Story Generation (procedural main story continuation)
+    services.AddSingleton<ProceduralAStoryService>(); // Depends on GameWorld, ContentGenerationFacade, PackageLoaderFacade
 
-        // Scene Instantiation System (needed by ObligationActivity)
-        services.AddSingleton<SpawnConditionsEvaluator>();
-        services.AddSingleton<SceneNarrativeService>();
-        services.AddSingleton<PackageLoader>();
-        services.AddSingleton<HexRouteGenerator>();
-        services.AddSingleton<MarkerResolutionService>();
-        services.AddSingleton<SceneInstantiator>();
+    // State Clearing System (needed by TimeFacade)
+    services.AddSingleton<StateClearingResolver>();
 
-        // Scene Generation and Instance Facades (clean boundaries for procedural content)
-        services.AddSingleton<SceneGenerationFacade>();
-        services.AddSingleton<SceneInstanceFacade>();
-        services.AddSingleton<PackageLoaderFacade>();
-        services.AddSingleton<ContentGenerationFacade>();
+    // Transaction and Preview System
+    // AccessRequirementChecker eliminated - PRINCIPLE 4: Economic affordability determines access
+    services.AddSingleton<NarrativeService>();
 
-        // State Clearing System (needed by TimeFacade)
-        services.AddSingleton<StateClearingResolver>();
+    // Action generation service DELETED - ActionGenerator.cs removed (violates three-tier timing)
+    // Actions now created by SceneFacade at query time from ChoiceTemplates
 
-        // Transaction and Preview System
-        // AccessRequirementChecker eliminated - PRINCIPLE 4: Economic affordability determines access
-        services.AddSingleton<NarrativeService>();
+    // Core services
+    services.AddScoped<MusicService>();
 
-        // Action generation service DELETED - ActionGenerator.cs removed (violates three-tier timing)
-        // Actions now created by SceneFacade at query time from ChoiceTemplates
+    // Venue Subsystem
+    services.AddSingleton<LocationManager>();
+    services.AddSingleton<MovementValidator>();
+    services.AddSingleton<NPCLocationTracker>();
+    services.AddSingleton<LocationActionManager>();
+    services.AddSingleton<LocationNarrativeGenerator>();
+    services.AddSingleton<LocationFacade>();
 
-        // Core services
-        services.AddScoped<MusicService>();
+    // Obligation Subsystem
+    services.AddSingleton<MeetingManager>();
 
-        // Venue Subsystem
-        services.AddSingleton<LocationManager>();
-        services.AddSingleton<MovementValidator>();
-        services.AddSingleton<NPCLocationTracker>();
-        services.AddSingleton<LocationActionManager>();
-        services.AddSingleton<LocationNarrativeGenerator>();
-        services.AddSingleton<LocationFacade>();
+    // Time Subsystem (registered BEFORE ResourceFacade - dependency ordering)
+    services.AddSingleton<TimeBlockCalculator>();
+    services.AddSingleton<TimeProgressionManager>();
+    services.AddSingleton<TimeDisplayFormatter>();
+    services.AddSingleton<TimeFacade>();
 
-        // Obligation Subsystem
-        services.AddSingleton<MeetingManager>();
+    // Resource Subsystem (depends on TimeFacade)
+    services.AddSingleton<ResourceCalculator>();
+    services.AddSingleton<ResourceFacade>();
 
-        // Time Subsystem (registered BEFORE ResourceFacade - dependency ordering)
-        services.AddSingleton<TimeBlockCalculator>();
-        services.AddSingleton<TimeProgressionManager>();
-        services.AddSingleton<TimeDisplayFormatter>();
-        services.AddSingleton<TimeFacade>();
+    // Travel Subsystem
+    services.AddSingleton<RouteManager>();
+    services.AddSingleton<PermitValidator>();
+    services.AddSingleton<TravelTimeCalculator>();
+    services.AddSingleton<TravelFacade>();
 
-        // Resource Subsystem (depends on TimeFacade)
-        services.AddSingleton<ResourceCalculator>();
-        services.AddSingleton<ResourceFacade>();
+    // Market Subsystem
+    services.AddSingleton<MarketSubsystemManager>();
+    services.AddSingleton<PriceManager>();
+    services.AddSingleton<ArbitrageCalculator>();
+    services.AddSingleton<MarketStateTracker>();
+    services.AddSingleton<MarketFacade>();
 
-        // Travel Subsystem
-        services.AddSingleton<RouteManager>();
-        services.AddSingleton<PermitValidator>();
-        services.AddSingleton<TravelTimeCalculator>();
-        services.AddSingleton<TravelFacade>();
+    // Exchange Subsystem
+    services.AddSingleton<ExchangeValidator>();
+    services.AddSingleton<ExchangeProcessor>();
+    services.AddSingleton<ExchangeOrchestrator>();
+    services.AddSingleton<ExchangeFacade>();
 
-        // Market Subsystem
-        services.AddSingleton<MarketSubsystemManager>();
-        services.AddSingleton<PriceManager>();
-        services.AddSingleton<ArbitrageCalculator>();
-        services.AddSingleton<MarketStateTracker>();
-        services.AddSingleton<MarketFacade>();
+    // Token Subsystem
+    services.AddSingleton<ConnectionTokenManager>();
+    services.AddSingleton<TokenEffectProcessor>();
+    services.AddSingleton<TokenUnlockManager>();
+    services.AddSingleton<RelationshipTracker>();
+    services.AddSingleton<TokenFacade>();
 
-        // Exchange Subsystem
-        services.AddSingleton<ExchangeValidator>();
-        services.AddSingleton<ExchangeProcessor>();
-        services.AddSingleton<ExchangeOrchestrator>();
-        services.AddSingleton<ExchangeFacade>();
+    // Narrative Subsystem
+    services.AddSingleton<MessageSystem>();
+    services.AddSingleton<NarrativeService>();
+    services.AddSingleton<NarrativeRenderer>();
+    services.AddSingleton<LocationNarrativeGenerator>();
+    services.AddSingleton<NarrativeFacade>();
 
-        // Token Subsystem
-        services.AddSingleton<ConnectionTokenManager>();
-        services.AddSingleton<TokenEffectProcessor>();
-        services.AddSingleton<TokenUnlockManager>();
-        services.AddSingleton<RelationshipTracker>();
-        services.AddSingleton<TokenFacade>();
+    // Mastery (Cubes) Subsystem
+    services.AddSingleton<CubeFacade>();
 
-        // Narrative Subsystem
-        services.AddSingleton<MessageSystem>();
-        services.AddSingleton<NarrativeService>();
-        services.AddSingleton<NarrativeRenderer>();
-        services.AddSingleton<LocationNarrativeGenerator>();
-        services.AddSingleton<NarrativeFacade>();
+    // Screen Expansion Subsystems - ConversationTree, Observation, Emergency
+    services.AddSingleton<ConversationTreeFacade>();
+    services.AddSingleton<ObservationFacade>();
+    services.AddSingleton<EmergencyFacade>();
 
-        // Mastery (Cubes) Subsystem
-        services.AddSingleton<CubeFacade>();
+    // Game Facade - THE single entry point for all UI-Backend communication
+    services.AddSingleton<GameFacade>();
+    services.AddSingleton<NPCService>();
+    services.AddSingleton<LoadingStateService>();
 
-        // Screen Expansion Subsystems - ConversationTree, Observation, Emergency
-        services.AddSingleton<ConversationTreeFacade>();
-        services.AddSingleton<ObservationFacade>();
-        services.AddSingleton<EmergencyFacade>();
-
-        // Game Facade - THE single entry point for all UI-Backend communication
-        services.AddSingleton<GameFacade>();
-        services.AddSingleton<NPCService>();
-        services.AddSingleton<LoadingStateService>();
-
-        return services;
-    }
+    return services;
+}
 
 }

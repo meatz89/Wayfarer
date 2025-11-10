@@ -3,7 +3,7 @@
 /// </summary>
 public class NpcDescriptionTemplate
 {
-    public Dictionary<string, List<string>> ProfessionBase { get; set; }
+public Dictionary<string, List<string>> ProfessionBase { get; set; }
 
-    public Dictionary<string, Dictionary<string, List<string>>> EmotionalModifiers { get; set; }
+public Dictionary<string, Dictionary<string, List<string>>> EmotionalModifiers { get; set; }
 }

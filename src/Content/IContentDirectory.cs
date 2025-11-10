@@ -4,10 +4,10 @@
 /// </summary>
 public interface IContentDirectory
 {
-    /// <summary>
-    /// Path to the content directory containing game JSON files.
-    /// </summary>
-    string Path { get; }
+/// <summary>
+/// Path to the content directory containing game JSON files.
+/// </summary>
+string Path { get; }
 }
 
 /// <summary>
@@ -15,10 +15,10 @@ public interface IContentDirectory
 /// </summary>
 public class ContentDirectory : IContentDirectory
 {
-    public string Path { get; set; }
+public string Path { get; set; }
 
-    public ContentDirectory()
-    {
-        Path = "Content";
-    }
+public ContentDirectory()
+{
+    Path = "Content";
+}
 }

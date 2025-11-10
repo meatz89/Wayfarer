@@ -3,9 +3,9 @@
 /// </summary>
 public class DangerEffectDTO
 {
-    public int HealthDamage { get; set; } = 0;
-    public int StaminaDamage { get; set; } = 0;
-    public int ExposureIncrease { get; set; } = 0;
-    public int DangerIncrease { get; set; } = 0;
-    public bool FalseClue { get; set; } = false;
+public int HealthDamage { get; set; } = 0;
+public int StaminaDamage { get; set; } = 0;
+public int ExposureIncrease { get; set; } = 0;
+public int DangerIncrease { get; set; } = 0;
+public bool FalseClue { get; set; } = false;
 }

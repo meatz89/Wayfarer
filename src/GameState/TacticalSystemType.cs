@@ -4,18 +4,18 @@
 /// </summary>
 public enum TacticalSystemType
 {
-    /// <summary>
-    /// Social system (Conversation) - uses SessionCardDeck, ConversationCards, SocialEngagementTypes
-    /// </summary>
-    Social,
+/// <summary>
+/// Social system (Conversation) - uses SessionCardDeck, ConversationCards, SocialEngagementTypes
+/// </summary>
+Social,
 
-    /// <summary>
-    /// Mental system (Obligation) - uses MentalSessionDeck, MentalCards, MentalEngagementTypes
-    /// </summary>
-    Mental,
+/// <summary>
+/// Mental system (Obligation) - uses MentalSessionDeck, MentalCards, MentalEngagementTypes
+/// </summary>
+Mental,
 
-    /// <summary>
-    /// Physical system (Challenges) - uses PhysicalSessionDeck, PhysicalCards, PhysicalEngagementTypes
-    /// </summary>
-    Physical
+/// <summary>
+/// Physical system (Challenges) - uses PhysicalSessionDeck, PhysicalCards, PhysicalEngagementTypes
+/// </summary>
+Physical
 }

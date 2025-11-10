@@ -4,12 +4,12 @@
 /// </summary>
 public class HexDirectionOffset
 {
-    public int Q { get; init; }
-    public int R { get; init; }
+public int Q { get; init; }
+public int R { get; init; }
 
-    public HexDirectionOffset(int q, int r)
-    {
-        Q = q;
-        R = r;
-    }
+public HexDirectionOffset(int q, int r)
+{
+    Q = q;
+    R = r;
+}
 }

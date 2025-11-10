@@ -1,4 +1,3 @@
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Spawn Rule - defines how a situation spawns child situations on completion
@@ -7,41 +6,41 @@ using Wayfarer.GameState.Enums;
 /// </summary>
 public class SpawnRule
 {
-    /// <summary>
-    /// Template ID of the situation to spawn
-    /// References a situation definition that will be instantiated
-    /// </summary>
-    public string TemplateId { get; set; }
+/// <summary>
+/// Template ID of the situation to spawn
+/// References a situation definition that will be instantiated
+/// </summary>
+public string TemplateId { get; set; }
 
-    /// <summary>
-    /// Placement relation for spawned situation (Scene-Situation architecture)
-    /// Determines WHERE spawned situation appears relative to parent
-    /// </summary>
-    public PlacementRelation PlacementRelation { get; set; }
+/// <summary>
+/// Placement relation for spawned situation (Scene-Situation architecture)
+/// Determines WHERE spawned situation appears relative to parent
+/// </summary>
+public PlacementRelation PlacementRelation { get; set; }
 
-    /// <summary>
-    /// Specific placement ID when PlacementRelation is SpecificLocation/NPC/Route
-    /// Contains Location/NPC/Route ID to spawn at
-    /// </summary>
-    public string SpecificPlacementId { get; set; }
+/// <summary>
+/// Specific placement ID when PlacementRelation is SpecificLocation/NPC/Route
+/// Contains Location/NPC/Route ID to spawn at
+/// </summary>
+public string SpecificPlacementId { get; set; }
 
-    /// <summary>
-    /// DEPRECATED: Old string-based placement (replaced by PlacementRelation enum)
-    /// Kept for backwards compatibility with existing JSON
-    /// </summary>
-    public string TargetPlacement { get; set; }
+/// <summary>
+/// DEPRECATED: Old string-based placement (replaced by PlacementRelation enum)
+/// Kept for backwards compatibility with existing JSON
+/// </summary>
+public string TargetPlacement { get; set; }
 
-    /// <summary>
-    /// Requirement offsets to apply to spawned situation
-    /// Adjusts difficulty/requirements based on parent situation state
-    /// </summary>
-    public RequirementOffsets RequirementOffsets { get; set; }
+/// <summary>
+/// Requirement offsets to apply to spawned situation
+/// Adjusts difficulty/requirements based on parent situation state
+/// </summary>
+public RequirementOffsets RequirementOffsets { get; set; }
 
-    /// <summary>
-    /// Additional conditions that must be met for spawn to occur
-    /// Empty/null means always spawn on parent completion
-    /// </summary>
-    public SituationSpawnConditions Conditions { get; set; }
+/// <summary>
+/// Additional conditions that must be met for spawn to occur
+/// Empty/null means always spawn on parent completion
+/// </summary>
+public SituationSpawnConditions Conditions { get; set; }
 }
 
 /// <summary>
@@ -50,21 +49,21 @@ public class SpawnRule
 /// </summary>
 public class RequirementOffsets
 {
-    /// <summary>
-    /// Bond strength offset to apply
-    /// Example: -5 means spawned situation requires 5 less bond strength
-    /// </summary>
-    public int? BondStrengthOffset { get; set; }
+/// <summary>
+/// Bond strength offset to apply
+/// Example: -5 means spawned situation requires 5 less bond strength
+/// </summary>
+public int? BondStrengthOffset { get; set; }
 
-    /// <summary>
-    /// Scale value offset to apply
-    /// </summary>
-    public int? ScaleOffset { get; set; }
+/// <summary>
+/// Scale value offset to apply
+/// </summary>
+public int? ScaleOffset { get; set; }
 
-    /// <summary>
-    /// Other numeric requirement offsets
-    /// </summary>
-    public int? NumericOffset { get; set; }
+/// <summary>
+/// Other numeric requirement offsets
+/// </summary>
+public int? NumericOffset { get; set; }
 }
 
 /// <summary>
@@ -75,18 +74,18 @@ public class RequirementOffsets
 /// </summary>
 public class SituationSpawnConditions
 {
-    /// <summary>
-    /// Minimum player Resolve required for spawn
-    /// </summary>
-    public int? MinResolve { get; set; }
+/// <summary>
+/// Minimum player Resolve required for spawn
+/// </summary>
+public int? MinResolve { get; set; }
 
-    /// <summary>
-    /// Required active state type
-    /// </summary>
-    public string RequiredState { get; set; }
+/// <summary>
+/// Required active state type
+/// </summary>
+public string RequiredState { get; set; }
 
-    /// <summary>
-    /// Required achievement ID
-    /// </summary>
-    public string RequiredAchievement { get; set; }
+/// <summary>
+/// Required achievement ID
+/// </summary>
+public string RequiredAchievement { get; set; }
 }

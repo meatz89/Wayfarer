@@ -3,6 +3,6 @@
 /// </summary>
 public class TimeSpecificProperty
 {
-    public TimeBlocks TimeBlock { get; set; }
-    public List<LocationPropertyType> Properties { get; set; } = new List<LocationPropertyType>();
+public TimeBlocks TimeBlock { get; set; }
+public List<LocationPropertyType> Properties { get; set; } = new List<LocationPropertyType>();
 }

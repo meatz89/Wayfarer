@@ -1,4 +1,3 @@
-namespace Wayfarer.GameState.Enums;
 
 /// <summary>
 /// How scene was overcome
@@ -6,44 +5,44 @@ namespace Wayfarer.GameState.Enums;
 /// </summary>
 public enum ResolutionMethod
 {
-    /// <summary>
-    /// Not yet overcome
-    /// </summary>
-    Unresolved,
+/// <summary>
+/// Not yet overcome
+/// </summary>
+Unresolved,
 
-    /// <summary>
-    /// Forced, destroyed, attacked
-    /// Physical confrontation, direct combat
-    /// </summary>
-    Violence,
+/// <summary>
+/// Forced, destroyed, attacked
+/// Physical confrontation, direct combat
+/// </summary>
+Violence,
 
-    /// <summary>
-    /// Negotiated, befriended, persuaded
-    /// Social resolution, relationship building
-    /// </summary>
-    Diplomacy,
+/// <summary>
+/// Negotiated, befriended, persuaded
+/// Social resolution, relationship building
+/// </summary>
+Diplomacy,
 
-    /// <summary>
-    /// Sneaked, avoided, bypassed undetected
-    /// Stealth and subterfuge
-    /// </summary>
-    Stealth,
+/// <summary>
+/// Sneaked, avoided, bypassed undetected
+/// Stealth and subterfuge
+/// </summary>
+Stealth,
 
-    /// <summary>
-    /// Official channels, credentials, legal power
-    /// Using formal authority and recognized status
-    /// </summary>
-    Authority,
+/// <summary>
+/// Official channels, credentials, legal power
+/// Using formal authority and recognized status
+/// </summary>
+Authority,
 
-    /// <summary>
-    /// Outsmarted, found workaround, exploited weakness
-    /// Mental problem-solving, clever tactics
-    /// </summary>
-    Cleverness,
+/// <summary>
+/// Outsmarted, found workaround, exploited weakness
+/// Mental problem-solving, clever tactics
+/// </summary>
+Cleverness,
 
-    /// <summary>
-    /// Methodical reduction over multiple attempts
-    /// Incremental progress through Modify situations
-    /// </summary>
-    Preparation
+/// <summary>
+/// Methodical reduction over multiple attempts
+/// Incremental progress through Modify situations
+/// </summary>
+Preparation
 }

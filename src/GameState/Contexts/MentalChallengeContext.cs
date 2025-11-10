@@ -4,27 +4,42 @@
 /// </summary>
 public class MentalChallengeContext
 {
-    public bool IsValid { get; set; }
-    public string ErrorMessage { get; set; }
-    public string DeckId { get; set; }
-    public string ObligationId { get; set; }
-    public int PhaseIndex { get; set; }
-    public MentalSession Session { get; set; }
-    public Venue Venue { get; set; }
-    public ResourceState PlayerResources { get; set; }
-    public string LocationName { get; set; }
-    public string TimeDisplay { get; set; }
+public bool IsValid { get; set; }
+public string ErrorMessage { get; set; }
+public string DeckId { get; set; }
+public string ObligationId { get; set; }
+public int PhaseIndex { get; set; }
+public MentalSession Session { get; set; }
+public Venue Venue { get; set; }
+public ResourceState PlayerResources { get; set; }
+public string LocationName { get; set; }
+public string TimeDisplay { get; set; }
 
-    /// <summary>
-    /// Reward to apply if mental challenge succeeds
-    /// Set when challenge started from Choice with ActionType = StartChallenge
-    /// Applied in MentalFacade.EndSession() when outcome.Success == true
-    /// </summary>
-    public ChoiceReward CompletionReward { get; set; }
+/// <summary>
+/// Situation ID for scene progression tracking
+/// Set when challenge started from scene choice
+/// Used to find situation for LastChallengeSucceeded tracking
+/// </summary>
+public string SituationId { get; set; }
 
-    public MentalChallengeContext()
-    {
-        IsValid = true;
-        ErrorMessage = string.Empty;
-    }
+/// <summary>
+/// Reward to apply if mental challenge succeeds
+/// Set when challenge started from Choice with ActionType = StartChallenge
+/// Applied in MentalFacade.EndSession() when outcome.Success == true
+/// </summary>
+public ChoiceReward CompletionReward { get; set; }
+
+/// <summary>
+/// Reward to apply if mental challenge fails
+/// Set when challenge started from Choice with ActionType = StartChallenge
+/// Applied when player escapes or fails challenge
+/// Enables OnFailure transitions in scene state machine
+/// </summary>
+public ChoiceReward FailureReward { get; set; }
+
+public MentalChallengeContext()
+{
+    IsValid = true;
+    ErrorMessage = string.Empty;
+}
 }

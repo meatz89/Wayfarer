@@ -48,7 +48,7 @@ namespace Wayfarer.Pages.Components
         private async Task RefreshLocationData()
         {
             // Evaluate obligation discovery
-            GameFacade.EvaluateObligationDiscovery();
+            await GameFacade.EvaluateObligationDiscovery();
 
             // ONE call to backend - receives ALL data pre-built
             ViewModel = GameFacade.GetLocationFacade().GetLocationContentViewModel();
@@ -199,7 +199,7 @@ namespace Wayfarer.Pages.Components
             else if (result.ResultType == SituationResultType.Navigation)
             {
                 // Navigation - move player and optionally trigger scene at destination
-                bool success = GameFacade.MoveToSpot(result.NavigationDestinationId);
+                bool success = await GameFacade.MoveToSpot(result.NavigationDestinationId);
                 if (success)
                 {
                     ResetNavigation();
@@ -212,7 +212,7 @@ namespace Wayfarer.Pages.Components
 
         protected async Task MoveToSpot(string spotId)
         {
-            bool success = GameFacade.MoveToSpot(spotId);
+            bool success = await GameFacade.MoveToSpot(spotId);
 
             if (success)
             {

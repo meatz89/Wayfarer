@@ -1,26 +1,26 @@
 ﻿public class SkillModifier
 {
-    public SkillTypes TargetSkill { get; }
-    public int ModifierValue { get; }
-    public int RemainingDuration { get; private set; }
+public SkillTypes TargetSkill { get; }
+public int ModifierValue { get; }
+public int RemainingDuration { get; private set; }
 
-    public SkillModifier(SkillTypes targetSkill, int modifierValue, int duration)
-    {
-        TargetSkill = targetSkill;
-        ModifierValue = modifierValue;
-        RemainingDuration = duration;
-    }
+public SkillModifier(SkillTypes targetSkill, int modifierValue, int duration)
+{
+    TargetSkill = targetSkill;
+    ModifierValue = modifierValue;
+    RemainingDuration = duration;
+}
 
-    public void DecrementDuration()
+public void DecrementDuration()
+{
+    if (RemainingDuration > 0)
     {
-        if (RemainingDuration > 0)
-        {
-            RemainingDuration--;
-        }
+        RemainingDuration--;
     }
+}
 
-    public bool HasExpired()
-    {
-        return RemainingDuration <= 0;
-    }
+public bool HasExpired()
+{
+    return RemainingDuration <= 0;
+}
 }

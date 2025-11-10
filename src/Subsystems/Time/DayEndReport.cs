@@ -4,27 +4,27 @@
 /// </summary>
 public class DayEndReport
 {
-    // Obligation tracking
-    public List<CompletedObligationInfo> CompletedObligations { get; set; } = new List<CompletedObligationInfo>();
-    public List<FailedObligationInfo> FailedObligations { get; set; } = new List<FailedObligationInfo>();
-    public List<NewObligationInfo> NewObligations { get; set; } = new List<NewObligationInfo>();
+// Obligation tracking
+public List<CompletedObligationInfo> CompletedObligations { get; set; } = new List<CompletedObligationInfo>();
+public List<FailedObligationInfo> FailedObligations { get; set; } = new List<FailedObligationInfo>();
+public List<NewObligationInfo> NewObligations { get; set; } = new List<NewObligationInfo>();
 
-    // Financial tracking
-    public int CoinsEarned { get; set; } = 0;
-    public int CoinsSpent { get; set; } = 0;
-    public int NetCoins => CoinsEarned - CoinsSpent;
+// Financial tracking
+public int CoinsEarned { get; set; } = 0;
+public int CoinsSpent { get; set; } = 0;
+public int NetCoins => CoinsEarned - CoinsSpent;
 
-    // Equipment tracking
-    public List<string> NewEquipment { get; set; } = new List<string>();
+// Equipment tracking
+public List<string> NewEquipment { get; set; } = new List<string>();
 
-    // Stat progression tracking
-    public List<StatIncreaseInfo> StatsIncreased { get; set; } = new List<StatIncreaseInfo>();
+// Stat progression tracking
+public List<StatIncreaseInfo> StatsIncreased { get; set; } = new List<StatIncreaseInfo>();
 
-    // Cube gains (localized mastery)
-    public List<CubeGainInfo> CubesGained { get; set; } = new List<CubeGainInfo>();
+// Cube gains (localized mastery)
+public List<CubeGainInfo> CubesGained { get; set; } = new List<CubeGainInfo>();
 
-    // Current resources after restoration
-    public ResourceSnapshot CurrentResources { get; set; } = new ResourceSnapshot();
+// Current resources after restoration
+public ResourceSnapshot CurrentResources { get; set; } = new ResourceSnapshot();
 }
 
 /// <summary>
@@ -32,9 +32,9 @@ public class DayEndReport
 /// </summary>
 public class CompletedObligationInfo
 {
-    public string ObligationName { get; set; }
-    public int RewardCoins { get; set; }
-    public int RewardCubes { get; set; }
+public string ObligationName { get; set; }
+public int RewardCoins { get; set; }
+public int RewardCubes { get; set; }
 }
 
 /// <summary>
@@ -42,9 +42,9 @@ public class CompletedObligationInfo
 /// </summary>
 public class FailedObligationInfo
 {
-    public string ObligationName { get; set; }
-    public string PatronName { get; set; }
-    public int CubesRemoved { get; set; }
+public string ObligationName { get; set; }
+public string PatronName { get; set; }
+public int CubesRemoved { get; set; }
 }
 
 /// <summary>
@@ -52,8 +52,8 @@ public class FailedObligationInfo
 /// </summary>
 public class NewObligationInfo
 {
-    public string ObligationName { get; set; }
-    public string ObligationType { get; set; }
+public string ObligationName { get; set; }
+public string ObligationType { get; set; }
 }
 
 /// <summary>
@@ -61,9 +61,9 @@ public class NewObligationInfo
 /// </summary>
 public class StatIncreaseInfo
 {
-    public string StatName { get; set; }
-    public int OldLevel { get; set; }
-    public int NewLevel { get; set; }
+public string StatName { get; set; }
+public int OldLevel { get; set; }
+public int NewLevel { get; set; }
 }
 
 /// <summary>
@@ -71,9 +71,9 @@ public class StatIncreaseInfo
 /// </summary>
 public class CubeGainInfo
 {
-    public CubeType Type { get; set; }
-    public string EntityName { get; set; }
-    public int Amount { get; set; }
+public CubeType Type { get; set; }
+public string EntityName { get; set; }
+public int Amount { get; set; }
 }
 
 /// <summary>
@@ -81,9 +81,9 @@ public class CubeGainInfo
 /// </summary>
 public enum CubeType
 {
-    Obligation,
-    Story,
-    Exploration
+Obligation,
+Story,
+Exploration
 }
 
 /// <summary>
@@ -91,8 +91,8 @@ public enum CubeType
 /// </summary>
 public class ResourceSnapshot
 {
-    public int Health { get; set; }
-    public int Focus { get; set; }
-    public int Stamina { get; set; }
-    public int Coins { get; set; }
+public int Health { get; set; }
+public int Focus { get; set; }
+public int Stamina { get; set; }
+public int Coins { get; set; }
 }

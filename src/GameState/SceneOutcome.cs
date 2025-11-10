@@ -5,11 +5,11 @@
 /// </summary>
 public class SceneOutcome
 {
-    public string Description { get; set; }
-    public int TimeSegmentCost { get; set; }
-    public int StaminaCost { get; set; }
-    public int HealthChange { get; set; }
+public string Description { get; set; }
+public int TimeSegmentCost { get; set; }
+public int StaminaCost { get; set; }
+public int HealthChange { get; set; }
 
-    // Route improvement reward
-    public RouteImprovement RouteImprovement { get; set; }
+// Route improvement reward
+public RouteImprovement RouteImprovement { get; set; }
 }

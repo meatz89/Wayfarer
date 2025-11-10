@@ -1,8 +1,8 @@
 ﻿public enum SystemMessageTypes
 {
-    Info,
-    Warning,
-    Success,
-    Danger,
-    Tutorial
+Info,
+Warning,
+Success,
+Danger,
+Tutorial
 }

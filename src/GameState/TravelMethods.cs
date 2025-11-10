@@ -1,8 +1,8 @@
 ﻿public enum TravelMethods
 {
-    Walking,
-    Horseback,
-    Carriage,
-    Cart,
-    Boat
+Walking,
+Horseback,
+Carriage,
+Cart,
+Boat
 }

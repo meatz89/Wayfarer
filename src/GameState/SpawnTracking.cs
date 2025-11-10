@@ -33,39 +33,39 @@
 /// </remarks>
 public record SpawnTracking
 {
-    /// <summary>
-    /// Day when this entity was spawned (instantiated from template)
-    /// null if not yet spawned (template definition only)
-    /// </summary>
-    public int? SpawnedDay { get; init; }
+/// <summary>
+/// Day when this entity was spawned (instantiated from template)
+/// null if not yet spawned (template definition only)
+/// </summary>
+public int? SpawnedDay { get; init; }
 
-    /// <summary>
-    /// Time block when this entity was spawned
-    /// null if not yet spawned (template definition only)
-    /// </summary>
-    public TimeBlocks? SpawnedTimeBlock { get; init; }
+/// <summary>
+/// Time block when this entity was spawned
+/// null if not yet spawned (template definition only)
+/// </summary>
+public TimeBlocks? SpawnedTimeBlock { get; init; }
 
-    /// <summary>
-    /// Segment within time block when this entity was spawned (1-4)
-    /// null if not yet spawned (template definition only)
-    /// </summary>
-    public int? SpawnedSegment { get; init; }
+/// <summary>
+/// Segment within time block when this entity was spawned (1-4)
+/// null if not yet spawned (template definition only)
+/// </summary>
+public int? SpawnedSegment { get; init; }
 
-    /// <summary>
-    /// Day when this entity was completed
-    /// null if not yet completed
-    /// </summary>
-    public int? CompletedDay { get; set; }
+/// <summary>
+/// Day when this entity was completed
+/// null if not yet completed
+/// </summary>
+public int? CompletedDay { get; set; }
 
-    /// <summary>
-    /// Time block when this entity was completed
-    /// null if not yet completed
-    /// </summary>
-    public TimeBlocks? CompletedTimeBlock { get; set; }
+/// <summary>
+/// Time block when this entity was completed
+/// null if not yet completed
+/// </summary>
+public TimeBlocks? CompletedTimeBlock { get; set; }
 
-    /// <summary>
-    /// Segment within time block when this entity was completed (1-4)
-    /// null if not yet completed
-    /// </summary>
-    public int? CompletedSegment { get; set; }
+/// <summary>
+/// Segment within time block when this entity was completed (1-4)
+/// null if not yet completed
+/// </summary>
+public int? CompletedSegment { get; set; }
 }

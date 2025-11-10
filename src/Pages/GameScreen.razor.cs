@@ -349,7 +349,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     protected async Task HandleConversationEnd()
     {
         // STRATEGIC LAYER: Process challenge outcome and apply rewards
-        GameFacade.ProcessSocialChallengeOutcome();
+        await GameFacade.ProcessSocialChallengeOutcome();
 
         CurrentSocialContext = null;
 
@@ -399,7 +399,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     public async Task HandleMentalEnd()
     {
         // STRATEGIC LAYER: Process challenge outcome and apply rewards
-        GameFacade.ProcessMentalChallengeOutcome();
+        await GameFacade.ProcessMentalChallengeOutcome();
 
         CurrentMentalContext = null;
 
@@ -496,7 +496,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     public async Task HandlePhysicalEnd()
     {
         // STRATEGIC LAYER: Process challenge outcome and apply rewards
-        GameFacade.ProcessPhysicalChallengeOutcome();
+        await GameFacade.ProcessPhysicalChallengeOutcome();
 
         CurrentPhysicalContext = null;
 
@@ -938,7 +938,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         _obligationIntroResult = null;
 
         // Activate obligation and spawn Phase 1 scene
-        GameFacade.CompleteObligationIntro(obligationId);
+        await GameFacade.CompleteObligationIntro(obligationId);
 
         // Refresh UI after activation
         await RefreshLocationDisplay();

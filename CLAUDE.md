@@ -163,14 +163,33 @@ GameWorld (single source of truth)
 3. Validate ALL ID references at parse time (throw if missing)
 4. Numerical appropriate for: Player state accumulation, time tracking, resource pools
 
-**Situation Archetypes (5 Core Patterns):**
-- Confrontation (Authority/Dominance): Gatekeepers, obstacles
-- Negotiation (Diplomacy/Trade): Merchants, transactional exchanges
-- Investigation (Insight/Discovery): Information gathering, puzzle solving
-- Social Maneuvering (Rapport/Manipulation): Social circles, subtle influence
-- Crisis (Emergency Response): Urgent situations, decisive action
+**Situation Archetypes:**
 
-Archetypes = reusable mechanical patterns (2-4 choices, action types, cost/requirement formulas, rewards). AI generates narrative from entity context at finalization. Use categorical placement filters, not concrete NPC IDs.
+The archetype system has three tiers of increasing specificity:
+
+**5 Core Archetypes (fundamental interaction types):**
+- **Confrontation** (Authority/Dominance): Gatekeepers, obstacles, authority challenges
+- **Negotiation** (Diplomacy/Trade): Merchants, transactional exchanges, deals
+- **Investigation** (Insight/Discovery): Information gathering, puzzle solving, deduction
+- **Social Maneuvering** (Rapport/Manipulation): Social circles, subtle influence, persuasion
+- **Crisis** (Emergency Response): Urgent situations, decisive action, time pressure
+
+**10 Expanded Archetypes (domain-specific variations):**
+- service_transaction, access_control, information_gathering, skill_demonstration
+- reputation_challenge, emergency_aid, administrative_procedure, trade_dispute
+- cultural_faux_pas, recruitment_attempt
+
+**6 Specialized Service Archetypes (multi-phase service flows):**
+- **service_negotiation**: 4 choices (stat/money/challenge/fallback), secures service access
+- **service_execution_rest**: 4 variants (balanced/physical/mental/special), delivers service
+- **service_departure**: 2 choices (immediate/careful), cleanup and exit
+- **rest_preparation**, **entering_private_space**, **departing_private_space**
+
+**Relationship:** The 5 core define fundamental interaction types. The 10 expanded specialize for specific domains (services, access, emergencies). The 6 specialized service archetypes compose into complete multi-situation service flows (inn_lodging, bathhouse_service, healer_treatment).
+
+**Universal Scaling:** ALL archetypes benefit from categorical property scaling (NPCDemeanor, Quality, PowerDynamic, EnvironmentQuality). Same archetype + different properties = contextually appropriate difficulty.
+
+Archetypes = reusable mechanical patterns (typically 4 choices, path types, cost/requirement formulas, rewards). AI generates narrative from entity context at finalization. Use categorical placement filters, not concrete NPC IDs. Same archetypes reused across entire game via property combinations.
 
 **Enforcement:**
 - Parser: All categorical JSON translated? Concrete values stored? No Dictionary properties?

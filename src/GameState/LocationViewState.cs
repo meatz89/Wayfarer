@@ -4,8 +4,8 @@
 /// </summary>
 public enum LocationViewState
 {
-    Landing,
-    LookingAround,
-    SituationDetail,
-    JobBoard
+Landing,
+LookingAround,
+SituationDetail,
+JobBoard
 }

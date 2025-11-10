@@ -3,5 +3,5 @@
 /// </summary>
 public class CardDialogueTemplate
 {
-    public Dictionary<string, CardCategoryDialogue> Categories { get; set; }
+public Dictionary<string, CardCategoryDialogue> Categories { get; set; }
 }

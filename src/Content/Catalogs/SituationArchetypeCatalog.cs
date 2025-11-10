@@ -1,8 +1,3 @@
-using Wayfarer.GameState;
-using Wayfarer.GameState.Enums;
-
-namespace Wayfarer.Content.Catalogues;
-
 /// <summary>
 /// ⚠️ PARSE-TIME ONLY CATALOGUE ⚠️
 ///
@@ -49,769 +44,1238 @@ namespace Wayfarer.Content.Catalogues;
 /// </summary>
 public static class SituationArchetypeCatalog
 {
-    /// <summary>
-    /// Get archetype definition by ID
-    /// Called at parse time to generate choice structures
-    /// Throws InvalidDataException on unknown archetype ID (fail fast)
-    /// </summary>
-    public static SituationArchetype GetArchetype(string archetypeId)
+/// <summary>
+/// Get archetype definition by ID
+/// Called at parse time to generate choice structures
+/// Throws InvalidDataException on unknown archetype ID (fail fast)
+/// </summary>
+public static SituationArchetype GetArchetype(string archetypeId)
+{
+    return archetypeId?.ToLowerInvariant() switch
     {
-        return archetypeId?.ToLowerInvariant() switch
-        {
-            "confrontation" => CreateConfrontation(),
-            "negotiation" => CreateNegotiation(),
-            "investigation" => CreateInvestigation(),
-            "social_maneuvering" => CreateSocialManeuvering(),
-            "crisis" => CreateCrisis(),
-            "service_transaction" => CreateServiceTransaction(),
-            "access_control" => CreateAccessControl(),
-            "information_gathering" => CreateInformationGathering(),
-            "skill_demonstration" => CreateSkillDemonstration(),
-            "reputation_challenge" => CreateReputationChallenge(),
-            "emergency_aid" => CreateEmergencyAid(),
-            "administrative_procedure" => CreateAdministrativeProcedure(),
-            "trade_dispute" => CreateTradeDispute(),
-            "cultural_faux_pas" => CreateCulturalFauxPas(),
-            "recruitment" => CreateRecruitment(),
-            "rest_preparation" => CreateRestPreparation(),
-            "entering_private_space" => CreateEnteringPrivateSpace(),
-            "departing_private_space" => CreateDepartingPrivateSpace(),
-            _ => throw new InvalidDataException($"Unknown archetype ID: '{archetypeId}'. Valid values: confrontation, negotiation, investigation, social_maneuvering, crisis, service_transaction, access_control, information_gathering, skill_demonstration, reputation_challenge, emergency_aid, administrative_procedure, trade_dispute, cultural_faux_pas, recruitment, rest_preparation, entering_private_space, departing_private_space")
-        };
+        "confrontation" => CreateConfrontation(),
+        "negotiation" => CreateNegotiation(),
+        "investigation" => CreateInvestigation(),
+        "social_maneuvering" => CreateSocialManeuvering(),
+        "crisis" => CreateCrisis(),
+        "service_transaction" => CreateServiceTransaction(),
+        "access_control" => CreateAccessControl(),
+        "information_gathering" => CreateInformationGathering(),
+        "skill_demonstration" => CreateSkillDemonstration(),
+        "reputation_challenge" => CreateReputationChallenge(),
+        "emergency_aid" => CreateEmergencyAid(),
+        "administrative_procedure" => CreateAdministrativeProcedure(),
+        "trade_dispute" => CreateTradeDispute(),
+        "cultural_faux_pas" => CreateCulturalFauxPas(),
+        "recruitment" => CreateRecruitment(),
+        "rest_preparation" => CreateRestPreparation(),
+        "entering_private_space" => CreateEnteringPrivateSpace(),
+        "departing_private_space" => CreateDepartingPrivateSpace(),
+        "service_negotiation" => CreateServiceNegotiation(),
+        "service_execution_rest" => CreateServiceExecutionRest(),
+        "service_departure" => CreateServiceDeparture(),
+        _ => throw new InvalidDataException($"Unknown archetype ID: '{archetypeId}'. Valid values: confrontation, negotiation, investigation, social_maneuvering, crisis, service_transaction, access_control, information_gathering, skill_demonstration, reputation_challenge, emergency_aid, administrative_procedure, trade_dispute, cultural_faux_pas, recruitment, rest_preparation, entering_private_space, departing_private_space, service_negotiation, service_execution_rest, service_departure")
+    };
+}
+
+/// <summary>
+/// CONFRONTATION archetype
+///
+/// When Used: Authority challenges, physical barriers, intimidation moments
+/// Common In: Authority domain (guard posts, government, courts)
+/// Player Learns: "Authority matters in Authority zones"
+///
+/// Choice Pattern:
+/// 1. Authority 3+ → Command, assert dominance (best, free)
+/// 2. 15 coins → Bribe, pay off (decent, expensive)
+/// 3. Physical challenge → Fight, endure (risky, variable)
+/// 4. Fallback → Submit, back down (poor, always available)
+/// </summary>
+private static SituationArchetype CreateConfrontation()
+{
+    return new SituationArchetype
+    {
+        Id = "confrontation",
+        Name = "Confrontation",
+        Domain = Domain.Authority,
+        PrimaryStat = PlayerStatType.Authority,
+        SecondaryStat = PlayerStatType.Authority, // Using Authority for both (Intimidation not in PlayerStatType)
+        StatThreshold = 3,
+        CoinCost = 15,
+        ChallengeType = TacticalSystemType.Physical,
+        ResolveCost = 2,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// NEGOTIATION archetype
+///
+/// When Used: Price disputes, deal-making, compromise seeking
+/// Common In: Economic domain (merchant quarters, markets, guilds)
+/// Player Learns: "Diplomacy matters in Economic zones"
+///
+/// Choice Pattern:
+/// 1. Diplomacy/Rapport 3+ → Persuade, charm (best, free)
+/// 2. 15 coins → Pay premium, sweeten deal (decent, expensive)
+/// 3. Mental challenge → Debate, cite regulations (risky, cerebral)
+/// 4. Fallback → Accept unfavorable terms (poor, always available)
+/// </summary>
+private static SituationArchetype CreateNegotiation()
+{
+    return new SituationArchetype
+    {
+        Id = "negotiation",
+        Name = "Negotiation",
+        Domain = Domain.Economic,
+        PrimaryStat = PlayerStatType.Diplomacy,
+        SecondaryStat = PlayerStatType.Rapport,
+        StatThreshold = 3,
+        CoinCost = 15,
+        ChallengeType = TacticalSystemType.Mental,
+        ResolveCost = 2,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// INVESTIGATION archetype
+///
+/// When Used: Mysteries, puzzles, information gathering, deduction
+/// Common In: Mental domain (libraries, laboratories, scholarly societies)
+/// Player Learns: "Insight matters in Mental zones"
+///
+/// Choice Pattern:
+/// 1. Insight/Cunning 3+ → Deduce, analyze (best, free)
+/// 2. 10 coins → Pay informant, hire expert (decent, moderate cost)
+/// 3. Mental challenge → Work through puzzle (risky, time-consuming)
+/// 4. Fallback → Guess, give up (poor, miss information)
+/// </summary>
+private static SituationArchetype CreateInvestigation()
+{
+    return new SituationArchetype
+    {
+        Id = "investigation",
+        Name = "Investigation",
+        Domain = Domain.Mental,
+        PrimaryStat = PlayerStatType.Insight,
+        SecondaryStat = PlayerStatType.Cunning,
+        StatThreshold = 3,
+        CoinCost = 10,
+        ChallengeType = TacticalSystemType.Mental,
+        ResolveCost = 2,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// SOCIAL MANEUVERING archetype
+///
+/// When Used: Reputation management, relationship building, social hierarchy
+/// Common In: Social domain (taverns, noble estates, social gatherings)
+/// Player Learns: "Rapport matters in Social zones"
+///
+/// Choice Pattern:
+/// 1. Rapport/Cunning 3+ → Read people, empathize (best, free)
+/// 2. 10 coins → Gift, favor, social currency (decent, transactional)
+/// 3. Social challenge → Risk reputation, bold statement (risky, high stakes)
+/// 4. Fallback → Alienate, offend, awkward exit (poor, damages relationship)
+/// </summary>
+private static SituationArchetype CreateSocialManeuvering()
+{
+    return new SituationArchetype
+    {
+        Id = "social_maneuvering",
+        Name = "Social Maneuvering",
+        Domain = Domain.Social,
+        PrimaryStat = PlayerStatType.Rapport,
+        SecondaryStat = PlayerStatType.Cunning,
+        StatThreshold = 3,
+        CoinCost = 10,
+        ChallengeType = TacticalSystemType.Social,
+        ResolveCost = 2,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// CRISIS archetype
+///
+/// When Used: Emergencies, high-stakes moments, moral dilemmas, scene climaxes
+/// Common In: Any domain (rare, high-impact moments)
+/// Player Learns: "Crisis moments demand expertise or sacrifice"
+///
+/// Choice Pattern:
+/// 1. Authority 4+ → Heroic action, expert solution (best, high requirement)
+/// 2. 25 coins → Expensive emergency solution (guaranteed, financially ruinous)
+/// 3. Physical challenge → Personal risk, gamble everything (risky, heroic)
+/// 4. Fallback → Flee, accept severe consequence (worst, permanent guilt)
+/// </summary>
+private static SituationArchetype CreateCrisis()
+{
+    return new SituationArchetype
+    {
+        Id = "crisis",
+        Name = "Crisis",
+        Domain = Domain.Physical, // Can appear in any domain, but Physical for default
+        PrimaryStat = PlayerStatType.Authority, // Leadership in crisis
+        SecondaryStat = PlayerStatType.Insight, // Alternative: Understanding the situation
+        StatThreshold = 4, // Higher requirement for crisis
+        CoinCost = 25, // Very expensive
+        ChallengeType = TacticalSystemType.Physical, // Often physical danger
+        ResolveCost = 3, // Higher resolve cost
+        FallbackTimeCost = 2 // Worse penalty
+    };
+}
+
+/// <summary>
+/// SERVICE TRANSACTION archetype
+///
+/// When Used: Paying for services (lodging, food, healing, ferry passage)
+/// Common In: Economic domain (inns, taverns, shops, service providers)
+/// Player Learns: "Services cost money or goodwill"
+///
+/// Choice Pattern:
+/// 1. Rapport 3+ → Request favor, use goodwill (best, free if liked)
+/// 2. 10 coins → Pay standard rate (decent, straightforward)
+/// 3. Mental challenge → Debate price, cite reasons (risky, haggling)
+/// 4. Fallback → Go without, find alternative (poor, inconvenient)
+/// </summary>
+private static SituationArchetype CreateServiceTransaction()
+{
+    return new SituationArchetype
+    {
+        Id = "service_transaction",
+        Name = "Service Transaction",
+        Domain = Domain.Economic,
+        PrimaryStat = PlayerStatType.None,
+        SecondaryStat = PlayerStatType.None,
+        StatThreshold = 0,
+        CoinCost = 5,
+        ChallengeType = TacticalSystemType.Mental,
+        ResolveCost = 1,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// ACCESS CONTROL archetype
+///
+/// When Used: Getting past gatekeepers, locked doors, restricted areas
+/// Common In: Authority domain (checkpoints, private areas, guarded locations)
+/// Player Learns: "Access requires authority or clever bypass"
+///
+/// Choice Pattern:
+/// 1. Authority 3+ → Flash credentials, demand entry (best, commanding)
+/// 2. 15 coins → Pay bribe, grease palms (decent, costly)
+/// 3. Physical challenge → Sneak, climb, force entry (risky, illegal)
+/// 4. Fallback → Turn back, find other route (poor, time loss)
+/// </summary>
+private static SituationArchetype CreateAccessControl()
+{
+    return new SituationArchetype
+    {
+        Id = "access_control",
+        Name = "Access Control",
+        Domain = Domain.Authority,
+        PrimaryStat = PlayerStatType.Authority,
+        SecondaryStat = PlayerStatType.Cunning,
+        StatThreshold = 3,
+        CoinCost = 15,
+        ChallengeType = TacticalSystemType.Physical,
+        ResolveCost = 2,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// INFORMATION GATHERING archetype
+///
+/// When Used: Rumors, news, local knowledge, gossip networks
+/// Common In: Social domain (taverns, markets, social gatherings)
+/// Player Learns: "Information flows through social channels"
+///
+/// Choice Pattern:
+/// 1. Rapport 3+ → Ask friends, leverage connections (best, trusted source)
+/// 2. 8 coins → Pay informant, buy drinks (decent, direct)
+/// 3. Social challenge → Eavesdrop, infiltrate group (risky, may offend)
+/// 4. Fallback → Guess, make assumptions (poor, unreliable)
+/// </summary>
+private static SituationArchetype CreateInformationGathering()
+{
+    return new SituationArchetype
+    {
+        Id = "information_gathering",
+        Name = "Information Gathering",
+        Domain = Domain.Social,
+        PrimaryStat = PlayerStatType.Rapport,
+        SecondaryStat = PlayerStatType.Insight,
+        StatThreshold = 3,
+        CoinCost = 8,
+        ChallengeType = TacticalSystemType.Social,
+        ResolveCost = 1,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// SKILL DEMONSTRATION archetype
+///
+/// When Used: Proving competence, showing credentials, demonstrating expertise
+/// Common In: Economic domain (guilds, hiring, professional contexts)
+/// Player Learns: "Skills open doors in professional settings"
+///
+/// Choice Pattern:
+/// 1. Diplomacy 3+ → Talk up experience, impress with history (best, convincing)
+/// 2. 12 coins → Provide sample, pay examination fee (decent, proof)
+/// 3. Mental challenge → Puzzle, test, demonstration (risky, public failure)
+/// 4. Fallback → Admit inexperience, withdraw (poor, reputation loss)
+/// </summary>
+private static SituationArchetype CreateSkillDemonstration()
+{
+    return new SituationArchetype
+    {
+        Id = "skill_demonstration",
+        Name = "Skill Demonstration",
+        Domain = Domain.Economic,
+        PrimaryStat = PlayerStatType.Diplomacy,
+        SecondaryStat = PlayerStatType.Insight,
+        StatThreshold = 3,
+        CoinCost = 12,
+        ChallengeType = TacticalSystemType.Mental,
+        ResolveCost = 2,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// REPUTATION CHALLENGE archetype
+///
+/// When Used: Someone questioning your standing, honor, or claims
+/// Common In: Social domain (public spaces, social circles, rumor mills)
+/// Player Learns: "Reputation must be defended or grows worse"
+///
+/// Choice Pattern:
+/// 1. Authority 3+ → Demand apology, assert dominance (best, shows strength)
+/// 2. 10 coins → Buy silence, pay off accuser (decent, temporary fix)
+/// 3. Social challenge → Public debate, prove worth (risky, high stakes)
+/// 4. Fallback → Ignore, let rumors spread (poor, reputation damage)
+/// </summary>
+private static SituationArchetype CreateReputationChallenge()
+{
+    return new SituationArchetype
+    {
+        Id = "reputation_challenge",
+        Name = "Reputation Challenge",
+        Domain = Domain.Social,
+        PrimaryStat = PlayerStatType.Authority,
+        SecondaryStat = PlayerStatType.Diplomacy,
+        StatThreshold = 3,
+        CoinCost = 10,
+        ChallengeType = TacticalSystemType.Social,
+        ResolveCost = 2,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// EMERGENCY AID archetype
+///
+/// When Used: Medical crisis, immediate danger to others, rescue situations
+/// Common In: Physical domain (accidents, disasters, sudden illness)
+/// Player Learns: "Emergencies demand quick thinking or resources"
+///
+/// Choice Pattern:
+/// 1. Insight 3+ → Diagnose, apply first aid (best, expert solution)
+/// 2. 20 coins → Hire professional, emergency services (decent, expensive)
+/// 3. Physical challenge → Carry, rescue, intervene (risky, heroic)
+/// 4. Fallback → Stand by helplessly, flee (worst, guilt)
+/// </summary>
+private static SituationArchetype CreateEmergencyAid()
+{
+    return new SituationArchetype
+    {
+        Id = "emergency_aid",
+        Name = "Emergency Aid",
+        Domain = Domain.Physical,
+        PrimaryStat = PlayerStatType.Insight,
+        SecondaryStat = PlayerStatType.Authority,
+        StatThreshold = 3,
+        CoinCost = 20,
+        ChallengeType = TacticalSystemType.Physical,
+        ResolveCost = 2,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// ADMINISTRATIVE PROCEDURE archetype
+///
+/// When Used: Bureaucracy, paperwork, permits, official processes
+/// Common In: Authority domain (government offices, customs, registration)
+/// Player Learns: "Bureaucracy has rules and shortcuts"
+///
+/// Choice Pattern:
+/// 1. Diplomacy 3+ → Navigate system, know procedures (best, smooth)
+/// 2. 12 coins → Pay expedite fee, grease wheels (decent, faster)
+/// 3. Mental challenge → Find loophole, cite regulations (risky, argumentative)
+/// 4. Fallback → Endure delays, red tape (poor, time sink)
+/// </summary>
+private static SituationArchetype CreateAdministrativeProcedure()
+{
+    return new SituationArchetype
+    {
+        Id = "administrative_procedure",
+        Name = "Administrative Procedure",
+        Domain = Domain.Authority,
+        PrimaryStat = PlayerStatType.Diplomacy,
+        SecondaryStat = PlayerStatType.Insight,
+        StatThreshold = 3,
+        CoinCost = 12,
+        ChallengeType = TacticalSystemType.Mental,
+        ResolveCost = 1,
+        FallbackTimeCost = 2
+    };
+}
+
+/// <summary>
+/// TRADE DISPUTE archetype
+///
+/// When Used: Disagreement over goods, prices, quality, contract terms
+/// Common In: Economic domain (markets, shops, merchant quarters)
+/// Player Learns: "Trade conflicts need resolution or escalate"
+///
+/// Choice Pattern:
+/// 1. Insight 3+ → Spot defect, cite precedent (best, proves case)
+/// 2. 15 coins → Settle, split difference (decent, pragmatic)
+/// 3. Mental challenge → Arbitration, formal complaint (risky, legal)
+/// 4. Fallback → Accept loss, walk away (poor, cheated)
+/// </summary>
+private static SituationArchetype CreateTradeDispute()
+{
+    return new SituationArchetype
+    {
+        Id = "trade_dispute",
+        Name = "Trade Dispute",
+        Domain = Domain.Economic,
+        PrimaryStat = PlayerStatType.Insight,
+        SecondaryStat = PlayerStatType.Diplomacy,
+        StatThreshold = 3,
+        CoinCost = 15,
+        ChallengeType = TacticalSystemType.Mental,
+        ResolveCost = 2,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// CULTURAL FAUX PAS archetype
+///
+/// When Used: Social blunder, tradition violation, etiquette breach
+/// Common In: Social domain (formal events, cultural contexts, traditions)
+/// Player Learns: "Culture matters, mistakes have social cost"
+///
+/// Choice Pattern:
+/// 1. Rapport 3+ → Apologize gracefully, show cultural awareness (best, saves face)
+/// 2. 10 coins → Offer gift, make amends (decent, transactional)
+/// 3. Social challenge → Defend action, explain misunderstanding (risky, doubles down)
+/// 4. Fallback → Ignore, act oblivious (poor, alienates group)
+/// </summary>
+private static SituationArchetype CreateCulturalFauxPas()
+{
+    return new SituationArchetype
+    {
+        Id = "cultural_faux_pas",
+        Name = "Cultural Faux Pas",
+        Domain = Domain.Social,
+        PrimaryStat = PlayerStatType.Rapport,
+        SecondaryStat = PlayerStatType.Insight,
+        StatThreshold = 3,
+        CoinCost = 10,
+        ChallengeType = TacticalSystemType.Social,
+        ResolveCost = 1,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// RECRUITMENT archetype
+///
+/// When Used: Someone wants you to join, work for them, commit to cause
+/// Common In: Social domain (guilds, factions, organizations)
+/// Player Learns: "Commitments have benefits and obligations"
+///
+/// Choice Pattern:
+/// 1. Cunning 3+ → Negotiate terms, secure advantage (best, favorable deal)
+/// 2. 8 coins → Buy time, delay decision (decent, postpones)
+/// 3. Social challenge → Counter-offer, demand concessions (risky, bold)
+/// 4. Fallback → Refuse bluntly, burn bridge (poor, makes enemy)
+/// </summary>
+private static SituationArchetype CreateRecruitment()
+{
+    return new SituationArchetype
+    {
+        Id = "recruitment",
+        Name = "Recruitment",
+        Domain = Domain.Social,
+        PrimaryStat = PlayerStatType.Cunning,
+        SecondaryStat = PlayerStatType.Diplomacy,
+        StatThreshold = 3,
+        CoinCost = 8,
+        ChallengeType = TacticalSystemType.Social,
+        ResolveCost = 2,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// REST PREPARATION archetype
+///
+/// When Used: Preparing to rest in private space, optimizing recovery
+/// Common In: Physical domain (lodging, safe havens, private rooms)
+/// Player Learns: "Preparation affects recovery quality"
+///
+/// Choice Pattern:
+/// 1. Insight 3+ → Optimize rest conditions (best, maximum recovery)
+/// 2. 8 coins → Use comfort items (decent, good recovery + bonus)
+/// 3. Mental challenge → Force relaxation despite anxiety (risky, variable)
+/// 4. Fallback → Collapse from exhaustion (poor, minimal recovery)
+/// </summary>
+private static SituationArchetype CreateRestPreparation()
+{
+    return new SituationArchetype
+    {
+        Id = "rest_preparation",
+        Name = "Rest Preparation",
+        Domain = Domain.Physical,
+        PrimaryStat = PlayerStatType.Insight,
+        SecondaryStat = PlayerStatType.Authority,
+        StatThreshold = 3,
+        CoinCost = 8,
+        ChallengeType = TacticalSystemType.Mental,
+        ResolveCost = 1,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// ENTERING PRIVATE SPACE archetype
+///
+/// When Used: First entry into private room/space player has rented/unlocked
+/// Common In: Physical domain (lodging, private chambers, secured areas)
+/// Player Learns: "Room quality assessment affects comfort"
+///
+/// Choice Pattern:
+/// 1. Insight 3+ → Thoroughly inspect and optimize space (best, detailed assessment)
+/// 2. 8 coins → Request comfort amenities (decent, service upgrade)
+/// 3. Mental challenge → Push through discomfort mentally (risky, force adaptation)
+/// 4. Fallback → Collapse immediately without preparation (poor, exhausted entry)
+///
+/// </summary>
+private static SituationArchetype CreateEnteringPrivateSpace()
+{
+    return new SituationArchetype
+    {
+        Id = "entering_private_space",
+        Name = "Entering Private Space",
+        Domain = Domain.Physical,
+        PrimaryStat = PlayerStatType.Insight,
+        SecondaryStat = PlayerStatType.Authority,
+        StatThreshold = 3,
+        CoinCost = 8,
+        ChallengeType = TacticalSystemType.Mental,
+        ResolveCost = 1,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// Departing Private Space: Leaving lodging after rest
+/// Domain: Physical (organizing departure)
+/// Primary: Insight (noticing forgotten items)
+/// Challenge: Mental (emotional transition)
+/// </summary>
+private static SituationArchetype CreateDepartingPrivateSpace()
+{
+    return new SituationArchetype
+    {
+        Id = "departing_private_space",
+        Name = "Departing Private Space",
+        Domain = Domain.Physical,
+        PrimaryStat = PlayerStatType.Insight,
+        SecondaryStat = PlayerStatType.Cunning,
+        StatThreshold = 2,
+        CoinCost = 5,
+        ChallengeType = TacticalSystemType.Mental,
+        ResolveCost = 1,
+        FallbackTimeCost = 2
+    };
+}
+
+/// <summary>
+/// SERVICE_NEGOTIATION archetype (REUSABLE)
+///
+/// When Used: Negotiating access to any service (lodging, bathing, healing)
+/// Domain: Economic (service transaction)
+/// Player Learns: "Services require payment or goodwill"
+///
+/// Choice Pattern (4 choices):
+/// 1. Rapport 3+ (scaled by NPC.Demeanor) → Leverage relationship (best, free)
+/// 2. 5 coins (scaled by Service.Quality) → Pay for service (decent, straightforward)
+/// 3. Social challenge → Negotiate better terms (risky, variable)
+/// 4. Fallback → Politely decline (poor, no service)
+///
+/// Context-Aware Scaling:
+/// - NPC.Demeanor: Friendly (0.6x threshold), Neutral (1.0x), Hostile (1.4x)
+/// - Service.Quality: Basic (0.6x cost), Standard (1.0x), Premium (1.6x), Luxury (2.4x)
+/// - Service.Type: Determines which item granted (room_key, bathhouse_token, treatment_receipt)
+/// </summary>
+private static SituationArchetype CreateServiceNegotiation()
+{
+    return new SituationArchetype
+    {
+        Id = "service_negotiation",
+        Name = "Service Negotiation",
+        Domain = Domain.Economic,
+        PrimaryStat = PlayerStatType.Rapport,
+        SecondaryStat = PlayerStatType.Diplomacy,
+        StatThreshold = 3,
+        CoinCost = 5,
+        ChallengeType = TacticalSystemType.Social,
+        ResolveCost = 1,
+        FallbackTimeCost = 0
+    };
+}
+
+/// <summary>
+/// SERVICE_EXECUTION_REST archetype (REUSABLE)
+///
+/// When Used: Using service in private space (lodging, bathing, healing)
+/// Domain: Physical (rest and recovery)
+/// Player Learns: "Different rest approaches restore different resources"
+///
+/// Choice Pattern (4 choices, all succeed):
+/// 1. Balanced → Restore health/stamina/focus evenly
+/// 2. Physical focus → Restore health/stamina primarily
+/// 3. Mental focus → Restore stamina/focus primarily
+/// 4. Special → Balanced restoration + unique buff
+///
+/// All choices advance time to next day Morning.
+///
+/// Context-Aware Scaling:
+/// - Service.Type: Determines which stats restore (Lodging: all 3, Bathing: cleanliness, Healing: health)
+/// - Spot.Comfort: Scales restoration amounts (Basic: 1x, Standard: 2x, Premium: 3x)
+/// </summary>
+private static SituationArchetype CreateServiceExecutionRest()
+{
+    return new SituationArchetype
+    {
+        Id = "service_execution_rest",
+        Name = "Service Execution (Rest)",
+        Domain = Domain.Physical,
+        PrimaryStat = PlayerStatType.None,
+        SecondaryStat = PlayerStatType.None,
+        StatThreshold = 0,
+        CoinCost = 0,
+        ChallengeType = TacticalSystemType.None,
+        ResolveCost = 0,
+        FallbackTimeCost = 0
+    };
+}
+
+/// <summary>
+/// SERVICE_DEPARTURE archetype (REUSABLE)
+///
+/// When Used: Leaving service space (lodging, bathing, healing)
+/// Domain: Physical (organization and preparation)
+/// Player Learns: "Taking time to prepare grants bonuses"
+///
+/// Choice Pattern (2 choices, both succeed):
+/// 1. Leave immediately → Quick exit, no bonus (free, 0 time)
+/// 2. Gather carefully → Organized exit, preparation buff (costs 1 time segment)
+///
+/// Both choices clean up service (remove key, lock location).
+///
+/// Context-Aware Scaling:
+/// - Service.Type: Determines which buff granted
+///   - Lodging: Focused (organization/preparation)
+///   - Bathing: WellGroomed (appearance/social)
+///   - Healing: Rested (health management)
+/// </summary>
+private static SituationArchetype CreateServiceDeparture()
+{
+    return new SituationArchetype
+    {
+        Id = "service_departure",
+        Name = "Service Departure",
+        Domain = Domain.Physical,
+        PrimaryStat = PlayerStatType.Insight,
+        SecondaryStat = PlayerStatType.Cunning,
+        StatThreshold = 2,
+        CoinCost = 0,
+        ChallengeType = TacticalSystemType.Mental,
+        ResolveCost = 0,
+        FallbackTimeCost = 1
+    };
+}
+
+/// <summary>
+/// CONTEXT-AWARE CHOICE GENERATION (for service archetypes)
+///
+/// Generates choices with context-driven scaling:
+/// - service_negotiation: Scales stat thresholds by NPC.Demeanor, costs by Service.Quality
+/// - service_execution_rest: Generates 4 rest choices with contextual rewards (NOT archetype pattern)
+/// - service_departure: Generates 2 departure choices (NOT archetype pattern)
+///
+/// For other archetypes, delegates to GenerateChoiceTemplates().
+/// </summary>
+public static List<ChoiceTemplate> GenerateChoiceTemplatesWithContext(
+    SituationArchetype archetype,
+    string situationTemplateId,
+    GenerationContext context)
+{
+    // Specialized generation for service archetypes
+    if (archetype.Id == "service_negotiation")
+    {
+        return GenerateServiceNegotiationChoices(archetype, situationTemplateId, context);
+    }
+    else if (archetype.Id == "service_execution_rest")
+    {
+        return GenerateServiceExecutionRestChoices(situationTemplateId, context);
+    }
+    else if (archetype.Id == "service_departure")
+    {
+        return GenerateServiceDepartureChoices(situationTemplateId, context);
     }
 
-    /// <summary>
-    /// CONFRONTATION archetype
-    ///
-    /// When Used: Authority challenges, physical barriers, intimidation moments
-    /// Common In: Authority domain (guard posts, government, courts)
-    /// Player Learns: "Authority matters in Authority zones"
-    ///
-    /// Choice Pattern:
-    /// 1. Authority 3+ → Command, assert dominance (best, free)
-    /// 2. 15 coins → Bribe, pay off (decent, expensive)
-    /// 3. Physical challenge → Fight, endure (risky, variable)
-    /// 4. Fallback → Submit, back down (poor, always available)
-    /// </summary>
-    private static SituationArchetype CreateConfrontation()
+    // Fallback to standard generation
+    return GenerateChoiceTemplates(archetype, situationTemplateId);
+}
+
+/// <summary>
+/// Generate 4 standard choices from archetype with UNIVERSAL PROPERTY SCALING.
+///
+/// Context parameter enables universal scaling:
+/// - StatThreshold scales by PowerDynamic (Dominant 0.6x, Equal 1.0x, Submissive 1.4x)
+/// - CoinCost scales by Quality (Basic 0.6x, Standard 1.0x, Premium 1.6x, Luxury 2.4x)
+///
+/// If context null, uses archetype base values (no scaling).
+/// ALL 18 base archetypes benefit from universal scaling.
+/// </summary>
+public static List<ChoiceTemplate> GenerateChoiceTemplates(
+    SituationArchetype archetype,
+    string situationTemplateId,
+    GenerationContext context = null)
+{
+    // Scale by universal properties if context provided
+    int scaledStatThreshold = archetype.StatThreshold;
+    int scaledCoinCost = archetype.CoinCost;
+
+    if (context != null)
     {
-        return new SituationArchetype
+        // Scale stat threshold by PowerDynamic (easier if dominant, harder if submissive)
+        scaledStatThreshold = context.Power switch
         {
-            Id = "confrontation",
-            Name = "Confrontation",
-            Domain = Domain.Authority,
-            PrimaryStat = PlayerStatType.Authority,
-            SecondaryStat = PlayerStatType.Authority, // Using Authority for both (Intimidation not in PlayerStatType)
-            StatThreshold = 3,
-            CoinCost = 15,
-            ChallengeType = TacticalSystemType.Physical,
-            ResolveCost = 2,
-            FallbackTimeCost = 1
+            PowerDynamic.Dominant => (int)(archetype.StatThreshold * 0.6),
+            PowerDynamic.Equal => archetype.StatThreshold,
+            PowerDynamic.Submissive => (int)(archetype.StatThreshold * 1.4),
+            _ => archetype.StatThreshold
         };
+
+        // Scale coin cost by Quality (cheaper if basic, expensive if luxury)
+        scaledCoinCost = context.Quality switch
+        {
+            Quality.Basic => (int)(archetype.CoinCost * 0.6),
+            Quality.Standard => archetype.CoinCost,
+            Quality.Premium => (int)(archetype.CoinCost * 1.6),
+            Quality.Luxury => (int)(archetype.CoinCost * 2.4),
+            _ => archetype.CoinCost
+        };
+
+        // Could also scale by NpcDemeanor for additional nuance
+        if (context.NpcDemeanor == NPCDemeanor.Hostile)
+        {
+            scaledStatThreshold = (int)(scaledStatThreshold * 1.2); // Hostile NPCs harder to influence
+        }
+        else if (context.NpcDemeanor == NPCDemeanor.Friendly)
+        {
+            scaledStatThreshold = (int)(scaledStatThreshold * 0.8); // Friendly NPCs easier
+        }
     }
 
-    /// <summary>
-    /// NEGOTIATION archetype
-    ///
-    /// When Used: Price disputes, deal-making, compromise seeking
-    /// Common In: Economic domain (merchant quarters, markets, guilds)
-    /// Player Learns: "Diplomacy matters in Economic zones"
-    ///
-    /// Choice Pattern:
-    /// 1. Diplomacy/Rapport 3+ → Persuade, charm (best, free)
-    /// 2. 15 coins → Pay premium, sweeten deal (decent, expensive)
-    /// 3. Mental challenge → Debate, cite regulations (risky, cerebral)
-    /// 4. Fallback → Accept unfavorable terms (poor, always available)
-    /// </summary>
-    private static SituationArchetype CreateNegotiation()
+    List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
+
+    ChoiceTemplate statGatedChoice = new ChoiceTemplate
     {
-        return new SituationArchetype
-        {
-            Id = "negotiation",
-            Name = "Negotiation",
-            Domain = Domain.Economic,
-            PrimaryStat = PlayerStatType.Diplomacy,
-            SecondaryStat = PlayerStatType.Rapport,
-            StatThreshold = 3,
-            CoinCost = 15,
-            ChallengeType = TacticalSystemType.Mental,
-            ResolveCost = 2,
-            FallbackTimeCost = 1
-        };
-    }
+        Id = $"{situationTemplateId}_stat",
+        PathType = ChoicePathType.InstantSuccess,
+        ActionTextTemplate = GenerateStatGatedActionText(archetype),
+        RequirementFormula = CreateStatRequirement(archetype, scaledStatThreshold),
+        CostTemplate = new ChoiceCost(),
+        RewardTemplate = new ChoiceReward(),
+        ActionType = ChoiceActionType.Instant
+    };
+    choices.Add(statGatedChoice);
 
-    /// <summary>
-    /// INVESTIGATION archetype
-    ///
-    /// When Used: Mysteries, puzzles, information gathering, deduction
-    /// Common In: Mental domain (libraries, laboratories, scholarly societies)
-    /// Player Learns: "Insight matters in Mental zones"
-    ///
-    /// Choice Pattern:
-    /// 1. Insight/Cunning 3+ → Deduce, analyze (best, free)
-    /// 2. 10 coins → Pay informant, hire expert (decent, moderate cost)
-    /// 3. Mental challenge → Work through puzzle (risky, time-consuming)
-    /// 4. Fallback → Guess, give up (poor, miss information)
-    /// </summary>
-    private static SituationArchetype CreateInvestigation()
+    ChoiceTemplate moneyChoice = new ChoiceTemplate
     {
-        return new SituationArchetype
-        {
-            Id = "investigation",
-            Name = "Investigation",
-            Domain = Domain.Mental,
-            PrimaryStat = PlayerStatType.Insight,
-            SecondaryStat = PlayerStatType.Cunning,
-            StatThreshold = 3,
-            CoinCost = 10,
-            ChallengeType = TacticalSystemType.Mental,
-            ResolveCost = 2,
-            FallbackTimeCost = 1
-        };
-    }
+        Id = $"{situationTemplateId}_money",
+        PathType = ChoicePathType.InstantSuccess,
+        ActionTextTemplate = GenerateMoneyActionText(archetype),
+        RequirementFormula = new CompoundRequirement(),
+        CostTemplate = new ChoiceCost { Coins = scaledCoinCost },
+        RewardTemplate = new ChoiceReward(),
+        ActionType = ChoiceActionType.Instant
+    };
+    choices.Add(moneyChoice);
 
-    /// <summary>
-    /// SOCIAL MANEUVERING archetype
-    ///
-    /// When Used: Reputation management, relationship building, social hierarchy
-    /// Common In: Social domain (taverns, noble estates, social gatherings)
-    /// Player Learns: "Rapport matters in Social zones"
-    ///
-    /// Choice Pattern:
-    /// 1. Rapport/Cunning 3+ → Read people, empathize (best, free)
-    /// 2. 10 coins → Gift, favor, social currency (decent, transactional)
-    /// 3. Social challenge → Risk reputation, bold statement (risky, high stakes)
-    /// 4. Fallback → Alienate, offend, awkward exit (poor, damages relationship)
-    /// </summary>
-    private static SituationArchetype CreateSocialManeuvering()
+    ChoiceTemplate challengeChoice = new ChoiceTemplate
     {
-        return new SituationArchetype
-        {
-            Id = "social_maneuvering",
-            Name = "Social Maneuvering",
-            Domain = Domain.Social,
-            PrimaryStat = PlayerStatType.Rapport,
-            SecondaryStat = PlayerStatType.Cunning,
-            StatThreshold = 3,
-            CoinCost = 10,
-            ChallengeType = TacticalSystemType.Social,
-            ResolveCost = 2,
-            FallbackTimeCost = 1
-        };
-    }
+        Id = $"{situationTemplateId}_challenge",
+        PathType = ChoicePathType.Challenge,
+        ActionTextTemplate = GenerateChallengeActionText(archetype),
+        RequirementFormula = new CompoundRequirement(),
+        CostTemplate = new ChoiceCost { Resolve = archetype.ResolveCost },
+        RewardTemplate = new ChoiceReward(),
+        ActionType = ChoiceActionType.StartChallenge,
+        ChallengeId = null,
+        ChallengeType = archetype.ChallengeType
+    };
+    choices.Add(challengeChoice);
 
-    /// <summary>
-    /// CRISIS archetype
-    ///
-    /// When Used: Emergencies, high-stakes moments, moral dilemmas, scene climaxes
-    /// Common In: Any domain (rare, high-impact moments)
-    /// Player Learns: "Crisis moments demand expertise or sacrifice"
-    ///
-    /// Choice Pattern:
-    /// 1. Authority 4+ → Heroic action, expert solution (best, high requirement)
-    /// 2. 25 coins → Expensive emergency solution (guaranteed, financially ruinous)
-    /// 3. Physical challenge → Personal risk, gamble everything (risky, heroic)
-    /// 4. Fallback → Flee, accept severe consequence (worst, permanent guilt)
-    /// </summary>
-    private static SituationArchetype CreateCrisis()
+    ChoiceTemplate fallbackChoice = new ChoiceTemplate
     {
-        return new SituationArchetype
-        {
-            Id = "crisis",
-            Name = "Crisis",
-            Domain = Domain.Physical, // Can appear in any domain, but Physical for default
-            PrimaryStat = PlayerStatType.Authority, // Leadership in crisis
-            SecondaryStat = PlayerStatType.Insight, // Alternative: Understanding the situation
-            StatThreshold = 4, // Higher requirement for crisis
-            CoinCost = 25, // Very expensive
-            ChallengeType = TacticalSystemType.Physical, // Often physical danger
-            ResolveCost = 3, // Higher resolve cost
-            FallbackTimeCost = 2 // Worse penalty
-        };
-    }
+        Id = $"{situationTemplateId}_fallback",
+        PathType = ChoicePathType.Fallback,
+        ActionTextTemplate = GenerateFallbackActionText(archetype),
+        RequirementFormula = new CompoundRequirement(),
+        CostTemplate = new ChoiceCost { TimeSegments = archetype.FallbackTimeCost },
+        RewardTemplate = new ChoiceReward(),
+        ActionType = ChoiceActionType.Instant
+    };
+    choices.Add(fallbackChoice);
 
-    /// <summary>
-    /// SERVICE TRANSACTION archetype
-    ///
-    /// When Used: Paying for services (lodging, food, healing, ferry passage)
-    /// Common In: Economic domain (inns, taverns, shops, service providers)
-    /// Player Learns: "Services cost money or goodwill"
-    ///
-    /// Choice Pattern:
-    /// 1. Rapport 3+ → Request favor, use goodwill (best, free if liked)
-    /// 2. 10 coins → Pay standard rate (decent, straightforward)
-    /// 3. Mental challenge → Debate price, cite reasons (risky, haggling)
-    /// 4. Fallback → Go without, find alternative (poor, inconvenient)
-    /// </summary>
-    private static SituationArchetype CreateServiceTransaction()
+    return choices;
+}
+
+/// <summary>
+/// Create stat requirement with scaled threshold.
+/// Threshold parameter allows universal property scaling.
+/// </summary>
+private static CompoundRequirement CreateStatRequirement(SituationArchetype archetype, int scaledThreshold)
+{
+    CompoundRequirement requirement = new CompoundRequirement();
+
+    OrPath primaryPath = new OrPath
     {
-        return new SituationArchetype
+        Label = $"{archetype.PrimaryStat} {scaledThreshold}+",
+        NumericRequirements = new List<NumericRequirement>
         {
-            Id = "service_transaction",
-            Name = "Service Transaction",
-            Domain = Domain.Economic,
-            PrimaryStat = PlayerStatType.None,
-            SecondaryStat = PlayerStatType.None,
-            StatThreshold = 0,
-            CoinCost = 5,
-            ChallengeType = TacticalSystemType.Mental,
-            ResolveCost = 1,
-            FallbackTimeCost = 1
-        };
-    }
+            new NumericRequirement
+            {
+                Type = "PlayerStat",
+                Context = archetype.PrimaryStat.ToString(),
+                Threshold = scaledThreshold,
+                Label = $"{archetype.PrimaryStat} {scaledThreshold}+"
+            }
+        }
+    };
+    requirement.OrPaths.Add(primaryPath);
 
-    /// <summary>
-    /// ACCESS CONTROL archetype
-    ///
-    /// When Used: Getting past gatekeepers, locked doors, restricted areas
-    /// Common In: Authority domain (checkpoints, private areas, guarded locations)
-    /// Player Learns: "Access requires authority or clever bypass"
-    ///
-    /// Choice Pattern:
-    /// 1. Authority 3+ → Flash credentials, demand entry (best, commanding)
-    /// 2. 15 coins → Pay bribe, grease palms (decent, costly)
-    /// 3. Physical challenge → Sneak, climb, force entry (risky, illegal)
-    /// 4. Fallback → Turn back, find other route (poor, time loss)
-    /// </summary>
-    private static SituationArchetype CreateAccessControl()
+    if (archetype.SecondaryStat != archetype.PrimaryStat)
     {
-        return new SituationArchetype
+        OrPath secondaryPath = new OrPath
         {
-            Id = "access_control",
-            Name = "Access Control",
-            Domain = Domain.Authority,
-            PrimaryStat = PlayerStatType.Authority,
-            SecondaryStat = PlayerStatType.Cunning,
-            StatThreshold = 3,
-            CoinCost = 15,
-            ChallengeType = TacticalSystemType.Physical,
-            ResolveCost = 2,
-            FallbackTimeCost = 1
-        };
-    }
-
-    /// <summary>
-    /// INFORMATION GATHERING archetype
-    ///
-    /// When Used: Rumors, news, local knowledge, gossip networks
-    /// Common In: Social domain (taverns, markets, social gatherings)
-    /// Player Learns: "Information flows through social channels"
-    ///
-    /// Choice Pattern:
-    /// 1. Rapport 3+ → Ask friends, leverage connections (best, trusted source)
-    /// 2. 8 coins → Pay informant, buy drinks (decent, direct)
-    /// 3. Social challenge → Eavesdrop, infiltrate group (risky, may offend)
-    /// 4. Fallback → Guess, make assumptions (poor, unreliable)
-    /// </summary>
-    private static SituationArchetype CreateInformationGathering()
-    {
-        return new SituationArchetype
-        {
-            Id = "information_gathering",
-            Name = "Information Gathering",
-            Domain = Domain.Social,
-            PrimaryStat = PlayerStatType.Rapport,
-            SecondaryStat = PlayerStatType.Insight,
-            StatThreshold = 3,
-            CoinCost = 8,
-            ChallengeType = TacticalSystemType.Social,
-            ResolveCost = 1,
-            FallbackTimeCost = 1
-        };
-    }
-
-    /// <summary>
-    /// SKILL DEMONSTRATION archetype
-    ///
-    /// When Used: Proving competence, showing credentials, demonstrating expertise
-    /// Common In: Economic domain (guilds, hiring, professional contexts)
-    /// Player Learns: "Skills open doors in professional settings"
-    ///
-    /// Choice Pattern:
-    /// 1. Diplomacy 3+ → Talk up experience, impress with history (best, convincing)
-    /// 2. 12 coins → Provide sample, pay examination fee (decent, proof)
-    /// 3. Mental challenge → Puzzle, test, demonstration (risky, public failure)
-    /// 4. Fallback → Admit inexperience, withdraw (poor, reputation loss)
-    /// </summary>
-    private static SituationArchetype CreateSkillDemonstration()
-    {
-        return new SituationArchetype
-        {
-            Id = "skill_demonstration",
-            Name = "Skill Demonstration",
-            Domain = Domain.Economic,
-            PrimaryStat = PlayerStatType.Diplomacy,
-            SecondaryStat = PlayerStatType.Insight,
-            StatThreshold = 3,
-            CoinCost = 12,
-            ChallengeType = TacticalSystemType.Mental,
-            ResolveCost = 2,
-            FallbackTimeCost = 1
-        };
-    }
-
-    /// <summary>
-    /// REPUTATION CHALLENGE archetype
-    ///
-    /// When Used: Someone questioning your standing, honor, or claims
-    /// Common In: Social domain (public spaces, social circles, rumor mills)
-    /// Player Learns: "Reputation must be defended or grows worse"
-    ///
-    /// Choice Pattern:
-    /// 1. Authority 3+ → Demand apology, assert dominance (best, shows strength)
-    /// 2. 10 coins → Buy silence, pay off accuser (decent, temporary fix)
-    /// 3. Social challenge → Public debate, prove worth (risky, high stakes)
-    /// 4. Fallback → Ignore, let rumors spread (poor, reputation damage)
-    /// </summary>
-    private static SituationArchetype CreateReputationChallenge()
-    {
-        return new SituationArchetype
-        {
-            Id = "reputation_challenge",
-            Name = "Reputation Challenge",
-            Domain = Domain.Social,
-            PrimaryStat = PlayerStatType.Authority,
-            SecondaryStat = PlayerStatType.Diplomacy,
-            StatThreshold = 3,
-            CoinCost = 10,
-            ChallengeType = TacticalSystemType.Social,
-            ResolveCost = 2,
-            FallbackTimeCost = 1
-        };
-    }
-
-    /// <summary>
-    /// EMERGENCY AID archetype
-    ///
-    /// When Used: Medical crisis, immediate danger to others, rescue situations
-    /// Common In: Physical domain (accidents, disasters, sudden illness)
-    /// Player Learns: "Emergencies demand quick thinking or resources"
-    ///
-    /// Choice Pattern:
-    /// 1. Insight 3+ → Diagnose, apply first aid (best, expert solution)
-    /// 2. 20 coins → Hire professional, emergency services (decent, expensive)
-    /// 3. Physical challenge → Carry, rescue, intervene (risky, heroic)
-    /// 4. Fallback → Stand by helplessly, flee (worst, guilt)
-    /// </summary>
-    private static SituationArchetype CreateEmergencyAid()
-    {
-        return new SituationArchetype
-        {
-            Id = "emergency_aid",
-            Name = "Emergency Aid",
-            Domain = Domain.Physical,
-            PrimaryStat = PlayerStatType.Insight,
-            SecondaryStat = PlayerStatType.Authority,
-            StatThreshold = 3,
-            CoinCost = 20,
-            ChallengeType = TacticalSystemType.Physical,
-            ResolveCost = 2,
-            FallbackTimeCost = 1
-        };
-    }
-
-    /// <summary>
-    /// ADMINISTRATIVE PROCEDURE archetype
-    ///
-    /// When Used: Bureaucracy, paperwork, permits, official processes
-    /// Common In: Authority domain (government offices, customs, registration)
-    /// Player Learns: "Bureaucracy has rules and shortcuts"
-    ///
-    /// Choice Pattern:
-    /// 1. Diplomacy 3+ → Navigate system, know procedures (best, smooth)
-    /// 2. 12 coins → Pay expedite fee, grease wheels (decent, faster)
-    /// 3. Mental challenge → Find loophole, cite regulations (risky, argumentative)
-    /// 4. Fallback → Endure delays, red tape (poor, time sink)
-    /// </summary>
-    private static SituationArchetype CreateAdministrativeProcedure()
-    {
-        return new SituationArchetype
-        {
-            Id = "administrative_procedure",
-            Name = "Administrative Procedure",
-            Domain = Domain.Authority,
-            PrimaryStat = PlayerStatType.Diplomacy,
-            SecondaryStat = PlayerStatType.Insight,
-            StatThreshold = 3,
-            CoinCost = 12,
-            ChallengeType = TacticalSystemType.Mental,
-            ResolveCost = 1,
-            FallbackTimeCost = 2
-        };
-    }
-
-    /// <summary>
-    /// TRADE DISPUTE archetype
-    ///
-    /// When Used: Disagreement over goods, prices, quality, contract terms
-    /// Common In: Economic domain (markets, shops, merchant quarters)
-    /// Player Learns: "Trade conflicts need resolution or escalate"
-    ///
-    /// Choice Pattern:
-    /// 1. Insight 3+ → Spot defect, cite precedent (best, proves case)
-    /// 2. 15 coins → Settle, split difference (decent, pragmatic)
-    /// 3. Mental challenge → Arbitration, formal complaint (risky, legal)
-    /// 4. Fallback → Accept loss, walk away (poor, cheated)
-    /// </summary>
-    private static SituationArchetype CreateTradeDispute()
-    {
-        return new SituationArchetype
-        {
-            Id = "trade_dispute",
-            Name = "Trade Dispute",
-            Domain = Domain.Economic,
-            PrimaryStat = PlayerStatType.Insight,
-            SecondaryStat = PlayerStatType.Diplomacy,
-            StatThreshold = 3,
-            CoinCost = 15,
-            ChallengeType = TacticalSystemType.Mental,
-            ResolveCost = 2,
-            FallbackTimeCost = 1
-        };
-    }
-
-    /// <summary>
-    /// CULTURAL FAUX PAS archetype
-    ///
-    /// When Used: Social blunder, tradition violation, etiquette breach
-    /// Common In: Social domain (formal events, cultural contexts, traditions)
-    /// Player Learns: "Culture matters, mistakes have social cost"
-    ///
-    /// Choice Pattern:
-    /// 1. Rapport 3+ → Apologize gracefully, show cultural awareness (best, saves face)
-    /// 2. 10 coins → Offer gift, make amends (decent, transactional)
-    /// 3. Social challenge → Defend action, explain misunderstanding (risky, doubles down)
-    /// 4. Fallback → Ignore, act oblivious (poor, alienates group)
-    /// </summary>
-    private static SituationArchetype CreateCulturalFauxPas()
-    {
-        return new SituationArchetype
-        {
-            Id = "cultural_faux_pas",
-            Name = "Cultural Faux Pas",
-            Domain = Domain.Social,
-            PrimaryStat = PlayerStatType.Rapport,
-            SecondaryStat = PlayerStatType.Insight,
-            StatThreshold = 3,
-            CoinCost = 10,
-            ChallengeType = TacticalSystemType.Social,
-            ResolveCost = 1,
-            FallbackTimeCost = 1
-        };
-    }
-
-    /// <summary>
-    /// RECRUITMENT archetype
-    ///
-    /// When Used: Someone wants you to join, work for them, commit to cause
-    /// Common In: Social domain (guilds, factions, organizations)
-    /// Player Learns: "Commitments have benefits and obligations"
-    ///
-    /// Choice Pattern:
-    /// 1. Cunning 3+ → Negotiate terms, secure advantage (best, favorable deal)
-    /// 2. 8 coins → Buy time, delay decision (decent, postpones)
-    /// 3. Social challenge → Counter-offer, demand concessions (risky, bold)
-    /// 4. Fallback → Refuse bluntly, burn bridge (poor, makes enemy)
-    /// </summary>
-    private static SituationArchetype CreateRecruitment()
-    {
-        return new SituationArchetype
-        {
-            Id = "recruitment",
-            Name = "Recruitment",
-            Domain = Domain.Social,
-            PrimaryStat = PlayerStatType.Cunning,
-            SecondaryStat = PlayerStatType.Diplomacy,
-            StatThreshold = 3,
-            CoinCost = 8,
-            ChallengeType = TacticalSystemType.Social,
-            ResolveCost = 2,
-            FallbackTimeCost = 1
-        };
-    }
-
-    /// <summary>
-    /// REST PREPARATION archetype
-    ///
-    /// When Used: Preparing to rest in private space, optimizing recovery
-    /// Common In: Physical domain (lodging, safe havens, private rooms)
-    /// Player Learns: "Preparation affects recovery quality"
-    ///
-    /// Choice Pattern:
-    /// 1. Insight 3+ → Optimize rest conditions (best, maximum recovery)
-    /// 2. 8 coins → Use comfort items (decent, good recovery + bonus)
-    /// 3. Mental challenge → Force relaxation despite anxiety (risky, variable)
-    /// 4. Fallback → Collapse from exhaustion (poor, minimal recovery)
-    /// </summary>
-    private static SituationArchetype CreateRestPreparation()
-    {
-        return new SituationArchetype
-        {
-            Id = "rest_preparation",
-            Name = "Rest Preparation",
-            Domain = Domain.Physical,
-            PrimaryStat = PlayerStatType.Insight,
-            SecondaryStat = PlayerStatType.Authority,
-            StatThreshold = 3,
-            CoinCost = 8,
-            ChallengeType = TacticalSystemType.Mental,
-            ResolveCost = 1,
-            FallbackTimeCost = 1
-        };
-    }
-
-    /// <summary>
-    /// ENTERING PRIVATE SPACE archetype
-    ///
-    /// When Used: First entry into private room/space player has rented/unlocked
-    /// Common In: Physical domain (lodging, private chambers, secured areas)
-    /// Player Learns: "Room quality assessment affects comfort"
-    ///
-    /// Choice Pattern:
-    /// 1. Insight 3+ → Thoroughly inspect and optimize space (best, detailed assessment)
-    /// 2. 8 coins → Request comfort amenities (decent, service upgrade)
-    /// 3. Mental challenge → Push through discomfort mentally (risky, force adaptation)
-    /// 4. Fallback → Collapse immediately without preparation (poor, exhausted entry)
-    ///
-    /// </summary>
-    private static SituationArchetype CreateEnteringPrivateSpace()
-    {
-        return new SituationArchetype
-        {
-            Id = "entering_private_space",
-            Name = "Entering Private Space",
-            Domain = Domain.Physical,
-            PrimaryStat = PlayerStatType.Insight,
-            SecondaryStat = PlayerStatType.Authority,
-            StatThreshold = 3,
-            CoinCost = 8,
-            ChallengeType = TacticalSystemType.Mental,
-            ResolveCost = 1,
-            FallbackTimeCost = 1
-        };
-    }
-
-    /// <summary>
-    /// Departing Private Space: Leaving lodging after rest
-    /// Domain: Physical (organizing departure)
-    /// Primary: Insight (noticing forgotten items)
-    /// Challenge: Mental (emotional transition)
-    /// </summary>
-    private static SituationArchetype CreateDepartingPrivateSpace()
-    {
-        return new SituationArchetype
-        {
-            Id = "departing_private_space",
-            Name = "Departing Private Space",
-            Domain = Domain.Physical,
-            PrimaryStat = PlayerStatType.Insight,
-            SecondaryStat = PlayerStatType.Cunning,
-            StatThreshold = 2,
-            CoinCost = 5,
-            ChallengeType = TacticalSystemType.Mental,
-            ResolveCost = 1,
-            FallbackTimeCost = 2
-        };
-    }
-
-    public static List<ChoiceTemplate> GenerateChoiceTemplates(
-        SituationArchetype archetype,
-        string situationTemplateId)
-    {
-        List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
-
-        ChoiceTemplate statGatedChoice = new ChoiceTemplate
-        {
-            Id = $"{situationTemplateId}_stat",
-            ActionTextTemplate = GenerateStatGatedActionText(archetype),
-            RequirementFormula = CreateStatRequirement(archetype),
-            CostTemplate = new ChoiceCost(),
-            RewardTemplate = new ChoiceReward(),
-            ActionType = ChoiceActionType.Instant
-        };
-        choices.Add(statGatedChoice);
-
-        ChoiceTemplate moneyChoice = new ChoiceTemplate
-        {
-            Id = $"{situationTemplateId}_money",
-            ActionTextTemplate = GenerateMoneyActionText(archetype),
-            RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost { Coins = archetype.CoinCost },
-            RewardTemplate = new ChoiceReward(),
-            ActionType = ChoiceActionType.Instant
-        };
-        choices.Add(moneyChoice);
-
-        ChoiceTemplate challengeChoice = new ChoiceTemplate
-        {
-            Id = $"{situationTemplateId}_challenge",
-            ActionTextTemplate = GenerateChallengeActionText(archetype),
-            RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost { Resolve = archetype.ResolveCost },
-            RewardTemplate = new ChoiceReward(),
-            ActionType = ChoiceActionType.StartChallenge,
-            ChallengeId = null,
-            ChallengeType = archetype.ChallengeType
-        };
-        choices.Add(challengeChoice);
-
-        ChoiceTemplate fallbackChoice = new ChoiceTemplate
-        {
-            Id = $"{situationTemplateId}_fallback",
-            ActionTextTemplate = GenerateFallbackActionText(archetype),
-            RequirementFormula = new CompoundRequirement(),
-            CostTemplate = new ChoiceCost { TimeSegments = archetype.FallbackTimeCost },
-            RewardTemplate = new ChoiceReward(),
-            ActionType = ChoiceActionType.Instant
-        };
-        choices.Add(fallbackChoice);
-
-        return choices;
-    }
-
-    private static CompoundRequirement CreateStatRequirement(SituationArchetype archetype)
-    {
-        CompoundRequirement requirement = new CompoundRequirement();
-
-        OrPath primaryPath = new OrPath
-        {
-            Label = $"{archetype.PrimaryStat} {archetype.StatThreshold}+",
+            Label = $"{archetype.SecondaryStat} {scaledThreshold}+",
             NumericRequirements = new List<NumericRequirement>
             {
                 new NumericRequirement
                 {
                     Type = "PlayerStat",
-                    Context = archetype.PrimaryStat.ToString(),
-                    Threshold = archetype.StatThreshold,
-                    Label = $"{archetype.PrimaryStat} {archetype.StatThreshold}+"
+                    Context = archetype.SecondaryStat.ToString(),
+                    Threshold = scaledThreshold,
+                    Label = $"{archetype.SecondaryStat} {scaledThreshold}+"
                 }
             }
         };
-        requirement.OrPaths.Add(primaryPath);
+        requirement.OrPaths.Add(secondaryPath);
+    }
 
-        if (archetype.SecondaryStat != archetype.PrimaryStat)
+    return requirement;
+}
+
+/// <summary>
+/// Overload for backwards compatibility - uses base archetype threshold.
+/// </summary>
+private static CompoundRequirement CreateStatRequirement(SituationArchetype archetype)
+{
+    return CreateStatRequirement(archetype, archetype.StatThreshold);
+}
+
+private static string GenerateStatGatedActionText(SituationArchetype archetype)
+{
+    return archetype.Id switch
+    {
+        "confrontation" => "Assert authority and take command",
+        "negotiation" => "Negotiate favorable terms",
+        "investigation" => "Deduce the solution through analysis",
+        "social_maneuvering" => "Read the social dynamics and navigate skillfully",
+        "crisis" => "Take decisive action with expertise",
+        "service_transaction" => "Use your expertise",
+        "access_control" => "Present credentials",
+        "information_gathering" => "Ask the right questions",
+        "skill_demonstration" => "Demonstrate your competence",
+        "reputation_challenge" => "Defend your honor",
+        "emergency_aid" => "Apply expert treatment",
+        "administrative_procedure" => "Navigate bureaucracy skillfully",
+        "trade_dispute" => "Leverage your position",
+        "cultural_faux_pas" => "Apologize gracefully",
+        "recruitment" => "Negotiate terms",
+        "rest_preparation" => "Optimize rest conditions",
+        "entering_private_space" => "Thoroughly inspect and optimize the space",
+        "departing_private_space" => "Systematically prepare and check everything",
+        _ => "Use your expertise"
+    };
+}
+
+private static string GenerateMoneyActionText(SituationArchetype archetype)
+{
+    return archetype.Id switch
+    {
+        "confrontation" => "Pay off the opposition",
+        "negotiation" => "Pay the premium price",
+        "investigation" => "Hire an expert or pay for information",
+        "social_maneuvering" => "Offer a generous gift",
+        "crisis" => "Pay for emergency solution",
+        "service_transaction" => "Pay the asking price",
+        "access_control" => "Bribe the gatekeeper",
+        "information_gathering" => "Buy the information",
+        "skill_demonstration" => "Hire someone to vouch",
+        "reputation_challenge" => "Offer compensation",
+        "emergency_aid" => "Pay for premium care",
+        "administrative_procedure" => "Expedite with payment",
+        "trade_dispute" => "Offer settlement",
+        "cultural_faux_pas" => "Offer gift as amends",
+        "recruitment" => "Buy time",
+        "rest_preparation" => "Use comfort items for better rest",
+        "entering_private_space" => "Request comfort amenities",
+        "departing_private_space" => "Leave generous gratuity for staff",
+        _ => "Pay to resolve"
+    };
+}
+
+private static string GenerateChallengeActionText(SituationArchetype archetype)
+{
+    return archetype.Id switch
+    {
+        "confrontation" => "Attempt a physical confrontation",
+        "negotiation" => "Engage in complex debate",
+        "investigation" => "Work through the puzzle systematically",
+        "social_maneuvering" => "Make a bold social gambit",
+        "crisis" => "Risk everything on a desperate gambit",
+        "service_transaction" => "Attempt to bargain",
+        "access_control" => "Force your way through",
+        "information_gathering" => "Investigate on your own",
+        "skill_demonstration" => "Attempt without preparation",
+        "reputation_challenge" => "Challenge to duel",
+        "emergency_aid" => "Risk improvised treatment",
+        "administrative_procedure" => "Navigate red tape",
+        "trade_dispute" => "Escalate to arbitration",
+        "cultural_faux_pas" => "Defend your action",
+        "recruitment" => "Counter-offer boldly",
+        "rest_preparation" => "Force yourself to relax despite anxiety",
+        "entering_private_space" => "Push through discomfort mentally",
+        "departing_private_space" => "Force yourself to leave promptly",
+        _ => "Accept the challenge"
+    };
+}
+
+private static string GenerateFallbackActionText(SituationArchetype archetype)
+{
+    return archetype.Id switch
+    {
+        "confrontation" => "Back down and submit",
+        "negotiation" => "Accept unfavorable terms",
+        "investigation" => "Give up and move on",
+        "social_maneuvering" => "Exit awkwardly",
+        "crisis" => "Flee the situation",
+        "service_transaction" => "Leave without service",
+        "access_control" => "Turn back",
+        "information_gathering" => "Move on without answers",
+        "skill_demonstration" => "Admit lack of skill",
+        "reputation_challenge" => "Apologize and back down",
+        "emergency_aid" => "Do nothing",
+        "administrative_procedure" => "Abandon the process",
+        "trade_dispute" => "Accept the loss",
+        "cultural_faux_pas" => "Ignore and act oblivious",
+        "recruitment" => "Refuse bluntly",
+        "rest_preparation" => "Collapse from exhaustion immediately",
+        "entering_private_space" => "Collapse immediately without preparation",
+        "departing_private_space" => "Rush out without proper preparation",
+        _ => "Accept poor outcome"
+    };
+}
+
+/// <summary>
+/// Generate service_negotiation choices with context-aware scaling.
+/// Scales stat thresholds by NPC.Demeanor and coin costs by Service.Quality.
+/// Returns 4 choices with EMPTY RewardTemplate (SceneArchetypeCatalog enriches them).
+/// </summary>
+private static List<ChoiceTemplate> GenerateServiceNegotiationChoices(
+    SituationArchetype archetype,
+    string situationTemplateId,
+    GenerationContext context)
+{
+    // Scale stat threshold by NPC demeanor
+    int scaledStatThreshold = context.NpcDemeanor switch
+    {
+        NPCDemeanor.Friendly => (int)(archetype.StatThreshold * 0.6),  // Easier
+        NPCDemeanor.Neutral => archetype.StatThreshold,                 // Baseline
+        NPCDemeanor.Hostile => (int)(archetype.StatThreshold * 1.4),   // Harder
+        _ => archetype.StatThreshold
+    };
+
+    // Scale coin cost by quality (universal property)
+    int scaledCoinCost = context.Quality switch
+    {
+        Quality.Basic => (int)(archetype.CoinCost * 0.6),    // 3 coins
+        Quality.Standard => archetype.CoinCost,              // 5 coins
+        Quality.Premium => (int)(archetype.CoinCost * 1.6),  // 8 coins
+        Quality.Luxury => (int)(archetype.CoinCost * 2.4),   // 12 coins
+        _ => archetype.CoinCost
+    };
+
+    List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
+
+    // Choice 1: Rapport-gated (free if you have relationship)
+    CompoundRequirement rapportReq = new CompoundRequirement();
+    rapportReq.OrPaths.Add(new OrPath
+    {
+        Label = $"Rapport {scaledStatThreshold}+",
+        NumericRequirements = new List<NumericRequirement>
         {
-            OrPath secondaryPath = new OrPath
+            new NumericRequirement
             {
-                Label = $"{archetype.SecondaryStat} {archetype.StatThreshold}+",
-                NumericRequirements = new List<NumericRequirement>
-                {
-                    new NumericRequirement
-                    {
-                        Type = "PlayerStat",
-                        Context = archetype.SecondaryStat.ToString(),
-                        Threshold = archetype.StatThreshold,
-                        Label = $"{archetype.SecondaryStat} {archetype.StatThreshold}+"
-                    }
-                }
-            };
-            requirement.OrPaths.Add(secondaryPath);
+                Type = "PlayerStat",
+                Context = "Rapport",
+                Threshold = scaledStatThreshold,
+                Label = $"Rapport {scaledStatThreshold}+"
+            }
         }
+    });
 
-        return requirement;
-    }
-
-    private static string GenerateStatGatedActionText(SituationArchetype archetype)
+    choices.Add(new ChoiceTemplate
     {
-        return archetype.Id switch
-        {
-            "confrontation" => "Assert authority and take command",
-            "negotiation" => "Negotiate favorable terms",
-            "investigation" => "Deduce the solution through analysis",
-            "social_maneuvering" => "Read the social dynamics and navigate skillfully",
-            "crisis" => "Take decisive action with expertise",
-            "service_transaction" => "Use your expertise",
-            "access_control" => "Present credentials",
-            "information_gathering" => "Ask the right questions",
-            "skill_demonstration" => "Demonstrate your competence",
-            "reputation_challenge" => "Defend your honor",
-            "emergency_aid" => "Apply expert treatment",
-            "administrative_procedure" => "Navigate bureaucracy skillfully",
-            "trade_dispute" => "Leverage your position",
-            "cultural_faux_pas" => "Apologize gracefully",
-            "recruitment" => "Negotiate terms",
-            "rest_preparation" => "Optimize rest conditions",
-            "entering_private_space" => "Thoroughly inspect and optimize the space",
-            "departing_private_space" => "Systematically prepare and check everything",
-            _ => "Use your expertise"
-        };
-    }
+        Id = $"{situationTemplateId}_stat",
+        PathType = ChoicePathType.InstantSuccess,  // Stat-gated instant success
+        ActionTextTemplate = "Leverage your rapport",
+        RequirementFormula = rapportReq,
+        CostTemplate = new ChoiceCost(),
+        RewardTemplate = new ChoiceReward(),  // Empty, enriched by scene archetype
+        ActionType = ChoiceActionType.Instant
+    });
 
-    private static string GenerateMoneyActionText(SituationArchetype archetype)
+    // Choice 2: Pay coins (scaled by quality)
+    choices.Add(new ChoiceTemplate
     {
-        return archetype.Id switch
-        {
-            "confrontation" => "Pay off the opposition",
-            "negotiation" => "Pay the premium price",
-            "investigation" => "Hire an expert or pay for information",
-            "social_maneuvering" => "Offer a generous gift",
-            "crisis" => "Pay for emergency solution",
-            "service_transaction" => "Pay the asking price",
-            "access_control" => "Bribe the gatekeeper",
-            "information_gathering" => "Buy the information",
-            "skill_demonstration" => "Hire someone to vouch",
-            "reputation_challenge" => "Offer compensation",
-            "emergency_aid" => "Pay for premium care",
-            "administrative_procedure" => "Expedite with payment",
-            "trade_dispute" => "Offer settlement",
-            "cultural_faux_pas" => "Offer gift as amends",
-            "recruitment" => "Buy time",
-            "rest_preparation" => "Use comfort items for better rest",
-            "entering_private_space" => "Request comfort amenities",
-            "departing_private_space" => "Leave generous gratuity for staff",
-            _ => "Pay to resolve"
-        };
-    }
+        Id = $"{situationTemplateId}_money",
+        PathType = ChoicePathType.InstantSuccess,  // Money-gated instant success
+        ActionTextTemplate = $"Pay {scaledCoinCost} coins for the service",
+        RequirementFormula = new CompoundRequirement(),
+        CostTemplate = new ChoiceCost { Coins = scaledCoinCost },
+        RewardTemplate = new ChoiceReward(),  // Empty, enriched by scene archetype
+        ActionType = ChoiceActionType.Instant
+    });
 
-    private static string GenerateChallengeActionText(SituationArchetype archetype)
+    // Choice 3: Challenge (negotiate better terms)
+    choices.Add(new ChoiceTemplate
     {
-        return archetype.Id switch
-        {
-            "confrontation" => "Attempt a physical confrontation",
-            "negotiation" => "Engage in complex debate",
-            "investigation" => "Work through the puzzle systematically",
-            "social_maneuvering" => "Make a bold social gambit",
-            "crisis" => "Risk everything on a desperate gambit",
-            "service_transaction" => "Attempt to bargain",
-            "access_control" => "Force your way through",
-            "information_gathering" => "Investigate on your own",
-            "skill_demonstration" => "Attempt without preparation",
-            "reputation_challenge" => "Challenge to duel",
-            "emergency_aid" => "Risk improvised treatment",
-            "administrative_procedure" => "Navigate red tape",
-            "trade_dispute" => "Escalate to arbitration",
-            "cultural_faux_pas" => "Defend your action",
-            "recruitment" => "Counter-offer boldly",
-            "rest_preparation" => "Force yourself to relax despite anxiety",
-            "entering_private_space" => "Push through discomfort mentally",
-            "departing_private_space" => "Force yourself to leave promptly",
-            _ => "Accept the challenge"
-        };
-    }
+        Id = $"{situationTemplateId}_challenge",
+        PathType = ChoicePathType.Challenge,  // Challenge path
+        ActionTextTemplate = "Attempt to negotiate better terms",
+        RequirementFormula = new CompoundRequirement(),
+        CostTemplate = new ChoiceCost { Resolve = archetype.ResolveCost },
+        RewardTemplate = new ChoiceReward(),  // Empty
+        ActionType = ChoiceActionType.StartChallenge,
+        ChallengeType = archetype.ChallengeType
+    });
 
-    private static string GenerateFallbackActionText(SituationArchetype archetype)
+    // Choice 4: Decline
+    choices.Add(new ChoiceTemplate
     {
-        return archetype.Id switch
+        Id = $"{situationTemplateId}_fallback",
+        PathType = ChoicePathType.Fallback,  // Fallback path
+        ActionTextTemplate = "Politely decline",
+        RequirementFormula = new CompoundRequirement(),
+        CostTemplate = new ChoiceCost(),
+        RewardTemplate = new ChoiceReward(),
+        ActionType = ChoiceActionType.Instant
+    });
+
+    return choices;
+}
+
+/// <summary>
+/// Generate service_execution_rest choices with context-aware restoration scaling.
+/// Returns 4 rest choices that all advance to next morning.
+/// Restoration amounts scale by Environment.Quality (1x/2x/3x).
+/// </summary>
+private static List<ChoiceTemplate> GenerateServiceExecutionRestChoices(
+    string situationTemplateId,
+    GenerationContext context)
+{
+    // Environment quality multiplier for restoration
+    int environmentMultiplier = context.Environment switch
+    {
+        EnvironmentQuality.Basic => 1,
+        EnvironmentQuality.Standard => 2,
+        EnvironmentQuality.Premium => 3,
+        _ => 2
+    };
+
+    int baseHealth = 10 * environmentMultiplier;
+    int baseStamina = 10 * environmentMultiplier;
+    int baseFocus = 7 * environmentMultiplier;
+
+    List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
+
+    // Choice 1: Balanced restoration
+    choices.Add(new ChoiceTemplate
+    {
+        Id = $"{situationTemplateId}_balanced",
+        PathType = ChoicePathType.InstantSuccess,  // Standard rest choice
+        ActionTextTemplate = "Sleep peacefully",
+        RequirementFormula = new CompoundRequirement(),
+        CostTemplate = new ChoiceCost(),
+        RewardTemplate = new ChoiceReward
         {
-            "confrontation" => "Back down and submit",
-            "negotiation" => "Accept unfavorable terms",
-            "investigation" => "Give up and move on",
-            "social_maneuvering" => "Exit awkwardly",
-            "crisis" => "Flee the situation",
-            "service_transaction" => "Leave without service",
-            "access_control" => "Turn back",
-            "information_gathering" => "Move on without answers",
-            "skill_demonstration" => "Admit lack of skill",
-            "reputation_challenge" => "Apologize and back down",
-            "emergency_aid" => "Do nothing",
-            "administrative_procedure" => "Abandon the process",
-            "trade_dispute" => "Accept the loss",
-            "cultural_faux_pas" => "Ignore and act oblivious",
-            "recruitment" => "Refuse bluntly",
-            "rest_preparation" => "Collapse from exhaustion immediately",
-            "entering_private_space" => "Collapse immediately without preparation",
-            "departing_private_space" => "Rush out without proper preparation",
-            _ => "Accept poor outcome"
-        };
-    }
+            Health = baseHealth + baseHealth / 2,      // 15/30/45
+            Stamina = baseStamina + baseStamina / 2,   // 15/30/45
+            Focus = baseFocus + baseFocus / 2,         // 10/21/31
+            AdvanceToDay = DayAdvancement.NextDay,
+            AdvanceToBlock = TimeBlocks.Morning
+        },
+        ActionType = ChoiceActionType.Instant
+    });
+
+    // Choice 2: Physical focus
+    choices.Add(new ChoiceTemplate
+    {
+        Id = $"{situationTemplateId}_physical",
+        PathType = ChoicePathType.InstantSuccess,  // Physical variant
+        ActionTextTemplate = "Rest deeply",
+        RequirementFormula = new CompoundRequirement(),
+        CostTemplate = new ChoiceCost(),
+        RewardTemplate = new ChoiceReward
+        {
+            Health = baseHealth * 2 + baseHealth / 2,  // 25/50/75
+            Stamina = baseStamina,                      // 10/20/30
+            Focus = baseFocus / 2,                      // 3/7/10
+            AdvanceToDay = DayAdvancement.NextDay,
+            AdvanceToBlock = TimeBlocks.Morning
+        },
+        ActionType = ChoiceActionType.Instant
+    });
+
+    // Choice 3: Mental focus
+    choices.Add(new ChoiceTemplate
+    {
+        Id = $"{situationTemplateId}_mental",
+        PathType = ChoicePathType.InstantSuccess,  // Mental variant
+        ActionTextTemplate = "Meditate before sleeping",
+        RequirementFormula = new CompoundRequirement(),
+        CostTemplate = new ChoiceCost(),
+        RewardTemplate = new ChoiceReward
+        {
+            Health = baseHealth / 2,                    // 5/10/15
+            Stamina = baseStamina,                      // 10/20/30
+            Focus = baseFocus * 2 + baseFocus / 2,     // 17/35/52
+            AdvanceToDay = DayAdvancement.NextDay,
+            AdvanceToBlock = TimeBlocks.Morning
+        },
+        ActionType = ChoiceActionType.Instant
+    });
+
+    // Choice 4: Special (balanced + buff)
+    choices.Add(new ChoiceTemplate
+    {
+        Id = $"{situationTemplateId}_special",
+        PathType = ChoicePathType.InstantSuccess,  // Special variant with buff
+        ActionTextTemplate = "Dream vividly",
+        RequirementFormula = new CompoundRequirement(),
+        CostTemplate = new ChoiceCost(),
+        RewardTemplate = new ChoiceReward
+        {
+            Health = baseHealth + baseFocus / 2,        // 13/27/40
+            Stamina = baseStamina + baseFocus / 2,      // 13/27/40
+            Focus = baseFocus + baseFocus / 2,          // 10/21/31
+            AdvanceToDay = DayAdvancement.NextDay,
+            AdvanceToBlock = TimeBlocks.Morning,
+            StateApplications = new List<StateApplication>
+            {
+                new StateApplication
+                {
+                    StateType = StateType.Inspired,
+                    Operation = StateOperation.Apply,
+                    DurationSegments = 4
+                }
+            }
+        },
+        ActionType = ChoiceActionType.Instant
+    });
+
+    return choices;
+}
+
+/// <summary>
+/// Generate service_departure choices (only 2, not 4).
+/// Universal buff granted for careful departure (Focused).
+/// Returns choices with PARTIAL RewardTemplate (SceneArchetypeCatalog adds cleanup).
+/// </summary>
+private static List<ChoiceTemplate> GenerateServiceDepartureChoices(
+    string situationTemplateId,
+    GenerationContext context)
+{
+    // Universal buff for careful preparation (applies to all activity types)
+    StateType buffType = StateType.Focused;
+
+    List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
+
+    // Choice 1: Leave immediately (no cost, no buff)
+    choices.Add(new ChoiceTemplate
+    {
+        Id = $"{situationTemplateId}_immediate",
+        PathType = ChoicePathType.Fallback,  // Quick exit, minimal benefit
+        ActionTextTemplate = "Leave immediately",
+        RequirementFormula = new CompoundRequirement(),
+        CostTemplate = new ChoiceCost(),
+        RewardTemplate = new ChoiceReward(),  // Empty, enriched with cleanup by scene archetype
+        ActionType = ChoiceActionType.Instant
+    });
+
+    // Choice 2: Gather carefully (costs 1 segment, grants buff)
+    choices.Add(new ChoiceTemplate
+    {
+        Id = $"{situationTemplateId}_careful",
+        PathType = ChoicePathType.InstantSuccess,  // Careful preparation, grants buff
+        ActionTextTemplate = "Gather your belongings carefully",
+        RequirementFormula = new CompoundRequirement(),
+        CostTemplate = new ChoiceCost { TimeSegments = 1 },
+        RewardTemplate = new ChoiceReward
+        {
+            StateApplications = new List<StateApplication>
+            {
+                new StateApplication
+                {
+                    StateType = buffType,
+                    Operation = StateOperation.Apply,
+                    DurationSegments = 4
+                }
+            }
+        },
+        ActionType = ChoiceActionType.Instant
+    });
+
+    return choices;
+}
 }

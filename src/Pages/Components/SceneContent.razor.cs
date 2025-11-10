@@ -431,7 +431,7 @@ namespace Wayfarer.Pages.Components
                     return; // Cannot afford costs - should never happen if UI is correct
                 }
 
-                // Apply costs
+                // Apply costs immediately (for both instant and challenge actions)
                 player.Coins -= choiceTemplate.CostTemplate.Coins;
                 player.Resolve -= choiceTemplate.CostTemplate.Resolve;
                 player.Health -= choiceTemplate.CostTemplate.Health;
@@ -442,17 +442,71 @@ namespace Wayfarer.Pages.Components
                 // Note: TimeSegments handled by RewardApplicationService (time advancement)
             }
 
-            // Apply choice rewards via RewardApplicationService
+            // TRANSITION TRACKING: Set LastChoiceId for OnChoice transitions
+            CurrentSituation.LastChoiceId = choiceTemplate.Id;
+
+            // ROUTE BY ACTION TYPE: StartChallenge vs Instant
+            if (choiceTemplate.ActionType == ChoiceActionType.StartChallenge)
+            {
+                // CHALLENGE PATH: Route to tactical challenge subsystem
+                // Challenge facades will call SituationCompletionHandler.CompleteSituation() when complete
+                // OnSuccessReward applied by challenge system, NOT here
+                Console.WriteLine($"[SceneContent.HandleChoiceSelected] Routing to {choiceTemplate.ChallengeType} challenge");
+
+                // Store challenge context for resumption
+                if (choiceTemplate.ChallengeType == TacticalSystemType.Social)
+                {
+                    GameWorld.CurrentSocialSession = new SocialSession
+                    {
+                        RequestId = CurrentSituation.Id,
+                        NpcId = Scene.PlacementId // Assumes scene placed on NPC
+                    };
+                    GameWorld.PendingSocialContext = new SocialChallengeContext
+                    {
+                        CompletionReward = choiceTemplate.OnSuccessReward,
+                        FailureReward = choiceTemplate.OnFailureReward,
+                        SituationId = CurrentSituation.Id
+                    };
+                }
+                else if (choiceTemplate.ChallengeType == TacticalSystemType.Mental)
+                {
+                    GameWorld.CurrentMentalSituationId = CurrentSituation.Id;
+                    GameWorld.PendingMentalContext = new MentalChallengeContext
+                    {
+                        CompletionReward = choiceTemplate.OnSuccessReward,
+                        FailureReward = choiceTemplate.OnFailureReward,
+                        SituationId = CurrentSituation.Id
+                    };
+                }
+                else if (choiceTemplate.ChallengeType == TacticalSystemType.Physical)
+                {
+                    GameWorld.CurrentPhysicalSituationId = CurrentSituation.Id;
+                    GameWorld.PendingPhysicalContext = new PhysicalChallengeContext
+                    {
+                        CompletionReward = choiceTemplate.OnSuccessReward,
+                        FailureReward = choiceTemplate.OnFailureReward,
+                        SituationId = CurrentSituation.Id
+                    };
+                }
+
+                // Close scene modal - challenge screen will open
+                // When challenge completes, facade calls CompleteSituation → advances scene
+                // GameScreen will detect scene state and reopen modal if needed
+                await OnSceneEnd.InvokeAsync();
+                return;
+            }
+
+            // INSTANT PATH: Apply rewards immediately and complete situation
             if (choiceTemplate.RewardTemplate != null)
             {
-                RewardApplicationService.ApplyChoiceReward(choiceTemplate.RewardTemplate, CurrentSituation);
+                await RewardApplicationService.ApplyChoiceReward(choiceTemplate.RewardTemplate, CurrentSituation);
             }
 
             // MULTI-SITUATION SCENE: Complete situation and advance
             // Scene entity owns state machine via Scene.AdvanceToNextSituation()
             // UI queries new current situation after completion
             Console.WriteLine($"[SceneContent.HandleChoiceSelected] Completing situation '{CurrentSituation.Id}'");
-            SituationCompletionHandler.CompleteSituation(CurrentSituation);
+            await SituationCompletionHandler.CompleteSituation(CurrentSituation);
 
             // CONTEXT-AWARE ROUTING: Query routing decision from completed situation
             SceneRoutingDecision routingDecision = CurrentSituation.RoutingDecision;

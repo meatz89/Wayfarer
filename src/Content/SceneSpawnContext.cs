@@ -1,4 +1,3 @@
-namespace Wayfarer.Content;
 
 /// <summary>
 /// Context object containing all data needed to create a provisional Scene from a SceneTemplate
@@ -8,34 +7,34 @@ namespace Wayfarer.Content;
 /// </summary>
 public class SceneSpawnContext
 {
-    /// <summary>
-    /// Current Situation that triggered the Scene spawn
-    /// Used to extract placement context (location/NPC/route)
-    /// </summary>
-    public Situation CurrentSituation { get; set; }
+/// <summary>
+/// Current Situation that triggered the Scene spawn
+/// Used to extract placement context (location/NPC/route)
+/// </summary>
+public Situation CurrentSituation { get; set; }
 
-    /// <summary>
-    /// Location where current Situation exists (nullable)
-    /// Location is source of truth - contains VenueId for grouping
-    /// Used for SameLocation placement, VenueId resolution, and placeholder replacement
-    /// </summary>
-    public Location CurrentLocation { get; set; }
+/// <summary>
+/// Location where current Situation exists (nullable)
+/// Location is source of truth - contains VenueId for grouping
+/// Used for SameLocation placement, VenueId resolution, and placeholder replacement
+/// </summary>
+public Location CurrentLocation { get; set; }
 
-    /// <summary>
-    /// NPC involved in current Situation (nullable)
-    /// Used for SameNPC placement and NPC-based filters
-    /// </summary>
-    public NPC CurrentNPC { get; set; }
+/// <summary>
+/// NPC involved in current Situation (nullable)
+/// Used for SameNPC placement and NPC-based filters
+/// </summary>
+public NPC CurrentNPC { get; set; }
 
-    /// <summary>
-    /// RouteOption where current Situation exists (nullable)
-    /// Used for SameRoute placement and route-based filters
-    /// </summary>
-    public RouteOption CurrentRoute { get; set; }
+/// <summary>
+/// RouteOption where current Situation exists (nullable)
+/// Used for SameRoute placement and route-based filters
+/// </summary>
+public RouteOption CurrentRoute { get; set; }
 
-    /// <summary>
-    /// Player state for requirement validation and placeholder data
-    /// Provides bond levels, scale positions, achievements, states
-    /// </summary>
-    public Player Player { get; set; }
+/// <summary>
+/// Player state for requirement validation and placeholder data
+/// Provides bond levels, scale positions, achievements, states
+/// </summary>
+public Player Player { get; set; }
 }

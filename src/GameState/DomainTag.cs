@@ -3,27 +3,27 @@
 /// </summary>
 public enum DomainTag
 {
-    // Social domains
-    Social,
-    Diplomacy,
-    Residential,
-    Religious,
+// Social domains
+Social,
+Diplomacy,
+Residential,
+Religious,
 
-    // Service domains
-    Hospitality,
-    Crafting,
-    Administrative,
-    Medical,
+// Service domains
+Hospitality,
+Crafting,
+Administrative,
+Medical,
 
-    // Activity domains
-    Transportation,
-    Storage,
-    Entertainment,
-    Education,
+// Activity domains
+Transportation,
+Storage,
+Entertainment,
+Education,
 
-    // Environmental domains
-    Natural,
-    Urban,
-    Rural,
-    Industrial
+// Environmental domains
+Natural,
+Urban,
+Rural,
+Industrial
 }

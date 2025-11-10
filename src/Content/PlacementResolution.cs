@@ -1,4 +1,3 @@
-namespace Wayfarer.Content;
 
 /// <summary>
 /// Result of resolving concrete placement from PlacementRelation enum
@@ -6,12 +5,12 @@ namespace Wayfarer.Content;
 /// </summary>
 public class PlacementResolution
 {
-    public PlacementType PlacementType { get; init; }
-    public string PlacementId { get; init; }
+public PlacementType PlacementType { get; init; }
+public string PlacementId { get; init; }
 
-    public PlacementResolution(PlacementType placementType, string placementId)
-    {
-        PlacementType = placementType;
-        PlacementId = placementId;
-    }
+public PlacementResolution(PlacementType placementType, string placementId)
+{
+    PlacementType = placementType;
+    PlacementId = placementId;
+}
 }

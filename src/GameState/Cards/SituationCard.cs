@@ -6,39 +6,39 @@
 /// </summary>
 public class SituationCard
 {
-    /// <summary>
-    /// Unique identifier for this situation card
-    /// </summary>
-    public string Id { get; set; }
+/// <summary>
+/// Unique identifier for this situation card
+/// </summary>
+public string Id { get; set; }
 
-    /// <summary>
-    /// Display name of this victory condition
-    /// </summary>
-    public string Name { get; set; }
+/// <summary>
+/// Display name of this victory condition
+/// </summary>
+public string Name { get; set; }
 
-    /// <summary>
-    /// Description of this victory condition
-    /// </summary>
-    public string Description { get; set; }
+/// <summary>
+/// Description of this victory condition
+/// </summary>
+public string Description { get; set; }
 
-    /// <summary>
-    /// Universal threshold required to achieve this victory condition
-    /// Interpretation depends on Situation.systemType:
-    /// - Social: Momentum threshold
-    /// - Mental: Progress threshold
-    /// - Physical: Breakthrough threshold
-    /// </summary>
-    public int threshold { get; set; }
+/// <summary>
+/// Universal threshold required to achieve this victory condition
+/// Interpretation depends on Situation.systemType:
+/// - Social: Momentum threshold
+/// - Mental: Progress threshold
+/// - Physical: Breakthrough threshold
+/// </summary>
+public int threshold { get; set; }
 
-    /// <summary>
-    /// Rewards granted when this victory condition is achieved
-    /// </summary>
-    public SituationCardRewards Rewards { get; set; }
+/// <summary>
+/// Rewards granted when this victory condition is achieved
+/// </summary>
+public SituationCardRewards Rewards { get; set; }
 
-    /// <summary>
-    /// Whether this situation card has been achieved
-    /// </summary>
-    public bool IsAchieved { get; set; } = false;
+/// <summary>
+/// Whether this situation card has been achieved
+/// </summary>
+public bool IsAchieved { get; set; } = false;
 }
 
 /// <summary>
@@ -48,22 +48,22 @@ public class SituationCard
 /// </summary>
 public class CreateObligationReward
 {
-    /// <summary>
-    /// NPC receiving StoryCubes (creates obligation with this patron)
-    /// </summary>
-    public string PatronNpcId { get; set; }
+/// <summary>
+/// NPC receiving StoryCubes (creates obligation with this patron)
+/// </summary>
+public string PatronNpcId { get; set; }
 
-    /// <summary>
-    /// Number of StoryCubes granted to patron (typically 2-5)
-    /// Enables visibility of generic delivery situations when threshold met
-    /// </summary>
-    public int StoryCubesGranted { get; set; }
+/// <summary>
+/// Number of StoryCubes granted to patron (typically 2-5)
+/// Enables visibility of generic delivery situations when threshold met
+/// </summary>
+public int StoryCubesGranted { get; set; }
 
-    /// <summary>
-    /// Coins rewarded when delivery situation completes
-    /// Stored on NPC for generic situation reward calculation
-    /// </summary>
-    public int RewardCoins { get; set; }
+/// <summary>
+/// Coins rewarded when delivery situation completes
+/// Stored on NPC for generic situation reward calculation
+/// </summary>
+public int RewardCoins { get; set; }
 }
 
 /// <summary>
@@ -71,9 +71,9 @@ public class CreateObligationReward
 /// </summary>
 public class RouteSegmentUnlock
 {
-    public string RouteId { get; set; }
-    public int SegmentPosition { get; set; }
-    public string PathId { get; set; }
+public string RouteId { get; set; }
+public int SegmentPosition { get; set; }
+public string PathId { get; set; }
 }
 
 /// <summary>
@@ -82,19 +82,19 @@ public class RouteSegmentUnlock
 /// </summary>
 public class SituationCardRewards
 {
-    public int? Coins { get; set; }
-    public int? Progress { get; set; }
-    public int? Breakthrough { get; set; }
-    public string ObligationId { get; set; }
-    public string Item { get; set; }
+public int? Coins { get; set; }
+public int? Progress { get; set; }
+public int? Breakthrough { get; set; }
+public string ObligationId { get; set; }
+public string Item { get; set; }
 
-    // Cube rewards (strong typing, auto-applied to situation's context)
-    public int? InvestigationCubes { get; set; }
-    public int? StoryCubes { get; set; }
-    public int? ExplorationCubes { get; set; }
+// Cube rewards (strong typing, auto-applied to situation's context)
+public int? InvestigationCubes { get; set; }
+public int? StoryCubes { get; set; }
+public int? ExplorationCubes { get; set; }
 
-    // Core Loop reward types
-    public string EquipmentId { get; set; }
-    public CreateObligationReward CreateObligationData { get; set; }
-    public RouteSegmentUnlock RouteSegmentUnlock { get; set; }
+// Core Loop reward types
+public string EquipmentId { get; set; }
+public CreateObligationReward CreateObligationData { get; set; }
+public RouteSegmentUnlock RouteSegmentUnlock { get; set; }
 }

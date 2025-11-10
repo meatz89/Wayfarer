@@ -3,14 +3,14 @@
 /// </summary>
 public class TravelViewModel
 {
-    public string CurrentVenueId { get; init; }
-    public string CurrentLocationName { get; init; }
+public string CurrentVenueId { get; init; }
+public string CurrentLocationName { get; init; }
 
-    // Travel context status
-    public TravelStatusViewModel Status { get; init; }
+// Travel context status
+public TravelStatusViewModel Status { get; init; }
 
-    // Available destinations
-    public List<DestinationViewModel> Destinations { get; init; } = new();
+// Available destinations
+public List<DestinationViewModel> Destinations { get; init; } = new();
 }
 
 /// <summary>
@@ -18,19 +18,19 @@ public class TravelViewModel
 /// </summary>
 public class TravelStatusViewModel
 {
-    public int TotalWeight { get; init; }
-    public string FocusClass { get; init; }
-    public string FocusStatus { get; init; }
-    public int BaseStaminaCost { get; init; }
-    public int CurrentStamina { get; init; }
-    public List<string> CurrentEquipment { get; init; } = new();
+public int TotalWeight { get; init; }
+public string FocusClass { get; init; }
+public string FocusStatus { get; init; }
+public int BaseStaminaCost { get; init; }
+public int CurrentStamina { get; init; }
+public List<string> CurrentEquipment { get; init; } = new();
 
-    // Letter-related travel effects
-    public int CarriedLetterCount { get; init; }
-    public bool HasHeavyLetters { get; init; }
-    public bool HasFragileLetters { get; init; }
-    public bool HasValuableLetters { get; init; }
-    public List<string> LetterWarnings { get; init; } = new();
+// Letter-related travel effects
+public int CarriedLetterCount { get; init; }
+public bool HasHeavyLetters { get; init; }
+public bool HasFragileLetters { get; init; }
+public bool HasValuableLetters { get; init; }
+public List<string> LetterWarnings { get; init; } = new();
 }
 
 /// <summary>
@@ -38,13 +38,13 @@ public class TravelStatusViewModel
 /// </summary>
 public class DestinationViewModel
 {
-    public string VenueId { get; init; }
-    public string LocationName { get; init; }
-    public bool IsCurrent { get; init; }
+public string VenueId { get; init; }
+public string LocationName { get; init; }
+public bool IsCurrent { get; init; }
 
-    // Available routes to this destination
-    public List<RouteViewModel> AvailableRoutes { get; init; } = new();
-    public List<LockedRouteViewModel> LockedRoutes { get; init; } = new();
+// Available routes to this destination
+public List<RouteViewModel> AvailableRoutes { get; init; } = new();
+public List<LockedRouteViewModel> LockedRoutes { get; init; } = new();
 }
 
 /// <summary>
@@ -52,22 +52,22 @@ public class DestinationViewModel
 /// </summary>
 public class RouteViewModel
 {
-    public string RouteId { get; init; }
-    public string TerrainType { get; init; }
-    public int CoinCost { get; init; }
-    public int StaminaCost { get; init; }
-    public int TravelTimeSegments { get; init; }
-    public string TransportRequirement { get; init; }
+public string RouteId { get; init; }
+public string TerrainType { get; init; }
+public int CoinCost { get; init; }
+public int StaminaCost { get; init; }
+public int TravelTimeSegments { get; init; }
+public string TransportRequirement { get; init; }
 
-    // Affordability
-    public bool CanAffordCoins { get; init; }
-    public bool CanAffordStamina { get; init; }
-    public bool IsBlocked { get; init; }
-    public string BlockedReason { get; init; }
+// Affordability
+public bool CanAffordCoins { get; init; }
+public bool CanAffordStamina { get; init; }
+public bool IsBlocked { get; init; }
+public string BlockedReason { get; init; }
 
-    // Additional costs from letters
-    public int LetterStaminaPenalty { get; init; }
-    public int TotalStaminaCost { get; init; }
+// Additional costs from letters
+public int LetterStaminaPenalty { get; init; }
+public int TotalStaminaCost { get; init; }
 }
 
 /// <summary>
@@ -75,9 +75,9 @@ public class RouteViewModel
 /// </summary>
 public class LockedRouteViewModel
 {
-    public string RouteId { get; init; }
-    public string TerrainType { get; init; }
-    public List<RouteDiscoveryViewModel> DiscoveryOptions { get; init; } = new();
+public string RouteId { get; init; }
+public string TerrainType { get; init; }
+public List<RouteDiscoveryViewModel> DiscoveryOptions { get; init; } = new();
 }
 
 /// <summary>
@@ -85,9 +85,9 @@ public class LockedRouteViewModel
 /// </summary>
 public class RouteDiscoveryViewModel
 {
-    public string DiscoveryId { get; init; }
-    public DiscoveryMethodViewModel Method { get; init; }
-    public bool CanAfford { get; init; }
+public string DiscoveryId { get; init; }
+public DiscoveryMethodViewModel Method { get; init; }
+public bool CanAfford { get; init; }
 }
 
 /// <summary>
@@ -95,20 +95,20 @@ public class RouteDiscoveryViewModel
 /// </summary>
 public class DiscoveryMethodViewModel
 {
-    public string MethodType { get; init; }
-    public string Description { get; init; }
+public string MethodType { get; init; }
+public string Description { get; init; }
 
-    // For NPC teaching
-    public string NPCName { get; init; }
-    public string TokenType { get; init; }
-    public int TokenCost { get; init; }
-    public int AvailableTokens { get; init; }
+// For NPC teaching
+public string NPCName { get; init; }
+public string TokenType { get; init; }
+public int TokenCost { get; init; }
+public int AvailableTokens { get; init; }
 
-    // For item requirement
-    public string RequiredItem { get; init; }
-    public bool HasItem { get; init; }
+// For item requirement
+public string RequiredItem { get; init; }
+public bool HasItem { get; init; }
 
-    // For coin cost
-    public int CoinCost { get; init; }
-    public int AvailableCoins { get; init; }
+// For coin cost
+public int CoinCost { get; init; }
+public int AvailableCoins { get; init; }
 }

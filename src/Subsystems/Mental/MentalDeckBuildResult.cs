@@ -4,12 +4,12 @@
 /// </summary>
 public class MentalDeckBuildResult
 {
-    public List<CardInstance> Deck { get; init; }
-    public List<CardInstance> StartingHand { get; init; }
+public List<CardInstance> Deck { get; init; }
+public List<CardInstance> StartingHand { get; init; }
 
-    public MentalDeckBuildResult(List<CardInstance> deck, List<CardInstance> startingHand)
-    {
-        Deck = deck;
-        StartingHand = startingHand;
-    }
+public MentalDeckBuildResult(List<CardInstance> deck, List<CardInstance> startingHand)
+{
+    Deck = deck;
+    StartingHand = startingHand;
+}
 }

@@ -1,171 +1,154 @@
 /// <summary>
-/// Filter for selecting placement entities at spawn time
-/// SUPPORTS TWO PATTERNS:
-/// 1. CONCRETE BINDING (Tutorial): NpcId/LocationId specified → spawn at specific entity
-/// 2. CATEGORICAL SEARCH (Procedural): Only categorical properties → search for matches
-/// Implements AI content generation pattern: JSON describes categories OR concrete IDs, spawner resolves placement
+/// Filter for selecting placement entities at spawn time via CATEGORICAL PROPERTIES ONLY
+/// Implements AI content generation pattern: JSON describes categories (PersonalityTypes, LocationProperties),
+/// spawner queries GameWorld entities and applies SelectionStrategy to choose from matches
+/// Tutorial pattern uses SceneSpawnReward.SpecificPlacementId for concrete binding (NOT this filter)
+/// HIGHLANDER: One pattern only - categorical queries, no concrete IDs
 /// </summary>
 public class PlacementFilter
 {
-    /// <summary>
-    /// Type of placement: Location, NPC, or Route
-    /// Determines which filter properties apply
-    /// </summary>
-    public PlacementType PlacementType { get; init; }
+/// <summary>
+/// Type of placement: Location, NPC, or Route
+/// Determines which filter properties apply
+/// </summary>
+public PlacementType PlacementType { get; init; }
 
-    // ==================== CONCRETE BINDING (Tutorial Pattern) ====================
-    // When specified, these bypass categorical filtering and bind to specific entities
+// ==================== CATEGORICAL SEARCH ====================
 
-    /// <summary>
-    /// Concrete NPC ID for tutorial/explicit binding
-    /// When specified, scene spawns at this specific NPC (bypasses categorical filtering)
-    /// null = use categorical NPC filters
-    /// </summary>
-    public string NpcId { get; init; }
+/// <summary>
+/// Strategy for selecting ONE entity when multiple candidates match the filter
+/// Defaults to WeightedRandom for backward compatibility
+/// </summary>
+public PlacementSelectionStrategy SelectionStrategy { get; init; } = PlacementSelectionStrategy.WeightedRandom;
 
-    /// <summary>
-    /// Concrete Location ID for tutorial/explicit binding
-    /// When specified, scene spawns at this specific Location (bypasses categorical filtering)
-    /// null = use categorical Location filters
-    /// </summary>
-    public string LocationId { get; init; }
+// ==================== NPC FILTERS (when PlacementType == NPC) ====================
 
-    // ==================== CATEGORICAL SEARCH (Procedural Pattern) ====================
+/// <summary>
+/// Required personality types for NPC selection
+/// Example: ["Mercantile", "Commanding"] - NPC must have one of these personalities
+/// CATEGORICAL - no concrete NPC IDs
+/// </summary>
+public List<PersonalityType> PersonalityTypes { get; init; } = new List<PersonalityType>();
 
-    /// <summary>
-    /// Strategy for selecting ONE entity when multiple candidates match the filter
-    /// Defaults to WeightedRandom for backward compatibility
-    /// </summary>
-    public PlacementSelectionStrategy SelectionStrategy { get; init; } = PlacementSelectionStrategy.WeightedRandom;
+/// <summary>
+/// Minimum bond strength required with player
+/// Example: MinBond = 10 means "select NPCs player has bond 10+"
+/// null = no minimum requirement
+/// </summary>
+public int? MinBond { get; init; }
 
-    // ==================== NPC FILTERS (when PlacementType == NPC) ====================
+/// <summary>
+/// Maximum bond strength allowed with player
+/// Example: MaxBond = 5 means "select NPCs player has bond 5 or less"
+/// null = no maximum requirement
+/// Enables "stranger" or "unfamiliar" categorical selection
+/// </summary>
+public int? MaxBond { get; init; }
 
-    /// <summary>
-    /// Required personality types for NPC selection
-    /// Example: ["Mercantile", "Commanding"] - NPC must have one of these personalities
-    /// CATEGORICAL - no concrete NPC IDs
-    /// </summary>
-    public List<PersonalityType> PersonalityTypes { get; init; } = new List<PersonalityType>();
+/// <summary>
+/// Categorical tags for NPC selection
+/// Example: ["Wealthy", "UrbanResident", "Authority"]
+/// NPC must have ALL specified tags to match
+/// </summary>
+public List<string> NpcTags { get; init; } = new List<string>();
 
-    /// <summary>
-    /// Minimum bond strength required with player
-    /// Example: MinBond = 10 means "select NPCs player has bond 10+"
-    /// null = no minimum requirement
-    /// </summary>
-    public int? MinBond { get; init; }
+// ==================== LOCATION FILTERS (when PlacementType == Location) ====================
 
-    /// <summary>
-    /// Maximum bond strength allowed with player
-    /// Example: MaxBond = 5 means "select NPCs player has bond 5 or less"
-    /// null = no maximum requirement
-    /// Enables "stranger" or "unfamiliar" categorical selection
-    /// </summary>
-    public int? MaxBond { get; init; }
+/// <summary>
+/// Required location properties for categorical selection
+/// Example: [Secluded, Indoor, Private]
+/// Location must have ALL specified properties to match
+/// STRONGLY-TYPED enum, not strings
+/// </summary>
+public List<LocationPropertyType> LocationProperties { get; init; } = new List<LocationPropertyType>();
 
-    /// <summary>
-    /// Categorical tags for NPC selection
-    /// Example: ["Wealthy", "UrbanResident", "Authority"]
-    /// NPC must have ALL specified tags to match
-    /// </summary>
-    public List<string> NpcTags { get; init; } = new List<string>();
+/// <summary>
+/// Categorical tags for location selection
+/// Example: ["Marketplace", "Noble", "Industrial"]
+/// Location must have ALL specified tags to match
+/// </summary>
+public List<string> LocationTags { get; init; } = new List<string>();
 
-    // ==================== LOCATION FILTERS (when PlacementType == Location) ====================
+/// <summary>
+/// District identifier filter
+/// null = any district
+/// Specified = location must be in this district
+/// NOTE: This is concrete ID, but districts are large categorical containers
+/// </summary>
+public string DistrictId { get; init; }
 
-    /// <summary>
-    /// Required location properties for categorical selection
-    /// Example: [Secluded, Indoor, Private]
-    /// Location must have ALL specified properties to match
-    /// STRONGLY-TYPED enum, not strings
-    /// </summary>
-    public List<LocationPropertyType> LocationProperties { get; init; } = new List<LocationPropertyType>();
+/// <summary>
+/// Region identifier filter
+/// null = any region
+/// Specified = location must be in this region
+/// NOTE: This is concrete ID, but regions are large categorical containers
+/// </summary>
+public string RegionId { get; init; }
 
-    /// <summary>
-    /// Categorical tags for location selection
-    /// Example: ["Marketplace", "Noble", "Industrial"]
-    /// Location must have ALL specified tags to match
-    /// </summary>
-    public List<string> LocationTags { get; init; } = new List<string>();
+// ==================== ROUTE FILTERS (when PlacementType == Route) ====================
 
-    /// <summary>
-    /// District identifier filter
-    /// null = any district
-    /// Specified = location must be in this district
-    /// NOTE: This is concrete ID, but districts are large categorical containers
-    /// </summary>
-    public string DistrictId { get; init; }
+/// <summary>
+/// Terrain types for route selection
+/// Example: [Urban, Forest, Mountain]
+/// Route must match one of these terrain types
+/// </summary>
+public List<string> TerrainTypes { get; init; } = new List<string>();
 
-    /// <summary>
-    /// Region identifier filter
-    /// null = any region
-    /// Specified = location must be in this region
-    /// NOTE: This is concrete ID, but regions are large categorical containers
-    /// </summary>
-    public string RegionId { get; init; }
+/// <summary>
+/// Route difficulty tier requirement
+/// null = any difficulty
+/// Specified = route must match this tier
+/// </summary>
+public int? RouteTier { get; init; }
 
-    // ==================== ROUTE FILTERS (when PlacementType == Route) ====================
+/// <summary>
+/// Minimum danger rating for route selection (0-100 scale)
+/// null = no minimum
+/// Used to filter scenes for dangerous routes
+/// Example: MinDangerRating = 30 means "only spawn on routes with danger 30+"
+/// </summary>
+public int? MinDangerRating { get; init; }
 
-    /// <summary>
-    /// Terrain types for route selection
-    /// Example: [Urban, Forest, Mountain]
-    /// Route must match one of these terrain types
-    /// </summary>
-    public List<string> TerrainTypes { get; init; } = new List<string>();
+/// <summary>
+/// Maximum danger rating for route selection (0-100 scale)
+/// null = no maximum
+/// Used to filter scenes for safer routes
+/// Example: MaxDangerRating = 50 means "only spawn on routes with danger <= 50"
+/// </summary>
+public int? MaxDangerRating { get; init; }
 
-    /// <summary>
-    /// Route difficulty tier requirement
-    /// null = any difficulty
-    /// Specified = route must match this tier
-    /// </summary>
-    public int? RouteTier { get; init; }
+// ==================== PLAYER STATE FILTERS (applies to all placement types) ====================
 
-    /// <summary>
-    /// Minimum danger rating for route selection (0-100 scale)
-    /// null = no minimum
-    /// Used to filter scenes for dangerous routes
-    /// Example: MinDangerRating = 30 means "only spawn on routes with danger 30+"
-    /// </summary>
-    public int? MinDangerRating { get; init; }
+/// <summary>
+/// Player must have these states for Scene to spawn
+/// Example: [Injured, Exhausted, Wanted]
+/// Player must have ALL specified states
+/// STRONGLY-TYPED enum, not strings
+/// </summary>
+public List<StateType> RequiredStates { get; init; } = new List<StateType>();
 
-    /// <summary>
-    /// Maximum danger rating for route selection (0-100 scale)
-    /// null = no maximum
-    /// Used to filter scenes for safer routes
-    /// Example: MaxDangerRating = 50 means "only spawn on routes with danger <= 50"
-    /// </summary>
-    public int? MaxDangerRating { get; init; }
+/// <summary>
+/// Player must NOT have these states for Scene to spawn
+/// Example: [Rested, Healthy]
+/// Player must have NONE of these states
+/// Enables "only when wounded" or "only when fresh" scenarios
+/// </summary>
+public List<StateType> ForbiddenStates { get; init; } = new List<StateType>();
 
-    // ==================== PLAYER STATE FILTERS (applies to all placement types) ====================
+/// <summary>
+/// Player must have these achievements for Scene to spawn
+/// Example: ["FirstCombatVictory", "MercantileGuildMember"]
+/// Player must have ALL specified achievements
+/// Achievement IDs are concrete, but they represent categorical milestones
+/// </summary>
+public List<string> RequiredAchievements { get; init; } = new List<string>();
 
-    /// <summary>
-    /// Player must have these states for Scene to spawn
-    /// Example: [Injured, Exhausted, Wanted]
-    /// Player must have ALL specified states
-    /// STRONGLY-TYPED enum, not strings
-    /// </summary>
-    public List<StateType> RequiredStates { get; init; } = new List<StateType>();
-
-    /// <summary>
-    /// Player must NOT have these states for Scene to spawn
-    /// Example: [Rested, Healthy]
-    /// Player must have NONE of these states
-    /// Enables "only when wounded" or "only when fresh" scenarios
-    /// </summary>
-    public List<StateType> ForbiddenStates { get; init; } = new List<StateType>();
-
-    /// <summary>
-    /// Player must have these achievements for Scene to spawn
-    /// Example: ["FirstCombatVictory", "MercantileGuildMember"]
-    /// Player must have ALL specified achievements
-    /// Achievement IDs are concrete, but they represent categorical milestones
-    /// </summary>
-    public List<string> RequiredAchievements { get; init; } = new List<string>();
-
-    /// <summary>
-    /// Player scale requirements for spawning
-    /// Example: Morality >= +5, Reputation >= -3
-    /// All requirements must be met
-    /// </summary>
-    public List<ScaleRequirement> ScaleRequirements { get; init; } = new List<ScaleRequirement>();
+/// <summary>
+/// Player scale requirements for spawning
+/// Example: Morality >= +5, Reputation >= -3
+/// All requirements must be met
+/// </summary>
+public List<ScaleRequirement> ScaleRequirements { get; init; } = new List<ScaleRequirement>();
 }
 
 /// <summary>
@@ -174,22 +157,22 @@ public class PlacementFilter
 /// </summary>
 public class ScaleRequirement
 {
-    /// <summary>
-    /// Which scale to check
-    /// </summary>
-    public ScaleType ScaleType { get; init; }
+/// <summary>
+/// Which scale to check
+/// </summary>
+public ScaleType ScaleType { get; init; }
 
-    /// <summary>
-    /// Minimum required value (inclusive)
-    /// null = no minimum
-    /// Example: MinValue = 5 means "scale must be >= 5"
-    /// </summary>
-    public int? MinValue { get; init; }
+/// <summary>
+/// Minimum required value (inclusive)
+/// null = no minimum
+/// Example: MinValue = 5 means "scale must be >= 5"
+/// </summary>
+public int? MinValue { get; init; }
 
-    /// <summary>
-    /// Maximum allowed value (inclusive)
-    /// null = no maximum
-    /// Example: MaxValue = -3 means "scale must be <= -3"
-    /// </summary>
-    public int? MaxValue { get; init; }
+/// <summary>
+/// Maximum allowed value (inclusive)
+/// null = no maximum
+/// Example: MaxValue = -3 means "scale must be <= -3"
+/// </summary>
+public int? MaxValue { get; init; }
 }
