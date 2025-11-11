@@ -1,5 +1,19 @@
 # Procedural Content Generation Architecture
 
+**Purpose:** Comprehensive technical specification for procedural content generation system.
+
+**Audience:** Technical implementers, architects, content designers.
+
+**Document Type:** Comprehensive reference (1889 lines). For quick lookups, see [PROCEDURAL_CONTENT_QUICK_REFERENCE.md](PROCEDURAL_CONTENT_QUICK_REFERENCE.md).
+
+**Related Documentation:**
+- [ARCHITECTURAL_PATTERNS.md](ARCHITECTURAL_PATTERNS.md) - Catalogue pattern, Three-tier timing
+- [ARCHITECTURE.md](ARCHITECTURE.md) - System architecture
+- [DESIGN_PHILOSOPHY.md](DESIGN_PHILOSOPHY.md) - Design principles
+- [PROCEDURAL_CONTENT_QUICK_REFERENCE.md](PROCEDURAL_CONTENT_QUICK_REFERENCE.md) - Fast lookup reference (compiled from this document)
+
+---
+
 ## Problem & Motivation
 
 ### The Scaling Crisis

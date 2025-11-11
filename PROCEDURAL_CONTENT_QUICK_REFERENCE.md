@@ -1,5 +1,15 @@
 # Procedural Content Generation - Quick Reference
 
+**Purpose:** Fast lookup reference compiled from PROCEDURAL_CONTENT_GENERATION.md (source of truth).
+
+**When to use this:** Quick lookups, reminders, cheat sheet for procedural content patterns.
+
+**When to use comprehensive doc:** Deep understanding, implementation details, design rationale. See [PROCEDURAL_CONTENT_GENERATION.md](PROCEDURAL_CONTENT_GENERATION.md).
+
+**Source of Truth:** PROCEDURAL_CONTENT_GENERATION.md is the authoritative source. If conflict, comprehensive doc is correct.
+
+---
+
 ## Architecture Overview
 
 ```
