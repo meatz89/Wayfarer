@@ -320,6 +320,15 @@ public SomeType? OptionalProp { get; set; } = null; // Nullable ONLY if validati
 - ONLY: `List<T>` where T is entity/enum, strongly-typed objects, int (never float)
 - FORBIDDEN: Dictionary, HashSet, var, object, func, lambda expressions
 
+**Lambdas:**
+- FORBIDDEN everywhere in codebase
+- ONLY exception: Framework configuration (HttpClient timeout, ASP.NET Core middleware)
+- No lambda expressions in game logic, DI registration, LINQ queries, event handlers
+- Use explicit methods instead
+- Example violation: `services.AddSingleton<GameWorld>(_ => GameWorldInitializer.CreateGameWorld())`
+- Example correct: `GameWorld gameWorld = GameWorldInitializer.CreateGameWorld(); builder.Services.AddSingleton(gameWorld);`
+- Example exception: `services.AddHttpClient<OllamaClient>(client => { client.Timeout = TimeSpan.FromSeconds(5); });`
+
 **Structure:**
 - Domain Services and Entities (no Helper/Utility classes)
 - No extension methods
