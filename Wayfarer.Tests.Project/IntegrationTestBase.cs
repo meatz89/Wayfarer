@@ -1,6 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Wayfarer.GameState;
-using Wayfarer.Services;
 
 namespace Wayfarer.Tests;
 

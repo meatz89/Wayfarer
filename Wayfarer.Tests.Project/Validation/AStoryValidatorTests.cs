@@ -1,6 +1,3 @@
-using Wayfarer.Content.Validation;
-using Wayfarer.GameState;
-using Wayfarer.GameState.Enums;
 using Xunit;
 
 namespace Wayfarer.Tests.Project.Validation;

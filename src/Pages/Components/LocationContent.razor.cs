@@ -2,223 +2,146 @@ using Microsoft.AspNetCore.Components;
 
 /// <summary>
 /// DUMB DISPLAY COMPONENT - NO BUSINESS LOGIC
-    /// All filtering/querying/view model building happens in LocationFacade
-    /// This component ONLY displays pre-built view models and delegates actions to backend
-    /// </summary>
-    public class LocationContentBase : ComponentBase
+/// All filtering/querying/view model building happens in LocationFacade
+/// This component ONLY displays pre-built view models and delegates actions to backend
+/// </summary>
+public class LocationContentBase : ComponentBase
+{
+    [Inject] protected GameFacade GameFacade { get; set; }
+    [Inject] protected GameWorld GameWorld { get; set; }
+    [Inject] protected SceneFacade SceneFacade { get; set; }
+
+    [Parameter] public EventCallback OnActionExecuted { get; set; }
+
+    [CascadingParameter] protected GameScreenBase GameScreen { get; set; }
+
+    // VISUAL NOVEL NAVIGATION STATE
+    protected LocationViewState ViewState { get; set; } = LocationViewState.Landing;
+    protected Stack<LocationViewState> NavigationStack { get; set; } = new();
+    protected Situation SelectedSituation { get; set; }
+
+    // VIEW MODEL STORAGE - all pre-built by facade
+    protected LocationContentViewModel ViewModel { get; set; } = new();
+
+    // SCREEN EXPANSION - Conversation trees and observation scenes
+    protected List<ConversationTree> AvailableConversationTrees { get; set; } = new();
+    protected List<ObservationScene> AvailableObservationScenes { get; set; } = new();
+
+    protected override async Task OnInitializedAsync()
     {
-        [Inject] protected GameFacade GameFacade { get; set; }
-        [Inject] protected GameWorld GameWorld { get; set; }
-        [Inject] protected SceneFacade SceneFacade { get; set; }
+        ResetNavigation();
+        await RefreshLocationData();
+    }
 
-        [Parameter] public EventCallback OnActionExecuted { get; set; }
+    protected override async Task OnParametersSetAsync()
+    {
+        ResetNavigation();
+        await RefreshLocationData();
+    }
 
-        [CascadingParameter] protected GameScreenBase GameScreen { get; set; }
+    /// <summary>
+    /// Refresh location data - ONE facade call, that's it
+    /// </summary>
+    private async Task RefreshLocationData()
+    {
+        // Evaluate obligation discovery
+        await GameFacade.EvaluateObligationDiscovery();
 
-        // VISUAL NOVEL NAVIGATION STATE
-        protected LocationViewState ViewState { get; set; } = LocationViewState.Landing;
-        protected Stack<LocationViewState> NavigationStack { get; set; } = new();
-        protected Situation SelectedSituation { get; set; }
+        // ONE call to backend - receives ALL data pre-built
+        ViewModel = GameFacade.GetLocationFacade().GetLocationContentViewModel();
 
-        // VIEW MODEL STORAGE - all pre-built by facade
-        protected LocationContentViewModel ViewModel { get; set; } = new();
-
-        // SCREEN EXPANSION - Conversation trees and observation scenes
-        protected List<ConversationTree> AvailableConversationTrees { get; set; } = new();
-        protected List<ObservationScene> AvailableObservationScenes { get; set; } = new();
-
-        protected override async Task OnInitializedAsync()
+        // Load available conversation trees and observation scenes for current location
+        Location currentLocation = GameWorld.GetPlayerCurrentLocation();
+        string locationId = currentLocation?.Id;
+        if (locationId != null)
         {
-            ResetNavigation();
-            await RefreshLocationData();
-        }
+            AvailableConversationTrees = GameFacade.GetAvailableConversationTreesAtLocation(locationId);
+            AvailableObservationScenes = GameFacade.GetAvailableObservationScenesAtLocation(locationId);
 
-        protected override async Task OnParametersSetAsync()
-        {
-            ResetNavigation();
-            await RefreshLocationData();
-        }
-
-        /// <summary>
-        /// Refresh location data - ONE facade call, that's it
-        /// </summary>
-        private async Task RefreshLocationData()
-        {
-            // Evaluate obligation discovery
-            await GameFacade.EvaluateObligationDiscovery();
-
-            // ONE call to backend - receives ALL data pre-built
-            ViewModel = GameFacade.GetLocationFacade().GetLocationContentViewModel();
-
-            // Load available conversation trees and observation scenes for current location
-            Location currentLocation = GameWorld.GetPlayerCurrentLocation();
-            string locationId = currentLocation?.Id;
-            if (locationId != null)
+            // MULTI-SITUATION SCENE RESUMPTION: Check if player navigated to location required by waiting scene
+            // Scene completed Situation 1 with ExitToWorld routing (different context required)
+            // Player navigated to required location - auto-resume scene to continue progression
+            List<Scene> resumableScenes = SceneFacade.GetResumableScenesAtContext(locationId, null);
+            if (resumableScenes.Count > 0)
             {
-                AvailableConversationTrees = GameFacade.GetAvailableConversationTreesAtLocation(locationId);
-                AvailableObservationScenes = GameFacade.GetAvailableObservationScenesAtLocation(locationId);
-
-                // MULTI-SITUATION SCENE RESUMPTION: Check if player navigated to location required by waiting scene
-                // Scene completed Situation 1 with ExitToWorld routing (different context required)
-                // Player navigated to required location - auto-resume scene to continue progression
-                List<Scene> resumableScenes = SceneFacade.GetResumableScenesAtContext(locationId, null);
-                if (resumableScenes.Count > 0)
-                {
-                    // Auto-resume first waiting scene (should only be one per location context)
-                    Scene resumableScene = resumableScenes[0];
-                    await GameScreen.StartScene(resumableScene.Id);
-                }
-            }
-
-            await Task.CompletedTask;
-        }
-
-        // ============================================
-        // ACTION DELEGATION - Intent-based execution
-        // Backend authority: UI creates intent, backend determines effects
-        // UI interprets result without making decisions
-        // ============================================
-
-        protected async Task ExecuteLocationAction(LocationActionViewModel action)
-        {
-            PlayerIntent intent = null;
-
-            // Parse enum and create strongly-typed intent
-            if (Enum.TryParse<PlayerActionType>(action.ActionType, true, out PlayerActionType playerActionType))
-            {
-                intent = playerActionType switch
-                {
-                    PlayerActionType.CheckBelongings => new CheckBelongingsIntent(),
-                    PlayerActionType.Wait => new WaitIntent(),
-                    PlayerActionType.SleepOutside => new SleepOutsideIntent(),
-                    PlayerActionType.LookAround => new LookAroundIntent(),
-                    _ => null
-                };
-            }
-            else if (Enum.TryParse<LocationActionType>(action.ActionType, true, out LocationActionType locationActionType))
-            {
-                intent = locationActionType switch
-                {
-                    LocationActionType.Rest => new RestAtLocationIntent(),
-                    LocationActionType.SecureRoom => new SecureRoomIntent(),
-                    LocationActionType.Work => new WorkIntent(),
-                    LocationActionType.Investigate => new InvestigateLocationIntent(),
-                    LocationActionType.Travel => new OpenTravelScreenIntent(),
-                    LocationActionType.IntraVenueMove => CreateIntraVenueMoveIntent(action),
-                    LocationActionType.ViewJobBoard => new ViewJobBoardIntent(),
-                    LocationActionType.CompleteDelivery => new CompleteDeliveryIntent(),
-                    _ => null
-                };
-            }
-
-            if (intent == null)
-            {
-                throw new InvalidOperationException($"No intent mapping for action type: {action.ActionType}");
-            }
-
-            // Execute via intent system - backend decides everything
-            IntentResult result = await GameFacade.ProcessIntent(intent);
-
-            // Interpret result without making decisions - just follow backend instructions
-            if (result.Success)
-            {
-                // Screen-level navigation (GameScreen handles)
-                if (result.NavigateToScreen.HasValue)
-                {
-                    await GameScreen.NavigateToScreen(result.NavigateToScreen.Value);
-                }
-
-                // View-level navigation (LocationContent handles)
-                if (result.NavigateToView.HasValue)
-                {
-                    NavigateToView(result.NavigateToView.Value);
-                }
-
-                // Refresh if backend says to refresh
-                if (result.RequiresLocationRefresh)
-                {
-                    await RefreshLocationData();
-                    await OnActionExecuted.InvokeAsync();
-
-                    // MODAL SCENE FORCING: Check if action triggered a forced modal scene
-                    // GameFacade sets PendingForcedSceneId after successful movement actions
-                    // If found, navigate to forced scene immediately (Sir Brante forced moment pattern)
-                    if (!string.IsNullOrEmpty(GameWorld.PendingForcedSceneId))
-                    {
-                        string forcedSceneId = GameWorld.PendingForcedSceneId;
-                        GameWorld.PendingForcedSceneId = null; // Clear pending flag
-
-                        await GameScreen.StartScene(forcedSceneId);
-                    }
-                }
+                // Auto-resume first waiting scene (should only be one per location context)
+                Scene resumableScene = resumableScenes[0];
+                await GameScreen.StartScene(resumableScene.Id);
             }
         }
 
-        protected async Task HandleCommitToSituation(Situation situation)
+        await Task.CompletedTask;
+    }
+
+    // ============================================
+    // ACTION DELEGATION - Intent-based execution
+    // Backend authority: UI creates intent, backend determines effects
+    // UI interprets result without making decisions
+    // ============================================
+
+    protected async Task ExecuteLocationAction(LocationActionViewModel action)
+    {
+        PlayerIntent intent = null;
+
+        // Parse enum and create strongly-typed intent
+        if (Enum.TryParse<PlayerActionType>(action.ActionType, true, out PlayerActionType playerActionType))
         {
-            // STRATEGIC LAYER: Validate requirements, consume Resolve/Time/Coins, route to appropriate subsystem
-            SituationSelectionResult result = GameFacade.GetSituationFacade().SelectAndExecuteSituation(situation.Id);
-
-            if (!result.Success)
+            intent = playerActionType switch
             {
-                // Failed validation or resource check - show error
-                return;
-            }
-
-            // Handle result based on type
-            if (result.ResultType == SituationResultType.InstantResolution)
+                PlayerActionType.CheckBelongings => new CheckBelongingsIntent(),
+                PlayerActionType.Wait => new WaitIntent(),
+                PlayerActionType.SleepOutside => new SleepOutsideIntent(),
+                PlayerActionType.LookAround => new LookAroundIntent(),
+                _ => null
+            };
+        }
+        else if (Enum.TryParse<LocationActionType>(action.ActionType, true, out LocationActionType locationActionType))
+        {
+            intent = locationActionType switch
             {
-                // Instant resolution - consequences already applied, refresh location
-                await RefreshLocationData();
-                await OnActionExecuted.InvokeAsync();
-                StateHasChanged();
-            }
-            else if (result.ResultType == SituationResultType.LaunchChallenge)
-            {
-                // TACTICAL LAYER: Route to appropriate challenge facade
-                // Strategic costs already consumed (Resolve, Time, Coins)
-                // Challenge facade will consume tactical costs (Focus/Stamina)
-                if (result.ChallengeType == TacticalSystemType.Social)
-                {
-                    await GameScreen.StartConversationSession(result.ChallengeTargetId, result.ChallengeSituationId);
-                }
-                else if (result.ChallengeType == TacticalSystemType.Mental)
-                {
-                    Player player = GameWorld.GetPlayer();
-                    await GameScreen.StartMentalSession(result.ChallengeDeckId, result.ChallengeTargetId, result.ChallengeSituationId, situation.Obligation?.Id);
-                }
-                else if (result.ChallengeType == TacticalSystemType.Physical)
-                {
-                    Player player = GameWorld.GetPlayer();
-                    await GameScreen.StartPhysicalSession(result.ChallengeDeckId, result.ChallengeTargetId, result.ChallengeSituationId, situation.Obligation?.Id);
-                }
-            }
-            else if (result.ResultType == SituationResultType.Navigation)
-            {
-                // Navigation - move player and optionally trigger scene at destination
-                bool success = await GameFacade.MoveToSpot(result.NavigationDestinationId);
-                if (success)
-                {
-                    ResetNavigation();
-                    await RefreshLocationData();
-                    await OnActionExecuted.InvokeAsync();
-                    StateHasChanged();
-                }
-            }
+                LocationActionType.Rest => new RestAtLocationIntent(),
+                LocationActionType.SecureRoom => new SecureRoomIntent(),
+                LocationActionType.Work => new WorkIntent(),
+                LocationActionType.Investigate => new InvestigateLocationIntent(),
+                LocationActionType.Travel => new OpenTravelScreenIntent(),
+                LocationActionType.IntraVenueMove => CreateIntraVenueMoveIntent(action),
+                LocationActionType.ViewJobBoard => new ViewJobBoardIntent(),
+                LocationActionType.CompleteDelivery => new CompleteDeliveryIntent(),
+                _ => null
+            };
         }
 
-        protected async Task MoveToSpot(string spotId)
+        if (intent == null)
         {
-            bool success = await GameFacade.MoveToSpot(spotId);
+            throw new InvalidOperationException($"No intent mapping for action type: {action.ActionType}");
+        }
 
-            if (success)
+        // Execute via intent system - backend decides everything
+        IntentResult result = await GameFacade.ProcessIntent(intent);
+
+        // Interpret result without making decisions - just follow backend instructions
+        if (result.Success)
+        {
+            // Screen-level navigation (GameScreen handles)
+            if (result.NavigateToScreen.HasValue)
             {
-                ResetNavigation();
+                await GameScreen.NavigateToScreen(result.NavigateToScreen.Value);
+            }
+
+            // View-level navigation (LocationContent handles)
+            if (result.NavigateToView.HasValue)
+            {
+                NavigateToView(result.NavigateToView.Value);
+            }
+
+            // Refresh if backend says to refresh
+            if (result.RequiresLocationRefresh)
+            {
                 await RefreshLocationData();
                 await OnActionExecuted.InvokeAsync();
 
-                // MODAL SCENE FORCING: Check if movement triggered a forced modal scene
-                // GameFacade sets PendingForcedSceneId after successful movement
+                // MODAL SCENE FORCING: Check if action triggered a forced modal scene
+                // GameFacade sets PendingForcedSceneId after successful movement actions
                 // If found, navigate to forced scene immediately (Sir Brante forced moment pattern)
                 if (!string.IsNullOrEmpty(GameWorld.PendingForcedSceneId))
                 {
@@ -229,220 +152,297 @@ using Microsoft.AspNetCore.Components;
                 }
             }
         }
+    }
 
-        protected async Task HandleInventoryChanged()
+    protected async Task HandleCommitToSituation(Situation situation)
+    {
+        // STRATEGIC LAYER: Validate requirements, consume Resolve/Time/Coins, route to appropriate subsystem
+        SituationSelectionResult result = GameFacade.GetSituationFacade().SelectAndExecuteSituation(situation.Id);
+
+        if (!result.Success)
         {
+            // Failed validation or resource check - show error
+            return;
+        }
+
+        // Handle result based on type
+        if (result.ResultType == SituationResultType.InstantResolution)
+        {
+            // Instant resolution - consequences already applied, refresh location
             await RefreshLocationData();
             await OnActionExecuted.InvokeAsync();
             StateHasChanged();
         }
-
-        // ============================================
-        // VISUAL NOVEL NAVIGATION
-        // ============================================
-
-        protected void NavigateToView(LocationViewState newView, object context = null)
+        else if (result.ResultType == SituationResultType.LaunchChallenge)
         {
-            NavigationStack.Push(ViewState);
-            ViewState = newView;
-
-            if (newView == LocationViewState.SituationDetail && context is Situation situation)
+            // TACTICAL LAYER: Route to appropriate challenge facade
+            // Strategic costs already consumed (Resolve, Time, Coins)
+            // Challenge facade will consume tactical costs (Focus/Stamina)
+            if (result.ChallengeType == TacticalSystemType.Social)
             {
-                SelectedSituation = situation;
+                await GameScreen.StartConversationSession(result.ChallengeTargetId, result.ChallengeSituationId);
             }
-
-            StateHasChanged();
+            else if (result.ChallengeType == TacticalSystemType.Mental)
+            {
+                Player player = GameWorld.GetPlayer();
+                await GameScreen.StartMentalSession(result.ChallengeDeckId, result.ChallengeTargetId, result.ChallengeSituationId, situation.Obligation?.Id);
+            }
+            else if (result.ChallengeType == TacticalSystemType.Physical)
+            {
+                Player player = GameWorld.GetPlayer();
+                await GameScreen.StartPhysicalSession(result.ChallengeDeckId, result.ChallengeTargetId, result.ChallengeSituationId, situation.Obligation?.Id);
+            }
         }
-
-        protected void NavigateBack()
+        else if (result.ResultType == SituationResultType.Navigation)
         {
-            if (NavigationStack.Count > 0)
-            {
-                LocationViewState previousView = NavigationStack.Pop();
-                ViewState = previousView;
-
-                if (ViewState != LocationViewState.SituationDetail)
-                {
-                    SelectedSituation = null;
-                }
-
-                StateHasChanged();
-            }
-            else
+            // Navigation - move player and optionally trigger scene at destination
+            bool success = await GameFacade.MoveToSpot(result.NavigationDestinationId);
+            if (success)
             {
                 ResetNavigation();
+                await RefreshLocationData();
+                await OnActionExecuted.InvokeAsync();
+                StateHasChanged();
             }
         }
+    }
 
-        protected void ResetNavigation()
+    protected async Task MoveToSpot(string spotId)
+    {
+        bool success = await GameFacade.MoveToSpot(spotId);
+
+        if (success)
         {
-            ViewState = LocationViewState.Landing;
-            NavigationStack.Clear();
-            SelectedSituation = null;
+            ResetNavigation();
+            await RefreshLocationData();
+            await OnActionExecuted.InvokeAsync();
+
+            // MODAL SCENE FORCING: Check if movement triggered a forced modal scene
+            // GameFacade sets PendingForcedSceneId after successful movement
+            // If found, navigate to forced scene immediately (Sir Brante forced moment pattern)
+            if (!string.IsNullOrEmpty(GameWorld.PendingForcedSceneId))
+            {
+                string forcedSceneId = GameWorld.PendingForcedSceneId;
+                GameWorld.PendingForcedSceneId = null; // Clear pending flag
+
+                await GameScreen.StartScene(forcedSceneId);
+            }
+        }
+    }
+
+    protected async Task HandleInventoryChanged()
+    {
+        await RefreshLocationData();
+        await OnActionExecuted.InvokeAsync();
+        StateHasChanged();
+    }
+
+    // ============================================
+    // VISUAL NOVEL NAVIGATION
+    // ============================================
+
+    protected void NavigateToView(LocationViewState newView, object context = null)
+    {
+        NavigationStack.Push(ViewState);
+        ViewState = newView;
+
+        if (newView == LocationViewState.SituationDetail && context is Situation situation)
+        {
+            SelectedSituation = situation;
+        }
+
+        StateHasChanged();
+    }
+
+    protected void NavigateBack()
+    {
+        if (NavigationStack.Count > 0)
+        {
+            LocationViewState previousView = NavigationStack.Pop();
+            ViewState = previousView;
+
+            if (ViewState != LocationViewState.SituationDetail)
+            {
+                SelectedSituation = null;
+            }
+
             StateHasChanged();
         }
-
-        // ============================================
-        // EVENT HANDLERS - simple wrappers
-        // ============================================
-
-        protected void HandleNavigateToView(LocationViewState newView)
+        else
         {
-            NavigateToView(newView);
+            ResetNavigation();
+        }
+    }
+
+    protected void ResetNavigation()
+    {
+        ViewState = LocationViewState.Landing;
+        NavigationStack.Clear();
+        SelectedSituation = null;
+        StateHasChanged();
+    }
+
+    // ============================================
+    // EVENT HANDLERS - simple wrappers
+    // ============================================
+
+    protected void HandleNavigateToView(LocationViewState newView)
+    {
+        NavigateToView(newView);
+    }
+
+    protected async Task HandleExecuteLocationAction(LocationActionViewModel action)
+    {
+        await ExecuteLocationAction(action);
+    }
+
+    protected void HandleNavigateToSituation(string situationId)
+    {
+        Situation situation = GameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
+        if (situation != null)
+        {
+            NavigateToView(LocationViewState.SituationDetail, situation);
+        }
+    }
+
+    protected async Task HandleMoveToSpot(string spotId)
+    {
+        await MoveToSpot(spotId);
+    }
+
+    protected async Task HandleStartExchange(string npcId)
+    {
+        await GameScreen.StartExchange(npcId);
+    }
+
+    protected async Task HandleTalkToNPC(string npcId, Scene scene)
+    {
+        await GameScreen.StartNPCEngagement(npcId, scene);
+    }
+
+    protected async Task HandleAcceptJob(string jobId)
+    {
+        // Execute through intent system - backend handles validation
+        IntentResult result = await GameFacade.ProcessIntent(new AcceptDeliveryJobIntent(jobId));
+
+        if (result.Success)
+        {
+            // Job accepted - close modal and refresh
+            NavigateBack();
+            await RefreshLocationData();
+            await OnActionExecuted.InvokeAsync();
+        }
+    }
+
+    // ============================================
+    // VIEWMODEL PREPARATION - trivial wrappers
+    // ============================================
+
+    protected SituationDetailViewModel GetSituationDetailViewModel()
+    {
+        if (SelectedSituation == null) return null;
+
+        // Find the situation in view model to get pre-calculated difficulty
+        // NOTE: Social situations from NPCs removed - they appear in Scene view after engagement
+        SituationCardViewModel situationCard = null;
+
+        // Search in Mental situations (ambient + scenes)
+        if (situationCard == null)
+        {
+            situationCard = ViewModel.AmbientMentalSituations.FirstOrDefault(g => g.Id == SelectedSituation.Id);
         }
 
-        protected async Task HandleExecuteLocationAction(LocationActionViewModel action)
+        if (situationCard == null)
         {
-            await ExecuteLocationAction(action);
+            situationCard = ViewModel.MentalScenes
+                .SelectMany(scene => scene.Situations)
+                .FirstOrDefault(g => g.Id == SelectedSituation.Id);
         }
 
-        protected void HandleNavigateToSituation(string situationId)
+        // Search in Physical situations (ambient + scenes)
+        if (situationCard == null)
         {
-            Situation situation = GameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
-            if (situation != null)
+            situationCard = ViewModel.AmbientPhysicalSituations.FirstOrDefault(g => g.Id == SelectedSituation.Id);
+        }
+
+        if (situationCard == null)
+        {
+            situationCard = ViewModel.PhysicalScenes
+                .SelectMany(scene => scene.Situations)
+                .FirstOrDefault(g => g.Id == SelectedSituation.Id);
+        }
+
+        int difficulty = situationCard?.Difficulty ?? 0;
+
+        return new SituationDetailViewModel
+        {
+            Situation = SelectedSituation,
+            Name = SelectedSituation.Name,
+            Description = SelectedSituation.Description,
+            SystemType = SelectedSituation.SystemType,
+            SystemTypeLowercase = SelectedSituation.SystemType.ToString().ToLower(),
+            Difficulty = difficulty.ToString(),
+            HasCosts = SelectedSituation.Costs.Focus > 0 || SelectedSituation.Costs.Stamina > 0,
+            FocusCost = SelectedSituation.Costs.Focus,
+            StaminaCost = SelectedSituation.Costs.Stamina
+        };
+    }
+
+    // ============================================
+    // SCREEN EXPANSION HANDLERS
+    // ============================================
+
+    protected async Task HandleStartConversationTree(string treeId)
+    {
+        await GameScreen.StartConversationTree(treeId);
+    }
+
+    protected async Task HandleStartObservationScene(string sceneId)
+    {
+        await GameScreen.StartObservationScene(sceneId);
+    }
+
+    // ============================================
+    // SCENE-SITUATION ARCHITECTURE: NPCAction Execution
+    // ============================================
+
+    protected async Task HandleExecuteNPCAction(ActionCardViewModel action)
+    {
+        // Execute NPCAction through GameFacade (unified action architecture)
+        IntentResult result = await GameFacade.ExecuteNPCAction(action.SituationId, action.Id);
+
+        if (result.Success)
+        {
+            // Screen-level navigation (GameScreen handles)
+            if (result.NavigateToScreen.HasValue)
             {
-                NavigateToView(LocationViewState.SituationDetail, situation);
+                await GameScreen.NavigateToScreen(result.NavigateToScreen.Value);
             }
-        }
 
-        protected async Task HandleMoveToSpot(string spotId)
-        {
-            await MoveToSpot(spotId);
-        }
-
-        protected async Task HandleStartExchange(string npcId)
-        {
-            await GameScreen.StartExchange(npcId);
-        }
-
-        protected async Task HandleTalkToNPC(string npcId, Scene scene)
-        {
-            await GameScreen.StartNPCEngagement(npcId, scene);
-        }
-
-        protected async Task HandleAcceptJob(string jobId)
-        {
-            // Execute through intent system - backend handles validation
-            IntentResult result = await GameFacade.ProcessIntent(new AcceptDeliveryJobIntent(jobId));
-
-            if (result.Success)
+            // View-level navigation (LocationContent handles)
+            if (result.NavigateToView.HasValue)
             {
-                // Job accepted - close modal and refresh
-                NavigateBack();
+                NavigateToView(result.NavigateToView.Value);
+            }
+
+            // Refresh if backend says to refresh
+            if (result.RequiresLocationRefresh)
+            {
                 await RefreshLocationData();
                 await OnActionExecuted.InvokeAsync();
             }
         }
-
-        // ============================================
-        // VIEWMODEL PREPARATION - trivial wrappers
-        // ============================================
-
-        protected SituationDetailViewModel GetSituationDetailViewModel()
-        {
-            if (SelectedSituation == null) return null;
-
-            // Find the situation in view model to get pre-calculated difficulty
-            // NOTE: Social situations from NPCs removed - they appear in Scene view after engagement
-            SituationCardViewModel situationCard = null;
-
-            // Search in Mental situations (ambient + scenes)
-            if (situationCard == null)
-            {
-                situationCard = ViewModel.AmbientMentalSituations.FirstOrDefault(g => g.Id == SelectedSituation.Id);
-            }
-
-            if (situationCard == null)
-            {
-                situationCard = ViewModel.MentalScenes
-                    .SelectMany(scene => scene.Situations)
-                    .FirstOrDefault(g => g.Id == SelectedSituation.Id);
-            }
-
-            // Search in Physical situations (ambient + scenes)
-            if (situationCard == null)
-            {
-                situationCard = ViewModel.AmbientPhysicalSituations.FirstOrDefault(g => g.Id == SelectedSituation.Id);
-            }
-
-            if (situationCard == null)
-            {
-                situationCard = ViewModel.PhysicalScenes
-                    .SelectMany(scene => scene.Situations)
-                    .FirstOrDefault(g => g.Id == SelectedSituation.Id);
-            }
-
-            int difficulty = situationCard?.Difficulty ?? 0;
-
-            return new SituationDetailViewModel
-            {
-                Situation = SelectedSituation,
-                Name = SelectedSituation.Name,
-                Description = SelectedSituation.Description,
-                SystemType = SelectedSituation.SystemType,
-                SystemTypeLowercase = SelectedSituation.SystemType.ToString().ToLower(),
-                Difficulty = difficulty.ToString(),
-                HasCosts = SelectedSituation.Costs.Focus > 0 || SelectedSituation.Costs.Stamina > 0,
-                FocusCost = SelectedSituation.Costs.Focus,
-                StaminaCost = SelectedSituation.Costs.Stamina
-            };
-        }
-
-        // ============================================
-        // SCREEN EXPANSION HANDLERS
-        // ============================================
-
-        protected async Task HandleStartConversationTree(string treeId)
-        {
-            await GameScreen.StartConversationTree(treeId);
-        }
-
-        protected async Task HandleStartObservationScene(string sceneId)
-        {
-            await GameScreen.StartObservationScene(sceneId);
-        }
-
-        // ============================================
-        // SCENE-SITUATION ARCHITECTURE: NPCAction Execution
-        // ============================================
-
-        protected async Task HandleExecuteNPCAction(ActionCardViewModel action)
-        {
-            // Execute NPCAction through GameFacade (unified action architecture)
-            IntentResult result = await GameFacade.ExecuteNPCAction(action.SituationId, action.Id);
-
-            if (result.Success)
-            {
-                // Screen-level navigation (GameScreen handles)
-                if (result.NavigateToScreen.HasValue)
-                {
-                    await GameScreen.NavigateToScreen(result.NavigateToScreen.Value);
-                }
-
-                // View-level navigation (LocationContent handles)
-                if (result.NavigateToView.HasValue)
-                {
-                    NavigateToView(result.NavigateToView.Value);
-                }
-
-                // Refresh if backend says to refresh
-                if (result.RequiresLocationRefresh)
-                {
-                    await RefreshLocationData();
-                    await OnActionExecuted.InvokeAsync();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Create MoveIntent from intra-venue movement action
-        /// Uses strongly-typed DestinationLocationId property (no ID parsing)
-        /// </summary>
-        private MoveIntent CreateIntraVenueMoveIntent(LocationActionViewModel action)
-        {
-            if (string.IsNullOrEmpty(action.DestinationLocationId))
-                throw new InvalidOperationException("IntraVenueMove action missing DestinationLocationId property");
-
-            return new MoveIntent(action.DestinationLocationId);
-        }
     }
+
+    /// <summary>
+    /// Create MoveIntent from intra-venue movement action
+    /// Uses strongly-typed DestinationLocationId property (no ID parsing)
+    /// </summary>
+    private MoveIntent CreateIntraVenueMoveIntent(LocationActionViewModel action)
+    {
+        if (string.IsNullOrEmpty(action.DestinationLocationId))
+            throw new InvalidOperationException("IntraVenueMove action missing DestinationLocationId property");
+
+        return new MoveIntent(action.DestinationLocationId);
+    }
+}
