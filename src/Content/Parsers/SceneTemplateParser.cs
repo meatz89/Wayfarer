@@ -162,9 +162,6 @@ public class SceneTemplateParser
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = placementType,
-            // Concrete binding (tutorial pattern)
-            NpcId = dto.NpcId,
-            LocationId = dto.LocationId,
             // NPC filters
             PersonalityTypes = ParsePersonalityTypes(dto.PersonalityTypes, sceneTemplateId),
             MinBond = dto.MinBond,

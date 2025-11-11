@@ -1238,12 +1238,12 @@ public static class AStorySceneArchetypeCatalog
             ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
 
             // Add next A-scene spawn reward
-            reward.SceneSpawns = new List<SceneSpawnReward>
+            reward.ScenesToSpawn = new List<SceneSpawnReward>
         {
             new SceneSpawnReward
             {
                 SceneTemplateId = nextASceneId,
-                IsProvisional = false
+                PlacementRelation = PlacementRelation.SameLocation
             }
         };
 
@@ -1261,7 +1261,8 @@ public static class AStorySceneArchetypeCatalog
         }
 
         // Replace final situation's choices with enriched versions
-        finalSituation.ChoiceTemplates = enrichedChoices;
+        finalSituation.ChoiceTemplates.Clear();
+        finalSituation.ChoiceTemplates.AddRange(enrichedChoices);
 
         Console.WriteLine($"[AStoryArchetype] Enriched final situation '{finalSituation.Id}' - ALL {enrichedChoices.Count} choices spawn next A-scene '{nextASceneId}'");
     }

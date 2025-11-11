@@ -95,7 +95,7 @@ public class SpawnedScenePlayabilityValidator
                 $"- PlacementType: {scene.PlacementType}\n" +
                 $"- PlacementId: {scene.PlacementId}\n" +
                 $"- State: {scene.State}\n" +
-                $"- CurrentSituationId: {scene.CurrentSituationId}\n" +
+                $"- CurrentSituationId: {scene.CurrentSituation?.Id}\n" +
                 $"- Situations Count: {scene.Situations.Count}\n" +
                 $"This scene spawned successfully but is UNPLAYABLE. Player will be SOFT LOCKED."
             );

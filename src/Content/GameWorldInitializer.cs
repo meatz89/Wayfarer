@@ -55,9 +55,16 @@ public static class GameWorldInitializer
         HexRouteGenerator hexRouteGenerator = new HexRouteGenerator(gameWorld);
 
         SceneInstantiator instantiator = new SceneInstantiator(gameWorld, spawnConditionsEvaluator, narrativeService, markerResolutionService);
+        ContentGenerationFacade contentGenerationFacade = new ContentGenerationFacade();
+        PackageLoaderFacade packageLoaderFacade = new PackageLoaderFacade(packageLoader);
+        MessageSystem messageSystem = new MessageSystem(gameWorld);
+        TimeModel timeModel = new TimeModel(gameWorld.CurrentDay);
+        timeModel.SetInitialState(gameWorld.CurrentDay, gameWorld.CurrentTimeBlock, 1);
+        TimeManager timeManager = new TimeManager(timeModel, messageSystem);
+        SpawnedScenePlayabilityValidator playabilityValidator = new SpawnedScenePlayabilityValidator(gameWorld);
 
         SceneInstanceFacade sceneInstanceFacade =
-            new SceneInstanceFacade(instantiator, gameWorld);
+            new SceneInstanceFacade(instantiator, contentGenerationFacade, packageLoaderFacade, hexRouteGenerator, timeManager, gameWorld, playabilityValidator);
 
         // Find all starter templates (for verification logging)
         List<SceneTemplate> starterTemplates = gameWorld.SceneTemplates.Where(t => t.IsStarter).ToList();

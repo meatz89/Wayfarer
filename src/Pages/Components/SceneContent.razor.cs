@@ -453,10 +453,11 @@ using Microsoft.AspNetCore.Components;
                 // Store challenge context for resumption
                 if (choiceTemplate.ChallengeType == TacticalSystemType.Social)
                 {
+                    NPC npc = GameWorld.NPCs.FirstOrDefault(n => n.ID == Scene.PlacementId);
                     GameWorld.CurrentSocialSession = new SocialSession
                     {
                         RequestId = CurrentSituation.Id,
-                        NpcId = Scene.PlacementId // Assumes scene placed on NPC
+                        NPC = npc // Assumes scene placed on NPC
                     };
                     GameWorld.PendingSocialContext = new SocialChallengeContext
                     {

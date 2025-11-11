@@ -366,7 +366,7 @@ public class PhysicalFacade
         // Check for obligation progress if this was an obligation situation
         if (success && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalSituationId) && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalObligationId))
         {
-            CheckObligationProgress(_gameWorld.CurrentPhysicalSituationId, _gameWorld.CurrentPhysicalObligationId);
+            await CheckObligationProgress(_gameWorld.CurrentPhysicalSituationId, _gameWorld.CurrentPhysicalObligationId);
         }
 
         // Award Reputation on success (Reputation system)
@@ -480,7 +480,7 @@ public class PhysicalFacade
     /// <summary>
     /// Check for obligation progress when Physical situation completes
     /// </summary>
-    private void CheckObligationProgress(string situationId, string obligationId)
+    private async Task CheckObligationProgress(string situationId, string obligationId)
     {
         // KEEP - obligationId is external input from session
         // Check if this is an intro action (Discovered → Active transition)
@@ -494,7 +494,7 @@ public class PhysicalFacade
         }
 
         // Regular situation completion
-        ObligationProgressResult progressResult = _obligationActivity.CompleteSituation(situationId, obligationId);
+        ObligationProgressResult progressResult = await _obligationActivity.CompleteSituation(situationId, obligationId);
 
         // Log progress for UI modal display (UI will handle modal)
 

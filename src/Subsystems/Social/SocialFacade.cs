@@ -1150,7 +1150,7 @@ public class SocialFacade
     /// RPG PATTERN: Intro actions are NOT situations - they're quest acceptance buttons
     /// This method ONLY checks for phase situations in ACTIVE obligations
     /// </summary>
-    private void CheckObligationProgress(string npcId, string requestId)
+    private async Task CheckObligationProgress(string npcId, string requestId)
     {
         // SCORCHED EARTH: Removed intro action check - intro is NOT a situation, it's a button
         // Intro action completion happens via GameFacade.CompleteObligationIntro(), not through conversations
@@ -1169,7 +1169,7 @@ public class SocialFacade
             if (matchingPhase != null)
             {
                 // This request is part of an obligation - mark situation as complete
-                ObligationProgressResult progressResult = _obligationActivity.CompleteSituation(matchingPhase.Id, obligation.Id);
+                ObligationProgressResult progressResult = await _obligationActivity.CompleteSituation(matchingPhase.Id, obligation.Id);
 
                 // Log progress for UI modal display (UI will handle modal)
                 Console.WriteLine($"[ConversationFacade] Obligation '{obligation.Name}' progress: {progressResult.CompletedSituationCount}/{progressResult.TotalSituationCount} situations complete");

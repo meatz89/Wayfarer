@@ -1216,7 +1216,7 @@ public static class SituationArchetypeCatalog
                 new StateApplication
                 {
                     StateType = StateType.Inspired,
-                    Operation = StateOperation.Apply,
+                    Apply = true,
                     DurationSegments = 4
                 }
             }
@@ -1268,7 +1268,7 @@ public static class SituationArchetypeCatalog
                 new StateApplication
                 {
                     StateType = buffType,
-                    Operation = StateOperation.Apply,
+                    Apply = true,
                     DurationSegments = 4
                 }
             }

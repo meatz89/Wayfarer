@@ -21,4 +21,11 @@ public class StateApplication
     /// Example: "Exhausting work leaves you Tired"
     /// </summary>
     public string Reason { get; set; }
+
+    /// <summary>
+    /// Duration in segments before state auto-clears
+    /// null = use default duration (48 segments = 3 days) or manual clear only
+    /// Used when creating ActiveState from this application
+    /// </summary>
+    public int? DurationSegments { get; set; }
 }

@@ -128,8 +128,7 @@ public class ConsequenceFacade
                         AppliedDay = _timeFacade.GetCurrentDay(),
                         AppliedTimeBlock = _timeFacade.GetCurrentTimeBlock(),
                         AppliedSegment = _timeFacade.GetCurrentSegment(),
-                        // TODO: Set duration based on state type rules (some states manual clear only)
-                        DurationSegments = 48  // Default: 3 days (16 segments/day * 3)
+                        DurationSegments = application.DurationSegments ?? 48  // Use specified duration or default to 3 days
                     });
 
                     // TODO: Add narrative feedback about state gained
