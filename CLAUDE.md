@@ -1,11 +1,143 @@
+# MANDATORY DOCUMENTATION PROTOCOL (RULE #1)
+
+## THE ABSOLUTE RULE: READ BEFORE ACTING
+
+**BEFORE EVERY REQUEST, ANSWER, PLAN, OR IMPLEMENTATION:**
+
+You MUST achieve 100% CERTAINTY about ALL concepts necessary to accomplish the goal. If there is even the SLIGHTEST SLIVER OF DOUBT or ASSUMPTION about any concept, term, architecture, design pattern, game mechanic, entity relationship, or system interaction, you MUST IMMEDIATELY STOP and READ THE APPROPRIATE DOCUMENTATION.
+
+**This is NOT optional. This is NOT negotiable. This is MANDATORY.**
+
+## TWO DOCUMENTATION SYSTEMS (BOTH REQUIRED)
+
+Wayfarer has TWO comprehensive documentation systems that TOGETHER form the complete picture. Reading only one gives you HALF the puzzle. You MUST understand BOTH systems in UNISON for holistic understanding.
+
+### Arc42 Technical Architecture Documentation (Root Directory)
+
+**Location:** `/home/user/Wayfarer/*.md` (12 sections, ~7,200 lines)
+
+**What it contains (HOW the system is built):**
+- 01_introduction_and_goals.md - System overview, stakeholder concerns, quality goals
+- 02_architecture_constraints.md - Technical constraints (.NET, Blazor WASM)
+- 03_context_and_scope.md - System boundaries, external interfaces
+- 04_solution_strategy.md - High-level technical approach
+- 05_building_block_view.md - Component structure (GameWorld, Facades, Parsers, UI)
+- 06_runtime_view.md - Execution scenarios (game start, turn loop, travel)
+- 07_deployment_view.md - Infrastructure and deployment
+- 08_crosscutting_concepts.md - Technical patterns (HIGHLANDER, Catalogue Pattern, Entity Initialization)
+- 09_architecture_decisions.md - ADRs (why technical choices were made)
+- 10_quality_requirements.md - Performance, maintainability, testability
+- 11_risks_and_technical_debt.md - Known issues and evolution
+- 12_glossary.md - Technical terms (Entity, Facade, Parser, ViewModel)
+
+**Use arc42 for:** Understanding code structure, technical patterns, implementation details, how components interact, why technical decisions were made, where to find specific code, how to implement features correctly.
+
+### Game Design Documentation (design/ Directory)
+
+**Location:** `/home/user/Wayfarer/design/*.md` (12 sections, ~11,765 lines)
+
+**What it contains (WHAT the game is and WHY design decisions create strategic depth):**
+- 01_design_vision.md - Core philosophy, player fantasy, emotional aesthetic goals
+- 02_core_gameplay_loops.md - Three-tier loop hierarchy (SHORT/MEDIUM/LONG)
+- 03_progression_systems.md - Five-stat system, specialization, builds
+- 04_challenge_mechanics.md - Mental/Physical/Social tactical systems
+- 05_resource_economy.md - Impossible choices, tight margins, orthogonal costs
+- 06_narrative_design.md - Frieren Principle (infinite A-story), two-phase design
+- 07_content_generation.md - 21 archetypes, categorical scaling, AI pipeline
+- 08_balance_philosophy.md - Four-choice pattern, sweet spots, difficulty scaling
+- 09_design_patterns.md - Content patterns, anti-patterns (boolean gates, etc.)
+- 10_tutorial_design.md - A1-A10 objectives, layered complexity introduction
+- 11_design_decisions.md - Design DDRs (why game design choices were made)
+- 12_design_glossary.md - Game design terms (67 canonical terms)
+
+**Use design docs for:** Understanding player experience, design intent, game mechanics, why systems create strategic depth, what makes choices meaningful, how progression works, what archetypes exist, how balance works, what terms mean in game design context.
+
+## HOLISTIC UNDERSTANDING REQUIREMENT
+
+**CRITICAL:** Arc42 tells you HOW it's built. Design docs tell you WHAT it should be and WHY. You need BOTH to understand the complete picture.
+
+**Example violations (FORBIDDEN):**
+- ❌ Reading arc42 only → You know code structure but not design intent (implements wrong behavior)
+- ❌ Reading design docs only → You know intent but not implementation patterns (writes bad code)
+- ❌ Reading neither → You're guessing (ABSOLUTELY FORBIDDEN)
+
+**Correct approach:**
+- ✅ Read design docs to understand WHAT and WHY
+- ✅ Read arc42 to understand HOW and WHERE
+- ✅ Cross-reference between both using provided links
+- ✅ Verify understanding by tracing concepts through BOTH doc sets
+
+## WHEN YOU MUST READ DOCUMENTATION
+
+**Read design docs when:**
+- User mentions ANY game mechanic, entity, or system (Scenes, Situations, Challenges, Stats, Resources, Archetypes, Obligations, Routes, etc.)
+- Planning content changes (new Situations, NPCs, Locations, Scenes)
+- Balancing numbers (costs, rewards, thresholds, difficulty)
+- Understanding player experience or progression
+- Uncertain about design terminology
+- Implementing game logic that affects player choices
+
+**Read arc42 when:**
+- Implementing or modifying code
+- Understanding component relationships (GameWorld, Facades, Services)
+- Finding where specific functionality lives
+- Understanding technical patterns (HIGHLANDER, Catalogue Pattern)
+- Modifying parsers, entities, or UI components
+- Uncertain about architectural patterns
+- Refactoring existing code
+
+**Read BOTH when:**
+- Starting ANY new task (always start with holistic understanding)
+- Implementing new features (understand design intent AND technical approach)
+- Debugging issues (understand what SHOULD happen AND how it's implemented)
+- Answering user questions (provide complete context)
+- Making architectural decisions (ensure alignment with design philosophy)
+- Creating plans (verify both design correctness AND technical feasibility)
+
+## 100% CERTAINTY REQUIREMENT (NO ASSUMPTIONS)
+
+**If you are NOT 100% CERTAIN about:**
+- What a term means → Read 12_design_glossary.md and/or arc42/12_glossary.md
+- How a game mechanic works → Read appropriate design/*.md section
+- Where code lives → Read arc42/05_building_block_view.md
+- Why a design decision was made → Read design/11_design_decisions.md and/or arc42/09_architecture_decisions.md
+- How systems interact → Read arc42/06_runtime_view.md and design/02_core_gameplay_loops.md
+- What an entity contains → Read arc42/12_glossary.md and search codebase
+- How archetype works → Read design/07_content_generation.md
+- What player experiences → Read design/01_design_vision.md and design/02_core_gameplay_loops.md
+
+**FORBIDDEN FOREVER:**
+- ❌ "I think this might be how it works" → NO. READ THE DOCS.
+- ❌ "Based on similar systems..." → NO. VERIFY IN DOCS.
+- ❌ "This seems like it should..." → NO. CHECK THE DOCS.
+- ❌ "Probably this entity has..." → NO. SEARCH AND READ.
+
+**You are NOT allowed to assume. You are NOT allowed to guess. You MUST KNOW.**
+
+## READING PROTOCOL
+
+**Step 1:** User makes request
+**Step 2:** Identify ALL concepts, terms, entities, systems mentioned
+**Step 3:** For EACH concept, ask yourself: "Am I 100% certain I understand this?"
+**Step 4:** If answer is ANYTHING except "YES" → READ DOCUMENTATION
+**Step 5:** Start with design/*.md for game concepts, arc42/*.md for technical concepts
+**Step 6:** Cross-reference between both doc sets using provided links
+**Step 7:** Search codebase to verify current implementation matches understanding
+**Step 8:** ONLY THEN create plan or implement solution
+
+**This protocol is NOT negotiable. Follow it for EVERY task, no matter how small.**
+
+---
+
 # CRITICAL INVESTIGATION PROTOCOL
 
 **BEFORE ANY WORK:**
-1. Search codebase exhaustively (Glob/Grep for ALL references)
-2. Read COMPLETE files (no partial reads unless truly massive)
-3. Understand architecture (GameWorld, screens, CSS, domain entities, services, data flow)
-4. Verify ALL assumptions (search before claiming exists/doesn't exist)
-5. Map dependencies (what breaks if I change this?)
+1. **READ DOCUMENTATION FIRST** (see MANDATORY DOCUMENTATION PROTOCOL above)
+2. Search codebase exhaustively (Glob/Grep for ALL references)
+3. Read COMPLETE files (no partial reads unless truly massive)
+4. Understand architecture (GameWorld, screens, CSS, domain entities, services, data flow)
+5. Verify ALL assumptions (search before claiming exists/doesn't exist)
+6. Map dependencies (what breaks if I change this?)
 
 **HOLISTIC DELETION (Parser-JSON-Entity Triangle):**
 When deleting/changing ANY property, update ALL FIVE layers:
