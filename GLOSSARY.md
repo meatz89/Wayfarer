@@ -305,6 +305,35 @@ This document provides canonical definitions for all specialized terms used acro
 
 ---
 
+## GAME DESIGN PRINCIPLES
+
+### Soft-Lock
+**Definition:** A game state where forward progress becomes impossible due to design flaws, forcing the player to restart.
+**Examples:** Required item consumed in wrong context, NPC killed before completing their quest, progression gate unreachable.
+**Wayfarer Policy:** Soft-locks are FORBIDDEN. Every game state must have forward progress path. Design principle: "No Soft-Locks" is Tier 1 (Non-Negotiable). See DESIGN_PHILOSOPHY.md.
+**Prevention Mechanisms:** Required items cannot be consumed, NPCs cannot die permanently, all scenes have fallback choices, resource deadlocks prevented by design.
+
+### Verisimilitude
+**Definition:** The quality of seeming real or truthful in a fictional context. In game design, verisimilitude means mechanical systems align with fiction.
+**Examples:**
+- **Good Verisimilitude:** Investigations spawn Obstacles (natural flow: investigation uncovers problems).
+- **Poor Verisimilitude:** Locations own Goals (backwards: locations don't generate objectives).
+**Wayfarer Principle:** "Verisimilitude in Entity Relationships" (Design Principle #8). Entity relationships must match conceptual model. Fiction supports mechanics, mechanics express fiction.
+**Test:** Does the relationship explanation feel backwards or confusing? If yes, verisimilitude violated.
+
+### Playability
+**Definition:** The quality of being actually playable, not just compilable. A game that compiles but has inaccessible content or broken progression is unplayable.
+**Wayfarer Principle:** "Playability Over Compilation" - Game that compiles but is unplayable is WORSE than crash. Before marking task complete, verify: (1) Can player REACH this from game start? (2) Are ALL actions VISIBLE and EXECUTABLE? (3) Forward progress from every state?
+**Enforcement:** Test in browser, verify EVERY link works, trace exact path from game start. Inaccessible content is worthless.
+
+### Perfect Information
+**Definition:** Game state where all costs, requirements, and rewards are visible to player BEFORE making decision.
+**Strategic Layer:** Perfect information required - player sees all available scenes, situations, choices, costs, requirements, rewards before selecting.
+**Tactical Layer:** Hidden complexity allowed - specific cards, draw order, challenge flow not visible before entry.
+**Why:** Enables strategic decision-making. Player can calculate whether to attempt challenge before entering. No "gotcha" moments where cost revealed after commitment.
+
+---
+
 ## IMPLEMENTATION STATUS MARKERS
 
 Use these markers when documenting features:
