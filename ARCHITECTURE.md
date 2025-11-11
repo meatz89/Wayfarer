@@ -2,7 +2,15 @@
 
 **CRITICAL: This document MUST be read and understood before making ANY changes to the Wayfarer codebase.**
 
-**For design philosophy and principles, see [DESIGN_PHILOSOPHY.md](DESIGN_PHILOSOPHY.md)**
+## Related Documentation
+
+- **[DESIGN_PHILOSOPHY.md](DESIGN_PHILOSOPHY.md)** - Design principles and conflict resolution
+- **[ARCHITECTURAL_PATTERNS.md](ARCHITECTURAL_PATTERNS.md)** - Reusable architectural patterns (HIGHLANDER, Catalogue, Three-Tier Timing)
+- **[CODING_STANDARDS.md](CODING_STANDARDS.md)** - Coding conventions and standards
+- **[GLOSSARY.md](GLOSSARY.md)** - Canonical term definitions
+- **[IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)** - Feature implementation status
+
+**Historical Note:** INTENDED_ARCHITECTURE.md was archived to HISTORICAL/ (2025-01) due to 70% content overlap with this document (HIGHLANDER violation). This document is the authoritative source for system architecture.
 
 ## TABLE OF CONTENTS
 

@@ -10,7 +10,7 @@
 
 Wayfarer is a single-player visual novel RPG where you play a courier managing scarce resources across a hex-based city. The core loop is **accepting delivery jobs → navigating route segments with choice-driven encounters → earning coins → spending on survival → repeat**. Resource pressure creates impossible choices. Optimization skill determines success. Visual novel scenes provide narrative content but gameplay comes first.
 
-**Note on Terminology**: This document uses "encounter" for route segment events to distinguish them from Scene.Situations (the strategic architecture entity). Route encounters are procedural travel events, not the Scene→Situation→Choice progression system.
+**📜 Note on Terminology**: This document uses "encounter" for route segment events. **GLOSSARY.md Clarification:** Route travel uses the same Scene→Situation→Choice architecture as location visits (see HEX_TRAVEL_SYSTEM.md). "Encounter" is legacy terminology; current architecture uses "Situation" universally (whether placed at Location, NPC, or Route). This document retained "encounter" for readability distinction, but mechanically they are Situations with PlacementType = Route.
 
 **Design Philosophy:** GAME first, story simulator second. Tight economy where delivery earnings barely cover survival costs. Every choice has clear resource trade-offs. No boolean gates, only graduated costs competing for shared scarce resources.
 

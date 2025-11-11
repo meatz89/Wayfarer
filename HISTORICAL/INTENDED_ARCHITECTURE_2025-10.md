@@ -1,7 +1,19 @@
 # Wayfarer: Intended Architecture - Complete Conceptual Model
 
-**Version:** 1.0 - Intended State  
-**Date:** 2025-10-28  
+**⚠️ ARCHIVED DOCUMENT - 2025-01 ⚠️**
+
+**Reason for Archiving:** This document had 70% content overlap with ARCHITECTURE.md, violating HIGHLANDER principle (one source of truth per topic). Archived to prevent documentation duplication and maintenance burden.
+
+**Current Documentation:** See ARCHITECTURE.md for authoritative system architecture.
+
+**Historical Context:** This was a conceptual design document from October 2025. Most content has been implemented and integrated into ARCHITECTURE.md. Kept for historical reference.
+
+---
+
+**Original Header:**
+
+**Version:** 1.0 - Intended State
+**Date:** 2025-10-28
 **Purpose:** High-level architectural specification for complete implementation
 
 ---

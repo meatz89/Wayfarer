@@ -6,6 +6,14 @@ Most developers, when designing progression systems, default to boolean gate pat
 
 **Target Audience:** Developers who think in terms of "requirements", "prerequisites", and "unlocks" - and need to learn a better way.
 
+**📜 HISTORICAL NOTE (2025-01):**
+This document was written during the Goal/Obstacle architecture era (pre-2025). Wayfarer has since migrated to Scene/Situation architecture. When reading this document:
+- **"Goal"** → Read as **"Scene"**
+- **"Obstacle"** → Read as **"Scene"** (multi-situation container)
+- **Core Principle Unchanged:** Entities spawn into world immediately, requirements filter visibility/selectability, not spawning.
+
+The principle remains architecturally sound. Only entity names have changed. For current implementation, see GLOSSARY.md and ARCHITECTURE.md.
+
 ---
 
 ## Part 1: The Problem - Boolean Gate Disease

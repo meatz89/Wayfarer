@@ -1,5 +1,17 @@
 # Complete Scene Template Data Flow: JSON → Parse → Runtime
 
+**Document Type:** Diagnostic Analysis (Point-in-Time)
+
+**Analysis Date:** 2025-01
+
+**Purpose:** Traces scene template data flow from JSON → Parser → Facade → Catalogue, identifies gaps in categorical property implementation.
+
+**Status:** Findings documented in [IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md) under "Categorical Property Translation" (status: 🚧 IN PROGRESS).
+
+**For Current Architecture:** See [ARCHITECTURE.md](ARCHITECTURE.md) and [PROCEDURAL_CONTENT_GENERATION.md](PROCEDURAL_CONTENT_GENERATION.md) for authoritative documentation.
+
+---
+
 ## Overview
 This document traces how scene templates flow from JSON through the parser, facade, catalogue, to runtime generation.
 

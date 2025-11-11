@@ -1,5 +1,16 @@
 # Multi-Scene NPC Interaction Architecture
 
+**Purpose:** Documents the architectural pattern for NPCs having multiple active scenes simultaneously.
+
+**Document Type:** Focused architectural pattern (implementation guidance).
+
+**Related Documentation:**
+- [ARCHITECTURE.md](ARCHITECTURE.md) - Overall system architecture
+- [SCENE_INSTANTIATION_ARCHITECTURE.md](SCENE_INSTANTIATION_ARCHITECTURE.md) - Scene lifecycle
+- [DESIGN_PHILOSOPHY.md](DESIGN_PHILOSOPHY.md) - Perfect Information principle
+
+---
+
 ## Core Concept
 
 A single NPC can have multiple independent active scenes simultaneously. Each scene represents a distinct narrative thread with its own lifecycle, situations, and completion state. Players must see ALL active scenes as separate interaction options.
