@@ -8,199 +8,125 @@ This section documents major architectural decisions (ADRs) that shape the Wayfa
 
 ## ADR-001: Infinite A-Story Without Resolution (Frieren Principle)
 
+> **For game design rationale and player experience philosophy**, see [design/11_design_decisions.md](design/11_design_decisions.md) DDR-001 (Infinite A-Story).
+
 ### Status
-**Accepted** - Core design principle
+**Accepted** - Core architectural pattern
 
 ### Context
 
-Traditional narrative games face a fundamental problem: How to end a story in a satisfying way while supporting post-ending gameplay. This creates:
-- Arbitrary ending points requiring narrative justification
-- Post-ending gameplay awkwardness ("you saved the world, now go collect flowers")
-- No replayability (same content, same ending)
-- Narrative closure pressure forcing rushed conclusions
+Traditional narrative games with fixed endings create technical challenges:
+- Content exhaustion (finite authored content eventually completed)
+- Post-ending system states (game continues but narrative complete)
+- Limited replayability (same content pipeline on replay)
+- Natural stopping points (players leave after completion)
 
-Additionally, live game evolution requires ongoing content, but traditional endings create natural stopping points where players leave.
+The system requires indefinite content generation supporting ongoing play without arbitrary endpoints.
 
 ### Decision
 
-**The game never ends.** The main storyline (A-story) is an **infinite procedurally-generated spine** that provides structure and progression without resolution.
+**Implement infinite procedurally-generated A-story** using two-phase content pipeline:
 
-**Two-Phase Design:**
+**Phase 1: Authored Foundation (A1-A10)**
+- Hand-crafted scenes loaded from JSON
+- Fixed sequence establishing system patterns
+- Triggers procedural generation when complete
 
-**Phase 1: Authored Tutorial (A1-A3, expandable to A10+)**
-- Hand-crafted scenes teaching mechanics
-- Fixed sequence establishing pursuit framework
-- 30-60 minutes (current) to 2-4 hours (expanded)
-- Triggers procedural transition when complete
-
-**Phase 2: Procedural Continuation (A4+ → ∞)**
-- Scene archetype selection from catalog (20-30 archetypes)
-- Entity resolution via categorical filters (no hardcoded IDs)
-- AI narrative generation connecting to player history
-- Escalating scope/tier over time (local → regional → continental → cosmic)
-- Never ends, never resolves, always deepens
-
-**Narrative Pattern:**
-> You travel. You arrive places. You meet people. Each place leads to another. Each person you meet suggests somewhere else worth visiting. The journey itself IS the point, not reaching anywhere specific.
+**Phase 2: Procedural Generation (A11+ → ∞)**
+- Scene generation via archetype catalog selection
+- Entity resolution using categorical filters (no hardcoded IDs)
+- AI narrative generation via Ollama integration
+- Escalating difficulty scaling over progression
+- Content validation ensures structural guarantees (no soft-locks)
 
 ### Consequences
 
-**Positive:**
-- **No Arbitrary Ending**: Eliminates hardest problem of narrative design
-- **Infinite Replayability**: Never same twice, always new content
-- **Player Agency**: Player chooses WHEN to pursue A-story, not IF
-- **Live Evolution**: Perfect for ongoing content additions
-- **Narrative Coherence**: Travel as eternal state matches wanderer fantasy
-- **No Post-Ending Awkwardness**: Game doesn't outlive its story
+**Technical Requirements:**
+- **Procedural Generation Pipeline**: Archetype catalog, entity resolution, validation framework
+- **Content Validation**: 100% of generated scenes must pass structural validation (zero-requirement fallback, forward progression)
+- **Scaling System**: Difficulty/rewards scale with player progression without ceiling
+- **AI Integration**: Ollama API for narrative text generation (optional enhancement)
+- **State Management**: Track progression tier, escalation level, generation history
 
-**Negative:**
-- **No Closure**: Some players want definitive endings
-- **Generation Quality**: Procedural content must maintain standards
-- **Validation Complexity**: Must guarantee forward progress infinitely
-- **Balancing**: Must scale difficulty/rewards without ceiling
-
-**Trade-Offs:**
-- Sacrifices narrative closure for infinite content
-- Requires robust procedural generation system
-- Demands strict structural guarantees (no soft-locks ever)
+**Architecture Implications:**
+- SceneGenerator service for procedural content creation
+- ContentValidator for structural guarantees
+- ArchetypeCatalog for reusable patterns
+- Generation seeded by player history (locations visited, NPCs met)
+- All generated content validated before spawn (fail-fast if violations)
 
 ### Alternatives Considered
 
 **Option 1: Traditional Ending + Post-Game**
-- Rejected: Creates awkward "you saved the world" disconnect
-- Players leave after ending (natural stopping point)
+- Rejected: Content exhaustion, system state complexity after ending
 
 **Option 2: Multiple Endings with Branching**
-- Rejected: Fixed content eventually exhausted
-- High authoring cost for limited replayability
+- Rejected: Fixed content pool, high authoring cost, eventual exhaustion
 
-**Option 3: Repeatable Endgame Loop**
-- Rejected: "New Game+" feels artificial
-- Resets progress or renders earlier content obsolete
+**Option 3: Repeatable Endgame Loop ("New Game+")**
+- Rejected: State reset complexity, progress invalidation issues
 
 ### Principle Alignment
 
-- **Core Experience (TIER 2)**: Supports infinite player agency
-- **No Soft-Locks (TIER 1)**: Guaranteed progression requirement applies to ALL A-story scenes
-- **Verisimilitude (TIER 3)**: Matches "eternal traveler" fantasy perfectly
+- **No Soft-Locks (TIER 1)**: All generated scenes validated for guaranteed forward progression
+- **Playability Over Compilation (TIER 1)**: Content validation ensures reachability
+- **Single Source of Truth (TIER 1)**: Generation history tracked in GameWorld
 
 ---
 
 ## ADR-002: Resource Arithmetic Over Boolean Gates (Requirement Inversion)
 
+> **For complete resource economy design and impossible choices philosophy**, see [design/05_resource_economy.md](design/05_resource_economy.md) and [design/11_design_decisions.md](design/11_design_decisions.md) DDR-004 (Tight Economy).
+
 ### Status
-**Accepted** - Fundamental architecture pattern
+**Accepted** - Fundamental data model pattern
 
 ### Context
 
-Most progression systems use boolean gate patterns:
-```csharp
-if (player.HasRope) { EnableClimbingAction(); }
-if (player.CompletedQuest("phase_1")) { UnlockQuest("phase_2"); }
-```
-
-This creates "Cookie Clicker" pattern:
-- No strategic depth (unlocks are "free", no resource cost)
-- No opportunity cost (actions don't compete for shared resources)
-- Linear progression (A → B → C railroad)
-- No specialization (eventually max everything)
-- Checklist completion instead of strategic choices
-
-Inspired by **The Life and Suffering of Sir Brante**, which creates impossible choices through resource scarcity and perfect information.
+Progression systems require visibility model for content availability. Boolean flag patterns (`if player.HasRope`) hide upcoming content and prevent strategic planning.
 
 ### Decision
 
-**Replace boolean gates with resource arithmetic.** Systems evaluate numeric resource comparisons, not binary flags.
+**All requirements stored as numeric thresholds enabling arithmetic comparison.** Resources modeled as integer properties on Player entity. Choices specify requirements as numeric values compared at runtime.
 
-**Resource-Based Visibility:**
+**Data Model:**
 ```csharp
-// NOT: if (player.hasHighValor) { show option; }
-// YES: Valor 12 vs requirement 14 → disable but show with exact gap
-
-Choice {
-  RequiredStat: "Valor",
-  StatThreshold: 14,
-  IsVisible: true,          // ALWAYS visible
-  IsSelectable: player.Valor >= 14  // Arithmetic comparison
+public class ChoiceTemplate {
+    public int StatThreshold { get; set; }      // Numeric requirement
+    public int CoinCost { get; set; }           // Numeric cost
+    public int StaminaCost { get; set; }        // Numeric cost
 }
+
+public class Player {
+    public int Rapport { get; set; }            // Numeric capability
+    public int Coins { get; set; }              // Numeric resource
+    public int Stamina { get; set; }            // Numeric resource
+}
+
+// Evaluation uses arithmetic
+bool isAffordable = player.Rapport >= choice.StatThreshold
+                 && player.Coins >= choice.CoinCost
+                 && player.Stamina >= choice.StaminaCost;
 ```
-
-**Perfect Information Display:**
-```
-"Confront the magistrate with evidence"
-Requires: Valor 14, you have 12
-[DISABLED - Need 2 more Valor]
-```
-
-**Five Resource Layers:**
-1. **Personal Stats**: Capability thresholds (Insight, Rapport, Authority, etc.)
-   - Range: 0-20, sweet spots exist (14 comfortable, 16 excessive)
-   - Arithmetic comparison: `player.Stat >= threshold`
-
-2. **Per-Person Relationships**: Individual capital with each NPC
-   - Separate numeric score per character
-   - Builds/depletes through interaction
-
-3. **Permanent Resources**: Health, Stamina, Focus, Resolve, Coins
-   - Depleting resources forcing rationing decisions
-   - Restoration costs time/money
-
-4. **Time as Competition**: Calendar days, time blocks per day
-   - Finite per-day time forces prioritization
-   - Cannot pursue all opportunities
-
-5. **Ephemeral Context**: Current location, active scenes, NPC availability
-   - State-based rather than permanent
-   - Changes naturally through gameplay
 
 ### Consequences
 
-**Positive:**
-- **Strategic Depth**: Resources cost accumulation effort, force trade-offs
-- **Opportunity Cost**: Shared resources create competition between actions
-- **Specialization**: Can't max everything, builds/identity emerge
-- **Perfect Information**: Player calculates EXACTLY what they can afford
-- **Impossible Choices**: All options valid, insufficient resources force accepting one cost to avoid another
+**Architecture Implications:**
+- All resources stored as `int` properties (never bool, never Dictionary<string, int>)
+- UI can display exact requirements and current values
+- Validation logic uses arithmetic comparison throughout codebase
+- No boolean "completed" flags for progression gates
 
-**Negative:**
-- **Complexity**: More moving parts than simple boolean flags
-- **Balancing**: Resource costs/scaling require careful tuning
-- **Arithmetic Everywhere**: Every system needs numeric resource model
-
-**Implementation Requirements:**
-- All choices show exact numeric requirements
-- All resources show current values and capacity
-- UI displays gaps ("need 2 more Valor")
-- No hidden gates (everything visible with requirements)
-
-### Alternatives Considered
-
-**Option 1: Keep Boolean Gates**
-- Rejected: Creates shallow Cookie Clicker gameplay
-- No strategic decisions, just checklist completion
-
-**Option 2: Hybrid (Some Boolean, Some Arithmetic)**
-- Rejected: Confusing mix of visibility models
-- Players can't predict which system applies
-
-**Option 3: Hidden Requirements**
-- Rejected: Violates Perfect Information principle
-- Trial-and-error instead of planning
-
-### Principle Alignment
-
-- **Resource Scarcity Creates Choices (TIER 2)**: Core mechanism
-- **Perfect Information (TIER 2)**: Arithmetic enables calculation
-- **No Soft-Locks (TIER 1)**: Every situation has zero-requirement fallback
-
-### Related Patterns
-
-- **Guaranteed Progression Pattern**: Every A-story situation has at least one choice with zero requirements
-- **Four-Choice Archetype**: Stat-gated (optimal), Money-gated (reliable), Challenge (risky), Guaranteed (patient)
+**Related Patterns:**
+- Perfect Information principle (Section 8.3.2 Principle 10)
+- Guaranteed Progression Pattern (zero-requirement fallbacks)
+- Catalogue Pattern (translate categorical properties to numeric thresholds)
 
 ---
 
 ## ADR-003: Two-Layer Architecture (Strategic vs Tactical)
+
+> **For player experience rationale and design philosophy**, see [design/11_design_decisions.md](design/11_design_decisions.md) DDR-005 (Two-Layer Separation).
 
 ### Status
 **Accepted** - Core architectural separation
@@ -329,6 +255,8 @@ PendingChallengeContext {
 ---
 
 ## ADR-004: Parse-Time Translation via Catalogues (No Runtime String Matching)
+
+> **For archetype system design and content generation patterns**, see [design/07_content_generation.md](design/07_content_generation.md).
 
 ### Status
 **Accepted** - Core content pipeline architecture

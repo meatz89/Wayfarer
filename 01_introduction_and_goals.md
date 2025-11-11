@@ -1,5 +1,7 @@
 # Arc42 Section 1: Introduction and Goals
 
+> **Note**: For comprehensive game design philosophy, player experience goals, and design rationale, see [design/01_design_vision.md](design/01_design_vision.md). This document focuses on technical requirements and system quality goals.
+
 ## 1.1 Requirements Overview
 
 ### System Purpose
@@ -14,41 +16,15 @@ Players navigate a low-fantasy world as a traveler, engaging with NPCs, pursuing
 
 The core gameplay follows a resource-constrained progression model where players **accept delivery jobs → navigate route segments with choice-driven encounters → earn coins → spend on survival → repeat**. Resource pressure creates impossible choices. Optimization skill determines success.
 
-**Three-Tier Loop Hierarchy:**
+The game is structured around **nested loops** creating strategic tension at three timescales: immediate encounters (10-30s), delivery cycles (5-15m), and long-term progression (hours). These loops force resource trade-offs at different granularities, creating layered strategic depth.
 
-**SHORT LOOP** (10-30 seconds):
-- Encounter presents narrative context
-- Player evaluates 2-4 choices showing visible costs
-- Player selects choice
-- Resources change immediately
-- Progress advances to next encounter
+**For detailed gameplay loop documentation**, see [design/02_core_gameplay_loops.md](design/02_core_gameplay_loops.md).
 
-**MEDIUM LOOP** (5-15 minutes):
-- Wake at location, accept delivery job
-- Travel route segments (chain of encounter-choice cycles)
-- Reach destination, earn coins
-- Return to starting location
-- Spend coins on survival (food, lodging)
-- Sleep advances day
+### Infinite Journey Design
 
-**LONG LOOP** (hours):
-- Repeat delivery cycles, accumulate small profits
-- Purchase equipment upgrades (permanent improvements)
-- Develop NPC bonds (unlock mechanical benefits)
-- Access harder routes with better rewards
-- Discover new locations and opportunities
+The main storyline (A-story) is **infinite and procedurally-generated**, providing structure and progression without resolution. The journey itself is the point, not reaching any specific destination. Player chooses WHEN to pursue A-story content, not IF.
 
-### The Eternal Journey (Frieren Principle)
-
-The game is **never-ending**. The main storyline is never-ending. Like an endless road with no final destination, the A-story (main story thread) is an **infinite procedurally-generated spine** that provides structure and progression without resolution.
-
-**Why Infinite?**
-
-**Narrative Coherence:** You travel. You arrive places. You meet people. Each place leads to another. Each person you meet suggests somewhere else worth visiting. The journey itself IS the point, not reaching anywhere specific.
-
-**Mechanical Elegance:** Infinite A-story eliminates the hardest problems of traditional narrative design - no arbitrary ending point to justify, no narrative closure pressure, no post-ending gameplay awkwardness, infinite replayability, perfect for live game evolution.
-
-**Player Agency:** Player chooses WHEN to pursue A-story, not IF. A-story waits. No time pressure, no failure state, no forced progression. Pursue immediately or explore side content for hours first. The main thread persists.
+**For narrative design philosophy and infinite A-story rationale**, see [design/06_narrative_design.md](design/06_narrative_design.md).
 
 ### Perfect Information Principle
 
@@ -95,6 +71,8 @@ The following quality goals are prioritized in three tiers, defining the archite
 - Specialization creates identity AND vulnerability
 
 **Rationale:** Strategic depth emerges from shared resource competition, never through linear unlocks. "I can afford to do A OR B, but not both. Both paths are valid. Both have genuine costs. Which cost will I accept?"
+
+**See also:** [design/05_resource_economy.md](design/05_resource_economy.md) for resource economy philosophy, [design/08_balance_philosophy.md](design/08_balance_philosophy.md) for balance principles.
 
 **4. Perfect Information (Strategic Layer)**
 - All costs, requirements, rewards visible before selection
@@ -173,6 +151,8 @@ The following quality goals are prioritized in three tiers, defining the archite
 - Will my content integrate seamlessly with procedural generation?
 - Are mechanical patterns reusable across different narratives?
 - Will validation catch broken references at load time?
+
+**See also:** [design/07_content_generation.md](design/07_content_generation.md) for archetype system, [design/09_design_patterns.md](design/09_design_patterns.md) for reusable patterns, [design/10_tutorial_design.md](design/10_tutorial_design.md) for tutorial content design.
 
 ### AI Assistants (Development Support Stakeholders)
 

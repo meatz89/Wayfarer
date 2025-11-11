@@ -202,66 +202,58 @@ Each quality goal translates into concrete, testable scenarios. Scenarios follow
 
 ### QS-004: Strategic Depth Through Impossible Choices (TIER 2)
 
-**Quality Goal**: Player faces resource-constrained decisions where all options are valid but insufficient resources force accepting one cost to avoid another.
+> **For game design philosophy of impossible choices and resource economy**, see [design/05_resource_economy.md](design/05_resource_economy.md).
 
-#### Scenario 4.1: Competing Time Blocks
+**Quality Goal**: System enforces resource scarcity requiring strategic prioritization. Player cannot pursue all available options simultaneously.
 
-**Context:**
-- Player has 4 time blocks remaining in day
-- Multiple opportunities available:
-  - Deliver package (2 time blocks, earn 15 coins)
-  - Investigate lead (3 time blocks, gain Understanding +1)
-  - Rest at inn (2 time blocks, restore Health/Stamina)
-  - Build NPC relationship (2 time blocks, improve bond)
-
-**Stimulus:**
-- Player must decide how to allocate time blocks
-
-**Response:**
-- Player cannot pursue all opportunities (4 blocks insufficient)
-- Must prioritize: Coins OR Understanding OR Recovery OR Relationship
-- Trade-off visible: Choosing delivery means skipping investigation
-- **Metric**: Average player completes 40-60% of available daily actions (forced prioritization)
-- **Validation**: Telemetry shows action completion rates
-
-#### Scenario 4.2: Stat Specialization Pressure
+#### Scenario 4.1: Resource Competition Validation
 
 **Context:**
-- Player has limited stat advancement opportunities
-- Multiple stat-gated choices available:
-  - Rapport 6+ choice (optimal social outcome)
-  - Authority 6+ choice (optimal confrontation outcome)
-  - Insight 6+ choice (optimal investigation outcome)
+- Player has finite resources (time blocks, coins, stamina)
+- Multiple actions available requiring those resources
+- System tracks action availability and completion
 
 **Stimulus:**
-- Player must decide stat advancement priorities
+- Player allocates resources across competing actions
 
 **Response:**
-- Cannot max all stats (scarcity enforced)
-- Specializing in Rapport means lower Authority (trade-off)
-- Choice creates player identity: "I'm good at social, weak at confrontation"
-- **Metric**: End-game stat distribution shows specialization (no "max everything")
-- **Validation**: Telemetry shows stat variance across players
+- System prevents pursuing all options (insufficient resources)
+- UI displays exact costs and current resource levels
+- Validation logic enforces resource constraints
+- **Metric**: Average player completes 40-60% of available daily actions
+- **Validation**: Telemetry tracks action completion rates, resource utilization patterns
 
-#### Scenario 4.3: Resource Competition Across Loops
+#### Scenario 4.2: Stat Distribution Analysis
 
 **Context:**
-- Player has 30 coins
-- Multiple expenses competing:
-  - Inn lodging (15 coins, required for rest)
-  - Equipment upgrade (25 coins, permanent improvement)
-  - Bribe guard (20 coins, skip challenge)
-  - Save for travel (40 coins, unlock new region)
+- Player progresses through game, advancing stats
+- System tracks stat advancement across all players
+- Multiple stat-gated choices exist throughout game
 
 **Stimulus:**
-- Player decides coin allocation
+- System collects player stat distributions at various progression points
 
 **Response:**
-- Can afford lodging OR bribe, not both
-- Can't buy equipment AND save for travel
-- Forced choice: Immediate need (lodging) vs Long-term goal (equipment/travel)
-- **Metric**: Player rarely has "enough for everything" (economy pressure maintained)
-- **Validation**: Telemetry shows coin reserves remain under 2× typical expense
+- Stat advancement system enforces specialization (cannot max all stats)
+- Telemetry shows variance in stat distributions across player population
+- **Metric**: End-game stat distributions show specialization patterns (high variance, not uniform)
+- **Validation**: Statistical analysis of player stat profiles
+
+#### Scenario 4.3: Economy Pressure Monitoring
+
+**Context:**
+- Player earns and spends coins throughout gameplay
+- System tracks coin reserves, income, expenses
+- Multiple competing coin sinks exist
+
+**Stimulus:**
+- System monitors player economy state over time
+
+**Response:**
+- Economy maintains pressure (player rarely has surplus for all options)
+- Resource management remains meaningful throughout gameplay
+- **Metric**: Player coin reserves remain under 2× typical expense threshold
+- **Validation**: Telemetry tracks coin balances, spending patterns, reserve ratios
 
 ---
 

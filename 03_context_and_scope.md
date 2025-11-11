@@ -12,30 +12,11 @@ Wayfarer is a **single-player low-fantasy tactical RPG** providing resource mana
 
 **Infinite Content Without Resolution:** The main story (A-story) never ends. Like an endless road with no final destination, the game provides infinite procedurally-generated progression without arbitrary closure. Players choose WHEN to pursue main story, not IF.
 
-### Gameplay Scope - Three-Tier Loop Hierarchy
+### Gameplay Scope
 
-**SHORT LOOP** (10-30 seconds):
-- Situation presents narrative context and choices
-- Player evaluates 2-4 choices showing visible costs/rewards
-- Player selects choice
-- Resources change immediately
-- Progress advances to next situation
+The core gameplay consists of nested loops (short/medium/long) creating strategic tension through resource competition. Immediate encounters chain into delivery cycles, which accumulate into long-term progression. This structure forces trade-offs at multiple timescales, creating layered strategic depth.
 
-**MEDIUM LOOP** (5-15 minutes):
-- Wake at location, accept delivery job
-- Travel route segments (chain of situation-choice cycles)
-- Reach destination, earn coins
-- Return to starting location
-- Spend coins on survival needs (food, lodging)
-- Sleep advances calendar day
-
-**LONG LOOP** (hours):
-- Repeat delivery cycles, accumulate small profits
-- Purchase equipment upgrades (permanent improvements)
-- Develop NPC bonds (unlock mechanical benefits)
-- Access harder routes with better rewards
-- Discover new locations and opportunities
-- Pursue infinite procedural main story
+**For detailed gameplay loop documentation**, see [design/02_core_gameplay_loops.md](design/02_core_gameplay_loops.md).
 
 ### User Base
 

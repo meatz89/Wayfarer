@@ -506,9 +506,7 @@ Choice.DestinationLocationId = "inn_room"
 
 **Statement**: Systems connect via typed rewards applied at completion, not continuous boolean flag evaluation.
 
-**FORBIDDEN**: "If completed A, unlock B" (no resource cost)
-
-**REQUIRED**: Shared resource competition, opportunity costs, trade-offs
+**Architectural Implication**: Use typed reward objects (SceneReward, ChoiceReward) with explicit properties instead of boolean flags. This enforces resource arithmetic and prevents hidden unlocks.
 
 **Example**:
 ```csharp
@@ -517,12 +515,13 @@ if (player.CompletedTutorial) {
     EnableAdvancedFeature();  // Free unlock
 }
 
-// ✅ CORRECT - Resource competition
-if (player.Understanding >= 5) {  // Earned through play
-    // Advanced feature accessible
-    // But accessing costs resources (time, stamina)
+// ✅ CORRECT - Resource arithmetic with typed rewards
+if (player.Understanding >= 5) {  // Numeric comparison
+    // Feature accessible based on earned resource
 }
 ```
+
+**For game design rationale and resource economy philosophy**, see [design/05_resource_economy.md](design/05_resource_economy.md).
 
 #### Principle 5: Typed Rewards as System Boundaries
 
@@ -548,11 +547,15 @@ player.Coins += reward.CoinsToGrant;
 
 **Statement**: Shared resources (Time, Focus, Stamina, Health) force player to accept one cost to avoid another.
 
+**Architectural Implication**: Model resources as numeric properties on Player entity, use arithmetic comparison throughout codebase. All choice costs and rewards expressed as integer deltas.
+
 **Resource Types**:
 - **Shared**: Time, Focus, Stamina, Health, Coins (compete across systems)
 - **System-Specific**: Momentum/Progress/Breakthrough (tactical only)
 
 **Test**: Can player pursue all options without trade-offs? If yes, add scarcity.
+
+**For resource economy design philosophy and impossible choices**, see [design/05_resource_economy.md](design/05_resource_economy.md).
 
 #### Principle 7: One Purpose Per Entity
 
@@ -604,6 +607,8 @@ Scene notifies UI, UI calls LocationFacade...
 
 **Statement**: Strategic layer visible (costs, rewards, requirements). Tactical layer hidden (card draw, challenge flow).
 
+**Architectural Implication**: All ChoiceTemplate properties (costs, requirements, rewards) must be concrete numeric values displayable in UI. Tactical layer sessions separate entity hierarchy, not exposed until entry.
+
 **Test**: Can player decide WHETHER to attempt before entering? If no, violates principle.
 
 **Example**:
@@ -617,6 +622,8 @@ Choice: "Negotiate diplomatically"
 // Tactical layer - Hidden until entry
 Challenge session: Card draw order unknown, exact challenge flow hidden
 ```
+
+**For player experience design rationale**, see [design/01_design_vision.md](design/01_design_vision.md).
 
 #### Principle 11: Execution Context Entity Design
 
@@ -669,6 +676,8 @@ CoinCost = 8 × 1.6 (Premium) = 13 (expensive)
 ---
 
 ## 8.4 Domain Concepts
+
+> **Note**: For game design patterns, content archetypes, and player-facing design concepts, see [design/09_design_patterns.md](design/09_design_patterns.md). This section covers technical domain concepts only.
 
 ### 8.4.1 Two-Layer Architecture
 
