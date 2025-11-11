@@ -30,13 +30,13 @@ Both required together for correct implementation.
 **Minimal information to begin:**
 
 **Technical Architecture Documentation (Root Directory):**
-- Location: Root directory (`/home/user/Wayfarer/`)
+- Location: Root directory
 - Files: Numbered markdown files (01-12) following arc42 template
 - Examples: `05_building_block_view.md`, `08_crosscutting_concepts.md`, `12_glossary.md`
 - Start here: `12_glossary.md` (technical terms) or `01_introduction_and_goals.md` (overview)
 
 **Game Design Documentation (design/ Subdirectory):**
-- Location: design/ subdirectory (`/home/user/Wayfarer/design/`)
+- Location: `design/` subdirectory
 - Files: Numbered markdown files (01-12) parallel to arc42
 - Examples: `design/07_content_generation.md`, `design/09_design_patterns.md`, `design/12_design_glossary.md`
 - Start here: `design/12_design_glossary.md` (game terms) or `design/README.md` (structure guide)
