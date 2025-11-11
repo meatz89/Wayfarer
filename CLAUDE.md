@@ -30,13 +30,13 @@ Both required together for correct implementation.
 **Minimal information to begin:**
 
 **Technical Architecture Documentation (Root Directory):**
-- Location: Root directory (`/home/user/Wayfarer/`)
+- Location: Root directory
 - Files: Numbered markdown files (01-12) following arc42 template
 - Examples: `05_building_block_view.md`, `08_crosscutting_concepts.md`, `12_glossary.md`
 - Start here: `12_glossary.md` (technical terms) or `01_introduction_and_goals.md` (overview)
 
 **Game Design Documentation (design/ Subdirectory):**
-- Location: design/ subdirectory (`/home/user/Wayfarer/design/`)
+- Location: `design/` subdirectory
 - Files: Numbered markdown files (01-12) parallel to arc42
 - Examples: `design/07_content_generation.md`, `design/09_design_patterns.md`, `design/12_design_glossary.md`
 - Start here: `design/12_design_glossary.md` (game terms) or `design/README.md` (structure guide)
@@ -133,6 +133,42 @@ Documentation is self-organizing and cross-referenced. When uncertain about a co
 
 Documentation locations, filenames, and structure details are IN the documentation itself. CLAUDE.md only establishes the PRINCIPLE that you must read them and HOW to achieve certainty.
 
+## QUICK START BY CONCEPT CATEGORY
+
+**When uncertain about a concept, start with these doc types:**
+
+**Game Entities (what they are):**
+- Start: Both glossaries (technical + design) for definitions
+- Then: Building block view (arc42) for structure, Design docs for purpose
+- Verify: Search codebase for actual class definitions
+
+**Game Mechanics (how they work for players):**
+- Start: Design glossaries and core gameplay loops
+- Then: Specific design section (challenges, economy, progression, etc.)
+- Verify: Search for mechanic implementation in services/facades
+
+**Technical Patterns (how code is organized):**
+- Start: Crosscutting concepts (arc42) or pattern catalog
+- Then: Architecture decisions for rationale
+- Verify: Search for pattern usage across codebase
+
+**Balance/Numbers (costs, rewards, difficulty):**
+- Start: Balance philosophy and resource economy (design docs)
+- Then: Specific mechanic section for formulas
+- Verify: Search JSON files for actual values in use
+
+**Data Flow (how systems connect):**
+- Start: Building block view and runtime view (arc42)
+- Then: Core gameplay loops (design) for player perspective
+- Verify: Trace through code from UI to domain to data
+
+**Content Generation (archetypes, AI, procedural):**
+- Start: Content generation section (design docs)
+- Then: Catalogue pattern (technical) for implementation
+- Verify: Search parsers and catalogues in codebase
+
+**The pattern:** Glossary → Detailed section → Verify in code. Every time.
+
 ## READING PROTOCOL
 
 **Step 1:** User makes request
@@ -145,6 +181,95 @@ Documentation locations, filenames, and structure details are IN the documentati
 **Step 8:** ONLY THEN create plan or implement solution
 
 **This protocol is NOT negotiable. Follow it for EVERY task, no matter how small.**
+
+## PROTOCOL APPLICATION EXAMPLE
+
+**Abstract scenario to demonstrate process:**
+
+```
+User Request: "Modify existing game entity to support new mechanic"
+
+Step 2 - Identify concepts:
+- "game entity" (what type? where defined?)
+- "modify" (what layers affected? JSON, parser, domain, UI?)
+- "new mechanic" (design pattern? resource cost? player-facing?)
+
+Step 3 - Certainty check:
+✓ Know what entity TYPE means (read glossary before)
+✗ Don't know which SPECIFIC entity user means (ambiguous)
+✗ Don't know how "new mechanic" fits design philosophy
+✗ Don't know which technical layers need updates
+
+Step 4 - Must read documentation (3 uncertainties identified)
+
+Step 5 - Consult glossaries:
+- Read technical glossary for entity type definition
+- Read design glossary for mechanic-related terms
+- Note cross-references to detailed sections
+
+Step 6 - Read both perspectives:
+- Design docs: Why does mechanic exist? How creates strategic depth?
+- Technical docs: Where is entity defined? What patterns apply?
+
+Step 7 - Verify in code:
+- Grep for entity type across codebase
+- Read complete entity class definition
+- Trace through parser to understand current structure
+- Search for similar mechanics as reference
+
+Step 8 - NOW ready to respond:
+"I've read [specific docs]. I understand [entity] is [definition],
+and [mechanic] should follow [pattern] because [design rationale].
+However, I need clarification: which specific entity and what exact mechanic?"
+```
+
+**Key principle demonstrated:** Even with uncertainty, read docs FIRST to understand context before asking clarifying questions.
+
+## SELF-VERIFICATION CHECKLIST
+
+**Before proceeding with implementation, can you answer:**
+
+- [ ] **WHAT:** Can I explain each concept to a non-programmer in plain language?
+- [ ] **WHERE:** Can I name specific files/classes where this code lives?
+- [ ] **WHY:** Can I explain the design rationale (not just "the docs say so")?
+- [ ] **HOW:** Can I describe the data flow from user action to system response?
+- [ ] **EDGE CASES:** Can I list 3+ ways this could fail or behave unexpectedly?
+- [ ] **HOLISTIC VIEW:** Have I read BOTH design and technical perspectives?
+- [ ] **CODE VERIFICATION:** Have I searched codebase to confirm docs match reality?
+
+If ANY checkbox fails → Read more documentation. Certainty is not negotiable.
+
+## HANDLING INSUFFICIENT DOCUMENTATION
+
+**When documentation doesn't fully answer your question:**
+
+1. **Exhaust documentation first:**
+   - Read ALL cross-referenced sections (don't stop at first mention)
+   - Search docs for related concepts (Grep across all markdown files)
+   - Check DDRs/ADRs for historical context and alternatives considered
+
+2. **Verify against code (code is ground truth):**
+   - Search codebase for actual implementation
+   - Read complete source files (not just snippets)
+   - Look for patterns in similar existing features
+
+3. **If still ambiguous:**
+   - Document WHAT you know (from docs + code)
+   - Document WHAT is uncertain (specific questions)
+   - Document WHAT you've already read (show thoroughness)
+   - Ask user for clarification with context
+
+4. **NEVER:**
+   - Guess based on "similar systems"
+   - Assume "it probably works like X"
+   - Implement without certainty because "good enough"
+
+**Documentation conflicts:**
+- Docs conflict with each other → Code is ground truth
+- Example conflicts with rule → Rule is ground truth, example may be outdated
+- Multiple examples show different patterns → Ask which is canonical
+
+**The principle:** Uncertainty is acceptable. Guessing is not. Ask informed questions.
 
 ---
 
