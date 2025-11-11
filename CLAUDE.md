@@ -321,13 +321,20 @@ public SomeType? OptionalProp { get; set; } = null; // Nullable ONLY if validati
 - FORBIDDEN: Dictionary, HashSet, var, object, func, lambda expressions
 
 **Lambdas:**
-- FORBIDDEN everywhere in codebase
-- ONLY exception: Framework configuration (HttpClient timeout, ASP.NET Core middleware)
-- No lambda expressions in game logic, DI registration, LINQ queries, event handlers
-- Use explicit methods instead
+- FORBIDDEN: Backend event handlers, Action<>, Func<>, DI registration lambdas
+- ALLOWED: LINQ queries (.Where, .Select, .FirstOrDefault, etc.)
+- ALLOWED: Frontend Blazor event handlers (@onclick, etc.)
+- ALLOWED: Framework configuration (HttpClient timeout, ASP.NET Core middleware)
 - Example violation: `services.AddSingleton<GameWorld>(_ => GameWorldInitializer.CreateGameWorld())`
 - Example correct: `GameWorld gameWorld = GameWorldInitializer.CreateGameWorld(); builder.Services.AddSingleton(gameWorld);`
+- Example violation: `AppDomain.CurrentDomain.ProcessExit += (s, e) => { Log.CloseAndFlush(); };`
+- Example correct: `AppDomain.CurrentDomain.ProcessExit += OnProcessExit;` with named method
+- Example allowed: `var route = routes.FirstOrDefault(r => r.Id == routeId);`
 - Example exception: `services.AddHttpClient<OllamaClient>(client => { client.Timeout = TimeSpan.FromSeconds(5); });`
+
+**Tuples:**
+- FORBIDDEN everywhere in codebase
+- Use explicit classes or structs instead
 
 **Structure:**
 - Domain Services and Entities (no Helper/Utility classes)
