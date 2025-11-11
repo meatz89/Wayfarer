@@ -226,7 +226,7 @@ public class TutorialInnLodgingIntegrationTest
     }
 
     [Fact]
-    public void InnLodging_CompleteIntegrationFlow()
+    public async Task InnLodging_CompleteIntegrationFlow()
     {
         // ARRANGE: Full game world with real facades
         GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
@@ -242,9 +242,15 @@ public class TutorialInnLodgingIntegrationTest
         MarkerResolutionService markerService = new MarkerResolutionService();
         SceneInstantiator instantiator = new SceneInstantiator(gameWorld, spawnEvaluator, narrativeService, markerService);
         ContentGenerationFacade contentGenerationFacade = new ContentGenerationFacade();
-        PackageLoaderFacade packageLoaderFacade = new PackageLoaderFacade(gameWorld);
+        SceneGenerationFacade sceneGenerationFacade = new SceneGenerationFacade(gameWorld);
+        PackageLoader packageLoader = new PackageLoader(gameWorld, sceneGenerationFacade);
+        PackageLoaderFacade packageLoaderFacade = new PackageLoaderFacade(packageLoader);
         HexRouteGenerator hexRouteGenerator = new HexRouteGenerator(gameWorld);
-        TimeManager timeManager = new TimeManager(gameWorld);
+        MessageSystem messageSystem = new MessageSystem(gameWorld);
+        TimeModel timeModel = new TimeModel(gameWorld.CurrentDay);
+        timeModel.SetInitialState(gameWorld.CurrentDay, gameWorld.CurrentTimeBlock, 1);
+        TimeManager timeManager = new TimeManager(timeModel, messageSystem);
+        SpawnedScenePlayabilityValidator playabilityValidator = new SpawnedScenePlayabilityValidator(gameWorld);
 
         SceneInstanceFacade sceneInstanceFacade = new SceneInstanceFacade(
             instantiator,
@@ -252,7 +258,8 @@ public class TutorialInnLodgingIntegrationTest
             packageLoaderFacade,
             hexRouteGenerator,
             timeManager,
-            gameWorld);
+            gameWorld,
+            playabilityValidator);
 
         SceneTemplate template = new SceneTemplate
         {
@@ -280,7 +287,7 @@ public class TutorialInnLodgingIntegrationTest
         };
 
         // HIGHLANDER FLOW: Single method spawns scene as Active immediately
-        Scene spawnedScene = sceneInstanceFacade.SpawnScene(template, spawnReward, spawnContext);
+        Scene spawnedScene = await sceneInstanceFacade.SpawnScene(template, spawnReward, spawnContext);
 
         // ASSERT: Complete integration succeeds
         Assert.NotNull(spawnedScene);

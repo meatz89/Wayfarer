@@ -10,7 +10,7 @@ namespace Wayfarer.Tests.Project;
 public class LodgingSceneIntegrationTest
 {
     [Fact]
-    public void ServiceWithLocationAccess_CompleteFlow_WithRealFacades()
+    public async Task ServiceWithLocationAccess_CompleteFlow_WithRealFacades()
     {
         GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Test");
 
@@ -35,7 +35,7 @@ public class LodgingSceneIntegrationTest
         {
             Tier = 1,
             NpcPersonality = innkeeper.PersonalityType,
-            NpcLocationId = inn.Id,
+            LocationId = inn.Id,
             NpcId = innkeeper.ID,
             NpcName = innkeeper.Name,
             PlayerCoins = 50
@@ -61,9 +61,15 @@ public class LodgingSceneIntegrationTest
             markerService);
 
         ContentGenerationFacade contentGenerationFacade = new ContentGenerationFacade();
-        PackageLoaderFacade packageLoaderFacade = new PackageLoaderFacade(gameWorld);
+        SceneGenerationFacade sceneGenerationFacade = new SceneGenerationFacade(gameWorld);
+        PackageLoader packageLoader = new PackageLoader(gameWorld, sceneGenerationFacade);
+        PackageLoaderFacade packageLoaderFacade = new PackageLoaderFacade(packageLoader);
         HexRouteGenerator hexRouteGenerator = new HexRouteGenerator(gameWorld);
-        TimeManager timeManager = new TimeManager(gameWorld);
+        MessageSystem messageSystem = new MessageSystem(gameWorld);
+        TimeModel timeModel = new TimeModel(gameWorld.CurrentDay);
+        timeModel.SetInitialState(gameWorld.CurrentDay, gameWorld.CurrentTimeBlock, 1);
+        TimeManager timeManager = new TimeManager(timeModel, messageSystem);
+        SpawnedScenePlayabilityValidator playabilityValidator = new SpawnedScenePlayabilityValidator(gameWorld);
 
         SceneInstanceFacade sceneInstanceFacade = new SceneInstanceFacade(
             instantiator,
@@ -71,7 +77,8 @@ public class LodgingSceneIntegrationTest
             packageLoaderFacade,
             hexRouteGenerator,
             timeManager,
-            gameWorld);
+            gameWorld,
+            playabilityValidator);
 
         SceneTemplate template = new SceneTemplate
         {
@@ -99,7 +106,7 @@ public class LodgingSceneIntegrationTest
         };
 
         // HIGHLANDER FLOW: Single method spawns scene as Active immediately
-        Scene spawnedScene = sceneInstanceFacade.SpawnScene(template, spawnReward, spawnContext);
+        Scene spawnedScene = await sceneInstanceFacade.SpawnScene(template, spawnReward, spawnContext);
 
         // Assert scene spawned successfully
         Assert.NotNull(spawnedScene);
@@ -146,9 +153,9 @@ public class LodgingSceneIntegrationTest
 
         Situation accessSituation = spawnedScene.Situations.FirstOrDefault(s => s.Template.Id == "secure_lodging_access");
         Assert.NotNull(accessSituation);
-        Assert.NotNull(accessSituation.PlacementLocationId);
-        Assert.NotEqual("generated:private_room", accessSituation.PlacementLocationId); // Should be resolved
-        Assert.Equal(createdLocationId, accessSituation.PlacementLocationId); // Marker resolved to concrete ID
+        Assert.NotNull(accessSituation.ResolvedRequiredLocationId);
+        Assert.NotEqual("generated:private_room", accessSituation.ResolvedRequiredLocationId); // Should be resolved
+        Assert.Equal(createdLocationId, accessSituation.ResolvedRequiredLocationId); // Marker resolved to concrete ID
 
         // Assert ParentScene relationships set
         foreach (Situation situation in spawnedScene.Situations)
