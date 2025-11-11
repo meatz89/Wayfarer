@@ -160,8 +160,16 @@ Bidirectional travel path connecting two venue hub Locations. Generated automati
 **Bidirectionality:**
 Single Route entity represents both directions. UI presents as two separate travel options but references same Route.
 
-**Generation Algorithm:**
+**Generation Algorithm (DESIGNED, NOT YET IMPLEMENTED):**
+The following describes the intended procedural route generation system. **Current implementation uses JSON-authored routes.**
+
 When Location with IsVenueTravelHub true gets created, system iterates each existing hub Location in different Venue. For each potential connection calculates shortest valid hex path using A-star pathfinding algorithm. If no valid path exists skips that connection creating no Route. If path found calculates Route properties from hex path: DangerRating equals sum of DangerLevel values across all hexes in path, TimeSegments equals path length multiplied by terrain-specific multipliers, TransportType equals most restrictive TerrainType encountered in path. Creates Route entity with calculated properties. Adds Route to GameWorld.Routes collection.
+
+**Current Implementation (JSON-Authored):**
+Routes are currently loaded from JSON packages and stored in GameWorld.Routes collection. Each Route entity manually specifies SourceLocationId, DestinationLocationId, DangerRating, TimeSegments, and TransportType. HexPath property may be empty or manually authored. Procedural hex-based generation architecture designed but not yet implemented.
+
+**Migration Path:**
+Once hex-based generation is implemented, JSON-authored routes will serve as validation baseline. Procedurally-generated routes should match or exceed quality of hand-authored routes.
 
 **Transport Type Rules:**
 - **Walking**: Traverses all passable terrain

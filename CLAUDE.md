@@ -38,31 +38,68 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 
 # CORE GAME ARCHITECTURE
 
+**Strategic Layer Flow (Current Architecture):**
 ```
 Obligation (multi-phase mystery)
   ↓ spawns
-Obstacles (challenges in world)
+Scenes (persistent narrative containers)
   ↓ contain
-Goals (approaches to overcome obstacles)
-  ↓ appear at
+Situations (narrative moments, 2-4 choices each)
+  ↓ placed at
 Locations/NPCs/Routes (placement context, NOT ownership)
-  ↓ when engaged become
-Challenges (Social/Mental/Physical subsystems)
-  ↓ player plays
-GoalCards (tactical victory conditions)
+  ↓ player engages
+Choices (instant effects OR navigation OR challenges)
+  ↓ if challenge path
+Tactical Challenge Sessions (Social/Mental/Physical)
+  ↓ player plays cards
+SituationCards (victory thresholds + rewards)
   ↓ achieve
-Goal Completion → Obstacle Progress → Obligation Phase Completion
+Situation Completion → Scene Progress → Obligation Phase Completion
 ```
 
 **Ownership Hierarchy:**
 ```
 GameWorld (single source of truth)
- ├─ Obligations (spawn Obstacles by ID)
- ├─ Obstacles (contain Goals by ID)
- ├─ Goals (has locationId, optional npcId, inline GoalCards)
+ ├─ Obligations (spawn Scenes by ID)
+ ├─ Scenes (contain embedded Situations list)
+ │   └─ Situations (embedded in parent Scene, NOT separate collection)
+ │       └─ ChoiceTemplates (embedded in Situations)
+ │           └─ SituationCards (tactical victory conditions, embedded)
  ├─ Locations (placement context only)
- └─ NPCs (social context only)
+ ├─ NPCs (placement context only)
+ └─ Routes (placement context only)
 ```
+
+**CRITICAL: Situations are EMBEDDED in Scenes**
+- NO GameWorld.Situations collection
+- Scenes own their Situations via Scene.Situations property
+- Query pattern: GameWorld.Scenes.SelectMany(s => s.Situations)
+
+**Spatial Hierarchy:**
+```
+Venue (cluster of related locations, 1-2 hex radius)
+ ├─ Location (hub) [IsVenueTravelHub = true, exactly one per Venue]
+ ├─ Location (non-hub)
+ ├─ Location (non-hub)
+ └─ ... (max 7 Locations per Venue)
+
+Hex (grid cell in world map)
+ ├─ TerrainType (Plains, Road, Forest, Mountains, Swamp)
+ ├─ DangerLevel (0-10)
+ └─ LocationId (optional, if location exists on this hex)
+
+Route (bidirectional travel path)
+ ├─ SourceLocationId (hub Location)
+ ├─ DestinationLocationId (hub Location)
+ └─ HexPath (sequence of Hex coordinates)
+```
+
+**Spatial Movement Rules:**
+- Within Venue: Instant (no cost, no scenes)
+- Between Venues: Route travel with Scenes (PlacementType = Route)
+- Hub Locations: Exactly one per Venue, IsVenueTravelHub = true
+
+**Historical Note:** Earlier architecture used "Spot" for sub-locations within Venues. Current code uses "Location" exclusively. "Goal/Obstacle" entities replaced by "Scene/Situation" architecture in 2025.
 
 ---
 

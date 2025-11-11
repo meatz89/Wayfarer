@@ -181,62 +181,115 @@ PlacementFilter
 
 ---
 
-## The Five Archetypes (SituationArchetypeCatalog)
+## The 21 Situation Archetypes (SituationArchetypeCatalog)
 
-### 1. CONFRONTATION (Authority)
-- **When:** Authority challenges, intimidation, physical barriers
-- **Primary Stat:** Authority
-- **Coin Cost:** 15
-- **Challenge Type:** Physical
-- **4 Choices:**
-  1. Authority 3+ (free, best)
-  2. 15 coins (expensive)
-  3. Physical challenge (risky)
-  4. Fallback/Submit (poor, always available)
+**Architecture:** 3 tiers of increasing specificity
+- **5 Core Archetypes:** Fundamental interaction types
+- **10 Expanded Archetypes:** Domain-specific variations
+- **6 Specialized Service Archetypes:** Multi-phase service flows
 
-### 2. NEGOTIATION (Economic)
-- **When:** Price disputes, deal-making, compromise
-- **Primary Stat:** Diplomacy/Rapport
-- **Coin Cost:** 15
-- **Challenge Type:** Mental
-- **4 Choices:**
-  1. Diplomacy/Rapport 3+ (free, best)
-  2. 15 coins (expensive)
-  3. Mental challenge (risky)
-  4. Fallback/unfavorable terms (poor)
+**Universal Scaling:** ALL archetypes benefit from categorical property scaling (NPCDemeanor, Quality, PowerDynamic, EnvironmentQuality). Same archetype + different properties = contextually appropriate difficulty.
 
-### 3. INVESTIGATION (Mental)
-- **When:** Mysteries, puzzles, information gathering
-- **Primary Stat:** Insight/Cunning
-- **Coin Cost:** 10
-- **Challenge Type:** Mental
-- **4 Choices:**
-  1. Insight/Cunning 3+ (free, best)
-  2. 10 coins/informant (moderate)
-  3. Mental challenge (risky)
-  4. Fallback/guess (poor)
+### TIER 1: Core Archetypes (5)
 
-### 4. SOCIAL MANEUVERING (Social)
-- **When:** Reputation, relationship building, social hierarchy
-- **Primary Stat:** Rapport/Cunning
-- **Coin Cost:** 10
-- **Challenge Type:** Social
-- **4 Choices:**
-  1. Rapport/Cunning 3+ (free, best)
-  2. 10 coins/gift (transactional)
-  3. Social challenge (risky)
-  4. Fallback/alienate (poor)
+#### 1. CONFRONTATION (Authority/Dominance)
+- **When:** Gatekeepers, obstacles, authority challenges
+- **Primary Stat:** Authority | **Coin Cost:** 15 | **Challenge Type:** Physical
+- **Pattern:** Authority stat → Pay off → Physical challenge → Submit
 
-### 5. CRISIS (Physical)
-- **When:** Emergencies, high-stakes, moral dilemmas
-- **Primary Stat:** Authority/Insight
-- **Coin Cost:** 25
-- **Challenge Type:** Physical
-- **4 Choices:**
-  1. Authority 4+ (high requirement, best)
-  2. 25 coins (very expensive)
-  3. Physical challenge (risky)
-  4. Fallback/flee (worst)
+#### 2. NEGOTIATION (Diplomacy/Trade)
+- **When:** Merchants, transactional exchanges, deals
+- **Primary Stat:** Diplomacy/Rapport | **Coin Cost:** 15 | **Challenge Type:** Mental
+- **Pattern:** Persuade → Pay premium → Debate → Accept terms
+
+#### 3. INVESTIGATION (Insight/Discovery)
+- **When:** Information gathering, puzzle solving, deduction
+- **Primary Stat:** Insight/Cunning | **Coin Cost:** 10 | **Challenge Type:** Mental
+- **Pattern:** Deduce → Hire expert → Work puzzle → Give up
+
+#### 4. SOCIAL MANEUVERING (Rapport/Manipulation)
+- **When:** Social circles, subtle influence, persuasion
+- **Primary Stat:** Rapport/Cunning | **Coin Cost:** 10 | **Challenge Type:** Social
+- **Pattern:** Read people → Offer gift → Bold gambit → Alienate
+
+#### 5. CRISIS (Emergency Response)
+- **When:** Urgent situations, decisive action, time pressure
+- **Primary Stat:** Authority/Insight | **Coin Cost:** 25 | **Challenge Type:** Physical
+- **Pattern:** Expert action → Expensive solution → Personal risk → Flee
+
+---
+
+### TIER 2: Expanded Archetypes (10)
+
+#### 6. SERVICE TRANSACTION
+- **When:** Paying for services (lodging, food, passage)
+- **Primary Stat:** None | **Coin Cost:** 5 | **Challenge Type:** Mental
+
+#### 7. ACCESS CONTROL
+- **When:** Gatekeepers, locked doors, restricted areas
+- **Primary Stat:** Authority/Cunning | **Coin Cost:** 15 | **Challenge Type:** Physical
+
+#### 8. INFORMATION GATHERING
+- **When:** Rumors, gossip, local knowledge
+- **Primary Stat:** Rapport/Insight | **Coin Cost:** 8 | **Challenge Type:** Social
+
+#### 9. SKILL DEMONSTRATION
+- **When:** Proving competence, showing credentials
+- **Primary Stat:** Diplomacy/Insight | **Coin Cost:** 12 | **Challenge Type:** Mental
+
+#### 10. REPUTATION CHALLENGE
+- **When:** Defending honor, responding to accusations
+- **Primary Stat:** Authority/Diplomacy | **Coin Cost:** 10 | **Challenge Type:** Social
+
+#### 11. EMERGENCY AID
+- **When:** Medical crisis, rescue situations
+- **Primary Stat:** Insight/Authority | **Coin Cost:** 20 | **Challenge Type:** Physical
+
+#### 12. ADMINISTRATIVE PROCEDURE
+- **When:** Bureaucracy, permits, official processes
+- **Primary Stat:** Diplomacy/Insight | **Coin Cost:** 12 | **Challenge Type:** Mental
+
+#### 13. TRADE DISPUTE
+- **When:** Disagreements over goods, quality, terms
+- **Primary Stat:** Insight/Diplomacy | **Coin Cost:** 15 | **Challenge Type:** Mental
+
+#### 14. CULTURAL FAUX PAS
+- **When:** Social blunders, tradition violations
+- **Primary Stat:** Rapport/Insight | **Coin Cost:** 10 | **Challenge Type:** Social
+
+#### 15. RECRUITMENT
+- **When:** Join requests, commitment decisions
+- **Primary Stat:** Cunning/Diplomacy | **Coin Cost:** 8 | **Challenge Type:** Social
+
+---
+
+### TIER 3: Specialized Service Archetypes (6)
+
+These compose into complete multi-situation service flows (inn_lodging, bathhouse_service, healer_treatment):
+
+#### 16. SERVICE_NEGOTIATION
+- **Pattern:** 4 choices (stat/money/challenge/fallback) → Secures service access → Grants key/token item
+
+#### 17. SERVICE_EXECUTION_REST
+- **Pattern:** 4 rest variants (balanced/physical/mental/special) → Restores resources → Advances to next day Morning
+
+#### 18. SERVICE_DEPARTURE
+- **Pattern:** 2 choices (immediate/careful) → Cleanup and exit → Optional preparation buff
+
+#### 19. REST_PREPARATION
+- **Pattern:** Preparing to rest → Optimize recovery → Comfort items → Force relaxation → Collapse
+
+#### 20. ENTERING_PRIVATE_SPACE
+- **Pattern:** First entry into private room → Inspect and optimize → Request amenities → Push through → Collapse
+
+#### 21. DEPARTING_PRIVATE_SPACE
+- **Pattern:** Leaving private space → Check carefully → Leave gratuity → Rush out
+
+---
+
+**Archetype Reusability:** Each archetype is a mechanical pattern (typically 4 choices, path types, cost/requirement formulas, rewards). AI generates narrative from entity context at finalization. Use categorical placement filters, not concrete NPC IDs. Same archetypes reused across entire game via property combinations.
+
+**Implementation Evidence:** SituationArchetypeCatalog.cs lines 19-720
 
 ---
 

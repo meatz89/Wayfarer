@@ -150,32 +150,34 @@ Save operation: Serialize Scene to SceneDTO including embedded Situations. Conve
 
 ### 4. Provisional vs Active Scenes
 
-**OLD Pattern (DELETED):**
-- CreateProvisionalScene() → lightweight skeleton
-- FinalizeScene() → full instantiation
+**CURRENT Pattern (IMPLEMENTED):**
+- CreateProvisionalScene() → lightweight skeleton with metadata
+- FinalizeScene() → full instantiation with Situations
 - DeleteProvisionalScene() → cleanup if not finalized
+- State enum: **Provisional, Active, Completed, Expired**
 
-**NEW Pattern (SIMPLIFIED):**
-- Scenes spawn directly as Active (no provisional state)
-- Perfect information from template metadata (SituationCount, Tier, EstimatedDifficulty)
-- No lightweight/heavyweight distinction
-- State enum: Active, Completed, Expired (no Provisional)
+**Provisional State Purpose:**
+Perfect information preview before commitment. Player sees:
+- SituationCount (number of situations in scene)
+- EstimatedDifficulty (calculated from template tier and requirements)
+- Placement context (which location/NPC/route)
+- No Situations instantiated yet (empty list)
 
-**Why Simplified:**
-- Provisional = optimization for preview
-- Preview data available from SceneTemplate directly
-- No need to instantiate Scene for preview
-- Spawn = commitment (player already decided)
+**Why Provisional is Necessary:**
+Enables choice preview. When player has multiple provisional scenes from different choices, they see concrete preview (not just template metadata). Scene exists as entity with specific placement before player commits. Provisional scenes have SourceSituationId for cleanup tracking - when player selects one choice, all other provisional scenes from same source situation are deleted.
 
-## The Deleted Provisional Pattern and Why
+**State Transitions:**
+- **Spawned as Provisional:** `State = SceneState.Provisional`, `Situations = []`, metadata populated
+- **Player Commits → Active:** FinalizeScene() instantiates Situations, sets `State = SceneState.Active`, sets `CurrentSituation`
+- **Player Declines → Deleted:** DeleteProvisionalScene() removes Scene, no cleanup needed (no dependent resources yet)
+- **Active → Completed:** All situations finished, `CurrentSituation = null`, `State = SceneState.Completed`
+- **Active → Expired:** ExpiresOnDay reached, `State = SceneState.Expired`
 
-**Old Pattern:** Scenes had "Provisional" state - lightweight skeletons created for preview. Player could inspect basic info (situation count, estimated difficulty) before committing. FinalizeScene() would then create full instance or DeleteProvisionalScene() if player declined.
-
-**Why Deleted:**
-Optimization solving the wrong problem. Preview data (situation count, difficulty tier) available directly from SceneTemplate - no need to instantiate Scene at all. Provisional state added complexity (extra state transitions, cleanup logic, partial instance handling) for negligible benefit.
-
-**New Pattern:**
-Spawn means commitment. Template metadata provides perfect information for player decision. No need for trial instantiation.
+**Implementation Evidence:**
+- Scene.cs L112-115: Comments reference "Provisional: Created eagerly for perfect information"
+- Scene.cs L116: `State` property defaults to `SceneState.Active` (changed after provisional creation)
+- Scene.cs L73-74: "SHALLOW PROVISIONAL: Empty list for provisional scenes (no Situations instantiated yet)"
+- Scene.cs L119-124: SourceSituationId tracking for provisional scene cleanup
 
 ## Summary
 

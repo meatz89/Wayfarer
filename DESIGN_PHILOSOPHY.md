@@ -667,6 +667,80 @@ Conversations are real-time interactions with entities that have agency:
 
 ---
 
+## Principle Priority & Conflict Resolution
+
+When design principles conflict, use this priority hierarchy to resolve:
+
+### TIER 1: Non-Negotiable (Never Compromise)
+1. **No Soft-Locks (Principle 6):** Always forward progress. If design creates possibility of unwinnable state, redesign completely.
+2. **Single Source of Truth (Principle 1):** One owner per entity type. Redundant storage creates desync bugs.
+
+### TIER 2: Core Experience (Compromise Only with Clear Justification)
+3. **Playability Over Compilation:** Game must be testable and playable. Unplayable code is worthless even if architecturally pure.
+4. **Perfect Information at Strategic Layer (Principle 10):** Player can calculate strategic decisions. Hidden complexity belongs in tactical layer only.
+5. **Resource Scarcity Creates Choices (Principle 6):** Shared resources force trade-offs. Boolean gates insufficient.
+
+### TIER 3: Architectural Quality (Prefer but Negotiable)
+6. **HIGHLANDER - One Path (Principle 1):** One instantiation path per entity type. Break only when playability demands it.
+7. **Elegance Through Minimal Interconnection (Principle 9):** Systems connect at explicit boundaries. Acceptable complexity for critical features.
+8. **Verisimilitude (Principle 8):** Relationships match conceptual model. Can bend for gameplay necessity.
+
+### Conflict Resolution Examples
+
+**Conflict: HIGHLANDER vs Playability**
+- **Scenario:** Invalid JSON should throw (HIGHLANDER fail-fast) vs. show placeholder content (Playability graceful degradation).
+- **Resolution:** TIER 1 wins. Throw exception. Fail-fast prevents silent corruption. Player sees crash, reports bug, gets fix. Graceful degradation hides problems.
+
+**Conflict: Perfect Information vs Tactical Surprise**
+- **Scenario:** Should player see exact card draw order (perfect information) vs. hidden deck order (tactical surprise)?
+- **Resolution:** TIER 2 layer distinction. Strategic layer = perfect information (costs, rewards, requirements visible). Tactical layer = hidden complexity (card order unknown). Both principles satisfied at appropriate layers.
+
+**Conflict: Verisimilitude vs Elegant Architecture**
+- **Scenario:** Real-world location relationships are hierarchical (Region→District→Venue→Location). Flat Venue→Location is simpler but less realistic.
+- **Resolution:** TIER 3 negotiation. Hierarchical relationships add conceptual clarity (verisimilitude). Implementation complexity acceptable for core spatial model. Keep hierarchy.
+
+**Conflict: Single Source of Truth vs Query Performance**
+- **Scenario:** Situation.Template (object reference) enables fast access but Situation.TemplateId (ID reference) is single source of truth for persistence.
+- **Resolution:** TIER 1 wins with pattern. Store BOTH: TemplateId (authoritative, saved) + Template (cached, not saved, restored on load). Not redundant if one is ephemeral cache. Resolve once at load, use cached reference at runtime.
+
+**Conflict: No Soft-Locks vs Resource Scarcity**
+- **Scenario:** If all situations cost Resolve and player reaches 0 Resolve, they're soft-locked (can't progress).
+- **Resolution:** TIER 1 overrides TIER 2. Add Tier 0 safety net situations: zero cost, infinite repeat, always available. Scarcity creates choices, safety net prevents locks. Both satisfied.
+
+### Decision Framework
+
+When principles conflict:
+1. Identify which tier each principle belongs to
+2. Higher tier wins
+3. Within same tier, find creative solution satisfying both
+4. Document decision and reasoning
+5. If violating TIER 1, **STOP** - redesign completely
+
+### Anti-Patterns
+
+**❌ WRONG: "It compiles but is unplayable"**
+Compilation is necessary but insufficient. TIER 2 Playability means: can player actually play? Can we test the feature? If no, it's incomplete.
+
+**❌ WRONG: "Let's null-coalesce everywhere for safety"**
+Null-coalescing (`?? new List()`) hides bugs. TIER 1 Single Source of Truth + TIER 3 HIGHLANDER both demand: initialize once inline, fail fast on actual null. Safety comes from crashing obviously, not silently continuing with defaults.
+
+**❌ WRONG: "We'll add cleanup later"**
+If design creates orphan entities (e.g., Situations without parent Scene), TIER 1 Single Source of Truth violated. Fix ownership immediately, not "later". Later never comes.
+
+**❌ WRONG: "Player can soft-lock but it's rare"**
+TIER 1 principle. Even 0.1% soft-lock rate is unacceptable. Add safety nets, ensure forward progress always possible.
+
+**✓ CORRECT: "This violates elegance but prevents soft-locks"**
+TIER 1 beats TIER 3. Accept complexity if it ensures forward progress.
+
+**✓ CORRECT: "Hierarchical data adds complexity but matches player mental model"**
+TIER 3 Verisimilitude vs Elegance. Both TIER 3, so use judgment. If hierarchy significantly improves comprehension, accept complexity.
+
+**✓ CORRECT: "Caching Template reference violates HIGHLANDER but unacceptable to lookup every frame"**
+TIER 3 HIGHLANDER vs TIER 2 Playability (performance makes game playable). TIER 2 wins. Use pattern: authoritative ID + ephemeral cache.
+
+---
+
 ## Summary
 
 These design principles form the philosophical foundation of Wayfarer's architecture. They prioritize:
@@ -678,6 +752,13 @@ These design principles form the philosophical foundation of Wayfarer's architec
 5. **Verisimilitude** in all systems
 6. **No soft-locks** in any game state
 
+**Principle Priority:**
+- TIER 1 (Non-Negotiable): No Soft-Locks, Single Source of Truth
+- TIER 2 (Core Experience): Playability, Perfect Information, Resource Scarcity
+- TIER 3 (Architectural Quality): HIGHLANDER, Elegance, Verisimilitude
+
 Every architectural decision should trace back to these principles. When in doubt, return to: **Does this create impossible choices through resource scarcity while maintaining perfect information and forward progress?**
 
 If yes, the design is sound. If no, reconsider.
+
+**When principles conflict:** Use tier priority. Higher tier wins. Within same tier, find creative solutions satisfying both. Never violate TIER 1.
