@@ -3,6 +3,6 @@
 /// </summary>
 public class NavigationPayloadDTO
 {
-public string DestinationId { get; set; }
-public bool AutoTriggerScene { get; set; } = false;
+    public string DestinationId { get; set; }
+    public bool AutoTriggerScene { get; set; } = false;
 }

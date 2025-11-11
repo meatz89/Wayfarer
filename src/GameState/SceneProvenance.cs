@@ -30,24 +30,24 @@
 /// </remarks>
 public record SceneProvenance
 {
-/// <summary>
-/// Scene ID that created this resource
-/// References Scene.Id in GameWorld.Scenes
-/// </summary>
-public string SceneId { get; init; }
+    /// <summary>
+    /// Scene ID that created this resource
+    /// References Scene.Id in GameWorld.Scenes
+    /// </summary>
+    public string SceneId { get; init; }
 
-/// <summary>
-/// Day when this resource was created (spawned/instantiated)
-/// </summary>
-public int CreatedDay { get; init; }
+    /// <summary>
+    /// Day when this resource was created (spawned/instantiated)
+    /// </summary>
+    public int CreatedDay { get; init; }
 
-/// <summary>
-/// Time block when this resource was created
-/// </summary>
-public TimeBlocks CreatedTimeBlock { get; init; }
+    /// <summary>
+    /// Time block when this resource was created
+    /// </summary>
+    public TimeBlocks CreatedTimeBlock { get; init; }
 
-/// <summary>
-/// Segment within time block when this resource was created (1-4)
-/// </summary>
-public int CreatedSegment { get; init; }
+    /// <summary>
+    /// Segment within time block when this resource was created (1-4)
+    /// </summary>
+    public int CreatedSegment { get; init; }
 }

@@ -14,7 +14,7 @@
 /// </summary>
 public enum EnvironmentQuality
 {
-Basic,     // Rough, uncomfortable, minimal amenities (1x restoration)
-Standard,  // Comfortable, adequate amenities (2x restoration)
-Premium    // Luxurious, exceptional amenities, ideal conditions (3x restoration)
+    Basic,     // Rough, uncomfortable, minimal amenities (1x restoration)
+    Standard,  // Comfortable, adequate amenities (2x restoration)
+    Premium    // Luxurious, exceptional amenities, ideal conditions (3x restoration)
 }

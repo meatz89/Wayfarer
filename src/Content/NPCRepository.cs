@@ -1,221 +1,221 @@
 public class NPCRepository
 {
-private readonly GameWorld _gameWorld;
-private readonly DebugLogger _debugLogger;
-private readonly NPCVisibilityService _visibilityService;
+    private readonly GameWorld _gameWorld;
+    private readonly DebugLogger _debugLogger;
+    private readonly NPCVisibilityService _visibilityService;
 
-public NPCRepository(
-    GameWorld gameWorld,
-    DebugLogger debugLogger,
-    NPCVisibilityService visibilityService)
-{
-    _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-    _debugLogger = debugLogger; // Optional - can be null during initialization, used for debugging
-    _visibilityService = visibilityService ?? throw new ArgumentNullException(nameof(visibilityService));
-
-    if (_gameWorld.GetCharacters() == null)
-    { }
-
-    if (!_gameWorld.GetCharacters().Any())
-    { }
-}
-
-#region Read Methods
-
-/// <summary>
-/// Checks if an NPC should be visible based on registered visibility rules
-/// </summary>
-private bool IsNPCVisible(NPC npc)
-{
-    return _visibilityService.IsNPCVisible(npc.ID);
-}
-
-/// <summary>
-/// Filters a list of NPCs based on visibility rules
-/// </summary>
-private List<NPC> FilterByVisibility(List<NPC> npcs)
-{
-    return _visibilityService.FilterVisibleNPCs(npcs);
-}
-
-public NPC GetById(string id)
-{
-    List<NPC> characters = _gameWorld.GetCharacters();
-    if (characters == null)
+    public NPCRepository(
+        GameWorld gameWorld,
+        DebugLogger debugLogger,
+        NPCVisibilityService visibilityService)
     {
-        throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
+        _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+        _debugLogger = debugLogger; // Optional - can be null during initialization, used for debugging
+        _visibilityService = visibilityService ?? throw new ArgumentNullException(nameof(visibilityService));
+
+        if (_gameWorld.GetCharacters() == null)
+        { }
+
+        if (!_gameWorld.GetCharacters().Any())
+        { }
     }
 
-    NPC? npc = characters.FirstOrDefault(n => n.ID == id);
-    if (npc != null && !IsNPCVisible(npc))
-        return null;
+    #region Read Methods
 
-    return npc;
-}
-
-public NPC GetByName(string name)
-{
-    List<NPC> characters = _gameWorld.GetCharacters();
-    if (characters == null)
+    /// <summary>
+    /// Checks if an NPC should be visible based on registered visibility rules
+    /// </summary>
+    private bool IsNPCVisible(NPC npc)
     {
-        throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
+        return _visibilityService.IsNPCVisible(npc.ID);
     }
 
-    NPC? npc = characters.FirstOrDefault(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-    if (npc != null && !IsNPCVisible(npc))
-        return null;
-    return npc;
-}
-
-public List<NPC> GetAllNPCs()
-{
-    List<NPC> npcs = _gameWorld.GetCharacters();
-    if (npcs == null)
+    /// <summary>
+    /// Filters a list of NPCs based on visibility rules
+    /// </summary>
+    private List<NPC> FilterByVisibility(List<NPC> npcs)
     {
-        throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
-    }
-    return FilterByVisibility(npcs);
-}
-
-public List<NPC> GetNPCsForLocation(string locationId)
-{
-    List<NPC> npcs = _gameWorld.GetCharacters();
-    if (npcs == null)
-    {
-        throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
-    }
-    List<NPC> locationNpcs = npcs.Where(n => n.Location?.Id == locationId).ToList();
-    return FilterByVisibility(locationNpcs);
-}
-
-public List<NPC> GetAvailableNPCs(TimeBlocks currentTime)
-{
-    List<NPC> npcs = _gameWorld.GetCharacters();
-    if (npcs == null)
-    {
-        throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
-    }
-    List<NPC> availableNpcs = npcs.Where(n => n.IsAvailable(currentTime)).ToList();
-    return FilterByVisibility(availableNpcs);
-}
-
-public List<NPC> GetNPCsByProfession(Professions profession)
-{
-    List<NPC> npcs = _gameWorld.GetCharacters();
-    if (npcs == null)
-    {
-        throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
-    }
-    List<NPC> professionNpcs = npcs.Where(n => n.Profession == profession).ToList();
-    return FilterByVisibility(professionNpcs);
-}
-public List<NPC> GetNPCsForLocationAndTimeDeprecated(string locationId, TimeBlocks currentTime)
-{
-    // DEPRECATED: Use GetNPCsForLocationAndTime instead
-    // This method is kept temporarily for compatibility
-    return GetNPCsForLocationAndTime(locationId, currentTime);
-}
-
-/// <summary>
-/// Gets NPCs available at a specific location and time
-/// </summary>
-public List<NPC> GetNPCsForLocationAndTime(string LocationId, TimeBlocks currentTime)
-{
-    // Return all NPCs at this location, regardless of availability
-    // UI will handle whether they're interactable based on availability
-    List<NPC> npcs = _gameWorld.GetCharacters();
-    if (npcs == null)
-    {
-        throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
+        return _visibilityService.FilterVisibleNPCs(npcs);
     }
 
-    // Optional - debugLogger might be null during initialization
-    _debugLogger?.LogNPCActivity("GetNPCsForLocationAndTime", null,
-        $"Looking for NPCs at location '{LocationId}' during {currentTime}");
-
-    Console.WriteLine($"[NPCRepository] Checking {npcs.Count} NPCs for location '{LocationId}'");
-    foreach (NPC npc in npcs)
+    public NPC GetById(string id)
     {
-        Console.WriteLine($"[NPCRepository]   NPC '{npc.Name}' (ID={npc.ID}) - Location: {(npc.Location != null ? $"'{npc.Location.Id}'" : "NULL")}");
-    }
-
-    List<NPC> npcsAtLocation = npcs.Where(n => n.Location?.Id == LocationId).ToList();
-
-    // Apply visibility filtering
-    npcsAtLocation = FilterByVisibility(npcsAtLocation);
-
-    _debugLogger?.LogDebug($"Found {npcsAtLocation.Count} NPCs at location '{LocationId}': " +
-        string.Join(", ", npcsAtLocation.Select(n => $"{n.Name} ({n.ID}) - Available: {n.IsAvailable(currentTime)}")));
-
-    return npcsAtLocation;
-}
-
-/// <summary>
-/// Gets the primary NPC for a specific location if available at the current time
-/// </summary>
-public NPC GetPrimaryNPCForSpot(string locationId, TimeBlocks currentTime)
-{
-    List<NPC> npcs = _gameWorld.GetCharacters();
-    if (npcs == null)
-    {
-        throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
-    }
-    NPC? npc = npcs.FirstOrDefault(n => n.Location?.Id == locationId && n.IsAvailable(currentTime));
-    if (npc != null && !IsNPCVisible(npc))
-        return null;
-    return npc;
-}
-
-/// <summary>
-/// Get time block service planning data for UI display
-/// </summary>
-public List<TimeBlockServiceInfo> GetTimeBlockServicePlan(string locationId)
-{
-    List<TimeBlockServiceInfo> timeBlockPlan = new List<TimeBlockServiceInfo>();
-    TimeBlocks[] allTimeBlocks = Enum.GetValues<TimeBlocks>();
-    // GetNPCsForLocation already applies visibility filtering
-    List<NPC> locationNPCs = GetNPCsForLocation(locationId);
-
-    foreach (TimeBlocks timeBlock in allTimeBlocks)
-    {
-        List<NPC> availableNPCs = locationNPCs.Where(npc => npc.IsAvailable(timeBlock)).ToList();
-
-        timeBlockPlan.Add(new TimeBlockServiceInfo
+        List<NPC> characters = _gameWorld.GetCharacters();
+        if (characters == null)
         {
-            TimeBlock = timeBlock,
-            AvailableNPCs = availableNPCs,
-            AvailableServices = new(),
-            IsCurrentTimeBlock = timeBlock == _gameWorld.CurrentTimeBlock
-        });
+            throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
+        }
+
+        NPC? npc = characters.FirstOrDefault(n => n.ID == id);
+        if (npc != null && !IsNPCVisible(npc))
+            return null;
+
+        return npc;
     }
 
-    return timeBlockPlan;
-}
-#endregion
-
-#region Write Methods
-
-public void UpdateNPC(NPC npc)
-{
-    List<NPC> npcs = _gameWorld.GetCharacters();
-    if (npcs == null)
+    public NPC GetByName(string name)
     {
-        throw new InvalidOperationException("No NPCs collection exists.");
+        List<NPC> characters = _gameWorld.GetCharacters();
+        if (characters == null)
+        {
+            throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
+        }
+
+        NPC? npc = characters.FirstOrDefault(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+        if (npc != null && !IsNPCVisible(npc))
+            return null;
+        return npc;
     }
 
-    NPC existingNPC = npcs.FirstOrDefault(n => n.ID == npc.ID);
-    if (existingNPC == null)
+    public List<NPC> GetAllNPCs()
     {
-        throw new InvalidOperationException($"NPC with ID '{npc.ID}' not found.");
+        List<NPC> npcs = _gameWorld.GetCharacters();
+        if (npcs == null)
+        {
+            throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
+        }
+        return FilterByVisibility(npcs);
     }
 
-    int index = npcs.IndexOf(existingNPC);
-    npcs[index] = npc;
-}
+    public List<NPC> GetNPCsForLocation(string locationId)
+    {
+        List<NPC> npcs = _gameWorld.GetCharacters();
+        if (npcs == null)
+        {
+            throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
+        }
+        List<NPC> locationNpcs = npcs.Where(n => n.Location?.Id == locationId).ToList();
+        return FilterByVisibility(locationNpcs);
+    }
 
-#endregion
+    public List<NPC> GetAvailableNPCs(TimeBlocks currentTime)
+    {
+        List<NPC> npcs = _gameWorld.GetCharacters();
+        if (npcs == null)
+        {
+            throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
+        }
+        List<NPC> availableNpcs = npcs.Where(n => n.IsAvailable(currentTime)).ToList();
+        return FilterByVisibility(availableNpcs);
+    }
 
-#region Request Card Resolution
+    public List<NPC> GetNPCsByProfession(Professions profession)
+    {
+        List<NPC> npcs = _gameWorld.GetCharacters();
+        if (npcs == null)
+        {
+            throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
+        }
+        List<NPC> professionNpcs = npcs.Where(n => n.Profession == profession).ToList();
+        return FilterByVisibility(professionNpcs);
+    }
+    public List<NPC> GetNPCsForLocationAndTimeDeprecated(string locationId, TimeBlocks currentTime)
+    {
+        // DEPRECATED: Use GetNPCsForLocationAndTime instead
+        // This method is kept temporarily for compatibility
+        return GetNPCsForLocationAndTime(locationId, currentTime);
+    }
 
-#endregion
+    /// <summary>
+    /// Gets NPCs available at a specific location and time
+    /// </summary>
+    public List<NPC> GetNPCsForLocationAndTime(string LocationId, TimeBlocks currentTime)
+    {
+        // Return all NPCs at this location, regardless of availability
+        // UI will handle whether they're interactable based on availability
+        List<NPC> npcs = _gameWorld.GetCharacters();
+        if (npcs == null)
+        {
+            throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
+        }
+
+        // Optional - debugLogger might be null during initialization
+        _debugLogger?.LogNPCActivity("GetNPCsForLocationAndTime", null,
+            $"Looking for NPCs at location '{LocationId}' during {currentTime}");
+
+        Console.WriteLine($"[NPCRepository] Checking {npcs.Count} NPCs for location '{LocationId}'");
+        foreach (NPC npc in npcs)
+        {
+            Console.WriteLine($"[NPCRepository]   NPC '{npc.Name}' (ID={npc.ID}) - Location: {(npc.Location != null ? $"'{npc.Location.Id}'" : "NULL")}");
+        }
+
+        List<NPC> npcsAtLocation = npcs.Where(n => n.Location?.Id == LocationId).ToList();
+
+        // Apply visibility filtering
+        npcsAtLocation = FilterByVisibility(npcsAtLocation);
+
+        _debugLogger?.LogDebug($"Found {npcsAtLocation.Count} NPCs at location '{LocationId}': " +
+            string.Join(", ", npcsAtLocation.Select(n => $"{n.Name} ({n.ID}) - Available: {n.IsAvailable(currentTime)}")));
+
+        return npcsAtLocation;
+    }
+
+    /// <summary>
+    /// Gets the primary NPC for a specific location if available at the current time
+    /// </summary>
+    public NPC GetPrimaryNPCForSpot(string locationId, TimeBlocks currentTime)
+    {
+        List<NPC> npcs = _gameWorld.GetCharacters();
+        if (npcs == null)
+        {
+            throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
+        }
+        NPC? npc = npcs.FirstOrDefault(n => n.Location?.Id == locationId && n.IsAvailable(currentTime));
+        if (npc != null && !IsNPCVisible(npc))
+            return null;
+        return npc;
+    }
+
+    /// <summary>
+    /// Get time block service planning data for UI display
+    /// </summary>
+    public List<TimeBlockServiceInfo> GetTimeBlockServicePlan(string locationId)
+    {
+        List<TimeBlockServiceInfo> timeBlockPlan = new List<TimeBlockServiceInfo>();
+        TimeBlocks[] allTimeBlocks = Enum.GetValues<TimeBlocks>();
+        // GetNPCsForLocation already applies visibility filtering
+        List<NPC> locationNPCs = GetNPCsForLocation(locationId);
+
+        foreach (TimeBlocks timeBlock in allTimeBlocks)
+        {
+            List<NPC> availableNPCs = locationNPCs.Where(npc => npc.IsAvailable(timeBlock)).ToList();
+
+            timeBlockPlan.Add(new TimeBlockServiceInfo
+            {
+                TimeBlock = timeBlock,
+                AvailableNPCs = availableNPCs,
+                AvailableServices = new(),
+                IsCurrentTimeBlock = timeBlock == _gameWorld.CurrentTimeBlock
+            });
+        }
+
+        return timeBlockPlan;
+    }
+    #endregion
+
+    #region Write Methods
+
+    public void UpdateNPC(NPC npc)
+    {
+        List<NPC> npcs = _gameWorld.GetCharacters();
+        if (npcs == null)
+        {
+            throw new InvalidOperationException("No NPCs collection exists.");
+        }
+
+        NPC existingNPC = npcs.FirstOrDefault(n => n.ID == npc.ID);
+        if (existingNPC == null)
+        {
+            throw new InvalidOperationException($"NPC with ID '{npc.ID}' not found.");
+        }
+
+        int index = npcs.IndexOf(existingNPC);
+        npcs[index] = npc;
+    }
+
+    #endregion
+
+    #region Request Card Resolution
+
+    #endregion
 }

@@ -3,10 +3,10 @@
 /// </summary>
 public enum StateCategory
 {
-/// <summary>Affects physical capabilities (health, stamina, equipment)</summary>
-Physical,
-/// <summary>Affects mental capabilities (focus, decision-making, observation)</summary>
-Mental,
-/// <summary>Affects social interactions (reputation, relationships, trust)</summary>
-Social
+    /// <summary>Affects physical capabilities (health, stamina, equipment)</summary>
+    Physical,
+    /// <summary>Affects mental capabilities (focus, decision-making, observation)</summary>
+    Mental,
+    /// <summary>Affects social interactions (reputation, relationships, trust)</summary>
+    Social
 }

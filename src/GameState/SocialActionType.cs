@@ -5,13 +5,13 @@
 /// </summary>
 public enum SocialActionType
 {
-/// <summary>
-/// Listen action: Drawing cards during conversation = -2 Cadence
-/// </summary>
-Listen,
+    /// <summary>
+    /// Listen action: Drawing cards during conversation = -2 Cadence
+    /// </summary>
+    Listen,
 
-/// <summary>
-/// Speak action: Playing cards during conversation = +1 Cadence
-/// </summary>
-Speak
+    /// <summary>
+    /// Speak action: Playing cards during conversation = +1 Cadence
+    /// </summary>
+    Speak
 }

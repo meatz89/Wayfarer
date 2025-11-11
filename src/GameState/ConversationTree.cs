@@ -4,23 +4,23 @@
 /// </summary>
 public class ConversationTree
 {
-public string Id { get; set; }
-public string Name { get; set; }
-public string Description { get; set; }
-public NPC Npc { get; set; }  // Resolved during parsing
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public NPC Npc { get; set; }  // Resolved during parsing
 
-// Availability conditions
-public int MinimumRelationship { get; set; }
-public List<string> RequiredKnowledge { get; set; } = new List<string>();
-public List<TimeBlocks> AvailableTimeBlocks { get; set; } = new List<TimeBlocks>();
+    // Availability conditions
+    public int MinimumRelationship { get; set; }
+    public List<string> RequiredKnowledge { get; set; } = new List<string>();
+    public List<TimeBlocks> AvailableTimeBlocks { get; set; } = new List<TimeBlocks>();
 
-// Tree structure
-public List<DialogueNode> Nodes { get; set; } = new List<DialogueNode>();
-public string StartingNodeId { get; set; }
+    // Tree structure
+    public List<DialogueNode> Nodes { get; set; } = new List<DialogueNode>();
+    public string StartingNodeId { get; set; }
 
-// Lifecycle
-public bool IsRepeatable { get; set; }
-public bool IsCompleted { get; set; }
+    // Lifecycle
+    public bool IsRepeatable { get; set; }
+    public bool IsCompleted { get; set; }
 }
 
 /// <summary>
@@ -29,9 +29,9 @@ public bool IsCompleted { get; set; }
 /// </summary>
 public class DialogueNode
 {
-public string Id { get; set; }
-public string NpcDialogue { get; set; }
-public List<DialogueResponse> Responses { get; set; } = new List<DialogueResponse>();
+    public string Id { get; set; }
+    public string NpcDialogue { get; set; }
+    public List<DialogueResponse> Responses { get; set; } = new List<DialogueResponse>();
 }
 
 /// <summary>
@@ -40,24 +40,24 @@ public List<DialogueResponse> Responses { get; set; } = new List<DialogueRespons
 /// </summary>
 public class DialogueResponse
 {
-public string Id { get; set; }
-public string ResponseText { get; set; }
+    public string Id { get; set; }
+    public string ResponseText { get; set; }
 
-// Costs
-public int FocusCost { get; set; }
-public int TimeCost { get; set; }  // Segments
+    // Costs
+    public int FocusCost { get; set; }
+    public int TimeCost { get; set; }  // Segments
 
-// Requirements
-public PlayerStatType? RequiredStat { get; set; }
-public int? RequiredStatLevel { get; set; }
+    // Requirements
+    public PlayerStatType? RequiredStat { get; set; }
+    public int? RequiredStatLevel { get; set; }
 
-// Outcomes
-public string NextNodeId { get; set; }  // null = ends conversation
-public int RelationshipDelta { get; set; }
-public List<string> GrantedKnowledge { get; set; } = new List<string>();
-public List<string> SpawnedSituationIds { get; set; } = new List<string>();
+    // Outcomes
+    public string NextNodeId { get; set; }  // null = ends conversation
+    public int RelationshipDelta { get; set; }
+    public List<string> GrantedKnowledge { get; set; } = new List<string>();
+    public List<string> SpawnedSituationIds { get; set; } = new List<string>();
 
-// Escalation to tactical Social challenge
-public bool EscalatesToSocialChallenge { get; set; }
-public string SocialChallengeSituationId { get; set; }  // If escalates
+    // Escalation to tactical Social challenge
+    public bool EscalatesToSocialChallenge { get; set; }
+    public string SocialChallengeSituationId { get; set; }  // If escalates
 }

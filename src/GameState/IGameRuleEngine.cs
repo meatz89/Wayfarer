@@ -4,17 +4,17 @@
 /// </summary>
 public interface IGameRuleEngine
 {
-// Travel mechanics
-int CalculateTravelStamina(RouteOption route);
-bool CanTravel(Player player, RouteOption route);
+    // Travel mechanics
+    int CalculateTravelStamina(RouteOption route);
+    bool CanTravel(Player player, RouteOption route);
 
-// Time management
-TimeBlocks GetTimeBlock(int segment);
-int GetActiveSegmentsRemaining(int currentSegment);
-bool IsNPCAvailable(NPC npc, TimeBlocks timeBlock);
+    // Time management
+    TimeBlocks GetTimeBlock(int segment);
+    int GetActiveSegmentsRemaining(int currentSegment);
+    bool IsNPCAvailable(NPC npc, TimeBlocks timeBlock);
 
-// Stamina and recovery
-int CalculateRestRecovery(string lodgingType);
-int CalculateMaxStamina(Player player);
+    // Stamina and recovery
+    int CalculateRestRecovery(string lodgingType);
+    int CalculateMaxStamina(Player player);
 
 }

@@ -2,63 +2,63 @@
 
 public class StreamingContentState
 {
-public string CurrentText { get; private set; } = string.Empty;
-public bool IsStreaming { get; private set; }
-public float StreamProgress { get; private set; }
-public bool HasError { get; private set; }
-public string ErrorMessage { get; private set; }
+    public string CurrentText { get; private set; } = string.Empty;
+    public bool IsStreaming { get; private set; }
+    public float StreamProgress { get; private set; }
+    public bool HasError { get; private set; }
+    public string ErrorMessage { get; private set; }
 
-private const int ESTIMATED_TOTAL_TOKENS = GameConstants.UI.ESTIMATED_STREAMING_TOKENS;
+    private const int ESTIMATED_TOTAL_TOKENS = GameConstants.UI.ESTIMATED_STREAMING_TOKENS;
 
-public StreamingContentState()
-{
-    IsStreaming = false;
-    StreamProgress = 0;
-    HasError = false;
-    ErrorMessage = string.Empty;
-}
+    public StreamingContentState()
+    {
+        IsStreaming = false;
+        StreamProgress = 0;
+        HasError = false;
+        ErrorMessage = string.Empty;
+    }
 
-public void BeginStreaming()
-{
-    CurrentText = string.Empty;
-    IsStreaming = true;
-    StreamProgress = 0;
-    HasError = false;
-    ErrorMessage = string.Empty;
-}
+    public void BeginStreaming()
+    {
+        CurrentText = string.Empty;
+        IsStreaming = true;
+        StreamProgress = 0;
+        HasError = false;
+        ErrorMessage = string.Empty;
+    }
 
-public void UpdateStreamingText(string partialText)
-{
-    if (!IsStreaming) return;
+    public void UpdateStreamingText(string partialText)
+    {
+        if (!IsStreaming) return;
 
-    CurrentText = partialText;
+        CurrentText = partialText;
 
-    // Estimate progress based on token count (approximate)
-    int estimatedTokens = partialText.Length / GameConstants.UI.CHARS_PER_TOKEN_ESTIMATE; // Rough estimate
-    StreamProgress = Math.Min(0.95f, (float)estimatedTokens / ESTIMATED_TOTAL_TOKENS);
-}
+        // Estimate progress based on token count (approximate)
+        int estimatedTokens = partialText.Length / GameConstants.UI.CHARS_PER_TOKEN_ESTIMATE; // Rough estimate
+        StreamProgress = Math.Min(0.95f, (float)estimatedTokens / ESTIMATED_TOTAL_TOKENS);
+    }
 
-public void CompleteStreaming(string completeText)
-{
-    if (string.IsNullOrEmpty(completeText)) return;
+    public void CompleteStreaming(string completeText)
+    {
+        if (string.IsNullOrEmpty(completeText)) return;
 
-    CurrentText = completeText;
-    IsStreaming = false;
-    StreamProgress = 1.0f;
-}
+        CurrentText = completeText;
+        IsStreaming = false;
+        StreamProgress = 1.0f;
+    }
 
-public void SetError(string message)
-{
-    HasError = true;
-    ErrorMessage = message;
-    IsStreaming = false;
-    StreamProgress = 1.0f;
-}
+    public void SetError(string message)
+    {
+        HasError = true;
+        ErrorMessage = message;
+        IsStreaming = false;
+        StreamProgress = 1.0f;
+    }
 
-public void SetFullText(string text)
-{
-    CurrentText = text;
-    IsStreaming = false;
-    StreamProgress = 1.0f;
-}
+    public void SetFullText(string text)
+    {
+        CurrentText = text;
+        IsStreaming = false;
+        StreamProgress = 1.0f;
+    }
 }

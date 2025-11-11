@@ -3,6 +3,6 @@
 /// </summary>
 public enum GameMode
 {
-MainGame = 0,
-Tutorial = 1
+    MainGame = 0,
+    Tutorial = 1
 }

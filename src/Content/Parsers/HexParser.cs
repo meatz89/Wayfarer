@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 
-{
 /// <summary>
 /// Coordinate pair for hex validation - replaces tuple
 /// </summary>
@@ -291,5 +290,4 @@ public static class HexParser
                 $"or generated at scene finalization for dependent locations.");
         }
     }
-}
 }

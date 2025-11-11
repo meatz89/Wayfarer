@@ -6,7 +6,7 @@
 /// </summary>
 public enum CardTier
 {
-Foundation,  // Generate builder resource (Initiative/Attention/Position), no victory resource
-Standard,    // Cost builder resource, generate victory resource (Momentum/Progress/Breakthrough)
-Decisive     // Unlocked by Understanding/depth tiers, powerful effects, high costs
+    Foundation,  // Generate builder resource (Initiative/Attention/Position), no victory resource
+    Standard,    // Cost builder resource, generate victory resource (Momentum/Progress/Breakthrough)
+    Decisive     // Unlocked by Understanding/depth tiers, powerful effects, high costs
 }

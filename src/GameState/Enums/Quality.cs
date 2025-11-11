@@ -14,8 +14,8 @@
 /// </summary>
 public enum Quality
 {
-Basic,      // Tier 1: Cheap, functional, minimal (0.6x cost, 0.8x benefit)
-Standard,   // Tier 2: Average, reliable, ordinary (1.0x cost, 1.0x benefit)
-Premium,    // Tier 3: High quality, comfortable, notable (1.6x cost, 1.4x benefit)
-Luxury      // Tier 4+: Exceptional, opulent, finest (2.4x cost, 2.0x benefit)
+    Basic,      // Tier 1: Cheap, functional, minimal (0.6x cost, 0.8x benefit)
+    Standard,   // Tier 2: Average, reliable, ordinary (1.0x cost, 1.0x benefit)
+    Premium,    // Tier 3: High quality, comfortable, notable (1.6x cost, 1.4x benefit)
+    Luxury      // Tier 4+: Exceptional, opulent, finest (2.4x cost, 2.0x benefit)
 }

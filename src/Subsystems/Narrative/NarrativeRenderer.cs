@@ -6,370 +6,370 @@
 /// </summary>
 public class NarrativeRenderer
 {
-/// <summary>
-/// Convert categorical template to human-readable text
-/// </summary>
-public string RenderTemplate(string template)
-{
-    if (string.IsNullOrEmpty(template))
-        return "...";
-
-    List<TemplatePart> parts = ParseTemplate(template);
-    List<string> rendered = new List<string>();
-
-    foreach (TemplatePart part in parts)
+    /// <summary>
+    /// Convert categorical template to human-readable text
+    /// </summary>
+    public string RenderTemplate(string template)
     {
-        string text = RenderCategory(part.Category, part.Value);
-        if (!string.IsNullOrEmpty(text))
-            rendered.Add(text);
+        if (string.IsNullOrEmpty(template))
+            return "...";
+
+        List<TemplatePart> parts = ParseTemplate(template);
+        List<string> rendered = new List<string>();
+
+        foreach (TemplatePart part in parts)
+        {
+            string text = RenderCategory(part.Category, part.Value);
+            if (!string.IsNullOrEmpty(text))
+                rendered.Add(text);
+        }
+
+        if (!rendered.Any())
+            return "...";
+
+        return CombineParts(rendered);
     }
 
-    if (!rendered.Any())
-        return "...";
-
-    return CombineParts(rendered);
-}
-
-/// <summary>
-/// Switch-based category rendering (replaces Dictionary<string, Func<>> pattern).
-/// Routes category name to appropriate render method.
-/// </summary>
-private string RenderCategory(string category, string value)
-{
-    return category switch
+    /// <summary>
+    /// Switch-based category rendering (replaces Dictionary<string, Func<>> pattern).
+    /// Routes category name to appropriate render method.
+    /// </summary>
+    private string RenderCategory(string category, string value)
     {
-        "greeting" => RenderGreeting(value),
-        "emotional" => RenderEmotional(value),
-        "gesture" => RenderGesture(value),
-        "stance" => RenderStance(value),
-        "urgency" => RenderUrgency(value),
-        "activity" => RenderActivity(value),
-        "posture" => RenderPosture(value),
-        "behavior" => RenderBehavior(value),
-        "query" => RenderQuery(value),
-        "demand" => RenderDemand(value),
-        "commitment" => RenderCommitment(value),
-        "topic" => RenderTopic(value),
-        "reaction" => RenderReaction(value),
-        "response" => RenderResponse(value),
-        "denial" => RenderDenial(value),
-        "threat" => RenderThreat(value),
-        "consequence" => RenderConsequence(value),
-        "plea" => RenderPlea(value),
-        "deadline" => RenderDeadline(value),
-        "fate" => RenderFate(value),
-        _ => value // Unknown category - passthrough
-    };
-}
-
-private List<TemplatePart> ParseTemplate(string template)
-{
-    List<TemplatePart> parts = new List<TemplatePart>();
-    string[] segments = template.Split(' ');
-
-    foreach (string segment in segments)
-    {
-        int colonIndex = segment.IndexOf(':');
-        if (colonIndex > 0)
+        return category switch
         {
-            parts.Add(new TemplatePart
-            {
-                Category = segment.Substring(0, colonIndex),
-                Value = segment.Substring(colonIndex + 1)
-            });
-        }
+            "greeting" => RenderGreeting(value),
+            "emotional" => RenderEmotional(value),
+            "gesture" => RenderGesture(value),
+            "stance" => RenderStance(value),
+            "urgency" => RenderUrgency(value),
+            "activity" => RenderActivity(value),
+            "posture" => RenderPosture(value),
+            "behavior" => RenderBehavior(value),
+            "query" => RenderQuery(value),
+            "demand" => RenderDemand(value),
+            "commitment" => RenderCommitment(value),
+            "topic" => RenderTopic(value),
+            "reaction" => RenderReaction(value),
+            "response" => RenderResponse(value),
+            "denial" => RenderDenial(value),
+            "threat" => RenderThreat(value),
+            "consequence" => RenderConsequence(value),
+            "plea" => RenderPlea(value),
+            "deadline" => RenderDeadline(value),
+            "fate" => RenderFate(value),
+            _ => value // Unknown category - passthrough
+        };
     }
 
-    return parts;
-}
-
-private string CombineParts(List<string> parts)
-{
-    if (parts.Count == 1)
-        return parts[0].EndsWith("!") || parts[0].EndsWith("?") || parts[0].EndsWith(".")
-            ? parts[0]
-            : parts[0] + ".";
-
-    string result = "";
-    for (int i = 0; i < parts.Count; i++)
+    private List<TemplatePart> ParseTemplate(string template)
     {
-        if (i == 0)
+        List<TemplatePart> parts = new List<TemplatePart>();
+        string[] segments = template.Split(' ');
+
+        foreach (string segment in segments)
         {
-            result = parts[i];
-        }
-        else
-        {
-            if (result.EndsWith(".") || result.EndsWith("!") || result.EndsWith("?"))
+            int colonIndex = segment.IndexOf(':');
+            if (colonIndex > 0)
             {
-                result += " " + parts[i];
+                parts.Add(new TemplatePart
+                {
+                    Category = segment.Substring(0, colonIndex),
+                    Value = segment.Substring(colonIndex + 1)
+                });
+            }
+        }
+
+        return parts;
+    }
+
+    private string CombineParts(List<string> parts)
+    {
+        if (parts.Count == 1)
+            return parts[0].EndsWith("!") || parts[0].EndsWith("?") || parts[0].EndsWith(".")
+                ? parts[0]
+                : parts[0] + ".";
+
+        string result = "";
+        for (int i = 0; i < parts.Count; i++)
+        {
+            if (i == 0)
+            {
+                result = parts[i];
             }
             else
             {
-                result += ". " + parts[i];
+                if (result.EndsWith(".") || result.EndsWith("!") || result.EndsWith("?"))
+                {
+                    result += " " + parts[i];
+                }
+                else
+                {
+                    result += ". " + parts[i];
+                }
             }
         }
+
+        return result;
     }
 
-    return result;
-}
+    // Category renderers - convert categorical values to text
 
-// Category renderers - convert categorical values to text
-
-private string RenderGreeting(string value)
-{
-    return value switch
+    private string RenderGreeting(string value)
     {
-        "blessing" => "blessings upon you",
-        "acknowledgment" => "ah, you're back",
-        "commercial" => "good day for business",
-        "formal" => "greetings",
-        "simple" => "well met",
-        "polite" => "good day",
-        _ => "hello"
-    };
-}
+        return value switch
+        {
+            "blessing" => "blessings upon you",
+            "acknowledgment" => "ah, you're back",
+            "commercial" => "good day for business",
+            "formal" => "greetings",
+            "simple" => "well met",
+            "polite" => "good day",
+            _ => "hello"
+        };
+    }
 
-private string RenderEmotional(string value)
-{
-    return value switch
+    private string RenderEmotional(string value)
     {
-        "disconnected" => "desperation fills every word",
-        "panicked" => "panic rises in their voice",
-        "worried" => "worry creases their brow",
-        "cautious" => "caution marks every movement",
-        "stressed" => "stress shows in their bearing",
-        "glad" => "gladness brightens their face",
-        "trusting" => "trust shows in their eyes",
-        "pleased" => "pleasure evident in their manner",
-        "respectful" => "respect colors their tone",
-        "honored" => "honor fills their bearing",
-        "blessed" => "feeling blessed by your focus",
-        "surprised" => "surprise crosses their features",
-        "satisfied" => "satisfaction evident",
-        "impressed" => "clearly impressed",
-        "hopeful" => "hope kindles in their eyes",
-        "intrigued" => "intrigue sharpens their gaze",
-        "excited" => "excitement builds",
-        "attentive" => "complete attention given",
-        "energized" => "energy surges through them",
-        "overwhelmed" => "overwhelm shows clearly",
-        "processing" => "processing the information",
-        "calculating" => "calculating rapidly",
-        "composed" => "maintaining composure",
-        "conflicted" => "conflict wars within",
-        "neutral" => "steady and calm",
-        _ => "their mood shifts"
-    };
-}
+        return value switch
+        {
+            "disconnected" => "desperation fills every word",
+            "panicked" => "panic rises in their voice",
+            "worried" => "worry creases their brow",
+            "cautious" => "caution marks every movement",
+            "stressed" => "stress shows in their bearing",
+            "glad" => "gladness brightens their face",
+            "trusting" => "trust shows in their eyes",
+            "pleased" => "pleasure evident in their manner",
+            "respectful" => "respect colors their tone",
+            "honored" => "honor fills their bearing",
+            "blessed" => "feeling blessed by your focus",
+            "surprised" => "surprise crosses their features",
+            "satisfied" => "satisfaction evident",
+            "impressed" => "clearly impressed",
+            "hopeful" => "hope kindles in their eyes",
+            "intrigued" => "intrigue sharpens their gaze",
+            "excited" => "excitement builds",
+            "attentive" => "complete attention given",
+            "energized" => "energy surges through them",
+            "overwhelmed" => "overwhelm shows clearly",
+            "processing" => "processing the information",
+            "calculating" => "calculating rapidly",
+            "composed" => "maintaining composure",
+            "conflicted" => "conflict wars within",
+            "neutral" => "steady and calm",
+            _ => "their mood shifts"
+        };
+    }
 
-private string RenderGesture(string value)
-{
-    return value switch
+    private string RenderGesture(string value)
     {
-        "clutching_letter" => "clutching a sealed letter",
-        "white_knuckles" => "knuckles white with tension",
-        "pacing" => "pacing restlessly",
-        "sweating" => "sweat beading on their brow",
-        "counting_coins" => "fingers moving as if counting coins",
-        "ledger_clutching" => "gripping ledger pages",
-        "whispering" => "voice dropping to whispers",
-        "looking_around" => "eyes darting about nervously",
-        "deference" => "bowing slightly",
-        _ => "gesturing"
-    };
-}
+        return value switch
+        {
+            "clutching_letter" => "clutching a sealed letter",
+            "white_knuckles" => "knuckles white with tension",
+            "pacing" => "pacing restlessly",
+            "sweating" => "sweat beading on their brow",
+            "counting_coins" => "fingers moving as if counting coins",
+            "ledger_clutching" => "gripping ledger pages",
+            "whispering" => "voice dropping to whispers",
+            "looking_around" => "eyes darting about nervously",
+            "deference" => "bowing slightly",
+            _ => "gesturing"
+        };
+    }
 
-private string RenderStance(string value)
-{
-    return value switch
+    private string RenderStance(string value)
     {
-        "withdrawn" => "withdrawn into themselves",
-        "suspicious" => "suspicion in every line",
-        "impatient" => "impatience radiating",
-        "dismissive" => "dismissal in their bearing",
-        "direct" => "direct and unflinching",
-        "hostile" => "hostility crackling",
-        "attention" => "standing at attention",
-        _ => "standing"
-    };
-}
+        return value switch
+        {
+            "withdrawn" => "withdrawn into themselves",
+            "suspicious" => "suspicion in every line",
+            "impatient" => "impatience radiating",
+            "dismissive" => "dismissal in their bearing",
+            "direct" => "direct and unflinching",
+            "hostile" => "hostility crackling",
+            "attention" => "standing at attention",
+            _ => "standing"
+        };
+    }
 
-private string RenderUrgency(string value)
-{
-    return value switch
+    private string RenderUrgency(string value)
     {
-        "critical" => "time running out",
-        "urgent" => "urgency pressing",
-        "pressing" => "matter pressing",
-        "moderate" => "steady need",
-        "immediate_crisis" => "crisis upon us",
-        "pressing_need" => "need pressing hard",
-        "steady_concern" => "concern building",
-        "manageable_pace" => "pace manageable",
-        _ => $"{value} hours remain"
-    };
-}
+        return value switch
+        {
+            "critical" => "time running out",
+            "urgent" => "urgency pressing",
+            "pressing" => "matter pressing",
+            "moderate" => "steady need",
+            "immediate_crisis" => "crisis upon us",
+            "pressing_need" => "need pressing hard",
+            "steady_concern" => "concern building",
+            "manageable_pace" => "pace manageable",
+            _ => $"{value} hours remain"
+        };
+    }
 
-private string RenderActivity(string value)
-{
-    return value switch
+    private string RenderActivity(string value)
     {
-        "documenting" => "scratching notes",
-        "arranging_goods" => "arranging wares",
-        "polishing_glasses" => "polishing glass",
-        "reviewing_correspondence" => "reading letters",
-        "studying_texts" => "studying intently",
-        "general" => "busy with tasks",
-        _ => "working"
-    };
-}
+        return value switch
+        {
+            "documenting" => "scratching notes",
+            "arranging_goods" => "arranging wares",
+            "polishing_glasses" => "polishing glass",
+            "reviewing_correspondence" => "reading letters",
+            "studying_texts" => "studying intently",
+            "general" => "busy with tasks",
+            _ => "working"
+        };
+    }
 
-private string RenderPosture(string value)
-{
-    return value switch
+    private string RenderPosture(string value)
     {
-        "hunched_over" => "hunched over work",
-        _ => "positioned"
-    };
-}
+        return value switch
+        {
+            "hunched_over" => "hunched over work",
+            _ => "positioned"
+        };
+    }
 
-private string RenderBehavior(string value)
-{
-    return value switch
+    private string RenderBehavior(string value)
     {
-        "glancing_nervously" => "glancing about nervously",
-        "glaring" => "glaring fiercely",
-        "watchful" => "watching carefully",
-        _ => "observing"
-    };
-}
+        return value switch
+        {
+            "glancing_nervously" => "glancing about nervously",
+            "glaring" => "glaring fiercely",
+            "watchful" => "watching carefully",
+            _ => "observing"
+        };
+    }
 
-private string RenderQuery(string value)
-{
-    return value switch
+    private string RenderQuery(string value)
     {
-        "wellbeing" => "how fare you?",
-        "focus_reason" => "what brings you here?",
-        "purpose" => "what do you need?",
-        "information_sought" => "what knowledge do you seek?",
-        "business_interest" => "looking to trade?",
-        "general" => "yes?",
-        _ => "what?"
-    };
-}
+        return value switch
+        {
+            "wellbeing" => "how fare you?",
+            "focus_reason" => "what brings you here?",
+            "purpose" => "what do you need?",
+            "information_sought" => "what knowledge do you seek?",
+            "business_interest" => "looking to trade?",
+            "general" => "yes?",
+            _ => "what?"
+        };
+    }
 
-private string RenderDemand(string value)
-{
-    return value switch
+    private string RenderDemand(string value)
     {
-        "state_business" => "state your business",
-        "time_is_money" => "time is coin",
-        "plain_business" => "speak plainly",
-        "immediate_departure" => "leave. Now",
-        _ => "speak"
-    };
-}
+        return value switch
+        {
+            "state_business" => "state your business",
+            "time_is_money" => "time is coin",
+            "plain_business" => "speak plainly",
+            "immediate_departure" => "leave. Now",
+            _ => "speak"
+        };
+    }
 
-private string RenderCommitment(string value)
-{
-    return value switch
+    private string RenderCommitment(string value)
     {
-        "assistance" => "I will help",
-        "immediate" => "right away",
-        _ => "I promise"
-    };
-}
+        return value switch
+        {
+            "assistance" => "I will help",
+            "immediate" => "right away",
+            _ => "I promise"
+        };
+    }
 
-private string RenderTopic(string value)
-{
-    return value switch
+    private string RenderTopic(string value)
     {
-        "diplomacy" => "trade matters",
-        _ => "this matter"
-    };
-}
+        return value switch
+        {
+            "diplomacy" => "trade matters",
+            _ => "this matter"
+        };
+    }
 
-private string RenderReaction(string value)
-{
-    return value switch
+    private string RenderReaction(string value)
     {
-        "grateful" => "gratitude floods through",
-        "surprised" => "surprise evident",
-        "pleased" => "pleasure shows",
-        "disconnected_hope" => "disconnected hope kindles",
-        "engaged" => "engagement sharpens",
-        _ => "reacting"
-    };
-}
+        return value switch
+        {
+            "grateful" => "gratitude floods through",
+            "surprised" => "surprise evident",
+            "pleased" => "pleasure shows",
+            "disconnected_hope" => "disconnected hope kindles",
+            "engaged" => "engagement sharpens",
+            _ => "reacting"
+        };
+    }
 
-private string RenderResponse(string value)
-{
-    return value switch
+    private string RenderResponse(string value)
     {
-        "slight_relaxation" => "tension eases slightly",
-        "engaged" => "leaning forward with interest",
-        "generic" => "listening",
-        _ => "responding"
-    };
-}
+        return value switch
+        {
+            "slight_relaxation" => "tension eases slightly",
+            "engaged" => "leaning forward with interest",
+            "generic" => "listening",
+            _ => "responding"
+        };
+    }
 
-private string RenderDenial(string value)
-{
-    return value switch
+    private string RenderDenial(string value)
     {
-        "no_understand" => "No, no, no... you don't understand!",
-        _ => "no"
-    };
-}
+        return value switch
+        {
+            "no_understand" => "No, no, no... you don't understand!",
+            _ => "no"
+        };
+    }
 
-private string RenderThreat(string value)
-{
-    return value switch
+    private string RenderThreat(string value)
     {
-        "sunset_departure" => "Lord Blackwood leaves at sunset",
-        _ => "danger looms"
-    };
-}
+        return value switch
+        {
+            "sunset_departure" => "Lord Blackwood leaves at sunset",
+            _ => "danger looms"
+        };
+    }
 
-private string RenderConsequence(string value)
-{
-    return value switch
+    private string RenderConsequence(string value)
     {
-        "marriage_contract" => "If this letter doesn't reach him, my father will sign the marriage contract",
-        _ => "terrible consequences"
-    };
-}
+        return value switch
+        {
+            "marriage_contract" => "If this letter doesn't reach him, my father will sign the marriage contract",
+            _ => "terrible consequences"
+        };
+    }
 
-private string RenderPlea(string value)
-{
-    return value switch
+    private string RenderPlea(string value)
     {
-        "begging" => "Please, I'm begging you!",
-        _ => "please"
-    };
-}
+        return value switch
+        {
+            "begging" => "Please, I'm begging you!",
+            _ => "please"
+        };
+    }
 
-private string RenderDeadline(string value)
-{
-    return value switch
+    private string RenderDeadline(string value)
     {
-        "tonight" => "tonight",
-        _ => "soon"
-    };
-}
+        return value switch
+        {
+            "tonight" => "tonight",
+            _ => "soon"
+        };
+    }
 
-private string RenderFate(string value)
-{
-    return value switch
+    private string RenderFate(string value)
     {
-        "trapped_forever" => "I'll be trapped forever",
-        _ => "doomed"
-    };
-}
+        return value switch
+        {
+            "trapped_forever" => "I'll be trapped forever",
+            _ => "doomed"
+        };
+    }
 
-private class TemplatePart
-{
-    public string Category { get; set; }
-    public string Value { get; set; }
-}
+    private class TemplatePart
+    {
+        public string Category { get; set; }
+        public string Value { get; set; }
+    }
 }

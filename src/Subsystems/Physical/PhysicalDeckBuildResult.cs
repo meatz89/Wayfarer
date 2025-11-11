@@ -4,12 +4,12 @@
 /// </summary>
 public class PhysicalDeckBuildResult
 {
-public List<CardInstance> Deck { get; init; }
-public List<CardInstance> StartingHand { get; init; }
+    public List<CardInstance> Deck { get; init; }
+    public List<CardInstance> StartingHand { get; init; }
 
-public PhysicalDeckBuildResult(List<CardInstance> deck, List<CardInstance> startingHand)
-{
-    Deck = deck;
-    StartingHand = startingHand;
-}
+    public PhysicalDeckBuildResult(List<CardInstance> deck, List<CardInstance> startingHand)
+    {
+        Deck = deck;
+        StartingHand = startingHand;
+    }
 }

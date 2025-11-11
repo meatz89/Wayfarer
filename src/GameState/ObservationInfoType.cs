@@ -1,7 +1,7 @@
 public enum ObservationInfoType
 {
-Transport,
-Timing,
-Secret,
-Location
+    Transport,
+    Timing,
+    Secret,
+    Location
 }

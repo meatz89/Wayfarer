@@ -3,13 +3,13 @@
 
 public enum ResourceType
 {
-Coins,
-Health,
-Hunger,
-TrustToken,
-DiplomacyToken,
-StatusToken,
-ShadowToken,
-Item,
-CarryingCapacity
+    Coins,
+    Health,
+    Hunger,
+    TrustToken,
+    DiplomacyToken,
+    StatusToken,
+    ShadowToken,
+    Item,
+    CarryingCapacity
 }

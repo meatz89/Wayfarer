@@ -256,7 +256,7 @@ namespace Wayfarer.Pages.Components
 
             try
             {
-                PhysicalOutcome outcome = GameFacade.EndPhysicalSession();
+                PhysicalOutcome outcome = await GameFacade.EndPhysicalSession();
 
                 if (outcome != null)
                 {

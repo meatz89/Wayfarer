@@ -4,18 +4,18 @@
 /// </summary>
 public enum PenaltyResolutionType
 {
-/// <summary>
-/// Pay a monetary fine to clear legal penalty states
-/// </summary>
-PayFine,
+    /// <summary>
+    /// Pay a monetary fine to clear legal penalty states
+    /// </summary>
+    PayFine,
 
-/// <summary>
-/// Repay an owed debt to clear social obligation states
-/// </summary>
-RepayDebt,
+    /// <summary>
+    /// Repay an owed debt to clear social obligation states
+    /// </summary>
+    RepayDebt,
 
-/// <summary>
-/// Serve time penalty to clear criminal states
-/// </summary>
-ServeTime
+    /// <summary>
+    /// Serve time penalty to clear criminal states
+    /// </summary>
+    ServeTime
 }

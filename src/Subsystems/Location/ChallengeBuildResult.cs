@@ -4,12 +4,12 @@
 /// </summary>
 public class ChallengeBuildResult
 {
-public List<SituationCardViewModel> AmbientSituations { get; init; }
-public List<SceneWithSituationsViewModel> SceneGroups { get; init; }
+    public List<SituationCardViewModel> AmbientSituations { get; init; }
+    public List<SceneWithSituationsViewModel> SceneGroups { get; init; }
 
-public ChallengeBuildResult(List<SituationCardViewModel> ambientSituations, List<SceneWithSituationsViewModel> sceneGroups)
-{
-    AmbientSituations = ambientSituations;
-    SceneGroups = sceneGroups;
-}
+    public ChallengeBuildResult(List<SituationCardViewModel> ambientSituations, List<SceneWithSituationsViewModel> sceneGroups)
+    {
+        AmbientSituations = ambientSituations;
+        SceneGroups = sceneGroups;
+    }
 }

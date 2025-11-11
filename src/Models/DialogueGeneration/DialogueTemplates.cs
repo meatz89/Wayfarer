@@ -3,11 +3,11 @@
 /// </summary>
 public class DialogueTemplates
 {
-public Dictionary<string, ConnectionStateTemplate> ConnectionStateDialogue { get; set; }
+    public Dictionary<string, ConnectionStateTemplate> ConnectionStateDialogue { get; set; }
 
-public CardDialogueTemplate CardDialogue { get; set; }
+    public CardDialogueTemplate CardDialogue { get; set; }
 
-public NpcDescriptionTemplate NpcDescriptions { get; set; }
+    public NpcDescriptionTemplate NpcDescriptions { get; set; }
 
-public Dictionary<string, Dictionary<string, string>> NarrativeElements { get; set; }
+    public Dictionary<string, Dictionary<string, string>> NarrativeElements { get; set; }
 }

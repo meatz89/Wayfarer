@@ -4,66 +4,66 @@
 /// </summary>
 public class ExchangeProcessor
 {
-private readonly GameWorld _gameWorld;
-private readonly TimeManager _timeManager;
-private readonly MessageSystem _messageSystem;
+    private readonly GameWorld _gameWorld;
+    private readonly TimeManager _timeManager;
+    private readonly MessageSystem _messageSystem;
 
-public ExchangeProcessor(
-    GameWorld gameWorld,
-    TimeManager timeManager,
-    MessageSystem messageSystem)
-{
-    _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-    _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
-    _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-}
-
-/// <summary>
-/// Prepare exchange operation data for GameFacade to execute
-/// </summary>
-public ExchangeOperationData PrepareExchangeOperation(ExchangeCard exchange, NPC npc, PlayerResourceState playerResources)
-{
-    return new ExchangeOperationData
+    public ExchangeProcessor(
+        GameWorld gameWorld,
+        TimeManager timeManager,
+        MessageSystem messageSystem)
     {
-        Costs = exchange.GetCostAsList(),
-        Rewards = exchange.GetRewardAsList(),
-        ItemRewards = exchange.GetItemRewards(),
-        AdvancesTime = ShouldAdvanceTime(exchange),
-        TimeAdvancementHours = CalculateTimeAdvancement(exchange),
-        AffectsRelationship = exchange.AffectsRelationship,
-        FlowModifier = exchange.FlowModifier,
-        ConsumesPatience = exchange.ConsumesPatience,
-        PatienceCost = exchange.PatienceCost,
-        UnlocksExchangeId = exchange.UnlocksExchangeId,
-        TriggerEvent = exchange.TriggerEvent,
-        NPCId = npc.ID,
-        ExchangeId = exchange.Id,
-        IsUnique = exchange.SingleUse,
-        ConnectionStateChange = exchange.ConnectionStateChange
-    };
-}
-
-/// <summary>
-/// Check if exchange should advance time
-/// </summary>
-private bool ShouldAdvanceTime(ExchangeCard exchange)
-{
-    // Exchanges advance time based on their configuration
-    return exchange.AdvancesTime;
-}
-
-/// <summary>
-/// Calculate how much time to advance
-/// </summary>
-private int CalculateTimeAdvancement(ExchangeCard exchange)
-{
-    if (exchange.TimeAdvancementHours > 0)
-    {
-        return exchange.TimeAdvancementHours;
+        _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+        _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
+        _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
     }
 
-    // Default: 1 segment for most exchanges
-    return 1;
-}
+    /// <summary>
+    /// Prepare exchange operation data for GameFacade to execute
+    /// </summary>
+    public ExchangeOperationData PrepareExchangeOperation(ExchangeCard exchange, NPC npc, PlayerResourceState playerResources)
+    {
+        return new ExchangeOperationData
+        {
+            Costs = exchange.GetCostAsList(),
+            Rewards = exchange.GetRewardAsList(),
+            ItemRewards = exchange.GetItemRewards(),
+            AdvancesTime = ShouldAdvanceTime(exchange),
+            TimeAdvancementHours = CalculateTimeAdvancement(exchange),
+            AffectsRelationship = exchange.AffectsRelationship,
+            FlowModifier = exchange.FlowModifier,
+            ConsumesPatience = exchange.ConsumesPatience,
+            PatienceCost = exchange.PatienceCost,
+            UnlocksExchangeId = exchange.UnlocksExchangeId,
+            TriggerEvent = exchange.TriggerEvent,
+            NPCId = npc.ID,
+            ExchangeId = exchange.Id,
+            IsUnique = exchange.SingleUse,
+            ConnectionStateChange = exchange.ConnectionStateChange
+        };
+    }
+
+    /// <summary>
+    /// Check if exchange should advance time
+    /// </summary>
+    private bool ShouldAdvanceTime(ExchangeCard exchange)
+    {
+        // Exchanges advance time based on their configuration
+        return exchange.AdvancesTime;
+    }
+
+    /// <summary>
+    /// Calculate how much time to advance
+    /// </summary>
+    private int CalculateTimeAdvancement(ExchangeCard exchange)
+    {
+        if (exchange.TimeAdvancementHours > 0)
+        {
+            return exchange.TimeAdvancementHours;
+        }
+
+        // Default: 1 segment for most exchanges
+        return 1;
+    }
 
 }

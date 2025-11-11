@@ -4,13 +4,13 @@
 /// </summary>
 public class MentalNarrativeService
 {
-public MentalNarrativeService() { }
+    public MentalNarrativeService() { }
 
-public string GenerateActionNarrative(CardInstance card, MentalSession session)
-{
-    if (card.MentalCardTemplate == null)
-        throw new InvalidOperationException("CardInstance missing MentalCardTemplate");
+    public string GenerateActionNarrative(CardInstance card, MentalSession session)
+    {
+        if (card.MentalCardTemplate == null)
+            throw new InvalidOperationException("CardInstance missing MentalCardTemplate");
 
-    return card.MentalCardTemplate.Description;
-}
+        return card.MentalCardTemplate.Description;
+    }
 }

@@ -4,13 +4,13 @@
 /// </summary>
 public class PhysicalNarrativeService
 {
-public PhysicalNarrativeService() { }
+    public PhysicalNarrativeService() { }
 
-public string GenerateActionNarrative(CardInstance card, PhysicalSession session)
-{
-    if (card.PhysicalCardTemplate == null)
-        throw new InvalidOperationException("CardInstance missing PhysicalCardTemplate");
+    public string GenerateActionNarrative(CardInstance card, PhysicalSession session)
+    {
+        if (card.PhysicalCardTemplate == null)
+            throw new InvalidOperationException("CardInstance missing PhysicalCardTemplate");
 
-    return card.PhysicalCardTemplate.Description;
-}
+        return card.PhysicalCardTemplate.Description;
+    }
 }

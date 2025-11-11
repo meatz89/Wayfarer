@@ -5,32 +5,32 @@
 /// </summary>
 public class MentalChallengeDeck
 {
-public string Id { get; set; }
-public string Name { get; set; }
-public string Description { get; set; }
-public int DangerThreshold { get; set; }
-public int? FocusCost { get; set; }
-public int InitialHandSize { get; set; }
-public int MaxHandSize { get; set; }
-public List<string> CardIds { get; set; } = new List<string>();
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public int DangerThreshold { get; set; }
+    public int? FocusCost { get; set; }
+    public int InitialHandSize { get; set; }
+    public int MaxHandSize { get; set; }
+    public List<string> CardIds { get; set; } = new List<string>();
 
-/// <summary>
-/// Build card instances from this deck's card IDs
-/// Returns all mental cards matching this deck's IDs
-/// </summary>
-public List<CardInstance> BuildCardInstances(GameWorld gameWorld)
-{
-    List<CardInstance> instances = new List<CardInstance>();
-
-    foreach (string cardId in CardIds)
+    /// <summary>
+    /// Build card instances from this deck's card IDs
+    /// Returns all mental cards matching this deck's IDs
+    /// </summary>
+    public List<CardInstance> BuildCardInstances(GameWorld gameWorld)
     {
-        MentalCard card = gameWorld.MentalCards.FirstOrDefault(e => e.Id == cardId);
-        if (card != null)
-        {
-            instances.Add(new CardInstance(card));
-        }
-    }
+        List<CardInstance> instances = new List<CardInstance>();
 
-    return instances;
-}
+        foreach (string cardId in CardIds)
+        {
+            MentalCard card = gameWorld.MentalCards.FirstOrDefault(e => e.Id == cardId);
+            if (card != null)
+            {
+                instances.Add(new CardInstance(card));
+            }
+        }
+
+        return instances;
+    }
 }

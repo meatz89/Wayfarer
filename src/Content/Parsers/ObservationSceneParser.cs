@@ -1,5 +1,3 @@
-
-{
 /// <summary>
 /// Parser for ObservationScene - Mental challenge system for scene investigation.
 /// Translates JSON DTOs into domain entities with GameWorld references resolved.
@@ -85,5 +83,4 @@ public static class ObservationSceneParser
 
         return point;
     }
-}
 }

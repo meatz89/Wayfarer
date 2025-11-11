@@ -4,100 +4,100 @@
 /// </summary>
 public class NPCActionExecutor
 {
-/// <summary>
-/// Validate NPCAction and extract execution plan
-/// GameFacade applies the plan via facades
-/// </summary>
-public ActionExecutionPlan ValidateAndExtract(NPCAction action, Player player, GameWorld gameWorld)
-{
-    // UNIFIED ARCHITECTURE: ChoiceTemplate vs direct properties
-    if (action.ChoiceTemplate != null)
+    /// <summary>
+    /// Validate NPCAction and extract execution plan
+    /// GameFacade applies the plan via facades
+    /// </summary>
+    public ActionExecutionPlan ValidateAndExtract(NPCAction action, Player player, GameWorld gameWorld)
     {
-        return ValidateChoiceTemplate(action.ChoiceTemplate, action.Name, player, gameWorld);
-    }
-    else
-    {
-        return ValidateLegacyAction(action);
-    }
-}
-
-private ActionExecutionPlan ValidateChoiceTemplate(ChoiceTemplate template, string actionName, Player player, GameWorld gameWorld)
-{
-    // STEP 1: Validate CompoundRequirements
-    if (template.RequirementFormula != null && template.RequirementFormula.OrPaths.Count > 0)
-    {
-        bool requirementsMet = template.RequirementFormula.IsAnySatisfied(player, gameWorld);
-        if (!requirementsMet)
+        // UNIFIED ARCHITECTURE: ChoiceTemplate vs direct properties
+        if (action.ChoiceTemplate != null)
         {
-            return ActionExecutionPlan.Invalid("Requirements not met");
+            return ValidateChoiceTemplate(action.ChoiceTemplate, action.Name, player, gameWorld);
+        }
+        else
+        {
+            return ValidateLegacyAction(action);
         }
     }
 
-    // STEP 2: Validate strategic costs
-    if (player.Resolve < template.CostTemplate.Resolve)
+    private ActionExecutionPlan ValidateChoiceTemplate(ChoiceTemplate template, string actionName, Player player, GameWorld gameWorld)
     {
-        return ActionExecutionPlan.Invalid($"Not enough Resolve (need {template.CostTemplate.Resolve}, have {player.Resolve})");
+        // STEP 1: Validate CompoundRequirements
+        if (template.RequirementFormula != null && template.RequirementFormula.OrPaths.Count > 0)
+        {
+            bool requirementsMet = template.RequirementFormula.IsAnySatisfied(player, gameWorld);
+            if (!requirementsMet)
+            {
+                return ActionExecutionPlan.Invalid("Requirements not met");
+            }
+        }
+
+        // STEP 2: Validate strategic costs
+        if (player.Resolve < template.CostTemplate.Resolve)
+        {
+            return ActionExecutionPlan.Invalid($"Not enough Resolve (need {template.CostTemplate.Resolve}, have {player.Resolve})");
+        }
+
+        if (player.Coins < template.CostTemplate.Coins)
+        {
+            return ActionExecutionPlan.Invalid($"Not enough Coins (need {template.CostTemplate.Coins}, have {player.Coins})");
+        }
+
+        // Tutorial resource validation
+        if (template.CostTemplate.Health > 0 && player.Health < template.CostTemplate.Health)
+        {
+            return ActionExecutionPlan.Invalid($"Not enough Health (need {template.CostTemplate.Health}, have {player.Health})");
+        }
+
+        if (template.CostTemplate.Stamina > 0 && player.Stamina < template.CostTemplate.Stamina)
+        {
+            return ActionExecutionPlan.Invalid($"Not enough Stamina (need {template.CostTemplate.Stamina}, have {player.Stamina})");
+        }
+
+        if (template.CostTemplate.Focus > 0 && player.Focus < template.CostTemplate.Focus)
+        {
+            return ActionExecutionPlan.Invalid($"Not enough Focus (need {template.CostTemplate.Focus}, have {player.Focus})");
+        }
+
+        // Hunger validation: Check if adding hunger would exceed max (100)
+        if (template.CostTemplate.Hunger > 0 && player.Hunger + template.CostTemplate.Hunger > player.MaxHunger)
+        {
+            return ActionExecutionPlan.Invalid($"Too hungry to continue (current {player.Hunger}, action adds {template.CostTemplate.Hunger}, max {player.MaxHunger})");
+        }
+
+        // STEP 3: Build execution plan
+        ActionExecutionPlan plan = ActionExecutionPlan.Valid();
+        plan.ResolveCoins = template.CostTemplate.Resolve;
+        plan.CoinsCost = template.CostTemplate.Coins;
+        plan.TimeSegments = template.CostTemplate.TimeSegments;
+
+        // Tutorial resource costs
+        plan.HealthCost = template.CostTemplate.Health;
+        plan.StaminaCost = template.CostTemplate.Stamina;
+        plan.FocusCost = template.CostTemplate.Focus;
+        plan.HungerCost = template.CostTemplate.Hunger;
+
+        plan.ChoiceReward = template.RewardTemplate;
+        plan.ActionType = template.ActionType;
+        plan.ChallengeType = template.ChallengeType;
+        plan.ChallengeId = template.ChallengeId;
+        plan.NavigationPayload = template.NavigationPayload;
+        plan.ActionName = actionName;
+        plan.IsLegacyAction = false;
+
+        return plan;
     }
 
-    if (player.Coins < template.CostTemplate.Coins)
+    private ActionExecutionPlan ValidateLegacyAction(NPCAction action)
     {
-        return ActionExecutionPlan.Invalid($"Not enough Coins (need {template.CostTemplate.Coins}, have {player.Coins})");
+        // Legacy NPC actions have no costs or requirements (conversations are free)
+        ActionExecutionPlan plan = ActionExecutionPlan.Valid();
+        plan.ActionType = ChoiceActionType.StartChallenge; // Legacy NPC actions start conversations
+        plan.ChallengeType = TacticalSystemType.Social;
+        plan.ActionName = action.Name;
+        plan.IsLegacyAction = true;
+
+        return plan;
     }
-
-    // Tutorial resource validation
-    if (template.CostTemplate.Health > 0 && player.Health < template.CostTemplate.Health)
-    {
-        return ActionExecutionPlan.Invalid($"Not enough Health (need {template.CostTemplate.Health}, have {player.Health})");
-    }
-
-    if (template.CostTemplate.Stamina > 0 && player.Stamina < template.CostTemplate.Stamina)
-    {
-        return ActionExecutionPlan.Invalid($"Not enough Stamina (need {template.CostTemplate.Stamina}, have {player.Stamina})");
-    }
-
-    if (template.CostTemplate.Focus > 0 && player.Focus < template.CostTemplate.Focus)
-    {
-        return ActionExecutionPlan.Invalid($"Not enough Focus (need {template.CostTemplate.Focus}, have {player.Focus})");
-    }
-
-    // Hunger validation: Check if adding hunger would exceed max (100)
-    if (template.CostTemplate.Hunger > 0 && player.Hunger + template.CostTemplate.Hunger > player.MaxHunger)
-    {
-        return ActionExecutionPlan.Invalid($"Too hungry to continue (current {player.Hunger}, action adds {template.CostTemplate.Hunger}, max {player.MaxHunger})");
-    }
-
-    // STEP 3: Build execution plan
-    ActionExecutionPlan plan = ActionExecutionPlan.Valid();
-    plan.ResolveCoins = template.CostTemplate.Resolve;
-    plan.CoinsCost = template.CostTemplate.Coins;
-    plan.TimeSegments = template.CostTemplate.TimeSegments;
-
-    // Tutorial resource costs
-    plan.HealthCost = template.CostTemplate.Health;
-    plan.StaminaCost = template.CostTemplate.Stamina;
-    plan.FocusCost = template.CostTemplate.Focus;
-    plan.HungerCost = template.CostTemplate.Hunger;
-
-    plan.ChoiceReward = template.RewardTemplate;
-    plan.ActionType = template.ActionType;
-    plan.ChallengeType = template.ChallengeType;
-    plan.ChallengeId = template.ChallengeId;
-    plan.NavigationPayload = template.NavigationPayload;
-    plan.ActionName = actionName;
-    plan.IsLegacyAction = false;
-
-    return plan;
-}
-
-private ActionExecutionPlan ValidateLegacyAction(NPCAction action)
-{
-    // Legacy NPC actions have no costs or requirements (conversations are free)
-    ActionExecutionPlan plan = ActionExecutionPlan.Valid();
-    plan.ActionType = ChoiceActionType.StartChallenge; // Legacy NPC actions start conversations
-    plan.ChallengeType = TacticalSystemType.Social;
-    plan.ActionName = action.Name;
-    plan.IsLegacyAction = true;
-
-    return plan;
-}
 }

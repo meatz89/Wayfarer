@@ -4,334 +4,334 @@
 /// </summary>
 public class TimeFacade
 {
-private readonly TimeManager _timeManager;
-private readonly TimeBlockCalculator _timeBlockCalculator;
-private readonly TimeProgressionManager _timeProgressionManager;
-private readonly TimeDisplayFormatter _timeDisplayFormatter;
-private readonly GameWorld _gameWorld;
-private readonly StateClearingResolver _stateClearingResolver;
+    private readonly TimeManager _timeManager;
+    private readonly TimeBlockCalculator _timeBlockCalculator;
+    private readonly TimeProgressionManager _timeProgressionManager;
+    private readonly TimeDisplayFormatter _timeDisplayFormatter;
+    private readonly GameWorld _gameWorld;
+    private readonly StateClearingResolver _stateClearingResolver;
 
-public TimeFacade(
-    TimeManager timeManager,
-    TimeBlockCalculator timeBlockCalculator,
-    TimeProgressionManager timeProgressionManager,
-    TimeDisplayFormatter timeDisplayFormatter,
-    GameWorld gameWorld,
-    StateClearingResolver stateClearingResolver)
-{
-    _timeManager = timeManager;
-    _timeBlockCalculator = timeBlockCalculator;
-    _timeProgressionManager = timeProgressionManager;
-    _timeDisplayFormatter = timeDisplayFormatter;
-    _gameWorld = gameWorld;
-    _stateClearingResolver = stateClearingResolver;
-}
-
-// ========== TIME STATE ==========
-
-/// <summary>
-/// Sets initial time state from package starting conditions.
-/// MUST be called during game initialization BEFORE any time advancement.
-/// </summary>
-public void SetInitialTimeState(int day, TimeBlocks timeBlock, int segment)
-{
-    _timeManager.TimeModel.SetInitialState(day, timeBlock, segment);
-}
-
-public int GetCurrentDay()
-{
-    return _gameWorld.CurrentDay;
-}
-
-public int GetCurrentSegment()
-{
-    return _timeManager.CurrentSegment;
-}
-
-public int GetSegmentsInCurrentPeriod()
-{
-    return _timeManager.TimeModel.CurrentState.SegmentsInCurrentBlock;
-}
-
-public TimeBlocks GetCurrentTimeBlock()
-{
-    return _timeManager.CurrentTimeBlock;
-}
-
-public int GetSegmentsRemainingInDay()
-{
-    return _timeManager.SegmentsRemainingInDay;
-}
-
-public TimeInfo GetTimeInfo()
-{
-    return new TimeInfo(
-        GetCurrentTimeBlock(),
-        GetSegmentsRemainingInDay(),
-        GetCurrentDay(),
-        _timeManager.GetSegmentDisplay());
-}
-
-// ========== TIME PROGRESSION ==========
-
-public TimeBlocks AdvanceSegments(int segments)
-{
-    int oldSegment = _timeManager.TimeModel.CurrentState.TotalSegmentsElapsed;
-    TimeBlocks result = _timeProgressionManager.AdvanceSegments(segments);
-    int newSegment = _timeManager.TimeModel.CurrentState.TotalSegmentsElapsed;
-
-    // Check for deadline failures when crossing day boundary
-    if (_gameWorld.CurrentDay != _timeManager.TimeModel.CurrentState.CurrentDay)
+    public TimeFacade(
+        TimeManager timeManager,
+        TimeBlockCalculator timeBlockCalculator,
+        TimeProgressionManager timeProgressionManager,
+        TimeDisplayFormatter timeDisplayFormatter,
+        GameWorld gameWorld,
+        StateClearingResolver stateClearingResolver)
     {
-        CheckAndProcessDeadlineFailures(newSegment);
+        _timeManager = timeManager;
+        _timeBlockCalculator = timeBlockCalculator;
+        _timeProgressionManager = timeProgressionManager;
+        _timeDisplayFormatter = timeDisplayFormatter;
+        _gameWorld = gameWorld;
+        _stateClearingResolver = stateClearingResolver;
     }
 
-    // STATE CLEARING: Check for duration-based expired states
-    int currentDay = _gameWorld.CurrentDay;
-    TimeBlocks currentTimeBlock = _gameWorld.CurrentTimeBlock;
-    int currentSegment = _timeManager.CurrentSegment;
+    // ========== TIME STATE ==========
 
-    List<StateType> expiredStates = _stateClearingResolver.GetStatesToClearOnTimePassage(
-        currentDay, currentTimeBlock, currentSegment);
-
-    // Apply state clearing
-    foreach (StateType stateType in expiredStates)
+    /// <summary>
+    /// Sets initial time state from package starting conditions.
+    /// MUST be called during game initialization BEFORE any time advancement.
+    /// </summary>
+    public void SetInitialTimeState(int day, TimeBlocks timeBlock, int segment)
     {
-        _gameWorld.ClearState(stateType);
+        _timeManager.TimeModel.SetInitialState(day, timeBlock, segment);
     }
 
-    // TODO Phase 6: Trigger cascade after clearing states
-    // if (expiredStates.Any())
-    // {
-    //     await _spawnFacade.EvaluateDormantSituations();
-    // }
-
-    return result;
-}
-
-private void CheckAndProcessDeadlineFailures(int currentSegment)
-{
-    List<string> expiredObligations = _gameWorld.CheckDeadlines(currentSegment);
-
-    foreach (string obligationId in expiredObligations)
+    public int GetCurrentDay()
     {
-        _gameWorld.ApplyDeadlineConsequences(obligationId);
+        return _gameWorld.CurrentDay;
     }
-}
 
-public TimeBlocks JumpToNextPeriod()
-{
-    return _timeProgressionManager.JumpToNextPeriod();
-}
-
-/// <summary>
-/// Advance to the next day starting at Morning.
-/// Used for overnight rest (secure room).
-/// Returns the time advancement result for the caller to handle.
-/// </summary>
-public TimeAdvancementResult AdvanceToNextDay()
-{
-    TimeAdvancementResult result = _timeManager.TimeModel.AdvanceToNextDay();
-    return result;
-}
-
-public int WaitUntilNextTimeBlock()
-{
-    TimeBlocks current = GetCurrentTimeBlock();
-    TimeBlocks next = GetNextTimeBlock(current);
-    return _timeProgressionManager.WaitUntilTimeBlock(next, _timeBlockCalculator);
-}
-
-public async Task<bool> SpendSegments(int segments, string description)
-{
-    return await _timeManager.SpendSegments(segments, description);
-}
-
-public bool CanPerformAction(int segmentsRequired)
-{
-    return _timeProgressionManager.CanPerformAction(segmentsRequired);
-}
-
-// ========== TIME BLOCK CALCULATIONS ==========
-
-public int GetTimeBlockStartSegment(TimeBlocks timeBlock)
-{
-    return _timeBlockCalculator.GetTimeBlockStartSegment(timeBlock);
-}
-
-public int GetTimeBlockEndSegment(TimeBlocks timeBlock)
-{
-    return _timeBlockCalculator.GetTimeBlockEndSegment(timeBlock);
-}
-
-public int CalculateSegmentsUntilTimeBlock(TimeBlocks target)
-{
-    return _timeBlockCalculator.CalculateSegmentsUntilTimeBlock(
-        GetCurrentTimeBlock(),
-        target,
-        GetCurrentSegment());
-}
-
-public TimeBlocks? GetNextAvailableTimeBlock(List<TimeBlocks> availableTimes)
-{
-    return _timeBlockCalculator.GetNextAvailableTimeBlock(
-        GetCurrentTimeBlock(),
-        availableTimes);
-}
-
-public string GetTimeBlockDisplayName(TimeBlocks timeBlock)
-{
-    return _timeBlockCalculator.GetTimeBlockDisplayName(timeBlock);
-}
-
-public string GetWaitingNarrative(TimeBlocks targetTime)
-{
-    return _timeBlockCalculator.GetWaitingNarrative(targetTime);
-}
-
-private TimeBlocks GetNextTimeBlock(TimeBlocks current)
-{
-    return current switch
+    public int GetCurrentSegment()
     {
-        TimeBlocks.Morning => TimeBlocks.Midday,
-        TimeBlocks.Midday => TimeBlocks.Afternoon,
-        TimeBlocks.Afternoon => TimeBlocks.Evening,
-        TimeBlocks.Evening => TimeBlocks.Morning, // Sleep wraps to next morning
-        _ => TimeBlocks.Morning
-    };
-}
-
-// ========== TIME DISPLAY ==========
-
-public string GetFormattedTimeDisplay()
-{
-    return _timeDisplayFormatter.GetFormattedTimeDisplay();
-}
-
-public string GetTimeString()
-{
-    return _timeDisplayFormatter.GetTimeString();
-}
-
-public string GetTimeDescription()
-{
-    return _timeDisplayFormatter.GetTimeDescription();
-}
-
-public string FormatDuration(int segments)
-{
-    return _timeDisplayFormatter.FormatDuration(segments);
-}
-
-public string FormatSegments(int segments)
-{
-    return _timeDisplayFormatter.FormatSegments(segments);
-}
-
-public string GetDayName(int day)
-{
-    return _timeDisplayFormatter.GetDayName(day);
-}
-
-public string GetShortDayName(int day)
-{
-    return _timeDisplayFormatter.GetShortDayName(day);
-}
-
-// ========== AVAILABILITY WINDOWS ==========
-
-public string GetNextAvailableTimeDisplay(List<TimeBlocks> availableTimes)
-{
-    TimeBlocks? nextTime = GetNextAvailableTimeBlock(availableTimes);
-    if (!nextTime.HasValue) return "Not available today";
-
-    int segmentsUntil = CalculateSegmentsUntilTimeBlock(nextTime.Value);
-    string timeBlockName = GetTimeBlockDisplayName(nextTime.Value);
-
-    if (segmentsUntil == 0)
-    {
-        return $"Available now during {timeBlockName}";
+        return _timeManager.CurrentSegment;
     }
-    else if (segmentsUntil == 1)
+
+    public int GetSegmentsInCurrentPeriod()
     {
-        return $"Available in 1 segment at {timeBlockName}";
+        return _timeManager.TimeModel.CurrentState.SegmentsInCurrentBlock;
     }
-    else
+
+    public TimeBlocks GetCurrentTimeBlock()
     {
-        return $"Available in {segmentsUntil} segments at {timeBlockName}";
+        return _timeManager.CurrentTimeBlock;
     }
-}
 
-public bool IsTimeBlockAvailable(TimeBlocks timeBlock, List<TimeBlocks> availableTimes)
-{
-    return availableTimes.Contains(timeBlock);
-}
-
-public bool IsCurrentlyAvailable(List<TimeBlocks> availableTimes)
-{
-    return IsTimeBlockAvailable(GetCurrentTimeBlock(), availableTimes);
-}
-
-// ========== DAY-END PROCESSING ==========
-
-/// <summary>
-/// End the current day - process deadlines, restore resources, generate summary
-/// Called explicitly when player chooses to rest/sleep
-/// </summary>
-public DayEndReport EndDay()
-{
-    Player player = _gameWorld.GetPlayer();
-    int currentSegment = GetCurrentSegment();
-
-    DayEndReport report = new DayEndReport();
-
-    // 1. Check for expired obligations (deadlines)
-    List<string> expiredObligationIds = _gameWorld.CheckDeadlines(currentSegment);
-
-    // 2. Apply deadline consequences and build failure report
-    foreach (string obligationId in expiredObligationIds)
+    public int GetSegmentsRemainingInDay()
     {
-        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
-        if (obligation == null) continue;
+        return _timeManager.SegmentsRemainingInDay;
+    }
 
-        // USE OBJECT REFERENCE - Obligation.PatronNpc (O(1) instead of O(n) lookup)
-        NPC patron = obligation.PatronNpc;
+    public TimeInfo GetTimeInfo()
+    {
+        return new TimeInfo(
+            GetCurrentTimeBlock(),
+            GetSegmentsRemainingInDay(),
+            GetCurrentDay(),
+            _timeManager.GetSegmentDisplay());
+    }
 
-        int cubesBeforeConsequence = patron.StoryCubes;
+    // ========== TIME PROGRESSION ==========
 
-        // Apply consequences
-        _gameWorld.ApplyDeadlineConsequences(obligationId);
+    public TimeBlocks AdvanceSegments(int segments)
+    {
+        int oldSegment = _timeManager.TimeModel.CurrentState.TotalSegmentsElapsed;
+        TimeBlocks result = _timeProgressionManager.AdvanceSegments(segments);
+        int newSegment = _timeManager.TimeModel.CurrentState.TotalSegmentsElapsed;
 
-        int cubesAfterConsequence = patron.StoryCubes;
-
-        report.FailedObligations.Add(new FailedObligationInfo
+        // Check for deadline failures when crossing day boundary
+        if (_gameWorld.CurrentDay != _timeManager.TimeModel.CurrentState.CurrentDay)
         {
-            ObligationName = obligation.Name,
-            PatronName = patron.Name,
-            CubesRemoved = cubesBeforeConsequence - cubesAfterConsequence
-        });
+            CheckAndProcessDeadlineFailures(newSegment);
+        }
+
+        // STATE CLEARING: Check for duration-based expired states
+        int currentDay = _gameWorld.CurrentDay;
+        TimeBlocks currentTimeBlock = _gameWorld.CurrentTimeBlock;
+        int currentSegment = _timeManager.CurrentSegment;
+
+        List<StateType> expiredStates = _stateClearingResolver.GetStatesToClearOnTimePassage(
+            currentDay, currentTimeBlock, currentSegment);
+
+        // Apply state clearing
+        foreach (StateType stateType in expiredStates)
+        {
+            _gameWorld.ClearState(stateType);
+        }
+
+        // TODO Phase 6: Trigger cascade after clearing states
+        // if (expiredStates.Any())
+        // {
+        //     await _spawnFacade.EvaluateDormantSituations();
+        // }
+
+        return result;
     }
 
-    // 3. Restore resources (Focus and Stamina only - Health does NOT auto-recover)
-    player.Focus = 6; // Hardcoded max per design
-    player.Stamina = player.MaxStamina;
-
-    // 4. Build current resource snapshot
-    report.CurrentResources = new ResourceSnapshot
+    private void CheckAndProcessDeadlineFailures(int currentSegment)
     {
-        Health = player.Health,
-        Focus = player.Focus,
-        Stamina = player.Stamina,
-        Coins = player.Coins
-    };
+        List<string> expiredObligations = _gameWorld.CheckDeadlines(currentSegment);
 
-    // NOTE: CoinsEarned, CoinsSpent, CompletedObligations, NewEquipment, StatsIncreased, CubesGained
-    // are NOT tracked by TimeFacade - these require tracking throughout the day
-    // This would require day-scoped state tracking which violates stateless facade principle
-    // For now, these fields remain empty - can be populated by caller if needed
+        foreach (string obligationId in expiredObligations)
+        {
+            _gameWorld.ApplyDeadlineConsequences(obligationId);
+        }
+    }
 
-    return report;
-}
+    public TimeBlocks JumpToNextPeriod()
+    {
+        return _timeProgressionManager.JumpToNextPeriod();
+    }
 
-// ========== LEGACY COMPATIBILITY METHODS ==========
+    /// <summary>
+    /// Advance to the next day starting at Morning.
+    /// Used for overnight rest (secure room).
+    /// Returns the time advancement result for the caller to handle.
+    /// </summary>
+    public TimeAdvancementResult AdvanceToNextDay()
+    {
+        TimeAdvancementResult result = _timeManager.TimeModel.AdvanceToNextDay();
+        return result;
+    }
+
+    public int WaitUntilNextTimeBlock()
+    {
+        TimeBlocks current = GetCurrentTimeBlock();
+        TimeBlocks next = GetNextTimeBlock(current);
+        return _timeProgressionManager.WaitUntilTimeBlock(next, _timeBlockCalculator);
+    }
+
+    public async Task<bool> SpendSegments(int segments, string description)
+    {
+        return await _timeManager.SpendSegments(segments, description);
+    }
+
+    public bool CanPerformAction(int segmentsRequired)
+    {
+        return _timeProgressionManager.CanPerformAction(segmentsRequired);
+    }
+
+    // ========== TIME BLOCK CALCULATIONS ==========
+
+    public int GetTimeBlockStartSegment(TimeBlocks timeBlock)
+    {
+        return _timeBlockCalculator.GetTimeBlockStartSegment(timeBlock);
+    }
+
+    public int GetTimeBlockEndSegment(TimeBlocks timeBlock)
+    {
+        return _timeBlockCalculator.GetTimeBlockEndSegment(timeBlock);
+    }
+
+    public int CalculateSegmentsUntilTimeBlock(TimeBlocks target)
+    {
+        return _timeBlockCalculator.CalculateSegmentsUntilTimeBlock(
+            GetCurrentTimeBlock(),
+            target,
+            GetCurrentSegment());
+    }
+
+    public TimeBlocks? GetNextAvailableTimeBlock(List<TimeBlocks> availableTimes)
+    {
+        return _timeBlockCalculator.GetNextAvailableTimeBlock(
+            GetCurrentTimeBlock(),
+            availableTimes);
+    }
+
+    public string GetTimeBlockDisplayName(TimeBlocks timeBlock)
+    {
+        return _timeBlockCalculator.GetTimeBlockDisplayName(timeBlock);
+    }
+
+    public string GetWaitingNarrative(TimeBlocks targetTime)
+    {
+        return _timeBlockCalculator.GetWaitingNarrative(targetTime);
+    }
+
+    private TimeBlocks GetNextTimeBlock(TimeBlocks current)
+    {
+        return current switch
+        {
+            TimeBlocks.Morning => TimeBlocks.Midday,
+            TimeBlocks.Midday => TimeBlocks.Afternoon,
+            TimeBlocks.Afternoon => TimeBlocks.Evening,
+            TimeBlocks.Evening => TimeBlocks.Morning, // Sleep wraps to next morning
+            _ => TimeBlocks.Morning
+        };
+    }
+
+    // ========== TIME DISPLAY ==========
+
+    public string GetFormattedTimeDisplay()
+    {
+        return _timeDisplayFormatter.GetFormattedTimeDisplay();
+    }
+
+    public string GetTimeString()
+    {
+        return _timeDisplayFormatter.GetTimeString();
+    }
+
+    public string GetTimeDescription()
+    {
+        return _timeDisplayFormatter.GetTimeDescription();
+    }
+
+    public string FormatDuration(int segments)
+    {
+        return _timeDisplayFormatter.FormatDuration(segments);
+    }
+
+    public string FormatSegments(int segments)
+    {
+        return _timeDisplayFormatter.FormatSegments(segments);
+    }
+
+    public string GetDayName(int day)
+    {
+        return _timeDisplayFormatter.GetDayName(day);
+    }
+
+    public string GetShortDayName(int day)
+    {
+        return _timeDisplayFormatter.GetShortDayName(day);
+    }
+
+    // ========== AVAILABILITY WINDOWS ==========
+
+    public string GetNextAvailableTimeDisplay(List<TimeBlocks> availableTimes)
+    {
+        TimeBlocks? nextTime = GetNextAvailableTimeBlock(availableTimes);
+        if (!nextTime.HasValue) return "Not available today";
+
+        int segmentsUntil = CalculateSegmentsUntilTimeBlock(nextTime.Value);
+        string timeBlockName = GetTimeBlockDisplayName(nextTime.Value);
+
+        if (segmentsUntil == 0)
+        {
+            return $"Available now during {timeBlockName}";
+        }
+        else if (segmentsUntil == 1)
+        {
+            return $"Available in 1 segment at {timeBlockName}";
+        }
+        else
+        {
+            return $"Available in {segmentsUntil} segments at {timeBlockName}";
+        }
+    }
+
+    public bool IsTimeBlockAvailable(TimeBlocks timeBlock, List<TimeBlocks> availableTimes)
+    {
+        return availableTimes.Contains(timeBlock);
+    }
+
+    public bool IsCurrentlyAvailable(List<TimeBlocks> availableTimes)
+    {
+        return IsTimeBlockAvailable(GetCurrentTimeBlock(), availableTimes);
+    }
+
+    // ========== DAY-END PROCESSING ==========
+
+    /// <summary>
+    /// End the current day - process deadlines, restore resources, generate summary
+    /// Called explicitly when player chooses to rest/sleep
+    /// </summary>
+    public DayEndReport EndDay()
+    {
+        Player player = _gameWorld.GetPlayer();
+        int currentSegment = GetCurrentSegment();
+
+        DayEndReport report = new DayEndReport();
+
+        // 1. Check for expired obligations (deadlines)
+        List<string> expiredObligationIds = _gameWorld.CheckDeadlines(currentSegment);
+
+        // 2. Apply deadline consequences and build failure report
+        foreach (string obligationId in expiredObligationIds)
+        {
+            Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
+            if (obligation == null) continue;
+
+            // USE OBJECT REFERENCE - Obligation.PatronNpc (O(1) instead of O(n) lookup)
+            NPC patron = obligation.PatronNpc;
+
+            int cubesBeforeConsequence = patron.StoryCubes;
+
+            // Apply consequences
+            _gameWorld.ApplyDeadlineConsequences(obligationId);
+
+            int cubesAfterConsequence = patron.StoryCubes;
+
+            report.FailedObligations.Add(new FailedObligationInfo
+            {
+                ObligationName = obligation.Name,
+                PatronName = patron.Name,
+                CubesRemoved = cubesBeforeConsequence - cubesAfterConsequence
+            });
+        }
+
+        // 3. Restore resources (Focus and Stamina only - Health does NOT auto-recover)
+        player.Focus = 6; // Hardcoded max per design
+        player.Stamina = player.MaxStamina;
+
+        // 4. Build current resource snapshot
+        report.CurrentResources = new ResourceSnapshot
+        {
+            Health = player.Health,
+            Focus = player.Focus,
+            Stamina = player.Stamina,
+            Coins = player.Coins
+        };
+
+        // NOTE: CoinsEarned, CoinsSpent, CompletedObligations, NewEquipment, StatsIncreased, CubesGained
+        // are NOT tracked by TimeFacade - these require tracking throughout the day
+        // This would require day-scoped state tracking which violates stateless facade principle
+        // For now, these fields remain empty - can be populated by caller if needed
+
+        return report;
+    }
+
+    // ========== LEGACY COMPATIBILITY METHODS ==========
 }

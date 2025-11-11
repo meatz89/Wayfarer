@@ -4,7 +4,7 @@
 /// </summary>
 public class ObligationActivationResult
 {
-public string ObligationId { get; set; }
-public string ObligationName { get; set; }
-public string IntroNarrative { get; set; }
+    public string ObligationId { get; set; }
+    public string ObligationName { get; set; }
+    public string IntroNarrative { get; set; }
 }

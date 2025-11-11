@@ -5,9 +5,9 @@
 /// </summary>
 public enum PhysicalCategory
 {
-Aggressive,   // Offensive techniques, forceful approaches
-Defensive,    // Protective techniques, resilient approaches
-Tactical,     // Strategic positioning, calculated approaches
-Evasive,      // Avoidance techniques, nimble approaches
-Endurance     // Stamina-based techniques, persistent approaches
+    Aggressive,   // Offensive techniques, forceful approaches
+    Defensive,    // Protective techniques, resilient approaches
+    Tactical,     // Strategic positioning, calculated approaches
+    Evasive,      // Avoidance techniques, nimble approaches
+    Endurance     // Stamina-based techniques, persistent approaches
 }

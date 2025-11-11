@@ -6,95 +6,95 @@ using System.Text.Json;
 /// </summary>
 public class ContentValidationPipeline
 {
-private readonly List<IContentValidator> _validators;
-private readonly List<ValidationError> _errors;
+    private readonly List<IContentValidator> _validators;
+    private readonly List<ValidationError> _errors;
 
-public ContentValidationPipeline()
-{
-    _validators = new List<IContentValidator>();
-    _errors = new List<ValidationError>();
-}
-
-/// <summary>
-/// Add a validator to the pipeline.
-/// </summary>
-public ContentValidationPipeline AddValidator(IContentValidator validator)
-{
-    _validators.Add(validator);
-    return this;
-}
-
-/// <summary>
-/// Validate all content files in the specified directory.
-/// </summary>
-public ValidationResult ValidateContentDirectory(string contentPath)
-{
-    _errors.Clear();
-
-    if (!Directory.Exists(contentPath))
+    public ContentValidationPipeline()
     {
-        _errors.Add(new ValidationError(
-            "ContentDirectory",
-            $"Content directory not found: {contentPath}",
-            ValidationSeverity.Critical));
+        _validators = new List<IContentValidator>();
+        _errors = new List<ValidationError>();
+    }
+
+    /// <summary>
+    /// Add a validator to the pipeline.
+    /// </summary>
+    public ContentValidationPipeline AddValidator(IContentValidator validator)
+    {
+        _validators.Add(validator);
+        return this;
+    }
+
+    /// <summary>
+    /// Validate all content files in the specified directory.
+    /// </summary>
+    public ValidationResult ValidateContentDirectory(string contentPath)
+    {
+        _errors.Clear();
+
+        if (!Directory.Exists(contentPath))
+        {
+            _errors.Add(new ValidationError(
+                "ContentDirectory",
+                $"Content directory not found: {contentPath}",
+                ValidationSeverity.Critical));
+            return new ValidationResult(_errors);
+        }
+
+        // Validate all JSON files
+        string[] jsonFiles = Directory.GetFiles(contentPath, "*.json", SearchOption.AllDirectories);
+
+        foreach (string file in jsonFiles)
+        {
+            ValidateFile(file);
+        }
+
         return new ValidationResult(_errors);
     }
 
-    // Validate all JSON files
-    string[] jsonFiles = Directory.GetFiles(contentPath, "*.json", SearchOption.AllDirectories);
-
-    foreach (string file in jsonFiles)
+    /// <summary>
+    /// Validate a single content file.
+    /// </summary>
+    public ValidationResult ValidateFile(string filePath)
     {
-        ValidateFile(file);
-    }
+        List<ValidationError> localErrors = new List<ValidationError>();
 
-    return new ValidationResult(_errors);
-}
+        string content = File.ReadAllText(filePath);
+        string fileName = Path.GetFileName(filePath);
 
-/// <summary>
-/// Validate a single content file.
-/// </summary>
-public ValidationResult ValidateFile(string filePath)
-{
-    List<ValidationError> localErrors = new List<ValidationError>();
-
-    string content = File.ReadAllText(filePath);
-    string fileName = Path.GetFileName(filePath);
-
-    // Validate JSON syntax - let JsonException propagate
-    using (JsonDocument doc = JsonDocument.Parse(content))
-    {
-    }
-
-    // Run all validators
-    foreach (IContentValidator validator in _validators)
-    {
-        if (validator.CanValidate(fileName))
+        // Validate JSON syntax - let JsonException propagate
+        using (JsonDocument doc = JsonDocument.Parse(content))
         {
-            IEnumerable<ValidationError> validationErrors = validator.Validate(content, fileName);
-            localErrors.AddRange(validationErrors);
         }
+
+        // Run all validators
+        foreach (IContentValidator validator in _validators)
+        {
+            if (validator.CanValidate(fileName))
+            {
+                IEnumerable<ValidationError> validationErrors = validator.Validate(content, fileName);
+                localErrors.AddRange(validationErrors);
+            }
+        }
+
+        _errors.AddRange(localErrors);
+        return new ValidationResult(localErrors);
     }
 
-    _errors.AddRange(localErrors);
-    return new ValidationResult(localErrors);
-}
+    /// <summary>
+    /// Get all validation errors from the last run.
+    /// </summary>
+    public IReadOnlyList<ValidationError> GetErrors()
+    {
+        return _errors.AsReadOnly();
+    }
 
-/// <summary>
-/// Get all validation errors from the last run.
-/// </summary>
-public IReadOnlyList<ValidationError> GetErrors()
-{
-    return _errors.AsReadOnly();
-}
-
-/// <summary>
-/// Clear all validation errors.
-/// </summary>
-public void ClearErrors()
-{
-    _errors.Clear();
-}
+    /// <summary>
+    /// Clear all validation errors.
+    /// </summary>
+    public void ClearErrors()
+    {
+        _errors.Clear();
+    }
 }
 
 /// <summary>
@@ -102,57 +102,57 @@ public void ClearErrors()
 /// </summary>
 public class ValidationResult
 {
-public IReadOnlyList<ValidationError> Errors { get; }
-public bool IsValid => !Errors.Any(e => e.Severity == ValidationSeverity.Critical);
+    public IReadOnlyList<ValidationError> Errors { get; }
+    public bool IsValid => !Errors.Any(e => e.Severity == ValidationSeverity.Critical);
 
-public int ErrorCount => Errors.Count;
+    public int ErrorCount => Errors.Count;
 
-public int WarningCount => Errors.Count(e => e.Severity == ValidationSeverity.Warning);
+    public int WarningCount => Errors.Count(e => e.Severity == ValidationSeverity.Warning);
 
-public int CriticalCount => Errors.Count(e => e.Severity == ValidationSeverity.Critical);
+    public int CriticalCount => Errors.Count(e => e.Severity == ValidationSeverity.Critical);
 
-public ValidationResult()
-{
+    public ValidationResult()
+    {
 
-}
+    }
 
-public ValidationResult(IEnumerable<ValidationError> errors)
-{
-    Errors = errors.ToList().AsReadOnly();
-}
+    public ValidationResult(IEnumerable<ValidationError> errors)
+    {
+        Errors = errors.ToList().AsReadOnly();
+    }
 
-// Static factory methods for TimeModel compatibility
-public static ValidationResult Success()
-{
-    return new ValidationResult(new List<ValidationError>());
-}
+    // Static factory methods for TimeModel compatibility
+    public static ValidationResult Success()
+    {
+        return new ValidationResult(new List<ValidationError>());
+    }
 
-public static ValidationResult Failure(string message)
-{
-    return new ValidationResult(new List<ValidationError>
+    public static ValidationResult Failure(string message)
+    {
+        return new ValidationResult(new List<ValidationError>
     {
         new ValidationError("TimeModel", message, ValidationSeverity.Critical)
     });
-}
+    }
 
-public static ValidationResult Warning(string message)
-{
-    return new ValidationResult(new List<ValidationError>
+    public static ValidationResult Warning(string message)
+    {
+        return new ValidationResult(new List<ValidationError>
     {
         new ValidationError("TimeModel", message, ValidationSeverity.Warning)
     });
-}
-
-public void ThrowIfInvalid()
-{
-    if (!IsValid)
-    {
-        IEnumerable<ValidationError> criticalErrors = Errors.Where(e => e.Severity == ValidationSeverity.Critical);
-        throw new ContentValidationException(
-            $"Content validation failed with {CriticalCount} critical errors",
-            criticalErrors);
     }
-}
+
+    public void ThrowIfInvalid()
+    {
+        if (!IsValid)
+        {
+            IEnumerable<ValidationError> criticalErrors = Errors.Where(e => e.Severity == ValidationSeverity.Critical);
+            throw new ContentValidationException(
+                $"Content validation failed with {CriticalCount} critical errors",
+                criticalErrors);
+        }
+    }
 }
 
 /// <summary>
@@ -160,21 +160,21 @@ public void ThrowIfInvalid()
 /// </summary>
 public class ValidationError
 {
-public string Source { get; }
-public string Message { get; }
-public ValidationSeverity Severity { get; }
+    public string Source { get; }
+    public string Message { get; }
+    public ValidationSeverity Severity { get; }
 
-public ValidationError(string source, string message, ValidationSeverity severity)
-{
-    Source = source;
-    Message = message;
-    Severity = severity;
-}
+    public ValidationError(string source, string message, ValidationSeverity severity)
+    {
+        Source = source;
+        Message = message;
+        Severity = severity;
+    }
 
-public override string ToString()
-{
-    return $"[{Severity}] {Source}: {Message}";
-}
+    public override string ToString()
+    {
+        return $"[{Severity}] {Source}: {Message}";
+    }
 }
 
 /// <summary>
@@ -182,9 +182,9 @@ public override string ToString()
 /// </summary>
 public enum ValidationSeverity
 {
-Info,
-Warning,
-Critical
+    Info,
+    Warning,
+    Critical
 }
 
 /// <summary>
@@ -192,11 +192,11 @@ Critical
 /// </summary>
 public class ContentValidationException : Exception
 {
-public IEnumerable<ValidationError> Errors { get; }
+    public IEnumerable<ValidationError> Errors { get; }
 
-public ContentValidationException(string message, IEnumerable<ValidationError> errors)
-    : base(message)
-{
-    Errors = errors;
-}
+    public ContentValidationException(string message, IEnumerable<ValidationError> errors)
+        : base(message)
+    {
+        Errors = errors;
+    }
 }
