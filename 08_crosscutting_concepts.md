@@ -407,6 +407,140 @@ UI.ShowScene(phase2, isLocked: !phase2.SpawnConditions.IsEligible(player));
 
 ---
 
+### 8.2.7 Multi-Scene NPC Interaction Pattern
+
+**Core Principle**: A single NPC can have multiple independent active scenes simultaneously. Each scene represents a distinct narrative thread with separate lifecycle, situations, and completion state.
+
+#### Physical Presence vs Interactive Opportunities
+
+**Physical Presence (Always Visible)**:
+- NPCs exist in game world as physical entities
+- When NPC present at location, player always sees them listed
+- Represents fiction: "Elena is standing near the fireplace"
+
+**Interactive Opportunities (Conditional)**:
+- Interaction buttons appear only when NPC has active scenes
+- Each active scene spawns separate button with descriptive label
+- Represents available conversation topics or interaction contexts
+
+**Example**:
+```
+Elena at Common Room (physical presence shown)
+├─ Active Scene 1: "Secure Lodging" → Button: "Secure Lodging"
+└─ Active Scene 2: "Inn Trouble Brewing" → Button: "Discuss Inn Trouble"
+
+Thomas at Common Room (physical presence shown)
+└─ No active scenes → No buttons
+```
+
+#### Scene Independence
+
+Each scene maintains independent lifecycle:
+- Scene A: "Secure Lodging" (4 situations cascading sequentially)
+- Scene B: "Inn Trouble Brewing" (3 situations cascading sequentially)
+
+Completing Scene A does not affect Scene B. Both remain visible and independently playable until each reaches completion criteria.
+
+#### Sequential Situations Within Scenes
+
+Within single scene, situations flow sequentially without interruption:
+
+1. Player clicks "Secure Lodging" button
+2. Scene activates, shows Situation 1
+3. Player selects choice → Scene cascades to Situation 2 (no return to location view)
+4. Player selects choice → Scene cascades to Situation 3
+5. Player selects choice → Scene completes, returns to location view
+
+Scene state machine manages CurrentSituationId and AdvanceToNextSituation() for seamless narrative flow.
+
+#### Perfect Information Requirement
+
+Players must see ALL available interaction options for strategic decisions. Hiding scenes because they lack aesthetic labels violates perfect information principle. Architecture prioritizes functionality over cosmetics:
+
+- Scene exists + active situation → Show button (even with placeholder label)
+- No active scene → No button (nothing to engage)
+
+#### Multi-Scene Display Pattern
+
+Architecture shift from single-scene to multi-scene:
+
+**Before (Single Scene)**:
+```csharp
+// Query first active scene only
+var scene = gameWorld.Scenes
+    .Where(s => s.PlacedNPCId == npc.Id && s.State == Active)
+    .FirstOrDefault();
+
+// ViewModel has single label
+string InteractionLabel { get; set; }
+```
+
+**After (Multi-Scene)**:
+```csharp
+// Query ALL active scenes
+var scenes = gameWorld.Scenes
+    .Where(s => s.PlacedNPCId == npc.Id && s.State == Active)
+    .ToList();
+
+// ViewModel has multiple scene descriptors
+List<NpcSceneViewModel> AvailableScenes { get; set; }
+```
+
+#### Label Derivation Hierarchy
+
+When deriving button labels for scenes, use fallback hierarchy:
+
+1. Scene.DisplayName (explicit authored label)
+2. First Situation.Name in scene (derived from situation content)
+3. Placeholder "Talk to [NPC Name]" (functional default)
+
+Never hide functional scene because it lacks pretty label. Playability trumps aesthetics.
+
+#### Navigation Routing
+
+When player clicks scene button, navigation must route to SPECIFIC scene:
+
+**Before (Ambiguous)**:
+```csharp
+// Button click passes npcId only
+NavigateToNPC(npcId);
+
+// Navigation searches for any active scene at this NPC
+var scene = gameWorld.Scenes
+    .Where(s => s.PlacedNPCId == npcId && s.State == Active)
+    .FirstOrDefault();  // ❌ Ambiguous when multiple scenes exist
+```
+
+**After (Explicit)**:
+```csharp
+// Button click passes (npcId, sceneId) pair
+NavigateToScene(npcId, sceneId);
+
+// Navigation uses sceneId for direct lookup
+var scene = gameWorld.Scenes.First(s => s.Id == sceneId);  // ✅ Explicit routing
+```
+
+#### Spawn Independence
+
+Scenes spawn independently from different sources:
+
+- Tutorial scenes: Spawn at parse-time (concrete npcId binding)
+- Obligation scenes: Spawn at runtime (categorical filters)
+- Multiple obligations: Can spawn scenes at same NPC simultaneously
+- Each scene: Operates independently until completion
+
+This architectural pattern supports rich narrative branching where NPCs serve as hubs for multiple concurrent story threads.
+
+#### Implementation Requirements
+
+1. **Query Pattern**: Use `.Where()` not `.FirstOrDefault()` when fetching NPC scenes
+2. **ViewModel Structure**: Support list of available scenes per NPC
+3. **UI Rendering**: Loop through available scenes, render one button per scene
+4. **Navigation**: Pass both npcId and sceneId for explicit routing
+5. **Label Priority**: Prefer Scene.DisplayName, fallback to Situation.Name, fallback to placeholder
+
+---
+
 ## 8.3 Design Principles
 
 ### 8.3.1 Principle Priority Hierarchy
@@ -865,6 +999,59 @@ public Location GetLocationById(string id) { return location; }
 - PascalCase for entities, properties, methods
 - CSS in CSS files (separation of concerns)
 - Explicit type names (no var)
+
+### 8.5.6 Async Propagation Pattern
+
+**Core Principle**: Async methods propagate upward through the call stack. If a method calls async code, it MUST be async. Never block on async code with `.Wait()` or `.Result`.
+
+**Always Propagate Async:**
+```csharp
+// ✅ CORRECT - Async propagates to caller
+public async Task ProcessSceneAsync(Scene scene) {
+    await _repository.SaveSceneAsync(scene);
+    await _notificationService.NotifyAsync();
+}
+
+// ❌ FORBIDDEN - Blocking on async
+public void ProcessScene(Scene scene) {
+    _repository.SaveSceneAsync(scene).Wait();  // Deadlock risk
+    _notificationService.NotifyAsync().Result;  // Deadlock risk
+}
+```
+
+**Propagate to UI Layer:**
+```csharp
+// ✅ CORRECT - Blazor component method is async
+@code {
+    private async Task HandleClickAsync() {
+        await _sceneService.ProcessSceneAsync(scene);
+        StateHasChanged();
+    }
+}
+
+// ❌ FORBIDDEN - Sync method blocking on async
+@code {
+    private void HandleClick() {
+        _sceneService.ProcessSceneAsync(scene).Wait();
+        StateHasChanged();
+    }
+}
+```
+
+**Rationale:**
+- **Avoid Deadlocks**: `.Wait()` and `.Result` can deadlock in ASP.NET context
+- **Better Performance**: Async allows thread pool to handle other work
+- **Consistent Pattern**: All I/O operations are async throughout stack
+- **Framework Expectation**: ASP.NET Core and Blazor designed for async
+
+**Enforcement:**
+- All database operations async
+- All HTTP calls async
+- All file I/O async
+- UI event handlers async when calling async services
+- Never use `.Wait()`, `.Result`, or `.GetAwaiter().GetResult()`
+
+**Exception**: Framework configuration code that runs once at startup may use `.GetAwaiter().GetResult()` if truly required (rare).
 
 ---
 

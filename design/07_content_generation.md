@@ -1054,6 +1054,16 @@ This section describes content generation design. Technical implementation detai
 - Property-driven difficulty: arc42 Section 8 (Cross-Cutting Concepts)
 - Entity resolution: arc42 Section 5 (Building Block View)
 
+## Entity Content Requirements
+
+### Mandatory Location Properties
+
+**All Locations MUST Have Hex Positions**: Every location entity in the game world must specify HexPosition coordinates. The hex-based spatial architecture requires explicit hex coordinates for all travel calculations, route generation, and map display. Locations without hex positions break the three-tier loop structure (SHORT/MEDIUM/LONG) and prevent proper route travel mechanics.
+
+**Rationale**: The hex grid is the fundamental spatial model for Wayfarer. Route segments connect hex positions. Travel time calculates from hex distance. Map visualization renders hex positions. Fractal map generation depends on hex coordinates for regional hierarchy. Content generation archetypes assume valid hex positions for all location entities.
+
+**Validation**: Parser must enforce hex position presence for all location types (settlements, venues, specific locations within venues). Missing hex positions should fail validation and prevent game initialization.
+
 ## Conclusion
 
 Wayfarer's archetype-based content generation enables infinite variety from finite patterns. The three-tier hierarchy (5 core, 10 expanded, 6 specialized archetypes) provides mechanical foundation for all content. Categorical property scaling (demeanor, quality, power dynamic, environment quality) creates contextually appropriate difficulty without modifying archetypes. Two-level composition (scene archetypes calling situation archetypes) generates complete multi-situation flows.

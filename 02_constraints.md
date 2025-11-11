@@ -215,6 +215,65 @@ public Scene GetSceneById(string id) { /* ... */ }
 
 **Rationale:** Active development phase. Clean breaks force complete refactoring. No technical debt accumulation.
 
+### JSON Serialization Boundary
+
+**Core Principle:** JSON field names MUST match C# property names exactly. Parsers MUST parse all JSON content into strongly-typed objects. The JSON-to-C# boundary is the serialization point - NO raw JSON allowed beyond parsers.
+
+**Field Name Matching:**
+```csharp
+// ✅ CORRECT - JSON field matches C# property
+// JSON: { "currentSituationId": "situation_1" }
+public string CurrentSituationId { get; set; }
+
+// ❌ FORBIDDEN - JsonPropertyName attribute to rename
+[JsonPropertyName("current_situation_id")]
+public string CurrentSituationId { get; set; }
+```
+
+**Parse All JSON:**
+```csharp
+// ✅ CORRECT - Parse to strongly-typed object
+public class LocationDTO {
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public HexPosition HexPosition { get; set; }
+}
+
+// ❌ FORBIDDEN - JsonElement passthrough
+public class LocationDTO {
+    public string Id { get; set; }
+    public JsonElement Properties { get; set; }  // Deferred parsing
+}
+```
+
+**Parser Responsibility:**
+```csharp
+// ✅ CORRECT - Parser extracts all data from JSON
+var location = new Location {
+    Id = dto.Id,
+    Name = dto.Name,
+    HexPosition = dto.HexPosition,  // Parsed by JSON deserializer
+};
+
+// ❌ FORBIDDEN - Domain entities with JsonElement
+public class Location {
+    public JsonElement RawData { get; set; }  // Runtime JSON parsing
+}
+```
+
+**Rationale:**
+- **Single Serialization Point**: JSON parsed once at boundary, never in domain logic
+- **Type Safety**: Compiler catches JSON structure changes via DTO compilation errors
+- **No Runtime JSON Parsing**: Domain entities work with typed objects only
+- **Clear Contracts**: DTO structure documents JSON schema explicitly
+- **Easier Refactoring**: Change DTO, compiler finds all affected code
+
+**Enforcement:**
+- No `JsonElement` properties in domain entities
+- No `JsonPropertyName` attributes (field name IS property name)
+- All JSON content parsed into DTO classes with explicit properties
+- Parsers create domain entities from DTOs, not from raw JSON
+
 ---
 
 ## 2.3 Convention Constraints
