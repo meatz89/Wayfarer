@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components;
-using Wayfarer.GameState.Enums;
 
 /// <summary>
 /// Main game screen component that manages the unified UI with fixed header/footer and dynamic content area.

@@ -1,10 +1,7 @@
 using Microsoft.AspNetCore.Components;
-using Wayfarer.GameState.Enums;
 
-namespace Wayfarer.Pages.Components
-{
-    /// <summary>
-    /// DUMB DISPLAY COMPONENT - NO BUSINESS LOGIC
+/// <summary>
+/// DUMB DISPLAY COMPONENT - NO BUSINESS LOGIC
     /// All filtering/querying/view model building happens in LocationFacade
     /// This component ONLY displays pre-built view models and delegates actions to backend
     /// </summary>
@@ -449,4 +446,3 @@ namespace Wayfarer.Pages.Components
             return new MoveIntent(action.DestinationLocationId);
         }
     }
-}

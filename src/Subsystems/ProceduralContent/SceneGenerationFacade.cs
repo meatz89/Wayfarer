@@ -97,7 +97,7 @@ public class SceneGenerationFacade
     ///
     /// Called after generation, before storing template in GameWorld
     /// </summary>
-    public Wayfarer.Content.Validation.ValidationResult ValidateTemplate(SceneTemplate template)
+    public SceneValidationResult ValidateTemplate(SceneTemplate template)
     {
         return SceneTemplateValidator.Validate(template);
     }

@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-{
 /// <summary>
 /// A* pathfinding service for hex-based travel system.
 /// Generates shortest valid path between two hex coordinates with terrain/transport compatibility.
@@ -341,7 +340,6 @@ internal class PriorityQueue<T>
 
     public bool Contains(T item)
     {
-        return _elements.Any(e => EqualityComparer<T>.Default.Equals(e.item, item));
+        return _elements.Any(e => EqualityComparer<T>.Default.Equals(e.Item, item));
     }
-}
 }

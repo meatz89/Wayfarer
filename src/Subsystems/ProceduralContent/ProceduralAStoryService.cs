@@ -288,12 +288,11 @@ public class ProceduralAStoryService
     {
         List<PersonalityType> allTypes = new List<PersonalityType>
     {
-        PersonalityType.Diplomatic,
-        PersonalityType.Aggressive,
-        PersonalityType.Calculating,
-        PersonalityType.Zealous,
-        PersonalityType.Cautious,
-        PersonalityType.Jovial
+        PersonalityType.DEVOTED,
+        PersonalityType.MERCANTILE,
+        PersonalityType.PROUD,
+        PersonalityType.CUNNING,
+        PersonalityType.STEADFAST
     };
 
         // Filter out recent personality types (anti-repetition)

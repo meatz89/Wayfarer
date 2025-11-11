@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-{
 /// <summary>
 /// Procedural route generator using hex-based pathfinding.
 /// Generates routes between locations based on hex grid topology.
@@ -731,5 +730,4 @@ public class HexRouteGenerator
 
         return $"Travel from {origin.Name} to {destination.Name} {transportDesc}. This route is {safetyDesc}.";
     }
-}
 }

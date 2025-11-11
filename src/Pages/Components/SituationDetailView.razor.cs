@@ -1,11 +1,9 @@
 using Microsoft.AspNetCore.Components;
 
-namespace Wayfarer.Pages.Components
-{
-    /// <summary>
-    /// Situation Detail View - Shows full situation information before commitment decision.
-    /// </summary>
-    public class SituationDetailViewBase : ComponentBase
+/// <summary>
+/// Situation Detail View - Shows full situation information before commitment decision.
+/// </summary>
+public class SituationDetailViewBase : ComponentBase
     {
         [Parameter] public SituationDetailViewModel SelectedSituation { get; set; }
 
@@ -25,4 +23,3 @@ namespace Wayfarer.Pages.Components
         public int FocusCost { get; set; }
         public int StaminaCost { get; set; }
     }
-}

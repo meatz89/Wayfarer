@@ -795,7 +795,7 @@ public static class AStorySceneArchetypeCatalog
             TemplateId = "order_artifact",
             NamePattern = "Order Artifact",
             DescriptionPattern = "An ancient artifact once belonging to the scattered Order.",
-            Categories = new List<ItemCategory> { ItemCategory.Treasure },
+            Categories = new List<ItemCategory> { ItemCategory.Valuables },  // Use Valuables instead of removed Treasure
             Weight = 3,
             BuyPrice = 0,
             SellPrice = 100,

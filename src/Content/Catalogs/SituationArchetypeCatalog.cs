@@ -677,7 +677,7 @@ public static class SituationArchetypeCatalog
             SecondaryStat = PlayerStatType.None,
             StatThreshold = 0,
             CoinCost = 0,
-            ChallengeType = TacticalSystemType.None,
+            ChallengeType = TacticalSystemType.Physical,  // Rest is Physical domain (no actual challenge)
             ResolveCost = 0,
             FallbackTimeCost = 0
         };

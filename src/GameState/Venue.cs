@@ -1,6 +1,4 @@
-﻿using Wayfarer.GameState.Enums;
-
-public class Venue
+﻿public class Venue
 {
     public string Id { get; set; }
     public string Name { get; private set; }

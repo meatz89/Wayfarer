@@ -1,10 +1,7 @@
 using Microsoft.AspNetCore.Components;
-using Wayfarer.GameState.Enums;
 
-namespace Wayfarer.Pages.Components
-{
-    /// <summary>
-    /// Scene screen component for Modal Scenes (Sir Brante forced moments).
+/// <summary>
+/// Scene screen component for Modal Scenes (Sir Brante forced moments).
     /// Full-screen takeover showing scene narrative with 2-4 choices.
     /// Handles both Cascade (continue in scene) and Breathe (return to location) progression modes.
     /// </summary>
@@ -550,4 +547,3 @@ namespace Wayfarer.Pages.Components
             }
         }
     }
-}

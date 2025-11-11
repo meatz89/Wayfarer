@@ -31,7 +31,6 @@ public class GenerationContext
     // Player Context
     public int PlayerCoins { get; set; }
     public int PlayerHealth { get; set; }
-    public int PlayerAuthority { get; set; }
 
     // Location Context
     public List<LocationPropertyType> LocationProperties { get; set; } = new();
@@ -62,7 +61,6 @@ public class GenerationContext
             NpcName = "",
             PlayerCoins = 0,
             PlayerHealth = 100,
-            PlayerAuthority = 0,
             LocationProperties = new()
         };
     }
@@ -107,7 +105,6 @@ public class GenerationContext
             // Player context
             PlayerCoins = player?.Coins ?? 0,
             PlayerHealth = player?.Health ?? 100,
-            PlayerAuthority = player?.Authority ?? 0,
 
             // Location context
             LocationProperties = location?.LocationProperties ?? new(),
@@ -132,12 +129,12 @@ public class GenerationContext
     /// </summary>
     private static DangerLevel DeriveDangerLevel(Location location, NPC npc, Player player)
     {
-        // Check location properties for danger indicators
+        // Check location properties for danger indicators (Guarded, Outdoor=wilderness, Checkpoint=authority)
         if (location?.LocationProperties.Any(p =>
-            p == LocationPropertyType.dangerous ||
-            p == LocationPropertyType.wilderness) ?? false)
+            p == LocationPropertyType.Guarded ||
+            p == LocationPropertyType.Outdoor) ?? false)
         {
-            return DangerLevel.Deadly;
+            return DangerLevel.Risky;
         }
 
         // Check NPC hostility
@@ -157,16 +154,16 @@ public class GenerationContext
     private static SocialStakes DeriveSocialStakes(Location location)
     {
         if (location?.LocationProperties.Any(p =>
-            p == LocationPropertyType.@public ||
-            p == LocationPropertyType.marketplace) ?? false)
+            p == LocationPropertyType.Public ||
+            p == LocationPropertyType.Market) ?? false)
         {
             return SocialStakes.Public;
         }
 
         if (location?.LocationProperties.Any(p =>
-            p == LocationPropertyType.@private ||
-            p == LocationPropertyType.secluded ||
-            p == LocationPropertyType.bedroom) ?? false)
+            p == LocationPropertyType.Private ||
+            p == LocationPropertyType.Isolated ||
+            p == LocationPropertyType.Intimate) ?? false)
         {
             return SocialStakes.Private;
         }
@@ -181,38 +178,34 @@ public class GenerationContext
     /// </summary>
     private static TimePressure DeriveTimePressure(Location location, Player player)
     {
-        // Check for crisis/emergency location properties
+        // Check for crisis/emergency location properties (Guarded, Official = authority pressure)
         if (location?.LocationProperties.Any(p =>
-            p == LocationPropertyType.dangerous) ?? false)
-        {
-            return TimePressure.Desperate;
-        }
-
-        // Night time creates urgency
-        if (player?.CurrentTimeBlock == TimeBlocks.Night)
+            p == LocationPropertyType.Guarded ||
+            p == LocationPropertyType.Official) ?? false)
         {
             return TimePressure.Urgent;
         }
 
+        // Default to leisurely (time pressure requires specialized context)
         return TimePressure.Leisurely;
     }
 
     /// <summary>
-    /// Derive power dynamic from player vs NPC authority.
+    /// Derive power dynamic from NPC tier (authority concept removed from architecture).
     ///
     /// Scales: Confrontation difficulty, Negotiation leverage, Social_maneuvering thresholds
     /// </summary>
     private static PowerDynamic DerivePowerDynamic(NPC npc, Player player)
     {
-        if (npc == null || player == null) return PowerDynamic.Equal;
+        if (npc == null) return PowerDynamic.Equal;
 
-        int npcAuthority = npc.Authority;
-        int playerAuthority = player.Authority;
-
-        if (playerAuthority > npcAuthority + 3) return PowerDynamic.Dominant;
-        if (npcAuthority > playerAuthority + 3) return PowerDynamic.Submissive;
-
-        return PowerDynamic.Equal;
+        // Use NPC tier as power indicator (1=low, 5=high authority)
+        return npc.Tier switch
+        {
+            >= 4 => PowerDynamic.Submissive,  // High tier NPC = player submissive
+            <= 2 => PowerDynamic.Dominant,    // Low tier NPC = player dominant
+            _ => PowerDynamic.Equal           // Mid tier = equal footing
+        };
     }
 
     /// <summary>
@@ -224,7 +217,7 @@ public class GenerationContext
     {
         if (npc == null) return EmotionalTone.Cold;
 
-        int bond = npc.Bond;
+        int bond = npc.BondStrength;
 
         // High positive bond = Passionate (love)
         if (bond >= 15) return EmotionalTone.Passionate;
@@ -246,15 +239,12 @@ public class GenerationContext
     /// </summary>
     private static MoralClarity DeriveMoralClarity(NPC npc, Location location)
     {
-        // CRUEL NPCs = clearly evil actions
-        if (npc?.PersonalityType == PersonalityType.CRUEL)
-        {
-            return MoralClarity.Clear;
-        }
+        // No CRUEL personality type in current 5-type system (DEVOTED/MERCANTILE/PROUD/CUNNING/STEADFAST)
+        // All personalities can present moral ambiguity based on context
 
         // Holy locations = clear moral context
         if (location?.LocationProperties.Any(p =>
-            p == LocationPropertyType.holy) ?? false)
+            p == LocationPropertyType.Temple) ?? false)
         {
             return MoralClarity.Clear;
         }
@@ -296,16 +286,16 @@ public class GenerationContext
 
         // Premium environment (luxurious, opulent)
         if (location.LocationProperties.Any(p =>
-            p == LocationPropertyType.luxurious ||
-            p == LocationPropertyType.opulent))
+            p == LocationPropertyType.Wealthy ||
+            p == LocationPropertyType.Prestigious))
         {
             return EnvironmentQuality.Premium;
         }
 
         // Standard environment (comfortable, restful)
         if (location.LocationProperties.Any(p =>
-            p == LocationPropertyType.restful ||
-            p == LocationPropertyType.comfortable))
+            p == LocationPropertyType.Restful ||
+            p == LocationPropertyType.Cozy))
         {
             return EnvironmentQuality.Standard;
         }
