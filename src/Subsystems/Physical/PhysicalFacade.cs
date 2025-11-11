@@ -331,7 +331,7 @@ public class PhysicalFacade
         return outcome;
     }
 
-    public PhysicalOutcome EndSession()
+    public async Task<PhysicalOutcome> EndSession()
     {
         if (!IsSessionActive())
         {

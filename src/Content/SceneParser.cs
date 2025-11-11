@@ -176,7 +176,7 @@ public static class SceneParser
     /// </summary>
     private static SituationSpawnRules ParseSpawnRules(SituationSpawnRulesDTO dto)
     {
-        if (!Enum.TryParse<SituationSpawnPattern>(dto.Pattern, true, out SituationSpawnPattern pattern))
+        if (!Enum.TryParse<SpawnPattern>(dto.Pattern, true, out SpawnPattern pattern))
         {
             throw new InvalidDataException($"Invalid SituationSpawnPattern value: '{dto.Pattern}'");
         }

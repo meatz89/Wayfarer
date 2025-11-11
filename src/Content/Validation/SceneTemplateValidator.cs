@@ -187,7 +187,7 @@ public static class SceneTemplateValidator
 
         if (!aStoryTemplates.Any())
         {
-            return new ValidationResult(true, errors);
+            return new SceneValidationResult(true, errors);
         }
 
         int minSequence = aStoryTemplates.Min(t => t.MainStorySequence!.Value);

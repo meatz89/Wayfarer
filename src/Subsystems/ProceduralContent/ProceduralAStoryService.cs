@@ -221,7 +221,6 @@ public class ProceduralAStoryService
         PlacementFilterDTO filter = new PlacementFilterDTO
         {
             PlacementType = "Location", // A-story happens at locations
-            PlacementRelation = "Generic", // Runtime categorical resolution
 
             // Location filters (categorical)
             RegionId = regionId, // Specific region for tier-appropriate content
@@ -360,10 +359,8 @@ public class ProceduralAStoryService
             PlayerState = new PlayerStateConditionsDTO
             {
                 CompletedScenes = new List<string> { previousSceneId }, // Previous A-scene completed
-                MinStats = new List<ScaleRequirementDTO>(), // No stat gates (accessible to all)
-                RequiredItems = new List<string>(), // No item requirements
-                RequiredAchievements = new List<string>(), // No achievement gates
-                ForbiddenAchievements = new List<string>()
+                MinStats = new Dictionary<string, int>(), // No stat gates (accessible to all)
+                RequiredItems = new List<string>() // No item requirements
             },
 
             // No world state conditions (time/weather irrelevant for A-story)
@@ -468,12 +465,13 @@ public class ProceduralAStoryService
             // Extract region from placement location
             if (!string.IsNullOrEmpty(scene.PlacementId))
             {
+                // RegionId removed from Location - track by VenueId instead
                 Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == scene.PlacementId);
-                if (location != null && !string.IsNullOrEmpty(location.RegionId))
+                if (location != null && !string.IsNullOrEmpty(location.VenueId))
                 {
-                    if (!context.RecentRegionIds.Contains(location.RegionId))
+                    if (!context.RecentRegionIds.Contains(location.VenueId))
                     {
-                        context.RecentRegionIds.Add(location.RegionId);
+                        context.RecentRegionIds.Add(location.VenueId);
                     }
                 }
             }

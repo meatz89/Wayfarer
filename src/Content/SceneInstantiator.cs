@@ -1033,14 +1033,14 @@ public class SceneInstantiator
         // Generate LocationDTOs from specifications
         foreach (DependentLocationSpec spec in scene.Template.DependentLocations)
         {
-            LocationDTO locationDto = BuildLocationDTO(spec, scene, context);
+            LocationDTO locationDto = BuildLocationDTO(spec, scene.Id, context);
             locationDtos.Add(locationDto);
         }
 
         // Generate ItemDTOs from specifications
         foreach (DependentItemSpec spec in scene.Template.DependentItems)
         {
-            ItemDTO itemDto = BuildItemDTO(spec, scene, context, locationDtos);
+            ItemDTO itemDto = BuildItemDTO(spec, scene.Id, context, locationDtos);
             itemDtos.Add(itemDto);
         }
 

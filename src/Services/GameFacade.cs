@@ -626,10 +626,10 @@ public class GameFacade
     /// <summary>
     /// End the current physical challenge and return the outcome
     /// </summary>
-    public PhysicalOutcome EndPhysicalSession()
+    public async Task<PhysicalOutcome> EndPhysicalSession()
     {
         if (_physicalFacade == null) return null;
-        return _physicalFacade.EndSession();
+        return await _physicalFacade.EndSession();
     }
 
     /// <summary>
