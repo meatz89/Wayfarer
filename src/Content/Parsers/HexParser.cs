@@ -3,6 +3,36 @@ using System.Collections.Generic;
 
 {
 /// <summary>
+/// Coordinate pair for hex validation - replaces tuple
+/// </summary>
+internal struct CoordinatePair : IEquatable<CoordinatePair>
+{
+    public int Q { get; }
+    public int R { get; }
+
+    public CoordinatePair(int q, int r)
+    {
+        Q = q;
+        R = r;
+    }
+
+    public bool Equals(CoordinatePair other)
+    {
+        return Q == other.Q && R == other.R;
+    }
+
+    public override bool Equals(object obj)
+    {
+        return obj is CoordinatePair pair && Equals(pair);
+    }
+
+    public override int GetHashCode()
+    {
+        return HashCode.Combine(Q, R);
+    }
+}
+
+/// <summary>
 /// Parses hex map data from JSON DTOs to domain entities.
 /// Validates hex coordinates, terrain types, and optional location references.
 /// Part of hex-based travel system spatial scaffolding.
@@ -191,12 +221,12 @@ public static class HexParser
     /// </summary>
     private static void ValidateDuplicateCoordinates(HexMap hexMap)
     {
-        HashSet<(int, int)> seenCoordinates = new HashSet<(int, int)>();
+        HashSet<CoordinatePair> seenCoordinates = new HashSet<CoordinatePair>();
 
         for (int i = 0; i < hexMap.Hexes.Count; i++)
         {
             Hex hex = hexMap.Hexes[i];
-            (int, int) coords = (hex.Coordinates.Q, hex.Coordinates.R);
+            CoordinatePair coords = new CoordinatePair(hex.Coordinates.Q, hex.Coordinates.R);
 
             if (seenCoordinates.Contains(coords))
             {

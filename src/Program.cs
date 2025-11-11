@@ -36,11 +36,8 @@ Log.Logger = new LoggerConfiguration()
 .WriteTo.Console()
 .CreateLogger();
 
-// Ensure proper disposal on exit:
-AppDomain.CurrentDomain.ProcessExit += (s, e) =>
-{
-Log.CloseAndFlush();
-};
+// Ensure proper disposal on exit
+AppDomain.CurrentDomain.ProcessExit += OnApplicationExit;
 
 // Register your game services
 builder.Host.UseSerilog();
@@ -87,3 +84,8 @@ app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
 app.Run();
+
+static void OnApplicationExit(object sender, EventArgs e)
+{
+    Log.CloseAndFlush();
+}

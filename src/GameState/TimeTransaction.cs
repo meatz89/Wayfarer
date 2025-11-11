@@ -74,16 +74,6 @@ public TimeTransaction WithEffect(ITimeBasedEffect effect)
 }
 
 /// <summary>
-/// Adds context data for effects to use.
-/// </summary>
-public TimeTransaction WithContext(Action<TransactionContext> configureContext)
-{
-    if (configureContext != null)
-        configureContext.Invoke(_context);
-    return this;
-}
-
-/// <summary>
 /// Sets whether this transaction requires active segments (default: true).
 /// </summary>
 public TimeTransaction RequireActiveSegments(bool require)

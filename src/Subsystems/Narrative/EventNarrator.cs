@@ -323,13 +323,14 @@ private string[] GetApproachNarratives(string npcName, string timeNarrative)
 
 private string GetTimeTransitionNarrative(TimeBlocks from, TimeBlocks to)
 {
-    return (from, to) switch
-    {
-        (TimeBlocks.Morning, TimeBlocks.Midday) => "The day grows warm as afternoon approaches.",
-        (TimeBlocks.Midday, TimeBlocks.Afternoon) => "Shadows lengthen as evening draws near.",
-        (TimeBlocks.Afternoon, TimeBlocks.Evening) => "Darkness falls across the land.",
-        (TimeBlocks.Evening, TimeBlocks.Morning) => "You sleep through the night and wake at morning.",
-        _ => "Time passes..."
-    };
+    if (from == TimeBlocks.Morning && to == TimeBlocks.Midday)
+        return "The day grows warm as afternoon approaches.";
+    if (from == TimeBlocks.Midday && to == TimeBlocks.Afternoon)
+        return "Shadows lengthen as evening draws near.";
+    if (from == TimeBlocks.Afternoon && to == TimeBlocks.Evening)
+        return "Darkness falls across the land.";
+    if (from == TimeBlocks.Evening && to == TimeBlocks.Morning)
+        return "You sleep through the night and wake at morning.";
+    return "Time passes...";
 }
 }

@@ -1483,18 +1483,25 @@ private string GetLocationNameFromId(string venueId)
     return venue.Name;
 }
 
+private class VenueLocationGrouping
+{
+    public string VenueId { get; set; }
+    public List<Location> Locations { get; set; } = new List<Location>();
+}
+
 private void ValidateCrossroadsConfiguration()
 {
-    // Group Locations by Venue using tuples
-    List<(string VenueId, List<Location> Locations)> spotsByLocation = new List<(string VenueId, List<Location> Locations)>();
+    // Group Locations by Venue
+    List<VenueLocationGrouping> spotsByLocation = new List<VenueLocationGrouping>();
     foreach (Location location in _gameWorld.Locations)
     {
         int groupIndex = spotsByLocation.FindIndex(g => g.VenueId == location.VenueId);
         if (groupIndex == -1)
         {
-            List<Location> Locations = new List<Location>();
-            Locations.Add(location);
-            spotsByLocation.Add((location.VenueId, Locations));
+            VenueLocationGrouping group = new VenueLocationGrouping();
+            group.VenueId = location.VenueId;
+            group.Locations.Add(location);
+            spotsByLocation.Add(group);
         }
         else
         {
@@ -1505,8 +1512,8 @@ private void ValidateCrossroadsConfiguration()
     // Validate each venue has exactly one crossroads location
     foreach (Venue venue in _gameWorld.Venues)
     {
-        (string VenueId, List<Location> Locations) locationGroup = spotsByLocation.FirstOrDefault(g => g.VenueId == venue.Id);
-        if (locationGroup.VenueId == null)
+        VenueLocationGrouping locationGroup = spotsByLocation.FirstOrDefault(g => g.VenueId == venue.Id);
+        if (locationGroup == null || locationGroup.VenueId == null)
         {
             throw new InvalidOperationException($"Venue '{venue.Id}' ({venue.Name}) has no Locations defined");
         }
