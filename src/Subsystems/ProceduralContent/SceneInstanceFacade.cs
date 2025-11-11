@@ -82,7 +82,7 @@ public async Task<Scene> SpawnScene(SceneTemplate template, SceneSpawnReward spa
     await _contentGenerationFacade.CreateDynamicPackageFile(packageJson, packageId);
 
     // PHASE 2.3: Load package via PackageLoader (HIGHLANDER: JSON → Parser → Entity)
-    await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
+    _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
 
     // PHASE 2.4: Retrieve spawned scene from GameWorld
     // Scene was added to GameWorld by PackageLoader

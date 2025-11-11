@@ -30,10 +30,15 @@ public PackageLoaderFacade(PackageLoader packageLoader)
 /// Load dynamically-generated package from JSON string
 /// Creates Location/Item/NPC entities in GameWorld
 /// Returns list of skeleton IDs requiring AI completion
+///
+/// NOTE: Currently synchronous - PackageLoader.LoadDynamicPackageFromJson is sync
+/// Proper fix would make all parsers async, but that's a massive refactor
+/// Entity creation from DTOs is pure CPU work with no await points
+/// This method blocks render thread during parsing - acceptable for infrequent operation
 /// </summary>
-public async Task<List<string>> LoadDynamicPackage(string packageJson, string packageId)
+public List<string> LoadDynamicPackage(string packageJson, string packageId)
 {
-    return await Task.Run(() => _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId));
+    return _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
 }
 
 /// <summary>

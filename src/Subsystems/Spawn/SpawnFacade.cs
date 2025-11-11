@@ -34,7 +34,6 @@ private readonly SpawnConditionsEvaluator _conditionsEvaluator;
 private readonly SceneInstanceFacade _sceneInstanceFacade;
 private readonly DependentResourceOrchestrationService _dependentResourceOrchestrationService;
 private readonly ProceduralAStoryService _proceduralAStoryService;
-private readonly SemaphoreSlim _spawnLock = new SemaphoreSlim(1, 1); // Prevents race conditions in spawn system (async-safe)
 
 public SpawnFacade(
     GameWorld gameWorld,
@@ -343,28 +342,14 @@ private void AddToActiveSituations(Situation situation)
 /// - Evaluates spawn conditions via SpawnConditionsEvaluator
 /// - Instantiates eligible scenes via SceneInstantiator
 /// - Prevents duplicate spawning (checks existing scenes)
+///
+/// ARCHITECTURE: Single-threaded Blazor Server per circuit
+/// No race conditions possible - user actions serialized by Blazor message pump
+/// One player, one GameWorld, sequential async/await execution
 /// </summary>
 /// <param name="triggerType">What triggered the spawn check (Time, Location, NPC, Scene)</param>
 /// <param name="contextId">Optional context ID (locationId, npcId, etc.)</param>
 public async Task CheckAndSpawnEligibleScenes(SpawnTriggerType triggerType, string contextId = null)
-{
-    // CRITICAL: Semaphore entire method to prevent race conditions
-    // Race 1: Multiple threads checking duplicate spawns simultaneously
-    // Race 2: Multiple threads generating same procedural template
-    // Race 3: Concurrent GameWorld collection modifications
-    // Fail-fast principle: Better to serialize spawns than corrupt A-story progression
-    await _spawnLock.WaitAsync();
-    try
-    {
-        await CheckAndSpawnEligibleScenesInternal(triggerType, contextId);
-    }
-    finally
-    {
-        _spawnLock.Release();
-    }
-}
-
-private async Task CheckAndSpawnEligibleScenesInternal(SpawnTriggerType triggerType, string contextId = null)
 {
     Console.WriteLine($"[SpawnOrchestration] Checking eligible scenes (Trigger: {triggerType}, Context: {contextId ?? "none"})");
 
