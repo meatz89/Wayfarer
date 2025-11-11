@@ -25,6 +25,10 @@ IConfigurationRoot configuration = new ConfigurationBuilder()
 // Register IConfiguration for dependency injection
 builder.Services.AddSingleton<IConfiguration>(configuration);
 
+// Initialize GameWorld via static factory - no DI dependencies
+GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();
+builder.Services.AddSingleton(gameWorld);
+
 builder.Services.ConfigureServices();
 
 Log.Logger = new LoggerConfiguration()

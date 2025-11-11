@@ -13,13 +13,8 @@ public static IServiceCollection ConfigureServices(this IServiceCollection servi
     services.AddSingleton<GameConfiguration>();
     services.AddSingleton<IGameRuleEngine, GameRuleEngine>();
 
-    // Register GameWorld using static GameWorldInitializer
-    services.AddSingleton<GameWorld>(_ =>
-    {
-        // Call GameWorldInitializer statically - no DI dependencies needed
-        GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();
-        return gameWorld;
-    });
+    // GameWorld registered in Program.cs via static GameWorldInitializer.CreateGameWorld()
+    // No lambda, no DI dependencies, pure static initialization
 
     // Register the content validator
     services.AddSingleton<ContentValidator>();
