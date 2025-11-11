@@ -1,7 +1,7 @@
 ﻿public enum CardTypes
 {
-Situation,
-Social,
-Mental,
-Physical
+    Situation,
+    Social,
+    Mental,
+    Physical
 }

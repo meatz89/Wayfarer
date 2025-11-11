@@ -3,6 +3,6 @@
 /// </summary>
 public class InitialTokenValue
 {
-public string TokenId { get; set; }
-public int Value { get; set; }
+    public string TokenId { get; set; }
+    public int Value { get; set; }
 }

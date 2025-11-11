@@ -4,12 +4,12 @@
 /// </summary>
 public class TokenUnlockManager
 {
-private readonly GameWorld _gameWorld;
-private readonly ConnectionTokenManager _tokenManager;
-private readonly NPCRepository _npcRepository;
-private readonly MessageSystem _messageSystem;
+    private readonly GameWorld _gameWorld;
+    private readonly ConnectionTokenManager _tokenManager;
+    private readonly NPCRepository _npcRepository;
+    private readonly MessageSystem _messageSystem;
 
-private readonly List<UnlockDefinition> _trustUnlocks = new List<UnlockDefinition>
+    private readonly List<UnlockDefinition> _trustUnlocks = new List<UnlockDefinition>
 {
     new UnlockDefinition
     {
@@ -41,7 +41,7 @@ private readonly List<UnlockDefinition> _trustUnlocks = new List<UnlockDefinitio
     }
 };
 
-private readonly List<UnlockDefinition> _diplomacyUnlocks = new List<UnlockDefinition>
+    private readonly List<UnlockDefinition> _diplomacyUnlocks = new List<UnlockDefinition>
 {
     new UnlockDefinition
     {
@@ -73,7 +73,7 @@ private readonly List<UnlockDefinition> _diplomacyUnlocks = new List<UnlockDefin
     }
 };
 
-private readonly List<UnlockDefinition> _statusUnlocks = new List<UnlockDefinition>
+    private readonly List<UnlockDefinition> _statusUnlocks = new List<UnlockDefinition>
 {
     new UnlockDefinition
     {
@@ -105,7 +105,7 @@ private readonly List<UnlockDefinition> _statusUnlocks = new List<UnlockDefiniti
     }
 };
 
-private readonly List<UnlockDefinition> _shadowUnlocks = new List<UnlockDefinition>
+    private readonly List<UnlockDefinition> _shadowUnlocks = new List<UnlockDefinition>
 {
     new UnlockDefinition
     {
@@ -137,7 +137,7 @@ private readonly List<UnlockDefinition> _shadowUnlocks = new List<UnlockDefiniti
     }
 };
 
-private readonly List<RelationshipMilestone> _relationshipMilestones = new List<RelationshipMilestone>
+    private readonly List<RelationshipMilestone> _relationshipMilestones = new List<RelationshipMilestone>
 {
     new RelationshipMilestone { Threshold = 5, Name = "Trusted associate" },
     new RelationshipMilestone { Threshold = 10, Name = "Close ally" },
@@ -145,164 +145,164 @@ private readonly List<RelationshipMilestone> _relationshipMilestones = new List<
     new RelationshipMilestone { Threshold = 20, Name = "Lifelong bond" }
 };
 
-public TokenUnlockManager(
-    GameWorld gameWorld,
-    ConnectionTokenManager tokenManager,
-    NPCRepository npcRepository,
-    MessageSystem messageSystem)
-{
-    _gameWorld = gameWorld;
-    _tokenManager = tokenManager;
-    _npcRepository = npcRepository;
-    _messageSystem = messageSystem;
-}
-
-/// <summary>
-/// Check and process unlocks when tokens are gained
-/// </summary>
-public void CheckAndProcessUnlocks(string npcId, ConnectionType tokenType, int newTokenCount)
-{
-    if (string.IsNullOrEmpty(npcId) || newTokenCount <= 0) return;
-
-    NPC npc = _npcRepository.GetById(npcId);
-    if (npc == null) return;
-
-    List<UnlockDefinition> unlocks = GetUnlockDefinitions(tokenType);
-
-    foreach (UnlockDefinition unlock in unlocks)
+    public TokenUnlockManager(
+        GameWorld gameWorld,
+        ConnectionTokenManager tokenManager,
+        NPCRepository npcRepository,
+        MessageSystem messageSystem)
     {
-        if (newTokenCount >= unlock.Threshold && (newTokenCount - 1) < unlock.Threshold)
-        {
-            ProcessUnlock(npcId, npc.Name, tokenType, unlock);
-        }
+        _gameWorld = gameWorld;
+        _tokenManager = tokenManager;
+        _npcRepository = npcRepository;
+        _messageSystem = messageSystem;
     }
 
-    int totalTokens = GetTotalTokensWithNPC(npcId);
-    CheckRelationshipUnlocks(npcId, npc.Name, totalTokens);
-}
-
-/// <summary>
-/// Get all available unlocks for an NPC based on current tokens
-/// </summary>
-public List<TokenUnlock> GetAvailableUnlocks(string npcId)
-{
-    List<TokenUnlock> availableUnlocks = new List<TokenUnlock>();
-    Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
-
-    foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
+    /// <summary>
+    /// Check and process unlocks when tokens are gained
+    /// </summary>
+    public void CheckAndProcessUnlocks(string npcId, ConnectionType tokenType, int newTokenCount)
     {
-        if (type == ConnectionType.None) continue;
+        if (string.IsNullOrEmpty(npcId) || newTokenCount <= 0) return;
 
-        int tokenCount = tokens.GetValueOrDefault(type, 0);
-        if (tokenCount <= 0) continue;
+        NPC npc = _npcRepository.GetById(npcId);
+        if (npc == null) return;
 
-        List<UnlockDefinition> unlocks = GetUnlockDefinitions(type);
+        List<UnlockDefinition> unlocks = GetUnlockDefinitions(tokenType);
 
         foreach (UnlockDefinition unlock in unlocks)
         {
-            if (tokenCount >= unlock.Threshold)
+            if (newTokenCount >= unlock.Threshold && (newTokenCount - 1) < unlock.Threshold)
             {
-                availableUnlocks.Add(new TokenUnlock
+                ProcessUnlock(npcId, npc.Name, tokenType, unlock);
+            }
+        }
+
+        int totalTokens = GetTotalTokensWithNPC(npcId);
+        CheckRelationshipUnlocks(npcId, npc.Name, totalTokens);
+    }
+
+    /// <summary>
+    /// Get all available unlocks for an NPC based on current tokens
+    /// </summary>
+    public List<TokenUnlock> GetAvailableUnlocks(string npcId)
+    {
+        List<TokenUnlock> availableUnlocks = new List<TokenUnlock>();
+        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
+
+        foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
+        {
+            if (type == ConnectionType.None) continue;
+
+            int tokenCount = tokens.GetValueOrDefault(type, 0);
+            if (tokenCount <= 0) continue;
+
+            List<UnlockDefinition> unlocks = GetUnlockDefinitions(type);
+
+            foreach (UnlockDefinition unlock in unlocks)
+            {
+                if (tokenCount >= unlock.Threshold)
                 {
-                    UnlockId = $"{npcId}_{type}_{unlock.Threshold}",
-                    Name = unlock.Name,
-                    Description = unlock.Description,
-                    Requirement = new TokenRequirement
+                    availableUnlocks.Add(new TokenUnlock
                     {
-                        NPCId = npcId,
-                        TokenType = type,
-                        MinimumCount = unlock.Threshold
-                    },
-                    IsAvailable = true
-                });
+                        UnlockId = $"{npcId}_{type}_{unlock.Threshold}",
+                        Name = unlock.Name,
+                        Description = unlock.Description,
+                        Requirement = new TokenRequirement
+                        {
+                            NPCId = npcId,
+                            TokenType = type,
+                            MinimumCount = unlock.Threshold
+                        },
+                        IsAvailable = true
+                    });
+                }
+            }
+        }
+
+        return availableUnlocks;
+    }
+
+    /// <summary>
+    /// Check if a specific unlock is available
+    /// </summary>
+    public bool IsUnlockAvailable(string npcId, string unlockId)
+    {
+        List<TokenUnlock> availableUnlocks = GetAvailableUnlocks(npcId);
+        return availableUnlocks.Any(u => u.UnlockId == unlockId);
+    }
+
+    /// <summary>
+    /// Get unlock requirements for an NPC
+    /// </summary>
+    public Dictionary<string, TokenRequirement> GetUnlockRequirements(string npcId)
+    {
+        Dictionary<string, TokenRequirement> requirements = new Dictionary<string, TokenRequirement>();
+
+        foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
+        {
+            if (type == ConnectionType.None) continue;
+
+            List<UnlockDefinition> unlocks = GetUnlockDefinitions(type);
+
+            foreach (UnlockDefinition unlock in unlocks)
+            {
+                string unlockId = $"{npcId}_{type}_{unlock.Threshold}";
+                requirements[unlockId] = new TokenRequirement
+                {
+                    NPCId = npcId,
+                    TokenType = type,
+                    MinimumCount = unlock.Threshold
+                };
+            }
+        }
+
+        return requirements;
+    }
+
+    private void ProcessUnlock(string npcId, string npcName, ConnectionType tokenType, UnlockDefinition unlock)
+    {
+        _messageSystem.AddSystemMessage(
+            $"🔓 New {tokenType} unlock with {npcName}: {unlock.Name}",
+            SystemMessageTypes.Success
+        );
+
+        if (!string.IsNullOrEmpty(unlock.Guidance))
+        {
+            _messageSystem.AddSystemMessage(unlock.Guidance, SystemMessageTypes.Info);
+        }
+    }
+
+    private void CheckRelationshipUnlocks(string npcId, string npcName, int totalTokens)
+    {
+        foreach (RelationshipMilestone milestone in _relationshipMilestones)
+        {
+            if (totalTokens == milestone.Threshold)
+            {
+                _messageSystem.AddSystemMessage(
+                    $"💫 Relationship milestone with {npcName}: {milestone.Name}",
+                    SystemMessageTypes.Success
+                );
             }
         }
     }
 
-    return availableUnlocks;
-}
-
-/// <summary>
-/// Check if a specific unlock is available
-/// </summary>
-public bool IsUnlockAvailable(string npcId, string unlockId)
-{
-    List<TokenUnlock> availableUnlocks = GetAvailableUnlocks(npcId);
-    return availableUnlocks.Any(u => u.UnlockId == unlockId);
-}
-
-/// <summary>
-/// Get unlock requirements for an NPC
-/// </summary>
-public Dictionary<string, TokenRequirement> GetUnlockRequirements(string npcId)
-{
-    Dictionary<string, TokenRequirement> requirements = new Dictionary<string, TokenRequirement>();
-
-    foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
+    private List<UnlockDefinition> GetUnlockDefinitions(ConnectionType type)
     {
-        if (type == ConnectionType.None) continue;
-
-        List<UnlockDefinition> unlocks = GetUnlockDefinitions(type);
-
-        foreach (UnlockDefinition unlock in unlocks)
+        return type switch
         {
-            string unlockId = $"{npcId}_{type}_{unlock.Threshold}";
-            requirements[unlockId] = new TokenRequirement
-            {
-                NPCId = npcId,
-                TokenType = type,
-                MinimumCount = unlock.Threshold
-            };
-        }
+            ConnectionType.Trust => _trustUnlocks,
+            ConnectionType.Diplomacy => _diplomacyUnlocks,
+            ConnectionType.Status => _statusUnlocks,
+            ConnectionType.Shadow => _shadowUnlocks,
+            _ => throw new InvalidOperationException($"No unlock definitions for ConnectionType: {type}")
+        };
     }
 
-    return requirements;
-}
-
-private void ProcessUnlock(string npcId, string npcName, ConnectionType tokenType, UnlockDefinition unlock)
-{
-    _messageSystem.AddSystemMessage(
-        $"🔓 New {tokenType} unlock with {npcName}: {unlock.Name}",
-        SystemMessageTypes.Success
-    );
-
-    if (!string.IsNullOrEmpty(unlock.Guidance))
+    private int GetTotalTokensWithNPC(string npcId)
     {
-        _messageSystem.AddSystemMessage(unlock.Guidance, SystemMessageTypes.Info);
+        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
+        return tokens.Values.Where(v => v > 0).Sum();
     }
-}
-
-private void CheckRelationshipUnlocks(string npcId, string npcName, int totalTokens)
-{
-    foreach (RelationshipMilestone milestone in _relationshipMilestones)
-    {
-        if (totalTokens == milestone.Threshold)
-        {
-            _messageSystem.AddSystemMessage(
-                $"💫 Relationship milestone with {npcName}: {milestone.Name}",
-                SystemMessageTypes.Success
-            );
-        }
-    }
-}
-
-private List<UnlockDefinition> GetUnlockDefinitions(ConnectionType type)
-{
-    return type switch
-    {
-        ConnectionType.Trust => _trustUnlocks,
-        ConnectionType.Diplomacy => _diplomacyUnlocks,
-        ConnectionType.Status => _statusUnlocks,
-        ConnectionType.Shadow => _shadowUnlocks,
-        _ => throw new InvalidOperationException($"No unlock definitions for ConnectionType: {type}")
-    };
-}
-
-private int GetTotalTokensWithNPC(string npcId)
-{
-    Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
-    return tokens.Values.Where(v => v > 0).Sum();
-}
 }
 
 /// <summary>
@@ -310,10 +310,10 @@ private int GetTotalTokensWithNPC(string npcId)
 /// </summary>
 public class UnlockDefinition
 {
-public int Threshold { get; init; }
-public string Name { get; init; }
-public string Description { get; init; }
-public string Guidance { get; init; }
+    public int Threshold { get; init; }
+    public string Name { get; init; }
+    public string Description { get; init; }
+    public string Guidance { get; init; }
 }
 
 /// <summary>
@@ -321,6 +321,6 @@ public string Guidance { get; init; }
 /// </summary>
 public class RelationshipMilestone
 {
-public int Threshold { get; init; }
-public string Name { get; init; }
+    public int Threshold { get; init; }
+    public string Name { get; init; }
 }

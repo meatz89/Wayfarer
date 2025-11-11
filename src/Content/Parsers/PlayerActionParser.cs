@@ -5,75 +5,75 @@
 /// </summary>
 public static class PlayerActionParser
 {
-public static PlayerAction ParsePlayerAction(PlayerActionDTO dto)
-{
-    ValidateRequiredFields(dto);
-
-    // ENUM VALIDATION - throws if unknown action type
-    if (!Enum.TryParse<PlayerActionType>(dto.ActionType, true, out PlayerActionType actionType))
+    public static PlayerAction ParsePlayerAction(PlayerActionDTO dto)
     {
-        string validTypes = string.Join(", ", Enum.GetNames(typeof(PlayerActionType)));
-        throw new InvalidDataException(
-            $"PlayerAction '{dto.Id}' has unknown actionType '{dto.ActionType}'. " +
-            $"Valid types: {validTypes}");
+        ValidateRequiredFields(dto);
+
+        // ENUM VALIDATION - throws if unknown action type
+        if (!Enum.TryParse<PlayerActionType>(dto.ActionType, true, out PlayerActionType actionType))
+        {
+            string validTypes = string.Join(", ", Enum.GetNames(typeof(PlayerActionType)));
+            throw new InvalidDataException(
+                $"PlayerAction '{dto.Id}' has unknown actionType '{dto.ActionType}'. " +
+                $"Valid types: {validTypes}");
+        }
+
+        PlayerAction action = new PlayerAction
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Description = dto.Description,
+            ActionType = actionType,  // Strongly typed enum
+            Costs = ParseCosts(dto.Cost),
+            Rewards = ParseRewards(dto.Reward),
+            TimeRequired = dto.TimeRequired,
+            Priority = dto.Priority
+        };
+
+        return action;
     }
 
-    PlayerAction action = new PlayerAction
+    private static ActionCosts ParseCosts(ActionCostsDTO dto)
     {
-        Id = dto.Id,
-        Name = dto.Name,
-        Description = dto.Description,
-        ActionType = actionType,  // Strongly typed enum
-        Costs = ParseCosts(dto.Cost),
-        Rewards = ParseRewards(dto.Reward),
-        TimeRequired = dto.TimeRequired,
-        Priority = dto.Priority
-    };
+        if (dto == null)
+            return ActionCosts.None();
 
-    return action;
-}
+        return new ActionCosts
+        {
+            Coins = dto.Coins,
+            Focus = dto.Focus,
+            Stamina = dto.Stamina,
+            Health = dto.Health
+        };
+    }
 
-private static ActionCosts ParseCosts(ActionCostsDTO dto)
-{
-    if (dto == null)
-        return ActionCosts.None();
-
-    return new ActionCosts
+    private static ActionRewards ParseRewards(ActionRewardsDTO dto)
     {
-        Coins = dto.Coins,
-        Focus = dto.Focus,
-        Stamina = dto.Stamina,
-        Health = dto.Health
-    };
-}
+        if (dto == null)
+            return ActionRewards.None();
 
-private static ActionRewards ParseRewards(ActionRewardsDTO dto)
-{
-    if (dto == null)
-        return ActionRewards.None();
+        return new ActionRewards
+        {
+            CoinReward = dto.Coins,
+            HealthRecovery = dto.Health,
+            FocusRecovery = dto.Focus,
+            StaminaRecovery = dto.Stamina,
+            FullRecovery = dto.FullRecovery
+        };
+    }
 
-    return new ActionRewards
+    private static void ValidateRequiredFields(PlayerActionDTO dto)
     {
-        CoinReward = dto.Coins,
-        HealthRecovery = dto.Health,
-        FocusRecovery = dto.Focus,
-        StaminaRecovery = dto.Stamina,
-        FullRecovery = dto.FullRecovery
-    };
-}
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidDataException("PlayerAction missing required field 'Id'");
 
-private static void ValidateRequiredFields(PlayerActionDTO dto)
-{
-    if (string.IsNullOrEmpty(dto.Id))
-        throw new InvalidDataException("PlayerAction missing required field 'Id'");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidDataException($"PlayerAction '{dto.Id}' missing required field 'Name'");
 
-    if (string.IsNullOrEmpty(dto.Name))
-        throw new InvalidDataException($"PlayerAction '{dto.Id}' missing required field 'Name'");
+        if (string.IsNullOrEmpty(dto.Description))
+            throw new InvalidDataException($"PlayerAction '{dto.Id}' missing required field 'Description'");
 
-    if (string.IsNullOrEmpty(dto.Description))
-        throw new InvalidDataException($"PlayerAction '{dto.Id}' missing required field 'Description'");
-
-    if (string.IsNullOrEmpty(dto.ActionType))
-        throw new InvalidDataException($"PlayerAction '{dto.Id}' missing required field 'ActionType'");
-}
+        if (string.IsNullOrEmpty(dto.ActionType))
+            throw new InvalidDataException($"PlayerAction '{dto.Id}' missing required field 'ActionType'");
+    }
 }

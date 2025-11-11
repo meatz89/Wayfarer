@@ -4,25 +4,25 @@
 /// </summary>
 public enum DeliveryType
 {
-/// <summary>
-/// Standard delivery: +1 Cadence (most cards)
-/// </summary>
-Standard,
+    /// <summary>
+    /// Standard delivery: +1 Cadence (most cards)
+    /// </summary>
+    Standard,
 
-/// <summary>
-/// Commanding delivery: +2 Cadence (ALL Authority cards, pushes conversation forward)
-/// </summary>
-Commanding,
+    /// <summary>
+    /// Commanding delivery: +2 Cadence (ALL Authority cards, pushes conversation forward)
+    /// </summary>
+    Commanding,
 
-/// <summary>
-/// Measured delivery: +0 Cadence (careful, thoughtful statements)
-/// Used by Rapport questions, Diplomacy risk management, some Insight/Cunning
-/// </summary>
-Measured,
+    /// <summary>
+    /// Measured delivery: +0 Cadence (careful, thoughtful statements)
+    /// Used by Rapport questions, Diplomacy risk management, some Insight/Cunning
+    /// </summary>
+    Measured,
 
-/// <summary>
-/// Yielding delivery: -1 Cadence (deferential, letting NPC lead)
-/// Rare, used by some Rapport cards (gentle encouragement, listening signals)
-/// </summary>
-Yielding
+    /// <summary>
+    /// Yielding delivery: -1 Cadence (deferential, letting NPC lead)
+    /// Rare, used by some Rapport cards (gentle encouragement, listening signals)
+    /// </summary>
+    Yielding
 }

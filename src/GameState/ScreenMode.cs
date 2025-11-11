@@ -4,16 +4,16 @@
 /// </summary>
 public enum ScreenMode
 {
-Location,
-Scene,           // Full-screen scene display (Sir Brante forced moment)
-Exchange,
-Inventory,       // Player belongings (items, equipment) - passive viewing
-Travel,
-SocialChallenge,
-MentalChallenge,
-PhysicalChallenge,
-ConversationTree,
-Observation,
-Emergency,
-HexMap
+    Location,
+    Scene,           // Full-screen scene display (Sir Brante forced moment)
+    Exchange,
+    Inventory,       // Player belongings (items, equipment) - passive viewing
+    Travel,
+    SocialChallenge,
+    MentalChallenge,
+    PhysicalChallenge,
+    ConversationTree,
+    Observation,
+    Emergency,
+    HexMap
 }

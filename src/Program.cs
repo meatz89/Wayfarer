@@ -5,9 +5,9 @@ Environment.SetEnvironmentVariable("ASPNETCORE_SUPPRESSSTATUSMESSAGES", "true");
 
 WebApplicationOptions options = new WebApplicationOptions
 {
-Args = args,
-ContentRootPath = Path.GetFullPath(Directory.GetCurrentDirectory()),
-WebRootPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"))
+    Args = args,
+    ContentRootPath = Path.GetFullPath(Directory.GetCurrentDirectory()),
+    WebRootPath = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "wwwroot"))
 };
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(options);
@@ -47,15 +47,15 @@ WebApplication app = builder.Build();
 // Test Ollama connection on startup
 try
 {
-OllamaConfiguration? ollamaConfig = app.Services.GetService<OllamaConfiguration>();
-if (ollamaConfig != null)
-{
-    OllamaClient? ollamaClient = app.Services.GetService<OllamaClient>();
-    if (ollamaClient != null)
+    OllamaConfiguration? ollamaConfig = app.Services.GetService<OllamaConfiguration>();
+    if (ollamaConfig != null)
     {
-        bool isAvailable = await ollamaClient.CheckHealthAsync();
+        OllamaClient? ollamaClient = app.Services.GetService<OllamaClient>();
+        if (ollamaClient != null)
+        {
+            bool isAvailable = await ollamaClient.CheckHealthAsync();
+        }
     }
-}
 }
 catch (Exception)
 {
@@ -64,8 +64,8 @@ catch (Exception)
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
-app.UseExceptionHandler("/Error");
-// Removed HSTS
+    app.UseExceptionHandler("/Error");
+    // Removed HSTS
 }
 
 // Removed HTTPS redirection
@@ -73,7 +73,7 @@ app.UseExceptionHandler("/Error");
 // Add request logging middleware
 app.Use(async (context, next) =>
 {
-await next();
+    await next();
 });
 
 app.UseStaticFiles();

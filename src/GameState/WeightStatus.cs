@@ -4,12 +4,12 @@
 /// </summary>
 public class WeightStatus
 {
-public int Current { get; init; }
-public int Max { get; init; }
+    public int Current { get; init; }
+    public int Max { get; init; }
 
-public WeightStatus(int current, int max)
-{
-    Current = current;
-    Max = max;
-}
+    public WeightStatus(int current, int max)
+    {
+        Current = current;
+        Max = max;
+    }
 }

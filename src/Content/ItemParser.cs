@@ -1,65 +1,65 @@
 public static class ItemParser
 {
-/// <summary>
-/// Convert an ItemDTO to an Item domain model (or Equipment if it has ApplicableContexts)
-/// </summary>
-public static Item ConvertDTOToItem(ItemDTO dto)
-{
-    // Validate required fields
-    if (string.IsNullOrEmpty(dto.Id))
-        throw new InvalidDataException("Item missing required field 'Id'");
-    if (string.IsNullOrEmpty(dto.Name))
-        throw new InvalidDataException($"Item '{dto.Id}' missing required field 'Name'");
-    if (string.IsNullOrEmpty(dto.Description))
-        throw new InvalidDataException($"Item '{dto.Id}' missing required field 'Description'");
-
-    Item item = new Item
+    /// <summary>
+    /// Convert an ItemDTO to an Item domain model (or Equipment if it has ApplicableContexts)
+    /// </summary>
+    public static Item ConvertDTOToItem(ItemDTO dto)
     {
-        Id = dto.Id,
-        Name = dto.Name,
-        InitiativeCost = dto.InitiativeCost,
-        BuyPrice = dto.BuyPrice,
-        SellPrice = dto.SellPrice,
-        Description = dto.Description
-    };
+        // Validate required fields
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidDataException("Item missing required field 'Id'");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidDataException($"Item '{dto.Id}' missing required field 'Name'");
+        if (string.IsNullOrEmpty(dto.Description))
+            throw new InvalidDataException($"Item '{dto.Id}' missing required field 'Description'");
 
-    // Parse item categories - DTO has inline init, trust it
-    foreach (string categoryStr in dto.Categories)
-    {
-        if (EnumParser.TryParse<ItemCategory>(categoryStr, out ItemCategory category))
+        Item item = new Item
         {
-            item.Categories.Add(category);
-        }
-    }
+            Id = dto.Id,
+            Name = dto.Name,
+            InitiativeCost = dto.InitiativeCost,
+            BuyPrice = dto.BuyPrice,
+            SellPrice = dto.SellPrice,
+            Description = dto.Description
+        };
 
-    // Parse enhanced categorical properties - optional field, defaults if missing/invalid
-    if (!string.IsNullOrEmpty(dto.SizeCategory))
-    {
-        if (EnumParser.TryParse<SizeCategory>(dto.SizeCategory, out SizeCategory size))
+        // Parse item categories - DTO has inline init, trust it
+        foreach (string categoryStr in dto.Categories)
         {
-            item.Size = size;
+            if (EnumParser.TryParse<ItemCategory>(categoryStr, out ItemCategory category))
+            {
+                item.Categories.Add(category);
+            }
         }
-    }
 
-    // Parse token generation modifiers - DTO has inline init, trust it
-    foreach (KeyValuePair<string, float> kvp in dto.TokenGenerationModifiers)
-    {
-        if (Enum.TryParse<ConnectionType>(kvp.Key, out ConnectionType connectionType))
+        // Parse enhanced categorical properties - optional field, defaults if missing/invalid
+        if (!string.IsNullOrEmpty(dto.SizeCategory))
         {
-            item.TokenGenerationModifiers[connectionType] = kvp.Value;
+            if (EnumParser.TryParse<SizeCategory>(dto.SizeCategory, out SizeCategory size))
+            {
+                item.Size = size;
+            }
         }
-    }
 
-    // Parse enabled token generation - DTO has inline init, trust it
-    foreach (string tokenType in dto.EnablesTokenGeneration)
-    {
-        if (Enum.TryParse<ConnectionType>(tokenType, out ConnectionType connectionType))
+        // Parse token generation modifiers - DTO has inline init, trust it
+        foreach (KeyValuePair<string, float> kvp in dto.TokenGenerationModifiers)
         {
-            item.EnablesTokenGeneration.Add(connectionType);
+            if (Enum.TryParse<ConnectionType>(kvp.Key, out ConnectionType connectionType))
+            {
+                item.TokenGenerationModifiers[connectionType] = kvp.Value;
+            }
         }
-    }
 
-    return item;
-}
+        // Parse enabled token generation - DTO has inline init, trust it
+        foreach (string tokenType in dto.EnablesTokenGeneration)
+        {
+            if (Enum.TryParse<ConnectionType>(tokenType, out ConnectionType connectionType))
+            {
+                item.EnablesTokenGeneration.Add(connectionType);
+            }
+        }
+
+        return item;
+    }
 
 }

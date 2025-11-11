@@ -4,23 +4,23 @@
 /// </summary>
 public enum ScalingSourceType
 {
-// Core resources
-Doubt,
-PositiveCadence,
-NegativeCadence,
-Momentum,
-Initiative,
+    // Core resources
+    Doubt,
+    PositiveCadence,
+    NegativeCadence,
+    Momentum,
+    Initiative,
 
-// Card piles
-MindCards,
-SpokenCards,
-DeckCards,
+    // Card piles
+    MindCards,
+    SpokenCards,
+    DeckCards,
 
-// Statement history
-TotalStatements,
-InsightStatements,
-RapportStatements,
-AuthorityStatements,
-DiplomacyStatements,
-CunningStatements
+    // Statement history
+    TotalStatements,
+    InsightStatements,
+    RapportStatements,
+    AuthorityStatements,
+    DiplomacyStatements,
+    CunningStatements
 }

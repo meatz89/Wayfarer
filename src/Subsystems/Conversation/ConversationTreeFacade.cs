@@ -5,283 +5,283 @@
 /// </summary>
 public class ConversationTreeFacade
 {
-private readonly GameWorld _gameWorld;
-private readonly MessageSystem _messageSystem;
-private readonly ResourceFacade _resourceFacade;
-private readonly TimeFacade _timeFacade;
-private readonly TokenFacade _tokenFacade;
+    private readonly GameWorld _gameWorld;
+    private readonly MessageSystem _messageSystem;
+    private readonly ResourceFacade _resourceFacade;
+    private readonly TimeFacade _timeFacade;
+    private readonly TokenFacade _tokenFacade;
 
-public ConversationTreeFacade(
-    GameWorld gameWorld,
-    MessageSystem messageSystem,
-    ResourceFacade resourceFacade,
-    TimeFacade timeFacade,
-    TokenFacade tokenFacade)
-{
-    _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-    _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-    _resourceFacade = resourceFacade ?? throw new ArgumentNullException(nameof(resourceFacade));
-    _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
-    _tokenFacade = tokenFacade ?? throw new ArgumentNullException(nameof(tokenFacade));
-}
-
-/// <summary>
-/// Create context for a conversation tree screen
-/// </summary>
-public ConversationTreeContext CreateContext(string treeId)
-{
-    ConversationTree tree = _gameWorld.ConversationTrees.FirstOrDefault(t => t.Id == treeId);
-    if (tree == null)
+    public ConversationTreeFacade(
+        GameWorld gameWorld,
+        MessageSystem messageSystem,
+        ResourceFacade resourceFacade,
+        TimeFacade timeFacade,
+        TokenFacade tokenFacade)
     {
-        return new ConversationTreeContext
-        {
-            IsValid = false,
-            ErrorMessage = $"Conversation tree '{treeId}' not found"
-        };
+        _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+        _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
+        _resourceFacade = resourceFacade ?? throw new ArgumentNullException(nameof(resourceFacade));
+        _timeFacade = timeFacade ?? throw new ArgumentNullException(nameof(timeFacade));
+        _tokenFacade = tokenFacade ?? throw new ArgumentNullException(nameof(tokenFacade));
     }
 
-    NPC npc = tree.Npc;
-    if (npc == null)
+    /// <summary>
+    /// Create context for a conversation tree screen
+    /// </summary>
+    public ConversationTreeContext CreateContext(string treeId)
     {
-        return new ConversationTreeContext
-        {
-            IsValid = false,
-            ErrorMessage = "NPC not found for conversation tree"
-        };
-    }
-
-    Player player = _gameWorld.GetPlayer();
-
-    // Check availability conditions
-    int relationship = _tokenFacade.GetTokenCount(npc.ID, ConnectionType.Trust);
-    if (relationship < tree.MinimumRelationship)
-    {
-        return new ConversationTreeContext
-        {
-            IsValid = false,
-            ErrorMessage = $"Not enough relationship with {npc.Name} (need {tree.MinimumRelationship}, have {relationship})"
-        };
-    }
-
-    // Check time blocks
-    TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
-    if (tree.AvailableTimeBlocks.Count > 0 && !tree.AvailableTimeBlocks.Contains(currentTime))
-    {
-        return new ConversationTreeContext
-        {
-            IsValid = false,
-            ErrorMessage = $"{npc.Name} is not available for this conversation right now"
-        };
-    }
-
-    // Check required knowledge
-    foreach (string knowledge in tree.RequiredKnowledge)
-    {
-        if (!player.Knowledge.Contains(knowledge))
+        ConversationTree tree = _gameWorld.ConversationTrees.FirstOrDefault(t => t.Id == treeId);
+        if (tree == null)
         {
             return new ConversationTreeContext
             {
                 IsValid = false,
-                ErrorMessage = "You don't have the required knowledge for this conversation"
+                ErrorMessage = $"Conversation tree '{treeId}' not found"
             };
         }
-    }
 
-    // Get starting node
-    DialogueNode startingNode = tree.Nodes.FirstOrDefault(n => n.Id == tree.StartingNodeId);
-    if (startingNode == null)
-    {
+        NPC npc = tree.Npc;
+        if (npc == null)
+        {
+            return new ConversationTreeContext
+            {
+                IsValid = false,
+                ErrorMessage = "NPC not found for conversation tree"
+            };
+        }
+
+        Player player = _gameWorld.GetPlayer();
+
+        // Check availability conditions
+        int relationship = _tokenFacade.GetTokenCount(npc.ID, ConnectionType.Trust);
+        if (relationship < tree.MinimumRelationship)
+        {
+            return new ConversationTreeContext
+            {
+                IsValid = false,
+                ErrorMessage = $"Not enough relationship with {npc.Name} (need {tree.MinimumRelationship}, have {relationship})"
+            };
+        }
+
+        // Check time blocks
+        TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
+        if (tree.AvailableTimeBlocks.Count > 0 && !tree.AvailableTimeBlocks.Contains(currentTime))
+        {
+            return new ConversationTreeContext
+            {
+                IsValid = false,
+                ErrorMessage = $"{npc.Name} is not available for this conversation right now"
+            };
+        }
+
+        // Check required knowledge
+        foreach (string knowledge in tree.RequiredKnowledge)
+        {
+            if (!player.Knowledge.Contains(knowledge))
+            {
+                return new ConversationTreeContext
+                {
+                    IsValid = false,
+                    ErrorMessage = "You don't have the required knowledge for this conversation"
+                };
+            }
+        }
+
+        // Get starting node
+        DialogueNode startingNode = tree.Nodes.FirstOrDefault(n => n.Id == tree.StartingNodeId);
+        if (startingNode == null)
+        {
+            return new ConversationTreeContext
+            {
+                IsValid = false,
+                ErrorMessage = "Conversation tree has invalid starting node"
+            };
+        }
+
         return new ConversationTreeContext
         {
-            IsValid = false,
-            ErrorMessage = "Conversation tree has invalid starting node"
+            IsValid = true,
+            Tree = tree,
+            CurrentNode = startingNode,
+            Npc = npc,
+            CurrentFocus = player.Focus,
+            MaxFocus = player.MaxFocus,
+            CurrentRelationship = relationship,
+            PlayerStats = BuildPlayerStats(player),
+            PlayerKnowledge = new List<string>(player.Knowledge),
+            LocationName = GetLocationName(),
+            TimeDisplay = _timeFacade.GetTimeString()
         };
     }
 
-    return new ConversationTreeContext
+    /// <summary>
+    /// Select a dialogue response and apply outcomes
+    /// </summary>
+    public ConversationTreeResult SelectResponse(string treeId, string nodeId, string responseId)
     {
-        IsValid = true,
-        Tree = tree,
-        CurrentNode = startingNode,
-        Npc = npc,
-        CurrentFocus = player.Focus,
-        MaxFocus = player.MaxFocus,
-        CurrentRelationship = relationship,
-        PlayerStats = BuildPlayerStats(player),
-        PlayerKnowledge = new List<string>(player.Knowledge),
-        LocationName = GetLocationName(),
-        TimeDisplay = _timeFacade.GetTimeString()
-    };
-}
+        ConversationTree tree = _gameWorld.ConversationTrees.FirstOrDefault(t => t.Id == treeId);
+        if (tree == null)
+            return ConversationTreeResult.Failed("Conversation tree not found");
 
-/// <summary>
-/// Select a dialogue response and apply outcomes
-/// </summary>
-public ConversationTreeResult SelectResponse(string treeId, string nodeId, string responseId)
-{
-    ConversationTree tree = _gameWorld.ConversationTrees.FirstOrDefault(t => t.Id == treeId);
-    if (tree == null)
-        return ConversationTreeResult.Failed("Conversation tree not found");
+        DialogueNode currentNode = tree.Nodes.FirstOrDefault(n => n.Id == nodeId);
+        if (currentNode == null)
+            return ConversationTreeResult.Failed("Dialogue node not found");
 
-    DialogueNode currentNode = tree.Nodes.FirstOrDefault(n => n.Id == nodeId);
-    if (currentNode == null)
-        return ConversationTreeResult.Failed("Dialogue node not found");
+        DialogueResponse response = currentNode.Responses.FirstOrDefault(r => r.Id == responseId);
+        if (response == null)
+            return ConversationTreeResult.Failed("Response not found");
 
-    DialogueResponse response = currentNode.Responses.FirstOrDefault(r => r.Id == responseId);
-    if (response == null)
-        return ConversationTreeResult.Failed("Response not found");
+        Player player = _gameWorld.GetPlayer();
 
-    Player player = _gameWorld.GetPlayer();
+        // Validate resources
+        if (player.Focus < response.FocusCost)
+            return ConversationTreeResult.Failed($"Not enough Focus (need {response.FocusCost}, have {player.Focus})");
 
-    // Validate resources
-    if (player.Focus < response.FocusCost)
-        return ConversationTreeResult.Failed($"Not enough Focus (need {response.FocusCost}, have {player.Focus})");
-
-    // Validate stat requirements
-    if (response.RequiredStat.HasValue && response.RequiredStatLevel.HasValue)
-    {
-        int statLevel = player.Stats.GetLevel(response.RequiredStat.Value);
-        if (statLevel < response.RequiredStatLevel.Value)
+        // Validate stat requirements
+        if (response.RequiredStat.HasValue && response.RequiredStatLevel.HasValue)
         {
-            return ConversationTreeResult.Failed(
-                $"Requires {response.RequiredStat} level {response.RequiredStatLevel} (you have {statLevel})");
-        }
-    }
-
-    // Apply costs
-    if (response.FocusCost > 0)
-    {
-        player.Focus -= response.FocusCost;
-    }
-    if (response.TimeCost > 0)
-    {
-        _timeFacade.AdvanceSegments(response.TimeCost);
-    }
-
-    // Apply relationship changes
-    if (response.RelationshipDelta != 0)
-    {
-        NPC npc = tree.Npc;
-        if (npc != null)
-        {
-            if (response.RelationshipDelta > 0)
+            int statLevel = player.Stats.GetLevel(response.RequiredStat.Value);
+            if (statLevel < response.RequiredStatLevel.Value)
             {
-                _tokenFacade.AddTokensToNPC(ConnectionType.Trust, response.RelationshipDelta, npc.ID);
+                return ConversationTreeResult.Failed(
+                    $"Requires {response.RequiredStat} level {response.RequiredStatLevel} (you have {statLevel})");
             }
-            else
+        }
+
+        // Apply costs
+        if (response.FocusCost > 0)
+        {
+            player.Focus -= response.FocusCost;
+        }
+        if (response.TimeCost > 0)
+        {
+            _timeFacade.AdvanceSegments(response.TimeCost);
+        }
+
+        // Apply relationship changes
+        if (response.RelationshipDelta != 0)
+        {
+            NPC npc = tree.Npc;
+            if (npc != null)
             {
-                _tokenFacade.RemoveTokensFromNPC(ConnectionType.Trust, -response.RelationshipDelta, npc.ID);
+                if (response.RelationshipDelta > 0)
+                {
+                    _tokenFacade.AddTokensToNPC(ConnectionType.Trust, response.RelationshipDelta, npc.ID);
+                }
+                else
+                {
+                    _tokenFacade.RemoveTokensFromNPC(ConnectionType.Trust, -response.RelationshipDelta, npc.ID);
+                }
+
+                string deltaText = response.RelationshipDelta > 0
+                    ? $"+{response.RelationshipDelta}"
+                    : response.RelationshipDelta.ToString();
+                _messageSystem.AddSystemMessage(
+                    $"Relationship with {npc.Name}: {deltaText}",
+                    SystemMessageTypes.Info);
+            }
+        }
+
+        // Grant knowledge
+        foreach (string knowledge in response.GrantedKnowledge)
+        {
+            if (!player.Knowledge.Contains(knowledge))
+            {
+                player.Knowledge.Add(knowledge);
+                _messageSystem.AddSystemMessage($"Learned: {knowledge}", SystemMessageTypes.Info);
+            }
+        }
+
+        // Spawn situations
+        foreach (string situationId in response.SpawnedSituationIds)
+        {
+            // TODO: Implement situation spawning logic when situation system is in place
+            _messageSystem.AddSystemMessage($"New situation available: {situationId}", SystemMessageTypes.Info);
+        }
+
+        // Check for escalation to Social challenge
+        if (response.EscalatesToSocialChallenge)
+        {
+            return ConversationTreeResult.EscalateToChallenge(response.SocialChallengeSituationId);
+        }
+
+        // Navigate to next node
+        if (string.IsNullOrEmpty(response.NextNodeId))
+        {
+            // Conversation ends
+            if (!tree.IsRepeatable)
+            {
+                tree.IsCompleted = true;
             }
 
-            string deltaText = response.RelationshipDelta > 0
-                ? $"+{response.RelationshipDelta}"
-                : response.RelationshipDelta.ToString();
-            _messageSystem.AddSystemMessage(
-                $"Relationship with {npc.Name}: {deltaText}",
-                SystemMessageTypes.Info);
+            return ConversationTreeResult.Completed();
+        }
+        else
+        {
+            DialogueNode nextNode = tree.Nodes.FirstOrDefault(n => n.Id == response.NextNodeId);
+            if (nextNode == null)
+                return ConversationTreeResult.Failed($"Invalid next node: {response.NextNodeId}");
+
+            return ConversationTreeResult.Continue(nextNode);
         }
     }
 
-    // Grant knowledge
-    foreach (string knowledge in response.GrantedKnowledge)
+    private Dictionary<PlayerStatType, int> BuildPlayerStats(Player player)
     {
-        if (!player.Knowledge.Contains(knowledge))
+        Dictionary<PlayerStatType, int> stats = new Dictionary<PlayerStatType, int>();
+
+        foreach (PlayerStatType statType in Enum.GetValues(typeof(PlayerStatType)))
         {
-            player.Knowledge.Add(knowledge);
-            _messageSystem.AddSystemMessage($"Learned: {knowledge}", SystemMessageTypes.Info);
-        }
-    }
-
-    // Spawn situations
-    foreach (string situationId in response.SpawnedSituationIds)
-    {
-        // TODO: Implement situation spawning logic when situation system is in place
-        _messageSystem.AddSystemMessage($"New situation available: {situationId}", SystemMessageTypes.Info);
-    }
-
-    // Check for escalation to Social challenge
-    if (response.EscalatesToSocialChallenge)
-    {
-        return ConversationTreeResult.EscalateToChallenge(response.SocialChallengeSituationId);
-    }
-
-    // Navigate to next node
-    if (string.IsNullOrEmpty(response.NextNodeId))
-    {
-        // Conversation ends
-        if (!tree.IsRepeatable)
-        {
-            tree.IsCompleted = true;
+            stats[statType] = player.Stats.GetLevel(statType);
         }
 
-        return ConversationTreeResult.Completed();
+        return stats;
     }
-    else
+
+    private string GetLocationName()
     {
-        DialogueNode nextNode = tree.Nodes.FirstOrDefault(n => n.Id == response.NextNodeId);
-        if (nextNode == null)
-            return ConversationTreeResult.Failed($"Invalid next node: {response.NextNodeId}");
-
-        return ConversationTreeResult.Continue(nextNode);
+        Player player = _gameWorld.GetPlayer();
+        return _gameWorld.GetPlayerCurrentLocation()?.Name ?? "Unknown";
     }
-}
 
-private Dictionary<PlayerStatType, int> BuildPlayerStats(Player player)
-{
-    Dictionary<PlayerStatType, int> stats = new Dictionary<PlayerStatType, int>();
-
-    foreach (PlayerStatType statType in Enum.GetValues(typeof(PlayerStatType)))
+    /// <summary>
+    /// Get all conversation trees available at a specific location
+    /// Checks NPC location, completion status, relationship requirements, knowledge requirements, and time blocks
+    /// </summary>
+    public List<ConversationTree> GetAvailableTreesAtLocation(string locationId)
     {
-        stats[statType] = player.Stats.GetLevel(statType);
+        Player player = _gameWorld.GetPlayer();
+        TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
+
+        return _gameWorld.ConversationTrees
+            .Where(t =>
+            {
+                // Check if tree is available (not completed, or repeatable)
+                if (t.IsCompleted && !t.IsRepeatable) return false;
+
+                // Find NPC for this tree
+                NPC npc = t.Npc;
+                if (npc == null) return false;
+
+                // Check if NPC is at this location
+                if (npc.Location?.Id != locationId) return false;
+
+                // Check relationship requirement
+                int relationship = _tokenFacade.GetTokenCount(npc.ID, ConnectionType.Trust);
+                if (relationship < t.MinimumRelationship) return false;
+
+                // Check time blocks (empty list = always available)
+                if (t.AvailableTimeBlocks.Count > 0 && !t.AvailableTimeBlocks.Contains(currentTime))
+                    return false;
+
+                // Check knowledge requirements
+                if (!t.RequiredKnowledge.All(k => player.Knowledge.Contains(k)))
+                    return false;
+
+                return true;
+            })
+            .ToList();
     }
-
-    return stats;
-}
-
-private string GetLocationName()
-{
-    Player player = _gameWorld.GetPlayer();
-    return _gameWorld.GetPlayerCurrentLocation()?.Name ?? "Unknown";
-}
-
-/// <summary>
-/// Get all conversation trees available at a specific location
-/// Checks NPC location, completion status, relationship requirements, knowledge requirements, and time blocks
-/// </summary>
-public List<ConversationTree> GetAvailableTreesAtLocation(string locationId)
-{
-    Player player = _gameWorld.GetPlayer();
-    TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
-
-    return _gameWorld.ConversationTrees
-        .Where(t =>
-        {
-            // Check if tree is available (not completed, or repeatable)
-            if (t.IsCompleted && !t.IsRepeatable) return false;
-
-            // Find NPC for this tree
-            NPC npc = t.Npc;
-            if (npc == null) return false;
-
-            // Check if NPC is at this location
-            if (npc.Location?.Id != locationId) return false;
-
-            // Check relationship requirement
-            int relationship = _tokenFacade.GetTokenCount(npc.ID, ConnectionType.Trust);
-            if (relationship < t.MinimumRelationship) return false;
-
-            // Check time blocks (empty list = always available)
-            if (t.AvailableTimeBlocks.Count > 0 && !t.AvailableTimeBlocks.Contains(currentTime))
-                return false;
-
-            // Check knowledge requirements
-            if (!t.RequiredKnowledge.All(k => player.Knowledge.Contains(k)))
-                return false;
-
-            return true;
-        })
-        .ToList();
-}
 }
 
 /// <summary>
@@ -289,35 +289,35 @@ public List<ConversationTree> GetAvailableTreesAtLocation(string locationId)
 /// </summary>
 public class ConversationTreeResult
 {
-public bool Success { get; set; }
-public string Message { get; set; }
-public bool IsComplete { get; set; }
-public bool EscalatesToChallenge { get; set; }
-public string ChallengeSituationId { get; set; }
-public DialogueNode NextNode { get; set; }
+    public bool Success { get; set; }
+    public string Message { get; set; }
+    public bool IsComplete { get; set; }
+    public bool EscalatesToChallenge { get; set; }
+    public string ChallengeSituationId { get; set; }
+    public DialogueNode NextNode { get; set; }
 
-public static ConversationTreeResult Failed(string message)
-{
-    return new ConversationTreeResult { Success = false, Message = message };
-}
-
-public static ConversationTreeResult Completed()
-{
-    return new ConversationTreeResult { Success = true, IsComplete = true };
-}
-
-public static ConversationTreeResult Continue(DialogueNode nextNode)
-{
-    return new ConversationTreeResult { Success = true, NextNode = nextNode };
-}
-
-public static ConversationTreeResult EscalateToChallenge(string situationId)
-{
-    return new ConversationTreeResult
+    public static ConversationTreeResult Failed(string message)
     {
-        Success = true,
-        EscalatesToChallenge = true,
-        ChallengeSituationId = situationId
-    };
-}
+        return new ConversationTreeResult { Success = false, Message = message };
+    }
+
+    public static ConversationTreeResult Completed()
+    {
+        return new ConversationTreeResult { Success = true, IsComplete = true };
+    }
+
+    public static ConversationTreeResult Continue(DialogueNode nextNode)
+    {
+        return new ConversationTreeResult { Success = true, NextNode = nextNode };
+    }
+
+    public static ConversationTreeResult EscalateToChallenge(string situationId)
+    {
+        return new ConversationTreeResult
+        {
+            Success = true,
+            EscalatesToChallenge = true,
+            ChallengeSituationId = situationId
+        };
+    }
 }

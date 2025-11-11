@@ -8,112 +8,112 @@
 /// </summary>
 public class DependentResourceOrchestrationService
 {
-private readonly GameWorld _gameWorld;
-private readonly ContentGenerationFacade _contentGenerationFacade;
-private readonly PackageLoaderFacade _packageLoaderFacade;
-private readonly HexRouteGenerator _hexRouteGenerator;
-private readonly SceneInstantiator _sceneInstantiator;
-private readonly TimeManager _timeManager;
+    private readonly GameWorld _gameWorld;
+    private readonly ContentGenerationFacade _contentGenerationFacade;
+    private readonly PackageLoaderFacade _packageLoaderFacade;
+    private readonly HexRouteGenerator _hexRouteGenerator;
+    private readonly SceneInstantiator _sceneInstantiator;
+    private readonly TimeManager _timeManager;
 
-public DependentResourceOrchestrationService(
-    GameWorld gameWorld,
-    ContentGenerationFacade contentGenerationFacade,
-    PackageLoaderFacade packageLoaderFacade,
-    HexRouteGenerator hexRouteGenerator,
-    SceneInstantiator sceneInstantiator,
-    TimeManager timeManager)
-{
-    _gameWorld = gameWorld;
-    _contentGenerationFacade = contentGenerationFacade;
-    _packageLoaderFacade = packageLoaderFacade;
-    _hexRouteGenerator = hexRouteGenerator;
-    _sceneInstantiator = sceneInstantiator;
-    _timeManager = timeManager;
-}
-
-/// <summary>
-/// Orchestrate complete dependent resource loading pipeline.
-///
-/// Pipeline:
-/// 1. Create dynamic package file (JSON on disk)
-/// 2. Load package via PackageLoader (entities → GameWorld collections)
-/// 3. Add specified items to player inventory
-/// 4. Generate routes for world-map locations
-/// 5. Build marker resolution map
-///
-/// IDEMPOTENCY: Safe to call multiple times (package loader handles duplicates)
-/// </summary>
-/// <param name="scene">Scene that generated the resources</param>
-/// <param name="dependentSpecs">Resource specifications from finalization</param>
-/// <param name="player">Player to receive items</param>
-public async Task LoadDependentResources(Scene scene, DependentResourceSpecs dependentSpecs, Player player)
-{
-    if (!dependentSpecs.HasResources)
+    public DependentResourceOrchestrationService(
+        GameWorld gameWorld,
+        ContentGenerationFacade contentGenerationFacade,
+        PackageLoaderFacade packageLoaderFacade,
+        HexRouteGenerator hexRouteGenerator,
+        SceneInstantiator sceneInstantiator,
+        TimeManager timeManager)
     {
-        return;
+        _gameWorld = gameWorld;
+        _contentGenerationFacade = contentGenerationFacade;
+        _packageLoaderFacade = packageLoaderFacade;
+        _hexRouteGenerator = hexRouteGenerator;
+        _sceneInstantiator = sceneInstantiator;
+        _timeManager = timeManager;
     }
 
-    Console.WriteLine($"[DependentResources] Scene '{scene.Id}' has dependent resources");
-    Console.WriteLine($"[DependentResources]   Locations: {dependentSpecs.CreatedLocationIds.Count}, Items: {dependentSpecs.ItemsToAddToInventory.Count}");
-
-    await _contentGenerationFacade.CreateDynamicPackageFile(dependentSpecs.PackageJson, dependentSpecs.PackageId);
-    Console.WriteLine($"[DependentResources] Created dynamic package file: {dependentSpecs.PackageId}");
-
-    await _packageLoaderFacade.LoadDynamicPackage(dependentSpecs.PackageJson, dependentSpecs.PackageId);
-    Console.WriteLine($"[DependentResources] Loaded dynamic package via PackageLoader");
-
-    foreach (string itemId in dependentSpecs.ItemsToAddToInventory)
+    /// <summary>
+    /// Orchestrate complete dependent resource loading pipeline.
+    ///
+    /// Pipeline:
+    /// 1. Create dynamic package file (JSON on disk)
+    /// 2. Load package via PackageLoader (entities → GameWorld collections)
+    /// 3. Add specified items to player inventory
+    /// 4. Generate routes for world-map locations
+    /// 5. Build marker resolution map
+    ///
+    /// IDEMPOTENCY: Safe to call multiple times (package loader handles duplicates)
+    /// </summary>
+    /// <param name="scene">Scene that generated the resources</param>
+    /// <param name="dependentSpecs">Resource specifications from finalization</param>
+    /// <param name="player">Player to receive items</param>
+    public async Task LoadDependentResources(Scene scene, DependentResourceSpecs dependentSpecs, Player player)
     {
-        Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
-        if (item != null)
+        if (!dependentSpecs.HasResources)
         {
-            // Set provenance tracking
-            item.Provenance = new SceneProvenance
-            {
-                SceneId = scene.Id,
-                CreatedDay = _timeManager.CurrentDay,
-                CreatedTimeBlock = _timeManager.CurrentTimeBlock,
-                CreatedSegment = _timeManager.CurrentSegment
-            };
-
-            player.Inventory.AddItem(item);
-            Console.WriteLine($"[DependentResources] Added item to inventory: {item.Name} ({item.Id})");
+            return;
         }
-    }
 
-    foreach (string locationId in dependentSpecs.CreatedLocationIds)
-    {
-        Location createdLocation = _gameWorld.GetLocation(locationId);
-        if (createdLocation != null)
+        Console.WriteLine($"[DependentResources] Scene '{scene.Id}' has dependent resources");
+        Console.WriteLine($"[DependentResources]   Locations: {dependentSpecs.CreatedLocationIds.Count}, Items: {dependentSpecs.ItemsToAddToInventory.Count}");
+
+        await _contentGenerationFacade.CreateDynamicPackageFile(dependentSpecs.PackageJson, dependentSpecs.PackageId);
+        Console.WriteLine($"[DependentResources] Created dynamic package file: {dependentSpecs.PackageId}");
+
+        await _packageLoaderFacade.LoadDynamicPackage(dependentSpecs.PackageJson, dependentSpecs.PackageId);
+        Console.WriteLine($"[DependentResources] Loaded dynamic package via PackageLoader");
+
+        foreach (string itemId in dependentSpecs.ItemsToAddToInventory)
         {
-            // Set provenance tracking
-            createdLocation.Provenance = new SceneProvenance
+            Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
+            if (item != null)
             {
-                SceneId = scene.Id,
-                CreatedDay = _timeManager.CurrentDay,
-                CreatedTimeBlock = _timeManager.CurrentTimeBlock,
-                CreatedSegment = _timeManager.CurrentSegment
-            };
-
-            Console.WriteLine($"[DependentResources] Created location: {createdLocation.Name} ({createdLocation.Id})");
-            Console.WriteLine($"[DependentResources]   VenueId: {createdLocation.VenueId}, HexPosition: {(createdLocation.HexPosition.HasValue ? createdLocation.HexPosition.Value.ToString() : "NONE (intra-venue)")}");
-
-            if (createdLocation.HexPosition.HasValue)
-            {
-                List<RouteOption> generatedRoutes = _hexRouteGenerator.GenerateRoutesForNewLocation(createdLocation);
-                foreach (RouteOption route in generatedRoutes)
+                // Set provenance tracking
+                item.Provenance = new SceneProvenance
                 {
-                    _gameWorld.Routes.Add(route);
-                }
-                Console.WriteLine($"[DependentResources]   Generated {generatedRoutes.Count} hex routes");
-            }
-            else
-            {
-                Console.WriteLine($"[DependentResources]   No hex position - intra-venue location (travel via venue navigation)");
+                    SceneId = scene.Id,
+                    CreatedDay = _timeManager.CurrentDay,
+                    CreatedTimeBlock = _timeManager.CurrentTimeBlock,
+                    CreatedSegment = _timeManager.CurrentSegment
+                };
+
+                player.Inventory.AddItem(item);
+                Console.WriteLine($"[DependentResources] Added item to inventory: {item.Name} ({item.Id})");
             }
         }
-    }
 
-    _sceneInstantiator.BuildMarkerResolutionMap(scene);
-}
+        foreach (string locationId in dependentSpecs.CreatedLocationIds)
+        {
+            Location createdLocation = _gameWorld.GetLocation(locationId);
+            if (createdLocation != null)
+            {
+                // Set provenance tracking
+                createdLocation.Provenance = new SceneProvenance
+                {
+                    SceneId = scene.Id,
+                    CreatedDay = _timeManager.CurrentDay,
+                    CreatedTimeBlock = _timeManager.CurrentTimeBlock,
+                    CreatedSegment = _timeManager.CurrentSegment
+                };
+
+                Console.WriteLine($"[DependentResources] Created location: {createdLocation.Name} ({createdLocation.Id})");
+                Console.WriteLine($"[DependentResources]   VenueId: {createdLocation.VenueId}, HexPosition: {(createdLocation.HexPosition.HasValue ? createdLocation.HexPosition.Value.ToString() : "NONE (intra-venue)")}");
+
+                if (createdLocation.HexPosition.HasValue)
+                {
+                    List<RouteOption> generatedRoutes = _hexRouteGenerator.GenerateRoutesForNewLocation(createdLocation);
+                    foreach (RouteOption route in generatedRoutes)
+                    {
+                        _gameWorld.Routes.Add(route);
+                    }
+                    Console.WriteLine($"[DependentResources]   Generated {generatedRoutes.Count} hex routes");
+                }
+                else
+                {
+                    Console.WriteLine($"[DependentResources]   No hex position - intra-venue location (travel via venue navigation)");
+                }
+            }
+        }
+
+        _sceneInstantiator.BuildMarkerResolutionMap(scene);
+    }
 }

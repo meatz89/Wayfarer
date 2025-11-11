@@ -3,87 +3,87 @@
 /// </summary>
 public static class PlayerStatParser
 {
-/// <summary>
-/// Parse player stats configuration from PlayerStatsConfigDTO
-/// </summary>
-public static PlayerStatsParseResult ParseStatsPackage(PlayerStatsConfigDTO configDto)
-{
-    List<PlayerStatDefinition> stats = new List<PlayerStatDefinition>();
-
-    // Parse stat definitions - configDto.Stats has inline init in DTO, but validate required data
-    if (configDto.Stats == null)
-        throw new InvalidDataException("PlayerStatsConfig missing required field 'Stats'");
-
-    foreach (PlayerStatDefinitionDTO statDto in configDto.Stats)
+    /// <summary>
+    /// Parse player stats configuration from PlayerStatsConfigDTO
+    /// </summary>
+    public static PlayerStatsParseResult ParseStatsPackage(PlayerStatsConfigDTO configDto)
     {
-        // Validate required fields
-        if (string.IsNullOrEmpty(statDto.Id))
-            throw new InvalidDataException("PlayerStatDefinition missing required field 'Id'");
-        if (string.IsNullOrEmpty(statDto.Name))
-            throw new InvalidDataException($"PlayerStatDefinition '{statDto.Id}' missing required field 'Name'");
-        if (string.IsNullOrEmpty(statDto.Description))
-            throw new InvalidDataException($"PlayerStatDefinition '{statDto.Id}' missing required field 'Description'");
+        List<PlayerStatDefinition> stats = new List<PlayerStatDefinition>();
 
-        // Parse stat type from ID
-        if (!Enum.TryParse<PlayerStatType>(statDto.Id, true, out PlayerStatType statType))
+        // Parse stat definitions - configDto.Stats has inline init in DTO, but validate required data
+        if (configDto.Stats == null)
+            throw new InvalidDataException("PlayerStatsConfig missing required field 'Stats'");
+
+        foreach (PlayerStatDefinitionDTO statDto in configDto.Stats)
         {
-            throw new InvalidDataException($"Invalid player stat ID: {statDto.Id}");
-        }
+            // Validate required fields
+            if (string.IsNullOrEmpty(statDto.Id))
+                throw new InvalidDataException("PlayerStatDefinition missing required field 'Id'");
+            if (string.IsNullOrEmpty(statDto.Name))
+                throw new InvalidDataException($"PlayerStatDefinition '{statDto.Id}' missing required field 'Name'");
+            if (string.IsNullOrEmpty(statDto.Description))
+                throw new InvalidDataException($"PlayerStatDefinition '{statDto.Id}' missing required field 'Description'");
 
-        stats.Add(new PlayerStatDefinition
-        {
-            StatType = statType,
-            Name = statDto.Name,
-            Description = statDto.Description,
-            ConversationBenefit = statDto.ConversationBenefit ?? "", // Optional - defaults to empty if missing
-            ObligationUnlock = statDto.ObligationUnlock ?? "", // Optional - defaults to empty if missing
-            TravelUnlock = statDto.TravelUnlock ?? "" // Optional - defaults to empty if missing
-        });
-    }
-
-    // Parse progression rules - optional section
-    StatProgression progression = null;
-    if (configDto.Progression != null)
-    {
-        progression = new StatProgression();
-
-        // Set XP thresholds - optional field
-        if (configDto.Progression.XpThresholds != null)
-        {
-            progression.XpThresholds = new List<int>(configDto.Progression.XpThresholds);
-        }
-
-        // Parse level bonuses - optional field
-        if (configDto.Progression.LevelBonuses != null)
-        {
-            progression.LevelBonuses = new List<StatLevelBonus>();
-            foreach (StatLevelBonusDTO bonusDto in configDto.Progression.LevelBonuses)
+            // Parse stat type from ID
+            if (!Enum.TryParse<PlayerStatType>(statDto.Id, true, out PlayerStatType statType))
             {
-                StatLevelBonus bonus = new StatLevelBonus
-                {
-                    Level = bonusDto.Level,
-                    SuccessBonus = bonusDto.SuccessBonus,
-                    Description = bonusDto.Description ?? "" // Optional - defaults to empty if missing
-                };
+                throw new InvalidDataException($"Invalid player stat ID: {statDto.Id}");
+            }
 
-                // Parse special effects - optional field, only set if present
-                if (!string.IsNullOrEmpty(bonusDto.Effect))
+            stats.Add(new PlayerStatDefinition
+            {
+                StatType = statType,
+                Name = statDto.Name,
+                Description = statDto.Description,
+                ConversationBenefit = statDto.ConversationBenefit ?? "", // Optional - defaults to empty if missing
+                ObligationUnlock = statDto.ObligationUnlock ?? "", // Optional - defaults to empty if missing
+                TravelUnlock = statDto.TravelUnlock ?? "" // Optional - defaults to empty if missing
+            });
+        }
+
+        // Parse progression rules - optional section
+        StatProgression progression = null;
+        if (configDto.Progression != null)
+        {
+            progression = new StatProgression();
+
+            // Set XP thresholds - optional field
+            if (configDto.Progression.XpThresholds != null)
+            {
+                progression.XpThresholds = new List<int>(configDto.Progression.XpThresholds);
+            }
+
+            // Parse level bonuses - optional field
+            if (configDto.Progression.LevelBonuses != null)
+            {
+                progression.LevelBonuses = new List<StatLevelBonus>();
+                foreach (StatLevelBonusDTO bonusDto in configDto.Progression.LevelBonuses)
                 {
-                    switch (bonusDto.Effect.ToLower())
+                    StatLevelBonus bonus = new StatLevelBonus
                     {
-                        case "gains_thought_persistence":
-                            bonus.GainsThoughtPersistence = true;
-                            break;
-                    }
-                }
+                        Level = bonusDto.Level,
+                        SuccessBonus = bonusDto.SuccessBonus,
+                        Description = bonusDto.Description ?? "" // Optional - defaults to empty if missing
+                    };
 
-                progression.LevelBonuses.Add(bonus);
+                    // Parse special effects - optional field, only set if present
+                    if (!string.IsNullOrEmpty(bonusDto.Effect))
+                    {
+                        switch (bonusDto.Effect.ToLower())
+                        {
+                            case "gains_thought_persistence":
+                                bonus.GainsThoughtPersistence = true;
+                                break;
+                        }
+                    }
+
+                    progression.LevelBonuses.Add(bonus);
+                }
             }
         }
-    }
 
-    return new PlayerStatsParseResult(stats, progression);
-}
+        return new PlayerStatsParseResult(stats, progression);
+    }
 
 }
 
@@ -92,12 +92,12 @@ public static PlayerStatsParseResult ParseStatsPackage(PlayerStatsConfigDTO conf
 /// </summary>
 public class PlayerStatDefinition
 {
-public PlayerStatType StatType { get; set; }
-public string Name { get; set; }
-public string Description { get; set; }
-public string ConversationBenefit { get; set; }
-public string ObligationUnlock { get; set; }
-public string TravelUnlock { get; set; }
+    public PlayerStatType StatType { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string ConversationBenefit { get; set; }
+    public string ObligationUnlock { get; set; }
+    public string TravelUnlock { get; set; }
 }
 
 /// <summary>
@@ -105,8 +105,8 @@ public string TravelUnlock { get; set; }
 /// </summary>
 public class StatProgression
 {
-public List<int> XpThresholds { get; set; } = new();
-public List<StatLevelBonus> LevelBonuses { get; set; } = new();
+    public List<int> XpThresholds { get; set; } = new();
+    public List<StatLevelBonus> LevelBonuses { get; set; } = new();
 }
 
 /// <summary>
@@ -114,9 +114,9 @@ public List<StatLevelBonus> LevelBonuses { get; set; } = new();
 /// </summary>
 public class StatLevelBonus
 {
-public int Level { get; set; }
-public int SuccessBonus { get; set; }
-public bool GainsThoughtPersistence { get; set; }
-public string Description { get; set; }
+    public int Level { get; set; }
+    public int SuccessBonus { get; set; }
+    public bool GainsThoughtPersistence { get; set; }
+    public string Description { get; set; }
 }
 

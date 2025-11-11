@@ -1,6 +1,6 @@
 public enum ActionType
 {
-None,
-Listen,
-Speak
+    None,
+    Listen,
+    Speak
 }

@@ -5,127 +5,127 @@
 /// </summary>
 public static class LocationActionParser
 {
-public static LocationAction ParseLocationAction(LocationActionDTO dto)
-{
-    ValidateRequiredFields(dto);
-
-    // ENUM VALIDATION - throws if unknown action type
-    if (!Enum.TryParse<LocationActionType>(dto.ActionType, true, out LocationActionType actionType))
+    public static LocationAction ParseLocationAction(LocationActionDTO dto)
     {
-        string validTypes = string.Join(", ", Enum.GetNames(typeof(LocationActionType)));
-        throw new InvalidDataException(
-            $"LocationAction '{dto.Id}' has unknown actionType '{dto.ActionType}'. " +
-            $"Valid types: {validTypes}");
-    }
+        ValidateRequiredFields(dto);
 
-    LocationAction action = new LocationAction
-    {
-        Id = dto.Id,
-        Name = dto.Name,
-        Description = dto.Description,
-        ActionType = actionType,  // Strongly typed enum
-        Costs = ParseCosts(dto.Cost),
-        Rewards = ParseRewards(dto.Reward),
-        TimeRequired = dto.TimeRequired,
-        Availability = ParseTimeBlocks(dto.Availability),
-        Priority = dto.Priority,
-        ObligationId = dto.ObligationId,
-        RequiredProperties = ParseLocationProperties(dto.RequiredProperties),
-        OptionalProperties = ParseLocationProperties(dto.OptionalProperties),
-        ExcludedProperties = ParseLocationProperties(dto.ExcludedProperties)
-    };
-
-    return action;
-}
-
-private static List<TimeBlocks> ParseTimeBlocks(List<string> timeBlockStrings)
-{
-    List<TimeBlocks> result = new List<TimeBlocks>();
-
-    if (timeBlockStrings == null || timeBlockStrings.Count == 0)
-        return result;
-
-    foreach (string blockStr in timeBlockStrings)
-    {
-        if (Enum.TryParse<TimeBlocks>(blockStr, true, out TimeBlocks timeBlock))
+        // ENUM VALIDATION - throws if unknown action type
+        if (!Enum.TryParse<LocationActionType>(dto.ActionType, true, out LocationActionType actionType))
         {
-            result.Add(timeBlock);
-        }
-        else
-        {
+            string validTypes = string.Join(", ", Enum.GetNames(typeof(LocationActionType)));
             throw new InvalidDataException(
-                $"LocationAction has unknown availability time block '{blockStr}'. " +
-                $"Valid values: {string.Join(", ", Enum.GetNames(typeof(TimeBlocks)))}");
+                $"LocationAction '{dto.Id}' has unknown actionType '{dto.ActionType}'. " +
+                $"Valid types: {validTypes}");
         }
+
+        LocationAction action = new LocationAction
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Description = dto.Description,
+            ActionType = actionType,  // Strongly typed enum
+            Costs = ParseCosts(dto.Cost),
+            Rewards = ParseRewards(dto.Reward),
+            TimeRequired = dto.TimeRequired,
+            Availability = ParseTimeBlocks(dto.Availability),
+            Priority = dto.Priority,
+            ObligationId = dto.ObligationId,
+            RequiredProperties = ParseLocationProperties(dto.RequiredProperties),
+            OptionalProperties = ParseLocationProperties(dto.OptionalProperties),
+            ExcludedProperties = ParseLocationProperties(dto.ExcludedProperties)
+        };
+
+        return action;
     }
 
-    return result;
-}
-
-private static ActionCosts ParseCosts(ActionCostsDTO dto)
-{
-    if (dto == null)
-        return ActionCosts.None();
-
-    return new ActionCosts
+    private static List<TimeBlocks> ParseTimeBlocks(List<string> timeBlockStrings)
     {
-        Coins = dto.Coins,
-        Focus = dto.Focus,
-        Stamina = dto.Stamina,
-        Health = dto.Health
-    };
-}
+        List<TimeBlocks> result = new List<TimeBlocks>();
 
-private static ActionRewards ParseRewards(ActionRewardsDTO dto)
-{
-    if (dto == null)
-        return ActionRewards.None();
+        if (timeBlockStrings == null || timeBlockStrings.Count == 0)
+            return result;
 
-    return new ActionRewards
-    {
-        CoinReward = dto.Coins,
-        HealthRecovery = dto.Health,
-        FocusRecovery = dto.Focus,
-        StaminaRecovery = dto.Stamina,
-        FullRecovery = dto.FullRecovery
-    };
-}
+        foreach (string blockStr in timeBlockStrings)
+        {
+            if (Enum.TryParse<TimeBlocks>(blockStr, true, out TimeBlocks timeBlock))
+            {
+                result.Add(timeBlock);
+            }
+            else
+            {
+                throw new InvalidDataException(
+                    $"LocationAction has unknown availability time block '{blockStr}'. " +
+                    $"Valid values: {string.Join(", ", Enum.GetNames(typeof(TimeBlocks)))}");
+            }
+        }
 
-private static void ValidateRequiredFields(LocationActionDTO dto)
-{
-    if (string.IsNullOrEmpty(dto.Id))
-        throw new InvalidDataException("LocationAction missing required field 'Id'");
-
-    if (string.IsNullOrEmpty(dto.Name))
-        throw new InvalidDataException($"LocationAction '{dto.Id}' missing required field 'Name'");
-
-    if (string.IsNullOrEmpty(dto.Description))
-        throw new InvalidDataException($"LocationAction '{dto.Id}' missing required field 'Description'");
-
-    if (string.IsNullOrEmpty(dto.ActionType))
-        throw new InvalidDataException($"LocationAction '{dto.Id}' missing required field 'ActionType'");
-}
-
-private static List<LocationPropertyType> ParseLocationProperties(List<string> propertyStrings)
-{
-    List<LocationPropertyType> result = new List<LocationPropertyType>();
-
-    if (propertyStrings == null || propertyStrings.Count == 0)
         return result;
-
-    foreach (string propStr in propertyStrings)
-    {
-        if (Enum.TryParse<LocationPropertyType>(propStr, true, out LocationPropertyType propertyType))
-        {
-            result.Add(propertyType);
-        }
-        else
-        {
-            // Log warning but don't throw - allows for graceful handling of unknown properties
-            // In production, might want stricter validation
-        }
     }
 
-    return result;
-}
+    private static ActionCosts ParseCosts(ActionCostsDTO dto)
+    {
+        if (dto == null)
+            return ActionCosts.None();
+
+        return new ActionCosts
+        {
+            Coins = dto.Coins,
+            Focus = dto.Focus,
+            Stamina = dto.Stamina,
+            Health = dto.Health
+        };
+    }
+
+    private static ActionRewards ParseRewards(ActionRewardsDTO dto)
+    {
+        if (dto == null)
+            return ActionRewards.None();
+
+        return new ActionRewards
+        {
+            CoinReward = dto.Coins,
+            HealthRecovery = dto.Health,
+            FocusRecovery = dto.Focus,
+            StaminaRecovery = dto.Stamina,
+            FullRecovery = dto.FullRecovery
+        };
+    }
+
+    private static void ValidateRequiredFields(LocationActionDTO dto)
+    {
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidDataException("LocationAction missing required field 'Id'");
+
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidDataException($"LocationAction '{dto.Id}' missing required field 'Name'");
+
+        if (string.IsNullOrEmpty(dto.Description))
+            throw new InvalidDataException($"LocationAction '{dto.Id}' missing required field 'Description'");
+
+        if (string.IsNullOrEmpty(dto.ActionType))
+            throw new InvalidDataException($"LocationAction '{dto.Id}' missing required field 'ActionType'");
+    }
+
+    private static List<LocationPropertyType> ParseLocationProperties(List<string> propertyStrings)
+    {
+        List<LocationPropertyType> result = new List<LocationPropertyType>();
+
+        if (propertyStrings == null || propertyStrings.Count == 0)
+            return result;
+
+        foreach (string propStr in propertyStrings)
+        {
+            if (Enum.TryParse<LocationPropertyType>(propStr, true, out LocationPropertyType propertyType))
+            {
+                result.Add(propertyType);
+            }
+            else
+            {
+                // Log warning but don't throw - allows for graceful handling of unknown properties
+                // In production, might want stricter validation
+            }
+        }
+
+        return result;
+    }
 }

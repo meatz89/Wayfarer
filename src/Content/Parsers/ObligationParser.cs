@@ -6,224 +6,224 @@
 /// </summary>
 public class ObligationParser
 {
-private readonly GameWorld _gameWorld;
+    private readonly GameWorld _gameWorld;
 
-public ObligationParser(GameWorld gameWorld)
-{
-    _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-}
-
-public Obligation ParseObligation(ObligationDTO dto)
-{
-    // Validate required fields
-    if (string.IsNullOrEmpty(dto.Id))
-        throw new InvalidDataException("Obligation missing required field 'Id'");
-    if (string.IsNullOrEmpty(dto.Name))
-        throw new InvalidDataException($"Obligation '{dto.Id}' missing required field 'Name'");
-    if (string.IsNullOrEmpty(dto.Description))
-        throw new InvalidDataException($"Obligation '{dto.Id}' missing required field 'Description'");
-
-    return new Obligation
+    public ObligationParser(GameWorld gameWorld)
     {
-        Id = dto.Id,
-        Name = dto.Name,
-        Description = dto.Description,
-        IntroAction = ParseIntroAction(dto.Intro), // Returns null if dto.Intro is null
-        ColorCode = dto.ColorCode,
-        ObligationType = ParseObligationType(dto.ObligationType), // Handles null with default
-        PatronNpcId = dto.PatronNpcId,
-        DeadlineSegment = dto.DeadlineSegment,
-        CompletionRewardCoins = dto.CompletionRewardCoins,
-        CompletionRewardItems = dto.CompletionRewardItems, // DTO has inline init, trust it
-        CompletionRewardXP = ParseXPRewards(dto.CompletionRewardXP), // Handles null internally
-        SpawnedObligationIds = dto.SpawnedObligationIds, // DTO has inline init, trust it
-        PhaseDefinitions = dto.Phases.Select((p, index) => ParsePhaseDefinition(p, dto.Id)).ToList() // DTO has inline init, trust it
-    };
-}
+        _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+    }
 
-private ObligationPhaseDefinition ParsePhaseDefinition(ObligationPhaseDTO dto, string obligationId)
-{
-    return new ObligationPhaseDefinition
+    public Obligation ParseObligation(ObligationDTO dto)
     {
-        Id = dto.Id,
-        Name = dto.Name,
-        Description = dto.Description,
-        OutcomeNarrative = dto.OutcomeNarrative,
-        // SituationRequirements system eliminated - phases progress through actual situation completion tracking
-        CompletionReward = ParseCompletionReward(dto.CompletionReward)
-    };
-}
+        // Validate required fields
+        if (string.IsNullOrEmpty(dto.Id))
+            throw new InvalidDataException("Obligation missing required field 'Id'");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidDataException($"Obligation '{dto.Id}' missing required field 'Name'");
+        if (string.IsNullOrEmpty(dto.Description))
+            throw new InvalidDataException($"Obligation '{dto.Id}' missing required field 'Description'");
 
-private PhaseCompletionReward ParseCompletionReward(PhaseCompletionRewardDTO dto)
-{
-    if (dto == null) return null; // Optional reward - valid to be null
-
-    PhaseCompletionReward reward = new PhaseCompletionReward
-    {
-        UnderstandingReward = dto.UnderstandingReward
-    };
-
-    // Parse scene spawns using Scene-Situation template architecture
-    // Convert SceneSpawnInfoDTO → SceneSpawnReward
-    if (dto.ScenesSpawned != null)
-    {
-        foreach (SceneSpawnInfoDTO spawnDto in dto.ScenesSpawned)
+        return new Obligation
         {
-            SceneSpawnReward sceneSpawn = new SceneSpawnReward
-            {
-                SceneTemplateId = spawnDto.SceneTemplateId,
-                PlacementRelation = ParsePlacementRelationFromTargetType(spawnDto.TargetType),
-                SpecificPlacementId = spawnDto.TargetEntityId,
-                DelayDays = 0 // Obligation rewards spawn immediately
-            };
+            Id = dto.Id,
+            Name = dto.Name,
+            Description = dto.Description,
+            IntroAction = ParseIntroAction(dto.Intro), // Returns null if dto.Intro is null
+            ColorCode = dto.ColorCode,
+            ObligationType = ParseObligationType(dto.ObligationType), // Handles null with default
+            PatronNpcId = dto.PatronNpcId,
+            DeadlineSegment = dto.DeadlineSegment,
+            CompletionRewardCoins = dto.CompletionRewardCoins,
+            CompletionRewardItems = dto.CompletionRewardItems, // DTO has inline init, trust it
+            CompletionRewardXP = ParseXPRewards(dto.CompletionRewardXP), // Handles null internally
+            SpawnedObligationIds = dto.SpawnedObligationIds, // DTO has inline init, trust it
+            PhaseDefinitions = dto.Phases.Select((p, index) => ParsePhaseDefinition(p, dto.Id)).ToList() // DTO has inline init, trust it
+        };
+    }
 
-            reward.ScenesToSpawn.Add(sceneSpawn);
+    private ObligationPhaseDefinition ParsePhaseDefinition(ObligationPhaseDTO dto, string obligationId)
+    {
+        return new ObligationPhaseDefinition
+        {
+            Id = dto.Id,
+            Name = dto.Name,
+            Description = dto.Description,
+            OutcomeNarrative = dto.OutcomeNarrative,
+            // SituationRequirements system eliminated - phases progress through actual situation completion tracking
+            CompletionReward = ParseCompletionReward(dto.CompletionReward)
+        };
+    }
+
+    private PhaseCompletionReward ParseCompletionReward(PhaseCompletionRewardDTO dto)
+    {
+        if (dto == null) return null; // Optional reward - valid to be null
+
+        PhaseCompletionReward reward = new PhaseCompletionReward
+        {
+            UnderstandingReward = dto.UnderstandingReward
+        };
+
+        // Parse scene spawns using Scene-Situation template architecture
+        // Convert SceneSpawnInfoDTO → SceneSpawnReward
+        if (dto.ScenesSpawned != null)
+        {
+            foreach (SceneSpawnInfoDTO spawnDto in dto.ScenesSpawned)
+            {
+                SceneSpawnReward sceneSpawn = new SceneSpawnReward
+                {
+                    SceneTemplateId = spawnDto.SceneTemplateId,
+                    PlacementRelation = ParsePlacementRelationFromTargetType(spawnDto.TargetType),
+                    SpecificPlacementId = spawnDto.TargetEntityId,
+                    DelayDays = 0 // Obligation rewards spawn immediately
+                };
+
+                reward.ScenesToSpawn.Add(sceneSpawn);
+            }
+        }
+
+        return reward;
+    }
+
+    /// <summary>
+    /// Convert legacy TargetType (Location/Route/NPC) to PlacementRelation (Specific*)
+    /// Obligation phase rewards always use specific placement (not Same* relations)
+    /// </summary>
+    private PlacementRelation ParsePlacementRelationFromTargetType(string targetType)
+    {
+        if (string.IsNullOrEmpty(targetType))
+            throw new InvalidDataException("SceneSpawnInfo missing required 'targetType' field");
+
+        return targetType.ToLowerInvariant() switch
+        {
+            "location" => PlacementRelation.SpecificLocation,
+            "route" => PlacementRelation.SpecificRoute,
+            "npc" => PlacementRelation.SpecificNPC,
+            _ => throw new InvalidDataException(
+                $"Invalid TargetType '{targetType}'. Valid values: Location, Route, NPC")
+        };
+    }
+    private void ValidateDeckId(string deckId, TacticalSystemType systemType, string phaseId)
+    {
+        if (string.IsNullOrEmpty(deckId))
+        {
+            throw new InvalidDataException($"Obligation intro action '{phaseId}' has no deckId specified");
+        }
+
+        bool exists = systemType switch
+        {
+            TacticalSystemType.Mental => _gameWorld.MentalChallengeDecks.Any(d => d.Id == deckId),
+            TacticalSystemType.Physical => _gameWorld.PhysicalChallengeDecks.Any(d => d.Id == deckId),
+            TacticalSystemType.Social => _gameWorld.SocialChallengeDecks.Any(d => d.Id == deckId),
+            _ => throw new InvalidDataException($"Unknown TacticalSystemType: {systemType}")
+        };
+
+        if (!exists)
+        {
+            throw new InvalidDataException(
+                $"Obligation intro action '{phaseId}' references {systemType} engagement deck '{deckId}' which does not exist in GameWorld. " +
+                $"Available {systemType} engagement decks: {string.Join(", ", GetAvailableChallengeDeckIds(systemType))}"
+            );
         }
     }
 
-    return reward;
-}
-
-/// <summary>
-/// Convert legacy TargetType (Location/Route/NPC) to PlacementRelation (Specific*)
-/// Obligation phase rewards always use specific placement (not Same* relations)
-/// </summary>
-private PlacementRelation ParsePlacementRelationFromTargetType(string targetType)
-{
-    if (string.IsNullOrEmpty(targetType))
-        throw new InvalidDataException("SceneSpawnInfo missing required 'targetType' field");
-
-    return targetType.ToLowerInvariant() switch
+    private IEnumerable<string> GetAvailableChallengeDeckIds(TacticalSystemType systemType)
     {
-        "location" => PlacementRelation.SpecificLocation,
-        "route" => PlacementRelation.SpecificRoute,
-        "npc" => PlacementRelation.SpecificNPC,
-        _ => throw new InvalidDataException(
-            $"Invalid TargetType '{targetType}'. Valid values: Location, Route, NPC")
-    };
-}
-private void ValidateDeckId(string deckId, TacticalSystemType systemType, string phaseId)
-{
-    if (string.IsNullOrEmpty(deckId))
-    {
-        throw new InvalidDataException($"Obligation intro action '{phaseId}' has no deckId specified");
-    }
-
-    bool exists = systemType switch
-    {
-        TacticalSystemType.Mental => _gameWorld.MentalChallengeDecks.Any(d => d.Id == deckId),
-        TacticalSystemType.Physical => _gameWorld.PhysicalChallengeDecks.Any(d => d.Id == deckId),
-        TacticalSystemType.Social => _gameWorld.SocialChallengeDecks.Any(d => d.Id == deckId),
-        _ => throw new InvalidDataException($"Unknown TacticalSystemType: {systemType}")
-    };
-
-    if (!exists)
-    {
-        throw new InvalidDataException(
-            $"Obligation intro action '{phaseId}' references {systemType} engagement deck '{deckId}' which does not exist in GameWorld. " +
-            $"Available {systemType} engagement decks: {string.Join(", ", GetAvailableChallengeDeckIds(systemType))}"
-        );
-    }
-}
-
-private IEnumerable<string> GetAvailableChallengeDeckIds(TacticalSystemType systemType)
-{
-    return systemType switch
-    {
-        TacticalSystemType.Mental => _gameWorld.MentalChallengeDecks.Select(d => d.Id),
-        TacticalSystemType.Physical => _gameWorld.PhysicalChallengeDecks.Select(d => d.Id),
-        TacticalSystemType.Social => _gameWorld.SocialChallengeDecks.Select(d => d.Id),
-        _ => new List<string>()
-    };
-}
-
-private TacticalSystemType ParseSystemType(string systemTypeString)
-{
-    // Optional field - defaults to Mental if missing/invalid
-    return Enum.TryParse<TacticalSystemType>(systemTypeString, out TacticalSystemType type)
-        ? type
-        : TacticalSystemType.Mental;
-}
-
-private ObligationIntroAction ParseIntroAction(ObligationIntroActionDTO dto)
-{
-    if (dto == null) return null; // Optional intro action - valid to be null
-
-    return new ObligationIntroAction
-    {
-        TriggerType = ParseTriggerType(dto.TriggerType), // Handles null with default
-        TriggerPrerequisites = ParseObligationPrerequisites(dto.TriggerPrerequisites), // Handles null
-        ActionText = dto.ActionText,
-        LocationId = dto.LocationId,
-        IntroNarrative = dto.IntroNarrative,
-        CompletionReward = ParseCompletionReward(dto.CompletionReward) // Handles null
-    };
-}
-
-private DiscoveryTriggerType ParseTriggerType(string triggerTypeString)
-{
-    // Optional field - defaults to ImmediateVisibility if missing/invalid
-    if (string.IsNullOrEmpty(triggerTypeString))
-        return DiscoveryTriggerType.ImmediateVisibility;
-
-    return Enum.TryParse<DiscoveryTriggerType>(triggerTypeString, out DiscoveryTriggerType type)
-        ? type
-        : DiscoveryTriggerType.ImmediateVisibility;
-}
-
-private ObligationObligationType ParseObligationType(string typeString)
-{
-    // Optional field - defaults to SelfDiscovered if missing/invalid
-    if (string.IsNullOrEmpty(typeString))
-        return ObligationObligationType.SelfDiscovered;
-
-    return Enum.TryParse<ObligationObligationType>(typeString, out ObligationObligationType type)
-        ? type
-        : ObligationObligationType.SelfDiscovered;
-}
-
-private ObligationPrerequisites ParseObligationPrerequisites(ObligationPrerequisitesDTO dto)
-{
-    if (dto == null) return new ObligationPrerequisites(); // Optional prerequisites - return empty if null
-
-    return new ObligationPrerequisites
-    {
-        LocationId = dto.LocationId
-    };
-}
-
-private List<StatXPReward> ParseXPRewards(Dictionary<string, int> xpRewardsDto)
-{
-    // DTO has inline init - trust it, but might be empty
-    if (xpRewardsDto.Count == 0)
-        return new List<StatXPReward>();
-
-    List<StatXPReward> rewards = new List<StatXPReward>();
-
-    foreach (KeyValuePair<string, int> entry in xpRewardsDto)
-    {
-        PlayerStatType statType = ParsePlayerStatType(entry.Key);
-        if (statType != PlayerStatType.None && entry.Value > 0)
+        return systemType switch
         {
-            rewards.Add(new StatXPReward
-            {
-                Stat = statType,
-                XPAmount = entry.Value
-            });
-        }
+            TacticalSystemType.Mental => _gameWorld.MentalChallengeDecks.Select(d => d.Id),
+            TacticalSystemType.Physical => _gameWorld.PhysicalChallengeDecks.Select(d => d.Id),
+            TacticalSystemType.Social => _gameWorld.SocialChallengeDecks.Select(d => d.Id),
+            _ => new List<string>()
+        };
     }
 
-    return rewards;
-}
+    private TacticalSystemType ParseSystemType(string systemTypeString)
+    {
+        // Optional field - defaults to Mental if missing/invalid
+        return Enum.TryParse<TacticalSystemType>(systemTypeString, out TacticalSystemType type)
+            ? type
+            : TacticalSystemType.Mental;
+    }
 
-private PlayerStatType ParsePlayerStatType(string statName)
-{
-    // Optional field - returns None if missing/invalid
-    if (string.IsNullOrEmpty(statName))
-        return PlayerStatType.None;
+    private ObligationIntroAction ParseIntroAction(ObligationIntroActionDTO dto)
+    {
+        if (dto == null) return null; // Optional intro action - valid to be null
 
-    return Enum.TryParse<PlayerStatType>(statName, ignoreCase: true, out PlayerStatType statType)
-        ? statType
-        : PlayerStatType.None;
-}
+        return new ObligationIntroAction
+        {
+            TriggerType = ParseTriggerType(dto.TriggerType), // Handles null with default
+            TriggerPrerequisites = ParseObligationPrerequisites(dto.TriggerPrerequisites), // Handles null
+            ActionText = dto.ActionText,
+            LocationId = dto.LocationId,
+            IntroNarrative = dto.IntroNarrative,
+            CompletionReward = ParseCompletionReward(dto.CompletionReward) // Handles null
+        };
+    }
+
+    private DiscoveryTriggerType ParseTriggerType(string triggerTypeString)
+    {
+        // Optional field - defaults to ImmediateVisibility if missing/invalid
+        if (string.IsNullOrEmpty(triggerTypeString))
+            return DiscoveryTriggerType.ImmediateVisibility;
+
+        return Enum.TryParse<DiscoveryTriggerType>(triggerTypeString, out DiscoveryTriggerType type)
+            ? type
+            : DiscoveryTriggerType.ImmediateVisibility;
+    }
+
+    private ObligationObligationType ParseObligationType(string typeString)
+    {
+        // Optional field - defaults to SelfDiscovered if missing/invalid
+        if (string.IsNullOrEmpty(typeString))
+            return ObligationObligationType.SelfDiscovered;
+
+        return Enum.TryParse<ObligationObligationType>(typeString, out ObligationObligationType type)
+            ? type
+            : ObligationObligationType.SelfDiscovered;
+    }
+
+    private ObligationPrerequisites ParseObligationPrerequisites(ObligationPrerequisitesDTO dto)
+    {
+        if (dto == null) return new ObligationPrerequisites(); // Optional prerequisites - return empty if null
+
+        return new ObligationPrerequisites
+        {
+            LocationId = dto.LocationId
+        };
+    }
+
+    private List<StatXPReward> ParseXPRewards(Dictionary<string, int> xpRewardsDto)
+    {
+        // DTO has inline init - trust it, but might be empty
+        if (xpRewardsDto.Count == 0)
+            return new List<StatXPReward>();
+
+        List<StatXPReward> rewards = new List<StatXPReward>();
+
+        foreach (KeyValuePair<string, int> entry in xpRewardsDto)
+        {
+            PlayerStatType statType = ParsePlayerStatType(entry.Key);
+            if (statType != PlayerStatType.None && entry.Value > 0)
+            {
+                rewards.Add(new StatXPReward
+                {
+                    Stat = statType,
+                    XPAmount = entry.Value
+                });
+            }
+        }
+
+        return rewards;
+    }
+
+    private PlayerStatType ParsePlayerStatType(string statName)
+    {
+        // Optional field - returns None if missing/invalid
+        if (string.IsNullOrEmpty(statName))
+            return PlayerStatType.None;
+
+        return Enum.TryParse<PlayerStatType>(statName, ignoreCase: true, out PlayerStatType statType)
+            ? statType
+            : PlayerStatType.None;
+    }
 }

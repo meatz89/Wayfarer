@@ -4,142 +4,142 @@
 /// </summary>
 public class ExchangeOrchestrator
 {
-private readonly GameWorld _gameWorld;
-private readonly ExchangeValidator _validator;
-private readonly ExchangeProcessor _processor;
-private readonly MessageSystem _messageSystem;
+    private readonly GameWorld _gameWorld;
+    private readonly ExchangeValidator _validator;
+    private readonly ExchangeProcessor _processor;
+    private readonly MessageSystem _messageSystem;
 
-private Dictionary<string, ExchangeSession> _activeSessions;
+    private Dictionary<string, ExchangeSession> _activeSessions;
 
-public ExchangeOrchestrator(
-    GameWorld gameWorld,
-    ExchangeValidator validator,
-    ExchangeProcessor processor,
-    MessageSystem messageSystem)
-{
-    _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
-    _validator = validator ?? throw new ArgumentNullException(nameof(validator));
-    _processor = processor ?? throw new ArgumentNullException(nameof(processor));
-    _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-    _activeSessions = new Dictionary<string, ExchangeSession>();
-}
-
-/// <summary>
-/// Create a new exchange session with an NPC
-/// </summary>
-public ExchangeSession CreateSession(NPC npc, List<ExchangeOption> availableExchanges)
-{
-    // End any existing session with this NPC
-    if (_activeSessions.ContainsKey(npc.ID))
+    public ExchangeOrchestrator(
+        GameWorld gameWorld,
+        ExchangeValidator validator,
+        ExchangeProcessor processor,
+        MessageSystem messageSystem)
     {
-        EndSession(npc.ID);
+        _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+        _validator = validator ?? throw new ArgumentNullException(nameof(validator));
+        _processor = processor ?? throw new ArgumentNullException(nameof(processor));
+        _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
+        _activeSessions = new Dictionary<string, ExchangeSession>();
     }
 
-    // Create new session
-    ExchangeSession session = new ExchangeSession
+    /// <summary>
+    /// Create a new exchange session with an NPC
+    /// </summary>
+    public ExchangeSession CreateSession(NPC npc, List<ExchangeOption> availableExchanges)
     {
-        SessionId = Guid.NewGuid().ToString(),
-        NpcId = npc.ID,
-        AvailableExchanges = availableExchanges,
-        StartTime = DateTime.Now,
-        IsActive = true
-    };
-
-    _activeSessions[npc.ID] = session;
-
-    _messageSystem.AddSystemMessage(
-        $"Exchange session started with {npc.Name}",
-        SystemMessageTypes.Info);
-
-    return session;
-}
-
-/// <summary>
-/// End an exchange session
-/// </summary>
-public void EndSession(string npcId)
-{
-    if (_activeSessions.TryGetValue(npcId, out ExchangeSession session))
-    {
-        session.IsActive = false;
-        _activeSessions.Remove(npcId);
-
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == session.NpcId);
-        string npcName = npc != null ? npc.Name : "NPC";
-        _messageSystem.AddSystemMessage(
-            $"Exchange session with {npcName} ended",
-            SystemMessageTypes.Info);
-    }
-}
-
-/// <summary>
-/// Get an active session by NPC ID
-/// </summary>
-public ExchangeSession GetActiveSession(string npcId)
-{
-    return _activeSessions.TryGetValue(npcId, out ExchangeSession session) ? session : null;
-}
-
-/// <summary>
-/// Check if an NPC has an active exchange session
-/// </summary>
-public bool HasActiveSession(string npcId)
-{
-    return _activeSessions.ContainsKey(npcId);
-}
-
-/// <summary>
-/// Check if exchange should trigger special events
-/// </summary>
-public void CheckExchangeTriggers(ExchangeCard exchange, NPC npc)
-{
-    // Check for relationship milestones from token rewards
-    if (exchange.Reward != null && exchange.Reward.Tokens != null)
-    {
-        foreach (KeyValuePair<ConnectionType, int> tokenReward in exchange.Reward.Tokens)
+        // End any existing session with this NPC
+        if (_activeSessions.ContainsKey(npc.ID))
         {
-            CheckRelationshipMilestone(npc.ID, tokenReward.Key, tokenReward.Value);
+            EndSession(npc.ID);
+        }
+
+        // Create new session
+        ExchangeSession session = new ExchangeSession
+        {
+            SessionId = Guid.NewGuid().ToString(),
+            NpcId = npc.ID,
+            AvailableExchanges = availableExchanges,
+            StartTime = DateTime.Now,
+            IsActive = true
+        };
+
+        _activeSessions[npc.ID] = session;
+
+        _messageSystem.AddSystemMessage(
+            $"Exchange session started with {npc.Name}",
+            SystemMessageTypes.Info);
+
+        return session;
+    }
+
+    /// <summary>
+    /// End an exchange session
+    /// </summary>
+    public void EndSession(string npcId)
+    {
+        if (_activeSessions.TryGetValue(npcId, out ExchangeSession session))
+        {
+            session.IsActive = false;
+            _activeSessions.Remove(npcId);
+
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == session.NpcId);
+            string npcName = npc != null ? npc.Name : "NPC";
+            _messageSystem.AddSystemMessage(
+                $"Exchange session with {npcName} ended",
+                SystemMessageTypes.Info);
         }
     }
 
-    // Check for special exchange chains
-    if (!string.IsNullOrEmpty(exchange.UnlocksExchangeId))
+    /// <summary>
+    /// Get an active session by NPC ID
+    /// </summary>
+    public ExchangeSession GetActiveSession(string npcId)
     {
-        UnlockExchange(npc.ID, exchange.UnlocksExchangeId);
+        return _activeSessions.TryGetValue(npcId, out ExchangeSession session) ? session : null;
     }
 
-    // Check for story triggers
-    if (!string.IsNullOrEmpty(exchange.TriggerEvent))
+    /// <summary>
+    /// Check if an NPC has an active exchange session
+    /// </summary>
+    public bool HasActiveSession(string npcId)
     {
-        TriggerStoryEvent(exchange.TriggerEvent);
+        return _activeSessions.ContainsKey(npcId);
     }
-}
 
-/// <summary>
-/// Clear all active sessions (used when loading game or changing locations)
-/// </summary>
-public void ClearAllSessions()
-{
-    foreach (string npcId in _activeSessions.Keys.ToList())
+    /// <summary>
+    /// Check if exchange should trigger special events
+    /// </summary>
+    public void CheckExchangeTriggers(ExchangeCard exchange, NPC npc)
     {
-        EndSession(npcId);
+        // Check for relationship milestones from token rewards
+        if (exchange.Reward != null && exchange.Reward.Tokens != null)
+        {
+            foreach (KeyValuePair<ConnectionType, int> tokenReward in exchange.Reward.Tokens)
+            {
+                CheckRelationshipMilestone(npc.ID, tokenReward.Key, tokenReward.Value);
+            }
+        }
+
+        // Check for special exchange chains
+        if (!string.IsNullOrEmpty(exchange.UnlocksExchangeId))
+        {
+            UnlockExchange(npc.ID, exchange.UnlocksExchangeId);
+        }
+
+        // Check for story triggers
+        if (!string.IsNullOrEmpty(exchange.TriggerEvent))
+        {
+            TriggerStoryEvent(exchange.TriggerEvent);
+        }
     }
-}
 
-// Helper methods
+    /// <summary>
+    /// Clear all active sessions (used when loading game or changing locations)
+    /// </summary>
+    public void ClearAllSessions()
+    {
+        foreach (string npcId in _activeSessions.Keys.ToList())
+        {
+            EndSession(npcId);
+        }
+    }
 
-private void CheckRelationshipMilestone(string npcId, ConnectionType tokenType, int amount)
-{
-    // This would integrate with the Token subsystem to check milestones
-}
+    // Helper methods
 
-private void UnlockExchange(string npcId, string exchangeId)
-{
-    // This would integrate with ExchangeInventory to unlock new exchanges
-}
+    private void CheckRelationshipMilestone(string npcId, ConnectionType tokenType, int amount)
+    {
+        // This would integrate with the Token subsystem to check milestones
+    }
 
-private void TriggerStoryEvent(string eventId)
-{
-    // This would integrate with a story/event system
-}
+    private void UnlockExchange(string npcId, string exchangeId)
+    {
+        // This would integrate with ExchangeInventory to unlock new exchanges
+    }
+
+    private void TriggerStoryEvent(string eventId)
+    {
+        // This would integrate with a story/event system
+    }
 }

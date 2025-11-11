@@ -9,13 +9,13 @@
 /// </summary>
 public static class PlayerActionCatalog
 {
-/// <summary>
-/// Generate all universal player actions available at any location.
-/// These are meta-actions that don't depend on location properties.
-/// </summary>
-public static List<PlayerAction> GenerateUniversalActions()
-{
-    return new List<PlayerAction>
+    /// <summary>
+    /// Generate all universal player actions available at any location.
+    /// These are meta-actions that don't depend on location properties.
+    /// </summary>
+    public static List<PlayerAction> GenerateUniversalActions()
+    {
+        return new List<PlayerAction>
     {
         // Check Belongings - View inventory/equipment
         new PlayerAction
@@ -72,5 +72,5 @@ public static List<PlayerAction> GenerateUniversalActions()
             Priority = 1  // TOP priority - should appear first in list
         }
     };
-}
+    }
 }

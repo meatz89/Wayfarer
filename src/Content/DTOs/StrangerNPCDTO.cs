@@ -3,13 +3,13 @@
 /// </summary>
 public class StrangerNPCDTO
 {
-public string Id { get; set; }
-public string Name { get; set; }
-public int Level { get; set; }
-public string Personality { get; set; }
-public string LocationId { get; set; }
-public string TimeBlock { get; set; }
-public StrangerRequestDTO Request { get; set; } // Single request per stranger
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public int Level { get; set; }
+    public string Personality { get; set; }
+    public string LocationId { get; set; }
+    public string TimeBlock { get; set; }
+    public StrangerRequestDTO Request { get; set; } // Single request per stranger
 }
 
 /// <summary>
@@ -17,14 +17,14 @@ public StrangerRequestDTO Request { get; set; } // Single request per stranger
 /// </summary>
 public class StrangerRequestDTO
 {
-public string Id { get; set; }
-public string Name { get; set; }
-public string Description { get; set; }
-public string ConversationTypeId { get; set; } // The conversation type to use
-public List<string> SituationCards { get; set; } = new(); // Not used - cards come from conversation type deck
-public List<string> PromiseCards { get; set; } = new(); // Not used - cards come from conversation type deck
-public List<int> MomentumThresholds { get; set; } = new();
-public List<StrangerRewardDTO> Rewards { get; set; } = new();
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
+    public string ConversationTypeId { get; set; } // The conversation type to use
+    public List<string> SituationCards { get; set; } = new(); // Not used - cards come from conversation type deck
+    public List<string> PromiseCards { get; set; } = new(); // Not used - cards come from conversation type deck
+    public List<int> MomentumThresholds { get; set; } = new();
+    public List<StrangerRewardDTO> Rewards { get; set; } = new();
 }
 
 /// <summary>
@@ -32,12 +32,12 @@ public List<StrangerRewardDTO> Rewards { get; set; } = new();
 /// </summary>
 public class StrangerRewardDTO
 {
-public int Coins { get; set; } = 0;
-public int Health { get; set; } = 0;
-public int Food { get; set; } = 0;
-public int Familiarity { get; set; } = 0;
-public string Item { get; set; }
-public string Permit { get; set; }
-public string Observation { get; set; }
-public Dictionary<string, int> Tokens { get; set; } = new();
+    public int Coins { get; set; } = 0;
+    public int Health { get; set; } = 0;
+    public int Food { get; set; } = 0;
+    public int Familiarity { get; set; } = 0;
+    public string Item { get; set; }
+    public string Permit { get; set; }
+    public string Observation { get; set; }
+    public Dictionary<string, int> Tokens { get; set; } = new();
 }

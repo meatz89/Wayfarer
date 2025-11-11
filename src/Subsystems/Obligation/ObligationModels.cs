@@ -3,11 +3,11 @@
 /// </summary>
 public class DeliveryResult
 {
-public bool Success { get; set; }
-public string ErrorMessage { get; set; }
-public int TokensGranted { get; set; }
-public ConnectionType TokenType { get; set; }
-public string RecipientId { get; set; }
+    public bool Success { get; set; }
+    public string ErrorMessage { get; set; }
+    public int TokensGranted { get; set; }
+    public ConnectionType TokenType { get; set; }
+    public string RecipientId { get; set; }
 }
 
 /// <summary>
@@ -15,10 +15,10 @@ public string RecipientId { get; set; }
 /// </summary>
 public class DisplacementResult
 {
-public bool CanExecute { get; set; }
-public string ErrorMessage { get; set; }
-public Dictionary<ConnectionType, int> RequiredTokens { get; set; } = new Dictionary<ConnectionType, int>();
-public int TotalTokenCost { get; set; }
+    public bool CanExecute { get; set; }
+    public string ErrorMessage { get; set; }
+    public Dictionary<ConnectionType, int> RequiredTokens { get; set; } = new Dictionary<ConnectionType, int>();
+    public int TotalTokenCost { get; set; }
 }
 
 /// <summary>
@@ -26,12 +26,12 @@ public int TotalTokenCost { get; set; }
 /// </summary>
 public class ObligationAddResult
 {
-public bool Success { get; set; }
-public int Position { get; set; }
-public string ErrorMessage { get; set; }
-public bool UsedLeverage { get; set; }
-public bool CausedDisplacement { get; set; }
-public List<string> DisplacedObligationIds { get; set; } = new List<string>();
+    public bool Success { get; set; }
+    public int Position { get; set; }
+    public string ErrorMessage { get; set; }
+    public bool UsedLeverage { get; set; }
+    public bool CausedDisplacement { get; set; }
+    public List<string> DisplacedObligationIds { get; set; } = new List<string>();
 }
 
 /// <summary>
@@ -39,11 +39,11 @@ public List<string> DisplacedObligationIds { get; set; } = new List<string>();
 /// </summary>
 public class QueueManipulationResult
 {
-public bool Success { get; set; }
-public string ErrorMessage { get; set; }
-public string OperationType { get; set; }
-public int Position { get; set; }
-public Dictionary<ConnectionType, int> TokensCost { get; set; } = new Dictionary<ConnectionType, int>();
+    public bool Success { get; set; }
+    public string ErrorMessage { get; set; }
+    public string OperationType { get; set; }
+    public int Position { get; set; }
+    public Dictionary<ConnectionType, int> TokensCost { get; set; } = new Dictionary<ConnectionType, int>();
 }
 
 /// <summary>
@@ -51,10 +51,10 @@ public Dictionary<ConnectionType, int> TokensCost { get; set; } = new Dictionary
 /// </summary>
 public enum Position1Status
 {
-Empty,
-CanDeliver,
-CannotDeliver,
-Blocked
+    Empty,
+    CanDeliver,
+    CannotDeliver,
+    Blocked
 }
 
 /// <summary>
@@ -62,12 +62,12 @@ Blocked
 /// </summary>
 public class DeadlineTrackingInfo
 {
-public List<MeetingObligation> ExpiringMeetings { get; set; } = new List<MeetingObligation>();
-public int SegmentsElapsed { get; set; }
-public List<string> ExpiredObligationIds { get; set; } = new List<string>();
-public List<string> ExpiredMeetingIds { get; set; } = new List<string>();
-public bool HasExpiredItems => ExpiredObligationIds.Any() || ExpiredMeetingIds.Any();
-public int TotalExpiredCount => ExpiredObligationIds.Count + ExpiredMeetingIds.Count;
+    public List<MeetingObligation> ExpiringMeetings { get; set; } = new List<MeetingObligation>();
+    public int SegmentsElapsed { get; set; }
+    public List<string> ExpiredObligationIds { get; set; } = new List<string>();
+    public List<string> ExpiredMeetingIds { get; set; } = new List<string>();
+    public bool HasExpiredItems => ExpiredObligationIds.Any() || ExpiredMeetingIds.Any();
+    public int TotalExpiredCount => ExpiredObligationIds.Count + ExpiredMeetingIds.Count;
 }
 
 /// <summary>
@@ -75,12 +75,12 @@ public int TotalExpiredCount => ExpiredObligationIds.Count + ExpiredMeetingIds.C
 /// </summary>
 public enum DisplacementTrigger
 {
-None,
-FailedNegotiation,
-ProudNPC,
-CriticalEmotionalFocus,
-StandingObligation,
-NPCDesperation
+    None,
+    FailedNegotiation,
+    ProudNPC,
+    CriticalEmotionalFocus,
+    StandingObligation,
+    NPCDesperation
 }
 
 /// <summary>
@@ -88,17 +88,17 @@ NPCDesperation
 /// </summary>
 public class LeverageCalculation
 {
-public string NPCId { get; set; }
-public string NPCName { get; set; }
-public Dictionary<ConnectionType, int> AllTokens { get; set; } = new Dictionary<ConnectionType, int>();
-public int HighestPositiveToken { get; set; }
-public int WorstNegativeTokenPenalty { get; set; }
-public int BasePosition { get; set; }
-public int CalculatedPosition { get; set; }
-public int FinalPosition { get; set; }
-public bool HasActiveObligation { get; set; }
-public bool HasDiplomacyDebtOverride { get; set; }
-public int LeverageBoost { get; set; }
+    public string NPCId { get; set; }
+    public string NPCName { get; set; }
+    public Dictionary<ConnectionType, int> AllTokens { get; set; } = new Dictionary<ConnectionType, int>();
+    public int HighestPositiveToken { get; set; }
+    public int WorstNegativeTokenPenalty { get; set; }
+    public int BasePosition { get; set; }
+    public int CalculatedPosition { get; set; }
+    public int FinalPosition { get; set; }
+    public bool HasActiveObligation { get; set; }
+    public bool HasDiplomacyDebtOverride { get; set; }
+    public int LeverageBoost { get; set; }
 }
 
 /// <summary>
@@ -106,11 +106,11 @@ public int LeverageBoost { get; set; }
 /// </summary>
 public class SatchelInfo
 {
-public int TotalSize { get; set; }
-public int MaxCapacity { get; set; }
-public int RemainingSpace { get; set; }
-public bool IsFull => RemainingSpace <= 0;
-public double UtilizationPercentage => MaxCapacity > 0 ? ((double)TotalSize / MaxCapacity) * 100 : 0;
+    public int TotalSize { get; set; }
+    public int MaxCapacity { get; set; }
+    public int RemainingSpace { get; set; }
+    public bool IsFull => RemainingSpace <= 0;
+    public double UtilizationPercentage => MaxCapacity > 0 ? ((double)TotalSize / MaxCapacity) * 100 : 0;
 }
 
 /// <summary>
@@ -118,12 +118,12 @@ public double UtilizationPercentage => MaxCapacity > 0 ? ((double)TotalSize / Ma
 /// </summary>
 public class MeetingResult
 {
-public bool Success { get; set; }
-public string ErrorMessage { get; set; }
-public MeetingObligation AffectedMeeting { get; set; }
-public MeetingOperation Operation { get; set; }
-public string NPCId { get; set; }
-public string NPCName { get; set; }
+    public bool Success { get; set; }
+    public string ErrorMessage { get; set; }
+    public MeetingObligation AffectedMeeting { get; set; }
+    public MeetingOperation Operation { get; set; }
+    public string NPCId { get; set; }
+    public string NPCName { get; set; }
 }
 
 /// <summary>
@@ -131,8 +131,8 @@ public string NPCName { get; set; }
 /// </summary>
 public enum MeetingOperation
 {
-Add,
-Complete,
-Cancel,
-Expire
+    Add,
+    Complete,
+    Cancel,
+    Expire
 }

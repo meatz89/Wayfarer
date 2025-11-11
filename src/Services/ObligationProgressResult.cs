@@ -4,13 +4,13 @@
 /// </summary>
 public class ObligationProgressResult
 {
-public string ObligationId { get; set; }
-public string ObligationName { get; set; }
-public string CompletedSituationName { get; set; }
-public string OutcomeNarrative { get; set; }
-public List<NewLeadInfo> NewLeads { get; set; } = new List<NewLeadInfo>();
-public int CompletedSituationCount { get; set; }
-public int TotalSituationCount { get; set; }
+    public string ObligationId { get; set; }
+    public string ObligationName { get; set; }
+    public string CompletedSituationName { get; set; }
+    public string OutcomeNarrative { get; set; }
+    public List<NewLeadInfo> NewLeads { get; set; } = new List<NewLeadInfo>();
+    public int CompletedSituationCount { get; set; }
+    public int TotalSituationCount { get; set; }
 }
 
 /// <summary>
@@ -18,7 +18,7 @@ public int TotalSituationCount { get; set; }
 /// </summary>
 public class NewLeadInfo
 {
-public string SituationName { get; set; }
-public string LocationName { get; set; }
-public string SpotName { get; set; }
+    public string SituationName { get; set; }
+    public string LocationName { get; set; }
+    public string SpotName { get; set; }
 }

@@ -14,10 +14,10 @@
 /// </summary>
 public enum ServiceActivityType
 {
-Lodging,    // Sleeping accommodations (private_room + room_key)
-Bathing,    // Bathing facilities (bath_chamber + bath_token)
-Training,   // Physical training grounds (training_yard + training_pass)
-Healing,    // Medical treatment facilities (treatment_room + treatment_receipt)
-Crafting,   // Workshop access (workshop + workshop_permit)
-Studying    // Study/library access (study_room + library_pass)
+    Lodging,    // Sleeping accommodations (private_room + room_key)
+    Bathing,    // Bathing facilities (bath_chamber + bath_token)
+    Training,   // Physical training grounds (training_yard + training_pass)
+    Healing,    // Medical treatment facilities (treatment_room + treatment_receipt)
+    Crafting,   // Workshop access (workshop + workshop_permit)
+    Studying    // Study/library access (study_room + library_pass)
 }

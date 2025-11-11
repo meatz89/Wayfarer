@@ -12,323 +12,323 @@
 /// </summary>
 public class GenerationContext
 {
-// Tier (unchanged - universal difficulty scalar)
-public int Tier { get; set; }
+    // Tier (unchanged - universal difficulty scalar)
+    public int Tier { get; set; }
 
-// A-Story Sequence (for infinite main story progression)
-// null for non-A-story scenes, sequence number (11+) for A-story scenes
-// Used to calculate next A-scene ID for final situation spawn rewards
-public int? AStorySequence { get; set; }
+    // A-Story Sequence (for infinite main story progression)
+    // null for non-A-story scenes, sequence number (11+) for A-story scenes
+    // Used to calculate next A-scene ID for final situation spawn rewards
+    public int? AStorySequence { get; set; }
 
-// Entity IDs for RequiredLocationId/RequiredNpcId in situations
-public string LocationId { get; set; }  // Base location ID (ALWAYS present)
-public string NpcId { get; set; }       // NPC ID (null for location-only scenes)
+    // Entity IDs for RequiredLocationId/RequiredNpcId in situations
+    public string LocationId { get; set; }  // Base location ID (ALWAYS present)
+    public string NpcId { get; set; }       // NPC ID (null for location-only scenes)
 
-// NPC Context (for categorical property derivation)
-public PersonalityType? NpcPersonality { get; set; }
-public string NpcName { get; set; }
+    // NPC Context (for categorical property derivation)
+    public PersonalityType? NpcPersonality { get; set; }
+    public string NpcName { get; set; }
 
-// Player Context
-public int PlayerCoins { get; set; }
-public int PlayerHealth { get; set; }
-public int PlayerAuthority { get; set; }
+    // Player Context
+    public int PlayerCoins { get; set; }
+    public int PlayerHealth { get; set; }
+    public int PlayerAuthority { get; set; }
 
-// Location Context
-public List<LocationPropertyType> LocationProperties { get; set; } = new();
+    // Location Context
+    public List<LocationPropertyType> LocationProperties { get; set; } = new();
 
-// UNIVERSAL CATEGORICAL PROPERTIES (apply to ALL archetypes)
-public DangerLevel Danger { get; set; } = DangerLevel.Safe;
-public SocialStakes Stakes { get; set; } = SocialStakes.Witnessed;
-public TimePressure Urgency { get; set; } = TimePressure.Leisurely;
-public PowerDynamic Power { get; set; } = PowerDynamic.Equal;
-public EmotionalTone Tone { get; set; } = EmotionalTone.Cold;
-public MoralClarity Morality { get; set; } = MoralClarity.Ambiguous;
-public Quality Quality { get; set; } = Quality.Standard;
-public EnvironmentQuality Environment { get; set; } = EnvironmentQuality.Standard;
-public NPCDemeanor NpcDemeanor { get; set; } = NPCDemeanor.Neutral;
+    // UNIVERSAL CATEGORICAL PROPERTIES (apply to ALL archetypes)
+    public DangerLevel Danger { get; set; } = DangerLevel.Safe;
+    public SocialStakes Stakes { get; set; } = SocialStakes.Witnessed;
+    public TimePressure Urgency { get; set; } = TimePressure.Leisurely;
+    public PowerDynamic Power { get; set; } = PowerDynamic.Equal;
+    public EmotionalTone Tone { get; set; } = EmotionalTone.Cold;
+    public MoralClarity Morality { get; set; } = MoralClarity.Ambiguous;
+    public Quality Quality { get; set; } = Quality.Standard;
+    public EnvironmentQuality Environment { get; set; } = EnvironmentQuality.Standard;
+    public NPCDemeanor NpcDemeanor { get; set; } = NPCDemeanor.Neutral;
 
-/// <summary>
-/// Create categorical context (tier-based only, no entity derivation).
-/// Used for abstract archetype testing.
-/// </summary>
-public static GenerationContext Categorical(int tier)
-{
-    return new GenerationContext
+    /// <summary>
+    /// Create categorical context (tier-based only, no entity derivation).
+    /// Used for abstract archetype testing.
+    /// </summary>
+    public static GenerationContext Categorical(int tier)
     {
-        Tier = tier,
-        LocationId = null,
-        NpcId = null,
-        NpcPersonality = null,
-        NpcName = "",
-        PlayerCoins = 0,
-        PlayerHealth = 100,
-        PlayerAuthority = 0,
-        LocationProperties = new()
-    };
-}
-
-/// <summary>
-/// Create generation context from entities with automatic categorical property derivation.
-///
-/// Supports two scenarios:
-/// 1. NPC-placed scenes: npc != null, location = NPC's location
-///    - LocationId = NPC's location ID
-///    - NpcId = NPC's ID
-///    - Full categorical properties (including NPC-derived)
-///
-/// 2. Location-placed scenes: npc == null, location = placement location
-///    - LocationId = placement location ID
-///    - NpcId = null
-///    - Limited categorical properties (no NPC-derived properties)
-///
-/// ALL universal properties are derived from entity state.
-/// NO manual property setting required.
-/// </summary>
-public static GenerationContext FromEntities(
-    int tier,
-    NPC npc,
-    Location location,
-    Player player,
-    int? mainStorySequence = null)
-{
-    return new GenerationContext
-    {
-        Tier = tier,
-        AStorySequence = mainStorySequence,
-
-        // Entity IDs (for RequiredLocationId/RequiredNpcId)
-        LocationId = location?.Id,  // Base location (NPC's location OR placement location)
-        NpcId = npc?.ID,            // NPC ID (null for location-only scenes)
-
-        // NPC context
-        NpcPersonality = npc?.PersonalityType,
-        NpcName = npc?.Name ?? "",
-
-        // Player context
-        PlayerCoins = player?.Coins ?? 0,
-        PlayerHealth = player?.Health ?? 100,
-        PlayerAuthority = player?.Authority ?? 0,
-
-        // Location context
-        LocationProperties = location?.LocationProperties ?? new(),
-
-        // UNIVERSAL CATEGORICAL PROPERTIES (auto-derived)
-        Danger = DeriveDangerLevel(location, npc, player),
-        Stakes = DeriveSocialStakes(location),
-        Urgency = DeriveTimePressure(location, player),
-        Power = DerivePowerDynamic(npc, player),
-        Tone = DeriveEmotionalTone(npc),
-        Morality = DeriveMoralClarity(npc, location),
-        Quality = DeriveQuality(location),
-        Environment = DeriveEnvironmentQuality(location),
-        NpcDemeanor = DeriveNPCDemeanor(npc)
-    };
-}
-
-/// <summary>
-/// Derive danger level from location properties, NPC hostility, and player state.
-///
-/// Scales: Crisis consequences, Physical challenge damage, Confrontation escalation
-/// </summary>
-private static DangerLevel DeriveDangerLevel(Location location, NPC npc, Player player)
-{
-    // Check location properties for danger indicators
-    if (location?.LocationProperties.Any(p =>
-        p == LocationPropertyType.dangerous ||
-        p == LocationPropertyType.wilderness) ?? false)
-    {
-        return DangerLevel.Deadly;
+        return new GenerationContext
+        {
+            Tier = tier,
+            LocationId = null,
+            NpcId = null,
+            NpcPersonality = null,
+            NpcName = "",
+            PlayerCoins = 0,
+            PlayerHealth = 100,
+            PlayerAuthority = 0,
+            LocationProperties = new()
+        };
     }
 
-    // Check NPC hostility
-    if (npc?.RelationshipFlow <= 5) return DangerLevel.Risky;
-
-    // Check player health
-    if (player?.Health < 30) return DangerLevel.Risky;
-
-    return DangerLevel.Safe;
-}
-
-/// <summary>
-/// Derive social stakes from location properties.
-///
-/// Scales: Reputation impact, face-saving costs, romance intimacy options
-/// </summary>
-private static SocialStakes DeriveSocialStakes(Location location)
-{
-    if (location?.LocationProperties.Any(p =>
-        p == LocationPropertyType.@public ||
-        p == LocationPropertyType.marketplace) ?? false)
+    /// <summary>
+    /// Create generation context from entities with automatic categorical property derivation.
+    ///
+    /// Supports two scenarios:
+    /// 1. NPC-placed scenes: npc != null, location = NPC's location
+    ///    - LocationId = NPC's location ID
+    ///    - NpcId = NPC's ID
+    ///    - Full categorical properties (including NPC-derived)
+    ///
+    /// 2. Location-placed scenes: npc == null, location = placement location
+    ///    - LocationId = placement location ID
+    ///    - NpcId = null
+    ///    - Limited categorical properties (no NPC-derived properties)
+    ///
+    /// ALL universal properties are derived from entity state.
+    /// NO manual property setting required.
+    /// </summary>
+    public static GenerationContext FromEntities(
+        int tier,
+        NPC npc,
+        Location location,
+        Player player,
+        int? mainStorySequence = null)
     {
-        return SocialStakes.Public;
+        return new GenerationContext
+        {
+            Tier = tier,
+            AStorySequence = mainStorySequence,
+
+            // Entity IDs (for RequiredLocationId/RequiredNpcId)
+            LocationId = location?.Id,  // Base location (NPC's location OR placement location)
+            NpcId = npc?.ID,            // NPC ID (null for location-only scenes)
+
+            // NPC context
+            NpcPersonality = npc?.PersonalityType,
+            NpcName = npc?.Name ?? "",
+
+            // Player context
+            PlayerCoins = player?.Coins ?? 0,
+            PlayerHealth = player?.Health ?? 100,
+            PlayerAuthority = player?.Authority ?? 0,
+
+            // Location context
+            LocationProperties = location?.LocationProperties ?? new(),
+
+            // UNIVERSAL CATEGORICAL PROPERTIES (auto-derived)
+            Danger = DeriveDangerLevel(location, npc, player),
+            Stakes = DeriveSocialStakes(location),
+            Urgency = DeriveTimePressure(location, player),
+            Power = DerivePowerDynamic(npc, player),
+            Tone = DeriveEmotionalTone(npc),
+            Morality = DeriveMoralClarity(npc, location),
+            Quality = DeriveQuality(location),
+            Environment = DeriveEnvironmentQuality(location),
+            NpcDemeanor = DeriveNPCDemeanor(npc)
+        };
     }
 
-    if (location?.LocationProperties.Any(p =>
-        p == LocationPropertyType.@private ||
-        p == LocationPropertyType.secluded ||
-        p == LocationPropertyType.bedroom) ?? false)
+    /// <summary>
+    /// Derive danger level from location properties, NPC hostility, and player state.
+    ///
+    /// Scales: Crisis consequences, Physical challenge damage, Confrontation escalation
+    /// </summary>
+    private static DangerLevel DeriveDangerLevel(Location location, NPC npc, Player player)
     {
-        return SocialStakes.Private;
+        // Check location properties for danger indicators
+        if (location?.LocationProperties.Any(p =>
+            p == LocationPropertyType.dangerous ||
+            p == LocationPropertyType.wilderness) ?? false)
+        {
+            return DangerLevel.Deadly;
+        }
+
+        // Check NPC hostility
+        if (npc?.RelationshipFlow <= 5) return DangerLevel.Risky;
+
+        // Check player health
+        if (player?.Health < 30) return DangerLevel.Risky;
+
+        return DangerLevel.Safe;
     }
 
-    return SocialStakes.Witnessed;
-}
-
-/// <summary>
-/// Derive time pressure from location properties and player state.
-///
-/// Scales: Available choices, time costs, retry availability
-/// </summary>
-private static TimePressure DeriveTimePressure(Location location, Player player)
-{
-    // Check for crisis/emergency location properties
-    if (location?.LocationProperties.Any(p =>
-        p == LocationPropertyType.dangerous) ?? false)
+    /// <summary>
+    /// Derive social stakes from location properties.
+    ///
+    /// Scales: Reputation impact, face-saving costs, romance intimacy options
+    /// </summary>
+    private static SocialStakes DeriveSocialStakes(Location location)
     {
-        return TimePressure.Desperate;
+        if (location?.LocationProperties.Any(p =>
+            p == LocationPropertyType.@public ||
+            p == LocationPropertyType.marketplace) ?? false)
+        {
+            return SocialStakes.Public;
+        }
+
+        if (location?.LocationProperties.Any(p =>
+            p == LocationPropertyType.@private ||
+            p == LocationPropertyType.secluded ||
+            p == LocationPropertyType.bedroom) ?? false)
+        {
+            return SocialStakes.Private;
+        }
+
+        return SocialStakes.Witnessed;
     }
 
-    // Night time creates urgency
-    if (player?.CurrentTimeBlock == TimeBlocks.Night)
+    /// <summary>
+    /// Derive time pressure from location properties and player state.
+    ///
+    /// Scales: Available choices, time costs, retry availability
+    /// </summary>
+    private static TimePressure DeriveTimePressure(Location location, Player player)
     {
-        return TimePressure.Urgent;
+        // Check for crisis/emergency location properties
+        if (location?.LocationProperties.Any(p =>
+            p == LocationPropertyType.dangerous) ?? false)
+        {
+            return TimePressure.Desperate;
+        }
+
+        // Night time creates urgency
+        if (player?.CurrentTimeBlock == TimeBlocks.Night)
+        {
+            return TimePressure.Urgent;
+        }
+
+        return TimePressure.Leisurely;
     }
 
-    return TimePressure.Leisurely;
-}
-
-/// <summary>
-/// Derive power dynamic from player vs NPC authority.
-///
-/// Scales: Confrontation difficulty, Negotiation leverage, Social_maneuvering thresholds
-/// </summary>
-private static PowerDynamic DerivePowerDynamic(NPC npc, Player player)
-{
-    if (npc == null || player == null) return PowerDynamic.Equal;
-
-    int npcAuthority = npc.Authority;
-    int playerAuthority = player.Authority;
-
-    if (playerAuthority > npcAuthority + 3) return PowerDynamic.Dominant;
-    if (npcAuthority > playerAuthority + 3) return PowerDynamic.Submissive;
-
-    return PowerDynamic.Equal;
-}
-
-/// <summary>
-/// Derive emotional tone from NPC bond with player.
-///
-/// Scales: Social_maneuvering rewards, Negotiation rapport bonuses, Romance options
-/// </summary>
-private static EmotionalTone DeriveEmotionalTone(NPC npc)
-{
-    if (npc == null) return EmotionalTone.Cold;
-
-    int bond = npc.Bond;
-
-    // High positive bond = Passionate (love)
-    if (bond >= 15) return EmotionalTone.Passionate;
-
-    // Medium bond = Warm (friendship)
-    if (bond >= 8) return EmotionalTone.Warm;
-
-    // Very low bond = Passionate (hate)
-    if (bond <= 3) return EmotionalTone.Passionate;
-
-    // Default = Cold (professional)
-    return EmotionalTone.Cold;
-}
-
-/// <summary>
-/// Derive moral clarity from NPC personality and location properties.
-///
-/// Scales: Narrative framing, conscience tracking, faction reputation
-/// </summary>
-private static MoralClarity DeriveMoralClarity(NPC npc, Location location)
-{
-    // CRUEL NPCs = clearly evil actions
-    if (npc?.PersonalityType == PersonalityType.CRUEL)
+    /// <summary>
+    /// Derive power dynamic from player vs NPC authority.
+    ///
+    /// Scales: Confrontation difficulty, Negotiation leverage, Social_maneuvering thresholds
+    /// </summary>
+    private static PowerDynamic DerivePowerDynamic(NPC npc, Player player)
     {
-        return MoralClarity.Clear;
+        if (npc == null || player == null) return PowerDynamic.Equal;
+
+        int npcAuthority = npc.Authority;
+        int playerAuthority = player.Authority;
+
+        if (playerAuthority > npcAuthority + 3) return PowerDynamic.Dominant;
+        if (npcAuthority > playerAuthority + 3) return PowerDynamic.Submissive;
+
+        return PowerDynamic.Equal;
     }
 
-    // Holy locations = clear moral context
-    if (location?.LocationProperties.Any(p =>
-        p == LocationPropertyType.holy) ?? false)
+    /// <summary>
+    /// Derive emotional tone from NPC bond with player.
+    ///
+    /// Scales: Social_maneuvering rewards, Negotiation rapport bonuses, Romance options
+    /// </summary>
+    private static EmotionalTone DeriveEmotionalTone(NPC npc)
     {
-        return MoralClarity.Clear;
+        if (npc == null) return EmotionalTone.Cold;
+
+        int bond = npc.Bond;
+
+        // High positive bond = Passionate (love)
+        if (bond >= 15) return EmotionalTone.Passionate;
+
+        // Medium bond = Warm (friendship)
+        if (bond >= 8) return EmotionalTone.Warm;
+
+        // Very low bond = Passionate (hate)
+        if (bond <= 3) return EmotionalTone.Passionate;
+
+        // Default = Cold (professional)
+        return EmotionalTone.Cold;
     }
 
-    // Most situations are morally ambiguous
-    return MoralClarity.Ambiguous;
-}
-
-/// <summary>
-/// Derive quality tier from location tier.
-///
-/// Scales: Costs (Basic 0.6x, Standard 1.0x, Premium 1.6x, Luxury 2.4x)
-/// Applies to: Services, items, equipment across ALL domains
-/// </summary>
-private static Quality DeriveQuality(Location location)
-{
-    if (location == null) return Quality.Standard;
-
-    return location.Tier switch
+    /// <summary>
+    /// Derive moral clarity from NPC personality and location properties.
+    ///
+    /// Scales: Narrative framing, conscience tracking, faction reputation
+    /// </summary>
+    private static MoralClarity DeriveMoralClarity(NPC npc, Location location)
     {
-        1 => Quality.Basic,
-        2 => Quality.Standard,
-        3 => Quality.Premium,
-        >= 4 => Quality.Luxury,
-        _ => Quality.Standard
-    };
-}
+        // CRUEL NPCs = clearly evil actions
+        if (npc?.PersonalityType == PersonalityType.CRUEL)
+        {
+            return MoralClarity.Clear;
+        }
 
-/// <summary>
-/// Derive environment quality from location properties.
-///
-/// Scales: Restoration multiplier (Basic 1x, Standard 2x, Premium 3x)
-/// Applies to: Rest, study, crafting, recovery across ALL domains
-/// </summary>
-private static EnvironmentQuality DeriveEnvironmentQuality(Location location)
-{
-    if (location?.LocationProperties == null || location.LocationProperties.Count == 0)
-        return EnvironmentQuality.Standard;
+        // Holy locations = clear moral context
+        if (location?.LocationProperties.Any(p =>
+            p == LocationPropertyType.holy) ?? false)
+        {
+            return MoralClarity.Clear;
+        }
 
-    // Premium environment (luxurious, opulent)
-    if (location.LocationProperties.Any(p =>
-        p == LocationPropertyType.luxurious ||
-        p == LocationPropertyType.opulent))
-    {
-        return EnvironmentQuality.Premium;
+        // Most situations are morally ambiguous
+        return MoralClarity.Ambiguous;
     }
 
-    // Standard environment (comfortable, restful)
-    if (location.LocationProperties.Any(p =>
-        p == LocationPropertyType.restful ||
-        p == LocationPropertyType.comfortable))
+    /// <summary>
+    /// Derive quality tier from location tier.
+    ///
+    /// Scales: Costs (Basic 0.6x, Standard 1.0x, Premium 1.6x, Luxury 2.4x)
+    /// Applies to: Services, items, equipment across ALL domains
+    /// </summary>
+    private static Quality DeriveQuality(Location location)
     {
-        return EnvironmentQuality.Standard;
+        if (location == null) return Quality.Standard;
+
+        return location.Tier switch
+        {
+            1 => Quality.Basic,
+            2 => Quality.Standard,
+            3 => Quality.Premium,
+            >= 4 => Quality.Luxury,
+            _ => Quality.Standard
+        };
     }
 
-    // Basic environment (rough, minimal)
-    return EnvironmentQuality.Basic;
-}
-
-/// <summary>
-/// Derive NPC demeanor from relationship flow.
-///
-/// Scales: Stat thresholds (Hostile 1.4x, Neutral 1.0x, Friendly 0.6x)
-/// Applies to: ALL NPC interactions
-/// </summary>
-private static NPCDemeanor DeriveNPCDemeanor(NPC npc)
-{
-    if (npc == null) return NPCDemeanor.Neutral;
-
-    return npc.RelationshipFlow switch
+    /// <summary>
+    /// Derive environment quality from location properties.
+    ///
+    /// Scales: Restoration multiplier (Basic 1x, Standard 2x, Premium 3x)
+    /// Applies to: Rest, study, crafting, recovery across ALL domains
+    /// </summary>
+    private static EnvironmentQuality DeriveEnvironmentQuality(Location location)
     {
-        <= 9 => NPCDemeanor.Hostile,   // DISCONNECTED/GUARDED
-        <= 14 => NPCDemeanor.Neutral,  // NEUTRAL
-        _ => NPCDemeanor.Friendly      // RECEPTIVE/TRUSTING
-    };
-}
+        if (location?.LocationProperties == null || location.LocationProperties.Count == 0)
+            return EnvironmentQuality.Standard;
+
+        // Premium environment (luxurious, opulent)
+        if (location.LocationProperties.Any(p =>
+            p == LocationPropertyType.luxurious ||
+            p == LocationPropertyType.opulent))
+        {
+            return EnvironmentQuality.Premium;
+        }
+
+        // Standard environment (comfortable, restful)
+        if (location.LocationProperties.Any(p =>
+            p == LocationPropertyType.restful ||
+            p == LocationPropertyType.comfortable))
+        {
+            return EnvironmentQuality.Standard;
+        }
+
+        // Basic environment (rough, minimal)
+        return EnvironmentQuality.Basic;
+    }
+
+    /// <summary>
+    /// Derive NPC demeanor from relationship flow.
+    ///
+    /// Scales: Stat thresholds (Hostile 1.4x, Neutral 1.0x, Friendly 0.6x)
+    /// Applies to: ALL NPC interactions
+    /// </summary>
+    private static NPCDemeanor DeriveNPCDemeanor(NPC npc)
+    {
+        if (npc == null) return NPCDemeanor.Neutral;
+
+        return npc.RelationshipFlow switch
+        {
+            <= 9 => NPCDemeanor.Hostile,   // DISCONNECTED/GUARDED
+            <= 14 => NPCDemeanor.Neutral,  // NEUTRAL
+            _ => NPCDemeanor.Friendly      // RECEPTIVE/TRUSTING
+        };
+    }
 }

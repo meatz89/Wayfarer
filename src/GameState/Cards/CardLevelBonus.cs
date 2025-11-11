@@ -3,19 +3,19 @@
 /// </summary>
 public class CardLevelBonus
 {
-/// <summary>
-/// Additional success rate percentage (e.g., 10 for +10%)
-/// </summary>
-public int? SuccessBonus { get; set; }
+    /// <summary>
+    /// Additional success rate percentage (e.g., 10 for +10%)
+    /// </summary>
+    public int? SuccessBonus { get; set; }
 
-/// <summary>
-/// Adds or changes persistence type when reaching this level
-/// </summary>
-public PersistenceType? AddPersistence { get; set; }
+    /// <summary>
+    /// Adds or changes persistence type when reaching this level
+    /// </summary>
+    public PersistenceType? AddPersistence { get; set; }
 
-/// <summary>
-/// Additional cards drawn on successful play
-/// </summary>
-public int? AddDrawOnSuccess { get; set; }
+    /// <summary>
+    /// Additional cards drawn on successful play
+    /// </summary>
+    public int? AddDrawOnSuccess { get; set; }
 
 }

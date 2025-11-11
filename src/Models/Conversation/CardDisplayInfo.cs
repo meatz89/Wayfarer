@@ -5,14 +5,14 @@
 /// </summary>
 public class CardDisplayInfo
 {
-// Core card data - ONLY what's needed for static display
-public CardInstance Card { get; set; }
+    // Core card data - ONLY what's needed for static display
+    public CardInstance Card { get; set; }
 
-/// <summary>
-/// Simple constructor for static card display
-/// </summary>
-public CardDisplayInfo(CardInstance card)
-{
-    Card = card;
-}
+    /// <summary>
+    /// Simple constructor for static card display
+    /// </summary>
+    public CardDisplayInfo(CardInstance card)
+    {
+        Card = card;
+    }
 }

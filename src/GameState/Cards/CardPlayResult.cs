@@ -1,21 +1,21 @@
 public class CardPlayResult
 {
-public int MomentumGenerated { get; init; }
-public List<SingleCardResult> Results { get; init; }
-public string PlayerNarrative { get; init; }  // What the player said through their card
-public bool EndsConversation { get; init; }  // Request cards end conversation immediately
+    public int MomentumGenerated { get; init; }
+    public List<SingleCardResult> Results { get; init; }
+    public string PlayerNarrative { get; init; }  // What the player said through their card
+    public bool EndsConversation { get; init; }  // Request cards end conversation immediately
 
-public bool Success
-{
-    get
+    public bool Success
     {
-        if (Results == null) return false;
-        foreach (SingleCardResult r in Results)
+        get
         {
-            if (r.Success) return true;
+            if (Results == null) return false;
+            foreach (SingleCardResult r in Results)
+            {
+                if (r.Success) return true;
+            }
+            return false;
         }
-        return false;
+        set { } // Make it settable
     }
-    set { } // Make it settable
-}
 }

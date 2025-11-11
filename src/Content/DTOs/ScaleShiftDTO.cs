@@ -3,7 +3,7 @@
 /// </summary>
 public class ScaleShiftDTO
 {
-public string ScaleType { get; set; }
-public int Delta { get; set; }
-public string Reason { get; set; }
+    public string ScaleType { get; set; }
+    public int Delta { get; set; }
+    public string Reason { get; set; }
 }

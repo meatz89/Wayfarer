@@ -5,50 +5,50 @@
 /// </summary>
 public class PlayerAction
 {
-/// <summary>
-/// Unique identifier for this action
-/// </summary>
-public string Id { get; set; }
+    /// <summary>
+    /// Unique identifier for this action
+    /// </summary>
+    public string Id { get; set; }
 
-/// <summary>
-/// Display name shown to the player
-/// </summary>
-public string Name { get; set; }
+    /// <summary>
+    /// Display name shown to the player
+    /// </summary>
+    public string Name { get; set; }
 
-/// <summary>
-/// Detailed description of what this action does
-/// </summary>
-public string Description { get; set; }
+    /// <summary>
+    /// Detailed description of what this action does
+    /// </summary>
+    public string Description { get; set; }
 
-/// <summary>
-/// Resource costs required to perform this action
-/// </summary>
-public ActionCosts Costs { get; set; } = new ActionCosts();
+    /// <summary>
+    /// Resource costs required to perform this action
+    /// </summary>
+    public ActionCosts Costs { get; set; } = new ActionCosts();
 
-/// <summary>
-/// Resources rewarded for performing this action
-/// </summary>
-public ActionRewards Rewards { get; set; } = new ActionRewards();
+    /// <summary>
+    /// Resources rewarded for performing this action
+    /// </summary>
+    public ActionRewards Rewards { get; set; } = new ActionRewards();
 
-/// <summary>
-/// Time required to complete this action in segments
-/// </summary>
-public int TimeRequired { get; set; }
+    /// <summary>
+    /// Time required to complete this action in segments
+    /// </summary>
+    public int TimeRequired { get; set; }
 
-/// <summary>
-/// Priority for sorting (lower = higher priority)
-/// </summary>
-public int Priority { get; set; } = 100;
+    /// <summary>
+    /// Priority for sorting (lower = higher priority)
+    /// </summary>
+    public int Priority { get; set; } = 100;
 
-/// <summary>
-/// Action type for execution dispatch - strongly typed enum validated by parser
-/// </summary>
-public PlayerActionType ActionType { get; set; }
+    /// <summary>
+    /// Action type for execution dispatch - strongly typed enum validated by parser
+    /// </summary>
+    public PlayerActionType ActionType { get; set; }
 
-/// <summary>
-/// Location properties required for this action to be available
-/// Action only appears if location has ALL listed properties
-/// Empty list = available everywhere (default)
-/// </summary>
-public List<LocationPropertyType> RequiredLocationProperties { get; set; } = new List<LocationPropertyType>();
+    /// <summary>
+    /// Location properties required for this action to be available
+    /// Action only appears if location has ALL listed properties
+    /// Empty list = available everywhere (default)
+    /// </summary>
+    public List<LocationPropertyType> RequiredLocationProperties { get; set; } = new List<LocationPropertyType>();
 }

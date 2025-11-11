@@ -12,10 +12,10 @@
 /// </summary>
 public enum RiskLevel
 {
-Safe,
-Cautious,
-Risky,
-Dangerous
+    Safe,
+    Cautious,
+    Risky,
+    Dangerous
 }
 
 /// <summary>
@@ -24,10 +24,10 @@ Dangerous
 /// </summary>
 public enum Visibility
 {
-Subtle,      // Minimal exposure/attention
-Moderate,    // Normal visibility
-Obvious,     // Clearly noticeable
-Loud         // Significant exposure/attention
+    Subtle,      // Minimal exposure/attention
+    Moderate,    // Normal visibility
+    Obvious,     // Clearly noticeable
+    Loud         // Significant exposure/attention
 }
 
 /// <summary>
@@ -36,11 +36,11 @@ Loud         // Significant exposure/attention
 /// </summary>
 public enum ExertionLevel
 {
-Minimal,     // Nearly no stamina cost
-Light,       // Small stamina cost
-Moderate,    // Moderate stamina cost
-Heavy,       // Significant stamina cost, restricted when low stamina
-Extreme      // Extreme stamina cost, only available with high stamina
+    Minimal,     // Nearly no stamina cost
+    Light,       // Small stamina cost
+    Moderate,    // Moderate stamina cost
+    Heavy,       // Significant stamina cost, restricted when low stamina
+    Extreme      // Extreme stamina cost, only available with high stamina
 }
 
 /// <summary>
@@ -49,11 +49,11 @@ Extreme      // Extreme stamina cost, only available with high stamina
 /// </summary>
 public enum MethodType
 {
-Direct,      // Straightforward, obvious approach
-Analytical,  // Systematic, logical approach
-Intuitive,   // Instinctive, feeling-based approach
-Negotiated,  // Bargaining, compromise approach
-Deceptive    // Indirect, misleading approach
+    Direct,      // Straightforward, obvious approach
+    Analytical,  // Systematic, logical approach
+    Intuitive,   // Instinctive, feeling-based approach
+    Negotiated,  // Bargaining, compromise approach
+    Deceptive    // Indirect, misleading approach
 }
 
 /// <summary>
@@ -63,13 +63,13 @@ Deceptive    // Indirect, misleading approach
 /// </summary>
 public enum EquipmentCategory
 {
-None,           // No equipment required
-Climbing,       // Rope, grappling hook
-Mechanical,     // Tools for mechanisms, locks
-Documentation,  // Writing materials, references
-Illumination,   // Lanterns, torches
-Force,          // Crowbars, battering tools
-Precision,      // Fine tools, instruments
-Medical,        // Bandages, medicines
-Securing        // Rope, chains, binding materials
+    None,           // No equipment required
+    Climbing,       // Rope, grappling hook
+    Mechanical,     // Tools for mechanisms, locks
+    Documentation,  // Writing materials, references
+    Illumination,   // Lanterns, torches
+    Force,          // Crowbars, battering tools
+    Precision,      // Fine tools, instruments
+    Medical,        // Bandages, medicines
+    Securing        // Rope, chains, binding materials
 }

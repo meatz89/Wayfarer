@@ -4,11 +4,11 @@
 /// </summary>
 public class ObligationCompleteResult
 {
-public string ObligationId { get; set; }
-public string ObligationName { get; set; }
-public string CompletionNarrative { get; set; }
-public ObligationRewards Rewards { get; set; } = new ObligationRewards();
-// ObservationCards system eliminated - replaced by transparent resource competition
+    public string ObligationId { get; set; }
+    public string ObligationName { get; set; }
+    public string CompletionNarrative { get; set; }
+    public ObligationRewards Rewards { get; set; } = new ObligationRewards();
+    // ObservationCards system eliminated - replaced by transparent resource competition
 }
 
 /// <summary>
@@ -16,9 +16,9 @@ public ObligationRewards Rewards { get; set; } = new ObligationRewards();
 /// </summary>
 public class ObligationRewards
 {
-public int Coins { get; set; }
-public List<StatXPReward> XPRewards { get; set; } = new List<StatXPReward>();
-public List<NPCReputationReward> NPCReputation { get; set; } = new List<NPCReputationReward>();
+    public int Coins { get; set; }
+    public List<StatXPReward> XPRewards { get; set; } = new List<StatXPReward>();
+    public List<NPCReputationReward> NPCReputation { get; set; } = new List<NPCReputationReward>();
 }
 
 /// <summary>

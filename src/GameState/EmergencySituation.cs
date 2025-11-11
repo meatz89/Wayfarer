@@ -4,26 +4,26 @@
 /// </summary>
 public class EmergencySituation
 {
-public string Id { get; set; }
-public string Name { get; set; }
-public string Description { get; set; }
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string Description { get; set; }
 
-// Trigger conditions
-public int? TriggerDay { get; set; }
-public int? TriggerSegment { get; set; }
-public List<string> TriggerLocationIds { get; set; } = new List<string>();
-public int ResponseWindowSegments { get; set; }  // How long player has to respond
+    // Trigger conditions
+    public int? TriggerDay { get; set; }
+    public int? TriggerSegment { get; set; }
+    public List<string> TriggerLocationIds { get; set; } = new List<string>();
+    public int ResponseWindowSegments { get; set; }  // How long player has to respond
 
-// Response options
-public List<EmergencyResponse> Responses { get; set; } = new List<EmergencyResponse>();
+    // Response options
+    public List<EmergencyResponse> Responses { get; set; } = new List<EmergencyResponse>();
 
-// Outcome if ignored
-public EmergencyOutcome IgnoreOutcome { get; set; }
+    // Outcome if ignored
+    public EmergencyOutcome IgnoreOutcome { get; set; }
 
-// State
-public bool IsTriggered { get; set; }
-public bool IsResolved { get; set; }
-public int? TriggeredAtSegment { get; set; }
+    // State
+    public bool IsTriggered { get; set; }
+    public bool IsResolved { get; set; }
+    public int? TriggeredAtSegment { get; set; }
 }
 
 /// <summary>
@@ -32,18 +32,18 @@ public int? TriggeredAtSegment { get; set; }
 /// </summary>
 public class EmergencyResponse
 {
-public string Id { get; set; }
-public string ResponseText { get; set; }
-public string Description { get; set; }
+    public string Id { get; set; }
+    public string ResponseText { get; set; }
+    public string Description { get; set; }
 
-// Costs
-public int StaminaCost { get; set; }
-public int HealthCost { get; set; }
-public int CoinCost { get; set; }
-public int TimeCost { get; set; }  // Segments
+    // Costs
+    public int StaminaCost { get; set; }
+    public int HealthCost { get; set; }
+    public int CoinCost { get; set; }
+    public int TimeCost { get; set; }  // Segments
 
-// Outcomes
-public EmergencyOutcome Outcome { get; set; }
+    // Outcomes
+    public EmergencyOutcome Outcome { get; set; }
 }
 
 /// <summary>
@@ -51,11 +51,11 @@ public EmergencyOutcome Outcome { get; set; }
 /// </summary>
 public class EmergencyOutcome
 {
-public int RelationshipDelta { get; set; }  // General reputation change
-public Dictionary<string, int> NPCRelationshipDeltas { get; set; } = new Dictionary<string, int>();
-public List<string> GrantedKnowledge { get; set; } = new List<string>();
-public List<string> SpawnedSituationIds { get; set; } = new List<string>();
-public List<string> GrantedItemIds { get; set; } = new List<string>();
-public int CoinReward { get; set; }
-public string NarrativeResult { get; set; }
+    public int RelationshipDelta { get; set; }  // General reputation change
+    public Dictionary<string, int> NPCRelationshipDeltas { get; set; } = new Dictionary<string, int>();
+    public List<string> GrantedKnowledge { get; set; } = new List<string>();
+    public List<string> SpawnedSituationIds { get; set; } = new List<string>();
+    public List<string> GrantedItemIds { get; set; } = new List<string>();
+    public int CoinReward { get; set; }
+    public string NarrativeResult { get; set; }
 }

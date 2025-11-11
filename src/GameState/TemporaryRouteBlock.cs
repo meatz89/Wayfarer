@@ -4,6 +4,6 @@
 /// </summary>
 public class TemporaryRouteBlock
 {
-public string RouteId { get; set; }
-public int UnblockDay { get; set; }
+    public string RouteId { get; set; }
+    public int UnblockDay { get; set; }
 }

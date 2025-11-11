@@ -14,7 +14,7 @@
 /// </summary>
 public enum MoralClarity
 {
-Clear,      // Obvious right/wrong (holy site, cruel villain, clear heroism)
-Ambiguous,  // Gray area, complex situation, trade-offs (most scenarios)
-Dilemma     // No good option, forced to choose lesser evil
+    Clear,      // Obvious right/wrong (holy site, cruel villain, clear heroism)
+    Ambiguous,  // Gray area, complex situation, trade-offs (most scenarios)
+    Dilemma     // No good option, forced to choose lesser evil
 }
