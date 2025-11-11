@@ -342,6 +342,10 @@ private void AddToActiveSituations(Situation situation)
 /// - Evaluates spawn conditions via SpawnConditionsEvaluator
 /// - Instantiates eligible scenes via SceneInstantiator
 /// - Prevents duplicate spawning (checks existing scenes)
+///
+/// ARCHITECTURE: Single-threaded Blazor Server per circuit
+/// No race conditions possible - user actions serialized by Blazor message pump
+/// One player, one GameWorld, sequential async/await execution
 /// </summary>
 /// <param name="triggerType">What triggered the spawn check (Time, Location, NPC, Scene)</param>
 /// <param name="contextId">Optional context ID (locationId, npcId, etc.)</param>
@@ -390,29 +394,24 @@ public async Task CheckAndSpawnEligibleScenes(SpawnTriggerType triggerType, stri
             {
                 Console.WriteLine($"[InfiniteAStory] A{nextSequence} template does not exist - generating procedurally");
 
-                try
-                {
-                    // Get or initialize A-story context
-                    AStoryContext context = _proceduralAStoryService.GetOrInitializeContext(player);
+                // Get or initialize A-story context
+                AStoryContext context = _proceduralAStoryService.GetOrInitializeContext(player);
 
-                    // Generate next A-scene template (HIGHLANDER flow: DTO → JSON → PackageLoader → Template)
-                    string templateId = await _proceduralAStoryService.GenerateNextATemplate(nextSequence, context);
+                // Generate next A-scene template (HIGHLANDER flow: DTO → JSON → PackageLoader → Template)
+                // FAIL-FAST: If generation fails, throw immediately (don't catch)
+                // Architectural principle: Soft-lock worse than crash
+                // Player completing A-scene expecting next A-scene is unacceptable failure mode
+                string templateId = await _proceduralAStoryService.GenerateNextATemplate(nextSequence, context);
 
-                    Console.WriteLine($"[InfiniteAStory] A{nextSequence} template generated: {templateId}");
-                    Console.WriteLine($"[InfiniteAStory] Template added to GameWorld.SceneTemplates via HIGHLANDER flow");
+                Console.WriteLine($"[InfiniteAStory] A{nextSequence} template generated: {templateId}");
+                Console.WriteLine($"[InfiniteAStory] Template added to GameWorld.SceneTemplates via HIGHLANDER flow");
 
-                    // Update context after successful generation
-                    context.RecordCompletion(
-                        completedScene.Id,
-                        archetypeId: "unknown", // Would need archetype tracking in Scene
-                        regionId: null, // Would extract from placement
-                        personalityType: null); // Would extract from NPC
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[InfiniteAStory] ERROR generating A{nextSequence} template: {ex.Message}");
-                    Console.WriteLine($"[InfiniteAStory] Stack trace: {ex.StackTrace}");
-                }
+                // Update context after successful generation
+                context.RecordCompletion(
+                    completedScene.Id,
+                    archetypeId: "unknown", // Would need archetype tracking in Scene
+                    regionId: null, // Would extract from placement
+                    personalityType: null); // Would extract from NPC
             }
             else
             {
@@ -432,8 +431,24 @@ public async Task CheckAndSpawnEligibleScenes(SpawnTriggerType triggerType, stri
     int spawned = 0;
     foreach (SceneTemplate template in proceduralTemplates)
     {
-        // Skip if already spawned (check GameWorld.Scenes for this templateId)
-        bool alreadySpawned = _gameWorld.Scenes.Any(s => s.TemplateId == template.Id && s.State != SceneState.Completed);
+        // Skip if already spawned - WHITELIST check (State == Active) for robustness
+        // For A-story: Check MainStorySequence (not TemplateId) to prevent sequence duplicates
+        bool alreadySpawned;
+        if (template.Category == StoryCategory.MainStory && template.MainStorySequence.HasValue)
+        {
+            // A-story: Check by sequence number (prevents duplicate A4 with different template IDs)
+            alreadySpawned = _gameWorld.Scenes.Any(s =>
+                s.State == SceneState.Active &&
+                s.MainStorySequence == template.MainStorySequence.Value);
+        }
+        else
+        {
+            // B/C-story: Check by template ID (allows multiple instances of same template)
+            alreadySpawned = _gameWorld.Scenes.Any(s =>
+                s.TemplateId == template.Id &&
+                s.State == SceneState.Active);
+        }
+
         if (alreadySpawned)
         {
             continue; // Scene already active, don't spawn duplicate

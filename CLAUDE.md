@@ -320,6 +320,22 @@ public SomeType? OptionalProp { get; set; } = null; // Nullable ONLY if validati
 - ONLY: `List<T>` where T is entity/enum, strongly-typed objects, int (never float)
 - FORBIDDEN: Dictionary, HashSet, var, object, func, lambda expressions
 
+**Lambdas:**
+- FORBIDDEN: Backend event handlers, Action<>, Func<>, DI registration lambdas
+- ALLOWED: LINQ queries (.Where, .Select, .FirstOrDefault, etc.)
+- ALLOWED: Frontend Blazor event handlers (@onclick, etc.)
+- ALLOWED: Framework configuration (HttpClient timeout, ASP.NET Core middleware)
+- Example violation: `services.AddSingleton<GameWorld>(_ => GameWorldInitializer.CreateGameWorld())`
+- Example correct: `GameWorld gameWorld = GameWorldInitializer.CreateGameWorld(); builder.Services.AddSingleton(gameWorld);`
+- Example violation: `AppDomain.CurrentDomain.ProcessExit += (s, e) => { Log.CloseAndFlush(); };`
+- Example correct: `AppDomain.CurrentDomain.ProcessExit += OnProcessExit;` with named method
+- Example allowed: `var route = routes.FirstOrDefault(r => r.Id == routeId);`
+- Example exception: `services.AddHttpClient<OllamaClient>(client => { client.Timeout = TimeSpan.FromSeconds(5); });`
+
+**Tuples:**
+- FORBIDDEN everywhere in codebase
+- Use explicit classes or structs instead
+
 **Structure:**
 - Domain Services and Entities (no Helper/Utility classes)
 - No extension methods
@@ -358,6 +374,10 @@ public SomeType? OptionalProp { get; set; } = null; // Nullable ONLY if validati
 - No TODO comments
 - HIGHLANDER (one concept, one implementation)
 - Finish what you start
+- NO SHORTCUTS: Never document violations as "acceptable" or "out of scope"
+- Massive refactorings are REQUIRED if they fix architectural violations
+- If you can't do it right, don't do it at all
+- Partner not sycophant: Do the hard work, don't take the easy path
 
 **Process:**
 - Read Architecture.md first

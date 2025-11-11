@@ -320,7 +320,16 @@ private PlacementResolution ResolvePlacement(SceneTemplate template, SceneSpawnR
             if (string.IsNullOrEmpty(placementId))
             {
                 throw new InvalidOperationException(
-                    $"No matching entity found for PlacementFilter on SceneTemplate '{template.Id}'.\n{FormatFilterCriteria(template.PlacementFilter)}"
+                    $"PLACEMENT FILTER FAILED - No matching entity found\n" +
+                    $"SceneTemplate: {template.Id}\n" +
+                    $"Category: {template.Category}\n" +
+                    $"MainStorySequence: {template.MainStorySequence}\n" +
+                    $"\nFILTER CRITERIA:\n{FormatFilterCriteria(template.PlacementFilter)}\n" +
+                    $"\nAVAILABLE ENTITIES:\n{FormatAvailableEntities(template.PlacementFilter.PlacementType)}\n" +
+                    $"\nCONTEXT:\n{FormatSpawnContext(context)}\n" +
+                    $"\nDIAGNOSTIC: This error indicates procedurally generated scene cannot find suitable placement.\n" +
+                    $"For A-story scenes, this creates SOFT LOCK (player completed previous scene, expects next scene, gets nothing).\n" +
+                    $"Consider: Relaxing PlacementFilter constraints OR ensuring required entities exist in GameWorld."
                 );
             }
 
@@ -655,6 +664,80 @@ private string FormatFilterCriteria(PlacementFilter filter)
         criteria.Add($"Scale Requirements: {filter.ScaleRequirements.Count} requirements");
 
     return string.Join("\n", criteria);
+}
+
+/// <summary>
+/// Format available entities for diagnostic error messages
+/// Shows what entities exist in GameWorld for given PlacementType
+/// </summary>
+private string FormatAvailableEntities(PlacementType placementType)
+{
+    switch (placementType)
+    {
+        case PlacementType.Location:
+            int locationCount = _gameWorld.Locations.Count;
+            List<string> locationSummaries = _gameWorld.Locations
+                .Take(10) // Show first 10
+                .Select(loc => $"  - {loc.Id} ({loc.Name}): Properties={string.Join(",", loc.LocationProperties)}")
+                .ToList();
+            if (locationCount > 10)
+                locationSummaries.Add($"  ... and {locationCount - 10} more locations");
+            return $"Total Locations: {locationCount}\n{string.Join("\n", locationSummaries)}";
+
+        case PlacementType.NPC:
+            int npcCount = _gameWorld.NPCs.Count;
+            List<string> npcSummaries = _gameWorld.NPCs
+                .Take(10)
+                .Select(npc => $"  - {npc.ID} ({npc.Name}): Personality={npc.PersonalityType}, Bond={npc.BondStrength}")
+                .ToList();
+            if (npcCount > 10)
+                npcSummaries.Add($"  ... and {npcCount - 10} more NPCs");
+            return $"Total NPCs: {npcCount}\n{string.Join("\n", npcSummaries)}";
+
+        case PlacementType.Route:
+            int routeCount = _gameWorld.Routes.Count;
+            List<string> routeSummaries = _gameWorld.Routes
+                .Take(10)
+                .Select(route => $"  - {route.Id}: Tier={route.Tier}, Danger={route.DangerRating}")
+                .ToList();
+            if (routeCount > 10)
+                routeSummaries.Add($"  ... and {routeCount - 10} more routes");
+            return $"Total Routes: {routeCount}\n{string.Join("\n", routeSummaries)}";
+
+        default:
+            return $"Unknown PlacementType: {placementType}";
+    }
+}
+
+/// <summary>
+/// Format spawn context for diagnostic error messages
+/// Shows player state and current context when filter evaluation failed
+/// </summary>
+private string FormatSpawnContext(SceneSpawnContext context)
+{
+    List<string> contextInfo = new List<string>();
+
+    contextInfo.Add($"Player: {context.Player?.Name ?? "null"}");
+    contextInfo.Add($"Player Position: {context.Player?.CurrentPosition}");
+    contextInfo.Add($"Player Resolve: {context.Player?.Resolve}");
+    contextInfo.Add($"Player States: {(context.Player?.ActiveStates.Count ?? 0)} active");
+
+    if (context.CurrentLocation != null)
+        contextInfo.Add($"Current Location: {context.CurrentLocation.Id} ({context.CurrentLocation.Name})");
+    else
+        contextInfo.Add($"Current Location: null");
+
+    if (context.CurrentNPC != null)
+        contextInfo.Add($"Current NPC: {context.CurrentNPC.ID} ({context.CurrentNPC.Name})");
+    else
+        contextInfo.Add($"Current NPC: null");
+
+    if (context.CurrentRoute != null)
+        contextInfo.Add($"Current Route: {context.CurrentRoute.Id}");
+    else
+        contextInfo.Add($"Current Route: null");
+
+    return string.Join("\n", contextInfo);
 }
 
 // ==================== PLACEMENT SELECTION STRATEGIES ====================

@@ -25,6 +25,10 @@ IConfigurationRoot configuration = new ConfigurationBuilder()
 // Register IConfiguration for dependency injection
 builder.Services.AddSingleton<IConfiguration>(configuration);
 
+// Initialize GameWorld via static factory - no DI dependencies
+GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();
+builder.Services.AddSingleton(gameWorld);
+
 builder.Services.ConfigureServices();
 
 Log.Logger = new LoggerConfiguration()
@@ -32,11 +36,8 @@ Log.Logger = new LoggerConfiguration()
 .WriteTo.Console()
 .CreateLogger();
 
-// Ensure proper disposal on exit:
-AppDomain.CurrentDomain.ProcessExit += (s, e) =>
-{
-Log.CloseAndFlush();
-};
+// Ensure proper disposal on exit
+AppDomain.CurrentDomain.ProcessExit += OnApplicationExit;
 
 // Register your game services
 builder.Host.UseSerilog();
@@ -83,3 +84,8 @@ app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
 app.Run();
+
+static void OnApplicationExit(object sender, EventArgs e)
+{
+    Log.CloseAndFlush();
+}

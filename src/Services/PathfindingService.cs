@@ -264,22 +264,36 @@ public class PathfindingResult
 /// </summary>
 internal class PriorityQueue<T>
 {
-    private List<(T item, float priority)> _elements = new List<(T, float)>();
+    private struct Element
+    {
+        public T Item;
+        public float Priority;
+
+        public Element(T item, float priority)
+        {
+            Item = item;
+            Priority = priority;
+        }
+    }
+
+    private List<Element> _elements = new List<Element>();
 
     public int Count => _elements.Count;
 
     public void Enqueue(T item, float priority)
     {
-        _elements.Add((item, priority));
+        _elements.Add(new Element(item, priority));
         // Bubble up
         int childIndex = _elements.Count - 1;
         while (childIndex > 0)
         {
             int parentIndex = (childIndex - 1) / 2;
-            if (_elements[childIndex].priority >= _elements[parentIndex].priority)
+            if (_elements[childIndex].Priority >= _elements[parentIndex].Priority)
                 break;
 
-            (_elements[childIndex], _elements[parentIndex]) = (_elements[parentIndex], _elements[childIndex]);
+            Element temp = _elements[childIndex];
+            _elements[childIndex] = _elements[parentIndex];
+            _elements[parentIndex] = temp;
             childIndex = parentIndex;
         }
     }
@@ -289,7 +303,7 @@ internal class PriorityQueue<T>
         if (_elements.Count == 0)
             throw new InvalidOperationException("Priority queue is empty");
 
-        T result = _elements[0].item;
+        T result = _elements[0].Item;
 
         // Move last element to root
         int lastIndex = _elements.Count - 1;
@@ -306,16 +320,18 @@ internal class PriorityQueue<T>
                 int rightChild = parentIndex * 2 + 2;
                 int smallestIndex = parentIndex;
 
-                if (leftChild < _elements.Count && _elements[leftChild].priority < _elements[smallestIndex].priority)
+                if (leftChild < _elements.Count && _elements[leftChild].Priority < _elements[smallestIndex].Priority)
                     smallestIndex = leftChild;
 
-                if (rightChild < _elements.Count && _elements[rightChild].priority < _elements[smallestIndex].priority)
+                if (rightChild < _elements.Count && _elements[rightChild].Priority < _elements[smallestIndex].Priority)
                     smallestIndex = rightChild;
 
                 if (smallestIndex == parentIndex)
                     break;
 
-                (_elements[parentIndex], _elements[smallestIndex]) = (_elements[smallestIndex], _elements[parentIndex]);
+                Element temp = _elements[parentIndex];
+                _elements[parentIndex] = _elements[smallestIndex];
+                _elements[smallestIndex] = temp;
                 parentIndex = smallestIndex;
             }
         }

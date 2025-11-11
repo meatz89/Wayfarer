@@ -33,7 +33,7 @@ public PackageLoaderFacade(PackageLoader packageLoader)
 /// </summary>
 public async Task<List<string>> LoadDynamicPackage(string packageJson, string packageId)
 {
-    return await Task.Run(() => _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId));
+    return await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
 }
 
 /// <summary>

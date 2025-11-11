@@ -13,13 +13,8 @@ public static IServiceCollection ConfigureServices(this IServiceCollection servi
     services.AddSingleton<GameConfiguration>();
     services.AddSingleton<IGameRuleEngine, GameRuleEngine>();
 
-    // Register GameWorld using static GameWorldInitializer
-    services.AddSingleton<GameWorld>(_ =>
-    {
-        // Call GameWorldInitializer statically - no DI dependencies needed
-        GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();
-        return gameWorld;
-    });
+    // GameWorld registered in Program.cs via static GameWorldInitializer.CreateGameWorld()
+    // No lambda, no DI dependencies, pure static initialization
 
     // Register the content validator
     services.AddSingleton<ContentValidator>();
@@ -133,18 +128,19 @@ public static IServiceCollection ConfigureServices(this IServiceCollection servi
     // Scene Instantiation System (needed by ObligationActivity)
     services.AddSingleton<SpawnConditionsEvaluator>();
     services.AddSingleton<SceneNarrativeService>();
-    services.AddSingleton<PackageLoader>();
+    services.AddSingleton<SceneGenerationFacade>(); // MOVED: Must be before PackageLoader (dependency)
+    services.AddSingleton<PackageLoader>(); // Depends on SceneGenerationFacade
     services.AddSingleton<HexRouteGenerator>();
     services.AddSingleton<MarkerResolutionService>();
     services.AddSingleton<SceneInstantiator>();
     services.AddSingleton<DependentResourceOrchestrationService>();
+    services.AddSingleton<SpawnedScenePlayabilityValidator>(); // Runtime validation for soft-lock prevention
 
     // Scene Generation and Instance Facades (clean boundaries for procedural content)
     // IMPORTANT: Register dependencies BEFORE SceneInstanceFacade
     services.AddSingleton<PackageLoaderFacade>();
     services.AddSingleton<ContentGenerationFacade>();
-    services.AddSingleton<SceneGenerationFacade>();
-    services.AddSingleton<SceneInstanceFacade>(); // Depends on PackageLoaderFacade + ContentGenerationFacade
+    services.AddSingleton<SceneInstanceFacade>(); // Depends on PackageLoaderFacade + ContentGenerationFacade + SpawnedScenePlayabilityValidator
 
     // Infinite A-Story Generation (procedural main story continuation)
     services.AddSingleton<ProceduralAStoryService>(); // Depends on GameWorld, ContentGenerationFacade, PackageLoaderFacade
