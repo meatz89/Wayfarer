@@ -59,7 +59,7 @@ public async Task LoadDependentResources(Scene scene, DependentResourceSpecs dep
     await _contentGenerationFacade.CreateDynamicPackageFile(dependentSpecs.PackageJson, dependentSpecs.PackageId);
     Console.WriteLine($"[DependentResources] Created dynamic package file: {dependentSpecs.PackageId}");
 
-    _packageLoaderFacade.LoadDynamicPackage(dependentSpecs.PackageJson, dependentSpecs.PackageId);
+    await _packageLoaderFacade.LoadDynamicPackage(dependentSpecs.PackageJson, dependentSpecs.PackageId);
     Console.WriteLine($"[DependentResources] Loaded dynamic package via PackageLoader");
 
     foreach (string itemId in dependentSpecs.ItemsToAddToInventory)

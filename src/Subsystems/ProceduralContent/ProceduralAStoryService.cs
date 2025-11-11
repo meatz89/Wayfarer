@@ -103,7 +103,7 @@ public async Task<string> GenerateNextATemplate(int sequence, AStoryContext cont
     Console.WriteLine($"[ProceduralAStory] Wrote dynamic package file");
 
     // 6. Load through HIGHLANDER pipeline (JSON → PackageLoader → Parser)
-    _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
+    await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
     Console.WriteLine($"[ProceduralAStory] Loaded package through HIGHLANDER pipeline");
 
     // Template now in GameWorld.SceneTemplates, ready for spawning

@@ -240,13 +240,17 @@ public List<string> LoadDynamicPackage(string packageFilePath)
 /// Load a dynamic package from JSON string (e.g., AI-generated content)
 /// Returns list of skeleton IDs that need completion
 /// </summary>
-public List<string> LoadDynamicPackageFromJson(string json, string packageId)
+public async Task<List<string>> LoadDynamicPackageFromJson(string json, string packageId)
 {
-    Package package = JsonSerializer.Deserialize<Package>(json, new JsonSerializerOptions
+    Package package;
+    using (MemoryStream stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json)))
     {
-        PropertyNameCaseInsensitive = true,
-        AllowTrailingCommas = true
-    });
+        package = await JsonSerializer.DeserializeAsync<Package>(stream, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true,
+            AllowTrailingCommas = true
+        });
+    }
 
     // Set package ID if not present
     if (string.IsNullOrEmpty(package.PackageId))

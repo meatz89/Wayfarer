@@ -358,6 +358,10 @@ public SomeType? OptionalProp { get; set; } = null; // Nullable ONLY if validati
 - No TODO comments
 - HIGHLANDER (one concept, one implementation)
 - Finish what you start
+- NO SHORTCUTS: Never document violations as "acceptable" or "out of scope"
+- Massive refactorings are REQUIRED if they fix architectural violations
+- If you can't do it right, don't do it at all
+- Partner not sycophant: Do the hard work, don't take the easy path
 
 **Process:**
 - Read Architecture.md first
