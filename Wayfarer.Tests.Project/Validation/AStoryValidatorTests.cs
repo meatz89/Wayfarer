@@ -26,13 +26,12 @@ public class AStoryValidatorTests
             Tier = 0,
             SituationTemplates = new List<SituationTemplate>
             {
-                new()
+                new SituationTemplate
                 {
                     Id = $"sit{sequence}_1",
                     ChoiceTemplates = new List<ChoiceTemplate>
                     {
-                        // Guaranteed success choice (no requirements, instant)
-                        new()
+                        new ChoiceTemplate
                         {
                             Id = $"choice{sequence}_guaranteed",
                             ActionType = ChoiceActionType.Instant,
@@ -63,7 +62,7 @@ public class AStoryValidatorTests
         };
 
         // ACT
-        ValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
+        SceneValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
 
         // ASSERT
         Assert.True(result.IsValid);
@@ -81,7 +80,7 @@ public class AStoryValidatorTests
         };
 
         // ACT
-        ValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
+        SceneValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
 
         // ASSERT
         Assert.False(result.IsValid);
@@ -99,7 +98,7 @@ public class AStoryValidatorTests
         };
 
         // ACT
-        ValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
+        SceneValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
 
         // ASSERT
         Assert.False(result.IsValid);
@@ -118,7 +117,7 @@ public class AStoryValidatorTests
         };
 
         // ACT
-        ValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
+        SceneValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
 
         // ASSERT
         Assert.False(result.IsValid);
@@ -132,7 +131,7 @@ public class AStoryValidatorTests
         var templates = new List<SceneTemplate>();
 
         // ACT
-        ValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
+        SceneValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
 
         // ASSERT: No A-story = valid (allows gradual authoring)
         Assert.True(result.IsValid);
@@ -155,7 +154,7 @@ public class AStoryValidatorTests
             var templates = sequences.Select(CreateAStoryTemplate).ToList();
 
             // ACT
-            ValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
+            SceneValidationResult result = SceneTemplateValidator.ValidateAStoryChain(templates);
 
             // ASSERT
             Assert.True(result.IsValid,
@@ -167,11 +166,39 @@ public class AStoryValidatorTests
     public void Validate_MainStoryWithoutSequence_ReturnsError()
     {
         // ARRANGE: MainStory category but no MainStorySequence
-        var template = CreateAStoryTemplate(1);
-        template.MainStorySequence = null;
+        var template = new SceneTemplate
+        {
+            Id = "a1_test",
+            Category = StoryCategory.MainStory,
+            MainStorySequence = null,
+            Tier = 0,
+            SituationTemplates = new List<SituationTemplate>
+            {
+                new SituationTemplate
+                {
+                    Id = "sit1_1",
+                    ChoiceTemplates = new List<ChoiceTemplate>
+                    {
+                        new ChoiceTemplate
+                        {
+                            Id = "choice1_guaranteed",
+                            ActionType = ChoiceActionType.Instant,
+                            RequirementFormula = null,
+                            PathType = ChoicePathType.Fallback
+                        }
+                    }
+                }
+            },
+            SpawnRules = new SituationSpawnRules
+            {
+                Pattern = SpawnPattern.Linear,
+                InitialSituationId = "sit1_1",
+                Transitions = new List<SituationTransition>()
+            }
+        };
 
         // ACT
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         // ASSERT
         Assert.False(result.IsValid);
@@ -182,25 +209,50 @@ public class AStoryValidatorTests
     public void Validate_AStorySituationWithoutGuaranteedPath_ReturnsError()
     {
         // ARRANGE: A-story situation with only gated choices (no guaranteed path)
-        var template = CreateAStoryTemplate(1);
-        template.SituationTemplates[0].ChoiceTemplates = new List<ChoiceTemplate>
+        var template = new SceneTemplate
         {
-            new()
+            Id = "a1_test",
+            Category = StoryCategory.MainStory,
+            MainStorySequence = 1,
+            Tier = 0,
+            SituationTemplates = new List<SituationTemplate>
             {
-                Id = "gated_choice",
-                ActionType = ChoiceActionType.Instant,
-                RequirementFormula = new RequirementFormula
+                new SituationTemplate
                 {
-                    OrPaths = new List<RequirementPath>
+                    Id = "sit1_1",
+                    ChoiceTemplates = new List<ChoiceTemplate>
                     {
-                        new() { Conditions = new List<Requirement> { new() } }
+                        new ChoiceTemplate
+                        {
+                            Id = "gated_choice",
+                            ActionType = ChoiceActionType.Instant,
+                            RequirementFormula = new CompoundRequirement
+                            {
+                                OrPaths = new List<OrPath>
+                                {
+                                    new OrPath
+                                    {
+                                        NumericRequirements = new List<NumericRequirement>
+                                        {
+                                            new NumericRequirement()
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
+            },
+            SpawnRules = new SituationSpawnRules
+            {
+                Pattern = SpawnPattern.Linear,
+                InitialSituationId = "sit1_1",
+                Transitions = new List<SituationTransition>()
             }
         };
 
         // ACT
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         // ASSERT
         Assert.False(result.IsValid);
@@ -211,33 +263,52 @@ public class AStoryValidatorTests
     public void Validate_AStoryWithGuaranteedChallenge_IsValid()
     {
         // ARRANGE: Challenge choice that spawns scenes on both success AND failure
-        var template = CreateAStoryTemplate(1);
-        template.SituationTemplates[0].ChoiceTemplates = new List<ChoiceTemplate>
+        var template = new SceneTemplate
         {
-            new()
+            Id = "a1_test",
+            Category = StoryCategory.MainStory,
+            MainStorySequence = 1,
+            Tier = 0,
+            SituationTemplates = new List<SituationTemplate>
             {
-                Id = "challenge_guaranteed",
-                ActionType = ChoiceActionType.StartChallenge,
-                RequirementFormula = null, // No requirements
-                RewardTemplate = new ChoiceReward
+                new SituationTemplate
                 {
-                    ScenesToSpawn = new List<SceneSpawnReward>
+                    Id = "sit1_1",
+                    ChoiceTemplates = new List<ChoiceTemplate>
                     {
-                        new() { SceneTemplateId = "next_scene" }
-                    }
-                },
-                OnFailureReward = new ChoiceReward
-                {
-                    ScenesToSpawn = new List<SceneSpawnReward>
-                    {
-                        new() { SceneTemplateId = "next_scene" }
+                        new ChoiceTemplate
+                        {
+                            Id = "challenge_guaranteed",
+                            ActionType = ChoiceActionType.StartChallenge,
+                            RequirementFormula = null,
+                            RewardTemplate = new ChoiceReward
+                            {
+                                ScenesToSpawn = new List<SceneSpawnReward>
+                                {
+                                    new SceneSpawnReward { SceneTemplateId = "next_scene" }
+                                }
+                            },
+                            OnFailureReward = new ChoiceReward
+                            {
+                                ScenesToSpawn = new List<SceneSpawnReward>
+                                {
+                                    new SceneSpawnReward { SceneTemplateId = "next_scene" }
+                                }
+                            }
+                        }
                     }
                 }
+            },
+            SpawnRules = new SituationSpawnRules
+            {
+                Pattern = SpawnPattern.Linear,
+                InitialSituationId = "sit1_1",
+                Transitions = new List<SituationTransition>()
             }
         };
 
         // ACT
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         // ASSERT: Challenge with both success/failure spawns = guaranteed progression
         Assert.True(result.IsValid);
@@ -247,12 +318,39 @@ public class AStoryValidatorTests
     public void Validate_NonAStoryWithoutSequence_IsValid()
     {
         // ARRANGE: SideStory without MainStorySequence (correct)
-        var template = CreateAStoryTemplate(1);
-        template.Category = StoryCategory.SideStory;
-        template.MainStorySequence = null;
+        var template = new SceneTemplate
+        {
+            Id = "b1_test",
+            Category = StoryCategory.SideStory,
+            MainStorySequence = null,
+            Tier = 0,
+            SituationTemplates = new List<SituationTemplate>
+            {
+                new SituationTemplate
+                {
+                    Id = "sit1_1",
+                    ChoiceTemplates = new List<ChoiceTemplate>
+                    {
+                        new ChoiceTemplate
+                        {
+                            Id = "choice1_guaranteed",
+                            ActionType = ChoiceActionType.Instant,
+                            RequirementFormula = null,
+                            PathType = ChoicePathType.Fallback
+                        }
+                    }
+                }
+            },
+            SpawnRules = new SituationSpawnRules
+            {
+                Pattern = SpawnPattern.Linear,
+                InitialSituationId = "sit1_1",
+                Transitions = new List<SituationTransition>()
+            }
+        };
 
         // ACT
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         // ASSERT: B/C stories don't need MainStorySequence
         Assert.True(result.IsValid);
