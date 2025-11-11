@@ -8,103 +8,55 @@ You MUST achieve 100% CERTAINTY about ALL concepts necessary to accomplish the g
 
 **This is NOT optional. This is NOT negotiable. This is MANDATORY.**
 
-## TWO DOCUMENTATION SYSTEMS (BOTH REQUIRED)
+## COMPREHENSIVE DOCUMENTATION EXISTS
 
-Wayfarer has TWO comprehensive documentation systems that TOGETHER form the complete picture. Reading only one gives you HALF the puzzle. You MUST understand BOTH systems in UNISON for holistic understanding.
+This codebase maintains comprehensive documentation organized into two parallel systems by separation of concerns. Both systems are required for complete understanding.
 
-### Arc42 Technical Architecture Documentation (Root Directory)
+**Technical Architecture Documentation:**
+Organized by HOW the system is built. Contains implementation patterns, component structure, runtime behavior, technical decisions, constraints, and quality requirements. Found in root directory as numbered markdown files following arc42 template structure.
 
-**Location:** `/home/user/Wayfarer/*.md` (12 sections, ~7,200 lines)
+**Game Design Documentation:**
+Organized by WHAT the game is and WHY design creates strategic depth. Contains player experience goals, gameplay mechanics, progression systems, resource economy, narrative structure, content generation, balance philosophy, and design decisions. Found in dedicated design directory as numbered markdown files.
 
-**What it contains (HOW the system is built):**
-- 01_introduction_and_goals.md - System overview, stakeholder concerns, quality goals
-- 02_architecture_constraints.md - Technical constraints (.NET, Blazor WASM)
-- 03_context_and_scope.md - System boundaries, external interfaces
-- 04_solution_strategy.md - High-level technical approach
-- 05_building_block_view.md - Component structure (GameWorld, Facades, Parsers, UI)
-- 06_runtime_view.md - Execution scenarios (game start, turn loop, travel)
-- 07_deployment_view.md - Infrastructure and deployment
-- 08_crosscutting_concepts.md - Technical patterns (HIGHLANDER, Catalogue Pattern, Entity Initialization)
-- 09_architecture_decisions.md - ADRs (why technical choices were made)
-- 10_quality_requirements.md - Performance, maintainability, testability
-- 11_risks_and_technical_debt.md - Known issues and evolution
-- 12_glossary.md - Technical terms (Entity, Facade, Parser, ViewModel)
+**The Separation Principle:**
+- Technical docs without design docs = You know HOW but not WHY (implements wrong behavior)
+- Design docs without technical docs = You know WHY but not HOW (writes bad code)
+- Neither = You're guessing (ABSOLUTELY FORBIDDEN)
 
-**Use arc42 for:** Understanding code structure, technical patterns, implementation details, how components interact, why technical decisions were made, where to find specific code, how to implement features correctly.
+Both required together for correct implementation.
 
-### Game Design Documentation (design/ Directory)
+## SOURCE OF TRUTH HIERARCHY
 
-**Location:** `/home/user/Wayfarer/design/*.md` (12 sections, ~11,765 lines)
+**When seeking certainty, consult authorities in this order:**
 
-**What it contains (WHAT the game is and WHY design decisions create strategic depth):**
-- 01_design_vision.md - Core philosophy, player fantasy, emotional aesthetic goals
-- 02_core_gameplay_loops.md - Three-tier loop hierarchy (SHORT/MEDIUM/LONG)
-- 03_progression_systems.md - Five-stat system, specialization, builds
-- 04_challenge_mechanics.md - Mental/Physical/Social tactical systems
-- 05_resource_economy.md - Impossible choices, tight margins, orthogonal costs
-- 06_narrative_design.md - Frieren Principle (infinite A-story), two-phase design
-- 07_content_generation.md - 21 archetypes, categorical scaling, AI pipeline
-- 08_balance_philosophy.md - Four-choice pattern, sweet spots, difficulty scaling
-- 09_design_patterns.md - Content patterns, anti-patterns (boolean gates, etc.)
-- 10_tutorial_design.md - A1-A10 objectives, layered complexity introduction
-- 11_design_decisions.md - Design DDRs (why game design choices were made)
-- 12_design_glossary.md - Game design terms (67 canonical terms)
+1. **Code** - Ultimate ground truth (what actually runs)
+2. **Documentation** - Authoritative explanation (what it means, why it exists)
+3. **CLAUDE.md** - Process philosophy (how to work, how to think)
 
-**Use design docs for:** Understanding player experience, design intent, game mechanics, why systems create strategic depth, what makes choices meaningful, how progression works, what archetypes exist, how balance works, what terms mean in game design context.
-
-## HOLISTIC UNDERSTANDING REQUIREMENT
-
-**CRITICAL:** Arc42 tells you HOW it's built. Design docs tell you WHAT it should be and WHY. You need BOTH to understand the complete picture.
-
-**Example violations (FORBIDDEN):**
-- ❌ Reading arc42 only → You know code structure but not design intent (implements wrong behavior)
-- ❌ Reading design docs only → You know intent but not implementation patterns (writes bad code)
-- ❌ Reading neither → You're guessing (ABSOLUTELY FORBIDDEN)
-
-**Correct approach:**
-- ✅ Read design docs to understand WHAT and WHY
-- ✅ Read arc42 to understand HOW and WHERE
-- ✅ Cross-reference between both using provided links
-- ✅ Verify understanding by tracing concepts through BOTH doc sets
-
-## WHEN YOU MUST READ DOCUMENTATION
-
-**Read design docs when:**
-- User mentions ANY game mechanic, entity, or system (Scenes, Situations, Challenges, Stats, Resources, Archetypes, Obligations, Routes, etc.)
-- Planning content changes (new Situations, NPCs, Locations, Scenes)
-- Balancing numbers (costs, rewards, thresholds, difficulty)
-- Understanding player experience or progression
-- Uncertain about design terminology
-- Implementing game logic that affects player choices
-
-**Read arc42 when:**
-- Implementing or modifying code
-- Understanding component relationships (GameWorld, Facades, Services)
-- Finding where specific functionality lives
-- Understanding technical patterns (HIGHLANDER, Catalogue Pattern)
-- Modifying parsers, entities, or UI components
-- Uncertain about architectural patterns
-- Refactoring existing code
-
-**Read BOTH when:**
-- Starting ANY new task (always start with holistic understanding)
-- Implementing new features (understand design intent AND technical approach)
-- Debugging issues (understand what SHOULD happen AND how it's implemented)
-- Answering user questions (provide complete context)
-- Making architectural decisions (ensure alignment with design philosophy)
-- Creating plans (verify both design correctness AND technical feasibility)
+**Resolution rules:**
+- Documentation conflicts with code → Code wins (documentation may lag implementation)
+- CLAUDE.md conflicts with documentation → Documentation wins (facts trump process)
+- CLAUDE.md provides methodology, documentation provides facts, code provides truth
 
 ## 100% CERTAINTY REQUIREMENT (NO ASSUMPTIONS)
 
-**If you are NOT 100% CERTAIN about:**
-- What a term means → Read 12_design_glossary.md and/or arc42/12_glossary.md
-- How a game mechanic works → Read appropriate design/*.md section
-- Where code lives → Read arc42/05_building_block_view.md
-- Why a design decision was made → Read design/11_design_decisions.md and/or arc42/09_architecture_decisions.md
-- How systems interact → Read arc42/06_runtime_view.md and design/02_core_gameplay_loops.md
-- What an entity contains → Read arc42/12_glossary.md and search codebase
-- How archetype works → Read design/07_content_generation.md
-- What player experiences → Read design/01_design_vision.md and design/02_core_gameplay_loops.md
+**Achieving certainty methodology:**
+
+1. **Identify uncertainty:** What concepts do I not fully understand?
+2. **Determine concern:** Is this about WHAT/WHY (game design) or HOW/WHERE (technical)?
+3. **Read appropriate documentation:** Design docs for player-facing concepts, technical docs for implementation
+4. **Cross-reference:** Trace concept through both doc sets for holistic view
+5. **Verify in code:** Search codebase to confirm documentation matches reality
+6. **Iterate:** If still uncertain, read MORE documentation (never assume)
+
+**Uncertainty indicators (READ DOCS NOW):**
+- Don't know what term means
+- Don't know why decision was made
+- Don't know where code lives
+- Don't know how systems interact
+- Don't know what entity contains
+- Don't know what player experiences
+- Any phrase starting with "probably", "I think", "seems like", "might be"
 
 **FORBIDDEN FOREVER:**
 - ❌ "I think this might be how it works" → NO. READ THE DOCS.
@@ -114,15 +66,58 @@ Wayfarer has TWO comprehensive documentation systems that TOGETHER form the comp
 
 **You are NOT allowed to assume. You are NOT allowed to guess. You MUST KNOW.**
 
+## HOLISTIC UNDERSTANDING REQUIREMENT
+
+**Single system understanding is incomplete:**
+
+Technical documentation alone:
+- Explains implementation details
+- Shows code organization
+- Documents technical patterns
+- MISSING: Design intent, player experience goals, why mechanics create depth
+
+Game design documentation alone:
+- Explains player experience
+- Shows design philosophy
+- Documents strategic depth rationale
+- MISSING: Implementation location, technical patterns, how to code it
+
+**Both systems required together:**
+- Design docs explain WHAT should exist and WHY it matters
+- Technical docs explain HOW it's implemented and WHERE it lives
+- Cross-references connect the two for navigation
+- Verification via codebase search confirms alignment
+
+**Working process:**
+1. Read design docs → Understand player-facing intent
+2. Read technical docs → Understand implementation approach
+3. Search code → Verify current reality
+4. Cross-reference → Ensure holistic comprehension
+5. ONLY THEN → Plan or implement
+
+## DOCUMENTATION DISCOVERY
+
+**How to find what to read:**
+
+Documentation is self-organizing and cross-referenced. When uncertain about a concept:
+
+1. **Start with glossaries:** Both doc sets have comprehensive glossaries of terms
+2. **Follow cross-references:** Documentation links between related concepts
+3. **Use README files:** Documentation directories contain structure guides
+4. **Search documentation:** Grep for concept name across all docs
+5. **Read index/introduction:** First file typically provides navigation map
+
+Documentation locations, filenames, and structure details are IN the documentation itself. CLAUDE.md only establishes the PRINCIPLE that you must read them and HOW to achieve certainty.
+
 ## READING PROTOCOL
 
 **Step 1:** User makes request
 **Step 2:** Identify ALL concepts, terms, entities, systems mentioned
 **Step 3:** For EACH concept, ask yourself: "Am I 100% certain I understand this?"
 **Step 4:** If answer is ANYTHING except "YES" → READ DOCUMENTATION
-**Step 5:** Start with design/*.md for game concepts, arc42/*.md for technical concepts
-**Step 6:** Cross-reference between both doc sets using provided links
-**Step 7:** Search codebase to verify current implementation matches understanding
+**Step 5:** Consult glossaries first, then follow cross-references to relevant sections
+**Step 6:** Read both technical and design perspectives on the concept
+**Step 7:** Search codebase to verify documentation matches current implementation
 **Step 8:** ONLY THEN create plan or implement solution
 
 **This protocol is NOT negotiable. Follow it for EVERY task, no matter how small.**
