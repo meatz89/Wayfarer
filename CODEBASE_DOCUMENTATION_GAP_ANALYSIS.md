@@ -29,50 +29,6 @@
 
 ### TIER 1: CRITICAL GAPS (Blocking Core Functionality)
 
-#### GAP-001: Tag-Based Progression System Not Implemented ❌
-
-**Severity:** CRITICAL - Architectural Mismatch
-**Affects:** A-Story progression, scene spawning, flexible branching
-
-**Documentation Claims:**
-- `design/11_design_decisions.md` DDR-002 (Lines 162-176): "Scenes spawn based on player state tags (RequiresTags/GrantsTags system)"
-- `design/12_design_glossary.md` (Line 461): Tag-Based Dependencies canonical definition
-- Enables flexible branching: "A1 completes → grants ['tutorial_complete', 'knows_innkeeper'] → A2 OR B-Story-1 both available"
-
-**Code Reality:**
-- **File:** `/home/user/Wayfarer/src/GameState/SpawnConditions.cs`
-- **Implementation:** `CompletedScenes` list with hardcoded scene IDs, NOT tags
-- **Example:** A2 requires `CompletedScenes: ["a1_arrival"]` (linear chain, not flexible graph)
-- **Result:** Cannot implement cross-storyline dependencies documented in design
-
-**Impact:**
-- Prevents flexible branching between A-story and B-stories
-- Forces linear progression (cannot have multiple valid paths after A1)
-- Violates DDR-002 design decision rationale
-- Breaks documented progression philosophy (player agency through branching)
-
-**Recommendation:**
-```csharp
-// Add to Player.cs:
-public HashSet<string> GrantedTags { get; set; } = new();
-
-// Add to SpawnConditions.cs:
-public List<string> RequiresTags { get; init; }  // Tags player must have
-public List<string> GrantsTags { get; init; }    // Tags granted on completion
-
-// Update Scene completion logic to grant tags:
-player.GrantedTags.UnionWith(scene.GrantsTags);
-
-// Update spawn evaluation:
-bool canSpawn = condition.RequiresTags.All(tag => player.GrantedTags.Contains(tag));
-```
-
-**Priority:** HIGH - Foundational for progression flexibility
-**Effort:** Medium (3-5 days including testing)
-**Risk:** Low (additive feature, doesn't break existing hardcoded chains)
-
----
-
 #### GAP-002: 6 A-Story Archetypes Stub-Implemented 🚧
 
 **Severity:** CRITICAL - Content Incomplete
@@ -472,9 +428,8 @@ if (card.HasFocusEffect)
 2. **GAP-004: ID Antipattern** (2-3 hours, architectural cleanup)
 3. **GAP-006: Stale Comment** (30 seconds, trivial wins)
 
-### Phase 2 (Q1 2025) - Architectural Gaps
-1. **GAP-001: Tag-Based Progression** (3-5 days, enables flexible branching)
-2. **GAP-002: Complete 6 Stub Archetypes** (10-15 days, content variety)
+### Phase 2 (Q1 2025) - Content Completeness
+1. **GAP-002: Complete 6 Stub Archetypes** (10-15 days, content variety)
 
 ### Phase 3 (Q2 2025) - Documentation & Quality
 1. **GAP-005: Document Categorical Properties** (2-3 hours, team knowledge)
@@ -493,7 +448,7 @@ if (card.HasFocusEffect)
 |----------|-------|-------|
 | **Core Patterns** | 99/100 | HIGHLANDER, Catalogue, Ownership perfect |
 | **Data Flow** | 100/100 | Parsing pipeline exemplary |
-| **Entity Architecture** | 98/100 | Minor tag system gap |
+| **Entity Architecture** | 100/100 | Perfect alignment with documented patterns |
 | **Challenge Systems** | 85/100 | Core working, facade details uncertain |
 | **Content Generation** | 75/100 | 6 archetypes incomplete, scaling bug |
 | **UI Architecture** | 95/100 | Excellent separation, minor style issues |
@@ -528,10 +483,9 @@ if (card.HasFocusEffect)
 
 ### What Needs Attention
 
-1. **Tag System** is the biggest architectural gap - documented as flexible progression system, implemented as linear chains
-2. **Content Completeness** (6 stub archetypes) blocks procedural generation variety
-3. **Balance Bug** (NPCDemeanor scaling inconsistency) creates unpredictable difficulty
-4. **Documentation Drift** is minor but accumulating (5 small inconsistencies found)
+1. **Content Completeness** (6 stub archetypes) blocks procedural generation variety
+2. **Balance Bug** (NPCDemeanor scaling inconsistency) creates unpredictable difficulty
+3. **Documentation Drift** is minor but accumulating (documentation references to removed systems)
 
 ---
 
@@ -579,7 +533,7 @@ The presence of comprehensive documentation (28 files), strict adherence to CLAU
 ### Critical Architecture Files
 - `/home/user/Wayfarer/src/GameState/Scene.cs` - Scene entity with embedded Situations
 - `/home/user/Wayfarer/src/GameState/GameWorld.cs` - Single source of truth
-- `/home/user/Wayfarer/src/GameState/SpawnConditions.cs` - Spawn conditions (tag system gap here)
+- `/home/user/Wayfarer/src/GameState/SpawnConditions.cs` - Spawn conditions (resource-based gating)
 
 ### Content Generation
 - `/home/user/Wayfarer/src/Content/Catalogs/SituationArchetypeCatalog.cs` - 21 archetypes (scaling bug at L796-803)

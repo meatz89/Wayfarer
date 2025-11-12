@@ -432,7 +432,7 @@ This section describes narrative design. Technical implementation details covere
 - Scene generation architecture: arc42 Section 4 (Solution Strategy)
 - Entity resolution and categorical filters: arc42 Section 5 (Building Block View)
 - Parser and catalogue systems: arc42 Section 4 (Solution Strategy)
-- Tag-based spawning: arc42 Section 9 (Architecture Decisions)
+- Resource-based spawning: arc42 Section 9 (Architecture Decisions)
 - Procedural generation pipeline: arc42 Section 8 (Cross-Cutting Concepts)
 
 ## Conclusion

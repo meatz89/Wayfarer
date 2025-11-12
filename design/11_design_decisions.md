@@ -144,14 +144,25 @@ Additionally, authoring multiple satisfying endings is expensive, yet most playe
 ### Related Decisions
 - DDR-007: Four-Choice Pattern (guarantees forward progress)
 - DDR-006: Categorical Property Scaling (enables balanced procedural content)
-- DDR-002: Tag-Based Scene Dependencies (supports procedural spawning)
+- DDR-002: Tag-Based Scene Dependencies (**SUPERSEDED** - replaced by resource-based SpawnConditions)
 
 ---
 
 ## DDR-002: Tag-Based Scene Dependencies vs Hardcoded Scene Chains
 
 ### Status
-**Active** - Core progression architecture
+**SUPERSEDED** - Replaced by resource-based SpawnConditions system
+**Superseded Date:** 2025-11 (Commit 3e3b239)
+**Superseding Rationale:** Tag system redundant with existing spawn condition capabilities (MinStats, NPCBond, RequiredItems). All documented progression patterns achievable through resource thresholds and reward-driven spawning without abstract tag layer. Removal aligns with Requirement Inversion Principle (resource arithmetic over boolean gates).
+
+**Current Implementation:** See actual progression architecture in code:
+- A-Story: Reward-driven sequential spawning (ScenesToSpawn) with AlwaysEligible conditions
+- B/C Stories: Resource threshold gating (SpawnConditions with MinStats/NPCBond/RequiredItems)
+- Perfect information: Numeric thresholds visible to player ("Need Morality 5, you have 3")
+
+---
+
+### **ORIGINAL DESIGN (NOT IMPLEMENTED - Historical Context Below)**
 
 ### Context
 
@@ -159,7 +170,7 @@ Need progression structure supporting both authored tutorial and procedural cont
 
 ### Decision
 
-**Scenes spawn based on player state tags (RequiresTags/GrantsTags system)** instead of hardcoded predecessor/successor relationships.
+**ORIGINAL PROPOSAL (SUPERSEDED):** Scenes spawn based on player state tags (RequiresTags/GrantsTags system) instead of hardcoded predecessor/successor relationships.
 
 **Tag System Architecture:**
 - Each Scene defines RequiresTags (what player needs to spawn this scene)
@@ -745,7 +756,7 @@ Scaled: StatThreshold 3 (5 × 0.6), CoinCost 13 (8 × 1.6)
 
 ### Related Decisions
 - DDR-001: Infinite A-Story (procedural content needs scaling)
-- DDR-002: Tag-Based Dependencies (tags also use categorical properties)
+- DDR-002: Tag-Based Dependencies (**SUPERSEDED** - resource thresholds use categorical properties)
 
 ---
 
@@ -1268,7 +1279,7 @@ These ten DDRs represent the foundational game design decisions shaping Wayfarer
 
 **Trade-Off Patterns:**
 - Sacrifices narrative closure for infinite content (DDR-001)
-- Sacrifices simplicity for branching flexibility (DDR-002)
+- Sacrifices simplicity for resource transparency (DDR-002 **SUPERSEDED** - resource thresholds over tags)
 - Sacrifices player comfort for strategic depth (DDR-004)
 - Sacrifices uniformity for verisimilitude (DDR-010)
 
