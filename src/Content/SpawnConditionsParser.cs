@@ -60,8 +60,6 @@ public static class SpawnConditionsParser
 
         return new PlayerStateConditions
         {
-            CompletedScenes = dto.CompletedScenes ?? new List<string>(),
-            ChoiceHistory = dto.ChoiceHistory ?? new List<string>(),
             MinStats = minStats,
             RequiredItems = dto.RequiredItems ?? new List<string>(),
             LocationVisits = dto.LocationVisits ?? new Dictionary<string, int>()

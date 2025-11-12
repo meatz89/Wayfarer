@@ -442,14 +442,6 @@ public class SceneContentBase : ComponentBase
         // TRANSITION TRACKING: Set LastChoiceId for OnChoice transitions
         CurrentSituation.LastChoiceId = choiceTemplate.Id;
 
-        // CHOICE HISTORY TRACKING: Record choice for spawn condition checking
-        // Used by SpawnConditionsEvaluator.PlayerStateConditions.ChoiceHistory
-        // Enables branching narrative (if player chose X, spawn scene Y)
-        if (!player.ChoiceHistory.Contains(choiceTemplate.Id))
-        {
-            player.ChoiceHistory.Add(choiceTemplate.Id);
-        }
-
         // ROUTE BY ACTION TYPE: StartChallenge vs Instant
         if (choiceTemplate.ActionType == ChoiceActionType.StartChallenge)
         {

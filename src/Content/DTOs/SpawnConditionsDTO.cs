@@ -34,16 +34,6 @@ public class SpawnConditionsDTO
 public class PlayerStateConditionsDTO
 {
     /// <summary>
-    /// Scene IDs that player must have completed
-    /// </summary>
-    public List<string> CompletedScenes { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Choice IDs that player must have selected
-    /// </summary>
-    public List<string> ChoiceHistory { get; set; } = new List<string>();
-
-    /// <summary>
     /// Minimum stat requirements
     /// Key = ScaleType string, Value = minimum threshold
     /// </summary>

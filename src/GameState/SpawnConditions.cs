@@ -57,24 +57,10 @@ public record SpawnConditions
 
 /// <summary>
 /// Player state conditions - progression and history
-/// Validates player's completed content, choices made, stats, inventory, exploration
+/// Validates player's stats, inventory, exploration
 /// </summary>
 public record PlayerStateConditions
 {
-    /// <summary>
-    /// Scene IDs that player must have completed
-    /// Enables consequence chains: "This scene spawns only after player completed intro scene"
-    /// Empty list = no scene completion requirements
-    /// </summary>
-    public List<string> CompletedScenes { get; init; } = new List<string>();
-
-    /// <summary>
-    /// Choice IDs that player must have selected
-    /// Enables branching narrative: "This scene spawns only if player chose to help Marcus"
-    /// Empty list = no choice history requirements
-    /// </summary>
-    public List<string> ChoiceHistory { get; init; } = new List<string>();
-
     /// <summary>
     /// Minimum stat requirements (scale thresholds)
     /// Key = ScaleType, Value = minimum threshold
@@ -98,16 +84,6 @@ public record PlayerStateConditions
     /// Empty dictionary = no visit requirements
     /// </summary>
     public Dictionary<string, int> LocationVisits { get; init; } = new Dictionary<string, int>();
-
-    /// <summary>
-    /// Required tags for scene eligibility (TAG-BASED PROGRESSION SYSTEM)
-    /// Player must have ALL these tags granted through prior scene completions
-    /// Enables flexible branching: A1 grants ['tutorial_complete'] → A2 OR B1 both require ['tutorial_complete']
-    /// Replaces rigid CompletedScenes chains with flexible tag unlock graphs
-    /// Example: ["met_innkeeper", "knows_location"] = spawn only if player has both tags
-    /// Empty list = no tag requirements
-    /// </summary>
-    public List<string> RequiresTags { get; init; } = new List<string>();
 }
 
 /// <summary>

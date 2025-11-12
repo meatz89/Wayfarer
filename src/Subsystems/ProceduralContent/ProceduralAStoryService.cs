@@ -343,30 +343,24 @@ public class ProceduralAStoryService
 
     /// <summary>
     /// Build spawn conditions for A-story scene
-    /// A-scenes spawn automatically when previous A-scene completes
-    /// Spawn conditions verify previous scene completion
+    /// A-scenes spawn sequentially via ScenesToSpawn rewards
+    /// No explicit conditions needed - progression managed by reward chain
     /// </summary>
     private SpawnConditionsDTO BuildSpawnConditions(int sequence, AStoryContext context)
     {
-        // Previous A-scene must be completed
-        string previousSceneId = $"a_story_{sequence - 1}";
-
         SpawnConditionsDTO conditions = new SpawnConditionsDTO
         {
-            CombinationLogic = "All", // All conditions must pass
+            CombinationLogic = "All",
 
-            // Player state conditions
+            // No spawn conditions - A-story progression managed by sequential spawning
+            // Each A-scene spawns the next via ScenesToSpawn reward in final situation
             PlayerState = new PlayerStateConditionsDTO
             {
-                CompletedScenes = new List<string> { previousSceneId }, // Previous A-scene completed
-                MinStats = new Dictionary<string, int>(), // No stat gates (accessible to all)
-                RequiredItems = new List<string>() // No item requirements
+                MinStats = new Dictionary<string, int>(),
+                RequiredItems = new List<string>()
             },
 
-            // No world state conditions (time/weather irrelevant for A-story)
             WorldState = null,
-
-            // No entity state conditions (spawn independent of entity states)
             EntityState = null
         };
 

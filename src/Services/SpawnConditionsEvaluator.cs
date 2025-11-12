@@ -52,30 +52,6 @@ public class SpawnConditionsEvaluator
         if (conditions == null)
             return true; // No player state conditions = pass
 
-        // Check CompletedScenes
-        if (conditions.CompletedScenes != null && conditions.CompletedScenes.Count > 0)
-        {
-            foreach (string sceneId in conditions.CompletedScenes)
-            {
-                if (!player.CompletedSceneIds.Contains(sceneId))
-                {
-                    return false; // Required scene not completed
-                }
-            }
-        }
-
-        // Check ChoiceHistory
-        if (conditions.ChoiceHistory != null && conditions.ChoiceHistory.Count > 0)
-        {
-            foreach (string choiceId in conditions.ChoiceHistory)
-            {
-                if (!player.ChoiceHistory.Contains(choiceId))
-                {
-                    return false; // Required choice not made
-                }
-            }
-        }
-
         // Check MinStats (scale thresholds)
         if (conditions.MinStats != null && conditions.MinStats.Count > 0)
         {
@@ -98,20 +74,6 @@ public class SpawnConditionsEvaluator
                 if (!itemIds.Contains(itemId))
                 {
                     return false; // Required item not possessed
-                }
-            }
-        }
-
-        // Check RequiresTags (TAG-BASED PROGRESSION SYSTEM - DDR-002)
-        // Player must have ALL required tags granted through prior scene completions
-        // Enables flexible branching: Scene A grants ['tag1', 'tag2'] → Scene B requires ['tag1']
-        if (conditions.RequiresTags != null && conditions.RequiresTags.Count > 0)
-        {
-            foreach (string requiredTag in conditions.RequiresTags)
-            {
-                if (!player.GrantedTags.Contains(requiredTag))
-                {
-                    return false; // Required tag not granted
                 }
             }
         }
