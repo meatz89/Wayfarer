@@ -93,6 +93,9 @@ public class SituationCompletionHandler
             // CRITICAL: A-story completion triggers next A-scene template generation here
             if (scene.State == SceneState.Completed)
             {
+                // NOTE: All generated locations persist forever (no cleanup)
+                // Budget validation happens at generation time (fail-fast)
+                // Spawn eligible scenes (including A-story continuation)
                 await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Scene, scene.Id);
             }
         }

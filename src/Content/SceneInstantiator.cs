@@ -1,4 +1,8 @@
+using System.Runtime.CompilerServices;
 using System.Text.Json;
+
+[assembly: InternalsVisibleTo("Wayfarer.Tests.Project")]
+
 /// <summary>
 /// Domain Service for generating Scene instance DTOs and JSON packages from SceneTemplates
 ///
@@ -16,24 +20,28 @@ using System.Text.Json;
 /// </summary>
 public class SceneInstantiator
 {
+    private const int SEGMENTS_PER_DAY = 16;
+    private const int SEGMENTS_PER_TIME_BLOCK = 4;
+
     private readonly GameWorld _gameWorld;
     private readonly SpawnConditionsEvaluator _spawnConditionsEvaluator;
     private readonly SceneNarrativeService _narrativeService;
     private readonly MarkerResolutionService _markerResolutionService;
+    private readonly VenueGeneratorService _venueGenerator;
 
     public SceneInstantiator(
         GameWorld gameWorld,
         SpawnConditionsEvaluator spawnConditionsEvaluator,
         SceneNarrativeService narrativeService,
-        MarkerResolutionService markerResolutionService)
+        MarkerResolutionService markerResolutionService,
+        VenueGeneratorService venueGenerator)
     {
         _gameWorld = gameWorld;
         _spawnConditionsEvaluator = spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
         _markerResolutionService = markerResolutionService ?? throw new ArgumentNullException(nameof(markerResolutionService));
+        _venueGenerator = venueGenerator ?? throw new ArgumentNullException(nameof(venueGenerator));
     }
-
-    // ==================== PHASE 2: DTO GENERATION METHODS (NEW ARCHITECTURE) ====================
 
     /// <summary>
     /// Generate complete scene package JSON from template
@@ -379,18 +387,6 @@ public class SceneInstantiator
         return situation;
     }
 
-    // ==================== ACTION GENERATION DELETED ====================
-    // GenerateActionFromChoiceTemplate() and DetermineNPCActionType() methods REMOVED
-    // Actions are NO LONGER created at Scene instantiation (Tier 2)
-    // Actions are NOW created at query time (Tier 3) by SceneFacade
-    // This is the CRITICAL architectural refactoring for three-tier timing model
-    // See situation-refactor/REFACTORING_PLAN.md for complete details
-
-    // ==================== GENERIC PLACEMENT FILTER EVALUATION ====================
-    // RUNTIME PlacementFilter evaluation for Generic placement relation
-    // Replicates GameWorldInitializer.FindStarterPlacement() logic for runtime spawning
-    // Supports AI-generated scenes with categorical properties instead of hardcoded IDs
-
     /// <summary>
     /// Evaluate PlacementFilter to find matching entity at runtime
     /// Returns entity ID or null if no match found
@@ -461,7 +457,7 @@ public class SceneInstantiator
 
     /// <summary>
     /// Find Location matching PlacementFilter criteria
-    /// PHASE 3: Collects ALL matching Locations, then applies SelectionStrategy to choose ONE
+    /// PHASE 5: Complete filtering including district, tags, and location properties
     /// Returns selected Location ID, or null if no matches
     /// </summary>
     private string FindMatchingLocation(PlacementFilter filter, Player player)
@@ -477,20 +473,20 @@ public class SceneInstantiator
                     return false;
             }
 
-            // TODO: District/Region filters when Location.DistrictId/RegionId properties implemented
-            // if (!string.IsNullOrEmpty(filter.DistrictId))
-            // {
-            //     if (loc.DistrictId != filter.DistrictId)
-            //         return false;
-            // }
-            // if (!string.IsNullOrEmpty(filter.RegionId))
-            // {
-            //     if (loc.RegionId != filter.RegionId)
-            //         return false;
-            // }
+            // Check district (accessed via Location.Venue.District)
+            if (!string.IsNullOrEmpty(filter.DistrictId))
+            {
+                if (loc.Venue == null || loc.Venue.District != filter.DistrictId)
+                    return false;
+            }
 
-            // Location tags check removed - Locations don't have Tags property in current architecture
-            // TODO: Add filter.LocationTags check when Location.Tags property implemented
+            // Check location tags (uses DomainTags property)
+            if (filter.LocationTags != null && filter.LocationTags.Count > 0)
+            {
+                // Location must have ALL specified tags
+                if (!filter.LocationTags.All(tag => loc.DomainTags.Contains(tag)))
+                    return false;
+            }
 
             // Check player state filters (shared across all placement types)
             if (!CheckPlayerStateFilters(filter, player))
@@ -740,8 +736,6 @@ public class SceneInstantiator
         return string.Join("\n", contextInfo);
     }
 
-    // ==================== PLACEMENT SELECTION STRATEGIES ====================
-
     /// <summary>
     /// Apply selection strategy to choose ONE NPC from multiple matching candidates
     /// PHASE 3: Implements 4 strategies (Closest, HighestBond, LeastRecent, WeightedRandom)
@@ -887,8 +881,7 @@ public class SceneInstantiator
     /// </summary>
     private NPC SelectWeightedRandomNPC(List<NPC> candidates)
     {
-        Random random = new Random();
-        int index = random.Next(candidates.Count);
+        int index = Random.Shared.Next(candidates.Count);
         return candidates[index];
     }
 
@@ -897,8 +890,7 @@ public class SceneInstantiator
     /// </summary>
     private Location SelectWeightedRandomLocation(List<Location> candidates)
     {
-        Random random = new Random();
-        int index = random.Next(candidates.Count);
+        int index = Random.Shared.Next(candidates.Count);
         return candidates[index];
     }
 
@@ -957,7 +949,7 @@ public class SceneInstantiator
             _ => 0
         };
 
-        return (day * 16) + (timeBlockValue * 4) + segment;
+        return (day * SEGMENTS_PER_DAY) + (timeBlockValue * SEGMENTS_PER_TIME_BLOCK) + segment;
     }
 
     /// <summary>
@@ -1015,8 +1007,6 @@ public class SceneInstantiator
 
         return promptContext;
     }
-
-    // ==================== SELF-CONTAINED SCENE PACKAGE GENERATION ====================
 
     /// <summary>
     /// Generate dependent resource SPECS for self-contained scene
@@ -1114,16 +1104,43 @@ public class SceneInstantiator
         // Determine venue ID
         string venueId = DetermineVenueId(spec.VenueIdSource, context);
 
+        // FAIL-FAST BUDGET VALIDATION: Check venue capacity BEFORE creating DTO
+        // Since all locations persist forever, budget violations cannot be cleaned up
+        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Id == venueId);
+        if (venue == null)
+            throw new InvalidOperationException($"Venue '{venueId}' not found for location '{locationId}'");
+
+        if (!venue.CanAddMoreLocations())
+            throw new InvalidOperationException(
+                $"Venue '{venue.Id}' ({venue.Name}) has reached capacity " +
+                $"({venue.LocationIds.Count}/{venue.MaxLocations} locations). " +
+                $"Cannot add location '{locationId}'. " +
+                $"Increase MaxLocations or use different venue.");
+
         // Find hex placement (CRITICAL: ALL locations must have hex positions)
-        Location baseLocation = context.CurrentLocation;
-        if (baseLocation == null)
-            throw new InvalidOperationException($"Cannot place dependent location '{locationId}' - context.CurrentLocation is null");
+        AxialCoordinates? hexPosition;
 
-        AxialCoordinates? hexPosition = FindAdjacentHex(baseLocation, spec.HexPlacement);
-        if (!hexPosition.HasValue)
-            throw new InvalidOperationException($"Failed to find hex position for dependent location '{locationId}' using strategy '{spec.HexPlacement}'");
+        // SPATIAL CONSTRAINT: First location in venue vs. organic growth
+        if (venue.LocationIds.Count == 0 && venue.CenterHex.HasValue)
+        {
+            // First location in newly generated venue: place at venue center
+            // This respects venue separation (center already validated by VenueGeneratorService)
+            hexPosition = venue.CenterHex.Value;
+            Console.WriteLine($"[DependentLocation] Placing FIRST location '{locationId}' at venue center ({hexPosition.Value.Q}, {hexPosition.Value.R})");
+        }
+        else
+        {
+            // Organic growth: place adjacent to existing location in venue
+            Location baseLocation = context.CurrentLocation;
+            if (baseLocation == null)
+                throw new InvalidOperationException($"Cannot place dependent location '{locationId}' - context.CurrentLocation is null and venue has existing locations");
 
-        Console.WriteLine($"[DependentLocation] Placed '{locationId}' at hex ({hexPosition.Value.Q}, {hexPosition.Value.R}) adjacent to base location '{baseLocation.Id}'");
+            hexPosition = FindAdjacentHex(baseLocation, spec.HexPlacement);
+            if (!hexPosition.HasValue)
+                throw new InvalidOperationException($"Failed to find hex position for dependent location '{locationId}' using strategy '{spec.HexPlacement}'");
+
+            Console.WriteLine($"[DependentLocation] Placed '{locationId}' at hex ({hexPosition.Value.Q}, {hexPosition.Value.R}) adjacent to base location '{baseLocation.Id}'");
+        }
 
         // Build LocationDTO
         LocationDTO dto = new LocationDTO
@@ -1137,7 +1154,7 @@ public class SceneInstantiator
             Type = "Room", // Default type for generated locations
             InitialState = spec.IsLockedInitially ? "Locked" : "Available",
             CanInvestigate = spec.CanInvestigate,
-            CanWork = false, // Generated locations don't support work by default
+            CanWork = false, // Generated locations don't support work by default,
             WorkType = "",
             WorkPay = 0
         };
@@ -1208,7 +1225,19 @@ public class SceneInstantiator
                 return context.CurrentLocation.VenueId; // Location.VenueId (source of truth)
 
             case VenueIdSource.GenerateNew:
-                throw new NotImplementedException("VenueIdSource.GenerateNew not yet implemented");
+                // Generate new venue for this location
+                VenueTemplate venueTemplate = new VenueTemplate
+                {
+                    NamePattern = "Generated Venue",
+                    DescriptionPattern = "A procedurally generated venue.",
+                    Type = VenueType.Merchant,
+                    Tier = context.CurrentLocation?.Tier ?? 1,
+                    District = context.CurrentLocation?.Venue?.District ?? "wilderness",
+                    MaxLocations = 20,
+                    HexAllocation = HexAllocationStrategy.ClusterOf7
+                };
+                Venue generatedVenue = _venueGenerator.GenerateVenue(venueTemplate, context, _gameWorld);
+                return generatedVenue.Id;
 
             default:
                 throw new InvalidOperationException($"Unknown VenueIdSource: {source}");
@@ -1218,8 +1247,9 @@ public class SceneInstantiator
     /// <summary>
     /// Find adjacent hex position for new location
     /// Implements HexPlacementStrategy.Adjacent and SameVenue logic (both find unoccupied adjacent hex)
+    /// INTERNAL: Exposed for unit testing venue separation during organic growth
     /// </summary>
-    private AxialCoordinates? FindAdjacentHex(Location baseLocation, HexPlacementStrategy strategy)
+    internal AxialCoordinates? FindAdjacentHex(Location baseLocation, HexPlacementStrategy strategy)
     {
         switch (strategy)
         {
@@ -1242,19 +1272,37 @@ public class SceneInstantiator
 
                 List<Hex> neighbors = hexMap.GetNeighbors(baseHex);
 
-                // Find first unoccupied neighbor
+                // CRITICAL: Maintain venue separation during organic growth
+                // Find first unoccupied neighbor that doesn't violate venue separation
+                string baseVenueId = baseLocation.VenueId;
+
                 foreach (Hex neighborHex in neighbors)
                 {
                     // Check if any location occupies this hex
                     bool hexOccupied = _gameWorld.Locations.Any(loc => loc.HexPosition.HasValue &&
                                                                        loc.HexPosition.Value.Equals(neighborHex.Coordinates));
-                    if (!hexOccupied)
+                    if (hexOccupied)
                     {
-                        return neighborHex.Coordinates;
+                        Console.WriteLine($"[VenueSeparation] Skipping hex ({neighborHex.Coordinates.Q}, {neighborHex.Coordinates.R}): Already occupied");
+                        continue; // Skip occupied hexes
                     }
+
+                    // SPATIAL CONSTRAINT: Check that placing location here maintains venue separation
+                    // The new location's neighbors must not contain locations from OTHER venues
+                    bool violatesSeparation = IsAdjacentToOtherVenue(neighborHex.Coordinates, baseVenueId);
+                    if (violatesSeparation)
+                    {
+                        Console.WriteLine($"[VenueSeparation] Skipping hex ({neighborHex.Coordinates.Q}, {neighborHex.Coordinates.R}): Would violate venue separation (adjacent to other venue)");
+                        continue; // Skip hexes that would violate separation
+                    }
+
+                    Console.WriteLine($"[VenueSeparation] Selected hex ({neighborHex.Coordinates.Q}, {neighborHex.Coordinates.R}) for organic growth (maintains separation)");
+                    return neighborHex.Coordinates;
                 }
 
-                throw new InvalidOperationException($"No unoccupied adjacent hexes found for location '{baseLocation.Id}'");
+                throw new InvalidOperationException(
+                    $"No unoccupied adjacent hexes found for location '{baseLocation.Id}' " +
+                    $"that maintain venue separation. Venue '{baseVenueId}' may have reached spatial density limit.");
 
             case HexPlacementStrategy.Distance:
             case HexPlacementStrategy.Random:
@@ -1263,6 +1311,35 @@ public class SceneInstantiator
             default:
                 throw new InvalidOperationException($"Unknown HexPlacementStrategy: {strategy}");
         }
+    }
+
+    /// <summary>
+    /// Check if a hex coordinate is adjacent to any location from a venue other than the specified venue.
+    /// Used to enforce venue separation during organic growth.
+    /// </summary>
+    private bool IsAdjacentToOtherVenue(AxialCoordinates hexCoords, string currentVenueId)
+    {
+        AxialCoordinates[] neighbors = hexCoords.GetNeighbors();
+
+        foreach (AxialCoordinates neighborCoords in neighbors)
+        {
+            // Check if any location exists at this neighbor position
+            Location neighborLocation = _gameWorld.Locations.FirstOrDefault(loc =>
+                loc.HexPosition.HasValue &&
+                loc.HexPosition.Value.Equals(neighborCoords));
+
+            if (neighborLocation != null)
+            {
+                // If location exists and belongs to DIFFERENT venue, separation violated
+                if (!string.IsNullOrEmpty(neighborLocation.VenueId) &&
+                    neighborLocation.VenueId != currentVenueId)
+                {
+                    return true; // Adjacent to other venue
+                }
+            }
+        }
+
+        return false; // Not adjacent to other venues
     }
 
     /// <summary>

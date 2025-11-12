@@ -63,6 +63,19 @@ public class Player
     public List<string> ActiveObligationIds { get; set; } = new List<string>();
 
     // ============================================
+    // TAG-BASED PROGRESSION SYSTEM (Flexible Branching)
+    // ============================================
+
+    /// <summary>
+    /// Tags granted to player through scene completion
+    /// Enables flexible branching: A1 completes → grants ['tutorial_complete', 'knows_innkeeper']
+    /// → A2 OR B-Story-1 both available (both require only 'tutorial_complete')
+    /// Replaces rigid CompletedScenes-only progression with tag-based unlock graph
+    /// Example: Scene grants ['met_elena', 'knows_tavern_location'] → Other scenes require these tags
+    /// </summary>
+    public List<string> GrantedTags { get; set; } = new List<string>();
+
+    // ============================================
     // DELIVERY JOB SYSTEM (Core Loop - Phase 3)
     // ============================================
 

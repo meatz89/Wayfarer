@@ -147,7 +147,6 @@ This document tracks implementation status of all major features and systems in 
 | Goal/Obstacle Architecture | ❌ REMOVED | Replaced by Scene/Situation | No Goal.cs, Obstacle.cs in codebase |
 | Separate Situation Collection | ❌ REMOVED | Situations now embedded in Scenes | No GameWorld.Situations property |
 | "Spot" Terminology | ❌ REMOVED | Replaced with "Location" | No Spot.cs, GLOSSARY.md clarifies |
-| "Encounter" Terminology | ⚠️ DEPRECATED | Use "Situation" instead | WAYFARER_CORE_GAME_LOOP.md uses legacy term |
 
 ---
 

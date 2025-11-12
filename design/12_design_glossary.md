@@ -116,7 +116,7 @@ The design pattern where delivery earnings barely cover survival costs (3-7 coin
 
 The core player capabilities determining card access, choice availability, and build identity. Every card in every challenge type binds to one of five stats - playing cards grants XP to bound stat, advancing stat unlocks deeper cards. Same stats manifest differently per challenge: Insight as pattern recognition (Mental) or reading motivations (Social), Authority as decisive conclusions (Mental) or commanding conversation (Social). Limited total XP forces specialization - cannot max all five.
 
-**Example:** Insight stat (0-5 range). Insight 2 player accesses Depth-2 Mental cards (basic observation), locked out of Depth-4 cards (advanced deduction). Playing Mental cards grants Insight XP. Reaching Insight 3 unlocks new card tier. Same Insight stat also affects Social challenges (reading between lines).
+**Example:** Insight stat (1-8 scale, typical progression). Insight 2 player accesses Depth-2 Mental cards (basic observation), locked out of Depth-4 cards (advanced deduction). Playing Mental cards grants Insight XP. Reaching Insight 3 unlocks new card tier. Same Insight stat also affects Social challenges (reading between lines). Stats begin at 1 and are extendable beyond 8 for long-term play.
 
 **Distinguishing from:** Class Stats (different per class), Separate Stats (different per system). Five stats are unified across all systems.
 
@@ -872,7 +872,7 @@ The Mental challenge structure supporting pauseable sessions. Player investigate
 
 **Definition:** Three-situation scene structure (negotiate → execute → depart) for service-based interactions.
 
-The multi-phase service archetype composing negotiation (secure access), execution (receive service), and departure (cleanup/exit). Negotiation uses four-choice pattern (stat/money/challenge/fallback) determining service quality/cost. Execution delivers service effects (rest restoration, bathhouse benefits, healing). Departure handles exit (immediate rush or careful preparation). Reusable across all service types - inn lodging, bathhouse visits, healer treatments, guide employment - same structure, different execution/rewards.
+The multi-phase service archetype composing negotiation (secure access), execution (receive service), and departure (exit procedures). Negotiation uses four-choice pattern (stat/money/challenge/fallback) determining service quality/cost. Execution delivers service effects (rest restoration, bathhouse benefits, healing). Departure handles exit (immediate rush or careful preparation). Reusable across all service types - inn lodging, bathhouse visits, healer treatments, guide employment - same structure, different execution/rewards.
 
 **Example:** Inn lodging flow. (1) Negotiate: Four choices determining room access and cost (Rapport-gated free, pay 10 coins, Social challenge, wait for charity). (2) Execute: Rest in room (restore Health/Stamina based on quality). (3) Depart: Leave immediately (free, rushed) or prepare carefully (1 time block, thorough). Same pattern applies to bathhouse (replace rest with cleansing) or healer (replace rest with treatment).
 

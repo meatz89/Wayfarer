@@ -118,7 +118,7 @@ public class SceneDTO
     /// <summary>
     /// Embedded situations owned by this scene
     /// Scene OWNS situations (composition pattern)
-    /// Situations are NOT in GameWorld.Situations, only in this collection
+    /// Situations are embedded here, not in a separate collection
     /// </summary>
     public List<SituationDTO> Situations { get; set; } = new List<SituationDTO>();
 

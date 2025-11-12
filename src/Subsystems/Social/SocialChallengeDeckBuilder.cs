@@ -27,7 +27,7 @@ public class SocialChallengeDeckBuilder
         Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == requestId);
         if (situation == null)
         {
-            throw new ArgumentException($"Situation {requestId} not found in GameWorld.Situations");
+            throw new ArgumentException($"Situation {requestId} not found in any Scene.Situations");
         }
 
         // THREE PARALLEL SYSTEMS: Get Social engagement deck directly (no Types, just Decks)

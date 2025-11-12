@@ -119,9 +119,9 @@ public class PromptBuilder
                     Count = cards.Count,
                     Id = card.Id,
                     InitiativeCost = card.InitiativeCost.ToString(),
-                    Effect = card.Effect.ToString(),
+                    Effect = card.PrimaryTargetResource?.ToString() ?? "None",
                     Persistence = card.Persistence.ToString(),
-                    NarrativeCategory = card.NarrativeCategory
+                    NarrativeCategory = card.NarrativeCategory.ToString()
                 };
 
                 string processedContent = ProcessCardTemplate(loopContent, cardPlaceholders);
@@ -271,7 +271,7 @@ public class PromptBuilder
         {
             detail.AppendLine($"Card ID: {card.Id}");
             detail.AppendLine($"- Initiative Cost: {card.InitiativeCost}");
-            detail.AppendLine($"- Success Effect: {card.Effect}");
+            detail.AppendLine($"- Effect Target: {card.PrimaryTargetResource?.ToString() ?? "None"}");
             detail.AppendLine($"- Persistence: {card.Persistence}");
             detail.AppendLine($"- Category: {card.NarrativeCategory}");
             detail.AppendLine();

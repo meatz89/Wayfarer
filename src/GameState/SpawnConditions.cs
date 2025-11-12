@@ -98,6 +98,16 @@ public record PlayerStateConditions
     /// Empty dictionary = no visit requirements
     /// </summary>
     public Dictionary<string, int> LocationVisits { get; init; } = new Dictionary<string, int>();
+
+    /// <summary>
+    /// Required tags for scene eligibility (TAG-BASED PROGRESSION SYSTEM)
+    /// Player must have ALL these tags granted through prior scene completions
+    /// Enables flexible branching: A1 grants ['tutorial_complete'] → A2 OR B1 both require ['tutorial_complete']
+    /// Replaces rigid CompletedScenes chains with flexible tag unlock graphs
+    /// Example: ["met_innkeeper", "knows_location"] = spawn only if player has both tags
+    /// Empty list = no tag requirements
+    /// </summary>
+    public List<string> RequiresTags { get; init; } = new List<string>();
 }
 
 /// <summary>

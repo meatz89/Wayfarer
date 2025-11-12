@@ -27,7 +27,7 @@ public class Location
     // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 
     // Active situation IDs for this location (Mental/Physical challenges)
-    // References situations in GameWorld.Situations (single source of truth)
+    // References situations in Scene.Situations (situations embedded in scenes)
     public List<string> ActiveSituationIds { get; set; } = new List<string>();
 
     // NOTE: SceneIds removed - OLD equipment-based Scene system deleted

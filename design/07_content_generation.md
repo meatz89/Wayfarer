@@ -518,7 +518,11 @@ The archetype ID encodes the complete pattern. No parameters configuring structu
 
 Entity properties scale archetypes universally without modifying archetype definitions. Same archetype + different entity properties = contextually appropriate difficulty via universal scaling formulas.
 
-### Four Universal Scaling Properties
+### Nine Universal Categorical Properties
+
+Four core properties scale mechanical values (stat thresholds, costs, rewards), while five additional properties control specialized generation aspects (consequences, social impact, timing, emotional context, moral framing).
+
+#### Core Scaling Properties (1-4)
 
 **1. NPCDemeanor (Friendly/Neutral/Hostile)**
 
@@ -585,6 +589,113 @@ Example: Base Stamina restoration 30.
 - Premium environment: 30 × 3.0 = 90 stamina
 
 Same archetype, different environment quality, contextually appropriate benefits.
+
+#### Additional Categorical Properties (5-9)
+
+Beyond the four core scaling properties, GenerationContext includes five additional categorical properties that control specialized aspects of content generation:
+
+**5. DangerLevel (Safe/Risky)**
+
+Scales: Crisis consequences, Physical challenge damage, Confrontation escalation severity.
+
+Values:
+- Safe: Baseline consequences (standard risks, expected outcomes)
+- Risky: Escalated consequences (higher health costs, harsher failure outcomes)
+
+Derivation: Automatically derived from location properties (Guarded/Outdoor), NPC hostility (RelationshipFlow ≤ 5), and player health (< 30).
+
+Example: Physical challenge failure.
+- Safe danger: 10 health loss (manageable setback)
+- Risky danger: 20 health loss (serious consequence)
+
+Same archetype, different danger context, contextually appropriate risk.
+
+**6. SocialStakes (Private/Witnessed/Public)**
+
+Scales: Reputation impact, face-saving costs, romance intimacy options, social consequence severity.
+
+Values:
+- Private: Minimal social consequences (intimate settings, no witnesses)
+- Witnessed: Standard social consequences (semi-public, limited audience)
+- Public: Maximum social consequences (public venues, reputation at stake)
+
+Derivation: Automatically derived from location properties. Public/Market → Public, Private/Isolated/Intimate → Private, otherwise Witnessed.
+
+Example: Social challenge failure.
+- Private stakes: No reputation loss (only affects direct relationship)
+- Witnessed stakes: Minor reputation loss (small circle aware)
+- Public stakes: Significant reputation loss (community-wide awareness)
+
+Same archetype, different social context, contextually appropriate social impact.
+
+**7. TimePressure (Leisurely/Urgent)**
+
+Scales: Available choices, time costs, retry availability, decision complexity.
+
+Values:
+- Leisurely: Full choice availability (all 4 choices present, time to consider)
+- Urgent: Reduced choices or increased costs (emergency decisions, pressure)
+
+Derivation: Automatically derived from location properties (Guarded/Official → Urgent) and crisis context.
+
+Example: Decision time cost.
+- Leisurely pressure: Standard time segments (careful consideration possible)
+- Urgent pressure: Compressed time segments or forced immediate choice
+
+Same archetype, different time context, contextually appropriate urgency.
+
+**8. EmotionalTone (Cold/Warm/Passionate)**
+
+Scales: Social rewards, negotiation rapport bonuses, romance options, relationship progression speed.
+
+Values:
+- Cold: Professional transactions (minimal emotional engagement)
+- Warm: Friendly interactions (positive emotional engagement, friendship)
+- Passionate: Intense interactions (strong emotions, love or hate)
+
+Derivation: Automatically derived from NPC BondStrength. High bond (≥15) or very low bond (≤3) → Passionate, medium bond (8-14) → Warm, otherwise Cold.
+
+Example: Social success reward.
+- Cold tone: Standard relationship progress (transactional)
+- Warm tone: Enhanced relationship progress (friendship building)
+- Passionate tone: Maximum relationship progress (deep connection or rivalry)
+
+Same archetype, different emotional context, contextually appropriate intimacy.
+
+**9. MoralClarity (Clear/Ambiguous)**
+
+Scales: Narrative framing, conscience tracking, faction reputation effects, moral choice consequences.
+
+Values:
+- Clear: Obvious right/wrong framing (moral certainty, faction alignment obvious)
+- Ambiguous: Gray morality (complex trade-offs, unclear best choice)
+
+Derivation: Automatically derived from location properties (Temple → Clear) and NPC context. Most situations default to Ambiguous.
+
+Example: Choice consequence framing.
+- Clear morality: Narrative explicitly frames choice as righteous or wrongful
+- Ambiguous morality: Narrative presents complex trade-offs, no clear answer
+
+Same archetype, different moral context, contextually appropriate framing.
+
+### Property Derivation Philosophy
+
+All nine categorical properties derive automatically from entity state via `GenerationContext.FromEntities()`. Content authors specify entity properties (NPC personality, location properties, player state), and the system calculates categorical properties algorithmically.
+
+This automatic derivation ensures:
+- **Consistency**: Same entity state always produces same categorical properties
+- **Simplicity**: Authors describe entities, system derives mechanics
+- **Maintainability**: Derivation formulas centralized in one place
+- **AI Enablement**: AI describes entities categorically, system handles numeric balance
+
+Example derivation flow:
+1. JSON specifies: `"npcDemeanor": "Hostile"`, `"locationProperties": ["Guarded"]`
+2. Parser reads entity properties
+3. `GenerationContext.FromEntities()` derives: `Danger = Risky` (Guarded location), `NpcDemeanor = Hostile`
+4. Archetype generation applies: Hostile 1.4× threshold, Risky danger consequences
+5. Result: Appropriately difficult, appropriately dangerous encounter
+
+Authors never manually calculate. System derives from categorical entity descriptions.
 
 ### Scaling Formula Application
 
@@ -1064,10 +1175,159 @@ This section describes content generation design. Technical implementation detai
 
 **Validation**: Parser must enforce hex position presence for all location types (settlements, venues, specific locations within venues). Missing hex positions should fail validation and prevent game initialization.
 
+## Dynamic Location Generation
+
+### Overview
+
+Beyond archetype-based content generation, Wayfarer supports runtime creation of locations and venues when scenes spawn. This enables self-contained scenes to materialize their own spatial context on demand, supporting infinite world expansion without exhaustive pre-authoring.
+
+**Core Pattern**: Scenes specify categorical requirements for locations they need. System attempts to match existing content first (prefer authored over generated). If no match exists and explicit generation requested via DependentLocationSpec, system generates location procedurally with validation. **All generated locations persist forever** - no cleanup system exists.
+
+### Design Philosophy
+
+**Lazy Materialization**: World expands in response to narrative need, not pre-emptively. Tutorial inn exists from day one (authored). Side quest hideout materializes when quest spawns (generated). Avoids authoring unused content.
+
+**Bootstrap Gradient**:
+- Early game (Prologue/Act 1): 95% authored, 5% generated (stability priority)
+- Mid game (Act 2/3): 60% authored, 40% generated (variety increases)
+- Late game (Act 4+): 20% authored, 80% generated (infinite expansion)
+
+**Match First, Generate Last**: System prefers existing content over generation. Query authored locations with PlacementFilter categorical matching. Generate only when explicitly requested via DependentLocationSpec. Fail-fast if PlacementFilter finds no match (no silent fallback).
+
+**Bounded Infinity**: Generation operates under capacity constraints. Venues have MaxLocations (small town: 5-10, large city: 50-100, wilderness: unlimited). Capacity applies to ALL locations (authored + generated), not just generated. Prevents infinite uncontrolled expansion while enabling variety.
+
+### Categorical Matching vs Generation
+
+**PlacementFilter Matching**:
+- Scene specifies categorical requirements (LocationProperties, LocationTags, DistrictId)
+- System queries GameWorld.Locations for matches
+- SelectionStrategy chooses from multiple matches (Closest, LeastRecent, WeightedRandom)
+- Fail-fast if no match (no silent degradation, no fallback generation)
+
+**Example Filter**:
+```json
+{
+  "placementType": "Location",
+  "locationProperties": ["Private", "Indoor", "Secluded"],
+  "districtId": "lower_wards",
+  "selectionStrategy": "Closest"
+}
+```
+
+Matches authored locations with ALL specified properties in specified district. System throws InvalidOperationException if no match. This forces content design: either author matching content OR relax filter constraints.
+
+**Explicit Generation via DependentLocationSpec**:
+- DependentLocationSpec defines location to generate (self-contained scenes)
+- NamePattern and DescriptionPattern with placeholder support
+- Properties define available actions
+- HexPlacementStrategy determines spatial positioning
+- VenueIdSource determines containing venue (SameAsBase or GenerateNew)
+
+**Example Spec**:
+```json
+{
+  "templateId": "private_room",
+  "namePattern": "{NPCName}'s Private Room",
+  "descriptionPattern": "A quiet space reserved for {NPCName}'s guests.",
+  "venueIdSource": "SameAsBase",
+  "hexPlacement": "SameVenue",
+  "properties": ["sleepingSpace", "restful", "indoor", "private"],
+  "isLockedInitially": true
+}
+```
+
+Generates location deterministically when scene spawns. Location flows through standard JSON → DTO → Parser → Entity pipeline (Catalogue Pattern compliance).
+
+### Persistence Model
+
+**All Locations Persist Forever**: Generated locations are never cleaned up. Once materialized, they become permanent world features.
+
+**Provenance Tracking**: Every generated location stores SceneProvenance (which scene created it, when, why). Authored locations have Provenance = null. This metadata is for tracking/debugging only - not used for lifecycle decisions.
+
+**Budget Enforcement**: Since locations persist forever, venue capacity budgets are **critically important**. Budget validation happens at generation time (fail-fast) to prevent unbounded world growth.
+
+### Validation and Playability
+
+**Fail-Fast Principle**: ALL locations must be functionally playable. Unplayable content worse than crash (forces fixing root cause).
+
+**LocationPlayabilityValidator checks** (applies to authored + generated):
+1. **Hex Position**: Location must have valid hex coordinates
+2. **Reachability**: Must be reachable from player (same venue OR route exists)
+3. **Venue**: Must belong to valid venue
+4. **Properties**: Must have at least one property (enables action generation)
+5. **Unlock Mechanism**: If locked, must have unlock path in scene
+
+Validator throws InvalidOperationException if any check fails. System crashes rather than creating inaccessible content.
+
+### Generation Budget System
+
+**Venue Capacity**: Each venue enforces capacity budget:
+```csharp
+public int MaxLocations { get; set; } = 20;
+
+public bool CanAddMoreLocations()
+{
+    return LocationIds.Count < MaxLocations;
+}
+```
+
+Budget is **derived** (counts existing LocationIds) not **tracked** (no separate counter). This enforces Catalogue Pattern: generated locations become indistinguishable from authored locations after parsing. Capacity applies to ALL locations equally.
+
+**Bidirectional Relationship Maintenance**:
+- `Venue.LocationIds` ↔ `Location.Venue` must stay synchronized
+- **Authored locations**: `VenueParser` copies `dto.locations` → `venue.LocationIds` from JSON
+- **All locations**: `GameWorld.AddOrUpdateLocation()` ensures `venue.LocationIds` contains location when added
+- **Thread-safe**: Capacity check and add operation locked on venue object to prevent race conditions
+- **CRITICAL**: Capacity budget depends on LocationIds.Count being accurate
+
+**Budget Exhaustion**: When venue reaches capacity, BuildLocationDTO throws InvalidOperationException (fail-fast). Generation fails before DTO creation. Content authors must ensure sufficient capacity or use different venues. Since locations persist forever, budget violations cannot be cleaned up - prevention is critical.
+
+**Budget Design**:
+- Small venues (temporary camps): 5 locations
+- Medium venues (villages): 10-20 locations
+- Large venues (cities): 50-100 locations
+- Wilderness venues: Unlimited (or very high cap like 500)
+
+### Hex Grid Integration
+
+**Spatial Requirements**: All locations MUST have HexPosition. Hex grid is fundamental spatial model for travel system.
+
+**Placement Strategies**:
+- **SameVenue**: Adjacent hex in same venue cluster (intra-venue movement instant/free)
+- **Adjacent**: One of 6 neighbors of base location (cross-venue requires route)
+- **Distance/Random**: Future extensions for specific spatial patterns
+
+**Hex Synchronization**: Location.HexPosition is source of truth, Hex.LocationId is derived lookup. HexSynchronizationService maintains consistency.
+
+### Integration with Archetype System
+
+**Complementary Patterns**:
+- **Archetypes**: Define interaction mechanics (how player engages with content)
+- **Dynamic Generation**: Define spatial context (where interactions occur)
+
+**Example Flow**:
+1. Scene specifies archetype `service_with_location_access` (mechanical structure)
+2. Scene specifies PlacementFilter for location (categorical matching) OR DependentLocationSpec (explicit generation)
+3. System matches existing location (PlacementFilter) OR generates new location (DependentLocationSpec)
+4. Archetype generates situations using location properties (scaled mechanics)
+
+Archetypes remain pure mechanical patterns. Dynamic generation provides spatial context. Separation of concerns maintained.
+
+### Technical Implementation Cross-Reference
+
+Implementation details in arc42 documentation:
+- VenueGeneratorService: Section 5 (Building Block View)
+- LocationPlayabilityValidator: Section 5 (Building Block View)
+- HexSynchronizationService: Section 5 (Building Block View)
+- SceneInstantiator.BuildLocationDTO: Section 5 (Building Block View)
+- Dynamic World Building pattern: Section 8 (Crosscutting Concepts)
+
 ## Conclusion
 
 Wayfarer's archetype-based content generation enables infinite variety from finite patterns. The three-tier hierarchy (5 core, 10 expanded, 6 specialized archetypes) provides mechanical foundation for all content. Categorical property scaling (demeanor, quality, power dynamic, environment quality) creates contextually appropriate difficulty without modifying archetypes. Two-level composition (scene archetypes calling situation archetypes) generates complete multi-situation flows.
 
+Dynamic location generation complements archetype system by materializing spatial context on demand. Match-first approach preserves authored content priority. **All generated locations persist forever** - no cleanup system. Generation budgets bound procedural expansion through fail-fast validation at generation time. Fail-fast validation ensures playability. PlacementFilter never falls back to generation (explicit paths only).
+
 The system enables AI to generate balanced content by writing categorical entity descriptions. AI provides fiction-appropriate properties. System derives appropriate mechanics via universal scaling formulas. This decoupling allows infinite procedural content generation without requiring AI to understand game balance.
 
-The result: effectively infinite content from 21 situation archetypes and 12 scene archetypes, all mechanically consistent, all contextually appropriate, all supporting the infinite A-story and extensive B/C side content that defines Wayfarer's narrative experience.
+The result: effectively infinite content from 21 situation archetypes and 12 scene archetypes, all mechanically consistent, all contextually appropriate, all spatially integrated through dynamic world building, supporting the infinite A-story and extensive B/C side content that defines Wayfarer's narrative experience.

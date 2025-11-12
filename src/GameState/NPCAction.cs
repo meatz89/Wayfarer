@@ -45,7 +45,7 @@ public class NPCAction
 
     /// <summary>
     /// Target Situation ID to initiate (if ActionType = InitiateSituation)
-    /// References Situation in GameWorld.Situations (single source of truth)
+    /// References Situation in Scene.Situations (situations embedded in scenes)
     /// null for other action types
     /// RENAMED from SituationId to avoid confusion with SourceSituationId below
     /// </summary>

@@ -66,7 +66,7 @@ public class SocialFacade
         Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == requestId);
         if (situation == null)
         {
-            throw new ArgumentException($"Situation {requestId} not found in GameWorld.Situations");
+            throw new ArgumentException($"Situation {requestId} not found in any Scene.Situations");
         }
 
         // Get the challenge deck to determine max doubt threshold
@@ -454,7 +454,7 @@ public class SocialFacade
         Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == requestId);
         if (situation == null)
         {
-            return SocialContextFactory.CreateInvalidContext($"Situation {requestId} not found in GameWorld.Situations");
+            return SocialContextFactory.CreateInvalidContext($"Situation {requestId} not found in any Scene.Situations");
         }
 
         // Start conversation with the request (doubt starts at 0, max from deck)

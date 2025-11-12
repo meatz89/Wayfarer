@@ -471,7 +471,21 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 - Parsers must parse (no JsonElement passthrough)
 - Dumb UI (no game logic in components, backend determines availability)
 
-**Build Command:** `cd src && dotnet build`
+**Testing Requirements (MANDATORY):**
+- ALL logic changes require unit tests BEFORE committing
+- Test coverage mandatory for:
+  - Complex algorithms (shuffling, searching, sorting, path finding)
+  - Edge cases (empty collections, null values, boundary conditions)
+  - Business logic (capacity enforcement, validation rules, selection strategies)
+  - State mutations (entity updates, relationship maintenance)
+- FORBIDDEN: Committing untested logic changes
+- Verification command: `cd src && dotnet test`
+- If tests fail to compile or run: FIX TESTS FIRST, commit after
+- Test files must be included in same commit as implementation
+
+**Build Commands:**
+- Build: `cd src && dotnet build`
+- Test: `cd src && dotnet test`
 
 ---
 

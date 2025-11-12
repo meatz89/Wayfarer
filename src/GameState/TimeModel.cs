@@ -8,18 +8,8 @@ public class TimeModel
     public const int TOTAL_SEGMENTS_PER_DAY = TimeBlockSegments.TOTAL_SEGMENTS_PER_DAY;
 
     private TimeState _currentState;
-    private readonly object _lock = new object();
 
-    public TimeState CurrentState
-    {
-        get
-        {
-            lock (_lock)
-            {
-                return _currentState;
-            }
-        }
-    }
+    public TimeState CurrentState => _currentState;
 
     public int CurrentDay => CurrentState.CurrentDay;
 
@@ -52,10 +42,7 @@ public class TimeModel
     /// </summary>
     public void SetInitialState(int day, TimeBlocks timeBlock, int segment)
     {
-        lock (_lock)
-        {
-            _currentState = new TimeState(day, timeBlock, segment);
-        }
+        _currentState = new TimeState(day, timeBlock, segment);
     }
 
     /// <summary>
@@ -73,20 +60,17 @@ public class TimeModel
     }
 
     /// <summary>
-    /// Advances time by segments atomically with full validation.
+    /// Advances time by segments with full validation.
     /// </summary>
     public TimeAdvancementResult AdvanceSegments(int segments)
     {
         if (segments <= 0)
             throw new ArgumentException("Segments must be positive", nameof(segments));
 
-        lock (_lock)
-        {
-            TimeAdvancementResult result = _currentState.AdvanceSegments(segments);
-            _currentState = result.NewState;
+        TimeAdvancementResult result = _currentState.AdvanceSegments(segments);
+        _currentState = result.NewState;
 
-            return result;
-        }
+        return result;
     }
 
     /// <summary>
@@ -103,25 +87,22 @@ public class TimeModel
     /// </summary>
     public TimeAdvancementResult AdvanceToNextDay()
     {
-        lock (_lock)
+        TimeState oldState = _currentState;
+        _currentState = _currentState.Sleep(); // Sleep automatically goes to next day at Dawn
+
+        TimeAdvancementResult result = new TimeAdvancementResult
         {
-            TimeState oldState = _currentState;
-            _currentState = _currentState.Sleep(); // Sleep automatically goes to next day at Dawn
+            OldState = oldState,
+            NewState = _currentState,
+            SegmentsAdvanced = 0, // Sleep jump doesn't count as segment advancement
+            DaysAdvanced = 1,
+            CrossedDayBoundary = true,
+            OldTimeBlock = oldState.CurrentTimeBlock,
+            NewTimeBlock = _currentState.CurrentTimeBlock,
+            CrossedTimeBlock = true
+        };
 
-            TimeAdvancementResult result = new TimeAdvancementResult
-            {
-                OldState = oldState,
-                NewState = _currentState,
-                SegmentsAdvanced = 0, // Sleep jump doesn't count as segment advancement
-                DaysAdvanced = 1,
-                CrossedDayBoundary = true,
-                OldTimeBlock = oldState.CurrentTimeBlock,
-                NewTimeBlock = _currentState.CurrentTimeBlock,
-                CrossedTimeBlock = true
-            };
-
-            return result;
-        }
+        return result;
     }
 
     /// <summary>
@@ -130,15 +111,12 @@ public class TimeModel
     /// </summary>
     public TimeAdvancementResult JumpToNextPeriod()
     {
-        lock (_lock)
-        {
-            // Calculate segments needed to reach the next time block
-            int segmentsToNextPeriod = SegmentsRemainingInBlock;
-            if (segmentsToNextPeriod == 0)
-                segmentsToNextPeriod = 1; // Already at end, move to next block
+        // Calculate segments needed to reach the next time block
+        int segmentsToNextPeriod = SegmentsRemainingInBlock;
+        if (segmentsToNextPeriod == 0)
+            segmentsToNextPeriod = 1; // Already at end, move to next block
 
-            return AdvanceSegments(segmentsToNextPeriod);
-        }
+        return AdvanceSegments(segmentsToNextPeriod);
     }
 
     /// <summary>

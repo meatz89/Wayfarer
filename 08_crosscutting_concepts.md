@@ -541,6 +541,164 @@ This architectural pattern supports rich narrative branching where NPCs serve as
 
 ---
 
+### 8.2.6 Dynamic World Building (Lazy Materialization Pattern)
+
+**Core Principle**: World expands in response to narrative need, not pre-emptively. Locations and venues materialize when scenes spawn, validated for playability. **All generated locations persist forever** - no cleanup system exists.
+
+#### Pattern Structure
+
+**Two-Phase Lifecycle**:
+1. **Generation**: Scene spawns with DependentLocationSpec → Budget validation (fail-fast) → SceneInstantiator generates LocationDTO → PackageLoader parses → Location entity added to GameWorld
+2. **Gameplay**: Location used during scene → Player may visit → Location becomes permanent world feature
+
+**Data Flow**:
+```
+DependentLocationSpec (Template)
+    ↓ Scene Spawn
+Capacity Validation (fail-fast if venue full: LocationIds.Count >= MaxLocations)
+    ↓ Pass
+LocationDTO (JSON generated at runtime)
+    ↓ PackageLoader
+Location Entity (parsed into GameWorld, indistinguishable from authored)
+    ↓ Gameplay
+Location Persists Forever (no cleanup)
+```
+
+#### Components
+
+**Generation**:
+- `DependentLocationSpec`: Template defining location to generate (NamePattern, Properties, HexPlacement)
+- `VenueTemplate`: Template for procedural venue generation (Type, Tier, District, MaxLocations)
+- `SceneInstantiator.BuildLocationDTO()`: DTO generation with fail-fast capacity validation
+- `VenueGeneratorService`: Generate venues with hex allocation and capacity budgets
+
+**Matching**:
+- `PlacementFilter`: Categorical property matching (LocationProperties, LocationTags, DistrictId)
+- `SceneInstantiator.FindMatchingLocation()`: Query existing locations by categorical properties
+- `PlacementSelectionStrategy`: Choose ONE from multiple matches (Closest, LeastRecent, WeightedRandom)
+
+**Validation**:
+- `LocationPlayabilityValidator`: Fail-fast validation of playability for ALL locations (hex position, reachability, venue, properties, unlock mechanism)
+- Capacity validation: Generated checked BEFORE DTO creation (SceneInstantiator), authored checked AFTER parsing (PackageLoader)
+
+**Synchronization**:
+- `HexSynchronizationService`: Maintain HIGHLANDER (Location.HexPosition = source, Hex.LocationId = derived)
+
+**Tracking**:
+- `SceneProvenance`: Metadata tracking creation source (for debugging only, not lifecycle decisions)
+- `Venue.MaxLocations`: Total capacity budget (counts ALL locations: authored + generated)
+- `Venue.LocationIds`: Bidirectional relationship maintained by GameWorld.AddOrUpdateLocation
+- Budget derived (LocationIds.Count) not tracked (Catalogue Pattern compliance)
+- No locking needed: Blazor Server is single-threaded (07_deployment_view.md line 26)
+
+#### Design Decisions
+
+**Match First, Generate Last**:
+- PlacementFilter attempts categorical matching FIRST
+- DependentLocationSpec triggers explicit generation (not fallback)
+- No silent fallback from matching to generation
+- Fail-fast if no match and no explicit generation spec
+
+**Rationale**: Authored content priority. If filter can't find match, either author matching content OR relax filter constraints OR add explicit DependentLocationSpec. Never silently degrade.
+
+**All Locations Persist Forever**:
+- No cleanup system exists
+- Generated locations become permanent world features
+- Provenance tracks creation source (metadata only, not lifecycle)
+- Budget enforcement critical since violations cannot be cleaned up
+
+**Rationale**: Simplifies architecture. Locations represent player's narrative journey - deleting them erases history. Budget validation prevents unbounded growth instead of cleanup.
+
+**Bounded Infinity Through Fail-Fast Capacity**:
+- Venues have MaxLocations capacity (default 20)
+- BuildLocationDTO checks capacity BEFORE DTO creation (LocationIds.Count < MaxLocations)
+- Throws InvalidOperationException if venue at capacity
+- Small venues (5), medium venues (20), large venues (100), wilderness (unlimited)
+
+**Rationale**: Since locations persist forever, budget violations cannot be cleaned up. Prevention through fail-fast validation is essential. Forces spatial design decisions at authoring time.
+
+**Fail-Fast Validation**:
+- LocationPlayabilityValidator throws on unplayable content (ALL locations)
+- Validation checks: hex position, reachability, venue, properties, unlock mechanism
+- System crashes rather than creating inaccessible content
+- Catalogue Pattern: No distinction between authored/generated during validation
+
+**Rationale**: Unplayable content worse than crash. Forces fixing root cause in content authoring. Playability over compilation.
+
+#### Integration with Catalogue Pattern
+
+**Generation Flows Through Standard Pipeline**:
+1. SceneInstantiator generates LocationDTO (same structure as authored JSON)
+2. LocationDTO serialized to Package JSON
+3. PackageLoader loads package (same path as authored content)
+4. LocationParser parses LocationDTO → Location entity
+5. Location added to GameWorld.Locations
+
+**Rationale**: Generated content indistinguishable from authored content after parsing. Same validation, same resolution, same entity structure. Catalogue Pattern compliance.
+
+#### Example: Self-Contained Scene with Private Room
+
+**Template Specification** (JSON):
+```json
+{
+  "sceneArchetypeId": "service_with_location_access",
+  "dependentLocations": [{
+    "templateId": "private_room",
+    "namePattern": "{NPCName}'s Private Room",
+    "venueIdSource": "SameAsBase",
+    "hexPlacement": "Adjacent",
+    "properties": ["sleepingSpace", "restful", "indoor", "private"],
+    "isLockedInitially": true
+  }]
+}
+```
+
+**Generation (Scene Spawn)**:
+1. SceneInstantiator reads DependentLocationSpec
+2. Checks venue capacity: Can add? → Yes (LocationIds.Count < MaxLocations)
+3. Generates LocationDTO with NamePattern resolved ("Elena's Private Room")
+4. Finds adjacent hex to base location (venue cluster)
+5. Creates Package JSON with generated LocationDTO
+6. PackageLoader parses → Location entity created (indistinguishable from authored)
+7. Provenance stored: `SceneProvenance { SceneId = "scene_tutorial_001" }` (metadata)
+
+**Gameplay**:
+- Player negotiates with Elena → Receives room_key item
+- Player unlocks private room → Location used during gameplay
+- Player rests → Resource restoration based on room properties
+- **Location persists forever** → Never deleted, becomes permanent world feature
+
+#### Bootstrap Gradient
+
+**Early Game (Act 1)**: 95% authored, 5% generated
+- Core locations authored (villages, inns, major landmarks)
+- Only scene-specific resources generated (private rooms, hideouts)
+- Stability priority (authored content tested and validated)
+
+**Mid Game (Act 2-3)**: 60% authored, 40% generated
+- Major locations authored, minor locations generated
+- Generated venues appear for side quests
+- Variety increases while maintaining coherence
+
+**Late Game (Act 4+)**: 20% authored, 80% generated
+- Only critical story locations authored
+- Procedural expansion dominates
+- Infinite world growth enabled
+
+**Rationale**: Authored content establishes baseline quality. Generated content provides infinite variety. Gradient manages transition from stability → variety.
+
+#### Hexagonal Architecture Compliance
+
+**Domain Independence**: Location generation services in `src/Services/` (domain), not `src/Content/` (parsing) or `src/Pages/` (UI)
+
+**Catalogue Pattern**: Generated content flows through same pipeline as authored content (JSON → DTO → Parser → Entity)
+
+**HIGHLANDER**: Location.HexPosition = source of truth, Hex.LocationId = derived lookup (single source, synchronized)
+
+**Fail-Fast**: Validation throws on unplayable content (no silent degradation)
+
+---
+
 ## 8.3 Design Principles
 
 ### 8.3.1 Principle Priority Hierarchy

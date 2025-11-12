@@ -14,12 +14,16 @@
 /// JSON specifies aStoryArchetypeId → Parser calls catalogue → Receives SituationTemplates + SpawnRules
 /// → Parser stores in SceneTemplate → Runtime queries GameWorld.SceneTemplates (NO catalogue calls)
 ///
-/// A-STORY ARCHETYPES (Main story narrative beats):
-/// Investigation: seek_audience, investigate_location, gather_testimony, analyze_clues
-/// Confrontation: confront_antagonist, challenge_authority, demand_answers, expose_corruption
-/// Social: meet_order_member, negotiate_alliance, social_infiltration, gain_trust
-/// Discovery: discover_artifact, uncover_conspiracy, reveal_truth, find_passage
-/// Crisis: urgent_decision, moral_crossroads, life_or_death, sacrifice_choice
+/// A-STORY ARCHETYPES (9 fully implemented archetypes):
+/// Investigation: seek_audience, investigate_location, gather_testimony
+/// Confrontation: confront_antagonist
+/// Social: meet_order_member
+/// Discovery: discover_artifact, uncover_conspiracy
+/// Crisis: urgent_decision, moral_crossroads
+///
+/// NOTE: 6 archetypes removed (were stub implementations throwing NotImplementedException):
+/// - gain_trust, challenge_authority, expose_corruption, social_infiltration, reveal_truth, sacrifice_choice
+/// These may be re-added when fully implemented
 ///
 /// Each archetype defines:
 /// - Specific situation count and structure (2-4 situations)
@@ -57,14 +61,8 @@ public static class AStorySceneArchetypeCatalog
             "uncover_conspiracy" => GenerateUncoverConspiracy(tier, context),
             "urgent_decision" => GenerateUrgentDecision(tier, context),
             "moral_crossroads" => GenerateMoralCrossroads(tier, context),
-            "gain_trust" => GenerateGainTrust(tier, context),
-            "challenge_authority" => GenerateChallengeAuthority(tier, context),
-            "expose_corruption" => GenerateExposeCorruption(tier, context),
-            "social_infiltration" => GenerateSocialInfiltration(tier, context),
-            "reveal_truth" => GenerateRevealTruth(tier, context),
-            "sacrifice_choice" => GenerateSacrificeChoice(tier, context),
 
-            _ => throw new InvalidDataException($"Unknown A-Story archetype ID: '{archetypeId}'. Valid archetypes: seek_audience, investigate_location, gather_testimony, confront_antagonist, meet_order_member, discover_artifact, uncover_conspiracy, urgent_decision, moral_crossroads, gain_trust, challenge_authority, expose_corruption, social_infiltration, reveal_truth, sacrifice_choice")
+            _ => throw new InvalidDataException($"Unknown A-Story archetype ID: '{archetypeId}'. Valid archetypes: seek_audience, investigate_location, gather_testimony, confront_antagonist, meet_order_member, discover_artifact, uncover_conspiracy, urgent_decision, moral_crossroads")
         };
     }
 
@@ -1267,42 +1265,4 @@ public static class AStorySceneArchetypeCatalog
         Console.WriteLine($"[AStoryArchetype] Enriched final situation '{finalSituation.Id}' - ALL {enrichedChoices.Count} choices spawn next A-scene '{nextASceneId}'");
     }
 
-    // Remaining archetypes follow same pattern - abbreviated for brevity
-    // Each provides 2-4 situation linear/branching flows with guaranteed progression
-
-    private static SceneArchetypeDefinition GenerateGainTrust(int tier, GenerationContext context)
-    {
-        // 2-situation social maneuvering + negotiation flow
-        throw new NotImplementedException("Archetype pending full implementation");
-    }
-
-    private static SceneArchetypeDefinition GenerateChallengeAuthority(int tier, GenerationContext context)
-    {
-        // 2-situation confrontation + crisis flow
-        throw new NotImplementedException("Archetype pending full implementation");
-    }
-
-    private static SceneArchetypeDefinition GenerateExposeCorruption(int tier, GenerationContext context)
-    {
-        // 3-situation investigation + confrontation + consequence flow
-        throw new NotImplementedException("Archetype pending full implementation");
-    }
-
-    private static SceneArchetypeDefinition GenerateSocialInfiltration(int tier, GenerationContext context)
-    {
-        // 3-situation social maneuvering flow (approach + infiltrate + extract)
-        throw new NotImplementedException("Archetype pending full implementation");
-    }
-
-    private static SceneArchetypeDefinition GenerateRevealTruth(int tier, GenerationContext context)
-    {
-        // 2-situation investigation + confrontation flow
-        throw new NotImplementedException("Archetype pending full implementation");
-    }
-
-    private static SceneArchetypeDefinition GenerateSacrificeChoice(int tier, GenerationContext context)
-    {
-        // 3-situation crisis flow (stakes + decision + sacrifice)
-        throw new NotImplementedException("Archetype pending full implementation");
-    }
 }
