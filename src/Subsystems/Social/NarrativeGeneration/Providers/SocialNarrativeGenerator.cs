@@ -52,16 +52,8 @@ public class SocialNarrativeGenerator
         {
             analysis.CategoryBreakdown[card.Id] = card.NarrativeCategory;
 
-            // Identify risk cards
-            if (card.NarrativeCategory.StartsWith("risk"))
-            {
-                analysis.RiskCards.Add(card.Id);
-            }
-
-            // Identify atmosphere setters
-            if (card.NarrativeCategory.Contains("atmosphere") ||
-                card.NarrativeCategory.Contains("volatile") ||
-                card.NarrativeCategory.Contains("pressured"))
+            // Identify atmosphere setters (cards with SuccessType.None)
+            if (card.NarrativeCategory == NarrativeCategoryType.Atmosphere)
             {
                 analysis.AtmosphereSetters.Add(card.Id);
             }
@@ -71,8 +63,8 @@ public class SocialNarrativeGenerator
         analysis.InitiativePattern = DetermineInitiativePattern(cards);
         analysis.DominantCategory = DetermineDominantCategory(cards);
 
-        // Set urgency requirements
-        analysis.RequiresUrgency = analysis.RiskCards.Any();
+        // Set urgency requirements (high Initiative cost cards)
+        analysis.RequiresUrgency = cards.Cards.Any(c => c.InitiativeCost >= 3);
 
         return analysis;
     }
@@ -181,13 +173,13 @@ public class SocialNarrativeGenerator
         return InitiativePattern.Mixed;
     }
 
-    private string DetermineDominantCategory(CardCollection cards)
+    private NarrativeCategoryType DetermineDominantCategory(CardCollection cards)
     {
-        Dictionary<string, int> categoryCounts = new Dictionary<string, int>();
+        Dictionary<NarrativeCategoryType, int> categoryCounts = new Dictionary<NarrativeCategoryType, int>();
 
         foreach (CardInfo card in cards.Cards)
         {
-            string category = card.NarrativeCategory ?? "utility";
+            NarrativeCategoryType category = card.NarrativeCategory;
             categoryCounts[category] = categoryCounts.GetValueOrDefault(category, 0) + 1;
         }
 
@@ -273,18 +265,21 @@ public class SocialNarrativeGenerator
     private string GenerateCardResponse(CardInfo card, string npcDialogue, RapportStage rapportStage)
     {
         // Generate response narrative based on card type and context
-        string baseResponse = GenerateResponseByCategory(card.NarrativeCategory, card.Effect);
+        string baseResponse = GenerateResponseByCategory(card.NarrativeCategory);
         return ScaleResponseToRapport(baseResponse, rapportStage, card.InitiativeCost);
     }
 
-    private string GenerateResponseByCategory(string category, string effect)
+    private string GenerateResponseByCategory(NarrativeCategoryType category)
     {
         return category switch
         {
-            "risk" => "Taking a bold stance on the matter",
-            "support" => "Offering understanding and assistance",
-            "atmosphere" => "Shifting the emotional tone",
-            "utility" => "Gathering more information",
+            NarrativeCategoryType.Atmosphere => "Shifting the emotional tone",
+            NarrativeCategoryType.Pressure => "Pressing for answers",
+            NarrativeCategoryType.SupportTrust => "Offering understanding and trust",
+            NarrativeCategoryType.SupportDiplomacy => "Offering diplomatic assistance",
+            NarrativeCategoryType.SupportStatus => "Leveraging your standing",
+            NarrativeCategoryType.SupportShadow => "Sharing subtle understanding",
+            NarrativeCategoryType.Standard => "Responding thoughtfully",
             _ => "Responding thoughtfully"
         };
     }

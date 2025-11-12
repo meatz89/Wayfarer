@@ -30,10 +30,42 @@ public class CardInfo
     public int InitiativeCost { get; set; }
 
     /// <summary>
-    /// Description of the card's mechanical effect.
-    /// Used to understand what the card does for narrative context.
+    /// Conversational move type - what kind of statement this represents.
+    /// Remark (pointed statement), Observation (supportive), or Argument (complex developed point).
+    /// Null for Letter/Promise/Burden cards (not part of conversation mechanics).
     /// </summary>
-    public string Effect { get; set; }
+    public ConversationalMove? Move { get; set; }
+
+    /// <summary>
+    /// Player stat this card requires for stat checks.
+    /// Determines which stat threshold must be met to play the card successfully.
+    /// Null for cards not bound to any stat.
+    /// </summary>
+    public PlayerStatType? BoundStat { get; set; }
+
+    /// <summary>
+    /// Card depth (1-10) indicating stat requirement tier.
+    /// Higher depth = higher stat thresholds required.
+    /// </summary>
+    public CardDepth Depth { get; set; }
+
+    /// <summary>
+    /// Primary resource affected by this card's effect.
+    /// Null for compound effects (multiple resources affected).
+    /// </summary>
+    public SocialChallengeResourceType? PrimaryTargetResource { get; set; }
+
+    /// <summary>
+    /// Formula type determining how effect is calculated.
+    /// Fixed, Scaling, Conditional, Trading, Setting, or Compound.
+    /// </summary>
+    public EffectFormulaType? PrimaryFormulaType { get; set; }
+
+    /// <summary>
+    /// True if this card has compound effects (multiple resource changes).
+    /// Compound effects need special handling for narrative generation.
+    /// </summary>
+    public bool IsCompound { get; set; }
 
     /// <summary>
     /// Persistence type determining when card is removed from hand.
@@ -43,10 +75,10 @@ public class CardInfo
 
     /// <summary>
     /// Narrative category for backwards construction.
-    /// Examples: "risk", "support", "pressure", "probe"
-    /// Helps determine what kind of NPC dialogue this card should respond to.
+    /// Determines what kind of NPC dialogue this card should respond to.
+    /// Derived from card's mechanical properties (persistence, token type, success effect).
     /// </summary>
-    public string NarrativeCategory { get; set; }
+    public NarrativeCategoryType NarrativeCategory { get; set; }
 
     /// <summary>
     /// Indicates if this card has a draw effect (draws additional cards).

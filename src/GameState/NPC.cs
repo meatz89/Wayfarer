@@ -18,6 +18,9 @@ public class NPC
     public PersonalityType PersonalityType { get; set; } // NO DEFAULT - must be set explicitly from JSON
     public PersonalityModifier ConversationModifier { get; set; } // Personality-specific conversation rules
 
+    // Crisis system - personal troubles affecting NPC state
+    public CrisisType Crisis { get; set; } = CrisisType.None; // Crisis type for DISCONNECTED NPCs (narrative framing)
+
     // Level system (1-5) for difficulty/content progression and XP scaling
     public int Level { get; set; } = 1;
 
