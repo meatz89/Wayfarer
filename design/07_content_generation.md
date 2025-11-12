@@ -1181,7 +1181,7 @@ This section describes content generation design. Technical implementation detai
 
 Beyond archetype-based content generation, Wayfarer supports runtime creation of locations and venues when scenes spawn. This enables self-contained scenes to materialize their own spatial context on demand, supporting infinite world expansion without exhaustive pre-authoring.
 
-**Core Pattern**: Scenes specify categorical requirements for locations they need. System attempts to match existing content first (prefer authored over generated). If no match exists and explicit generation requested via DependentLocationSpec, system generates location procedurally with validation. Generated locations persist or cleanup based on emergent gameplay patterns (visited vs unvisited).
+**Core Pattern**: Scenes specify categorical requirements for locations they need. System attempts to match existing content first (prefer authored over generated). If no match exists and explicit generation requested via DependentLocationSpec, system generates location procedurally with validation. **All generated locations persist forever** - no cleanup system exists.
 
 ### Design Philosophy
 
@@ -1238,24 +1238,13 @@ Matches authored locations with ALL specified properties in specified district. 
 
 Generates location deterministically when scene spawns. Location flows through standard JSON → DTO → Parser → Entity pipeline (Catalogue Pattern compliance).
 
-### Lifecycle Management
+### Persistence Model
 
-**Provenance Tracking**: Every generated location stores SceneProvenance (which scene created it, when, why). Authored locations have Provenance = null.
+**All Locations Persist Forever**: Generated locations are never cleaned up. Once materialized, they become permanent world features.
 
-**Significance-Based Cleanup**: When scene completes, system evaluates each generated location's significance:
-- **Critical** (Provenance = null): Authored content, never cleanup
-- **Persistent** (visited OR multi-scene reference): Player invested, keep forever
-- **Temporary** (never visited AND single scene): Cleanup eligible
+**Provenance Tracking**: Every generated location stores SceneProvenance (which scene created it, when, why). Authored locations have Provenance = null. This metadata is for tracking/debugging only - not used for lifecycle decisions.
 
-**Cleanup Triggers**:
-- Scene completion (SituationCompletionHandler)
-- Scene expiration (day counter reaches ExpiresOnDay)
-- Manual cleanup via DependentResourceCleanupService
-
-**Referential Integrity**: Cleanup cascades through dependencies:
-- Location deleted → Routes referencing location deleted (RouteCleanupService)
-- Location deleted → Hex.LocationId cleared (HexSynchronizationService)
-- Scene deleted → All generated resources evaluated for cleanup
+**Budget Enforcement**: Since locations persist forever, venue generation budgets are **critically important**. Budget validation happens at generation time (fail-fast) to prevent unbounded world growth.
 
 ### Validation and Playability
 
@@ -1283,7 +1272,7 @@ public bool CanGenerateMoreLocations()
 }
 ```
 
-**Budget Exhaustion**: When venue reaches capacity, LocationGeneratorService returns null for explicit generation calls. Content authors responsible for ensuring sufficient budget or relaxing spatial constraints.
+**Budget Exhaustion**: When venue reaches capacity, BuildLocationDTO throws InvalidOperationException (fail-fast). Generation fails before DTO creation. Content authors must ensure sufficient budget or use different venues. Since locations persist forever, budget violations cannot be cleaned up - prevention is critical.
 
 **Budget Design**:
 - Small venues (temporary camps): 5 locations
@@ -1319,17 +1308,17 @@ Archetypes remain pure mechanical patterns. Dynamic generation provides spatial 
 ### Technical Implementation Cross-Reference
 
 Implementation details in arc42 documentation:
-- LocationGeneratorService: Section 5 (Building Block View)
 - VenueGeneratorService: Section 5 (Building Block View)
-- DependentResourceCleanupService: Section 5 (Building Block View)
 - GeneratedLocationValidator: Section 5 (Building Block View)
+- HexSynchronizationService: Section 5 (Building Block View)
+- SceneInstantiator.BuildLocationDTO: Section 5 (Building Block View)
 - Dynamic World Building pattern: Section 8 (Crosscutting Concepts)
 
 ## Conclusion
 
 Wayfarer's archetype-based content generation enables infinite variety from finite patterns. The three-tier hierarchy (5 core, 10 expanded, 6 specialized archetypes) provides mechanical foundation for all content. Categorical property scaling (demeanor, quality, power dynamic, environment quality) creates contextually appropriate difficulty without modifying archetypes. Two-level composition (scene archetypes calling situation archetypes) generates complete multi-situation flows.
 
-Dynamic location generation complements archetype system by materializing spatial context on demand. Match-first approach preserves authored content priority. Significance-based cleanup prevents world bloat. Generation budgets bound procedural expansion. Fail-fast validation ensures playability. PlacementFilter never falls back to generation (explicit paths only).
+Dynamic location generation complements archetype system by materializing spatial context on demand. Match-first approach preserves authored content priority. **All generated locations persist forever** - no cleanup system. Generation budgets bound procedural expansion through fail-fast validation at generation time. Fail-fast validation ensures playability. PlacementFilter never falls back to generation (explicit paths only).
 
 The system enables AI to generate balanced content by writing categorical entity descriptions. AI provides fiction-appropriate properties. System derives appropriate mechanics via universal scaling formulas. This decoupling allows infinite procedural content generation without requiring AI to understand game balance.
 

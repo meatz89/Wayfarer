@@ -1117,6 +1117,19 @@ public class SceneInstantiator
         // Determine venue ID
         string venueId = DetermineVenueId(spec.VenueIdSource, context);
 
+        // FAIL-FAST BUDGET VALIDATION: Check venue capacity BEFORE creating DTO
+        // Since all locations persist forever, budget violations cannot be cleaned up
+        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Id == venueId);
+        if (venue == null)
+            throw new InvalidOperationException($"Venue '{venueId}' not found for location '{locationId}'");
+
+        if (!venue.CanGenerateMoreLocations())
+            throw new InvalidOperationException(
+                $"Venue '{venue.Id}' ({venue.Name}) has reached generation capacity " +
+                $"({venue.GeneratedLocationCount}/{venue.MaxGeneratedLocations} locations). " +
+                $"Cannot generate dependent location '{locationId}'. " +
+                $"Increase MaxGeneratedLocations or use different venue.");
+
         // Find hex placement (CRITICAL: ALL locations must have hex positions)
         Location baseLocation = context.CurrentLocation;
         if (baseLocation == null)
@@ -1140,9 +1153,10 @@ public class SceneInstantiator
             Type = "Room", // Default type for generated locations
             InitialState = spec.IsLockedInitially ? "Locked" : "Available",
             CanInvestigate = spec.CanInvestigate,
-            CanWork = false, // Generated locations don't support work by default
+            CanWork = false, // Generated locations don't support work by default,
             WorkType = "",
-            WorkPay = 0
+            WorkPay = 0,
+            IsGenerated = true // Mark as generated for budget tracking
         };
 
         // Map properties

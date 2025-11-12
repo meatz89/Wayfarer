@@ -9,22 +9,19 @@ public class SituationCompletionHandler
     private readonly TimeManager _timeManager;
     private readonly ConsequenceFacade _consequenceFacade;
     private readonly SpawnFacade _spawnFacade;
-    private readonly DependentResourceCleanupService _cleanupService;
 
     public SituationCompletionHandler(
         GameWorld gameWorld,
         ObligationActivity obligationActivity,
         TimeManager timeManager,
         ConsequenceFacade consequenceFacade,
-        SpawnFacade spawnFacade,
-        DependentResourceCleanupService cleanupService)
+        SpawnFacade spawnFacade)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
         _spawnFacade = spawnFacade ?? throw new ArgumentNullException(nameof(spawnFacade));
-        _cleanupService = cleanupService ?? throw new ArgumentNullException(nameof(cleanupService));
     }
 
     /// <summary>
@@ -96,10 +93,8 @@ public class SituationCompletionHandler
             // CRITICAL: A-story completion triggers next A-scene template generation here
             if (scene.State == SceneState.Completed)
             {
-                // PHASE 1: Cleanup dependent resources created by scene
-                // Evaluates significance (visited, multi-scene reference) and removes temporary locations
-                await _cleanupService.CleanupSceneResources(scene.Id, _gameWorld);
-
+                // NOTE: All generated locations persist forever (no cleanup)
+                // Budget validation happens at generation time (fail-fast)
                 // Spawn eligible scenes (including A-story continuation)
                 await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Scene, scene.Id);
             }

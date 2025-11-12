@@ -543,28 +543,26 @@ This architectural pattern supports rich narrative branching where NPCs serve as
 
 ### 8.2.6 Dynamic World Building (Lazy Materialization Pattern)
 
-**Core Principle**: World expands in response to narrative need, not pre-emptively. Locations and venues materialize when scenes spawn, validated for playability, cleaned up based on emergent significance.
+**Core Principle**: World expands in response to narrative need, not pre-emptively. Locations and venues materialize when scenes spawn, validated for playability. **All generated locations persist forever** - no cleanup system exists.
 
 #### Pattern Structure
 
-**Three-Phase Lifecycle**:
-1. **Generation**: Scene spawns with DependentLocationSpec → SceneInstantiator generates LocationDTO → PackageLoader parses → Location entity added to GameWorld
-2. **Gameplay**: Location used during scene → Player may visit → Provenance tracks creation source
-3. **Cleanup**: Scene completes → SignificanceEvaluator determines fate → Temporary locations removed, persistent locations kept
+**Two-Phase Lifecycle**:
+1. **Generation**: Scene spawns with DependentLocationSpec → Budget validation (fail-fast) → SceneInstantiator generates LocationDTO → PackageLoader parses → Location entity added to GameWorld
+2. **Gameplay**: Location used during scene → Player may visit → Location becomes permanent world feature
 
 **Data Flow**:
 ```
 DependentLocationSpec (Template)
     ↓ Scene Spawn
-LocationDTO (JSON generated at runtime)
+Budget Validation (fail-fast if exhausted)
+    ↓ Pass
+LocationDTO (JSON generated at runtime, IsGenerated=true)
     ↓ PackageLoader
 Location Entity (parsed into GameWorld)
+    ↓ Budget Increment (Venue.GeneratedLocationCount++)
     ↓ Gameplay
-SceneProvenance (tracks which scene created this)
-    ↓ Scene Completion
-LocationSignificance (Critical/Persistent/Temporary)
-    ↓ Cleanup Decision
-Keep Forever OR Delete + Cascade
+Location Persists Forever (no cleanup)
 ```
 
 #### Components
@@ -572,7 +570,7 @@ Keep Forever OR Delete + Cascade
 **Generation**:
 - `DependentLocationSpec`: Template defining location to generate (NamePattern, Properties, HexPlacement)
 - `VenueTemplate`: Template for procedural venue generation (Type, Tier, District, Budget)
-- `LocationGeneratorService`: Explicit generation from specifications (not fallback)
+- `SceneInstantiator.BuildLocationDTO()`: DTO generation with fail-fast budget validation
 - `VenueGeneratorService`: Generate venues with hex allocation and budget tracking
 
 **Matching**:
@@ -580,18 +578,17 @@ Keep Forever OR Delete + Cascade
 - `SceneInstantiator.FindMatchingLocation()`: Query existing locations by categorical properties
 - `PlacementSelectionStrategy`: Choose ONE from multiple matches (Closest, LeastRecent, WeightedRandom)
 
-**Lifecycle**:
-- `SceneProvenance`: Tracks creation metadata (SceneId, Timestamp, TemplateId)
-- `LocationSignificance`: Emergent evaluation (Critical/Persistent/Temporary)
-- `LocationSignificanceEvaluator`: Evaluates based on visits and references (not authoring flags)
-- `DependentResourceCleanupService`: Cleanup eligible resources when scene completes
-
 **Validation**:
 - `GeneratedLocationValidator`: Fail-fast validation of playability (hex position, reachability, venue, properties, unlock mechanism)
+- Budget validation in BuildLocationDTO: Throws InvalidOperationException if venue at capacity
 
 **Synchronization**:
 - `HexSynchronizationService`: Maintain HIGHLANDER (Location.HexPosition = source, Hex.LocationId = derived)
-- `RouteCleanupService`: Cascade cleanup (location deleted → routes deleted)
+
+**Tracking**:
+- `SceneProvenance`: Metadata tracking creation source (for debugging only, not lifecycle decisions)
+- `LocationDTO.IsGenerated`: Flag marking generated locations for budget tracking
+- `Venue.GeneratedLocationCount`: Budget tracking incremented during parsing
 
 #### Design Decisions
 
@@ -603,19 +600,21 @@ Keep Forever OR Delete + Cascade
 
 **Rationale**: Authored content priority. If filter can't find match, either author matching content OR relax filter constraints OR add explicit DependentLocationSpec. Never silently degrade.
 
-**Significance-Based Cleanup**:
-- System evaluates emergently based on gameplay (visited?, referenced?)
-- NOT based on authoring-time flags (NoCleanup property forbidden)
-- Significance determined AFTER gameplay, not BEFORE
+**All Locations Persist Forever**:
+- No cleanup system exists
+- Generated locations become permanent world features
+- Provenance tracks creation source (metadata only, not lifecycle)
+- Budget enforcement critical since violations cannot be cleaned up
 
-**Rationale**: Same as NPC relationship persistence. Player investment (via visits or multi-scene references) determines persistence, not author predictions.
+**Rationale**: Simplifies architecture. Locations represent player's narrative journey - deleting them erases history. Budget validation prevents unbounded growth instead of cleanup.
 
-**Bounded Infinity**:
+**Bounded Infinity Through Fail-Fast Budget**:
 - Venues have MaxGeneratedLocations budget (default 20)
-- LocationGeneratorService respects budget (returns null if exhausted)
+- BuildLocationDTO checks budget BEFORE DTO creation
+- Throws InvalidOperationException if venue at capacity
 - Small venues (5), medium venues (20), large venues (100), wilderness (unlimited)
 
-**Rationale**: Prevents unbounded world growth. Forces spatial design decisions. Maintains performance.
+**Rationale**: Since locations persist forever, budget violations cannot be cleaned up. Prevention through fail-fast validation is essential. Forces spatial design decisions at authoring time.
 
 **Fail-Fast Validation**:
 - GeneratedLocationValidator throws on unplayable content
@@ -654,29 +653,21 @@ Keep Forever OR Delete + Cascade
 
 **Generation (Scene Spawn)**:
 1. SceneInstantiator reads DependentLocationSpec
-2. Generates LocationDTO with NamePattern resolved ("Elena's Private Room")
-3. Finds adjacent hex to base location (venue cluster)
-4. Creates Package JSON with generated LocationDTO
-5. PackageLoader parses → Location entity created
-6. Provenance stored: `SceneProvenance { SceneId = "scene_tutorial_001", Timestamp = 1234567890 }`
+2. Checks venue budget: Can generate? → Yes (budget available)
+3. Generates LocationDTO with NamePattern resolved ("Elena's Private Room")
+4. Sets `IsGenerated = true` flag for budget tracking
+5. Finds adjacent hex to base location (venue cluster)
+6. Creates Package JSON with generated LocationDTO
+7. PackageLoader parses → Location entity created
+8. PackageLoader checks `dto.IsGenerated` → true → Increments venue budget
+9. Venue.GeneratedLocationCount++ (budget tracking)
+10. Provenance stored: `SceneProvenance { SceneId = "scene_tutorial_001" }` (metadata)
 
 **Gameplay**:
 - Player negotiates with Elena → Receives room_key item
-- Player unlocks private room → HasBeenVisited = true
+- Player unlocks private room → Location used during gameplay
 - Player rests → Resource restoration based on room properties
-
-**Cleanup (Scene Completion)**:
-- SignificanceEvaluator queries: HasBeenVisited? → true
-- Significance = Persistent (player invested spatial memory)
-- Provenance cleared (promoted to permanent): `Provenance = null`
-- Location survives scene deletion → Remains in GameWorld forever
-
-**Alternative (Never Visited)**:
-- If player never unlocks room → HasBeenVisited = false
-- SignificanceEvaluator: Single scene reference, never visited → Temporary
-- DependentResourceCleanupService deletes location
-- RouteCleanupService cascades (removes routes)
-- HexSynchronizationService clears hex reference
+- **Location persists forever** → Never deleted, becomes permanent world feature
 
 #### Bootstrap Gradient
 
