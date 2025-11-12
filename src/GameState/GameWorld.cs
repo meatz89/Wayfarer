@@ -1015,6 +1015,8 @@ public class GameWorld
 
     /// <summary>
     /// Add or update location spot
+    /// CRITICAL: Maintains bidirectional Venue ↔ Location relationship
+    /// Updates venue.LocationIds when location added (capacity budget depends on this)
     /// </summary>
     public void AddOrUpdateLocation(string locationId, Location location)
     {
@@ -1022,12 +1024,28 @@ public class GameWorld
         if (existing != null)
         {
             Locations.Remove(existing);
+
+            // Remove from old venue's LocationIds if venue changed
+            if (existing.Venue != null && existing.Venue.Id != location.VenueId)
+            {
+                existing.Venue.LocationIds.Remove(existing.Id);
+            }
         }
+
         Locations.Add(location);
+
+        // CRITICAL: Maintain bidirectional relationship (Venue.LocationIds ↔ Location.Venue)
+        // Capacity budget system depends on venue.LocationIds.Count being accurate
+        if (location.Venue != null && !location.Venue.LocationIds.Contains(location.Id))
+        {
+            location.Venue.LocationIds.Add(location.Id);
+        }
     }
 
     /// <summary>
     /// Remove location spot
+    /// CRITICAL: Maintains bidirectional Venue ↔ Location relationship
+    /// Updates venue.LocationIds when location removed
     /// </summary>
     public void RemoveLocation(string locationId)
     {
@@ -1035,6 +1053,12 @@ public class GameWorld
         if (existing != null)
         {
             Locations.Remove(existing);
+
+            // CRITICAL: Maintain bidirectional relationship
+            if (existing.Venue != null)
+            {
+                existing.Venue.LocationIds.Remove(existing.Id);
+            }
         }
     }
 

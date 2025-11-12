@@ -27,7 +27,8 @@ public static class VenueParser
             Description = dto.Description,
             District = dto.DistrictId,
             Tier = dto.Tier,
-            Type = venueType  // ✅ Strongly-typed enum (replaces LocationTypeString)
+            Type = venueType,  // ✅ Strongly-typed enum (replaces LocationTypeString)
+            LocationIds = dto.locations ?? new List<string>() // CRITICAL: Copy authored LocationIds from JSON
         };
 
         return venue;

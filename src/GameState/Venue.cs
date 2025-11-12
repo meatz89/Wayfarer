@@ -15,6 +15,10 @@
     public VenueType Type { get; set; } = VenueType.Wilderness;  // Strongly-typed venue category (replaces LocationTypeString)
     public int Tier { get; set; } = 1;
 
+    // BIDIRECTIONAL RELATIONSHIP: Venue ↔ Location
+    // Venue.LocationIds maintained by GameWorld.AddOrUpdateLocation/RemoveLocation
+    // Location.Venue maintained by LocationParser.ConvertDTOToLocation
+    // CRITICAL: Capacity budget depends on LocationIds.Count being accurate
     public List<string> LocationIds { get; set; } = new List<string>();
 
     // HEX-BASED TRAVEL SYSTEM: Venue is ONLY a wrapper for travel cost rules

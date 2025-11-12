@@ -1273,6 +1273,13 @@ public bool CanAddMoreLocations()
 
 Budget is **derived** (counts existing LocationIds) not **tracked** (no separate counter). This enforces Catalogue Pattern: generated locations become indistinguishable from authored locations after parsing. Capacity applies to ALL locations equally.
 
+**Bidirectional Relationship Maintenance**:
+- `Venue.LocationIds` ↔ `Location.Venue` must stay synchronized
+- **Authored locations**: `VenueParser` copies `dto.locations` → `venue.LocationIds` from JSON
+- **All locations**: `GameWorld.AddOrUpdateLocation()` ensures `venue.LocationIds` contains location when added
+- **Thread-safe**: Capacity check and add operation locked on venue object to prevent race conditions
+- **CRITICAL**: Capacity budget depends on LocationIds.Count being accurate
+
 **Budget Exhaustion**: When venue reaches capacity, BuildLocationDTO throws InvalidOperationException (fail-fast). Generation fails before DTO creation. Content authors must ensure sufficient capacity or use different venues. Since locations persist forever, budget violations cannot be cleaned up - prevention is critical.
 
 **Budget Design**:

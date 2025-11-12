@@ -834,24 +834,39 @@ public class PackageLoader
             // Generated: Checked BEFORE DTO creation in SceneInstantiator
             // Authored: Checked AFTER parsing here
             // Ensures capacity model applies uniformly (Catalogue Pattern compliance)
-            if (location.Venue != null && !location.Venue.CanAddMoreLocations())
+            // THREAD-SAFE: Check-and-add happens within GameWorld.AddOrUpdateLocation atomically
+            if (location.Venue != null)
             {
-                throw new InvalidOperationException(
-                    $"Venue '{location.Venue.Id}' ({location.Venue.Name}) has reached capacity " +
-                    $"({location.Venue.LocationIds.Count}/{location.Venue.MaxLocations} locations). " +
-                    $"Cannot add location '{location.Id}'. " +
-                    $"Increase MaxLocations in venue definition or reduce authored locations.");
+                // Lock venue to prevent race condition: two threads checking simultaneously
+                lock (location.Venue)
+                {
+                    if (!location.Venue.CanAddMoreLocations())
+                    {
+                        throw new InvalidOperationException(
+                            $"Venue '{location.Venue.Id}' ({location.Venue.Name}) has reached capacity " +
+                            $"({location.Venue.LocationIds.Count}/{location.Venue.MaxLocations} locations). " +
+                            $"Cannot add location '{location.Id}'. " +
+                            $"Increase MaxLocations in venue definition or reduce authored locations.");
+                    }
+
+                    // POST-PARSING INTEGRATION: Validate playability (fail-fast)
+                    // Applies to ALL locations (Catalogue Pattern compliance)
+                    _locationValidator.ValidateLocation(location, _gameWorld);
+
+                    // Synchronize hex reference (for ALL locations)
+                    _hexSync.SyncLocationToHex(location, _gameWorld);
+
+                    // ATOMIC: Add location AND update venue.LocationIds within lock
+                    _gameWorld.AddOrUpdateLocation(location.Id, location);
+                }
             }
-
-            // POST-PARSING INTEGRATION: Validate playability (fail-fast)
-            // Applies to ALL locations (Catalogue Pattern compliance)
-            _locationValidator.ValidateLocation(location, _gameWorld);
-
-            // Synchronize hex reference (for ALL locations)
-            _hexSync.SyncLocationToHex(location, _gameWorld);
-
-            // Add to primary Locations dictionary
-            _gameWorld.AddOrUpdateLocation(location.Id, location);
+            else
+            {
+                // Location has no venue (shouldn't happen, but handle gracefully)
+                _locationValidator.ValidateLocation(location, _gameWorld);
+                _hexSync.SyncLocationToHex(location, _gameWorld);
+                _gameWorld.AddOrUpdateLocation(location.Id, location);
+            }
         }
     }
 
