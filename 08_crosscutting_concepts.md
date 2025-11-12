@@ -587,9 +587,9 @@ Location Persists Forever (no cleanup)
 **Tracking**:
 - `SceneProvenance`: Metadata tracking creation source (for debugging only, not lifecycle decisions)
 - `Venue.MaxLocations`: Total capacity budget (counts ALL locations: authored + generated)
-- `Venue.LocationIds`: Bidirectional relationship maintained by GameWorld.AddOrUpdateLocation/RemoveLocation
+- `Venue.LocationIds`: Bidirectional relationship maintained by GameWorld.AddOrUpdateLocation
 - Budget derived (LocationIds.Count) not tracked (Catalogue Pattern compliance)
-- Thread-safe: Capacity checks locked on venue object to prevent race conditions
+- No locking needed: Blazor Server is single-threaded (07_deployment_view.md line 26)
 
 #### Design Decisions
 

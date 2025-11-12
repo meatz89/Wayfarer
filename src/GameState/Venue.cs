@@ -16,7 +16,7 @@
     public int Tier { get; set; } = 1;
 
     // BIDIRECTIONAL RELATIONSHIP: Venue ↔ Location
-    // Venue.LocationIds maintained by GameWorld.AddOrUpdateLocation/RemoveLocation
+    // Venue.LocationIds maintained by GameWorld.AddOrUpdateLocation
     // Location.Venue maintained by LocationParser.ConvertDTOToLocation
     // CRITICAL: Capacity budget depends on LocationIds.Count being accurate
     public List<string> LocationIds { get; set; } = new List<string>();

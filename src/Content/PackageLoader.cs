@@ -787,23 +787,56 @@ public class PackageLoader
 
         foreach (VenueDTO dto in venueDtos)
         {
-            // Check if this venue was previously a skeleton, if so replace it
-            Venue? existingSkeleton = _gameWorld.Venues
-                .FirstOrDefault(l => l.Id == dto.Id && l.IsSkeleton);
+            // Check if this venue was previously a skeleton - UPDATE IN-PLACE (never remove)
+            Venue? existing = _gameWorld.Venues
+                .FirstOrDefault(l => l.Id == dto.Id);
 
-            Venue venue = VenueParser.ConvertDTOToVenue(dto);
-
-            if (existingSkeleton != null)
+            if (existing != null)
             {
-                _gameWorld.Venues.Remove(existingSkeleton);
+                // UPDATE existing venue properties in-place (preserve object identity)
+                existing.Name = dto.Name;
+                existing.Description = dto.Description;
+                existing.District = dto.DistrictId;
+                existing.Tier = dto.Tier;
+
+                // Parse LocationType to VenueType enum
+                VenueType venueType = VenueType.Wilderness;
+                if (!string.IsNullOrEmpty(dto.LocationType))
+                {
+                    if (!Enum.TryParse<VenueType>(dto.LocationType, true, out venueType))
+                    {
+                        throw new InvalidDataException($"Venue {dto.Id} has invalid LocationType '{dto.LocationType}'. Valid values: {string.Join(", ", Enum.GetNames(typeof(VenueType)))}");
+                    }
+                }
+                existing.Type = venueType;
+
+                // LocationIds: Merge authored IDs from JSON with any existing runtime IDs
+                if (dto.locations != null && dto.locations.Any())
+                {
+                    foreach (string locId in dto.locations)
+                    {
+                        if (!existing.LocationIds.Contains(locId))
+                        {
+                            existing.LocationIds.Add(locId);
+                        }
+                    }
+                }
+
+                existing.IsSkeleton = false;
+
+                // Remove from skeleton registry if present
                 SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FirstOrDefault(x => x.SkeletonKey == dto.Id);
                 if (skeletonEntry != null)
                 {
                     _gameWorld.SkeletonRegistry.Remove(skeletonEntry);
                 }
             }
-
-            _gameWorld.Venues.Add(venue);
+            else
+            {
+                // New venue - add to collection
+                Venue venue = VenueParser.ConvertDTOToVenue(dto);
+                _gameWorld.Venues.Add(venue);
+            }
         }
     }
 
@@ -813,9 +846,8 @@ public class PackageLoader
 
         foreach (LocationDTO dto in spotDtos)
         {
-            // Check if this location was previously a skeleton, if so replace it
+            // Remove skeleton registry entry if location was skeleton (cleanup before update)
             Location? existingSkeleton = _gameWorld.GetLocation(dto.Id);
-
             if (existingSkeleton != null && existingSkeleton.IsSkeleton)
             {
                 SkeletonRegistryEntry? spotSkeletonEntry = _gameWorld.SkeletonRegistry.FirstOrDefault(x => x.SkeletonKey == dto.Id);
@@ -823,9 +855,6 @@ public class PackageLoader
                 {
                     _gameWorld.SkeletonRegistry.Remove(spotSkeletonEntry);
                 }
-
-                // Remove from primary Locations dictionary if exists
-                _gameWorld.RemoveLocation(dto.Id);
             }
 
             Location location = LocationParser.ConvertDTOToLocation(dto, _gameWorld);
@@ -834,31 +863,27 @@ public class PackageLoader
             // Generated: Checked BEFORE DTO creation in SceneInstantiator
             // Authored: Checked AFTER parsing here
             // Ensures capacity model applies uniformly (Catalogue Pattern compliance)
-            // THREAD-SAFE: Check-and-add happens within GameWorld.AddOrUpdateLocation atomically
+            // NO LOCK NEEDED: Blazor Server is single-threaded (07_deployment_view.md line 26)
             if (location.Venue != null)
             {
-                // Lock venue to prevent race condition: two threads checking simultaneously
-                lock (location.Venue)
+                if (!location.Venue.CanAddMoreLocations())
                 {
-                    if (!location.Venue.CanAddMoreLocations())
-                    {
-                        throw new InvalidOperationException(
-                            $"Venue '{location.Venue.Id}' ({location.Venue.Name}) has reached capacity " +
-                            $"({location.Venue.LocationIds.Count}/{location.Venue.MaxLocations} locations). " +
-                            $"Cannot add location '{location.Id}'. " +
-                            $"Increase MaxLocations in venue definition or reduce authored locations.");
-                    }
-
-                    // POST-PARSING INTEGRATION: Validate playability (fail-fast)
-                    // Applies to ALL locations (Catalogue Pattern compliance)
-                    _locationValidator.ValidateLocation(location, _gameWorld);
-
-                    // Synchronize hex reference (for ALL locations)
-                    _hexSync.SyncLocationToHex(location, _gameWorld);
-
-                    // ATOMIC: Add location AND update venue.LocationIds within lock
-                    _gameWorld.AddOrUpdateLocation(location.Id, location);
+                    throw new InvalidOperationException(
+                        $"Venue '{location.Venue.Id}' ({location.Venue.Name}) has reached capacity " +
+                        $"({location.Venue.LocationIds.Count}/{location.Venue.MaxLocations} locations). " +
+                        $"Cannot add location '{location.Id}'. " +
+                        $"Increase MaxLocations in venue definition or reduce authored locations.");
                 }
+
+                // POST-PARSING INTEGRATION: Validate playability (fail-fast)
+                // Applies to ALL locations (Catalogue Pattern compliance)
+                _locationValidator.ValidateLocation(location, _gameWorld);
+
+                // Synchronize hex reference (for ALL locations)
+                _hexSync.SyncLocationToHex(location, _gameWorld);
+
+                // AddOrUpdateLocation handles skeleton replacement via in-place property updates
+                _gameWorld.AddOrUpdateLocation(location.Id, location);
             }
             else
             {
@@ -916,33 +941,50 @@ public class PackageLoader
                 _gameWorld.AddSkeleton(dto.LocationId, "Location");
             }
 
-            // Check if this NPC was previously a skeleton, if so replace it and preserve persistent decks
-            NPC? existingSkeleton = _gameWorld.NPCs.FirstOrDefault(n => n.ID == dto.Id && n.IsSkeleton);
-            if (existingSkeleton != null)
-            {// Preserve all cards from the persistent decks
-                List<ExchangeCard> preservedExchangeCards = existingSkeleton.ExchangeDeck.ToList();
+            // Check if this NPC already exists - UPDATE IN-PLACE (never remove)
+            NPC? existing = _gameWorld.NPCs.FirstOrDefault(n => n.ID == dto.Id);
 
-                int totalPreservedCards = preservedExchangeCards.Count;// Remove skeleton from game world
-                _gameWorld.NPCs.Remove(existingSkeleton);
+            if (existing != null)
+            {
+                // Preserve persistent deck cards (player-earned cards must not be lost)
+                List<ExchangeCard> preservedExchangeCards = existing.ExchangeDeck.ToList();
+
+                // Parse full NPC from DTO to get updated properties
+                NPC parsed = NPCParser.ConvertDTOToNPC(dto, _gameWorld);
+
+                // UPDATE existing NPC properties in-place (preserve object identity)
+                existing.Name = parsed.Name;
+                existing.Description = parsed.Description;
+                existing.LocationId = parsed.LocationId;
+                existing.Tier = parsed.Tier;
+                existing.IsSkeleton = false;
+
+                // Update initial decks from authored content (replace skeleton placeholders)
+                existing.ConversationDeck = parsed.ConversationDeck;
+                existing.RequestDeck = parsed.RequestDeck;
+                existing.ObservationDeck = parsed.ObservationDeck;
+                existing.BurdenDeck = parsed.BurdenDeck;
+
+                // PRESERVE ExchangeDeck: Merge authored initial cards + preserved runtime cards
+                existing.ExchangeDeck.Clear();
+                existing.ExchangeDeck.AddRange(parsed.ExchangeDeck); // Authored initial cards
+                existing.ExchangeDeck.AddRange(preservedExchangeCards); // Runtime cards preserved
+
+                // Update all other NPC properties
+                existing.Tags = parsed.Tags;
+                existing.NPCRole = parsed.NPCRole;
+                existing.NPCDemeanor = parsed.NPCDemeanor;
+
+                // Remove from skeleton registry if present
                 SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FirstOrDefault(x => x.SkeletonKey == dto.Id);
                 if (skeletonEntry != null)
                 {
                     _gameWorld.SkeletonRegistry.Remove(skeletonEntry);
                 }
-
-                // Create new NPC from DTO
-                NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld);
-
-                // Restore preserved cards to the new NPC's persistent decks
-                if (preservedExchangeCards.Any())
-                {
-                    npc.ExchangeDeck.AddRange(preservedExchangeCards);
-                }// Add the new NPC to game world
-                _gameWorld.NPCs.Add(npc);
             }
             else
             {
-                // No skeleton to replace, just create new NPC normally
+                // New NPC - add to collection
                 NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld);
                 _gameWorld.NPCs.Add(npc);
             }
