@@ -518,7 +518,11 @@ The archetype ID encodes the complete pattern. No parameters configuring structu
 
 Entity properties scale archetypes universally without modifying archetype definitions. Same archetype + different entity properties = contextually appropriate difficulty via universal scaling formulas.
 
-### Four Universal Scaling Properties
+### Nine Universal Categorical Properties
+
+Four core properties scale mechanical values (stat thresholds, costs, rewards), while five additional properties control specialized generation aspects (consequences, social impact, timing, emotional context, moral framing).
+
+#### Core Scaling Properties (1-4)
 
 **1. NPCDemeanor (Friendly/Neutral/Hostile)**
 
@@ -585,6 +589,113 @@ Example: Base Stamina restoration 30.
 - Premium environment: 30 × 3.0 = 90 stamina
 
 Same archetype, different environment quality, contextually appropriate benefits.
+
+#### Additional Categorical Properties (5-9)
+
+Beyond the four core scaling properties, GenerationContext includes five additional categorical properties that control specialized aspects of content generation:
+
+**5. DangerLevel (Safe/Risky)**
+
+Scales: Crisis consequences, Physical challenge damage, Confrontation escalation severity.
+
+Values:
+- Safe: Baseline consequences (standard risks, expected outcomes)
+- Risky: Escalated consequences (higher health costs, harsher failure outcomes)
+
+Derivation: Automatically derived from location properties (Guarded/Outdoor), NPC hostility (RelationshipFlow ≤ 5), and player health (< 30).
+
+Example: Physical challenge failure.
+- Safe danger: 10 health loss (manageable setback)
+- Risky danger: 20 health loss (serious consequence)
+
+Same archetype, different danger context, contextually appropriate risk.
+
+**6. SocialStakes (Private/Witnessed/Public)**
+
+Scales: Reputation impact, face-saving costs, romance intimacy options, social consequence severity.
+
+Values:
+- Private: Minimal social consequences (intimate settings, no witnesses)
+- Witnessed: Standard social consequences (semi-public, limited audience)
+- Public: Maximum social consequences (public venues, reputation at stake)
+
+Derivation: Automatically derived from location properties. Public/Market → Public, Private/Isolated/Intimate → Private, otherwise Witnessed.
+
+Example: Social challenge failure.
+- Private stakes: No reputation loss (only affects direct relationship)
+- Witnessed stakes: Minor reputation loss (small circle aware)
+- Public stakes: Significant reputation loss (community-wide awareness)
+
+Same archetype, different social context, contextually appropriate social impact.
+
+**7. TimePressure (Leisurely/Urgent)**
+
+Scales: Available choices, time costs, retry availability, decision complexity.
+
+Values:
+- Leisurely: Full choice availability (all 4 choices present, time to consider)
+- Urgent: Reduced choices or increased costs (emergency decisions, pressure)
+
+Derivation: Automatically derived from location properties (Guarded/Official → Urgent) and crisis context.
+
+Example: Decision time cost.
+- Leisurely pressure: Standard time segments (careful consideration possible)
+- Urgent pressure: Compressed time segments or forced immediate choice
+
+Same archetype, different time context, contextually appropriate urgency.
+
+**8. EmotionalTone (Cold/Warm/Passionate)**
+
+Scales: Social rewards, negotiation rapport bonuses, romance options, relationship progression speed.
+
+Values:
+- Cold: Professional transactions (minimal emotional engagement)
+- Warm: Friendly interactions (positive emotional engagement, friendship)
+- Passionate: Intense interactions (strong emotions, love or hate)
+
+Derivation: Automatically derived from NPC BondStrength. High bond (≥15) or very low bond (≤3) → Passionate, medium bond (8-14) → Warm, otherwise Cold.
+
+Example: Social success reward.
+- Cold tone: Standard relationship progress (transactional)
+- Warm tone: Enhanced relationship progress (friendship building)
+- Passionate tone: Maximum relationship progress (deep connection or rivalry)
+
+Same archetype, different emotional context, contextually appropriate intimacy.
+
+**9. MoralClarity (Clear/Ambiguous)**
+
+Scales: Narrative framing, conscience tracking, faction reputation effects, moral choice consequences.
+
+Values:
+- Clear: Obvious right/wrong framing (moral certainty, faction alignment obvious)
+- Ambiguous: Gray morality (complex trade-offs, unclear best choice)
+
+Derivation: Automatically derived from location properties (Temple → Clear) and NPC context. Most situations default to Ambiguous.
+
+Example: Choice consequence framing.
+- Clear morality: Narrative explicitly frames choice as righteous or wrongful
+- Ambiguous morality: Narrative presents complex trade-offs, no clear answer
+
+Same archetype, different moral context, contextually appropriate framing.
+
+### Property Derivation Philosophy
+
+All nine categorical properties derive automatically from entity state via `GenerationContext.FromEntities()`. Content authors specify entity properties (NPC personality, location properties, player state), and the system calculates categorical properties algorithmically.
+
+This automatic derivation ensures:
+- **Consistency**: Same entity state always produces same categorical properties
+- **Simplicity**: Authors describe entities, system derives mechanics
+- **Maintainability**: Derivation formulas centralized in one place
+- **AI Enablement**: AI describes entities categorically, system handles numeric balance
+
+Example derivation flow:
+1. JSON specifies: `"npcDemeanor": "Hostile"`, `"locationProperties": ["Guarded"]`
+2. Parser reads entity properties
+3. `GenerationContext.FromEntities()` derives: `Danger = Risky` (Guarded location), `NpcDemeanor = Hostile`
+4. Archetype generation applies: Hostile 1.4× threshold, Risky danger consequences
+5. Result: Appropriately difficult, appropriately dangerous encounter
+
+Authors never manually calculate. System derives from categorical entity descriptions.
 
 ### Scaling Formula Application
 

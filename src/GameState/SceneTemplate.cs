@@ -130,6 +130,16 @@ public class SceneTemplate
     public int? MainStorySequence { get; init; }
 
     /// <summary>
+    /// Tags granted to player when Scene completes (TAG-BASED PROGRESSION SYSTEM)
+    /// Enables flexible branching: A1 completes → grants ['tutorial_complete', 'met_innkeeper']
+    /// → A2 OR B-Story-1 both available (both require only 'tutorial_complete')
+    /// Replaces rigid CompletedScenes chains with flexible tag unlock graphs
+    /// Example: ["discovered_conspiracy", "knows_secret_passage"] → Other scenes require these tags
+    /// Empty list = no tags granted (simple service scenes, repeatable content)
+    /// </summary>
+    public List<string> GrantsTags { get; init; } = new List<string>();
+
+    /// <summary>
     /// Presentation mode - how Scenes spawned from this template appear to the player
     /// Atmospheric: Scene appears as menu option (existing behavior)
     /// Modal: Scene takes over full screen on location entry (Sir Brante forced moment)
