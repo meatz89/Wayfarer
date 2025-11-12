@@ -198,11 +198,6 @@ This document provides canonical definitions for all specialized terms used acro
 3. **Challenge Situation:** Narrative situation involving difficulty/risk (informal usage).
 **Disambiguation:** Always specify "Tactical Challenge" (subsystem), "Challenge Choice" (PathType), or "Challenge Situation" (narrative).
 
-### Encounter
-**Usage:** Synonym for "Situation" in route travel context (legacy usage in WAYFARER_CORE_GAME_LOOP.md).
-**Current Standard:** Use "Situation" universally. Avoid "Encounter" to prevent terminology divergence.
-**Why:** Scene→Situation→Choice architecture is universal. Route travel uses same pattern as location visits.
-
 ### Goal
 **Historical Term:** Earlier architecture (pre-2025) used Goal/Obstacle entities for progression. Replaced by Scene/Situation architecture.
 **Current Equivalent:** "Goal" → "Scene". If documentation references "Goals", translate to "Scenes".
