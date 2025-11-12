@@ -116,7 +116,7 @@ The design pattern where delivery earnings barely cover survival costs (3-7 coin
 
 The core player capabilities determining card access, choice availability, and build identity. Every card in every challenge type binds to one of five stats - playing cards grants XP to bound stat, advancing stat unlocks deeper cards. Same stats manifest differently per challenge: Insight as pattern recognition (Mental) or reading motivations (Social), Authority as decisive conclusions (Mental) or commanding conversation (Social). Limited total XP forces specialization - cannot max all five.
 
-**Example:** Insight stat (0-5 range). Insight 2 player accesses Depth-2 Mental cards (basic observation), locked out of Depth-4 cards (advanced deduction). Playing Mental cards grants Insight XP. Reaching Insight 3 unlocks new card tier. Same Insight stat also affects Social challenges (reading between lines).
+**Example:** Insight stat (1-8 scale, typical progression). Insight 2 player accesses Depth-2 Mental cards (basic observation), locked out of Depth-4 cards (advanced deduction). Playing Mental cards grants Insight XP. Reaching Insight 3 unlocks new card tier. Same Insight stat also affects Social challenges (reading between lines). Stats begin at 1 and are extendable beyond 8 for long-term play.
 
 **Distinguishing from:** Class Stats (different per class), Separate Stats (different per system). Five stats are unified across all systems.
 

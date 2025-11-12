@@ -343,12 +343,12 @@ public class JsonNarrativeProvider : INarrativeProvider
     /// </summary>
     private string GenerateUtilityCardNarrative(CardInfo card)
     {
-        if (card.Effect?.Contains("draw") == true || card.Id.Contains("draw"))
+        if (card.Effect?.Contains("draw") == true || card.HasDrawEffect)
         {
             return "Gather thoughts";
         }
 
-        if (card.Effect?.Contains("focus") == true || card.Id.Contains("focus"))
+        if (card.Effect?.Contains("focus") == true || card.HasFocusEffect)
         {
             return "Center yourself";
         }

@@ -47,4 +47,16 @@ public class CardInfo
     /// Helps determine what kind of NPC dialogue this card should respond to.
     /// </summary>
     public string NarrativeCategory { get; set; }
+
+    /// <summary>
+    /// Indicates if this card has a draw effect (draws additional cards).
+    /// Used for narrative generation to avoid ID string parsing.
+    /// </summary>
+    public bool HasDrawEffect { get; set; }
+
+    /// <summary>
+    /// Indicates if this card has a focus effect (manipulates initiative/momentum).
+    /// Used for narrative generation to avoid ID string parsing.
+    /// </summary>
+    public bool HasFocusEffect { get; set; }
 }

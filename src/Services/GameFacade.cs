@@ -227,7 +227,7 @@ public class GameFacade
 
     public LocationScreenViewModel GetLocationScreen()
     {
-        // NPCs no longer have inline conversation options - situations are location-based in GameWorld.Situations
+        // NPCs no longer have inline conversation options - situations are embedded in Scene.Situations
         return _locationFacade.GetLocationScreen(new List<NPCConversationOptions>());
     }
 

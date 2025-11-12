@@ -883,7 +883,7 @@ public class LocationFacade
         List<SituationCardViewModel> ambientSituations = new List<SituationCardViewModel>();
         List<SceneWithSituationsViewModel> sceneGroups = new List<SceneWithSituationsViewModel>();
 
-        // SCENE-SITUATION ARCHITECTURE: Query active Scenes at this location, get Situation IDs, query GameWorld.Situations
+        // SCENE-SITUATION ARCHITECTURE: Query active Scenes at this location, get Situations from Scene.Situations
         List<Scene> scenesAtLocation = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
                        s.PlacementType == PlacementType.Location &&

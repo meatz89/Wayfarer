@@ -279,13 +279,67 @@ public class SocialNarrativeService
                 InitiativeCost = card.SocialCardTemplate.InitiativeCost,
                 Effect = card.SocialCardTemplate.SuccessType.ToString() ?? card.SocialCardTemplate.Title ?? "",
                 Persistence = DetermineCardPersistence(card),
-                NarrativeCategory = DetermineNarrativeCategory(card)
+                NarrativeCategory = DetermineNarrativeCategory(card),
+                HasDrawEffect = DetermineHasDrawEffect(card),
+                HasFocusEffect = DetermineHasFocusEffect(card)
             };
 
             collection.Cards.Add(cardInfo);
         }
 
         return collection;
+    }
+
+    /// <summary>
+    /// Determines if card has a draw effect (draws additional cards).
+    /// </summary>
+    private bool DetermineHasDrawEffect(CardInstance card)
+    {
+        // Check if card's effect formula targets the Cards resource
+        if (card.SocialCardTemplate.EffectFormula != null)
+        {
+            if (card.SocialCardTemplate.EffectFormula.TargetResource == SocialChallengeResourceType.Cards)
+                return true;
+
+            // Check compound effects
+            if (card.SocialCardTemplate.EffectFormula.CompoundEffects != null)
+            {
+                foreach (CardEffectFormula effect in card.SocialCardTemplate.EffectFormula.CompoundEffects)
+                {
+                    if (effect.TargetResource == SocialChallengeResourceType.Cards)
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines if card has a focus effect (manipulates initiative/momentum).
+    /// </summary>
+    private bool DetermineHasFocusEffect(CardInstance card)
+    {
+        // Check if card's effect formula targets Initiative or Momentum resources
+        if (card.SocialCardTemplate.EffectFormula != null)
+        {
+            if (card.SocialCardTemplate.EffectFormula.TargetResource == SocialChallengeResourceType.Initiative ||
+                card.SocialCardTemplate.EffectFormula.TargetResource == SocialChallengeResourceType.Momentum)
+                return true;
+
+            // Check compound effects
+            if (card.SocialCardTemplate.EffectFormula.CompoundEffects != null)
+            {
+                foreach (CardEffectFormula effect in card.SocialCardTemplate.EffectFormula.CompoundEffects)
+                {
+                    if (effect.TargetResource == SocialChallengeResourceType.Initiative ||
+                        effect.TargetResource == SocialChallengeResourceType.Momentum)
+                        return true;
+                }
+            }
+        }
+
+        return false;
     }
 
     /// <summary>

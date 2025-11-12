@@ -72,7 +72,7 @@ public class NPC
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
 
     // Active situation IDs for this NPC (Social challenges)
-    // References situations in GameWorld.Situations dictionary (single source of truth)
+    // References situations in Scene.Situations (situations embedded in scenes)
     public List<string> ActiveSituationIds { get; set; } = new List<string>();
 
     // NOTE: Old SceneIds property removed - NEW Scene-Situation architecture
