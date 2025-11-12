@@ -1,4 +1,8 @@
+using System.Runtime.CompilerServices;
 using System.Text.Json;
+
+[assembly: InternalsVisibleTo("Wayfarer.Tests.Project")]
+
 /// <summary>
 /// Domain Service for generating Scene instance DTOs and JSON packages from SceneTemplates
 ///
@@ -24,7 +28,6 @@ public class SceneInstantiator
     private readonly SceneNarrativeService _narrativeService;
     private readonly MarkerResolutionService _markerResolutionService;
     private readonly VenueGeneratorService _venueGenerator;
-    private readonly Random _random = new Random();
 
     public SceneInstantiator(
         GameWorld gameWorld,
@@ -878,7 +881,7 @@ public class SceneInstantiator
     /// </summary>
     private NPC SelectWeightedRandomNPC(List<NPC> candidates)
     {
-        int index = _random.Next(candidates.Count);
+        int index = Random.Shared.Next(candidates.Count);
         return candidates[index];
     }
 
@@ -887,7 +890,7 @@ public class SceneInstantiator
     /// </summary>
     private Location SelectWeightedRandomLocation(List<Location> candidates)
     {
-        int index = _random.Next(candidates.Count);
+        int index = Random.Shared.Next(candidates.Count);
         return candidates[index];
     }
 
@@ -1244,8 +1247,9 @@ public class SceneInstantiator
     /// <summary>
     /// Find adjacent hex position for new location
     /// Implements HexPlacementStrategy.Adjacent and SameVenue logic (both find unoccupied adjacent hex)
+    /// INTERNAL: Exposed for unit testing venue separation during organic growth
     /// </summary>
-    private AxialCoordinates? FindAdjacentHex(Location baseLocation, HexPlacementStrategy strategy)
+    internal AxialCoordinates? FindAdjacentHex(Location baseLocation, HexPlacementStrategy strategy)
     {
         switch (strategy)
         {
@@ -1279,6 +1283,7 @@ public class SceneInstantiator
                                                                        loc.HexPosition.Value.Equals(neighborHex.Coordinates));
                     if (hexOccupied)
                     {
+                        Console.WriteLine($"[VenueSeparation] Skipping hex ({neighborHex.Coordinates.Q}, {neighborHex.Coordinates.R}): Already occupied");
                         continue; // Skip occupied hexes
                     }
 
@@ -1287,15 +1292,17 @@ public class SceneInstantiator
                     bool violatesSeparation = IsAdjacentToOtherVenue(neighborHex.Coordinates, baseVenueId);
                     if (violatesSeparation)
                     {
+                        Console.WriteLine($"[VenueSeparation] Skipping hex ({neighborHex.Coordinates.Q}, {neighborHex.Coordinates.R}): Would violate venue separation (adjacent to other venue)");
                         continue; // Skip hexes that would violate separation
                     }
 
+                    Console.WriteLine($"[VenueSeparation] Selected hex ({neighborHex.Coordinates.Q}, {neighborHex.Coordinates.R}) for organic growth (maintains separation)");
                     return neighborHex.Coordinates;
                 }
 
                 throw new InvalidOperationException(
                     $"No unoccupied adjacent hexes found for location '{baseLocation.Id}' " +
-                    $"that maintain venue separation. Venue may have reached spatial density limit.");
+                    $"that maintain venue separation. Venue '{baseVenueId}' may have reached spatial density limit.");
 
             case HexPlacementStrategy.Distance:
             case HexPlacementStrategy.Random:

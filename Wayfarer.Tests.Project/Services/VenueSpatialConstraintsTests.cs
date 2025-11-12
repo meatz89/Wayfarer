@@ -23,34 +23,29 @@ public class VenueSpatialConstraintsTests
             MaxLocations = 5
         };
 
-        SceneSpawnContext context = new SceneSpawnContext { Player = new Player("Test") };
+        SceneSpawnContext context = new SceneSpawnContext { Player = new Player { Name = "Test" } };
 
         Venue venue1 = service.GenerateVenue(template, context, gameWorld);
         Location loc1 = new Location("loc1", "Location 1")
         {
             VenueId = venue1.Id,
             Venue = venue1,
-            HexPosition = new AxialCoordinates(0, 0)
+            HexPosition = venue1.CenterHex
         };
         gameWorld.Locations.Add(loc1);
-        gameWorld.WorldHexGrid.GetHex(0, 0).LocationId = loc1.Id;
+        venue1.LocationIds.Add(loc1.Id);
+        if (venue1.CenterHex.HasValue)
+        {
+            gameWorld.WorldHexGrid.GetHex(venue1.CenterHex.Value.Q, venue1.CenterHex.Value.R).LocationId = loc1.Id;
+        }
 
         Venue venue2 = service.GenerateVenue(template, context, gameWorld);
-        Location loc2 = new Location("loc2", "Location 2")
-        {
-            VenueId = venue2.Id,
-            Venue = venue2,
-            HexPosition = new AxialCoordinates(venue2.LocationIds[0], 0)
-        };
 
-        AxialCoordinates[] venue1Neighbors = new AxialCoordinates(0, 0).GetNeighbors();
-        AxialCoordinates venue2Center = gameWorld.Locations
-            .First(l => l.VenueId == venue2.Id).HexPosition.Value;
+        AxialCoordinates venue1Center = venue1.CenterHex.Value;
+        AxialCoordinates venue2Center = venue2.CenterHex.Value;
 
-        foreach (AxialCoordinates neighbor in venue1Neighbors)
-        {
-            Assert.NotEqual(neighbor, venue2Center);
-        }
+        int distance = venue1Center.DistanceTo(venue2Center);
+        Assert.True(distance >= 2, $"Venues too close: distance {distance} < 2");
     }
 
     [Fact]
@@ -66,10 +61,10 @@ public class VenueSpatialConstraintsTests
             MaxLocations = 15
         };
 
-        SceneSpawnContext context = new SceneSpawnContext { Player = new Player("Test") };
+        SceneSpawnContext context = new SceneSpawnContext { Player = new Player { Name = "Test" } };
 
         Venue venue1 = service.GenerateVenue(template, context, gameWorld);
-        AxialCoordinates venue1Center = new AxialCoordinates(0, 0);
+        AxialCoordinates venue1Center = venue1.CenterHex.Value;
         PlaceLocationAtHex(gameWorld, venue1, venue1Center, "loc1_center");
 
         AxialCoordinates[] venue1Cluster = GetClusterOf7(venue1Center);
@@ -103,7 +98,7 @@ public class VenueSpatialConstraintsTests
             MaxLocations = 3
         };
 
-        SceneSpawnContext context = new SceneSpawnContext { Player = new Player("Test") };
+        SceneSpawnContext context = new SceneSpawnContext { Player = new Player { Name = "Test" } };
 
         List<Venue> venues = new List<Venue>();
         for (int i = 0; i < 5; i++)
@@ -268,7 +263,7 @@ public class VenueSpatialConstraintsTests
             MaxLocations = 20
         };
 
-        SceneSpawnContext context = new SceneSpawnContext { Player = new Player("Test") };
+        SceneSpawnContext context = new SceneSpawnContext { Player = new Player { Name = "Test" } };
 
         Venue starterVenue = service.GenerateVenue(template, context, gameWorld);
 
@@ -319,7 +314,7 @@ public class VenueSpatialConstraintsTests
             MaxLocations = 15
         };
 
-        SceneSpawnContext context = new SceneSpawnContext { Player = new Player("Test") };
+        SceneSpawnContext context = new SceneSpawnContext { Player = new Player { Name = "Test" } };
         Venue newVenue = service.GenerateVenue(newVenueTemplate, context, gameWorld);
 
         Assert.NotEqual(matureVenue.Id, newVenue.Id);
@@ -350,7 +345,7 @@ public class VenueSpatialConstraintsTests
         {
             HexAllocation = HexAllocationStrategy.SingleHex
         };
-        SceneSpawnContext context = new SceneSpawnContext { Player = new Player("Test") };
+        SceneSpawnContext context = new SceneSpawnContext { Player = new Player { Name = "Test" } };
 
         InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() =>
             service.GenerateVenue(template, context, gameWorld)
@@ -453,9 +448,6 @@ public class VenueSpatialConstraintsTests
 
     private AxialCoordinates? InvokeFindAdjacentHex(SceneInstantiator instantiator, Location baseLocation, HexPlacementStrategy strategy)
     {
-        System.Reflection.MethodInfo method = typeof(SceneInstantiator)
-            .GetMethod("FindAdjacentHex", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-
-        return (AxialCoordinates?)method.Invoke(instantiator, new object[] { baseLocation, strategy });
+        return instantiator.FindAdjacentHex(baseLocation, strategy);
     }
 }

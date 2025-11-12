@@ -5,7 +5,6 @@
 public class VenueGeneratorService
 {
     private readonly HexSynchronizationService _hexSyncService;
-    private readonly Random _random = new Random();
 
     public VenueGeneratorService(HexSynchronizationService hexSyncService)
     {
@@ -104,7 +103,7 @@ public class VenueGeneratorService
         while (n > 1)
         {
             n--;
-            int k = _random.Next(n + 1);
+            int k = Random.Shared.Next(n + 1);
             T value = list[k];
             list[k] = list[n];
             list[n] = value;
