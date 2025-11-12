@@ -518,7 +518,7 @@ SITUATION 4: CLEANUP
 
 ## 6.6 Dependent Resource Lifecycle
 
-This scenario shows complete lifecycle of scene-generated resources from declaration to cleanup.
+This scenario shows complete lifecycle of scene-generated resources from declaration to persistence.
 
 ### Scenario: Private Room Lifecycle
 
@@ -623,23 +623,23 @@ Actions created and displayed:
   - Rest choices appear
   - Player can use the room
 
-PHASE 6: REMOVAL (Runtime - Cleanup)
-────────────────────────────────────
+PHASE 6: STATE CHANGES (Runtime - Access Control)
+──────────────────────────────────────────────────
 
 Player executes departure choice:
 
 Choice.RewardTemplate.Apply():
   ItemsToRemove: ["item_guid_67890"]
-  → Player.Inventory.Remove(item_guid_67890) (key removed)
+  → Player.Inventory.Remove(item_guid_67890) (key removed from inventory)
 
   LocationsToLock: ["location_guid_12345"]
   → location = GameWorld.GetLocation("location_guid_12345")
-  → location.IsLocked = true (no re-entry)
+  → location.IsLocked = true (access revoked)
 
 GameWorld state updated:
-  - Key removed from inventory
-  - Location locked again
-  - Location persists but inaccessible
+  - Key removed from inventory (item instance removed, not entity deleted)
+  - Location locked again (access state changed)
+  - Location persists but inaccessible (entity remains forever)
 
 Future attempts:
   - Player navigates to location_guid_12345

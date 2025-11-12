@@ -58,8 +58,8 @@ This document provides canonical definitions for all specialized terms used acro
 **Lifecycle States:**
 - **Provisional:** Created for perfect information preview, Situations not yet instantiated. Can be finalized or discarded.
 - **Active:** Finalized and playable. Situations instantiated, CurrentSituation set.
-- **Completed:** All Situations finished. Marked for cleanup.
-- **Expired:** ExpiresOnDay reached. Filtered from queries.
+- **Completed:** All Situations finished. Scene persists but filtered from active queries.
+- **Expired:** ExpiresOnDay reached. Scene persists but filtered from queries.
 **Key Properties:** Id, TemplateId, PlacementType, PlacementId, Situations (embedded list), CurrentSituation (object reference), State (SceneState enum).
 **Historical Note:** Replaces Goal/Obstacle architecture. Earlier docs may reference "Goals" - these are Scenes in current architecture.
 
@@ -184,8 +184,8 @@ This document provides canonical definitions for all specialized terms used acro
 
 ### Dependent Resources
 **Definition:** Entities (Locations, Items, NPCs) created dynamically by Scene through package generation. Scene tracks CreatedLocationIds, CreatedItemIds, DependentPackageId for forensics.
-**Lifecycle:** Created during Scene finalization → Tracked in Scene properties → Cleaned up when Scene expires/completes (if configured for cleanup).
-**Why:** Enables self-contained narrative content that creates temporary entities without polluting global world state.
+**Lifecycle:** Created during Scene finalization → Tracked in Scene properties → Persist forever like all entities (scenes track creation for debugging, not cleanup).
+**Why:** Enables self-contained narrative content that creates its own entities. All entities persist - Scene tracks what it created for debugging/forensics only.
 
 ---
 
