@@ -112,10 +112,11 @@ public class PathCard
     public int CoinReward { get; set; } = 0;
 
     /// <summary>
-    /// One-time reward identifier (legacy property)
-    /// String identifier for unique reward
+    /// One-time reward for discovering/using this path
+    /// Strongly-typed reward object (coins, observation, etc.)
+    /// Set at parse-time from PathCardDTO.OneTimeReward string
     /// </summary>
-    public string OneTimeReward { get; set; }
+    public PathReward Reward { get; set; } = PathReward.None;
 
     /// <summary>
     /// Token gains from using this path

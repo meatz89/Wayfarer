@@ -580,38 +580,36 @@ public class TravelManager
         }
 
         // Apply one-time rewards with messages
-        if (card.IsOneTime && !string.IsNullOrEmpty(card.OneTimeReward))
+        if (card.IsOneTime && card.Reward.RewardType != PathRewardType.None)
         {
-            ApplyOneTimeReward(card.OneTimeReward, card.Id);
+            ApplyOneTimeReward(card.Reward, card.Id);
         }
     }
 
     /// <summary>
     /// Apply one-time reward effects with system messages
     /// </summary>
-    private void ApplyOneTimeReward(string reward, string cardId)
+    private void ApplyOneTimeReward(PathReward reward, string cardId)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Parse reward string and apply effects
-        if (reward.StartsWith("observation_"))
+        // Apply typed reward based on reward type
+        switch (reward.RewardType)
         {
-            // Observation cards are not implemented in current design
-            _messageSystem.AddSystemMessage($"One-time reward claimed: {reward}", SystemMessageTypes.Success);
-        }
-        else if (reward.EndsWith("_coins"))
-        {
-            // Extract coin amount and add to player
-            if (reward.StartsWith("3_"))
-            {
-                player.ModifyCoins(3);
-                _messageSystem.AddSystemMessage($"One-time reward claimed: 3 coins", SystemMessageTypes.Success);
-            }
-            // Add more coin parsing as needed
-        }
-        else
-        {
-            _messageSystem.AddSystemMessage($"One-time reward claimed: {reward}", SystemMessageTypes.Success);
+            case PathRewardType.Coins:
+                int amount = reward.Amount ?? 0;
+                player.ModifyCoins(amount);
+                _messageSystem.AddSystemMessage($"One-time reward claimed: {amount} coins", SystemMessageTypes.Success);
+                break;
+
+            case PathRewardType.Observation:
+                // Observation cards are not implemented in current design
+                _messageSystem.AddSystemMessage($"One-time reward claimed: {reward.SpecificId}", SystemMessageTypes.Success);
+                break;
+
+            case PathRewardType.None:
+                // No reward, do nothing
+                break;
         }
 
         // Mark reward as claimed
