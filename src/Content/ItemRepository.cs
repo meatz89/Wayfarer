@@ -57,21 +57,5 @@
         }
     }
 
-    public bool RemoveItem(string id)
-    {
-        if (_gameWorld.Items == null)
-        {
-            return false;
-        }
-
-        Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == id);
-        if (item != null)
-        {
-            return _gameWorld.Items.Remove(item);
-        }
-
-        return false;
-    }
-
     #endregion
 }
