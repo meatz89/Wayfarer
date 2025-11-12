@@ -359,6 +359,46 @@ public class VenueSpatialConstraintsTests
         Assert.Contains("Could not find unoccupied hex cluster", ex.Message);
     }
 
+    [Fact]
+    public void OrganicGrowth_MaintainsVenueSeparation_DuringExpansion()
+    {
+        GameWorld gameWorld = CreateGameWorldWithGrid(30, 30);
+        VenueGeneratorService venueService = new VenueGeneratorService(new HexSynchronizationService());
+
+        Venue venueA = new Venue("venue_a", "Venue A") { MaxLocations = 20 };
+        Venue venueB = new Venue("venue_b", "Venue B") { MaxLocations = 20 };
+        gameWorld.Venues.Add(venueA);
+        gameWorld.Venues.Add(venueB);
+
+        AxialCoordinates venueACenter = new AxialCoordinates(0, 0);
+        AxialCoordinates venueBCenter = new AxialCoordinates(4, 0);
+
+        PlaceLocationAtHex(gameWorld, venueA, venueACenter, "venue_a_loc1");
+        PlaceLocationAtHex(gameWorld, venueB, venueBCenter, "venue_b_loc1");
+
+        SceneInstantiator instantiator = CreateSceneInstantiator(gameWorld);
+
+        Location venueALoc1 = gameWorld.Locations.First(l => l.Id == "venue_a_loc1");
+        AxialCoordinates? adjacentHex = InvokeFindAdjacentHex(instantiator, venueALoc1, HexPlacementStrategy.Adjacent);
+        Assert.NotNull(adjacentHex);
+        PlaceLocationAtHex(gameWorld, venueA, adjacentHex.Value, "venue_a_loc2");
+
+        Location venueALoc2 = gameWorld.Locations.First(l => l.Id == "venue_a_loc2");
+        AxialCoordinates? thirdHex = InvokeFindAdjacentHex(instantiator, venueALoc2, HexPlacementStrategy.Adjacent);
+
+        if (thirdHex.HasValue)
+        {
+            PlaceLocationAtHex(gameWorld, venueA, thirdHex.Value, "venue_a_loc3");
+
+            AxialCoordinates[] venueBNeighbors = venueBCenter.GetNeighbors();
+            Assert.DoesNotContain(thirdHex.Value, venueBNeighbors);
+
+            int distanceToBCenter = thirdHex.Value.DistanceTo(venueBCenter);
+            Assert.True(distanceToBCenter >= 2,
+                $"Organic growth violated venue separation: distance {distanceToBCenter} < 2");
+        }
+    }
+
     private GameWorld CreateGameWorldWithGrid(int width, int height)
     {
         GameWorld gameWorld = new GameWorld();

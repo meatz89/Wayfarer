@@ -1268,19 +1268,34 @@ public class SceneInstantiator
 
                 List<Hex> neighbors = hexMap.GetNeighbors(baseHex);
 
-                // Find first unoccupied neighbor
+                // CRITICAL: Maintain venue separation during organic growth
+                // Find first unoccupied neighbor that doesn't violate venue separation
+                string baseVenueId = baseLocation.VenueId;
+
                 foreach (Hex neighborHex in neighbors)
                 {
                     // Check if any location occupies this hex
                     bool hexOccupied = _gameWorld.Locations.Any(loc => loc.HexPosition.HasValue &&
                                                                        loc.HexPosition.Value.Equals(neighborHex.Coordinates));
-                    if (!hexOccupied)
+                    if (hexOccupied)
                     {
-                        return neighborHex.Coordinates;
+                        continue; // Skip occupied hexes
                     }
+
+                    // SPATIAL CONSTRAINT: Check that placing location here maintains venue separation
+                    // The new location's neighbors must not contain locations from OTHER venues
+                    bool violatesSeparation = IsAdjacentToOtherVenue(neighborHex.Coordinates, baseVenueId);
+                    if (violatesSeparation)
+                    {
+                        continue; // Skip hexes that would violate separation
+                    }
+
+                    return neighborHex.Coordinates;
                 }
 
-                throw new InvalidOperationException($"No unoccupied adjacent hexes found for location '{baseLocation.Id}'");
+                throw new InvalidOperationException(
+                    $"No unoccupied adjacent hexes found for location '{baseLocation.Id}' " +
+                    $"that maintain venue separation. Venue may have reached spatial density limit.");
 
             case HexPlacementStrategy.Distance:
             case HexPlacementStrategy.Random:
@@ -1289,6 +1304,35 @@ public class SceneInstantiator
             default:
                 throw new InvalidOperationException($"Unknown HexPlacementStrategy: {strategy}");
         }
+    }
+
+    /// <summary>
+    /// Check if a hex coordinate is adjacent to any location from a venue other than the specified venue.
+    /// Used to enforce venue separation during organic growth.
+    /// </summary>
+    private bool IsAdjacentToOtherVenue(AxialCoordinates hexCoords, string currentVenueId)
+    {
+        AxialCoordinates[] neighbors = hexCoords.GetNeighbors();
+
+        foreach (AxialCoordinates neighborCoords in neighbors)
+        {
+            // Check if any location exists at this neighbor position
+            Location neighborLocation = _gameWorld.Locations.FirstOrDefault(loc =>
+                loc.HexPosition.HasValue &&
+                loc.HexPosition.Value.Equals(neighborCoords));
+
+            if (neighborLocation != null)
+            {
+                // If location exists and belongs to DIFFERENT venue, separation violated
+                if (!string.IsNullOrEmpty(neighborLocation.VenueId) &&
+                    neighborLocation.VenueId != currentVenueId)
+                {
+                    return true; // Adjacent to other venue
+                }
+            }
+        }
+
+        return false; // Not adjacent to other venues
     }
 
     /// <summary>
