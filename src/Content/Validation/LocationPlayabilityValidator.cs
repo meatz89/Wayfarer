@@ -1,12 +1,13 @@
 /// <summary>
-/// Validates that dynamically generated locations are functionally playable.
+/// Validates that locations are functionally playable.
 /// PRINCIPLE: Unplayable content worse than crash (playability over compilation).
 /// Fail-fast on validation errors - forces fixing root cause in content authoring.
+/// Applies to ALL locations (authored + generated) - Catalogue Pattern compliance.
 /// </summary>
-public class GeneratedLocationValidator
+public class LocationPlayabilityValidator
 {
     /// <summary>
-    /// Validate that generated location meets playability requirements.
+    /// Validate that location meets playability requirements.
     /// Throws InvalidOperationException on validation failure (fail-fast).
     /// </summary>
     public void ValidateLocation(Location location, GameWorld gameWorld)
@@ -63,7 +64,7 @@ public class GeneratedLocationValidator
         // If any errors, throw with complete error list
         if (errors.Any())
         {
-            string errorMessage = $"Generated location validation failed:\n" + string.Join("\n", errors);
+            string errorMessage = $"Location playability validation failed:\n" + string.Join("\n", errors);
             throw new InvalidOperationException(errorMessage);
         }
     }

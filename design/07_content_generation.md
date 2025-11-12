@@ -1248,9 +1248,9 @@ Generates location deterministically when scene spawns. Location flows through s
 
 ### Validation and Playability
 
-**Fail-Fast Principle**: Generated content must be functionally playable. Unplayable content worse than crash (forces fixing root cause).
+**Fail-Fast Principle**: ALL locations must be functionally playable. Unplayable content worse than crash (forces fixing root cause).
 
-**GeneratedLocationValidator checks**:
+**LocationPlayabilityValidator checks** (applies to authored + generated):
 1. **Hex Position**: Location must have valid hex coordinates
 2. **Reachability**: Must be reachable from player (same venue OR route exists)
 3. **Venue**: Must belong to valid venue
@@ -1310,7 +1310,7 @@ Archetypes remain pure mechanical patterns. Dynamic generation provides spatial 
 
 Implementation details in arc42 documentation:
 - VenueGeneratorService: Section 5 (Building Block View)
-- GeneratedLocationValidator: Section 5 (Building Block View)
+- LocationPlayabilityValidator: Section 5 (Building Block View)
 - HexSynchronizationService: Section 5 (Building Block View)
 - SceneInstantiator.BuildLocationDTO: Section 5 (Building Block View)
 - Dynamic World Building pattern: Section 8 (Crosscutting Concepts)

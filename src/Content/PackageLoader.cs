@@ -40,13 +40,13 @@ public class PackageLoader
     private List<string> _loadedPackageIds = new List<string>();
 
     private readonly SceneGenerationFacade _sceneGenerationFacade;
-    private readonly GeneratedLocationValidator _locationValidator;
+    private readonly LocationPlayabilityValidator _locationValidator;
     private readonly HexSynchronizationService _hexSync;
 
     public PackageLoader(
         GameWorld gameWorld,
         SceneGenerationFacade sceneGenerationFacade,
-        GeneratedLocationValidator locationValidator,
+        LocationPlayabilityValidator locationValidator,
         HexSynchronizationService hexSync)
     {
         _gameWorld = gameWorld;
@@ -830,10 +830,21 @@ public class PackageLoader
 
             Location location = LocationParser.ConvertDTOToLocation(dto, _gameWorld);
 
+            // CAPACITY VALIDATION: Check venue capacity for ALL locations (authored + generated)
+            // Generated: Checked BEFORE DTO creation in SceneInstantiator
+            // Authored: Checked AFTER parsing here
+            // Ensures capacity model applies uniformly (Catalogue Pattern compliance)
+            if (location.Venue != null && !location.Venue.CanAddMoreLocations())
+            {
+                throw new InvalidOperationException(
+                    $"Venue '{location.Venue.Id}' ({location.Venue.Name}) has reached capacity " +
+                    $"({location.Venue.LocationIds.Count}/{location.Venue.MaxLocations} locations). " +
+                    $"Cannot add location '{location.Id}'. " +
+                    $"Increase MaxLocations in venue definition or reduce authored locations.");
+            }
+
             // POST-PARSING INTEGRATION: Validate playability (fail-fast)
-            // Budget validation happens at generation time (SceneInstantiator checks capacity BEFORE creating DTO)
-            // Authored content assumed valid, but generated content must be validated
-            // NOTE: No distinction between authored/generated after parsing (Catalogue Pattern compliance)
+            // Applies to ALL locations (Catalogue Pattern compliance)
             _locationValidator.ValidateLocation(location, _gameWorld);
 
             // Synchronize hex reference (for ALL locations)

@@ -578,8 +578,8 @@ Location Persists Forever (no cleanup)
 - `PlacementSelectionStrategy`: Choose ONE from multiple matches (Closest, LeastRecent, WeightedRandom)
 
 **Validation**:
-- `GeneratedLocationValidator`: Fail-fast validation of playability (hex position, reachability, venue, properties, unlock mechanism)
-- Capacity validation in BuildLocationDTO: Throws InvalidOperationException if venue at capacity
+- `LocationPlayabilityValidator`: Fail-fast validation of playability for ALL locations (hex position, reachability, venue, properties, unlock mechanism)
+- Capacity validation: Generated checked BEFORE DTO creation (SceneInstantiator), authored checked AFTER parsing (PackageLoader)
 
 **Synchronization**:
 - `HexSynchronizationService`: Maintain HIGHLANDER (Location.HexPosition = source, Hex.LocationId = derived)
@@ -616,9 +616,10 @@ Location Persists Forever (no cleanup)
 **Rationale**: Since locations persist forever, budget violations cannot be cleaned up. Prevention through fail-fast validation is essential. Forces spatial design decisions at authoring time.
 
 **Fail-Fast Validation**:
-- GeneratedLocationValidator throws on unplayable content
+- LocationPlayabilityValidator throws on unplayable content (ALL locations)
 - Validation checks: hex position, reachability, venue, properties, unlock mechanism
 - System crashes rather than creating inaccessible content
+- Catalogue Pattern: No distinction between authored/generated during validation
 
 **Rationale**: Unplayable content worse than crash. Forces fixing root cause in content authoring. Playability over compilation.
 
