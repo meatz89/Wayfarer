@@ -955,25 +955,20 @@ public class PackageLoader
                 // UPDATE existing NPC properties in-place (preserve object identity)
                 existing.Name = parsed.Name;
                 existing.Description = parsed.Description;
-                existing.LocationId = parsed.LocationId;
+                existing.Role = parsed.Role;
+                existing.Profession = parsed.Profession;
                 existing.Tier = parsed.Tier;
+                existing.Level = parsed.Level;
+                existing.ConversationDifficulty = parsed.ConversationDifficulty;
+                existing.PersonalityDescription = parsed.PersonalityDescription;
+                existing.PersonalityType = parsed.PersonalityType;
+                existing.ConversationModifier = parsed.ConversationModifier;
                 existing.IsSkeleton = false;
-
-                // Update initial decks from authored content (replace skeleton placeholders)
-                existing.ConversationDeck = parsed.ConversationDeck;
-                existing.RequestDeck = parsed.RequestDeck;
-                existing.ObservationDeck = parsed.ObservationDeck;
-                existing.BurdenDeck = parsed.BurdenDeck;
 
                 // PRESERVE ExchangeDeck: Merge authored initial cards + preserved runtime cards
                 existing.ExchangeDeck.Clear();
                 existing.ExchangeDeck.AddRange(parsed.ExchangeDeck); // Authored initial cards
                 existing.ExchangeDeck.AddRange(preservedExchangeCards); // Runtime cards preserved
-
-                // Update all other NPC properties
-                existing.Tags = parsed.Tags;
-                existing.NPCRole = parsed.NPCRole;
-                existing.NPCDemeanor = parsed.NPCDemeanor;
 
                 // Remove from skeleton registry if present
                 SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FirstOrDefault(x => x.SkeletonKey == dto.Id);

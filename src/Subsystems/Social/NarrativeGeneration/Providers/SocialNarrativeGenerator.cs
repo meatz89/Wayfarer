@@ -81,7 +81,7 @@ public class SocialNarrativeGenerator
         {
             MustIncludeUrgency = analysis.RequiresUrgency,
             IntensityLevel = GetIntensityFromInitiativePattern(analysis.InitiativePattern),
-            NarrativeStyle = analysis.DominantCategory
+            NarrativeStyle = analysis.DominantCategory.ToString()
         };
     }
 

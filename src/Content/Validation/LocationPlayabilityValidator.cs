@@ -107,11 +107,21 @@ public class LocationPlayabilityValidator
         {
             foreach (Situation situation in scene.Situations)
             {
-                foreach (ChoiceTemplate choice in situation.ChoiceTemplates)
+                if (situation.Template?.ChoiceTemplates == null)
+                    continue;
+
+                foreach (ChoiceTemplate choice in situation.Template.ChoiceTemplates)
                 {
-                    // Check LocationsToUnlock in reward
-                    if (choice.Reward?.LocationsToUnlock != null &&
-                        choice.Reward.LocationsToUnlock.Contains(location.Id))
+                    // Check LocationsToUnlock in RewardTemplate
+                    if (choice.RewardTemplate?.LocationsToUnlock != null &&
+                        choice.RewardTemplate.LocationsToUnlock.Contains(location.Id))
+                    {
+                        return true;
+                    }
+
+                    // Check OnSuccessReward
+                    if (choice.OnSuccessReward?.LocationsToUnlock != null &&
+                        choice.OnSuccessReward.LocationsToUnlock.Contains(location.Id))
                     {
                         return true;
                     }
@@ -121,11 +131,15 @@ public class LocationPlayabilityValidator
                     {
                         foreach (var markerEntry in scene.MarkerResolutionMap)
                         {
-                            if (markerEntry.Value == location.Id &&
-                                choice.Reward?.LocationsToUnlock != null &&
-                                choice.Reward.LocationsToUnlock.Contains(markerEntry.Key))
+                            if (markerEntry.Value == location.Id)
                             {
-                                return true;
+                                if ((choice.RewardTemplate?.LocationsToUnlock != null &&
+                                     choice.RewardTemplate.LocationsToUnlock.Contains(markerEntry.Key)) ||
+                                    (choice.OnSuccessReward?.LocationsToUnlock != null &&
+                                     choice.OnSuccessReward.LocationsToUnlock.Contains(markerEntry.Key)))
+                                {
+                                    return true;
+                                }
                             }
                         }
                     }

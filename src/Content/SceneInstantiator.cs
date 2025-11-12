@@ -1227,7 +1227,7 @@ public class SceneInstantiator
                 {
                     NamePattern = "Generated Venue",
                     DescriptionPattern = "A procedurally generated venue.",
-                    Type = VenueType.Building,
+                    Type = VenueType.Merchant,
                     Tier = context.CurrentLocation?.Tier ?? 1,
                     District = context.CurrentLocation?.Venue?.District ?? "wilderness",
                     MaxLocations = 20,

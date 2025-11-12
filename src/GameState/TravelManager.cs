@@ -579,10 +579,11 @@ public class TravelManager
             }
         }
 
-        // Apply one-time rewards with messages
-        if (card.IsOneTime && card.Reward.RewardType != PathRewardType.None)
+        // Apply coin reward directly from DTO
+        if (card.CoinReward > 0)
         {
-            ApplyOneTimeReward(card.Reward, card.Id);
+            player.ModifyCoins(card.CoinReward);
+            _messageSystem.AddSystemMessage($"Gained {card.CoinReward} coins from path", SystemMessageTypes.Success);
         }
     }
 
