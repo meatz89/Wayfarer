@@ -15,6 +15,11 @@
     public VenueType Type { get; set; } = VenueType.Wilderness;  // Strongly-typed venue category (replaces LocationTypeString)
     public int Tier { get; set; } = 1;
 
+    // SPATIAL: Center hex position for venue cluster
+    // Set during venue generation, used for placing first location
+    // Subsequent locations placed adjacent to existing locations (organic growth)
+    public AxialCoordinates? CenterHex { get; set; }
+
     // BIDIRECTIONAL RELATIONSHIP: Venue ↔ Location
     // Venue.LocationIds maintained by GameWorld.AddOrUpdateLocation
     // Location.Venue maintained by LocationParser.ConvertDTOToLocation

@@ -50,6 +50,7 @@ public class VenueGeneratorService
             Tier = template.Tier,
             District = districtId,
             MaxLocations = template.MaxLocations,
+            CenterHex = centerHex,
             IsSkeleton = false
         };
 
@@ -111,26 +112,29 @@ public class VenueGeneratorService
     }
 
     /// <summary>
-    /// Check if hex cluster is unoccupied (no locations present).
+    /// Check if hex cluster is unoccupied (no locations present) AND separated from other venues.
+    /// Enforces venue separation: minimum 1-hex gap between venues (non-adjacency rule).
     /// </summary>
     private bool IsClusterUnoccupied(AxialCoordinates center, HexAllocationStrategy strategy, GameWorld gameWorld)
     {
         if (strategy == HexAllocationStrategy.SingleHex)
         {
-            // Check only center hex
-            Hex centerHex = gameWorld.WorldHexGrid.GetHex(center.Q, center.R);
-            return centerHex != null && string.IsNullOrEmpty(centerHex.LocationId);
-        }
-        else // ClusterOf7
-        {
-            // Check center + 6 neighbors
             Hex centerHex = gameWorld.WorldHexGrid.GetHex(center.Q, center.R);
             if (centerHex == null || !string.IsNullOrEmpty(centerHex.LocationId))
             {
                 return false;
             }
 
-            // Check all 6 neighbors
+            return IsHexSeparatedFromVenues(center, gameWorld);
+        }
+        else // ClusterOf7
+        {
+            Hex centerHex = gameWorld.WorldHexGrid.GetHex(center.Q, center.R);
+            if (centerHex == null || !string.IsNullOrEmpty(centerHex.LocationId))
+            {
+                return false;
+            }
+
             AxialCoordinates[] neighbors = center.GetNeighbors();
             foreach (AxialCoordinates neighbor in neighbors)
             {
@@ -141,8 +145,50 @@ public class VenueGeneratorService
                 }
             }
 
+            if (!IsHexSeparatedFromVenues(center, gameWorld))
+            {
+                return false;
+            }
+
+            foreach (AxialCoordinates neighbor in neighbors)
+            {
+                if (!IsHexSeparatedFromVenues(neighbor, gameWorld))
+                {
+                    return false;
+                }
+            }
+
             return true;
         }
+    }
+
+    /// <summary>
+    /// Check if hex and its neighbors are separated from all existing venues.
+    /// Enforces minimum 1-hex gap: no hex in cluster can be adjacent to hex occupied by another venue.
+    /// </summary>
+    private bool IsHexSeparatedFromVenues(AxialCoordinates hexCoords, GameWorld gameWorld)
+    {
+        AxialCoordinates[] neighbors = hexCoords.GetNeighbors();
+
+        foreach (AxialCoordinates neighborCoords in neighbors)
+        {
+            Hex neighborHex = gameWorld.WorldHexGrid.GetHex(neighborCoords.Q, neighborCoords.R);
+            if (neighborHex == null)
+            {
+                continue;
+            }
+
+            if (!string.IsNullOrEmpty(neighborHex.LocationId))
+            {
+                Location occupyingLocation = gameWorld.Locations.FirstOrDefault(l => l.Id == neighborHex.LocationId);
+                if (occupyingLocation != null && occupyingLocation.Venue != null)
+                {
+                    return false;
+                }
+            }
+        }
+
+        return true;
     }
 
     /// <summary>

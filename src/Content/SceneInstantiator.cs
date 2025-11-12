@@ -1115,15 +1115,29 @@ public class SceneInstantiator
                 $"Increase MaxLocations or use different venue.");
 
         // Find hex placement (CRITICAL: ALL locations must have hex positions)
-        Location baseLocation = context.CurrentLocation;
-        if (baseLocation == null)
-            throw new InvalidOperationException($"Cannot place dependent location '{locationId}' - context.CurrentLocation is null");
+        AxialCoordinates? hexPosition;
 
-        AxialCoordinates? hexPosition = FindAdjacentHex(baseLocation, spec.HexPlacement);
-        if (!hexPosition.HasValue)
-            throw new InvalidOperationException($"Failed to find hex position for dependent location '{locationId}' using strategy '{spec.HexPlacement}'");
+        // SPATIAL CONSTRAINT: First location in venue vs. organic growth
+        if (venue.LocationIds.Count == 0 && venue.CenterHex.HasValue)
+        {
+            // First location in newly generated venue: place at venue center
+            // This respects venue separation (center already validated by VenueGeneratorService)
+            hexPosition = venue.CenterHex.Value;
+            Console.WriteLine($"[DependentLocation] Placing FIRST location '{locationId}' at venue center ({hexPosition.Value.Q}, {hexPosition.Value.R})");
+        }
+        else
+        {
+            // Organic growth: place adjacent to existing location in venue
+            Location baseLocation = context.CurrentLocation;
+            if (baseLocation == null)
+                throw new InvalidOperationException($"Cannot place dependent location '{locationId}' - context.CurrentLocation is null and venue has existing locations");
 
-        Console.WriteLine($"[DependentLocation] Placed '{locationId}' at hex ({hexPosition.Value.Q}, {hexPosition.Value.R}) adjacent to base location '{baseLocation.Id}'");
+            hexPosition = FindAdjacentHex(baseLocation, spec.HexPlacement);
+            if (!hexPosition.HasValue)
+                throw new InvalidOperationException($"Failed to find hex position for dependent location '{locationId}' using strategy '{spec.HexPlacement}'");
+
+            Console.WriteLine($"[DependentLocation] Placed '{locationId}' at hex ({hexPosition.Value.Q}, {hexPosition.Value.R}) adjacent to base location '{baseLocation.Id}'");
+        }
 
         // Build LocationDTO
         LocationDTO dto = new LocationDTO
