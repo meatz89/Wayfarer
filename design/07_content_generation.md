@@ -1175,10 +1175,162 @@ This section describes content generation design. Technical implementation detai
 
 **Validation**: Parser must enforce hex position presence for all location types (settlements, venues, specific locations within venues). Missing hex positions should fail validation and prevent game initialization.
 
+## Dynamic Location Generation
+
+### Overview
+
+Beyond archetype-based content generation, Wayfarer supports runtime creation of locations and venues when scenes spawn. This enables self-contained scenes to materialize their own spatial context on demand, supporting infinite world expansion without exhaustive pre-authoring.
+
+**Core Pattern**: Scenes specify categorical requirements for locations they need. System attempts to match existing content first (prefer authored over generated). If no match exists and explicit generation requested via DependentLocationSpec, system generates location procedurally with validation. Generated locations persist or cleanup based on emergent gameplay patterns (visited vs unvisited).
+
+### Design Philosophy
+
+**Lazy Materialization**: World expands in response to narrative need, not pre-emptively. Tutorial inn exists from day one (authored). Side quest hideout materializes when quest spawns (generated). Avoids authoring unused content.
+
+**Bootstrap Gradient**:
+- Early game (Prologue/Act 1): 95% authored, 5% generated (stability priority)
+- Mid game (Act 2/3): 60% authored, 40% generated (variety increases)
+- Late game (Act 4+): 20% authored, 80% generated (infinite expansion)
+
+**Match First, Generate Last**: System prefers existing content over generation. Query authored locations with PlacementFilter categorical matching. Generate only when explicitly requested via DependentLocationSpec. Fail-fast if PlacementFilter finds no match (no silent fallback).
+
+**Bounded Infinity**: Generation operates under budget constraints. Venues have MaxGeneratedLocations (small town: 5-10, large city: 50-100, wilderness: unlimited). Prevents infinite uncontrolled expansion while enabling variety.
+
+### Categorical Matching vs Generation
+
+**PlacementFilter Matching**:
+- Scene specifies categorical requirements (LocationProperties, LocationTags, DistrictId)
+- System queries GameWorld.Locations for matches
+- SelectionStrategy chooses from multiple matches (Closest, LeastRecent, WeightedRandom)
+- Fail-fast if no match (no silent degradation, no fallback generation)
+
+**Example Filter**:
+```json
+{
+  "placementType": "Location",
+  "locationProperties": ["Private", "Indoor", "Secluded"],
+  "districtId": "lower_wards",
+  "selectionStrategy": "Closest"
+}
+```
+
+Matches authored locations with ALL specified properties in specified district. System throws InvalidOperationException if no match. This forces content design: either author matching content OR relax filter constraints.
+
+**Explicit Generation via DependentLocationSpec**:
+- DependentLocationSpec defines location to generate (self-contained scenes)
+- NamePattern and DescriptionPattern with placeholder support
+- Properties define available actions
+- HexPlacementStrategy determines spatial positioning
+- VenueIdSource determines containing venue (SameAsBase or GenerateNew)
+
+**Example Spec**:
+```json
+{
+  "templateId": "private_room",
+  "namePattern": "{NPCName}'s Private Room",
+  "descriptionPattern": "A quiet space reserved for {NPCName}'s guests.",
+  "venueIdSource": "SameAsBase",
+  "hexPlacement": "SameVenue",
+  "properties": ["sleepingSpace", "restful", "indoor", "private"],
+  "isLockedInitially": true
+}
+```
+
+Generates location deterministically when scene spawns. Location flows through standard JSON → DTO → Parser → Entity pipeline (Catalogue Pattern compliance).
+
+### Lifecycle Management
+
+**Provenance Tracking**: Every generated location stores SceneProvenance (which scene created it, when, why). Authored locations have Provenance = null.
+
+**Significance-Based Cleanup**: When scene completes, system evaluates each generated location's significance:
+- **Critical** (Provenance = null): Authored content, never cleanup
+- **Persistent** (visited OR multi-scene reference): Player invested, keep forever
+- **Temporary** (never visited AND single scene): Cleanup eligible
+
+**Cleanup Triggers**:
+- Scene completion (SituationCompletionHandler)
+- Scene expiration (day counter reaches ExpiresOnDay)
+- Manual cleanup via DependentResourceCleanupService
+
+**Referential Integrity**: Cleanup cascades through dependencies:
+- Location deleted → Routes referencing location deleted (RouteCleanupService)
+- Location deleted → Hex.LocationId cleared (HexSynchronizationService)
+- Scene deleted → All generated resources evaluated for cleanup
+
+### Validation and Playability
+
+**Fail-Fast Principle**: Generated content must be functionally playable. Unplayable content worse than crash (forces fixing root cause).
+
+**GeneratedLocationValidator checks**:
+1. **Hex Position**: Location must have valid hex coordinates
+2. **Reachability**: Must be reachable from player (same venue OR route exists)
+3. **Venue**: Must belong to valid venue
+4. **Properties**: Must have at least one property (enables action generation)
+5. **Unlock Mechanism**: If locked, must have unlock path in scene
+
+Validator throws InvalidOperationException if any check fails. System crashes rather than creating inaccessible content.
+
+### Generation Budget System
+
+**Venue Capacity**: Each venue tracks generation budget:
+```csharp
+public int MaxGeneratedLocations { get; set; } = 20;
+public int GeneratedLocationCount { get; set; } = 0;
+
+public bool CanGenerateMoreLocations()
+{
+    return GeneratedLocationCount < MaxGeneratedLocations;
+}
+```
+
+**Budget Exhaustion**: When venue reaches capacity, LocationGeneratorService returns null for explicit generation calls. Content authors responsible for ensuring sufficient budget or relaxing spatial constraints.
+
+**Budget Design**:
+- Small venues (temporary camps): 5 locations
+- Medium venues (villages): 10-20 locations
+- Large venues (cities): 50-100 locations
+- Wilderness venues: Unlimited (or very high cap like 500)
+
+### Hex Grid Integration
+
+**Spatial Requirements**: All locations MUST have HexPosition. Hex grid is fundamental spatial model for travel system.
+
+**Placement Strategies**:
+- **SameVenue**: Adjacent hex in same venue cluster (intra-venue movement instant/free)
+- **Adjacent**: One of 6 neighbors of base location (cross-venue requires route)
+- **Distance/Random**: Future extensions for specific spatial patterns
+
+**Hex Synchronization**: Location.HexPosition is source of truth, Hex.LocationId is derived lookup. HexSynchronizationService maintains consistency.
+
+### Integration with Archetype System
+
+**Complementary Patterns**:
+- **Archetypes**: Define interaction mechanics (how player engages with content)
+- **Dynamic Generation**: Define spatial context (where interactions occur)
+
+**Example Flow**:
+1. Scene specifies archetype `service_with_location_access` (mechanical structure)
+2. Scene specifies PlacementFilter for location (categorical matching) OR DependentLocationSpec (explicit generation)
+3. System matches existing location (PlacementFilter) OR generates new location (DependentLocationSpec)
+4. Archetype generates situations using location properties (scaled mechanics)
+
+Archetypes remain pure mechanical patterns. Dynamic generation provides spatial context. Separation of concerns maintained.
+
+### Technical Implementation Cross-Reference
+
+Implementation details in arc42 documentation:
+- LocationGeneratorService: Section 5 (Building Block View)
+- VenueGeneratorService: Section 5 (Building Block View)
+- DependentResourceCleanupService: Section 5 (Building Block View)
+- GeneratedLocationValidator: Section 5 (Building Block View)
+- Dynamic World Building pattern: Section 8 (Crosscutting Concepts)
+
 ## Conclusion
 
 Wayfarer's archetype-based content generation enables infinite variety from finite patterns. The three-tier hierarchy (5 core, 10 expanded, 6 specialized archetypes) provides mechanical foundation for all content. Categorical property scaling (demeanor, quality, power dynamic, environment quality) creates contextually appropriate difficulty without modifying archetypes. Two-level composition (scene archetypes calling situation archetypes) generates complete multi-situation flows.
 
+Dynamic location generation complements archetype system by materializing spatial context on demand. Match-first approach preserves authored content priority. Significance-based cleanup prevents world bloat. Generation budgets bound procedural expansion. Fail-fast validation ensures playability. PlacementFilter never falls back to generation (explicit paths only).
+
 The system enables AI to generate balanced content by writing categorical entity descriptions. AI provides fiction-appropriate properties. System derives appropriate mechanics via universal scaling formulas. This decoupling allows infinite procedural content generation without requiring AI to understand game balance.
 
-The result: effectively infinite content from 21 situation archetypes and 12 scene archetypes, all mechanically consistent, all contextually appropriate, all supporting the infinite A-story and extensive B/C side content that defines Wayfarer's narrative experience.
+The result: effectively infinite content from 21 situation archetypes and 12 scene archetypes, all mechanically consistent, all contextually appropriate, all spatially integrated through dynamic world building, supporting the infinite A-story and extensive B/C side content that defines Wayfarer's narrative experience.

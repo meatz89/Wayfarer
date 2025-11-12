@@ -541,6 +541,174 @@ This architectural pattern supports rich narrative branching where NPCs serve as
 
 ---
 
+### 8.2.6 Dynamic World Building (Lazy Materialization Pattern)
+
+**Core Principle**: World expands in response to narrative need, not pre-emptively. Locations and venues materialize when scenes spawn, validated for playability, cleaned up based on emergent significance.
+
+#### Pattern Structure
+
+**Three-Phase Lifecycle**:
+1. **Generation**: Scene spawns with DependentLocationSpec → SceneInstantiator generates LocationDTO → PackageLoader parses → Location entity added to GameWorld
+2. **Gameplay**: Location used during scene → Player may visit → Provenance tracks creation source
+3. **Cleanup**: Scene completes → SignificanceEvaluator determines fate → Temporary locations removed, persistent locations kept
+
+**Data Flow**:
+```
+DependentLocationSpec (Template)
+    ↓ Scene Spawn
+LocationDTO (JSON generated at runtime)
+    ↓ PackageLoader
+Location Entity (parsed into GameWorld)
+    ↓ Gameplay
+SceneProvenance (tracks which scene created this)
+    ↓ Scene Completion
+LocationSignificance (Critical/Persistent/Temporary)
+    ↓ Cleanup Decision
+Keep Forever OR Delete + Cascade
+```
+
+#### Components
+
+**Generation**:
+- `DependentLocationSpec`: Template defining location to generate (NamePattern, Properties, HexPlacement)
+- `VenueTemplate`: Template for procedural venue generation (Type, Tier, District, Budget)
+- `LocationGeneratorService`: Explicit generation from specifications (not fallback)
+- `VenueGeneratorService`: Generate venues with hex allocation and budget tracking
+
+**Matching**:
+- `PlacementFilter`: Categorical property matching (LocationProperties, LocationTags, DistrictId)
+- `SceneInstantiator.FindMatchingLocation()`: Query existing locations by categorical properties
+- `PlacementSelectionStrategy`: Choose ONE from multiple matches (Closest, LeastRecent, WeightedRandom)
+
+**Lifecycle**:
+- `SceneProvenance`: Tracks creation metadata (SceneId, Timestamp, TemplateId)
+- `LocationSignificance`: Emergent evaluation (Critical/Persistent/Temporary)
+- `LocationSignificanceEvaluator`: Evaluates based on visits and references (not authoring flags)
+- `DependentResourceCleanupService`: Cleanup eligible resources when scene completes
+
+**Validation**:
+- `GeneratedLocationValidator`: Fail-fast validation of playability (hex position, reachability, venue, properties, unlock mechanism)
+
+**Synchronization**:
+- `HexSynchronizationService`: Maintain HIGHLANDER (Location.HexPosition = source, Hex.LocationId = derived)
+- `RouteCleanupService`: Cascade cleanup (location deleted → routes deleted)
+
+#### Design Decisions
+
+**Match First, Generate Last**:
+- PlacementFilter attempts categorical matching FIRST
+- DependentLocationSpec triggers explicit generation (not fallback)
+- No silent fallback from matching to generation
+- Fail-fast if no match and no explicit generation spec
+
+**Rationale**: Authored content priority. If filter can't find match, either author matching content OR relax filter constraints OR add explicit DependentLocationSpec. Never silently degrade.
+
+**Significance-Based Cleanup**:
+- System evaluates emergently based on gameplay (visited?, referenced?)
+- NOT based on authoring-time flags (NoCleanup property forbidden)
+- Significance determined AFTER gameplay, not BEFORE
+
+**Rationale**: Same as NPC relationship persistence. Player investment (via visits or multi-scene references) determines persistence, not author predictions.
+
+**Bounded Infinity**:
+- Venues have MaxGeneratedLocations budget (default 20)
+- LocationGeneratorService respects budget (returns null if exhausted)
+- Small venues (5), medium venues (20), large venues (100), wilderness (unlimited)
+
+**Rationale**: Prevents unbounded world growth. Forces spatial design decisions. Maintains performance.
+
+**Fail-Fast Validation**:
+- GeneratedLocationValidator throws on unplayable content
+- Validation checks: hex position, reachability, venue, properties, unlock mechanism
+- System crashes rather than creating inaccessible content
+
+**Rationale**: Unplayable content worse than crash. Forces fixing root cause in content authoring. Playability over compilation.
+
+#### Integration with Catalogue Pattern
+
+**Generation Flows Through Standard Pipeline**:
+1. SceneInstantiator generates LocationDTO (same structure as authored JSON)
+2. LocationDTO serialized to Package JSON
+3. PackageLoader loads package (same path as authored content)
+4. LocationParser parses LocationDTO → Location entity
+5. Location added to GameWorld.Locations
+
+**Rationale**: Generated content indistinguishable from authored content after parsing. Same validation, same resolution, same entity structure. Catalogue Pattern compliance.
+
+#### Example: Self-Contained Scene with Private Room
+
+**Template Specification** (JSON):
+```json
+{
+  "sceneArchetypeId": "service_with_location_access",
+  "dependentLocations": [{
+    "templateId": "private_room",
+    "namePattern": "{NPCName}'s Private Room",
+    "venueIdSource": "SameAsBase",
+    "hexPlacement": "Adjacent",
+    "properties": ["sleepingSpace", "restful", "indoor", "private"],
+    "isLockedInitially": true
+  }]
+}
+```
+
+**Generation (Scene Spawn)**:
+1. SceneInstantiator reads DependentLocationSpec
+2. Generates LocationDTO with NamePattern resolved ("Elena's Private Room")
+3. Finds adjacent hex to base location (venue cluster)
+4. Creates Package JSON with generated LocationDTO
+5. PackageLoader parses → Location entity created
+6. Provenance stored: `SceneProvenance { SceneId = "scene_tutorial_001", Timestamp = 1234567890 }`
+
+**Gameplay**:
+- Player negotiates with Elena → Receives room_key item
+- Player unlocks private room → HasBeenVisited = true
+- Player rests → Resource restoration based on room properties
+
+**Cleanup (Scene Completion)**:
+- SignificanceEvaluator queries: HasBeenVisited? → true
+- Significance = Persistent (player invested spatial memory)
+- Provenance cleared (promoted to permanent): `Provenance = null`
+- Location survives scene deletion → Remains in GameWorld forever
+
+**Alternative (Never Visited)**:
+- If player never unlocks room → HasBeenVisited = false
+- SignificanceEvaluator: Single scene reference, never visited → Temporary
+- DependentResourceCleanupService deletes location
+- RouteCleanupService cascades (removes routes)
+- HexSynchronizationService clears hex reference
+
+#### Bootstrap Gradient
+
+**Early Game (Act 1)**: 95% authored, 5% generated
+- Core locations authored (villages, inns, major landmarks)
+- Only scene-specific resources generated (private rooms, hideouts)
+- Stability priority (authored content tested and validated)
+
+**Mid Game (Act 2-3)**: 60% authored, 40% generated
+- Major locations authored, minor locations generated
+- Generated venues appear for side quests
+- Variety increases while maintaining coherence
+
+**Late Game (Act 4+)**: 20% authored, 80% generated
+- Only critical story locations authored
+- Procedural expansion dominates
+- Infinite world growth enabled
+
+**Rationale**: Authored content establishes baseline quality. Generated content provides infinite variety. Gradient manages transition from stability → variety.
+
+#### Hexagonal Architecture Compliance
+
+**Domain Independence**: Location generation services in `src/Services/` (domain), not `src/Content/` (parsing) or `src/Pages/` (UI)
+
+**Catalogue Pattern**: Generated content flows through same pipeline as authored content (JSON → DTO → Parser → Entity)
+
+**HIGHLANDER**: Location.HexPosition = source of truth, Hex.LocationId = derived lookup (single source, synchronized)
+
+**Fail-Fast**: Validation throws on unplayable content (no silent degradation)
+
+---
+
 ## 8.3 Design Principles
 
 ### 8.3.1 Principle Priority Hierarchy

@@ -461,7 +461,7 @@ public class SceneInstantiator
 
     /// <summary>
     /// Find Location matching PlacementFilter criteria
-    /// PHASE 3: Collects ALL matching Locations, then applies SelectionStrategy to choose ONE
+    /// PHASE 5: Complete filtering including district, tags, and location properties
     /// Returns selected Location ID, or null if no matches
     /// </summary>
     private string FindMatchingLocation(PlacementFilter filter, Player player)
@@ -477,20 +477,20 @@ public class SceneInstantiator
                     return false;
             }
 
-            // TODO: District/Region filters when Location.DistrictId/RegionId properties implemented
-            // if (!string.IsNullOrEmpty(filter.DistrictId))
-            // {
-            //     if (loc.DistrictId != filter.DistrictId)
-            //         return false;
-            // }
-            // if (!string.IsNullOrEmpty(filter.RegionId))
-            // {
-            //     if (loc.RegionId != filter.RegionId)
-            //         return false;
-            // }
+            // Check district (accessed via Location.Venue.District)
+            if (!string.IsNullOrEmpty(filter.DistrictId))
+            {
+                if (loc.Venue == null || loc.Venue.District != filter.DistrictId)
+                    return false;
+            }
 
-            // Location tags check removed - Locations don't have Tags property in current architecture
-            // TODO: Add filter.LocationTags check when Location.Tags property implemented
+            // Check location tags (uses DomainTags property)
+            if (filter.LocationTags != null && filter.LocationTags.Count > 0)
+            {
+                // Location must have ALL specified tags
+                if (!filter.LocationTags.All(tag => loc.DomainTags.Contains(tag)))
+                    return false;
+            }
 
             // Check player state filters (shared across all placement types)
             if (!CheckPlayerStateFilters(filter, player))

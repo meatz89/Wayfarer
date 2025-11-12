@@ -136,6 +136,15 @@ public static class ServiceConfiguration
         services.AddSingleton<DependentResourceOrchestrationService>();
         services.AddSingleton<SpawnedScenePlayabilityValidator>(); // Runtime validation for soft-lock prevention
 
+        // Dynamic Location Generation System (Phases 1-5)
+        services.AddSingleton<LocationSignificanceEvaluator>();
+        services.AddSingleton<HexSynchronizationService>();
+        services.AddSingleton<RouteCleanupService>();
+        services.AddSingleton<DependentResourceCleanupService>();
+        services.AddSingleton<VenueGeneratorService>();
+        services.AddSingleton<GeneratedLocationValidator>();
+        services.AddSingleton<LocationGeneratorService>();
+
         // Scene Generation and Instance Facades (clean boundaries for procedural content)
         // IMPORTANT: Register dependencies BEFORE SceneInstanceFacade
         services.AddSingleton<PackageLoaderFacade>();
