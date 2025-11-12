@@ -5,6 +5,7 @@
 public class VenueGeneratorService
 {
     private readonly HexSynchronizationService _hexSyncService;
+    private readonly Random _random = new Random();
 
     public VenueGeneratorService(HexSynchronizationService hexSyncService)
     {
@@ -21,14 +22,12 @@ public class VenueGeneratorService
         string districtId = template.District;
         if (string.IsNullOrEmpty(districtId))
         {
-            // Inherit from context location's venue district
             if (context.CurrentLocation?.Venue != null)
             {
-                districtId = context.CurrentLocation.Venue.District;
+                districtId = context.CurrentLocation.Venue.District ?? "wilderness";
             }
             else
             {
-                // Default to wilderness
                 districtId = "wilderness";
             }
         }
@@ -70,19 +69,16 @@ public class VenueGeneratorService
     /// </summary>
     private AxialCoordinates FindUnoccupiedCluster(HexAllocationStrategy strategy, GameWorld gameWorld)
     {
-        // Start search from origin, spiral outward
         int searchRadius = 1;
-        int maxRadius = 50; // Prevent infinite search
+        int maxRadius = 50;
 
         while (searchRadius <= maxRadius)
         {
-            // Get all hexes at this radius
             List<Hex> candidateHexes = gameWorld.WorldHexGrid.Hexes
                 .Where(h => CalculateDistance(h.Coordinates, gameWorld.WorldHexGrid.Origin) == searchRadius)
                 .ToList();
 
-            // Shuffle for randomness
-            candidateHexes = candidateHexes.OrderBy(x => Guid.NewGuid()).ToList();
+            ShuffleList(candidateHexes);
 
             foreach (Hex candidate in candidateHexes)
             {
@@ -99,6 +95,19 @@ public class VenueGeneratorService
             "Could not find unoccupied hex cluster for venue generation. " +
             "World may be fully populated or search radius exceeded."
         );
+    }
+
+    private void ShuffleList<T>(List<T> list)
+    {
+        int n = list.Count;
+        while (n > 1)
+        {
+            n--;
+            int k = _random.Next(n + 1);
+            T value = list[k];
+            list[k] = list[n];
+            list[n] = value;
+        }
     }
 
     /// <summary>

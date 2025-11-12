@@ -16,11 +16,15 @@ using System.Text.Json;
 /// </summary>
 public class SceneInstantiator
 {
+    private const int SEGMENTS_PER_DAY = 16;
+    private const int SEGMENTS_PER_TIME_BLOCK = 4;
+
     private readonly GameWorld _gameWorld;
     private readonly SpawnConditionsEvaluator _spawnConditionsEvaluator;
     private readonly SceneNarrativeService _narrativeService;
     private readonly MarkerResolutionService _markerResolutionService;
     private readonly VenueGeneratorService _venueGenerator;
+    private readonly Random _random = new Random();
 
     public SceneInstantiator(
         GameWorld gameWorld,
@@ -35,8 +39,6 @@ public class SceneInstantiator
         _markerResolutionService = markerResolutionService ?? throw new ArgumentNullException(nameof(markerResolutionService));
         _venueGenerator = venueGenerator ?? throw new ArgumentNullException(nameof(venueGenerator));
     }
-
-    // ==================== PHASE 2: DTO GENERATION METHODS (NEW ARCHITECTURE) ====================
 
     /// <summary>
     /// Generate complete scene package JSON from template
@@ -743,8 +745,6 @@ public class SceneInstantiator
         return string.Join("\n", contextInfo);
     }
 
-    // ==================== PLACEMENT SELECTION STRATEGIES ====================
-
     /// <summary>
     /// Apply selection strategy to choose ONE NPC from multiple matching candidates
     /// PHASE 3: Implements 4 strategies (Closest, HighestBond, LeastRecent, WeightedRandom)
@@ -890,8 +890,7 @@ public class SceneInstantiator
     /// </summary>
     private NPC SelectWeightedRandomNPC(List<NPC> candidates)
     {
-        Random random = new Random();
-        int index = random.Next(candidates.Count);
+        int index = _random.Next(candidates.Count);
         return candidates[index];
     }
 
@@ -900,8 +899,7 @@ public class SceneInstantiator
     /// </summary>
     private Location SelectWeightedRandomLocation(List<Location> candidates)
     {
-        Random random = new Random();
-        int index = random.Next(candidates.Count);
+        int index = _random.Next(candidates.Count);
         return candidates[index];
     }
 
@@ -960,7 +958,7 @@ public class SceneInstantiator
             _ => 0
         };
 
-        return (day * 16) + (timeBlockValue * 4) + segment;
+        return (day * SEGMENTS_PER_DAY) + (timeBlockValue * SEGMENTS_PER_TIME_BLOCK) + segment;
     }
 
     /// <summary>
@@ -1018,8 +1016,6 @@ public class SceneInstantiator
 
         return promptContext;
     }
-
-    // ==================== SELF-CONTAINED SCENE PACKAGE GENERATION ====================
 
     /// <summary>
     /// Generate dependent resource SPECS for self-contained scene
