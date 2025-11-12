@@ -102,6 +102,20 @@ public class SpawnConditionsEvaluator
             }
         }
 
+        // Check RequiresTags (TAG-BASED PROGRESSION SYSTEM - DDR-002)
+        // Player must have ALL required tags granted through prior scene completions
+        // Enables flexible branching: Scene A grants ['tag1', 'tag2'] → Scene B requires ['tag1']
+        if (conditions.RequiresTags != null && conditions.RequiresTags.Count > 0)
+        {
+            foreach (string requiredTag in conditions.RequiresTags)
+            {
+                if (!player.GrantedTags.Contains(requiredTag))
+                {
+                    return false; // Required tag not granted
+                }
+            }
+        }
+
         // Check LocationVisits
         // NOTE: Player has LocationFamiliarity but not LocationVisits visit count tracking
         // TODO: Add Player.LocationVisits dictionary tracking when needed

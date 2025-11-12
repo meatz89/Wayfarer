@@ -93,6 +93,9 @@ public class SituationCompletionHandler
             // CRITICAL: A-story completion triggers next A-scene template generation here
             if (scene.State == SceneState.Completed)
             {
+                // TAG-BASED PROGRESSION: Apply GrantsTags and track completion (DDR-002)
+                TrackSceneCompletion(scene);
+
                 // NOTE: All generated locations persist forever (no cleanup)
                 // Budget validation happens at generation time (fail-fast)
                 // Spawn eligible scenes (including A-story continuation)
@@ -390,6 +393,38 @@ public class SituationCompletionHandler
         {
             // Complete the obligation (grants rewards, removes from ActiveObligationIds)
             _gameWorld.CompleteObligation(completedSituation.Obligation?.Id, _timeManager);
+        }
+    }
+
+    /// <summary>
+    /// Track scene completion: apply GrantsTags and record completion
+    /// TAG-BASED PROGRESSION SYSTEM (DDR-002): Enables flexible branching via tag unlock graphs
+    /// </summary>
+    private void TrackSceneCompletion(Scene scene)
+    {
+        if (scene == null || scene.Template == null)
+            return;
+
+        Player player = _gameWorld.GetPlayer();
+
+        // Apply GrantsTags to player (tag-based progression unlock)
+        if (scene.Template.GrantsTags != null && scene.Template.GrantsTags.Count > 0)
+        {
+            foreach (string tag in scene.Template.GrantsTags)
+            {
+                if (!player.GrantedTags.Contains(tag))
+                {
+                    player.GrantedTags.Add(tag);
+                    Console.WriteLine($"[SituationCompletionHandler] Granted tag '{tag}' to player from scene '{scene.Id}'");
+                }
+            }
+        }
+
+        // Track scene completion (for CompletedScenes spawn condition checking)
+        if (!string.IsNullOrEmpty(scene.TemplateId) && !player.CompletedSceneIds.Contains(scene.TemplateId))
+        {
+            player.CompletedSceneIds.Add(scene.TemplateId);
+            Console.WriteLine($"[SituationCompletionHandler] Tracked completion of scene template '{scene.TemplateId}'");
         }
     }
 }
