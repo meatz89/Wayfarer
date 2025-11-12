@@ -34,11 +34,11 @@ public class VenueTemplate
     public string District { get; set; }
 
     /// <summary>
-    /// Maximum locations that can be generated in this venue.
+    /// Maximum total locations allowed in this venue.
     /// Small venues: 5-10 (constrained, intimate)
     /// Large venues: 50-100 (expansive, variety)
     /// </summary>
-    public int MaxGeneratedLocations { get; set; } = 20;
+    public int MaxLocations { get; set; } = 20;
 
     /// <summary>
     /// Hex allocation strategy for venue placement.

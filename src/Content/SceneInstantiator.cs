@@ -1123,12 +1123,12 @@ public class SceneInstantiator
         if (venue == null)
             throw new InvalidOperationException($"Venue '{venueId}' not found for location '{locationId}'");
 
-        if (!venue.CanGenerateMoreLocations())
+        if (!venue.CanAddMoreLocations())
             throw new InvalidOperationException(
-                $"Venue '{venue.Id}' ({venue.Name}) has reached generation capacity " +
-                $"({venue.GeneratedLocationCount}/{venue.MaxGeneratedLocations} locations). " +
-                $"Cannot generate dependent location '{locationId}'. " +
-                $"Increase MaxGeneratedLocations or use different venue.");
+                $"Venue '{venue.Id}' ({venue.Name}) has reached capacity " +
+                $"({venue.LocationIds.Count}/{venue.MaxLocations} locations). " +
+                $"Cannot add location '{locationId}'. " +
+                $"Increase MaxLocations or use different venue.");
 
         // Find hex placement (CRITICAL: ALL locations must have hex positions)
         Location baseLocation = context.CurrentLocation;
@@ -1155,8 +1155,7 @@ public class SceneInstantiator
             CanInvestigate = spec.CanInvestigate,
             CanWork = false, // Generated locations don't support work by default,
             WorkType = "",
-            WorkPay = 0,
-            IsGenerated = true // Mark as generated for budget tracking
+            WorkPay = 0
         };
 
         // Map properties
@@ -1233,7 +1232,7 @@ public class SceneInstantiator
                     Type = VenueType.Building,
                     Tier = context.CurrentLocation?.Tier ?? 1,
                     District = context.CurrentLocation?.Venue?.District ?? "wilderness",
-                    MaxGeneratedLocations = 20,
+                    MaxLocations = 20,
                     HexAllocation = HexAllocationStrategy.ClusterOf7
                 };
                 Venue generatedVenue = _venueGenerator.GenerateVenue(venueTemplate, context, _gameWorld);

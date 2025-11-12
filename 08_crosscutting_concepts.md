@@ -555,12 +555,11 @@ This architectural pattern supports rich narrative branching where NPCs serve as
 ```
 DependentLocationSpec (Template)
     ↓ Scene Spawn
-Budget Validation (fail-fast if exhausted)
+Capacity Validation (fail-fast if venue full: LocationIds.Count >= MaxLocations)
     ↓ Pass
-LocationDTO (JSON generated at runtime, IsGenerated=true)
+LocationDTO (JSON generated at runtime)
     ↓ PackageLoader
-Location Entity (parsed into GameWorld)
-    ↓ Budget Increment (Venue.GeneratedLocationCount++)
+Location Entity (parsed into GameWorld, indistinguishable from authored)
     ↓ Gameplay
 Location Persists Forever (no cleanup)
 ```
@@ -569,9 +568,9 @@ Location Persists Forever (no cleanup)
 
 **Generation**:
 - `DependentLocationSpec`: Template defining location to generate (NamePattern, Properties, HexPlacement)
-- `VenueTemplate`: Template for procedural venue generation (Type, Tier, District, Budget)
-- `SceneInstantiator.BuildLocationDTO()`: DTO generation with fail-fast budget validation
-- `VenueGeneratorService`: Generate venues with hex allocation and budget tracking
+- `VenueTemplate`: Template for procedural venue generation (Type, Tier, District, MaxLocations)
+- `SceneInstantiator.BuildLocationDTO()`: DTO generation with fail-fast capacity validation
+- `VenueGeneratorService`: Generate venues with hex allocation and capacity budgets
 
 **Matching**:
 - `PlacementFilter`: Categorical property matching (LocationProperties, LocationTags, DistrictId)
@@ -580,15 +579,15 @@ Location Persists Forever (no cleanup)
 
 **Validation**:
 - `GeneratedLocationValidator`: Fail-fast validation of playability (hex position, reachability, venue, properties, unlock mechanism)
-- Budget validation in BuildLocationDTO: Throws InvalidOperationException if venue at capacity
+- Capacity validation in BuildLocationDTO: Throws InvalidOperationException if venue at capacity
 
 **Synchronization**:
 - `HexSynchronizationService`: Maintain HIGHLANDER (Location.HexPosition = source, Hex.LocationId = derived)
 
 **Tracking**:
 - `SceneProvenance`: Metadata tracking creation source (for debugging only, not lifecycle decisions)
-- `LocationDTO.IsGenerated`: Flag marking generated locations for budget tracking
-- `Venue.GeneratedLocationCount`: Budget tracking incremented during parsing
+- `Venue.MaxLocations`: Total capacity budget (counts ALL locations: authored + generated)
+- Budget derived (LocationIds.Count) not tracked (Catalogue Pattern compliance)
 
 #### Design Decisions
 
@@ -608,9 +607,9 @@ Location Persists Forever (no cleanup)
 
 **Rationale**: Simplifies architecture. Locations represent player's narrative journey - deleting them erases history. Budget validation prevents unbounded growth instead of cleanup.
 
-**Bounded Infinity Through Fail-Fast Budget**:
-- Venues have MaxGeneratedLocations budget (default 20)
-- BuildLocationDTO checks budget BEFORE DTO creation
+**Bounded Infinity Through Fail-Fast Capacity**:
+- Venues have MaxLocations capacity (default 20)
+- BuildLocationDTO checks capacity BEFORE DTO creation (LocationIds.Count < MaxLocations)
 - Throws InvalidOperationException if venue at capacity
 - Small venues (5), medium venues (20), large venues (100), wilderness (unlimited)
 
@@ -653,15 +652,12 @@ Location Persists Forever (no cleanup)
 
 **Generation (Scene Spawn)**:
 1. SceneInstantiator reads DependentLocationSpec
-2. Checks venue budget: Can generate? → Yes (budget available)
+2. Checks venue capacity: Can add? → Yes (LocationIds.Count < MaxLocations)
 3. Generates LocationDTO with NamePattern resolved ("Elena's Private Room")
-4. Sets `IsGenerated = true` flag for budget tracking
-5. Finds adjacent hex to base location (venue cluster)
-6. Creates Package JSON with generated LocationDTO
-7. PackageLoader parses → Location entity created
-8. PackageLoader checks `dto.IsGenerated` → true → Increments venue budget
-9. Venue.GeneratedLocationCount++ (budget tracking)
-10. Provenance stored: `SceneProvenance { SceneId = "scene_tutorial_001" }` (metadata)
+4. Finds adjacent hex to base location (venue cluster)
+5. Creates Package JSON with generated LocationDTO
+6. PackageLoader parses → Location entity created (indistinguishable from authored)
+7. Provenance stored: `SceneProvenance { SceneId = "scene_tutorial_001" }` (metadata)
 
 **Gameplay**:
 - Player negotiates with Elena → Receives room_key item

@@ -22,37 +22,25 @@
     // Same Venue = instant free travel between locations
     // Different Venue = Route required with hex path, costs, scenes
 
-    // GENERATION BUDGET SYSTEM: Bounded infinity for procedural venues
+    // CAPACITY BUDGET SYSTEM: Bounded infinity for all venue locations
     // Prevents unlimited expansion while enabling procedural variety
+    // Applies to BOTH authored and generated locations (no distinction after parsing)
     /// <summary>
-    /// Maximum number of locations that can be dynamically generated in this venue.
+    /// Maximum total locations allowed in this venue.
     /// Small venues: 5-10 (intimate, constrained)
     /// Large venues: 50-100 (expansive, variety)
     /// Wilderness: int.MaxValue (unlimited)
+    /// Budget is derived (LocationIds.Count) not tracked.
     /// </summary>
-    public int MaxGeneratedLocations { get; set; } = 20;
+    public int MaxLocations { get; set; } = 20;
 
     /// <summary>
-    /// Count of dynamically generated locations currently in this venue.
-    /// Incremented when dynamic location added, NOT decremented on cleanup (orphaned locations become permanent).
+    /// Check if venue can accept more locations within capacity budget.
+    /// Counts ALL locations (authored + generated) against MaxLocations.
     /// </summary>
-    public int GeneratedLocationCount { get; set; } = 0;
-
-    /// <summary>
-    /// Check if venue can generate more locations within budget.
-    /// </summary>
-    public bool CanGenerateMoreLocations()
+    public bool CanAddMoreLocations()
     {
-        return GeneratedLocationCount < MaxGeneratedLocations;
-    }
-
-    /// <summary>
-    /// Increment generated location count after adding dynamic location.
-    /// Called by VenueGeneratorService and DependentResourceOrchestrationService.
-    /// </summary>
-    public void IncrementGeneratedCount()
-    {
-        GeneratedLocationCount++;
+        return LocationIds.Count < MaxLocations;
     }
 
     public Venue(string id, string name)

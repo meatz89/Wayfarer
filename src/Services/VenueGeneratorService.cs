@@ -50,8 +50,7 @@ public class VenueGeneratorService
             Type = template.Type,
             Tier = template.Tier,
             District = districtId,
-            MaxGeneratedLocations = template.MaxGeneratedLocations,
-            GeneratedLocationCount = 0,
+            MaxLocations = template.MaxLocations,
             IsSkeleton = false
         };
 

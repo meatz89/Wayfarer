@@ -830,23 +830,13 @@ public class PackageLoader
 
             Location location = LocationParser.ConvertDTOToLocation(dto, _gameWorld);
 
-            // POST-PARSING INTEGRATION: Track budget for generated locations
-            // IsGenerated flag set by BuildLocationDTO during scene spawning
-            if (dto.IsGenerated)
-            {
-                // Validate playability of generated content (fail-fast)
-                _locationValidator.ValidateLocation(location, _gameWorld);
+            // POST-PARSING INTEGRATION: Validate playability (fail-fast)
+            // Budget validation happens at generation time (SceneInstantiator checks capacity BEFORE creating DTO)
+            // Authored content assumed valid, but generated content must be validated
+            // NOTE: No distinction between authored/generated after parsing (Catalogue Pattern compliance)
+            _locationValidator.ValidateLocation(location, _gameWorld);
 
-                // Increment venue generation count for budget tracking
-                // NOTE: All locations persist forever (no cleanup), so budget violations are permanent
-                if (location.Venue != null)
-                {
-                    location.Venue.IncrementGeneratedCount();
-                    Console.WriteLine($"[PackageLoader] Incremented venue '{location.Venue.Id}' budget: {location.Venue.GeneratedLocationCount}/{location.Venue.MaxGeneratedLocations}");
-                }
-            }
-
-            // Synchronize hex reference (for ALL locations, authored and generated)
+            // Synchronize hex reference (for ALL locations)
             _hexSync.SyncLocationToHex(location, _gameWorld);
 
             // Add to primary Locations dictionary

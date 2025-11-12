@@ -25,13 +25,6 @@ public class LocationDTO
     /// </summary>
     public int? R { get; set; }
 
-    /// <summary>
-    /// Indicates this location was procedurally generated (not authored).
-    /// Used for venue budget tracking - generated locations increment GeneratedLocationCount.
-    /// Authored locations have IsGenerated = false (default).
-    /// </summary>
-    public bool IsGenerated { get; set; } = false;
-
     public List<string> CurrentTimeBlocks { get; set; } = new List<string>();
     public List<string> DomainTags { get; set; } = new List<string>();
 

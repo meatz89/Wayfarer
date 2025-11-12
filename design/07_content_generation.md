@@ -1194,7 +1194,7 @@ Beyond archetype-based content generation, Wayfarer supports runtime creation of
 
 **Match First, Generate Last**: System prefers existing content over generation. Query authored locations with PlacementFilter categorical matching. Generate only when explicitly requested via DependentLocationSpec. Fail-fast if PlacementFilter finds no match (no silent fallback).
 
-**Bounded Infinity**: Generation operates under budget constraints. Venues have MaxGeneratedLocations (small town: 5-10, large city: 50-100, wilderness: unlimited). Prevents infinite uncontrolled expansion while enabling variety.
+**Bounded Infinity**: Generation operates under capacity constraints. Venues have MaxLocations (small town: 5-10, large city: 50-100, wilderness: unlimited). Capacity applies to ALL locations (authored + generated), not just generated. Prevents infinite uncontrolled expansion while enabling variety.
 
 ### Categorical Matching vs Generation
 
@@ -1244,7 +1244,7 @@ Generates location deterministically when scene spawns. Location flows through s
 
 **Provenance Tracking**: Every generated location stores SceneProvenance (which scene created it, when, why). Authored locations have Provenance = null. This metadata is for tracking/debugging only - not used for lifecycle decisions.
 
-**Budget Enforcement**: Since locations persist forever, venue generation budgets are **critically important**. Budget validation happens at generation time (fail-fast) to prevent unbounded world growth.
+**Budget Enforcement**: Since locations persist forever, venue capacity budgets are **critically important**. Budget validation happens at generation time (fail-fast) to prevent unbounded world growth.
 
 ### Validation and Playability
 
@@ -1261,18 +1261,19 @@ Validator throws InvalidOperationException if any check fails. System crashes ra
 
 ### Generation Budget System
 
-**Venue Capacity**: Each venue tracks generation budget:
+**Venue Capacity**: Each venue enforces capacity budget:
 ```csharp
-public int MaxGeneratedLocations { get; set; } = 20;
-public int GeneratedLocationCount { get; set; } = 0;
+public int MaxLocations { get; set; } = 20;
 
-public bool CanGenerateMoreLocations()
+public bool CanAddMoreLocations()
 {
-    return GeneratedLocationCount < MaxGeneratedLocations;
+    return LocationIds.Count < MaxLocations;
 }
 ```
 
-**Budget Exhaustion**: When venue reaches capacity, BuildLocationDTO throws InvalidOperationException (fail-fast). Generation fails before DTO creation. Content authors must ensure sufficient budget or use different venues. Since locations persist forever, budget violations cannot be cleaned up - prevention is critical.
+Budget is **derived** (counts existing LocationIds) not **tracked** (no separate counter). This enforces Catalogue Pattern: generated locations become indistinguishable from authored locations after parsing. Capacity applies to ALL locations equally.
+
+**Budget Exhaustion**: When venue reaches capacity, BuildLocationDTO throws InvalidOperationException (fail-fast). Generation fails before DTO creation. Content authors must ensure sufficient capacity or use different venues. Since locations persist forever, budget violations cannot be cleaned up - prevention is critical.
 
 **Budget Design**:
 - Small venues (temporary camps): 5 locations
