@@ -20,17 +20,20 @@ public class SceneInstantiator
     private readonly SpawnConditionsEvaluator _spawnConditionsEvaluator;
     private readonly SceneNarrativeService _narrativeService;
     private readonly MarkerResolutionService _markerResolutionService;
+    private readonly VenueGeneratorService _venueGenerator;
 
     public SceneInstantiator(
         GameWorld gameWorld,
         SpawnConditionsEvaluator spawnConditionsEvaluator,
         SceneNarrativeService narrativeService,
-        MarkerResolutionService markerResolutionService)
+        MarkerResolutionService markerResolutionService,
+        VenueGeneratorService venueGenerator)
     {
         _gameWorld = gameWorld;
         _spawnConditionsEvaluator = spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
         _markerResolutionService = markerResolutionService ?? throw new ArgumentNullException(nameof(markerResolutionService));
+        _venueGenerator = venueGenerator ?? throw new ArgumentNullException(nameof(venueGenerator));
     }
 
     // ==================== PHASE 2: DTO GENERATION METHODS (NEW ARCHITECTURE) ====================
@@ -1208,7 +1211,19 @@ public class SceneInstantiator
                 return context.CurrentLocation.VenueId; // Location.VenueId (source of truth)
 
             case VenueIdSource.GenerateNew:
-                throw new NotImplementedException("VenueIdSource.GenerateNew not yet implemented");
+                // Generate new venue for this location
+                VenueTemplate venueTemplate = new VenueTemplate
+                {
+                    NamePattern = "Generated Venue",
+                    DescriptionPattern = "A procedurally generated venue.",
+                    Type = VenueType.Building,
+                    Tier = context.CurrentLocation?.Tier ?? 1,
+                    District = context.CurrentLocation?.Venue?.District ?? "wilderness",
+                    MaxGeneratedLocations = 20,
+                    HexAllocation = HexAllocationStrategy.ClusterOf7
+                };
+                Venue generatedVenue = _venueGenerator.GenerateVenue(venueTemplate, context, _gameWorld);
+                return generatedVenue.Id;
 
             default:
                 throw new InvalidOperationException($"Unknown VenueIdSource: {source}");

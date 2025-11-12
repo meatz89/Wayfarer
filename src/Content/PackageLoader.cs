@@ -40,11 +40,19 @@ public class PackageLoader
     private List<string> _loadedPackageIds = new List<string>();
 
     private readonly SceneGenerationFacade _sceneGenerationFacade;
+    private readonly GeneratedLocationValidator _locationValidator;
+    private readonly HexSynchronizationService _hexSync;
 
-    public PackageLoader(GameWorld gameWorld, SceneGenerationFacade sceneGenerationFacade)
+    public PackageLoader(
+        GameWorld gameWorld,
+        SceneGenerationFacade sceneGenerationFacade,
+        GeneratedLocationValidator locationValidator,
+        HexSynchronizationService hexSync)
     {
         _gameWorld = gameWorld;
         _sceneGenerationFacade = sceneGenerationFacade;
+        _locationValidator = locationValidator ?? throw new ArgumentNullException(nameof(locationValidator));
+        _hexSync = hexSync ?? throw new ArgumentNullException(nameof(hexSync));
     }
 
     /// <summary>
@@ -821,6 +829,22 @@ public class PackageLoader
             }
 
             Location location = LocationParser.ConvertDTOToLocation(dto, _gameWorld);
+
+            // POST-PARSING INTEGRATION: Validate and sync generated locations
+            if (location.Provenance != null)
+            {
+                // Generated location - validate playability and increment venue budget
+                _locationValidator.ValidateLocation(location, _gameWorld);
+
+                // Increment venue generation count
+                if (location.Venue != null)
+                {
+                    location.Venue.IncrementGeneratedCount();
+                }
+            }
+
+            // Synchronize hex reference (for ALL locations, authored and generated)
+            _hexSync.SyncLocationToHex(location, _gameWorld);
 
             // Add to primary Locations dictionary
             _gameWorld.AddOrUpdateLocation(location.Id, location);
