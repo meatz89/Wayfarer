@@ -384,18 +384,6 @@ public class SceneInstantiator
         return situation;
     }
 
-    // ==================== ACTION GENERATION DELETED ====================
-    // GenerateActionFromChoiceTemplate() and DetermineNPCActionType() methods REMOVED
-    // Actions are NO LONGER created at Scene instantiation (Tier 2)
-    // Actions are NOW created at query time (Tier 3) by SceneFacade
-    // This is the CRITICAL architectural refactoring for three-tier timing model
-    // See situation-refactor/REFACTORING_PLAN.md for complete details
-
-    // ==================== GENERIC PLACEMENT FILTER EVALUATION ====================
-    // RUNTIME PlacementFilter evaluation for Generic placement relation
-    // Replicates GameWorldInitializer.FindStarterPlacement() logic for runtime spawning
-    // Supports AI-generated scenes with categorical properties instead of hardcoded IDs
-
     /// <summary>
     /// Evaluate PlacementFilter to find matching entity at runtime
     /// Returns entity ID or null if no match found
