@@ -64,16 +64,17 @@ public class ObligationParser
         };
 
         // Parse scene spawns using Scene-Situation template architecture
-        // Convert SceneSpawnInfoDTO → SceneSpawnReward
+        // Convert SceneSpawnInfoDTO → SceneSpawnReward with PlacementFilterOverride
         if (dto.ScenesSpawned != null)
         {
             foreach (SceneSpawnInfoDTO spawnDto in dto.ScenesSpawned)
             {
+                PlacementFilter filter = BuildPlacementFilterFromTargetType(spawnDto.TargetType, spawnDto.TargetEntityId);
+
                 SceneSpawnReward sceneSpawn = new SceneSpawnReward
                 {
                     SceneTemplateId = spawnDto.SceneTemplateId,
-                    PlacementRelation = ParsePlacementRelationFromTargetType(spawnDto.TargetType),
-                    SpecificPlacementId = spawnDto.TargetEntityId
+                    PlacementFilterOverride = filter
                 };
 
                 reward.ScenesToSpawn.Add(sceneSpawn);
@@ -84,19 +85,31 @@ public class ObligationParser
     }
 
     /// <summary>
-    /// Convert legacy TargetType (Location/Route/NPC) to PlacementRelation (Specific*)
-    /// Obligation phase rewards always use specific placement (not Same* relations)
+    /// Convert legacy TargetType + TargetEntityId to PlacementFilter
+    /// Obligation phase rewards use specific entity placement
     /// </summary>
-    private PlacementRelation ParsePlacementRelationFromTargetType(string targetType)
+    private PlacementFilter BuildPlacementFilterFromTargetType(string targetType, string targetEntityId)
     {
         if (string.IsNullOrEmpty(targetType))
             throw new InvalidDataException("SceneSpawnInfo missing required 'targetType' field");
 
         return targetType.ToLowerInvariant() switch
         {
-            "location" => PlacementRelation.SpecificLocation,
-            "route" => PlacementRelation.SpecificRoute,
-            "npc" => PlacementRelation.SpecificNPC,
+            "location" => new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                SpecificLocationId = targetEntityId
+            },
+            "route" => new PlacementFilter
+            {
+                PlacementType = PlacementType.Route,
+                SpecificRouteId = targetEntityId
+            },
+            "npc" => new PlacementFilter
+            {
+                PlacementType = PlacementType.NPC,
+                SpecificNpcId = targetEntityId
+            },
             _ => throw new InvalidDataException(
                 $"Invalid TargetType '{targetType}'. Valid values: Location, Route, NPC")
         };

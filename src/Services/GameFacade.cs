@@ -1576,7 +1576,7 @@ public class GameFacade
 
         // Query all Situations (both legacy and Scene-embedded) at this location
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
-            .Where(sit => sit.GetPlacementId(PlacementType.Location) == locationId)
+            .Where(sit => sit.ParentScene?.Location?.Id == locationId)
             .ToList();
     }
 
