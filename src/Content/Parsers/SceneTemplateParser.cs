@@ -176,11 +176,20 @@ public class SceneTemplateParser
             MinBond = dto.MinBond,
             MaxBond = dto.MaxBond,
             NpcTags = dto.NpcTags,
+            // Orthogonal categorical dimensions - NPC
+            SocialStandings = ParseSocialStandings(dto.SocialStandings, sceneTemplateId),
+            StoryRoles = ParseStoryRoles(dto.StoryRoles, sceneTemplateId),
+            KnowledgeLevels = ParseKnowledgeLevels(dto.KnowledgeLevels, sceneTemplateId),
             // Location filters
             LocationTypes = ParseLocationTypes(dto.LocationTypes, sceneTemplateId),
             LocationProperties = ParseLocationProperties(dto.LocationProperties, sceneTemplateId),
             IsPlayerAccessible = dto.IsPlayerAccessible,
             LocationTags = dto.LocationTags,
+            // Orthogonal categorical dimensions - Location
+            PrivacyLevels = ParsePrivacyLevels(dto.PrivacyLevels, sceneTemplateId),
+            SafetyLevels = ParseSafetyLevels(dto.SafetyLevels, sceneTemplateId),
+            ActivityLevels = ParseActivityLevels(dto.ActivityLevels, sceneTemplateId),
+            Purposes = ParsePurposes(dto.Purposes, sceneTemplateId),
             DistrictId = dto.DistrictId,
             RegionId = dto.RegionId,
             // Route filters
@@ -295,6 +304,174 @@ public class SceneTemplateParser
         }
 
         return relationships;
+    }
+
+    /// <summary>
+    /// Parse social standing strings to enum list (Orthogonal Categorical Dimension)
+    /// </summary>
+    private static List<NPCSocialStanding> ParseSocialStandings(List<string> standingStrings, string sceneTemplateId)
+    {
+        if (standingStrings == null || !standingStrings.Any())
+            return new List<NPCSocialStanding>();
+
+        List<NPCSocialStanding> standings = new List<NPCSocialStanding>();
+        foreach (string standingString in standingStrings)
+        {
+            if (Enum.TryParse<NPCSocialStanding>(standingString, true, out NPCSocialStanding standing))
+            {
+                standings.Add(standing);
+            }
+            else
+            {
+                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' PlacementFilter has invalid NPCSocialStanding: '{standingString}'");
+            }
+        }
+
+        return standings;
+    }
+
+    /// <summary>
+    /// Parse story role strings to enum list (Orthogonal Categorical Dimension)
+    /// </summary>
+    private static List<NPCStoryRole> ParseStoryRoles(List<string> roleStrings, string sceneTemplateId)
+    {
+        if (roleStrings == null || !roleStrings.Any())
+            return new List<NPCStoryRole>();
+
+        List<NPCStoryRole> roles = new List<NPCStoryRole>();
+        foreach (string roleString in roleStrings)
+        {
+            if (Enum.TryParse<NPCStoryRole>(roleString, true, out NPCStoryRole role))
+            {
+                roles.Add(role);
+            }
+            else
+            {
+                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' PlacementFilter has invalid NPCStoryRole: '{roleString}'");
+            }
+        }
+
+        return roles;
+    }
+
+    /// <summary>
+    /// Parse knowledge level strings to enum list (Orthogonal Categorical Dimension)
+    /// </summary>
+    private static List<NPCKnowledgeLevel> ParseKnowledgeLevels(List<string> levelStrings, string sceneTemplateId)
+    {
+        if (levelStrings == null || !levelStrings.Any())
+            return new List<NPCKnowledgeLevel>();
+
+        List<NPCKnowledgeLevel> levels = new List<NPCKnowledgeLevel>();
+        foreach (string levelString in levelStrings)
+        {
+            if (Enum.TryParse<NPCKnowledgeLevel>(levelString, true, out NPCKnowledgeLevel level))
+            {
+                levels.Add(level);
+            }
+            else
+            {
+                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' PlacementFilter has invalid NPCKnowledgeLevel: '{levelString}'");
+            }
+        }
+
+        return levels;
+    }
+
+    /// <summary>
+    /// Parse privacy level strings to enum list (Orthogonal Categorical Dimension)
+    /// </summary>
+    private static List<LocationPrivacy> ParsePrivacyLevels(List<string> privacyStrings, string sceneTemplateId)
+    {
+        if (privacyStrings == null || !privacyStrings.Any())
+            return new List<LocationPrivacy>();
+
+        List<LocationPrivacy> privacyLevels = new List<LocationPrivacy>();
+        foreach (string privacyString in privacyStrings)
+        {
+            if (Enum.TryParse<LocationPrivacy>(privacyString, true, out LocationPrivacy privacy))
+            {
+                privacyLevels.Add(privacy);
+            }
+            else
+            {
+                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' PlacementFilter has invalid LocationPrivacy: '{privacyString}'");
+            }
+        }
+
+        return privacyLevels;
+    }
+
+    /// <summary>
+    /// Parse safety level strings to enum list (Orthogonal Categorical Dimension)
+    /// </summary>
+    private static List<LocationSafety> ParseSafetyLevels(List<string> safetyStrings, string sceneTemplateId)
+    {
+        if (safetyStrings == null || !safetyStrings.Any())
+            return new List<LocationSafety>();
+
+        List<LocationSafety> safetyLevels = new List<LocationSafety>();
+        foreach (string safetyString in safetyStrings)
+        {
+            if (Enum.TryParse<LocationSafety>(safetyString, true, out LocationSafety safety))
+            {
+                safetyLevels.Add(safety);
+            }
+            else
+            {
+                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' PlacementFilter has invalid LocationSafety: '{safetyString}'");
+            }
+        }
+
+        return safetyLevels;
+    }
+
+    /// <summary>
+    /// Parse activity level strings to enum list (Orthogonal Categorical Dimension)
+    /// </summary>
+    private static List<LocationActivity> ParseActivityLevels(List<string> activityStrings, string sceneTemplateId)
+    {
+        if (activityStrings == null || !activityStrings.Any())
+            return new List<LocationActivity>();
+
+        List<LocationActivity> activityLevels = new List<LocationActivity>();
+        foreach (string activityString in activityStrings)
+        {
+            if (Enum.TryParse<LocationActivity>(activityString, true, out LocationActivity activity))
+            {
+                activityLevels.Add(activity);
+            }
+            else
+            {
+                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' PlacementFilter has invalid LocationActivity: '{activityString}'");
+            }
+        }
+
+        return activityLevels;
+    }
+
+    /// <summary>
+    /// Parse purpose strings to enum list (Orthogonal Categorical Dimension)
+    /// </summary>
+    private static List<LocationPurpose> ParsePurposes(List<string> purposeStrings, string sceneTemplateId)
+    {
+        if (purposeStrings == null || !purposeStrings.Any())
+            return new List<LocationPurpose>();
+
+        List<LocationPurpose> purposes = new List<LocationPurpose>();
+        foreach (string purposeString in purposeStrings)
+        {
+            if (Enum.TryParse<LocationPurpose>(purposeString, true, out LocationPurpose purpose))
+            {
+                purposes.Add(purpose);
+            }
+            else
+            {
+                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' PlacementFilter has invalid LocationPurpose: '{purposeString}'");
+            }
+        }
+
+        return purposes;
     }
 
     /// <summary>

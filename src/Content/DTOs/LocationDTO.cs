@@ -46,4 +46,11 @@ public class LocationDTO
     public string ObligationProfile { get; set; }
     public Dictionary<string, List<string>> AvailableProfessionsByTime { get; set; } = new Dictionary<string, List<string>>();
     public List<WorkActionDTO> AvailableWork { get; set; } = new List<WorkActionDTO>();
+
+    // Orthogonal Categorical Dimensions (Entity Resolution)
+    // String values from JSON parsed to enums by LocationParser
+    public string Privacy { get; set; }
+    public string Safety { get; set; }
+    public string Activity { get; set; }
+    public string Purpose { get; set; }
 }
