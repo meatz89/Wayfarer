@@ -109,6 +109,33 @@ public class EntityResolver
                 return false;
         }
 
+        // Check orthogonal categorical dimensions
+        // Empty list = don't filter, Non-empty = location must match ONE OF the values
+
+        if (filter.PrivacyLevels != null && filter.PrivacyLevels.Count > 0)
+        {
+            if (!filter.PrivacyLevels.Contains(loc.Privacy))
+                return false;
+        }
+
+        if (filter.SafetyLevels != null && filter.SafetyLevels.Count > 0)
+        {
+            if (!filter.SafetyLevels.Contains(loc.Safety))
+                return false;
+        }
+
+        if (filter.ActivityLevels != null && filter.ActivityLevels.Count > 0)
+        {
+            if (!filter.ActivityLevels.Contains(loc.Activity))
+                return false;
+        }
+
+        if (filter.Purposes != null && filter.Purposes.Count > 0)
+        {
+            if (!filter.Purposes.Contains(loc.Purpose))
+                return false;
+        }
+
         // Check accessibility requirements
         if (filter.IsPlayerAccessible.HasValue && filter.IsPlayerAccessible.Value)
         {
@@ -153,6 +180,27 @@ public class EntityResolver
         if (filter.RequiredRelationships != null && filter.RequiredRelationships.Count > 0)
         {
             if (!filter.RequiredRelationships.Contains(npc.PlayerRelationship))
+                return false;
+        }
+
+        // Check orthogonal categorical dimensions
+        // Empty list = don't filter, Non-empty = NPC must match ONE OF the values
+
+        if (filter.SocialStandings != null && filter.SocialStandings.Count > 0)
+        {
+            if (!filter.SocialStandings.Contains(npc.SocialStanding))
+                return false;
+        }
+
+        if (filter.StoryRoles != null && filter.StoryRoles.Count > 0)
+        {
+            if (!filter.StoryRoles.Contains(npc.StoryRole))
+                return false;
+        }
+
+        if (filter.KnowledgeLevels != null && filter.KnowledgeLevels.Count > 0)
+        {
+            if (!filter.KnowledgeLevels.Contains(npc.KnowledgeLevel))
                 return false;
         }
 
