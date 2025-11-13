@@ -38,9 +38,9 @@
         "tier": 0,
         "placementFilter": {
           "placementType": "NPC",
-          "categoryFilter": {
-            "personalityTypes": ["Scholar", "Merchant"]
-          }
+          "storyRoles": ["Facilitator", "Neutral"],
+          "knowledgeLevels": ["Informed"],
+          "socialStandings": ["Notable", "Commoner"]
         },
         "introNarrativeTemplate": "Morning light filters through the window. You find {NPCName} at {LocationName}, and conversation begins."
       },
@@ -56,9 +56,9 @@
         "tier": 0,
         "placementFilter": {
           "placementType": "Location",
-          "categoryFilter": {
-            "properties": ["Commerce", "Governance"]
-          }
+          "purposes": ["Commerce", "Transit"],
+          "activityLevels": ["Moderate", "Busy"],
+          "privacyLevels": ["Public", "SemiPublic"]
         },
         "introNarrativeTemplate": "You prepare to leave. {LocationName} awaits, and the road calls."
       }
