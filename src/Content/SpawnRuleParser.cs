@@ -14,13 +14,14 @@ public static class SpawnRuleParser
 
         if (string.IsNullOrEmpty(dto.TemplateId))
             throw new InvalidOperationException($"SpawnRule in situation {parentSituationId} missing required 'TemplateId' field");
-        if (string.IsNullOrEmpty(dto.TargetPlacement))
-            throw new InvalidOperationException($"SpawnRule '{dto.TemplateId}' in situation {parentSituationId} missing required 'TargetPlacement' field");
 
+        // NOTE: TargetPlacement (legacy string field) removed - use PlacementFilterOverride instead
+        // Spawned situations inherit placement from their SituationTemplate
+        // PlacementFilterOverride can override this via categorical specification
         SpawnRule spawnRule = new SpawnRule
         {
             TemplateId = dto.TemplateId,
-            TargetPlacement = dto.TargetPlacement,
+            PlacementFilterOverride = null, // Not yet supported in DTO - situations use template placement
             RequirementOffsets = ParseRequirementOffsets(dto.RequirementOffsets),
             Conditions = ParseSituationSpawnConditions(dto.Conditions)
         };
