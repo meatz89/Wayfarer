@@ -255,60 +255,60 @@ public class EntityResolver
 
     // ========== SELECTION STRATEGIES ==========
 
-    private Location ApplySelectionStrategy(List<Location> locations, SelectionStrategy? strategy)
+    private Location ApplySelectionStrategy(List<Location> locations, PlacementSelectionStrategy? strategy)
     {
         if (locations.Count == 0)
             return null;
         if (locations.Count == 1)
             return locations[0];
 
-        strategy = strategy ?? SelectionStrategy.First;
+        strategy = strategy ?? PlacementSelectionStrategy.First;
 
         switch (strategy.Value)
         {
-            case SelectionStrategy.Closest:
+            case PlacementSelectionStrategy.Closest:
                 // Return location closest to player current position
                 return locations.OrderBy(loc =>
                     CalculateDistance(loc.HexPosition, _player.CurrentLocationId)).First();
 
-            case SelectionStrategy.LeastRecent:
+            case PlacementSelectionStrategy.LeastRecent:
                 // Return least recently visited location
                 return locations.OrderBy(loc => loc.VisitCount).First();
 
-            case SelectionStrategy.WeightedRandom:
+            case PlacementSelectionStrategy.WeightedRandom:
                 // Random selection weighted by familiarity (less familiar = higher weight)
                 return WeightedRandomLocation(locations);
 
-            case SelectionStrategy.First:
+            case PlacementSelectionStrategy.First:
             default:
                 return locations.First();
         }
     }
 
-    private NPC ApplySelectionStrategy(List<NPC> npcs, SelectionStrategy? strategy)
+    private NPC ApplySelectionStrategy(List<NPC> npcs, PlacementSelectionStrategy? strategy)
     {
         if (npcs.Count == 0)
             return null;
         if (npcs.Count == 1)
             return npcs[0];
 
-        strategy = strategy ?? SelectionStrategy.First;
+        strategy = strategy ?? PlacementSelectionStrategy.First;
 
         switch (strategy.Value)
         {
-            case SelectionStrategy.HighestBond:
+            case PlacementSelectionStrategy.HighestBond:
                 // Return NPC with highest relationship flow
                 return npcs.OrderByDescending(npc => npc.RelationshipFlow).First();
 
-            case SelectionStrategy.LeastRecent:
+            case PlacementSelectionStrategy.LeastRecent:
                 // Return NPC with lowest story cubes (least interaction)
                 return npcs.OrderBy(npc => npc.StoryCubes).First();
 
-            case SelectionStrategy.WeightedRandom:
+            case PlacementSelectionStrategy.WeightedRandom:
                 // Random selection weighted by relationship state
                 return WeightedRandomNPC(npcs);
 
-            case SelectionStrategy.First:
+            case PlacementSelectionStrategy.First:
             default:
                 return npcs.First();
         }

@@ -286,7 +286,7 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             LocationTypes = new List<LocationTypes> { LocationTypes.Inn },
-            SelectionStrategy = SelectionStrategy.First
+            SelectionStrategy = PlacementSelectionStrategy.First
         };
 
         Location result = resolver.FindOrCreateLocation(filter);
@@ -313,7 +313,7 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             LocationTypes = new List<LocationTypes> { LocationTypes.Inn },
-            SelectionStrategy = SelectionStrategy.LeastRecent
+            SelectionStrategy = PlacementSelectionStrategy.LeastRecent
         };
 
         Location result = resolver.FindOrCreateLocation(filter);
@@ -341,7 +341,7 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             LocationTypes = new List<LocationTypes> { LocationTypes.Tavern },
-            SelectionStrategy = SelectionStrategy.WeightedRandom
+            SelectionStrategy = PlacementSelectionStrategy.WeightedRandom
         };
 
         // Run multiple times to verify randomness produces varied results
@@ -390,7 +390,7 @@ public class EntityResolverTests
         PlacementFilter filter = new PlacementFilter
         {
             Professions = new List<Professions> { Professions.Merchant },
-            SelectionStrategy = SelectionStrategy.HighestBond
+            SelectionStrategy = PlacementSelectionStrategy.HighestBond
         };
 
         NPC result = resolver.FindOrCreateNPC(filter);

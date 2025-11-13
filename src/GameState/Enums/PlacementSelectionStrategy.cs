@@ -12,6 +12,13 @@ public enum PlacementSelectionStrategy
     WeightedRandom,
 
     /// <summary>
+    /// Select first matching entity from filtered results
+    /// Deterministic selection (always same result for same filter)
+    /// Good for tutorial/story-critical bindings
+    /// </summary>
+    First,
+
+    /// <summary>
     /// Select spatially closest entity to player's current position
     /// Uses hex grid distance calculation
     /// Good for "nearby encounter" scenarios

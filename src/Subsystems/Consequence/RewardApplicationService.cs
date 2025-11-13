@@ -12,7 +12,6 @@ public class RewardApplicationService
     private readonly ConsequenceFacade _consequenceFacade;
     private readonly TimeFacade _timeFacade;
     private readonly SceneInstanceFacade _sceneInstanceFacade;
-    private readonly MarkerResolutionService _markerResolutionService;
     private readonly DependentResourceOrchestrationService _dependentResourceOrchestrationService;
     private readonly ProceduralAStoryService _proceduralAStoryService;
 
@@ -21,7 +20,6 @@ public class RewardApplicationService
         ConsequenceFacade consequenceFacade,
         TimeFacade timeFacade,
         SceneInstanceFacade sceneInstanceFacade,
-        MarkerResolutionService markerResolutionService,
         DependentResourceOrchestrationService dependentResourceOrchestrationService,
         ProceduralAStoryService proceduralAStoryService)
     {
@@ -29,7 +27,6 @@ public class RewardApplicationService
         _consequenceFacade = consequenceFacade;
         _timeFacade = timeFacade;
         _sceneInstanceFacade = sceneInstanceFacade;
-        _markerResolutionService = markerResolutionService ?? throw new ArgumentNullException(nameof(markerResolutionService));
         _dependentResourceOrchestrationService = dependentResourceOrchestrationService ?? throw new ArgumentNullException(nameof(dependentResourceOrchestrationService));
         _proceduralAStoryService = proceduralAStoryService ?? throw new ArgumentNullException(nameof(proceduralAStoryService));
     }
