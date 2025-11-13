@@ -103,6 +103,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Physical,
+            DeckId = "physical_challenge",
             ResolveCost = 2,
             FallbackTimeCost = 1
         };
@@ -133,6 +134,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Mental,
+            DeckId = "mental_challenge",
             ResolveCost = 2,
             FallbackTimeCost = 1
         };
@@ -163,6 +165,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Mental,
+            DeckId = "mental_challenge",
             ResolveCost = 2,
             FallbackTimeCost = 1
         };
@@ -193,6 +196,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Social,
+            DeckId = "friendly_chat",
             ResolveCost = 2,
             FallbackTimeCost = 1
         };
@@ -223,6 +227,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 4, // Higher requirement for crisis
             CoinCost = 25, // Very expensive
             ChallengeType = TacticalSystemType.Physical, // Often physical danger
+            DeckId = "physical_challenge",
             ResolveCost = 3, // Higher resolve cost
             FallbackTimeCost = 2 // Worse penalty
         };
@@ -253,6 +258,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 0,
             CoinCost = 5,
             ChallengeType = TacticalSystemType.Mental,
+            DeckId = "mental_challenge",
             ResolveCost = 1,
             FallbackTimeCost = 1
         };
@@ -283,6 +289,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Physical,
+            DeckId = "physical_challenge",
             ResolveCost = 2,
             FallbackTimeCost = 1
         };
@@ -313,6 +320,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Social,
+            DeckId = "friendly_chat",
             ResolveCost = 1,
             FallbackTimeCost = 1
         };
@@ -343,6 +351,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 12,
             ChallengeType = TacticalSystemType.Mental,
+            DeckId = "mental_challenge",
             ResolveCost = 2,
             FallbackTimeCost = 1
         };
@@ -373,6 +382,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Social,
+            DeckId = "friendly_chat",
             ResolveCost = 2,
             FallbackTimeCost = 1
         };
@@ -403,6 +413,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 20,
             ChallengeType = TacticalSystemType.Physical,
+            DeckId = "physical_challenge",
             ResolveCost = 2,
             FallbackTimeCost = 1
         };
@@ -433,6 +444,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 12,
             ChallengeType = TacticalSystemType.Mental,
+            DeckId = "mental_challenge",
             ResolveCost = 1,
             FallbackTimeCost = 2
         };
@@ -463,6 +475,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 15,
             ChallengeType = TacticalSystemType.Mental,
+            DeckId = "mental_challenge",
             ResolveCost = 2,
             FallbackTimeCost = 1
         };
@@ -493,6 +506,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 10,
             ChallengeType = TacticalSystemType.Social,
+            DeckId = "desperate_request",
             ResolveCost = 1,
             FallbackTimeCost = 1
         };
@@ -523,6 +537,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Social,
+            DeckId = "desperate_request",
             ResolveCost = 2,
             FallbackTimeCost = 1
         };
@@ -553,6 +568,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Mental,
+            DeckId = "mental_challenge",
             ResolveCost = 1,
             FallbackTimeCost = 1
         };
@@ -584,6 +600,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 8,
             ChallengeType = TacticalSystemType.Mental,
+            DeckId = "mental_challenge",
             ResolveCost = 1,
             FallbackTimeCost = 1
         };
@@ -607,6 +624,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 2,
             CoinCost = 5,
             ChallengeType = TacticalSystemType.Mental,
+            DeckId = "mental_challenge",
             ResolveCost = 1,
             FallbackTimeCost = 2
         };
@@ -642,6 +660,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 3,
             CoinCost = 5,
             ChallengeType = TacticalSystemType.Social,
+            DeckId = "friendly_chat",
             ResolveCost = 1,
             FallbackTimeCost = 0
         };
@@ -678,6 +697,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 0,
             CoinCost = 0,
             ChallengeType = TacticalSystemType.Physical,  // Rest is Physical domain (no actual challenge)
+            DeckId = string.Empty,  // No challenge deck - all rest choices succeed
             ResolveCost = 0,
             FallbackTimeCost = 0
         };
@@ -714,6 +734,7 @@ public static class SituationArchetypeCatalog
             StatThreshold = 2,
             CoinCost = 0,
             ChallengeType = TacticalSystemType.Mental,
+            DeckId = "mental_challenge",
             ResolveCost = 0,
             FallbackTimeCost = 1
         };
@@ -839,7 +860,8 @@ public static class SituationArchetypeCatalog
             RewardTemplate = new ChoiceReward(),
             ActionType = ChoiceActionType.StartChallenge,
             ChallengeId = null,
-            ChallengeType = archetype.ChallengeType
+            ChallengeType = archetype.ChallengeType,
+            DeckId = archetype.DeckId
         };
         choices.Add(challengeChoice);
 
@@ -1097,7 +1119,8 @@ public static class SituationArchetypeCatalog
             CostTemplate = new ChoiceCost { Resolve = archetype.ResolveCost },
             RewardTemplate = new ChoiceReward(),  // Empty
             ActionType = ChoiceActionType.StartChallenge,
-            ChallengeType = archetype.ChallengeType
+            ChallengeType = archetype.ChallengeType,
+            DeckId = archetype.DeckId
         });
 
         // Choice 4: Decline

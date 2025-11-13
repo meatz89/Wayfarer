@@ -99,6 +99,18 @@ public class ChoiceTemplate
     public TacticalSystemType? ChallengeType { get; init; }
 
     /// <summary>
+    /// Challenge deck identifier (if ActionType is StartChallenge)
+    /// Specifies which card deck to use within the tactical system
+    /// Set from SituationArchetype.DeckId at parse-time
+    /// Social: "friendly_chat" or "desperate_request"
+    /// Mental: "mental_challenge"
+    /// Physical: "physical_challenge"
+    /// string.Empty for situations with no challenge path
+    /// null for Instant and Navigate action types
+    /// </summary>
+    public string DeckId { get; init; }
+
+    /// <summary>
     /// Navigation payload (if ActionType is Navigate)
     /// Destination and auto-trigger configuration
     /// null for Instant and StartChallenge action types

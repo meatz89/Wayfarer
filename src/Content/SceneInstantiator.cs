@@ -193,6 +193,11 @@ public class SceneInstantiator
 
             // AI generates complete text with entity context (no placeholder replacement needed)
 
+            // Get DeckId from Challenge choice template (set at parse-time from archetype)
+            string deckId = sitTemplate.ChoiceTemplates
+                .FirstOrDefault(c => c.PathType == ChoicePathType.Challenge)
+                ?.DeckId ?? string.Empty;
+
             // Build Situation DTO from template
             // Scene-based situations use templates - most DTO properties are for standalone situations
             SituationDTO situationDto = new SituationDTO
@@ -201,8 +206,9 @@ public class SceneInstantiator
                 TemplateId = sitTemplate.Id,
                 Name = sitTemplate.Name,
                 Description = description,
-                InteractionType = sitTemplate.Type.ToString(),
+                InteractionType = "Instant",  // Scene situations present choices (instant interaction, choice determines next action)
                 SystemType = sitTemplate.SystemType.ToString(),
+                DeckId = deckId,
                 PlacementLocationId = resolvedLocationId,
                 PlacementNpcId = resolvedNpcId
             };

@@ -65,6 +65,16 @@ public class SituationArchetype
     public TacticalSystemType ChallengeType { get; init; }
 
     /// <summary>
+    /// Deck ID for Choice 3 (challenge option)
+    /// Specifies which challenge deck to use within the tactical system
+    /// Social: "friendly_chat" or "desperate_request"
+    /// Mental: "mental_challenge"
+    /// Physical: "physical_challenge"
+    /// Determined at parse-time based on archetype identity
+    /// </summary>
+    public string DeckId { get; init; }
+
+    /// <summary>
     /// Resolve cost for Choice 3 (challenge option)
     /// Resource consumed when entering challenge
     /// </summary>

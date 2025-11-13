@@ -117,6 +117,7 @@ public static class SceneArchetypeCatalog
                         ActionType = choice.ActionType,
                         ChallengeId = choice.ChallengeId,
                         ChallengeType = choice.ChallengeType,
+                        DeckId = choice.DeckId,
                         NavigationPayload = choice.NavigationPayload
                     });
                     break;
@@ -139,6 +140,7 @@ public static class SceneArchetypeCatalog
                         ActionType = choice.ActionType,
                         ChallengeId = choice.ChallengeId,
                         ChallengeType = choice.ChallengeType,
+                        DeckId = choice.DeckId,
                         NavigationPayload = choice.NavigationPayload
                     });
                     break;
@@ -242,6 +244,7 @@ public static class SceneArchetypeCatalog
                 ActionType = choice.ActionType,
                 ChallengeId = choice.ChallengeId,
                 ChallengeType = choice.ChallengeType,
+                DeckId = choice.DeckId,
                 NavigationPayload = choice.NavigationPayload
             });
         }

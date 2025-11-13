@@ -15,8 +15,7 @@ public static class SituationParser
             throw new InvalidOperationException($"Situation {dto.Id} missing required 'Name' field");
         if (string.IsNullOrEmpty(dto.SystemType))
             throw new InvalidOperationException($"Situation {dto.Id} missing required 'SystemType' field");
-        if (string.IsNullOrEmpty(dto.DeckId))
-            throw new InvalidOperationException($"Situation {dto.Id} missing required 'DeckId' field");
+        // DeckId optional - only required if situation has challenge choices
 
         // Parse system type
         if (!Enum.TryParse<TacticalSystemType>(dto.SystemType, true, out TacticalSystemType systemType))
