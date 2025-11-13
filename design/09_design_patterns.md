@@ -209,91 +209,130 @@ Player situation 3: Authority 2, 5 coins, 10 Resolve, 8 segments available
 
 All four choices viable in different contexts. Orthogonal costs create genuine strategic variety.
 
-### 9.2.4 Reward-Driven Spawning with State-Based Eligibility (B/C Stories)
+### 9.2.4 Context-Bound Scene Spawning (Procedural Narrative Continuity)
 
-**Problem**: How to control B/C story visibility without hardcoded chains while maintaining reward-driven spawning?
+**Problem**: How to spawn scenes that reference entities (NPCs, locations) without hardcoding specific IDs? Infinite procedural narrative requires spawning scenes before their entities exist. Must preserve narrative continuity ("investigate for Elena") while working with categorical templates.
 
-**Solution**: Scenes spawn via ScenesToSpawn rewards, but SpawnConditions determine when spawned scenes become visible/accessible to player. Tags track player state, enabling organic content flow.
+**Solution**: Scenes spawn via ScenesToSpawn rewards containing categorical template ID + context bindings. Context bindings populated at choice display time, enabling perfect information projection while preserving narrative continuity across scene boundaries.
 
 **Pattern Structure**:
 
-**Scene Spawning (ALL Stories)**:
-- Player executes choice in any situation
-- Choice has ScenesToSpawn reward → scenes spawn immediately
-- Spawned scenes added to GameWorld.Scenes collection
-- Spawning is purely reward-driven (no condition checks)
+**Three-Component Spawn Specification**:
 
-**SpawnConditions (B/C Stories Only)**:
-- RequiredTags: Player must have these tags for scene to be visible
-- ForbiddenTags: Player must NOT have these tags
-- RequiredSceneCompletions: Player must have completed these scenes
-- Other filters: MinDay, MaxDay, Weather, TimeBlock, CooldownDays
-- Purpose: Determine VISIBILITY, not spawning
+1. **Template Selection** - Which categorical scene pattern
+2. **Context Bindings** - How current context flows into spawned scene (populated at display time)
+3. **Categorical Resolution** - Where/who scene spawns at (resolved at spawn time)
 
-**StateApplicationReward**:
-- TagsToApply: List of tags added to player state
-- TagsToRemove: List of tags removed from player state
-- Applied when choice executed
+**Context Binding Structure (Strongly-Typed)**:
+```csharp
+public class ContextBinding
+{
+    public string MarkerKey { get; set; }      // "QUESTGIVER", "RETURN_LOCATION"
+    public ContextSource Source { get; set; }  // Enum: CurrentNpc, CurrentLocation, CurrentRoute, PreviousScene
+    public string ResolvedId { get; set; }     // Populated at display time: "elena", "fountain_plaza"
+}
+```
 
-**Content Flow**:
-1. Player completes Scene A, choice has ScenesToSpawn: ["scene_b_id"]
-2. Scene B spawns immediately (added to GameWorld.Scenes)
-3. Scene A rewards include: TagsToApply = ["investigated_mill"]
-4. Scene B has SpawnConditions: RequiredTags = ["investigated_mill"]
-5. Scene B now visible/accessible (spawned earlier, now eligible)
-6. Player can interact with Scene B
+**Scene Spawning Flow**:
+
+**Choice Authoring (Content Creation)**:
+```json
+{
+  "choiceId": "accept_investigation",
+  "rewards": {
+    "scenesToSpawn": [{
+      "templateId": "investigate_location"
+      // NO context bindings yet
+    }]
+  }
+}
+```
+
+**Choice Display (Runtime)**:
+```
+System populates context bindings:
+1. Read ScenesToSpawn reward
+2. Examine current context (CurrentNpc, CurrentLocation)
+3. Create ContextBinding objects: [
+     { MarkerKey: "QUESTGIVER", Source: CurrentNpc, ResolvedId: "elena" },
+     { MarkerKey: "RETURN_LOCATION", Source: CurrentLocation, ResolvedId: "tavern" }
+   ]
+4. Attach bindings to displayed choice
+5. Project to UI: "Investigate for Elena at Fountain Plaza"
+6. Player sees exact narrative continuity before selection
+```
+
+**Choice Execution (Player Selects)**:
+```
+System spawns scene:
+1. Load template (categorical pattern with placeholders)
+2. Resolve categorical filters → find/generate new entities
+3. Resolve context bindings → bind current context
+4. Merge into MarkerResolutionMap
+5. Instantiate scene with all references resolved
+6. Template narrative: "Investigate for {QUESTGIVER_NAME}" → "Investigate for Elena"
+```
 
 **Why This Works**:
-- Clear causality (rewards spawn scenes, state determines visibility)
-- No hardcoded chains (scenes reference tags, not specific scene IDs)
-- State-based eligibility (content appears when contextually appropriate)
-- Multiple paths to same state (different scenes can grant same tags)
-- Graceful non-linear progression (tag accumulation enables access)
+- No hardcoded entity IDs (works with procedural generation)
+- Context bindings preserve narrative continuity
+- Display-time population enables perfect information
+- Minimal bindings (quest giver, return location) avoid tight coupling
+- Strongly-typed List<ContextBinding> (not Dictionary antipattern)
+- Clear causality (choice execution → scene spawning)
 
-**A-Story vs B/C Story Spawning**:
+**Main Story vs Side Story Spawning**:
 
-**A-Story Pattern:**
-- Final situation: ALL 4 choices have ScenesToSpawn: ["next_a_scene"]
+**Main Story Pattern** (secure_lodging → gather_testimony → investigate_location):
+- Final situation: ALL 4 choices spawn same template with context bindings
+- Example: secure_lodging final choices ALL spawn gather_testimony
+- Context bindings: QUESTGIVER = Elena (populated from CurrentNpc)
 - SpawnConditions: AlwaysEligible (no visibility gates)
-- Result: Next A-scene spawns and is immediately visible
 - Guaranteed progression (no eligibility checks)
+- Entry state tags vary (RespectedAuthority, GenerousPatron, etc.)
 
-**B/C Story Pattern:**
-- Choice has ScenesToSpawn: ["b_story_id"]
-- SpawnConditions: RequiredTags, MinDay, NPCBond thresholds, etc.
-- Result: B-story spawns but might not be visible yet
+**Side Story Pattern**:
+- Choice has ScenesToSpawn with template ID + context bindings
+- SpawnConditions: RequiredTags, MinDay, NPCBond thresholds
+- Spawns immediately but might not be visible yet
 - Becomes visible when player state satisfies SpawnConditions
+- Context bindings still populated (preserves continuity when visible)
 
 **Example**:
 
-**Scene A1 (A-Story)**: "Tutorial prologue"
-- Final situation Choice 1: ScenesToSpawn: ["a2_id"]
-- Final situation Choice 2: ScenesToSpawn: ["a2_id"]
-- Final situation Choice 3: ScenesToSpawn: ["a2_id"]
-- Final situation Choice 4: ScenesToSpawn: ["a2_id"]
-- Completion rewards: TagsToApply = ["EstablishedInWestmarch"]
+**Scene: secure_lodging** (talking to Elena at tavern)
+- Final situation Choice 1: ScenesToSpawn: [{ TemplateId: "gather_testimony" }]
+  - Display time: System populates bindings [{ QUESTGIVER: Elena }, { RETURN_LOCATION: Tavern }]
+  - Projected: "Elena will ask you to gather information in morning"
+  - Entry tag: RespectedAuthority
 
-**Scene A2 (A-Story)**: "Meet constable"
-- SpawnConditions: AlwaysEligible (no gates)
-- Spawns from A1 choices, immediately visible
+- Final situation Choice 2: ScenesToSpawn: [{ TemplateId: "gather_testimony" }]
+  - Display time: Same bindings (Elena, Tavern)
+  - Entry tag: GenerousPatron
 
-**Scene B1 (B-Story)**: "Local scholar's request"
-- SpawnConditions: RequiredTags = ["EstablishedInWestmarch"]
-- Was spawned earlier via reward chain, NOW becomes visible when A1 grants tag
-- Player can now interact with B1
+- Final situation Choice 3: ScenesToSpawn: [{ TemplateId: "gather_testimony" }]
+  - Entry tag: SkilledNegotiator or EarnestStruggler
 
-**Scene B2 (B-Story)**: "Investigate mill interior"
+- Final situation Choice 4: ScenesToSpawn: [{ TemplateId: "gather_testimony" }]
+  - Entry tag: PatientHelper
+
+**ALL 4 choices spawn gather_testimony with IDENTICAL context bindings**
+Player chooses HOW to enter (reputation/relationship), not IF they enter
+Context: Elena flows through as QUESTGIVER
+Perfect information: "for Elena" visible before choice selection
+
+**Scene: investigate_mill_exterior** (side story)
+- Choice: "Search around back" → ScenesToSpawn: [{ TemplateId: "investigate_mill_interior" }]
+- Context bindings: [{ INVESTIGATION_START: CurrentLocation }]
+- Rewards: TagsToApply = ["investigated_mill_exterior"]
+
+**Scene: investigate_mill_interior** (side story)
 - SpawnConditions: RequiredTags = ["investigated_mill_exterior"]
-- Spawned via earlier choice reward
-- Becomes visible when player completes exterior investigation and receives tag
+- Was spawned earlier, NOW becomes visible when player completes exterior
+- Context binding preserved: INVESTIGATION_START = mill_exterior_location
+- Narrative: "Return to {INVESTIGATION_START_NAME} to continue" → "Return to Mill Exterior to continue"
 
-**Scene C1 (C-Encounter)**: "Confront mill owner"
-- SpawnConditions: RequiredTags = ["investigated_mill_exterior", "discovered_evidence"], ForbiddenTags = ["allied_with_corrupt"]
-- Spawned via reward
-- Visible only if has both required tags AND lacks forbidden tag
-- State branching: different player paths create different visibility
-
-This creates web of reward-driven spawning with state-based visibility. Spawning is causal (choice execution), visibility is conditional (player state). Player explores naturally, content appears organically as state accumulates.
+This creates web of categorical templates with minimal context bindings. Spawning is reward-driven (choice execution). Narrative continuity via context bindings. Perfect information via display-time projection. Works for infinite procedural content without hardcoded entity IDs.
 
 ## 9.3 Content Design Patterns
 

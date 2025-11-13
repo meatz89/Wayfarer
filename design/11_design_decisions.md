@@ -148,42 +148,111 @@ Additionally, authoring multiple satisfying endings is expensive, yet most playe
 
 ---
 
-## DDR-002: Reward-Driven Scene Spawning vs Condition-Based Unlocking
+## DDR-002: Reward-Driven Scene Spawning with Context Binding
 
 ### Status
 **Active** - Core progression architecture
 
 ### Context
 
-Need progression structure supporting both authored tutorial and procedural infinite content. Scenes must spawn through clear mechanisms that maintain guaranteed forward progress while enabling meaningful choice consequences. System must align with Four-Choice Pattern (no soft-locks) and support both linear A-story progression and state-based B/C story eligibility.
+Infinite procedural narrative requires spawning scenes that don't exist yet. Cannot reference specific entity IDs (NPCs, locations) in preauthored content because procedural world generation means those IDs won't exist. Must support spatial freedom (player moves between locations) and narrative continuity (scenes reference who sent you, where to return).
+
+Solution must work for both authored tutorial content and fully procedural content. Must maintain guaranteed progression (no soft-locks) via Four-Choice Pattern while enabling rich narrative continuity across scene boundaries.
 
 ### Decision
 
-**All scenes spawn via ScenesToSpawn rewards from choice execution. Requirements gate CHOICE availability within scenes, not scene spawning itself.**
+**Scenes spawn via ScenesToSpawn rewards containing categorical templates + context bindings. Context bindings added at choice display time for perfect information projection.**
 
 **Scene Spawning Architecture:**
 
-**How Scenes Spawn:**
-- Player executes a choice in any situation
-- If choice has ScenesToSpawn reward, those scenes spawn immediately
-- Spawned scenes added to GameWorld.Scenes collection
-- No triggers, no timers, no condition checks at spawn time
-- Spawning is purely reward-driven (choice execution → scene creation)
+**Three-Component Spawn Specification:**
 
-**A-Story Pattern (Guaranteed Sequential Progression):**
-- Final situation in every A-scene has ALL FOUR CHOICES spawning next A-scene
-- Different choices create different entry states (Respected Authority vs Generous Patron vs Skilled Negotiator vs Patient Helper)
-- Same next scene spawned regardless of which choice taken
-- Entry state affects narrative context (how NPCs perceive you, dialogue tone)
-- Progression identical (all paths lead forward)
+1. **Template Selection** - Which categorical scene pattern
+   - Examples: `secure_lodging`, `investigate_location`, `gather_testimony`, `confront_hostile`
+   - Templates define situation structure, archetype composition, narrative placeholders
+   - No specific entity IDs in templates (only categorical filters)
+
+2. **Context Bindings** - How current context flows into spawned scene
+   - Minimal bindings preserve narrative continuity without tight coupling
+   - Bindings populated at choice display time (not authoring time)
+   - Enables perfect information: player sees "Investigate for Elena" (not generic "Investigate")
+   - Uses strongly-typed ContextBinding objects (List, not Dictionary)
+
+3. **Categorical Resolution** - Where/who scene spawns at
+   - Template's PlacementFilter specifies categories (PersonalityType, LocationProperties, Tier)
+   - Spawn-time resolution finds/generates entities matching filters
+   - Anti-repetition prefers not-recently-used entities
+
+**How Spawning Works:**
+
+**Choice Authoring (Content Creation):**
+```
+Choice template defines:
+- Costs and requirements
+- ScenesToSpawn: [{ TemplateId: "investigate_location" }]
+- NO context bindings yet (added later)
+```
+
+**Choice Display (Runtime):**
+```
+System populates context bindings:
+1. Read choice's ScenesToSpawn reward
+2. Examine current context (CurrentNpc, CurrentLocation, CurrentRoute)
+3. Create ContextBinding objects based on current state
+4. Attach bindings to displayed choice
+5. Project complete reward to UI: "Investigate for Elena at Fountain Plaza"
+6. Player sees EXACT narrative continuity before selection
+```
+
+**Choice Execution (Player Selects):**
+```
+System spawns scene:
+1. Load template (categorical pattern with placeholders)
+2. Resolve categorical filters → find/generate new entities
+3. Resolve context bindings → bind current context into placeholders
+4. Merge into scene's MarkerResolutionMap
+5. Instantiate scene with all references resolved
+6. Add to GameWorld.Scenes as Active
+7. Narrative uses resolved markers: "Investigate for {QUESTGIVER_NAME}" → "Investigate for Elena"
+```
+
+**Context Binding Structure (Strongly-Typed):**
+```csharp
+public class ContextBinding
+{
+    public string MarkerKey { get; set; }      // "QUESTGIVER", "RETURN_LOCATION"
+    public ContextSource Source { get; set; }  // Enum: CurrentNpc, CurrentLocation, CurrentRoute, PreviousScene
+    public string ResolvedId { get; set; }     // Populated at display time: "elena", "fountain_plaza"
+}
+
+public enum ContextSource
+{
+    CurrentNpc,       // NPC player is talking to
+    CurrentLocation,  // Location player is at
+    CurrentRoute,     // Route player is traveling
+    PreviousScene     // Scene that spawned this one
+}
+```
+
+**Minimal Context Philosophy:**
+- Bind narrative anchors: who gave quest, where to return, what investigating
+- NOT state snapshots: full conversation history, all reputation, witnessed events
+- Rich continuity via resource effects and tag accumulation instead
+
+**Main Story Pattern (Guaranteed Sequential Progression):**
+- Final situation in every main story scene has ALL FOUR CHOICES spawning next template
+- Different choices create different entry states via tags (RespectedAuthority, GenerousPatron, SkilledNegotiator, PatientHelper)
+- Same next template spawned regardless of which choice taken
+- Context bindings preserve continuity: QUESTGIVER flows through chain
+- Entry state affects narrative tone but progression identical
 - SpawnConditions: AlwaysEligible (no eligibility gates)
-- Infinite chain: A1 → A2 → A3 → ... → A10 (last authored) → A11+ (procedural) → ∞
+- Infinite chain: secure_lodging → gather_testimony → investigate_location → (procedural generation) → ∞
 
-**B/C Story Pattern (State-Based Eligibility):**
-- Scenes spawn via choice rewards (same as A-story)
+**Side Story Pattern (State-Based Eligibility):**
+- Scenes spawn via choice rewards (same as main story)
 - SpawnConditions determine when spawned scenes become visible/accessible
-- Example: A1 completion grants "EstablishedInWestmarch" tag
-- B-stories with RequiredTags ["EstablishedInWestmarch"] become accessible
+- Example: completing `secure_lodging` grants "EstablishedInWestmarch" tag
+- Side stories with RequiredTags ["EstablishedInWestmarch"] become accessible
 - Spawning happens via rewards, eligibility via state checks
 
 **Requirements Gate Choices, Not Scenes:**
@@ -196,42 +265,69 @@ Need progression structure supporting both authored tutorial and procedural infi
 
 **Example Flow:**
 ```
-A5 Final Situation: "Decide approach to innkeeper"
+Scene: secure_lodging (talking to Elena at tavern)
+Final Situation: "Decide how to secure room"
 
-Choice 1 (Authority 5): "Command respect" → ScenesToSpawn: [A6]
-  Entry state: Respected Authority
+Choice 1 (Authority 5): "Command respect"
+  → ScenesToSpawn: [{ TemplateId: "gather_testimony" }]
+  → Display time: System creates ContextBindings:
+     - [{ MarkerKey: "QUESTGIVER", Source: CurrentNpc, ResolvedId: "elena" }]
+     - [{ MarkerKey: "RETURN_LOCATION", Source: CurrentLocation, ResolvedId: "tavern" }]
+  → Projected to UI: "Elena will ask you to gather information in morning"
+  → Entry tag: RespectedAuthority
 
-Choice 2 (15 coins): "Generous payment" → ScenesToSpawn: [A6]
-  Entry state: Generous Patron
+Choice 2 (15 coins): "Generous payment"
+  → ScenesToSpawn: [{ TemplateId: "gather_testimony" }]
+  → Display time: Same bindings populated (CurrentNpc, CurrentLocation)
+  → Projected to UI: "Elena will ask you to gather information in morning"
+  → Entry tag: GenerousPatron
 
-Choice 3 (Social Challenge): "Negotiate shrewdly" → ScenesToSpawn: [A6]
-  Success entry: Skilled Negotiator
-  Failure entry: Earnest Struggler
+Choice 3 (Social Challenge): "Negotiate shrewdly"
+  → Success: ScenesToSpawn with SkilledNegotiator tag
+  → Failure: ScenesToSpawn with EarnestStruggler tag
+  → Same template, different entry states
+  → Context bindings identical (Elena, Tavern)
 
-Choice 4 (Zero requirements): "Help for 3 days" → ScenesToSpawn: [A6]
-  Entry state: Patient Helper
+Choice 4 (Zero requirements): "Help for 3 days"
+  → ScenesToSpawn: [{ TemplateId: "gather_testimony" }]
+  → Context bindings: CurrentNpc → Elena, CurrentLocation → Tavern
+  → Entry tag: PatientHelper
 
-ALL FOUR CHOICES SPAWN A6
-Player chooses HOW to enter A6, not IF they enter it
-Entry states differ (reputation, relationships, narrative tone)
-Progression guaranteed (no choice blocks advancement)
+ALL FOUR CHOICES SPAWN gather_testimony
+Player chooses HOW to enter (reputation/relationship context)
+Player CANNOT choose to block progression
+Context bindings ensure narrative continuity: Elena flows through as QUESTGIVER
+Perfect information: player sees "for Elena" before selecting choice
 ```
 
 ### Alternatives Considered
 
-**Option A: Reward-Driven Spawning (Chosen)**
+**Option A: Reward-Driven Spawning with Context Binding (Chosen)**
 - **Pros:**
   - Clear causality (choice execution → scene creation)
-  - No hidden triggers or timers
-  - Supports guaranteed progression (all final situation choices spawn next scene)
-  - Enables narrative branching via entry states (same scene, different context)
+  - No hardcoded entity IDs (works with procedural generation)
+  - Context bindings preserve narrative continuity
+  - Perfect information via display-time binding projection
+  - Supports guaranteed progression (all final situation choices spawn next template)
+  - Enables narrative branching via entry state tags
   - Aligns with Four-Choice Pattern (guaranteed path always spawns next content)
 - **Cons:**
-  - Requires all content to be choice-reward-connected (no ambient spawning)
-  - A-story final situations must have ALL choices spawn next scene (stricter than normal Four-Choice Pattern)
-- **Why Chosen:** Aligns with guaranteed progression requirement, clear causality, supports infinite A-story architecture
+  - Requires context binding population at display time (added complexity)
+  - Main story final situations must have ALL choices spawn next template (stricter than normal)
+  - No ambient spawning (all content must be reward-connected)
+- **Why Chosen:** Only pattern that works for infinite procedural narrative without hardcoded entity IDs. Context bindings solve continuity problem elegantly.
 
-**Option B: Condition-Based Unlocking (Rejected)**
+**Option B: Hardcoded Entity ID References (Rejected)**
+- **Pros:**
+  - Simplest to implement for authored content
+  - Direct references, no resolution needed
+- **Cons:**
+  - Breaks with procedural generation (entity IDs don't exist yet)
+  - Cannot reference specific NPCs/locations in future scenes
+  - No spatial freedom (player locked to preauthored entity chains)
+- **Why Rejected:** Incompatible with procedural world generation. Cannot create infinite content if scenes reference non-existent entity IDs.
+
+**Option C: Condition-Based Unlocking (Rejected)**
 - **Pros:**
   - Scenes could appear based on time/location/state without explicit rewards
   - Flexible ambient content spawning
@@ -240,86 +336,116 @@ Progression guaranteed (no choice blocks advancement)
   - Requires trigger systems (timers, location checks)
   - Hidden unlocking creates mystery gates (player doesn't know why scene appeared)
   - Cannot guarantee progression (conditions might never be met)
-- **Why Rejected:** Violates perfect information, creates mystery gates, cannot guarantee A-story progression
+  - Still requires hardcoded entity IDs for placement
+- **Why Rejected:** Violates perfect information, creates mystery gates, cannot guarantee progression, doesn't solve procedural entity problem.
 
-**Option C: Hardcoded Linear Chains (Rejected)**
+**Option D: State Snapshot Context Passing (Rejected)**
 - **Pros:**
-  - Simplest implementation (A1.OnComplete → spawn A2)
-  - Guaranteed sequential order
+  - Rich narrative continuity (full conversation history, all witnessed events)
+  - Detailed context preservation
 - **Cons:**
-  - Cannot express branching entry states
-  - Inflexible (changes require code modifications)
-  - No support for conditional B/C content
-- **Why Rejected:** Too rigid, doesn't support entry state variations or B/C story patterns
-
-**Option D: Tag-Based Scene Gating (Rejected)**
-- **Pros:**
-  - Flexible cross-storyline dependencies
-  - Abstract milestones
-- **Cons:**
-  - Tags would gate SCENE spawning, violating reward-driven architecture
-  - Boolean gates instead of resource arithmetic
-  - Mystery conditions (player doesn't see numeric gaps)
-- **Why Rejected:** Tags used for B/C story ELIGIBILITY, not spawning. Scenes spawn via rewards, tags determine visibility.
+  - Tight coupling between scenes (each scene depends on previous scene's entire state)
+  - Debugging nightmare (cannot understand scene in isolation)
+  - Performance concerns (serializing/deserializing entire game state)
+  - Violates minimal context philosophy
+- **Why Rejected:** Too complex, too coupled. Minimal context bindings (quest giver, return location) sufficient for narrative continuity. Rich continuity via tags/resources instead.
 
 ### Rationale
 
 **Design Principle Alignment:**
-- **No Soft-Locks (TIER 1):** A-story final situations have ALL choices spawning next scene, guaranteed path always available
-- **Perfect Information (TIER 2):** Clear causality (execute choice → spawn scene), no mystery triggers
+- **No Soft-Locks (TIER 1):** Main story final situations have ALL choices spawning next template, guaranteed path always available
+- **Perfect Information (TIER 2):** Context bindings projected at display time ("Investigate for Elena" shown before selection), clear causality
 - **Four-Choice Pattern (TIER 2):** Requirements gate choice availability, guaranteed path ensures progression
 - **Requirement Inversion Principle (TIER 2):** Resource thresholds for choices (`Authority >= 5`), not scene spawning
 - **Reward-Driven Progression:** Player actions (choice execution) cause world changes (scene spawning), not passive unlocking
+- **No Dictionary Antipattern:** List<ContextBinding> with strongly-typed objects, not Dictionary<string, string>
+
+**How This Solves Procedural Narrative Problem:**
+
+**Categorical Templates (Not Hardcoded IDs):**
+- Template `investigate_location` specifies CATEGORIES: PersonalityType.Merchant, LocationType.Commerce
+- Template does NOT specify: npc_id_7, location_id_42 (those don't exist yet)
+- Spawn-time resolution: Query GameWorld for entities matching categories
+- Works for authored content: finds Elena (Merchant, Tavern)
+- Works for procedural content: generates Marcus (Merchant, random Commerce location)
+
+**Context Bindings (Narrative Continuity):**
+- Choice spawns `gather_testimony` template
+- Context binding: QUESTGIVER = CurrentNpc (Elena)
+- Template narrative: "Gather testimony for {QUESTGIVER_NAME}"
+- Resolves to: "Gather testimony for Elena"
+- Continuity preserved without hardcoded references
+
+**Display-Time Binding (Perfect Information):**
+- Context bindings populated when choice displayed (not when authored)
+- System examines current state: CurrentNpc = Elena
+- Creates ContextBinding: { MarkerKey: "QUESTGIVER", Source: CurrentNpc, ResolvedId: "elena" }
+- Projects to UI: Player sees "for Elena" before making choice
+- Perfect information: player knows exact narrative continuity before commitment
 
 **How This Prevents Soft-Locks:**
 
-**A-Story Guarantee:**
+**Main Story Guarantee:**
 - Final situation has 4 choices
-- ALL 4 choices have ScenesToSpawn reward pointing to same next scene
+- ALL 4 choices have ScenesToSpawn reward pointing to same next template
 - Choice 4 (guaranteed path) has zero requirements
 - Even if player has: 0 coins, minimum stats, no resources
-- Choice 4 always available, always spawns next scene
+- Choice 4 always available, always spawns next template
 - Forward progress architecturally guaranteed
+- Context bindings identical across all 4 choices (same continuity)
 
 **Entry State Variations:**
-- Same scene spawned from all paths
-- Different entry states affect narrative (NPC reactions, dialogue)
+- Same template spawned from all paths
+- Different entry state tags affect narrative tone (NPC reactions, dialogue)
 - But progression identical (all reach same next situations)
 - Player chooses experience quality (optimal/reliable/risky/patient)
 - Player cannot choose to block progression
 
-**B/C Story Eligibility:**
+**Side Story Eligibility:**
 - Scenes spawn via choice rewards (not conditions)
 - SpawnConditions determine when spawned scenes visible
-- Example: B1 has RequiredTags ["EstablishedInWestmarch"]
-- A1 completion grants tag via reward
-- B1 becomes accessible (spawning happened earlier via reward chain)
+- Example: Side story has RequiredTags ["EstablishedInWestmarch"]
+- Completing `secure_lodging` grants tag via reward
+- Side story becomes accessible (spawning happened earlier via reward chain)
 - Tags gate VISIBILITY, not spawning
 
 ### Consequences
 
 **Positive:**
-- **Guaranteed Forward Progress:** A-story cannot soft-lock (all final situation choices spawn next scene)
+- **Solves Procedural Narrative Problem:** Can spawn scenes without hardcoded entity IDs
+- **Guaranteed Forward Progress:** Main story cannot soft-lock (all final situation choices spawn next template)
+- **Perfect Information:** Context bindings projected before choice selection ("for Elena" visible)
+- **Narrative Continuity:** Quest giver flows through scenes via context bindings
 - **Clear Causality:** Execute choice → spawn scene (no mystery unlocking)
-- **Entry State Variations:** Same scene, different contexts (replayability)
-- **Requirements Gate Choices:** Perfect information (player sees exact thresholds)
+- **Entry State Variations:** Same template, different narrative tones (replayability)
+- **Requirements Gate Choices:** Player sees exact stat/coin thresholds before commitment
 - **No Hidden Triggers:** No timers, location checks, or passive unlocking
-- **Supports Infinite A-Story:** Reward-driven spawning enables infinite procedural chain
+- **Supports Infinite Content:** Categorical templates + context bindings work for procedural generation
+- **Strongly-Typed:** List<ContextBinding>, not Dictionary (adheres to coding standards)
 
 **Negative:**
-- **A-Story Final Situations Constrained:** MUST have all choices spawn next scene (stricter than normal)
+- **Display-Time Binding Complexity:** Must populate context bindings when choices displayed (extra processing step)
+- **Main Story Final Situations Constrained:** MUST have all choices spawn next template (stricter than normal)
 - **No Ambient Spawning:** All content must be reward-connected (no passive appearance)
-- **Entry State Complexity:** Must track how player entered each scene (for narrative context)
+- **Context Binding Limited:** Only minimal bindings (quest giver, return location), not rich state snapshots
 
 **Trade-Offs:**
 - Sacrifices ambient spawning for guaranteed progression
-- Constrains A-story final situations (all spawn next scene) for architectural guarantee
-- Accepts entry state tracking complexity for narrative variation
+- Constrains main story final situations (all spawn next template) for architectural guarantee
+- Accepts display-time binding overhead for perfect information projection
+- Chooses minimal context bindings over rich state coupling (cleaner boundaries)
+
+**Implementation Requirements:**
+- SceneSpawnReward needs List<ContextBinding> property
+- Choice display logic must populate bindings from current context
+- UI projection must show resolved context ("for Elena") before selection
+- Spawn logic must merge bindings into MarkerResolutionMap
+- Templates must use marker placeholders: {QUESTGIVER_NAME}, {RETURN_LOCATION_NAME}
 
 ### Related Decisions
-- DDR-001: Infinite A-Story (reward-driven spawning supports infinite continuation)
+- DDR-001: Infinite Procedural Story (context bindings enable spawning scenes that reference entities not yet created)
 - DDR-007: Four-Choice Pattern (guaranteed path with zero requirements prevents soft-locks)
-- DDR-006: Categorical Property Scaling (requirements use resource thresholds, not boolean gates)
+- DDR-006: Categorical Property Scaling (templates use categories, not hardcoded IDs)
 
 ---
 
