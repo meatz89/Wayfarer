@@ -1315,7 +1315,6 @@ public static class AStorySceneArchetypeCatalog
                     SceneTemplateId = nextSceneId,
                     PlacementRelation = placementRelation,
                     SpecificPlacementId = null,
-                    DelayDays = 0,
                     ContextBindings = new List<ContextBinding>()  // Categorical filters handle placement
                 }
             };

@@ -1662,8 +1662,7 @@ public class GameFacade
             {
                 SceneTemplateId = template.Id,
                 PlacementRelation = placementRelation,
-                SpecificPlacementId = specificPlacementId,
-                DelayDays = 0
+                SpecificPlacementId = specificPlacementId
             };
 
             SceneSpawnContext spawnContext = SceneSpawnContextBuilder.BuildContext(

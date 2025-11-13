@@ -30,12 +30,6 @@ public class SceneSpawnReward
     public string SpecificPlacementId { get; set; }
 
     /// <summary>
-    /// Delay in days before spawning (0 for immediate, positive for scheduled future spawn)
-    /// Enables time-delayed consequences - "3 days later, X happens"
-    /// </summary>
-    public int DelayDays { get; set; } = 0;
-
-    /// <summary>
     /// Context bindings for narrative continuity - bind current context entities into spawned scene
     /// Populated at choice display time with current NPC/Location/Route
     /// Merged into Scene.MarkerResolutionMap at spawn time for narrative placeholder resolution

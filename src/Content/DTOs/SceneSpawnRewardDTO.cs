@@ -25,12 +25,6 @@ public class SceneSpawnRewardDTO
     public string SpecificPlacementId { get; set; }
 
     /// <summary>
-    /// Time-delayed consequences (number of days before Scene spawns)
-    /// 0 = immediate spawn
-    /// </summary>
-    public int DelayDays { get; set; } = 0;
-
-    /// <summary>
     /// Context bindings for narrative continuity
     /// Maps current context entities (NPC/Location/Route) into spawned scene markers
     /// Populated at choice display time by UI, merged into MarkerResolutionMap at spawn time

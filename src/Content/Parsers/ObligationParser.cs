@@ -73,8 +73,7 @@ public class ObligationParser
                 {
                     SceneTemplateId = spawnDto.SceneTemplateId,
                     PlacementRelation = ParsePlacementRelationFromTargetType(spawnDto.TargetType),
-                    SpecificPlacementId = spawnDto.TargetEntityId,
-                    DelayDays = 0 // Obligation rewards spawn immediately
+                    SpecificPlacementId = spawnDto.TargetEntityId
                 };
 
                 reward.ScenesToSpawn.Add(sceneSpawn);

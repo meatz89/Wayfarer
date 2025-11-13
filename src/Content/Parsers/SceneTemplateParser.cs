@@ -571,7 +571,6 @@ public class SceneTemplateParser
                 SceneTemplateId = dto.SceneTemplateId,
                 PlacementRelation = placementRelation,
                 SpecificPlacementId = dto.SpecificPlacementId,
-                DelayDays = dto.DelayDays,
                 ContextBindings = ParseContextBindings(dto.ContextBindings)
             });
         }

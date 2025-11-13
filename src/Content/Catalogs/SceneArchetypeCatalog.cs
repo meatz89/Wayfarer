@@ -225,7 +225,6 @@ public static class SceneArchetypeCatalog
                         SceneTemplateId = "a2_morning",
                         PlacementRelation = PlacementRelation.Generic,  // A2 uses categorical NPC filter (Scholar/Merchant)
                         SpecificPlacementId = null,
-                        DelayDays = 0,
                         ContextBindings = new List<ContextBinding>()  // A2 finds NPC via filter, no context binding needed
                     }
                 };
