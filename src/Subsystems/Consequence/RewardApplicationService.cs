@@ -4,6 +4,7 @@
 /// Used by GameFacade (instant actions), challenge facades (on completion), and SceneFacade (choice completion)
 /// Handles: resources, bonds, scales, states, achievements, items, scene spawning, time advancement
 /// Tutorial system relies on this for reward application after challenges complete
+/// On-demand template generation: Procedural A-story templates generated when spawning if don't exist yet
 /// </summary>
 public class RewardApplicationService
 {
@@ -13,6 +14,7 @@ public class RewardApplicationService
     private readonly SceneInstanceFacade _sceneInstanceFacade;
     private readonly MarkerResolutionService _markerResolutionService;
     private readonly DependentResourceOrchestrationService _dependentResourceOrchestrationService;
+    private readonly ProceduralAStoryService _proceduralAStoryService;
 
     public RewardApplicationService(
         GameWorld gameWorld,
@@ -20,7 +22,8 @@ public class RewardApplicationService
         TimeFacade timeFacade,
         SceneInstanceFacade sceneInstanceFacade,
         MarkerResolutionService markerResolutionService,
-        DependentResourceOrchestrationService dependentResourceOrchestrationService)
+        DependentResourceOrchestrationService dependentResourceOrchestrationService,
+        ProceduralAStoryService proceduralAStoryService)
     {
         _gameWorld = gameWorld;
         _consequenceFacade = consequenceFacade;
@@ -28,6 +31,7 @@ public class RewardApplicationService
         _sceneInstanceFacade = sceneInstanceFacade;
         _markerResolutionService = markerResolutionService ?? throw new ArgumentNullException(nameof(markerResolutionService));
         _dependentResourceOrchestrationService = dependentResourceOrchestrationService ?? throw new ArgumentNullException(nameof(dependentResourceOrchestrationService));
+        _proceduralAStoryService = proceduralAStoryService ?? throw new ArgumentNullException(nameof(proceduralAStoryService));
     }
 
     /// <summary>
@@ -203,14 +207,49 @@ public class RewardApplicationService
 
         foreach (SceneSpawnReward sceneSpawn in reward.ScenesToSpawn)
         {
-            // Get template
+            // Get template (or generate on-demand if procedural A-story)
             SceneTemplate template = _gameWorld.SceneTemplates
                 .FirstOrDefault(t => t.Id == sceneSpawn.SceneTemplateId);
 
             if (template == null)
             {
-                Console.WriteLine($"[RewardApplicationService] SceneTemplate '{sceneSpawn.SceneTemplateId}' not found");
-                continue;
+                // On-demand template generation for procedural A-story
+                // Pattern: Template IDs like "a_story_sequence_4", "a_story_sequence_11", etc.
+                if (sceneSpawn.SceneTemplateId.StartsWith("a_story_sequence_"))
+                {
+                    string sequenceStr = sceneSpawn.SceneTemplateId.Replace("a_story_sequence_", "");
+                    if (int.TryParse(sequenceStr, out int sequence))
+                    {
+                        Console.WriteLine($"[RewardApplicationService] A-story template '{sceneSpawn.SceneTemplateId}' not found - generating procedurally");
+
+                        // Get or initialize A-story context
+                        AStoryContext context = _proceduralAStoryService.GetOrInitializeContext(player);
+
+                        // Generate template procedurally (HIGHLANDER: DTO → JSON → PackageLoader → Template)
+                        string generatedTemplateId = await _proceduralAStoryService.GenerateNextATemplate(sequence, context);
+
+                        Console.WriteLine($"[RewardApplicationService] Generated A-story template: {generatedTemplateId}");
+
+                        // Retrieve generated template
+                        template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == generatedTemplateId);
+
+                        if (template == null)
+                        {
+                            Console.WriteLine($"[RewardApplicationService] FATAL: Generated template '{generatedTemplateId}' not found in GameWorld after generation");
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[RewardApplicationService] Invalid A-story sequence number in template ID: '{sceneSpawn.SceneTemplateId}'");
+                        continue;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"[RewardApplicationService] SceneTemplate '{sceneSpawn.SceneTemplateId}' not found (not an A-story pattern)");
+                    continue;
+                }
             }
 
             // Resolve placement context

@@ -354,11 +354,6 @@ public class GameFacade
 
                     // TRIGGER POINT 3: Record route traversal after successful travel
                     RecordRouteTraversal(routeId);
-
-                    // AUTOMATIC SPAWNING ORCHESTRATION - Location trigger
-                    // Check for procedural scenes that become eligible when entering this location
-                    // Handoff implementation: Phase 4 (lines 254-260)
-                    await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Location, destSpot.Id);
                 }
             }
 
@@ -1114,11 +1109,6 @@ public class GameFacade
 
     private async Task<IntentResult> ProcessTalkIntent(string npcId)
     {
-        // AUTOMATIC SPAWNING ORCHESTRATION - NPC trigger
-        // Check for procedural scenes that become eligible when interacting with this NPC
-        // GameFacade orchestrates: Player talks to NPC, then SpawnFacade checks for eligible scenes
-        await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.NPC, npcId);
-
         // TODO: Implement conversation initiation
         _messageSystem.AddSystemMessage($"Talking to NPC {npcId} not yet implemented", SystemMessageTypes.Info);
         await Task.CompletedTask;
@@ -1198,12 +1188,6 @@ public class GameFacade
                 // _messageSystem.AddSystemMessage($"Opportunity expired: {scene.DisplayName}", SystemMessageTypes.Info);
             }
         }
-
-        // AUTOMATIC SPAWNING ORCHESTRATION - Time trigger
-        // Check for procedural scenes with time-based spawn conditions (morning, evening, day ranges)
-        // HIGHLANDER: This ensures time-based spawns fire after EVERY time advancement
-        // (Wait, Rest, Work, Travel, SecureRoom, Delivery, Action execution, etc.)
-        await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Time, contextId: null);
     }
 
     /// <summary>
@@ -1700,16 +1684,6 @@ public class GameFacade
                 continue;
             }
         }
-    }
-
-    /// <summary>
-    /// Check for and spawn eligible scenes based on current game state
-    /// Used by tests to manually trigger spawn checks after simulating scene completion
-    /// In production, spawns happen automatically via SituationCompletionHandler
-    /// </summary>
-    public async Task CheckAndSpawnEligibleScenesAsync()
-    {
-        await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Scene, contextId: null);
     }
 
     // ========== UNIFIED ACTION ARCHITECTURE - EXECUTE METHODS ==========
