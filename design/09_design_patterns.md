@@ -220,12 +220,20 @@ All four choices viable in different contexts. Orthogonal costs create genuine s
 **Three-Component Spawn Specification**:
 
 1. **Template Selection** - Which categorical scene pattern
-2. **Context Bindings** - How current context flows into spawned scene (populated at display time)
-3. **Categorical Resolution** - Where/who scene spawns at (resolved at spawn time)
+2. **Placement Strategy** - WHERE scene spawns (context-relative, absolute, or categorical resolution)
+3. **Context Bindings** - WHICH entities bound for narrative (separate from placement)
 
-**Context Binding Structure (Strongly-Typed)**:
+**Placement Strategy (WHERE Scene Spawns)**:
 
-System stores marker key with source type, and resolved entity reference. When spawning a scene, bindings capture current context (who player is talking to, where they are, what route they're on) and preserve this information for the spawned scene's narrative. Each binding links a narrative placeholder to a specific entity in the game world.
+Determines physical location or NPC where scene appears:
+
+- **Context-Relative**: Spawn where choice displayed (same location, same NPC as current scene)
+- **Absolute**: Spawn at specific authored entity (hardcoded entity ID for tutorial)
+- **Categorical**: Spawn wherever requirements match (PlacementFilter finds suitable entity)
+
+**Context Bindings (WHICH Entities Bound for Narrative)**:
+
+Carries entity IDs from parent scene into child scene for story continuity. System stores marker key with source type and resolved entity reference. Bindings capture current context (who gave quest, where to return) and preserve this for narrative markers in spawned scene. Links narrative placeholders to specific entities without determining physical placement.
 
 **Scene Spawning Flow**:
 
@@ -321,15 +329,34 @@ First three main story scenes teach mechanics via authored content:
 
 **Infinite Procedural Continuation (Scene 4+)**:
 
-After tutorial completion, main story generates scenes on-demand:
+After tutorial completion, main story generates scenes on-demand using categorical placement:
 
-- Scene spawning specifies categorical template pattern (not specific ID)
-- If template doesn't exist yet, system generates procedurally
-- Template selection from archetype catalogue (20-30 archetypes available)
-- Entity resolution via categorical filters (personality types, location properties, tier)
+- Placement strategy: **Categorical** (not context-relative)
+- Scene templates have PlacementFilter specifying requirements (location properties, NPC personality types, tier)
+- Spawning evaluates PlacementFilter to find matching entities (independent of where previous scene displayed)
+- Location types vary (inn → crime scene → palace → temple) based on narrative needs
+- Context bindings preserve continuity (quest giver, return location flow through chain)
+- If template doesn't exist yet, system generates procedurally from archetype catalogue
 - AI narrative generation connecting to player's journey history
 - Escalating scope over time (local → regional → continental → cosmic)
 - Never ends, never resolves, always deepens
+
+**Example Separation: Placement vs Context Binding**
+
+**Scenario**: A12 investigation at palace completes → A13 crime scene investigation spawns
+
+**Placement (WHERE A13 spawns)**:
+- Uses **Categorical** strategy (not context-relative)
+- PlacementFilter specifies: LocationProperties (Private, Indoor, Discrete), LocationTags (crime_scene)
+- System finds crime scene location matching requirements
+- A13 spawns at crime scene (NOT at palace where A12 displayed)
+
+**Context Binding (WHICH entities bound)**:
+- QUESTGIVER bound from palace scene (duke who requested investigation)
+- RETURN_LOCATION bound to palace (where to report findings)
+- Narrative continuity: "Investigate crime scene for Duke Aldric, return to palace"
+
+**Result**: Investigation happens at crime scene (correct location type), narrative remembers duke sent you from palace (continuity). Location types vary while story connects.
 
 **Context Binding Timing (When Information Flows)**:
 

@@ -1259,7 +1259,7 @@ public static class AStorySceneArchetypeCatalog
             new SceneSpawnReward
             {
                 SceneTemplateId = nextASceneId,
-                PlacementRelation = PlacementRelation.SameLocation
+                PlacementRelation = PlacementRelation.Generic  // Uses template's PlacementFilter for categorical resolution
             }
         };
 

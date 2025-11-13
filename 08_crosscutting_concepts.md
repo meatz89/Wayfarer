@@ -541,15 +541,22 @@ This architectural pattern supports rich narrative branching where NPCs serve as
 
 ---
 
-### 8.2.8 Context Binding Pattern (Reward-Driven Scene Spawning)
+### 8.2.8 Reward-Driven Scene Spawning Pattern
 
-**Core Principle**: Scenes spawn via ScenesToSpawn rewards containing categorical templates plus context bindings. Context bindings populated at display time for perfect information projection, merged at spawn time for narrative continuity.
+**Core Principle**: Scenes spawn via ScenesToSpawn rewards from choice execution. Placement determines WHERE scene spawns (context-relative, absolute, or categorical). Context bindings determine WHICH entities are bound for narrative continuity (separate concern).
 
-#### Three-Component Architecture
+#### Two Orthogonal Systems
 
-**1. Template Selection** - Categorical scene pattern (not specific entity IDs)
-**2. Context Bindings** - Current context flows into spawned scene
-**3. Categorical Resolution** - Where/who scene spawns (resolved at spawn time)
+**PLACEMENT (WHERE scene spawns):**
+- Context-Relative: Spawn where choice displayed (SameLocation, SameNPC, SameRoute)
+- Absolute: Spawn at hardcoded entity ID (SpecificLocation, SpecificNPC, SpecificRoute)
+- Categorical: Spawn where PlacementFilter matches (Generic + SceneTemplate.PlacementFilter)
+
+**CONTEXT BINDING (WHICH entities bound for narrative):**
+- Carries entity IDs from parent scene into child scene (QUESTGIVER, RETURN_LOCATION)
+- Populated at display time for perfect information projection
+- Merged into MarkerResolutionMap at spawn time for narrative resolution
+- DOES NOT determine placement (separate concern)
 
 #### Data Structure
 
@@ -583,62 +590,75 @@ public enum ContextSource
 }
 ```
 
-#### Three-Phase Lifecycle
+#### Placement Resolution (SceneInstantiator.cs lines 308-372)
 
-**Phase 1: Authoring (JSON)**
-```json
-{
-  "rewards": {
-    "scenesToSpawn": [{
-      "sceneTemplateId": "gather_testimony",
-      "placementRelation": "Generic",
-      "contextBindings": []  // Empty at authoring time
-    }]
-  }
-}
+**Context-Relative Placement:**
+```csharp
+case PlacementRelation.SameLocation:
+    return new PlacementResolution {
+        PlacementType = PlacementType.Location,
+        PlacementId = context.CurrentLocation.Id  // Spawn where choice displayed
+    };
 ```
 
-**Phase 2: Display Time (SceneContent.razor.cs)**
+**Absolute Placement:**
 ```csharp
-// Population when displaying choices
-foreach (SceneSpawnReward spawn in choice.Reward.ScenesToSpawn)
+case PlacementRelation.SpecificLocation:
+    return new PlacementResolution {
+        PlacementType = PlacementType.Location,
+        PlacementId = spawnReward.SpecificPlacementId  // Spawn at hardcoded ID
+    };
+```
+
+**Categorical Placement:**
+```csharp
+case PlacementRelation.Generic:
+    if (template.PlacementFilter == null)
+        throw new InvalidOperationException("Generic placement requires PlacementFilter");
+
+    // Evaluate PlacementFilter to find matching entity (independent of display context)
+    string placementId = EvaluatePlacementFilter(template.PlacementFilter, context);
+
+    if (placementId == null)
+        throw new InvalidOperationException($"No entity matches PlacementFilter for {template.Id}");
+
+    return new PlacementResolution {
+        PlacementType = template.PlacementFilter.PlacementType,
+        PlacementId = placementId  // Spawn where filter matches
+    };
+```
+
+#### Context Binding Population (SceneContent.razor.cs lines 217-255)
+
+**Display Time** - Populate bindings from current context for Perfect Information:
+```csharp
+foreach (ContextBinding binding in spawn.ContextBindings)
 {
-    foreach (ContextBinding binding in spawn.ContextBindings)
+    switch (binding.Source)
     {
-        switch (binding.Source)
-        {
-            case ContextSource.CurrentNpc:
-                NPC currentNpc = GetCurrentNpc();
-                binding.ResolvedNpcId = currentNpc.ID;
-                break;
-
-            case ContextSource.CurrentLocation:
-                Location currentLoc = GameFacade.GetCurrentLocation();
-                binding.ResolvedLocationId = currentLoc.Id;
-                break;
-
-            case ContextSource.CurrentRoute:
-                RouteOption route = GameWorld.CurrentRouteOption;
-                binding.ResolvedRouteId = route.Id;
-                break;
-
-            case ContextSource.PreviousScene:
-                binding.ResolvedSceneId = Scene.Id;
-                break;
-        }
+        case ContextSource.CurrentNpc:
+            binding.ResolvedNpcId = GetCurrentNpc().ID;  // Capture current NPC
+            break;
+        case ContextSource.CurrentLocation:
+            binding.ResolvedLocationId = GameFacade.GetCurrentLocation().Id;
+            break;
+        case ContextSource.CurrentRoute:
+            binding.ResolvedRouteId = GameWorld.CurrentRouteOption.Id;
+            break;
+        case ContextSource.PreviousScene:
+            binding.ResolvedSceneId = Scene.Id;
+            break;
     }
-
-    // Project to UI: "Investigate for Elena" (not generic "Investigate")
-    string displayName = ProjectSceneName(spawn.SceneTemplateId, spawn.ContextBindings);
-    scenesUnlocked.Add(displayName);
 }
+
+// Project to UI: "Investigate for Elena" (shows bound NPC name before choice selection)
+string displayName = ProjectSceneName(spawn.SceneTemplateId, spawn.ContextBindings);
 ```
 
-**Phase 3: Spawn Time (SceneInstantiator.cs)**
-```csharp
-// Merge context bindings into MarkerResolutionMap
-Dictionary<string, string> markerMap = new Dictionary<string, string>();
+#### Context Binding Merge (SceneInstantiator.cs lines 106-124)
 
+**Spawn Time** - Merge bindings into MarkerResolutionMap for narrative resolution:
+```csharp
 foreach (ContextBinding binding in spawnReward.ContextBindings)
 {
     string resolvedId = binding.Source switch
@@ -652,98 +672,105 @@ foreach (ContextBinding binding in spawnReward.ContextBindings)
 
     if (!string.IsNullOrEmpty(resolvedId))
     {
-        markerMap[binding.MarkerKey] = resolvedId;
+        markerResolutionMap[binding.MarkerKey] = resolvedId;  // Store for narrative resolution
     }
 }
 
-// Store in scene DTO for narrative resolution
-sceneDto.MarkerResolutionMap = markerMap;
-// Template: "Investigate for {QUESTGIVER_NAME}" → "Investigate for Elena"
+// Template situation requirements can reference: "generated:private_room", "QUESTGIVER"
+// Narrative text can use: "Investigate for {QUESTGIVER_NAME}"
 ```
 
-#### Integration with Four-Choice Pattern
+#### Example: Separation of Placement vs Context Binding
 
-**Main Story Final Situations:**
-- ALL FOUR CHOICES spawn same next template
-- Different entry states via tags (RespectedAuthority, GenerousPatron, SkilledNegotiator, PatientHelper)
-- Identical context bindings across all choices (same QUESTGIVER, RETURN_LOCATION)
-- Guaranteed progression (player chooses HOW to enter, not IF)
+**Scenario:** A2 investigation at inn completes → A3 crime scene spawns
 
-**Example:**
+**SceneSpawnReward configuration:**
 ```csharp
-// Catalogue enrichment for A-story tutorial
-if (context.AStorySequence == 1)
+new SceneSpawnReward
 {
-    // A1 (inn_lodging) → ALL 4 choices spawn A2 (gather_testimony)
-    mergedReward.ScenesToSpawn = new List<SceneSpawnReward>
+    SceneTemplateId = "a3_crime_scene_investigation",
+
+    // PLACEMENT: WHERE A3 spawns (categorical - independent of display context)
+    PlacementRelation = PlacementRelation.Generic,  // Uses PlacementFilter
+    SpecificPlacementId = null,
+
+    // CONTEXT BINDING: WHICH entities bound for narrative (from display context)
+    ContextBindings = new List<ContextBinding>
     {
-        new SceneSpawnReward
+        new ContextBinding
         {
-            SceneTemplateId = "a2_morning",
-            PlacementRelation = PlacementRelation.Generic,  // Uses categorical NPC filter
-            SpecificPlacementId = null,
-            ContextBindings = new List<ContextBinding>()  // A2 finds NPC via filter
-        }
-    };
-}
-```
-
-#### On-Demand Template Generation
-
-**Pattern Detection** (RewardApplicationService.cs):
-```csharp
-foreach (SceneSpawnReward spawn in reward.ScenesToSpawn)
-{
-    SceneTemplate template = _gameWorld.SceneTemplates
-        .FirstOrDefault(t => t.Id == spawn.SceneTemplateId);
-
-    if (template == null)
-    {
-        // On-demand generation for procedural A-story
-        if (spawn.SceneTemplateId.StartsWith("a_story_sequence_"))
+            MarkerKey = "QUESTGIVER",
+            Source = ContextSource.CurrentNpc,  // Elena (who gave investigation quest)
+            ResolvedNpcId = "elena"  // Populated at display time
+        },
+        new ContextBinding
         {
-            string sequenceStr = spawn.SceneTemplateId.Replace("a_story_sequence_", "");
-            if (int.TryParse(sequenceStr, out int sequence))
-            {
-                AStoryContext context = _proceduralAStoryService.GetOrInitializeContext(player);
-                string generatedTemplateId = await _proceduralAStoryService.GenerateNextATemplate(sequence, context);
-                template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == generatedTemplateId);
-            }
+            MarkerKey = "RETURN_LOCATION",
+            Source = ContextSource.CurrentLocation,  // Inn (where to return)
+            ResolvedLocationId = "common_room_inn"  // Populated at display time
         }
     }
-
-    // Spawn scene from template (authored or generated)
-    Scene scene = await _sceneInstanceFacade.SpawnScene(template, spawn, spawnContext);
 }
 ```
 
-#### HIGHLANDER Enforcement
+**SceneTemplate PlacementFilter (A3 template):**
+```csharp
+PlacementFilter = new PlacementFilter
+{
+    PlacementType = PlacementType.Location,
+    LocationProperties = new List<LocationPropertyType> { Private, Indoor, Discrete },
+    LocationTags = new List<string> { "crime_scene", "investigation_site" },
+    SelectionStrategy = PlacementSelectionStrategy.Closest
+}
+```
 
-**Single Spawning System:**
-- Removed entire condition-based spawning architecture (CheckAndSpawnEligibleScenes deleted)
-- No trigger points at location changes, NPC interactions, time progression, scene completion
-- Single implementation: reward-driven spawning only
-- Clear causality: Player executes choice → Scene spawns
+**Resolution:**
+- **PLACEMENT**: A3 spawns at crime scene location (where filter matches), NOT at inn (where A2 displayed)
+- **NARRATIVE**: A3 carries QUESTGIVER=Elena, RETURN_LOCATION=inn for story continuity
+- **RESULT**: Investigation happens at crime scene, narrative remembers Elena sent you from inn
 
-**Deleted Components:**
-- SpawnFacade.CheckAndSpawnEligibleScenes() method (259 lines removed)
-- All trigger-point calls from GameFacade (location/NPC/time/scene completion)
-- SpawnConditionsEvaluator usage for active spawning (retained for visibility filtering only)
+**Without separation (WRONG):**
+- SameLocation placement → A3 spawns at inn (display context)
+- Crime scene investigation happens at inn (nonsense)
+- PlacementFilter ignored (categorical requirements not evaluated)
 
 #### Design Rationale
 
-**Why This Pattern:**
-- Works with procedural generation (no hardcoded entity IDs required)
-- Preserves narrative continuity (quest giver flows through scenes)
-- Perfect information (player sees "for Elena" before selecting choice)
-- Guaranteed progression (all final situation choices spawn next template)
-- Clear causality (choice execution → scene creation, not passive unlocking)
+**Why Separate Placement from Context Binding:**
+
+**Placement (WHERE)** answers: At which entity does this scene occur?
+- Context-Relative: Spawn where player currently is (tutorial progression at same location)
+- Absolute: Spawn at specific authored entity (tutorial A1 at specific inn)
+- Categorical: Spawn wherever requirements match (procedural crime scene at ANY crime scene location)
+
+**Context Binding (WHICH)** answers: Which entities from parent scene carry forward narratively?
+- Quest giver flows through investigation chain (Elena → crime scene → palace → resolution)
+- Return location remembered (complete investigation, return to Elena at inn)
+- Previous scene ID available (branching side stories referencing main story events)
+
+**Why This Matters for Procedural Generation:**
+
+Without separation:
+- A12 investigation completes at palace → A13 spawns at palace (SameLocation)
+- A13 might need crime scene, marketplace, temple (categorical requirements)
+- Locked to display context → cannot vary location type → monotonous experience
+
+With separation:
+- A12 completes at palace → binds QUESTGIVER, RETURN_LOCATION
+- A13 uses PlacementRelation.Generic → evaluates PlacementFilter
+- A13 spawns at crime scene (categorical match), remembers quest came from palace
+- Location types vary (palace → crime scene → marketplace → temple) while narrative connects
 
 **Why Strongly-Typed Properties:**
 - ResolvedNpcId vs ResolvedLocationId vs ResolvedRouteId vs ResolvedSceneId
 - Explicit type indication (know WHAT entity type binding references)
 - No catch-all ResolvedId string (avoids ambiguity)
 - Adheres to coding standards (no Dictionary antipattern, strongly-typed objects only)
+
+**HIGHLANDER Compliance:**
+- Single spawning mechanism: reward-driven only (condition-based spawning deleted)
+- Three placement strategies serving different use cases (not redundant)
+- ContextBinding and PlacementRelation serve orthogonal concerns (not conflated)
 
 ---
 

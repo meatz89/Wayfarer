@@ -172,16 +172,20 @@ Solution must work for both authored tutorial content and fully procedural conte
    - Templates define situation structure, archetype composition, narrative placeholders
    - No specific entity IDs in templates (only categorical filters)
 
-2. **Context Bindings** - How current context flows into spawned scene
-   - Minimal bindings preserve narrative continuity without tight coupling
-   - Bindings populated at choice display time (not authoring time)
-   - Enables perfect information: player sees "Investigate for Elena" (not generic "Investigate")
-   - Uses strongly-typed ContextBinding objects (List, not Dictionary)
+2. **Placement Strategy** - WHERE scene spawns (orthogonal to context bindings)
+   - Context-Relative: Spawn where choice displayed (tutorial progression at same location)
+   - Absolute: Spawn at specific authored entity (hardcoded entity ID for first tutorial scene)
+   - Categorical: Spawn where PlacementFilter matches (procedural scenes at correct location types)
+   - Template's PlacementFilter specifies requirements (PersonalityType, LocationProperties, Tier)
+   - Spawn-time resolution finds/generates entities matching categorical filters
+   - Anti-repetition prefers not-recently-used entities via selection strategies
 
-3. **Categorical Resolution** - Where/who scene spawns at
-   - Template's PlacementFilter specifies categories (PersonalityType, LocationProperties, Tier)
-   - Spawn-time resolution finds/generates entities matching filters
-   - Anti-repetition prefers not-recently-used entities
+3. **Context Bindings** - WHICH entities bound for narrative (separate from placement)
+   - Minimal bindings preserve narrative continuity (QUESTGIVER, RETURN_LOCATION)
+   - Bindings populated at choice display time (captures current context)
+   - Enables perfect information: player sees "Investigate for Elena" (not generic "Investigate")
+   - Uses strongly-typed ContextBinding objects (List with ResolvedNpcId/LocationId/RouteId/SceneId properties, not Dictionary)
+   - Does NOT determine where scene spawns (placement strategy handles that)
 
 **How Spawning Works:**
 
@@ -210,10 +214,29 @@ Context bindings link narrative markers to resolved entity references. Each bind
 - Final situation in every main story scene has ALL FOUR CHOICES spawning next template
 - Different choices create different entry states via tags (RespectedAuthority, GenerousPatron, SkilledNegotiator, PatientHelper)
 - Same next template spawned regardless of which choice taken
-- Context bindings preserve continuity: QUESTGIVER flows through chain
+- **Placement strategy**: Tutorial (A1-A3) uses context-relative or absolute, Procedural (A4+) uses categorical
+- **Context bindings** preserve continuity: QUESTGIVER flows through chain
 - Entry state affects narrative tone but progression identical
 - SpawnConditions: AlwaysEligible (no eligibility gates)
 - Infinite chain: secure_lodging → gather_testimony → investigate_location → (procedural generation) → ∞
+
+**Critical Separation Example:**
+
+**Scenario**: A12 at palace completes → A13 crime scene investigation spawns
+
+**Without proper placement (WRONG)**:
+- Placement: Context-Relative (SameLocation)
+- A13 spawns at palace (where A12 displayed)
+- Crime scene investigation happens at palace (nonsense)
+- Locked to display context, cannot vary location type
+
+**With categorical placement (CORRECT)**:
+- Placement: Categorical (Generic + PlacementFilter)
+- PlacementFilter: LocationProperties (Private, Indoor, Discrete), LocationTags (crime_scene)
+- A13 spawns at crime scene matching requirements (independent of palace)
+- Context bindings: QUESTGIVER=duke, RETURN_LOCATION=palace
+- Result: Investigation at crime scene, narrative remembers duke sent you from palace
+- Location types vary (palace → crime scene → marketplace → temple) while story connects
 
 **Side Story Pattern (State-Based Eligibility):**
 - Scenes spawn via choice rewards (same as main story)
