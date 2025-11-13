@@ -148,159 +148,178 @@ Additionally, authoring multiple satisfying endings is expensive, yet most playe
 
 ---
 
-## DDR-002: Resource-Based Scene Dependencies vs Abstract Tag Systems
+## DDR-002: Reward-Driven Scene Spawning vs Condition-Based Unlocking
 
 ### Status
 **Active** - Core progression architecture
 
 ### Context
 
-Need progression structure supporting both authored tutorial and procedural content. Player actions should unlock new content based on accumulated resources and capabilities, not abstract boolean flags. System must maintain perfect information (player sees exact numeric requirements), support flexible branching, and align with resource arithmetic philosophy (Requirement Inversion Principle).
+Need progression structure supporting both authored tutorial and procedural infinite content. Scenes must spawn through clear mechanisms that maintain guaranteed forward progress while enabling meaningful choice consequences. System must align with Four-Choice Pattern (no soft-locks) and support both linear A-story progression and state-based B/C story eligibility.
 
 ### Decision
 
-**Scenes spawn based on resource thresholds and reward-driven chains** using three complementary mechanisms.
+**All scenes spawn via ScenesToSpawn rewards from choice execution. Requirements gate CHOICE availability within scenes, not scene spawning itself.**
 
-**Mechanism 1: Reward-Driven Sequential Spawning (A-Story)**
-- Each A-scene's final situation contains ScenesToSpawn reward
-- Completing A5 → reward automatically spawns A6
-- SpawnConditions: AlwaysEligible (no gates, guarantees forward progress)
-- Linear infinite chain with anti-repetition via AStoryContext tracking
-- Procedural generation from A11+ onward
+**Scene Spawning Architecture:**
 
-**Mechanism 2: Resource Threshold Gating (B/C Stories)**
-- SpawnConditions with three evaluation dimensions:
-  - PlayerState: MinStats {Morality: 5}, RequiredItems ["investigation_notes"], LocationVisits {"tavern": 3}
-  - WorldState: MinDay 5, MaxDay 20, Weather.Rain, TimeBlock.Night
-  - EntityState: NPCBond {"elena": 10}, RouteTravelCount {"mountain_pass": 2}
-- Numeric thresholds enable perfect information ("Need Morality 5, you have 3, need 2 more")
-- Combination logic: AND (all must pass) or OR (any passes)
+**How Scenes Spawn:**
+- Player executes a choice in any situation
+- If choice has ScenesToSpawn reward, those scenes spawn immediately
+- Spawned scenes added to GameWorld.Scenes collection
+- No triggers, no timers, no condition checks at spawn time
+- Spawning is purely reward-driven (choice execution → scene creation)
 
-**Mechanism 3: Temporal Windows**
-- MinDay/MaxDay creates expiring content
-- Weather/TimeBlock gates situational opportunities
-- Enables limited-time B-stories and environmental conditions
+**A-Story Pattern (Guaranteed Sequential Progression):**
+- Final situation in every A-scene has ALL FOUR CHOICES spawning next A-scene
+- Different choices create different entry states (Respected Authority vs Generous Patron vs Skilled Negotiator vs Patient Helper)
+- Same next scene spawned regardless of which choice taken
+- Entry state affects narrative context (how NPCs perceive you, dialogue tone)
+- Progression identical (all paths lead forward)
+- SpawnConditions: AlwaysEligible (no eligibility gates)
+- Infinite chain: A1 → A2 → A3 → ... → A10 (last authored) → A11+ (procedural) → ∞
+
+**B/C Story Pattern (State-Based Eligibility):**
+- Scenes spawn via choice rewards (same as A-story)
+- SpawnConditions determine when spawned scenes become visible/accessible
+- Example: A1 completion grants "EstablishedInWestmarch" tag
+- B-stories with RequiredTags ["EstablishedInWestmarch"] become accessible
+- Spawning happens via rewards, eligibility via state checks
+
+**Requirements Gate Choices, Not Scenes:**
+- Four-Choice Pattern: Stat-gated (optimal), Money-gated (reliable), Challenge (risky), Guaranteed (patient)
+- Requirements determine WHICH choices player can see/select
+- Example: "Use Authority to command respect" requires Authority ≥ 5
+- If player has Authority 3, choice hidden or shown as locked
+- Guaranteed path (Choice 4) has zero requirements (always available)
+- Prevents soft-locks: player can always progress via guaranteed path
 
 **Example Flow:**
 ```
-A1 completes → ScenesToSpawn reward spawns A2 (AlwaysEligible, no gates)
-B-Story-1: SpawnConditions {PlayerState.MinStats {Morality: 5}, EntityState.NPCBond {"elena": 10}}
-B-Story-1 spawns when player reaches both thresholds through gameplay
-Player sees "Need Morality 5 (have 3), Elena bond 10 (have 7)" - numeric gaps visible
+A5 Final Situation: "Decide approach to innkeeper"
+
+Choice 1 (Authority 5): "Command respect" → ScenesToSpawn: [A6]
+  Entry state: Respected Authority
+
+Choice 2 (15 coins): "Generous payment" → ScenesToSpawn: [A6]
+  Entry state: Generous Patron
+
+Choice 3 (Social Challenge): "Negotiate shrewdly" → ScenesToSpawn: [A6]
+  Success entry: Skilled Negotiator
+  Failure entry: Earnest Struggler
+
+Choice 4 (Zero requirements): "Help for 3 days" → ScenesToSpawn: [A6]
+  Entry state: Patient Helper
+
+ALL FOUR CHOICES SPAWN A6
+Player chooses HOW to enter A6, not IF they enter it
+Entry states differ (reputation, relationships, narrative tone)
+Progression guaranteed (no choice blocks advancement)
 ```
 
 ### Alternatives Considered
 
-**Option A: Resource-Based Dependencies (Chosen)**
+**Option A: Reward-Driven Spawning (Chosen)**
 - **Pros:**
-  - Resource arithmetic over boolean flags (Requirement Inversion Principle)
-  - Perfect information (exact numeric thresholds visible)
-  - Reuses existing systems (stats, bonds, items - no redundant tracking)
-  - Transparent gates (player calculates exact gaps)
-  - Maps to Sir Brante pattern (resource possession checks)
+  - Clear causality (choice execution → scene creation)
+  - No hidden triggers or timers
+  - Supports guaranteed progression (all final situation choices spawn next scene)
+  - Enables narrative branching via entry states (same scene, different context)
+  - Aligns with Four-Choice Pattern (guaranteed path always spawns next content)
 - **Cons:**
-  - More verbose than abstract tags (MinStats dictionary vs tag string)
-  - Cannot express "any 3 of 5" easily (requires external counters)
-  - Less abstraction (concrete resource checks vs abstract milestones)
-- **Why Chosen:** Aligns with core design principles (resource arithmetic, perfect information, no boolean gates)
+  - Requires all content to be choice-reward-connected (no ambient spawning)
+  - A-story final situations must have ALL choices spawn next scene (stricter than normal Four-Choice Pattern)
+- **Why Chosen:** Aligns with guaranteed progression requirement, clear causality, supports infinite A-story architecture
 
-**Option B: Abstract Tag System (Rejected)**
+**Option B: Condition-Based Unlocking (Rejected)**
 - **Pros:**
-  - Readable abstract milestones ("tutorial_complete")
-  - Flexible branching (multiple scenes requiring same tag)
-  - Cross-storyline dependencies possible
+  - Scenes could appear based on time/location/state without explicit rewards
+  - Flexible ambient content spawning
 - **Cons:**
-  - Boolean gates violate Requirement Inversion Principle
-  - Hidden thresholds (no numeric gaps)
-  - Redundant tracking (duplicates stats/bonds/items)
-  - Mystery conditions (player doesn't see status)
-  - Not Sir Brante pattern (boolean flags over resource possession)
-- **Why Rejected:** Redundant with SpawnConditions capabilities, violates resource arithmetic principle
+  - Violates causality (scenes appear mysteriously)
+  - Requires trigger systems (timers, location checks)
+  - Hidden unlocking creates mystery gates (player doesn't know why scene appeared)
+  - Cannot guarantee progression (conditions might never be met)
+- **Why Rejected:** Violates perfect information, creates mystery gates, cannot guarantee A-story progression
 
-**Option C: Hardcoded Scene Chains (Rejected)**
+**Option C: Hardcoded Linear Chains (Rejected)**
 - **Pros:**
-  - Simplest to implement (linear A1 → A2 → A3)
-  - Easy to validate (sequential)
+  - Simplest implementation (A1.OnComplete → spawn A2)
+  - Guaranteed sequential order
 - **Cons:**
-  - No conditional content (cannot gate B-stories)
-  - Inflexible (changes require code surgery)
-  - No temporal windows
-- **Why Rejected:** Too rigid, doesn't support B/C story gating needs
+  - Cannot express branching entry states
+  - Inflexible (changes require code modifications)
+  - No support for conditional B/C content
+- **Why Rejected:** Too rigid, doesn't support entry state variations or B/C story patterns
 
-**Option D: Level Gating (Rejected)**
+**Option D: Tag-Based Scene Gating (Rejected)**
 - **Pros:**
-  - Simple to balance (single number)
-  - Clear progression curve
+  - Flexible cross-storyline dependencies
+  - Abstract milestones
 - **Cons:**
-  - Breaks verisimilitude (why does innkeeper care about player level?)
-  - Arbitrary gates (no narrative logic)
-  - Doesn't reflect capabilities
-- **Why Rejected:** Breaks fiction, arbitrary gating
+  - Tags would gate SCENE spawning, violating reward-driven architecture
+  - Boolean gates instead of resource arithmetic
+  - Mystery conditions (player doesn't see numeric gaps)
+- **Why Rejected:** Tags used for B/C story ELIGIBILITY, not spawning. Scenes spawn via rewards, tags determine visibility.
 
 ### Rationale
 
 **Design Principle Alignment:**
-- **Requirement Inversion Principle (TIER 2):** Resource arithmetic (`Morality >= 5`) over boolean gates (`HasCompletedTutorial`)
-- **Perfect Information (TIER 2):** Numeric thresholds visible to player ("Need Morality 5, you have 3")
-- **No Soft-Locks (TIER 1):** A-story uses AlwaysEligible, Four-Choice Pattern ensures fallback paths
-- **Single Source of Truth:** Reuses existing Player stats/bonds/items, no redundant tracking
-- **Sir Brante Pattern:** Resource possession checks over boolean flag unlocks
+- **No Soft-Locks (TIER 1):** A-story final situations have ALL choices spawning next scene, guaranteed path always available
+- **Perfect Information (TIER 2):** Clear causality (execute choice → spawn scene), no mystery triggers
+- **Four-Choice Pattern (TIER 2):** Requirements gate choice availability, guaranteed path ensures progression
+- **Requirement Inversion Principle (TIER 2):** Resource thresholds for choices (`Authority >= 5`), not scene spawning
+- **Reward-Driven Progression:** Player actions (choice execution) cause world changes (scene spawning), not passive unlocking
 
-**Progression Patterns Supported:**
+**How This Prevents Soft-Locks:**
 
-1. **Linear Sequential (A-Story):**
-   - ScenesToSpawn rewards chain scenes: A1 → A2 → A3 → ... → A10 → A11 (procedural) → ∞
-   - AlwaysEligible ensures no progression gates
+**A-Story Guarantee:**
+- Final situation has 4 choices
+- ALL 4 choices have ScenesToSpawn reward pointing to same next scene
+- Choice 4 (guaranteed path) has zero requirements
+- Even if player has: 0 coins, minimum stats, no resources
+- Choice 4 always available, always spawns next scene
+- Forward progress architecturally guaranteed
 
-2. **Stat-Gated Content (B-Stories):**
-   - MinStats thresholds unlock content for specialized builds
-   - Example: "Moral Dilemma" requires Morality ≥ 7 (high-morality players only)
+**Entry State Variations:**
+- Same scene spawned from all paths
+- Different entry states affect narrative (NPC reactions, dialogue)
+- But progression identical (all reach same next situations)
+- Player chooses experience quality (optimal/reliable/risky/patient)
+- Player cannot choose to block progression
 
-3. **Relationship-Gated Content (B-Stories):**
-   - NPCBond thresholds unlock deeper storylines
-   - Example: "Elena's Secret" requires Elena bond ≥ 10 (must build relationship)
-
-4. **Item-Gated Content (B-Stories):**
-   - RequiredItems creates quest chain dependencies
-   - Example: "Decode Message" requires "cipher_key" item (obtain in earlier scene)
-
-5. **Exploration-Gated Content (B-Stories):**
-   - LocationVisits/RouteTravelCount rewards thorough exploration
-   - Example: "Tavern Rumors" requires tavern visits ≥ 3 (regular patron)
-
-6. **Temporal Windows (All Stories):**
-   - MinDay/MaxDay creates limited-time content
-   - Example: "Festival Crisis" spawns day 10-15 only (expires if not completed)
-
-7. **Environmental Conditions (All Stories):**
-   - Weather/TimeBlock gates situational content
-   - Example: "Night Investigation" spawns only TimeBlock.Night
+**B/C Story Eligibility:**
+- Scenes spawn via choice rewards (not conditions)
+- SpawnConditions determine when spawned scenes visible
+- Example: B1 has RequiredTags ["EstablishedInWestmarch"]
+- A1 completion grants tag via reward
+- B1 becomes accessible (spawning happened earlier via reward chain)
+- Tags gate VISIBILITY, not spawning
 
 ### Consequences
 
 **Positive:**
-- **Resource Arithmetic Throughout:** Consistent with choice requirements, stat gates, economic system
-- **Perfect Information:** Player sees exact numeric gaps ("Need 2 more Morality points")
-- **No Redundant Tracking:** Reuses existing Player.Stats, Player.Relationships, Player.Inventory
-- **Flexible Gating:** Three dimensions (Player/World/Entity) with AND/OR combination logic
-- **Temporal Windows:** MinDay/MaxDay enables expiring content
-- **Transparent Thresholds:** No mystery gates, all conditions enumerable
+- **Guaranteed Forward Progress:** A-story cannot soft-lock (all final situation choices spawn next scene)
+- **Clear Causality:** Execute choice → spawn scene (no mystery unlocking)
+- **Entry State Variations:** Same scene, different contexts (replayability)
+- **Requirements Gate Choices:** Perfect information (player sees exact thresholds)
+- **No Hidden Triggers:** No timers, location checks, or passive unlocking
+- **Supports Infinite A-Story:** Reward-driven spawning enables infinite procedural chain
 
 **Negative:**
-- **A-Story Not Branching:** Linear spine only (design choice for guaranteed progression)
-- **Verbose SpawnConditions:** `MinStats: {Morality: 5}` more verbose than abstract tags
-- **Cannot Express "Any 3 of 5":** Requires external counter (item tokens as workaround)
-- **LocationVisits/RouteTravelCount Use Proxies:** Not actual visit counts, uses familiarity levels (future: track actual counts)
+- **A-Story Final Situations Constrained:** MUST have all choices spawn next scene (stricter than normal)
+- **No Ambient Spawning:** All content must be reward-connected (no passive appearance)
+- **Entry State Complexity:** Must track how player entered each scene (for narrative context)
 
 **Trade-Offs:**
-- Sacrifices abstract milestone tags for concrete resource thresholds (transparency over abstraction)
-- A-story linear chain accepted (infinite spine doesn't need branching, B-stories provide variety)
-- Verbosity accepted for perfect information (explicit thresholds over implicit flags)
+- Sacrifices ambient spawning for guaranteed progression
+- Constrains A-story final situations (all spawn next scene) for architectural guarantee
+- Accepts entry state tracking complexity for narrative variation
 
 ### Related Decisions
 - DDR-001: Infinite A-Story (reward-driven spawning supports infinite continuation)
-- DDR-007: Four-Choice Pattern (ensures A-story fallback paths despite AlwaysEligible)
-- DDR-006: Categorical Property Scaling (resource thresholds use categorical values)
+- DDR-007: Four-Choice Pattern (guaranteed path with zero requirements prevents soft-locks)
+- DDR-006: Categorical Property Scaling (requirements use resource thresholds, not boolean gates)
 
 ---
 

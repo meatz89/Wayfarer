@@ -209,58 +209,91 @@ Player situation 3: Authority 2, 5 coins, 10 Resolve, 8 segments available
 
 All four choices viable in different contexts. Orthogonal costs create genuine strategic variety.
 
-### 9.2.4 Tag-Based Dependencies (State-Based Content Spawning)
+### 9.2.4 Reward-Driven Spawning with State-Based Eligibility (B/C Stories)
 
-**Problem**: How to create narrative progression without hardcoded linear chains?
+**Problem**: How to control B/C story visibility without hardcoded chains while maintaining reward-driven spawning?
 
-**Solution**: Content spawns when player state includes required tags. State accumulated through rewards, creating organic flow.
+**Solution**: Scenes spawn via ScenesToSpawn rewards, but SpawnConditions determine when spawned scenes become visible/accessible to player. Tags track player state, enabling organic content flow.
 
 **Pattern Structure**:
 
-**SpawnConditions**:
-- RequiredTags: List of tags player must have
-- ForbiddenTags: List of tags player must NOT have
-- RequiredSceneCompletions: List of scene IDs player must have completed
-- Other filters: Location, time, cooldowns
+**Scene Spawning (ALL Stories)**:
+- Player executes choice in any situation
+- Choice has ScenesToSpawn reward → scenes spawn immediately
+- Spawned scenes added to GameWorld.Scenes collection
+- Spawning is purely reward-driven (no condition checks)
+
+**SpawnConditions (B/C Stories Only)**:
+- RequiredTags: Player must have these tags for scene to be visible
+- ForbiddenTags: Player must NOT have these tags
+- RequiredSceneCompletions: Player must have completed these scenes
+- Other filters: MinDay, MaxDay, Weather, TimeBlock, CooldownDays
+- Purpose: Determine VISIBILITY, not spawning
 
 **StateApplicationReward**:
 - TagsToApply: List of tags added to player state
 - TagsToRemove: List of tags removed from player state
+- Applied when choice executed
 
 **Content Flow**:
-1. Player completes Scene A
-2. Scene A rewards include: TagsToApply = ["investigated_mill", "knows_corruption"]
-3. Scene B has SpawnConditions: RequiredTags = ["investigated_mill"]
-4. Scene B now eligible (player has required tag)
-5. Scene B spawns when other conditions met (location, cooldown)
+1. Player completes Scene A, choice has ScenesToSpawn: ["scene_b_id"]
+2. Scene B spawns immediately (added to GameWorld.Scenes)
+3. Scene A rewards include: TagsToApply = ["investigated_mill"]
+4. Scene B has SpawnConditions: RequiredTags = ["investigated_mill"]
+5. Scene B now visible/accessible (spawned earlier, now eligible)
+6. Player can interact with Scene B
 
 **Why This Works**:
-- No hardcoded A→B chains (flexible, reorderable)
+- Clear causality (rewards spawn scenes, state determines visibility)
+- No hardcoded chains (scenes reference tags, not specific scene IDs)
 - State-based eligibility (content appears when contextually appropriate)
-- Multiple paths to same state (different routes acquire same tags)
-- Graceful handling of non-linear progression
+- Multiple paths to same state (different scenes can grant same tags)
+- Graceful non-linear progression (tag accumulation enables access)
+
+**A-Story vs B/C Story Spawning**:
+
+**A-Story Pattern:**
+- Final situation: ALL 4 choices have ScenesToSpawn: ["next_a_scene"]
+- SpawnConditions: AlwaysEligible (no visibility gates)
+- Result: Next A-scene spawns and is immediately visible
+- Guaranteed progression (no eligibility checks)
+
+**B/C Story Pattern:**
+- Choice has ScenesToSpawn: ["b_story_id"]
+- SpawnConditions: RequiredTags, MinDay, NPCBond thresholds, etc.
+- Result: B-story spawns but might not be visible yet
+- Becomes visible when player state satisfies SpawnConditions
 
 **Example**:
 
-**Scene A**: "Investigate mill exterior"
-- Completion rewards: TagsToApply = ["investigated_mill_exterior"]
+**Scene A1 (A-Story)**: "Tutorial prologue"
+- Final situation Choice 1: ScenesToSpawn: ["a2_id"]
+- Final situation Choice 2: ScenesToSpawn: ["a2_id"]
+- Final situation Choice 3: ScenesToSpawn: ["a2_id"]
+- Final situation Choice 4: ScenesToSpawn: ["a2_id"]
+- Completion rewards: TagsToApply = ["EstablishedInWestmarch"]
 
-**Scene B**: "Investigate mill interior"
+**Scene A2 (A-Story)**: "Meet constable"
+- SpawnConditions: AlwaysEligible (no gates)
+- Spawns from A1 choices, immediately visible
+
+**Scene B1 (B-Story)**: "Local scholar's request"
+- SpawnConditions: RequiredTags = ["EstablishedInWestmarch"]
+- Was spawned earlier via reward chain, NOW becomes visible when A1 grants tag
+- Player can now interact with B1
+
+**Scene B2 (B-Story)**: "Investigate mill interior"
 - SpawnConditions: RequiredTags = ["investigated_mill_exterior"]
-- Won't spawn until exterior investigated
-- But if player investigated exterior via DIFFERENT scene, still eligible
+- Spawned via earlier choice reward
+- Becomes visible when player completes exterior investigation and receives tag
 
-**Scene C**: "Confront mill owner"
-- SpawnConditions: RequiredTags = ["investigated_mill_exterior", "discovered_evidence"]
-- Requires BOTH tags (investigation + evidence)
-- Could acquire "discovered_evidence" from multiple sources
+**Scene C1 (C-Encounter)**: "Confront mill owner"
+- SpawnConditions: RequiredTags = ["investigated_mill_exterior", "discovered_evidence"], ForbiddenTags = ["allied_with_corrupt"]
+- Spawned via reward
+- Visible only if has both required tags AND lacks forbidden tag
+- State branching: different player paths create different visibility
 
-**Scene D**: "Report findings to constable"
-- SpawnConditions: RequiredTags = ["knows_corruption"], ForbiddenTags = ["allied_with_corrupt"]
-- Eligible if player knows about corruption but hasn't allied with corrupt faction
-- State branching via forbidden tags
-
-This creates web of possibilities, not linear railroad. State determines eligibility, player explores naturally.
+This creates web of reward-driven spawning with state-based visibility. Spawning is causal (choice execution), visibility is conditional (player state). Player explores naturally, content appears organically as state accumulates.
 
 ## 9.3 Content Design Patterns
 
