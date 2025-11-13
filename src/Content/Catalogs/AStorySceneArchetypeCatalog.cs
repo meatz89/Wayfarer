@@ -475,7 +475,7 @@ public static class AStorySceneArchetypeCatalog
         // A11+ (procedural) uses standard enrichment with generic pattern
         if (context.AStorySequence.HasValue && context.AStorySequence.Value == 2)
         {
-            EnrichFinalSituationWithCustomAScene(situations, "a3_departure", PlacementRelation.Generic);
+            EnrichFinalSituationWithCustomAScene(situations, "a3_departure");
         }
         else
         {
@@ -1254,12 +1254,13 @@ public static class AStorySceneArchetypeCatalog
             ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
 
             // Add next A-scene spawn reward
+            // Uses template's PlacementFilter for categorical resolution (no override needed)
             reward.ScenesToSpawn = new List<SceneSpawnReward>
         {
             new SceneSpawnReward
             {
-                SceneTemplateId = nextASceneId,
-                PlacementRelation = PlacementRelation.Generic  // Uses template's PlacementFilter for categorical resolution
+                SceneTemplateId = nextASceneId
+                // PlacementFilterOverride = null (uses template's filter)
             }
         };
 
@@ -1290,8 +1291,7 @@ public static class AStorySceneArchetypeCatalog
     /// </summary>
     private static void EnrichFinalSituationWithCustomAScene(
         List<SituationTemplate> situations,
-        string nextSceneId,
-        PlacementRelation placementRelation)
+        string nextSceneId)
     {
         if (situations.Count == 0)
         {
@@ -1308,14 +1308,13 @@ public static class AStorySceneArchetypeCatalog
             ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
 
             // Add specific A-scene spawn reward
+            // Uses template's PlacementFilter for categorical resolution (no override needed)
             reward.ScenesToSpawn = new List<SceneSpawnReward>
             {
                 new SceneSpawnReward
                 {
-                    SceneTemplateId = nextSceneId,
-                    PlacementRelation = placementRelation,
-                    SpecificPlacementId = null,
-                    ContextBindings = new List<ContextBinding>()  // Categorical filters handle placement
+                    SceneTemplateId = nextSceneId
+                    // PlacementFilterOverride = null (uses template's filter)
                 }
             };
 

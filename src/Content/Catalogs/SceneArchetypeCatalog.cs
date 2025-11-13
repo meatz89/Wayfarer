@@ -218,14 +218,13 @@ public static class SceneArchetypeCatalog
             // Tutorial pattern: ALL final situation choices spawn next scene (guaranteed progression)
             if (context.AStorySequence.HasValue && context.AStorySequence.Value == 1)
             {
+                // A2 uses categorical NPC filter (Scholar/Merchant) from template's PlacementFilter
                 mergedReward.ScenesToSpawn = new List<SceneSpawnReward>
                 {
                     new SceneSpawnReward
                     {
-                        SceneTemplateId = "a2_morning",
-                        PlacementRelation = PlacementRelation.Generic,  // A2 uses categorical NPC filter (Scholar/Merchant)
-                        SpecificPlacementId = null,
-                        ContextBindings = new List<ContextBinding>()  // A2 finds NPC via filter, no context binding needed
+                        SceneTemplateId = "a2_morning"
+                        // PlacementFilterOverride = null (uses template's filter)
                     }
                 };
             }

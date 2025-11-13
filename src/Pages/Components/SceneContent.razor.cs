@@ -78,7 +78,8 @@ public class SceneContentBase : ComponentBase
             List<RequirementPathVM> requirementPaths = new List<RequirementPathVM>();
             if (choiceTemplate.RequirementFormula != null && choiceTemplate.RequirementFormula.OrPaths.Count > 0)
             {
-                Dictionary<string, string> markerMap = Scene?.MarkerResolutionMap ?? new Dictionary<string, string>();
+                // Marker resolution deleted - all entities reference by concrete IDs now
+                Dictionary<string, string> markerMap = new Dictionary<string, string>();
                 requirementsMet = choiceTemplate.RequirementFormula.IsAnySatisfied(player, GameWorld, markerMap);
                 requirementPaths = GetRequirementGaps(choiceTemplate.RequirementFormula, player, markerMap);
 
@@ -211,49 +212,9 @@ public class SceneContentBase : ComponentBase
             {
                 foreach (SceneSpawnReward sceneSpawn in reward.ScenesToSpawn)
                 {
-                    // Populate context bindings for perfect information projection
-                    // Content author defines marker keys + sources in JSON
-                    // Display time resolves actual entity IDs from current context into strongly-typed properties
-                    foreach (ContextBinding binding in sceneSpawn.ContextBindings)
-                    {
-                        switch (binding.Source)
-                        {
-                            case ContextSource.CurrentNpc:
-                                if (Scene.PlacementType == PlacementType.NPC)
-                                {
-                                    NPC currentNpc = GameWorld.NPCs.FirstOrDefault(n => n.ID == Scene.PlacementId);
-                                    if (currentNpc != null)
-                                    {
-                                        binding.ResolvedNpcId = currentNpc.ID;
-                                    }
-                                }
-                                break;
-
-                            case ContextSource.CurrentLocation:
-                                Location currentLocation = GameFacade.GetCurrentLocation();
-                                if (currentLocation != null)
-                                {
-                                    binding.ResolvedLocationId = currentLocation.Id;
-                                }
-                                break;
-
-                            case ContextSource.CurrentRoute:
-                                RouteOption currentRoute = GameWorld.CurrentRouteOption;
-                                if (currentRoute != null)
-                                {
-                                    binding.ResolvedRouteId = currentRoute.Id;
-                                }
-                                break;
-
-                            case ContextSource.PreviousScene:
-                                if (Scene != null)
-                                {
-                                    binding.ResolvedSceneId = Scene.Id;
-                                }
-                                break;
-                        }
-                    }
-
+                    // Scene spawning uses categorical PlacementFilter now (no context binding needed)
+                    // SceneTemplate.PlacementFilter defines categories → EntityResolver finds/creates at spawn time
+                    // Perfect information: Show template ID (player sees which scene will spawn)
                     scenesUnlocked.Add(sceneSpawn.SceneTemplateId);
                 }
             }
@@ -496,11 +457,12 @@ public class SceneContentBase : ComponentBase
             // Store challenge context for resumption
             if (choiceTemplate.ChallengeType == TacticalSystemType.Social)
             {
-                NPC npc = GameWorld.NPCs.FirstOrDefault(n => n.ID == Scene.PlacementId);
+                // Use Scene's direct NPC object reference
+                NPC npc = Scene.Npc;
                 GameWorld.CurrentSocialSession = new SocialSession
                 {
                     RequestId = CurrentSituation.Id,
-                    NPC = npc // Assumes scene placed on NPC
+                    NPC = npc // Scene.Npc may be null if scene is location-only
                 };
                 GameWorld.PendingSocialContext = new SocialChallengeContext
                 {

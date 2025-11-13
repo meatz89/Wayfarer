@@ -124,7 +124,7 @@ public static class SceneParser
             Situation situation = SituationParser.ConvertDTOToSituation(situationDto, gameWorld);
 
             // CRITICAL: Set composition relationship (Situation → ParentScene)
-            // Required for GetPlacementId() which queries ParentScene.PlacementId
+            // Required for GetPlacementId() which queries ParentScene.Location/Npc/Route objects
             situation.ParentScene = scene;
 
             // CRITICAL: Resolve Template reference for lazy action instantiation

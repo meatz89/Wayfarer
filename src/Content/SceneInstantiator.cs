@@ -269,36 +269,10 @@ public class SceneInstantiator
         return JsonSerializer.Serialize(package, jsonOptions);
     }
 
-    private PlacementResolution ResolvePlacement(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
-    {
-        // Use override if specified, otherwise template filter
-        // Unified categorical placement: Categories → FindOrGenerate → Concrete ID
-        PlacementFilter filter = spawnReward.PlacementFilterOverride ?? template.PlacementFilter;
-
-        if (filter == null)
-            throw new InvalidOperationException($"No PlacementFilter specified for scene '{template.Id}'");
-
-        // Unified evaluation (handles concrete, relative, and categorical)
-        string placementId = EvaluatePlacementFilter(filter, context);
-
-        if (string.IsNullOrEmpty(placementId))
-        {
-            throw new InvalidOperationException(
-                $"PLACEMENT FILTER FAILED - No matching entity found\n" +
-                $"SceneTemplate: {template.Id}\n" +
-                $"Category: {template.Category}\n" +
-                $"MainStorySequence: {template.MainStorySequence}\n" +
-                $"\nFILTER CRITERIA:\n{FormatFilterCriteria(filter)}\n" +
-                $"\nAVAILABLE ENTITIES:\n{FormatAvailableEntities(filter.PlacementType)}\n" +
-                $"\nCONTEXT:\n{FormatSpawnContext(context)}\n" +
-                $"\nDIAGNOSTIC: This error indicates procedurally generated scene cannot find suitable placement.\n" +
-                $"For A-story scenes, this creates SOFT LOCK (player completed previous scene, expects next scene, gets nothing).\n" +
-                $"Consider: Relaxing PlacementFilter constraints OR ensuring required entities exist in GameWorld."
-            );
-        }
-
-        return new PlacementResolution(filter.PlacementType, placementId);
-    }
+    // ResolvePlacement method DELETED - placement resolution now happens in System 4 (EntityResolver)
+    // during package loading, not during DTO generation (System 3)
+    // OLD: SceneInstantiator resolves placement → stores concrete ID in DTO
+    // NEW: SceneInstantiator writes categorical specs → EntityResolver FindOrCreate → PackageLoader sets object references
 
     /// <summary>
     /// Instantiate Situation from SituationTemplate
