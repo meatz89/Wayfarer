@@ -44,6 +44,35 @@ public class SituationTemplateDTO
     /// </summary>
     public int Priority { get; set; } = 0;
 
+    // ==================== HIERARCHICAL PLACEMENT (OVERRIDE FILTERS) ====================
+    // CSS-style inheritance: SituationTemplate can OVERRIDE SceneTemplate base filters
+    // Resolution: effectiveFilter = situationFilter ?? sceneBaseFilter
+    // All nullable - null means "inherit from scene base"
+
+    /// <summary>
+    /// Location filter override for this specific situation
+    /// null = inherit from SceneTemplate.BaseLocationFilter (CSS-style fallback)
+    /// Non-null = override scene base for this situation only
+    /// Enables multi-location scenes: "Negotiate" at Common Room, "Rest" at Private Room
+    /// </summary>
+    public PlacementFilterDTO LocationFilter { get; set; }
+
+    /// <summary>
+    /// NPC filter override for this specific situation
+    /// null = inherit from SceneTemplate.BaseNpcFilter (CSS-style fallback)
+    /// Non-null = override scene base for this situation only
+    /// Example: Scene has Innkeeper base, but "Depart" situation has null (no NPC)
+    /// </summary>
+    public PlacementFilterDTO NpcFilter { get; set; }
+
+    /// <summary>
+    /// Route filter override for this specific situation
+    /// null = inherit from SceneTemplate.BaseRouteFilter (CSS-style fallback)
+    /// Non-null = override scene base for this situation only
+    /// Rarely used - most situations don't involve routes
+    /// </summary>
+    public PlacementFilterDTO RouteFilter { get; set; }
+
     /// <summary>
     /// AI generation guidance
     /// Provides tone, theme, context for dynamic narrative generation

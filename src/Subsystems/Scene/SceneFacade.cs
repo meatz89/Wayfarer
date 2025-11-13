@@ -351,8 +351,15 @@ public class SceneFacade
                 continue;
             }
 
-            // Get placement filter from template (spawned scene inherits template's filter - HIGHLANDER)
-            PlacementFilter filter = template.PlacementFilter;
+            // Hierarchical placement: Determine primary placement type from base filters
+            // Precedence order: Location > NPC > Route (most specific to least specific)
+            PlacementType? primaryPlacementType = null;
+            if (template.BaseLocationFilter != null)
+                primaryPlacementType = PlacementType.Location;
+            else if (template.BaseNpcFilter != null)
+                primaryPlacementType = PlacementType.NPC;
+            else if (template.BaseRouteFilter != null)
+                primaryPlacementType = PlacementType.Route;
 
             // Collect unique challenge types from situation templates
             List<TacticalSystemType> challengeTypes = template.SituationTemplates
@@ -371,7 +378,7 @@ public class SceneFacade
                 DisplayName = displayName,
                 Tier = template.Tier,
                 ResolvedPlacementId = null, // Cannot resolve at preview time (requires FindOrCreate)
-                PlacementType = filter?.PlacementType,
+                PlacementType = primaryPlacementType,
                 SituationCount = template.SituationTemplates.Count,
                 ChallengeTypes = challengeTypes,
                 ExpiresInDays = template.ExpirationDays,

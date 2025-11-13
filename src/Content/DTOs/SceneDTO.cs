@@ -18,12 +18,34 @@ public class SceneDTO
     /// </summary>
     public string TemplateId { get; set; }
 
+    // ==================== HIERARCHICAL PLACEMENT (BASE FILTERS) ====================
+    // CSS-style inheritance: SceneDTO provides BASE filters for all situations
+    // SituationDTO can have overrides that take precedence
+    // Resolution in SceneParser: effectiveFilter = situationFilter ?? sceneBaseFilter
+
     /// <summary>
-    /// PLACEMENT MOVED TO SITUATIONS
-    /// Placement is now per-situation (not per-scene)
-    /// Each SituationDTO has its own LocationFilter/NpcFilter/RouteFilter
-    /// This allows multi-location scenes (different situations at different locations)
+    /// Base location filter for all situations in this scene
+    /// Copied from SceneTemplate.BaseLocationFilter at spawn time
+    /// Applied to situations unless overridden by SituationDTO.LocationFilter
+    /// null = no base location (each situation specifies its own)
     /// </summary>
+    public PlacementFilterDTO LocationFilter { get; set; }
+
+    /// <summary>
+    /// Base NPC filter for all situations in this scene
+    /// Copied from SceneTemplate.BaseNpcFilter at spawn time
+    /// Applied to situations unless overridden by SituationDTO.NpcFilter
+    /// null = no base NPC (each situation specifies its own)
+    /// </summary>
+    public PlacementFilterDTO NpcFilter { get; set; }
+
+    /// <summary>
+    /// Base route filter for all situations in this scene
+    /// Copied from SceneTemplate.BaseRouteFilter at spawn time
+    /// Applied to situations unless overridden by SituationDTO.RouteFilter
+    /// null = no base route (each situation specifies its own)
+    /// </summary>
+    public PlacementFilterDTO RouteFilter { get; set; }
 
     /// <summary>
     /// Current lifecycle state

@@ -117,28 +117,36 @@ public static class SceneParser
         // EMBEDDED SITUATIONS PARSING (Composition Pattern)
         // =====================================================
         // Scene OWNS Situations - parse embedded situations with per-situation entity resolution
+        // CSS-STYLE INHERITANCE: Situation filters override scene base filters
         foreach (SituationDTO situationDto in dto.Situations)
         {
-            // System 4: Resolve entities from situation-specific categorical specifications
+            // System 4: Resolve entities with hierarchical placement inheritance
+            // Pattern: effectiveFilter = situationFilter ?? sceneBaseFilter
             Location resolvedLocation = null;
             NPC resolvedNpc = null;
             RouteOption resolvedRoute = null;
 
-            if (situationDto.LocationFilter != null)
+            // CSS-style fallback for location: situation override ?? scene base
+            PlacementFilterDTO effectiveLocationFilter = situationDto.LocationFilter ?? dto.LocationFilter;
+            if (effectiveLocationFilter != null)
             {
-                PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(situationDto.LocationFilter, situationDto.Id);
+                PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(effectiveLocationFilter, situationDto.Id);
                 resolvedLocation = entityResolver.FindOrCreateLocation(locationFilter);
             }
 
-            if (situationDto.NpcFilter != null)
+            // CSS-style fallback for NPC: situation override ?? scene base
+            PlacementFilterDTO effectiveNpcFilter = situationDto.NpcFilter ?? dto.NpcFilter;
+            if (effectiveNpcFilter != null)
             {
-                PlacementFilter npcFilter = SceneTemplateParser.ParsePlacementFilter(situationDto.NpcFilter, situationDto.Id);
+                PlacementFilter npcFilter = SceneTemplateParser.ParsePlacementFilter(effectiveNpcFilter, situationDto.Id);
                 resolvedNpc = entityResolver.FindOrCreateNPC(npcFilter);
             }
 
-            if (situationDto.RouteFilter != null)
+            // CSS-style fallback for route: situation override ?? scene base
+            PlacementFilterDTO effectiveRouteFilter = situationDto.RouteFilter ?? dto.RouteFilter;
+            if (effectiveRouteFilter != null)
             {
-                PlacementFilter routeFilter = SceneTemplateParser.ParsePlacementFilter(situationDto.RouteFilter, situationDto.Id);
+                PlacementFilter routeFilter = SceneTemplateParser.ParsePlacementFilter(effectiveRouteFilter, situationDto.Id);
                 resolvedRoute = entityResolver.FindOrCreateRoute(routeFilter);
             }
 

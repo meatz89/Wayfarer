@@ -138,34 +138,32 @@ public class SpawnedScenePlayabilityValidator
 
     /// <summary>
     /// Validate required location exists in GameWorld
+    /// Hierarchical placement: Situation has direct object reference (not string ID)
     /// </summary>
     private void ValidateRequiredLocation(Situation situation, List<string> errors)
     {
-        string requiredLocationId = situation.ResolvedRequiredLocationId ?? situation.Template?.RequiredLocationId;
-
-        if (!string.IsNullOrEmpty(requiredLocationId))
+        if (situation.Location != null)
         {
-            Location location = _gameWorld.GetLocation(requiredLocationId);
-            if (location == null)
+            // Verify the location reference is still valid in GameWorld
+            if (!_gameWorld.Locations.Contains(situation.Location))
             {
-                errors.Add($"Situation '{situation.Id}' requires location '{requiredLocationId}' which does not exist in GameWorld");
+                errors.Add($"Situation '{situation.Id}' references location '{situation.Location.Id}' which is no longer in GameWorld");
             }
         }
     }
 
     /// <summary>
     /// Validate required NPC exists in GameWorld
+    /// Hierarchical placement: Situation has direct object reference (not string ID)
     /// </summary>
     private void ValidateRequiredNPC(Situation situation, List<string> errors)
     {
-        string requiredNpcId = situation.ResolvedRequiredNpcId ?? situation.Template?.RequiredNpcId;
-
-        if (!string.IsNullOrEmpty(requiredNpcId))
+        if (situation.Npc != null)
         {
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == requiredNpcId);
-            if (npc == null)
+            // Verify the NPC reference is still valid in GameWorld
+            if (!_gameWorld.NPCs.Contains(situation.Npc))
             {
-                errors.Add($"Situation '{situation.Id}' requires NPC '{requiredNpcId}' which does not exist in GameWorld");
+                errors.Add($"Situation '{situation.Id}' references NPC '{situation.Npc.ID}' which is no longer in GameWorld");
             }
         }
     }

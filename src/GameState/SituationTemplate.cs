@@ -63,23 +63,34 @@ public class SituationTemplate
     /// </summary>
     public int Priority { get; init; } = 0;
 
-    /// <summary>
-    /// Location where this Situation occurs (context tracking for multi-situation scenes)
-    /// Set by SceneArchetypeCatalog during generation
-    /// Used by Scene.CompareContexts to determine if consecutive situations share same location
-    /// Same location = seamless cascade, different location = exit to world
-    /// Example: "common_room", "upper_floor"
-    /// </summary>
-    public string RequiredLocationId { get; init; }
+    // ==================== HIERARCHICAL PLACEMENT (OVERRIDE FILTERS) ====================
+    // CSS-style inheritance: SituationTemplate can OVERRIDE SceneTemplate base filters
+    // Resolution: effectiveFilter = situationFilter ?? sceneBaseFilter
+    // All nullable - null means "inherit from scene base"
 
     /// <summary>
-    /// NPC who must be present for this Situation (context tracking for multi-situation scenes)
-    /// Set by SceneArchetypeCatalog during generation
-    /// null = no NPC requirement (location-only context)
-    /// Used by Scene.CompareContexts to determine if consecutive situations share same context
-    /// Example: "elena" for negotiation situations, null for service delivery situations
+    /// Location filter override for this specific situation
+    /// null = inherit from SceneTemplate.BaseLocationFilter (CSS-style fallback)
+    /// Non-null = override scene base for this situation only
+    /// Enables multi-location scenes: "Negotiate" at Common Room, "Rest" at Private Room
     /// </summary>
-    public string RequiredNpcId { get; init; }
+    public PlacementFilter LocationFilter { get; init; }
+
+    /// <summary>
+    /// NPC filter override for this specific situation
+    /// null = inherit from SceneTemplate.BaseNpcFilter (CSS-style fallback)
+    /// Non-null = override scene base for this situation only
+    /// Example: Scene has Innkeeper base, but "Depart" situation has null (no NPC)
+    /// </summary>
+    public PlacementFilter NpcFilter { get; init; }
+
+    /// <summary>
+    /// Route filter override for this specific situation
+    /// null = inherit from SceneTemplate.BaseRouteFilter (CSS-style fallback)
+    /// Non-null = override scene base for this situation only
+    /// Rarely used - most situations don't involve routes
+    /// </summary>
+    public PlacementFilter RouteFilter { get; init; }
 
     /// <summary>
     /// Optional narrative hints for AI generation

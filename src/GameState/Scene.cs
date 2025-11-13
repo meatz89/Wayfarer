@@ -326,9 +326,9 @@ public class Scene
             return false;
         }
 
-        // Use resolved IDs if present, fall back to template properties
-        string requiredLocationId = CurrentSituation.ResolvedRequiredLocationId ?? CurrentSituation.Template.RequiredLocationId;
-        string requiredNpcId = CurrentSituation.ResolvedRequiredNpcId ?? CurrentSituation.Template.RequiredNpcId;
+        // Hierarchical placement: Situations have direct object references (not template IDs)
+        string requiredLocationId = CurrentSituation.Location?.Id;
+        string requiredNpcId = CurrentSituation.Npc?.ID;
 
         Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' requires location '{requiredLocationId}', npc '{requiredNpcId}' | Player at '{locationId}', '{npcId}'");
 
@@ -364,12 +364,12 @@ public class Scene
         if (previousSituation?.Template == null || nextSituation?.Template == null)
             return SceneRoutingDecision.ExitToWorld;
 
-        // Use resolved IDs if present, fall back to template properties
-        string prevLocationId = previousSituation.ResolvedRequiredLocationId ?? previousSituation.Template.RequiredLocationId;
-        string nextLocationId = nextSituation.ResolvedRequiredLocationId ?? nextSituation.Template.RequiredLocationId;
+        // Hierarchical placement: Situations have direct object references (not template IDs)
+        string prevLocationId = previousSituation.Location?.Id;
+        string nextLocationId = nextSituation.Location?.Id;
 
-        string prevNpcId = previousSituation.ResolvedRequiredNpcId ?? previousSituation.Template.RequiredNpcId;
-        string nextNpcId = nextSituation.ResolvedRequiredNpcId ?? nextSituation.Template.RequiredNpcId;
+        string prevNpcId = previousSituation.Npc?.ID;
+        string nextNpcId = nextSituation.Npc?.ID;
 
         Console.WriteLine($"[Scene.CompareContexts] Previous: location='{prevLocationId}', npc='{prevNpcId}'");
         Console.WriteLine($"[Scene.CompareContexts] Next: location='{nextLocationId}', npc='{nextNpcId}'");

@@ -151,26 +151,6 @@ public class Situation
     public NavigationPayload NavigationPayload { get; set; }
 
     /// <summary>
-    /// Resolved location ID for self-contained scenes (marker resolution at finalization)
-    /// Template.RequiredLocationId may contain marker ("generated:private_room")
-    /// This property contains actual resolved ID ("scene_abc123_private_room")
-    /// null = use Template.RequiredLocationId directly (no marker resolution needed)
-    /// Populated during SceneInstantiator.FinalizeScene from marker resolution
-    /// Context matching uses this property, NOT template property
-    /// </summary>
-    public string ResolvedRequiredLocationId { get; set; }
-
-    /// <summary>
-    /// Resolved NPC ID for self-contained scenes (marker resolution at finalization)
-    /// Template.RequiredNpcId may contain marker (if NPCs were dynamically created)
-    /// This property contains actual resolved ID after finalization
-    /// null = use Template.RequiredNpcId directly (no marker resolution needed)
-    /// Populated during SceneInstantiator.FinalizeScene from marker resolution
-    /// Context matching uses this property, NOT template property
-    /// </summary>
-    public string ResolvedRequiredNpcId { get; set; }
-
-    /// <summary>
     /// Compound requirement - multiple OR paths to unlock this situation
     /// null or empty = always available (no requirements)
     /// Player needs to satisfy at least ONE complete path

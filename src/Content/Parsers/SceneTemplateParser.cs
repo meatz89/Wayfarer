@@ -123,7 +123,10 @@ public class SceneTemplateParser
             Archetype = archetype,
             SceneArchetypeId = dto.SceneArchetypeId,
             DisplayNameTemplate = dto.DisplayNameTemplate,
-            PlacementFilter = ParsePlacementFilter(dto.PlacementFilter, dto.Id),
+            // Hierarchical placement: Parse three separate base filters for CSS-style inheritance
+            BaseLocationFilter = ParsePlacementFilter(dto.BaseLocationFilter, dto.Id),
+            BaseNpcFilter = ParsePlacementFilter(dto.BaseNpcFilter, dto.Id),
+            BaseRouteFilter = ParsePlacementFilter(dto.BaseRouteFilter, dto.Id),
             SpawnConditions = SpawnConditionsParser.ParseSpawnConditions(dto.SpawnConditions),
             SituationTemplates = situationTemplates,
             SpawnRules = spawnRules,
@@ -444,6 +447,10 @@ public class SceneTemplateParser
             NarrativeTemplate = dto.NarrativeTemplate,
             ChoiceTemplates = choiceTemplates,
             Priority = dto.Priority,
+            // Hierarchical placement override filters (CSS-style inheritance)
+            LocationFilter = ParsePlacementFilter(dto.LocationFilter, sceneTemplateId),
+            NpcFilter = ParsePlacementFilter(dto.NpcFilter, sceneTemplateId),
+            RouteFilter = ParsePlacementFilter(dto.RouteFilter, sceneTemplateId),
             NarrativeHints = ParseNarrativeHints(dto.NarrativeHints)
         };
 
