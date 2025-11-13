@@ -144,139 +144,163 @@ Additionally, authoring multiple satisfying endings is expensive, yet most playe
 ### Related Decisions
 - DDR-007: Four-Choice Pattern (guarantees forward progress)
 - DDR-006: Categorical Property Scaling (enables balanced procedural content)
-- DDR-002: Tag-Based Scene Dependencies (**SUPERSEDED** - replaced by resource-based SpawnConditions)
+- DDR-002: Resource-Based Scene Dependencies (progression through resource thresholds)
 
 ---
 
-## DDR-002: Tag-Based Scene Dependencies vs Hardcoded Scene Chains
+## DDR-002: Resource-Based Scene Dependencies vs Abstract Tag Systems
 
 ### Status
-**SUPERSEDED** - Replaced by resource-based SpawnConditions system
-**Superseded Date:** 2025-11 (Commit 3e3b239)
-**Superseding Rationale:** Tag system redundant with existing spawn condition capabilities (MinStats, NPCBond, RequiredItems). All documented progression patterns achievable through resource thresholds and reward-driven spawning without abstract tag layer. Removal aligns with Requirement Inversion Principle (resource arithmetic over boolean gates).
-
-**Current Implementation:** See actual progression architecture in code:
-- A-Story: Reward-driven sequential spawning (ScenesToSpawn) with AlwaysEligible conditions
-- B/C Stories: Resource threshold gating (SpawnConditions with MinStats/NPCBond/RequiredItems)
-- Perfect information: Numeric thresholds visible to player ("Need Morality 5, you have 3")
-
----
-
-### **ORIGINAL DESIGN (NOT IMPLEMENTED - Historical Context Below)**
+**Active** - Core progression architecture
 
 ### Context
 
-Need progression structure supporting both authored tutorial and procedural content. Traditional approaches use hardcoded chains (A1 → A2 → A3) which work for fixed content but break for procedural generation. Player actions should unlock new content naturally based on accumulated capabilities and knowledge, not arbitrary flag checks.
+Need progression structure supporting both authored tutorial and procedural content. Player actions should unlock new content based on accumulated resources and capabilities, not abstract boolean flags. System must maintain perfect information (player sees exact numeric requirements), support flexible branching, and align with resource arithmetic philosophy (Requirement Inversion Principle).
 
 ### Decision
 
-**ORIGINAL PROPOSAL (SUPERSEDED):** Scenes spawn based on player state tags (RequiresTags/GrantsTags system) instead of hardcoded predecessor/successor relationships.
+**Scenes spawn based on resource thresholds and reward-driven chains** using three complementary mechanisms.
 
-**Tag System Architecture:**
-- Each Scene defines RequiresTags (what player needs to spawn this scene)
-- Each Scene defines GrantsTags (what player gains upon completion)
-- Scene spawning evaluates RequiresTags against player's accumulated tags
-- No hardcoded scene chains - flexible graph structure
+**Mechanism 1: Reward-Driven Sequential Spawning (A-Story)**
+- Each A-scene's final situation contains ScenesToSpawn reward
+- Completing A5 → reward automatically spawns A6
+- SpawnConditions: AlwaysEligible (no gates, guarantees forward progress)
+- Linear infinite chain with anti-repetition via AStoryContext tracking
+- Procedural generation from A11+ onward
+
+**Mechanism 2: Resource Threshold Gating (B/C Stories)**
+- SpawnConditions with three evaluation dimensions:
+  - PlayerState: MinStats {Morality: 5}, RequiredItems ["investigation_notes"], LocationVisits {"tavern": 3}
+  - WorldState: MinDay 5, MaxDay 20, Weather.Rain, TimeBlock.Night
+  - EntityState: NPCBond {"elena": 10}, RouteTravelCount {"mountain_pass": 2}
+- Numeric thresholds enable perfect information ("Need Morality 5, you have 3, need 2 more")
+- Combination logic: AND (all must pass) or OR (any passes)
+
+**Mechanism 3: Temporal Windows**
+- MinDay/MaxDay creates expiring content
+- Weather/TimeBlock gates situational opportunities
+- Enables limited-time B-stories and environmental conditions
 
 **Example Flow:**
 ```
-A1 completes → Grants ["tutorial_complete", "knows_innkeeper"]
-A2 requires ["tutorial_complete"]
-A3 requires ["tutorial_complete", "met_merchant"]
-B-Story-1 requires ["knows_innkeeper", "has_5_coins"]
+A1 completes → ScenesToSpawn reward spawns A2 (AlwaysEligible, no gates)
+B-Story-1: SpawnConditions {PlayerState.MinStats {Morality: 5}, EntityState.NPCBond {"elena": 10}}
+B-Story-1 spawns when player reaches both thresholds through gameplay
+Player sees "Need Morality 5 (have 3), Elena bond 10 (have 7)" - numeric gaps visible
 ```
-
-Player can pursue A2, A3, or B-Story-1 in any order once requirements met.
 
 ### Alternatives Considered
 
-**Option A: Tag-Based Dependencies (Chosen)**
+**Option A: Resource-Based Dependencies (Chosen)**
 - **Pros:**
-  - Flexible branching (multiple paths available)
-  - Supports player agency (choose priority)
-  - Procedural-friendly (AI can generate scenes with categorical tags)
-  - Enables cross-storyline dependencies
-  - No rigid railroad
+  - Resource arithmetic over boolean flags (Requirement Inversion Principle)
+  - Perfect information (exact numeric thresholds visible)
+  - Reuses existing systems (stats, bonds, items - no redundant tracking)
+  - Transparent gates (player calculates exact gaps)
+  - Maps to Sir Brante pattern (resource possession checks)
 - **Cons:**
-  - More complex validation (must prevent soft-locks via tag analysis)
-  - Requires careful tag design
-  - Can create "tag soup" if poorly managed
-- **Why Chosen:** Enables branching, supports procedural content, maintains player agency
+  - More verbose than abstract tags (MinStats dictionary vs tag string)
+  - Cannot express "any 3 of 5" easily (requires external counters)
+  - Less abstraction (concrete resource checks vs abstract milestones)
+- **Why Chosen:** Aligns with core design principles (resource arithmetic, perfect information, no boolean gates)
 
-**Option B: Hardcoded Scene Chains (Rejected)**
+**Option B: Abstract Tag System (Rejected)**
 - **Pros:**
-  - Simple to validate (linear chain)
-  - Easy to author (just sequence)
-  - Clear progression path
+  - Readable abstract milestones ("tutorial_complete")
+  - Flexible branching (multiple scenes requiring same tag)
+  - Cross-storyline dependencies possible
 - **Cons:**
-  - Railroad (one path only)
-  - No player agency
-  - Procedural content can't insert naturally
-  - Inflexible (changes require surgery)
-- **Why Rejected:** Too rigid, kills player agency, incompatible with procedural generation
+  - Boolean gates violate Requirement Inversion Principle
+  - Hidden thresholds (no numeric gaps)
+  - Redundant tracking (duplicates stats/bonds/items)
+  - Mystery conditions (player doesn't see status)
+  - Not Sir Brante pattern (boolean flags over resource possession)
+- **Why Rejected:** Redundant with SpawnConditions capabilities, violates resource arithmetic principle
 
-**Option C: Boolean Flag Dependencies (Rejected)**
+**Option C: Hardcoded Scene Chains (Rejected)**
 - **Pros:**
-  - Flexible (many flags possible)
-  - Simple to check
+  - Simplest to implement (linear A1 → A2 → A3)
+  - Easy to validate (sequential)
 - **Cons:**
-  - Destroys strategic depth (flag checks = boolean gates)
-  - No resource competition
-  - Violates Requirement Inversion Principle
-  - Creates Cookie Clicker pattern
-- **Why Rejected:** Violates core design principle (resource arithmetic over boolean gates)
+  - No conditional content (cannot gate B-stories)
+  - Inflexible (changes require code surgery)
+  - No temporal windows
+- **Why Rejected:** Too rigid, doesn't support B/C story gating needs
 
-**Option D: Level Gating (Player Level Required) (Rejected)**
+**Option D: Level Gating (Rejected)**
 - **Pros:**
-  - Simple to balance
+  - Simple to balance (single number)
   - Clear progression curve
 - **Cons:**
-  - Not verisimilitude (why does innkeeper care about player level?)
-  - Arbitrary gates
-  - Doesn't reflect narrative logic
+  - Breaks verisimilitude (why does innkeeper care about player level?)
+  - Arbitrary gates (no narrative logic)
+  - Doesn't reflect capabilities
 - **Why Rejected:** Breaks fiction, arbitrary gating
 
 ### Rationale
 
 **Design Principle Alignment:**
-- Supports player agency through branching (TIER 2: Core Experience)
-- Enables resource-based progression (tags as accumulated knowledge/capabilities)
-- Maintains verisimilitude (gates based on narrative logic, not arbitrary level)
+- **Requirement Inversion Principle (TIER 2):** Resource arithmetic (`Morality >= 5`) over boolean gates (`HasCompletedTutorial`)
+- **Perfect Information (TIER 2):** Numeric thresholds visible to player ("Need Morality 5, you have 3")
+- **No Soft-Locks (TIER 1):** A-story uses AlwaysEligible, Four-Choice Pattern ensures fallback paths
+- **Single Source of Truth:** Reuses existing Player stats/bonds/items, no redundant tracking
+- **Sir Brante Pattern:** Resource possession checks over boolean flag unlocks
 
-**Enables Procedural Content:**
-- AI can generate scenes with categorical tag requirements ("requires_met_merchant" not hardcoded ID)
-- New scenes slot into existing tag graph naturally
-- Cross-references emergent rather than manually authored
+**Progression Patterns Supported:**
 
-**Supports Multiple Storylines:**
-- A-story, B-stories, C-stories all use same tag system
-- Dependencies across storylines possible (B-story unlocks A-story path)
-- No artificial separation
+1. **Linear Sequential (A-Story):**
+   - ScenesToSpawn rewards chain scenes: A1 → A2 → A3 → ... → A10 → A11 (procedural) → ∞
+   - AlwaysEligible ensures no progression gates
+
+2. **Stat-Gated Content (B-Stories):**
+   - MinStats thresholds unlock content for specialized builds
+   - Example: "Moral Dilemma" requires Morality ≥ 7 (high-morality players only)
+
+3. **Relationship-Gated Content (B-Stories):**
+   - NPCBond thresholds unlock deeper storylines
+   - Example: "Elena's Secret" requires Elena bond ≥ 10 (must build relationship)
+
+4. **Item-Gated Content (B-Stories):**
+   - RequiredItems creates quest chain dependencies
+   - Example: "Decode Message" requires "cipher_key" item (obtain in earlier scene)
+
+5. **Exploration-Gated Content (B-Stories):**
+   - LocationVisits/RouteTravelCount rewards thorough exploration
+   - Example: "Tavern Rumors" requires tavern visits ≥ 3 (regular patron)
+
+6. **Temporal Windows (All Stories):**
+   - MinDay/MaxDay creates limited-time content
+   - Example: "Festival Crisis" spawns day 10-15 only (expires if not completed)
+
+7. **Environmental Conditions (All Stories):**
+   - Weather/TimeBlock gates situational content
+   - Example: "Night Investigation" spawns only TimeBlock.Night
 
 ### Consequences
 
 **Positive:**
-- **Flexible Branching**: Multiple valid progression paths
-- **Player Agency**: Choose which scenes to pursue when requirements met
-- **Procedural Integration**: AI-generated scenes use same dependency system
-- **Cross-Storyline Synergy**: Knowledge from one story enables options in another
-- **No Railroad**: Player controls pacing and priority
+- **Resource Arithmetic Throughout:** Consistent with choice requirements, stat gates, economic system
+- **Perfect Information:** Player sees exact numeric gaps ("Need 2 more Morality points")
+- **No Redundant Tracking:** Reuses existing Player.Stats, Player.Relationships, Player.Inventory
+- **Flexible Gating:** Three dimensions (Player/World/Entity) with AND/OR combination logic
+- **Temporal Windows:** MinDay/MaxDay enables expiring content
+- **Transparent Thresholds:** No mystery gates, all conditions enumerable
 
 **Negative:**
-- **Complex Validation**: Must analyze tag graph to prevent soft-locks
-- **Tag Design Required**: Poor tag choices create confusion
-- **Debugging Harder**: Non-linear progression harder to trace
-- **Can Create Orphans**: Scenes with impossible requirements if tags poorly designed
+- **A-Story Not Branching:** Linear spine only (design choice for guaranteed progression)
+- **Verbose SpawnConditions:** `MinStats: {Morality: 5}` more verbose than abstract tags
+- **Cannot Express "Any 3 of 5":** Requires external counter (item tokens as workaround)
+- **LocationVisits/RouteTravelCount Use Proxies:** Not actual visit counts, uses familiarity levels (future: track actual counts)
 
 **Trade-Offs:**
-- Sacrifices linear simplicity for branching flexibility
-- Requires validation tooling (tag graph analyzer)
-- More complex content authoring (must think about tags)
+- Sacrifices abstract milestone tags for concrete resource thresholds (transparency over abstraction)
+- A-story linear chain accepted (infinite spine doesn't need branching, B-stories provide variety)
+- Verbosity accepted for perfect information (explicit thresholds over implicit flags)
 
 ### Related Decisions
-- DDR-001: Infinite A-Story (procedural content needs flexible dependencies)
-- DDR-007: Four-Choice Pattern (always includes zero-requirement fallback preventing soft-locks)
-- DDR-006: Categorical Property Scaling (tags use categorical properties)
+- DDR-001: Infinite A-Story (reward-driven spawning supports infinite continuation)
+- DDR-007: Four-Choice Pattern (ensures A-story fallback paths despite AlwaysEligible)
+- DDR-006: Categorical Property Scaling (resource thresholds use categorical values)
 
 ---
 
@@ -756,7 +780,7 @@ Scaled: StatThreshold 3 (5 × 0.6), CoinCost 13 (8 × 1.6)
 
 ### Related Decisions
 - DDR-001: Infinite A-Story (procedural content needs scaling)
-- DDR-002: Tag-Based Dependencies (**SUPERSEDED** - resource thresholds use categorical properties)
+- DDR-002: Resource-Based Dependencies (resource thresholds use categorical properties)
 
 ---
 
@@ -1279,7 +1303,7 @@ These ten DDRs represent the foundational game design decisions shaping Wayfarer
 
 **Trade-Off Patterns:**
 - Sacrifices narrative closure for infinite content (DDR-001)
-- Sacrifices simplicity for resource transparency (DDR-002 **SUPERSEDED** - resource thresholds over tags)
+- Sacrifices simplicity for resource transparency (DDR-002 resource thresholds over boolean flags)
 - Sacrifices player comfort for strategic depth (DDR-004)
 - Sacrifices uniformity for verisimilitude (DDR-010)
 
