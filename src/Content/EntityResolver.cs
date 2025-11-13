@@ -23,7 +23,7 @@ public class EntityResolver
     public Location FindOrCreateLocation(PlacementFilter filter)
     {
         if (filter == null)
-            return null;
+            throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null - scenes must specify location placement requirements");
 
         // Try to find existing location matching categories
         Location existingLocation = FindMatchingLocation(filter);
@@ -42,7 +42,7 @@ public class EntityResolver
     public NPC FindOrCreateNPC(PlacementFilter filter)
     {
         if (filter == null)
-            return null;
+            throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null - scenes must specify NPC placement requirements");
 
         // Try to find existing NPC matching categories
         NPC existingNPC = FindMatchingNPC(filter);
@@ -61,7 +61,7 @@ public class EntityResolver
     public RouteOption FindOrCreateRoute(PlacementFilter filter)
     {
         if (filter == null)
-            return null;
+            throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null - scenes must specify route placement requirements");
 
         // Try to find existing route matching categories
         RouteOption existingRoute = FindMatchingRoute(filter);
@@ -166,10 +166,10 @@ public class EntityResolver
                     return false;
             }
 
-            // Check difficulty
-            if (filter.MinDifficulty.HasValue && route.DifficultyRating < filter.MinDifficulty.Value)
+            // Check difficulty (using DangerRating)
+            if (filter.MinDifficulty.HasValue && route.DangerRating < filter.MinDifficulty.Value)
                 return false;
-            if (filter.MaxDifficulty.HasValue && route.DifficultyRating > filter.MaxDifficulty.Value)
+            if (filter.MaxDifficulty.HasValue && route.DangerRating > filter.MaxDifficulty.Value)
                 return false;
 
             return true;
@@ -241,12 +241,13 @@ public class EntityResolver
             Name = GenerateRouteName(filter),
 
             // Apply categorical properties from filter
-            DifficultyRating = filter.MinDifficulty ?? 1,
-            StaminaCost = (filter.MinDifficulty ?? 1) * 5, // Scale with difficulty
+            DangerRating = filter.MinDifficulty ?? 1,
+            BaseStaminaCost = (filter.MinDifficulty ?? 1) * 5, // Scale with difficulty
 
             // Initialize required properties
-            HasBeenUsed = false,
-            IsKnown = true // Generated routes are immediately known
+            Method = TravelMethods.Walking,
+            BaseCoinCost = 0,
+            TravelTimeSegments = 1
         };
 
         return newRoute;
