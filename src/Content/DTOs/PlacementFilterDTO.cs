@@ -23,6 +23,32 @@ public class PlacementFilterDTO
     public List<string> PersonalityTypes { get; set; } = new List<string>();
 
     /// <summary>
+    /// Professions to match
+    /// Example: ["Merchant", "Scholar", "Guard"]
+    /// Maps to Professions enum values
+    /// </summary>
+    public List<string> Professions { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Required relationship states
+    /// Example: ["Ally", "Rival", "Neutral"]
+    /// Maps to NPCRelationship enum values
+    /// </summary>
+    public List<string> RequiredRelationships { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Minimum NPC tier requirement
+    /// null = no minimum
+    /// </summary>
+    public int? MinTier { get; set; }
+
+    /// <summary>
+    /// Maximum NPC tier requirement
+    /// null = no maximum
+    /// </summary>
+    public int? MaxTier { get; set; }
+
+    /// <summary>
     /// Minimum bond strength required
     /// null = no minimum
     /// </summary>
@@ -45,11 +71,25 @@ public class PlacementFilterDTO
     // ====================
 
     /// <summary>
+    /// Location types to match
+    /// Example: ["Inn", "Tavern", "Market"]
+    /// Maps to LocationTypes enum values
+    /// </summary>
+    public List<string> LocationTypes { get; set; } = new List<string>();
+
+    /// <summary>
     /// Location properties to match
     /// Example: ["Urban", "Dangerous", "Secluded"]
     /// Maps to LocationPropertyType enum values
     /// </summary>
     public List<string> LocationProperties { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Player accessibility requirement
+    /// true = only accessible locations
+    /// false/null = any location
+    /// </summary>
+    public bool? IsPlayerAccessible { get; set; }
 
     /// <summary>
     /// Categorical location tags
@@ -96,6 +136,29 @@ public class PlacementFilterDTO
     /// null = no maximum
     /// </summary>
     public int? MaxDifficulty { get; set; }
+
+    /// <summary>
+    /// Categorical tags for route selection
+    /// Example: ["Trade", "Dangerous", "Shortcut"]
+    /// </summary>
+    public List<string> RouteTags { get; set; } = new List<string>();
+
+    // ====================
+    // SYSTEM CONTROL
+    // ====================
+
+    /// <summary>
+    /// Selection strategy when multiple entities match
+    /// Values: "WeightedRandom", "First", "Closest", "HighestBond", "LeastRecent"
+    /// Maps to PlacementSelectionStrategy enum
+    /// </summary>
+    public string SelectionStrategy { get; set; }
+
+    /// <summary>
+    /// Exclude recently used entities from selection
+    /// Improves variety
+    /// </summary>
+    public bool ExcludeRecentlyUsed { get; set; }
 
     // ====================
     // PLAYER STATE FILTERS

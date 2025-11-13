@@ -1208,20 +1208,41 @@ public class SceneInstantiator
         return new PlacementFilterDTO
         {
             PlacementType = filter.PlacementType.ToString(),
+            SelectionStrategy = filter.SelectionStrategy.ToString(),
+            // NPC filters
             PersonalityTypes = filter.PersonalityTypes?.Select(p => p.ToString()).ToList(),
             Professions = filter.Professions?.Select(p => p.ToString()).ToList(),
             RequiredRelationships = filter.RequiredRelationships?.Select(r => r.ToString()).ToList(),
-            LocationProperties = filter.LocationProperties?.Select(p => p.ToString()).ToList(),
-            LocationTypes = filter.LocationTypes?.Select(t => t.ToString()).ToList(),
-            TerrainTypes = filter.TerrainTypes,
             MinTier = filter.MinTier,
             MaxTier = filter.MaxTier,
+            MinBond = filter.MinBond,
+            MaxBond = filter.MaxBond,
+            NpcTags = filter.NpcTags,
+            // Location filters
+            LocationTypes = filter.LocationTypes?.Select(t => t.ToString()).ToList(),
+            LocationProperties = filter.LocationProperties?.Select(p => p.ToString()).ToList(),
+            IsPlayerAccessible = filter.IsPlayerAccessible,
+            LocationTags = filter.LocationTags,
+            DistrictId = filter.DistrictId,
+            RegionId = filter.RegionId,
+            // Route filters
+            TerrainTypes = filter.TerrainTypes,
+            RouteTier = filter.RouteTier,
             MinDifficulty = filter.MinDifficulty,
             MaxDifficulty = filter.MaxDifficulty,
-            IsPlayerAccessible = filter.IsPlayerAccessible,
+            RouteTags = filter.RouteTags,
+            // Variety control
             ExcludeRecentlyUsed = filter.ExcludeRecentlyUsed,
-            RequiresPriorVisit = filter.RequiresPriorVisit,
-            SelectionStrategy = filter.SelectionStrategy?.ToString()
+            // Player state filters
+            RequiredStates = filter.RequiredStates?.Select(s => s.ToString()).ToList(),
+            ForbiddenStates = filter.ForbiddenStates?.Select(s => s.ToString()).ToList(),
+            RequiredAchievements = filter.RequiredAchievements,
+            ScaleRequirements = filter.ScaleRequirements?.Select(r => new ScaleRequirementDTO
+            {
+                ScaleType = r.ScaleType.ToString(),
+                MinValue = r.MinValue,
+                MaxValue = r.MaxValue
+            }).ToList()
         };
     }
 }
