@@ -493,20 +493,14 @@ public class ObligationActivity
 
         Player player = _gameWorld.GetPlayer();
 
-        SceneSpawnContext context = SceneSpawnContextBuilder.BuildContext(
-            _gameWorld,
-            player,
-            sceneSpawn.PlacementRelation,
-            sceneSpawn.SpecificPlacementId,
-            null);
-
-        if (context == null)
+        // 5-SYSTEM ARCHITECTURE: Build context from player state
+        // EntityResolver will FindOrCreate entities from PlacementFilterOverride
+        SceneSpawnContext context = new SceneSpawnContext
         {
-            _messageSystem.AddSystemMessage(
-                $"Cannot resolve placement for scene template '{sceneSpawn.SceneTemplateId}'",
-                SystemMessageTypes.Warning);
-            return;
-        }
+            Player = player,
+            CurrentLocation = _gameWorld.GetPlayerCurrentLocation(),
+            CurrentSituation = sourceSituation
+        };
 
         // HIGHLANDER FLOW: Single method spawns scene with full orchestration
         Scene scene = await _sceneInstanceFacade.SpawnScene(template, sceneSpawn, context);

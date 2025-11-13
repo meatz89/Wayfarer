@@ -3,6 +3,15 @@
 /// Finds existing entities OR creates new ones from categorical specifications
 /// Receives PlacementFilterDTO from JSON, returns concrete entity objects
 /// Separates entity resolution from scene instantiation (5-system architecture)
+///
+/// TECHNICAL DEBT / KNOWN ISSUES:
+/// 1. Error Handling: Returns null for invalid filter (by design: scene not placed at entity type)
+/// 2. Placeholder Names: Generated entities have poor names ("The Generic", "Unknown Person")
+///    - TODO: Integrate SceneNarrativeService for AI-generated context-appropriate names
+/// 3. Performance: O(N) linear searches through GameWorld collections
+///    - Acceptable for MVP (~20-200 entities)
+///    - Future optimization: Multi-index lookup Dictionary<PropertyType, List<Entity>>
+///    - Implement when profiling shows bottleneck (likely at 2000+ entities)
 /// </summary>
 public class EntityResolver
 {
@@ -313,6 +322,10 @@ public class EntityResolver
 
     // ========== NAME GENERATION ==========
 
+    // TODO: Placeholder name generation - integrate AI for better names
+    // Current: "The Generic", "The Crossroads" (poor UX)
+    // Future: SceneNarrativeService.GenerateLocationName(filter) → "The Rusty Tankard"
+    // See: Performance issue #3 in architectural notes
     private string GenerateLocationName(PlacementFilter filter)
     {
         if (filter.LocationTypes != null && filter.LocationTypes.Count > 0)
@@ -323,6 +336,9 @@ public class EntityResolver
         return "Unknown Location";
     }
 
+    // TODO: Placeholder name generation - integrate AI for better names
+    // Current: "The Commoner", "The Innkeeper" (poor UX)
+    // Future: SceneNarrativeService.GenerateNPCName(filter) → "Elena" (context-appropriate)
     private string GenerateNPCName(PlacementFilter filter)
     {
         if (filter.Professions != null && filter.Professions.Count > 0)
@@ -333,6 +349,9 @@ public class EntityResolver
         return "Unknown Person";
     }
 
+    // TODO: Placeholder name generation - integrate AI for better names
+    // Current: "Forest Route", "Mountain Route" (acceptable but basic)
+    // Future: Markov chain generator or narrative service integration
     private string GenerateRouteName(PlacementFilter filter)
     {
         if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
@@ -360,14 +379,12 @@ public class EntityResolver
     private Location WeightedRandomLocation(List<Location> locations)
     {
         // Simple random for now - can be enhanced with sophisticated weighting
-        Random random = new Random();
-        return locations[random.Next(locations.Count)];
+        return locations[Random.Shared.Next(locations.Count)];
     }
 
     private NPC WeightedRandomNPC(List<NPC> npcs)
     {
         // Simple random for now - can be enhanced with sophisticated weighting
-        Random random = new Random();
-        return npcs[random.Next(npcs.Count)];
+        return npcs[Random.Shared.Next(npcs.Count)];
     }
 }

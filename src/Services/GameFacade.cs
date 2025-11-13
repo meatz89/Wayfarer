@@ -1653,27 +1653,21 @@ public class GameFacade
 
         foreach (SceneTemplate template in starterTemplates)
         {
-            // TUTORIAL PATTERN: Starter scenes use concrete binding via SceneSpawnReward.SpecificPlacementId
-            // PlacementFilter only contains categorical properties for procedural resolution
-            PlacementRelation placementRelation = PlacementRelation.Generic;
-            string specificPlacementId = null; // Starter scenes should define placement in template, not filter
-
+            // 5-SYSTEM ARCHITECTURE: Starter scenes use template's PlacementFilter (no override)
+            // EntityResolver will FindOrCreate entities from categorical specifications
             SceneSpawnReward spawnReward = new SceneSpawnReward
             {
-                SceneTemplateId = template.Id,
-                PlacementRelation = placementRelation,
-                SpecificPlacementId = specificPlacementId
+                SceneTemplateId = template.Id
+                // PlacementFilterOverride = null (use template's filter)
             };
 
-            SceneSpawnContext spawnContext = SceneSpawnContextBuilder.BuildContext(
-                _gameWorld,
-                player,
-                placementRelation,
-                specificPlacementId,
-                null);
-
-            if (spawnContext == null)
-                continue;
+            // Build context from player state
+            SceneSpawnContext spawnContext = new SceneSpawnContext
+            {
+                Player = player,
+                CurrentLocation = _gameWorld.GetPlayerCurrentLocation(),
+                CurrentSituation = null
+            };
 
             Scene scene = await SpawnSceneWithDynamicContent(template, spawnReward, spawnContext);
 

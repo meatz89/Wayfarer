@@ -126,23 +126,7 @@ public class LocationPlayabilityValidator
                         return true;
                     }
 
-                    // Check marker resolution (generated:{id})
-                    if (scene.MarkerResolutionMap != null)
-                    {
-                        foreach (var markerEntry in scene.MarkerResolutionMap)
-                        {
-                            if (markerEntry.Value == location.Id)
-                            {
-                                if ((choice.RewardTemplate?.LocationsToUnlock != null &&
-                                     choice.RewardTemplate.LocationsToUnlock.Contains(markerEntry.Key)) ||
-                                    (choice.OnSuccessReward?.LocationsToUnlock != null &&
-                                     choice.OnSuccessReward.LocationsToUnlock.Contains(markerEntry.Key)))
-                                {
-                                    return true;
-                                }
-                            }
-                        }
-                    }
+                    // Markers deleted in 5-system architecture - locations referenced by concrete IDs only
                 }
             }
         }

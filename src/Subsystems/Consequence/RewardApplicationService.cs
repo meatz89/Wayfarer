@@ -97,40 +97,34 @@ public class RewardApplicationService
             }
         }
 
-        // Resolve markers using parent scene's resolution map (self-contained pattern)
-        Scene parentScene = currentSituation?.ParentScene;
-        Dictionary<string, string> markerMap = parentScene?.MarkerResolutionMap ?? new Dictionary<string, string>();
+        // Markers deleted in 5-system architecture - entity IDs are concrete, no resolution needed
 
-        // Apply item grants (resolve markers first)
+        // Apply item grants
         foreach (string itemId in reward.ItemIds)
         {
-            string resolvedId = _markerResolutionService.ResolveMarker(itemId, markerMap);
-            player.Inventory.AddItem(resolvedId);
+            player.Inventory.AddItem(itemId);
         }
 
-        // Apply item removals (Multi-Situation Scene Pattern: cleanup phase, resolve markers first)
+        // Apply item removals (Multi-Situation Scene Pattern: cleanup phase)
         foreach (string itemId in reward.ItemsToRemove)
         {
-            string resolvedId = _markerResolutionService.ResolveMarker(itemId, markerMap);
-            player.RemoveItem(resolvedId);
+            player.RemoveItem(itemId);
         }
 
-        // Unlock locations (Multi-Situation Scene Pattern: grant access when conditions met, resolve markers first)
+        // Unlock locations (Multi-Situation Scene Pattern: grant access when conditions met)
         // Direct property modification - no string matching, strongly typed
         foreach (string locationId in reward.LocationsToUnlock)
         {
-            string resolvedId = _markerResolutionService.ResolveMarker(locationId, markerMap);
-            Location location = _gameWorld.GetLocation(resolvedId);
+            Location location = _gameWorld.GetLocation(locationId);
             if (location != null)
                 location.IsLocked = false;
         }
 
-        // Lock locations (Multi-Situation Scene Pattern: restore original state on cleanup, resolve markers first)
+        // Lock locations (Multi-Situation Scene Pattern: restore original state on cleanup)
         // Direct property modification - no string matching, strongly typed
         foreach (string locationId in reward.LocationsToLock)
         {
-            string resolvedId = _markerResolutionService.ResolveMarker(locationId, markerMap);
-            Location location = _gameWorld.GetLocation(resolvedId);
+            Location location = _gameWorld.GetLocation(locationId);
             if (location != null)
                 location.IsLocked = true;
         }

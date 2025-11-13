@@ -13,42 +13,14 @@ public static class SceneSpawner
             .Select(st => $"{sceneId}_{st.Id}")
             .ToList();
 
-        List<string> locationIds = request.Template.DependentLocations
-            ?.Select(spec => $"{sceneId}_{spec.TemplateId}")
-            .ToList() ?? new List<string>();
-
-        List<string> itemIds = request.Template.DependentItems
-            ?.Select(spec => $"{sceneId}_{spec.TemplateId}")
-            .ToList() ?? new List<string>();
-
-        Dictionary<string, string> markerMap = new();
-
-        if (request.Template.DependentLocations != null)
-        {
-            foreach (DependentLocationSpec spec in request.Template.DependentLocations)
-            {
-                string actualId = $"{sceneId}_{spec.TemplateId}";
-                markerMap[$"generated:{spec.TemplateId}"] = actualId;
-            }
-        }
-
-        if (request.Template.DependentItems != null)
-        {
-            foreach (DependentItemSpec spec in request.Template.DependentItems)
-            {
-                string actualId = $"{sceneId}_{spec.TemplateId}";
-                markerMap[$"generated:{spec.TemplateId}"] = actualId;
-            }
-        }
+        // Markers and tracking properties deleted in 5-system architecture
+        // Dependent resources discovered via query: template.DependentLocations/DependentItems
 
         return new SpawnResult
         {
             Success = true,
             SceneId = sceneId,
-            CreatedSituationIds = situationIds,
-            CreatedLocationIds = locationIds,
-            CreatedItemIds = itemIds,
-            MarkerResolutionMap = markerMap
+            CreatedSituationIds = situationIds
         };
     }
 
