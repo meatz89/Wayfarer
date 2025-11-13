@@ -196,10 +196,11 @@ public class EntityResolver
 
     private Location CreateLocationFromCategories(PlacementFilter filter)
     {
-        Location newLocation = new Location
+        string locationId = $"generated_location_{Guid.NewGuid()}";
+        string locationName = GenerateLocationName(filter);
+
+        Location newLocation = new Location(locationId, locationName)
         {
-            Id = $"generated_location_{Guid.NewGuid()}",
-            Name = GenerateLocationName(filter),
             IsSkeleton = false,
             HexPosition = null,
 
