@@ -1762,7 +1762,8 @@ public class PackageLoader
 
         // System 4: Entity Resolver (FindOrCreate)
         Player player = _gameWorld.GetPlayer();
-        EntityResolver entityResolver = new EntityResolver(_gameWorld, player);
+        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
+        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
 
         foreach (SceneDTO dto in sceneDtos)
         {

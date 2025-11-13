@@ -178,6 +178,150 @@ public class SceneNarrativeService
     }
 
     /// <summary>
+    /// Generate contextual location name from PlacementFilter properties
+    /// Uses multiple properties to create descriptive names
+    /// </summary>
+    public string GenerateLocationName(PlacementFilter filter)
+    {
+        if (filter == null)
+            return "Unknown Location";
+
+        List<string> nameParts = new List<string>();
+
+        // Use properties to build descriptive name
+        if (filter.LocationProperties != null && filter.LocationProperties.Count > 0)
+        {
+            LocationPropertyType primaryProperty = filter.LocationProperties.First();
+
+            string prefix = primaryProperty switch
+            {
+                LocationPropertyType.Private => "Private",
+                LocationPropertyType.Secured => "Secure",
+                LocationPropertyType.Public => "Public",
+                LocationPropertyType.Commercial => "Trading",
+                LocationPropertyType.Restricted => "Restricted",
+                LocationPropertyType.Underground => "Hidden",
+                _ => ""
+            };
+
+            if (!string.IsNullOrEmpty(prefix))
+                nameParts.Add(prefix);
+        }
+
+        // Add location type
+        if (filter.LocationTypes != null && filter.LocationTypes.Count > 0)
+        {
+            LocationTypes type = filter.LocationTypes.First();
+            string typeWord = type switch
+            {
+                LocationTypes.Inn => "Inn",
+                LocationTypes.Tavern => "Tavern",
+                LocationTypes.Market => "Market",
+                LocationTypes.Workshop => "Workshop",
+                LocationTypes.Temple => "Temple",
+                LocationTypes.Mansion => "Mansion",
+                LocationTypes.Warehouse => "Warehouse",
+                LocationTypes.Crossroads => "Crossroads",
+                _ => "Place"
+            };
+            nameParts.Add(typeWord);
+        }
+
+        return nameParts.Count > 0 ? $"The {string.Join(" ", nameParts)}" : "Unknown Location";
+    }
+
+    /// <summary>
+    /// Generate contextual NPC name from PlacementFilter properties
+    /// Uses profession and personality to create descriptive identifiers
+    /// </summary>
+    public string GenerateNPCName(PlacementFilter filter)
+    {
+        if (filter == null)
+            return "Unknown Person";
+
+        string professionName = "Person";
+
+        if (filter.Professions != null && filter.Professions.Count > 0)
+        {
+            Professions profession = filter.Professions.First();
+            professionName = profession switch
+            {
+                Professions.Innkeeper => "Innkeeper",
+                Professions.Merchant => "Merchant",
+                Professions.Guard => "Guard",
+                Professions.Scholar => "Scholar",
+                Professions.Artisan => "Artisan",
+                Professions.Noble => "Noble",
+                Professions.Courier => "Courier",
+                Professions.Healer => "Healer",
+                _ => "Person"
+            };
+        }
+
+        string personalityPrefix = "";
+        if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
+        {
+            PersonalityType personality = filter.PersonalityTypes.First();
+            personalityPrefix = personality switch
+            {
+                PersonalityType.DEVOTED => "Devoted",
+                PersonalityType.MERCANTILE => "Shrewd",
+                PersonalityType.PROUD => "Proud",
+                PersonalityType.CUNNING => "Cunning",
+                PersonalityType.STEADFAST => "Steadfast",
+                _ => ""
+            };
+        }
+
+        if (!string.IsNullOrEmpty(personalityPrefix))
+            return $"The {personalityPrefix} {professionName}";
+
+        return $"The {professionName}";
+    }
+
+    /// <summary>
+    /// Generate contextual route name from PlacementFilter properties
+    /// Uses terrain types to create descriptive route names
+    /// </summary>
+    public string GenerateRouteName(PlacementFilter filter)
+    {
+        if (filter == null)
+            return "Unknown Route";
+
+        if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
+        {
+            string terrain = filter.TerrainTypes.First();
+
+            string terrainName = terrain.ToLower() switch
+            {
+                "forest" => "Forest Path",
+                "mountain" => "Mountain Trail",
+                "plains" => "Open Road",
+                "river" => "River Crossing",
+                "urban" => "City Street",
+                "wilderness" => "Wilderness Track",
+                _ => $"{terrain} Route"
+            };
+
+            return terrainName;
+        }
+
+        // Use difficulty to add context
+        if (filter.MinDifficulty.HasValue)
+        {
+            string difficulty = filter.MinDifficulty.Value switch
+            {
+                >= 5 => "Treacherous Route",
+                >= 3 => "Challenging Path",
+                _ => "Easy Route"
+            };
+            return difficulty;
+        }
+
+        return "The Route";
+    }
+
+    /// <summary>
     /// TODO: Implement full AI generation using OllamaClient
     ///
     /// Future implementation pattern (following AINarrativeProvider):
