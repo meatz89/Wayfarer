@@ -561,56 +561,16 @@ public class SceneTemplateParser
             if (string.IsNullOrEmpty(dto.SceneTemplateId))
                 throw new InvalidDataException("SceneSpawnReward missing required 'SceneTemplateId'");
 
-            if (!Enum.TryParse<PlacementRelation>(dto.PlacementRelation, true, out PlacementRelation placementRelation))
-            {
-                throw new InvalidDataException($"SceneSpawnReward has invalid PlacementRelation: '{dto.PlacementRelation}'");
-            }
-
             rewards.Add(new SceneSpawnReward
             {
                 SceneTemplateId = dto.SceneTemplateId,
-                PlacementRelation = placementRelation,
-                SpecificPlacementId = dto.SpecificPlacementId,
-                ContextBindings = ParseContextBindings(dto.ContextBindings)
+                PlacementFilterOverride = dto.PlacementFilterOverride != null
+                    ? ParsePlacementFilter(dto.PlacementFilterOverride, dto.SceneTemplateId)
+                    : null
             });
         }
 
         return rewards;
-    }
-
-    /// <summary>
-    /// Parse ContextBindings from DTOs
-    /// Maps JSON-authored context bindings to domain entities
-    /// Resolved*Id properties remain null (populated at display time by UI)
-    /// </summary>
-    private List<ContextBinding> ParseContextBindings(List<ContextBindingDTO> dtos)
-    {
-        if (dtos == null || !dtos.Any())
-            return new List<ContextBinding>();
-
-        List<ContextBinding> bindings = new List<ContextBinding>();
-        foreach (ContextBindingDTO dto in dtos)
-        {
-            if (string.IsNullOrEmpty(dto.MarkerKey))
-                throw new InvalidDataException("ContextBinding missing required 'MarkerKey'");
-
-            if (string.IsNullOrEmpty(dto.Source))
-                throw new InvalidDataException("ContextBinding missing required 'Source'");
-
-            if (!Enum.TryParse<ContextSource>(dto.Source, true, out ContextSource source))
-            {
-                throw new InvalidDataException($"ContextBinding has invalid Source: '{dto.Source}'. Valid values: CurrentNpc, CurrentLocation, CurrentRoute, PreviousScene");
-            }
-
-            bindings.Add(new ContextBinding
-            {
-                MarkerKey = dto.MarkerKey,
-                Source = source
-                // Resolved*Id properties remain null (populated at display time by SceneContent.razor.cs)
-            });
-        }
-
-        return bindings;
     }
 
     /// <summary>

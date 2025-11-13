@@ -42,9 +42,26 @@ public class Scene
     /// <summary>
     /// Concrete placement identifier - which entity this Scene is assigned to
     /// LocationId, NpcId, or RouteId depending on PlacementType
-    /// Assigned by procedural generation during spawn
+    /// Assigned by FindOrGenerate during spawn from categorical properties
+    /// Categories → FindOrGenerate → Concrete ID stored here
     /// </summary>
     public string PlacementId { get; set; }
+
+    /// <summary>
+    /// Associated NPC identifier for scenes requiring both location and NPC
+    /// Resolved from NpcCategories via FindOrGenerate at spawn time
+    /// null if scene only requires location placement
+    /// Example: Investigation scene at location with specific informant
+    /// </summary>
+    public string AssociatedNpcId { get; set; }
+
+    /// <summary>
+    /// Associated Route identifier for scenes requiring both location and route
+    /// Resolved from RouteCategories via FindOrGenerate at spawn time
+    /// null if scene only requires location placement
+    /// Example: Travel scene at location along specific route
+    /// </summary>
+    public string AssociatedRouteId { get; set; }
 
     // ==================== PRESENTATION PROPERTIES ====================
 
@@ -197,18 +214,6 @@ public class Scene
     /// null = Scene generated no dynamic package
     /// </summary>
     public string DependentPackageId { get; set; }
-
-    /// <summary>
-    /// Marker resolution map for self-contained scenes
-    /// Maps template IDs to actual created resource IDs
-    /// Key: "generated:{templateId}" marker format
-    /// Value: actual resource ID after creation
-    /// Example: {"generated:private_room" → "scene_abc123_private_room", "generated:room_key" → "scene_abc123_room_key"}
-    /// Populated during FinalizeScene after resource creation
-    /// Used by RewardApplicationService and action instantiation to resolve markers
-    /// Empty dictionary = no marker resolution needed (traditional pattern)
-    /// </summary>
-    public Dictionary<string, string> MarkerResolutionMap { get; set; } = new Dictionary<string, string>();
 
     // ==================== STATE MACHINE METHODS ====================
 
@@ -363,9 +368,7 @@ public class Scene
             return false;
         }
 
-        // MARKER RESOLUTION: Use resolved IDs if present (self-contained scenes)
-        // Resolved IDs populated during finalization for markers like "generated:private_room"
-        // Fall back to template properties for non-self-contained scenes
+        // Use resolved IDs if present, fall back to template properties
         string requiredLocationId = CurrentSituation.ResolvedRequiredLocationId ?? CurrentSituation.Template.RequiredLocationId;
         string requiredNpcId = CurrentSituation.ResolvedRequiredNpcId ?? CurrentSituation.Template.RequiredNpcId;
 
@@ -403,8 +406,7 @@ public class Scene
         if (previousSituation?.Template == null || nextSituation?.Template == null)
             return SceneRoutingDecision.ExitToWorld;
 
-        // MARKER RESOLUTION: Use resolved IDs if present (self-contained scenes)
-        // Compare actual resolved IDs, not template markers
+        // Use resolved IDs if present, fall back to template properties
         string prevLocationId = previousSituation.ResolvedRequiredLocationId ?? previousSituation.Template.RequiredLocationId;
         string nextLocationId = nextSituation.ResolvedRequiredLocationId ?? nextSituation.Template.RequiredLocationId;
 

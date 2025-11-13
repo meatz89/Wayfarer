@@ -2,7 +2,7 @@
 /// <summary>
 /// Spawn Rule - defines how a situation spawns child situations on completion
 /// Creates cascading chains of situations for narrative progression
-/// ARCHITECTURE: Aligned with SceneSpawnReward pattern (PlacementRelation enum)
+/// Uses categorical properties to find or generate entities
 /// </summary>
 public class SpawnRule
 {
@@ -13,22 +13,13 @@ public class SpawnRule
     public string TemplateId { get; set; }
 
     /// <summary>
-    /// Placement relation for spawned situation (Scene-Situation architecture)
-    /// Determines WHERE spawned situation appears relative to parent
+    /// Optional PlacementFilter override for spawned situation
+    /// If specified, overrides spawned SituationTemplate placement
+    /// Enables dynamic placement based on parent situation context
+    /// If null, uses spawned SituationTemplate placement
+    /// Categories → FindOrGenerate → Concrete ID
     /// </summary>
-    public PlacementRelation PlacementRelation { get; set; }
-
-    /// <summary>
-    /// Specific placement ID when PlacementRelation is SpecificLocation/NPC/Route
-    /// Contains Location/NPC/Route ID to spawn at
-    /// </summary>
-    public string SpecificPlacementId { get; set; }
-
-    /// <summary>
-    /// DEPRECATED: Old string-based placement (replaced by PlacementRelation enum)
-    /// Kept for backwards compatibility with existing JSON
-    /// </summary>
-    public string TargetPlacement { get; set; }
+    public PlacementFilter PlacementFilterOverride { get; set; }
 
     /// <summary>
     /// Requirement offsets to apply to spawned situation

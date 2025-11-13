@@ -30,22 +30,16 @@ public class ScenePreview
     public int Tier { get; set; }
 
     /// <summary>
-    /// Where scene will be placed
-    /// SameLocation, SameNPC, SpecificLocation, SpecificNPC, etc.
-    /// </summary>
-    public PlacementRelation PlacementRelation { get; set; }
-
-    /// <summary>
-    /// Resolved placement ID if determinable at action generation time
-    /// - SameLocation/SameNPC: Resolved immediately
-    /// - SpecificLocation/SpecificNPC: Resolved from SpawnReward
-    /// - Player/CurrentRoute: Resolved at generation time
-    /// null if placement depends on runtime state at execution time
+    /// Resolved placement ID where scene will spawn
+    /// Determined by evaluating PlacementFilter categories at action generation time
+    /// Categories → FindOrGenerate → Concrete ID stored here
+    /// null if placement cannot be determined until action execution
     /// </summary>
     public string ResolvedPlacementId { get; set; }
 
     /// <summary>
     /// Placement type (Location, NPC, Route)
+    /// Determines what kind of entity the scene is placed on
     /// </summary>
     public PlacementType? PlacementType { get; set; }
 

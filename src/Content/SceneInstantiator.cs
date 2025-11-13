@@ -26,20 +26,17 @@ public class SceneInstantiator
     private readonly GameWorld _gameWorld;
     private readonly SpawnConditionsEvaluator _spawnConditionsEvaluator;
     private readonly SceneNarrativeService _narrativeService;
-    private readonly MarkerResolutionService _markerResolutionService;
     private readonly VenueGeneratorService _venueGenerator;
 
     public SceneInstantiator(
         GameWorld gameWorld,
         SpawnConditionsEvaluator spawnConditionsEvaluator,
         SceneNarrativeService narrativeService,
-        MarkerResolutionService markerResolutionService,
         VenueGeneratorService venueGenerator)
     {
         _gameWorld = gameWorld;
         _spawnConditionsEvaluator = spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
-        _markerResolutionService = markerResolutionService ?? throw new ArgumentNullException(nameof(markerResolutionService));
         _venueGenerator = venueGenerator ?? throw new ArgumentNullException(nameof(venueGenerator));
     }
 
@@ -70,9 +67,9 @@ public class SceneInstantiator
         SceneDTO sceneDto = GenerateSceneDTO(template, placement, context);
 
         // Generate dependent resource DTOs (if self-contained scene)
+        // Categories → FindOrGenerate → Concrete IDs stored directly
         List<LocationDTO> dependentLocations = new List<LocationDTO>();
         List<ItemDTO> dependentItems = new List<ItemDTO>();
-        Dictionary<string, string> markerResolutionMap = new Dictionary<string, string>();
 
         if (template.DependentLocations.Any() || template.DependentItems.Any())
         {
@@ -81,10 +78,6 @@ public class SceneInstantiator
             {
                 LocationDTO locationDto = BuildLocationDTO(spec, sceneDto.Id, context);
                 dependentLocations.Add(locationDto);
-
-                // Build marker resolution map
-                string marker = $"generated:{spec.TemplateId}";
-                markerResolutionMap[marker] = locationDto.Id;
             }
 
             // Generate dependent item DTOs
@@ -92,9 +85,6 @@ public class SceneInstantiator
             {
                 ItemDTO itemDto = BuildItemDTO(spec, sceneDto.Id, context, dependentLocations);
                 dependentItems.Add(itemDto);
-
-                string marker = $"generated:{spec.TemplateId}";
-                markerResolutionMap[marker] = itemDto.Id;
             }
 
             // Store dependent resource IDs
@@ -103,31 +93,8 @@ public class SceneInstantiator
             sceneDto.DependentPackageId = $"scene_{sceneDto.Id}_dep";
         }
 
-        // Merge context bindings into marker resolution map (ALWAYS, regardless of dependent resources)
-        // Content author defines bindings in JSON, LoadChoices() populates strongly-typed Resolved*Id at display time
-        // This enables narrative continuity without hardcoded entity IDs
-        foreach (ContextBinding binding in spawnReward.ContextBindings)
-        {
-            string resolvedId = binding.Source switch
-            {
-                ContextSource.CurrentNpc => binding.ResolvedNpcId,
-                ContextSource.CurrentLocation => binding.ResolvedLocationId,
-                ContextSource.CurrentRoute => binding.ResolvedRouteId,
-                ContextSource.PreviousScene => binding.ResolvedSceneId,
-                _ => null
-            };
-
-            if (!string.IsNullOrEmpty(resolvedId))
-            {
-                markerResolutionMap[binding.MarkerKey] = resolvedId;
-            }
-        }
-
-        // Store marker resolution map in scene DTO (ALWAYS - includes both dependent resources and context bindings)
-        sceneDto.MarkerResolutionMap = markerResolutionMap;
-
-        // Generate Situation DTOs (CRITICAL: This replaces InstantiateSituation())
-        List<SituationDTO> situationDtos = GenerateSituationDTOs(template, sceneDto, markerResolutionMap, context);
+        // Generate Situation DTOs (entities reference by categories, no markers)
+        List<SituationDTO> situationDtos = GenerateSituationDTOs(template, sceneDto, context);
         sceneDto.Situations = situationDtos;
 
         // Build complete package
@@ -152,9 +119,9 @@ public class SceneInstantiator
             ? _gameWorld.CurrentDay + template.ExpirationDays.Value
             : null;
 
-        // Replace placeholders in display name and intro narrative
-        string displayName = PlaceholderReplacer.ReplaceAll(template.DisplayNameTemplate, context, _gameWorld);
-        string introNarrative = PlaceholderReplacer.ReplaceAll(template.IntroNarrativeTemplate, context, _gameWorld);
+        // Use templates directly (AI generates complete text with entity context)
+        string displayName = template.DisplayNameTemplate;
+        string introNarrative = template.IntroNarrativeTemplate;
 
         // Parse spawn rules DTO
         SituationSpawnRulesDTO spawnRulesDto = null;
@@ -204,7 +171,6 @@ public class SceneInstantiator
     private List<SituationDTO> GenerateSituationDTOs(
         SceneTemplate template,
         SceneDTO sceneDto,
-        Dictionary<string, string> markerResolutionMap,
         SceneSpawnContext context)
     {
         List<SituationDTO> situationDtos = new List<SituationDTO>();
@@ -214,9 +180,10 @@ public class SceneInstantiator
             // Generate unique Situation ID
             string situationId = $"situation_{sitTemplate.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
 
-            // Resolve markers in required location/NPC IDs
-            string resolvedLocationId = _markerResolutionService.ResolveMarker(sitTemplate.RequiredLocationId, markerResolutionMap);
-            string resolvedNpcId = _markerResolutionService.ResolveMarker(sitTemplate.RequiredNpcId, markerResolutionMap);
+            // Situations reference entities directly (no marker resolution)
+            // Categories already evaluated at scene spawn → concrete IDs exist
+            string resolvedLocationId = sitTemplate.RequiredLocationId;
+            string resolvedNpcId = sitTemplate.RequiredNpcId;
 
             // Generate narrative (AI or template)
             string description = sitTemplate.NarrativeTemplate;
@@ -234,8 +201,7 @@ public class SceneInstantiator
                 }
             }
 
-            // Replace placeholders
-            description = PlaceholderReplacer.ReplaceAll(description, context, _gameWorld);
+            // AI generates complete text with entity context (no placeholder replacement needed)
 
             // Build Situation DTO from template
             // Scene-based situations use templates - most DTO properties are for standalone situations
@@ -307,72 +273,34 @@ public class SceneInstantiator
 
     private PlacementResolution ResolvePlacement(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
-        PlacementRelation relation = spawnReward.PlacementRelation;
+        // Use override if specified, otherwise template filter
+        // Unified categorical placement: Categories → FindOrGenerate → Concrete ID
+        PlacementFilter filter = spawnReward.PlacementFilterOverride ?? template.PlacementFilter;
 
-        switch (relation)
+        if (filter == null)
+            throw new InvalidOperationException($"No PlacementFilter specified for scene '{template.Id}'");
+
+        // Unified evaluation (handles concrete, relative, and categorical)
+        string placementId = EvaluatePlacementFilter(filter, context);
+
+        if (string.IsNullOrEmpty(placementId))
         {
-            case PlacementRelation.SameLocation:
-                if (context.CurrentLocation == null)
-                    throw new InvalidOperationException("SameLocation placement requires CurrentLocation in context");
-                return new PlacementResolution(PlacementType.Location, context.CurrentLocation.Id); // Location.Id (source of truth)
-
-            case PlacementRelation.SameNPC:
-                if (context.CurrentNPC == null)
-                    throw new InvalidOperationException("SameNPC placement requires CurrentNPC in context");
-                return new PlacementResolution(PlacementType.NPC, context.CurrentNPC.ID);
-
-            case PlacementRelation.SameRoute:
-                if (context.CurrentRoute == null)
-                    throw new InvalidOperationException("SameRoute placement requires CurrentRoute in context");
-                return new PlacementResolution(PlacementType.Route, context.CurrentRoute.Id);
-
-            case PlacementRelation.SpecificLocation:
-                if (string.IsNullOrEmpty(spawnReward.SpecificPlacementId))
-                    throw new InvalidOperationException("SpecificLocation placement requires SpecificPlacementId in spawnReward");
-                return new PlacementResolution(PlacementType.Location, spawnReward.SpecificPlacementId);
-
-            case PlacementRelation.SpecificNPC:
-                if (string.IsNullOrEmpty(spawnReward.SpecificPlacementId))
-                    throw new InvalidOperationException("SpecificNPC placement requires SpecificPlacementId in spawnReward");
-                return new PlacementResolution(PlacementType.NPC, spawnReward.SpecificPlacementId);
-
-            case PlacementRelation.SpecificRoute:
-                if (string.IsNullOrEmpty(spawnReward.SpecificPlacementId))
-                    throw new InvalidOperationException("SpecificRoute placement requires SpecificPlacementId in spawnReward");
-                return new PlacementResolution(PlacementType.Route, spawnReward.SpecificPlacementId);
-
-            case PlacementRelation.Generic:
-                // Evaluate PlacementFilter from SceneTemplate to find matching entity
-                if (template.PlacementFilter == null)
-                    throw new InvalidOperationException($"Generic placement requires PlacementFilter on SceneTemplate '{template.Id}'");
-
-                string placementId = EvaluatePlacementFilter(template.PlacementFilter, context);
-                if (string.IsNullOrEmpty(placementId))
-                {
-                    throw new InvalidOperationException(
-                        $"PLACEMENT FILTER FAILED - No matching entity found\n" +
-                        $"SceneTemplate: {template.Id}\n" +
-                        $"Category: {template.Category}\n" +
-                        $"MainStorySequence: {template.MainStorySequence}\n" +
-                        $"\nFILTER CRITERIA:\n{FormatFilterCriteria(template.PlacementFilter)}\n" +
-                        $"\nAVAILABLE ENTITIES:\n{FormatAvailableEntities(template.PlacementFilter.PlacementType)}\n" +
-                        $"\nCONTEXT:\n{FormatSpawnContext(context)}\n" +
-                        $"\nDIAGNOSTIC: This error indicates procedurally generated scene cannot find suitable placement.\n" +
-                        $"For A-story scenes, this creates SOFT LOCK (player completed previous scene, expects next scene, gets nothing).\n" +
-                        $"Consider: Relaxing PlacementFilter constraints OR ensuring required entities exist in GameWorld."
-                    );
-                }
-
-                PlacementType placementType = template.PlacementFilter.PlacementType;
-                return new PlacementResolution(placementType, placementId);
-
-            default:
-                throw new InvalidOperationException($"Unknown PlacementRelation: {relation}");
+            throw new InvalidOperationException(
+                $"PLACEMENT FILTER FAILED - No matching entity found\n" +
+                $"SceneTemplate: {template.Id}\n" +
+                $"Category: {template.Category}\n" +
+                $"MainStorySequence: {template.MainStorySequence}\n" +
+                $"\nFILTER CRITERIA:\n{FormatFilterCriteria(filter)}\n" +
+                $"\nAVAILABLE ENTITIES:\n{FormatAvailableEntities(filter.PlacementType)}\n" +
+                $"\nCONTEXT:\n{FormatSpawnContext(context)}\n" +
+                $"\nDIAGNOSTIC: This error indicates procedurally generated scene cannot find suitable placement.\n" +
+                $"For A-story scenes, this creates SOFT LOCK (player completed previous scene, expects next scene, gets nothing).\n" +
+                $"Consider: Relaxing PlacementFilter constraints OR ensuring required entities exist in GameWorld."
+            );
         }
-    }
 
-    // NOTE: AdjacentLocation placement removed from PlacementRelation enum
-    // If needed in future, add to enum and implement here with proper Location → Location mapping
+        return new PlacementResolution(filter.PlacementType, placementId);
+    }
 
     /// <summary>
     /// Instantiate Situation from SituationTemplate
@@ -1119,9 +1047,9 @@ public class SceneInstantiator
         // Generate unique ID
         string locationId = $"{sceneId}_{spec.TemplateId}";
 
-        // Replace tokens in name and description
-        string locationName = PlaceholderReplacer.ReplaceAll(spec.NamePattern, context, _gameWorld);
-        string locationDescription = PlaceholderReplacer.ReplaceAll(spec.DescriptionPattern, context, _gameWorld);
+        // Use patterns directly (AI generates complete text with entity context)
+        string locationName = spec.NamePattern;
+        string locationDescription = spec.DescriptionPattern;
 
         // Determine venue ID
         string venueId = DetermineVenueId(spec.VenueIdSource, context);
@@ -1202,9 +1130,9 @@ public class SceneInstantiator
         // Generate unique ID
         string itemId = $"{sceneId}_{spec.TemplateId}";
 
-        // Replace tokens in name and description
-        string itemName = PlaceholderReplacer.ReplaceAll(spec.NamePattern, context, _gameWorld);
-        string itemDescription = PlaceholderReplacer.ReplaceAll(spec.DescriptionPattern, context, _gameWorld);
+        // Use patterns directly (AI generates complete text with entity context)
+        string itemName = spec.NamePattern;
+        string itemDescription = spec.DescriptionPattern;
 
         // Build ItemDTO
         ItemDTO dto = new ItemDTO

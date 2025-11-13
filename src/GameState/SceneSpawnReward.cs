@@ -2,7 +2,7 @@
 /// <summary>
 /// Defines a Scene to be spawned as a Choice reward
 /// Part of Scene-Situation architecture where Choices can spawn new Scenes dynamically
-/// Uses template identifier and placement relation (no hardcoded entity IDs)
+/// Uses categorical properties to find or generate entities
 /// </summary>
 public class SceneSpawnReward
 {
@@ -13,28 +13,11 @@ public class SceneSpawnReward
     public string SceneTemplateId { get; set; }
 
     /// <summary>
-    /// Placement relation - where to spawn relative to current context
-    /// SameLocation: Spawn at same location where Choice was made
-    /// SameNPC: Spawn at same NPC where Choice was made
-    /// SameRoute: Spawn on same route where Choice was made
-    /// SpecificLocation: Spawn at location specified by SpecificPlacementId
-    /// SpecificNPC: Spawn at NPC specified by SpecificPlacementId
-    /// SpecificRoute: Spawn on route specified by SpecificPlacementId
+    /// Optional PlacementFilter override
+    /// If specified, overrides SceneTemplate.PlacementFilter for this specific spawn
+    /// Enables concrete placement in tutorial/story while keeping templates reusable
+    /// If null, uses SceneTemplate.PlacementFilter
+    /// Categories → FindOrGenerate → Concrete ID stored on Scene
     /// </summary>
-    public PlacementRelation PlacementRelation { get; set; }
-
-    /// <summary>
-    /// Specific placement identifier (Location/NPC/Route ID) when using Specific* placement relations
-    /// null when using Same* placement relations (context-relative)
-    /// </summary>
-    public string SpecificPlacementId { get; set; }
-
-    /// <summary>
-    /// Context bindings for narrative continuity - bind current context entities into spawned scene
-    /// Populated at choice display time with current NPC/Location/Route
-    /// Merged into Scene.MarkerResolutionMap at spawn time for narrative placeholder resolution
-    /// Example: [{ MarkerKey: "QUESTGIVER", Source: CurrentNpc, ResolvedId: "elena" }]
-    /// Templates use markers: "Investigate for {QUESTGIVER_NAME}" → "Investigate for Elena"
-    /// </summary>
-    public List<ContextBinding> ContextBindings { get; set; } = new List<ContextBinding>();
+    public PlacementFilter PlacementFilterOverride { get; set; }
 }
