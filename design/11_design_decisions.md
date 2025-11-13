@@ -148,133 +148,130 @@ Additionally, authoring multiple satisfying endings is expensive, yet most playe
 
 ---
 
-## DDR-002: Reward-Driven Scene Spawning with Context Binding
+## DDR-002: 5-System Scene Spawning Architecture
 
 ### Status
 **Active** - Core progression architecture
 
 ### Context
 
-Infinite procedural narrative requires spawning scenes that don't exist yet. Cannot reference specific entity IDs (NPCs, locations) in preauthored content because procedural world generation means those IDs won't exist. Must support spatial freedom (player moves between locations) and narrative continuity (scenes reference who sent you, where to return).
+Infinite procedural narrative requires spawning scenes that don't exist yet. Cannot reference specific entity IDs (NPCs, locations) in preauthored content because procedural world generation means those IDs won't exist. Must support spatial freedom (player moves between locations) while maintaining clean separation of concerns across the spawning pipeline.
 
-Solution must work for both authored tutorial content and fully procedural content. Must maintain guaranteed progression (no soft-locks) via Four-Choice Pattern while enabling rich narrative continuity across scene boundaries.
+Solution must work for both authored tutorial content and fully procedural content. Must maintain guaranteed progression (no soft-locks) via Four-Choice Pattern while enabling entity reuse when possible and generation when needed.
 
 ### Decision
 
-**Scenes spawn via ScenesToSpawn rewards containing categorical templates + context bindings. Context bindings added at choice display time for perfect information projection.**
+**Scenes spawn via reward-driven 5-system architecture. Categorical filters throughout. Entity resolution via FindOrCreate pattern (query existing first, generate if needed). Direct object references, no enum dispatch, no string ID lookups.**
 
-**Scene Spawning Architecture:**
+**The Five Systems:**
 
-**Three-Component Spawn Specification:**
+**System 1: Scene Selection (Decision Logic)**
+- **Responsibility:** Decide WHEN to spawn scene based on game state
+- **Location:** SceneFacade, SituationRewardExecutor
+- **Operations:** Evaluate SpawnConditions (RequiredTags, MinDay, StatThresholds), check eligibility when choice executed
 
-1. **Template Selection** - Which categorical scene pattern
-   - Examples: `secure_lodging`, `investigate_location`, `gather_testimony`, `confront_hostile`
-   - Templates define situation structure, archetype composition, narrative placeholders
-   - No specific entity IDs in templates (only categorical filters)
+**System 2: Scene Specification (Data Structure)**
+- **Responsibility:** Store categorical requirements ONLY (no concrete entity IDs)
+- **Data:** SceneTemplateId (categorical template), PlacementFilterOverride (optional filter tweaks)
+- **Key Principle:** NO ContextBinding, NO PlacementRelation enum, NO concrete IDs
 
-2. **Placement Strategy** - WHERE scene spawns (orthogonal to context bindings)
-   - Context-Relative: Spawn where choice displayed (tutorial progression at same location)
-   - Absolute: Spawn at specific authored entity (hardcoded entity ID for first tutorial scene)
-   - Categorical: Spawn where PlacementFilter matches (procedural scenes at correct location types)
-   - Template's PlacementFilter specifies requirements (PersonalityType, LocationProperties, Tier)
-   - Spawn-time resolution finds/generates entities matching categorical filters
-   - Anti-repetition prefers not-recently-used entities via selection strategies
+**System 3: Package Generator (SceneInstantiator)**
+- **Responsibility:** Create JSON package with PlacementFilterDTO, does NOT resolve entities
+- **Operations:** Load template, write categorical filters to JSON (LocationFilter, NpcFilter, RouteFilter)
+- **Output:** SceneDTO package with categorical specs
+- **Key Principle:** Does NOT call FindOrCreate, does NOT write concrete IDs
 
-3. **Context Bindings** - WHICH entities bound for narrative (separate from placement)
-   - Minimal bindings preserve narrative continuity (QUESTGIVER, RETURN_LOCATION)
-   - Bindings populated at choice display time (captures current context)
-   - Enables perfect information: player sees "Investigate for Elena" (not generic "Investigate")
-   - Uses strongly-typed ContextBinding objects (List with ResolvedNpcId/LocationId/RouteId/SceneId properties, not Dictionary)
-   - Does NOT determine where scene spawns (placement strategy handles that)
+**System 4: Entity Resolver (EntityResolver in PackageLoader)**
+- **Responsibility:** Resolve categorical filters to concrete entity objects via FindOrCreate
+- **Pattern:** Query existing entities first (reuse), generate new if no match (eager creation)
+- **Methods:** FindOrCreateLocation(filter), FindOrCreateNPC(filter), FindOrCreateRoute(filter)
+- **Output:** Pre-resolved entity objects (NOT IDs)
 
-**How Spawning Works:**
+**System 5: Scene Instantiator (SceneParser in PackageLoader)**
+- **Responsibility:** Create Scene with direct object references from pre-resolved entities
+- **Operations:** Receive pre-resolved objects, create Scene with direct properties (Scene.Location, Scene.Npc, Scene.Route)
+- **Key Principle:** NO resolution logic, NO PlacementType enum, NO string ID lookups
 
-**Choice Authoring (Content Creation):**
+**Complete Flow:**
 
-During content creation, designers specify costs, requirements, and which scene template should spawn as a reward. Context bindings remain empty at this stage and will be populated later at display time.
+**Authoring Time:** Designer specifies SceneSpawnReward with template ID. Template defines PlacementFilter with categorical requirements.
 
-**Choice Display (Runtime):**
+**Runtime (Choice Execution):**
+1. System 1: Check eligibility (SpawnConditions satisfied?)
+2. System 2: Read reward data (SceneTemplateId only)
+3. System 3: Generate package with PlacementFilterDTO (categorical specs → JSON)
+4. System 4: EntityResolver reads filters, FindOrCreate for each entity type (query → reuse or generate), returns objects
+5. System 5: SceneParser receives objects, creates Scene with direct references (Scene.Location = resolvedLocation object)
 
-When displaying a choice that will spawn a scene, the system reads the scene spawning reward, examines current game context to determine who the player is interacting with and where they are, creates context bindings based on this current state, attaches the bindings to the choice display, and projects the complete resolved narrative to the player. This allows players to see exact narrative continuity before making their selection.
-
-**Choice Execution (Player Selects):**
-
-When the player selects a choice that spawns a scene, the system loads the categorical template with narrative placeholders, resolves categorical filters to find or generate appropriate entities, binds the current context into placeholders, merges all bindings into the scene's marker resolution system, instantiates the complete scene with all references resolved, adds it to the active game world, and transforms template narratives with placeholders into specific stories using the bound entity names.
-
-**Context Binding Structure (Strongly-Typed):**
-
-Context bindings link narrative markers to resolved entity references. Each binding stores a marker key identifying the narrative placeholder, a source type indicating where the entity comes from, and the resolved entity reference populated at display time. Source types include current NPC the player is talking to, current location where the player is situated, current route being traveled, or the previous scene that spawned this one.
-
-**Minimal Context Philosophy:**
-- Bind narrative anchors: who gave quest, where to return, what investigating
-- NOT state snapshots: full conversation history, all reputation, witnessed events
-- Rich continuity via resource effects and tag accumulation instead
+**AI Narrative Generation (After Resolution):**
+- Entities already resolved (Elena, The Silver Hart Inn, Guest Room)
+- AI receives entity context as input
+- AI generates complete narrative with concrete names
+- NO placeholders, NO markers
 
 **Main Story Pattern (Guaranteed Sequential Progression):**
-- Final situation in every main story scene has ALL FOUR CHOICES spawning next template
-- Different choices create different entry states via tags (RespectedAuthority, GenerousPatron, SkilledNegotiator, PatientHelper)
-- Same next template spawned regardless of which choice taken
-- **Placement strategy**: Tutorial (A1-A3) uses context-relative or absolute, Procedural (A4+) uses categorical
-- **Context bindings** preserve continuity: QUESTGIVER flows through chain
-- Entry state affects narrative tone but progression identical
+- Final situation: ALL FOUR CHOICES spawn same template (guaranteed progression)
+- Different entry state tags per choice (RespectedAuthority, GenerousPatron, SkilledNegotiator, PatientHelper)
+- Same destination template, different relationship/reputation context
+- Categorical placement throughout (no context-relative, no absolute IDs after tutorial)
 - SpawnConditions: AlwaysEligible (no eligibility gates)
-- Infinite chain: secure_lodging → gather_testimony → investigate_location → (procedural generation) → ∞
+- Infinite chain: secure_lodging → gather_testimony → investigate_location → (procedural) → ∞
 
-**Critical Separation Example:**
+**Example Categorical Placement Flow:**
 
-**Scenario**: A12 at palace completes → A13 crime scene investigation spawns
+**Scenario**: A12 investigation at palace completes → A13 crime scene spawns
 
-**Without proper placement (WRONG)**:
-- Placement: Context-Relative (SameLocation)
-- A13 spawns at palace (where A12 displayed)
-- Crime scene investigation happens at palace (nonsense)
-- Locked to display context, cannot vary location type
+1. **System 1**: A12 final choice executed, spawns "investigate_crime_scene" template
+2. **System 2**: SceneSpawnReward { SceneTemplateId: "investigate_crime_scene" }
+3. **System 3**: Load template, write PlacementFilterDTO { LocationProperties: [Private, Indoor, Discrete], LocationTags: [crime_scene] }
+4. **System 4**: EntityResolver.FindOrCreateLocation(filter)
+   - Query: gameWorld.Locations.Where(loc => matches filter)
+   - Result: crime_scene_location (existing or generated)
+5. **System 5**: Scene created with Scene.Location = crime_scene_location (direct object reference)
 
-**With categorical placement (CORRECT)**:
-- Placement: Categorical (Generic + PlacementFilter)
-- PlacementFilter: LocationProperties (Private, Indoor, Discrete), LocationTags (crime_scene)
-- A13 spawns at crime scene matching requirements (independent of palace)
-- Context bindings: QUESTGIVER=duke, RETURN_LOCATION=palace
-- Result: Investigation at crime scene, narrative remembers duke sent you from palace
-- Location types vary (palace → crime scene → marketplace → temple) while story connects
+**Result**: Scene spawns at crime scene (categorical match), NOT at palace (no context-relative). Location type varies based on scene archetype needs.
 
 **Side Story Pattern (State-Based Eligibility):**
 - Scenes spawn via choice rewards (same as main story)
-- SpawnConditions determine when spawned scenes become visible/accessible
-- Example: completing `secure_lodging` grants "EstablishedInWestmarch" tag
+- SpawnConditions determine when spawned scenes visible
+- Example: Completing `secure_lodging` grants "EstablishedInWestmarch" tag
 - Side stories with RequiredTags ["EstablishedInWestmarch"] become accessible
 - Spawning happens via rewards, eligibility via state checks
 
 **Requirements Gate Choices, Not Scenes:**
 - Four-Choice Pattern: Stat-gated (optimal), Money-gated (reliable), Challenge (risky), Guaranteed (patient)
 - Requirements determine WHICH choices player can see/select
-- Example: "Use Authority to command respect" requires Authority ≥ 5
-- If player has Authority 3, choice hidden or shown as locked
-- Guaranteed path (Choice 4) has zero requirements (always available)
+- Choice 4 (fallback) has zero requirements (always available)
 - Prevents soft-locks: player can always progress via guaranteed path
 
-**Example Flow:**
+**Example: Four-Choice Main Story Flow:**
 
-In a lodging negotiation scene with Elena at the tavern, the final situation presents four choices. The stat-gated authority path requires Authority 5 and applies a respected reputation tag. The money path costs 15 coins and applies a generous patron tag. The challenge path leads to a social challenge with success granting a skilled negotiator tag and failure granting an earnest struggler tag. The guaranteed fallback path requires helping for 3 days and applies a patient helper tag.
+Scene "secure_lodging" final situation presents four choices, ALL spawning "gather_testimony" template:
 
-All four choices spawn the same next template for gathering testimony. At display time, the system creates context bindings linking the questgiver marker to Elena and the return location marker to the tavern. These bindings are identical across all four choices, ensuring narrative continuity regardless of which path the player selects. The projected UI shows players that Elena will ask them to gather information, visible before they make their selection. The player chooses how to enter the next scene through their reputation and relationship context, but cannot choose to block forward progression.
+1. **Stat-Gated** (Requires Authority 5) → Tag: RespectedAuthority → Spawns: gather_testimony
+2. **Money-Gated** (Costs 15 coins) → Tag: GenerousPatron → Spawns: gather_testimony
+3. **Challenge** (Social challenge) → Tag: SkilledNegotiator or EarnestStruggler → Spawns: gather_testimony
+4. **Fallback** (No requirements) → Tag: PatientHelper → Spawns: gather_testimony
+
+All four spawn identical template. Player chooses HOW to enter (relationship quality), not IF they progress. Location types vary across scenes (inn → marketplace → crime scene → palace) based on categorical filters.
 
 ### Alternatives Considered
 
-**Option A: Reward-Driven Spawning with Context Binding (Chosen)**
+**Option A: 5-System Architecture with FindOrCreate (Chosen)**
 - **Pros:**
-  - Clear causality (choice execution → scene creation)
-  - No hardcoded entity IDs (works with procedural generation)
-  - Context bindings preserve narrative continuity
-  - Perfect information via display-time binding projection
+  - Clean separation of concerns (five distinct systems)
+  - No hardcoded entity IDs (categorical filters throughout)
+  - Entity reuse automatic (query-first FindOrCreate pattern)
+  - Direct object references (no enum dispatch)
+  - Eager resolution (entities resolved before scene construction)
   - Supports guaranteed progression (all final situation choices spawn next template)
-  - Enables narrative branching via entry state tags
-  - Aligns with Four-Choice Pattern (guaranteed path always spawns next content)
+  - Works for infinite procedural narrative
+  - HIGHLANDER compliant (one placement mechanism)
 - **Cons:**
-  - Requires context binding population at display time (added complexity)
-  - Main story final situations must have ALL choices spawn next template (stricter than normal)
-  - No ambient spawning (all content must be reward-connected)
-- **Why Chosen:** Only pattern that works for infinite procedural narrative without hardcoded entity IDs. Context bindings solve continuity problem elegantly.
+  - Requires five systems to maintain (increased complexity)
+  - No separate "explicit generation" mechanism (generation automatic)
+  - Main story final situations must have ALL choices spawn next template (stricter constraint)
+- **Why Chosen:** Only architecture providing clean separation of concerns while supporting infinite procedural content. FindOrCreate pattern elegant for entity reuse/generation.
 
 **Option B: Hardcoded Entity ID References (Rejected)**
 - **Pros:**
@@ -282,131 +279,134 @@ All four choices spawn the same next template for gathering testimony. At displa
   - Direct references, no resolution needed
 - **Cons:**
   - Breaks with procedural generation (entity IDs don't exist yet)
-  - Cannot reference specific NPCs/locations in future scenes
-  - No spatial freedom (player locked to preauthored entity chains)
-- **Why Rejected:** Incompatible with procedural world generation. Cannot create infinite content if scenes reference non-existent entity IDs.
+  - Cannot reference NPCs/locations in future scenes
+  - No spatial freedom (player locked to preauthored chains)
+- **Why Rejected:** Incompatible with procedural world generation. Cannot create infinite content with hardcoded IDs.
 
-**Option C: Condition-Based Unlocking (Rejected)**
+**Option C: PlacementRelation Enum with Three Mechanisms (Rejected)**
 - **Pros:**
-  - Scenes could appear based on time/location/state without explicit rewards
-  - Flexible ambient content spawning
+  - Flexible (context-relative, absolute, categorical as separate options)
+  - Can choose placement strategy per scene
 - **Cons:**
-  - Violates causality (scenes appear mysteriously)
-  - Requires trigger systems (timers, location checks)
-  - Hidden unlocking creates mystery gates (player doesn't know why scene appeared)
-  - Cannot guarantee progression (conditions might never be met)
-  - Still requires hardcoded entity IDs for placement
-- **Why Rejected:** Violates perfect information, creates mystery gates, cannot guarantee progression, doesn't solve procedural entity problem.
+  - Violates HIGHLANDER (three placement mechanisms, not one)
+  - PlacementType enum dispatch pattern (string ID lookups)
+  - Context-relative creates location type lock-in
+  - Absolute requires hardcoded IDs (doesn't scale)
+  - Three mechanisms = three implementations to maintain
+- **Why Rejected:** Violates HIGHLANDER principle. Multiple mechanisms when one (categorical) sufficient.
 
-**Option D: State Snapshot Context Passing (Rejected)**
+**Option D: ContextBinding with MarkerResolution (Rejected)**
 - **Pros:**
-  - Rich narrative continuity (full conversation history, all witnessed events)
-  - Detailed context preservation
+  - Preserves narrative continuity (quest giver, return location)
+  - Display-time binding enables perfect information
 - **Cons:**
-  - Tight coupling between scenes (each scene depends on previous scene's entire state)
-  - Debugging nightmare (cannot understand scene in isolation)
-  - Performance concerns (serializing/deserializing entire game state)
-  - Violates minimal context philosophy
-- **Why Rejected:** Too complex, too coupled. Minimal context bindings (quest giver, return location) sufficient for narrative continuity. Rich continuity via tags/resources instead.
+  - Tight coupling (scenes pass entity IDs to child scenes)
+  - MarkerResolutionMap complexity (string markers, placeholder replacement)
+  - "generated:" prefix system needed
+  - PlaceholderReplacer for {NPCName}, {locationName} patterns
+  - Separate concern from placement (orthogonal systems)
+  - Dictionary antipattern risk
+- **Why Rejected:** Too complex. Narrative generation should happen AFTER entity resolution with concrete names, not via placeholder replacement.
 
 ### Rationale
 
 **Design Principle Alignment:**
 - **No Soft-Locks (TIER 1):** Main story final situations have ALL choices spawning next template, guaranteed path always available
-- **Perfect Information (TIER 2):** Context bindings projected at display time ("Investigate for Elena" shown before selection), clear causality
+- **HIGHLANDER (TIER 1):** One placement mechanism (categorical filters), not three (context-relative/absolute/categorical)
+- **Perfect Information (TIER 2):** Requirements visible before commitment, clear causality (choice execution → scene spawning)
 - **Four-Choice Pattern (TIER 2):** Requirements gate choice availability, guaranteed path ensures progression
-- **Requirement Inversion Principle (TIER 2):** Resource thresholds for choices (`Authority >= 5`), not scene spawning
-- **Reward-Driven Progression:** Player actions (choice execution) cause world changes (scene spawning), not passive unlocking
-- **No Dictionary Antipattern:** List<ContextBinding> with strongly-typed objects, not Dictionary<string, string>
+- **Requirement Inversion Principle (TIER 2):** Resource thresholds for choices, not scene spawning
+- **Reward-Driven Progression:** Player actions cause world changes, not passive unlocking
+- **Type Safety:** Direct object references (Scene.Location), not PlacementType enum + PlacementId string
 
 **How This Solves Procedural Narrative Problem:**
 
-**Categorical Templates (Not Hardcoded IDs):**
-- Template `investigate_location` specifies CATEGORIES: PersonalityType.Merchant, LocationType.Commerce
-- Template does NOT specify: npc_id_7, location_id_42 (those don't exist yet)
-- Spawn-time resolution: Query GameWorld for entities matching categories
-- Works for authored content: finds Elena (Merchant, Tavern)
-- Works for procedural content: generates Marcus (Merchant, random Commerce location)
+**Categorical Filters Throughout:**
+- Template specifies PlacementFilterDTO with categorical requirements
+- LocationProperties: [Indoor, Private, Safe]
+- NpcPersonalityTypes: [Innkeeper, Merchant]
+- LocationTags: [lodging, secure]
+- NO concrete entity IDs ("elena", "common_room_inn")
+- Works for authored AND procedural content
 
-**Context Bindings (Narrative Continuity):**
-- Choice spawns `gather_testimony` template
-- Context binding: QUESTGIVER = CurrentNpc (Elena)
-- Template narrative: "Gather testimony for {QUESTGIVER_NAME}"
-- Resolves to: "Gather testimony for Elena"
-- Continuity preserved without hardcoded references
+**FindOrCreate Pattern (Entity Reuse + Generation):**
+- System 4 (EntityResolver) queries existing entities first
+- Query: gameWorld.Locations.Where(loc => matches filter)
+- If match found: return existing entity (reuse Elena, Silver Hart Inn)
+- If no match: generate new entity (create new innkeeper, new lodging)
+- Automatic balancing of reuse vs generation
+- No separate "explicit generation" mechanism needed
 
-**Display-Time Binding (Perfect Information):**
-- Context bindings populated when choice displayed (not when authored)
-- System examines current state: CurrentNpc = Elena
-- Creates ContextBinding: { MarkerKey: "QUESTGIVER", Source: CurrentNpc, ResolvedId: "elena" }
-- Projects to UI: Player sees "for Elena" before making choice
-- Perfect information: player knows exact narrative continuity before commitment
+**Direct Object References (No Enum Dispatch):**
+- Scene has Location/Npc/Route object properties
+- NOT PlacementType enum + PlacementId string
+- NOT string ID lookups with type dispatch
+- Entities pre-resolved by System 4 before System 5 constructs scene
+- Clean, type-safe, no runtime string matching
 
 **How This Prevents Soft-Locks:**
 
 **Main Story Guarantee:**
-- Final situation has 4 choices
-- ALL 4 choices have ScenesToSpawn reward pointing to same next template
-- Choice 4 (guaranteed path) has zero requirements
-- Even if player has: 0 coins, minimum stats, no resources
-- Choice 4 always available, always spawns next template
+- Final situation: 4 choices
+- ALL 4 choices: ScenesToSpawn reward → same next template
+- Choice 4 (fallback): zero requirements
+- Even with 0 coins, minimum stats, no resources
+- Choice 4 always available → always spawns next template
 - Forward progress architecturally guaranteed
-- Context bindings identical across all 4 choices (same continuity)
+- Same destination, different entry states (reputation/relationship context)
 
 **Entry State Variations:**
 - Same template spawned from all paths
-- Different entry state tags affect narrative tone (NPC reactions, dialogue)
-- But progression identical (all reach same next situations)
-- Player chooses experience quality (optimal/reliable/risky/patient)
-- Player cannot choose to block progression
+- Different entry state tags (RespectedAuthority, GenerousPatron, SkilledNegotiator, PatientHelper)
+- Narrative tone varies (NPC reactions, dialogue)
+- Progression identical (all reach same situations)
+- Player chooses experience quality, cannot block progression
 
 **Side Story Eligibility:**
-- Scenes spawn via choice rewards (not conditions)
-- SpawnConditions determine when spawned scenes visible
-- Example: Side story has RequiredTags ["EstablishedInWestmarch"]
-- Completing `secure_lodging` grants tag via reward
-- Side story becomes accessible (spawning happened earlier via reward chain)
+- Scenes spawn via choice rewards
+- SpawnConditions determine when visible
 - Tags gate VISIBILITY, not spawning
+- Spawning immediate, visibility conditional
 
 ### Consequences
 
 **Positive:**
 - **Solves Procedural Narrative Problem:** Can spawn scenes without hardcoded entity IDs
 - **Guaranteed Forward Progress:** Main story cannot soft-lock (all final situation choices spawn next template)
-- **Perfect Information:** Context bindings projected before choice selection ("for Elena" visible)
-- **Narrative Continuity:** Quest giver flows through scenes via context bindings
-- **Clear Causality:** Execute choice → spawn scene (no mystery unlocking)
+- **Clean Separation of Concerns:** Five distinct systems, each with one responsibility
+- **Entity Reuse Automatic:** FindOrCreate queries existing first (reuse authored/generated content)
+- **Direct Object References:** Scene.Location/Npc/Route object properties (no enum dispatch)
+- **Eager Resolution:** Entities resolved before scene construction (clean dependency flow)
+- **Type-Safe:** No PlacementType enum, no string ID lookups, no runtime string matching
+- **HIGHLANDER Compliant:** One placement mechanism (categorical filters), not three
 - **Entry State Variations:** Same template, different narrative tones (replayability)
 - **Requirements Gate Choices:** Player sees exact stat/coin thresholds before commitment
 - **No Hidden Triggers:** No timers, location checks, or passive unlocking
-- **Supports Infinite Content:** Categorical templates + context bindings work for procedural generation
-- **Strongly-Typed:** List<ContextBinding> with explicit entity type properties (ResolvedNpcId, ResolvedLocationId, ResolvedRouteId, ResolvedSceneId), not Dictionary or catch-all string
-- **Tutorial Architecture Implemented:** First three scenes flow via catalogue enrichment (A1→A2→A3), terminal scene triggers procedural continuation
-- **On-Demand Template Generation:** Procedural scenes generate templates when needed (pattern-based template creation for infinite A-story)
-- **HIGHLANDER Enforcement:** Removed duplicate condition-based spawning system entirely, single reward-driven implementation remains
-- **Clean Integration:** Full data flow from DTO layer through parser to domain entities, context bindings merge into MarkerResolutionMap at spawn time
+- **Supports Infinite Content:** Categorical filters work for procedural generation
+- **Tutorial Architecture:** First three scenes authored, procedural continuation after
+- **AI Narrative After Resolution:** Entities resolved first, AI generates with concrete names (no placeholders)
 
 **Negative:**
-- **Display-Time Binding Complexity:** Must populate context bindings when choices displayed (extra processing step)
+- **Five Systems Complexity:** Must maintain five distinct systems
+- **No Separate Generation Mechanism:** Generation automatic when no match (cannot force generation)
 - **Main Story Final Situations Constrained:** MUST have all choices spawn next template (stricter than normal)
 - **No Ambient Spawning:** All content must be reward-connected (no passive appearance)
-- **Context Binding Limited:** Only minimal bindings (quest giver, return location), not rich state snapshots
 
 **Trade-Offs:**
 - Sacrifices ambient spawning for guaranteed progression
 - Constrains main story final situations (all spawn next template) for architectural guarantee
-- Accepts display-time binding overhead for perfect information projection
-- Chooses minimal context bindings over rich state coupling (cleaner boundaries)
+- Five systems complexity but clean separation of concerns
+- Automatic generation (FindOrCreate) vs separate explicit generation control
 
 **Implementation Requirements:**
-- SceneSpawnReward needs List<ContextBinding> property
-- Choice display logic must populate bindings from current context
-- UI projection must show resolved context ("for Elena") before selection
-- Spawn logic must merge bindings into MarkerResolutionMap
-- Templates must use marker placeholders: {QUESTGIVER_NAME}, {RETURN_LOCATION_NAME}
+- SceneSpawnReward: SceneTemplateId property (categorical), PlacementFilterOverride optional
+- EntityResolver: FindOrCreateLocation/NPC/Route methods implementing query-first pattern
+- SceneParser: Receive pre-resolved objects as parameters, create Scene with direct properties
+- SceneInstantiator: Write PlacementFilterDTO to JSON, do NOT resolve entities
+- SceneTemplate: PlacementFilter with categorical requirements (LocationProperties, NpcPersonalityTypes, LocationTags)
 
 ### Related Decisions
-- DDR-001: Infinite Procedural Story (context bindings enable spawning scenes that reference entities not yet created)
+- DDR-001: Infinite Procedural Story (categorical filters enable spawning scenes without hardcoded IDs)
 - DDR-007: Four-Choice Pattern (guaranteed path with zero requirements prevents soft-locks)
 - DDR-006: Categorical Property Scaling (templates use categories, not hardcoded IDs)
 

@@ -29,39 +29,35 @@ public class Scene
     /// </summary>
     public SceneTemplate Template { get; set; }
 
-    // ==================== PLACEMENT PROPERTIES ====================
+    // ==================== PLACEMENT PROPERTIES (SYSTEM 5 OUTPUT) ====================
 
     /// <summary>
-    /// Placement type - where this Scene appears
-    /// Location: Appears at specific location
-    /// NPC: Appears when talking to specific NPC
-    /// Route: Appears when traveling specific route
+    /// Location where this Scene appears
+    /// DIRECT OBJECT REFERENCE - no PlacementType enum, no string ID dispatch
+    /// Set by PackageLoader (System 5) after EntityResolver (System 4) returns concrete object
+    /// Flow: Categories (System 2) → JSON spec (System 3) → FindOrCreate (System 4) → Object reference (System 5)
+    /// Most scenes have Location (conversation, investigation, ambient)
+    /// null only for abstract/conceptual scenes (rare)
     /// </summary>
-    public PlacementType PlacementType { get; set; }
+    public Location Location { get; set; }
 
     /// <summary>
-    /// Concrete placement identifier - which entity this Scene is assigned to
-    /// LocationId, NpcId, or RouteId depending on PlacementType
-    /// Assigned by FindOrGenerate during spawn from categorical properties
-    /// Categories → FindOrGenerate → Concrete ID stored here
+    /// NPC associated with this Scene (conversation/interaction partner)
+    /// DIRECT OBJECT REFERENCE - set by PackageLoader after entity resolution
+    /// null for location-only scenes (ambient discoveries, environmental events)
+    /// Example: Conversation AT tavern WITH Elena → scene.Location = tavern, scene.Npc = Elena
+    /// Enables direct navigation: scene.Npc.Name, scene.Npc.PersonalityType
     /// </summary>
-    public string PlacementId { get; set; }
+    public NPC Npc { get; set; }
 
     /// <summary>
-    /// Associated NPC identifier for scenes requiring both location and NPC
-    /// Resolved from NpcCategories via FindOrGenerate at spawn time
-    /// null if scene only requires location placement
-    /// Example: Investigation scene at location with specific informant
+    /// Route associated with this Scene (travel/journey context)
+    /// DIRECT OBJECT REFERENCE - set by PackageLoader after entity resolution
+    /// null for most scenes (only route-specific events use this)
+    /// Example: Bandit ambush ON mountain road → scene.Location = ambush site, scene.Route = mountain road
+    /// Enables direct navigation: scene.Route.DangerRating, scene.Route.TerrainTypes
     /// </summary>
-    public string AssociatedNpcId { get; set; }
-
-    /// <summary>
-    /// Associated Route identifier for scenes requiring both location and route
-    /// Resolved from RouteCategories via FindOrGenerate at spawn time
-    /// null if scene only requires location placement
-    /// Example: Travel scene at location along specific route
-    /// </summary>
-    public string AssociatedRouteId { get; set; }
+    public RouteOption Route { get; set; }
 
     // ==================== PRESENTATION PROPERTIES ====================
 
@@ -189,31 +185,13 @@ public class Scene
     /// </summary>
     public int? MainStorySequence { get; set; }
 
-    // ==================== DEPENDENT RESOURCE TRACKING ====================
+    // ==================== DEPENDENT RESOURCE DISCOVERY (QUERY-BASED) ====================
 
-    /// <summary>
-    /// Location IDs created by this Scene through dynamic package generation
-    /// Self-contained pattern: Scene generates resources, tracks IDs for forensics
-    /// Used for cleanup and debugging - enables answering "which scene created this location?"
-    /// Empty list = Scene created no locations (traditional pre-existing location pattern)
-    /// </summary>
-    public List<string> CreatedLocationIds { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Item IDs created by this Scene through dynamic package generation
-    /// Self-contained pattern: Scene generates resources, tracks IDs for forensics
-    /// Used for cleanup and debugging - enables answering "which scene created this item?"
-    /// Empty list = Scene created no items (traditional pre-existing item pattern)
-    /// </summary>
-    public List<string> CreatedItemIds { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Package ID of dynamically generated content package
-    /// Forensic identifier enables tracing back to generated JSON
-    /// Format: "scene_{sceneId}_package"
-    /// null = Scene generated no dynamic package
-    /// </summary>
-    public string DependentPackageId { get; set; }
+    // Scene does NOT track "what I created" via explicit lists
+    // Query world state directly: gameWorld.Locations.Where(loc => loc.OwningSceneId == scene.Id)
+    // Requires generated entities to have OwningSceneId property set during creation
+    // Pattern: Generate → Set owner relationship → Query by relationship when needed
+    // Benefits: No stale tracking lists, single source of truth (entity ownership property)
 
     // ==================== STATE MACHINE METHODS ====================
 

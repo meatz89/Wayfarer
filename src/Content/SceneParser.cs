@@ -5,10 +5,16 @@
 public static class SceneParser
 {
     /// <summary>
-    /// Convert a SceneDTO to a Scene domain model
+    /// Convert a SceneDTO to a Scene domain model (System 5: Scene Instantiation)
+    /// Receives pre-resolved entity objects from EntityResolver (System 4)
     /// Resolves template reference and parses embedded situations
     /// </summary>
-    public static Scene ConvertDTOToScene(SceneDTO dto, GameWorld gameWorld)
+    public static Scene ConvertDTOToScene(
+        SceneDTO dto,
+        GameWorld gameWorld,
+        Location resolvedLocation,
+        NPC resolvedNpc,
+        RouteOption resolvedRoute)
     {
         // =====================================================
         // VALIDATION: Required Fields
@@ -17,20 +23,12 @@ public static class SceneParser
             throw new InvalidDataException("Scene DTO missing required field 'Id'");
         if (string.IsNullOrEmpty(dto.TemplateId))
             throw new InvalidDataException($"Scene '{dto.Id}' missing required field 'TemplateId'");
-        if (string.IsNullOrEmpty(dto.PlacementType))
-            throw new InvalidDataException($"Scene '{dto.Id}' missing required field 'PlacementType'");
-        if (string.IsNullOrEmpty(dto.PlacementId))
-            throw new InvalidDataException($"Scene '{dto.Id}' missing required field 'PlacementId'");
         if (string.IsNullOrEmpty(dto.State))
             throw new InvalidDataException($"Scene '{dto.Id}' missing required field 'State'");
 
         // =====================================================
         // ENUM PARSING
         // =====================================================
-        if (!Enum.TryParse<PlacementType>(dto.PlacementType, true, out PlacementType placementType))
-        {
-            throw new InvalidDataException($"Scene '{dto.Id}' has invalid PlacementType value: '{dto.PlacementType}'");
-        }
 
         if (!Enum.TryParse<SceneState>(dto.State, true, out SceneState state))
         {
@@ -87,15 +85,16 @@ public static class SceneParser
         }
 
         // =====================================================
-        // ENTITY CONSTRUCTION
+        // ENTITY CONSTRUCTION (System 5: Direct Object References)
         // =====================================================
         Scene scene = new Scene
         {
             Id = dto.Id,
             TemplateId = dto.TemplateId,
             Template = template,
-            PlacementType = placementType,
-            PlacementId = dto.PlacementId,
+            Location = resolvedLocation,
+            Npc = resolvedNpc,
+            Route = resolvedRoute,
             State = state,
             ExpiresOnDay = dto.ExpiresOnDay,
             Archetype = archetype,
@@ -105,11 +104,7 @@ public static class SceneParser
             ProgressionMode = progressionMode,
             Category = category,
             MainStorySequence = dto.MainStorySequence,
-            SourceSituationId = dto.SourceSituationId,
-            CreatedLocationIds = dto.CreatedLocationIds ?? new List<string>(),
-            CreatedItemIds = dto.CreatedItemIds ?? new List<string>(),
-            DependentPackageId = dto.DependentPackageId,
-            MarkerResolutionMap = dto.MarkerResolutionMap ?? new Dictionary<string, string>()
+            SourceSituationId = dto.SourceSituationId
         };
 
         // =====================================================

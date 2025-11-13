@@ -60,11 +60,8 @@ public class SceneInstantiator
             return null; // Scene not eligible - return null
         }
 
-        // Resolve placement (categorical → concrete ID)
-        PlacementResolution placement = ResolvePlacement(template, spawnReward, context);
-
-        // Generate Scene DTO
-        SceneDTO sceneDto = GenerateSceneDTO(template, placement, context);
+        // System 3: Generate Scene DTO with categorical specifications (NO resolution)
+        SceneDTO sceneDto = GenerateSceneDTO(template, spawnReward, context);
 
         // Generate dependent resource DTOs (if self-contained scene)
         // Categories → FindOrGenerate → Concrete IDs stored directly
@@ -86,11 +83,6 @@ public class SceneInstantiator
                 ItemDTO itemDto = BuildItemDTO(spec, sceneDto.Id, context, dependentLocations);
                 dependentItems.Add(itemDto);
             }
-
-            // Store dependent resource IDs
-            sceneDto.CreatedLocationIds = dependentLocations.Select(dto => dto.Id).ToList();
-            sceneDto.CreatedItemIds = dependentItems.Select(dto => dto.Id).ToList();
-            sceneDto.DependentPackageId = $"scene_{sceneDto.Id}_dep";
         }
 
         // Generate Situation DTOs (entities reference by categories, no markers)
@@ -106,10 +98,11 @@ public class SceneInstantiator
     }
 
     /// <summary>
-    /// Generate SceneDTO from template with concrete placement
-    /// Replaces placeholders in display name and intro narrative
+    /// Generate SceneDTO from template with categorical specifications (System 3)
+    /// Does NOT resolve entities - writes PlacementFilterDTO to JSON
+    /// EntityResolver (System 4) will FindOrCreate from these specifications
     /// </summary>
-    private SceneDTO GenerateSceneDTO(SceneTemplate template, PlacementResolution placement, SceneSpawnContext context)
+    private SceneDTO GenerateSceneDTO(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
         // Generate unique Scene ID
         string sceneId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
@@ -141,12 +134,17 @@ public class SceneInstantiator
             };
         }
 
+        // System 3: Write categorical specifications (NOT concrete IDs)
+        PlacementFilter filter = spawnReward?.PlacementFilterOverride ?? template.PlacementFilter;
+        PlacementFilterDTO filterDto = ConvertPlacementFilterToDTO(filter);
+
         SceneDTO dto = new SceneDTO
         {
             Id = sceneId,
             TemplateId = template.Id,
-            PlacementType = placement.PlacementType.ToString(),
-            PlacementId = placement.PlacementId,
+            LocationFilter = filter?.PlacementType == PlacementType.Location ? filterDto : null,
+            NpcFilter = filter?.PlacementType == PlacementType.NPC ? filterDto : null,
+            RouteFilter = filter?.PlacementType == PlacementType.Route ? filterDto : null,
             State = "Active", // NEW: Scenes spawn directly as Active (no provisional state)
             ExpiresOnDay = expiresOnDay,
             Archetype = template.Archetype.ToString(),
@@ -1293,15 +1291,36 @@ public class SceneInstantiator
     }
 
     /// <summary>
-    /// Build marker resolution map for self-contained scene using MarkerResolutionService
-    /// Maps "generated:{templateId}" markers to actual created resource IDs
-    /// Called after GenerateAndLoadDependentResources completes
-    /// Enables situations/choices to reference generated resources via markers
-    /// PUBLIC: Called by orchestrator after loading dependent resources
+    /// Convert PlacementFilter domain entity to PlacementFilterDTO for JSON serialization
+    /// System 3: Writes categorical specifications to JSON (NO entity resolution)
     /// </summary>
-    public void BuildMarkerResolutionMap(Scene scene)
+    private PlacementFilterDTO ConvertPlacementFilterToDTO(PlacementFilter filter)
     {
-        scene.MarkerResolutionMap = _markerResolutionService.BuildMarkerResolutionMap(scene);
-        Console.WriteLine($"[SceneInstantiator] Built marker resolution map for scene '{scene.Id}' with {scene.MarkerResolutionMap.Count} entries");
+        if (filter == null)
+            return null;
+
+        return new PlacementFilterDTO
+        {
+            PlacementType = filter.PlacementType.ToString(),
+            SpecificLocationId = filter.SpecificLocationId,
+            SpecificNpcId = filter.SpecificNpcId,
+            SpecificRouteId = filter.SpecificRouteId,
+            SameLocationAs = filter.SameLocationAs,
+            SameVenueAs = filter.SameVenueAs,
+            PersonalityTypes = filter.PersonalityTypes?.Select(p => p.ToString()).ToList(),
+            Professions = filter.Professions?.Select(p => p.ToString()).ToList(),
+            RequiredRelationships = filter.RequiredRelationships?.Select(r => r.ToString()).ToList(),
+            LocationProperties = filter.LocationProperties?.Select(p => p.ToString()).ToList(),
+            LocationTypes = filter.LocationTypes?.Select(t => t.ToString()).ToList(),
+            TerrainTypes = filter.TerrainTypes,
+            MinTier = filter.MinTier,
+            MaxTier = filter.MaxTier,
+            MinDifficulty = filter.MinDifficulty,
+            MaxDifficulty = filter.MaxDifficulty,
+            IsPlayerAccessible = filter.IsPlayerAccessible,
+            ExcludeRecentlyUsed = filter.ExcludeRecentlyUsed,
+            RequiresPriorVisit = filter.RequiresPriorVisit,
+            SelectionStrategy = filter.SelectionStrategy?.ToString()
+        };
     }
 }

@@ -1123,7 +1123,7 @@ This section describes content generation design. Technical implementation detai
 
 Beyond archetype-based content generation, Wayfarer supports runtime creation of locations and venues when scenes spawn. This enables self-contained scenes to materialize their own spatial context on demand, supporting infinite world expansion without exhaustive pre-authoring.
 
-**Core Pattern**: Scenes specify categorical requirements for locations they need. System attempts to match existing content first (prefer authored over generated). If no match exists and explicit generation requested via DependentLocationSpec, system generates location procedurally with validation. **All generated locations persist forever** - no cleanup system exists.
+**Core Pattern**: Scenes specify categorical requirements for locations they need via PlacementFilterDTO. EntityResolver (System 4) uses FindOrCreate pattern: query existing content first (prefer authored over generated), generate new location if no match (eager creation). **All generated locations persist forever** - no cleanup system exists.
 
 ### Design Philosophy
 
@@ -1134,7 +1134,7 @@ Beyond archetype-based content generation, Wayfarer supports runtime creation of
 - Mid game (Act 2/3): 60% authored, 40% generated (variety increases)
 - Late game (Act 4+): 20% authored, 80% generated (infinite expansion)
 
-**Match First, Generate Last**: System prefers existing content over generation. Query authored locations with PlacementFilter categorical matching. Generate only when explicitly requested via DependentLocationSpec. Fail-fast if PlacementFilter finds no match (no silent fallback).
+**Match First, Generate Last**: System prefers existing content over generation. EntityResolver queries authored locations with PlacementFilterDTO categorical matching. Generates new location automatically if no match found (FindOrCreate pattern). All generation happens via categorical filters, no separate explicit generation mechanism.
 
 **Bounded Infinity**: Generation operates under capacity constraints. Venues have MaxLocations (small town: 5-10, large city: 50-100, wilderness: unlimited). Capacity applies to ALL locations (authored + generated), not just generated. Prevents infinite uncontrolled expansion while enabling variety.
 
@@ -1150,18 +1150,19 @@ Beyond archetype-based content generation, Wayfarer supports runtime creation of
 
 A placement filter specifies location type, required properties including private indoor secluded characteristics, district identification for lower wards, and closest selection strategy. Matches authored locations with all specified properties in specified district. System throws exception if no match, forcing content design to either author matching content or relax filter constraints.
 
-**Explicit Generation via DependentLocationSpec**:
-- DependentLocationSpec defines location to generate (self-contained scenes)
-- NamePattern and DescriptionPattern with placeholder support
-- Properties define available actions
-- HexPlacementStrategy determines spatial positioning
-- VenueIdSource determines containing venue (SameAsBase or GenerateNew)
+**FindOrCreate Pattern (EntityResolver System 4)**:
+- PlacementFilterDTO specifies categorical requirements only (no concrete IDs)
+- EntityResolver.FindOrCreateLocation(filter) queries existing locations first
+- If match found: return existing location (reuse authored/previously-generated content)
+- If no match: generate new location from categorical properties (eager creation)
+- Generated location added to GameWorld immediately
+- Returns concrete Location object (NOT ID)
 
-**Example Spec**:
+**Example FindOrCreate Flow**:
 
-A dependent location specification defines a private room template with name and description patterns incorporating NPC name placeholders, venue source as same as base location, hex placement within same venue, properties for sleeping space with restful indoor private characteristics, and initially locked status.
+PlacementFilterDTO specifies private indoor restful properties with guest room tag. EntityResolver queries GameWorld.Locations for matches. If existing guest room found at current venue, return that location object (reuse). If no match, generate new location with name derived from venue context, properties matching filter requirements, hex placement within containing venue, and initially locked status. Generated location persists in GameWorld forever.
 
-Generates location deterministically when scene spawns. Location flows through standard JSON → DTO → Parser → Entity pipeline (Catalogue Pattern compliance).
+All generation flows through EntityResolver FindOrCreate pattern. No separate explicit generation mechanism. Categorical filters are the single source for all placement requirements.
 
 ### Persistence Model
 
@@ -1222,9 +1223,9 @@ Validator throws InvalidOperationException if any check fails. System crashes ra
 
 **Example Flow**:
 1. Scene specifies archetype `service_with_location_access` (mechanical structure)
-2. Scene specifies PlacementFilter for location (categorical matching) OR DependentLocationSpec (explicit generation)
-3. System matches existing location (PlacementFilter) OR generates new location (DependentLocationSpec)
-4. Archetype generates situations using location properties (scaled mechanics)
+2. Scene specifies PlacementFilterDTO with categorical requirements (LocationProperties, LocationTags)
+3. EntityResolver.FindOrCreate queries existing locations first, generates if no match (automatic)
+4. Archetype generates situations using resolved location object properties (scaled mechanics)
 
 Archetypes remain pure mechanical patterns. Dynamic generation provides spatial context. Separation of concerns maintained.
 
@@ -1234,8 +1235,8 @@ Implementation details in arc42 documentation:
 - VenueGeneratorService: Section 5 (Building Block View)
 - LocationPlayabilityValidator: Section 5 (Building Block View)
 - HexSynchronizationService: Section 5 (Building Block View)
-- SceneInstantiator.BuildLocationDTO: Section 5 (Building Block View)
-- Dynamic World Building pattern: Section 8 (Crosscutting Concepts)
+- EntityResolver.FindOrCreate pattern: Section 5 (Building Block View)
+- 5-System Scene Spawning Architecture: Section 8 (Crosscutting Concepts)
 
 ## Conclusion
 

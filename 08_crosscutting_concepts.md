@@ -541,236 +541,294 @@ This architectural pattern supports rich narrative branching where NPCs serve as
 
 ---
 
-### 8.2.8 Reward-Driven Scene Spawning Pattern
+### 8.2.8 5-System Scene Spawning Architecture
 
-**Core Principle**: Scenes spawn via ScenesToSpawn rewards from choice execution. Placement determines WHERE scene spawns (context-relative, absolute, or categorical). Context bindings determine WHICH entities are bound for narrative continuity (separate concern).
+**Core Principle**: Scene spawning flows through five distinct systems, each with one clear responsibility. Placement uses categorical filters at all stages. Entity resolution happens eagerly in System 4 before scene instantiation in System 5.
 
-#### Two Orthogonal Systems
+#### System 1: Scene Selection (Decision Logic)
 
-**PLACEMENT (WHERE scene spawns):**
-- Context-Relative: Spawn where choice displayed (SameLocation, SameNPC, SameRoute)
-- Absolute: Spawn at hardcoded entity ID (SpecificLocation, SpecificNPC, SpecificRoute)
-- Categorical: Spawn where PlacementFilter matches (Generic + SceneTemplate.PlacementFilter)
+**Responsibility**: Decide WHEN to spawn scene based on game state
 
-**CONTEXT BINDING (WHICH entities bound for narrative):**
-- Carries entity IDs from parent scene into child scene (QUESTGIVER, RETURN_LOCATION)
-- Populated at display time for perfect information projection
-- Merged into MarkerResolutionMap at spawn time for narrative resolution
-- DOES NOT determine placement (separate concern)
+**Location**: SceneFacade, SituationRewardExecutor
 
-#### Data Structure
+**Key Operations**:
+- Evaluate SpawnConditions on SceneTemplate (RequiredTags, MinDay, StatThresholds)
+- Check eligibility when choice executed with ScenesToSpawn reward
+- Trigger System 2 if conditions met
 
+**Example**:
+```csharp
+// SceneFacade checks eligibility
+public bool IsSceneEligible(SceneTemplate template, Player player)
+{
+    if (template.SpawnConditions.RequiredTags.Any(tag => !player.Tags.Contains(tag)))
+        return false;
+
+    if (player.CurrentDay < template.SpawnConditions.MinDay)
+        return false;
+
+    return true;  // Eligible, proceed to spawning
+}
+```
+
+#### System 2: Scene Specification (Data Structure)
+
+**Responsibility**: Store categorical requirements for spawning, NO concrete entity IDs
+
+**Location**: SceneSpawnReward class, ChoiceReward property
+
+**Data Structure**:
 ```csharp
 public class SceneSpawnReward
 {
-    public string SceneTemplateId { get; set; }           // Categorical template
-    public PlacementRelation PlacementRelation { get; set; } // Generic, SameLocation, etc.
-    public string SpecificPlacementId { get; set; }       // For Specific* relations
-    public List<ContextBinding> ContextBindings { get; set; } = new List<ContextBinding>();
-}
+    public string SceneTemplateId { get; set; }         // Categorical template ID
+    public PlacementFilterOverride PlacementFilterOverride { get; set; }  // Optional filter overrides
 
-public class ContextBinding
-{
-    public string MarkerKey { get; set; }        // "QUESTGIVER", "RETURN_LOCATION"
-    public ContextSource Source { get; set; }    // Enum: CurrentNpc, CurrentLocation, CurrentRoute, PreviousScene
-
-    // Strongly-typed resolved IDs (populated at display time)
-    public string ResolvedNpcId { get; set; }
-    public string ResolvedLocationId { get; set; }
-    public string ResolvedRouteId { get; set; }
-    public string ResolvedSceneId { get; set; }
-}
-
-public enum ContextSource
-{
-    CurrentNpc,       // NPC player is talking to
-    CurrentLocation,  // Location player is at
-    CurrentRoute,     // Route player is traveling
-    PreviousScene     // Scene that spawned this one
+    // NO ContextBinding
+    // NO PlacementRelation enum
+    // NO SpecificPlacementId
+    // Categorical properties ONLY
 }
 ```
 
-#### Placement Resolution (SceneInstantiator.cs lines 308-372)
+**Key Principle**: Scene rewards contain ONLY categorical requirements. NO concrete entity IDs. All placement needs expressed via categorical filters on template or override.
 
-**Context-Relative Placement:**
+#### System 3: Package Generator (SceneInstantiator)
+
+**Responsibility**: Create JSON package specification with PlacementFilterDTO (categorical specs), does NOT resolve entities
+
+**Location**: SceneInstantiator service
+
+**Key Operations**:
+- Receive SceneSpawnReward with categorical template ID
+- Load SceneTemplate from GameWorld
+- Write PlacementFilterDTO to JSON package (LocationFilter, NpcFilter, RouteFilter properties)
+- Does NOT call FindOrCreate (no entity resolution here)
+- Does NOT write concrete entity IDs to JSON
+- Output: SceneDTO package with categorical filters
+
+**Example**:
 ```csharp
-case PlacementRelation.SameLocation:
-    return new PlacementResolution {
-        PlacementType = PlacementType.Location,
-        PlacementId = context.CurrentLocation.Id  // Spawn where choice displayed
-    };
-```
-
-**Absolute Placement:**
-```csharp
-case PlacementRelation.SpecificLocation:
-    return new PlacementResolution {
-        PlacementType = PlacementType.Location,
-        PlacementId = spawnReward.SpecificPlacementId  // Spawn at hardcoded ID
-    };
-```
-
-**Categorical Placement:**
-```csharp
-case PlacementRelation.Generic:
-    if (template.PlacementFilter == null)
-        throw new InvalidOperationException("Generic placement requires PlacementFilter");
-
-    // Evaluate PlacementFilter to find matching entity (independent of display context)
-    string placementId = EvaluatePlacementFilter(template.PlacementFilter, context);
-
-    if (placementId == null)
-        throw new InvalidOperationException($"No entity matches PlacementFilter for {template.Id}");
-
-    return new PlacementResolution {
-        PlacementType = template.PlacementFilter.PlacementType,
-        PlacementId = placementId  // Spawn where filter matches
-    };
-```
-
-#### Context Binding Population (SceneContent.razor.cs lines 217-255)
-
-**Display Time** - Populate bindings from current context for Perfect Information:
-```csharp
-foreach (ContextBinding binding in spawn.ContextBindings)
+public SceneDTO GenerateScenePackage(SceneSpawnReward reward)
 {
-    switch (binding.Source)
+    SceneTemplate template = gameWorld.SceneTemplates[reward.SceneTemplateId];
+
+    SceneDTO sceneDto = new SceneDTO
     {
-        case ContextSource.CurrentNpc:
-            binding.ResolvedNpcId = GetCurrentNpc().ID;  // Capture current NPC
-            break;
-        case ContextSource.CurrentLocation:
-            binding.ResolvedLocationId = GameFacade.GetCurrentLocation().Id;
-            break;
-        case ContextSource.CurrentRoute:
-            binding.ResolvedRouteId = GameWorld.CurrentRouteOption.Id;
-            break;
-        case ContextSource.PreviousScene:
-            binding.ResolvedSceneId = Scene.Id;
-            break;
+        Id = GenerateSceneId(),
+        TemplateId = template.Id,
+
+        // Write categorical filters (NOT concrete IDs)
+        LocationFilter = template.PlacementFilter.LocationFilter,  // PlacementFilterDTO
+        NpcFilter = template.PlacementFilter.NpcFilter,
+        RouteFilter = template.PlacementFilter.RouteFilter,
+
+        Situations = GenerateSituationDTOs(template.SituationTemplates)
+    };
+
+    return sceneDto;  // Package ready for System 4
+}
+```
+
+**What This Does NOT Do**:
+- Does NOT resolve entities (no FindOrCreate calls)
+- Does NOT write concrete entity IDs ("elena", "common_room_inn")
+- Does NOT use PlacementRelation enum (deleted concept)
+- Does NOT use ContextBinding (deleted concept)
+
+**What This DOES**:
+- Writes categorical requirements to JSON (PlacementFilterDTO)
+- Packages complete scene specification
+- Passes categorical specs to System 4 for resolution
+
+#### System 4: Entity Resolver (EntityResolver in PackageLoader)
+
+**Responsibility**: Resolve categorical filters to concrete entity objects using FindOrCreate pattern
+
+**Location**: EntityResolver service, called by PackageLoader
+
+**Key Operations**:
+- Read PlacementFilterDTO from JSON package
+- FindOrCreate pattern for each entity type:
+  - FindOrCreateLocation(filter) → Location object
+  - FindOrCreateNPC(filter) → NPC object
+  - FindOrCreateRoute(filter) → RouteOption object
+- Query existing entities FIRST (reuse via categorical matching)
+- Generate new entities if no match (eager creation when needed)
+- Return concrete entity OBJECTS (not IDs)
+
+**Example**:
+```csharp
+public class EntityResolver
+{
+    public Location FindOrCreateLocation(PlacementFilterDTO locationFilter, GameWorld gameWorld)
+    {
+        // STEP 1: Query existing entities
+        Location existing = gameWorld.Locations
+            .Where(loc => MatchesFilter(loc, locationFilter))
+            .FirstOrDefault();
+
+        if (existing != null)
+            return existing;  // Reuse existing entity
+
+        // STEP 2: Generate new entity if no match
+        Location generated = GenerateLocation(locationFilter);
+        gameWorld.AddOrUpdateLocation(generated);
+        return generated;  // Eager creation
     }
-}
 
-// Project to UI: "Investigate for Elena" (shows bound NPC name before choice selection)
-string displayName = ProjectSceneName(spawn.SceneTemplateId, spawn.ContextBindings);
-```
-
-#### Context Binding Merge (SceneInstantiator.cs lines 106-124)
-
-**Spawn Time** - Merge bindings into MarkerResolutionMap for narrative resolution:
-```csharp
-foreach (ContextBinding binding in spawnReward.ContextBindings)
-{
-    string resolvedId = binding.Source switch
+    public NPC FindOrCreateNPC(PlacementFilterDTO npcFilter, GameWorld gameWorld)
     {
-        ContextSource.CurrentNpc => binding.ResolvedNpcId,
-        ContextSource.CurrentLocation => binding.ResolvedLocationId,
-        ContextSource.CurrentRoute => binding.ResolvedRouteId,
-        ContextSource.PreviousScene => binding.ResolvedSceneId,
-        _ => null
-    };
+        // Same pattern: query first, generate if needed
+        NPC existing = gameWorld.NPCs
+            .Where(npc => MatchesFilter(npc, npcFilter))
+            .FirstOrDefault();
 
-    if (!string.IsNullOrEmpty(resolvedId))
-    {
-        markerResolutionMap[binding.MarkerKey] = resolvedId;  // Store for narrative resolution
-    }
-}
-
-// Template situation requirements can reference: "generated:private_room", "QUESTGIVER"
-// Narrative text can use: "Investigate for {QUESTGIVER_NAME}"
-```
-
-#### Example: Separation of Placement vs Context Binding
-
-**Scenario:** A2 investigation at inn completes → A3 crime scene spawns
-
-**SceneSpawnReward configuration:**
-```csharp
-new SceneSpawnReward
-{
-    SceneTemplateId = "a3_crime_scene_investigation",
-
-    // PLACEMENT: WHERE A3 spawns (categorical - independent of display context)
-    PlacementRelation = PlacementRelation.Generic,  // Uses PlacementFilter
-    SpecificPlacementId = null,
-
-    // CONTEXT BINDING: WHICH entities bound for narrative (from display context)
-    ContextBindings = new List<ContextBinding>
-    {
-        new ContextBinding
-        {
-            MarkerKey = "QUESTGIVER",
-            Source = ContextSource.CurrentNpc,  // Elena (who gave investigation quest)
-            ResolvedNpcId = "elena"  // Populated at display time
-        },
-        new ContextBinding
-        {
-            MarkerKey = "RETURN_LOCATION",
-            Source = ContextSource.CurrentLocation,  // Inn (where to return)
-            ResolvedLocationId = "common_room_inn"  // Populated at display time
-        }
+        return existing ?? GenerateNPC(npcFilter);
     }
 }
 ```
 
-**SceneTemplate PlacementFilter (A3 template):**
+**Key Principle**: Entities resolved from categorical properties, returned as objects (NOT IDs). System 5 receives pre-resolved objects.
+
+#### System 5: Scene Instantiator (SceneParser in PackageLoader)
+
+**Responsibility**: Create Scene entity with direct object references from pre-resolved entities
+
+**Location**: SceneParser, called by PackageLoader after System 4
+
+**Key Operations**:
+- Receive pre-resolved entity objects as parameters (Location, NPC, RouteOption)
+- Create Scene with direct object references:
+  - Scene.Location = resolvedLocation (object property)
+  - Scene.Npc = resolvedNpc (object property)
+  - Scene.Route = resolvedRoute (object property)
+- NO resolution logic (objects already resolved by System 4)
+- NO PlacementType enum dispatch (deleted concept)
+- NO string ID lookups
+
+**Example**:
 ```csharp
-PlacementFilter = new PlacementFilter
+public Scene CreateScene(
+    SceneDTO dto,
+    Location resolvedLocation,  // Pre-resolved object from System 4
+    NPC resolvedNpc,            // Pre-resolved object from System 4
+    RouteOption resolvedRoute)  // Pre-resolved object from System 4
 {
-    PlacementType = PlacementType.Location,
-    LocationProperties = new List<LocationPropertyType> { Private, Indoor, Discrete },
-    LocationTags = new List<string> { "crime_scene", "investigation_site" },
-    SelectionStrategy = PlacementSelectionStrategy.Closest
+    Scene scene = new Scene
+    {
+        Id = dto.Id,
+        TemplateId = dto.TemplateId,
+
+        // Direct object references (NO IDs, NO enums)
+        Location = resolvedLocation,  // Object property
+        Npc = resolvedNpc,            // Object property
+        Route = resolvedRoute,        // Object property
+
+        Situations = ParseSituations(dto.Situations)
+    };
+
+    return scene;  // Scene ready with all references resolved
 }
 ```
 
-**Resolution:**
-- **PLACEMENT**: A3 spawns at crime scene location (where filter matches), NOT at inn (where A2 displayed)
-- **NARRATIVE**: A3 carries QUESTGIVER=Elena, RETURN_LOCATION=inn for story continuity
-- **RESULT**: Investigation happens at crime scene, narrative remembers Elena sent you from inn
+**What This Does NOT Do**:
+- Does NOT resolve entities (System 4 did that)
+- Does NOT use PlacementType enum + PlacementId string (deleted pattern)
+- Does NOT look up entity IDs (receives objects directly)
+- Does NOT use MarkerResolutionMap (deleted concept)
 
-**Without separation (WRONG):**
-- SameLocation placement → A3 spawns at inn (display context)
-- Crime scene investigation happens at inn (nonsense)
-- PlacementFilter ignored (categorical requirements not evaluated)
+**What This DOES**:
+- Create Scene with direct object references
+- Simple scene construction with pre-resolved dependencies
+- Clean separation from resolution logic
 
-#### Design Rationale
+#### Complete Data Flow Example
 
-**Why Separate Placement from Context Binding:**
+**Scenario**: Choice reward spawns "investigate_mill" scene
 
-**Placement (WHERE)** answers: At which entity does this scene occur?
-- Context-Relative: Spawn where player currently is (tutorial progression at same location)
-- Absolute: Spawn at specific authored entity (tutorial A1 at specific inn)
-- Categorical: Spawn wherever requirements match (procedural crime scene at ANY crime scene location)
+**System 1 - Decision**:
+```csharp
+// Choice executed with reward
+SceneSpawnReward reward = new SceneSpawnReward
+{
+    SceneTemplateId = "investigate_mill",
+    PlacementFilterOverride = null  // Use template's filter
+};
 
-**Context Binding (WHICH)** answers: Which entities from parent scene carry forward narratively?
-- Quest giver flows through investigation chain (Elena → crime scene → palace → resolution)
-- Return location remembered (complete investigation, return to Elena at inn)
-- Previous scene ID available (branching side stories referencing main story events)
+// Check eligibility
+if (SceneFacade.IsSceneEligible(template, player))
+    → Proceed to System 2
+```
 
-**Why This Matters for Procedural Generation:**
+**System 2 - Specification**:
+```csharp
+// Reward data structure (categorical only)
+SceneSpawnReward {
+    SceneTemplateId = "investigate_mill",
+    // NO concrete IDs
+    // NO PlacementRelation enum
+    // NO ContextBinding
+}
+```
 
-Without separation:
-- A12 investigation completes at palace → A13 spawns at palace (SameLocation)
-- A13 might need crime scene, marketplace, temple (categorical requirements)
-- Locked to display context → cannot vary location type → monotonous experience
+**System 3 - Package Generation**:
+```csharp
+// SceneInstantiator writes categorical filters to JSON
+SceneDTO {
+    Id = "scene_guid_123",
+    TemplateId = "investigate_mill",
 
-With separation:
-- A12 completes at palace → binds QUESTGIVER, RETURN_LOCATION
-- A13 uses PlacementRelation.Generic → evaluates PlacementFilter
-- A13 spawns at crime scene (categorical match), remembers quest came from palace
-- Location types vary (palace → crime scene → marketplace → temple) while narrative connects
+    // Categorical filters (NOT concrete IDs)
+    LocationFilter = {
+        LocationProperties = ["Indoor", "Private"],
+        LocationTags = ["industrial", "mill"]
+    },
 
-**Why Strongly-Typed Properties:**
-- ResolvedNpcId vs ResolvedLocationId vs ResolvedRouteId vs ResolvedSceneId
-- Explicit type indication (know WHAT entity type binding references)
-- No catch-all ResolvedId string (avoids ambiguity)
-- Adheres to coding standards (no Dictionary antipattern, strongly-typed objects only)
+    NpcFilter = null,  // No NPC needed
+    RouteFilter = null
+}
+```
 
-**HIGHLANDER Compliance:**
-- Single spawning mechanism: reward-driven only (condition-based spawning deleted)
-- Three placement strategies serving different use cases (not redundant)
-- ContextBinding and PlacementRelation serve orthogonal concerns (not conflated)
+**System 4 - Entity Resolution**:
+```csharp
+// EntityResolver reads filters, finds/creates entities
+Location resolvedLocation = entityResolver.FindOrCreateLocation(dto.LocationFilter, gameWorld);
+// Queries existing: gameWorld.Locations.Where(loc => loc.Properties.Contains("Indoor") && ...)
+// Returns: existing mill location OR generates new mill location
+// Result: Location OBJECT (not ID)
+```
+
+**System 5 - Scene Instantiation**:
+```csharp
+// SceneParser receives pre-resolved objects
+Scene scene = sceneParser.CreateScene(
+    dto,
+    resolvedLocation: millLocation  // Object from System 4
+);
+
+// Scene now has direct object reference
+scene.Location = millLocation;  // Direct property assignment
+```
+
+**Result**: Scene created with categorical resolution → query/generate → direct object references. No PlacementRelation enum, no ContextBinding, no MarkerResolutionMap, no string ID lookups.
+
+#### Why This Architecture
+
+**HIGHLANDER Compliance**: One placement mechanism (categorical filters), one resolution pattern (FindOrCreate), one reference pattern (direct objects).
+
+**Separation of Concerns**:
+- System 1: WHEN (eligibility checking)
+- System 2: WHAT (categorical specification)
+- System 3: HOW (package generation)
+- System 4: WHERE/WHO (entity resolution)
+- System 5: ASSEMBLY (scene construction)
+
+**No Enum Dispatch**: Scene has Location/Npc/Route object properties, NOT PlacementType enum + PlacementId string.
+
+**Eager Resolution**: Entities resolved before scene construction, not lazily during scene usage.
+
+**Categorical Throughout**: Filters used from reward → package → resolution. No concrete IDs until System 4 resolution
 
 ---
 
