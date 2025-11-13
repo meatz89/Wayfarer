@@ -6,6 +6,12 @@
 public enum PersonalityType
 {
     /// <summary>
+    /// Default/undefined personality type used as fallback when generating NPCs.
+    /// NPCs with Neutral personality should be assigned a specific type during initialization.
+    /// </summary>
+    Neutral,
+
+    /// <summary>
     /// Family-oriented, faith-driven NPCs with high emotional investment.
     /// Examples: "Intelligent and disconnected", "Caring and worried"
     /// Cards: Deep personal connection, genuine concern, emotional support

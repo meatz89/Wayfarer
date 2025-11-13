@@ -12,9 +12,6 @@
 public class SceneNarrativeService
 {
     private readonly GameWorld _gameWorld;
-    // TODO: Add OllamaClient and PromptBuilder when implementing full AI generation
-    // private readonly OllamaClient _ollamaClient;
-    // private readonly PromptBuilder _promptBuilder;
 
     public SceneNarrativeService(GameWorld gameWorld)
     {
@@ -28,14 +25,7 @@ public class SceneNarrativeService
     /// CRITICAL: This is called at finalization when all entity context is resolved.
     /// Context contains ACTUAL entity objects (NPC/Location/Route with full properties).
     ///
-    /// SYNCHRONOUS FOR NOW: Made synchronous to avoid breaking SceneInstantiator.FinalizeScene()
-    /// TODO: Make async when implementing full AI generation (requires making full call chain async)
-    ///
-    /// AI Generation Flow (future async implementation):
-    /// 1. Build prompt from context.ToDictionary() + narrative hints
-    /// 2. Call OllamaClient with 5 second timeout
-    /// 3. Parse AI response into situation description
-    /// 4. Fallback on timeout/failure
+    /// SYNCHRONOUS: Uses fallback text generation from entity properties.
     /// </summary>
     /// <param name="context">Complete entity context with NPC/Location/Player objects</param>
     /// <param name="narrativeHints">Tone, theme, context, style from SituationTemplate</param>
@@ -46,10 +36,7 @@ public class SceneNarrativeService
         if (context == null)
             throw new ArgumentNullException(nameof(context));
 
-        // TODO: Implement full async AI generation
-        // For now, return fallback narrative based on context
-
-        // FALLBACK: Generate contextual placeholder narrative
+        // Generate contextual narrative from entity properties
         return GenerateFallbackSituationNarrative(context, narrativeHints);
     }
 
@@ -319,24 +306,5 @@ public class SceneNarrativeService
         }
 
         return "The Route";
-    }
-
-    /// <summary>
-    /// TODO: Implement full AI generation using OllamaClient
-    ///
-    /// Future implementation pattern (following AINarrativeProvider):
-    /// 1. Build prompt from context.ToDictionary() + narrativeHints
-    /// 2. string prompt = promptBuilder.BuildSituationPrompt(contextDict, hints)
-    /// 3. using CancellationTokenSource cts = new(TimeSpan.FromSeconds(5))
-    /// 4. string aiResponse = await ollamaClient.GenerateAsync(prompt, cts.Token)
-    /// 5. Parse AI response (extract narrative text, handle formatting)
-    /// 6. Return generated narrative or fallback on timeout/error
-    /// </summary>
-    private async Task<string> GenerateAISituationNarrativeAsync(ScenePromptContext context, NarrativeHints hints)
-    {
-        // TODO: Implement AI generation
-        // For now, this method is a placeholder for future implementation
-        await Task.CompletedTask;
-        return null;
     }
 }

@@ -272,7 +272,7 @@ public class EntityResolver
             case PlacementSelectionStrategy.Closest:
                 // Return location closest to player current position
                 return locations.OrderBy(loc =>
-                    CalculateDistance(loc.HexPosition, _player.CurrentLocationId)).First();
+                    CalculateDistance(loc.HexPosition, _player.CurrentPosition)).First();
 
             case PlacementSelectionStrategy.LeastRecent:
                 // Return least recently visited location

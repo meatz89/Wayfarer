@@ -145,7 +145,7 @@ public class SceneTemplateParser
     /// <summary>
     /// Parse PlacementFilter from DTO
     /// </summary>
-    private PlacementFilter ParsePlacementFilter(PlacementFilterDTO dto, string sceneTemplateId)
+    public static PlacementFilter ParsePlacementFilter(PlacementFilterDTO dto, string sceneTemplateId)
     {
         if (dto == null)
             return null; // Optional - some SceneTemplates may not have filters
@@ -162,6 +162,10 @@ public class SceneTemplateParser
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = placementType,
+            // Concrete placement overrides (tutorial/specific scenarios)
+            SpecificNpcId = dto.NpcId,
+            SpecificLocationId = dto.LocationId,
+            SpecificRouteId = dto.RouteId,
             // NPC filters
             PersonalityTypes = ParsePersonalityTypes(dto.PersonalityTypes, sceneTemplateId),
             MinBond = dto.MinBond,
@@ -175,8 +179,8 @@ public class SceneTemplateParser
             // Route filters
             TerrainTypes = dto.TerrainTypes,
             RouteTier = dto.RouteTier,
-            MinDangerRating = dto.MinDangerRating,
-            MaxDangerRating = dto.MaxDangerRating,
+            MinDifficulty = dto.MinDifficulty,
+            MaxDifficulty = dto.MaxDifficulty,
             // Player state filters
             RequiredStates = ParseStateTypes(dto.RequiredStates, sceneTemplateId, "RequiredStates"),
             ForbiddenStates = ParseStateTypes(dto.ForbiddenStates, sceneTemplateId, "ForbiddenStates"),
@@ -190,7 +194,7 @@ public class SceneTemplateParser
     /// <summary>
     /// Parse personality type strings to enum list
     /// </summary>
-    private List<PersonalityType> ParsePersonalityTypes(List<string> typeStrings, string sceneTemplateId)
+    private static List<PersonalityType> ParsePersonalityTypes(List<string> typeStrings, string sceneTemplateId)
     {
         if (typeStrings == null || !typeStrings.Any())
             return new List<PersonalityType>();
@@ -214,7 +218,7 @@ public class SceneTemplateParser
     /// <summary>
     /// Parse location property strings to enum list
     /// </summary>
-    private List<LocationPropertyType> ParseLocationProperties(List<string> propertyStrings, string sceneTemplateId)
+    private static List<LocationPropertyType> ParseLocationProperties(List<string> propertyStrings, string sceneTemplateId)
     {
         if (propertyStrings == null || !propertyStrings.Any())
             return new List<LocationPropertyType>();
@@ -238,7 +242,7 @@ public class SceneTemplateParser
     /// <summary>
     /// Parse state type strings to enum list
     /// </summary>
-    private List<StateType> ParseStateTypes(List<string> stateStrings, string sceneTemplateId, string fieldName)
+    private static List<StateType> ParseStateTypes(List<string> stateStrings, string sceneTemplateId, string fieldName)
     {
         if (stateStrings == null || !stateStrings.Any())
             return new List<StateType>();
@@ -262,7 +266,7 @@ public class SceneTemplateParser
     /// <summary>
     /// Parse scale requirements from DTOs
     /// </summary>
-    private List<ScaleRequirement> ParseScaleRequirements(List<ScaleRequirementDTO> dtos, string sceneTemplateId)
+    private static List<ScaleRequirement> ParseScaleRequirements(List<ScaleRequirementDTO> dtos, string sceneTemplateId)
     {
         if (dtos == null || !dtos.Any())
             return new List<ScaleRequirement>();

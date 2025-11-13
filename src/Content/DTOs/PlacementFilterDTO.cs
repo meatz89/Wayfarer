@@ -90,6 +90,14 @@ public class PlacementFilterDTO
     // ====================
 
     /// <summary>
+    /// Concrete Route ID binding (tutorial/explicit binding pattern)
+    /// When specified, bypasses categorical filtering and binds to specific Route
+    /// Example: "trade_road_segment_5" binds scene to specific route
+    /// null = use categorical filtering (terrainTypes, routeTier, etc.)
+    /// </summary>
+    public string RouteId { get; set; }
+
+    /// <summary>
     /// Terrain types to match
     /// Example: ["Forest", "Mountain", "Road"]
     /// </summary>
@@ -102,16 +110,16 @@ public class PlacementFilterDTO
     public int? RouteTier { get; set; }
 
     /// <summary>
-    /// Minimum danger rating (0-100 scale)
+    /// Minimum difficulty rating (0-100 scale)
     /// null = no minimum
     /// </summary>
-    public int? MinDangerRating { get; set; }
+    public int? MinDifficulty { get; set; }
 
     /// <summary>
-    /// Maximum danger rating (0-100 scale)
+    /// Maximum difficulty rating (0-100 scale)
     /// null = no maximum
     /// </summary>
-    public int? MaxDangerRating { get; set; }
+    public int? MaxDifficulty { get; set; }
 
     // ====================
     // PLAYER STATE FILTERS

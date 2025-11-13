@@ -358,9 +358,6 @@ public class SceneInstantiator
             if (filter.MaxBond.HasValue && currentBond > filter.MaxBond.Value)
                 return false;
 
-            // NPC tags check removed - NPCs don't have Tags property in current architecture
-            // TODO: Add filter.NpcTags check when NPC.Tags property implemented
-
             // Check player state filters (shared across all placement types)
             if (!CheckPlayerStateFilters(filter, player))
                 return false;
@@ -450,10 +447,10 @@ public class SceneInstantiator
                     return false;
             }
 
-            // Check danger rating range (0-100 scale)
-            if (filter.MinDangerRating.HasValue && route.DangerRating < filter.MinDangerRating.Value)
+            // Check difficulty rating range (0-100 scale)
+            if (filter.MinDifficulty.HasValue && route.DangerRating < filter.MinDifficulty.Value)
                 return false;
-            if (filter.MaxDangerRating.HasValue && route.DangerRating > filter.MaxDangerRating.Value)
+            if (filter.MaxDifficulty.HasValue && route.DangerRating > filter.MaxDifficulty.Value)
                 return false;
 
             // Check player state filters (shared across all placement types)
@@ -566,10 +563,10 @@ public class SceneInstantiator
             criteria.Add($"Terrain Types: [{string.Join(", ", filter.TerrainTypes)}]");
         if (filter.RouteTier.HasValue)
             criteria.Add($"Route Tier: {filter.RouteTier.Value}");
-        if (filter.MinDangerRating.HasValue)
-            criteria.Add($"Min Danger: {filter.MinDangerRating.Value}");
-        if (filter.MaxDangerRating.HasValue)
-            criteria.Add($"Max Danger: {filter.MaxDangerRating.Value}");
+        if (filter.MinDifficulty.HasValue)
+            criteria.Add($"Min Difficulty: {filter.MinDifficulty.Value}");
+        if (filter.MaxDifficulty.HasValue)
+            criteria.Add($"Max Difficulty: {filter.MaxDifficulty.Value}");
 
         // Player state filters
         if (filter.RequiredStates != null && filter.RequiredStates.Count > 0)
@@ -877,16 +874,11 @@ public class SceneInstantiator
     /// <summary>
     /// Build ScenePromptContext for AI narrative generation from SceneDTO and spawn context
     /// Bundles entity objects (NPC, Location, Route) with complete properties for rich context
-    /// Called during DTO generation when concrete placement is resolved
+    /// Called during situation narrative generation
+    /// Only works if filter has concrete IDs (tutorial binding) - throws if categorical (AI generates later)
     /// </summary>
     private ScenePromptContext BuildScenePromptContext(SceneDTO sceneDto, SceneSpawnContext context)
     {
-        // Parse PlacementType from string
-        if (!Enum.TryParse<PlacementType>(sceneDto.PlacementType, true, out PlacementType placementType))
-        {
-            throw new InvalidOperationException($"Invalid PlacementType: {sceneDto.PlacementType}");
-        }
-
         // Get template for archetype/tier
         SceneTemplate template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == sceneDto.TemplateId);
         if (template == null)
@@ -905,26 +897,38 @@ public class SceneInstantiator
             CurrentDay = _gameWorld.CurrentDay
         };
 
-        // Resolve entity references based on placement type
-        switch (placementType)
+        // Determine which filter is present and extract concrete ID
+        // NPC Filter (check first as it may also have location)
+        if (sceneDto.NpcFilter != null)
         {
-            case PlacementType.NPC:
-                promptContext.NPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == sceneDto.PlacementId);
-                if (promptContext.NPC != null)
-                {
-                    promptContext.NPCBondLevel = promptContext.NPC.BondStrength;
-                    // Also populate location if NPC has one
-                    promptContext.Location = promptContext.NPC.Location;
-                }
-                break;
+            PlacementFilter npcFilter = SceneTemplateParser.ParsePlacementFilter(sceneDto.NpcFilter, sceneDto.TemplateId);
+            if (string.IsNullOrEmpty(npcFilter.SpecificNpcId))
+                throw new InvalidOperationException("Cannot generate narrative without concrete NPC binding (categorical filters resolved later)");
 
-            case PlacementType.Location:
-                promptContext.Location = _gameWorld.Locations.FirstOrDefault(l => l.Id == sceneDto.PlacementId);
-                break;
+            promptContext.NPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcFilter.SpecificNpcId);
+            if (promptContext.NPC != null)
+            {
+                promptContext.NPCBondLevel = promptContext.NPC.BondStrength;
+                promptContext.Location = promptContext.NPC.Location;
+            }
+        }
+        // Location Filter
+        else if (sceneDto.LocationFilter != null)
+        {
+            PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(sceneDto.LocationFilter, sceneDto.TemplateId);
+            if (string.IsNullOrEmpty(locationFilter.SpecificLocationId))
+                throw new InvalidOperationException("Cannot generate narrative without concrete Location binding (categorical filters resolved later)");
 
-            case PlacementType.Route:
-                promptContext.Route = _gameWorld.Routes.FirstOrDefault(r => r.Id == sceneDto.PlacementId);
-                break;
+            promptContext.Location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationFilter.SpecificLocationId);
+        }
+        // Route Filter
+        else if (sceneDto.RouteFilter != null)
+        {
+            PlacementFilter routeFilter = SceneTemplateParser.ParsePlacementFilter(sceneDto.RouteFilter, sceneDto.TemplateId);
+            if (string.IsNullOrEmpty(routeFilter.SpecificRouteId))
+                throw new InvalidOperationException("Cannot generate narrative without concrete Route binding (categorical filters resolved later)");
+
+            promptContext.Route = _gameWorld.Routes.FirstOrDefault(r => r.Id == routeFilter.SpecificRouteId);
         }
 
         return promptContext;

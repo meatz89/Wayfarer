@@ -282,11 +282,11 @@ public class HexRouteGenerator
                     continue; // Terrain doesn't match
             }
 
-            // Check danger range (if filter specifies)
-            if (filter.MinDangerRating.HasValue && segmentDanger < filter.MinDangerRating.Value)
+            // Check difficulty range (if filter specifies)
+            if (filter.MinDifficulty.HasValue && segmentDanger < filter.MinDifficulty.Value)
                 continue; // Too safe for this template
 
-            if (filter.MaxDangerRating.HasValue && segmentDanger > filter.MaxDangerRating.Value)
+            if (filter.MaxDifficulty.HasValue && segmentDanger > filter.MaxDifficulty.Value)
                 continue; // Too dangerous for this template
 
             matching.Add(template);
