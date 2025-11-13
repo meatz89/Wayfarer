@@ -20,6 +20,9 @@
         "personality": "Practical but warm. Takes care of travelers. Has seen many road-worn wanderers stumble through her door.",
         "personalityType": "MERCANTILE",
         "currentState": "NEUTRAL",
+        "socialStanding": "Notable",
+        "storyRole": "Obstacle",
+        "knowledgeLevel": "Informed",
         "initialTokens": {
           "Trust": 0
         },
@@ -38,6 +41,9 @@
         "personality": "Straightforward and business-minded. Always needs capable hands. Values hard work over idle conversation.",
         "personalityType": "STEADFAST",
         "currentState": "NEUTRAL",
+        "socialStanding": "Commoner",
+        "storyRole": "Neutral",
+        "knowledgeLevel": "Ignorant",
         "initialTokens": {
           "Trust": 0
         },
@@ -54,6 +60,9 @@
         "personality": "Business-minded and efficient. Knows the value of good equipment.",
         "personalityType": "MERCANTILE",
         "currentState": "NEUTRAL",
+        "socialStanding": "Commoner",
+        "storyRole": "Neutral",
+        "knowledgeLevel": "Ignorant",
         "initialTokens": {
           "Trust": 0
         },
