@@ -1251,6 +1251,10 @@ public class SceneInstantiator
             MinBond = filter.MinBond,
             MaxBond = filter.MaxBond,
             NpcTags = filter.NpcTags,
+            // Orthogonal Categorical Dimensions - NPC
+            SocialStandings = filter.SocialStandings?.Select(s => s.ToString()).ToList(),
+            StoryRoles = filter.StoryRoles?.Select(r => r.ToString()).ToList(),
+            KnowledgeLevels = filter.KnowledgeLevels?.Select(k => k.ToString()).ToList(),
             // Location filters
             LocationTypes = filter.LocationTypes?.Select(t => t.ToString()).ToList(),
             LocationProperties = filter.LocationProperties?.Select(p => p.ToString()).ToList(),
@@ -1258,6 +1262,11 @@ public class SceneInstantiator
             LocationTags = filter.LocationTags,
             DistrictId = filter.DistrictId,
             RegionId = filter.RegionId,
+            // Orthogonal Categorical Dimensions - Location
+            PrivacyLevels = filter.PrivacyLevels?.Select(p => p.ToString()).ToList(),
+            SafetyLevels = filter.SafetyLevels?.Select(s => s.ToString()).ToList(),
+            ActivityLevels = filter.ActivityLevels?.Select(a => a.ToString()).ToList(),
+            Purposes = filter.Purposes?.Select(p => p.ToString()).ToList(),
             // Route filters
             TerrainTypes = filter.TerrainTypes,
             RouteTier = filter.RouteTier,
