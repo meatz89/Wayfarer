@@ -18,17 +18,30 @@ public class SituationDTO
     /// </summary>
     public string DeckId { get; set; }
 
-    /// <summary>
-    /// Location ID where this situation's button appears (distributed interaction pattern)
-    /// Semantic: WHERE the button is placed, not who owns the situation
-    /// </summary>
-    public string PlacementLocationId { get; set; }
+    // ==================== PLACEMENT PROPERTIES (SYSTEM 4 INPUT) ====================
 
     /// <summary>
-    /// NPC ID where this situation's button appears (Social system situations)
-    /// Semantic: WHERE the button is placed, not who owns the situation
+    /// Categorical specification for location placement
+    /// System 4 (EntityResolver) will FindOrCreate Location from these categories
+    /// null if situation not placed at specific location
+    /// Enables multi-location scenes (different situations at different locations)
     /// </summary>
-    public string PlacementNpcId { get; set; }
+    public PlacementFilterDTO LocationFilter { get; set; }
+
+    /// <summary>
+    /// Categorical specification for NPC placement
+    /// System 4 (EntityResolver) will FindOrCreate NPC from these categories
+    /// null if situation doesn't involve NPC
+    /// Example: Situation "Negotiate" has NPC filter, Situation "Rest" has null
+    /// </summary>
+    public PlacementFilterDTO NpcFilter { get; set; }
+
+    /// <summary>
+    /// Categorical specification for route placement
+    /// System 4 (EntityResolver) will FindOrCreate RouteOption from these categories
+    /// null if situation not placed on route (most situations)
+    /// </summary>
+    public PlacementFilterDTO RouteFilter { get; set; }
 
     /// <summary>
     /// Obligation ID for UI grouping and label display

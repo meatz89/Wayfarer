@@ -296,9 +296,8 @@ public class SceneInstantiator
             NarrativeHints = template.NarrativeHints,
             InstantiationState = InstantiationState.Deferred,  // START deferred - actions created at query time
 
-            // PLACEMENT INHERITANCE: ParentScene reference enables GetPlacementId() queries
-            // Scene is single source of truth for placement (HIGHLANDER Pattern C)
-            // Situation queries placement via GetPlacementId(PlacementType) helper
+            // PARENT SCENE REFERENCE: Enables state machine navigation (Scene.AdvanceToNextSituation)
+            // ARCHITECTURAL CHANGE: Situation owns placement directly (not inherited from scene)
             ParentScene = parentScene
         };
 

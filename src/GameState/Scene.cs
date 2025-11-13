@@ -29,35 +29,15 @@ public class Scene
     /// </summary>
     public SceneTemplate Template { get; set; }
 
-    // ==================== PLACEMENT PROPERTIES (SYSTEM 5 OUTPUT) ====================
-
-    /// <summary>
-    /// Location where this Scene appears
-    /// DIRECT OBJECT REFERENCE - no PlacementType enum, no string ID dispatch
-    /// Set by PackageLoader (System 5) after EntityResolver (System 4) returns concrete object
-    /// Flow: Categories (System 2) → JSON spec (System 3) → FindOrCreate (System 4) → Object reference (System 5)
-    /// Most scenes have Location (conversation, investigation, ambient)
-    /// null only for abstract/conceptual scenes (rare)
-    /// </summary>
-    public Location Location { get; set; }
-
-    /// <summary>
-    /// NPC associated with this Scene (conversation/interaction partner)
-    /// DIRECT OBJECT REFERENCE - set by PackageLoader after entity resolution
-    /// null for location-only scenes (ambient discoveries, environmental events)
-    /// Example: Conversation AT tavern WITH Elena → scene.Location = tavern, scene.Npc = Elena
-    /// Enables direct navigation: scene.Npc.Name, scene.Npc.PersonalityType
-    /// </summary>
-    public NPC Npc { get; set; }
-
-    /// <summary>
-    /// Route associated with this Scene (travel/journey context)
-    /// DIRECT OBJECT REFERENCE - set by PackageLoader after entity resolution
-    /// null for most scenes (only route-specific events use this)
-    /// Example: Bandit ambush ON mountain road → scene.Location = ambush site, scene.Route = mountain road
-    /// Enables direct navigation: scene.Route.DangerRating, scene.Route.TerrainTypes
-    /// </summary>
-    public RouteOption Route { get; set; }
+    // ==================== PLACEMENT MOVED TO SITUATION ====================
+    // ARCHITECTURAL CHANGE: Placement is per-situation, not per-scene
+    // Multi-situation scenes require each situation to have its own location/NPC/route
+    // Example: "Inn Service" scene has three situations at different locations:
+    //   - Situation 1: "Negotiate" at Common Room with Innkeeper
+    //   - Situation 2: "Rest" at Private Room with no NPC
+    //   - Situation 3: "Depart" at Exit with no NPC
+    // Scene is narrative container with no specific placement
+    // Each Situation has Location/Npc/Route properties
 
     // ==================== PRESENTATION PROPERTIES ====================
 

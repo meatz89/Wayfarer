@@ -39,13 +39,14 @@ public class ObservationFacade
             };
         }
 
-        Location location = scene.Location;
+        // ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
+        Location location = scene.CurrentSituation?.Location;
         if (location == null)
         {
             return new ObservationContext
             {
                 IsValid = false,
-                ErrorMessage = "Location not found for observation scene"
+                ErrorMessage = "Current situation has no location for observation"
             };
         }
 

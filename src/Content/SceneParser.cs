@@ -6,15 +6,14 @@ public static class SceneParser
 {
     /// <summary>
     /// Convert a SceneDTO to a Scene domain model (System 5: Scene Instantiation)
-    /// Receives pre-resolved entity objects from EntityResolver (System 4)
     /// Resolves template reference and parses embedded situations
+    /// ARCHITECTURAL CHANGE: Entity resolution happens per-situation (not per-scene)
+    /// Each situation has its own placement resolved from its own PlacementFilter
     /// </summary>
     public static Scene ConvertDTOToScene(
         SceneDTO dto,
         GameWorld gameWorld,
-        Location resolvedLocation,
-        NPC resolvedNpc,
-        RouteOption resolvedRoute)
+        EntityResolver entityResolver)
     {
         // =====================================================
         // VALIDATION: Required Fields
@@ -85,16 +84,15 @@ public static class SceneParser
         }
 
         // =====================================================
-        // ENTITY CONSTRUCTION (System 5: Direct Object References)
+        // ENTITY CONSTRUCTION (SCENE HAS NO PLACEMENT)
         // =====================================================
+        // ARCHITECTURAL CHANGE: Placement moved to Situation level
+        // Scene is narrative container with no specific location/NPC/route
         Scene scene = new Scene
         {
             Id = dto.Id,
             TemplateId = dto.TemplateId,
             Template = template,
-            Location = resolvedLocation,
-            Npc = resolvedNpc,
-            Route = resolvedRoute,
             State = state,
             ExpiresOnDay = dto.ExpiresOnDay,
             Archetype = archetype,
@@ -118,13 +116,41 @@ public static class SceneParser
         // =====================================================
         // EMBEDDED SITUATIONS PARSING (Composition Pattern)
         // =====================================================
-        // Scene OWNS Situations - parse embedded situations and add to collection
+        // Scene OWNS Situations - parse embedded situations with per-situation entity resolution
         foreach (SituationDTO situationDto in dto.Situations)
         {
-            Situation situation = SituationParser.ConvertDTOToSituation(situationDto, gameWorld);
+            // System 4: Resolve entities from situation-specific categorical specifications
+            Location resolvedLocation = null;
+            NPC resolvedNpc = null;
+            RouteOption resolvedRoute = null;
+
+            if (situationDto.LocationFilter != null)
+            {
+                PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(situationDto.LocationFilter, situationDto.Id);
+                resolvedLocation = entityResolver.FindOrCreateLocation(locationFilter);
+            }
+
+            if (situationDto.NpcFilter != null)
+            {
+                PlacementFilter npcFilter = SceneTemplateParser.ParsePlacementFilter(situationDto.NpcFilter, situationDto.Id);
+                resolvedNpc = entityResolver.FindOrCreateNPC(npcFilter);
+            }
+
+            if (situationDto.RouteFilter != null)
+            {
+                PlacementFilter routeFilter = SceneTemplateParser.ParsePlacementFilter(situationDto.RouteFilter, situationDto.Id);
+                resolvedRoute = entityResolver.FindOrCreateRoute(routeFilter);
+            }
+
+            // System 5: Situation Instantiation with pre-resolved objects
+            Situation situation = SituationParser.ConvertDTOToSituation(
+                situationDto,
+                gameWorld,
+                resolvedLocation,
+                resolvedNpc,
+                resolvedRoute);
 
             // CRITICAL: Set composition relationship (Situation → ParentScene)
-            // Required for GetPlacementId() which queries ParentScene.Location/Npc/Route objects
             situation.ParentScene = scene;
 
             // CRITICAL: Resolve Template reference for lazy action instantiation

@@ -183,7 +183,8 @@ public class SceneFacade
     {
         situation.InstantiationState = InstantiationState.Instantiated;
 
-        NPC npc = scene.Npc;
+        // ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
+        NPC npc = situation.Npc;
 
         foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
         {

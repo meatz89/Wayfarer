@@ -19,25 +19,11 @@ public class SceneDTO
     public string TemplateId { get; set; }
 
     /// <summary>
-    /// Categorical specification for location placement
-    /// System 4 (EntityResolver) will FindOrCreate Location from these categories
-    /// null if scene not placed at location
+    /// PLACEMENT MOVED TO SITUATIONS
+    /// Placement is now per-situation (not per-scene)
+    /// Each SituationDTO has its own LocationFilter/NpcFilter/RouteFilter
+    /// This allows multi-location scenes (different situations at different locations)
     /// </summary>
-    public PlacementFilterDTO LocationFilter { get; set; }
-
-    /// <summary>
-    /// Categorical specification for NPC placement
-    /// System 4 (EntityResolver) will FindOrCreate NPC from these categories
-    /// null if scene not placed with NPC
-    /// </summary>
-    public PlacementFilterDTO NpcFilter { get; set; }
-
-    /// <summary>
-    /// Categorical specification for route placement
-    /// System 4 (EntityResolver) will FindOrCreate RouteOption from these categories
-    /// null if scene not placed on route
-    /// </summary>
-    public PlacementFilterDTO RouteFilter { get; set; }
 
     /// <summary>
     /// Current lifecycle state

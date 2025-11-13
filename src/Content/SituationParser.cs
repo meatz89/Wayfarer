@@ -1,13 +1,22 @@
 
 /// <summary>
 /// Parser for converting SituationDTO to Situation domain model
+/// ARCHITECTURAL NOTE: Situations have their own placement (not inherited from Scene)
+/// Receives pre-resolved entities from EntityResolver (System 4)
 /// </summary>
 public static class SituationParser
 {
     /// <summary>
-    /// Convert a SituationDTO to a Situation domain model
+    /// Convert a SituationDTO to a Situation domain model (System 5: Situation Instantiation)
+    /// Receives pre-resolved entity objects from EntityResolver (System 4)
+    /// Assigns placement directly to Situation properties
     /// </summary>
-    public static Situation ConvertDTOToSituation(SituationDTO dto, GameWorld gameWorld)
+    public static Situation ConvertDTOToSituation(
+        SituationDTO dto,
+        GameWorld gameWorld,
+        Location resolvedLocation,
+        NPC resolvedNpc,
+        RouteOption resolvedRoute)
     {
         if (string.IsNullOrEmpty(dto.Id))
             throw new InvalidOperationException("Situation DTO missing required 'Id' field");
@@ -43,6 +52,10 @@ public static class SituationParser
             Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
+            // Placement properties (System 5 output - pre-resolved from System 4)
+            Location = resolvedLocation,
+            Npc = resolvedNpc,
+            Route = resolvedRoute,
             SystemType = systemType,
             DeckId = dto.DeckId,
             IsIntroAction = dto.IsIntroAction,
@@ -86,8 +99,7 @@ public static class SituationParser
 
         // Resolve object references during parsing (HIGHLANDER: ID is parsing artifact, not entity property)
         // Parser uses ID from DTO as lookup key, entity stores ONLY object reference
-        // PLACEMENT REMOVED: Situation queries placement from ParentScene via GetPlacementId() helper
-        // Scene is single source of truth for placement (HIGHLANDER Pattern C)
+        // PLACEMENT: Location/Npc/Route assigned directly from pre-resolved entities (System 4 output)
 
         if (!string.IsNullOrEmpty(dto.ObligationId))
             situation.Obligation = gameWorld.Obligations.FirstOrDefault(i => i.Id == dto.ObligationId);

@@ -1572,7 +1572,7 @@ public class GameFacade
     /// Get all Situations available at a specific location
     /// Includes both legacy standalone Situations and Scene-embedded Situations
     /// Scene-embedded Situations inherit placement from parent Scene
-    /// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
     /// </summary>
     public List<Situation> GetAvailableSituationsAtLocation(string locationId)
     {
@@ -1590,7 +1590,7 @@ public class GameFacade
     /// <summary>
     /// Get all Situations available for a specific NPC
     /// Includes both legacy standalone Situations and Scene-embedded Situations
-    /// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
     /// </summary>
     public List<Situation> GetAvailableSituationsForNPC(string npcId)
     {
@@ -1598,8 +1598,9 @@ public class GameFacade
         if (npc == null) return new List<Situation>();
 
         // Query all Situations (both legacy and Scene-embedded) for this NPC
+        // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
-            .Where(sit => sit.GetPlacementId(PlacementType.NPC) == npcId)
+            .Where(sit => sit.Npc != null && sit.Npc.ID == npcId)
             .ToList();
     }
 
@@ -1818,11 +1819,10 @@ public class GameFacade
             return IntentResult.Failed();
 
         // TRIGGER POINT 2: Record NPC interaction when action execution starts
-        // Get NPC ID from Situation placement (Scene-embedded situations inherit placement from parent Scene)
-        string npcId = situation.GetPlacementId(PlacementType.NPC);
-        if (!string.IsNullOrEmpty(npcId))
+        // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
+        if (situation.Npc != null)
         {
-            RecordNPCInteraction(npcId);
+            RecordNPCInteraction(situation.Npc.ID);
         }
 
         // STEP 1: Validate and extract execution plan

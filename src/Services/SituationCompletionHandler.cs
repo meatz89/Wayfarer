@@ -196,53 +196,38 @@ public class SituationCompletionHandler
             }
 
             // OBLIGATION CUBES - grant to situation's placement Location (localized mastery)
-            // PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+            // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
             if (rewards.InvestigationCubes.HasValue && rewards.InvestigationCubes.Value > 0)
             {
-                string locationId = situation.GetPlacementId(PlacementType.Location);
-                if (!string.IsNullOrEmpty(locationId))
+                if (situation.Location != null)
                 {
-                    _gameWorld.GrantLocationCubes(locationId, rewards.InvestigationCubes.Value);
-                    Location location = _gameWorld.GetLocation(locationId);
-                    string locationName = location.Name;
-                }
-                else
-                {
+                    _gameWorld.GrantLocationCubes(situation.Location.Id, rewards.InvestigationCubes.Value);
+                    string locationName = situation.Location.Name;
                 }
             }
 
             // STORY CUBES - grant to situation's placement NPC (localized mastery)
-            // PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+            // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
             if (rewards.StoryCubes.HasValue && rewards.StoryCubes.Value > 0)
             {
-                string npcId = situation.GetPlacementId(PlacementType.NPC);
-                if (!string.IsNullOrEmpty(npcId))
+                if (situation.Npc != null)
                 {
-                    _gameWorld.GrantNPCCubes(npcId, rewards.StoryCubes.Value);
-                    NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-                    string npcName = npc.Name;
-                }
-                else
-                {
+                    _gameWorld.GrantNPCCubes(situation.Npc.ID, rewards.StoryCubes.Value);
+                    string npcName = situation.Npc.Name;
                 }
             }
 
             // EXPLORATION CUBES - grant to route (requires route context from situation)
-            // PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+            // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
             if (rewards.ExplorationCubes.HasValue && rewards.ExplorationCubes.Value > 0)
             {
-                string routeId = situation.GetPlacementId(PlacementType.Route);
-                if (!string.IsNullOrEmpty(routeId))
+                if (situation.Route != null)
                 {
-                    _gameWorld.GrantRouteCubes(routeId, rewards.ExplorationCubes.Value);
-                    RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == routeId);
-                    string routeName = route?.Name ?? "Unknown Route";
+                    _gameWorld.GrantRouteCubes(situation.Route.Id, rewards.ExplorationCubes.Value);
+                    string routeName = situation.Route.Name;
                 }
-                else
-                {
-                    // Situation without route context - exploration cubes can't be granted
-                    // This is expected for non-route situations
-                }
+                // Situation without route context - exploration cubes can't be granted
+                // This is expected for non-route situations
             }
 
             // CREATE OBLIGATION - grant StoryCubes to patron NPC (RESOURCE-BASED PATTERN)
@@ -316,37 +301,24 @@ public class SituationCompletionHandler
 
     /// <summary>
     /// Remove situation from NPC.ActiveSituationIds or Location.ActiveSituationIds
-    /// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
     /// </summary>
     private void RemoveSituationFromActiveSituations(Situation situation)
     {
-        string npcId = situation.GetPlacementId(PlacementType.NPC);
-        if (!string.IsNullOrEmpty(npcId))
+        if (situation.Npc != null)
         {
             // Remove from NPC.ActiveSituationIds
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-            if (npc != null)
+            if (situation.Npc.ActiveSituationIds.Contains(situation.Id))
             {
-                if (npc.ActiveSituationIds.Contains(situation.Id))
-                {
-                    npc.ActiveSituationIds.Remove(situation.Id);
-                }
+                situation.Npc.ActiveSituationIds.Remove(situation.Id);
             }
         }
-        else
+        else if (situation.Location != null)
         {
-            string locationId = situation.GetPlacementId(PlacementType.Location);
-            if (!string.IsNullOrEmpty(locationId))
+            // Remove from Location.ActiveSituationIds
+            if (situation.Location.ActiveSituationIds.Contains(situation.Id))
             {
-                // Remove from Location.ActiveSituationIds
-                Location location = _gameWorld.GetLocation(locationId);
-                if (location != null)
-                {
-                    if (location.ActiveSituationIds.Contains(situation.Id))
-                    {
-                        location.ActiveSituationIds.Remove(situation.Id);
-                    }
-                }
+                situation.Location.ActiveSituationIds.Remove(situation.Id);
             }
         }
     }
