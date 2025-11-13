@@ -29,4 +29,12 @@ public class SceneSpawnRewardDTO
     /// 0 = immediate spawn
     /// </summary>
     public int DelayDays { get; set; } = 0;
+
+    /// <summary>
+    /// Context bindings for narrative continuity
+    /// Maps current context entities (NPC/Location/Route) into spawned scene markers
+    /// Populated at choice display time by UI, merged into MarkerResolutionMap at spawn time
+    /// Enables spawned scene to reference entities from spawning context without hardcoded IDs
+    /// </summary>
+    public List<ContextBindingDTO> ContextBindings { get; set; } = new List<ContextBindingDTO>();
 }

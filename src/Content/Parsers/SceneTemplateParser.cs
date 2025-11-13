@@ -571,11 +571,47 @@ public class SceneTemplateParser
                 SceneTemplateId = dto.SceneTemplateId,
                 PlacementRelation = placementRelation,
                 SpecificPlacementId = dto.SpecificPlacementId,
-                DelayDays = dto.DelayDays
+                DelayDays = dto.DelayDays,
+                ContextBindings = ParseContextBindings(dto.ContextBindings)
             });
         }
 
         return rewards;
+    }
+
+    /// <summary>
+    /// Parse ContextBindings from DTOs
+    /// Maps JSON-authored context bindings to domain entities
+    /// Resolved*Id properties remain null (populated at display time by UI)
+    /// </summary>
+    private List<ContextBinding> ParseContextBindings(List<ContextBindingDTO> dtos)
+    {
+        if (dtos == null || !dtos.Any())
+            return new List<ContextBinding>();
+
+        List<ContextBinding> bindings = new List<ContextBinding>();
+        foreach (ContextBindingDTO dto in dtos)
+        {
+            if (string.IsNullOrEmpty(dto.MarkerKey))
+                throw new InvalidDataException("ContextBinding missing required 'MarkerKey'");
+
+            if (string.IsNullOrEmpty(dto.Source))
+                throw new InvalidDataException("ContextBinding missing required 'Source'");
+
+            if (!Enum.TryParse<ContextSource>(dto.Source, true, out ContextSource source))
+            {
+                throw new InvalidDataException($"ContextBinding has invalid Source: '{dto.Source}'. Valid values: CurrentNpc, CurrentLocation, CurrentRoute, PreviousScene");
+            }
+
+            bindings.Add(new ContextBinding
+            {
+                MarkerKey = dto.MarkerKey,
+                Source = source
+                // Resolved*Id properties remain null (populated at display time by SceneContent.razor.cs)
+            });
+        }
+
+        return bindings;
     }
 
     /// <summary>

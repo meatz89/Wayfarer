@@ -214,6 +214,23 @@ public static class SceneArchetypeCatalog
                 StateApplications = choice.RewardTemplate?.StateApplications ?? new List<StateApplication>()
             };
 
+            // A1 (inn_lodging) spawns A2 (gather_testimony) from ALL departure choices
+            // Tutorial pattern: ALL final situation choices spawn next scene (guaranteed progression)
+            if (context.AStorySequence.HasValue && context.AStorySequence.Value == 1)
+            {
+                mergedReward.ScenesToSpawn = new List<SceneSpawnReward>
+                {
+                    new SceneSpawnReward
+                    {
+                        SceneTemplateId = "a2_morning",
+                        PlacementRelation = PlacementRelation.Generic,  // A2 uses categorical NPC filter (Scholar/Merchant)
+                        SpecificPlacementId = null,
+                        DelayDays = 0,
+                        ContextBindings = new List<ContextBinding>()  // A2 finds NPC via filter, no context binding needed
+                    }
+                };
+            }
+
             enrichedDepartChoices.Add(new ChoiceTemplate
             {
                 Id = choice.Id,
