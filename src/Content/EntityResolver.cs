@@ -190,6 +190,7 @@ public class EntityResolver
             Id = $"generated_location_{Guid.NewGuid()}",
             Name = GenerateLocationName(filter),
             IsSkeleton = false,
+            HexPosition = null,
 
             // Apply categorical properties
             LocationProperties = filter.LocationProperties ?? new List<LocationPropertyType>(),
@@ -278,9 +279,9 @@ public class EntityResolver
                 // Return least recently visited location
                 return locations.OrderBy(loc => loc.VisitCount).First();
 
-            case PlacementSelectionStrategy.WeightedRandom:
-                // Random selection weighted by familiarity (less familiar = higher weight)
-                return WeightedRandomLocation(locations);
+            case PlacementSelectionStrategy.Random:
+                // Uniform random selection from all matching candidates
+                return RandomLocation(locations);
 
             case PlacementSelectionStrategy.First:
             default:
@@ -307,9 +308,9 @@ public class EntityResolver
                 // Return NPC with lowest story cubes (least interaction)
                 return npcs.OrderBy(npc => npc.StoryCubes).First();
 
-            case PlacementSelectionStrategy.WeightedRandom:
-                // Random selection weighted by relationship state
-                return WeightedRandomNPC(npcs);
+            case PlacementSelectionStrategy.Random:
+                // Uniform random selection from all matching candidates
+                return RandomNPC(npcs);
 
             case PlacementSelectionStrategy.First:
             default:
@@ -336,27 +337,21 @@ public class EntityResolver
 
     // ========== HELPER METHODS ==========
 
-    private int CalculateDistance(AxialCoordinates? hexPosition, string playerLocationId)
+    private int CalculateDistance(AxialCoordinates? hexPosition, AxialCoordinates playerPosition)
     {
         if (!hexPosition.HasValue)
             return int.MaxValue;
 
-        Location playerLocation = _gameWorld.Locations.FirstOrDefault(loc => loc.Id == playerLocationId);
-        if (playerLocation?.HexPosition == null)
-            return int.MaxValue;
-
-        return hexPosition.Value.DistanceTo(playerLocation.HexPosition.Value);
+        return hexPosition.Value.DistanceTo(playerPosition);
     }
 
-    private Location WeightedRandomLocation(List<Location> locations)
+    private Location RandomLocation(List<Location> locations)
     {
-        // Simple random for now - can be enhanced with sophisticated weighting
         return locations[Random.Shared.Next(locations.Count)];
     }
 
-    private NPC WeightedRandomNPC(List<NPC> npcs)
+    private NPC RandomNPC(List<NPC> npcs)
     {
-        // Simple random for now - can be enhanced with sophisticated weighting
         return npcs[Random.Shared.Next(npcs.Count)];
     }
 }

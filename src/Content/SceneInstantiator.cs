@@ -648,7 +648,7 @@ public class SceneInstantiator
 
     /// <summary>
     /// Apply selection strategy to choose ONE NPC from multiple matching candidates
-    /// PHASE 3: Implements 4 strategies (Closest, HighestBond, LeastRecent, WeightedRandom)
+    /// PHASE 3: Implements 4 strategies (Closest, HighestBond, LeastRecent, Random)
     /// </summary>
     private NPC ApplySelectionStrategyNPC(List<NPC> candidates, PlacementSelectionStrategy strategy, Player player)
     {
@@ -663,7 +663,7 @@ public class SceneInstantiator
             PlacementSelectionStrategy.Closest => SelectClosestNPC(candidates, player),
             PlacementSelectionStrategy.HighestBond => SelectHighestBondNPC(candidates),
             PlacementSelectionStrategy.LeastRecent => SelectLeastRecentNPC(candidates, player),
-            PlacementSelectionStrategy.WeightedRandom => SelectWeightedRandomNPC(candidates),
+            PlacementSelectionStrategy.Random => SelectRandomNPC(candidates),
             _ => candidates[0] // Fallback to first match
         };
     }
@@ -683,9 +683,9 @@ public class SceneInstantiator
         return strategy switch
         {
             PlacementSelectionStrategy.Closest => SelectClosestLocation(candidates, player),
-            PlacementSelectionStrategy.HighestBond => SelectWeightedRandomLocation(candidates), // N/A for locations
+            PlacementSelectionStrategy.HighestBond => SelectRandomLocation(candidates), // N/A for locations
             PlacementSelectionStrategy.LeastRecent => SelectLeastRecentLocation(candidates, player),
-            PlacementSelectionStrategy.WeightedRandom => SelectWeightedRandomLocation(candidates),
+            PlacementSelectionStrategy.Random => SelectRandomLocation(candidates),
             _ => candidates[0] // Fallback to first match
         };
     }
@@ -750,7 +750,7 @@ public class SceneInstantiator
     /// <summary>
     /// Select NPC least recently interacted with for content variety
     /// Uses Player.NPCInteractions timestamp data to find oldest interaction
-    /// Falls back to WeightedRandom if no interaction history exists
+    /// Falls back to Random if no interaction history exists
     /// </summary>
     private NPC SelectLeastRecentNPC(List<NPC> candidates, Player player)
     {
@@ -783,22 +783,22 @@ public class SceneInstantiator
 
         // If all candidates have been interacted with, return least recent
         // If somehow nothing found, fall back to random
-        return leastRecentNPC ?? SelectWeightedRandomNPC(candidates);
+        return leastRecentNPC ?? SelectRandomNPC(candidates);
     }
 
     /// <summary>
-    /// Select random NPC from candidates using RNG for unpredictable variety
+    /// Select random NPC from candidates using RNG for unpredictable variety (uniform distribution)
     /// </summary>
-    private NPC SelectWeightedRandomNPC(List<NPC> candidates)
+    private NPC SelectRandomNPC(List<NPC> candidates)
     {
         int index = Random.Shared.Next(candidates.Count);
         return candidates[index];
     }
 
     /// <summary>
-    /// Select random Location from candidates using RNG for unpredictable variety
+    /// Select random Location from candidates using RNG for unpredictable variety (uniform distribution)
     /// </summary>
-    private Location SelectWeightedRandomLocation(List<Location> candidates)
+    private Location SelectRandomLocation(List<Location> candidates)
     {
         int index = Random.Shared.Next(candidates.Count);
         return candidates[index];
@@ -807,7 +807,7 @@ public class SceneInstantiator
     /// <summary>
     /// Select Location least recently visited for content variety
     /// Uses Player.LocationVisits timestamp data to find oldest visit
-    /// Falls back to WeightedRandom if no visit history exists
+    /// Falls back to Random if no visit history exists
     /// </summary>
     private Location SelectLeastRecentLocation(List<Location> candidates, Player player)
     {
@@ -840,7 +840,7 @@ public class SceneInstantiator
 
         // If all candidates have been visited, return least recent
         // If somehow nothing found, fall back to random
-        return leastRecentLocation ?? SelectWeightedRandomLocation(candidates);
+        return leastRecentLocation ?? SelectRandomLocation(candidates);
     }
 
     /// <summary>

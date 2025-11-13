@@ -149,7 +149,7 @@ public class PlacementFilterDTO
 
     /// <summary>
     /// Selection strategy when multiple entities match
-    /// Values: "WeightedRandom", "First", "Closest", "HighestBond", "LeastRecent"
+    /// Values: "Random", "First", "Closest", "HighestBond", "LeastRecent"
     /// Maps to PlacementSelectionStrategy enum
     /// </summary>
     public string SelectionStrategy { get; set; }

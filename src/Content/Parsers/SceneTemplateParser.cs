@@ -324,7 +324,7 @@ public class SceneTemplateParser
     private static PlacementSelectionStrategy ParseSelectionStrategy(string strategyString, string sceneTemplateId)
     {
         if (string.IsNullOrEmpty(strategyString))
-            return PlacementSelectionStrategy.WeightedRandom; // Default
+            return PlacementSelectionStrategy.Random; // Default
 
         if (Enum.TryParse<PlacementSelectionStrategy>(strategyString, true, out PlacementSelectionStrategy strategy))
         {

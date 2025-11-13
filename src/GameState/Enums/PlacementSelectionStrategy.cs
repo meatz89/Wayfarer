@@ -6,10 +6,10 @@ public enum PlacementSelectionStrategy
 {
     /// <summary>
     /// Select randomly from all matching candidates (default)
-    /// Uses RNG for unpredictable variety
+    /// Uses RNG for unpredictable variety (uniform distribution)
     /// Good for general-purpose procedural content
     /// </summary>
-    WeightedRandom,
+    Random,
 
     /// <summary>
     /// Select first matching entity from filtered results

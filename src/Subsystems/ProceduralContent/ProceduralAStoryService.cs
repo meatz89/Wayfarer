@@ -231,11 +231,7 @@ public class ProceduralAStoryService
             PersonalityTypes = personalityTypes,
             MinBond = null, // A-story accessible regardless of relationships
             MaxBond = null,
-            NpcTags = new List<string> { "order_connected" },
-
-            // No concrete IDs (Generic placement resolves at spawn time)
-            LocationId = null,
-            NpcId = null
+            NpcTags = new List<string> { "order_connected" }
         };
 
         return filter;

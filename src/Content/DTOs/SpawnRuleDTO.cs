@@ -7,14 +7,9 @@ public class SpawnRuleDTO
     /// <summary>
     /// Template ID of the situation to spawn
     /// References a situation template in situations.json
+    /// Spawned situation inherits placement from its SituationTemplate (HIGHLANDER)
     /// </summary>
     public string TemplateId { get; set; }
-
-    /// <summary>
-    /// Where the spawned situation should appear
-    /// Can be: "SameAsParent", "LocationId:xxx", "NpcId:xxx"
-    /// </summary>
-    public string TargetPlacement { get; set; }
 
     /// <summary>
     /// Requirement offsets to apply to the spawned situation

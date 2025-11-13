@@ -214,10 +214,10 @@ public class RewardApplicationService
                         Console.WriteLine($"[RewardApplicationService] A-story template '{sceneSpawn.SceneTemplateId}' not found - generating procedurally");
 
                         // Get or initialize A-story context
-                        AStoryContext context = _proceduralAStoryService.GetOrInitializeContext(player);
+                        AStoryContext aStoryContext = _proceduralAStoryService.GetOrInitializeContext(player);
 
                         // Generate template procedurally (HIGHLANDER: DTO → JSON → PackageLoader → Template)
-                        string generatedTemplateId = await _proceduralAStoryService.GenerateNextATemplate(sequence, context);
+                        string generatedTemplateId = await _proceduralAStoryService.GenerateNextATemplate(sequence, aStoryContext);
 
                         Console.WriteLine($"[RewardApplicationService] Generated A-story template: {generatedTemplateId}");
 
