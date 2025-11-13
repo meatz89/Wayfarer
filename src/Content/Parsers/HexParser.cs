@@ -128,6 +128,7 @@ public static class HexParser
             throw new ArgumentNullException(nameof(locations), "Locations list cannot be null");
 
         // For each hex that has a location, find the location entity and set its HexPosition
+        int syncedCount = 0;
         foreach (Hex hex in hexMap.Hexes)
         {
             if (string.IsNullOrEmpty(hex.LocationId))
@@ -145,7 +146,11 @@ public static class HexParser
 
             // Set Location.HexPosition (source of truth) from hex coordinates
             location.HexPosition = hex.Coordinates;
+            syncedCount++;
+            Console.WriteLine($"[HexSync] ✅ Synced location '{location.Id}' to hex position ({hex.Coordinates.Q}, {hex.Coordinates.R})");
         }
+
+        Console.WriteLine($"[HexSync] Synced {syncedCount} locations to hex positions");
 
         // Validate all locations have hex positions after sync
         ValidateAllLocationsHaveHexPositions(locations);

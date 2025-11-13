@@ -16,9 +16,6 @@ public static class ServiceConfiguration
         // GameWorld registered in Program.cs via static GameWorldInitializer.CreateGameWorld()
         // No lambda, no DI dependencies, pure static initialization
 
-        // Register the content validator
-        services.AddSingleton<ContentValidator>();
-
         // Core services that have no dependencies
         services.AddSingleton<NPCVisibilityService>();
 

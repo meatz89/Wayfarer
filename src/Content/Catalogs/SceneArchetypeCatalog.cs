@@ -156,6 +156,7 @@ public static class SceneArchetypeCatalog
             Id = negotiateSitId,
             Name = "Secure Lodging",
             Type = SituationType.Normal,
+            SystemType = negotiateArchetype.ChallengeType,
             NarrativeTemplate = null,  // AI generates from hints
             ChoiceTemplates = enrichedNegotiateChoices,
             Priority = 100,
@@ -182,6 +183,7 @@ public static class SceneArchetypeCatalog
             Id = restSitId,
             Name = "Rest",
             Type = SituationType.Normal,
+            SystemType = restArchetype.ChallengeType,
             NarrativeTemplate = null,
             ChoiceTemplates = restChoices,
             Priority = 90,
@@ -249,6 +251,7 @@ public static class SceneArchetypeCatalog
             Id = departSitId,
             Name = "Leave",
             Type = SituationType.Normal,
+            SystemType = departArchetype.ChallengeType,
             NarrativeTemplate = null,
             ChoiceTemplates = enrichedDepartChoices,
             Priority = 80,

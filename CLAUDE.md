@@ -169,75 +169,7 @@ Documentation locations, filenames, and structure details are IN the documentati
 
 **The pattern:** Glossary → Detailed section → Verify in code. Every time.
 
-## READING PROTOCOL
-
-**Step 1:** User makes request
-**Step 2:** Identify ALL concepts, terms, entities, systems mentioned
-**Step 3:** For EACH concept, ask yourself: "Am I 100% certain I understand this?"
-**Step 4:** If answer is ANYTHING except "YES" → READ DOCUMENTATION
-**Step 5:** Consult glossaries first, then follow cross-references to relevant sections
-**Step 6:** Read both technical and design perspectives on the concept
-**Step 7:** Search codebase to verify documentation matches current implementation
-**Step 8:** ONLY THEN create plan or implement solution
-
 **This protocol is NOT negotiable. Follow it for EVERY task, no matter how small.**
-
-## PROTOCOL APPLICATION EXAMPLE
-
-**Abstract scenario to demonstrate process:**
-
-```
-User Request: "Modify existing game entity to support new mechanic"
-
-Step 2 - Identify concepts:
-- "game entity" (what type? where defined?)
-- "modify" (what layers affected? JSON, parser, domain, UI?)
-- "new mechanic" (design pattern? resource cost? player-facing?)
-
-Step 3 - Certainty check:
-✓ Know what entity TYPE means (read glossary before)
-✗ Don't know which SPECIFIC entity user means (ambiguous)
-✗ Don't know how "new mechanic" fits design philosophy
-✗ Don't know which technical layers need updates
-
-Step 4 - Must read documentation (3 uncertainties identified)
-
-Step 5 - Consult glossaries:
-- Read technical glossary for entity type definition
-- Read design glossary for mechanic-related terms
-- Note cross-references to detailed sections
-
-Step 6 - Read both perspectives:
-- Design docs: Why does mechanic exist? How creates strategic depth?
-- Technical docs: Where is entity defined? What patterns apply?
-
-Step 7 - Verify in code:
-- Grep for entity type across codebase
-- Read complete entity class definition
-- Trace through parser to understand current structure
-- Search for similar mechanics as reference
-
-Step 8 - NOW ready to respond:
-"I've read [specific docs]. I understand [entity] is [definition],
-and [mechanic] should follow [pattern] because [design rationale].
-However, I need clarification: which specific entity and what exact mechanic?"
-```
-
-**Key principle demonstrated:** Even with uncertainty, read docs FIRST to understand context before asking clarifying questions.
-
-## SELF-VERIFICATION CHECKLIST
-
-**Before proceeding with implementation, can you answer:**
-
-- [ ] **WHAT:** Can I explain each concept to a non-programmer in plain language?
-- [ ] **WHERE:** Can I name specific files/classes where this code lives?
-- [ ] **WHY:** Can I explain the design rationale (not just "the docs say so")?
-- [ ] **HOW:** Can I describe the data flow from user action to system response?
-- [ ] **EDGE CASES:** Can I list 3+ ways this could fail or behave unexpectedly?
-- [ ] **HOLISTIC VIEW:** Have I read BOTH design and technical perspectives?
-- [ ] **CODE VERIFICATION:** Have I searched codebase to confirm docs match reality?
-
-If ANY checkbox fails → Read more documentation. Certainty is not negotiable.
 
 ## HANDLING INSUFFICIENT DOCUMENTATION
 

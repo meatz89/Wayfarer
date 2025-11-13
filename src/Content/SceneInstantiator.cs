@@ -202,6 +202,7 @@ public class SceneInstantiator
                 Name = sitTemplate.Name,
                 Description = description,
                 InteractionType = sitTemplate.Type.ToString(),
+                SystemType = sitTemplate.SystemType.ToString(),
                 PlacementLocationId = resolvedLocationId,
                 PlacementNpcId = resolvedNpcId
             };
@@ -965,18 +966,22 @@ public class SceneInstantiator
         if (venue == null)
             throw new InvalidOperationException($"Venue '{venueId}' not found for location '{locationId}'");
 
-        if (!venue.CanAddMoreLocations())
+        if (!_gameWorld.CanVenueAddMoreLocations(venue))
+        {
+            int currentCount = _gameWorld.GetLocationCountInVenue(venue.Id);
             throw new InvalidOperationException(
                 $"Venue '{venue.Id}' ({venue.Name}) has reached capacity " +
-                $"({venue.LocationIds.Count}/{venue.MaxLocations} locations). " +
+                $"({currentCount}/{venue.MaxLocations} locations). " +
                 $"Cannot add location '{locationId}'. " +
                 $"Increase MaxLocations or use different venue.");
+        }
 
         // Find hex placement (CRITICAL: ALL locations must have hex positions)
         AxialCoordinates? hexPosition;
 
         // SPATIAL CONSTRAINT: First location in venue vs. organic growth
-        if (venue.LocationIds.Count == 0 && venue.CenterHex.HasValue)
+        int venueLocationCount = _gameWorld.GetLocationCountInVenue(venue.Id);
+        if (venueLocationCount == 0 && venue.CenterHex.HasValue)
         {
             // First location in newly generated venue: place at venue center
             // This respects venue separation (center already validated by VenueGeneratorService)

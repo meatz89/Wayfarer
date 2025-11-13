@@ -20,11 +20,9 @@
     // Subsequent locations placed adjacent to existing locations (organic growth)
     public AxialCoordinates? CenterHex { get; set; }
 
-    // BIDIRECTIONAL RELATIONSHIP: Venue ↔ Location
-    // Venue.LocationIds maintained by GameWorld.AddOrUpdateLocation
-    // Location.Venue maintained by LocationParser.ConvertDTOToLocation
-    // CRITICAL: Capacity budget depends on LocationIds.Count being accurate
-    public List<string> LocationIds { get; set; } = new List<string>();
+    // UNIDIRECTIONAL RELATIONSHIP: Location → Venue (Location.VenueId references Venue.Id)
+    // Venue does NOT maintain list of its locations
+    // To find locations in a venue: query GameWorld.Locations.Where(loc => loc.VenueId == venueId)
 
     // HEX-BASED TRAVEL SYSTEM: Venue is ONLY a wrapper for travel cost rules
     // Venue has NO spatial position - Locations are the spatial entities
@@ -39,18 +37,9 @@
     /// Small venues: 5-10 (intimate, constrained)
     /// Large venues: 50-100 (expansive, variety)
     /// Wilderness: int.MaxValue (unlimited)
-    /// Budget is derived (LocationIds.Count) not tracked.
+    /// To check budget: count locations with matching VenueId from GameWorld.Locations
     /// </summary>
     public int MaxLocations { get; set; } = 20;
-
-    /// <summary>
-    /// Check if venue can accept more locations within capacity budget.
-    /// Counts ALL locations (authored + generated) against MaxLocations.
-    /// </summary>
-    public bool CanAddMoreLocations()
-    {
-        return LocationIds.Count < MaxLocations;
-    }
 
     public Venue(string id, string name)
     {

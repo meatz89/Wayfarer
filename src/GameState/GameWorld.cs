@@ -1024,11 +1024,7 @@ public class GameWorld
         if (existing != null)
         {
             // UPDATE EXISTING IN-PLACE - Never remove entities
-            // Handle venue change: remove from old venue's LocationIds, add to new
-            if (existing.Venue != null && existing.Venue.Id != location.VenueId)
-            {
-                existing.Venue.LocationIds.Remove(existing.Id);
-            }
+            // Venue relationship is unidirectional (Location → Venue), no bidirectional sync needed
 
             // Copy all properties from new location to existing (preserve object identity)
             existing.Name = location.Name;
@@ -1050,16 +1046,28 @@ public class GameWorld
             Locations.Add(location);
         }
 
-        // CRITICAL: Maintain bidirectional relationship (Venue.LocationIds ↔ Location.Venue)
-        // Capacity budget system depends on venue.LocationIds.Count being accurate
-        if (location.Venue != null && !location.Venue.LocationIds.Contains(location.Id))
-        {
-            location.Venue.LocationIds.Add(location.Id);
-        }
-        else if (existing != null && existing.Venue != null && !existing.Venue.LocationIds.Contains(existing.Id))
-        {
-            existing.Venue.LocationIds.Add(existing.Id);
-        }
+        // Relationship is unidirectional: Location → Venue via Location.VenueId
+        // No bidirectional tracking needed
+    }
+
+    // ========== VENUE CAPACITY HELPERS ==========
+
+    /// <summary>
+    /// Count how many locations are in the specified venue.
+    /// Queries Locations collection by VenueId.
+    /// </summary>
+    public int GetLocationCountInVenue(string venueId)
+    {
+        return Locations.Count(loc => loc.VenueId == venueId);
+    }
+
+    /// <summary>
+    /// Check if venue can accept more locations within its capacity budget.
+    /// </summary>
+    public bool CanVenueAddMoreLocations(Venue venue)
+    {
+        int currentCount = GetLocationCountInVenue(venue.Id);
+        return currentCount < venue.MaxLocations;
     }
 
 }

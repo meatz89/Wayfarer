@@ -94,12 +94,21 @@ public class PackageLoader
             LoadPackageContent(package, allowSkeletons: false);
         }
 
+        // HEX-BASED TRAVEL SYSTEM: Sync hex positions ONCE after all packages loaded
+        // CRITICAL: Must happen after ALL packages because hex grid and locations may be in different packages
+        SyncLocationHexPositions();
+        EnsureHexGridCompleteness();
+
         // CATALOGUE PATTERN: Generate content from loaded entities (ONCE after all packages loaded)
         // Must happen AFTER all packages loaded because catalogues need complete entity lists
         GeneratePlayerActionsFromCatalogue();
         GenerateLocationActionsFromCatalogue();
         GenerateProceduralRoutes();
         GenerateDeliveryJobsFromCatalogue();
+
+        // PLAYABILITY VALIDATION: Validate locations AFTER routes generated
+        // CRITICAL: Reachability validation requires routes to exist
+        ValidateAllLocations();
 
         // Final validation and initialization
         ValidateCrossroadsConfiguration();
@@ -141,10 +150,8 @@ public class PackageLoader
         // 2. Venues and Locations (may reference regions/districts and hex grid)
         LoadLocations(package.Content.Venues, allowSkeletons);
         LoadLocations(package.Content.Locations, allowSkeletons);
-        // HEX-BASED TRAVEL SYSTEM: Sync Location.HexPosition after locations loaded
-        SyncLocationHexPositions();
-        // HOLISTIC HEX GRID INTEGRATION: Ensure all positioned locations have hexes (for dependent locations)
-        EnsureHexGridCompleteness();
+        // NOTE: HexSync, HexGridCompleteness, and Validation moved to LoadStaticPackages
+        // These must run AFTER all packages loaded (hex grid might be in different package than locations)
 
         // NOTE: Action/route/job generation moved to LoadStaticPackages() - runs ONCE after all packages loaded
         // CATALOGUE PATTERN: Generate actions from categorical properties (PARSE TIME ONLY)
@@ -515,8 +522,19 @@ public class PackageLoader
     /// </summary>
     private void SyncLocationHexPositions()
     {
+        Console.WriteLine("[HexSync] SyncLocationHexPositions called");
+        Console.WriteLine($"[HexSync] WorldHexGrid is null: {_gameWorld.WorldHexGrid == null}");
+        if (_gameWorld.WorldHexGrid != null)
+        {
+            Console.WriteLine($"[HexSync] WorldHexGrid.Hexes.Count: {_gameWorld.WorldHexGrid.Hexes.Count}");
+        }
+        Console.WriteLine($"[HexSync] Locations.Count: {_gameWorld.Locations.Count}");
+
         if (_gameWorld.WorldHexGrid == null || _gameWorld.WorldHexGrid.Hexes.Count == 0)
+        {
+            Console.WriteLine("[HexSync] ⚠️ Skipping hex sync - no hex grid loaded");
             return; // No hex grid loaded, skip sync
+        }
 
         // Sync Location.HexPosition (source of truth) with Hex.LocationId (derived lookup)
         HexParser.SyncLocationHexPositions(_gameWorld.WorldHexGrid, _gameWorld.Locations);
@@ -539,6 +557,19 @@ public class PackageLoader
 
         Console.WriteLine($"[HexGridCompleteness] Processing {_gameWorld.Locations.Count} locations");
         HexParser.EnsureHexGridCompleteness(_gameWorld.WorldHexGrid, _gameWorld.Locations);
+    }
+
+    /// <summary>
+    /// Validate all locations for playability after hex positions are synced
+    /// CRITICAL: Must run AFTER SyncLocationHexPositions() and EnsureHexGridCompleteness()
+    /// Ensures all locations meet playability requirements (hex position, venue, properties, etc.)
+    /// </summary>
+    private void ValidateAllLocations()
+    {
+        foreach (Location location in _gameWorld.Locations)
+        {
+            _locationValidator.ValidateLocation(location, _gameWorld);
+        }
     }
 
     /// <summary>
@@ -810,17 +841,9 @@ public class PackageLoader
                 }
                 existing.Type = venueType;
 
-                // LocationIds: Merge authored IDs from JSON with any existing runtime IDs
-                if (dto.locations != null && dto.locations.Any())
-                {
-                    foreach (string locId in dto.locations)
-                    {
-                        if (!existing.LocationIds.Contains(locId))
-                        {
-                            existing.LocationIds.Add(locId);
-                        }
-                    }
-                }
+                // LocationIds: No longer stored on Venue (unidirectional Location → Venue relationship)
+                // Locations reference their parent Venue via VenueId property
+                // dto.locations field is ignored during venue updates
 
                 existing.IsSkeleton = false;
 
@@ -866,18 +889,19 @@ public class PackageLoader
             // NO LOCK NEEDED: Blazor Server is single-threaded (07_deployment_view.md line 26)
             if (location.Venue != null)
             {
-                if (!location.Venue.CanAddMoreLocations())
+                if (!_gameWorld.CanVenueAddMoreLocations(location.Venue))
                 {
+                    int currentCount = _gameWorld.GetLocationCountInVenue(location.Venue.Id);
                     throw new InvalidOperationException(
                         $"Venue '{location.Venue.Id}' ({location.Venue.Name}) has reached capacity " +
-                        $"({location.Venue.LocationIds.Count}/{location.Venue.MaxLocations} locations). " +
+                        $"({currentCount}/{location.Venue.MaxLocations} locations). " +
                         $"Cannot add location '{location.Id}'. " +
                         $"Increase MaxLocations in venue definition or reduce authored locations.");
                 }
 
-                // POST-PARSING INTEGRATION: Validate playability (fail-fast)
-                // Applies to ALL locations (Catalogue Pattern compliance)
-                _locationValidator.ValidateLocation(location, _gameWorld);
+                // POST-PARSING INTEGRATION: Skip validation here - happens after hex sync
+                // Validation moved to after SyncLocationHexPositions() call (line 145)
+                // Reason: Validator requires Location.HexPosition which is set during hex sync
 
                 // Synchronize hex reference (for ALL locations)
                 _hexSync.SyncLocationToHex(location, _gameWorld);
@@ -888,7 +912,7 @@ public class PackageLoader
             else
             {
                 // Location has no venue (shouldn't happen, but handle gracefully)
-                _locationValidator.ValidateLocation(location, _gameWorld);
+                // Skip validation - happens after hex sync
                 _hexSync.SyncLocationToHex(location, _gameWorld);
                 _gameWorld.AddOrUpdateLocation(location.Id, location);
             }

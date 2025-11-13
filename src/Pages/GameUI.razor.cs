@@ -26,7 +26,6 @@ namespace Wayfarer.Pages;
 /// </summary>
 public class GameUIBase : ComponentBase, IDisposable
 {
-    [Inject] public ContentValidator ContentValidator { get; set; }
     [Inject] public GameWorld GameWorld { get; set; }
     [Inject] public GameFacade GameFacade { get; set; }
     [Inject] public TimeManager TimeManager { get; set; }
@@ -44,20 +43,12 @@ public class GameUIBase : ComponentBase, IDisposable
         // 2. After interactive SignalR connection established
         // All initialization MUST be idempotent to avoid duplicate side effects
 
-        ContentValidationResult validationResult = ContentValidator.ValidateContent(); bool missingReferences = validationResult.HasMissingReferences;
+        Console.WriteLine("[GameUI.OnInitializedAsync] Starting initialization");
 
-        if (missingReferences)
-        {
-            CurrentView = CurrentViews.MissingReferences;
-            StateHasChanged();
-        }
-        else
-        {
-            // Start the game (idempotent - checks IsGameStarted internally)
-            await GameFacade.StartGameAsync();
-            CurrentView = CurrentViews.LocationScreen;
-            StateHasChanged();
-        }
+        // Start the game (idempotent - checks IsGameStarted internally)
+        await GameFacade.StartGameAsync();
+        CurrentView = CurrentViews.LocationScreen;
+        StateHasChanged();
     }
 
     private CurrentViews GetDefaultView()

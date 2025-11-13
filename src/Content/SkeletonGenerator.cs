@@ -75,8 +75,7 @@ public static class SkeletonGenerator
             IsSkeleton = true,
             SkeletonSource = source,
             Tier = 1 + (hash % 3), // Organizational tier 1-3
-            Type = VenueType.Wilderness, // Default for skeleton venues
-            LocationIds = new List<string> { $"{id}_hub" } // Reference to hub location
+            Type = VenueType.Wilderness // Default for skeleton venues
         };
 
         return venue;

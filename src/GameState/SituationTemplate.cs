@@ -30,6 +30,13 @@ public class SituationTemplate
     public SituationType Type { get; init; } = SituationType.Normal;
 
     /// <summary>
+    /// Which tactical system this situation uses (Social, Mental, Physical)
+    /// Copied from SituationArchetype.ChallengeType when template generated
+    /// Determines which challenge screen appears if player selects challenge path
+    /// </summary>
+    public TacticalSystemType SystemType { get; init; } = TacticalSystemType.Social;
+
+    /// <summary>
     /// Narrative template with placeholders
     /// Example: "As you approach {LocationName}, {NPCName} steps forward nervously..."
     /// Placeholders replaced at spawn time:

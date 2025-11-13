@@ -730,10 +730,14 @@ public class GameFacade
     /// </summary>
     public async Task StartGameAsync()
     {
+        Console.WriteLine("[StartGameAsync] Called");
+        Console.WriteLine($"[StartGameAsync] IsGameStarted: {_gameWorld.IsGameStarted}");
+
         // Check if game is already started to prevent duplicate initialization
         // This is CRITICAL for ServerPrerendered mode compatibility
         if (_gameWorld.IsGameStarted)
         {
+            Console.WriteLine("[StartGameAsync] ⚠️ Game already started - returning early");
             return;
         }
 
@@ -741,6 +745,8 @@ public class GameFacade
         // HEX-FIRST ARCHITECTURE: Player position is hex coordinates
         Player player = _gameWorld.GetPlayer();
         string startingSpotId = _gameWorld.InitialLocationId;
+        Console.WriteLine($"[StartGameAsync] Starting location ID: {startingSpotId}");
+
         Location? startingSpot = _gameWorld.Locations.FirstOrDefault(s => s.Id == startingSpotId);
         if (startingSpot == null)
             throw new InvalidOperationException($"Invalid InitialLocationId '{startingSpotId}' - no matching Location found in GameWorld.Locations");
@@ -748,6 +754,7 @@ public class GameFacade
         if (!startingSpot.HexPosition.HasValue)
             throw new InvalidOperationException($"Starting location '{startingSpotId}' has no HexPosition - cannot initialize player position");
 
+        Console.WriteLine($"[StartGameAsync] Setting player position to hex ({startingSpot.HexPosition.Value.Q}, {startingSpot.HexPosition.Value.R})");
         player.CurrentPosition = startingSpot.HexPosition.Value;
         Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);
 

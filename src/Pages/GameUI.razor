@@ -5,4 +5,13 @@
 
 @namespace Wayfarer.Pages
 
-<GameScreen />
+@if (GameWorld.IsGameStarted)
+{
+    <GameScreen />
+}
+else
+{
+    <div style="padding: 20px; text-align: center;">
+        <p>Initializing game...</p>
+    </div>
+}

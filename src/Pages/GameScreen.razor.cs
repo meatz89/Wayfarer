@@ -74,6 +74,16 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     protected override async Task OnInitializedAsync()
     {
+        Console.WriteLine($"[GameScreen.OnInitializedAsync] Called. IsGameStarted: {GameWorld.IsGameStarted}");
+
+        // CRITICAL: Don't initialize until parent GameUI has called StartGameAsync()
+        // This prevents race condition where GameScreen initializes before player position is set
+        if (!GameWorld.IsGameStarted)
+        {
+            Console.WriteLine("[GameScreen.OnInitializedAsync] ⚠️ Game not started yet - skipping initialization");
+            return;
+        }
+
         await RefreshResourceDisplay();
         await RefreshTimeDisplay();
         await RefreshLocationDisplay();

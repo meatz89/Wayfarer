@@ -117,35 +117,17 @@ namespace Wayfarer.Pages.Components
 
         private string GetDestinationDistrict(string destinationSpotId)
         {
-            // Get all locations from GameFacade
-            List<Venue> locations = GameFacade.GetAllLocations();
-            if (locations == null)
-            {
-                throw new InvalidOperationException("Locations not found from facade");
-            }
+            // NO FALLBACKS - let it fail if data is missing
+            Location location = GameFacade.GetLocation(destinationSpotId);
+            Venue venue = GameFacade.GetAllLocations().FirstOrDefault(v => v.Id == location.VenueId);
+            District district = GameFacade.GetDistrictForLocation(venue.Id);
+            Region region = GameFacade.GetRegionForDistrict(district.Id);
 
-            // Find the venue containing this location
-            foreach (Venue venue in locations)
+            if (region != null)
             {
-                if (venue.LocationIds.Contains(destinationSpotId))
-                {
-                    // Get the district for this venue
-                    District district = GameFacade.GetDistrictForLocation(venue.Id);
-                    if (district != null)
-                    {
-                        // Get the region for this district
-                        Region region = GameFacade.GetRegionForDistrict(district.Id);
-                        if (region != null)
-                        {
-                            return $"{region.Name} • {district.Name}";
-                        }
-                        return district.Name;
-                    }
-                    return "City Center";
-                }
+                return $"{region.Name} • {district.Name}";
             }
-
-            return "City Center";
+            return district.Name;
         }
 
         private string FormatTransportType(TravelMethods method)
