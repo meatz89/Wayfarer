@@ -42,7 +42,7 @@ public class PlacementFilter
     /// Example: [Ally, Rival, Neutral]
     /// NPC must have one of these relationship states with player
     /// </summary>
-    public List<RelationshipState> RequiredRelationships { get; init; } = new List<RelationshipState>();
+    public List<NPCRelationship> RequiredRelationships { get; init; } = new List<NPCRelationship>();
 
     /// <summary>
     /// Minimum NPC tier requirement

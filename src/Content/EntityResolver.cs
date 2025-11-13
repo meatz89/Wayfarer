@@ -19,11 +19,12 @@ public class EntityResolver
 
     /// <summary>
     /// Find existing Location OR create new Location from categorical specification
+    /// NEVER returns null - always returns existing or newly created Location
     /// </summary>
     public Location FindOrCreateLocation(PlacementFilter filter)
     {
         if (filter == null)
-            return null;
+            throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null - scenes must specify location placement requirements");
 
         // Try to find existing location matching categories
         Location existingLocation = FindMatchingLocation(filter);
@@ -38,11 +39,12 @@ public class EntityResolver
 
     /// <summary>
     /// Find existing NPC OR create new NPC from categorical specification
+    /// NEVER returns null - always returns existing or newly created NPC
     /// </summary>
     public NPC FindOrCreateNPC(PlacementFilter filter)
     {
         if (filter == null)
-            return null;
+            throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null - scenes must specify NPC placement requirements");
 
         // Try to find existing NPC matching categories
         NPC existingNPC = FindMatchingNPC(filter);
@@ -57,11 +59,12 @@ public class EntityResolver
 
     /// <summary>
     /// Find existing RouteOption OR create new RouteOption from categorical specification
+    /// NEVER returns null - always returns existing or newly created RouteOption
     /// </summary>
     public RouteOption FindOrCreateRoute(PlacementFilter filter)
     {
         if (filter == null)
-            return null;
+            throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null - scenes must specify route placement requirements");
 
         // Try to find existing route matching categories
         RouteOption existingRoute = FindMatchingRoute(filter);
