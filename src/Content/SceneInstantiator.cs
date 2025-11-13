@@ -97,12 +97,34 @@ public class SceneInstantiator
                 markerResolutionMap[marker] = itemDto.Id;
             }
 
-            // Store marker map in scene DTO
-            sceneDto.MarkerResolutionMap = markerResolutionMap;
+            // Store dependent resource IDs
             sceneDto.CreatedLocationIds = dependentLocations.Select(dto => dto.Id).ToList();
             sceneDto.CreatedItemIds = dependentItems.Select(dto => dto.Id).ToList();
             sceneDto.DependentPackageId = $"scene_{sceneDto.Id}_dep";
         }
+
+        // Merge context bindings into marker resolution map (ALWAYS, regardless of dependent resources)
+        // Content author defines bindings in JSON, LoadChoices() populates strongly-typed Resolved*Id at display time
+        // This enables narrative continuity without hardcoded entity IDs
+        foreach (ContextBinding binding in spawnReward.ContextBindings)
+        {
+            string resolvedId = binding.Source switch
+            {
+                ContextSource.CurrentNpc => binding.ResolvedNpcId,
+                ContextSource.CurrentLocation => binding.ResolvedLocationId,
+                ContextSource.CurrentRoute => binding.ResolvedRouteId,
+                ContextSource.PreviousScene => binding.ResolvedSceneId,
+                _ => null
+            };
+
+            if (!string.IsNullOrEmpty(resolvedId))
+            {
+                markerResolutionMap[binding.MarkerKey] = resolvedId;
+            }
+        }
+
+        // Store marker resolution map in scene DTO (ALWAYS - includes both dependent resources and context bindings)
+        sceneDto.MarkerResolutionMap = markerResolutionMap;
 
         // Generate Situation DTOs (CRITICAL: This replaces InstantiateSituation())
         List<SituationDTO> situationDtos = GenerateSituationDTOs(template, sceneDto, markerResolutionMap, context);

@@ -211,6 +211,49 @@ public class SceneContentBase : ComponentBase
             {
                 foreach (SceneSpawnReward sceneSpawn in reward.ScenesToSpawn)
                 {
+                    // Populate context bindings for perfect information projection
+                    // Content author defines marker keys + sources in JSON
+                    // Display time resolves actual entity IDs from current context into strongly-typed properties
+                    foreach (ContextBinding binding in sceneSpawn.ContextBindings)
+                    {
+                        switch (binding.Source)
+                        {
+                            case ContextSource.CurrentNpc:
+                                if (Scene.PlacementType == PlacementType.NPC)
+                                {
+                                    NPC currentNpc = GameWorld.NPCs.FirstOrDefault(n => n.ID == Scene.PlacementId);
+                                    if (currentNpc != null)
+                                    {
+                                        binding.ResolvedNpcId = currentNpc.ID;
+                                    }
+                                }
+                                break;
+
+                            case ContextSource.CurrentLocation:
+                                Location currentLocation = GameFacade.GetCurrentLocation();
+                                if (currentLocation != null)
+                                {
+                                    binding.ResolvedLocationId = currentLocation.Id;
+                                }
+                                break;
+
+                            case ContextSource.CurrentRoute:
+                                RouteOption currentRoute = GameWorld.CurrentRouteOption;
+                                if (currentRoute != null)
+                                {
+                                    binding.ResolvedRouteId = currentRoute.Id;
+                                }
+                                break;
+
+                            case ContextSource.PreviousScene:
+                                if (Scene != null)
+                                {
+                                    binding.ResolvedSceneId = Scene.Id;
+                                }
+                                break;
+                        }
+                    }
+
                     scenesUnlocked.Add(sceneSpawn.SceneTemplateId);
                 }
             }

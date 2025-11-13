@@ -34,4 +34,13 @@ public class SceneSpawnReward
     /// Enables time-delayed consequences - "3 days later, X happens"
     /// </summary>
     public int DelayDays { get; set; } = 0;
+
+    /// <summary>
+    /// Context bindings for narrative continuity - bind current context entities into spawned scene
+    /// Populated at choice display time with current NPC/Location/Route
+    /// Merged into Scene.MarkerResolutionMap at spawn time for narrative placeholder resolution
+    /// Example: [{ MarkerKey: "QUESTGIVER", Source: CurrentNpc, ResolvedId: "elena" }]
+    /// Templates use markers: "Investigate for {QUESTGIVER_NAME}" → "Investigate for Elena"
+    /// </summary>
+    public List<ContextBinding> ContextBindings { get; set; } = new List<ContextBinding>();
 }
