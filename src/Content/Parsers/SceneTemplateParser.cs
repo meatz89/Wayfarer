@@ -664,10 +664,8 @@ public class SceneTemplateParser
 
             rewards.Add(new SceneSpawnReward
             {
-                SceneTemplateId = dto.SceneTemplateId,
-                PlacementFilterOverride = dto.PlacementFilterOverride != null
-                    ? ParsePlacementFilter(dto.PlacementFilterOverride, dto.SceneTemplateId)
-                    : null
+                SceneTemplateId = dto.SceneTemplateId
+                // Spawned scene inherits SceneTemplate.PlacementFilter (no override mechanism)
             });
         }
 

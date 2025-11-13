@@ -64,7 +64,7 @@ public class ObligationParser
         };
 
         // Parse scene spawns using Scene-Situation template architecture
-        // Convert SceneSpawnInfoDTO → SceneSpawnReward with PlacementFilterOverride
+        // Convert SceneSpawnInfoDTO → SceneSpawnReward (spawned scene uses SceneTemplate.PlacementFilter)
         if (dto.ScenesSpawned != null)
         {
             foreach (SceneSpawnInfoDTO spawnDto in dto.ScenesSpawned)

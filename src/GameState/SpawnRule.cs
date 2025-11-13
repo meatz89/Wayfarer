@@ -2,24 +2,16 @@
 /// <summary>
 /// Spawn Rule - defines how a situation spawns child situations on completion
 /// Creates cascading chains of situations for narrative progression
-/// Uses categorical properties to find or generate entities
+/// Spawned situation inherits placement from its SituationTemplate
 /// </summary>
 public class SpawnRule
 {
     /// <summary>
     /// Template ID of the situation to spawn
     /// References a situation definition that will be instantiated
+    /// Spawned situation uses SituationTemplate.PlacementFilter
     /// </summary>
     public string TemplateId { get; set; }
-
-    /// <summary>
-    /// Optional PlacementFilter override for spawned situation
-    /// If specified, overrides spawned SituationTemplate placement
-    /// Enables dynamic placement based on parent situation context
-    /// If null, uses spawned SituationTemplate placement
-    /// Categories → FindOrGenerate → Concrete ID
-    /// </summary>
-    public PlacementFilter PlacementFilterOverride { get; set; }
 
     /// <summary>
     /// Requirement offsets to apply to spawned situation
