@@ -1,28 +1,20 @@
 
 /// <summary>
-/// SPAWN FACADE - Executes spawn rules and orchestrates automatic scene spawning
+/// SPAWN FACADE - Executes cascading situation spawn rules (Sir Brante pattern)
 ///
-/// TWO RESPONSIBILITIES:
-/// 1. Cascading Situations: Parent situation completion spawns child situations (Sir Brante pattern)
-/// 2. Automatic Scenes: Checks spawn conditions at trigger points and instantiates eligible SceneTemplates
-///
-/// Sir Brante Pattern (Situations):
+/// RESPONSIBILITY:
+/// - Parent situation completion spawns child situations
 /// - Clones template situations
 /// - Applies requirement offsets (makes children easier/harder)
 /// - Validates spawn conditions before execution
 /// - Adds spawned situations to GameWorld and ActiveSituationIds
 ///
-/// Automatic Spawning (Scenes):
-/// - Checks SceneTemplates with spawn conditions
-/// - Evaluates conditions against current player/world/entity state
-/// - Instantiates eligible scenes via SceneInstantiator
-/// - Called at trigger points: time advancement, location entry, NPC interaction
+/// Scene spawning moved to reward-driven architecture (RewardApplicationService)
+/// Scenes spawn via ScenesToSpawn rewards from choice execution, not condition-based triggers
 ///
 /// Called by:
 /// - SituationFacade.ResolveInstantSituation() - After instant situation resolution (cascading)
 /// - SituationCompletionHandler.CompleteSituation() - After challenge completion (cascading)
-/// - GameFacade.RestAtLocationAsync() - Time trigger orchestration (after TimeFacade.AdvanceToNextDay)
-/// - GameFacade.TravelToDestinationAsync() - Location trigger orchestration (after position update)
 ///
 /// NO EVENTS - Synchronous execution orchestrated by GameFacade (facades never call each other)
 /// </summary>
@@ -30,25 +22,16 @@ public class SpawnFacade
 {
     private readonly GameWorld _gameWorld;
     private readonly TimeManager _timeManager;
-    private readonly SpawnConditionsEvaluator _conditionsEvaluator;
-    private readonly SceneInstanceFacade _sceneInstanceFacade;
     private readonly DependentResourceOrchestrationService _dependentResourceOrchestrationService;
-    private readonly ProceduralAStoryService _proceduralAStoryService;
 
     public SpawnFacade(
         GameWorld gameWorld,
         TimeManager timeManager,
-        SpawnConditionsEvaluator conditionsEvaluator,
-        SceneInstanceFacade sceneInstanceFacade,
-        DependentResourceOrchestrationService dependentResourceOrchestrationService,
-        ProceduralAStoryService proceduralAStoryService)
+        DependentResourceOrchestrationService dependentResourceOrchestrationService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
-        _conditionsEvaluator = conditionsEvaluator ?? throw new ArgumentNullException(nameof(conditionsEvaluator));
-        _sceneInstanceFacade = sceneInstanceFacade ?? throw new ArgumentNullException(nameof(sceneInstanceFacade));
         _dependentResourceOrchestrationService = dependentResourceOrchestrationService ?? throw new ArgumentNullException(nameof(dependentResourceOrchestrationService));
-        _proceduralAStoryService = proceduralAStoryService ?? throw new ArgumentNullException(nameof(proceduralAStoryService));
     }
 
     /// <summary>
@@ -331,199 +314,4 @@ public class SpawnFacade
             }
         }
     }
-
-    /// <summary>
-    /// AUTOMATIC SCENE SPAWNING ORCHESTRATION
-    /// Checks SceneTemplates for spawn eligibility and instantiates eligible scenes
-    /// Called at trigger points: time advancement, location entry, NPC interaction
-    ///
-    /// HANDOFF IMPLEMENTATION: Phase 4 (lines 247-253)
-    /// - Queries SceneTemplates with isStarter=false
-    /// - Evaluates spawn conditions via SpawnConditionsEvaluator
-    /// - Instantiates eligible scenes via SceneInstantiator
-    /// - Prevents duplicate spawning (checks existing scenes)
-    ///
-    /// ARCHITECTURE: Single-threaded Blazor Server per circuit
-    /// No race conditions possible - user actions serialized by Blazor message pump
-    /// One player, one GameWorld, sequential async/await execution
-    /// </summary>
-    /// <param name="triggerType">What triggered the spawn check (Time, Location, NPC, Scene)</param>
-    /// <param name="contextId">Optional context ID (locationId, npcId, etc.)</param>
-    public async Task CheckAndSpawnEligibleScenes(SpawnTriggerType triggerType, string contextId = null)
-    {
-        Console.WriteLine($"[SpawnOrchestration] Checking eligible scenes (Trigger: {triggerType}, Context: {contextId ?? "none"})");
-
-        Player player = _gameWorld.GetPlayer();
-
-        // === INFINITE A-STORY INTEGRATION ===
-        // Detect A-story scene completion and generate next A-scene template
-        if (triggerType == SpawnTriggerType.Scene)
-        {
-            // If contextId provided, use it directly
-            // If not provided (tests/manual trigger), find most recently completed A-story scene
-            Scene completedScene = null;
-
-            if (!string.IsNullOrEmpty(contextId))
-            {
-                completedScene = _gameWorld.Scenes.FirstOrDefault(s => s.Id == contextId);
-            }
-            else
-            {
-                // Find most recently completed A-story scene (highest sequence number)
-                completedScene = _gameWorld.Scenes
-                    .Where(s => s.State == SceneState.Completed &&
-                               s.Category == StoryCategory.MainStory &&
-                               s.MainStorySequence.HasValue)
-                    .OrderByDescending(s => s.MainStorySequence.Value)
-                    .FirstOrDefault();
-            }
-
-            if (completedScene != null &&
-                completedScene.Category == StoryCategory.MainStory &&
-                completedScene.MainStorySequence.HasValue)
-            {
-                int completedSequence = completedScene.MainStorySequence.Value;
-                int nextSequence = completedSequence + 1;
-
-                Console.WriteLine($"[InfiniteAStory] A{completedSequence} completed - checking for A{nextSequence} template");
-
-                // Check if next A-scene template already exists
-                bool nextTemplateExists = _proceduralAStoryService.NextTemplateExists(nextSequence);
-
-                if (!nextTemplateExists)
-                {
-                    Console.WriteLine($"[InfiniteAStory] A{nextSequence} template does not exist - generating procedurally");
-
-                    // Get or initialize A-story context
-                    AStoryContext context = _proceduralAStoryService.GetOrInitializeContext(player);
-
-                    // Generate next A-scene template (HIGHLANDER flow: DTO → JSON → PackageLoader → Template)
-                    // FAIL-FAST: If generation fails, throw immediately (don't catch)
-                    // Architectural principle: Soft-lock worse than crash
-                    // Player completing A-scene expecting next A-scene is unacceptable failure mode
-                    string templateId = await _proceduralAStoryService.GenerateNextATemplate(nextSequence, context);
-
-                    Console.WriteLine($"[InfiniteAStory] A{nextSequence} template generated: {templateId}");
-                    Console.WriteLine($"[InfiniteAStory] Template added to GameWorld.SceneTemplates via HIGHLANDER flow");
-
-                    // Update context after successful generation
-                    context.RecordCompletion(
-                        completedScene.Id,
-                        archetypeId: "unknown", // Would need archetype tracking in Scene
-                        regionId: null, // Would extract from placement
-                        personalityType: null); // Would extract from NPC
-                }
-                else
-                {
-                    Console.WriteLine($"[InfiniteAStory] A{nextSequence} template already exists - skipping generation");
-                }
-            }
-        }
-        // === END INFINITE A-STORY INTEGRATION ===
-
-        // Query procedural SceneTemplates (isStarter=false, has spawnConditions)
-        List<SceneTemplate> proceduralTemplates = _gameWorld.SceneTemplates
-            .Where(t => !t.IsStarter && t.SpawnConditions != null)
-            .ToList();
-
-        Console.WriteLine($"[SpawnOrchestration] Found {proceduralTemplates.Count} procedural templates to evaluate");
-
-        int spawned = 0;
-        foreach (SceneTemplate template in proceduralTemplates)
-        {
-            // Skip if already spawned - WHITELIST check (State == Active) for robustness
-            // For A-story: Check MainStorySequence (not TemplateId) to prevent sequence duplicates
-            bool alreadySpawned;
-            if (template.Category == StoryCategory.MainStory && template.MainStorySequence.HasValue)
-            {
-                // A-story: Check by sequence number (prevents duplicate A4 with different template IDs)
-                alreadySpawned = _gameWorld.Scenes.Any(s =>
-                    s.State == SceneState.Active &&
-                    s.MainStorySequence == template.MainStorySequence.Value);
-            }
-            else
-            {
-                // B/C-story: Check by template ID (allows multiple instances of same template)
-                alreadySpawned = _gameWorld.Scenes.Any(s =>
-                    s.TemplateId == template.Id &&
-                    s.State == SceneState.Active);
-            }
-
-            if (alreadySpawned)
-            {
-                continue; // Scene already active, don't spawn duplicate
-            }
-
-            // Evaluate spawn conditions
-            bool isEligible = _conditionsEvaluator.EvaluateAll(template.SpawnConditions, player);
-
-            if (isEligible)
-            {
-                Console.WriteLine($"[SpawnOrchestration] Template '{template.Id}' is ELIGIBLE - spawning scene");
-
-                // CATEGORICAL SPAWNING: All procedural spawning uses Generic placement with categorical resolution
-                PlacementRelation placementRelation = PlacementRelation.Generic;
-                string specificPlacementId = null; // Procedural spawning never uses concrete IDs
-
-                SceneSpawnReward spawnReward = new SceneSpawnReward
-                {
-                    SceneTemplateId = template.Id,
-                    PlacementRelation = placementRelation,
-                    SpecificPlacementId = specificPlacementId, // Concrete ID for tutorial pattern, null for categorical
-                    DelayDays = 0 // Spawn immediately when eligible
-                };
-
-                SceneSpawnContext spawnContext = BuildSpawnContext(template, player);
-
-                if (spawnContext != null)
-                {
-                    // HIGHLANDER FLOW: Single method spawns scene (JSON → PackageLoader → Parser)
-                    Scene scene = await _sceneInstanceFacade.SpawnScene(template, spawnReward, spawnContext);
-
-                    if (scene != null)
-                    {
-                        spawned++;
-                        Console.WriteLine($"[SpawnOrchestration] Scene '{scene.Id}' spawned via HIGHLANDER flow");
-                    }
-                }
-                else
-                {
-                    Console.WriteLine($"[SpawnOrchestration] Failed to build spawn context for template '{template.Id}'");
-                }
-            }
-        }
-
-        if (spawned > 0)
-        {
-            Console.WriteLine($"[SpawnOrchestration] Spawned {spawned} new scenes");
-        }
-    }
-
-    /// <summary>
-    /// Build SceneSpawnContext for scene instantiation
-    /// </summary>
-    private SceneSpawnContext BuildSpawnContext(SceneTemplate template, Player player)
-    {
-        SceneSpawnContext context = new SceneSpawnContext
-        {
-            Player = player,
-            CurrentSituation = null // Automatic spawning is not triggered by situations
-        };
-
-        // SceneInstantiator will resolve placement from PlacementFilter
-        // We just provide player and current world state context
-        return context;
-    }
-}
-
-/// <summary>
-/// Trigger types for automatic scene spawning
-/// Used for logging and potential future trigger-specific logic
-/// </summary>
-public enum SpawnTriggerType
-{
-    Time,      // Time advancement (day change, time block change)
-    Location,  // Player moved to new location
-    NPC,       // Player interacted with NPC
-    Scene      // Scene completed (cascade spawning)
 }

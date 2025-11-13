@@ -435,7 +435,7 @@ If NO: Consider if truly design-time constant (rare - most values should scale)
 - Each **Scene** owns its embedded **Situations collection** via direct object containment (NOT ID references)
 - Scenes track their **CurrentSituation** via direct object reference
 - Scenes manage **SpawnRules** defining situation flow
-- Scenes reference their placement context via **PlacementType** and **PlacementId** properties
+- Scenes reference their placement entities via direct **object properties** (Location, Npc, Route)
 
 **Situations** are EMBEDDED IN SCENES, not a separate GameWorld collection:
 - Each Situation is owned by its parent Scene
@@ -528,7 +528,7 @@ GameWorld (Single Source of Truth)
 
 ### Correct Patterns
 
-✅ **Scene Ownership**: Scene owns Situations directly through embedded collection property. Scene tracks CurrentSituation via direct object reference. Scene manages SpawnRules defining situation flow. Scene references placement context via PlacementType and PlacementId properties.
+✅ **Scene Ownership**: Scene owns Situations directly through embedded collection property. Scene tracks CurrentSituation via direct object reference. Scene manages SpawnRules defining situation flow. Scene references placement entities via direct object properties (Location, Npc, Route).
 
 ✅ **Situation Structure**: Situation stores SystemType property for bridge routing metadata. Situation references Template containing ChoiceTemplates. Situation stores SituationCards list defining tactical victory conditions.
 

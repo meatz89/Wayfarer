@@ -746,8 +746,8 @@ public class LocationFacade
             // Find ALL active scenes for this NPC (multi-scene display)
             List<Scene> activeScenes = _gameWorld.Scenes.Where(s =>
                 s.State == SceneState.Active &&
-                s.PlacementType == PlacementType.NPC &&
-                s.PlacementId == npc.ID).ToList();
+                s.Npc != null &&
+                s.Npc.ID == npc.ID).ToList();
 
             // Build scene view model for each active scene
             List<NpcSceneViewModel> availableScenes = new List<NpcSceneViewModel>();
@@ -883,11 +883,11 @@ public class LocationFacade
         List<SituationCardViewModel> ambientSituations = new List<SituationCardViewModel>();
         List<SceneWithSituationsViewModel> sceneGroups = new List<SceneWithSituationsViewModel>();
 
-        // SCENE-SITUATION ARCHITECTURE: Query active Scenes at this location, get Situation IDs, query GameWorld.Situations
+        // SCENE-SITUATION ARCHITECTURE: Query active Scenes at this location, get Situations from Scene.Situations
         List<Scene> scenesAtLocation = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.PlacementType == PlacementType.Location &&
-                       s.PlacementId == spot.Id)
+                       s.Location != null &&
+                       s.Location.Id == spot.Id)
             .ToList();
 
         // Get all situations from scenes at this location (direct object ownership)
@@ -945,8 +945,8 @@ public class LocationFacade
     {
         // Query GameWorld.Scenes by placement, check if SituationIds contains this situation.Id
         return _gameWorld.Scenes
-            .Where(s => s.PlacementType == PlacementType.Location)
-            .Where(s => s.PlacementId == spot.Id)
+            .Where(s => s.Location != null)
+            .Where(s => s.Location.Id == spot.Id)
             .Where(s => s.State == SceneState.Active)
             .FirstOrDefault(s => s.Situations.Any(sit => sit.Id == situation.Id));
     }
@@ -1000,8 +1000,8 @@ public class LocationFacade
     {
         // Query GameWorld.Scenes by placement type and ID, check if SituationIds contains this situation.Id
         return _gameWorld.Scenes
-            .Where(s => s.PlacementType == PlacementType.NPC)
-            .Where(s => s.PlacementId == npc.ID)
+            .Where(s => s.Npc != null)
+            .Where(s => s.Npc.ID == npc.ID)
             .Where(s => s.State == SceneState.Active)
             .FirstOrDefault(s => s.Situations.Any(sit => sit.Id == situation.Id));
     }

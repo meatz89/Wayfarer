@@ -51,7 +51,7 @@ public class ChoiceTemplate
     /// Defines what rewards to apply when Choice selected
     /// For Instant actions: Applied immediately
     /// For StartChallenge actions: Applied BEFORE challenge (immediate effects)
-    /// May include Scene spawning templates with PlacementRelation
+    /// May include Scene spawning with categorical placement
     /// </summary>
     public ChoiceReward RewardTemplate { get; init; } = new ChoiceReward();
 

@@ -52,30 +52,6 @@ public class SpawnConditionsEvaluator
         if (conditions == null)
             return true; // No player state conditions = pass
 
-        // Check CompletedScenes
-        if (conditions.CompletedScenes != null && conditions.CompletedScenes.Count > 0)
-        {
-            foreach (string sceneId in conditions.CompletedScenes)
-            {
-                if (!player.CompletedSceneIds.Contains(sceneId))
-                {
-                    return false; // Required scene not completed
-                }
-            }
-        }
-
-        // Check ChoiceHistory
-        if (conditions.ChoiceHistory != null && conditions.ChoiceHistory.Count > 0)
-        {
-            foreach (string choiceId in conditions.ChoiceHistory)
-            {
-                if (!player.ChoiceHistory.Contains(choiceId))
-                {
-                    return false; // Required choice not made
-                }
-            }
-        }
-
         // Check MinStats (scale thresholds)
         if (conditions.MinStats != null && conditions.MinStats.Count > 0)
         {

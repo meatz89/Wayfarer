@@ -19,18 +19,25 @@ public class SceneDTO
     public string TemplateId { get; set; }
 
     /// <summary>
-    /// Where this scene is placed (Location/NPC/Route)
-    /// Values: "Location", "NPC", "Route"
-    /// Determines which GameWorld collection to query for placement entity
+    /// Categorical specification for location placement
+    /// System 4 (EntityResolver) will FindOrCreate Location from these categories
+    /// null if scene not placed at location
     /// </summary>
-    public string PlacementType { get; set; }
+    public PlacementFilterDTO LocationFilter { get; set; }
 
     /// <summary>
-    /// Concrete entity ID where this scene is placed
-    /// LocationId, NpcId, or RouteId depending on PlacementType
-    /// Resolved from PlacementFilter categorical queries at spawn time
+    /// Categorical specification for NPC placement
+    /// System 4 (EntityResolver) will FindOrCreate NPC from these categories
+    /// null if scene not placed with NPC
     /// </summary>
-    public string PlacementId { get; set; }
+    public PlacementFilterDTO NpcFilter { get; set; }
+
+    /// <summary>
+    /// Categorical specification for route placement
+    /// System 4 (EntityResolver) will FindOrCreate RouteOption from these categories
+    /// null if scene not placed on route
+    /// </summary>
+    public PlacementFilterDTO RouteFilter { get; set; }
 
     /// <summary>
     /// Current lifecycle state
@@ -118,33 +125,7 @@ public class SceneDTO
     /// <summary>
     /// Embedded situations owned by this scene
     /// Scene OWNS situations (composition pattern)
-    /// Situations are NOT in GameWorld.Situations, only in this collection
+    /// Situations are embedded here, not in a separate collection
     /// </summary>
     public List<SituationDTO> Situations { get; set; } = new List<SituationDTO>();
-
-    /// <summary>
-    /// Location IDs created by this scene (self-contained pattern)
-    /// Forensic tracking for dependent resources
-    /// </summary>
-    public List<string> CreatedLocationIds { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Item IDs created by this scene (self-contained pattern)
-    /// Forensic tracking for dependent resources
-    /// </summary>
-    public List<string> CreatedItemIds { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Dynamic package ID for dependent resources
-    /// Format: "scene_{sceneId}_dep"
-    /// null = no dependent resources generated
-    /// </summary>
-    public string DependentPackageId { get; set; }
-
-    /// <summary>
-    /// Marker resolution map for self-contained scenes
-    /// Maps template markers to actual resource IDs
-    /// Example: "generated:private_room" → "scene_abc123_private_room"
-    /// </summary>
-    public Dictionary<string, string> MarkerResolutionMap { get; set; } = new Dictionary<string, string>();
 }

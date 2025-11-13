@@ -6,10 +6,17 @@ public enum PlacementSelectionStrategy
 {
     /// <summary>
     /// Select randomly from all matching candidates (default)
-    /// Uses RNG for unpredictable variety
+    /// Uses RNG for unpredictable variety (uniform distribution)
     /// Good for general-purpose procedural content
     /// </summary>
-    WeightedRandom,
+    Random,
+
+    /// <summary>
+    /// Select first matching entity from filtered results
+    /// Deterministic selection (always same result for same filter)
+    /// Good for tutorial/story-critical bindings
+    /// </summary>
+    First,
 
     /// <summary>
     /// Select spatially closest entity to player's current position

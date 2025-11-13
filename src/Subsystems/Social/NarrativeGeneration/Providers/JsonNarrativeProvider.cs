@@ -80,7 +80,7 @@ public class JsonNarrativeProvider : INarrativeProvider
             {
                 narrativeText = repository.GetCardNarrative(
                     card.Id,
-                    card.NarrativeCategory ?? "default",
+                    card.NarrativeCategory.ToString(),
                     template);
                 narrativeText = ApplyVariableSubstitution(narrativeText, npcData);
             }
@@ -238,7 +238,7 @@ public class JsonNarrativeProvider : INarrativeProvider
             return "You're pushing hard. Why?";
         }
 
-        if (state.Momentum >= 6 && state.Momentum <= 10 && activeCards.Cards.Any(c => c.NarrativeCategory == "risk"))
+        if (state.Momentum >= 6 && state.Momentum <= 10 && activeCards.Cards.Any(c => c.InitiativeCost >= 3))
         {
             return "This is difficult to discuss.";
         }
@@ -301,11 +301,13 @@ public class JsonNarrativeProvider : INarrativeProvider
         // Handle by narrative category first
         string baseNarrative = card.NarrativeCategory switch
         {
-            "risk" => GenerateRiskCardNarrative(card.InitiativeCost),
-            "utility" => GenerateUtilityCardNarrative(card),
-            "support" => "You offer understanding and support",
-            "pressure" => "You press for more information",
-            "probe" => "You carefully explore deeper",
+            NarrativeCategoryType.Atmosphere => "You shift the conversation tone",
+            NarrativeCategoryType.Pressure => "You press for more information",
+            NarrativeCategoryType.SupportTrust => "You offer understanding and trust",
+            NarrativeCategoryType.SupportDiplomacy => "You offer diplomatic support",
+            NarrativeCategoryType.SupportStatus => "You leverage your standing",
+            NarrativeCategoryType.SupportShadow => "You share a subtle understanding",
+            NarrativeCategoryType.Standard => "You respond thoughtfully",
             _ => "You consider your response carefully"
         };
 
@@ -343,12 +345,12 @@ public class JsonNarrativeProvider : INarrativeProvider
     /// </summary>
     private string GenerateUtilityCardNarrative(CardInfo card)
     {
-        if (card.Effect?.Contains("draw") == true || card.Id.Contains("draw"))
+        if (card.HasDrawEffect)
         {
             return "Gather thoughts";
         }
 
-        if (card.Effect?.Contains("focus") == true || card.Id.Contains("focus"))
+        if (card.HasFocusEffect)
         {
             return "Center yourself";
         }

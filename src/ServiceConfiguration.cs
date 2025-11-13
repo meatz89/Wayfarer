@@ -131,10 +131,14 @@ public static class ServiceConfiguration
         services.AddSingleton<SceneGenerationFacade>(); // MOVED: Must be before PackageLoader (dependency)
         services.AddSingleton<PackageLoader>(); // Depends on SceneGenerationFacade
         services.AddSingleton<HexRouteGenerator>();
-        services.AddSingleton<MarkerResolutionService>();
         services.AddSingleton<SceneInstantiator>();
         services.AddSingleton<DependentResourceOrchestrationService>();
         services.AddSingleton<SpawnedScenePlayabilityValidator>(); // Runtime validation for soft-lock prevention
+
+        // Dynamic Location Generation System (All locations persist within session)
+        services.AddSingleton<HexSynchronizationService>(); // Hex/Location synchronization
+        services.AddSingleton<VenueGeneratorService>(); // Procedural venue generation
+        services.AddSingleton<LocationPlayabilityValidator>(); // Fail-fast playability validation (all locations)
 
         // Scene Generation and Instance Facades (clean boundaries for procedural content)
         // IMPORTANT: Register dependencies BEFORE SceneInstanceFacade

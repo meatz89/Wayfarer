@@ -42,11 +42,6 @@
             "personalityTypes": ["Scholar", "Merchant"]
           }
         },
-        "spawnConditions": {
-          "playerState": {
-            "completedScenes": ["a1_arrival"]
-          }
-        },
         "introNarrativeTemplate": "Morning light filters through the window. You find {NPCName} at {LocationName}, and conversation begins."
       },
       {
@@ -63,11 +58,6 @@
           "placementType": "Location",
           "categoryFilter": {
             "properties": ["Commerce", "Governance"]
-          }
-        },
-        "spawnConditions": {
-          "playerState": {
-            "completedScenes": ["a2_morning"]
           }
         },
         "introNarrativeTemplate": "You prepare to leave. {LocationName} awaits, and the road calls."

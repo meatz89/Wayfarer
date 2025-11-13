@@ -18,6 +18,9 @@ public class NPC
     public PersonalityType PersonalityType { get; set; } // NO DEFAULT - must be set explicitly from JSON
     public PersonalityModifier ConversationModifier { get; set; } // Personality-specific conversation rules
 
+    // Crisis system - personal troubles affecting NPC state
+    public CrisisType Crisis { get; set; } = CrisisType.None; // Crisis type for DISCONNECTED NPCs (narrative framing)
+
     // Level system (1-5) for difficulty/content progression and XP scaling
     public int Level { get; set; } = 1;
 
@@ -72,7 +75,7 @@ public class NPC
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
 
     // Active situation IDs for this NPC (Social challenges)
-    // References situations in GameWorld.Situations dictionary (single source of truth)
+    // References situations in Scene.Situations (situations embedded in scenes)
     public List<string> ActiveSituationIds { get; set; } = new List<string>();
 
     // NOTE: Old SceneIds property removed - NEW Scene-Situation architecture

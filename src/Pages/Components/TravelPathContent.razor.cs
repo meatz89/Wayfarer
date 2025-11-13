@@ -709,7 +709,7 @@ namespace Wayfarer.Pages.Components
 
         /// <summary>
         /// Get situation previews for a scene (used for displaying encounters on path cards)
-        /// ARCHITECTURE: Query GameWorld.Scenes to find Scene, get SituationIds, query GameWorld.Situations
+        /// ARCHITECTURE: Query GameWorld.Scenes to find Scene, get Situations from Scene.Situations
         /// </summary>
         protected List<SituationPreviewData> GetSituationPreviewsForPath(string sceneId)
         {

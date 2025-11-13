@@ -1,4 +1,8 @@
+using System.Runtime.CompilerServices;
 using System.Text.Json;
+
+[assembly: InternalsVisibleTo("Wayfarer.Tests.Project")]
+
 /// <summary>
 /// Domain Service for generating Scene instance DTOs and JSON packages from SceneTemplates
 ///
@@ -16,24 +20,25 @@ using System.Text.Json;
 /// </summary>
 public class SceneInstantiator
 {
+    private const int SEGMENTS_PER_DAY = 16;
+    private const int SEGMENTS_PER_TIME_BLOCK = 4;
+
     private readonly GameWorld _gameWorld;
     private readonly SpawnConditionsEvaluator _spawnConditionsEvaluator;
     private readonly SceneNarrativeService _narrativeService;
-    private readonly MarkerResolutionService _markerResolutionService;
+    private readonly VenueGeneratorService _venueGenerator;
 
     public SceneInstantiator(
         GameWorld gameWorld,
         SpawnConditionsEvaluator spawnConditionsEvaluator,
         SceneNarrativeService narrativeService,
-        MarkerResolutionService markerResolutionService)
+        VenueGeneratorService venueGenerator)
     {
         _gameWorld = gameWorld;
         _spawnConditionsEvaluator = spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
-        _markerResolutionService = markerResolutionService ?? throw new ArgumentNullException(nameof(markerResolutionService));
+        _venueGenerator = venueGenerator ?? throw new ArgumentNullException(nameof(venueGenerator));
     }
-
-    // ==================== PHASE 2: DTO GENERATION METHODS (NEW ARCHITECTURE) ====================
 
     /// <summary>
     /// Generate complete scene package JSON from template
@@ -55,16 +60,13 @@ public class SceneInstantiator
             return null; // Scene not eligible - return null
         }
 
-        // Resolve placement (categorical → concrete ID)
-        PlacementResolution placement = ResolvePlacement(template, spawnReward, context);
-
-        // Generate Scene DTO
-        SceneDTO sceneDto = GenerateSceneDTO(template, placement, context);
+        // System 3: Generate Scene DTO with categorical specifications (NO resolution)
+        SceneDTO sceneDto = GenerateSceneDTO(template, spawnReward, context);
 
         // Generate dependent resource DTOs (if self-contained scene)
+        // Categories → FindOrGenerate → Concrete IDs stored directly
         List<LocationDTO> dependentLocations = new List<LocationDTO>();
         List<ItemDTO> dependentItems = new List<ItemDTO>();
-        Dictionary<string, string> markerResolutionMap = new Dictionary<string, string>();
 
         if (template.DependentLocations.Any() || template.DependentItems.Any())
         {
@@ -73,10 +75,6 @@ public class SceneInstantiator
             {
                 LocationDTO locationDto = BuildLocationDTO(spec, sceneDto.Id, context);
                 dependentLocations.Add(locationDto);
-
-                // Build marker resolution map
-                string marker = $"generated:{spec.TemplateId}";
-                markerResolutionMap[marker] = locationDto.Id;
             }
 
             // Generate dependent item DTOs
@@ -84,20 +82,11 @@ public class SceneInstantiator
             {
                 ItemDTO itemDto = BuildItemDTO(spec, sceneDto.Id, context, dependentLocations);
                 dependentItems.Add(itemDto);
-
-                string marker = $"generated:{spec.TemplateId}";
-                markerResolutionMap[marker] = itemDto.Id;
             }
-
-            // Store marker map in scene DTO
-            sceneDto.MarkerResolutionMap = markerResolutionMap;
-            sceneDto.CreatedLocationIds = dependentLocations.Select(dto => dto.Id).ToList();
-            sceneDto.CreatedItemIds = dependentItems.Select(dto => dto.Id).ToList();
-            sceneDto.DependentPackageId = $"scene_{sceneDto.Id}_dep";
         }
 
-        // Generate Situation DTOs (CRITICAL: This replaces InstantiateSituation())
-        List<SituationDTO> situationDtos = GenerateSituationDTOs(template, sceneDto, markerResolutionMap, context);
+        // Generate Situation DTOs (entities reference by categories, no markers)
+        List<SituationDTO> situationDtos = GenerateSituationDTOs(template, sceneDto, context);
         sceneDto.Situations = situationDtos;
 
         // Build complete package
@@ -109,10 +98,11 @@ public class SceneInstantiator
     }
 
     /// <summary>
-    /// Generate SceneDTO from template with concrete placement
-    /// Replaces placeholders in display name and intro narrative
+    /// Generate SceneDTO from template with categorical specifications (System 3)
+    /// Does NOT resolve entities - writes PlacementFilterDTO to JSON
+    /// EntityResolver (System 4) will FindOrCreate from these specifications
     /// </summary>
-    private SceneDTO GenerateSceneDTO(SceneTemplate template, PlacementResolution placement, SceneSpawnContext context)
+    private SceneDTO GenerateSceneDTO(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
         // Generate unique Scene ID
         string sceneId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
@@ -122,9 +112,9 @@ public class SceneInstantiator
             ? _gameWorld.CurrentDay + template.ExpirationDays.Value
             : null;
 
-        // Replace placeholders in display name and intro narrative
-        string displayName = PlaceholderReplacer.ReplaceAll(template.DisplayNameTemplate, context, _gameWorld);
-        string introNarrative = PlaceholderReplacer.ReplaceAll(template.IntroNarrativeTemplate, context, _gameWorld);
+        // Use templates directly (AI generates complete text with entity context)
+        string displayName = template.DisplayNameTemplate;
+        string introNarrative = template.IntroNarrativeTemplate;
 
         // Parse spawn rules DTO
         SituationSpawnRulesDTO spawnRulesDto = null;
@@ -144,12 +134,18 @@ public class SceneInstantiator
             };
         }
 
+        // System 3: Write categorical specifications (NOT concrete IDs)
+        // Spawned scene inherits template's PlacementFilter (HIGHLANDER - no override mechanism)
+        PlacementFilter filter = template.PlacementFilter;
+        PlacementFilterDTO filterDto = ConvertPlacementFilterToDTO(filter);
+
         SceneDTO dto = new SceneDTO
         {
             Id = sceneId,
             TemplateId = template.Id,
-            PlacementType = placement.PlacementType.ToString(),
-            PlacementId = placement.PlacementId,
+            LocationFilter = filter?.PlacementType == PlacementType.Location ? filterDto : null,
+            NpcFilter = filter?.PlacementType == PlacementType.NPC ? filterDto : null,
+            RouteFilter = filter?.PlacementType == PlacementType.Route ? filterDto : null,
             State = "Active", // NEW: Scenes spawn directly as Active (no provisional state)
             ExpiresOnDay = expiresOnDay,
             Archetype = template.Archetype.ToString(),
@@ -174,7 +170,6 @@ public class SceneInstantiator
     private List<SituationDTO> GenerateSituationDTOs(
         SceneTemplate template,
         SceneDTO sceneDto,
-        Dictionary<string, string> markerResolutionMap,
         SceneSpawnContext context)
     {
         List<SituationDTO> situationDtos = new List<SituationDTO>();
@@ -184,28 +179,19 @@ public class SceneInstantiator
             // Generate unique Situation ID
             string situationId = $"situation_{sitTemplate.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
 
-            // Resolve markers in required location/NPC IDs
-            string resolvedLocationId = _markerResolutionService.ResolveMarker(sitTemplate.RequiredLocationId, markerResolutionMap);
-            string resolvedNpcId = _markerResolutionService.ResolveMarker(sitTemplate.RequiredNpcId, markerResolutionMap);
+            // Situations reference entities directly (no marker resolution)
+            // Categories already evaluated at scene spawn → concrete IDs exist
+            string resolvedLocationId = sitTemplate.RequiredLocationId;
+            string resolvedNpcId = sitTemplate.RequiredNpcId;
 
-            // Generate narrative (AI or template)
+            // Use narrative template (narrative generation with resolved entities happens later in System 5)
             string description = sitTemplate.NarrativeTemplate;
-            if (string.IsNullOrEmpty(description) && sitTemplate.NarrativeHints != null)
+            if (string.IsNullOrEmpty(description))
             {
-                try
-                {
-                    ScenePromptContext promptContext = BuildScenePromptContext(sceneDto, context);
-                    description = _narrativeService.GenerateSituationNarrative(promptContext, sitTemplate.NarrativeHints);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[SceneInstantiator] Narrative generation failed for Situation '{situationId}': {ex.Message}");
-                    description = "A situation unfolds before you.";
-                }
+                description = "A situation unfolds before you.";
             }
 
-            // Replace placeholders
-            description = PlaceholderReplacer.ReplaceAll(description, context, _gameWorld);
+            // AI generates complete text with entity context (no placeholder replacement needed)
 
             // Build Situation DTO from template
             // Scene-based situations use templates - most DTO properties are for standalone situations
@@ -275,74 +261,10 @@ public class SceneInstantiator
         return JsonSerializer.Serialize(package, jsonOptions);
     }
 
-    private PlacementResolution ResolvePlacement(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
-    {
-        PlacementRelation relation = spawnReward.PlacementRelation;
-
-        switch (relation)
-        {
-            case PlacementRelation.SameLocation:
-                if (context.CurrentLocation == null)
-                    throw new InvalidOperationException("SameLocation placement requires CurrentLocation in context");
-                return new PlacementResolution(PlacementType.Location, context.CurrentLocation.Id); // Location.Id (source of truth)
-
-            case PlacementRelation.SameNPC:
-                if (context.CurrentNPC == null)
-                    throw new InvalidOperationException("SameNPC placement requires CurrentNPC in context");
-                return new PlacementResolution(PlacementType.NPC, context.CurrentNPC.ID);
-
-            case PlacementRelation.SameRoute:
-                if (context.CurrentRoute == null)
-                    throw new InvalidOperationException("SameRoute placement requires CurrentRoute in context");
-                return new PlacementResolution(PlacementType.Route, context.CurrentRoute.Id);
-
-            case PlacementRelation.SpecificLocation:
-                if (string.IsNullOrEmpty(spawnReward.SpecificPlacementId))
-                    throw new InvalidOperationException("SpecificLocation placement requires SpecificPlacementId in spawnReward");
-                return new PlacementResolution(PlacementType.Location, spawnReward.SpecificPlacementId);
-
-            case PlacementRelation.SpecificNPC:
-                if (string.IsNullOrEmpty(spawnReward.SpecificPlacementId))
-                    throw new InvalidOperationException("SpecificNPC placement requires SpecificPlacementId in spawnReward");
-                return new PlacementResolution(PlacementType.NPC, spawnReward.SpecificPlacementId);
-
-            case PlacementRelation.SpecificRoute:
-                if (string.IsNullOrEmpty(spawnReward.SpecificPlacementId))
-                    throw new InvalidOperationException("SpecificRoute placement requires SpecificPlacementId in spawnReward");
-                return new PlacementResolution(PlacementType.Route, spawnReward.SpecificPlacementId);
-
-            case PlacementRelation.Generic:
-                // Evaluate PlacementFilter from SceneTemplate to find matching entity
-                if (template.PlacementFilter == null)
-                    throw new InvalidOperationException($"Generic placement requires PlacementFilter on SceneTemplate '{template.Id}'");
-
-                string placementId = EvaluatePlacementFilter(template.PlacementFilter, context);
-                if (string.IsNullOrEmpty(placementId))
-                {
-                    throw new InvalidOperationException(
-                        $"PLACEMENT FILTER FAILED - No matching entity found\n" +
-                        $"SceneTemplate: {template.Id}\n" +
-                        $"Category: {template.Category}\n" +
-                        $"MainStorySequence: {template.MainStorySequence}\n" +
-                        $"\nFILTER CRITERIA:\n{FormatFilterCriteria(template.PlacementFilter)}\n" +
-                        $"\nAVAILABLE ENTITIES:\n{FormatAvailableEntities(template.PlacementFilter.PlacementType)}\n" +
-                        $"\nCONTEXT:\n{FormatSpawnContext(context)}\n" +
-                        $"\nDIAGNOSTIC: This error indicates procedurally generated scene cannot find suitable placement.\n" +
-                        $"For A-story scenes, this creates SOFT LOCK (player completed previous scene, expects next scene, gets nothing).\n" +
-                        $"Consider: Relaxing PlacementFilter constraints OR ensuring required entities exist in GameWorld."
-                    );
-                }
-
-                PlacementType placementType = template.PlacementFilter.PlacementType;
-                return new PlacementResolution(placementType, placementId);
-
-            default:
-                throw new InvalidOperationException($"Unknown PlacementRelation: {relation}");
-        }
-    }
-
-    // NOTE: AdjacentLocation placement removed from PlacementRelation enum
-    // If needed in future, add to enum and implement here with proper Location → Location mapping
+    // ResolvePlacement method DELETED - placement resolution now happens in System 4 (EntityResolver)
+    // during package loading, not during DTO generation (System 3)
+    // OLD: SceneInstantiator resolves placement → stores concrete ID in DTO
+    // NEW: SceneInstantiator writes categorical specs → EntityResolver FindOrCreate → PackageLoader sets object references
 
     /// <summary>
     /// Instantiate Situation from SituationTemplate
@@ -378,18 +300,6 @@ public class SceneInstantiator
 
         return situation;
     }
-
-    // ==================== ACTION GENERATION DELETED ====================
-    // GenerateActionFromChoiceTemplate() and DetermineNPCActionType() methods REMOVED
-    // Actions are NO LONGER created at Scene instantiation (Tier 2)
-    // Actions are NOW created at query time (Tier 3) by SceneFacade
-    // This is the CRITICAL architectural refactoring for three-tier timing model
-    // See situation-refactor/REFACTORING_PLAN.md for complete details
-
-    // ==================== GENERIC PLACEMENT FILTER EVALUATION ====================
-    // RUNTIME PlacementFilter evaluation for Generic placement relation
-    // Replicates GameWorldInitializer.FindStarterPlacement() logic for runtime spawning
-    // Supports AI-generated scenes with categorical properties instead of hardcoded IDs
 
     /// <summary>
     /// Evaluate PlacementFilter to find matching entity at runtime
@@ -440,9 +350,6 @@ public class SceneInstantiator
             if (filter.MaxBond.HasValue && currentBond > filter.MaxBond.Value)
                 return false;
 
-            // NPC tags check removed - NPCs don't have Tags property in current architecture
-            // TODO: Add filter.NpcTags check when NPC.Tags property implemented
-
             // Check player state filters (shared across all placement types)
             if (!CheckPlayerStateFilters(filter, player))
                 return false;
@@ -461,7 +368,7 @@ public class SceneInstantiator
 
     /// <summary>
     /// Find Location matching PlacementFilter criteria
-    /// PHASE 3: Collects ALL matching Locations, then applies SelectionStrategy to choose ONE
+    /// PHASE 5: Complete filtering including district, tags, and location properties
     /// Returns selected Location ID, or null if no matches
     /// </summary>
     private string FindMatchingLocation(PlacementFilter filter, Player player)
@@ -477,20 +384,20 @@ public class SceneInstantiator
                     return false;
             }
 
-            // TODO: District/Region filters when Location.DistrictId/RegionId properties implemented
-            // if (!string.IsNullOrEmpty(filter.DistrictId))
-            // {
-            //     if (loc.DistrictId != filter.DistrictId)
-            //         return false;
-            // }
-            // if (!string.IsNullOrEmpty(filter.RegionId))
-            // {
-            //     if (loc.RegionId != filter.RegionId)
-            //         return false;
-            // }
+            // Check district (accessed via Location.Venue.District)
+            if (!string.IsNullOrEmpty(filter.DistrictId))
+            {
+                if (loc.Venue == null || loc.Venue.District != filter.DistrictId)
+                    return false;
+            }
 
-            // Location tags check removed - Locations don't have Tags property in current architecture
-            // TODO: Add filter.LocationTags check when Location.Tags property implemented
+            // Check location tags (uses DomainTags property)
+            if (filter.LocationTags != null && filter.LocationTags.Count > 0)
+            {
+                // Location must have ALL specified tags
+                if (!filter.LocationTags.All(tag => loc.DomainTags.Contains(tag)))
+                    return false;
+            }
 
             // Check player state filters (shared across all placement types)
             if (!CheckPlayerStateFilters(filter, player))
@@ -532,10 +439,10 @@ public class SceneInstantiator
                     return false;
             }
 
-            // Check danger rating range (0-100 scale)
-            if (filter.MinDangerRating.HasValue && route.DangerRating < filter.MinDangerRating.Value)
+            // Check difficulty rating range (0-100 scale)
+            if (filter.MinDifficulty.HasValue && route.DangerRating < filter.MinDifficulty.Value)
                 return false;
-            if (filter.MaxDangerRating.HasValue && route.DangerRating > filter.MaxDangerRating.Value)
+            if (filter.MaxDifficulty.HasValue && route.DangerRating > filter.MaxDifficulty.Value)
                 return false;
 
             // Check player state filters (shared across all placement types)
@@ -648,10 +555,10 @@ public class SceneInstantiator
             criteria.Add($"Terrain Types: [{string.Join(", ", filter.TerrainTypes)}]");
         if (filter.RouteTier.HasValue)
             criteria.Add($"Route Tier: {filter.RouteTier.Value}");
-        if (filter.MinDangerRating.HasValue)
-            criteria.Add($"Min Danger: {filter.MinDangerRating.Value}");
-        if (filter.MaxDangerRating.HasValue)
-            criteria.Add($"Max Danger: {filter.MaxDangerRating.Value}");
+        if (filter.MinDifficulty.HasValue)
+            criteria.Add($"Min Difficulty: {filter.MinDifficulty.Value}");
+        if (filter.MaxDifficulty.HasValue)
+            criteria.Add($"Max Difficulty: {filter.MaxDifficulty.Value}");
 
         // Player state filters
         if (filter.RequiredStates != null && filter.RequiredStates.Count > 0)
@@ -740,11 +647,9 @@ public class SceneInstantiator
         return string.Join("\n", contextInfo);
     }
 
-    // ==================== PLACEMENT SELECTION STRATEGIES ====================
-
     /// <summary>
     /// Apply selection strategy to choose ONE NPC from multiple matching candidates
-    /// PHASE 3: Implements 4 strategies (Closest, HighestBond, LeastRecent, WeightedRandom)
+    /// PHASE 3: Implements 4 strategies (Closest, HighestBond, LeastRecent, Random)
     /// </summary>
     private NPC ApplySelectionStrategyNPC(List<NPC> candidates, PlacementSelectionStrategy strategy, Player player)
     {
@@ -759,7 +664,7 @@ public class SceneInstantiator
             PlacementSelectionStrategy.Closest => SelectClosestNPC(candidates, player),
             PlacementSelectionStrategy.HighestBond => SelectHighestBondNPC(candidates),
             PlacementSelectionStrategy.LeastRecent => SelectLeastRecentNPC(candidates, player),
-            PlacementSelectionStrategy.WeightedRandom => SelectWeightedRandomNPC(candidates),
+            PlacementSelectionStrategy.Random => SelectRandomNPC(candidates),
             _ => candidates[0] // Fallback to first match
         };
     }
@@ -779,9 +684,9 @@ public class SceneInstantiator
         return strategy switch
         {
             PlacementSelectionStrategy.Closest => SelectClosestLocation(candidates, player),
-            PlacementSelectionStrategy.HighestBond => SelectWeightedRandomLocation(candidates), // N/A for locations
+            PlacementSelectionStrategy.HighestBond => SelectRandomLocation(candidates), // N/A for locations
             PlacementSelectionStrategy.LeastRecent => SelectLeastRecentLocation(candidates, player),
-            PlacementSelectionStrategy.WeightedRandom => SelectWeightedRandomLocation(candidates),
+            PlacementSelectionStrategy.Random => SelectRandomLocation(candidates),
             _ => candidates[0] // Fallback to first match
         };
     }
@@ -846,7 +751,7 @@ public class SceneInstantiator
     /// <summary>
     /// Select NPC least recently interacted with for content variety
     /// Uses Player.NPCInteractions timestamp data to find oldest interaction
-    /// Falls back to WeightedRandom if no interaction history exists
+    /// Falls back to Random if no interaction history exists
     /// </summary>
     private NPC SelectLeastRecentNPC(List<NPC> candidates, Player player)
     {
@@ -879,33 +784,31 @@ public class SceneInstantiator
 
         // If all candidates have been interacted with, return least recent
         // If somehow nothing found, fall back to random
-        return leastRecentNPC ?? SelectWeightedRandomNPC(candidates);
+        return leastRecentNPC ?? SelectRandomNPC(candidates);
     }
 
     /// <summary>
-    /// Select random NPC from candidates using RNG for unpredictable variety
+    /// Select random NPC from candidates using RNG for unpredictable variety (uniform distribution)
     /// </summary>
-    private NPC SelectWeightedRandomNPC(List<NPC> candidates)
+    private NPC SelectRandomNPC(List<NPC> candidates)
     {
-        Random random = new Random();
-        int index = random.Next(candidates.Count);
+        int index = Random.Shared.Next(candidates.Count);
         return candidates[index];
     }
 
     /// <summary>
-    /// Select random Location from candidates using RNG for unpredictable variety
+    /// Select random Location from candidates using RNG for unpredictable variety (uniform distribution)
     /// </summary>
-    private Location SelectWeightedRandomLocation(List<Location> candidates)
+    private Location SelectRandomLocation(List<Location> candidates)
     {
-        Random random = new Random();
-        int index = random.Next(candidates.Count);
+        int index = Random.Shared.Next(candidates.Count);
         return candidates[index];
     }
 
     /// <summary>
     /// Select Location least recently visited for content variety
     /// Uses Player.LocationVisits timestamp data to find oldest visit
-    /// Falls back to WeightedRandom if no visit history exists
+    /// Falls back to Random if no visit history exists
     /// </summary>
     private Location SelectLeastRecentLocation(List<Location> candidates, Player player)
     {
@@ -938,7 +841,7 @@ public class SceneInstantiator
 
         // If all candidates have been visited, return least recent
         // If somehow nothing found, fall back to random
-        return leastRecentLocation ?? SelectWeightedRandomLocation(candidates);
+        return leastRecentLocation ?? SelectRandomLocation(candidates);
     }
 
     /// <summary>
@@ -957,66 +860,8 @@ public class SceneInstantiator
             _ => 0
         };
 
-        return (day * 16) + (timeBlockValue * 4) + segment;
+        return (day * SEGMENTS_PER_DAY) + (timeBlockValue * SEGMENTS_PER_TIME_BLOCK) + segment;
     }
-
-    /// <summary>
-    /// Build ScenePromptContext for AI narrative generation from SceneDTO and spawn context
-    /// Bundles entity objects (NPC, Location, Route) with complete properties for rich context
-    /// Called during DTO generation when concrete placement is resolved
-    /// </summary>
-    private ScenePromptContext BuildScenePromptContext(SceneDTO sceneDto, SceneSpawnContext context)
-    {
-        // Parse PlacementType from string
-        if (!Enum.TryParse<PlacementType>(sceneDto.PlacementType, true, out PlacementType placementType))
-        {
-            throw new InvalidOperationException($"Invalid PlacementType: {sceneDto.PlacementType}");
-        }
-
-        // Get template for archetype/tier
-        SceneTemplate template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == sceneDto.TemplateId);
-        if (template == null)
-        {
-            throw new InvalidOperationException($"SceneTemplate '{sceneDto.TemplateId}' not found");
-        }
-
-        ScenePromptContext promptContext = new ScenePromptContext
-        {
-            Player = context.Player,
-            ArchetypeId = template.Archetype.ToString(),
-            Tier = template.Tier,
-            SceneDisplayName = sceneDto.DisplayName,
-            CurrentTimeBlock = _gameWorld.CurrentTimeBlock,
-            CurrentWeather = _gameWorld.CurrentWeather.ToString().ToLower(),
-            CurrentDay = _gameWorld.CurrentDay
-        };
-
-        // Resolve entity references based on placement type
-        switch (placementType)
-        {
-            case PlacementType.NPC:
-                promptContext.NPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == sceneDto.PlacementId);
-                if (promptContext.NPC != null)
-                {
-                    promptContext.NPCBondLevel = promptContext.NPC.BondStrength;
-                    // Also populate location if NPC has one
-                    promptContext.Location = promptContext.NPC.Location;
-                }
-                break;
-
-            case PlacementType.Location:
-                promptContext.Location = _gameWorld.Locations.FirstOrDefault(l => l.Id == sceneDto.PlacementId);
-                break;
-
-            case PlacementType.Route:
-                promptContext.Route = _gameWorld.Routes.FirstOrDefault(r => r.Id == sceneDto.PlacementId);
-                break;
-        }
-
-        return promptContext;
-    }
-
-    // ==================== SELF-CONTAINED SCENE PACKAGE GENERATION ====================
 
     /// <summary>
     /// Generate dependent resource SPECS for self-contained scene
@@ -1107,23 +952,50 @@ public class SceneInstantiator
         // Generate unique ID
         string locationId = $"{sceneId}_{spec.TemplateId}";
 
-        // Replace tokens in name and description
-        string locationName = PlaceholderReplacer.ReplaceAll(spec.NamePattern, context, _gameWorld);
-        string locationDescription = PlaceholderReplacer.ReplaceAll(spec.DescriptionPattern, context, _gameWorld);
+        // Use patterns directly (AI generates complete text with entity context)
+        string locationName = spec.NamePattern;
+        string locationDescription = spec.DescriptionPattern;
 
         // Determine venue ID
         string venueId = DetermineVenueId(spec.VenueIdSource, context);
 
+        // FAIL-FAST BUDGET VALIDATION: Check venue capacity BEFORE creating DTO
+        // Since all locations persist forever, budget violations cannot be cleaned up
+        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Id == venueId);
+        if (venue == null)
+            throw new InvalidOperationException($"Venue '{venueId}' not found for location '{locationId}'");
+
+        if (!venue.CanAddMoreLocations())
+            throw new InvalidOperationException(
+                $"Venue '{venue.Id}' ({venue.Name}) has reached capacity " +
+                $"({venue.LocationIds.Count}/{venue.MaxLocations} locations). " +
+                $"Cannot add location '{locationId}'. " +
+                $"Increase MaxLocations or use different venue.");
+
         // Find hex placement (CRITICAL: ALL locations must have hex positions)
-        Location baseLocation = context.CurrentLocation;
-        if (baseLocation == null)
-            throw new InvalidOperationException($"Cannot place dependent location '{locationId}' - context.CurrentLocation is null");
+        AxialCoordinates? hexPosition;
 
-        AxialCoordinates? hexPosition = FindAdjacentHex(baseLocation, spec.HexPlacement);
-        if (!hexPosition.HasValue)
-            throw new InvalidOperationException($"Failed to find hex position for dependent location '{locationId}' using strategy '{spec.HexPlacement}'");
+        // SPATIAL CONSTRAINT: First location in venue vs. organic growth
+        if (venue.LocationIds.Count == 0 && venue.CenterHex.HasValue)
+        {
+            // First location in newly generated venue: place at venue center
+            // This respects venue separation (center already validated by VenueGeneratorService)
+            hexPosition = venue.CenterHex.Value;
+            Console.WriteLine($"[DependentLocation] Placing FIRST location '{locationId}' at venue center ({hexPosition.Value.Q}, {hexPosition.Value.R})");
+        }
+        else
+        {
+            // Organic growth: place adjacent to existing location in venue
+            Location baseLocation = context.CurrentLocation;
+            if (baseLocation == null)
+                throw new InvalidOperationException($"Cannot place dependent location '{locationId}' - context.CurrentLocation is null and venue has existing locations");
 
-        Console.WriteLine($"[DependentLocation] Placed '{locationId}' at hex ({hexPosition.Value.Q}, {hexPosition.Value.R}) adjacent to base location '{baseLocation.Id}'");
+            hexPosition = FindAdjacentHex(baseLocation, spec.HexPlacement);
+            if (!hexPosition.HasValue)
+                throw new InvalidOperationException($"Failed to find hex position for dependent location '{locationId}' using strategy '{spec.HexPlacement}'");
+
+            Console.WriteLine($"[DependentLocation] Placed '{locationId}' at hex ({hexPosition.Value.Q}, {hexPosition.Value.R}) adjacent to base location '{baseLocation.Id}'");
+        }
 
         // Build LocationDTO
         LocationDTO dto = new LocationDTO
@@ -1137,7 +1009,7 @@ public class SceneInstantiator
             Type = "Room", // Default type for generated locations
             InitialState = spec.IsLockedInitially ? "Locked" : "Available",
             CanInvestigate = spec.CanInvestigate,
-            CanWork = false, // Generated locations don't support work by default
+            CanWork = false, // Generated locations don't support work by default,
             WorkType = "",
             WorkPay = 0
         };
@@ -1163,9 +1035,9 @@ public class SceneInstantiator
         // Generate unique ID
         string itemId = $"{sceneId}_{spec.TemplateId}";
 
-        // Replace tokens in name and description
-        string itemName = PlaceholderReplacer.ReplaceAll(spec.NamePattern, context, _gameWorld);
-        string itemDescription = PlaceholderReplacer.ReplaceAll(spec.DescriptionPattern, context, _gameWorld);
+        // Use patterns directly (AI generates complete text with entity context)
+        string itemName = spec.NamePattern;
+        string itemDescription = spec.DescriptionPattern;
 
         // Build ItemDTO
         ItemDTO dto = new ItemDTO
@@ -1208,7 +1080,19 @@ public class SceneInstantiator
                 return context.CurrentLocation.VenueId; // Location.VenueId (source of truth)
 
             case VenueIdSource.GenerateNew:
-                throw new NotImplementedException("VenueIdSource.GenerateNew not yet implemented");
+                // Generate new venue for this location
+                VenueTemplate venueTemplate = new VenueTemplate
+                {
+                    NamePattern = "Generated Venue",
+                    DescriptionPattern = "A procedurally generated venue.",
+                    Type = VenueType.Merchant,
+                    Tier = context.CurrentLocation?.Tier ?? 1,
+                    District = context.CurrentLocation?.Venue?.District ?? "wilderness",
+                    MaxLocations = 20,
+                    HexAllocation = HexAllocationStrategy.ClusterOf7
+                };
+                Venue generatedVenue = _venueGenerator.GenerateVenue(venueTemplate, context, _gameWorld);
+                return generatedVenue.Id;
 
             default:
                 throw new InvalidOperationException($"Unknown VenueIdSource: {source}");
@@ -1218,8 +1102,9 @@ public class SceneInstantiator
     /// <summary>
     /// Find adjacent hex position for new location
     /// Implements HexPlacementStrategy.Adjacent and SameVenue logic (both find unoccupied adjacent hex)
+    /// INTERNAL: Exposed for unit testing venue separation during organic growth
     /// </summary>
-    private AxialCoordinates? FindAdjacentHex(Location baseLocation, HexPlacementStrategy strategy)
+    internal AxialCoordinates? FindAdjacentHex(Location baseLocation, HexPlacementStrategy strategy)
     {
         switch (strategy)
         {
@@ -1242,19 +1127,37 @@ public class SceneInstantiator
 
                 List<Hex> neighbors = hexMap.GetNeighbors(baseHex);
 
-                // Find first unoccupied neighbor
+                // CRITICAL: Maintain venue separation during organic growth
+                // Find first unoccupied neighbor that doesn't violate venue separation
+                string baseVenueId = baseLocation.VenueId;
+
                 foreach (Hex neighborHex in neighbors)
                 {
                     // Check if any location occupies this hex
                     bool hexOccupied = _gameWorld.Locations.Any(loc => loc.HexPosition.HasValue &&
                                                                        loc.HexPosition.Value.Equals(neighborHex.Coordinates));
-                    if (!hexOccupied)
+                    if (hexOccupied)
                     {
-                        return neighborHex.Coordinates;
+                        Console.WriteLine($"[VenueSeparation] Skipping hex ({neighborHex.Coordinates.Q}, {neighborHex.Coordinates.R}): Already occupied");
+                        continue; // Skip occupied hexes
                     }
+
+                    // SPATIAL CONSTRAINT: Check that placing location here maintains venue separation
+                    // The new location's neighbors must not contain locations from OTHER venues
+                    bool violatesSeparation = IsAdjacentToOtherVenue(neighborHex.Coordinates, baseVenueId);
+                    if (violatesSeparation)
+                    {
+                        Console.WriteLine($"[VenueSeparation] Skipping hex ({neighborHex.Coordinates.Q}, {neighborHex.Coordinates.R}): Would violate venue separation (adjacent to other venue)");
+                        continue; // Skip hexes that would violate separation
+                    }
+
+                    Console.WriteLine($"[VenueSeparation] Selected hex ({neighborHex.Coordinates.Q}, {neighborHex.Coordinates.R}) for organic growth (maintains separation)");
+                    return neighborHex.Coordinates;
                 }
 
-                throw new InvalidOperationException($"No unoccupied adjacent hexes found for location '{baseLocation.Id}'");
+                throw new InvalidOperationException(
+                    $"No unoccupied adjacent hexes found for location '{baseLocation.Id}' " +
+                    $"that maintain venue separation. Venue '{baseVenueId}' may have reached spatial density limit.");
 
             case HexPlacementStrategy.Distance:
             case HexPlacementStrategy.Random:
@@ -1266,15 +1169,81 @@ public class SceneInstantiator
     }
 
     /// <summary>
-    /// Build marker resolution map for self-contained scene using MarkerResolutionService
-    /// Maps "generated:{templateId}" markers to actual created resource IDs
-    /// Called after GenerateAndLoadDependentResources completes
-    /// Enables situations/choices to reference generated resources via markers
-    /// PUBLIC: Called by orchestrator after loading dependent resources
+    /// Check if a hex coordinate is adjacent to any location from a venue other than the specified venue.
+    /// Used to enforce venue separation during organic growth.
     /// </summary>
-    public void BuildMarkerResolutionMap(Scene scene)
+    private bool IsAdjacentToOtherVenue(AxialCoordinates hexCoords, string currentVenueId)
     {
-        scene.MarkerResolutionMap = _markerResolutionService.BuildMarkerResolutionMap(scene);
-        Console.WriteLine($"[SceneInstantiator] Built marker resolution map for scene '{scene.Id}' with {scene.MarkerResolutionMap.Count} entries");
+        AxialCoordinates[] neighbors = hexCoords.GetNeighbors();
+
+        foreach (AxialCoordinates neighborCoords in neighbors)
+        {
+            // Check if any location exists at this neighbor position
+            Location neighborLocation = _gameWorld.Locations.FirstOrDefault(loc =>
+                loc.HexPosition.HasValue &&
+                loc.HexPosition.Value.Equals(neighborCoords));
+
+            if (neighborLocation != null)
+            {
+                // If location exists and belongs to DIFFERENT venue, separation violated
+                if (!string.IsNullOrEmpty(neighborLocation.VenueId) &&
+                    neighborLocation.VenueId != currentVenueId)
+                {
+                    return true; // Adjacent to other venue
+                }
+            }
+        }
+
+        return false; // Not adjacent to other venues
+    }
+
+    /// <summary>
+    /// Convert PlacementFilter domain entity to PlacementFilterDTO for JSON serialization
+    /// System 3: Writes categorical specifications to JSON (NO entity resolution)
+    /// </summary>
+    private PlacementFilterDTO ConvertPlacementFilterToDTO(PlacementFilter filter)
+    {
+        if (filter == null)
+            return null;
+
+        return new PlacementFilterDTO
+        {
+            PlacementType = filter.PlacementType.ToString(),
+            SelectionStrategy = filter.SelectionStrategy.ToString(),
+            // NPC filters
+            PersonalityTypes = filter.PersonalityTypes?.Select(p => p.ToString()).ToList(),
+            Professions = filter.Professions?.Select(p => p.ToString()).ToList(),
+            RequiredRelationships = filter.RequiredRelationships?.Select(r => r.ToString()).ToList(),
+            MinTier = filter.MinTier,
+            MaxTier = filter.MaxTier,
+            MinBond = filter.MinBond,
+            MaxBond = filter.MaxBond,
+            NpcTags = filter.NpcTags,
+            // Location filters
+            LocationTypes = filter.LocationTypes?.Select(t => t.ToString()).ToList(),
+            LocationProperties = filter.LocationProperties?.Select(p => p.ToString()).ToList(),
+            IsPlayerAccessible = filter.IsPlayerAccessible,
+            LocationTags = filter.LocationTags,
+            DistrictId = filter.DistrictId,
+            RegionId = filter.RegionId,
+            // Route filters
+            TerrainTypes = filter.TerrainTypes,
+            RouteTier = filter.RouteTier,
+            MinDifficulty = filter.MinDifficulty,
+            MaxDifficulty = filter.MaxDifficulty,
+            RouteTags = filter.RouteTags,
+            // Variety control
+            ExcludeRecentlyUsed = filter.ExcludeRecentlyUsed,
+            // Player state filters
+            RequiredStates = filter.RequiredStates?.Select(s => s.ToString()).ToList(),
+            ForbiddenStates = filter.ForbiddenStates?.Select(s => s.ToString()).ToList(),
+            RequiredAchievements = filter.RequiredAchievements,
+            ScaleRequirements = filter.ScaleRequirements?.Select(r => new ScaleRequirementDTO
+            {
+                ScaleType = r.ScaleType.ToString(),
+                MinValue = r.MinValue,
+                MaxValue = r.MaxValue
+            }).ToList()
+        };
     }
 }

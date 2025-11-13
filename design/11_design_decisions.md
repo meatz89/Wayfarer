@@ -144,128 +144,271 @@ Additionally, authoring multiple satisfying endings is expensive, yet most playe
 ### Related Decisions
 - DDR-007: Four-Choice Pattern (guarantees forward progress)
 - DDR-006: Categorical Property Scaling (enables balanced procedural content)
-- DDR-002: Tag-Based Scene Dependencies (supports procedural spawning)
+- DDR-002: Resource-Based Scene Dependencies (progression through resource thresholds)
 
 ---
 
-## DDR-002: Tag-Based Scene Dependencies vs Hardcoded Scene Chains
+## DDR-002: 5-System Scene Spawning Architecture
 
 ### Status
 **Active** - Core progression architecture
 
 ### Context
 
-Need progression structure supporting both authored tutorial and procedural content. Traditional approaches use hardcoded chains (A1 → A2 → A3) which work for fixed content but break for procedural generation. Player actions should unlock new content naturally based on accumulated capabilities and knowledge, not arbitrary flag checks.
+Infinite procedural narrative requires spawning scenes that don't exist yet. Cannot reference specific entity IDs (NPCs, locations) in preauthored content because procedural world generation means those IDs won't exist. Must support spatial freedom (player moves between locations) while maintaining clean separation of concerns across the spawning pipeline.
+
+Solution must work for both authored tutorial content and fully procedural content. Must maintain guaranteed progression (no soft-locks) via Four-Choice Pattern while enabling entity reuse when possible and generation when needed.
 
 ### Decision
 
-**Scenes spawn based on player state tags (RequiresTags/GrantsTags system)** instead of hardcoded predecessor/successor relationships.
+**Scenes spawn via reward-driven 5-system architecture. Categorical filters throughout. Entity resolution via FindOrCreate pattern (query existing first, generate if needed). Direct object references, no enum dispatch, no string ID lookups.**
 
-**Tag System Architecture:**
-- Each Scene defines RequiresTags (what player needs to spawn this scene)
-- Each Scene defines GrantsTags (what player gains upon completion)
-- Scene spawning evaluates RequiresTags against player's accumulated tags
-- No hardcoded scene chains - flexible graph structure
+**The Five Systems:**
 
-**Example Flow:**
-```
-A1 completes → Grants ["tutorial_complete", "knows_innkeeper"]
-A2 requires ["tutorial_complete"]
-A3 requires ["tutorial_complete", "met_merchant"]
-B-Story-1 requires ["knows_innkeeper", "has_5_coins"]
-```
+**System 1: Scene Selection (Decision Logic)**
+- **Responsibility:** Decide WHEN to spawn scene based on game state
+- **Location:** SceneFacade, SituationRewardExecutor
+- **Operations:** Evaluate SpawnConditions (RequiredTags, MinDay, StatThresholds), check eligibility when choice executed
 
-Player can pursue A2, A3, or B-Story-1 in any order once requirements met.
+**System 2: Scene Specification (Data Structure)**
+- **Responsibility:** Store categorical requirements ONLY (no concrete entity IDs)
+- **Data:** SceneTemplateId (categorical template), PlacementFilterOverride (optional filter tweaks)
+- **Key Principle:** NO ContextBinding, NO PlacementRelation enum, NO concrete IDs
+
+**System 3: Package Generator (SceneInstantiator)**
+- **Responsibility:** Create JSON package with PlacementFilterDTO, does NOT resolve entities
+- **Operations:** Load template, write categorical filters to JSON (LocationFilter, NpcFilter, RouteFilter)
+- **Output:** SceneDTO package with categorical specs
+- **Key Principle:** Does NOT call FindOrCreate, does NOT write concrete IDs
+
+**System 4: Entity Resolver (EntityResolver in PackageLoader)**
+- **Responsibility:** Resolve categorical filters to concrete entity objects via FindOrCreate
+- **Pattern:** Query existing entities first (reuse), generate new if no match (eager creation)
+- **Methods:** FindOrCreateLocation(filter), FindOrCreateNPC(filter), FindOrCreateRoute(filter)
+- **Output:** Pre-resolved entity objects (NOT IDs)
+
+**System 5: Scene Instantiator (SceneParser in PackageLoader)**
+- **Responsibility:** Create Scene with direct object references from pre-resolved entities
+- **Operations:** Receive pre-resolved objects, create Scene with direct properties (Scene.Location, Scene.Npc, Scene.Route)
+- **Key Principle:** NO resolution logic, NO PlacementType enum, NO string ID lookups
+
+**Complete Flow:**
+
+**Authoring Time:** Designer specifies SceneSpawnReward with template ID. Template defines PlacementFilter with categorical requirements.
+
+**Runtime (Choice Execution):**
+1. System 1: Check eligibility (SpawnConditions satisfied?)
+2. System 2: Read reward data (SceneTemplateId only)
+3. System 3: Generate package with PlacementFilterDTO (categorical specs → JSON)
+4. System 4: EntityResolver reads filters, FindOrCreate for each entity type (query → reuse or generate), returns objects
+5. System 5: SceneParser receives objects, creates Scene with direct references (Scene.Location = resolvedLocation object)
+
+**AI Narrative Generation (After Resolution):**
+- Entities already resolved (Elena, The Silver Hart Inn, Guest Room)
+- AI receives entity context as input
+- AI generates complete narrative with concrete names
+- NO placeholders, NO markers
+
+**Main Story Pattern (Guaranteed Sequential Progression):**
+- Final situation: ALL FOUR CHOICES spawn same template (guaranteed progression)
+- Different entry state tags per choice (RespectedAuthority, GenerousPatron, SkilledNegotiator, PatientHelper)
+- Same destination template, different relationship/reputation context
+- Categorical placement throughout (no context-relative, no absolute IDs after tutorial)
+- SpawnConditions: AlwaysEligible (no eligibility gates)
+- Infinite chain: secure_lodging → gather_testimony → investigate_location → (procedural) → ∞
+
+**Example Categorical Placement Flow:**
+
+**Scenario**: A12 investigation at palace completes → A13 crime scene spawns
+
+1. **System 1**: A12 final choice executed, spawns "investigate_crime_scene" template
+2. **System 2**: SceneSpawnReward { SceneTemplateId: "investigate_crime_scene" }
+3. **System 3**: Load template, write PlacementFilterDTO { LocationProperties: [Private, Indoor, Discrete], LocationTags: [crime_scene] }
+4. **System 4**: EntityResolver.FindOrCreateLocation(filter)
+   - Query: gameWorld.Locations.Where(loc => matches filter)
+   - Result: crime_scene_location (existing or generated)
+5. **System 5**: Scene created with Scene.Location = crime_scene_location (direct object reference)
+
+**Result**: Scene spawns at crime scene (categorical match), NOT at palace (no context-relative). Location type varies based on scene archetype needs.
+
+**Side Story Pattern (State-Based Eligibility):**
+- Scenes spawn via choice rewards (same as main story)
+- SpawnConditions determine when spawned scenes visible
+- Example: Completing `secure_lodging` grants "EstablishedInWestmarch" tag
+- Side stories with RequiredTags ["EstablishedInWestmarch"] become accessible
+- Spawning happens via rewards, eligibility via state checks
+
+**Requirements Gate Choices, Not Scenes:**
+- Four-Choice Pattern: Stat-gated (optimal), Money-gated (reliable), Challenge (risky), Guaranteed (patient)
+- Requirements determine WHICH choices player can see/select
+- Choice 4 (fallback) has zero requirements (always available)
+- Prevents soft-locks: player can always progress via guaranteed path
+
+**Example: Four-Choice Main Story Flow:**
+
+Scene "secure_lodging" final situation presents four choices, ALL spawning "gather_testimony" template:
+
+1. **Stat-Gated** (Requires Authority 5) → Tag: RespectedAuthority → Spawns: gather_testimony
+2. **Money-Gated** (Costs 15 coins) → Tag: GenerousPatron → Spawns: gather_testimony
+3. **Challenge** (Social challenge) → Tag: SkilledNegotiator or EarnestStruggler → Spawns: gather_testimony
+4. **Fallback** (No requirements) → Tag: PatientHelper → Spawns: gather_testimony
+
+All four spawn identical template. Player chooses HOW to enter (relationship quality), not IF they progress. Location types vary across scenes (inn → marketplace → crime scene → palace) based on categorical filters.
 
 ### Alternatives Considered
 
-**Option A: Tag-Based Dependencies (Chosen)**
+**Option A: 5-System Architecture with FindOrCreate (Chosen)**
 - **Pros:**
-  - Flexible branching (multiple paths available)
-  - Supports player agency (choose priority)
-  - Procedural-friendly (AI can generate scenes with categorical tags)
-  - Enables cross-storyline dependencies
-  - No rigid railroad
+  - Clean separation of concerns (five distinct systems)
+  - No hardcoded entity IDs (categorical filters throughout)
+  - Entity reuse automatic (query-first FindOrCreate pattern)
+  - Direct object references (no enum dispatch)
+  - Eager resolution (entities resolved before scene construction)
+  - Supports guaranteed progression (all final situation choices spawn next template)
+  - Works for infinite procedural narrative
+  - HIGHLANDER compliant (one placement mechanism)
 - **Cons:**
-  - More complex validation (must prevent soft-locks via tag analysis)
-  - Requires careful tag design
-  - Can create "tag soup" if poorly managed
-- **Why Chosen:** Enables branching, supports procedural content, maintains player agency
+  - Requires five systems to maintain (increased complexity)
+  - No separate "explicit generation" mechanism (generation automatic)
+  - Main story final situations must have ALL choices spawn next template (stricter constraint)
+- **Why Chosen:** Only architecture providing clean separation of concerns while supporting infinite procedural content. FindOrCreate pattern elegant for entity reuse/generation.
 
-**Option B: Hardcoded Scene Chains (Rejected)**
+**Option B: Hardcoded Entity ID References (Rejected)**
 - **Pros:**
-  - Simple to validate (linear chain)
-  - Easy to author (just sequence)
-  - Clear progression path
+  - Simplest to implement for authored content
+  - Direct references, no resolution needed
 - **Cons:**
-  - Railroad (one path only)
-  - No player agency
-  - Procedural content can't insert naturally
-  - Inflexible (changes require surgery)
-- **Why Rejected:** Too rigid, kills player agency, incompatible with procedural generation
+  - Breaks with procedural generation (entity IDs don't exist yet)
+  - Cannot reference NPCs/locations in future scenes
+  - No spatial freedom (player locked to preauthored chains)
+- **Why Rejected:** Incompatible with procedural world generation. Cannot create infinite content with hardcoded IDs.
 
-**Option C: Boolean Flag Dependencies (Rejected)**
+**Option C: PlacementRelation Enum with Three Mechanisms (Rejected)**
 - **Pros:**
-  - Flexible (many flags possible)
-  - Simple to check
+  - Flexible (context-relative, absolute, categorical as separate options)
+  - Can choose placement strategy per scene
 - **Cons:**
-  - Destroys strategic depth (flag checks = boolean gates)
-  - No resource competition
-  - Violates Requirement Inversion Principle
-  - Creates Cookie Clicker pattern
-- **Why Rejected:** Violates core design principle (resource arithmetic over boolean gates)
+  - Violates HIGHLANDER (three placement mechanisms, not one)
+  - PlacementType enum dispatch pattern (string ID lookups)
+  - Context-relative creates location type lock-in
+  - Absolute requires hardcoded IDs (doesn't scale)
+  - Three mechanisms = three implementations to maintain
+- **Why Rejected:** Violates HIGHLANDER principle. Multiple mechanisms when one (categorical) sufficient.
 
-**Option D: Level Gating (Player Level Required) (Rejected)**
+**Option D: ContextBinding with MarkerResolution (Rejected)**
 - **Pros:**
-  - Simple to balance
-  - Clear progression curve
+  - Preserves narrative continuity (quest giver, return location)
+  - Display-time binding enables perfect information
 - **Cons:**
-  - Not verisimilitude (why does innkeeper care about player level?)
-  - Arbitrary gates
-  - Doesn't reflect narrative logic
-- **Why Rejected:** Breaks fiction, arbitrary gating
+  - Tight coupling (scenes pass entity IDs to child scenes)
+  - MarkerResolutionMap complexity (string markers, placeholder replacement)
+  - "generated:" prefix system needed
+  - PlaceholderReplacer for {NPCName}, {locationName} patterns
+  - Separate concern from placement (orthogonal systems)
+  - Dictionary antipattern risk
+- **Why Rejected:** Too complex. Narrative generation should happen AFTER entity resolution with concrete names, not via placeholder replacement.
 
 ### Rationale
 
 **Design Principle Alignment:**
-- Supports player agency through branching (TIER 2: Core Experience)
-- Enables resource-based progression (tags as accumulated knowledge/capabilities)
-- Maintains verisimilitude (gates based on narrative logic, not arbitrary level)
+- **No Soft-Locks (TIER 1):** Main story final situations have ALL choices spawning next template, guaranteed path always available
+- **HIGHLANDER (TIER 1):** One placement mechanism (categorical filters), not three (context-relative/absolute/categorical)
+- **Perfect Information (TIER 2):** Requirements visible before commitment, clear causality (choice execution → scene spawning)
+- **Four-Choice Pattern (TIER 2):** Requirements gate choice availability, guaranteed path ensures progression
+- **Requirement Inversion Principle (TIER 2):** Resource thresholds for choices, not scene spawning
+- **Reward-Driven Progression:** Player actions cause world changes, not passive unlocking
+- **Type Safety:** Direct object references (Scene.Location), not PlacementType enum + PlacementId string
 
-**Enables Procedural Content:**
-- AI can generate scenes with categorical tag requirements ("requires_met_merchant" not hardcoded ID)
-- New scenes slot into existing tag graph naturally
-- Cross-references emergent rather than manually authored
+**How This Solves Procedural Narrative Problem:**
 
-**Supports Multiple Storylines:**
-- A-story, B-stories, C-stories all use same tag system
-- Dependencies across storylines possible (B-story unlocks A-story path)
-- No artificial separation
+**Categorical Filters Throughout:**
+- Template specifies PlacementFilterDTO with categorical requirements
+- LocationProperties: [Indoor, Private, Safe]
+- NpcPersonalityTypes: [Innkeeper, Merchant]
+- LocationTags: [lodging, secure]
+- NO concrete entity IDs ("elena", "common_room_inn")
+- Works for authored AND procedural content
+
+**FindOrCreate Pattern (Entity Reuse + Generation):**
+- System 4 (EntityResolver) queries existing entities first
+- Query: gameWorld.Locations.Where(loc => matches filter)
+- If match found: return existing entity (reuse Elena, Silver Hart Inn)
+- If no match: generate new entity (create new innkeeper, new lodging)
+- Automatic balancing of reuse vs generation
+- No separate "explicit generation" mechanism needed
+
+**Direct Object References (No Enum Dispatch):**
+- Scene has Location/Npc/Route object properties
+- NOT PlacementType enum + PlacementId string
+- NOT string ID lookups with type dispatch
+- Entities pre-resolved by System 4 before System 5 constructs scene
+- Clean, type-safe, no runtime string matching
+
+**How This Prevents Soft-Locks:**
+
+**Main Story Guarantee:**
+- Final situation: 4 choices
+- ALL 4 choices: ScenesToSpawn reward → same next template
+- Choice 4 (fallback): zero requirements
+- Even with 0 coins, minimum stats, no resources
+- Choice 4 always available → always spawns next template
+- Forward progress architecturally guaranteed
+- Same destination, different entry states (reputation/relationship context)
+
+**Entry State Variations:**
+- Same template spawned from all paths
+- Different entry state tags (RespectedAuthority, GenerousPatron, SkilledNegotiator, PatientHelper)
+- Narrative tone varies (NPC reactions, dialogue)
+- Progression identical (all reach same situations)
+- Player chooses experience quality, cannot block progression
+
+**Side Story Eligibility:**
+- Scenes spawn via choice rewards
+- SpawnConditions determine when visible
+- Tags gate VISIBILITY, not spawning
+- Spawning immediate, visibility conditional
 
 ### Consequences
 
 **Positive:**
-- **Flexible Branching**: Multiple valid progression paths
-- **Player Agency**: Choose which scenes to pursue when requirements met
-- **Procedural Integration**: AI-generated scenes use same dependency system
-- **Cross-Storyline Synergy**: Knowledge from one story enables options in another
-- **No Railroad**: Player controls pacing and priority
+- **Solves Procedural Narrative Problem:** Can spawn scenes without hardcoded entity IDs
+- **Guaranteed Forward Progress:** Main story cannot soft-lock (all final situation choices spawn next template)
+- **Clean Separation of Concerns:** Five distinct systems, each with one responsibility
+- **Entity Reuse Automatic:** FindOrCreate queries existing first (reuse authored/generated content)
+- **Direct Object References:** Scene.Location/Npc/Route object properties (no enum dispatch)
+- **Eager Resolution:** Entities resolved before scene construction (clean dependency flow)
+- **Type-Safe:** No PlacementType enum, no string ID lookups, no runtime string matching
+- **HIGHLANDER Compliant:** One placement mechanism (categorical filters), not three
+- **Entry State Variations:** Same template, different narrative tones (replayability)
+- **Requirements Gate Choices:** Player sees exact stat/coin thresholds before commitment
+- **No Hidden Triggers:** No timers, location checks, or passive unlocking
+- **Supports Infinite Content:** Categorical filters work for procedural generation
+- **Tutorial Architecture:** First three scenes authored, procedural continuation after
+- **AI Narrative After Resolution:** Entities resolved first, AI generates with concrete names (no placeholders)
 
 **Negative:**
-- **Complex Validation**: Must analyze tag graph to prevent soft-locks
-- **Tag Design Required**: Poor tag choices create confusion
-- **Debugging Harder**: Non-linear progression harder to trace
-- **Can Create Orphans**: Scenes with impossible requirements if tags poorly designed
+- **Five Systems Complexity:** Must maintain five distinct systems
+- **No Separate Generation Mechanism:** Generation automatic when no match (cannot force generation)
+- **Main Story Final Situations Constrained:** MUST have all choices spawn next template (stricter than normal)
+- **No Ambient Spawning:** All content must be reward-connected (no passive appearance)
 
 **Trade-Offs:**
-- Sacrifices linear simplicity for branching flexibility
-- Requires validation tooling (tag graph analyzer)
-- More complex content authoring (must think about tags)
+- Sacrifices ambient spawning for guaranteed progression
+- Constrains main story final situations (all spawn next template) for architectural guarantee
+- Five systems complexity but clean separation of concerns
+- Automatic generation (FindOrCreate) vs separate explicit generation control
+
+**Implementation Requirements:**
+- SceneSpawnReward: SceneTemplateId property (categorical), PlacementFilterOverride optional
+- EntityResolver: FindOrCreateLocation/NPC/Route methods implementing query-first pattern
+- SceneParser: Receive pre-resolved objects as parameters, create Scene with direct properties
+- SceneInstantiator: Write PlacementFilterDTO to JSON, do NOT resolve entities
+- SceneTemplate: PlacementFilter with categorical requirements (LocationProperties, NpcPersonalityTypes, LocationTags)
 
 ### Related Decisions
-- DDR-001: Infinite A-Story (procedural content needs flexible dependencies)
-- DDR-007: Four-Choice Pattern (always includes zero-requirement fallback preventing soft-locks)
-- DDR-006: Categorical Property Scaling (tags use categorical properties)
+- DDR-001: Infinite Procedural Story (categorical filters enable spawning scenes without hardcoded IDs)
+- DDR-007: Four-Choice Pattern (guaranteed path with zero requirements prevents soft-locks)
+- DDR-006: Categorical Property Scaling (templates use categories, not hardcoded IDs)
 
 ---
 
@@ -650,11 +793,8 @@ Need infinite procedural content with consistent balance. Hand-tuning every inst
 - PowerDynamic: Dominant (0.6×), Equal (1.0×), Submissive (1.4×) → scales authority checks
 
 **Example:**
-```
-Base: StatThreshold 5, CoinCost 8
-Context: Friendly NPC, Premium Quality, Equal Power
-Scaled: StatThreshold 3 (5 × 0.6), CoinCost 13 (8 × 1.6)
-```
+
+Starting from baseline stat threshold and coin cost values, applying categorical properties for a friendly NPC with premium quality and equal power dynamic results in reduced stat requirements due to the friendly demeanor while increased coin costs due to premium quality. The friendly multiplier makes the interaction easier while the premium multiplier makes it more expensive.
 
 ### Alternatives Considered
 
@@ -745,7 +885,7 @@ Scaled: StatThreshold 3 (5 × 0.6), CoinCost 13 (8 × 1.6)
 
 ### Related Decisions
 - DDR-001: Infinite A-Story (procedural content needs scaling)
-- DDR-002: Tag-Based Dependencies (tags also use categorical properties)
+- DDR-002: Resource-Based Dependencies (resource thresholds use categorical properties)
 
 ---
 
@@ -1268,7 +1408,7 @@ These ten DDRs represent the foundational game design decisions shaping Wayfarer
 
 **Trade-Off Patterns:**
 - Sacrifices narrative closure for infinite content (DDR-001)
-- Sacrifices simplicity for branching flexibility (DDR-002)
+- Sacrifices simplicity for resource transparency (DDR-002 resource thresholds over boolean flags)
 - Sacrifices player comfort for strategic depth (DDR-004)
 - Sacrifices uniformity for verisimilitude (DDR-010)
 

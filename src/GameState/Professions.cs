@@ -1,9 +1,13 @@
 public enum Professions
 {
+    Commoner,       // General populace, undefined profession (fallback)
     Soldier,        // Guards, laborers, physical workers
     Scholar,        // Researchers, academics, librarians
     Merchant,       // Traders, shop owners, general merchants
     Craftsman,      // Smiths, carpenters, artisans
+    Artisan,        // Skilled craftspeople, artists, specialized makers
+    Courier,        // Messengers, delivery workers, postal service
+    Healer,         // Physicians, herbalists, medical practitioners
     Innkeeper,      // Hotel and lodging managers, tavern keepers
     TavernKeeper,
     Scribe,

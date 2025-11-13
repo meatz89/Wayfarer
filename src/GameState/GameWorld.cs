@@ -1015,26 +1015,50 @@ public class GameWorld
 
     /// <summary>
     /// Add or update location spot
+    /// CRITICAL: Maintains bidirectional Venue ↔ Location relationship
+    /// Updates existing location IN-PLACE (no removal - entities persist forever)
     /// </summary>
     public void AddOrUpdateLocation(string locationId, Location location)
     {
         Location existing = Locations.FirstOrDefault(l => l.Id == locationId);
         if (existing != null)
         {
-            Locations.Remove(existing);
-        }
-        Locations.Add(location);
-    }
+            // UPDATE EXISTING IN-PLACE - Never remove entities
+            // Handle venue change: remove from old venue's LocationIds, add to new
+            if (existing.Venue != null && existing.Venue.Id != location.VenueId)
+            {
+                existing.Venue.LocationIds.Remove(existing.Id);
+            }
 
-    /// <summary>
-    /// Remove location spot
-    /// </summary>
-    public void RemoveLocation(string locationId)
-    {
-        Location existing = Locations.FirstOrDefault(l => l.Id == locationId);
-        if (existing != null)
+            // Copy all properties from new location to existing (preserve object identity)
+            existing.Name = location.Name;
+            existing.VenueId = location.VenueId;
+            existing.Venue = location.Venue;
+            existing.InitialState = location.InitialState;
+            existing.IsLocked = location.IsLocked;
+            existing.HexPosition = location.HexPosition;
+            existing.CurrentTimeBlocks = location.CurrentTimeBlocks;
+            existing.LocationProperties = location.LocationProperties;
+            existing.DomainTags = location.DomainTags;
+            existing.IsSkeleton = false; // Mark as no longer skeleton
+            existing.Tier = location.Tier;
+            // Provenance intentionally NOT copied - preserve creation metadata
+        }
+        else
         {
-            Locations.Remove(existing);
+            // New location - add to collection
+            Locations.Add(location);
+        }
+
+        // CRITICAL: Maintain bidirectional relationship (Venue.LocationIds ↔ Location.Venue)
+        // Capacity budget system depends on venue.LocationIds.Count being accurate
+        if (location.Venue != null && !location.Venue.LocationIds.Contains(location.Id))
+        {
+            location.Venue.LocationIds.Add(location.Id);
+        }
+        else if (existing != null && existing.Venue != null && !existing.Venue.LocationIds.Contains(existing.Id))
+        {
+            existing.Venue.LocationIds.Add(existing.Id);
         }
     }
 

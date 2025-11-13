@@ -273,13 +273,23 @@ public class SocialNarrativeService
 
         foreach (CardInstance card in cards)
         {
+            SocialCard template = card.SocialCardTemplate;
+            CardEffectFormula formula = template.EffectFormula;
+
             CardInfo cardInfo = new CardInfo
             {
-                Id = card.SocialCardTemplate.Id,
-                InitiativeCost = card.SocialCardTemplate.InitiativeCost,
-                Effect = card.SocialCardTemplate.SuccessType.ToString() ?? card.SocialCardTemplate.Title ?? "",
+                Id = template.Id,
+                InitiativeCost = template.InitiativeCost,
+                Move = template.Move,
+                BoundStat = template.BoundStat,
+                Depth = template.Depth,
+                PrimaryTargetResource = formula?.FormulaType == EffectFormulaType.Compound ? null : formula?.TargetResource,
+                PrimaryFormulaType = formula?.FormulaType,
+                IsCompound = formula?.FormulaType == EffectFormulaType.Compound,
                 Persistence = DetermineCardPersistence(card),
-                NarrativeCategory = DetermineNarrativeCategory(card)
+                NarrativeCategory = DetermineNarrativeCategory(card),
+                HasDrawEffect = DetermineHasDrawEffect(card),
+                HasFocusEffect = DetermineHasFocusEffect(card)
             };
 
             collection.Cards.Add(cardInfo);
@@ -289,27 +299,76 @@ public class SocialNarrativeService
     }
 
     /// <summary>
+    /// Determines if card has a draw effect (draws additional cards).
+    /// </summary>
+    private bool DetermineHasDrawEffect(CardInstance card)
+    {
+        // Check if card's effect formula targets the Cards resource
+        if (card.SocialCardTemplate.EffectFormula != null)
+        {
+            if (card.SocialCardTemplate.EffectFormula.TargetResource == SocialChallengeResourceType.Cards)
+                return true;
+
+            // Check compound effects
+            if (card.SocialCardTemplate.EffectFormula.CompoundEffects != null)
+            {
+                foreach (CardEffectFormula effect in card.SocialCardTemplate.EffectFormula.CompoundEffects)
+                {
+                    if (effect.TargetResource == SocialChallengeResourceType.Cards)
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Determines if card has a focus effect (manipulates initiative/momentum).
+    /// </summary>
+    private bool DetermineHasFocusEffect(CardInstance card)
+    {
+        // Check if card's effect formula targets Initiative or Momentum resources
+        if (card.SocialCardTemplate.EffectFormula != null)
+        {
+            if (card.SocialCardTemplate.EffectFormula.TargetResource == SocialChallengeResourceType.Initiative ||
+                card.SocialCardTemplate.EffectFormula.TargetResource == SocialChallengeResourceType.Momentum)
+                return true;
+
+            // Check compound effects
+            if (card.SocialCardTemplate.EffectFormula.CompoundEffects != null)
+            {
+                foreach (CardEffectFormula effect in card.SocialCardTemplate.EffectFormula.CompoundEffects)
+                {
+                    if (effect.TargetResource == SocialChallengeResourceType.Initiative ||
+                        effect.TargetResource == SocialChallengeResourceType.Momentum)
+                        return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Extracts current crisis information from NPC data.
     /// </summary>
     /// <param name="npc">NPC to analyze</param>
     /// <returns>Crisis description or null if no crisis</returns>
     private string ExtractCurrentCrisis(NPC npc)
     {
-        // Look for crisis indicators in NPC state or description
-        if (npc.CurrentState == ConnectionState.DISCONNECTED)
+        // Return crisis type as string for narrative generation
+        // Crisis is set at parse-time or spawning, not detected via string matching
+        if (npc.CurrentState == ConnectionState.DISCONNECTED && npc.Crisis != CrisisType.None)
         {
-            // Check for common crisis patterns in personality description
-            string personality = npc.PersonalityDescription?.ToLower() ?? "";
-
-            if (personality.Contains("forced") || personality.Contains("marriage"))
-                return "forced_marriage";
-            if (personality.Contains("debt") || personality.Contains("money"))
-                return "financial_troubles";
-            if (personality.Contains("family") || personality.Contains("children"))
-                return "family_crisis";
-
-            // Generic crisis for disconnected NPCs without specific patterns
-            return "personal_troubles";
+            return npc.Crisis switch
+            {
+                CrisisType.ForcedMarriage => "forced_marriage",
+                CrisisType.FinancialTroubles => "financial_troubles",
+                CrisisType.FamilyCrisis => "family_crisis",
+                CrisisType.PersonalTroubles => "personal_troubles",
+                _ => null
+            };
         }
 
         return null;
@@ -349,12 +408,12 @@ public class SocialNarrativeService
     /// </summary>
     /// <param name="card">Card instance to categorize</param>
     /// <returns>Narrative category string</returns>
-    private string DetermineNarrativeCategory(CardInstance card)
+    private NarrativeCategoryType DetermineNarrativeCategory(CardInstance card)
     {
         // Check for atmosphere effects (indicates risk/pressure cards)
         if (card.SocialCardTemplate.SuccessType == SuccessEffectType.None)
         {
-            return "atmosphere_change";
+            return NarrativeCategoryType.Atmosphere;
         }
 
         // DELETED: Difficulty-based risk assessment
@@ -362,19 +421,19 @@ public class SocialNarrativeService
 
         // Card persistence-based categories
         if (card.Persistence == PersistenceType.Statement)
-            return "pressure";
+            return NarrativeCategoryType.Pressure;
 
         // Token type indicates support/connection building
         if (card.SocialCardTemplate.TokenType == ConnectionType.Trust)
-            return "support_trust";
+            return NarrativeCategoryType.SupportTrust;
         if (card.SocialCardTemplate.TokenType == ConnectionType.Diplomacy)
-            return "support_diplomacy";
+            return NarrativeCategoryType.SupportDiplomacy;
         if (card.SocialCardTemplate.TokenType == ConnectionType.Status)
-            return "support_status";
+            return NarrativeCategoryType.SupportStatus;
         if (card.SocialCardTemplate.TokenType == ConnectionType.Shadow)
-            return "support_shadow";
+            return NarrativeCategoryType.SupportShadow;
 
         // Default
-        return "standard";
+        return NarrativeCategoryType.Standard;
     }
 }

@@ -14,12 +14,16 @@
 /// JSON specifies aStoryArchetypeId → Parser calls catalogue → Receives SituationTemplates + SpawnRules
 /// → Parser stores in SceneTemplate → Runtime queries GameWorld.SceneTemplates (NO catalogue calls)
 ///
-/// A-STORY ARCHETYPES (Main story narrative beats):
-/// Investigation: seek_audience, investigate_location, gather_testimony, analyze_clues
-/// Confrontation: confront_antagonist, challenge_authority, demand_answers, expose_corruption
-/// Social: meet_order_member, negotiate_alliance, social_infiltration, gain_trust
-/// Discovery: discover_artifact, uncover_conspiracy, reveal_truth, find_passage
-/// Crisis: urgent_decision, moral_crossroads, life_or_death, sacrifice_choice
+/// A-STORY ARCHETYPES (9 fully implemented archetypes):
+/// Investigation: seek_audience, investigate_location, gather_testimony
+/// Confrontation: confront_antagonist
+/// Social: meet_order_member
+/// Discovery: discover_artifact, uncover_conspiracy
+/// Crisis: urgent_decision, moral_crossroads
+///
+/// NOTE: 6 archetypes removed (were stub implementations throwing NotImplementedException):
+/// - gain_trust, challenge_authority, expose_corruption, social_infiltration, reveal_truth, sacrifice_choice
+/// These may be re-added when fully implemented
 ///
 /// Each archetype defines:
 /// - Specific situation count and structure (2-4 situations)
@@ -57,14 +61,8 @@ public static class AStorySceneArchetypeCatalog
             "uncover_conspiracy" => GenerateUncoverConspiracy(tier, context),
             "urgent_decision" => GenerateUrgentDecision(tier, context),
             "moral_crossroads" => GenerateMoralCrossroads(tier, context),
-            "gain_trust" => GenerateGainTrust(tier, context),
-            "challenge_authority" => GenerateChallengeAuthority(tier, context),
-            "expose_corruption" => GenerateExposeCorruption(tier, context),
-            "social_infiltration" => GenerateSocialInfiltration(tier, context),
-            "reveal_truth" => GenerateRevealTruth(tier, context),
-            "sacrifice_choice" => GenerateSacrificeChoice(tier, context),
 
-            _ => throw new InvalidDataException($"Unknown A-Story archetype ID: '{archetypeId}'. Valid archetypes: seek_audience, investigate_location, gather_testimony, confront_antagonist, meet_order_member, discover_artifact, uncover_conspiracy, urgent_decision, moral_crossroads, gain_trust, challenge_authority, expose_corruption, social_infiltration, reveal_truth, sacrifice_choice")
+            _ => throw new InvalidDataException($"Unknown A-Story archetype ID: '{archetypeId}'. Valid archetypes: seek_audience, investigate_location, gather_testimony, confront_antagonist, meet_order_member, discover_artifact, uncover_conspiracy, urgent_decision, moral_crossroads")
         };
     }
 
@@ -370,7 +368,16 @@ public static class AStorySceneArchetypeCatalog
     };
 
         // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        EnrichFinalSituationWithNextASceneSpawn(situations, context);
+        // A3 (authored tutorial) is terminal - no next scene spawn
+        // A11+ (procedural) uses standard enrichment with generic pattern
+        if (context.AStorySequence.HasValue && context.AStorySequence.Value == 3)
+        {
+            Console.WriteLine("[AStoryArchetype] A3 is final authored tutorial scene - no next scene spawn");
+        }
+        else
+        {
+            EnrichFinalSituationWithNextASceneSpawn(situations, context);
+        }
 
         return new SceneArchetypeDefinition
         {
@@ -464,7 +471,16 @@ public static class AStorySceneArchetypeCatalog
     };
 
         // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        EnrichFinalSituationWithNextASceneSpawn(situations, context);
+        // A2 (authored tutorial) uses custom enrichment to spawn specific A3
+        // A11+ (procedural) uses standard enrichment with generic pattern
+        if (context.AStorySequence.HasValue && context.AStorySequence.Value == 2)
+        {
+            EnrichFinalSituationWithCustomAScene(situations, "a3_departure");
+        }
+        else
+        {
+            EnrichFinalSituationWithNextASceneSpawn(situations, context);
+        }
 
         return new SceneArchetypeDefinition
         {
@@ -1238,12 +1254,13 @@ public static class AStorySceneArchetypeCatalog
             ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
 
             // Add next A-scene spawn reward
+            // Uses template's PlacementFilter for categorical resolution (no override needed)
             reward.ScenesToSpawn = new List<SceneSpawnReward>
         {
             new SceneSpawnReward
             {
-                SceneTemplateId = nextASceneId,
-                PlacementRelation = PlacementRelation.SameLocation
+                SceneTemplateId = nextASceneId
+                // PlacementFilterOverride = null (uses template's filter)
             }
         };
 
@@ -1267,42 +1284,58 @@ public static class AStorySceneArchetypeCatalog
         Console.WriteLine($"[AStoryArchetype] Enriched final situation '{finalSituation.Id}' - ALL {enrichedChoices.Count} choices spawn next A-scene '{nextASceneId}'");
     }
 
-    // Remaining archetypes follow same pattern - abbreviated for brevity
-    // Each provides 2-4 situation linear/branching flows with guaranteed progression
-
-    private static SceneArchetypeDefinition GenerateGainTrust(int tier, GenerationContext context)
+    /// <summary>
+    /// Enrich final situation to spawn specific authored A-scene (for tutorial A1→A2, A2→A3)
+    /// Used when scene ID is specific and known (not procedural pattern)
+    /// ALL choices in final situation spawn next scene (guaranteed progression)
+    /// </summary>
+    private static void EnrichFinalSituationWithCustomAScene(
+        List<SituationTemplate> situations,
+        string nextSceneId)
     {
-        // 2-situation social maneuvering + negotiation flow
-        throw new NotImplementedException("Archetype pending full implementation");
+        if (situations.Count == 0)
+        {
+            return; // No situations to enrich
+        }
+
+        // Final situation = last situation in list
+        SituationTemplate finalSituation = situations[situations.Count - 1];
+
+        // Enrich ALL choices with SceneSpawnReward for specific next scene
+        List<ChoiceTemplate> enrichedChoices = new List<ChoiceTemplate>();
+        foreach (ChoiceTemplate choice in finalSituation.ChoiceTemplates)
+        {
+            ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
+
+            // Add specific A-scene spawn reward
+            // Uses template's PlacementFilter for categorical resolution (no override needed)
+            reward.ScenesToSpawn = new List<SceneSpawnReward>
+            {
+                new SceneSpawnReward
+                {
+                    SceneTemplateId = nextSceneId
+                    // PlacementFilterOverride = null (uses template's filter)
+                }
+            };
+
+            enrichedChoices.Add(new ChoiceTemplate
+            {
+                Id = choice.Id,
+                PathType = choice.PathType,
+                ActionTextTemplate = choice.ActionTextTemplate,
+                RequirementFormula = choice.RequirementFormula,
+                CostTemplate = choice.CostTemplate,
+                RewardTemplate = reward,
+                ActionType = choice.ActionType,
+                ChallengeType = choice.ChallengeType
+            });
+        }
+
+        // Replace final situation's choices with enriched versions
+        finalSituation.ChoiceTemplates.Clear();
+        finalSituation.ChoiceTemplates.AddRange(enrichedChoices);
+
+        Console.WriteLine($"[AStoryArchetype] Enriched final situation '{finalSituation.Id}' - ALL {enrichedChoices.Count} choices spawn authored A-scene '{nextSceneId}'");
     }
 
-    private static SceneArchetypeDefinition GenerateChallengeAuthority(int tier, GenerationContext context)
-    {
-        // 2-situation confrontation + crisis flow
-        throw new NotImplementedException("Archetype pending full implementation");
-    }
-
-    private static SceneArchetypeDefinition GenerateExposeCorruption(int tier, GenerationContext context)
-    {
-        // 3-situation investigation + confrontation + consequence flow
-        throw new NotImplementedException("Archetype pending full implementation");
-    }
-
-    private static SceneArchetypeDefinition GenerateSocialInfiltration(int tier, GenerationContext context)
-    {
-        // 3-situation social maneuvering flow (approach + infiltrate + extract)
-        throw new NotImplementedException("Archetype pending full implementation");
-    }
-
-    private static SceneArchetypeDefinition GenerateRevealTruth(int tier, GenerationContext context)
-    {
-        // 2-situation investigation + confrontation flow
-        throw new NotImplementedException("Archetype pending full implementation");
-    }
-
-    private static SceneArchetypeDefinition GenerateSacrificeChoice(int tier, GenerationContext context)
-    {
-        // 3-situation crisis flow (stakes + decision + sacrifice)
-        throw new NotImplementedException("Archetype pending full implementation");
-    }
 }

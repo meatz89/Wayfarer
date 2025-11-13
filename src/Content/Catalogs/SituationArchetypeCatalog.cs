@@ -1,7 +1,7 @@
 /// <summary>
 /// ⚠️ PARSE-TIME ONLY CATALOGUE ⚠️
 ///
-/// Defines 15 situation archetypes for procedural choice generation.
+/// Defines 21 situation archetypes (5 core, 10 expanded, 6 specialized) for procedural choice generation.
 /// Creates learnable mechanical patterns players recognize and prepare for.
 ///
 /// CATALOGUE PATTERN COMPLIANCE:
@@ -14,7 +14,7 @@
 /// ARCHITECTURE:
 /// Parser reads archetypeId from JSON → Calls GetArchetype() → Receives archetype structure
 /// → Parser generates 4 ChoiceTemplates from archetype → Stores in SituationTemplate
-/// → Runtime queries GameWorld.Situations (pre-populated), NO catalogue calls
+/// → Runtime queries Scene.Situations (situations embedded in scenes), NO catalogue calls
 ///
 /// ARCHETYPE LIBRARY (15 patterns):
 /// Core:
@@ -795,11 +795,11 @@ public static class SituationArchetypeCatalog
             // Could also scale by NpcDemeanor for additional nuance
             if (context.NpcDemeanor == NPCDemeanor.Hostile)
             {
-                scaledStatThreshold = (int)(scaledStatThreshold * 1.2); // Hostile NPCs harder to influence
+                scaledStatThreshold = (int)(scaledStatThreshold * 1.4); // Hostile NPCs harder to influence
             }
             else if (context.NpcDemeanor == NPCDemeanor.Friendly)
             {
-                scaledStatThreshold = (int)(scaledStatThreshold * 0.8); // Friendly NPCs easier
+                scaledStatThreshold = (int)(scaledStatThreshold * 0.6); // Friendly NPCs easier
             }
         }
 

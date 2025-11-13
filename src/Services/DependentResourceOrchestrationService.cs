@@ -114,6 +114,7 @@ public class DependentResourceOrchestrationService
             }
         }
 
-        _sceneInstantiator.BuildMarkerResolutionMap(scene);
+        // Marker resolution map deleted in 5-system architecture
+        // Entities reference by concrete IDs only, no "generated:" markers
     }
 }

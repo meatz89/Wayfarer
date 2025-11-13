@@ -40,21 +40,6 @@ public class ContentGenerationFacade
     }
 
     /// <summary>
-    /// Remove dynamic content file
-    /// </summary>
-    public void RemoveDynamicLocation(string packageId)
-    {
-        if (string.IsNullOrEmpty(packageId)) throw new ArgumentException("PackageId cannot be empty", nameof(packageId));
-
-        string filePath = Path.Combine(DynamicContentDirectory, $"{packageId}.json");
-
-        if (File.Exists(filePath))
-        {
-            File.Delete(filePath);
-        }
-    }
-
-    /// <summary>
     /// Get manifest of all dynamic content files
     /// Used for debugging and cleanup
     /// </summary>

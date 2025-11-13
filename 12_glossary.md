@@ -58,8 +58,8 @@ This document provides canonical definitions for all specialized terms used acro
 **Lifecycle States:**
 - **Provisional:** Created for perfect information preview, Situations not yet instantiated. Can be finalized or discarded.
 - **Active:** Finalized and playable. Situations instantiated, CurrentSituation set.
-- **Completed:** All Situations finished. Marked for cleanup.
-- **Expired:** ExpiresOnDay reached. Filtered from queries.
+- **Completed:** All Situations finished. Scene persists but filtered from active queries.
+- **Expired:** ExpiresOnDay reached. Scene persists but filtered from queries.
 **Key Properties:** Id, TemplateId, PlacementType, PlacementId, Situations (embedded list), CurrentSituation (object reference), State (SceneState enum).
 **Historical Note:** Replaces Goal/Obstacle architecture. Earlier docs may reference "Goals" - these are Scenes in current architecture.
 
@@ -176,16 +176,28 @@ This document provides canonical definitions for all specialized terms used acro
 **Examples:** NPCDemeanor (Friendly/Neutral/Hostile), Quality (Basic/Standard/Premium/Luxury), PowerDynamic (Dominant/Equal/Submissive).
 **Why:** AI doesn't know current player progression/balance. Categorical properties scale dynamically at parse-time based on game context.
 
-### Marker Resolution
-**Definition:** Template references logical markers (e.g., `"generated:private_room"`). At spawn-time, system generates actual entity with real GUID, builds MarkerResolutionMap (marker string → actual ID), stores in Scene.MarkerResolutionMap.
-**Syntax:** `"generated:{template_id}"` or `"marker:{template_id}"` or `"temp:{template_id}"` (all equivalent).
-**Usage:** Self-contained scenes that create their own locations/items/NPCs. Allows template to reference resources before they exist.
-**Example:** Template: RequiredLocationId = "generated:private_room". After finalization: Scene.MarkerResolutionMap["generated:private_room"] = "scene_abc123_room_45".
+### 5-System Scene Spawning Architecture
+**Definition:** Scene spawning flows through five distinct systems with clear separation of concerns. Each system has one responsibility.
+**Systems:**
+1. **Scene Selection (Decision Logic):** Evaluates SpawnConditions to decide WHEN to spawn (SceneFacade, SituationRewardExecutor)
+2. **Scene Specification (Data Structure):** Stores categorical requirements ONLY in SceneSpawnReward (no concrete IDs)
+3. **Package Generator (SceneInstantiator):** Creates JSON package with PlacementFilterDTO (categorical specs), does NOT resolve entities
+4. **Entity Resolver (EntityResolver):** Resolves categorical filters to concrete entity objects via FindOrCreate pattern (query existing, generate if needed)
+5. **Scene Instantiator (SceneParser):** Creates Scene with direct object references from pre-resolved entities
+**Key Principle:** Categorical filters throughout, no concrete IDs until System 4 resolution, entities resolved eagerly before scene construction.
 
-### Dependent Resources
-**Definition:** Entities (Locations, Items, NPCs) created dynamically by Scene through package generation. Scene tracks CreatedLocationIds, CreatedItemIds, DependentPackageId for forensics.
-**Lifecycle:** Created during Scene finalization → Tracked in Scene properties → Cleaned up when Scene expires/completes (if configured for cleanup).
-**Why:** Enables self-contained narrative content that creates temporary entities without polluting global world state.
+### Entity Resolver (System 4)
+**Definition:** Service that resolves categorical PlacementFilterDTO specifications to concrete entity objects using FindOrCreate pattern.
+**Location:** EntityResolver service, called by PackageLoader.
+**Pattern:** Query existing entities first (reuse via categorical matching), generate new entities if no match (eager creation), return concrete entity objects (NOT IDs).
+**Methods:** FindOrCreateLocation(filter), FindOrCreateNPC(filter), FindOrCreateRoute(filter).
+**Output:** Pre-resolved entity objects passed to System 5 (SceneParser) for scene construction.
+
+### PlacementFilterDTO
+**Definition:** Data structure containing categorical requirements for entity placement (LocationProperties, NpcPersonalityTypes, LocationTags, SelectionStrategy).
+**Usage:** Written to JSON by System 3 (SceneInstantiator), read by System 4 (EntityResolver) for FindOrCreate resolution.
+**Properties:** LocationProperties (Indoor, Private, Safe), LocationTags (lodging, secure), NpcPersonalityTypes (Innkeeper, Merchant), SelectionStrategy (Closest, LeastRecentlyUsed).
+**Key Principle:** NO concrete entity IDs. All requirements expressed categorically. Enables procedural content generation without hardcoded references.
 
 ---
 
@@ -197,11 +209,6 @@ This document provides canonical definitions for all specialized terms used acro
 2. **Challenge PathType:** ChoicePathType.Challenge (choice leads to tactical challenge).
 3. **Challenge Situation:** Narrative situation involving difficulty/risk (informal usage).
 **Disambiguation:** Always specify "Tactical Challenge" (subsystem), "Challenge Choice" (PathType), or "Challenge Situation" (narrative).
-
-### Encounter
-**Usage:** Synonym for "Situation" in route travel context (legacy usage in WAYFARER_CORE_GAME_LOOP.md).
-**Current Standard:** Use "Situation" universally. Avoid "Encounter" to prevent terminology divergence.
-**Why:** Scene→Situation→Choice architecture is universal. Route travel uses same pattern as location visits.
 
 ### Goal
 **Historical Term:** Earlier architecture (pre-2025) used Goal/Obstacle entities for progression. Replaced by Scene/Situation architecture.

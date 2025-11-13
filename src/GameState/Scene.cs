@@ -29,22 +29,35 @@ public class Scene
     /// </summary>
     public SceneTemplate Template { get; set; }
 
-    // ==================== PLACEMENT PROPERTIES ====================
+    // ==================== PLACEMENT PROPERTIES (SYSTEM 5 OUTPUT) ====================
 
     /// <summary>
-    /// Placement type - where this Scene appears
-    /// Location: Appears at specific location
-    /// NPC: Appears when talking to specific NPC
-    /// Route: Appears when traveling specific route
+    /// Location where this Scene appears
+    /// DIRECT OBJECT REFERENCE - no PlacementType enum, no string ID dispatch
+    /// Set by PackageLoader (System 5) after EntityResolver (System 4) returns concrete object
+    /// Flow: Categories (System 2) → JSON spec (System 3) → FindOrCreate (System 4) → Object reference (System 5)
+    /// Most scenes have Location (conversation, investigation, ambient)
+    /// null only for abstract/conceptual scenes (rare)
     /// </summary>
-    public PlacementType PlacementType { get; set; }
+    public Location Location { get; set; }
 
     /// <summary>
-    /// Concrete placement identifier - which entity this Scene is assigned to
-    /// LocationId, NpcId, or RouteId depending on PlacementType
-    /// Assigned by procedural generation during spawn
+    /// NPC associated with this Scene (conversation/interaction partner)
+    /// DIRECT OBJECT REFERENCE - set by PackageLoader after entity resolution
+    /// null for location-only scenes (ambient discoveries, environmental events)
+    /// Example: Conversation AT tavern WITH Elena → scene.Location = tavern, scene.Npc = Elena
+    /// Enables direct navigation: scene.Npc.Name, scene.Npc.PersonalityType
     /// </summary>
-    public string PlacementId { get; set; }
+    public NPC Npc { get; set; }
+
+    /// <summary>
+    /// Route associated with this Scene (travel/journey context)
+    /// DIRECT OBJECT REFERENCE - set by PackageLoader after entity resolution
+    /// null for most scenes (only route-specific events use this)
+    /// Example: Bandit ambush ON mountain road → scene.Location = ambush site, scene.Route = mountain road
+    /// Enables direct navigation: scene.Route.DangerRating, scene.Route.TerrainTypes
+    /// </summary>
+    public RouteOption Route { get; set; }
 
     // ==================== PRESENTATION PROPERTIES ====================
 
@@ -172,43 +185,13 @@ public class Scene
     /// </summary>
     public int? MainStorySequence { get; set; }
 
-    // ==================== DEPENDENT RESOURCE TRACKING ====================
+    // ==================== DEPENDENT RESOURCE DISCOVERY (QUERY-BASED) ====================
 
-    /// <summary>
-    /// Location IDs created by this Scene through dynamic package generation
-    /// Self-contained pattern: Scene generates resources, tracks IDs for forensics
-    /// Used for cleanup and debugging - enables answering "which scene created this location?"
-    /// Empty list = Scene created no locations (traditional pre-existing location pattern)
-    /// </summary>
-    public List<string> CreatedLocationIds { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Item IDs created by this Scene through dynamic package generation
-    /// Self-contained pattern: Scene generates resources, tracks IDs for forensics
-    /// Used for cleanup and debugging - enables answering "which scene created this item?"
-    /// Empty list = Scene created no items (traditional pre-existing item pattern)
-    /// </summary>
-    public List<string> CreatedItemIds { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Package ID of dynamically generated content package
-    /// Forensic identifier enables tracing back to generated JSON
-    /// Format: "scene_{sceneId}_package"
-    /// null = Scene generated no dynamic package
-    /// </summary>
-    public string DependentPackageId { get; set; }
-
-    /// <summary>
-    /// Marker resolution map for self-contained scenes
-    /// Maps template IDs to actual created resource IDs
-    /// Key: "generated:{templateId}" marker format
-    /// Value: actual resource ID after creation
-    /// Example: {"generated:private_room" → "scene_abc123_private_room", "generated:room_key" → "scene_abc123_room_key"}
-    /// Populated during FinalizeScene after resource creation
-    /// Used by RewardApplicationService and action instantiation to resolve markers
-    /// Empty dictionary = no marker resolution needed (traditional pattern)
-    /// </summary>
-    public Dictionary<string, string> MarkerResolutionMap { get; set; } = new Dictionary<string, string>();
+    // Scene does NOT track "what I created" via explicit lists
+    // Query world state directly: gameWorld.Locations.Where(loc => loc.OwningSceneId == scene.Id)
+    // Requires generated entities to have OwningSceneId property set during creation
+    // Pattern: Generate → Set owner relationship → Query by relationship when needed
+    // Benefits: No stale tracking lists, single source of truth (entity ownership property)
 
     // ==================== STATE MACHINE METHODS ====================
 
@@ -363,9 +346,7 @@ public class Scene
             return false;
         }
 
-        // MARKER RESOLUTION: Use resolved IDs if present (self-contained scenes)
-        // Resolved IDs populated during finalization for markers like "generated:private_room"
-        // Fall back to template properties for non-self-contained scenes
+        // Use resolved IDs if present, fall back to template properties
         string requiredLocationId = CurrentSituation.ResolvedRequiredLocationId ?? CurrentSituation.Template.RequiredLocationId;
         string requiredNpcId = CurrentSituation.ResolvedRequiredNpcId ?? CurrentSituation.Template.RequiredNpcId;
 
@@ -403,8 +384,7 @@ public class Scene
         if (previousSituation?.Template == null || nextSituation?.Template == null)
             return SceneRoutingDecision.ExitToWorld;
 
-        // MARKER RESOLUTION: Use resolved IDs if present (self-contained scenes)
-        // Compare actual resolved IDs, not template markers
+        // Use resolved IDs if present, fall back to template properties
         string prevLocationId = previousSituation.ResolvedRequiredLocationId ?? previousSituation.Template.RequiredLocationId;
         string nextLocationId = nextSituation.ResolvedRequiredLocationId ?? nextSituation.Template.RequiredLocationId;
 

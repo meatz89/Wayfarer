@@ -58,8 +58,7 @@ public class SceneFacade
         // Find active Scenes at this location
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.PlacementType == PlacementType.Location &&
-                       s.PlacementId == locationId)
+                       s.Location?.Id == locationId)
             .ToList();
 
         List<LocationAction> allActions = new List<LocationAction>();
@@ -143,8 +142,7 @@ public class SceneFacade
         // Find active Scenes with this NPC
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.PlacementType == PlacementType.NPC &&
-                       s.PlacementId == npcId)
+                       s.Npc?.ID == npcId)
             .ToList();
 
         List<NPCAction> allActions = new List<NPCAction>();
@@ -185,7 +183,7 @@ public class SceneFacade
     {
         situation.InstantiationState = InstantiationState.Instantiated;
 
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.PlacementId);
+        NPC npc = scene.Npc;
 
         foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
         {
@@ -223,8 +221,7 @@ public class SceneFacade
         // Find active Scenes on this route
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.PlacementType == PlacementType.Route &&
-                       s.PlacementId == routeId)
+                       s.Route?.Id == routeId)
             .ToList();
 
         List<PathCard> allPathCards = new List<PathCard>();
@@ -302,12 +299,9 @@ public class SceneFacade
         return new SceneSpawnContext
         {
             Player = player,
-            CurrentLocation = parentScene.PlacementType == PlacementType.Location ?
-                _gameWorld.Locations.FirstOrDefault(l => l.Id == parentScene.PlacementId) : null,
-            CurrentNPC = parentScene.PlacementType == PlacementType.NPC ?
-                _gameWorld.NPCs.FirstOrDefault(n => n.ID == parentScene.PlacementId) : null,
-            CurrentRoute = parentScene.PlacementType == PlacementType.Route ?
-                _gameWorld.Routes.FirstOrDefault(r => r.Id == parentScene.PlacementId) : null,
+            CurrentLocation = parentScene.Location,
+            CurrentNPC = parentScene.Npc,
+            CurrentRoute = parentScene.Route,
             CurrentSituation = null
         };
     }
@@ -356,9 +350,8 @@ public class SceneFacade
                 continue;
             }
 
-            // Resolve placement if possible at generation time
-            string resolvedPlacementId = ResolvePreviewPlacement(spawnReward, parentScene, player);
-            PlacementType? placementType = DeterminePlacementType(spawnReward.PlacementRelation);
+            // Get placement filter from template (spawned scene inherits template's filter - HIGHLANDER)
+            PlacementFilter filter = template.PlacementFilter;
 
             // Collect unique challenge types from situation templates
             List<TacticalSystemType> challengeTypes = template.SituationTemplates
@@ -368,18 +361,16 @@ public class SceneFacade
                 .Distinct()
                 .ToList();
 
-            // Resolve placeholders in display name using parent scene context
-            SceneSpawnContext previewContext = BuildContextFromParentScene(parentScene, player);
-            string resolvedDisplayName = PlaceholderReplacer.ReplaceAll(template.DisplayNameTemplate, previewContext, _gameWorld);
+            // Use display name template directly (AI will generate complete text after resolution)
+            string displayName = template.DisplayNameTemplate;
 
             ScenePreview preview = new ScenePreview
             {
                 SceneTemplateId = template.Id,
-                DisplayName = resolvedDisplayName, // Placeholders resolved
+                DisplayName = displayName,
                 Tier = template.Tier,
-                PlacementRelation = spawnReward.PlacementRelation,
-                ResolvedPlacementId = resolvedPlacementId,
-                PlacementType = placementType,
+                ResolvedPlacementId = null, // Cannot resolve at preview time (requires FindOrCreate)
+                PlacementType = filter?.PlacementType,
                 SituationCount = template.SituationTemplates.Count,
                 ChallengeTypes = challengeTypes,
                 ExpiresInDays = template.ExpirationDays,
@@ -390,60 +381,5 @@ public class SceneFacade
         }
 
         return previews;
-    }
-
-    /// <summary>
-    /// Resolve placement ID for scene preview if determinable at action generation time
-    /// Returns null if placement depends on execution-time context OR contains markers
-    /// Markers (generated:x) cannot be resolved until scene spawns
-    /// </summary>
-    private string ResolvePreviewPlacement(SceneSpawnReward spawnReward, Scene parentScene, Player player)
-    {
-        switch (spawnReward.PlacementRelation)
-        {
-            case PlacementRelation.SameLocation:
-            case PlacementRelation.SameNPC:
-            case PlacementRelation.SameRoute:
-                return parentScene.PlacementId; // Same as parent scene
-
-            case PlacementRelation.SpecificLocation:
-            case PlacementRelation.SpecificNPC:
-            case PlacementRelation.SpecificRoute:
-                // Check for markers - cannot resolve until scene spawns with marker resolution map
-                if (!string.IsNullOrEmpty(spawnReward.SpecificPlacementId) &&
-                    spawnReward.SpecificPlacementId.StartsWith("generated:"))
-                {
-                    return null; // Marker - cannot resolve at preview time
-                }
-                return spawnReward.SpecificPlacementId; // Concrete ID
-
-            default:
-                return null; // Cannot resolve without execution context
-        }
-    }
-
-    /// <summary>
-    /// Determine placement type from placement relation
-    /// Used for scene preview display
-    /// </summary>
-    private PlacementType? DeterminePlacementType(PlacementRelation relation)
-    {
-        switch (relation)
-        {
-            case PlacementRelation.SameLocation:
-            case PlacementRelation.SpecificLocation:
-                return PlacementType.Location;
-
-            case PlacementRelation.SameNPC:
-            case PlacementRelation.SpecificNPC:
-                return PlacementType.NPC;
-
-            case PlacementRelation.SameRoute:
-            case PlacementRelation.SpecificRoute:
-                return PlacementType.Route;
-
-            default:
-                return null;
-        }
     }
 }

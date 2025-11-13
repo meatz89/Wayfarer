@@ -227,7 +227,7 @@ public class GameFacade
 
     public LocationScreenViewModel GetLocationScreen()
     {
-        // NPCs no longer have inline conversation options - situations are location-based in GameWorld.Situations
+        // NPCs no longer have inline conversation options - situations are embedded in Scene.Situations
         return _locationFacade.GetLocationScreen(new List<NPCConversationOptions>());
     }
 
@@ -354,11 +354,6 @@ public class GameFacade
 
                     // TRIGGER POINT 3: Record route traversal after successful travel
                     RecordRouteTraversal(routeId);
-
-                    // AUTOMATIC SPAWNING ORCHESTRATION - Location trigger
-                    // Check for procedural scenes that become eligible when entering this location
-                    // Handoff implementation: Phase 4 (lines 254-260)
-                    await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Location, destSpot.Id);
                 }
             }
 
@@ -1114,11 +1109,6 @@ public class GameFacade
 
     private async Task<IntentResult> ProcessTalkIntent(string npcId)
     {
-        // AUTOMATIC SPAWNING ORCHESTRATION - NPC trigger
-        // Check for procedural scenes that become eligible when interacting with this NPC
-        // GameFacade orchestrates: Player talks to NPC, then SpawnFacade checks for eligible scenes
-        await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.NPC, npcId);
-
         // TODO: Implement conversation initiation
         _messageSystem.AddSystemMessage($"Talking to NPC {npcId} not yet implemented", SystemMessageTypes.Info);
         await Task.CompletedTask;
@@ -1198,12 +1188,6 @@ public class GameFacade
                 // _messageSystem.AddSystemMessage($"Opportunity expired: {scene.DisplayName}", SystemMessageTypes.Info);
             }
         }
-
-        // AUTOMATIC SPAWNING ORCHESTRATION - Time trigger
-        // Check for procedural scenes with time-based spawn conditions (morning, evening, day ranges)
-        // HIGHLANDER: This ensures time-based spawns fire after EVERY time advancement
-        // (Wait, Rest, Work, Travel, SecureRoom, Delivery, Action execution, etc.)
-        await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Time, contextId: null);
     }
 
     /// <summary>
@@ -1592,7 +1576,7 @@ public class GameFacade
 
         // Query all Situations (both legacy and Scene-embedded) at this location
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
-            .Where(sit => sit.GetPlacementId(PlacementType.Location) == locationId)
+            .Where(sit => sit.ParentScene?.Location?.Id == locationId)
             .ToList();
     }
 
@@ -1669,28 +1653,21 @@ public class GameFacade
 
         foreach (SceneTemplate template in starterTemplates)
         {
-            // TUTORIAL PATTERN: Starter scenes use concrete binding via SceneSpawnReward.SpecificPlacementId
-            // PlacementFilter only contains categorical properties for procedural resolution
-            PlacementRelation placementRelation = PlacementRelation.Generic;
-            string specificPlacementId = null; // Starter scenes should define placement in template, not filter
-
+            // 5-SYSTEM ARCHITECTURE: Starter scenes use template's PlacementFilter (no override)
+            // EntityResolver will FindOrCreate entities from categorical specifications
             SceneSpawnReward spawnReward = new SceneSpawnReward
             {
-                SceneTemplateId = template.Id,
-                PlacementRelation = placementRelation,
-                SpecificPlacementId = specificPlacementId,
-                DelayDays = 0
+                SceneTemplateId = template.Id
+                // PlacementFilterOverride = null (use template's filter)
             };
 
-            SceneSpawnContext spawnContext = SceneSpawnContextBuilder.BuildContext(
-                _gameWorld,
-                player,
-                placementRelation,
-                specificPlacementId,
-                null);
-
-            if (spawnContext == null)
-                continue;
+            // Build context from player state
+            SceneSpawnContext spawnContext = new SceneSpawnContext
+            {
+                Player = player,
+                CurrentLocation = _gameWorld.GetPlayerCurrentLocation(),
+                CurrentSituation = null
+            };
 
             Scene scene = await SpawnSceneWithDynamicContent(template, spawnReward, spawnContext);
 
@@ -1700,16 +1677,6 @@ public class GameFacade
                 continue;
             }
         }
-    }
-
-    /// <summary>
-    /// Check for and spawn eligible scenes based on current game state
-    /// Used by tests to manually trigger spawn checks after simulating scene completion
-    /// In production, spawns happen automatically via SituationCompletionHandler
-    /// </summary>
-    public async Task CheckAndSpawnEligibleScenesAsync()
-    {
-        await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Scene, contextId: null);
     }
 
     // ========== UNIFIED ACTION ARCHITECTURE - EXECUTE METHODS ==========

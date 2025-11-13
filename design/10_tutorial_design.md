@@ -34,25 +34,12 @@ This section documents:
 **Example**:
 
 Traditional tutorial (AVOID):
-```
-TUTORIAL MODE
-Press A to talk to NPC.
-Press B to view inventory.
-Press X to open map.
-Complete training mission.
-```
+
+Explicit announcement of tutorial mode with disconnected button-press exercises and throwaway training missions that bear no resemblance to actual gameplay.
 
 Wayfarer tutorial (CORRECT):
-```
-You arrive at roadside inn as sun sets. You're tired from travel.
-Innkeeper greets you: "Need a room for the night?"
 
-[Four choices displayed]
-- Talk with innkeeper (learn negotiation)
-- Check your coins (see resource display)
-- Look around common room (observe world)
-- Ask about the road ahead (gather information)
-```
+Player arrives at a roadside inn at sunset, tired from travel. The innkeeper greets them naturally, asking if they need a room. Choices emerge from the fictional context rather than mechanical instructions. Each action teaches a system while advancing the story. No announcement, no artificial separation from real play.
 
 Player learns by doing. Mechanics emerge from fiction. Nothing announces itself as "tutorial."
 
@@ -170,20 +157,12 @@ Same proportional difficulty, but tutorial more forgiving. Player learned system
 **Example**:
 
 **Tutorial Economics** (A1-A3):
-```
-B-story payout: 10 coins
-Lodging cost: 6 coins
-Food cost: 3 coins
-Net: +1 coin (small profit)
-```
+
+B-story tasks pay modest amounts while lodging and food costs remain low, leaving small but comfortable profit margins for learning players.
 
 **Post-Tutorial Economics** (A4+):
-```
-B-story payout: 18 coins
-Lodging cost: 12 coins
-Food cost: 5 coins
-Net: +1 coin (same small profit)
-```
+
+B-story payouts increase proportionally with lodging and food costs, maintaining the same tight profit margins but at higher absolute numbers.
 
 Proportional difficulty maintained, but absolute numbers scaled. Player notices costs increased, realizes margins staying tight, adapts strategy. No announcement needed.
 
@@ -467,16 +446,8 @@ Current architecture supports expanding tutorial to A10+ authored scenes before 
 **Player Experience**: "I understand resources, I see my options, I can make informed choices. This is comfortable."
 
 **Example Scene Structure**:
-```
-Situation: Negotiate lodging
-Display:
-  - Resources visible: 12 coins, Health 60/100, Stamina 40/100
-  - Four choices shown with costs:
-    - Rapport 3: Free (LOCKED, you have Rapport 2)
-    - Pay 6 coins: Reliable (will have 6 coins remaining)
-    - Help 2 hours: Guaranteed (will advance time 2 segments)
-  - Current state vs projected state clear
-```
+
+In a lodging negotiation situation, the player sees their current resources clearly displayed alongside four choices with explicit costs. The stat-gated path shows it's locked with exact gap information. The money path shows current and projected coin amounts. The fallback path shows time cost and progression guarantee. Every choice presents complete information about current state versus projected outcome.
 
 ### 10.4.2 Hours 2-3: First Tactical Challenges (Social Only)
 
@@ -502,19 +473,8 @@ Display:
 **Player Experience**: "Okay, challenges have more complexity. I play cards, build Initiative, accumulate Momentum. I can see the path to victory."
 
 **Example Challenge Structure**:
-```
-Social Challenge: Persuade innkeeper
-Victory: Momentum ≥ 12, Doubt < 10
-Starting: Resolve 15, Initiative 0
 
-Turn 1: Play Foundation card (gain Initiative 5)
-Turn 2: Play SPEAK card (cost 3 Initiative, gain Momentum 4)
-Turn 3: Play LISTEN card (draw 2, reset tempo)
-Turn 4: Play SPEAK card (cost 3 Initiative, gain Momentum 5)
-Turn 5: Play SPEAK card (cost 4 Initiative, gain Momentum 4)
-
-Result: Momentum 13 (victory), Doubt 4 (safe)
-```
+In a social challenge to persuade an innkeeper, victory requires accumulating sufficient momentum while keeping doubt low. Players start with resolve but no initiative. They must play foundation cards to generate initiative, then spend that initiative on speak cards to build momentum. Listen cards help draw more options and reset tempo. Through several turns of careful resource management and card play, players reach the victory threshold while maintaining safe doubt levels.
 
 ### 10.4.3 Hours 4-6: All Three Challenge Types, Specialization Matters
 
@@ -540,18 +500,12 @@ Result: Momentum 13 (victory), Doubt 4 (safe)
 **Example Specialization Impact**:
 
 Player A (Insight 5, Authority 2):
-```
-Mental challenge: Many stat-gated cards available (Insight-bound)
-Physical challenge: Standard difficulty
-Social challenge (Authority-based): Few stat-gated cards available
-```
+
+Strong specialization in insight grants many stat-gated cards for mental challenges, standard access to physical challenges, but limited options for authority-based social challenges.
 
 Player B (Authority 5, Insight 2):
-```
-Mental challenge: Few stat-gated cards available
-Physical challenge: Standard difficulty
-Social challenge (Authority-based): Many stat-gated cards available
-```
+
+Strong specialization in authority provides limited mental challenge options, standard physical challenge access, but many stat-gated cards for authority-based social challenges.
 
 Different strengths. Different weaknesses. Specialization creating build identity.
 
@@ -574,30 +528,14 @@ Different strengths. Different weaknesses. Specialization creating build identit
 **Example Full Complexity**:
 
 Player situation:
-```
-Resources: 22 coins, Health 45/100, Stamina 30/100, Focus 12/25, Resolve 8/15
-Time: Day 12, Morning, 8 segments remaining
-Upcoming: A-story scene expires Day 15, B-story opportunity expires Day 14
 
-Strategic calculation:
-- Need to rest (Health low, costs 4 segments + 8 coins lodging)
-- A-story scene available (costs 3 Resolve, 2 time blocks)
-- B-story expires soon (earn 20 coins, costs 3 time blocks)
-- Food needed (5 coins, 1 segment)
+With moderate coins but depleted health, stamina, and focus, facing an impending main story deadline and an expiring side story opportunity, the player must make complex strategic calculations. Resting requires time and coins. The main story needs resolve and time. The lucrative side story expires soon. Basic survival needs food.
 
-Options:
-1. Rest now, A-story tomorrow (miss B-story expiration)
-2. B-story now, rest, A-story tomorrow (tight but possible)
-3. A-story now (risky, low Health), rest, B-story tomorrow (recover)
+Three strategic options present themselves: prioritize rest and risk losing the side story, attempt the side story first then squeeze in everything else on a tight schedule, or push through the main story with low health and recover afterward. Each option involves trade-offs between resource preservation, deadline management, and risk tolerance.
 
-Player chooses Option 2:
-- Morning: Do B-story (3 time blocks, earn 20 coins)
-- Midday: Rest (4 segments, pay 8 coins lodging, recover)
-- Afternoon: Pursue A-story (3 Resolve, advance plot)
-- Evening: Final segment for food
+Choosing the aggressive middle option, the player spends their morning on the side story for coins, midday resting to recover resources, afternoon advancing the main plot, and evening handling survival needs. Every segment allocated, every coin accounted for, optimization essential for success.
 
 Tight margins. Every choice matters. Optimization critical.
-```
 
 ## 10.5 Perfect Information Display
 
@@ -606,32 +544,20 @@ Tight margins. Every choice matters. Optimization critical.
 **Display Pattern**: Every choice shows exact costs, exact rewards, exact requirements, exact gaps.
 
 **Cost Display**:
-```
-Coins: -8 (now 22, will have 14)
-Stamina: -6 (now 30, will have 24)
-Time: 2 time blocks (8 segments remaining, 6 after)
-```
+
+Costs show resource deductions with current amounts and projected amounts after the action, including coins spent, stamina consumed, and time blocks required.
 
 **Reward Display**:
-```
-Health: +20 (now 45, will have 65)
-Understanding: +1 (now 8, will have 9)
-Scholar relationship: +2 (now 3, will have 5)
-```
+
+Rewards show resource gains with current amounts and projected amounts after the action, including health restored, understanding gained, and relationship improvements.
 
 **Requirement Display (Locked)**:
-```
-Requires: Authority ≥ 5
-You have: Authority 3
-Gap: Need 2 more Authority
-```
+
+Locked choices show the exact stat requirement, the player's current stat value, and the precise gap between them.
 
 **Requirement Display (Met)**:
-```
-Requires: Rapport ≥ 4
-You have: Rapport 6
-Status: UNLOCKED
-```
+
+Met requirements show the stat threshold, the player's current value exceeding it, and unlocked status confirmation.
 
 **Why This Works**:
 - Player calculates exact outcome
@@ -646,30 +572,16 @@ Status: UNLOCKED
 **Example Displays**:
 
 **Gap 1** (Close):
-```
-"Assert authority"
-Requires: Authority 5
-You have: Authority 4
-Gap: Need 1 more Authority
-Status: LOCKED (almost there)
-```
+
+A choice requiring one more point than the player possesses, showing they're almost qualified and a single training session or equipment piece would unlock it.
 
 **Gap 3** (Far):
-```
-"Command respect"
-Requires: Authority 7
-You have: Authority 4
-Gap: Need 3 more Authority
-Status: LOCKED (significant investment needed)
-```
+
+A choice requiring three more points than the player possesses, indicating significant stat investment needed to unlock this path.
 
 **Met**:
-```
-"Use diplomatic approach"
-Requires: Diplomacy 4
-You have: Diplomacy 6
-Status: UNLOCKED (qualified)
-```
+
+A choice where the player exceeds the requirement by two points, clearly indicating full qualification and unlocked access.
 
 **Why Gaps Matter**:
 - Player can plan: "I'm 1 point away, next training session unlocks this"
@@ -684,19 +596,8 @@ Status: UNLOCKED (qualified)
 **Display Pattern**:
 
 **Locked Choice Example**:
-```
-[LOCKED] "Analyze evidence systematically"
 
-Why locked:
-  Requires: Insight ≥ 5
-  You have: Insight 3
-  Gap: 2 more Insight needed
-
-How to unlock:
-  - Training with scholar (costs 20 coins + 3 time blocks)
-  - Complete investigation B-stories (gain XP, allocate to Insight)
-  - Equipment: Magnifying glass (+1 Insight while equipped)
-```
+A locked choice for systematic evidence analysis displays the insight requirement, the player's current insight value, and the two-point gap. It also shows multiple paths to unlocking: training with a scholar for coins and time, completing investigation side stories to gain experience points for allocation, or acquiring equipment that boosts insight while equipped.
 
 **Why Show Locked**:
 - Player sees possibilities (knows what they're missing)
@@ -709,28 +610,12 @@ How to unlock:
 **Pattern**: After selection, resource changes apply immediately and visibly.
 
 **Before Selection**:
-```
-Resources:
-  Coins: 22
-  Health: 45/100
-  Stamina: 30/100
-  Time: Morning, 8 segments
 
-Choice: "Rest at inn"
-  Cost: 8 coins, 4 segments
-  Reward: Health +25, Stamina +30
-```
+The player sees their current resource state with coins, health, stamina, and time clearly displayed. The rest action shows exact costs in coins and time segments, plus exact rewards in health and stamina restoration.
 
 **After Selection**:
-```
-Resources:
-  Coins: 14 (-8, as shown)
-  Health: 70/100 (+25, as shown)
-  Stamina: 60/100 (+30, as shown)
-  Time: Morning, 4 segments (4 consumed, as shown)
 
-[Resource changes highlighted briefly]
-```
+Resource values update immediately to reflect the promised changes. Coins decrease by the stated amount, health and stamina increase by the stated amounts, and time advances by the consumed segments. Changes are briefly highlighted to draw attention to the state transition.
 
 **Why Immediate Feedback**:
 - Player sees consequences clearly
@@ -743,34 +628,12 @@ Resources:
 **Pattern**: Before entering challenge, show difficulty indicators.
 
 **Mental Challenge Display**:
-```
-"Investigate mill interior"
 
-Challenge Preview:
-  Type: Mental (ACT/OBSERVE)
-  Victory: Progress ≥ 15
-  Danger: Exposure increases difficulty over time
-  Entry Cost: 2 time blocks
-  Session Cost: Focus (you have 18, challenge needs ~12-15)
-  Your Advantage: Insight 6 (many stat-gated cards available)
-
-Estimated Difficulty: Moderate (within your capability)
-```
+A mill investigation challenge preview shows the mental challenge type using act and observe mechanics, victory threshold requiring progress accumulation, danger from exposure increasing over time, entry cost in time blocks, estimated focus consumption range, and the player's advantage from high insight unlocking many stat-gated cards. Overall difficulty assessed as moderate and within player capability.
 
 **Social Challenge Display**:
-```
-"Persuade magistrate"
 
-Challenge Preview:
-  Type: Social (SPEAK/LISTEN)
-  Victory: Momentum ≥ 12, Doubt < 8
-  Danger: Magistrate loses patience if Doubt reaches 8
-  Entry Cost: 3 Resolve (you have 10, will have 7)
-  Your Advantage: Rapport 4 (some stat-gated cards available)
-  Your Disadvantage: Authority 2 (few authority-based cards)
-
-Estimated Difficulty: Challenging (Rapport helps, low Authority hinders)
-```
+A magistrate persuasion challenge preview shows the social challenge type using speak and listen mechanics, dual victory conditions of momentum accumulation and doubt management, danger from the magistrate losing patience at the doubt threshold, entry cost in resolve, the player's rapport advantage unlocking some stat-gated cards, and their authority disadvantage limiting authority-based options. Overall difficulty assessed as challenging with mixed advantages and disadvantages.
 
 **Why Preview Matters**:
 - Player decides WHETHER to attempt (strategic choice)
@@ -783,27 +646,12 @@ Estimated Difficulty: Challenging (Rapport helps, low Authority hinders)
 ### 10.6.1 Route Segment Counts Visible
 
 **Unknown Route** (First visit):
-```
-Northern Road [UNKNOWN]
-- Distance: Unknown (estimate 3-5 segments)
-- Danger: Wilderness terrain, expect challenges
-- Time: ~2 time blocks
-- Cost: ~10-15 stamina
 
-Uncertainty requires buffer resources.
-```
+An unexplored northern road shows estimated distance range, expected wilderness dangers, approximate time cost, and stamina consumption range. Uncertainty requires maintaining resource buffers for unexpected challenges.
 
 **Known Route** (After first journey):
-```
-Northern Road [KNOWN]
-- Distance: 4 segments (exact)
-- Danger: 2 dangerous segments (positions 2, 4)
-- Time: 2 time blocks (exact)
-- Cost: 8 stamina (2 per segment)
-- Events: 1 random event at segment 3
 
-Can plan precisely.
-```
+After completing the journey once, the northern road displays exact segment count, precise positions of dangerous segments, exact time cost, precise stamina consumption per segment, and known random event location. Complete information enables precise planning and optimization.
 
 **What Player Learns**:
 - Route learning reduces uncertainty
@@ -816,20 +664,12 @@ Can plan precisely.
 ### 10.6.2 Fixed Environmental Segments Face-Up After First Visit
 
 **First Visit** (Unknown):
-```
-Route Segment 2 [FACE-DOWN]
-- Unknown terrain
-- Unknown challenges
-- Player explores cautiously
-```
+
+An unexplored route segment presents unknown terrain and challenges, requiring cautious exploration without foreknowledge.
 
 **Second Visit** (Known):
-```
-Route Segment 2 [FACE-UP]
-- Terrain: Forest (known)
-- Challenge: Physical obstacle (known location)
-- Player prepares appropriately
-```
+
+After initial exploration, the segment reveals its forest terrain and physical obstacle location, allowing appropriate preparation for subsequent journeys.
 
 **What Player Learns**:
 - First journey is exploration (discovery)
@@ -842,21 +682,8 @@ Route Segment 2 [FACE-UP]
 ### 10.6.3 NPC Bond Levels Show Mechanical Benefits
 
 **Bond Display**:
-```
-Elena (Innkeeper)
-Bond Level: 3 (Strong friendship)
 
-Benefits:
-  - Lodging discount: 6 coins → 4 coins
-  - Free meal once per day
-  - Rumors and information shared freely
-  - Next tier at bond 5: Training available
-
-How to improve:
-  - Help with inn tasks (bond +1)
-  - Bring requested items (bond +2)
-  - Complete related B-stories (bond +1)
-```
+Elena the innkeeper shows bond level three representing strong friendship. Current benefits include lodging discount from six to four coins, one free meal daily, and freely shared rumors and information. The next tier at bond level five will unlock training opportunities. Bond improvement paths include helping with inn tasks for one bond point, bringing requested items for two bond points, or completing related side stories for one bond point.
 
 **What Player Learns**:
 - Bonds have mechanical benefits (not just narrative)
@@ -869,22 +696,12 @@ How to improve:
 ### 10.6.4 Economic Feedback Loop (Profit Margins Signal Optimization)
 
 **Suboptimal Play**:
-```
-B-story earnings: 15 coins
-Expenses: Lodging 12 + Food 5 + Travel 3 = 20 coins
-Net: -5 coins (deficit)
 
-[Warning: Expenses exceeding income, adjust strategy]
-```
+Side story earnings of fifteen coins fail to cover expenses totaling twenty coins from premium lodging, food, and inefficient travel, creating a five-coin deficit. Warning feedback signals the need for strategy adjustment.
 
 **Optimal Play**:
-```
-B-story earnings: 18 coins
-Expenses: Basic lodging 8 + Food 5 + Efficient travel 2 = 15 coins
-Net: +3 coins (surplus)
 
-[Comfortable margin maintained]
-```
+Increased side story earnings of eighteen coins combined with reduced expenses from basic lodging, standard food, and efficient travel totaling fifteen coins creates a sustainable three-coin surplus. Comfortable margins maintained through optimization.
 
 **What Player Learns**:
 - Premium options expensive (luxury lodging 40 coins)
@@ -897,24 +714,12 @@ Net: +3 coins (surplus)
 ### 10.6.5 Challenge Difficulty Shows Stat Requirements
 
 **Mental Challenge Card** (Before Entry):
-```
-"Systematic Analysis" card
-- Requires: Insight ≥ 5
-- Effect: Progress +6, Generate 3 Leads
-- Status: LOCKED (you have Insight 3)
 
-[Visible during preview, shows gap]
-```
+A systematic analysis card requiring insight of at least five shows its powerful effects of adding six progress and generating three leads, but displays locked status because the player's insight of three falls short. The two-point gap is visible during challenge preview.
 
 **After Training** (Insight 5):
-```
-"Systematic Analysis" card
-- Requires: Insight ≥ 5
-- Effect: Progress +6, Generate 3 Leads
-- Status: UNLOCKED
 
-[Now available during challenge]
-```
+After training to reach insight five, the same systematic analysis card now shows unlocked status and becomes available for use during mental challenges.
 
 **What Player Learns**:
 - Higher stats unlock better cards
@@ -943,20 +748,12 @@ Net: +3 coins (surplus)
 **Example**:
 
 Traditional RPG (AVOID):
-```
-[QUEST MARKER: Go to mill]
-[ARROW: Points to mill on map]
-[WAYPOINT: Auto-routes to mill]
-[MANDATORY: Must complete to progress]
-```
+
+Glowing quest markers, arrows pointing to objectives on the map, automatic waypoint routing, and mandatory completion requirements that remove player agency.
 
 Wayfarer (CORRECT):
-```
-Constable: "Strange things at the old mill. Worth investigating if you're curious."
-[No marker, no arrow, no waypoint]
-[Mill appears on map as discovered location]
-[Player chooses to investigate or pursue other content]
-```
+
+The constable mentions strange occurrences at the old mill as a conversational narrative hint. The mill appears on the map as a discovered location without markers or arrows. The player decides whether to investigate immediately, later, or pursue entirely different content. No mandatory sequence, no hand-holding guidance.
 
 **Why No Markers**:
 - Player explores naturally (not following instructions)
@@ -981,22 +778,12 @@ Constable: "Strange things at the old mill. Worth investigating if you're curiou
 **Example**:
 
 Hand-Holding Design (AVOID):
-```
-Choice A: [RECOMMENDED] Pay 10 coins
-Choice B: Authority 5 required (85% success rate)
-Choice C: [HARD] Social challenge
-Choice D: [FALLBACK] Wait 3 days
-```
+
+Choices labeled with recommendations, difficulty ratings, success percentages, and explicit fallback markers that tell players what to choose instead of letting them decide.
 
 Wayfarer Design (CORRECT):
-```
-Choice A: Rapport 4 required (you have 6, UNLOCKED)
-Choice B: Pay 10 coins (you have 22, affordable)
-Choice C: Social challenge (costs 3 Resolve, success OR failure advances)
-Choice D: Wait 3 days (zero cost, guaranteed, time-intensive)
 
-[Player determines optimal based on situation]
-```
+Each choice displays exact requirements with the player's current values, precise costs with resource availability, clear outcomes for both success and failure, and complete information enabling informed player judgment about which path suits their current situation and priorities.
 
 **Why No Highlighting**:
 - Player makes informed decisions (not following instructions)
@@ -1021,25 +808,12 @@ Choice D: Wait 3 days (zero cost, guaranteed, time-intensive)
 **Example**:
 
 Hidden Gotcha (FORBIDDEN):
-```
-Choice: "Accept magistrate's deal"
-Display: "Gain assistance"
-Hidden: Lose 5 Reputation, gain "corrupted" tag, lock good endings
 
-[Player discovers after commitment, feels cheated]
-```
+A choice displays only the immediate benefit of gaining assistance while hiding reputation loss, tag application, and content path blocking. Players discover these consequences only after commitment, creating feelings of unfairness and betrayal.
 
 Perfect Information (CORRECT):
-```
-Choice: "Accept magistrate's deal"
-Display:
-  Immediate: Gain magistrate's assistance
-  Consequences: -5 Reputation, gain "pragmatic_alliance" tag
-  Future: Blocks "righteous_path" scenes, enables "practical_path" scenes
-  Trade-off: Power vs principles
 
-[Player sees exact trade-off before deciding]
-```
+A choice displays immediate assistance gained, explicit reputation cost and tag application, clear future impact on which scene paths open or close, and the fundamental trade-off between power and principles. Players see the complete exchange before making their decision.
 
 **Why No Gotchas**:
 - Player makes informed decisions (not guessing)
@@ -1058,21 +832,12 @@ Display:
 **Example Safe Experimentation**:
 
 Player tries expensive choice:
-```
-Choice: Pay 20 coins for premium service
-Current coins: 22
-After: 2 coins (very low)
 
-[Tight margin, but can recover via B-stories]
-```
+Spending twenty coins on premium service with only twenty-two coins available leaves just two coins remaining, creating very tight margins but remaining recoverable through side story earnings.
 
 Player recovers:
-```
-Do B-story: Earn 18 coins
-After: 20 coins (comfortable again)
 
-[Experimentation had cost, but recoverable]
-```
+Completing a side story earns eighteen coins, restoring the player to twenty coins and comfortable margins again. The experimentation had a cost but proved fully recoverable through normal gameplay.
 
 **Why Experimentation Encouraged**:
 - Failure not catastrophic (can recover)
@@ -1091,15 +856,12 @@ After: 20 coins (comfortable again)
 **How Skipping Works**:
 
 New player:
-```
-Start → A1 (learn basics) → A2 (learn investigation) → A3 (learn relationships) → A4+ (full game)
-```
+
+Progresses through the authored tutorial sequence from basic mechanics in A1, to investigation in A2, to relationship building in A3, before entering the full procedural game at A4 and beyond.
 
 Experienced player:
-```
-Start → [SKIP TUTORIAL] → A4+ (full game immediately)
-[Assumes understanding of systems]
-```
+
+Skips the tutorial entirely and jumps directly to full game complexity at A4 and beyond, assuming system familiarity from previous playthroughs or experience with similar games.
 
 **Why Optional**:
 - Respects experienced players (no tedious rehash)
@@ -1116,25 +878,12 @@ Start → [SKIP TUTORIAL] → A4+ (full game immediately)
 **Example**:
 
 Initial route:
-```
-Westmarch → Northreach
-Distance: 6 segments
-Time: 3 time blocks
-Cost: 12 stamina
-```
+
+The land route between Westmarch and Northreach spans six segments requiring three time blocks and consuming twelve stamina.
 
 After building bond with Elena (level 5):
-```
-Elena: "My cousin runs ferry service. I'll write you a letter of introduction."
 
-Unlocked: Ferry Route (shortcut)
-Westmarch → Northreach (via ferry)
-Distance: 2 segments
-Time: 1 time block
-Cost: 8 coins (ferry fee) + 4 stamina
-
-Trade-off: Costs coins, saves time and stamina
-```
+Elena offers a letter of introduction to her cousin's ferry service, unlocking a shortcut route. The ferry covers the same journey in only two segments requiring one time block, but costs eight coins for the fare plus four stamina. The trade-off exchanges coin cost for significant time and stamina savings.
 
 **What Player Learns**:
 - Relationships unlock alternatives
@@ -1151,24 +900,12 @@ Trade-off: Costs coins, saves time and stamina
 **Example Discovery**:
 
 Player with Insight 6, Cunning 5:
-```
-Mental investigation scene:
-- "Systematic analysis" path (Insight 6) - UNLOCKED
-- "Subtle observation" path (Cunning 5) - UNLOCKED
-- "Intuitive deduction" path (Insight 6 + Cunning 4) - UNLOCKED
 
-Three optimal paths available (high specialization payoff)
-```
+High specialization in both investigation stats unlocks all three optimal paths: systematic analysis requiring insight six, subtle observation requiring cunning five, and intuitive deduction requiring both insight six and cunning four. Specialization payoff maximized with multiple accessible paths.
 
 Player with Insight 4, Cunning 4:
-```
-Mental investigation scene:
-- "Systematic analysis" path (Insight 6) - LOCKED
-- "Subtle observation" path (Cunning 5) - LOCKED
-- "Intuitive deduction" path (Insight 6 + Cunning 4) - LOCKED
 
-Must use expensive/challenge/fallback paths (generalist disadvantage)
-```
+Moderate generalist stats lock all three optimal paths, forcing reliance on expensive money paths, risky challenge paths, or time-consuming fallback paths. Generalist build sacrifices optimal path access for broader capability coverage.
 
 **What Player Learns**:
 - Specialization unlocks more paths
@@ -1183,29 +920,12 @@ Must use expensive/challenge/fallback paths (generalist disadvantage)
 **Pattern**: Player discovers efficient spending patterns.
 
 **Novice Economy**:
-```
-Income: 15 coins per B-story
-Expenses:
-  - Premium lodging: 12 coins (luxury)
-  - Premium food: 8 coins (restaurant)
-  - Premium travel: 5 coins (carriage)
-Total: 25 coins (deficit -10, unsustainable)
-```
+
+Earning fifteen coins per side story but spending twenty-five coins on premium lodging, restaurant meals, and carriage travel creates a ten-coin deficit and unsustainable economic collapse.
 
 **Expert Economy**:
-```
-Income: 15 coins per B-story
-Expenses:
-  - Basic lodging: 6 coins (adequate)
-  - Standard food: 5 coins (sufficient)
-  - Foot travel: 0 coins (costs stamina instead)
-Total: 11 coins (surplus +4, sustainable)
 
-Strategic premium purchases:
-  - Premium lodging when Health critical (emergency use)
-  - Premium food when time scarce (efficiency trade-off)
-  - Carriage when stamina depleted (recovery alternative)
-```
+The same fifteen-coin income but optimized spending on basic six-coin lodging, standard five-coin food, and zero-coin foot travel totals only eleven coins for a sustainable four-coin surplus. Premium options reserved strategically for emergencies: premium lodging when health becomes critical, premium food when time scarcity demands efficiency, and carriage transport when stamina depletion requires recovery alternatives.
 
 **What Player Learns**:
 - Basic options adequate (not inferior)
@@ -1220,25 +940,12 @@ Strategic premium purchases:
 **Pattern**: Challenge success rates improve with card play skill.
 
 **Novice Tactical Play**:
-```
-Mental Challenge
-Turn 1: Play ACT card (generate 2 Leads)
-Turn 2: Play ACT card (generate 2 Leads, but not enough Attention)
-Turn 3: Waste turn (no good cards)
-Turn 4: Play OBSERVE (draw only 2 Details, Leads wasted)
-Result: Progress 8/15 (failure, inefficient)
-```
+
+Inefficient card sequencing generates leads piecemeal without sufficient attention management, wastes turns with suboptimal plays, and observes prematurely with too few accumulated leads. The result achieves only eight of fifteen required progress, failing the challenge through poor resource management.
 
 **Expert Tactical Play**:
-```
-Mental Challenge
-Turn 1: Play ACT card (generate 2 Leads)
-Turn 2: Play ACT card (generate 3 Leads, total 5 Leads)
-Turn 3: Play OBSERVE (draw 5 Details, maximize Leads)
-Turn 4: Play high-value ACT (build Progress 12, near threshold)
-Turn 5: Play finishing ACT (Progress 16, victory)
-Result: Progress 16/15 (success, efficient)
-```
+
+Strategic card sequencing accumulates five leads before observing to maximize detail draw efficiency. High-value action cards build progress efficiently toward the threshold, with careful resource management enabling victory at sixteen progress through optimized lead generation, observation timing, and progress building.
 
 **What Player Learns**:
 - Lead accumulation matters (maximize before OBSERVE)
@@ -1255,26 +962,14 @@ Result: Progress 16/15 (success, efficient)
 **After Multiple Services**:
 
 Player recognizes service flow pattern:
-```
-"This is a service scene. It'll be:
-1. Negotiation (stat/money/challenge/fallback)
-2. Execution (choose recovery focus)
-3. Departure (relationship or speed)
 
-I know this structure. I'll negotiate with coins (save stats for later), choose mental-focused recovery (need Focus), quick departure (save time)."
-```
+After encountering several service scenes, the player identifies the three-phase structure of negotiation with four-choice pattern, execution with recovery focus selection, and departure with relationship versus speed trade-off. Pattern recognition enables efficient decision-making: negotiate with coins to preserve stats, select mental-focused recovery to restore needed focus, and quick departure to save time.
 
 **After Multiple Investigations**:
 
 Player recognizes investigation pattern:
-```
-"This is hub-and-spoke investigation. I'll:
-1. Explore all three leads (gather maximum evidence)
-2. Return to convergence (present complete picture)
-3. Get optimal conclusion (best Understanding gain)
 
-Worth the time investment for full evidence."
-```
+After multiple investigation scenes, the player identifies the hub-and-spoke structure with multiple parallel leads, convergence point for presenting evidence, and conclusion quality dependent on evidence completeness. Pattern recognition guides strategy: explore all three leads to gather maximum evidence, return to convergence with complete picture, and achieve optimal conclusion for best understanding gain through thorough investigation worth the time investment.
 
 **What Player Learns**:
 - Patterns repeat across game (reusable mental models)

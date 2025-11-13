@@ -517,10 +517,13 @@ public class AINarrativeProvider : INarrativeProvider
         string intensity = card.InitiativeCost <= 1 ? "carefully" : card.InitiativeCost >= 3 ? "boldly" : "directly";
         string action = card.NarrativeCategory switch
         {
-            "risk" => "challenge their perspective",
-            "support" => "offer understanding",
-            "atmosphere" => "shift the conversation tone",
-            "utility" => "ask for more information",
+            NarrativeCategoryType.Atmosphere => "shift the conversation tone",
+            NarrativeCategoryType.Pressure => "press for answers",
+            NarrativeCategoryType.SupportTrust => "offer understanding",
+            NarrativeCategoryType.SupportDiplomacy => "offer diplomatic support",
+            NarrativeCategoryType.SupportStatus => "leverage your standing",
+            NarrativeCategoryType.SupportShadow => "share subtle understanding",
+            NarrativeCategoryType.Standard => "respond thoughtfully",
             _ => "respond thoughtfully"
         };
 

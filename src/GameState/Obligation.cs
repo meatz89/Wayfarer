@@ -84,7 +84,7 @@ public class Obligation
 }
 
 /// <summary>
-/// Phase definition - references an existing situation from GameWorld.Situations
+/// Phase definition - references an existing situation from Scene.Situations
 /// When prerequisites met, obligation system looks up situation and adds to ActiveSituations
 /// </summary>
 public class ObligationPhaseDefinition

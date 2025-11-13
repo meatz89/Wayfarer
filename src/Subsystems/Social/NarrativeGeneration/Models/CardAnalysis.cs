@@ -13,26 +13,20 @@ public class CardAnalysis
 
     /// <summary>
     /// Most common narrative category among the cards.
-    /// Examples: "risk", "support", "atmosphere", "utility"
     /// Used to generate contextually appropriate NPC dialogue.
     /// </summary>
-    public string DominantCategory { get; set; }
+    public NarrativeCategoryType DominantCategory { get; set; }
 
     /// <summary>
     /// True if cards require urgent NPC response.
-    /// Typically when high-risk cards dominate.
+    /// Typically when high-intensity cards dominate.
     /// </summary>
     public bool RequiresUrgency { get; set; }
 
     /// <summary>
-    /// List of card IDs that are categorized as risk cards.
-    /// These require NPC dialogue that invites bold responses.
-    /// </summary>
-    public List<string> RiskCards { get; set; } = new List<string>();
-
-    /// <summary>
     /// List of card IDs that can set atmosphere.
     /// These need dialogue that can be disrupted or enhanced.
+    /// Cards with SuccessType.None (atmosphere-changing effects).
     /// </summary>
     public List<string> AtmosphereSetters { get; set; } = new List<string>();
 
@@ -40,7 +34,7 @@ public class CardAnalysis
     /// Breakdown of all cards by their narrative category.
     /// Maps card ID to category for backwards construction.
     /// </summary>
-    public Dictionary<string, string> CategoryBreakdown { get; set; } = new Dictionary<string, string>();
+    public Dictionary<string, NarrativeCategoryType> CategoryBreakdown { get; set; } = new Dictionary<string, NarrativeCategoryType>();
 }
 
 /// <summary>

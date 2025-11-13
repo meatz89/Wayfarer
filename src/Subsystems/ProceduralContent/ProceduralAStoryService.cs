@@ -231,11 +231,7 @@ public class ProceduralAStoryService
             PersonalityTypes = personalityTypes,
             MinBond = null, // A-story accessible regardless of relationships
             MaxBond = null,
-            NpcTags = new List<string> { "order_connected" },
-
-            // No concrete IDs (Generic placement resolves at spawn time)
-            LocationId = null,
-            NpcId = null
+            NpcTags = new List<string> { "order_connected" }
         };
 
         return filter;
@@ -343,30 +339,24 @@ public class ProceduralAStoryService
 
     /// <summary>
     /// Build spawn conditions for A-story scene
-    /// A-scenes spawn automatically when previous A-scene completes
-    /// Spawn conditions verify previous scene completion
+    /// A-scenes spawn sequentially via ScenesToSpawn rewards
+    /// No explicit conditions needed - progression managed by reward chain
     /// </summary>
     private SpawnConditionsDTO BuildSpawnConditions(int sequence, AStoryContext context)
     {
-        // Previous A-scene must be completed
-        string previousSceneId = $"a_story_{sequence - 1}";
-
         SpawnConditionsDTO conditions = new SpawnConditionsDTO
         {
-            CombinationLogic = "All", // All conditions must pass
+            CombinationLogic = "All",
 
-            // Player state conditions
+            // No spawn conditions - A-story progression managed by sequential spawning
+            // Each A-scene spawns the next via ScenesToSpawn reward in final situation
             PlayerState = new PlayerStateConditionsDTO
             {
-                CompletedScenes = new List<string> { previousSceneId }, // Previous A-scene completed
-                MinStats = new Dictionary<string, int>(), // No stat gates (accessible to all)
-                RequiredItems = new List<string>() // No item requirements
+                MinStats = new Dictionary<string, int>(),
+                RequiredItems = new List<string>()
             },
 
-            // No world state conditions (time/weather irrelevant for A-story)
             WorldState = null,
-
-            // No entity state conditions (spawn independent of entity states)
             EntityState = null
         };
 
@@ -463,27 +453,24 @@ public class ProceduralAStoryService
             }
 
             // Extract region from placement location
-            if (!string.IsNullOrEmpty(scene.PlacementId))
+            // Use direct object reference instead of PlacementId lookup
+            if (scene.Location != null && !string.IsNullOrEmpty(scene.Location.VenueId))
             {
                 // RegionId removed from Location - track by VenueId instead
-                Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == scene.PlacementId);
-                if (location != null && !string.IsNullOrEmpty(location.VenueId))
+                if (!context.RecentRegionIds.Contains(scene.Location.VenueId))
                 {
-                    if (!context.RecentRegionIds.Contains(location.VenueId))
-                    {
-                        context.RecentRegionIds.Add(location.VenueId);
-                    }
+                    context.RecentRegionIds.Add(scene.Location.VenueId);
                 }
             }
 
             // Extract NPC personality from scene placement (if NPC-placed)
             // For A-story scenes, typically Location-placed, but check anyway
-            if (scene.PlacementType == PlacementType.NPC && !string.IsNullOrEmpty(scene.PlacementId))
+            // Use direct object reference instead of PlacementType enum dispatch
+            if (scene.Npc != null)
             {
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.PlacementId);
-                if (npc != null && !context.RecentPersonalityTypes.Contains(npc.PersonalityType))
+                if (!context.RecentPersonalityTypes.Contains(scene.Npc.PersonalityType))
                 {
-                    context.RecentPersonalityTypes.Add(npc.PersonalityType);
+                    context.RecentPersonalityTypes.Add(scene.Npc.PersonalityType);
                 }
             }
         }

@@ -69,11 +69,18 @@ public static class PlayerStatParser
                     // Parse special effects - optional field, only set if present
                     if (!string.IsNullOrEmpty(bonusDto.Effect))
                     {
-                        switch (bonusDto.Effect.ToLower())
+                        BonusEffectType effectType = bonusDto.Effect.ToLower() switch
                         {
-                            case "gains_thought_persistence":
-                                bonus.GainsThoughtPersistence = true;
-                                break;
+                            "gains_thought_persistence" => BonusEffectType.GainsThoughtPersistence,
+                            _ => BonusEffectType.None
+                        };
+
+                        bonus.EffectType = effectType;
+
+                        // Apply effect to boolean flags (legacy support)
+                        if (effectType == BonusEffectType.GainsThoughtPersistence)
+                        {
+                            bonus.GainsThoughtPersistence = true;
                         }
                     }
 
@@ -116,7 +123,8 @@ public class StatLevelBonus
 {
     public int Level { get; set; }
     public int SuccessBonus { get; set; }
-    public bool GainsThoughtPersistence { get; set; }
+    public BonusEffectType EffectType { get; set; } = BonusEffectType.None;
+    public bool GainsThoughtPersistence { get; set; } // Legacy boolean flag - prefer EffectType
     public string Description { get; set; }
 }
 
