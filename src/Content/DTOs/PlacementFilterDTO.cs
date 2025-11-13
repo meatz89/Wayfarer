@@ -16,14 +16,6 @@ public class PlacementFilterDTO
     // ====================
 
     /// <summary>
-    /// Concrete NPC ID binding (tutorial/explicit binding pattern)
-    /// When specified, bypasses categorical filtering and binds to specific NPC
-    /// Example: "elena" binds tutorial to Elena regardless of her categorical properties
-    /// null = use categorical filtering (personalityTypes, minBond, etc.)
-    /// </summary>
-    public string NpcId { get; set; }
-
-    /// <summary>
     /// Personality types to match
     /// Example: ["Innocent", "Cunning", "Authoritative"]
     /// Maps to PersonalityType enum values
@@ -53,14 +45,6 @@ public class PlacementFilterDTO
     // ====================
 
     /// <summary>
-    /// Concrete Location ID binding (tutorial/explicit binding pattern)
-    /// When specified, bypasses categorical filtering and binds to specific Location
-    /// Example: "fountain_plaza" binds scene to Town Square fountain
-    /// null = use categorical filtering (locationProperties, locationTags, etc.)
-    /// </summary>
-    public string LocationId { get; set; }
-
-    /// <summary>
     /// Location properties to match
     /// Example: ["Urban", "Dangerous", "Secluded"]
     /// Maps to LocationPropertyType enum values
@@ -88,14 +72,6 @@ public class PlacementFilterDTO
     // ====================
     // ROUTE FILTERS
     // ====================
-
-    /// <summary>
-    /// Concrete Route ID binding (tutorial/explicit binding pattern)
-    /// When specified, bypasses categorical filtering and binds to specific Route
-    /// Example: "trade_road_segment_5" binds scene to specific route
-    /// null = use categorical filtering (terrainTypes, routeTier, etc.)
-    /// </summary>
-    public string RouteId { get; set; }
 
     /// <summary>
     /// Terrain types to match

@@ -183,20 +183,11 @@ public class SceneInstantiator
             string resolvedLocationId = sitTemplate.RequiredLocationId;
             string resolvedNpcId = sitTemplate.RequiredNpcId;
 
-            // Generate narrative (AI or template)
+            // Use narrative template (narrative generation with resolved entities happens later in System 5)
             string description = sitTemplate.NarrativeTemplate;
-            if (string.IsNullOrEmpty(description) && sitTemplate.NarrativeHints != null)
+            if (string.IsNullOrEmpty(description))
             {
-                try
-                {
-                    ScenePromptContext promptContext = BuildScenePromptContext(sceneDto, context);
-                    description = _narrativeService.GenerateSituationNarrative(promptContext, sitTemplate.NarrativeHints);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"[SceneInstantiator] Narrative generation failed for Situation '{situationId}': {ex.Message}");
-                    description = "A situation unfolds before you.";
-                }
+                description = "A situation unfolds before you.";
             }
 
             // AI generates complete text with entity context (no placeholder replacement needed)
@@ -872,69 +863,6 @@ public class SceneInstantiator
     }
 
     /// <summary>
-    /// Build ScenePromptContext for AI narrative generation from SceneDTO and spawn context
-    /// Bundles entity objects (NPC, Location, Route) with complete properties for rich context
-    /// Called during situation narrative generation
-    /// Only works if filter has concrete IDs (tutorial binding) - throws if categorical (AI generates later)
-    /// </summary>
-    private ScenePromptContext BuildScenePromptContext(SceneDTO sceneDto, SceneSpawnContext context)
-    {
-        // Get template for archetype/tier
-        SceneTemplate template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == sceneDto.TemplateId);
-        if (template == null)
-        {
-            throw new InvalidOperationException($"SceneTemplate '{sceneDto.TemplateId}' not found");
-        }
-
-        ScenePromptContext promptContext = new ScenePromptContext
-        {
-            Player = context.Player,
-            ArchetypeId = template.Archetype.ToString(),
-            Tier = template.Tier,
-            SceneDisplayName = sceneDto.DisplayName,
-            CurrentTimeBlock = _gameWorld.CurrentTimeBlock,
-            CurrentWeather = _gameWorld.CurrentWeather.ToString().ToLower(),
-            CurrentDay = _gameWorld.CurrentDay
-        };
-
-        // Determine which filter is present and extract concrete ID
-        // NPC Filter (check first as it may also have location)
-        if (sceneDto.NpcFilter != null)
-        {
-            PlacementFilter npcFilter = SceneTemplateParser.ParsePlacementFilter(sceneDto.NpcFilter, sceneDto.TemplateId);
-            if (string.IsNullOrEmpty(npcFilter.SpecificNpcId))
-                throw new InvalidOperationException("Cannot generate narrative without concrete NPC binding (categorical filters resolved later)");
-
-            promptContext.NPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcFilter.SpecificNpcId);
-            if (promptContext.NPC != null)
-            {
-                promptContext.NPCBondLevel = promptContext.NPC.BondStrength;
-                promptContext.Location = promptContext.NPC.Location;
-            }
-        }
-        // Location Filter
-        else if (sceneDto.LocationFilter != null)
-        {
-            PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(sceneDto.LocationFilter, sceneDto.TemplateId);
-            if (string.IsNullOrEmpty(locationFilter.SpecificLocationId))
-                throw new InvalidOperationException("Cannot generate narrative without concrete Location binding (categorical filters resolved later)");
-
-            promptContext.Location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationFilter.SpecificLocationId);
-        }
-        // Route Filter
-        else if (sceneDto.RouteFilter != null)
-        {
-            PlacementFilter routeFilter = SceneTemplateParser.ParsePlacementFilter(sceneDto.RouteFilter, sceneDto.TemplateId);
-            if (string.IsNullOrEmpty(routeFilter.SpecificRouteId))
-                throw new InvalidOperationException("Cannot generate narrative without concrete Route binding (categorical filters resolved later)");
-
-            promptContext.Route = _gameWorld.Routes.FirstOrDefault(r => r.Id == routeFilter.SpecificRouteId);
-        }
-
-        return promptContext;
-    }
-
-    /// <summary>
     /// Generate dependent resource SPECS for self-contained scene
     /// Returns specs to orchestrator who creates JSON files and loads via PackageLoader
     /// Does NOT load resources itself (pure generation, no infrastructure)
@@ -1280,11 +1208,6 @@ public class SceneInstantiator
         return new PlacementFilterDTO
         {
             PlacementType = filter.PlacementType.ToString(),
-            SpecificLocationId = filter.SpecificLocationId,
-            SpecificNpcId = filter.SpecificNpcId,
-            SpecificRouteId = filter.SpecificRouteId,
-            SameLocationAs = filter.SameLocationAs,
-            SameVenueAs = filter.SameVenueAs,
             PersonalityTypes = filter.PersonalityTypes?.Select(p => p.ToString()).ToList(),
             Professions = filter.Professions?.Select(p => p.ToString()).ToList(),
             RequiredRelationships = filter.RequiredRelationships?.Select(r => r.ToString()).ToList(),

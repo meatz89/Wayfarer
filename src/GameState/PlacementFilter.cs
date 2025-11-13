@@ -167,32 +167,6 @@ public class PlacementFilter
     /// </summary>
     public List<string> RouteTags { get; init; } = new List<string>();
 
-    // ==================== CONCRETE PLACEMENT OVERRIDES (tutorial/specific scenarios) ====================
-
-    /// <summary>
-    /// Concrete location ID for tutorial or specific scenario binding
-    /// When specified, filter bypasses categorical search and returns this specific location
-    /// Used by SceneSpawnReward.SpecificPlacementId for tutorial content
-    /// null = use categorical search (normal behavior)
-    /// </summary>
-    public string SpecificLocationId { get; init; }
-
-    /// <summary>
-    /// Concrete NPC ID for tutorial or specific scenario binding
-    /// When specified, filter bypasses categorical search and returns this specific NPC
-    /// Used by SceneSpawnReward.SpecificPlacementId for tutorial content
-    /// null = use categorical search (normal behavior)
-    /// </summary>
-    public string SpecificNpcId { get; init; }
-
-    /// <summary>
-    /// Concrete route ID for tutorial or specific scenario binding
-    /// When specified, filter bypasses categorical search and returns this specific route
-    /// Used by SceneSpawnReward.SpecificPlacementId for tutorial content
-    /// null = use categorical search (normal behavior)
-    /// </summary>
-    public string SpecificRouteId { get; init; }
-
     // ==================== VARIETY CONTROL ====================
 
     /// <summary>

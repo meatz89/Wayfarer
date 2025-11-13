@@ -162,10 +162,6 @@ public class SceneTemplateParser
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = placementType,
-            // Concrete placement overrides (tutorial/specific scenarios)
-            SpecificNpcId = dto.NpcId,
-            SpecificLocationId = dto.LocationId,
-            SpecificRouteId = dto.RouteId,
             // NPC filters
             PersonalityTypes = ParsePersonalityTypes(dto.PersonalityTypes, sceneTemplateId),
             MinBond = dto.MinBond,

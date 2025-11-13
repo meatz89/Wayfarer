@@ -69,51 +69,17 @@ public class ObligationParser
         {
             foreach (SceneSpawnInfoDTO spawnDto in dto.ScenesSpawned)
             {
-                PlacementFilter filter = BuildPlacementFilterFromTargetType(spawnDto.TargetType, spawnDto.TargetEntityId);
-
-                SceneSpawnReward sceneSpawn = new SceneSpawnReward
-                {
-                    SceneTemplateId = spawnDto.SceneTemplateId,
-                    PlacementFilterOverride = filter
-                };
-
-                reward.ScenesToSpawn.Add(sceneSpawn);
+                throw new NotImplementedException(
+                    "Obligation scene spawning requires refactoring to use categorical PlacementFilter. " +
+                    "SceneSpawnInfoDTO.TargetType/TargetEntityId (legacy absolute placement) must be replaced with " +
+                    "full PlacementFilterDTO containing categorical properties (LocationTypes, PersonalityTypes, etc.). " +
+                    "Scenes will reuse entities naturally through categorical matching - no concrete IDs needed.");
             }
         }
 
         return reward;
     }
 
-    /// <summary>
-    /// Convert legacy TargetType + TargetEntityId to PlacementFilter
-    /// Obligation phase rewards use specific entity placement
-    /// </summary>
-    private PlacementFilter BuildPlacementFilterFromTargetType(string targetType, string targetEntityId)
-    {
-        if (string.IsNullOrEmpty(targetType))
-            throw new InvalidDataException("SceneSpawnInfo missing required 'targetType' field");
-
-        return targetType.ToLowerInvariant() switch
-        {
-            "location" => new PlacementFilter
-            {
-                PlacementType = PlacementType.Location,
-                SpecificLocationId = targetEntityId
-            },
-            "route" => new PlacementFilter
-            {
-                PlacementType = PlacementType.Route,
-                SpecificRouteId = targetEntityId
-            },
-            "npc" => new PlacementFilter
-            {
-                PlacementType = PlacementType.NPC,
-                SpecificNpcId = targetEntityId
-            },
-            _ => throw new InvalidDataException(
-                $"Invalid TargetType '{targetType}'. Valid values: Location, Route, NPC")
-        };
-    }
     private void ValidateDeckId(string deckId, TacticalSystemType systemType, string phaseId)
     {
         if (string.IsNullOrEmpty(deckId))
