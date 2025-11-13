@@ -213,7 +213,6 @@ public class SceneInstanceFacade
                         Console.WriteLine($"[SceneInstanceFacade] Situation '{situation.Id}' requires deleted NPC '{requiredNpcId}' - skipping");
                         continue; // Entity deleted between spawn and interaction - skip situation
                     }
-                }
 
                 bool npcMatches = string.IsNullOrEmpty(requiredNpcId) || requiredNpcId == npcId;
 
