@@ -81,33 +81,9 @@ public class EntityResolver
 
     private Location FindMatchingLocation(PlacementFilter filter)
     {
-        List<Location> matchingLocations = _gameWorld.Locations.Where(loc =>
-        {
-            // Check location properties (if specified)
-            if (filter.LocationProperties != null && filter.LocationProperties.Count > 0)
-            {
-                // Location must have ALL specified properties
-                if (!filter.LocationProperties.All(prop => loc.LocationProperties.Contains(prop)))
-                    return false;
-            }
-
-            // Check location type (if specified)
-            if (filter.LocationTypes != null && filter.LocationTypes.Count > 0)
-            {
-                if (!filter.LocationTypes.Contains(loc.LocationType))
-                    return false;
-            }
-
-            // Check accessibility requirements
-            if (filter.IsPlayerAccessible.HasValue && filter.IsPlayerAccessible.Value)
-            {
-                // Check if location is physically accessible to player
-                if (!loc.HasBeenVisited && loc.IsLocked)
-                    return false;
-            }
-
-            return true;
-        }).ToList();
+        List<Location> matchingLocations = _gameWorld.Locations
+            .Where(loc => LocationMatchesFilter(loc, filter))
+            .ToList();
 
         // Apply selection strategy if multiple matches
         if (matchingLocations.Count == 0)
@@ -116,39 +92,39 @@ public class EntityResolver
         return ApplySelectionStrategy(matchingLocations, filter.SelectionStrategy);
     }
 
+    private bool LocationMatchesFilter(Location loc, PlacementFilter filter)
+    {
+        // Check location properties (if specified)
+        if (filter.LocationProperties != null && filter.LocationProperties.Count > 0)
+        {
+            // Location must have ALL specified properties
+            if (!filter.LocationProperties.All(prop => loc.LocationProperties.Contains(prop)))
+                return false;
+        }
+
+        // Check location type (if specified)
+        if (filter.LocationTypes != null && filter.LocationTypes.Count > 0)
+        {
+            if (!filter.LocationTypes.Contains(loc.LocationType))
+                return false;
+        }
+
+        // Check accessibility requirements
+        if (filter.IsPlayerAccessible.HasValue && filter.IsPlayerAccessible.Value)
+        {
+            // Check if location is physically accessible to player
+            if (!loc.HasBeenVisited && loc.IsLocked)
+                return false;
+        }
+
+        return true;
+    }
+
     private NPC FindMatchingNPC(PlacementFilter filter)
     {
-        List<NPC> matchingNPCs = _gameWorld.NPCs.Where(npc =>
-        {
-            // Check personality type (if specified)
-            if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
-            {
-                if (!filter.PersonalityTypes.Contains(npc.PersonalityType))
-                    return false;
-            }
-
-            // Check profession (if specified)
-            if (filter.Professions != null && filter.Professions.Count > 0)
-            {
-                if (!filter.Professions.Contains(npc.Profession))
-                    return false;
-            }
-
-            // Check relationship state (if specified)
-            if (filter.RequiredRelationships != null && filter.RequiredRelationships.Count > 0)
-            {
-                if (!filter.RequiredRelationships.Contains(npc.PlayerRelationship))
-                    return false;
-            }
-
-            // Check tier (if specified)
-            if (filter.MinTier.HasValue && npc.Tier < filter.MinTier.Value)
-                return false;
-            if (filter.MaxTier.HasValue && npc.Tier > filter.MaxTier.Value)
-                return false;
-
-            return true;
-        }).ToList();
+        List<NPC> matchingNPCs = _gameWorld.NPCs
+            .Where(npc => NPCMatchesFilter(npc, filter))
+            .ToList();
 
         // Apply selection strategy if multiple matches
         if (matchingNPCs.Count == 0)
@@ -157,28 +133,63 @@ public class EntityResolver
         return ApplySelectionStrategy(matchingNPCs, filter.SelectionStrategy);
     }
 
+    private bool NPCMatchesFilter(NPC npc, PlacementFilter filter)
+    {
+        // Check personality type (if specified)
+        if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
+        {
+            if (!filter.PersonalityTypes.Contains(npc.PersonalityType))
+                return false;
+        }
+
+        // Check profession (if specified)
+        if (filter.Professions != null && filter.Professions.Count > 0)
+        {
+            if (!filter.Professions.Contains(npc.Profession))
+                return false;
+        }
+
+        // Check relationship state (if specified)
+        if (filter.RequiredRelationships != null && filter.RequiredRelationships.Count > 0)
+        {
+            if (!filter.RequiredRelationships.Contains(npc.PlayerRelationship))
+                return false;
+        }
+
+        // Check tier (if specified)
+        if (filter.MinTier.HasValue && npc.Tier < filter.MinTier.Value)
+            return false;
+        if (filter.MaxTier.HasValue && npc.Tier > filter.MaxTier.Value)
+            return false;
+
+        return true;
+    }
+
     private RouteOption FindMatchingRoute(PlacementFilter filter)
     {
-        RouteOption matchingRoute = _gameWorld.Routes.FirstOrDefault(route =>
-        {
-            // Check terrain types (dominant terrain from TerrainCategories)
-            if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
-            {
-                string dominantTerrain = route.GetDominantTerrainType();
-                if (!filter.TerrainTypes.Contains(dominantTerrain))
-                    return false;
-            }
-
-            // Check difficulty (using DangerRating)
-            if (filter.MinDifficulty.HasValue && route.DangerRating < filter.MinDifficulty.Value)
-                return false;
-            if (filter.MaxDifficulty.HasValue && route.DangerRating > filter.MaxDifficulty.Value)
-                return false;
-
-            return true;
-        });
+        RouteOption matchingRoute = _gameWorld.Routes
+            .FirstOrDefault(route => RouteMatchesFilter(route, filter));
 
         return matchingRoute;
+    }
+
+    private bool RouteMatchesFilter(RouteOption route, PlacementFilter filter)
+    {
+        // Check terrain types (dominant terrain from TerrainCategories)
+        if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
+        {
+            string dominantTerrain = route.GetDominantTerrainType();
+            if (!filter.TerrainTypes.Contains(dominantTerrain))
+                return false;
+        }
+
+        // Check difficulty (using DangerRating)
+        if (filter.MinDifficulty.HasValue && route.DangerRating < filter.MinDifficulty.Value)
+            return false;
+        if (filter.MaxDifficulty.HasValue && route.DangerRating > filter.MaxDifficulty.Value)
+            return false;
+
+        return true;
     }
 
     // ========== CREATE NEW ENTITIES ==========
