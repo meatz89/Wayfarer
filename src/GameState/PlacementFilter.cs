@@ -31,6 +31,34 @@ public class PlacementFilter
     public List<PersonalityType> PersonalityTypes { get; init; } = new List<PersonalityType>();
 
     /// <summary>
+    /// Required professions for NPC selection
+    /// Example: [Merchant, Scholar, Guard]
+    /// NPC must have one of these professions to match
+    /// </summary>
+    public List<Professions> Professions { get; init; } = new List<Professions>();
+
+    /// <summary>
+    /// Required relationship states for NPC selection
+    /// Example: [Ally, Rival, Neutral]
+    /// NPC must have one of these relationship states with player
+    /// </summary>
+    public List<RelationshipState> RequiredRelationships { get; init; } = new List<RelationshipState>();
+
+    /// <summary>
+    /// Minimum NPC tier requirement
+    /// null = no minimum
+    /// Example: MinTier = 2 means "only select tier 2+ NPCs"
+    /// </summary>
+    public int? MinTier { get; init; }
+
+    /// <summary>
+    /// Maximum NPC tier requirement
+    /// null = no maximum
+    /// Example: MaxTier = 3 means "only select tier 1-3 NPCs"
+    /// </summary>
+    public int? MaxTier { get; init; }
+
+    /// <summary>
     /// Minimum bond strength required with player
     /// Example: MinBond = 10 means "select NPCs player has bond 10+"
     /// null = no minimum requirement
@@ -55,12 +83,27 @@ public class PlacementFilter
     // ==================== LOCATION FILTERS (when PlacementType == Location) ====================
 
     /// <summary>
+    /// Required location types for categorical selection
+    /// Example: [Inn, Tavern, Market]
+    /// Location must match one of these types
+    /// STRONGLY-TYPED enum, not strings
+    /// </summary>
+    public List<LocationTypes> LocationTypes { get; init; } = new List<LocationTypes>();
+
+    /// <summary>
     /// Required location properties for categorical selection
     /// Example: [Secluded, Indoor, Private]
     /// Location must have ALL specified properties to match
     /// STRONGLY-TYPED enum, not strings
     /// </summary>
     public List<LocationPropertyType> LocationProperties { get; init; } = new List<LocationPropertyType>();
+
+    /// <summary>
+    /// Player accessibility requirement
+    /// true = only accessible locations (visited OR unlocked)
+    /// false/null = any location regardless of accessibility
+    /// </summary>
+    public bool? IsPlayerAccessible { get; init; }
 
     /// <summary>
     /// Categorical tags for location selection
@@ -102,20 +145,20 @@ public class PlacementFilter
     public int? RouteTier { get; init; }
 
     /// <summary>
-    /// Minimum danger rating for route selection (0-100 scale)
+    /// Minimum difficulty rating for route selection (uses DangerRating property)
     /// null = no minimum
     /// Used to filter scenes for dangerous routes
-    /// Example: MinDangerRating = 30 means "only spawn on routes with danger 30+"
+    /// Example: MinDifficulty = 30 means "only spawn on routes with danger 30+"
     /// </summary>
-    public int? MinDangerRating { get; init; }
+    public int? MinDifficulty { get; init; }
 
     /// <summary>
-    /// Maximum danger rating for route selection (0-100 scale)
+    /// Maximum difficulty rating for route selection (uses DangerRating property)
     /// null = no maximum
     /// Used to filter scenes for safer routes
-    /// Example: MaxDangerRating = 50 means "only spawn on routes with danger <= 50"
+    /// Example: MaxDifficulty = 50 means "only spawn on routes with danger <= 50"
     /// </summary>
-    public int? MaxDangerRating { get; init; }
+    public int? MaxDifficulty { get; init; }
 
     // ==================== PLAYER STATE FILTERS (applies to all placement types) ====================
 

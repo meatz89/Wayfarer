@@ -196,11 +196,11 @@ public class SceneNarrativeService
             string prefix = primaryProperty switch
             {
                 LocationPropertyType.Private => "Private",
-                LocationPropertyType.Secured => "Secure",
+                LocationPropertyType.Secure => "Secure",
                 LocationPropertyType.Public => "Public",
                 LocationPropertyType.Commercial => "Trading",
-                LocationPropertyType.Restricted => "Restricted",
-                LocationPropertyType.Underground => "Hidden",
+                LocationPropertyType.Exclusive => "Exclusive",
+                LocationPropertyType.Hidden => "Hidden",
                 _ => ""
             };
 
@@ -217,10 +217,10 @@ public class SceneNarrativeService
                 LocationTypes.Inn => "Inn",
                 LocationTypes.Tavern => "Tavern",
                 LocationTypes.Market => "Market",
-                LocationTypes.Workshop => "Workshop",
+                LocationTypes.Shop => "Shop",
                 LocationTypes.Temple => "Temple",
-                LocationTypes.Mansion => "Mansion",
-                LocationTypes.Warehouse => "Warehouse",
+                LocationTypes.Palace => "Palace",
+                LocationTypes.Guild => "Guild",
                 LocationTypes.Crossroads => "Crossroads",
                 _ => "Place"
             };

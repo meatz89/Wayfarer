@@ -23,7 +23,7 @@ public class EntityResolver
     public Location FindOrCreateLocation(PlacementFilter filter)
     {
         if (filter == null)
-            throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null - scenes must specify location placement requirements");
+            return null;
 
         // Try to find existing location matching categories
         Location existingLocation = FindMatchingLocation(filter);
@@ -42,7 +42,7 @@ public class EntityResolver
     public NPC FindOrCreateNPC(PlacementFilter filter)
     {
         if (filter == null)
-            throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null - scenes must specify NPC placement requirements");
+            return null;
 
         // Try to find existing NPC matching categories
         NPC existingNPC = FindMatchingNPC(filter);
@@ -61,7 +61,7 @@ public class EntityResolver
     public RouteOption FindOrCreateRoute(PlacementFilter filter)
     {
         if (filter == null)
-            throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null - scenes must specify route placement requirements");
+            return null;
 
         // Try to find existing route matching categories
         RouteOption existingRoute = FindMatchingRoute(filter);
@@ -184,7 +184,7 @@ public class EntityResolver
     {
         Location newLocation = new Location
         {
-            Id = $"generated_location_{Guid.NewGuid().ToString().Substring(0, 8)}",
+            Id = $"generated_location_{Guid.NewGuid()}",
             Name = GenerateLocationName(filter),
             IsSkeleton = false,
 
@@ -210,7 +210,7 @@ public class EntityResolver
     {
         NPC newNPC = new NPC
         {
-            ID = $"generated_npc_{Guid.NewGuid().ToString().Substring(0, 8)}",
+            ID = $"generated_npc_{Guid.NewGuid()}",
             Name = GenerateNPCName(filter),
             IsSkeleton = false,
 
@@ -237,7 +237,7 @@ public class EntityResolver
     {
         RouteOption newRoute = new RouteOption
         {
-            Id = $"generated_route_{Guid.NewGuid().ToString().Substring(0, 8)}",
+            Id = $"generated_route_{Guid.NewGuid()}",
             Name = GenerateRouteName(filter),
 
             // Apply categorical properties from filter
