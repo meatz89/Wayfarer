@@ -457,27 +457,24 @@ public class ProceduralAStoryService
             }
 
             // Extract region from placement location
-            if (!string.IsNullOrEmpty(scene.PlacementId))
+            // Use direct object reference instead of PlacementId lookup
+            if (scene.Location != null && !string.IsNullOrEmpty(scene.Location.VenueId))
             {
                 // RegionId removed from Location - track by VenueId instead
-                Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == scene.PlacementId);
-                if (location != null && !string.IsNullOrEmpty(location.VenueId))
+                if (!context.RecentRegionIds.Contains(scene.Location.VenueId))
                 {
-                    if (!context.RecentRegionIds.Contains(location.VenueId))
-                    {
-                        context.RecentRegionIds.Add(location.VenueId);
-                    }
+                    context.RecentRegionIds.Add(scene.Location.VenueId);
                 }
             }
 
             // Extract NPC personality from scene placement (if NPC-placed)
             // For A-story scenes, typically Location-placed, but check anyway
-            if (scene.PlacementType == PlacementType.NPC && !string.IsNullOrEmpty(scene.PlacementId))
+            // Use direct object reference instead of PlacementType enum dispatch
+            if (scene.Npc != null)
             {
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.PlacementId);
-                if (npc != null && !context.RecentPersonalityTypes.Contains(npc.PersonalityType))
+                if (!context.RecentPersonalityTypes.Contains(scene.Npc.PersonalityType))
                 {
-                    context.RecentPersonalityTypes.Add(npc.PersonalityType);
+                    context.RecentPersonalityTypes.Add(scene.Npc.PersonalityType);
                 }
             }
         }

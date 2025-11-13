@@ -599,7 +599,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             return;
         }
 
-        if (scene.PlacementType != PlacementType.NPC || scene.PlacementId != npcId)
+        // Use direct object reference instead of PlacementType enum dispatch
+        if (scene.Npc == null || scene.Npc.ID != npcId)
         {
             Console.WriteLine($"[GameScreen] Scene {scene.Id} does not belong to NPC {npcId}");
             return;
