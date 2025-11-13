@@ -169,8 +169,10 @@ public static class SceneArchetypeCatalog
                 Context = "securing_lodging",
                 Style = "direct"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            // Hierarchical placement: Inherit scene base (common room + innkeeper)
+            LocationFilter = null,  // Inherits scene BaseLocationFilter (common room)
+            NpcFilter = null,       // Inherits scene BaseNpcFilter (innkeeper)
+            RouteFilter = null
         };
 
         // SITUATION 2: REST IN ROOM
@@ -196,8 +198,18 @@ public static class SceneArchetypeCatalog
                 Context = "recovery",
                 Style = "peaceful"
             },
-            RequiredLocationId = "generated:private_room",
-            RequiredNpcId = null  // No NPC in private room
+            // Hierarchical placement: Override to private room, no NPC
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                LocationTags = new List<string> { "DEPENDENT_LOCATION:private_room" }  // Marker replaced at spawn time
+            },
+            NpcFilter = new PlacementFilter  // Explicit "no NPC" override (empty filter = no match)
+            {
+                PlacementType = PlacementType.NPC,
+                PersonalityTypes = new List<PersonalityType>()  // Empty list = no NPC wanted
+            },
+            RouteFilter = null
         };
 
         // SITUATION 3: DEPART INN
@@ -265,8 +277,18 @@ public static class SceneArchetypeCatalog
                 Context = "morning_departure",
                 Style = "forward-looking"
             },
-            RequiredLocationId = "generated:private_room",
-            RequiredNpcId = null
+            // Hierarchical placement: Override to private room, no NPC (same as Rest situation)
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                LocationTags = new List<string> { "DEPENDENT_LOCATION:private_room" }  // Marker replaced at spawn time
+            },
+            NpcFilter = new PlacementFilter  // Explicit "no NPC" override (empty filter = no match)
+            {
+                PlacementType = PlacementType.NPC,
+                PersonalityTypes = new List<PersonalityType>()  // Empty list = no NPC wanted
+            },
+            RouteFilter = null
         };
 
         // Linear spawn rules: Negotiate → Rest → Depart
@@ -354,8 +376,14 @@ public static class SceneArchetypeCatalog
                 Context = "morning_after",
                 Style = "somber"
             },
-            RequiredLocationId = context.LocationId,  // Works for both NPC-placed and Location-placed scenes
-            RequiredNpcId = null  // No NPC for solo reflection
+            // Hierarchical placement: Inherit scene base location, no NPC (solo reflection)
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = new PlacementFilter  // Explicit "no NPC" override (solo reflection)
+            {
+                PlacementType = PlacementType.NPC,
+                PersonalityTypes = new List<PersonalityType>()  // Empty list = no NPC wanted
+            },
+            RouteFilter = null
         };
 
         // Standalone pattern - single situation, no transitions

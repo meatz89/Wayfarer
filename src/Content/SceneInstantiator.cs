@@ -203,6 +203,18 @@ public class SceneInstantiator
             PlacementFilterDTO effectiveRouteFilter = ConvertPlacementFilterToDTO(sitTemplate.RouteFilter)
                 ?? sceneDto.RouteFilter;
 
+            // Replace DEPENDENT_LOCATION markers with scene-specific tags
+            // Marker format: "DEPENDENT_LOCATION:private_room" → "{sceneId}_private_room"
+            // This binds situations to dependent locations created by THIS scene
+            if (effectiveLocationFilter?.LocationTags != null)
+            {
+                effectiveLocationFilter.LocationTags = effectiveLocationFilter.LocationTags
+                    .Select(tag => tag.StartsWith("DEPENDENT_LOCATION:")
+                        ? $"{sceneDto.Id}_{tag.Substring("DEPENDENT_LOCATION:".Length)}"
+                        : tag)
+                    .ToList();
+            }
+
             // Build Situation DTO from template
             // Scene-based situations use templates - most DTO properties are for standalone situations
             SituationDTO situationDto = new SituationDTO
@@ -1028,7 +1040,10 @@ public class SceneInstantiator
             CanInvestigate = spec.CanInvestigate,
             CanWork = false, // Generated locations don't support work by default,
             WorkType = "",
-            WorkPay = 0
+            WorkPay = 0,
+            // Scene-specific tag for dependent location binding
+            // Enables situations to reference this location via PlacementFilter.LocationTags
+            DomainTags = new List<string> { $"{sceneId}_{spec.TemplateId}" }
         };
 
         // Map properties
