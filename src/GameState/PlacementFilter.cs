@@ -1,9 +1,9 @@
 /// <summary>
 /// Filter for selecting placement entities at spawn time via CATEGORICAL PROPERTIES ONLY
 /// Implements AI content generation pattern: JSON describes categories (PersonalityTypes, LocationProperties),
-/// spawner queries GameWorld entities and applies SelectionStrategy to choose from matches
-/// Tutorial pattern uses SceneSpawnReward.SpecificPlacementId for concrete binding (NOT this filter)
-/// HIGHLANDER: One pattern only - categorical queries, no concrete IDs
+/// EntityResolver queries GameWorld entities and applies SelectionStrategy to choose from matches
+/// Tutorial pattern: A1 and A2 use same categorical specs → naturally reuse same entities via FindOrCreate
+/// HIGHLANDER: One pattern only - categorical queries, no concrete IDs, no binding mechanisms
 /// </summary>
 public class PlacementFilter
 {

@@ -135,7 +135,8 @@ public class SceneInstantiator
         }
 
         // System 3: Write categorical specifications (NOT concrete IDs)
-        PlacementFilter filter = spawnReward?.PlacementFilterOverride ?? template.PlacementFilter;
+        // Spawned scene inherits template's PlacementFilter (HIGHLANDER - no override mechanism)
+        PlacementFilter filter = template.PlacementFilter;
         PlacementFilterDTO filterDto = ConvertPlacementFilterToDTO(filter);
 
         SceneDTO dto = new SceneDTO

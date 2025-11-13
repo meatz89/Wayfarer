@@ -898,7 +898,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         _obligationDiscoveryResult = null;
 
         // Activate obligation and spawn Phase 1 scene
-        ObligationActivity.CompleteIntroAction(obligationId);
+        await ObligationActivity.CompleteIntroAction(obligationId);
 
         // Refresh UI after activation
         await RefreshLocationDisplay();

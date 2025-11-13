@@ -350,8 +350,8 @@ public class SceneFacade
                 continue;
             }
 
-            // Get placement filter from SpawnReward or Template
-            PlacementFilter filter = spawnReward.PlacementFilterOverride ?? template.PlacementFilter;
+            // Get placement filter from template (spawned scene inherits template's filter - HIGHLANDER)
+            PlacementFilter filter = template.PlacementFilter;
 
             // Collect unique challenge types from situation templates
             List<TacticalSystemType> challengeTypes = template.SituationTemplates
