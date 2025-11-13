@@ -96,7 +96,7 @@ public class SceneInstanceFacade
         }
 
         // PHASE 2.5: Post-load orchestration (dependent resources)
-        if (spawnedScene.CreatedLocationIds.Any() || spawnedScene.CreatedItemIds.Any())
+        if (template.DependentLocations.Any() || template.DependentItems.Any())
         {
             PostLoadOrchestration(spawnedScene, template, context.Player);
         }
@@ -127,8 +127,9 @@ public class SceneInstanceFacade
         };
 
         // Set provenance and generate routes for locations
-        foreach (string locationId in scene.CreatedLocationIds)
+        foreach (DependentLocationSpec locationSpec in template.DependentLocations)
         {
+            string locationId = $"{scene.Id}_{locationSpec.TemplateId}";
             Location location = _gameWorld.GetLocation(locationId);
             if (location != null)
             {
@@ -149,31 +150,19 @@ public class SceneInstanceFacade
         // Set provenance and add items to inventory (if specified in spec)
         foreach (DependentItemSpec itemSpec in template.DependentItems)
         {
-            if (itemSpec.AddToInventoryOnCreation)
+            string itemId = $"{scene.Id}_{itemSpec.TemplateId}";
+            Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
+            if (item != null)
             {
-                string itemId = $"{scene.Id}_{itemSpec.TemplateId}";
-                Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
-                if (item != null)
+                item.Provenance = provenance;
+
+                if (itemSpec.AddToInventoryOnCreation)
                 {
-                    item.Provenance = provenance;
                     player.Inventory.AddItem(item);
                     Console.WriteLine($"[SceneInstanceFacade] Added item '{item.Name}' to player inventory");
                 }
             }
         }
-
-        // Set provenance for all created items (even those not added to inventory)
-        foreach (string itemId in scene.CreatedItemIds)
-        {
-            Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
-            if (item != null && item.Provenance == null)
-            {
-                item.Provenance = provenance;
-            }
-        }
-
-        // Build marker resolution map
-        _sceneInstantiator.BuildMarkerResolutionMap(scene);
     }
 
     /// <summary>

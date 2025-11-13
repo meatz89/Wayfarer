@@ -12,9 +12,6 @@
 public class SceneNarrativeService
 {
     private readonly GameWorld _gameWorld;
-    // TODO: Add OllamaClient and PromptBuilder when implementing full AI generation
-    // private readonly OllamaClient _ollamaClient;
-    // private readonly PromptBuilder _promptBuilder;
 
     public SceneNarrativeService(GameWorld gameWorld)
     {
@@ -28,14 +25,7 @@ public class SceneNarrativeService
     /// CRITICAL: This is called at finalization when all entity context is resolved.
     /// Context contains ACTUAL entity objects (NPC/Location/Route with full properties).
     ///
-    /// SYNCHRONOUS FOR NOW: Made synchronous to avoid breaking SceneInstantiator.FinalizeScene()
-    /// TODO: Make async when implementing full AI generation (requires making full call chain async)
-    ///
-    /// AI Generation Flow (future async implementation):
-    /// 1. Build prompt from context.ToDictionary() + narrative hints
-    /// 2. Call OllamaClient with 5 second timeout
-    /// 3. Parse AI response into situation description
-    /// 4. Fallback on timeout/failure
+    /// SYNCHRONOUS: Uses fallback text generation from entity properties.
     /// </summary>
     /// <param name="context">Complete entity context with NPC/Location/Player objects</param>
     /// <param name="narrativeHints">Tone, theme, context, style from SituationTemplate</param>
@@ -46,10 +36,7 @@ public class SceneNarrativeService
         if (context == null)
             throw new ArgumentNullException(nameof(context));
 
-        // TODO: Implement full async AI generation
-        // For now, return fallback narrative based on context
-
-        // FALLBACK: Generate contextual placeholder narrative
+        // Generate contextual narrative from entity properties
         return GenerateFallbackSituationNarrative(context, narrativeHints);
     }
 
@@ -178,21 +165,146 @@ public class SceneNarrativeService
     }
 
     /// <summary>
-    /// TODO: Implement full AI generation using OllamaClient
-    ///
-    /// Future implementation pattern (following AINarrativeProvider):
-    /// 1. Build prompt from context.ToDictionary() + narrativeHints
-    /// 2. string prompt = promptBuilder.BuildSituationPrompt(contextDict, hints)
-    /// 3. using CancellationTokenSource cts = new(TimeSpan.FromSeconds(5))
-    /// 4. string aiResponse = await ollamaClient.GenerateAsync(prompt, cts.Token)
-    /// 5. Parse AI response (extract narrative text, handle formatting)
-    /// 6. Return generated narrative or fallback on timeout/error
+    /// Generate contextual location name from PlacementFilter properties
+    /// Uses multiple properties to create descriptive names
     /// </summary>
-    private async Task<string> GenerateAISituationNarrativeAsync(ScenePromptContext context, NarrativeHints hints)
+    public string GenerateLocationName(PlacementFilter filter)
     {
-        // TODO: Implement AI generation
-        // For now, this method is a placeholder for future implementation
-        await Task.CompletedTask;
-        return null;
+        if (filter == null)
+            return "Unknown Location";
+
+        List<string> nameParts = new List<string>();
+
+        // Use properties to build descriptive name
+        if (filter.LocationProperties != null && filter.LocationProperties.Count > 0)
+        {
+            LocationPropertyType primaryProperty = filter.LocationProperties.First();
+
+            string prefix = primaryProperty switch
+            {
+                LocationPropertyType.Private => "Private",
+                LocationPropertyType.Secure => "Secure",
+                LocationPropertyType.Public => "Public",
+                LocationPropertyType.Commercial => "Trading",
+                LocationPropertyType.Exclusive => "Exclusive",
+                LocationPropertyType.Hidden => "Hidden",
+                _ => ""
+            };
+
+            if (!string.IsNullOrEmpty(prefix))
+                nameParts.Add(prefix);
+        }
+
+        // Add location type
+        if (filter.LocationTypes != null && filter.LocationTypes.Count > 0)
+        {
+            LocationTypes type = filter.LocationTypes.First();
+            string typeWord = type switch
+            {
+                LocationTypes.Inn => "Inn",
+                LocationTypes.Tavern => "Tavern",
+                LocationTypes.Market => "Market",
+                LocationTypes.Shop => "Shop",
+                LocationTypes.Temple => "Temple",
+                LocationTypes.Palace => "Palace",
+                LocationTypes.Guild => "Guild",
+                LocationTypes.Crossroads => "Crossroads",
+                _ => "Place"
+            };
+            nameParts.Add(typeWord);
+        }
+
+        return nameParts.Count > 0 ? $"The {string.Join(" ", nameParts)}" : "Unknown Location";
+    }
+
+    /// <summary>
+    /// Generate contextual NPC name from PlacementFilter properties
+    /// Uses profession and personality to create descriptive identifiers
+    /// </summary>
+    public string GenerateNPCName(PlacementFilter filter)
+    {
+        if (filter == null)
+            return "Unknown Person";
+
+        string professionName = "Person";
+
+        if (filter.Professions != null && filter.Professions.Count > 0)
+        {
+            Professions profession = filter.Professions.First();
+            professionName = profession switch
+            {
+                Professions.Innkeeper => "Innkeeper",
+                Professions.Merchant => "Merchant",
+                Professions.Guard => "Guard",
+                Professions.Scholar => "Scholar",
+                Professions.Artisan => "Artisan",
+                Professions.Noble => "Noble",
+                Professions.Courier => "Courier",
+                Professions.Healer => "Healer",
+                _ => "Person"
+            };
+        }
+
+        string personalityPrefix = "";
+        if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
+        {
+            PersonalityType personality = filter.PersonalityTypes.First();
+            personalityPrefix = personality switch
+            {
+                PersonalityType.DEVOTED => "Devoted",
+                PersonalityType.MERCANTILE => "Shrewd",
+                PersonalityType.PROUD => "Proud",
+                PersonalityType.CUNNING => "Cunning",
+                PersonalityType.STEADFAST => "Steadfast",
+                _ => ""
+            };
+        }
+
+        if (!string.IsNullOrEmpty(personalityPrefix))
+            return $"The {personalityPrefix} {professionName}";
+
+        return $"The {professionName}";
+    }
+
+    /// <summary>
+    /// Generate contextual route name from PlacementFilter properties
+    /// Uses terrain types to create descriptive route names
+    /// </summary>
+    public string GenerateRouteName(PlacementFilter filter)
+    {
+        if (filter == null)
+            return "Unknown Route";
+
+        if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
+        {
+            string terrain = filter.TerrainTypes.First();
+
+            string terrainName = terrain.ToLower() switch
+            {
+                "forest" => "Forest Path",
+                "mountain" => "Mountain Trail",
+                "plains" => "Open Road",
+                "river" => "River Crossing",
+                "urban" => "City Street",
+                "wilderness" => "Wilderness Track",
+                _ => $"{terrain} Route"
+            };
+
+            return terrainName;
+        }
+
+        // Use difficulty to add context
+        if (filter.MinDifficulty.HasValue)
+        {
+            string difficulty = filter.MinDifficulty.Value switch
+            {
+                >= 5 => "Treacherous Route",
+                >= 3 => "Challenging Path",
+                _ => "Easy Route"
+            };
+            return difficulty;
+        }
+
+        return "The Route";
     }
 }

@@ -12,9 +12,8 @@ public class SpawnResult
     public string FailureReason { get; set; }
     public string SceneId { get; set; }
     public List<string> CreatedSituationIds { get; set; } = new();
-    public List<string> CreatedLocationIds { get; set; } = new();
-    public List<string> CreatedItemIds { get; set; } = new();
-    public Dictionary<string, string> MarkerResolutionMap { get; set; } = new();
+    // Tracking properties deleted in 5-system architecture
+    // Use query-based discovery: gameWorld.Locations.Where(loc => template.DependentLocations.Any(...))
 
     public static SpawnResult Failure(string reason)
     {

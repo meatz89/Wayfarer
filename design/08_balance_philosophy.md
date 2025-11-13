@@ -180,41 +180,15 @@ Entity properties drive contextual difficulty automatically. Same archetype + di
 
 **How Scaling Works**:
 
-Archetype defines base values:
-```
-service_negotiation archetype:
-  BaseStatThreshold = 5
-  BaseCoinCost = 8
-  BaseChallengeThreshold = 15
-```
+Archetype defines base values for stat threshold, coin cost, and challenge threshold as starting points for scaling.
 
-Entity properties scale at parse-time:
-```
-Friendly innkeeper (NPCDemeanor.Friendly):
-  StatThreshold = 5 × 0.6 = 3 (easier)
-
-Hostile merchant (NPCDemeanor.Hostile):
-  StatThreshold = 5 × 1.4 = 7 (harder)
-
-Premium inn (Quality.Premium):
-  CoinCost = 8 × 1.6 = 13 (expensive)
-
-Basic shelter (Quality.Basic):
-  CoinCost = 8 × 0.6 = 5 (cheap)
-```
+Entity properties scale at parse-time. Friendly innkeepers with friendly demeanor multiplier produce easier stat thresholds. Hostile merchants with hostile demeanor multiplier produce harder stat thresholds. Premium inns with premium quality multiplier produce expensive coin costs. Basic shelters with basic quality multiplier produce cheap coin costs.
 
 **Compound Scaling**:
-```
-Friendly innkeeper at premium inn:
-  StatThreshold = 5 × 0.6 = 3 (easy to negotiate)
-  CoinCost = 8 × 1.6 = 13 (expensive but accessible)
-  Result: Low social barrier, high economic barrier
 
-Hostile merchant at basic stall:
-  StatThreshold = 5 × 1.4 = 7 (hard to negotiate)
-  CoinCost = 8 × 0.6 = 5 (cheap if you can convince them)
-  Result: High social barrier, low economic barrier
-```
+Friendly innkeeper at premium inn combines friendly demeanor reducing stat threshold with premium quality increasing coin cost, creating low social barrier but high economic barrier for access.
+
+Hostile merchant at basic stall combines hostile demeanor increasing stat threshold with basic quality reducing coin cost, creating high social barrier but low economic barrier if negotiation succeeds.
 
 **Why This Works**:
 - Same archetype reused infinitely
@@ -228,27 +202,12 @@ Hostile merchant at basic stall:
 Routes have two states: Known (explored previously) and Unknown (never traveled). Known routes provide perfect information, Unknown routes require estimation and carry uncertainty.
 
 **Known Route Display**:
-```
-Northern Road [KNOWN]
-- Distance: 4 segments
-- Danger: 2 dangerous segments (positions 2, 4)
-- Estimated time: 2 time blocks
-- Estimated stamina: 8 stamina (2 per segment)
-- Environmental: 1 random event at segment 3
-```
 
-Player calculates exactly: "I have 20 stamina, route costs 8, I'll arrive with 12. Dangerous segments may spawn Physical challenges. I should bring healing items."
+A previously traveled northern road shows exact information: precise segment count, specific positions of dangerous segments, exact time requirement, precise stamina cost per segment, and known random event location. Player calculates exactly based on complete information, enabling precise resource planning and preparation decisions.
 
 **Unknown Route Display**:
-```
-Northern Road [UNKNOWN]
-- Distance: Unknown (estimate 3-5 segments)
-- Danger: Wilderness terrain, expect challenges
-- Estimated time: 2-3 time blocks
-- Estimated cost: 10-15 stamina
-```
 
-Player estimates: "Could be 3 segments or 5. Could cost 10 stamina or 15. I'll bring extra supplies to be safe." Uncertainty increases difficulty through requiring buffer resources.
+An unexplored northern road shows estimated ranges: distance ranging across multiple possible segment counts, general wilderness danger expectations, time range spanning multiple blocks, and stamina cost range. Player estimates conservatively, bringing extra supplies as safety buffer. Uncertainty increases difficulty through requiring buffer resources.
 
 **Learning Through Travel**:
 First journey on Northern Road: Unknown, player over-prepares, inefficient
@@ -889,55 +848,35 @@ FinalValue = BaseValue × PropertyMultiplier₁ × PropertyMultiplier₂ × Prog
 **Example Calculation**:
 
 AI generates: "Hostile merchant at luxury shop" (Tier 1)
-```
-BaseStatThreshold = 5 (from archetype)
-NpcDemeanor.Hostile = 1.4×
-Quality.Luxury = 2.4× (for coin cost)
-Tier 1 = 1.0× (no progression multiplier early game)
 
-StatThreshold = 5 × 1.4 × 1.0 = 7 (hard)
-CoinCost = 8 × 2.4 × 1.0 = 19 (very expensive)
-```
-
-Result: Challenging negotiation, expensive purchase. Appropriate for hostile luxury merchant.
+Base stat threshold from archetype multiplied by hostile demeanor and tier one progression produces hard stat threshold. Base coin cost multiplied by luxury quality and tier one produces very expensive cost. Result: Challenging negotiation, expensive purchase. Appropriate for hostile luxury merchant.
 
 AI generates: "Friendly innkeeper at basic shelter" (Tier 1)
-```
-BaseStatThreshold = 5
-NpcDemeanor.Friendly = 0.6×
-Quality.Basic = 0.6×
-Tier 1 = 1.0×
 
-StatThreshold = 5 × 0.6 × 1.0 = 3 (easy)
-CoinCost = 8 × 0.6 × 1.0 = 5 (cheap)
-```
-
-Result: Easy negotiation, affordable lodging. Appropriate for friendly basic inn.
+Base stat threshold multiplied by friendly demeanor and tier one progression produces easy stat threshold. Base coin cost multiplied by basic quality and tier one produces cheap cost. Result: Easy negotiation, affordable lodging. Appropriate for friendly basic inn.
 
 ### 8.8.4 Relative Consistency Across Progression
 
 Key guarantee: Friendly ALWAYS easier than Hostile, regardless of progression tier.
 
 **Early Game** (Tier 1, BaseStatThreshold = 5):
-- Friendly: 5 × 0.6 = 3
-- Neutral: 5 × 1.0 = 5
-- Hostile: 5 × 1.4 = 7
+
+Friendly demeanor produces easier threshold, neutral produces baseline threshold, hostile produces harder threshold.
 
 **Late Game** (Tier 3, BaseStatThreshold = 7, Progression = 1.2×):
-- Friendly: 7 × 0.6 × 1.2 = 5.04 ≈ 5
-- Neutral: 7 × 1.0 × 1.2 = 8.4 ≈ 8
-- Hostile: 7 × 1.4 × 1.2 = 11.76 ≈ 12
+
+With higher base threshold and progression multiplier, friendly still produces easiest threshold, neutral produces moderate threshold, hostile produces hardest threshold. Absolute values increase but relative ordering preserved.
 
 **Relative Differences Preserved**:
-- Friendly always easier than Neutral (3 vs 5, then 5 vs 8)
-- Hostile always harder than Neutral (7 vs 5, then 12 vs 8)
-- Proportional gaps maintained (Hostile ≈ 1.4× Neutral)
+
+Friendly always easier than Neutral across all progression tiers. Hostile always harder than Neutral across all progression tiers. Proportional gaps maintained through consistent multiplier application.
 
 **Why This Matters**: AI authors "Friendly innkeeper" knowing it will ALWAYS be easier than "Hostile merchant," regardless of when player encounters them. Consistency through universal formulas.
 
 ### 8.8.5 Infinite Variety Through Property Combinations
 
 **21 Situation Archetypes** (reusable mechanical patterns)
+
 **Categorical Properties**:
 - 3 NPCDemeanor values (Friendly, Neutral, Hostile)
 - 4 Quality values (Basic, Standard, Premium, Luxury)
@@ -945,13 +884,10 @@ Key guarantee: Friendly ALWAYS easier than Hostile, regardless of progression ti
 - 3 EnvironmentQuality values (Basic, Standard, Premium)
 
 **Mathematical Variety**:
-21 archetypes × 3 × 4 × 3 × 3 = **2,268 mechanical variations**
 
-Add narrative variety from:
-- NPC personality and background
-- Location atmosphere and history
-- Player's journey context
-- Previous scene outcomes
+Twenty-one situation archetypes multiplied by all categorical property combinations produces over two thousand distinct mechanical variations.
+
+Add narrative variety from NPC personality and background, location atmosphere and history, player's journey context, and previous scene outcomes.
 
 Result: Effectively infinite content, all balanced via universal formulas.
 

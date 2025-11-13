@@ -87,17 +87,6 @@ public class SituationCompletionHandler
 
             // Store routing decision on situation for UI to query
             situation.RoutingDecision = routingDecision;
-
-            // AUTOMATIC SPAWNING ORCHESTRATION - Scene completion trigger (cascade spawning + infinite A-story generation)
-            // If scene just completed, check for procedural scenes that become eligible
-            // CRITICAL: A-story completion triggers next A-scene template generation here
-            if (scene.State == SceneState.Completed)
-            {
-                // NOTE: All generated locations persist forever (no cleanup)
-                // Budget validation happens at generation time (fail-fast)
-                // Spawn eligible scenes (including A-story continuation)
-                await _spawnFacade.CheckAndSpawnEligibleScenes(SpawnTriggerType.Scene, scene.Id);
-            }
         }
     }
 

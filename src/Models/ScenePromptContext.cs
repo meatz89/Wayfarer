@@ -29,7 +29,6 @@ public class ScenePromptContext
 
     // Player relationship history (for contextual generation)
     public int NPCBondLevel { get; set; }
-    public string PriorChoicesWithNPC { get; set; } // TODO: Populate from Player.ChoiceHistory when implemented
 
     /// <summary>
     /// Validate that required entities are present for AI generation

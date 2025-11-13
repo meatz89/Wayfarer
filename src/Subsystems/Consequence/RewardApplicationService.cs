@@ -4,6 +4,7 @@
 /// Used by GameFacade (instant actions), challenge facades (on completion), and SceneFacade (choice completion)
 /// Handles: resources, bonds, scales, states, achievements, items, scene spawning, time advancement
 /// Tutorial system relies on this for reward application after challenges complete
+/// On-demand template generation: Procedural A-story templates generated when spawning if don't exist yet
 /// </summary>
 public class RewardApplicationService
 {
@@ -11,23 +12,23 @@ public class RewardApplicationService
     private readonly ConsequenceFacade _consequenceFacade;
     private readonly TimeFacade _timeFacade;
     private readonly SceneInstanceFacade _sceneInstanceFacade;
-    private readonly MarkerResolutionService _markerResolutionService;
     private readonly DependentResourceOrchestrationService _dependentResourceOrchestrationService;
+    private readonly ProceduralAStoryService _proceduralAStoryService;
 
     public RewardApplicationService(
         GameWorld gameWorld,
         ConsequenceFacade consequenceFacade,
         TimeFacade timeFacade,
         SceneInstanceFacade sceneInstanceFacade,
-        MarkerResolutionService markerResolutionService,
-        DependentResourceOrchestrationService dependentResourceOrchestrationService)
+        DependentResourceOrchestrationService dependentResourceOrchestrationService,
+        ProceduralAStoryService proceduralAStoryService)
     {
         _gameWorld = gameWorld;
         _consequenceFacade = consequenceFacade;
         _timeFacade = timeFacade;
         _sceneInstanceFacade = sceneInstanceFacade;
-        _markerResolutionService = markerResolutionService ?? throw new ArgumentNullException(nameof(markerResolutionService));
         _dependentResourceOrchestrationService = dependentResourceOrchestrationService ?? throw new ArgumentNullException(nameof(dependentResourceOrchestrationService));
+        _proceduralAStoryService = proceduralAStoryService ?? throw new ArgumentNullException(nameof(proceduralAStoryService));
     }
 
     /// <summary>
@@ -93,40 +94,34 @@ public class RewardApplicationService
             }
         }
 
-        // Resolve markers using parent scene's resolution map (self-contained pattern)
-        Scene parentScene = currentSituation?.ParentScene;
-        Dictionary<string, string> markerMap = parentScene?.MarkerResolutionMap ?? new Dictionary<string, string>();
+        // Markers deleted in 5-system architecture - entity IDs are concrete, no resolution needed
 
-        // Apply item grants (resolve markers first)
+        // Apply item grants
         foreach (string itemId in reward.ItemIds)
         {
-            string resolvedId = _markerResolutionService.ResolveMarker(itemId, markerMap);
-            player.Inventory.AddItem(resolvedId);
+            player.Inventory.AddItem(itemId);
         }
 
-        // Apply item removals (Multi-Situation Scene Pattern: cleanup phase, resolve markers first)
+        // Apply item removals (Multi-Situation Scene Pattern: cleanup phase)
         foreach (string itemId in reward.ItemsToRemove)
         {
-            string resolvedId = _markerResolutionService.ResolveMarker(itemId, markerMap);
-            player.RemoveItem(resolvedId);
+            player.RemoveItem(itemId);
         }
 
-        // Unlock locations (Multi-Situation Scene Pattern: grant access when conditions met, resolve markers first)
+        // Unlock locations (Multi-Situation Scene Pattern: grant access when conditions met)
         // Direct property modification - no string matching, strongly typed
         foreach (string locationId in reward.LocationsToUnlock)
         {
-            string resolvedId = _markerResolutionService.ResolveMarker(locationId, markerMap);
-            Location location = _gameWorld.GetLocation(resolvedId);
+            Location location = _gameWorld.GetLocation(locationId);
             if (location != null)
                 location.IsLocked = false;
         }
 
-        // Lock locations (Multi-Situation Scene Pattern: restore original state on cleanup, resolve markers first)
+        // Lock locations (Multi-Situation Scene Pattern: restore original state on cleanup)
         // Direct property modification - no string matching, strongly typed
         foreach (string locationId in reward.LocationsToLock)
         {
-            string resolvedId = _markerResolutionService.ResolveMarker(locationId, markerMap);
-            Location location = _gameWorld.GetLocation(resolvedId);
+            Location location = _gameWorld.GetLocation(locationId);
             if (location != null)
                 location.IsLocked = true;
         }
@@ -203,14 +198,49 @@ public class RewardApplicationService
 
         foreach (SceneSpawnReward sceneSpawn in reward.ScenesToSpawn)
         {
-            // Get template
+            // Get template (or generate on-demand if procedural A-story)
             SceneTemplate template = _gameWorld.SceneTemplates
                 .FirstOrDefault(t => t.Id == sceneSpawn.SceneTemplateId);
 
             if (template == null)
             {
-                Console.WriteLine($"[RewardApplicationService] SceneTemplate '{sceneSpawn.SceneTemplateId}' not found");
-                continue;
+                // On-demand template generation for procedural A-story
+                // Pattern: Template IDs like "a_story_sequence_4", "a_story_sequence_11", etc.
+                if (sceneSpawn.SceneTemplateId.StartsWith("a_story_sequence_"))
+                {
+                    string sequenceStr = sceneSpawn.SceneTemplateId.Replace("a_story_sequence_", "");
+                    if (int.TryParse(sequenceStr, out int sequence))
+                    {
+                        Console.WriteLine($"[RewardApplicationService] A-story template '{sceneSpawn.SceneTemplateId}' not found - generating procedurally");
+
+                        // Get or initialize A-story context
+                        AStoryContext aStoryContext = _proceduralAStoryService.GetOrInitializeContext(player);
+
+                        // Generate template procedurally (HIGHLANDER: DTO → JSON → PackageLoader → Template)
+                        string generatedTemplateId = await _proceduralAStoryService.GenerateNextATemplate(sequence, aStoryContext);
+
+                        Console.WriteLine($"[RewardApplicationService] Generated A-story template: {generatedTemplateId}");
+
+                        // Retrieve generated template
+                        template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == generatedTemplateId);
+
+                        if (template == null)
+                        {
+                            Console.WriteLine($"[RewardApplicationService] FATAL: Generated template '{generatedTemplateId}' not found in GameWorld after generation");
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"[RewardApplicationService] Invalid A-story sequence number in template ID: '{sceneSpawn.SceneTemplateId}'");
+                        continue;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"[RewardApplicationService] SceneTemplate '{sceneSpawn.SceneTemplateId}' not found (not an A-story pattern)");
+                    continue;
+                }
             }
 
             // Resolve placement context

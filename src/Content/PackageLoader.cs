@@ -1760,9 +1760,38 @@ public class PackageLoader
     {
         if (sceneDtos == null) return;
 
+        // System 4: Entity Resolver (FindOrCreate)
+        Player player = _gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
+        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
+
         foreach (SceneDTO dto in sceneDtos)
         {
-            Scene scene = SceneParser.ConvertDTOToScene(dto, _gameWorld);
+            // System 4: Resolve entities from categorical specifications
+            Location resolvedLocation = null;
+            NPC resolvedNpc = null;
+            RouteOption resolvedRoute = null;
+
+            if (dto.LocationFilter != null)
+            {
+                PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(dto.LocationFilter, dto.Id);
+                resolvedLocation = entityResolver.FindOrCreateLocation(locationFilter);
+            }
+
+            if (dto.NpcFilter != null)
+            {
+                PlacementFilter npcFilter = SceneTemplateParser.ParsePlacementFilter(dto.NpcFilter, dto.Id);
+                resolvedNpc = entityResolver.FindOrCreateNPC(npcFilter);
+            }
+
+            if (dto.RouteFilter != null)
+            {
+                PlacementFilter routeFilter = SceneTemplateParser.ParsePlacementFilter(dto.RouteFilter, dto.Id);
+                resolvedRoute = entityResolver.FindOrCreateRoute(routeFilter);
+            }
+
+            // System 5: Scene Instantiation with pre-resolved objects
+            Scene scene = SceneParser.ConvertDTOToScene(dto, _gameWorld, resolvedLocation, resolvedNpc, resolvedRoute);
             _gameWorld.Scenes.Add(scene);
         }
 

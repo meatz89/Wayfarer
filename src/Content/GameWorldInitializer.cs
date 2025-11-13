@@ -53,7 +53,6 @@ public static class GameWorldInitializer
     {
         SpawnConditionsEvaluator spawnConditionsEvaluator = new SpawnConditionsEvaluator(gameWorld);
         SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
-        MarkerResolutionService markerResolutionService = new MarkerResolutionService();
         SceneGenerationFacade sceneGenerationFacade = new SceneGenerationFacade(gameWorld);
         LocationPlayabilityValidator locationValidator = new LocationPlayabilityValidator();
         HexSynchronizationService hexSync = new HexSynchronizationService();
@@ -61,7 +60,7 @@ public static class GameWorldInitializer
         HexRouteGenerator hexRouteGenerator = new HexRouteGenerator(gameWorld);
         VenueGeneratorService venueGenerator = new VenueGeneratorService(hexSync);
 
-        SceneInstantiator instantiator = new SceneInstantiator(gameWorld, spawnConditionsEvaluator, narrativeService, markerResolutionService, venueGenerator);
+        SceneInstantiator instantiator = new SceneInstantiator(gameWorld, spawnConditionsEvaluator, narrativeService, venueGenerator);
         ContentGenerationFacade contentGenerationFacade = new ContentGenerationFacade();
         PackageLoaderFacade packageLoaderFacade = new PackageLoaderFacade(packageLoader);
         MessageSystem messageSystem = new MessageSystem(gameWorld);

@@ -80,8 +80,8 @@ public class SpawnedScenePlayabilityValidator
         // RULE 6: Placement must be valid (location/NPC/route must exist)
         ValidatePlacement(scene, errors);
 
-        // RULE 7: Marker resolution map must resolve all required markers
-        ValidateMarkerResolution(scene, errors);
+        // RULE 7: Marker resolution DELETED - markers no longer exist in new architecture
+        // Entities reference by concrete IDs or use ResolvedRequiredLocationId/ResolvedRequiredNpcId
 
         if (errors.Any())
         {
@@ -92,8 +92,9 @@ public class SpawnedScenePlayabilityValidator
                 $"- TemplateId: {scene.TemplateId}\n" +
                 $"- Category: {scene.Category}\n" +
                 $"- MainStorySequence: {scene.MainStorySequence}\n" +
-                $"- PlacementType: {scene.PlacementType}\n" +
-                $"- PlacementId: {scene.PlacementId}\n" +
+                $"- Location: {scene.Location?.Id}\n" +
+                $"- Npc: {scene.Npc?.ID}\n" +
+                $"- Route: {scene.Route?.Id}\n" +
                 $"- State: {scene.State}\n" +
                 $"- CurrentSituationId: {scene.CurrentSituation?.Id}\n" +
                 $"- Situations Count: {scene.Situations.Count}\n" +
@@ -171,114 +172,44 @@ public class SpawnedScenePlayabilityValidator
 
     /// <summary>
     /// Validate scene placement references existing entity
+    /// Uses Scene's direct object references (Location, Npc, Route)
     /// </summary>
     private void ValidatePlacement(Scene scene, List<string> errors)
     {
-        if (string.IsNullOrEmpty(scene.PlacementId))
+        // Scene must have at least one placement (Location, Npc, or Route)
+        if (scene.Location == null && scene.Npc == null && scene.Route == null)
         {
-            errors.Add($"Scene '{scene.Id}' has no PlacementId - player cannot find it");
+            errors.Add($"Scene '{scene.Id}' has no placement (Location, Npc, Route all null) - player cannot find it");
             return;
         }
 
-        bool placementExists = scene.PlacementType switch
+        // Validate Location placement if present
+        if (scene.Location != null)
         {
-            PlacementType.Location => _gameWorld.GetLocation(scene.PlacementId) != null,
-            PlacementType.NPC => _gameWorld.NPCs.Any(n => n.ID == scene.PlacementId),
-            PlacementType.Route => _gameWorld.Routes.Any(r => r.Id == scene.PlacementId),
-            _ => false
-        };
-
-        if (!placementExists)
-        {
-            errors.Add($"Scene '{scene.Id}' placed at {scene.PlacementType} '{scene.PlacementId}' which does not exist in GameWorld");
-        }
-    }
-
-    /// <summary>
-    /// Validate marker resolution map resolves all "generated:" markers in situations
-    /// </summary>
-    private void ValidateMarkerResolution(Scene scene, List<string> errors)
-    {
-        if (scene.MarkerResolutionMap == null || scene.MarkerResolutionMap.Count == 0)
-        {
-            // No markers to resolve - valid if scene has no dependent resources
-            if ((scene.CreatedLocationIds?.Any() == true) || (scene.CreatedItemIds?.Any() == true))
+            Location location = _gameWorld.GetLocation(scene.Location.Id);
+            if (location == null)
             {
-                errors.Add($"Scene '{scene.Id}' created dependent resources but has no MarkerResolutionMap");
-            }
-            return;
-        }
-
-        // Check all situations for unresolved markers
-        foreach (Situation situation in scene.Situations)
-        {
-            // Check RequiredLocationId
-            string locationId = situation.Template?.RequiredLocationId;
-            if (!string.IsNullOrEmpty(locationId) && locationId.StartsWith("generated:"))
-            {
-                if (!scene.MarkerResolutionMap.ContainsKey(locationId))
-                {
-                    errors.Add($"Situation '{situation.Id}' references marker '{locationId}' which is not in MarkerResolutionMap");
-                }
-            }
-
-            // Check RequiredNpcId
-            string npcId = situation.Template?.RequiredNpcId;
-            if (!string.IsNullOrEmpty(npcId) && npcId.StartsWith("generated:"))
-            {
-                if (!scene.MarkerResolutionMap.ContainsKey(npcId))
-                {
-                    errors.Add($"Situation '{situation.Id}' references marker '{npcId}' which is not in MarkerResolutionMap");
-                }
-            }
-
-            // Check choice rewards for markers
-            if (situation.Template?.ChoiceTemplates != null)
-            {
-                foreach (ChoiceTemplate choice in situation.Template.ChoiceTemplates)
-                {
-                    ValidateRewardMarkers(choice.RewardTemplate, situation.Id, choice.Id, scene.MarkerResolutionMap, errors);
-                    ValidateRewardMarkers(choice.OnFailureReward, situation.Id, choice.Id, scene.MarkerResolutionMap, errors);
-                }
-            }
-        }
-    }
-
-    /// <summary>
-    /// Validate reward template markers are in resolution map
-    /// </summary>
-    private void ValidateRewardMarkers(ChoiceReward reward, string situationId, string choiceId, Dictionary<string, string> markerMap, List<string> errors)
-    {
-        if (reward == null)
-            return;
-
-        // Check LocationsToUnlock
-        if (reward.LocationsToUnlock != null)
-        {
-            foreach (string locationId in reward.LocationsToUnlock)
-            {
-                if (!string.IsNullOrEmpty(locationId) && locationId.StartsWith("generated:"))
-                {
-                    if (!markerMap.ContainsKey(locationId))
-                    {
-                        errors.Add($"Situation '{situationId}' choice '{choiceId}' reward references marker '{locationId}' which is not in MarkerResolutionMap");
-                    }
-                }
+                errors.Add($"Scene '{scene.Id}' references Location '{scene.Location.Id}' which does not exist in GameWorld");
             }
         }
 
-        // Check ItemIds (items to grant)
-        if (reward.ItemIds != null)
+        // Validate NPC placement if present
+        if (scene.Npc != null)
         {
-            foreach (string itemId in reward.ItemIds)
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.Npc.ID);
+            if (npc == null)
             {
-                if (!string.IsNullOrEmpty(itemId) && itemId.StartsWith("generated:"))
-                {
-                    if (!markerMap.ContainsKey(itemId))
-                    {
-                        errors.Add($"Situation '{situationId}' choice '{choiceId}' reward references marker '{itemId}' which is not in MarkerResolutionMap");
-                    }
-                }
+                errors.Add($"Scene '{scene.Id}' references NPC '{scene.Npc.ID}' which does not exist in GameWorld");
+            }
+        }
+
+        // Validate Route placement if present
+        if (scene.Route != null)
+        {
+            RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == scene.Route.Id);
+            if (route == null)
+            {
+                errors.Add($"Scene '{scene.Id}' references Route '{scene.Route.Id}' which does not exist in GameWorld");
             }
         }
     }

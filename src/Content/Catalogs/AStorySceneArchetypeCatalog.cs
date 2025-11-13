@@ -368,7 +368,16 @@ public static class AStorySceneArchetypeCatalog
     };
 
         // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        EnrichFinalSituationWithNextASceneSpawn(situations, context);
+        // A3 (authored tutorial) is terminal - no next scene spawn
+        // A11+ (procedural) uses standard enrichment with generic pattern
+        if (context.AStorySequence.HasValue && context.AStorySequence.Value == 3)
+        {
+            Console.WriteLine("[AStoryArchetype] A3 is final authored tutorial scene - no next scene spawn");
+        }
+        else
+        {
+            EnrichFinalSituationWithNextASceneSpawn(situations, context);
+        }
 
         return new SceneArchetypeDefinition
         {
@@ -462,7 +471,16 @@ public static class AStorySceneArchetypeCatalog
     };
 
         // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        EnrichFinalSituationWithNextASceneSpawn(situations, context);
+        // A2 (authored tutorial) uses custom enrichment to spawn specific A3
+        // A11+ (procedural) uses standard enrichment with generic pattern
+        if (context.AStorySequence.HasValue && context.AStorySequence.Value == 2)
+        {
+            EnrichFinalSituationWithCustomAScene(situations, "a3_departure");
+        }
+        else
+        {
+            EnrichFinalSituationWithNextASceneSpawn(situations, context);
+        }
 
         return new SceneArchetypeDefinition
         {
@@ -1236,12 +1254,13 @@ public static class AStorySceneArchetypeCatalog
             ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
 
             // Add next A-scene spawn reward
+            // Uses template's PlacementFilter for categorical resolution (no override needed)
             reward.ScenesToSpawn = new List<SceneSpawnReward>
         {
             new SceneSpawnReward
             {
-                SceneTemplateId = nextASceneId,
-                PlacementRelation = PlacementRelation.SameLocation
+                SceneTemplateId = nextASceneId
+                // PlacementFilterOverride = null (uses template's filter)
             }
         };
 
@@ -1263,6 +1282,60 @@ public static class AStorySceneArchetypeCatalog
         finalSituation.ChoiceTemplates.AddRange(enrichedChoices);
 
         Console.WriteLine($"[AStoryArchetype] Enriched final situation '{finalSituation.Id}' - ALL {enrichedChoices.Count} choices spawn next A-scene '{nextASceneId}'");
+    }
+
+    /// <summary>
+    /// Enrich final situation to spawn specific authored A-scene (for tutorial A1→A2, A2→A3)
+    /// Used when scene ID is specific and known (not procedural pattern)
+    /// ALL choices in final situation spawn next scene (guaranteed progression)
+    /// </summary>
+    private static void EnrichFinalSituationWithCustomAScene(
+        List<SituationTemplate> situations,
+        string nextSceneId)
+    {
+        if (situations.Count == 0)
+        {
+            return; // No situations to enrich
+        }
+
+        // Final situation = last situation in list
+        SituationTemplate finalSituation = situations[situations.Count - 1];
+
+        // Enrich ALL choices with SceneSpawnReward for specific next scene
+        List<ChoiceTemplate> enrichedChoices = new List<ChoiceTemplate>();
+        foreach (ChoiceTemplate choice in finalSituation.ChoiceTemplates)
+        {
+            ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
+
+            // Add specific A-scene spawn reward
+            // Uses template's PlacementFilter for categorical resolution (no override needed)
+            reward.ScenesToSpawn = new List<SceneSpawnReward>
+            {
+                new SceneSpawnReward
+                {
+                    SceneTemplateId = nextSceneId
+                    // PlacementFilterOverride = null (uses template's filter)
+                }
+            };
+
+            enrichedChoices.Add(new ChoiceTemplate
+            {
+                Id = choice.Id,
+                PathType = choice.PathType,
+                ActionTextTemplate = choice.ActionTextTemplate,
+                RequirementFormula = choice.RequirementFormula,
+                CostTemplate = choice.CostTemplate,
+                RewardTemplate = reward,
+                ActionType = choice.ActionType,
+                ChallengeType = choice.ChallengeType
+            });
+        }
+
+        // Replace final situation's choices with enriched versions
+        finalSituation.ChoiceTemplates.Clear();
+        finalSituation.ChoiceTemplates.AddRange(enrichedChoices);
+
+        Console.WriteLine($"[AStoryArchetype] Enriched final situation '{finalSituation.Id}' - ALL {enrichedChoices.Count} choices spawn authored A-scene '{nextSceneId}'");
     }
 
 }

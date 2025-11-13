@@ -145,7 +145,7 @@ public class SceneTemplateParser
     /// <summary>
     /// Parse PlacementFilter from DTO
     /// </summary>
-    private PlacementFilter ParsePlacementFilter(PlacementFilterDTO dto, string sceneTemplateId)
+    public static PlacementFilter ParsePlacementFilter(PlacementFilterDTO dto, string sceneTemplateId)
     {
         if (dto == null)
             return null; // Optional - some SceneTemplates may not have filters
@@ -162,21 +162,32 @@ public class SceneTemplateParser
         PlacementFilter filter = new PlacementFilter
         {
             PlacementType = placementType,
+            // System control
+            SelectionStrategy = ParseSelectionStrategy(dto.SelectionStrategy, sceneTemplateId),
             // NPC filters
             PersonalityTypes = ParsePersonalityTypes(dto.PersonalityTypes, sceneTemplateId),
+            Professions = ParseProfessions(dto.Professions, sceneTemplateId),
+            RequiredRelationships = ParseNPCRelationships(dto.RequiredRelationships, sceneTemplateId),
+            MinTier = dto.MinTier,
+            MaxTier = dto.MaxTier,
             MinBond = dto.MinBond,
             MaxBond = dto.MaxBond,
             NpcTags = dto.NpcTags,
             // Location filters
+            LocationTypes = ParseLocationTypes(dto.LocationTypes, sceneTemplateId),
             LocationProperties = ParseLocationProperties(dto.LocationProperties, sceneTemplateId),
+            IsPlayerAccessible = dto.IsPlayerAccessible,
             LocationTags = dto.LocationTags,
             DistrictId = dto.DistrictId,
             RegionId = dto.RegionId,
             // Route filters
             TerrainTypes = dto.TerrainTypes,
             RouteTier = dto.RouteTier,
-            MinDangerRating = dto.MinDangerRating,
-            MaxDangerRating = dto.MaxDangerRating,
+            MinDifficulty = dto.MinDifficulty,
+            MaxDifficulty = dto.MaxDifficulty,
+            RouteTags = dto.RouteTags,
+            // Variety control
+            ExcludeRecentlyUsed = dto.ExcludeRecentlyUsed,
             // Player state filters
             RequiredStates = ParseStateTypes(dto.RequiredStates, sceneTemplateId, "RequiredStates"),
             ForbiddenStates = ParseStateTypes(dto.ForbiddenStates, sceneTemplateId, "ForbiddenStates"),
@@ -190,7 +201,7 @@ public class SceneTemplateParser
     /// <summary>
     /// Parse personality type strings to enum list
     /// </summary>
-    private List<PersonalityType> ParsePersonalityTypes(List<string> typeStrings, string sceneTemplateId)
+    private static List<PersonalityType> ParsePersonalityTypes(List<string> typeStrings, string sceneTemplateId)
     {
         if (typeStrings == null || !typeStrings.Any())
             return new List<PersonalityType>();
@@ -214,7 +225,7 @@ public class SceneTemplateParser
     /// <summary>
     /// Parse location property strings to enum list
     /// </summary>
-    private List<LocationPropertyType> ParseLocationProperties(List<string> propertyStrings, string sceneTemplateId)
+    private static List<LocationPropertyType> ParseLocationProperties(List<string> propertyStrings, string sceneTemplateId)
     {
         if (propertyStrings == null || !propertyStrings.Any())
             return new List<LocationPropertyType>();
@@ -236,9 +247,99 @@ public class SceneTemplateParser
     }
 
     /// <summary>
+    /// Parse profession strings to enum list
+    /// </summary>
+    private static List<Professions> ParseProfessions(List<string> professionStrings, string sceneTemplateId)
+    {
+        if (professionStrings == null || !professionStrings.Any())
+            return new List<Professions>();
+
+        List<Professions> professions = new List<Professions>();
+        foreach (string professionString in professionStrings)
+        {
+            if (Enum.TryParse<Professions>(professionString, true, out Professions profession))
+            {
+                professions.Add(profession);
+            }
+            else
+            {
+                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' PlacementFilter has invalid Profession: '{professionString}'");
+            }
+        }
+
+        return professions;
+    }
+
+    /// <summary>
+    /// Parse NPC relationship strings to enum list
+    /// </summary>
+    private static List<NPCRelationship> ParseNPCRelationships(List<string> relationshipStrings, string sceneTemplateId)
+    {
+        if (relationshipStrings == null || !relationshipStrings.Any())
+            return new List<NPCRelationship>();
+
+        List<NPCRelationship> relationships = new List<NPCRelationship>();
+        foreach (string relationshipString in relationshipStrings)
+        {
+            if (Enum.TryParse<NPCRelationship>(relationshipString, true, out NPCRelationship relationship))
+            {
+                relationships.Add(relationship);
+            }
+            else
+            {
+                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' PlacementFilter has invalid NPCRelationship: '{relationshipString}'");
+            }
+        }
+
+        return relationships;
+    }
+
+    /// <summary>
+    /// Parse location type strings to enum list
+    /// </summary>
+    private static List<LocationTypes> ParseLocationTypes(List<string> typeStrings, string sceneTemplateId)
+    {
+        if (typeStrings == null || !typeStrings.Any())
+            return new List<LocationTypes>();
+
+        List<LocationTypes> types = new List<LocationTypes>();
+        foreach (string typeString in typeStrings)
+        {
+            if (Enum.TryParse<LocationTypes>(typeString, true, out LocationTypes locationType))
+            {
+                types.Add(locationType);
+            }
+            else
+            {
+                throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' PlacementFilter has invalid LocationType: '{typeString}'");
+            }
+        }
+
+        return types;
+    }
+
+    /// <summary>
+    /// Parse selection strategy string to enum
+    /// </summary>
+    private static PlacementSelectionStrategy ParseSelectionStrategy(string strategyString, string sceneTemplateId)
+    {
+        if (string.IsNullOrEmpty(strategyString))
+            return PlacementSelectionStrategy.Random; // Default
+
+        if (Enum.TryParse<PlacementSelectionStrategy>(strategyString, true, out PlacementSelectionStrategy strategy))
+        {
+            return strategy;
+        }
+        else
+        {
+            throw new InvalidDataException($"SceneTemplate '{sceneTemplateId}' PlacementFilter has invalid SelectionStrategy: '{strategyString}'");
+        }
+    }
+
+    /// <summary>
     /// Parse state type strings to enum list
     /// </summary>
-    private List<StateType> ParseStateTypes(List<string> stateStrings, string sceneTemplateId, string fieldName)
+    private static List<StateType> ParseStateTypes(List<string> stateStrings, string sceneTemplateId, string fieldName)
     {
         if (stateStrings == null || !stateStrings.Any())
             return new List<StateType>();
@@ -262,7 +363,7 @@ public class SceneTemplateParser
     /// <summary>
     /// Parse scale requirements from DTOs
     /// </summary>
-    private List<ScaleRequirement> ParseScaleRequirements(List<ScaleRequirementDTO> dtos, string sceneTemplateId)
+    private static List<ScaleRequirement> ParseScaleRequirements(List<ScaleRequirementDTO> dtos, string sceneTemplateId)
     {
         if (dtos == null || !dtos.Any())
             return new List<ScaleRequirement>();
@@ -561,17 +662,10 @@ public class SceneTemplateParser
             if (string.IsNullOrEmpty(dto.SceneTemplateId))
                 throw new InvalidDataException("SceneSpawnReward missing required 'SceneTemplateId'");
 
-            if (!Enum.TryParse<PlacementRelation>(dto.PlacementRelation, true, out PlacementRelation placementRelation))
-            {
-                throw new InvalidDataException($"SceneSpawnReward has invalid PlacementRelation: '{dto.PlacementRelation}'");
-            }
-
             rewards.Add(new SceneSpawnReward
             {
-                SceneTemplateId = dto.SceneTemplateId,
-                PlacementRelation = placementRelation,
-                SpecificPlacementId = dto.SpecificPlacementId,
-                DelayDays = dto.DelayDays
+                SceneTemplateId = dto.SceneTemplateId
+                // Spawned scene inherits SceneTemplate.PlacementFilter (no override mechanism)
             });
         }
 

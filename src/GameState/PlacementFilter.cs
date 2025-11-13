@@ -1,9 +1,9 @@
 /// <summary>
 /// Filter for selecting placement entities at spawn time via CATEGORICAL PROPERTIES ONLY
 /// Implements AI content generation pattern: JSON describes categories (PersonalityTypes, LocationProperties),
-/// spawner queries GameWorld entities and applies SelectionStrategy to choose from matches
-/// Tutorial pattern uses SceneSpawnReward.SpecificPlacementId for concrete binding (NOT this filter)
-/// HIGHLANDER: One pattern only - categorical queries, no concrete IDs
+/// EntityResolver queries GameWorld entities and applies SelectionStrategy to choose from matches
+/// Tutorial pattern: A1 and A2 use same categorical specs → naturally reuse same entities via FindOrCreate
+/// HIGHLANDER: One pattern only - categorical queries, no concrete IDs, no binding mechanisms
 /// </summary>
 public class PlacementFilter
 {
@@ -17,9 +17,9 @@ public class PlacementFilter
 
     /// <summary>
     /// Strategy for selecting ONE entity when multiple candidates match the filter
-    /// Defaults to WeightedRandom for backward compatibility
+    /// Defaults to Random (uniform distribution)
     /// </summary>
-    public PlacementSelectionStrategy SelectionStrategy { get; init; } = PlacementSelectionStrategy.WeightedRandom;
+    public PlacementSelectionStrategy SelectionStrategy { get; init; } = PlacementSelectionStrategy.Random;
 
     // ==================== NPC FILTERS (when PlacementType == NPC) ====================
 
@@ -29,6 +29,34 @@ public class PlacementFilter
     /// CATEGORICAL - no concrete NPC IDs
     /// </summary>
     public List<PersonalityType> PersonalityTypes { get; init; } = new List<PersonalityType>();
+
+    /// <summary>
+    /// Required professions for NPC selection
+    /// Example: [Merchant, Scholar, Guard]
+    /// NPC must have one of these professions to match
+    /// </summary>
+    public List<Professions> Professions { get; init; } = new List<Professions>();
+
+    /// <summary>
+    /// Required relationship states for NPC selection
+    /// Example: [Ally, Rival, Neutral]
+    /// NPC must have one of these relationship states with player
+    /// </summary>
+    public List<NPCRelationship> RequiredRelationships { get; init; } = new List<NPCRelationship>();
+
+    /// <summary>
+    /// Minimum NPC tier requirement
+    /// null = no minimum
+    /// Example: MinTier = 2 means "only select tier 2+ NPCs"
+    /// </summary>
+    public int? MinTier { get; init; }
+
+    /// <summary>
+    /// Maximum NPC tier requirement
+    /// null = no maximum
+    /// Example: MaxTier = 3 means "only select tier 1-3 NPCs"
+    /// </summary>
+    public int? MaxTier { get; init; }
 
     /// <summary>
     /// Minimum bond strength required with player
@@ -55,12 +83,27 @@ public class PlacementFilter
     // ==================== LOCATION FILTERS (when PlacementType == Location) ====================
 
     /// <summary>
+    /// Required location types for categorical selection
+    /// Example: [Inn, Tavern, Market]
+    /// Location must match one of these types
+    /// STRONGLY-TYPED enum, not strings
+    /// </summary>
+    public List<LocationTypes> LocationTypes { get; init; } = new List<LocationTypes>();
+
+    /// <summary>
     /// Required location properties for categorical selection
     /// Example: [Secluded, Indoor, Private]
     /// Location must have ALL specified properties to match
     /// STRONGLY-TYPED enum, not strings
     /// </summary>
     public List<LocationPropertyType> LocationProperties { get; init; } = new List<LocationPropertyType>();
+
+    /// <summary>
+    /// Player accessibility requirement
+    /// true = only accessible locations (visited OR unlocked)
+    /// false/null = any location regardless of accessibility
+    /// </summary>
+    public bool? IsPlayerAccessible { get; init; }
 
     /// <summary>
     /// Categorical tags for location selection
@@ -102,20 +145,36 @@ public class PlacementFilter
     public int? RouteTier { get; init; }
 
     /// <summary>
-    /// Minimum danger rating for route selection (0-100 scale)
+    /// Minimum difficulty rating for route selection (uses DangerRating property)
     /// null = no minimum
     /// Used to filter scenes for dangerous routes
-    /// Example: MinDangerRating = 30 means "only spawn on routes with danger 30+"
+    /// Example: MinDifficulty = 30 means "only spawn on routes with danger 30+"
     /// </summary>
-    public int? MinDangerRating { get; init; }
+    public int? MinDifficulty { get; init; }
 
     /// <summary>
-    /// Maximum danger rating for route selection (0-100 scale)
+    /// Maximum difficulty rating for route selection (uses DangerRating property)
     /// null = no maximum
     /// Used to filter scenes for safer routes
-    /// Example: MaxDangerRating = 50 means "only spawn on routes with danger <= 50"
+    /// Example: MaxDifficulty = 50 means "only spawn on routes with danger <= 50"
     /// </summary>
-    public int? MaxDangerRating { get; init; }
+    public int? MaxDifficulty { get; init; }
+
+    /// <summary>
+    /// Categorical tags for route selection
+    /// Example: ["Trade", "Dangerous", "Shortcut"]
+    /// Route must have ALL specified tags to match
+    /// </summary>
+    public List<string> RouteTags { get; init; } = new List<string>();
+
+    // ==================== VARIETY CONTROL ====================
+
+    /// <summary>
+    /// Exclude recently used entities from selection
+    /// Improves variety by preventing same location/NPC/route appearing repeatedly
+    /// Uses LastUsedDay property to filter out recent selections
+    /// </summary>
+    public bool ExcludeRecentlyUsed { get; init; }
 
     // ==================== PLAYER STATE FILTERS (applies to all placement types) ====================
 

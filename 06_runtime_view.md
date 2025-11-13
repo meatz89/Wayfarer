@@ -516,136 +516,222 @@ SITUATION 4: CLEANUP
 
 ---
 
-## 6.6 Dependent Resource Lifecycle
+## 6.6 Entity Resolution and Scene Spawning Lifecycle
 
-This scenario shows complete lifecycle of scene-generated resources from declaration to persistence.
+This scenario shows complete lifecycle of scene spawning with entity resolution using the 5-system architecture.
 
-### Scenario: Private Room Lifecycle
+### Scenario: Lodging Scene with Private Room
 
 ```
-PHASE 1: DECLARATION (Parse Time)
-──────────────────────────────────
+PHASE 1: SCENE SELECTION (System 1 - Decision Logic)
+─────────────────────────────────────────────────────
 
-SceneArchetypeCatalogue declares dependent resources:
+Player executes choice with SceneSpawnReward:
 
-DependentLocationSpec {
-  logicalId: "private_room",
-  nameTemplate: "{npcName}'s Private Room",
-  properties: [Safe, Restful],
-  isLocked: true
+SceneSpawnReward {
+  SceneTemplateId: "secure_lodging",
+  PlacementFilterOverride: null  // Use template's filter
 }
 
-DependentItemSpec {
-  logicalId: "room_key",
-  nameTemplate: "Key to {locationName}",
-  itemType: Key
+SceneFacade.IsSceneEligible():
+  - Check SpawnConditions on template
+  - RequiredTags: ["in_town"] → Player has tag ✓
+  - MinDay: 1 → Player.CurrentDay = 3 ✓
+  - Eligible → Proceed to System 2
+
+PHASE 2: SCENE SPECIFICATION (System 2 - Data Structure)
+─────────────────────────────────────────────────────────
+
+SceneSpawnReward structure (categorical only):
+
+SceneSpawnReward {
+  SceneTemplateId: "secure_lodging",
+  // NO concrete entity IDs
+  // NO PlacementRelation enum
+  // NO ContextBinding
+  // Categorical properties ONLY
 }
 
-PHASE 2: CREATION (Parse Time)
-───────────────────────────────
+Template defines placement requirements via PlacementFilter.
 
-SceneTemplateParser creates actual entities:
+PHASE 3: PACKAGE GENERATION (System 3 - SceneInstantiator)
+───────────────────────────────────────────────────────────
 
-Location {
-  id: "location_guid_12345" (real GUID),
-  name: "{npcName}'s Private Room" (unresolved placeholder),
-  isLocked: true,
-  properties: [Safe, Restful]
+SceneInstantiator writes categorical filters to JSON:
+
+SceneDTO {
+  Id: "scene_guid_12345",
+  TemplateId: "secure_lodging",
+
+  // Categorical filters (NOT concrete IDs)
+  LocationFilter: {
+    LocationProperties: ["Indoor", "Private", "Safe"],
+    LocationTags: ["lodging", "secure"],
+    SelectionStrategy: "Closest"
+  },
+
+  NpcFilter: {
+    PersonalityTypes: ["Innkeeper", "Merchant"],
+    NpcDemeanor: "Neutral",
+    SelectionStrategy: "LeastRecentlyUsed"
+  },
+
+  Situations: [
+    {
+      Id: "negotiate_lodging",
+      RequiredLocationId: null,  // Will reference resolved location
+      RequiredNpcId: null,       // Will reference resolved NPC
+      Choices: [...]
+    },
+    {
+      Id: "rest_in_room",
+      RequiredLocationId: null,  // Will reference resolved private room
+      RequiredNpcId: null,
+      Choices: [...]
+    }
+  ]
 }
-→ Added to GameWorld.Locations
 
-Item {
-  id: "item_guid_67890" (real GUID),
-  name: "Key to {locationName}" (unresolved placeholder),
-  type: Key
-}
-→ Template reference created (not in player inventory yet)
+→ NO entity resolution yet
+→ NO concrete IDs written
+→ Package ready for System 4
 
-Mapping stored:
-  "generated:private_room" → "location_guid_12345"
-  "generated:room_key" → "item_guid_67890"
+PHASE 4: ENTITY RESOLUTION (System 4 - EntityResolver)
+───────────────────────────────────────────────────────
 
-PHASE 3: MARKER RESOLUTION (Spawn Time)
-────────────────────────────────────────
+PackageLoader calls EntityResolver with filters:
 
-Scene spawns from template:
+EntityResolver.FindOrCreateLocation(LocationFilter):
+  // STEP 1: Query existing entities
+  existing = GameWorld.Locations.Where(loc =>
+    loc.Properties.Contains("Indoor") &&
+    loc.Properties.Contains("Private") &&
+    loc.Properties.Contains("Safe") &&
+    loc.Tags.Contains("lodging")
+  ).FirstOrDefault();
 
-MarkerResolutionMap built:
-  "generated:private_room" → "location_guid_12345"
-  "generated:room_key" → "item_guid_67890"
+  if (existing != null)
+    return existing;  // Reuse "The Silver Hart Inn"
 
-Situations resolve markers:
-  SituationTemplate.RequiredLocationId: "generated:private_room"
-  → Situation.RequiredLocationId: "location_guid_12345" (resolved)
+  // STEP 2: Generate new entity if no match
+  generated = GenerateLocation(LocationFilter);
+  // Location { Id: "location_guid_456", Name: "The Golden Rest", Properties: [...] }
+  GameWorld.AddOrUpdateLocation(generated);
+  return generated;  // Eager creation
 
-  ChoiceReward.LocationsToUnlock: ["generated:private_room"]
-  → ChoiceReward.LocationsToUnlock: ["location_guid_12345"] (resolved)
+EntityResolver.FindOrCreateNPC(NpcFilter):
+  // Same pattern: query existing, generate if needed
+  existing = GameWorld.NPCs.Where(npc =>
+    npc.PersonalityType == "Innkeeper" &&
+    npc.Demeanor == "Neutral"
+  ).FirstOrDefault();
 
-  ChoiceReward.ItemIds: ["generated:room_key"]
-  → ChoiceReward.ItemIds: ["item_guid_67890"] (resolved)
+  return existing ?? GenerateNPC(NpcFilter);
+  // Returns: Elena (existing NPC object)
 
-AI narrative generation replaces placeholders:
-  "{npcName}'s Private Room" → "Elena's Private Room"
-  "Key to {locationName}" → "Key to The Silver Hart Inn"
+EntityResolver.FindOrCreateLocation(PrivateRoomFilter):
+  // Scene needs private room sublocation
+  privateRoom = GameWorld.Locations.Where(loc =>
+    loc.ParentLocationId == mainLocation.Id &&
+    loc.Properties.Contains("Private") &&
+    loc.Tags.Contains("guest_room")
+  ).FirstOrDefault();
 
-PHASE 4: GRANT (Runtime - Choice Execution)
-───────────────────────────────────────────
+  if (privateRoom == null) {
+    privateRoom = GeneratePrivateRoom(mainLocation);
+    // Location { Id: "location_guid_789", Name: "Guest Room", ParentLocationId: "location_guid_456" }
+    GameWorld.AddOrUpdateLocation(privateRoom);
+  }
 
-Player executes negotiation choice:
+  return privateRoom;  // Object reference
 
-Choice.OnSuccessReward.Apply():
-  LocationsToUnlock: ["location_guid_12345"]
-  → location = GameWorld.GetLocation("location_guid_12345")
-  → location.IsLocked = false (player can now enter)
+Result: Pre-resolved entity objects ready for System 5
+  - mainLocation = Location object (The Silver Hart Inn)
+  - innkeeper = NPC object (Elena)
+  - privateRoom = Location object (Guest Room)
 
-  ItemIds: ["item_guid_67890"]
-  → item = CreateItemInstance("item_guid_67890")
-  → Player.Inventory.Add(item) (key now in possession)
+PHASE 5: SCENE INSTANTIATION (System 5 - SceneParser)
+──────────────────────────────────────────────────────
 
-GameWorld state updated:
-  - Location accessible
-  - Key in inventory
-  - Player can navigate to room
+SceneParser receives pre-resolved objects:
 
-PHASE 5: USAGE (Runtime - Situation Activation)
-───────────────────────────────────────────────
+Scene scene = new Scene {
+  Id: "scene_guid_12345",
+  TemplateId: "secure_lodging",
 
-Player navigates to private room:
-  Player.CurrentLocationId = "location_guid_12345"
+  // Direct object references (NO IDs, NO enums)
+  Location: mainLocation,  // Object property
+  Npc: innkeeper,          // Object property
+
+  Situations: [
+    new Situation {
+      Id: "negotiate_lodging",
+      RequiredLocation: mainLocation,  // Direct object reference
+      RequiredNpc: innkeeper,          // Direct object reference
+      Choices: [...]
+    },
+    new Situation {
+      Id: "rest_in_room",
+      RequiredLocation: privateRoom,  // Direct object reference
+      RequiredNpc: null,
+      Choices: [...]
+    }
+  ]
+};
+
+GameWorld.AddScene(scene);
+
+AI NARRATIVE GENERATION (After Resolution):
+  - Entities already resolved: Elena (innkeeper), The Silver Hart Inn (location)
+  - AI receives entity context: { npc: "Elena", location: "The Silver Hart Inn", room: "Guest Room" }
+  - AI generates complete narrative: "Negotiate lodging with Elena at The Silver Hart Inn"
+  - NO placeholders, NO markers
+  - Complete text generated with concrete entity names
+
+PHASE 6: GAMEPLAY (Runtime - Situation Activation)
+───────────────────────────────────────────────────
+
+Player navigates to The Silver Hart Inn:
+  Player.CurrentLocation = mainLocation  // Object reference
 
 SceneFacade.CheckActivation():
-  Scene.CurrentSituation.RequiredLocationId = "location_guid_12345"
-  Player.CurrentLocationId = "location_guid_12345"
-  location.IsLocked = false (access check PASSED)
-  → Situation auto-activates
+  Scene.CurrentSituation.RequiredLocation == mainLocation ✓
+  Player.CurrentLocation == mainLocation ✓
+  → Situation "negotiate_lodging" auto-activates
 
-Actions created and displayed:
-  - Rest choices appear
-  - Player can use the room
+Player sees:
+  - "Negotiate lodging with Elena"
+  - Four choices (stat/money/challenge/fallback)
 
-PHASE 6: STATE CHANGES (Runtime - Access Control)
-──────────────────────────────────────────────────
+Player executes negotiation choice:
+  Choice.Reward.LocationsToUnlock: [privateRoom.Id]
+  → privateRoom.IsLocked = false
 
-Player executes departure choice:
+Player navigates to Guest Room:
+  Player.CurrentLocation = privateRoom  // Object reference
 
-Choice.RewardTemplate.Apply():
-  ItemsToRemove: ["item_guid_67890"]
-  → Player.Inventory.Remove(item_guid_67890) (key removed from inventory)
+SceneFacade.CheckActivation():
+  Scene.CurrentSituation.RequiredLocation == privateRoom ✓
+  → Situation "rest_in_room" auto-activates
 
-  LocationsToLock: ["location_guid_12345"]
-  → location = GameWorld.GetLocation("location_guid_12345")
-  → location.IsLocked = true (access revoked)
+Player sees:
+  - "Rest in your private room"
+  - Rest/sleep choices
 
-GameWorld state updated:
-  - Key removed from inventory (item instance removed, not entity deleted)
-  - Location locked again (access state changed)
-  - Location persists but inaccessible (entity remains forever)
+PHASE 7: PERSISTENCE (Entity Lifecycle)
+────────────────────────────────────────
 
-Future attempts:
-  - Player navigates to location_guid_12345
-  - location.IsLocked = true
-  - Access denied (situation cannot activate)
-  - Location exists but unreachable without new key
+All entities persist in GameWorld:
+  - mainLocation (The Silver Hart Inn) persists forever
+  - innkeeper (Elena) persists forever
+  - privateRoom (Guest Room) persists forever
+  - Scene removed when completed, entities remain
+
+Future spawns:
+  - New scene needs innkeeper → FindOrCreate finds Elena → reuse
+  - New scene needs lodging → FindOrCreate finds Silver Hart Inn → reuse
+  - Entities accumulate in GameWorld over time
+  - No cleanup system (entities never deleted)
 ```
 
 **Lifecycle Summary**:

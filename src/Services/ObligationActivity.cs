@@ -493,20 +493,14 @@ public class ObligationActivity
 
         Player player = _gameWorld.GetPlayer();
 
-        SceneSpawnContext context = SceneSpawnContextBuilder.BuildContext(
-            _gameWorld,
-            player,
-            sceneSpawn.PlacementRelation,
-            sceneSpawn.SpecificPlacementId,
-            null);
-
-        if (context == null)
+        // 5-SYSTEM ARCHITECTURE: Build context from player state
+        // EntityResolver will FindOrCreate entities from PlacementFilterOverride
+        SceneSpawnContext context = new SceneSpawnContext
         {
-            _messageSystem.AddSystemMessage(
-                $"Cannot resolve placement for scene template '{sceneSpawn.SceneTemplateId}'",
-                SystemMessageTypes.Warning);
-            return;
-        }
+            Player = player,
+            CurrentLocation = _gameWorld.GetPlayerCurrentLocation(),
+            CurrentSituation = sourceSituation
+        };
 
         // HIGHLANDER FLOW: Single method spawns scene with full orchestration
         Scene scene = await _sceneInstanceFacade.SpawnScene(template, sceneSpawn, context);
@@ -526,26 +520,27 @@ public class ObligationActivity
     }
     /// <summary>
     /// Get human-readable placement description for system message
+    /// Uses direct object references (Location/Npc/Route) instead of PlacementType enum dispatch
     /// </summary>
     private string GetPlacementDescription(Scene scene)
     {
-        switch (scene.PlacementType)
+        // Check direct object references in priority order
+        if (scene.Npc != null)
         {
-            case PlacementType.Location:
-                Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == scene.PlacementId);
-                return location != null ? $"at {location.Name}" : "";
-
-            case PlacementType.NPC:
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.PlacementId);
-                return npc != null ? $"with {npc.Name}" : "";
-
-            case PlacementType.Route:
-                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == scene.PlacementId);
-                return route != null ? $"on route to {route.Name}" : "";
-
-            default:
-                return "";
+            return $"with {scene.Npc.Name}";
         }
+
+        if (scene.Route != null)
+        {
+            return $"on route to {scene.Route.Name}";
+        }
+
+        if (scene.Location != null)
+        {
+            return $"at {scene.Location.Name}";
+        }
+
+        return "";
     }
 
 }

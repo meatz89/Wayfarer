@@ -16,19 +16,37 @@ public class PlacementFilterDTO
     // ====================
 
     /// <summary>
-    /// Concrete NPC ID binding (tutorial/explicit binding pattern)
-    /// When specified, bypasses categorical filtering and binds to specific NPC
-    /// Example: "elena" binds tutorial to Elena regardless of her categorical properties
-    /// null = use categorical filtering (personalityTypes, minBond, etc.)
-    /// </summary>
-    public string NpcId { get; set; }
-
-    /// <summary>
     /// Personality types to match
     /// Example: ["Innocent", "Cunning", "Authoritative"]
     /// Maps to PersonalityType enum values
     /// </summary>
     public List<string> PersonalityTypes { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Professions to match
+    /// Example: ["Merchant", "Scholar", "Guard"]
+    /// Maps to Professions enum values
+    /// </summary>
+    public List<string> Professions { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Required relationship states
+    /// Example: ["Ally", "Rival", "Neutral"]
+    /// Maps to NPCRelationship enum values
+    /// </summary>
+    public List<string> RequiredRelationships { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Minimum NPC tier requirement
+    /// null = no minimum
+    /// </summary>
+    public int? MinTier { get; set; }
+
+    /// <summary>
+    /// Maximum NPC tier requirement
+    /// null = no maximum
+    /// </summary>
+    public int? MaxTier { get; set; }
 
     /// <summary>
     /// Minimum bond strength required
@@ -53,12 +71,11 @@ public class PlacementFilterDTO
     // ====================
 
     /// <summary>
-    /// Concrete Location ID binding (tutorial/explicit binding pattern)
-    /// When specified, bypasses categorical filtering and binds to specific Location
-    /// Example: "fountain_plaza" binds scene to Town Square fountain
-    /// null = use categorical filtering (locationProperties, locationTags, etc.)
+    /// Location types to match
+    /// Example: ["Inn", "Tavern", "Market"]
+    /// Maps to LocationTypes enum values
     /// </summary>
-    public string LocationId { get; set; }
+    public List<string> LocationTypes { get; set; } = new List<string>();
 
     /// <summary>
     /// Location properties to match
@@ -66,6 +83,13 @@ public class PlacementFilterDTO
     /// Maps to LocationPropertyType enum values
     /// </summary>
     public List<string> LocationProperties { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Player accessibility requirement
+    /// true = only accessible locations
+    /// false/null = any location
+    /// </summary>
+    public bool? IsPlayerAccessible { get; set; }
 
     /// <summary>
     /// Categorical location tags
@@ -102,16 +126,39 @@ public class PlacementFilterDTO
     public int? RouteTier { get; set; }
 
     /// <summary>
-    /// Minimum danger rating (0-100 scale)
+    /// Minimum difficulty rating (0-100 scale)
     /// null = no minimum
     /// </summary>
-    public int? MinDangerRating { get; set; }
+    public int? MinDifficulty { get; set; }
 
     /// <summary>
-    /// Maximum danger rating (0-100 scale)
+    /// Maximum difficulty rating (0-100 scale)
     /// null = no maximum
     /// </summary>
-    public int? MaxDangerRating { get; set; }
+    public int? MaxDifficulty { get; set; }
+
+    /// <summary>
+    /// Categorical tags for route selection
+    /// Example: ["Trade", "Dangerous", "Shortcut"]
+    /// </summary>
+    public List<string> RouteTags { get; set; } = new List<string>();
+
+    // ====================
+    // SYSTEM CONTROL
+    // ====================
+
+    /// <summary>
+    /// Selection strategy when multiple entities match
+    /// Values: "Random", "First", "Closest", "HighestBond", "LeastRecent"
+    /// Maps to PlacementSelectionStrategy enum
+    /// </summary>
+    public string SelectionStrategy { get; set; }
+
+    /// <summary>
+    /// Exclude recently used entities from selection
+    /// Improves variety
+    /// </summary>
+    public bool ExcludeRecentlyUsed { get; set; }
 
     // ====================
     // PLAYER STATE FILTERS

@@ -234,16 +234,23 @@ public class Situation
     /// <summary>
     /// Get placement ID from parent Scene for specified placement type
     /// Implements HIGHLANDER Pattern: Scene owns placement, Situation queries it
-    /// Returns null if no parent scene or placement type doesn't match
+    /// Uses Scene's direct object references (Location, Npc, Route) to retrieve IDs
+    /// Returns null if no parent scene or placement object doesn't exist
     /// </summary>
     /// <param name="placementType">Type of placement to query (Location/NPC/Route)</param>
-    /// <returns>Placement ID if parent scene has matching placement type, null otherwise</returns>
+    /// <returns>Placement ID if parent scene has matching placement object, null otherwise</returns>
     public string GetPlacementId(PlacementType placementType)
     {
         if (ParentScene == null)
             return null;
 
-        return ParentScene.PlacementType == placementType ? ParentScene.PlacementId : null;
+        return placementType switch
+        {
+            PlacementType.Location => ParentScene.Location?.Id,
+            PlacementType.NPC => ParentScene.Npc?.ID,
+            PlacementType.Route => ParentScene.Route?.Id,
+            _ => null
+        };
     }
 
     /// <summary>

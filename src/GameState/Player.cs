@@ -63,19 +63,6 @@ public class Player
     public List<string> ActiveObligationIds { get; set; } = new List<string>();
 
     // ============================================
-    // TAG-BASED PROGRESSION SYSTEM (Flexible Branching)
-    // ============================================
-
-    /// <summary>
-    /// Tags granted to player through scene completion
-    /// Enables flexible branching: A1 completes → grants ['tutorial_complete', 'knows_innkeeper']
-    /// → A2 OR B-Story-1 both available (both require only 'tutorial_complete')
-    /// Replaces rigid CompletedScenes-only progression with tag-based unlock graph
-    /// Example: Scene grants ['met_elena', 'knows_tavern_location'] → Other scenes require these tags
-    /// </summary>
-    public List<string> GrantedTags { get; set; } = new List<string>();
-
-    // ============================================
     // DELIVERY JOB SYSTEM (Core Loop - Phase 3)
     // ============================================
 
@@ -197,23 +184,6 @@ public class Player
     /// Situations can spawn child situations creating cascading chains
     /// </summary>
     public List<string> CompletedSituationIds { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Completed Scene IDs - tracking which scenes player has completed
-    /// Used by SpawnConditionsEvaluator for scene eligibility checking
-    /// Enables content gating (Scene B requires Scene A completion)
-    /// Populated by RewardApplicationService when scene completes
-    /// </summary>
-    public List<string> CompletedSceneIds { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Choice History - tracking which specific choices player has made
-    /// Stores choice IDs from ChoiceTemplate.Id when executed
-    /// Used by SpawnConditionsEvaluator for branching narrative content
-    /// Enables consequence tracking (if player chose X, spawn scene Y)
-    /// Populated by RewardApplicationService when choice executes
-    /// </summary>
-    public List<string> ChoiceHistory { get; set; } = new List<string>();
 
     public void AddKnownRoute(RouteOption route)
     {

@@ -541,6 +541,297 @@ This architectural pattern supports rich narrative branching where NPCs serve as
 
 ---
 
+### 8.2.8 5-System Scene Spawning Architecture
+
+**Core Principle**: Scene spawning flows through five distinct systems, each with one clear responsibility. Placement uses categorical filters at all stages. Entity resolution happens eagerly in System 4 before scene instantiation in System 5.
+
+#### System 1: Scene Selection (Decision Logic)
+
+**Responsibility**: Decide WHEN to spawn scene based on game state
+
+**Location**: SceneFacade, SituationRewardExecutor
+
+**Key Operations**:
+- Evaluate SpawnConditions on SceneTemplate (RequiredTags, MinDay, StatThresholds)
+- Check eligibility when choice executed with ScenesToSpawn reward
+- Trigger System 2 if conditions met
+
+**Example**:
+```csharp
+// SceneFacade checks eligibility
+public bool IsSceneEligible(SceneTemplate template, Player player)
+{
+    if (template.SpawnConditions.RequiredTags.Any(tag => !player.Tags.Contains(tag)))
+        return false;
+
+    if (player.CurrentDay < template.SpawnConditions.MinDay)
+        return false;
+
+    return true;  // Eligible, proceed to spawning
+}
+```
+
+#### System 2: Scene Specification (Data Structure)
+
+**Responsibility**: Store categorical requirements for spawning, NO concrete entity IDs
+
+**Location**: SceneSpawnReward class, ChoiceReward property
+
+**Data Structure**:
+```csharp
+public class SceneSpawnReward
+{
+    public string SceneTemplateId { get; set; }         // Categorical template ID
+    public PlacementFilterOverride PlacementFilterOverride { get; set; }  // Optional filter overrides
+
+    // NO ContextBinding
+    // NO PlacementRelation enum
+    // NO SpecificPlacementId
+    // Categorical properties ONLY
+}
+```
+
+**Key Principle**: Scene rewards contain ONLY categorical requirements. NO concrete entity IDs. All placement needs expressed via categorical filters on template or override.
+
+#### System 3: Package Generator (SceneInstantiator)
+
+**Responsibility**: Create JSON package specification with PlacementFilterDTO (categorical specs), does NOT resolve entities
+
+**Location**: SceneInstantiator service
+
+**Key Operations**:
+- Receive SceneSpawnReward with categorical template ID
+- Load SceneTemplate from GameWorld
+- Write PlacementFilterDTO to JSON package (LocationFilter, NpcFilter, RouteFilter properties)
+- Does NOT call FindOrCreate (no entity resolution here)
+- Does NOT write concrete entity IDs to JSON
+- Output: SceneDTO package with categorical filters
+
+**Example**:
+```csharp
+public SceneDTO GenerateScenePackage(SceneSpawnReward reward)
+{
+    SceneTemplate template = gameWorld.SceneTemplates[reward.SceneTemplateId];
+
+    SceneDTO sceneDto = new SceneDTO
+    {
+        Id = GenerateSceneId(),
+        TemplateId = template.Id,
+
+        // Write categorical filters (NOT concrete IDs)
+        LocationFilter = template.PlacementFilter.LocationFilter,  // PlacementFilterDTO
+        NpcFilter = template.PlacementFilter.NpcFilter,
+        RouteFilter = template.PlacementFilter.RouteFilter,
+
+        Situations = GenerateSituationDTOs(template.SituationTemplates)
+    };
+
+    return sceneDto;  // Package ready for System 4
+}
+```
+
+**What This Does NOT Do**:
+- Does NOT resolve entities (no FindOrCreate calls)
+- Does NOT write concrete entity IDs ("elena", "common_room_inn")
+- Does NOT use PlacementRelation enum (deleted concept)
+- Does NOT use ContextBinding (deleted concept)
+
+**What This DOES**:
+- Writes categorical requirements to JSON (PlacementFilterDTO)
+- Packages complete scene specification
+- Passes categorical specs to System 4 for resolution
+
+#### System 4: Entity Resolver (EntityResolver in PackageLoader)
+
+**Responsibility**: Resolve categorical filters to concrete entity objects using FindOrCreate pattern
+
+**Location**: EntityResolver service, called by PackageLoader
+
+**Key Operations**:
+- Read PlacementFilterDTO from JSON package
+- FindOrCreate pattern for each entity type:
+  - FindOrCreateLocation(filter) → Location object
+  - FindOrCreateNPC(filter) → NPC object
+  - FindOrCreateRoute(filter) → RouteOption object
+- Query existing entities FIRST (reuse via categorical matching)
+- Generate new entities if no match (eager creation when needed)
+- Return concrete entity OBJECTS (not IDs)
+
+**Example**:
+```csharp
+public class EntityResolver
+{
+    public Location FindOrCreateLocation(PlacementFilterDTO locationFilter, GameWorld gameWorld)
+    {
+        // STEP 1: Query existing entities
+        Location existing = gameWorld.Locations
+            .Where(loc => MatchesFilter(loc, locationFilter))
+            .FirstOrDefault();
+
+        if (existing != null)
+            return existing;  // Reuse existing entity
+
+        // STEP 2: Generate new entity if no match
+        Location generated = GenerateLocation(locationFilter);
+        gameWorld.AddOrUpdateLocation(generated);
+        return generated;  // Eager creation
+    }
+
+    public NPC FindOrCreateNPC(PlacementFilterDTO npcFilter, GameWorld gameWorld)
+    {
+        // Same pattern: query first, generate if needed
+        NPC existing = gameWorld.NPCs
+            .Where(npc => MatchesFilter(npc, npcFilter))
+            .FirstOrDefault();
+
+        return existing ?? GenerateNPC(npcFilter);
+    }
+}
+```
+
+**Key Principle**: Entities resolved from categorical properties, returned as objects (NOT IDs). System 5 receives pre-resolved objects.
+
+#### System 5: Scene Instantiator (SceneParser in PackageLoader)
+
+**Responsibility**: Create Scene entity with direct object references from pre-resolved entities
+
+**Location**: SceneParser, called by PackageLoader after System 4
+
+**Key Operations**:
+- Receive pre-resolved entity objects as parameters (Location, NPC, RouteOption)
+- Create Scene with direct object references:
+  - Scene.Location = resolvedLocation (object property)
+  - Scene.Npc = resolvedNpc (object property)
+  - Scene.Route = resolvedRoute (object property)
+- NO resolution logic (objects already resolved by System 4)
+- NO PlacementType enum dispatch (deleted concept)
+- NO string ID lookups
+
+**Example**:
+```csharp
+public Scene CreateScene(
+    SceneDTO dto,
+    Location resolvedLocation,  // Pre-resolved object from System 4
+    NPC resolvedNpc,            // Pre-resolved object from System 4
+    RouteOption resolvedRoute)  // Pre-resolved object from System 4
+{
+    Scene scene = new Scene
+    {
+        Id = dto.Id,
+        TemplateId = dto.TemplateId,
+
+        // Direct object references (NO IDs, NO enums)
+        Location = resolvedLocation,  // Object property
+        Npc = resolvedNpc,            // Object property
+        Route = resolvedRoute,        // Object property
+
+        Situations = ParseSituations(dto.Situations)
+    };
+
+    return scene;  // Scene ready with all references resolved
+}
+```
+
+**What This Does NOT Do**:
+- Does NOT resolve entities (System 4 did that)
+- Does NOT use PlacementType enum + PlacementId string (deleted pattern)
+- Does NOT look up entity IDs (receives objects directly)
+- Does NOT use MarkerResolutionMap (deleted concept)
+
+**What This DOES**:
+- Create Scene with direct object references
+- Simple scene construction with pre-resolved dependencies
+- Clean separation from resolution logic
+
+#### Complete Data Flow Example
+
+**Scenario**: Choice reward spawns "investigate_mill" scene
+
+**System 1 - Decision**:
+```csharp
+// Choice executed with reward
+SceneSpawnReward reward = new SceneSpawnReward
+{
+    SceneTemplateId = "investigate_mill",
+    PlacementFilterOverride = null  // Use template's filter
+};
+
+// Check eligibility
+if (SceneFacade.IsSceneEligible(template, player))
+    → Proceed to System 2
+```
+
+**System 2 - Specification**:
+```csharp
+// Reward data structure (categorical only)
+SceneSpawnReward {
+    SceneTemplateId = "investigate_mill",
+    // NO concrete IDs
+    // NO PlacementRelation enum
+    // NO ContextBinding
+}
+```
+
+**System 3 - Package Generation**:
+```csharp
+// SceneInstantiator writes categorical filters to JSON
+SceneDTO {
+    Id = "scene_guid_123",
+    TemplateId = "investigate_mill",
+
+    // Categorical filters (NOT concrete IDs)
+    LocationFilter = {
+        LocationProperties = ["Indoor", "Private"],
+        LocationTags = ["industrial", "mill"]
+    },
+
+    NpcFilter = null,  // No NPC needed
+    RouteFilter = null
+}
+```
+
+**System 4 - Entity Resolution**:
+```csharp
+// EntityResolver reads filters, finds/creates entities
+Location resolvedLocation = entityResolver.FindOrCreateLocation(dto.LocationFilter, gameWorld);
+// Queries existing: gameWorld.Locations.Where(loc => loc.Properties.Contains("Indoor") && ...)
+// Returns: existing mill location OR generates new mill location
+// Result: Location OBJECT (not ID)
+```
+
+**System 5 - Scene Instantiation**:
+```csharp
+// SceneParser receives pre-resolved objects
+Scene scene = sceneParser.CreateScene(
+    dto,
+    resolvedLocation: millLocation  // Object from System 4
+);
+
+// Scene now has direct object reference
+scene.Location = millLocation;  // Direct property assignment
+```
+
+**Result**: Scene created with categorical resolution → query/generate → direct object references. No PlacementRelation enum, no ContextBinding, no MarkerResolutionMap, no string ID lookups.
+
+#### Why This Architecture
+
+**HIGHLANDER Compliance**: One placement mechanism (categorical filters), one resolution pattern (FindOrCreate), one reference pattern (direct objects).
+
+**Separation of Concerns**:
+- System 1: WHEN (eligibility checking)
+- System 2: WHAT (categorical specification)
+- System 3: HOW (package generation)
+- System 4: WHERE/WHO (entity resolution)
+- System 5: ASSEMBLY (scene construction)
+
+**No Enum Dispatch**: Scene has Location/Npc/Route object properties, NOT PlacementType enum + PlacementId string.
+
+**Eager Resolution**: Entities resolved before scene construction, not lazily during scene usage.
+
+**Categorical Throughout**: Filters used from reward → package → resolution. No concrete IDs until System 4 resolution
+
+---
+
 ### 8.2.6 Dynamic World Building (Lazy Materialization Pattern)
 
 **Core Principle**: World expands in response to narrative need, not pre-emptively. Locations and venues materialize when scenes spawn, validated for playability. **All generated locations persist forever** - no cleanup system exists.

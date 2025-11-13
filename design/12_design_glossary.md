@@ -36,7 +36,7 @@ Substantial narrative threads parallel to A-story with multiple scenes, characte
 
 **Distinguishing from:** A-Story (infinite mandatory spine), C-Story (minor content). B-stories are substantial optional content with multi-scene arcs.
 
-**Cross-reference:** Section 03 (narrative structure), Tag-Based Dependencies
+**Cross-reference:** Section 03 (narrative structure), Resource-Based Progression
 
 ---
 
@@ -204,7 +204,7 @@ The fundamental mechanical pattern replacing boolean gates with arithmetic. Acti
 
 **Distinguishing from:** Boolean Gates (has/hasn't flags), Level Gating (arbitrary thresholds). Resource arithmetic is transparent numeric comparison.
 
-**Cross-reference:** Requirement Inversion Principle, Perfect Information, DDR-002 (Tag-Based vs Boolean), Resource Scarcity
+**Cross-reference:** Requirement Inversion Principle, Perfect Information, DDR-002 (**SUPERSEDED**), Resource Scarcity
 
 ---
 
@@ -462,21 +462,7 @@ The dependency system determining when scenes become active. Combines temporal c
 
 **Distinguishing from:** Placement Filter (where to spawn), Activation (when player encounters), Requirements (action prerequisites). Spawn conditions determine when scene enters world.
 
-**Cross-reference:** Tag-Based Dependencies, DDR-002 (Tag-Based Scene Dependencies), Scene Instantiation
-
----
-
-### Tag-Based Dependency
-
-**Definition:** Progression system where scenes require/grant abstract tags representing knowledge, capabilities, or story milestones.
-
-The flexible dependency architecture replacing hardcoded chains. Each scene defines RequiresTags (player needs these to spawn scene) and GrantsTags (player gains these on completion). Spawning evaluates tags against player's accumulated set - if player has required tags, scene eligible to spawn. Enables branching (multiple scenes requiring same tags, player chooses), cross-storyline dependencies (B-story grants tag unlocking A-story path), procedural content (AI generates scenes with categorical tag requirements).
-
-**Example:** A1 completes → GrantsTags: ["tutorial_complete", "knows_innkeeper"]. A2 requires ["tutorial_complete"]. B-Story-1 requires ["knows_innkeeper", "has_5_coins"]. Player can pursue A2 OR B-Story-1 after A1 - both requirements met. Tags enable flexible graph, not linear chain.
-
-**Distinguishing from:** Quest Chain (linear sequence), Boolean Flags (has/hasn't checks), State Machine (discrete states). Tag-based uses accumulated set enabling flexible branching.
-
-**Cross-reference:** DDR-002 (Tag-Based Scene Dependencies), Spawn Condition, Branching, Flexible Progression
+**Cross-reference:** Resource-Based Progression, DDR-002 (**SUPERSEDED**), Scene Instantiation
 
 ---
 
@@ -808,7 +794,7 @@ The anti-pattern violating Requirement Inversion Principle. Content exists but h
 
 **Distinguishing from:** Resource Arithmetic (numeric comparison), State-Based Content (valid content for state), Entity Spawning (content creation). Boolean gate is flag-based hiding/revealing.
 
-**Cross-reference:** Resource Arithmetic, DDR-002 (Tag-Based vs Boolean), Requirement Inversion Principle, Anti-Pattern, CLAUDE.md Forbidden Patterns
+**Cross-reference:** Resource Arithmetic, DDR-002 (**SUPERSEDED**), Requirement Inversion Principle, Anti-Pattern, CLAUDE.md Forbidden Patterns
 
 ---
 
@@ -1042,7 +1028,7 @@ This section clarifies commonly confused terms.
 
 **Example (Boolean Gate):** "You need to be more insightful." How insightful? Mystery. Cannot plan.
 
-**Cross-reference:** Resource Arithmetic, Boolean Gate Anti-Pattern, DDR-002 (Tag-Based vs Boolean), Perfect Information
+**Cross-reference:** Resource Arithmetic, Boolean Gate Anti-Pattern, DDR-002 (**SUPERSEDED**), Perfect Information
 
 ---
 
