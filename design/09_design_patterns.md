@@ -224,54 +224,22 @@ All four choices viable in different contexts. Orthogonal costs create genuine s
 3. **Categorical Resolution** - Where/who scene spawns at (resolved at spawn time)
 
 **Context Binding Structure (Strongly-Typed)**:
-```csharp
-public class ContextBinding
-{
-    public string MarkerKey { get; set; }      // "QUESTGIVER", "RETURN_LOCATION"
-    public ContextSource Source { get; set; }  // Enum: CurrentNpc, CurrentLocation, CurrentRoute, PreviousScene
-    public string ResolvedId { get; set; }     // Populated at display time: "elena", "fountain_plaza"
-}
-```
+
+System stores marker key with source type, and resolved entity reference. When spawning a scene, bindings capture current context (who player is talking to, where they are, what route they're on) and preserve this information for the spawned scene's narrative. Each binding links a narrative placeholder to a specific entity in the game world.
 
 **Scene Spawning Flow**:
 
 **Choice Authoring (Content Creation)**:
-```json
-{
-  "choiceId": "accept_investigation",
-  "rewards": {
-    "scenesToSpawn": [{
-      "templateId": "investigate_location"
-      // NO context bindings yet
-    }]
-  }
-}
-```
+
+During content creation, designers specify which scene template should spawn as a reward, but context bindings remain empty. The template ID identifies the categorical pattern, without requiring hardcoded entity references.
 
 **Choice Display (Runtime)**:
-```
-System populates context bindings:
-1. Read ScenesToSpawn reward
-2. Examine current context (CurrentNpc, CurrentLocation)
-3. Create ContextBinding objects: [
-     { MarkerKey: "QUESTGIVER", Source: CurrentNpc, ResolvedId: "elena" },
-     { MarkerKey: "RETURN_LOCATION", Source: CurrentLocation, ResolvedId: "tavern" }
-   ]
-4. Attach bindings to displayed choice
-5. Project to UI: "Investigate for Elena at Fountain Plaza"
-6. Player sees exact narrative continuity before selection
-```
+
+When displaying a choice that will spawn a scene, the system populates context bindings from current game state. It examines who the player is currently interacting with and where they are located, creates bindings linking these entities to narrative markers, attaches the bindings to the choice display, and projects the resolved narrative to the player. This allows players to see exact narrative continuity before making a selection, transforming generic templates into specific stories.
 
 **Choice Execution (Player Selects)**:
-```
-System spawns scene:
-1. Load template (categorical pattern with placeholders)
-2. Resolve categorical filters → find/generate new entities
-3. Resolve context bindings → bind current context
-4. Merge into MarkerResolutionMap
-5. Instantiate scene with all references resolved
-6. Template narrative: "Investigate for {QUESTGIVER_NAME}" → "Investigate for Elena"
-```
+
+When the player selects a choice that spawns a scene, the system loads the categorical template with narrative placeholders, resolves categorical filters to find or generate appropriate new entities, binds the preserved context from the current scene, merges all bindings together, and instantiates the complete scene with all references resolved. Template narratives with placeholders transform into specific stories using the bound entity names.
 
 **Why This Works**:
 - No hardcoded entity IDs (works with procedural generation)
@@ -333,6 +301,60 @@ Perfect information: "for Elena" visible before choice selection
 - Narrative: "Return to {INVESTIGATION_START_NAME} to continue" → "Return to Mill Exterior to continue"
 
 This creates web of categorical templates with minimal context bindings. Spawning is reward-driven (choice execution). Narrative continuity via context bindings. Perfect information via display-time projection. Works for infinite procedural content without hardcoded entity IDs.
+
+**Tutorial Architecture (Sequential Spawning)**:
+
+First three main story scenes teach mechanics via authored content:
+
+- **Scene 1 (Arrival/Lodging)**: Final situation ALL FOUR CHOICES spawn Scene 2
+  - Player chooses HOW to enter Scene 2 (respected/generous/skilled/patient)
+  - Different entry states create different narrative tones
+  - Progression guaranteed (all paths lead forward)
+
+- **Scene 2 (Morning Conversation)**: Final situation spawns Scene 3
+  - Uses categorical NPC filter (finds Scholar or Merchant personality)
+  - No specific NPC hardcoded (works with any matching NPC)
+
+- **Scene 3 (Departure)**: Terminal authored scene
+  - Completes tutorial sequence
+  - No spawn (player enters procedural continuation)
+
+**Infinite Procedural Continuation (Scene 4+)**:
+
+After tutorial completion, main story generates scenes on-demand:
+
+- Scene spawning specifies categorical template pattern (not specific ID)
+- If template doesn't exist yet, system generates procedurally
+- Template selection from archetype catalogue (20-30 archetypes available)
+- Entity resolution via categorical filters (personality types, location properties, tier)
+- AI narrative generation connecting to player's journey history
+- Escalating scope over time (local → regional → continental → cosmic)
+- Never ends, never resolves, always deepens
+
+**Context Binding Timing (When Information Flows)**:
+
+**Authoring Time**: Templates define which bindings needed (QUESTGIVER, RETURN_LOCATION markers)
+
+**Display Time**: System populates bindings from current context:
+- CurrentNpc becomes QUESTGIVER binding
+- CurrentLocation becomes RETURN_LOCATION binding
+- CurrentRoute, PreviousScene also available as sources
+- Player sees resolved narrative BEFORE selecting choice
+- Perfect information projection: "Investigate for Elena" not generic "Investigate"
+
+**Spawn Time**: System merges bindings into spawned scene:
+- Bindings become narrative placeholders in scene text
+- Templates use markers: "Investigate for {QUESTGIVER_NAME}"
+- Markers resolve to actual names: "Investigate for Elena"
+- Narrative continuity preserved without hardcoded entity IDs
+
+**HIGHLANDER Enforcement (Single Spawning System)**:
+
+Removed duplicate condition-based spawning architecture. Only ONE spawning system exists:
+- Scenes spawn exclusively via ScenesToSpawn rewards
+- Choice execution triggers scene creation (not passive conditions)
+- No background timers, location triggers, or eligibility polling
+- Clear causality: Player selects choice → Scene spawns → World changes
 
 ## 9.3 Content Design Patterns
 
@@ -678,15 +700,8 @@ This creates web of categorical templates with minimal context bindings. Spawnin
 - Generates: ChoiceTemplates (concrete choices at parse-time)
 
 **Composition**:
-```
-inn_lodging scene archetype:
-  Situation 1: service_negotiation archetype
-  Situation 2: service_execution_rest archetype
-  Situation 3: service_departure archetype
 
-Each situation archetype generates 4 ChoiceTemplates
-Total: 12 choices across 3 situations
-```
+Scene archetypes combine multiple situation archetypes in sequence. For example, an inn lodging service composes a negotiation situation, a rest execution situation, and a departure situation. Each situation archetype generates its standard choice set, creating a complete multi-phase experience from reusable components.
 
 **Why This Works**:
 - Scene archetypes reusable (inn_lodging applies to all inns)
@@ -748,32 +763,12 @@ Total: 12 choices across 3 situations
 **service_negotiation archetype** applied to two contexts:
 
 **Context 1**: Friendly innkeeper, Basic quality
-```
-BaseStatThreshold = 5
-BaseCoinCost = 8
 
-Scaling:
-  NPCDemeanor.Friendly = 0.6×
-  Quality.Basic = 0.6×
-
-Result:
-  StatThreshold = 5 × 0.6 = 3 (easy)
-  CoinCost = 8 × 0.6 = 5 (cheap)
-```
+The archetype defines baseline thresholds. The friendly demeanor and basic quality both apply reduction multipliers. The result is lower stat requirements and reduced coin costs compared to baseline, making this an easy, affordable interaction.
 
 **Context 2**: Hostile merchant, Luxury quality
-```
-BaseStatThreshold = 5
-BaseCoinCost = 8
 
-Scaling:
-  NPCDemeanor.Hostile = 1.4×
-  Quality.Luxury = 2.4×
-
-Result:
-  StatThreshold = 5 × 1.4 = 7 (hard)
-  CoinCost = 8 × 2.4 = 19 (expensive)
-```
+The same archetype with hostile demeanor and luxury quality applies increase multipliers. The result is higher stat requirements and increased coin costs compared to baseline, making this a difficult, expensive interaction.
 
 Same archetype (service_negotiation). Different properties. Appropriate difficulty for context.
 
@@ -842,16 +837,8 @@ Scene can spawn at either Northreach or Capital Palace. Selection based on: Play
 - MaximumDay: Latest day number when eligible (expiration)
 
 **Eligibility Check**:
-```
-Scene is eligible when:
-  - Player has ALL required tags
-  - Player has NONE of forbidden tags
-  - Player completed ALL required scenes
-  - Cooldown elapsed (X days since last instance)
-  - Current day >= MinimumDay
-  - Current day <= MaximumDay (if specified)
-  - Placement context available (matching location/NPC exists)
-```
+
+A scene becomes eligible when the player possesses all required tags, lacks all forbidden tags, has completed all prerequisite scenes, sufficient time has passed since the last similar scene, the current day falls within the specified window, and an appropriate placement context exists in the game world.
 
 **Why This Works**:
 - State-based eligibility (no hardcoded triggers)
@@ -902,15 +889,8 @@ Flow:
 - No player agency (path predetermined)
 
 **Example** (FORBIDDEN):
-```
-if (player.CompletedQuest("tutorial")) {
-    UnlockQuest("main_story_1");
-}
 
-if (player.KilledBoss("dragon")) {
-    UnlockArea("dragon_castle");
-}
-```
+Completion-based unlocking where content doesn't exist until a trigger is met. Player completes tutorial, then main story appears. Player defeats boss, then new area appears. This creates binary gates where content pops into existence rather than being visible but gated.
 
 **Correct Alternative**: Requirement Inversion Pattern
 - Content exists from start (or spawns via rewards)
@@ -919,16 +899,8 @@ if (player.KilledBoss("dragon")) {
 - Resource arithmetic (stat thresholds, coin costs) not boolean checks
 
 **Example** (CORRECT):
-```
-Scene mainStory1 = gameWorld.Scenes.First(s => s.Id == "main_story_1");
 
-// Scene exists, spawn conditions filter visibility
-if (mainStory1.SpawnConditions.IsEligible(player)) {
-    // Player can select
-} else {
-    // Show locked with requirements: "Need tag: completed_tutorial"
-}
-```
+Content exists in the game world from the start. Spawn conditions determine whether players can see or select it. When conditions aren't met, players see the locked content along with exact requirements displayed. This creates transparent gating where players understand what they need to progress and can plan accordingly.
 
 ### 9.5.2 Overlapping Resource Costs (False Choices)
 
@@ -941,14 +913,8 @@ if (mainStory1.SpawnConditions.IsEligible(player)) {
 - No strategic trade-off (just pick highest efficiency)
 
 **Example** (FORBIDDEN):
-```
-Choice A: Pay 5 coins → Basic outcome
-Choice B: Pay 8 coins → Better outcome
-Choice C: Pay 12 coins → Best outcome
 
-Player with 12 coins: Choice C dominates (best outcome, can afford)
-Choices A and B are dead options (never chosen)
-```
+Multiple choices using the same resource type at different price points with escalating outcomes. When a player can afford the most expensive option, it strictly dominates all cheaper alternatives. The cheaper options become dead choices because paying more for better outcomes is always correct when affordable.
 
 **Correct Alternative**: Orthogonal Resource Costs
 - Each choice costs DIFFERENT resource type
@@ -957,20 +923,8 @@ Choices A and B are dead options (never chosen)
 - All options remain viable
 
 **Example** (CORRECT):
-```
-Choice A: Rapport 5 required → Best outcome (character build)
-Choice B: Pay 12 coins → Good outcome (consumable economy)
-Choice C: Social challenge → Variable outcome (session resource + skill)
-Choice D: Wait 3 days → Minimal outcome (opportunity cost)
 
-Player choice depends on:
-  - Do I have Rapport 5? (Choice A available?)
-  - Do I have 12 coins? (Choice B affordable?)
-  - Do I have Resolve for challenge? (Choice C viable?)
-  - Do I have time to wait? (Choice D acceptable?)
-
-No universal best choice. Strategic priorities determine selection.
-```
+Each choice costs a different resource type. The stat-gated path requires character build investment. The coin path requires economic resources. The challenge path requires session resources and tactical skill. The time path requires patience and opportunity cost acceptance. Player selection depends on which resources they possess and which they can spare, creating genuine strategic variety with no universal best answer.
 
 ### 9.5.3 Hidden Gotchas (Surprise Consequences)
 
@@ -983,15 +937,8 @@ No universal best choice. Strategic priorities determine selection.
 - Discourages experimentation (fear of hidden penalties)
 
 **Example** (FORBIDDEN):
-```
-Choice: "Accept magistrate's offer"
-Display: "Magistrate offers assistance"
-Hidden: Accepting applies "corrupted" tag, blocks good endings
 
-Player commits without seeing consequence.
-Later discovers they locked themselves out of content.
-Feels cheated.
-```
+A choice displays only immediate benefit without showing long-term consequences. Player accepts assistance without knowing it will apply negative tags or block future content paths. Only after committing do they discover the hidden penalties. This violates perfect information principles and creates unfair punishment.
 
 **Correct Alternative**: Perfect Information Display
 - Show ALL costs before commitment
@@ -1000,19 +947,8 @@ Feels cheated.
 - Player calculates decision with full knowledge
 
 **Example** (CORRECT):
-```
-Choice: "Accept magistrate's offer"
-Display:
-  Immediate: Magistrate provides assistance, unlock shortcuts
-  Consequences: Gain "allied_with_corrupt" tag, lose "moral_authority" tag
-  Future Impact: Blocks "righteous_path" endings, enables "pragmatic_path" endings
-  Resources: -5 Reputation, +2 Understanding
 
-Player sees exact trade-off:
-  Gain assistance and pragmatic paths
-  Lose moral authority and righteous paths
-  Informed decision with eyes open
-```
+A choice displays all immediate and long-term consequences before commitment. Players see the assistance gained, the tags applied and removed, which future paths open or close, and exact resource changes. With complete information visible, players make informed decisions understanding the full trade-off between competing benefits and costs.
 
 ### 9.5.4 Soft-Lock Paths (Unwinnable States)
 
@@ -1025,13 +961,8 @@ Player sees exact trade-off:
 - Violates TIER 1 principle (No Soft-Locks)
 
 **Example** (FORBIDDEN):
-```
-Scene requires 10 coins to progress.
-Player spent all coins on equipment.
-No way to earn more coins before scene expires.
-Progression blocked.
-Soft-lock.
-```
+
+Required progression scene demands a resource the player has depleted. No alternative paths exist. No way to acquire more of the resource before deadline. Player cannot progress forward, creating an unwinnable state requiring restart from earlier save or abandoning the playthrough.
 
 **Correct Alternative**: Four-Choice Pattern with Guaranteed Path
 - Every A-story situation has zero-requirement path
@@ -1040,24 +971,8 @@ Soft-lock.
 - Player chooses efficiency, not viability
 
 **Example** (CORRECT):
-```
-Scene: "Gain access to archives"
 
-Choice A: Authority 5 → Instant access (optimal)
-Choice B: 15 coins → Buy access (reliable)
-Choice C: Social challenge → Persuade access (risky)
-Choice D: Help librarian for 3 days → Earn access (guaranteed)
-
-Player with zero coins, Authority 2, low Resolve:
-  Choices A, B, C unavailable or unaffordable
-  Choice D ALWAYS available:
-    - Zero requirements
-    - Costs time (opportunity cost, not gate)
-    - Minimal rewards
-    - GUARANTEED progression
-
-No soft-lock possible.
-```
+Every progression scene offers four paths with orthogonal resource costs. Even when a player lacks stats, coins, and session resources, the fourth fallback path remains available. This path requires zero prerequisites, costs only time, provides minimal rewards, but guarantees forward progression. Impossible to create unwinnable state.
 
 ### 9.5.5 Power Creep (Later Content Strictly Better)
 
@@ -1070,14 +985,8 @@ No soft-lock possible.
 - Ends in either infinite power or arbitrary cap
 
 **Example** (FORBIDDEN):
-```
-Early game inn: 8 coins, restores 15 Health
-Mid game inn: 8 coins, restores 25 Health (strictly better)
-Late game inn: 8 coins, restores 40 Health (strictly better)
 
-Player always chooses latest inn.
-Earlier inns obsolete.
-```
+Services become strictly better at the same cost as players progress. Early inns restore less health for the same price as later inns that restore more. Players always prefer the numerically superior option, making earlier content obsolete and removing meaningful choice from the game.
 
 **Correct Alternative**: Proportional Scaling with Trade-Offs
 - Costs scale with rewards
@@ -1086,20 +995,8 @@ Earlier inns obsolete.
 - Trade-offs persist across progression
 
 **Example** (CORRECT):
-```
-Basic inn: 5 coins, restores 15 Health (cheap, adequate)
-Standard inn: 12 coins, restores 25 Health (moderate cost, better)
-Premium inn: 40 coins, restores 40 Health (expensive, best)
 
-All three viable throughout game:
-  - Basic: When tight on coins
-  - Standard: When comfortable buffer
-  - Premium: When need fast full recovery
-
-Player income scales (earning 50 coins/B-story late game vs 10 early game)
-But premium inn 40 coins still meaningful (80% of B-story earnings)
-Margins stay tight proportionally.
-```
+Three service tiers exist simultaneously with escalating costs matching their benefits. Basic services remain cheap and adequate. Standard services cost more but provide proportionally better restoration. Premium services are expensive but optimal. All three remain viable choices throughout the game based on current economic situation. Even as player income increases, premium services consume significant percentage of earnings, maintaining meaningful trade-offs between efficiency and economy.
 
 ### 9.5.6 Arbitrary Gating (Requirements Without Verisimilitude)
 
@@ -1111,14 +1008,8 @@ Margins stay tight proportionally.
 - Confusing (why does this require that?)
 
 **Example** (FORBIDDEN):
-```
-Scene: "Enter the open market"
-Requirement: Must have completed "Defeat dragon" scene
 
-Fiction: Market is open, anyone can enter.
-Mechanics: Blocked until dragon defeated.
-Justification: None (arbitrary pacing gate).
-```
+A publicly accessible location requires completing an unrelated quest. The fiction describes an open market available to all, but mechanics block entry until a specific narrative milestone. No logical connection exists between the requirement and the location, revealing purely mechanical pacing control.
 
 **Correct Alternative**: Verisimilitude in Gating
 - Requirements make narrative sense
@@ -1126,20 +1017,8 @@ Justification: None (arbitrary pacing gate).
 - Player understands why requirement exists
 
 **Example** (CORRECT):
-```
-Scene: "Gain audience with king"
-Requirement: Reputation ≥ 8 OR letter of introduction
 
-Fiction: King is important, guards filter petitioners.
-Mechanics: Need social standing OR official introduction.
-Justification: Verisimilitude (realistic gatekeeping).
-
-Alternative paths:
-  - Build reputation (help people, earn standing)
-  - Get letter from noble (side quest)
-  - Bribe guards (expensive, risky)
-  - Wait for public audience (slow, guaranteed)
-```
+An exclusive audience with authority requires demonstrated standing or official introduction. The fiction establishes guards filtering petitioners, justifying the mechanical gate. Multiple paths exist matching the narrative reality: building reputation through helping others, obtaining letters from connected individuals, bribing guards for irregular access, or patiently waiting for public audience days. Mechanics emerge from fiction rather than contradicting it.
 
 ## 9.6 Pattern Selection Guide
 
@@ -1276,26 +1155,14 @@ No choice progresses story if player lacks resources. Fail.
 **Pass Criteria**: All information visible before selection. No hidden surprises.
 
 **Example Pass**:
-```
-Choice: "Negotiate with authority"
-Requirements: Authority ≥ 5 (you have 3) - LOCKED
-Alternative: Pay 20 coins → Bypass requirement
-Outcome: Gain access to archives, relationship +1
-Cost: 20 coins (you have 25, will have 5 remaining)
 
-Player sees: Locked by stat, can bypass with coins, knows exact cost and outcome.
-```
+A choice displays stat requirement with player's current value, shows locked state clearly, presents coin-based alternative to bypass, reveals exact outcome of success, shows current and post-choice coin amounts. Player sees complete information enabling informed decision about whether to bypass the stat gate with economic resources.
 
 Pass.
 
 **Example Fail**:
-```
-Choice: "Accept magistrate's offer"
-Display: "Magistrate offers help"
-Hidden: Gain "corrupted" tag, lock out good endings
 
-Player doesn't see consequence until after commitment.
-```
+A choice displays only immediate benefit without revealing long-term consequences. Tags applied and content paths blocked remain hidden until after player commits. Discovering negative outcomes only after the irreversible decision violates perfect information principle.
 
 Fail.
 

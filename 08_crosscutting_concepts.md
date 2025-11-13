@@ -541,6 +541,212 @@ This architectural pattern supports rich narrative branching where NPCs serve as
 
 ---
 
+### 8.2.8 Context Binding Pattern (Reward-Driven Scene Spawning)
+
+**Core Principle**: Scenes spawn via ScenesToSpawn rewards containing categorical templates plus context bindings. Context bindings populated at display time for perfect information projection, merged at spawn time for narrative continuity.
+
+#### Three-Component Architecture
+
+**1. Template Selection** - Categorical scene pattern (not specific entity IDs)
+**2. Context Bindings** - Current context flows into spawned scene
+**3. Categorical Resolution** - Where/who scene spawns (resolved at spawn time)
+
+#### Data Structure
+
+```csharp
+public class SceneSpawnReward
+{
+    public string SceneTemplateId { get; set; }           // Categorical template
+    public PlacementRelation PlacementRelation { get; set; } // Generic, SameLocation, etc.
+    public string SpecificPlacementId { get; set; }       // For Specific* relations
+    public List<ContextBinding> ContextBindings { get; set; } = new List<ContextBinding>();
+}
+
+public class ContextBinding
+{
+    public string MarkerKey { get; set; }        // "QUESTGIVER", "RETURN_LOCATION"
+    public ContextSource Source { get; set; }    // Enum: CurrentNpc, CurrentLocation, CurrentRoute, PreviousScene
+
+    // Strongly-typed resolved IDs (populated at display time)
+    public string ResolvedNpcId { get; set; }
+    public string ResolvedLocationId { get; set; }
+    public string ResolvedRouteId { get; set; }
+    public string ResolvedSceneId { get; set; }
+}
+
+public enum ContextSource
+{
+    CurrentNpc,       // NPC player is talking to
+    CurrentLocation,  // Location player is at
+    CurrentRoute,     // Route player is traveling
+    PreviousScene     // Scene that spawned this one
+}
+```
+
+#### Three-Phase Lifecycle
+
+**Phase 1: Authoring (JSON)**
+```json
+{
+  "rewards": {
+    "scenesToSpawn": [{
+      "sceneTemplateId": "gather_testimony",
+      "placementRelation": "Generic",
+      "contextBindings": []  // Empty at authoring time
+    }]
+  }
+}
+```
+
+**Phase 2: Display Time (SceneContent.razor.cs)**
+```csharp
+// Population when displaying choices
+foreach (SceneSpawnReward spawn in choice.Reward.ScenesToSpawn)
+{
+    foreach (ContextBinding binding in spawn.ContextBindings)
+    {
+        switch (binding.Source)
+        {
+            case ContextSource.CurrentNpc:
+                NPC currentNpc = GetCurrentNpc();
+                binding.ResolvedNpcId = currentNpc.ID;
+                break;
+
+            case ContextSource.CurrentLocation:
+                Location currentLoc = GameFacade.GetCurrentLocation();
+                binding.ResolvedLocationId = currentLoc.Id;
+                break;
+
+            case ContextSource.CurrentRoute:
+                RouteOption route = GameWorld.CurrentRouteOption;
+                binding.ResolvedRouteId = route.Id;
+                break;
+
+            case ContextSource.PreviousScene:
+                binding.ResolvedSceneId = Scene.Id;
+                break;
+        }
+    }
+
+    // Project to UI: "Investigate for Elena" (not generic "Investigate")
+    string displayName = ProjectSceneName(spawn.SceneTemplateId, spawn.ContextBindings);
+    scenesUnlocked.Add(displayName);
+}
+```
+
+**Phase 3: Spawn Time (SceneInstantiator.cs)**
+```csharp
+// Merge context bindings into MarkerResolutionMap
+Dictionary<string, string> markerMap = new Dictionary<string, string>();
+
+foreach (ContextBinding binding in spawnReward.ContextBindings)
+{
+    string resolvedId = binding.Source switch
+    {
+        ContextSource.CurrentNpc => binding.ResolvedNpcId,
+        ContextSource.CurrentLocation => binding.ResolvedLocationId,
+        ContextSource.CurrentRoute => binding.ResolvedRouteId,
+        ContextSource.PreviousScene => binding.ResolvedSceneId,
+        _ => null
+    };
+
+    if (!string.IsNullOrEmpty(resolvedId))
+    {
+        markerMap[binding.MarkerKey] = resolvedId;
+    }
+}
+
+// Store in scene DTO for narrative resolution
+sceneDto.MarkerResolutionMap = markerMap;
+// Template: "Investigate for {QUESTGIVER_NAME}" → "Investigate for Elena"
+```
+
+#### Integration with Four-Choice Pattern
+
+**Main Story Final Situations:**
+- ALL FOUR CHOICES spawn same next template
+- Different entry states via tags (RespectedAuthority, GenerousPatron, SkilledNegotiator, PatientHelper)
+- Identical context bindings across all choices (same QUESTGIVER, RETURN_LOCATION)
+- Guaranteed progression (player chooses HOW to enter, not IF)
+
+**Example:**
+```csharp
+// Catalogue enrichment for A-story tutorial
+if (context.AStorySequence == 1)
+{
+    // A1 (inn_lodging) → ALL 4 choices spawn A2 (gather_testimony)
+    mergedReward.ScenesToSpawn = new List<SceneSpawnReward>
+    {
+        new SceneSpawnReward
+        {
+            SceneTemplateId = "a2_morning",
+            PlacementRelation = PlacementRelation.Generic,  // Uses categorical NPC filter
+            SpecificPlacementId = null,
+            ContextBindings = new List<ContextBinding>()  // A2 finds NPC via filter
+        }
+    };
+}
+```
+
+#### On-Demand Template Generation
+
+**Pattern Detection** (RewardApplicationService.cs):
+```csharp
+foreach (SceneSpawnReward spawn in reward.ScenesToSpawn)
+{
+    SceneTemplate template = _gameWorld.SceneTemplates
+        .FirstOrDefault(t => t.Id == spawn.SceneTemplateId);
+
+    if (template == null)
+    {
+        // On-demand generation for procedural A-story
+        if (spawn.SceneTemplateId.StartsWith("a_story_sequence_"))
+        {
+            string sequenceStr = spawn.SceneTemplateId.Replace("a_story_sequence_", "");
+            if (int.TryParse(sequenceStr, out int sequence))
+            {
+                AStoryContext context = _proceduralAStoryService.GetOrInitializeContext(player);
+                string generatedTemplateId = await _proceduralAStoryService.GenerateNextATemplate(sequence, context);
+                template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == generatedTemplateId);
+            }
+        }
+    }
+
+    // Spawn scene from template (authored or generated)
+    Scene scene = await _sceneInstanceFacade.SpawnScene(template, spawn, spawnContext);
+}
+```
+
+#### HIGHLANDER Enforcement
+
+**Single Spawning System:**
+- Removed entire condition-based spawning architecture (CheckAndSpawnEligibleScenes deleted)
+- No trigger points at location changes, NPC interactions, time progression, scene completion
+- Single implementation: reward-driven spawning only
+- Clear causality: Player executes choice → Scene spawns
+
+**Deleted Components:**
+- SpawnFacade.CheckAndSpawnEligibleScenes() method (259 lines removed)
+- All trigger-point calls from GameFacade (location/NPC/time/scene completion)
+- SpawnConditionsEvaluator usage for active spawning (retained for visibility filtering only)
+
+#### Design Rationale
+
+**Why This Pattern:**
+- Works with procedural generation (no hardcoded entity IDs required)
+- Preserves narrative continuity (quest giver flows through scenes)
+- Perfect information (player sees "for Elena" before selecting choice)
+- Guaranteed progression (all final situation choices spawn next template)
+- Clear causality (choice execution → scene creation, not passive unlocking)
+
+**Why Strongly-Typed Properties:**
+- ResolvedNpcId vs ResolvedLocationId vs ResolvedRouteId vs ResolvedSceneId
+- Explicit type indication (know WHAT entity type binding references)
+- No catch-all ResolvedId string (avoids ambiguity)
+- Adheres to coding standards (no Dictionary antipattern, strongly-typed objects only)
+
+---
+
 ### 8.2.6 Dynamic World Building (Lazy Materialization Pattern)
 
 **Core Principle**: World expands in response to narrative need, not pre-emptively. Locations and venues materialize when scenes spawn, validated for playability. **All generated locations persist forever** - no cleanup system exists.

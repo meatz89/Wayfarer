@@ -442,10 +442,8 @@ Wayfarer uses **resource arithmetic** for all progression gates, never boolean f
 ### 5.6.1 The Boolean Gate Antipattern
 
 **Boolean Gate Pattern** (FORBIDDEN in Wayfarer):
-```
-if (player.HasRope) { EnableClimbingAction(); }
-if (player.CompletedQuest("phase_1")) { UnlockQuest("phase_2"); }
-```
+
+Binary checks for possession or completion that enable actions through true/false conditions, such as checking for rope possession to enable climbing or quest completion to unlock the next quest.
 
 **Why This Creates Shallow Gameplay**:
 - No resource cost: Unlocks are "free" once gate passed
@@ -459,14 +457,8 @@ This is "Cookie Clicker" design - incremental unlocks without strategic depth.
 ### 5.6.2 Resource Arithmetic Pattern
 
 **Resource Arithmetic Pattern** (REQUIRED in Wayfarer):
-```
-Choice {
-  RequiredStat: "Rapport",
-  StatThreshold: 14,
-  IsVisible: true,              // ALWAYS visible
-  IsSelectable: player.Rapport >= 14  // Arithmetic comparison
-}
-```
+
+Choices define stat requirements with numeric thresholds and remain always visible. Selectability determined through arithmetic comparison of player stat value against threshold value, enabling transparent progression gating through numerical assessment.
 
 **Why This Creates Strategic Depth**:
 - Resource cost: Stats require XP accumulation (time investment)
@@ -478,11 +470,8 @@ Choice {
 ### 5.6.3 Perfect Information Through Arithmetic
 
 **Player Sees**:
-```
-"Confront the magistrate with evidence"
-Requires: Authority 14, you have 12
-[DISABLED - Need 2 more Authority]
-```
+
+A confrontation choice displays the authority requirement of fourteen, shows the player's current authority of twelve, and explicitly states the two-point gap preventing selection.
 
 **Strategic Value**:
 - Gap is explicit: Need 2 more Authority points
@@ -509,13 +498,8 @@ Not all resources follow "more is better" logic. Some have **sweet spots** where
 - Forces trade-offs (is 16 Authority worth reputation consequences?)
 
 **Example Implementation**:
-```
-if (player.Authority >= 16) {
-  // Auto-consequence: NPCs perceive player as domineering
-  // Social challenges start with +2 Doubt (harder negotiations)
-  // Represents reputation preceding you
-}
-```
+
+When player authority reaches sixteen or higher, automatic reputation consequences trigger. NPCs perceive the player as domineering, social challenges begin with increased doubt making negotiations harder, representing the player's reputation preceding them.
 
 Player must consider: "Do I want Authority 16 for powerful Physical cards, accepting that Social challenges become harder?"
 
@@ -535,25 +519,12 @@ Wayfarer's resource economy operates on five distinct layers, each providing dif
 **How They Work - Arithmetic Comparison**:
 
 Scene presents choice:
-```
-"Confront magistrate with evidence"
-Requires: Authority ≥ 14
-Your Authority: 12
-Result: DISABLED (but VISIBLE with exact requirement shown)
-```
 
-Player sees:
-- "Requires Authority 14, you have 12"
-- Gap is 2 points (perfect information)
-- Can plan: "I need 2 more Authority to access this"
+A confrontation requiring authority of at least fourteen shows disabled status for a player with authority twelve, displaying both the requirement and current value with the exact two-point gap. Player sees perfect information enabling planning for stat investment.
 
 Different choice in same scene:
-```
-"Negotiate diplomatic compromise"
-Requires: Diplomacy ≥ 12
-Your Diplomacy: 16
-Result: ENABLED (you exceed requirement)
-```
+
+A diplomatic negotiation requiring diplomacy of at least twelve shows enabled status for a player with diplomacy sixteen who exceeds the requirement.
 
 **Strategic Depth**:
 - NOT: "hasHighAuthority" boolean → true/false
@@ -598,14 +569,8 @@ Result: ENABLED (you exceed requirement)
 **Asymmetric Costs (Relationship Triangulation)**:
 
 Example:
-```
-"Ask Guard Captain to ignore merchant complaint"
-Effect:
-  Guard Captain: -2 (burned favor)
-  Merchant: +1 (grateful for protection)
-  Reputation: -1 (corruption perceived)
-Net: -2 (damaged two relationships for one gain)
-```
+
+Asking the guard captain to ignore a merchant complaint burns the favor relationship with the captain by two points, gains one point with the grateful merchant, but loses one reputation point for perceived corruption. The net effect damages two relationships to gain one, demonstrating asymmetric costs.
 
 **Strategic Reality**:
 - Actions affect MULTIPLE relationships simultaneously
@@ -616,20 +581,8 @@ Net: -2 (damaged two relationships for one gain)
 **Relationship Depletion Through Use**:
 
 Critical pattern - asking favors COSTS the relationship:
-```
-Your relationship with Innkeeper: +5
-Choose: "Ask Innkeeper to hide you from guards"
-Effect: Innkeeper -2
-After: Innkeeper +3
-```
 
-Next scene:
-```
-"Ask Innkeeper to vouch for your character"
-Requires: Innkeeper ≥ +4
-Your relationship: +3
-Result: DISABLED (you burned that capital)
-```
+Starting with innkeeper relationship at positive five, asking them to hide you from guards costs two relationship points, reducing to positive three. Later, when a different choice requires innkeeper relationship of at least positive four to vouch for your character, the option is disabled because the earlier favor depleted the relationship capital below the threshold.
 
 **Strategic Implication**: Relationships are CAPITAL you can SPEND. Asking favors DEPLETES the resource. Must RATION who you ask and when. Real relationship management, not boolean "isFriend" flag.
 
@@ -686,27 +639,12 @@ This makes coins strategically flexible - can substitute for other resources whe
 **Time Pressure Examples**:
 
 **Daily Time Budget**:
-```
-Wake: 8 time blocks available
-- Delivery job: 6 blocks (earn 30 coins)
-- Food purchase: 1 block (spend 10 coins)
-- Sleep: 2 blocks (restore energy)
-Total: 9 blocks (IMPOSSIBLE - over budget)
 
-Must choose: Skip delivery? Skip food (Stamina penalties)? Sleep less (start tomorrow with low energy)?
-```
+Waking with eight available time blocks, planning a six-block delivery job, one-block food purchase, and two-block sleep totals nine blocks exceeding the budget. Player must choose which activity to skip or reduce: forego delivery income, accept food-skipping stamina penalties, or sleep less and start tomorrow with depleted energy.
 
 **Scene Time Limits**:
-```
-"Investigate missing merchant"
-Time limit: 5 days
-Current: Day 2
 
-Player decision:
-- Investigate now? (Spend 4 blocks today, advance investigation)
-- Take delivery first? (Earn coins, investigation grows colder)
-- Risk waiting? (Scene may expire, lose opportunity)
-```
+An investigation into a missing merchant has a five-day time limit. Currently on day two, the player must decide whether to investigate immediately spending four time blocks today, prioritize a delivery for coins while letting the investigation grow colder, or risk waiting and potentially losing the opportunity to scene expiration.
 
 **Strategic Depth**: Time scarcity forces impossible choices daily. Cannot pursue all opportunities. Must prioritize based on goals, resource needs, and scene urgency.
 
@@ -724,48 +662,18 @@ Player decision:
 - Contextual constraints (some actions only available in specific contexts)
 
 **Location Context**:
-```
-Current Location: Market Square
 
-Available Actions:
-- Talk to Merchant (NPC present)
-- Investigate crime scene (active scene here)
-- Travel to Inn (navigation option)
-- Rest at tavern (service available)
-
-Different Location: Highway Rest Stop
-
-Available Actions:
-- Continue travel (navigation)
-- Rest briefly (limited services)
-- Investigate roadside shrine (active scene here)
-NO Merchant (NPC not present)
-NO Crime scene (different location)
-```
+At Market Square, available actions include talking to the present merchant, investigating an active crime scene, traveling to the inn, and resting at the tavern. At a different location like Highway Rest Stop, available actions shift to continuing travel, resting briefly with limited services, and investigating a roadside shrine, but the merchant and crime scene are not present as they exist at different locations.
 
 **NPC Availability**:
-```
-Merchant:
-- Present: Market Square (Day time blocks 3-7)
-- Present: Merchant Quarter (Day time blocks 1-4)
-- Absent: Evening/Night
 
-Guard Captain:
-- Present: Guard House (Always available time blocks 1-8)
-- Present: Market Square (Day time blocks 4-6 only)
-```
+The merchant appears at Market Square during day time blocks three through seven and at Merchant Quarter during blocks one through four, but is absent during evening and night. The guard captain maintains constant availability at the Guard House during blocks one through eight and makes limited appearances at Market Square only during blocks four through six.
 
 **Strategic Implication**: Player must plan around ephemeral context. Want to talk to Merchant? Must be at Market Square during blocks 3-7. Miss window, must wait until tomorrow or travel to Merchant Quarter.
 
 **Scene Expiration**:
-```
-"Missing Merchant Investigation"
-- Spawned: Day 1
-- Current: Day 3
-- Expires: Day 6 (3 days remaining)
 
-Player sees: "Trail growing cold. 3 days remaining."
-```
+A missing merchant investigation spawned on day one, currently on day three, expires on day six with three days remaining. The player sees warning that the trail is growing cold with explicit time remaining.
 
 Creates urgency without hard failure. Scene expires → Lose opportunity, story continues via different path. No soft-lock (forward progress guaranteed), but optimal outcomes time-sensitive.
 
@@ -1195,18 +1103,8 @@ Player feels time pressure: "If I take delivery, I have almost no time for anyth
 - Prevents soft-locks (can always advance)
 
 **Example**:
-```
-Player has: 0 coins, 2 Health, 3 Stamina, no high stats
 
-Situation: "Need lodging for night"
-
-Choice 1 (Stat): Rapport ≥ 5 - DISABLED
-Choice 2 (Money): Pay 15 coins - DISABLED (no coins)
-Choice 3 (Challenge): Social challenge - RISKY (low resources, might fail)
-Choice 4 (Fallback): Sleep in stables - ALWAYS AVAILABLE
-
-Result: Choice 4 guarantees forward progress (poor outcome, but advances story)
-```
+A player with zero coins, low health and stamina, and no qualifying stats faces a lodging situation. The stat-gated path requires rapport they lack. The money-gated path requires coins they don't have. The challenge path is risky with depleted resources likely leading to failure. The fallback path to sleep in stables remains always available, guaranteeing forward progress despite poor outcome.
 
 **Safety Nets**:
 - Can always take easier deliveries (lower payment, lower risk)

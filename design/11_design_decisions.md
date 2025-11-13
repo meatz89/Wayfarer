@@ -186,53 +186,20 @@ Solution must work for both authored tutorial content and fully procedural conte
 **How Spawning Works:**
 
 **Choice Authoring (Content Creation):**
-```
-Choice template defines:
-- Costs and requirements
-- ScenesToSpawn: [{ TemplateId: "investigate_location" }]
-- NO context bindings yet (added later)
-```
+
+During content creation, designers specify costs, requirements, and which scene template should spawn as a reward. Context bindings remain empty at this stage and will be populated later at display time.
 
 **Choice Display (Runtime):**
-```
-System populates context bindings:
-1. Read choice's ScenesToSpawn reward
-2. Examine current context (CurrentNpc, CurrentLocation, CurrentRoute)
-3. Create ContextBinding objects based on current state
-4. Attach bindings to displayed choice
-5. Project complete reward to UI: "Investigate for Elena at Fountain Plaza"
-6. Player sees EXACT narrative continuity before selection
-```
+
+When displaying a choice that will spawn a scene, the system reads the scene spawning reward, examines current game context to determine who the player is interacting with and where they are, creates context bindings based on this current state, attaches the bindings to the choice display, and projects the complete resolved narrative to the player. This allows players to see exact narrative continuity before making their selection.
 
 **Choice Execution (Player Selects):**
-```
-System spawns scene:
-1. Load template (categorical pattern with placeholders)
-2. Resolve categorical filters → find/generate new entities
-3. Resolve context bindings → bind current context into placeholders
-4. Merge into scene's MarkerResolutionMap
-5. Instantiate scene with all references resolved
-6. Add to GameWorld.Scenes as Active
-7. Narrative uses resolved markers: "Investigate for {QUESTGIVER_NAME}" → "Investigate for Elena"
-```
+
+When the player selects a choice that spawns a scene, the system loads the categorical template with narrative placeholders, resolves categorical filters to find or generate appropriate entities, binds the current context into placeholders, merges all bindings into the scene's marker resolution system, instantiates the complete scene with all references resolved, adds it to the active game world, and transforms template narratives with placeholders into specific stories using the bound entity names.
 
 **Context Binding Structure (Strongly-Typed):**
-```csharp
-public class ContextBinding
-{
-    public string MarkerKey { get; set; }      // "QUESTGIVER", "RETURN_LOCATION"
-    public ContextSource Source { get; set; }  // Enum: CurrentNpc, CurrentLocation, CurrentRoute, PreviousScene
-    public string ResolvedId { get; set; }     // Populated at display time: "elena", "fountain_plaza"
-}
 
-public enum ContextSource
-{
-    CurrentNpc,       // NPC player is talking to
-    CurrentLocation,  // Location player is at
-    CurrentRoute,     // Route player is traveling
-    PreviousScene     // Scene that spawned this one
-}
-```
+Context bindings link narrative markers to resolved entity references. Each binding stores a marker key identifying the narrative placeholder, a source type indicating where the entity comes from, and the resolved entity reference populated at display time. Source types include current NPC the player is talking to, current location where the player is situated, current route being traveled, or the previous scene that spawned this one.
 
 **Minimal Context Philosophy:**
 - Bind narrative anchors: who gave quest, where to return, what investigating
@@ -264,41 +231,10 @@ public enum ContextSource
 - Prevents soft-locks: player can always progress via guaranteed path
 
 **Example Flow:**
-```
-Scene: secure_lodging (talking to Elena at tavern)
-Final Situation: "Decide how to secure room"
 
-Choice 1 (Authority 5): "Command respect"
-  → ScenesToSpawn: [{ TemplateId: "gather_testimony" }]
-  → Display time: System creates ContextBindings:
-     - [{ MarkerKey: "QUESTGIVER", Source: CurrentNpc, ResolvedId: "elena" }]
-     - [{ MarkerKey: "RETURN_LOCATION", Source: CurrentLocation, ResolvedId: "tavern" }]
-  → Projected to UI: "Elena will ask you to gather information in morning"
-  → Entry tag: RespectedAuthority
+In a lodging negotiation scene with Elena at the tavern, the final situation presents four choices. The stat-gated authority path requires Authority 5 and applies a respected reputation tag. The money path costs 15 coins and applies a generous patron tag. The challenge path leads to a social challenge with success granting a skilled negotiator tag and failure granting an earnest struggler tag. The guaranteed fallback path requires helping for 3 days and applies a patient helper tag.
 
-Choice 2 (15 coins): "Generous payment"
-  → ScenesToSpawn: [{ TemplateId: "gather_testimony" }]
-  → Display time: Same bindings populated (CurrentNpc, CurrentLocation)
-  → Projected to UI: "Elena will ask you to gather information in morning"
-  → Entry tag: GenerousPatron
-
-Choice 3 (Social Challenge): "Negotiate shrewdly"
-  → Success: ScenesToSpawn with SkilledNegotiator tag
-  → Failure: ScenesToSpawn with EarnestStruggler tag
-  → Same template, different entry states
-  → Context bindings identical (Elena, Tavern)
-
-Choice 4 (Zero requirements): "Help for 3 days"
-  → ScenesToSpawn: [{ TemplateId: "gather_testimony" }]
-  → Context bindings: CurrentNpc → Elena, CurrentLocation → Tavern
-  → Entry tag: PatientHelper
-
-ALL FOUR CHOICES SPAWN gather_testimony
-Player chooses HOW to enter (reputation/relationship context)
-Player CANNOT choose to block progression
-Context bindings ensure narrative continuity: Elena flows through as QUESTGIVER
-Perfect information: player sees "for Elena" before selecting choice
-```
+All four choices spawn the same next template for gathering testimony. At display time, the system creates context bindings linking the questgiver marker to Elena and the return location marker to the tavern. These bindings are identical across all four choices, ensuring narrative continuity regardless of which path the player selects. The projected UI shows players that Elena will ask them to gather information, visible before they make their selection. The player chooses how to enter the next scene through their reputation and relationship context, but cannot choose to block forward progression.
 
 ### Alternatives Considered
 
@@ -421,7 +357,11 @@ Perfect information: player sees "for Elena" before selecting choice
 - **Requirements Gate Choices:** Player sees exact stat/coin thresholds before commitment
 - **No Hidden Triggers:** No timers, location checks, or passive unlocking
 - **Supports Infinite Content:** Categorical templates + context bindings work for procedural generation
-- **Strongly-Typed:** List<ContextBinding>, not Dictionary (adheres to coding standards)
+- **Strongly-Typed:** List<ContextBinding> with explicit entity type properties (ResolvedNpcId, ResolvedLocationId, ResolvedRouteId, ResolvedSceneId), not Dictionary or catch-all string
+- **Tutorial Architecture Implemented:** First three scenes flow via catalogue enrichment (A1→A2→A3), terminal scene triggers procedural continuation
+- **On-Demand Template Generation:** Procedural scenes generate templates when needed (pattern-based template creation for infinite A-story)
+- **HIGHLANDER Enforcement:** Removed duplicate condition-based spawning system entirely, single reward-driven implementation remains
+- **Clean Integration:** Full data flow from DTO layer through parser to domain entities, context bindings merge into MarkerResolutionMap at spawn time
 
 **Negative:**
 - **Display-Time Binding Complexity:** Must populate context bindings when choices displayed (extra processing step)
@@ -830,11 +770,8 @@ Need infinite procedural content with consistent balance. Hand-tuning every inst
 - PowerDynamic: Dominant (0.6×), Equal (1.0×), Submissive (1.4×) → scales authority checks
 
 **Example:**
-```
-Base: StatThreshold 5, CoinCost 8
-Context: Friendly NPC, Premium Quality, Equal Power
-Scaled: StatThreshold 3 (5 × 0.6), CoinCost 13 (8 × 1.6)
-```
+
+Starting from baseline stat threshold and coin cost values, applying categorical properties for a friendly NPC with premium quality and equal power dynamic results in reduced stat requirements due to the friendly demeanor while increased coin costs due to premium quality. The friendly multiplier makes the interaction easier while the premium multiplier makes it more expensive.
 
 ### Alternatives Considered
 

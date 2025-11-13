@@ -769,81 +769,23 @@ System translates categorical properties to balanced numbers via universal formu
 
 **Step 1: AI Writes Fictional Entity**
 
-```json
-{
-  "npcId": "elena",
-  "name": "Elena",
-  "personality": "Innkeeper",
-  "demeanor": "Friendly",
-  "description": "A warm, welcoming innkeeper who treats travelers like family"
-}
-```
-
-AI describes Elena as friendly. This is fiction-appropriate description requiring no game balance knowledge.
+AI describes a character named Elena as a warm, welcoming innkeeper with friendly demeanor who treats travelers like family. This is fiction-appropriate description requiring no game balance knowledge.
 
 **Step 2: AI References Archetype**
 
-```json
-{
-  "sceneArchetypeId": "service_with_location_access",
-  "targetNpcId": "elena",
-  "targetLocationId": "common_room"
-}
-```
-
-AI specifies which archetype pattern to use. Doesn't define mechanics, just selects pattern.
+AI specifies which archetype pattern to use by referencing a service archetype ID and identifying the target NPC and location. Doesn't define mechanics, just selects pattern.
 
 **Step 3: Parser Derives Context from Entities**
 
-```csharp
-GenerationContext context = new GenerationContext {
-    NpcDemeanor = npc.Demeanor, // Friendly from JSON
-    Quality = location.Quality, // Standard from JSON
-    PowerDynamic = DeterminePowerDynamic(player, npc), // Equal (default)
-    EnvironmentQuality = location.EnvironmentQuality // Standard from JSON
-};
-```
-
-Parser extracts categorical properties from entities. No AI involvement. Pure data extraction.
+Parser creates generation context by extracting categorical properties from entities. Friendly demeanor from NPC, standard quality from location, equal power dynamic by default, standard environment quality from location. No AI involvement. Pure data extraction.
 
 **Step 4: Catalogue Generates Scaled Choices**
 
-```csharp
-// Base thresholds from archetype
-int baseAuthorityThreshold = 5;
-int baseNegotiationCost = 10;
-
-// Apply scaling from context
-int scaledThreshold = baseAuthorityThreshold * context.DemeanorMultiplier; // 5 × 0.6 = 3
-int scaledCost = baseNegotiationCost * context.QualityMultiplier; // 10 × 1.0 = 10
-
-// Create choice with scaled values
-ChoiceTemplate choice = new ChoiceTemplate {
-    RequiredAuthority = scaledThreshold, // 3
-    CoinCost = scaledCost // 10
-};
-```
-
-System handles all numeric balance. AI wrote "friendly innkeeper," system made negotiation easier. AI wrote "standard quality," system set baseline cost.
+System takes base thresholds from archetype and applies scaling multipliers from context. Base authority threshold multiplied by demeanor multiplier produces scaled threshold. Base negotiation cost multiplied by quality multiplier produces scaled cost. Choice templates created with these scaled values. System handles all numeric balance. AI wrote friendly innkeeper, system made negotiation easier. AI wrote standard quality, system set baseline cost.
 
 **Step 5: AI Enriches with Narrative**
 
-After mechanical structure created, AI generates narrative text using entity context:
-
-```
-Elena greets you warmly as you approach the bar. "Welcome, traveler!
-You look like you've had a long day on the road. I've got a room
-available if you need rest."
-```
-
-AI uses Elena's friendly demeanor property to generate appropriate tone. Same archetype with hostile NPC would generate:
-
-```
-The innkeeper eyes you suspiciously as you enter. "We're full,"
-he says tersely, though you can see empty tables.
-```
-
-Same mechanical structure, different narrative texture from entity properties.
+After mechanical structure created, AI generates narrative text using entity context. For friendly innkeeper Elena, AI generates warm welcoming dialogue appropriate to the personality. Same archetype with hostile NPC would generate suspicious, terse dialogue instead. Same mechanical structure, different narrative texture from entity properties.
 
 ### Why This Matters
 
@@ -1205,16 +1147,8 @@ Beyond archetype-based content generation, Wayfarer supports runtime creation of
 - Fail-fast if no match (no silent degradation, no fallback generation)
 
 **Example Filter**:
-```json
-{
-  "placementType": "Location",
-  "locationProperties": ["Private", "Indoor", "Secluded"],
-  "districtId": "lower_wards",
-  "selectionStrategy": "Closest"
-}
-```
 
-Matches authored locations with ALL specified properties in specified district. System throws InvalidOperationException if no match. This forces content design: either author matching content OR relax filter constraints.
+A placement filter specifies location type, required properties including private indoor secluded characteristics, district identification for lower wards, and closest selection strategy. Matches authored locations with all specified properties in specified district. System throws exception if no match, forcing content design to either author matching content or relax filter constraints.
 
 **Explicit Generation via DependentLocationSpec**:
 - DependentLocationSpec defines location to generate (self-contained scenes)
@@ -1224,17 +1158,8 @@ Matches authored locations with ALL specified properties in specified district. 
 - VenueIdSource determines containing venue (SameAsBase or GenerateNew)
 
 **Example Spec**:
-```json
-{
-  "templateId": "private_room",
-  "namePattern": "{NPCName}'s Private Room",
-  "descriptionPattern": "A quiet space reserved for {NPCName}'s guests.",
-  "venueIdSource": "SameAsBase",
-  "hexPlacement": "SameVenue",
-  "properties": ["sleepingSpace", "restful", "indoor", "private"],
-  "isLockedInitially": true
-}
-```
+
+A dependent location specification defines a private room template with name and description patterns incorporating NPC name placeholders, venue source as same as base location, hex placement within same venue, properties for sleeping space with restful indoor private characteristics, and initially locked status.
 
 Generates location deterministically when scene spawns. Location flows through standard JSON → DTO → Parser → Entity pipeline (Catalogue Pattern compliance).
 
@@ -1261,17 +1186,7 @@ Validator throws InvalidOperationException if any check fails. System crashes ra
 
 ### Generation Budget System
 
-**Venue Capacity**: Each venue enforces capacity budget:
-```csharp
-public int MaxLocations { get; set; } = 20;
-
-public bool CanAddMoreLocations()
-{
-    return LocationIds.Count < MaxLocations;
-}
-```
-
-Budget is **derived** (counts existing LocationIds) not **tracked** (no separate counter). This enforces Catalogue Pattern: generated locations become indistinguishable from authored locations after parsing. Capacity applies to ALL locations equally.
+**Venue Capacity**: Each venue enforces capacity budget through maximum location property with default of twenty locations and capacity checking method comparing current location count against maximum. Budget is **derived** (counts existing LocationIds) not **tracked** (no separate counter). This enforces Catalogue Pattern: generated locations become indistinguishable from authored locations after parsing. Capacity applies to ALL locations equally.
 
 **Bidirectional Relationship Maintenance**:
 - `Venue.LocationIds` ↔ `Location.Venue` must stay synchronized
