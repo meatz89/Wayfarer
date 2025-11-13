@@ -51,11 +51,11 @@ Wayfarer sidesteps all these problems. There is no ending to reconcile with cont
 
 The A-story operates in two phases: authored tutorial scenes that teach mechanics and establish the world, followed by infinite procedurally-generated continuation maintaining the same structural guarantees.
 
-### Phase 1: Authored Tutorial (A1-A3, Expandable to A10+)
+### Phase 1: Authored Tutorial (First 3 Scenes, Expandable to 10+)
 
 **Purpose**: Teach core mechanics, establish world fiction, introduce systems gradually, create foundation for procedural continuation.
 
-**Current State**: A1-A3 authored and implemented, providing approximately 30-60 minutes of gameplay. Architecture supports expansion to A10+ tutorial scenes for approximately 2-4 hours of authored content.
+**Current State**: First 3 tutorial scenes authored and implemented, providing approximately 30-60 minutes of gameplay. Architecture supports expansion to 10+ tutorial scenes for approximately 2-4 hours of authored content.
 
 **Tutorial Characteristics**:
 - Hand-crafted scene templates stored in JSON files
@@ -77,15 +77,15 @@ The A-story operates in two phases: authored tutorial scenes that teach mechanic
 
 5. **Establish Pursuit Goal**: Create narrative framework for infinite continuation. "You seek scattered members of your old order" provides perpetual justification for travel and arrival without requiring resolution.
 
-6. **Unlock First Major Region**: Complete tutorial unlocks Westmarch region with substantial B/C content (8 B-stories, 40 C-encounters), giving players immediate exploration opportunities before pursuing A2.
+6. **Unlock First Major Region**: Complete tutorial unlocks Westmarch region with substantial B/C content (8 B-stories, 40 C-encounters), giving players immediate exploration opportunities before pursuing 2nd main story scene.
 
-7. **Trigger Infinite Procedural Continuation**: Final tutorial scene completion marks phase transition. A4 and beyond generate procedurally, maintaining tutorial structure while varying content infinitely.
+7. **Trigger Infinite Procedural Continuation**: Final tutorial scene completion marks phase transition. 4th scene onward generate procedurally, maintaining tutorial structure while varying content infinitely.
 
 **Narrative Arc Pattern**: The tutorial establishes the repeating arrival pattern that defines all A-story content. You arrive at an inn at sunset, tired from the road. You need lodging. You meet the innkeeper. You negotiate for a room or find alternative arrangement. You rest. Morning comes. You talk with people in common room. You hear about local situations needing attention. You handle what needs handling or decline. Someone mentions another town, another place worth visiting. You prepare to leave. You depart, traveling to the next location. You arrive somewhere new. The pattern repeats.
 
 This pattern is not arbitrary. It reflects the reality of travel in a pre-modern setting. You need food and shelter. You meet locals who know the area. You help with problems or don't. You hear suggestions about where to go next. You move on. The pattern is eternal because travel is eternal.
 
-### Phase 2: Procedural Continuation (A4+ → ∞)
+### Phase 2: Procedural Continuation (4th Completion Onward → ∞)
 
 **Purpose**: Generate infinite narrative content maintaining structural guarantees while varying context, entities, and narrative details.
 
@@ -103,7 +103,7 @@ This pattern is not arbitrary. It reflects the reality of travel in a pre-modern
 
 1. **Build AI Context**: Compile player journey history (all completed A-scenes with IDs, archetypes, outcomes), recent choices made (which paths taken), entities involved in recent scenes, pursuit state (current goals, collected clues, known Order members), world state (unlocked regions, discovered factions, NPC relationships, player reputation), recent B/C context (side story outcomes, acquired items, relationship changes), and progression metrics (A-scene count for escalation, current tier determining scope, time elapsed, character stat distribution).
 
-2. **Select Archetype**: Choose from catalog avoiding repetition. Track last 5 archetypes used and filter out recently used patterns. Prefer archetypes requiring different entity types than recent scenes. Match progression tier (A1-A20 tier 1, A21-A40 tier 2, A41-A60 tier 3, A61+ tier 4). Ensure required entities available (can we find suitable King, Dungeon, Faction for this archetype?).
+2. **Select Archetype**: Choose from catalog avoiding repetition. Track last 5 archetypes used and filter out recently used patterns. Prefer archetypes requiring different entity types than recent scenes. Match progression tier (scenes 1-20 tier 1, scenes 21-40 tier 2, scenes 41-60 tier 3, scenes 61+ tier 4). Ensure required entities available (can we find suitable King, Dungeon, Faction for this archetype?).
 
 3. **Resolve Entities**: Use categorical filters to find appropriate entities. For NPC: personality type (Innkeeper, Merchant, Guard, Scholar), demeanor (Hostile, Wary, Neutral, Friendly), power dynamic (Superior, Equal, Inferior), location (unlocked region, not recently visited), availability (not in recent A-scenes). For Location: properties (Secure, Dangerous, Sacred, Commerce), tier (matches progression), region (unlocked, not recently visited), venue type (Inn, Palace, Temple, Market), quality (Poor, Modest, Fine, Luxurious). For Route: danger level, connecting regions, length/duration, terrain type. Filters ensure geographic variety, entity diversity, appropriate challenge, and narrative coherence.
 
@@ -122,10 +122,10 @@ This pattern is not arbitrary. It reflects the reality of travel in a pre-modern
 **Regional Variation**: Last 3 regions visited by A-scenes tracked. Prefer different region for next scene to maintain sense of travel. Fallback to any region if all recently visited (player has been everywhere accessible). Unlock new regions periodically via A-story progression rewards to inject fresh geographic variety.
 
 **Tier Escalation**: Scene scope escalates over time, creating sense of deepening engagement:
-- A1-A20 (Tier 1): Small towns, simple inns, local people with local concerns
-- A21-A40 (Tier 2): Larger towns, more established places, more complex social situations
-- A41-A60 (Tier 3): Cities, significant locations, deeper relationship consequences
-- A61+ (Tier 4): Major centers, long-term consequences of earlier choices becoming visible
+- Scenes 1-20 (Tier 1): Small towns, simple inns, local people with local concerns
+- Scenes 21-40 (Tier 2): Larger towns, more established places, more complex social situations
+- Scenes 41-60 (Tier 3): Cities, significant locations, deeper relationship consequences
+- Scenes 61+ (Tier 4): Major centers, long-term consequences of earlier choices becoming visible
 
 Escalation is not power scaling (enemies don't get stronger, challenges don't become impossible). Escalation is social complexity and narrative depth. Early game: "This inn needs paying customers, can you help?" Late game: "The faction you aided twenty scenes ago now controls this region, and the faction you opposed seeks your counsel on reconciliation." Same mechanical patterns, deeper narrative context.
 
@@ -204,19 +204,19 @@ These aren't contrived game mechanics. They're how trust and access actually wor
 
 The last situation in every A-scene has additional requirement: ALL FOUR CHOICES must spawn the next A-scene. This is stricter than the guaranteed success pattern (which requires only one guaranteed path). Final situation requires EVERY path advances.
 
-**Different Entry States, Same Progression**: The four choices create different entry conditions for A(n+1) but all spawn it:
+**Different Entry States, Same Progression**: The four choices create different entry conditions for next scene but all spawn it:
 
-**Stat-Gated Choice Entry**: Next scene begins with you entering conversation as someone who naturally understands the domain. If you used Authority to command respect in A5 final situation, A6 begins with NPCs treating you as someone with legitimate power. Entry state: Respected Authority.
+**Stat-Gated Choice Entry**: Next scene begins with you entering conversation as someone who naturally understands the domain. If you used Authority to command respect in previous scene's final situation, next scene begins with NPCs treating you as someone with legitimate power. Entry state: Respected Authority.
 
-**Money-Gated Choice Entry**: Next scene begins with you entering as someone who showed generosity, earned goodwill through resources. If you paid premium price in A5 final situation, A6 begins with NPCs aware of your wealth and willingness to spend. Entry state: Generous Patron.
+**Money-Gated Choice Entry**: Next scene begins with you entering as someone who showed generosity, earned goodwill through resources. If you paid premium price in previous scene's final situation, next scene begins with NPCs aware of your wealth and willingness to spend. Entry state: Generous Patron.
 
-**Challenge Success Entry**: Next scene begins with you entering having navigated social complexity skillfully. If you succeeded at negotiation challenge in A5 final situation, A6 begins with NPCs impressed by your capabilities. Entry state: Skilled Negotiator.
+**Challenge Success Entry**: Next scene begins with you entering having navigated social complexity skillfully. If you succeeded at negotiation challenge in previous scene's final situation, next scene begins with NPCs impressed by your capabilities. Entry state: Skilled Negotiator.
 
-**Challenge Failure Entry**: Next scene begins with you entering having shown vulnerability, earned sympathy. If you failed negotiation challenge in A5 final situation but still got room, A6 begins with NPCs viewing you as someone who tries hard but struggles. Entry state: Earnest Struggler.
+**Challenge Failure Entry**: Next scene begins with you entering having shown vulnerability, earned sympathy. If you failed negotiation challenge in previous scene's final situation but still got room, next scene begins with NPCs viewing you as someone who tries hard but struggles. Entry state: Earnest Struggler.
 
-**Guaranteed Path Entry**: Next scene begins with you entering after demonstrating patience and genuine interest. If you spent time helping innkeeper in A5 final situation, A6 begins with NPCs aware of your willingness to work for what you need. Entry state: Patient Helper.
+**Guaranteed Path Entry**: Next scene begins with you entering after demonstrating patience and genuine interest. If you spent time helping innkeeper in previous scene's final situation, next scene begins with NPCs aware of your willingness to work for what you need. Entry state: Patient Helper.
 
-All five entries spawn A6. The narrative context differs (how NPCs perceive you, dialogue tone, relationship starting points) but progression is identical. Player chooses HOW they enter next scene, not IF they enter it.
+All five entries spawn next scene. The narrative context differs (how NPCs perceive you, dialogue tone, relationship starting points) but progression is identical. Player chooses HOW they enter next scene, not IF they enter it.
 
 This design creates meaningful choice without gating progression. Your path choices shape reputation and relationships across the journey but never block forward movement. Play optimally and people respect your competence. Play reliably with money and people appreciate your resources. Take risks and succeed, earn admiration. Take risks and fail, earn sympathy. Be patient, earn trust. All paths lead forward with different flavors.
 
@@ -230,22 +230,22 @@ Primary integration: A-scene completion unlocks geographic regions containing B/
 
 **Pattern**: Each A-scene completion grants LocationsToUnlock reward (explicit location IDs) and StateApplications reward (tags like "EstablishedInWestmarch"). B/C scenes check these tags in SpawnConditions. Player sees new content emerge after A-scene completion.
 
-**A1 Completion Example**:
+**First Scene Completion Example**:
 - Completes tutorial prologue at starting village
 - Unlocks Westmarch region (7 locations)
 - Grants "EstablishedInWestmarch" tag
-- Spawns A2 at Constable's Office (available but not required)
+- Spawns 2nd scene at Constable's Office (available but not required)
 - Player now has access to 8 B-stories and 40 C-encounters in Westmarch
-- Player can spend 5-10 hours exploring Westmarch before pursuing A2
+- Player can spend 5-10 hours exploring Westmarch before pursuing 2nd scene
 
 **Player Flow Pattern**:
-1. Complete A1 (30 minutes) → Westmarch unlocked
+1. Complete 1st scene (30 minutes) → Westmarch unlocked
 2. Explore Westmarch → discover B/C content organically through travel
 3. Spend 5-10 hours on Westmarch B/C stories
 4. Gain resources (coins, items), relationships (NPC bonds), knowledge (lore), stat improvements (challenge XP)
-5. Eventually pursue A2 (player chooses timing, no pressure)
-6. A2 tests preparedness gained from B/C content (can afford money path, have stats for optimal path, equipped for challenge path, or take patient path)
-7. A2 completion unlocks Northreach region with new B/C content
+5. Eventually pursue 2nd scene (player chooses timing, no pressure)
+6. 2nd scene tests preparedness gained from B/C content (can afford money path, have stats for optimal path, equipped for challenge path, or take patient path)
+7. 2nd scene completion unlocks Northreach region with new B/C content
 8. Cycle repeats infinitely
 
 This structure encourages exploration. A-story provides direction ("next region unlocked, go explore") without pressure ("pursue next A-scene whenever ready"). B/C content provides resources making A-story paths more accessible. Synergistic relationship between main spine and side content.
@@ -291,9 +291,9 @@ Tertiary integration: B/C content acknowledges A-story progression through spawn
 B-stories can require prior A-scene completion to become eligible. Not hard gates blocking all content, but gradual reveal of deeper content as A-story progresses.
 
 Examples:
-- "Local scholar's request" B-story requires A1 complete. Rationale: player established in region, known to be asking questions, scholar approaches with research help offer.
-- "Archivist's offer" B-story requires A3 complete. Rationale: player has shown genuine interest in history through multiple A-scenes, archivist trusts player with sensitive materials.
-- "Old colleague's invitation" B-story requires A5+ complete. Rationale: pursuit has become known to wider community, people who knew your order reach out.
+- "Local scholar's request" B-story requires 1st scene complete. Rationale: player established in region, known to be asking questions, scholar approaches with research help offer.
+- "Archivist's offer" B-story requires 3rd scene complete. Rationale: player has shown genuine interest in history through multiple scenes, archivist trusts player with sensitive materials.
+- "Old colleague's invitation" B-story requires 5+ scenes complete. Rationale: pursuit has become known to wider community, people who knew your order reach out.
 
 Gating creates pacing. Early B/C content available immediately in unlocked region. Deeper B/C content reveals gradually as A-story demonstrates player commitment and integration into world. Not blocking (plenty of content available at each stage), but progressive reveal maintaining sense of deepening engagement.
 
@@ -302,10 +302,10 @@ Gating creates pacing. Early B/C content available immediately in unlocked regio
 B/C story dialogue and narrative text reference player's A-story journey when contextually appropriate:
 
 Examples:
-- "I heard you spoke with Elena in Westmarch - she wrote me about your visit" (if A1 involved Elena, later B-story in different region references this)
+- "I heard you spoke with Elena in Westmarch - she wrote me about your visit" (if 1st scene involved Elena, later B-story in different region references this)
 - "You're asking the same questions your mentor did, all those years ago" (if pursuit narrative is active, NPCs recognize pattern)
-- "Others have come asking about the old days, but you actually listen" (if multiple A-scenes completed with care-focused choices, NPCs acknowledge your approach)
-- "Your reputation precedes you - the Merchant Guild speaks well of you" (if prior A-scene involved positive Merchant Guild interaction, later scenes reference this)
+- "Others have come asking about the old days, but you actually listen" (if multiple scenes completed with care-focused choices, NPCs acknowledge your approach)
+- "Your reputation precedes you - the Merchant Guild speaks well of you" (if prior scene involved positive Merchant Guild interaction, later scenes reference this)
 
 Callbacks aren't mechanical. They don't grant power or unlock gates. They create narrative continuity and acknowledgment. The world remembers your journey. People talk to each other. Your actions ripple through social networks. This makes the infinite journey feel coherent rather than episodic and disconnected.
 
@@ -313,9 +313,9 @@ Callbacks aren't mechanical. They don't grant power or unlock gates. They create
 
 Quaternary integration: World state changes from A-story affect B/C content availability and tone.
 
-**Tier-Appropriate Content**: Early A-scenes (A1-A20) unlock Tier 1 regions with local B/C content. Mid A-scenes (A21-A40) unlock Tier 2 regions with regional B/C content. Late A-scenes (A41+) unlock Tier 3-4 regions with continental/cosmic B/C content. B/C content in each region matches tier, creating appropriate pacing. Early game B-stories: local problems, personal scale. Late game B-stories: factional conflicts, regional consequences.
+**Tier-Appropriate Content**: Early scenes (scenes 1-20) unlock Tier 1 regions with local B/C content. Mid-game scenes (scenes 21-40) unlock Tier 2 regions with regional B/C content. Late-game scenes (scenes 41+) unlock Tier 3-4 regions with continental/cosmic B/C content. B/C content in each region matches tier, creating appropriate pacing. Early game B-stories: local problems, personal scale. Late game B-stories: factional conflicts, regional consequences.
 
-**Faction Relationships**: A-story choices affect faction standing. B/C stories react to faction relationships via spawn conditions checking faction standing thresholds. Example: "You sided with the Crown in A12, we don't serve loyalists" (B-story blocked for players who chose Crown path). Counterexample: "The rebellion trusts you after A12, take this quest" (B-story unlocked for players who chose Rebellion path). Factional choices in A-story create branching B/C availability without blocking all content (different factions offer different B-stories, total content volume similar regardless of faction choices).
+**Faction Relationships**: A-story choices affect faction standing. B/C stories react to faction relationships via spawn conditions checking faction standing thresholds. Example: "You sided with the Crown in scene 12, we don't serve loyalists" (B-story blocked for players who chose Crown path). Counterexample: "The rebellion trusts you after scene 12, take this quest" (B-story unlocked for players who chose Rebellion path). Factional choices in A-story create branching B/C availability without blocking all content (different factions offer different B-stories, total content volume similar regardless of faction choices).
 
 **World State Evolution**: A-story changes world state (new faction discovered, old faction weakened, region destabilized, region secured). B/C content reflects changes organically. Not heavy-handed "EVERYTHING IS DIFFERENT NOW" transformation, but subtle acknowledgment. NPC dialogue mentions recent changes. Locations show consequences of A-story events. Spawn conditions enable new B/C content addressing new circumstances.
 
@@ -405,7 +405,7 @@ The infinite A-story design addresses specific player psychology challenges.
 
 Traditional RPGs create anxiety around endings. Players know the story will end, so they delay pursuing main quest to "do everything first." This creates completionist paralysis where players don't progress for fear of missing content. Post-ending continuation creates dissonance ("I saved the world, why am I still doing fetch quests?").
 
-Infinite A-story eliminates ending anxiety. There is no ending to delay. The story continues forever. You cannot "miss" the ending by exploring side content first. This paradoxically encourages main story progression because there's no pressure. Pursue A2 now or explore Westmarch for 10 hours then pursue A2 - same result, just different preparation level.
+Infinite A-story eliminates ending anxiety. There is no ending to delay. The story continues forever. You cannot "miss" the ending by exploring side content first. This paradoxically encourages main story progression because there's no pressure. Pursue 2nd scene now or explore Westmarch for 10 hours then pursue 2nd scene - same result, just different preparation level.
 
 ### When Not If
 
@@ -415,7 +415,7 @@ This increases engagement. Players pursue A-story when they feel ready, not when
 
 ### Infinite Replayability Without New Game Plus
 
-Traditional infinite play requires New Game Plus (restart with carried-over progress) or arbitrary repeatable loops (daily quests). Both feel gamey and break immersion. Wayfarer's infinite A-story provides infinite unique content without restarting or repeating. A100 is genuinely new scene, not A1 again with harder numbers. Procedural generation creates perpetual novelty.
+Traditional infinite play requires New Game Plus (restart with carried-over progress) or arbitrary repeatable loops (daily quests). Both feel gamey and break immersion. Wayfarer's infinite A-story provides infinite unique content without restarting or repeating. Scene 100 is genuinely new experience, not scene 1 again with harder numbers. Procedural generation creates perpetual novelty.
 
 This enables theoretical infinite playtime. Practical playtime limited by player interest, not content exhaustion. Some players might play 20 hours and feel satisfied. Others might play 200 hours and keep discovering new situations. Content scales to player engagement naturally.
 
