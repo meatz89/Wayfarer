@@ -111,7 +111,7 @@ public static class SceneArchetypeCatalog
                         CostTemplate = choice.CostTemplate,
                         RewardTemplate = new ChoiceReward
                         {
-                            LocationsToUnlock = new List<string> { "generated:private_room" },
+                            // NEW ARCHITECTURE: Location accessibility via GrantsLocationAccess property on situation
                             ItemIds = new List<string> { "generated:room_key" }
                         },
                         ActionType = choice.ActionType,
@@ -134,7 +134,7 @@ public static class SceneArchetypeCatalog
                         RewardTemplate = choice.RewardTemplate,
                         OnSuccessReward = new ChoiceReward
                         {
-                            LocationsToUnlock = new List<string> { "generated:private_room" },
+                            // NEW ARCHITECTURE: Location accessibility via GrantsLocationAccess property on situation
                             ItemIds = new List<string> { "generated:room_key" }
                         },
                         ActionType = choice.ActionType,
@@ -226,7 +226,7 @@ public static class SceneArchetypeCatalog
             ChoiceReward mergedReward = new ChoiceReward
             {
                 ItemsToRemove = new List<string> { "generated:room_key" },
-                LocationsToLock = new List<string> { "generated:private_room" },
+                // NEW ARCHITECTURE: Location becomes inaccessible when scene completes (no active situation grants access)
                 StateApplications = choice.RewardTemplate?.StateApplications ?? new List<StateApplication>()
             };
 

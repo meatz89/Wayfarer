@@ -107,11 +107,8 @@ public static class AStorySceneArchetypeCatalog
         {
             ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
 
-            // All successful paths unlock meeting chamber
-            if (choice.PathType != ChoicePathType.Fallback)
-            {
-                reward.LocationsToUnlock = new List<string> { "generated:meeting_chamber" };
-            }
+            // NEW ARCHITECTURE: Location accessibility controlled by situation GrantsLocationAccess property
+            // No need for reward-based unlock - situation at meeting_chamber grants access via template property
 
             enrichedNegotiateChoices.Add(new ChoiceTemplate
             {
