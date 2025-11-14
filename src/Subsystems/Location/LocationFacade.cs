@@ -744,10 +744,11 @@ public class LocationFacade
             ConnectionState connectionState = GetNPCConnectionState(npc);
 
             // Find ALL active scenes for this NPC (multi-scene display)
+            // HIERARCHICAL PLACEMENT: Check CurrentSituation.Npc (situation owns placement)
             List<Scene> activeScenes = _gameWorld.Scenes.Where(s =>
                 s.State == SceneState.Active &&
-                s.Npc != null &&
-                s.Npc.ID == npc.ID).ToList();
+                s.CurrentSituation?.Npc != null &&
+                s.CurrentSituation.Npc.ID == npc.ID).ToList();
 
             // Build scene view model for each active scene
             List<NpcSceneViewModel> availableScenes = new List<NpcSceneViewModel>();
@@ -884,10 +885,11 @@ public class LocationFacade
         List<SceneWithSituationsViewModel> sceneGroups = new List<SceneWithSituationsViewModel>();
 
         // SCENE-SITUATION ARCHITECTURE: Query active Scenes at this location, get Situations from Scene.Situations
+        // HIERARCHICAL PLACEMENT: Check CurrentSituation.Location (situation owns placement)
         List<Scene> scenesAtLocation = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.Location != null &&
-                       s.Location.Id == spot.Id)
+                       s.CurrentSituation?.Location != null &&
+                       s.CurrentSituation.Location.Id == spot.Id)
             .ToList();
 
         // Get all situations from scenes at this location (direct object ownership)
@@ -944,10 +946,10 @@ public class LocationFacade
     private Scene FindParentScene(Location spot, Situation situation)
     {
         // Query GameWorld.Scenes by placement, check if SituationIds contains this situation.Id
+        // HIERARCHICAL PLACEMENT: Check if any situation in scene is at this location
         return _gameWorld.Scenes
-            .Where(s => s.Location != null)
-            .Where(s => s.Location.Id == spot.Id)
             .Where(s => s.State == SceneState.Active)
+            .Where(s => s.Situations.Any(sit => sit.Location?.Id == spot.Id))
             .FirstOrDefault(s => s.Situations.Any(sit => sit.Id == situation.Id));
     }
 
@@ -999,10 +1001,10 @@ public class LocationFacade
     private Scene FindParentSceneForNPC(NPC npc, Situation situation)
     {
         // Query GameWorld.Scenes by placement type and ID, check if SituationIds contains this situation.Id
+        // HIERARCHICAL PLACEMENT: Check if any situation in scene has this NPC
         return _gameWorld.Scenes
-            .Where(s => s.Npc != null)
-            .Where(s => s.Npc.ID == npc.ID)
             .Where(s => s.State == SceneState.Active)
+            .Where(s => s.Situations.Any(sit => sit.Npc?.ID == npc.ID))
             .FirstOrDefault(s => s.Situations.Any(sit => sit.Id == situation.Id));
     }
 

@@ -56,9 +56,10 @@ public class SceneFacade
     public List<LocationAction> GetActionsAtLocation(string locationId, Player player)
     {
         // Find active Scenes at this location
+        // HIERARCHICAL PLACEMENT: Check CurrentSituation.Location (situation owns placement)
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.Location?.Id == locationId)
+                       s.CurrentSituation?.Location?.Id == locationId)
             .ToList();
 
         List<LocationAction> allActions = new List<LocationAction>();
@@ -140,9 +141,10 @@ public class SceneFacade
     public List<NPCAction> GetActionsForNPC(string npcId, Player player)
     {
         // Find active Scenes with this NPC
+        // HIERARCHICAL PLACEMENT: Check CurrentSituation.Npc (situation owns placement)
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.Npc?.ID == npcId)
+                       s.CurrentSituation?.Npc?.ID == npcId)
             .ToList();
 
         List<NPCAction> allActions = new List<NPCAction>();
@@ -220,9 +222,10 @@ public class SceneFacade
     public List<PathCard> GetPathCardsForRoute(string routeId, Player player)
     {
         // Find active Scenes on this route
+        // HIERARCHICAL PLACEMENT: Check CurrentSituation.Route (situation owns placement)
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.Route?.Id == routeId)
+                       s.CurrentSituation?.Route?.Id == routeId)
             .ToList();
 
         List<PathCard> allPathCards = new List<PathCard>();
@@ -297,12 +300,13 @@ public class SceneFacade
     /// </summary>
     private SceneSpawnContext BuildContextFromParentScene(Scene parentScene, Player player)
     {
+        // HIERARCHICAL PLACEMENT: Get placement from CurrentSituation (situation owns placement)
         return new SceneSpawnContext
         {
             Player = player,
-            CurrentLocation = parentScene.Location,
-            CurrentNPC = parentScene.Npc,
-            CurrentRoute = parentScene.Route,
+            CurrentLocation = parentScene.CurrentSituation?.Location,
+            CurrentNPC = parentScene.CurrentSituation?.Npc,
+            CurrentRoute = parentScene.CurrentSituation?.Route,
             CurrentSituation = null
         };
     }

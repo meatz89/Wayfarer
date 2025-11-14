@@ -99,6 +99,12 @@ public class PlacementFilter
     /// </summary>
     public List<NPCKnowledgeLevel> KnowledgeLevels { get; init; } = new List<NPCKnowledgeLevel>();
 
+    /// <summary>
+    /// DEPRECATED: NPC tags used only for DEPENDENT_NPC marker system
+    /// Use orthogonal categorical dimensions (SocialStanding, StoryRole, KnowledgeLevel) instead
+    /// </summary>
+    public List<string> NpcTags { get; init; } = new List<string>();
+
     // ==================== LOCATION FILTERS (when PlacementType == Location) ====================
 
     /// <summary>

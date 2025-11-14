@@ -39,7 +39,9 @@ public class HierarchicalPlacementTests
         };
 
         GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
-        EntityResolver entityResolver = new EntityResolver(gameWorld);
+        Player player = gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
+        EntityResolver entityResolver = new EntityResolver(gameWorld, player, narrativeService);
 
         // ACT: Parse scene with hierarchical resolution
         Scene scene = SceneParser.ConvertDTOToScene(sceneDto, gameWorld, entityResolver);
@@ -86,7 +88,9 @@ public class HierarchicalPlacementTests
         };
 
         GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
-        EntityResolver entityResolver = new EntityResolver(gameWorld);
+        Player player = gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
+        EntityResolver entityResolver = new EntityResolver(gameWorld, player, narrativeService);
 
         // ACT
         Scene scene = SceneParser.ConvertDTOToScene(sceneDto, gameWorld, entityResolver);
@@ -105,7 +109,9 @@ public class HierarchicalPlacementTests
     {
         // ARRANGE
         GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
-        EntityResolver entityResolver = new EntityResolver(gameWorld);
+        Player player = gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
+        EntityResolver entityResolver = new EntityResolver(gameWorld, player, narrativeService);
 
         // Filter requires: Notable + Facilitator + Informed
         PlacementFilter filter = new PlacementFilter
@@ -135,7 +141,9 @@ public class HierarchicalPlacementTests
     {
         // ARRANGE
         GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
-        EntityResolver entityResolver = new EntityResolver(gameWorld);
+        Player player = gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
+        EntityResolver entityResolver = new EntityResolver(gameWorld, player, narrativeService);
 
         // Filter requires: Notable + Obstacle + Expert
         // Elena is Notable + Facilitator + Informed (wrong on 2 dimensions)
@@ -164,7 +172,9 @@ public class HierarchicalPlacementTests
     {
         // ARRANGE
         GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
-        EntityResolver entityResolver = new EntityResolver(gameWorld);
+        Player player = gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
+        EntityResolver entityResolver = new EntityResolver(gameWorld, player, narrativeService);
 
         // Filter requires: SemiPublic + Safe + Moderate + Dwelling
         PlacementFilter filter = new PlacementFilter
@@ -196,7 +206,9 @@ public class HierarchicalPlacementTests
     {
         // ARRANGE
         GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
-        EntityResolver entityResolver = new EntityResolver(gameWorld);
+        Player player = gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
+        EntityResolver entityResolver = new EntityResolver(gameWorld, player, narrativeService);
 
         // Filter accepts multiple values in one dimension: Notable OR Authority
         PlacementFilter filter = new PlacementFilter
@@ -227,7 +239,9 @@ public class HierarchicalPlacementTests
     {
         // ARRANGE
         GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
-        EntityResolver entityResolver = new EntityResolver(gameWorld);
+        Player player = gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
+        EntityResolver entityResolver = new EntityResolver(gameWorld, player, narrativeService);
 
         // Filter with empty lists = no restrictions on those dimensions
         PlacementFilter filter = new PlacementFilter
@@ -253,7 +267,9 @@ public class HierarchicalPlacementTests
     {
         // ARRANGE
         GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
-        EntityResolver entityResolver = new EntityResolver(gameWorld);
+        Player player = gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
+        EntityResolver entityResolver = new EntityResolver(gameWorld, player, narrativeService);
 
         // ACT
         NPC resolvedNpc = entityResolver.FindOrCreateNPC(null);
@@ -502,7 +518,9 @@ public class HierarchicalPlacementTests
         };
 
         GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
-        EntityResolver entityResolver = new EntityResolver(gameWorld);
+        Player player = gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
+        EntityResolver entityResolver = new EntityResolver(gameWorld, player, narrativeService);
 
         // ACT
         Scene scene = SceneParser.ConvertDTOToScene(sceneDto, gameWorld, entityResolver);
@@ -537,7 +555,9 @@ public class HierarchicalPlacementTests
         };
 
         GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
-        EntityResolver entityResolver = new EntityResolver(gameWorld);
+        Player player = gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(gameWorld);
+        EntityResolver entityResolver = new EntityResolver(gameWorld, player, narrativeService);
 
         // ACT
         Scene scene = SceneParser.ConvertDTOToScene(sceneDto, gameWorld, entityResolver);

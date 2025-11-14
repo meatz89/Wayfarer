@@ -1582,8 +1582,9 @@ public class GameFacade
             throw new InvalidOperationException($"Location '{locationId}' not found in GameWorld - cannot query situations!");
 
         // Query all Situations (both legacy and Scene-embedded) at this location
+        // HIERARCHICAL PLACEMENT: Situations own their own Location (direct property access)
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
-            .Where(sit => sit.ParentScene?.Location?.Id == locationId)
+            .Where(sit => sit.Location?.Id == locationId)
             .ToList();
     }
 

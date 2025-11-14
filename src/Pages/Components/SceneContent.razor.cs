@@ -457,12 +457,12 @@ public class SceneContentBase : ComponentBase
             // Store challenge context for resumption
             if (choiceTemplate.ChallengeType == TacticalSystemType.Social)
             {
-                // Use Scene's direct NPC object reference
-                NPC npc = Scene.Npc;
+                // HIERARCHICAL PLACEMENT: Get NPC from CurrentSituation (situation owns placement)
+                NPC npc = CurrentSituation?.Npc;
                 GameWorld.CurrentSocialSession = new SocialSession
                 {
                     RequestId = CurrentSituation.Id,
-                    NPC = npc // Scene.Npc may be null if scene is location-only
+                    NPC = npc // CurrentSituation.Npc may be null if situation is location-only
                 };
                 GameWorld.PendingSocialContext = new SocialChallengeContext
                 {

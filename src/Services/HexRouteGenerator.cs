@@ -345,13 +345,12 @@ public class HexRouteGenerator
         string sceneId = $"scene_{template.Id}_{route.Id}_seg{segment.SegmentNumber}";
 
         // Create Scene directly as Active (skip provisional step)
-        // System 5: Scene has direct object reference to Route (not PlacementType/PlacementId)
+        // HIERARCHICAL PLACEMENT: Route set on Situation, not Scene
         Scene scene = new Scene
         {
             Id = sceneId,
             TemplateId = template.Id,
             Template = template,
-            Route = route, // Direct object reference (5-system architecture)
             State = SceneState.Active, // Active immediately, not provisional
             Archetype = template.Archetype,
             DisplayName = template.DisplayNameTemplate,
