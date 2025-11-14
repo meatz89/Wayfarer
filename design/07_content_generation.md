@@ -735,6 +735,298 @@ Same archetype generates vastly different experiences via property combinations:
 
 Mathematical variety: 3 demeanors × 4 qualities × 3 power dynamics × 3 environment qualities = 108 property combinations per archetype. 21 archetypes × 108 combinations = 2,268 mechanical variations. Add narrative variety from entity context = effectively infinite content.
 
+## Orthogonal Categorical Dimensions for Entity Resolution
+
+Beyond the nine universal categorical properties that scale archetype difficulty, Wayfarer uses **orthogonal categorical dimensions** for procedural entity resolution. These dimensions enable scenes to specify WHAT KIND of entity they need without hardcoding specific entity IDs, supporting infinite content variety through compositional matching.
+
+### The Entity Resolution Problem
+
+Traditional approach: Scene specifies concrete entity IDs (`"npcId": "elena"`). Works for authored tutorial content. Breaks for procedural generation - AI cannot predict which specific NPCs exist in player's current context.
+
+Procedural approach: Scene specifies categorical requirements (`"socialStandings": ["Notable"], "storyRoles": ["Obstacle"]"`). EntityResolver finds existing entity matching ALL specified dimensions OR generates new entity with those properties. Same scene template works across infinite contexts.
+
+### Design Philosophy: Orthogonal Composition
+
+Instead of defining 27 NPC archetypes or 81 location archetypes as monolithic enums, Wayfarer uses ORTHOGONAL DIMENSIONS that compose:
+
+**Anti-Pattern (Monolithic)**:
+```
+enum NPCArchetype {
+    CommonerNeutralIgnorant,    // All 27 combinations listed explicitly
+    CommonerNeutralInformed,
+    CommonerNeutralExpert,
+    // ... 24 more variants
+}
+```
+
+**Correct Pattern (Orthogonal)**:
+```
+enum NPCSocialStanding { Commoner, Notable, Authority }
+enum NPCStoryRole { Obstacle, Neutral, Facilitator }
+enum NPCKnowledgeLevel { Ignorant, Informed, Expert }
+
+// Combination: Notable + Obstacle + Informed = "Gatekeeper"
+// Combination: Commoner + Neutral + Ignorant = "Peasant"
+```
+
+**Benefits of Orthogonal Design**:
+- **Compositional Power**: 3 small enums (3 values each) = 27 archetypes from 9 total enum values
+- **Flexible Matching**: Scene can specify 1, 2, or 3 dimensions (precise or loose matching)
+- **Reusability**: Same dimension used across many different archetype combinations
+- **Maintainability**: Add new value to one dimension, all combinations automatically available
+
+### Seven Categorical Dimensions
+
+**Three NPC Dimensions** (3 × 3 × 3 = 27 narrative archetypes):
+
+**1. NPCSocialStanding** (Power/Status)
+- **Commoner**: General population, no special authority
+- **Notable**: Respected community figures, local influence
+- **Authority**: Power to make binding decisions, enforce rules
+
+Purpose: Represents NPC's position in social hierarchy. Determines who can grant permissions, who controls resources, who has leverage.
+
+**2. NPCStoryRole** (Narrative Function)
+- **Obstacle**: Blocks, challenges, opposes player progress
+- **Neutral**: Transactional, indifferent, business-as-usual
+- **Facilitator**: Helps, enables, supports player goals
+
+Purpose: Represents NPC's dramatic function in story. Determines whether NPC creates friction or assistance.
+
+**3. NPCKnowledgeLevel** (Information Access)
+- **Ignorant**: Knows little beyond immediate surroundings
+- **Informed**: Aware of local events, connected to information networks
+- **Expert**: Deep specialized knowledge in specific domain
+
+Purpose: Represents NPC's information value. Determines what player can learn from this NPC.
+
+**Four Location Dimensions** (3 × 3 × 3 × 4 = 108 environmental archetypes):
+
+**4. LocationPrivacy** (Social Exposure)
+- **Public**: Open to all, many witnesses, no privacy
+- **SemiPublic**: Restricted access but not private, some witnesses
+- **Private**: Enclosed, intimate, isolated, no witnesses
+
+Purpose: Represents location's social visibility. Determines witness count for reputation mechanics, intimacy for romance, concealment for illegal activity.
+
+**5. LocationSafety** (Danger Level)
+- **Dangerous**: Active threats present, high risk
+- **Neutral**: Normal risk level, typical urban environment
+- **Safe**: Protected, secure, low threat
+
+Purpose: Represents location's threat level. Determines base danger for challenges, consequences of failure, need for caution.
+
+**6. LocationActivity** (Population Density)
+- **Quiet**: Isolated, peaceful, few people present
+- **Moderate**: Normal traffic, typical activity level
+- **Busy**: Crowded, active, many people present
+
+Purpose: Represents location's crowd level. Determines information availability (crowds = rumors), social opportunities, anonymity.
+
+**7. LocationPurpose** (Functional Role)
+- **Transit**: Movement, passage, connection between places
+- **Dwelling**: Living, resting, lodging, private residence
+- **Commerce**: Trade, work, services, economic activity
+- **Civic**: Governance, authority, sacred rites, official functions
+
+Purpose: Represents location's primary function. Determines what activities are narratively appropriate, which services available.
+
+### Compositional Archetypes
+
+Dimensions compose to create narrative archetypes that emerge from intersection:
+
+**NPC Archetype Examples**:
+- **Gatekeeper**: Notable + Obstacle + Informed (controls access, knows local events, blocks entry)
+- **Wise Mentor**: Authority + Facilitator + Expert (can grant permissions, helps player, deep knowledge)
+- **Peasant Bystander**: Commoner + Neutral + Ignorant (no power, indifferent, knows little)
+- **Local Informant**: Notable + Facilitator + Informed (respected, helps player, connected to information)
+- **Corrupt Official**: Authority + Obstacle + Informed (power to enforce, blocks progress, aware of machinations)
+
+**Location Archetype Examples**:
+- **Inn Common Room**: SemiPublic + Safe + Moderate + Dwelling (some privacy, protected, normal traffic, lodging)
+- **Dark Alley**: Public + Dangerous + Quiet + Transit (exposed but isolated, risky, few witnesses, just passage)
+- **Merchant Square**: Public + Neutral + Busy + Commerce (fully exposed, normal risk, crowded, trade)
+- **Temple Sanctuary**: Private + Safe + Quiet + Civic (enclosed, protected, peaceful, sacred rites)
+- **Checkpoint Gate**: SemiPublic + Neutral + Moderate + Transit (restricted, normal risk, guards present, passage control)
+
+**Same dimensions, different combinations = different narrative contexts.** System generates contextually appropriate content without hardcoding specific combinations.
+
+### Mathematical Variety Through Composition
+
+**NPC Variety**:
+- 3 social standings × 3 story roles × 3 knowledge levels = **27 NPC archetypes**
+- From only **9 total enum values** (3 + 3 + 3)
+- Each archetype narratively coherent (not random combinations)
+
+**Location Variety**:
+- 3 privacy levels × 3 safety levels × 3 activity levels × 4 purposes = **108 location archetypes**
+- From only **13 total enum values** (3 + 3 + 3 + 4)
+- Each archetype environmentally distinct
+
+**Combined Variety**:
+- 27 NPC archetypes × 108 location archetypes = **2,916 NPC-location pairings**
+- Each pairing creates different dramatic context for same scene archetype
+- Add 21 situation archetypes × 2,916 pairings = **61,236 mechanically distinct variations**
+- Add AI narrative generation = **effectively infinite content**
+
+### Integration with PlacementFilter
+
+PlacementFilterDTO uses categorical dimensions for entity matching:
+
+**Example: Morning Conversation Scene**
+```json
+{
+  "placementType": "NPC",
+  "storyRoles": ["Facilitator", "Neutral"],
+  "knowledgeLevels": ["Informed"],
+  "socialStandings": ["Notable", "Commoner"]
+}
+```
+
+**Matching Logic** (EntityResolver):
+1. Query all NPCs in game world
+2. Filter where `StoryRole IN ["Facilitator", "Neutral"]`
+3. Filter where `KnowledgeLevel IN ["Informed"]`
+4. Filter where `SocialStanding IN ["Notable", "Commoner"]`
+5. Apply SelectionStrategy to choose ONE from matches (Closest, LeastRecent, Random)
+
+**Matches**:
+- Elena (Notable + Facilitator + Informed) = Helpful innkeeper who knows local events ✓
+- Thomas (Commoner + Neutral + Informed) = Neutral foreman aware of town gossip ✓
+
+**Does NOT Match**:
+- Guard (Authority + Obstacle + Informed) = Wrong StoryRole (Obstacle not in filter) ✗
+- Peasant (Commoner + Neutral + Ignorant) = Wrong KnowledgeLevel (Ignorant not in filter) ✗
+
+**FindOrCreate Pattern**: If no existing NPC matches ALL specified dimensions, EntityResolver generates new NPC with those exact dimensional values. Generated NPC persists forever as authored entity. Same filter works across infinite game states.
+
+### Multi-Dimensional Filtering Strategies
+
+Placement filters can specify dimensions at varying levels of precision:
+
+**Highly Specific** (1 match expected):
+```json
+{
+  "socialStandings": ["Authority"],
+  "storyRoles": ["Obstacle"],
+  "knowledgeLevels": ["Expert"]
+}
+```
+Result: Authority + Obstacle + Expert = High-ranking official who blocks access and knows deep domain knowledge. Very narrow match.
+
+**Moderately Specific** (3-5 matches expected):
+```json
+{
+  "storyRoles": ["Facilitator"],
+  "knowledgeLevels": ["Informed"]
+}
+```
+Result: Any Facilitator who is Informed, regardless of social standing. Multiple valid matches.
+
+**Loosely Specific** (10+ matches expected):
+```json
+{
+  "socialStandings": ["Commoner", "Notable"]
+}
+```
+Result: Any non-Authority NPC, regardless of story role or knowledge. Many matches, SelectionStrategy chooses variety.
+
+**Design Principle**: Tighter filters = more narrative specificity = fewer matches. Looser filters = more reusability = more matches. Content authors balance specificity vs reusability based on scene requirements.
+
+### Categorical Dimensions vs Scaling Properties
+
+**Critical Distinction**: Orthogonal categorical dimensions (entity resolution) are SEPARATE from universal categorical properties (archetype scaling).
+
+**Categorical Dimensions** (this section):
+- **Purpose**: Entity MATCHING and RESOLUTION
+- **Question**: WHICH entity should this scene use?
+- **Mechanism**: PlacementFilter specifies dimensions → EntityResolver finds/creates entity
+- **Examples**: NPCSocialStanding, LocationPrivacy, LocationPurpose
+- **Granularity**: 7 dimensions with 3-4 values each (orthogonal composition)
+
+**Categorical Properties** (previous section):
+- **Purpose**: Archetype SCALING and DIFFICULTY
+- **Question**: HOW HARD should this interaction be?
+- **Mechanism**: GenerationContext derives properties → Archetype applies scaling multipliers
+- **Examples**: NPCDemeanor, Quality, PowerDynamic, EnvironmentQuality
+- **Granularity**: 9 properties with 2-4 values each (universal scaling)
+
+**Both Work Together**:
+1. Categorical dimensions find appropriate entity (Notable + Obstacle + Informed = Gatekeeper)
+2. Categorical properties scale archetype difficulty (Hostile demeanor → 1.4× threshold)
+3. Result: Contextually appropriate entity engaged with contextually appropriate difficulty
+
+Same scene template uses BOTH systems: dimensions select entity, properties scale mechanics. Complete procedural generation without hardcoded specifics.
+
+### Fantasy Verisimilitude
+
+Dimensions grounded in narrative patterns from fantasy literature, not arbitrary mechanics:
+
+**NPCSocialStanding**: Reflects medieval-fantasy social hierarchies (peasants, nobles, lords)
+**NPCStoryRole**: Reflects character archetypes in hero's journey (threshold guardians, mentors, tricksters)
+**NPCKnowledgeLevel**: Reflects information economy in pre-modern societies (rumors, specialists, scholars)
+
+**LocationPrivacy**: Reflects social spaces in fantasy towns (public squares, semi-public taverns, private chambers)
+**LocationSafety**: Reflects danger geography in adventure fiction (wilderness perils, city security, sacred sanctuaries)
+**LocationActivity**: Reflects population density patterns (busy markets, quiet libraries, crowded festivals)
+**LocationPurpose**: Reflects functional spaces in fantasy settlements (trade districts, residential quarters, temples, gates)
+
+**Design Validation**: Can you describe 5 different NPCs or locations from fantasy books using these dimensions? If yes, dimensions have verisimilitude. If no, dimensions are too mechanical or too arbitrary.
+
+### Usage Examples
+
+**Example 1: Procedural Quest Giver**
+
+Scene template: `gather_testimony` archetype
+```json
+{
+  "placementFilter": {
+    "placementType": "NPC",
+    "socialStandings": ["Notable", "Authority"],
+    "storyRoles": ["Facilitator"],
+    "knowledgeLevels": ["Expert"]
+  }
+}
+```
+
+Runtime resolution:
+- City context: Matches Captain of Guard (Authority + Facilitator + Expert) → Quest giver with institutional authority
+- Village context: Generates Village Elder (Notable + Facilitator + Expert) → Quest giver with local respect
+- Wilderness context: Generates Hermit Sage (Notable + Facilitator + Expert) → Quest giver with wisdom
+
+**Same filter, different contexts, appropriate quest givers materialized procedurally.**
+
+**Example 2: Procedural Safe House**
+
+Scene template: `hiding_scene` archetype
+```json
+{
+  "placementFilter": {
+    "placementType": "Location",
+    "privacyLevels": ["Private"],
+    "safetyLevels": ["Safe"],
+    "activityLevels": ["Quiet"],
+    "purposes": ["Dwelling"]
+  }
+}
+```
+
+Runtime resolution:
+- Urban context: Matches Secret Room in existing inn → Private, safe, quiet dwelling
+- Rural context: Generates Isolated Cottage → Private, safe, quiet dwelling
+- Wilderness context: Generates Hidden Cave → Private, safe, quiet dwelling
+
+**Same filter, different environments, appropriate hideouts materialized procedurally.**
+
+### Technical Implementation Cross-Reference
+
+Implementation details in arc42 documentation:
+- Categorical dimension enums: Section 5 (Building Block View)
+- PlacementFilter dimension properties: Section 5 (Building Block View)
+- EntityResolver matching algorithm: Section 5 (Building Block View)
+- SceneTemplateParser dimension parsing: Section 8 (Crosscutting Concepts)
+- FindOrCreate entity generation: Section 5 (Building Block View)
+
 ## AI Narrative Generation Enablement
 
 Categorical property system enables AI to generate balanced content without global game state knowledge.
