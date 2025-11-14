@@ -29,35 +29,15 @@ public class Scene
     /// </summary>
     public SceneTemplate Template { get; set; }
 
-    // ==================== PLACEMENT PROPERTIES (SYSTEM 5 OUTPUT) ====================
-
-    /// <summary>
-    /// Location where this Scene appears
-    /// DIRECT OBJECT REFERENCE - no PlacementType enum, no string ID dispatch
-    /// Set by PackageLoader (System 5) after EntityResolver (System 4) returns concrete object
-    /// Flow: Categories (System 2) → JSON spec (System 3) → FindOrCreate (System 4) → Object reference (System 5)
-    /// Most scenes have Location (conversation, investigation, ambient)
-    /// null only for abstract/conceptual scenes (rare)
-    /// </summary>
-    public Location Location { get; set; }
-
-    /// <summary>
-    /// NPC associated with this Scene (conversation/interaction partner)
-    /// DIRECT OBJECT REFERENCE - set by PackageLoader after entity resolution
-    /// null for location-only scenes (ambient discoveries, environmental events)
-    /// Example: Conversation AT tavern WITH Elena → scene.Location = tavern, scene.Npc = Elena
-    /// Enables direct navigation: scene.Npc.Name, scene.Npc.PersonalityType
-    /// </summary>
-    public NPC Npc { get; set; }
-
-    /// <summary>
-    /// Route associated with this Scene (travel/journey context)
-    /// DIRECT OBJECT REFERENCE - set by PackageLoader after entity resolution
-    /// null for most scenes (only route-specific events use this)
-    /// Example: Bandit ambush ON mountain road → scene.Location = ambush site, scene.Route = mountain road
-    /// Enables direct navigation: scene.Route.DangerRating, scene.Route.TerrainTypes
-    /// </summary>
-    public RouteOption Route { get; set; }
+    // ==================== PLACEMENT MOVED TO SITUATION ====================
+    // ARCHITECTURAL CHANGE: Placement is per-situation, not per-scene
+    // Multi-situation scenes require each situation to have its own location/NPC/route
+    // Example: "Inn Service" scene has three situations at different locations:
+    //   - Situation 1: "Negotiate" at Common Room with Innkeeper
+    //   - Situation 2: "Rest" at Private Room with no NPC
+    //   - Situation 3: "Depart" at Exit with no NPC
+    // Scene is narrative container with no specific placement
+    // Each Situation has Location/Npc/Route properties
 
     // ==================== PRESENTATION PROPERTIES ====================
 
@@ -313,7 +293,7 @@ public class Scene
     }
 
     /// <summary>
-    /// Check if this Scene should activate at given context (location + optional NPC)
+    /// Check if this Scene should resume at given context (location + optional NPC)
     /// Used for multi-situation scene resumption after navigation
     /// Scene resumes if:
     /// - Scene is Active
@@ -324,50 +304,49 @@ public class Scene
     /// <param name="locationId">Location player is currently at</param>
     /// <param name="npcId">NPC player is currently interacting with (null if none)</param>
     /// <returns>True if scene should resume at this context</returns>
-    public bool ShouldActivateAtContext(string locationId, string npcId)
+    public bool ShouldResumeAtContext(string locationId, string npcId)
     {
-        Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' checking activation at location '{locationId}', npc '{npcId}'");
+        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' checking resumption at location '{locationId}', npc '{npcId}'");
 
         if (State != SceneState.Active)
         {
-            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - State is {State}, not Active");
+            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - State is {State}, not Active");
             return false;
         }
 
         if (CurrentSituation == null)
         {
-            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - CurrentSituation is null");
+            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - CurrentSituation is null");
             return false;
         }
 
         if (CurrentSituation.Template == null)
         {
-            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - CurrentSituation template is null");
+            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - CurrentSituation template is null");
             return false;
         }
 
-        // Use situation's resolved entity reference, fall back to STRING ID (backward compat), then template ID
-        // ARCHITECTURAL: Situation owns Location/NPC (not Scene)
-        string requiredLocationId = CurrentSituation.Location?.Id ?? CurrentSituation.ResolvedRequiredLocationId ?? CurrentSituation.Template?.RequiredLocationId;
-        string requiredNpcId = CurrentSituation.Npc?.ID ?? CurrentSituation.ResolvedRequiredNpcId ?? CurrentSituation.Template?.RequiredNpcId;
+        // Hierarchical placement: Situations have direct object references (not template IDs)
+        string requiredLocationId = CurrentSituation.Location?.Id;
+        string requiredNpcId = CurrentSituation.Npc?.ID;
 
-        Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' requires location '{requiredLocationId}', npc '{requiredNpcId}' | Player at '{locationId}', '{npcId}'");
+        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' requires location '{requiredLocationId}', npc '{requiredNpcId}' | Player at '{locationId}', '{npcId}'");
 
         // Check location match
         if (requiredLocationId != locationId)
         {
-            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - Location mismatch");
+            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - Location mismatch");
             return false;
         }
 
         // Check NPC match (both null = match, both non-null = compare values)
         if (requiredNpcId != npcId)
         {
-            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - NPC mismatch");
+            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - NPC mismatch");
             return false;
         }
 
-        Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' ACTIVATED - All conditions met!");
+        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' RESUMED - All conditions met!");
         return true;
     }
 
@@ -385,13 +364,12 @@ public class Scene
         if (previousSituation?.Template == null || nextSituation?.Template == null)
             return SceneRoutingDecision.ExitToWorld;
 
-        // Use situation's resolved entity reference, fall back to STRING ID (backward compat), then template ID
-        // ARCHITECTURAL: Situation owns Location/NPC (not Scene)
-        string prevLocationId = previousSituation.Location?.Id ?? previousSituation.ResolvedRequiredLocationId ?? previousSituation.Template?.RequiredLocationId;
-        string nextLocationId = nextSituation.Location?.Id ?? nextSituation.ResolvedRequiredLocationId ?? nextSituation.Template?.RequiredLocationId;
+        // Hierarchical placement: Situations have direct object references (not template IDs)
+        string prevLocationId = previousSituation.Location?.Id;
+        string nextLocationId = nextSituation.Location?.Id;
 
-        string prevNpcId = previousSituation.Npc?.ID ?? previousSituation.ResolvedRequiredNpcId ?? previousSituation.Template?.RequiredNpcId;
-        string nextNpcId = nextSituation.Npc?.ID ?? nextSituation.ResolvedRequiredNpcId ?? nextSituation.Template?.RequiredNpcId;
+        string prevNpcId = previousSituation.Npc?.ID;
+        string nextNpcId = nextSituation.Npc?.ID;
 
         Console.WriteLine($"[Scene.CompareContexts] Previous: location='{prevLocationId}', npc='{prevNpcId}'");
         Console.WriteLine($"[Scene.CompareContexts] Next: location='{nextLocationId}', npc='{nextNpcId}'");
