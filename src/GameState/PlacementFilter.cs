@@ -73,10 +73,35 @@ public class PlacementFilter
     /// </summary>
     public int? MaxBond { get; init; }
 
+    // Orthogonal Categorical Dimensions for NPC selection
+    // Multiple dimensions compose to create archetypes
+    // Empty list = don't filter on this dimension (any value matches)
+    // Non-empty list = NPC must have ONE OF the specified values
+
     /// <summary>
-    /// Categorical tags for NPC selection
-    /// Example: ["Wealthy", "UrbanResident", "Authority"]
-    /// NPC must have ALL specified tags to match
+    /// Social standing dimension for NPC selection
+    /// Example: [Notable, Authority] - select NPCs who are recognized or powerful
+    /// Empty = any standing (don't filter)
+    /// </summary>
+    public List<NPCSocialStanding> SocialStandings { get; init; } = new List<NPCSocialStanding>();
+
+    /// <summary>
+    /// Story role dimension for NPC selection
+    /// Example: [Obstacle, Facilitator] - select NPCs who block or help
+    /// Empty = any role (don't filter)
+    /// </summary>
+    public List<NPCStoryRole> StoryRoles { get; init; } = new List<NPCStoryRole>();
+
+    /// <summary>
+    /// Knowledge level dimension for NPC selection
+    /// Example: [Informed, Expert] - select NPCs aware of local events
+    /// Empty = any knowledge level (don't filter)
+    /// </summary>
+    public List<NPCKnowledgeLevel> KnowledgeLevels { get; init; } = new List<NPCKnowledgeLevel>();
+
+    /// <summary>
+    /// DEPRECATED: NPC tags used only for DEPENDENT_NPC marker system
+    /// Use orthogonal categorical dimensions (SocialStanding, StoryRole, KnowledgeLevel) instead
     /// </summary>
     public List<string> NpcTags { get; init; } = new List<string>();
 
@@ -106,11 +131,43 @@ public class PlacementFilter
     public bool? IsPlayerAccessible { get; init; }
 
     /// <summary>
-    /// Categorical tags for location selection
-    /// Example: ["Marketplace", "Noble", "Industrial"]
-    /// Location must have ALL specified tags to match
+    /// DEPRECATED: Location tags used only for DEPENDENT_LOCATION marker system
+    /// Use orthogonal categorical dimensions (Privacy, Safety, Activity, Purpose) instead
     /// </summary>
     public List<string> LocationTags { get; init; } = new List<string>();
+
+    // Orthogonal Categorical Dimensions for Location selection
+    // Multiple dimensions compose to create archetypes
+    // Empty list = don't filter on this dimension (any value matches)
+    // Non-empty list = Location must have ONE OF the specified values
+
+    /// <summary>
+    /// Privacy dimension for location selection
+    /// Example: [SemiPublic, Private] - select locations with moderate to high privacy
+    /// Empty = any privacy level (don't filter)
+    /// </summary>
+    public List<LocationPrivacy> PrivacyLevels { get; init; } = new List<LocationPrivacy>();
+
+    /// <summary>
+    /// Safety dimension for location selection
+    /// Example: [Safe] - select only secure locations
+    /// Empty = any safety level (don't filter)
+    /// </summary>
+    public List<LocationSafety> SafetyLevels { get; init; } = new List<LocationSafety>();
+
+    /// <summary>
+    /// Activity dimension for location selection
+    /// Example: [Quiet, Moderate] - avoid busy crowded places
+    /// Empty = any activity level (don't filter)
+    /// </summary>
+    public List<LocationActivity> ActivityLevels { get; init; } = new List<LocationActivity>();
+
+    /// <summary>
+    /// Purpose dimension for location selection
+    /// Example: [Dwelling, Commerce] - select lodging or trade locations
+    /// Empty = any purpose (don't filter)
+    /// </summary>
+    public List<LocationPurpose> Purposes { get; init; } = new List<LocationPurpose>();
 
     /// <summary>
     /// District identifier filter

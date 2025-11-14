@@ -243,27 +243,10 @@ public class RewardApplicationService
                 }
             }
 
-            // Resolve placement context
-            RouteOption currentRoute = null;
-            string routeId = currentSituation?.GetPlacementId(PlacementType.Route);
-            if (!string.IsNullOrEmpty(routeId))
-            {
-                currentRoute = _gameWorld.Routes.FirstOrDefault(r => r.Id == routeId);
-            }
-
-            Location currentLocation = null;
-            string locationId = currentSituation?.GetPlacementId(PlacementType.Location);
-            if (!string.IsNullOrEmpty(locationId))
-            {
-                currentLocation = _gameWorld.GetLocation(locationId);
-            }
-
-            NPC currentNPC = null;
-            string npcId = currentSituation?.GetPlacementId(PlacementType.NPC);
-            if (!string.IsNullOrEmpty(npcId))
-            {
-                currentNPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-            }
+            // Resolve placement context (ARCHITECTURAL CHANGE: Direct property access)
+            RouteOption currentRoute = currentSituation?.Route;
+            Location currentLocation = currentSituation?.Location;
+            NPC currentNPC = currentSituation?.Npc;
 
             // Build spawn context
             SceneSpawnContext context = new SceneSpawnContext

@@ -92,11 +92,11 @@ public class SpawnedScenePlayabilityValidator
                 $"- TemplateId: {scene.TemplateId}\n" +
                 $"- Category: {scene.Category}\n" +
                 $"- MainStorySequence: {scene.MainStorySequence}\n" +
-                $"- Location: {scene.Location?.Id}\n" +
-                $"- Npc: {scene.Npc?.ID}\n" +
-                $"- Route: {scene.Route?.Id}\n" +
                 $"- State: {scene.State}\n" +
                 $"- CurrentSituationId: {scene.CurrentSituation?.Id}\n" +
+                $"- CurrentSituation Location: {scene.CurrentSituation?.Location?.Id}\n" +
+                $"- CurrentSituation Npc: {scene.CurrentSituation?.Npc?.ID}\n" +
+                $"- CurrentSituation Route: {scene.CurrentSituation?.Route?.Id}\n" +
                 $"- Situations Count: {scene.Situations.Count}\n" +
                 $"This scene spawned successfully but is UNPLAYABLE. Player will be SOFT LOCKED."
             );
@@ -138,78 +138,84 @@ public class SpawnedScenePlayabilityValidator
 
     /// <summary>
     /// Validate required location exists in GameWorld
+    /// Hierarchical placement: Situation has direct object reference (not string ID)
     /// </summary>
     private void ValidateRequiredLocation(Situation situation, List<string> errors)
     {
-        string requiredLocationId = situation.ResolvedRequiredLocationId ?? situation.Template?.RequiredLocationId;
-
-        if (!string.IsNullOrEmpty(requiredLocationId))
+        if (situation.Location != null)
         {
-            Location location = _gameWorld.GetLocation(requiredLocationId);
-            if (location == null)
+            // Verify the location reference is still valid in GameWorld
+            if (!_gameWorld.Locations.Contains(situation.Location))
             {
-                errors.Add($"Situation '{situation.Id}' requires location '{requiredLocationId}' which does not exist in GameWorld");
+                errors.Add($"Situation '{situation.Id}' references location '{situation.Location.Id}' which is no longer in GameWorld");
             }
         }
     }
 
     /// <summary>
     /// Validate required NPC exists in GameWorld
+    /// Hierarchical placement: Situation has direct object reference (not string ID)
     /// </summary>
     private void ValidateRequiredNPC(Situation situation, List<string> errors)
     {
-        string requiredNpcId = situation.ResolvedRequiredNpcId ?? situation.Template?.RequiredNpcId;
-
-        if (!string.IsNullOrEmpty(requiredNpcId))
+        if (situation.Npc != null)
         {
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == requiredNpcId);
-            if (npc == null)
+            // Verify the NPC reference is still valid in GameWorld
+            if (!_gameWorld.NPCs.Contains(situation.Npc))
             {
-                errors.Add($"Situation '{situation.Id}' requires NPC '{requiredNpcId}' which does not exist in GameWorld");
+                errors.Add($"Situation '{situation.Id}' references NPC '{situation.Npc.ID}' which is no longer in GameWorld");
             }
         }
     }
 
     /// <summary>
-    /// Validate scene placement references existing entity
-    /// Uses Scene's direct object references (Location, Npc, Route)
+    /// Validate situation placements reference existing entities
+    /// ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
+    /// Checks that each situation has valid placement references
     /// </summary>
     private void ValidatePlacement(Scene scene, List<string> errors)
     {
-        // Scene must have at least one placement (Location, Npc, or Route)
-        if (scene.Location == null && scene.Npc == null && scene.Route == null)
+        // Scene must have at least one situation with placement
+        bool hasPlacement = scene.Situations.Any(sit =>
+            sit.Location != null || sit.Npc != null || sit.Route != null);
+
+        if (!hasPlacement)
         {
-            errors.Add($"Scene '{scene.Id}' has no placement (Location, Npc, Route all null) - player cannot find it");
+            errors.Add($"Scene '{scene.Id}' has no situations with placement (all situations have null Location/Npc/Route) - player cannot find it");
             return;
         }
 
-        // Validate Location placement if present
-        if (scene.Location != null)
+        // Validate each situation's placement
+        foreach (Situation situation in scene.Situations)
         {
-            Location location = _gameWorld.GetLocation(scene.Location.Id);
-            if (location == null)
+            // Validate Location placement if present
+            if (situation.Location != null)
             {
-                errors.Add($"Scene '{scene.Id}' references Location '{scene.Location.Id}' which does not exist in GameWorld");
+                Location location = _gameWorld.GetLocation(situation.Location.Id);
+                if (location == null)
+                {
+                    errors.Add($"Situation '{situation.Id}' references Location '{situation.Location.Id}' which does not exist in GameWorld");
+                }
             }
-        }
 
-        // Validate NPC placement if present
-        if (scene.Npc != null)
-        {
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == scene.Npc.ID);
-            if (npc == null)
+            // Validate NPC placement if present
+            if (situation.Npc != null)
             {
-                errors.Add($"Scene '{scene.Id}' references NPC '{scene.Npc.ID}' which does not exist in GameWorld");
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == situation.Npc.ID);
+                if (npc == null)
+                {
+                    errors.Add($"Situation '{situation.Id}' references NPC '{situation.Npc.ID}' which does not exist in GameWorld");
+                }
             }
-        }
 
-        // Validate Route placement if present
-        if (scene.Route != null)
-        {
-            RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == scene.Route.Id);
-            if (route == null)
+            // Validate Route placement if present
+            if (situation.Route != null)
             {
-                errors.Add($"Scene '{scene.Id}' references Route '{scene.Route.Id}' which does not exist in GameWorld");
+                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == situation.Route.Id);
+                if (route == null)
+                {
+                    errors.Add($"Situation '{situation.Id}' references Route '{situation.Route.Id}' which does not exist in GameWorld");
+                }
             }
         }
     }

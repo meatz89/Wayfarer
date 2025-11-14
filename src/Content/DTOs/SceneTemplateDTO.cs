@@ -22,11 +22,41 @@ public class SceneTemplateDTO
     /// </summary>
     public string DisplayNameTemplate { get; set; }
 
+    // ==================== HIERARCHICAL PLACEMENT (BASE FILTERS) ====================
+    // CSS-style inheritance: SceneTemplate provides BASE filters for all situations
+    // SituationTemplate can OVERRIDE selectively per-situation
+    // Resolution at parse time: effectiveFilter = situationFilter ?? sceneBaseFilter
+
     /// <summary>
-    /// Categorical filters for procedural entity selection
-    /// Determines what NPCs/Locations/Routes match this Scene's context
+    /// Base location filter for all situations in this scene template
+    /// CSS-STYLE INHERITANCE: Situations inherit this base filter unless they specify their own override
+    /// Resolution: effectiveFilter = SituationTemplateDTO.LocationFilter ?? BaseLocationFilter
+    /// null = no base location (situations must specify their own)
+    /// Enables multi-location scenes with shared default location
+    /// Example: "Inn Service" scene has base "Common Room" location for most situations
+    /// See also: <see cref="SituationTemplateDTO.LocationFilter"/> for situation-specific overrides
     /// </summary>
-    public PlacementFilterDTO PlacementFilter { get; set; }
+    public PlacementFilterDTO BaseLocationFilter { get; set; }
+
+    /// <summary>
+    /// Base NPC filter for all situations in this scene template
+    /// CSS-STYLE INHERITANCE: Situations inherit this base filter unless they specify their own override
+    /// Resolution: effectiveFilter = SituationTemplateDTO.NpcFilter ?? BaseNpcFilter
+    /// null = no base NPC (situations must specify their own)
+    /// Example: "Innkeeper" for all Inn Service situations unless overridden
+    /// See also: <see cref="SituationTemplateDTO.NpcFilter"/> for situation-specific overrides
+    /// </summary>
+    public PlacementFilterDTO BaseNpcFilter { get; set; }
+
+    /// <summary>
+    /// Base route filter for all situations in this scene template
+    /// CSS-STYLE INHERITANCE: Situations inherit this base filter unless they specify their own override
+    /// Resolution: effectiveFilter = SituationTemplateDTO.RouteFilter ?? BaseRouteFilter
+    /// null = no base route (situations must specify their own)
+    /// Rarely used - most situations don't involve routes
+    /// See also: <see cref="SituationTemplateDTO.RouteFilter"/> for situation-specific overrides
+    /// </summary>
+    public PlacementFilterDTO BaseRouteFilter { get; set; }
 
     /// <summary>
     /// Temporal eligibility conditions for scene spawning

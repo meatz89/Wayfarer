@@ -13,6 +13,13 @@ public class NPC
     // Categorical Properties for Logical System Interactions
     public Professions Profession { get; set; }
 
+    // Orthogonal Categorical Dimensions (Entity Resolution)
+    // These dimensions compose to create narrative archetypes
+    // Example: Notable + Obstacle + Informed = Gatekeeper who knows local events
+    public NPCSocialStanding SocialStanding { get; set; } = NPCSocialStanding.Commoner;
+    public NPCStoryRole StoryRole { get; set; } = NPCStoryRole.Neutral;
+    public NPCKnowledgeLevel KnowledgeLevel { get; set; } = NPCKnowledgeLevel.Ignorant;
+
     // Personality system
     public string PersonalityDescription { get; set; } = string.Empty; // Authentic description from JSON
     public PersonalityType PersonalityType { get; set; } // NO DEFAULT - must be set explicitly from JSON

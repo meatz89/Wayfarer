@@ -21,4 +21,10 @@ public class NPCDTO
 
     public string CurrentState { get; set; }
     public Dictionary<string, int> InitialTokens { get; set; } = new Dictionary<string, int>();
+
+    // Orthogonal Categorical Dimensions (Entity Resolution)
+    // String values from JSON parsed to enums by NPCParser
+    public string SocialStanding { get; set; }
+    public string StoryRole { get; set; }
+    public string KnowledgeLevel { get; set; }
 }

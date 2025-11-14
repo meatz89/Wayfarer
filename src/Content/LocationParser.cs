@@ -134,6 +134,27 @@ public static class LocationParser
             }
         }
 
+        // Parse orthogonal categorical dimensions for entity resolution
+        if (!string.IsNullOrEmpty(dto.Privacy) && Enum.TryParse(dto.Privacy, out LocationPrivacy privacy))
+        {
+            location.Privacy = privacy;
+        }
+
+        if (!string.IsNullOrEmpty(dto.Safety) && Enum.TryParse(dto.Safety, out LocationSafety safety))
+        {
+            location.Safety = safety;
+        }
+
+        if (!string.IsNullOrEmpty(dto.Activity) && Enum.TryParse(dto.Activity, out LocationActivity activity))
+        {
+            location.Activity = activity;
+        }
+
+        if (!string.IsNullOrEmpty(dto.Purpose) && Enum.TryParse(dto.Purpose, out LocationPurpose purpose))
+        {
+            location.Purpose = purpose;
+        }
+
         // Parse available professions by time
         if (dto.AvailableProfessionsByTime != null)
         {

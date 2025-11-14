@@ -147,7 +147,7 @@ public class SituationFacade
     /// <summary>
     /// Initiate Mental challenge - route to MentalFacade with challenge payload
     /// MentalFacade consumes tactical costs (Focus) during challenge execution
-    /// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
     /// </summary>
     private SituationSelectionResult InitiateMentalChallenge(Situation situation)
     {
@@ -155,7 +155,7 @@ public class SituationFacade
         // MentalFacade will consume Focus (tactical cost) during challenge
         // SituationFacade has already consumed Resolve (strategic cost)
 
-        string locationId = situation.GetPlacementId(PlacementType.Location);
+        string locationId = situation.Location?.Id;
         return SituationSelectionResult.LaunchChallenge(
             TacticalSystemType.Mental,
             situation.Id,
@@ -167,7 +167,7 @@ public class SituationFacade
     /// <summary>
     /// Initiate Physical challenge - route to PhysicalFacade with challenge payload
     /// PhysicalFacade consumes tactical costs (Stamina) during challenge execution
-    /// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
     /// </summary>
     private SituationSelectionResult InitiatePhysicalChallenge(Situation situation)
     {
@@ -175,7 +175,7 @@ public class SituationFacade
         // PhysicalFacade will consume Stamina (tactical cost) during challenge
         // SituationFacade has already consumed Resolve (strategic cost)
 
-        string locationId = situation.GetPlacementId(PlacementType.Location);
+        string locationId = situation.Location?.Id;
         return SituationSelectionResult.LaunchChallenge(
             TacticalSystemType.Physical,
             situation.Id,
@@ -187,7 +187,7 @@ public class SituationFacade
     /// <summary>
     /// Initiate Social challenge - route to SocialFacade with challenge payload
     /// SocialFacade consumes tactical costs during challenge execution
-    /// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
     /// </summary>
     private SituationSelectionResult InitiateSocialChallenge(Situation situation)
     {
@@ -195,7 +195,7 @@ public class SituationFacade
         // SocialFacade will consume tactical costs during challenge
         // SituationFacade has already consumed Resolve (strategic cost)
 
-        string npcId = situation.GetPlacementId(PlacementType.NPC);
+        string npcId = situation.Npc?.ID;
         return SituationSelectionResult.LaunchChallenge(
             TacticalSystemType.Social,
             situation.Id,

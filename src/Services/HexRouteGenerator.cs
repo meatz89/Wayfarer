@@ -216,10 +216,9 @@ public class HexRouteGenerator
         if (route.Segments == null || route.Segments.Count == 0)
             return;
 
-        // Get all SceneTemplates with Route placement
+        // Get all SceneTemplates with Route placement (hierarchical placement model)
         List<SceneTemplate> routeTemplates = _gameWorld.SceneTemplates
-            .Where(template => template.PlacementFilter != null &&
-                              template.PlacementFilter.PlacementType == PlacementType.Route)
+            .Where(template => template.BaseRouteFilter != null)
             .ToList();
 
         if (routeTemplates.Count == 0)
@@ -271,7 +270,7 @@ public class HexRouteGenerator
 
         foreach (SceneTemplate template in templates)
         {
-            PlacementFilter filter = template.PlacementFilter;
+            PlacementFilter filter = template.BaseRouteFilter;
 
             // Check terrain match (if filter specifies terrains)
             if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
@@ -346,13 +345,12 @@ public class HexRouteGenerator
         string sceneId = $"scene_{template.Id}_{route.Id}_seg{segment.SegmentNumber}";
 
         // Create Scene directly as Active (skip provisional step)
-        // System 5: Scene has direct object reference to Route (not PlacementType/PlacementId)
+        // HIERARCHICAL PLACEMENT: Route set on Situation, not Scene
         Scene scene = new Scene
         {
             Id = sceneId,
             TemplateId = template.Id,
             Template = template,
-            Route = route, // Direct object reference (5-system architecture)
             State = SceneState.Active, // Active immediately, not provisional
             Archetype = template.Archetype,
             DisplayName = template.DisplayNameTemplate,

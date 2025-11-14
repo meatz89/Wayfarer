@@ -188,7 +188,7 @@ public class ProceduralAStoryService
             Archetype = "Linear", // A-story scenes are linear progression
             DisplayNameTemplate = $"The Path Deepens (A{sequence})", // AI will generate better title
             SceneArchetypeId = archetypeId, // Routes to AStorySceneArchetypeCatalog
-            PlacementFilter = placementFilter,
+            BaseLocationFilter = placementFilter, // HIERARCHICAL PLACEMENT: Use BaseLocationFilter for scene-level base
             SpawnConditions = spawnConditions,
             Tier = tier,
             Category = "MainStory",
@@ -452,25 +452,26 @@ public class ProceduralAStoryService
                 context.RecentArchetypeIds.Add(scene.Template.SceneArchetypeId);
             }
 
-            // Extract region from placement location
-            // Use direct object reference instead of PlacementId lookup
-            if (scene.Location != null && !string.IsNullOrEmpty(scene.Location.VenueId))
+            // Extract region from current situation's placement location
+            // ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
+            Location situationLocation = scene.CurrentSituation?.Location;
+            if (situationLocation != null && !string.IsNullOrEmpty(situationLocation.VenueId))
             {
                 // RegionId removed from Location - track by VenueId instead
-                if (!context.RecentRegionIds.Contains(scene.Location.VenueId))
+                if (!context.RecentRegionIds.Contains(situationLocation.VenueId))
                 {
-                    context.RecentRegionIds.Add(scene.Location.VenueId);
+                    context.RecentRegionIds.Add(situationLocation.VenueId);
                 }
             }
 
-            // Extract NPC personality from scene placement (if NPC-placed)
+            // Extract NPC personality from current situation's placement
             // For A-story scenes, typically Location-placed, but check anyway
-            // Use direct object reference instead of PlacementType enum dispatch
-            if (scene.Npc != null)
+            NPC situationNpc = scene.CurrentSituation?.Npc;
+            if (situationNpc != null)
             {
-                if (!context.RecentPersonalityTypes.Contains(scene.Npc.PersonalityType))
+                if (!context.RecentPersonalityTypes.Contains(situationNpc.PersonalityType))
                 {
-                    context.RecentPersonalityTypes.Add(scene.Npc.PersonalityType);
+                    context.RecentPersonalityTypes.Add(situationNpc.PersonalityType);
                 }
             }
         }

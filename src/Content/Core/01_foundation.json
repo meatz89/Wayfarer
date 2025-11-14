@@ -65,6 +65,10 @@
             "indoor"
           ]
         },
+        "privacy": "SemiPublic",
+        "safety": "Safe",
+        "activity": "Moderate",
+        "purpose": "Dwelling",
         "canInvestigate": false
       },
       {

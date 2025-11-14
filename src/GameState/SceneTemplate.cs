@@ -38,13 +38,40 @@ public class SceneTemplate
     /// </summary>
     public string DisplayNameTemplate { get; init; }
 
+    // ==================== HIERARCHICAL PLACEMENT (BASE FILTERS) ====================
+    // CSS-style inheritance: SceneTemplate provides BASE filters for all situations
+    // SituationTemplate can OVERRIDE selectively per-situation
+    // Resolution: effectiveFilter = situationFilter ?? sceneBaseFilter
+
     /// <summary>
-    /// Categorical filter for placement entity selection
-    /// NO concrete entity IDs - only categorical properties
-    /// At spawn time, SceneInstantiator queries GameWorld for entities matching filter
-    /// Enables procedural generation and AI content creation
+    /// Base location filter for all situations in this scene
+    /// CSS-STYLE INHERITANCE: Situations inherit this base filter unless they specify their own override
+    /// Resolution: effectiveFilter = SituationTemplate.LocationFilter ?? BaseLocationFilter
+    /// null = no base location (situations must specify their own)
+    /// Enables multi-location scenes with shared default location
+    /// See also: <see cref="SituationTemplate.LocationFilter"/> for situation-specific overrides
     /// </summary>
-    public PlacementFilter PlacementFilter { get; init; }
+    public PlacementFilter BaseLocationFilter { get; init; }
+
+    /// <summary>
+    /// Base NPC filter for all situations in this scene
+    /// CSS-STYLE INHERITANCE: Situations inherit this base filter unless they specify their own override
+    /// Resolution: effectiveFilter = SituationTemplate.NpcFilter ?? BaseNpcFilter
+    /// null = no base NPC (situations must specify their own)
+    /// Example: "Innkeeper" for all Inn Service situations unless overridden
+    /// See also: <see cref="SituationTemplate.NpcFilter"/> for situation-specific overrides
+    /// </summary>
+    public PlacementFilter BaseNpcFilter { get; init; }
+
+    /// <summary>
+    /// Base route filter for all situations in this scene
+    /// CSS-STYLE INHERITANCE: Situations inherit this base filter unless they specify their own override
+    /// Resolution: effectiveFilter = SituationTemplate.RouteFilter ?? BaseRouteFilter
+    /// null = no base route (situations must specify their own)
+    /// Rarely used - most situations don't involve routes
+    /// See also: <see cref="SituationTemplate.RouteFilter"/> for situation-specific overrides
+    /// </summary>
+    public PlacementFilter BaseRouteFilter { get; init; }
 
     /// <summary>
     /// Temporal eligibility conditions for scene spawning

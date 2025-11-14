@@ -12,11 +12,11 @@ public class DifficultyModifier
 
     /// <summary>
     /// Context for the modifier (if needed)
-    /// NO ID MATCHING: Familiarity and ConnectionTokens use situation's placement via GetPlacementId(), not Context
+    /// ARCHITECTURAL CHANGE: Familiarity and ConnectionTokens use situation.Location/Npc directly
     /// - Understanding: null (global resource)
     /// - Mastery: Challenge type ("Combat", "Athletics", etc.)
-    /// - Familiarity: NOT USED (uses situation.GetPlacementId(PlacementType.Location) instead)
-    /// - ConnectionTokens: NOT USED (uses situation.GetPlacementId(PlacementType.NPC) instead)
+    /// - Familiarity: NOT USED (uses situation.Location instead)
+    /// - ConnectionTokens: NOT USED (uses situation.Npc instead)
     /// - SceneProperty: Property name (always "Intensity" now)
     /// - HasItemCategory: ItemCategory enum value as string ("Light_Source", "Navigation_Tools", etc.)
     /// </summary>
@@ -75,7 +75,7 @@ public enum ModifierType
     /// Accumulated through Mental challenges at that specific location
     /// Never depletes (cumulative per-location growth)
     /// Competition: Multiple locations need obligation, limited Focus
-    /// Context: NOT USED (service uses situation.GetPlacementId(PlacementType.Location) instead - NO ID MATCHING)
+    /// Context: NOT USED (service uses situation.Location directly)
     /// Threshold: Minimum Familiarity needed (e.g., 2)
     /// Effect: Exposure or Doubt reduction (e.g., -2)
     /// </summary>
@@ -86,7 +86,7 @@ public enum ModifierType
     /// Accumulated through Social challenges with that specific NPC
     /// Can decrease through obligation failures
     /// Competition: Multiple NPCs need relationship building, limited Time
-    /// Context: NOT USED (service uses situation.NpcId instead - NO ID MATCHING)
+    /// Context: NOT USED (service uses situation.Npc directly)
     /// Threshold: Minimum Connection Tokens needed (e.g., 5)
     /// Effect: Doubt rate reduction (e.g., -4)
     /// </summary>

@@ -520,24 +520,29 @@ public class ObligationActivity
     }
     /// <summary>
     /// Get human-readable placement description for system message
-    /// Uses direct object references (Location/Npc/Route) instead of PlacementType enum dispatch
+    /// ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
+    /// Query current situation's placement
     /// </summary>
     private string GetPlacementDescription(Scene scene)
     {
+        Situation currentSituation = scene.CurrentSituation;
+        if (currentSituation == null)
+            return "";
+
         // Check direct object references in priority order
-        if (scene.Npc != null)
+        if (currentSituation.Npc != null)
         {
-            return $"with {scene.Npc.Name}";
+            return $"with {currentSituation.Npc.Name}";
         }
 
-        if (scene.Route != null)
+        if (currentSituation.Route != null)
         {
-            return $"on route to {scene.Route.Name}";
+            return $"on route to {currentSituation.Route.Name}";
         }
 
-        if (scene.Location != null)
+        if (currentSituation.Location != null)
         {
-            return $"at {scene.Location.Name}";
+            return $"at {currentSituation.Location.Name}";
         }
 
         return "";

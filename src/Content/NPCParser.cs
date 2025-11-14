@@ -88,6 +88,22 @@ public static class NPCParser
             }
         }
 
+        // Parse orthogonal categorical dimensions for entity resolution
+        if (!string.IsNullOrEmpty(dto.SocialStanding) && Enum.TryParse(dto.SocialStanding, out NPCSocialStanding socialStanding))
+        {
+            npc.SocialStanding = socialStanding;
+        }
+
+        if (!string.IsNullOrEmpty(dto.StoryRole) && Enum.TryParse(dto.StoryRole, out NPCStoryRole storyRole))
+        {
+            npc.StoryRole = storyRole;
+        }
+
+        if (!string.IsNullOrEmpty(dto.KnowledgeLevel) && Enum.TryParse(dto.KnowledgeLevel, out NPCKnowledgeLevel knowledgeLevel))
+        {
+            npc.KnowledgeLevel = knowledgeLevel;
+        }
+
         // Resolve Location object reference during parsing (HIGHLANDER: ID is parsing artifact)
         if (!string.IsNullOrEmpty(dto.LocationId))
         {

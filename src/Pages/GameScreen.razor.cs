@@ -609,15 +609,15 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             return;
         }
 
-        // Use direct object reference instead of PlacementType enum dispatch
-        if (scene.Npc == null || scene.Npc.ID != npcId)
-        {
-            Console.WriteLine($"[GameScreen] Scene {scene.Id} does not belong to NPC {npcId}");
-            return;
-        }
-
         // Get current situation from scene
         Situation currentSituation = scene.CurrentSituation;
+
+        // ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
+        if (currentSituation?.Npc == null || currentSituation.Npc.ID != npcId)
+        {
+            Console.WriteLine($"[GameScreen] Scene {scene.Id} current situation does not involve NPC {npcId}");
+            return;
+        }
 
         if (currentSituation == null)
         {

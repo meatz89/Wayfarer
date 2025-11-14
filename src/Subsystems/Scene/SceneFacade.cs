@@ -42,7 +42,7 @@ public class SceneFacade
     {
         return _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.ShouldActivateAtContext(locationId, npcId))
+                       s.ShouldResumeAtContext(locationId, npcId))
             .ToList();
     }
 
@@ -56,9 +56,10 @@ public class SceneFacade
     public List<LocationAction> GetActionsAtLocation(string locationId, Player player)
     {
         // Find active Scenes at this location
+        // HIERARCHICAL PLACEMENT: Check CurrentSituation.Location (situation owns placement)
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.Location?.Id == locationId)
+                       s.CurrentSituation?.Location?.Id == locationId)
             .ToList();
 
         List<LocationAction> allActions = new List<LocationAction>();
@@ -140,9 +141,10 @@ public class SceneFacade
     public List<NPCAction> GetActionsForNPC(string npcId, Player player)
     {
         // Find active Scenes with this NPC
+        // HIERARCHICAL PLACEMENT: Check CurrentSituation.Npc (situation owns placement)
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.Npc?.ID == npcId)
+                       s.CurrentSituation?.Npc?.ID == npcId)
             .ToList();
 
         List<NPCAction> allActions = new List<NPCAction>();
@@ -183,7 +185,8 @@ public class SceneFacade
     {
         situation.InstantiationState = InstantiationState.Instantiated;
 
-        NPC npc = scene.Npc;
+        // ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
+        NPC npc = situation.Npc;
 
         foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
         {
@@ -219,9 +222,10 @@ public class SceneFacade
     public List<PathCard> GetPathCardsForRoute(string routeId, Player player)
     {
         // Find active Scenes on this route
+        // HIERARCHICAL PLACEMENT: Check CurrentSituation.Route (situation owns placement)
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.Route?.Id == routeId)
+                       s.CurrentSituation?.Route?.Id == routeId)
             .ToList();
 
         List<PathCard> allPathCards = new List<PathCard>();
@@ -296,12 +300,13 @@ public class SceneFacade
     /// </summary>
     private SceneSpawnContext BuildContextFromParentScene(Scene parentScene, Player player)
     {
+        // HIERARCHICAL PLACEMENT: Get placement from CurrentSituation (situation owns placement)
         return new SceneSpawnContext
         {
             Player = player,
-            CurrentLocation = parentScene.Location,
-            CurrentNPC = parentScene.Npc,
-            CurrentRoute = parentScene.Route,
+            CurrentLocation = parentScene.CurrentSituation?.Location,
+            CurrentNPC = parentScene.CurrentSituation?.Npc,
+            CurrentRoute = parentScene.CurrentSituation?.Route,
             CurrentSituation = null
         };
     }
@@ -350,8 +355,15 @@ public class SceneFacade
                 continue;
             }
 
-            // Get placement filter from template (spawned scene inherits template's filter - HIGHLANDER)
-            PlacementFilter filter = template.PlacementFilter;
+            // Hierarchical placement: Determine primary placement type from base filters
+            // Precedence order: Location > NPC > Route (most specific to least specific)
+            PlacementType? primaryPlacementType = null;
+            if (template.BaseLocationFilter != null)
+                primaryPlacementType = PlacementType.Location;
+            else if (template.BaseNpcFilter != null)
+                primaryPlacementType = PlacementType.NPC;
+            else if (template.BaseRouteFilter != null)
+                primaryPlacementType = PlacementType.Route;
 
             // Collect unique challenge types from situation templates
             List<TacticalSystemType> challengeTypes = template.SituationTemplates
@@ -370,7 +382,7 @@ public class SceneFacade
                 DisplayName = displayName,
                 Tier = template.Tier,
                 ResolvedPlacementId = null, // Cannot resolve at preview time (requires FindOrCreate)
-                PlacementType = filter?.PlacementType,
+                PlacementType = primaryPlacementType,
                 SituationCount = template.SituationTemplates.Count,
                 ChallengeTypes = challengeTypes,
                 ExpiresInDays = template.ExpirationDays,

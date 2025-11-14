@@ -286,31 +286,24 @@ public class SpawnFacade
 
     /// <summary>
     /// Add spawned situation to ActiveSituationIds based on placement
-    /// PHASE 0.2: Query ParentScene for placement using GetPlacementId() helper
+    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
     /// </summary>
     private void AddToActiveSituations(Situation situation)
     {
-        string npcId = situation.GetPlacementId(PlacementType.NPC);
-        if (!string.IsNullOrEmpty(npcId))
+        if (situation.Npc != null)
         {
             // Add to NPC's ActiveSituationIds
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-            if (npc != null && !npc.ActiveSituationIds.Contains(situation.Id))
+            if (!situation.Npc.ActiveSituationIds.Contains(situation.Id))
             {
-                npc.ActiveSituationIds.Add(situation.Id);
+                situation.Npc.ActiveSituationIds.Add(situation.Id);
             }
         }
-        else
+        else if (situation.Location != null)
         {
-            string locationId = situation.GetPlacementId(PlacementType.Location);
-            if (!string.IsNullOrEmpty(locationId))
+            // Add to Location's ActiveSituationIds
+            if (!situation.Location.ActiveSituationIds.Contains(situation.Id))
             {
-                // Add to Location's ActiveSituationIds
-                Location location = _gameWorld.GetLocation(locationId);
-                if (location != null && !location.ActiveSituationIds.Contains(situation.Id))
-                {
-                    location.ActiveSituationIds.Add(situation.Id);
-                }
+                situation.Location.ActiveSituationIds.Add(situation.Id);
             }
         }
     }

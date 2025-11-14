@@ -139,8 +139,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "seeking_audience",
                 Style = "diplomatic"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         // SITUATION 2: AUDIENCE
@@ -163,8 +164,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "formal_audience",
                 Style = "dramatic"
             },
-            RequiredLocationId = "generated:meeting_chamber",
-            RequiredNpcId = context.NpcId
+            LocationFilter = new PlacementFilter { PlacementType = PlacementType.Location, LocationTags = new List<string> { "DEPENDENT_LOCATION:meeting_chamber" } },
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         // Linear spawn rules
@@ -274,8 +276,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "searching_clues",
                 Style = "atmospheric"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = null
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = new PlacementFilter { PlacementType = PlacementType.NPC, PersonalityTypes = new List<PersonalityType>() },  // No NPC
+            RouteFilter = null
         };
 
         // SITUATION 2: ANALYZE EVIDENCE
@@ -298,8 +301,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "analyzing_evidence",
                 Style = "cerebral"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = null
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = new PlacementFilter { PlacementType = PlacementType.NPC, PersonalityTypes = new List<PersonalityType>() },  // No NPC
+            RouteFilter = null
         };
 
         // SITUATION 3: CONCLUDE INVESTIGATION
@@ -322,8 +326,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "investigation_conclusion",
                 Style = "climactic"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = null
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = new PlacementFilter { PlacementType = PlacementType.NPC, PersonalityTypes = new List<PersonalityType>() },  // No NPC
+            RouteFilter = null
         };
 
         SituationSpawnRules spawnRules = new SituationSpawnRules
@@ -421,8 +426,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "gaining_confidence",
                 Style = "subtle"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         // SITUATION 2: INTERVIEW
@@ -445,8 +451,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "gathering_testimony",
                 Style = "investigative"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         SituationSpawnRules spawnRules = new SituationSpawnRules
@@ -524,8 +531,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "dramatic_confrontation",
                 Style = "intense"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         // SITUATION 2: RESOLUTION
@@ -548,8 +556,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "confrontation_outcome",
                 Style = "climactic"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         SituationSpawnRules spawnRules = new SituationSpawnRules
@@ -618,8 +627,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "meeting_order_member",
                 Style = "mysterious"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         // SITUATION 2: NEGOTIATE INFORMATION
@@ -642,8 +652,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "negotiating_knowledge",
                 Style = "strategic"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         // SITUATION 3: REVELATION
@@ -666,8 +677,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "order_secret_revealed",
                 Style = "impactful"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         SituationSpawnRules spawnRules = new SituationSpawnRules
@@ -743,8 +755,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "locating_artifact",
                 Style = "atmospheric"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = null
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = new PlacementFilter { PlacementType = PlacementType.NPC, PersonalityTypes = new List<PersonalityType>() },  // No NPC
+            RouteFilter = null
         };
 
         // SITUATION 2: ACQUIRE ARTIFACT
@@ -787,8 +800,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "claiming_artifact",
                 Style = "epic"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = null
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = new PlacementFilter { PlacementType = PlacementType.NPC, PersonalityTypes = new List<PersonalityType>() },  // No NPC
+            RouteFilter = null
         };
 
         SituationSpawnRules spawnRules = new SituationSpawnRules
@@ -870,8 +884,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "initial_suspicion",
                 Style = "tense"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = null
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = new PlacementFilter { PlacementType = PlacementType.NPC, PersonalityTypes = new List<PersonalityType>() },  // No NPC
+            RouteFilter = null
         };
 
         // SITUATION 2: GATHER PROOF
@@ -894,8 +909,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "proving_conspiracy",
                 Style = "methodical"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = null
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = new PlacementFilter { PlacementType = PlacementType.NPC, PersonalityTypes = new List<PersonalityType>() },  // No NPC
+            RouteFilter = null
         };
 
         // SITUATION 3: EXPOSE
@@ -918,8 +934,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "exposing_conspiracy",
                 Style = "climactic"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         // SITUATION 4: CONSEQUENCE
@@ -942,8 +959,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "conspiracy_aftermath",
                 Style = "sobering"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         SituationSpawnRules spawnRules = new SituationSpawnRules
@@ -1026,8 +1044,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "emergency",
                 Style = "intense"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         // SITUATION 2: DECISION
@@ -1050,8 +1069,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "urgent_choice",
                 Style = "high_stakes"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         SituationSpawnRules spawnRules = new SituationSpawnRules
@@ -1120,8 +1140,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "ethical_choice",
                 Style = "thoughtful"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         // SITUATION 2: MORAL CHOICE
@@ -1144,8 +1165,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "defining_moment",
                 Style = "impactful"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         // SITUATION 3: CONSEQUENCE
@@ -1168,8 +1190,9 @@ public static class AStorySceneArchetypeCatalog
                 Context = "moral_aftermath",
                 Style = "somber"
             },
-            RequiredLocationId = context.LocationId,
-            RequiredNpcId = context.NpcId
+            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            NpcFilter = null,       // Inherits scene BaseNpcFilter
+            RouteFilter = null
         };
 
         SituationSpawnRules spawnRules = new SituationSpawnRules

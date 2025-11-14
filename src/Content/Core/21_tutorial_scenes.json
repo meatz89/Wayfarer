@@ -16,7 +16,11 @@
         "presentationMode": "Modal",
         "tier": 0,
         "isStarter": true,
-        "placementFilter": {
+        "baseLocationFilter": {
+          "placementType": "Location",
+          "locationId": "common_room"
+        },
+        "baseNpcFilter": {
           "placementType": "NPC",
           "npcId": "elena"
         }
@@ -28,7 +32,7 @@
         "presentationMode": "Modal",
         "tier": 0,
         "isStarter": true,
-        "placementFilter": {
+        "baseLocationFilter": {
           "placementType": "Location",
           "locationId": "fountain_plaza"
         }

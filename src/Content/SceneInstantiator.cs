@@ -135,17 +135,17 @@ public class SceneInstantiator
         }
 
         // System 3: Write categorical specifications (NOT concrete IDs)
-        // Spawned scene inherits template's PlacementFilter (HIGHLANDER - no override mechanism)
-        PlacementFilter filter = template.PlacementFilter;
-        PlacementFilterDTO filterDto = ConvertPlacementFilterToDTO(filter);
+        // Hierarchical placement: Convert three separate base filters from template
+        // These will serve as CSS-style base filters for all situations in the scene
 
         SceneDTO dto = new SceneDTO
         {
             Id = sceneId,
             TemplateId = template.Id,
-            LocationFilter = filter?.PlacementType == PlacementType.Location ? filterDto : null,
-            NpcFilter = filter?.PlacementType == PlacementType.NPC ? filterDto : null,
-            RouteFilter = filter?.PlacementType == PlacementType.Route ? filterDto : null,
+            // Hierarchical placement base filters (CSS-style inheritance)
+            LocationFilter = ConvertPlacementFilterToDTO(template.BaseLocationFilter),
+            NpcFilter = ConvertPlacementFilterToDTO(template.BaseNpcFilter),
+            RouteFilter = ConvertPlacementFilterToDTO(template.BaseRouteFilter),
             State = "Active", // NEW: Scenes spawn directly as Active (no provisional state)
             ExpiresOnDay = expiresOnDay,
             Archetype = template.Archetype.ToString(),
@@ -179,11 +179,6 @@ public class SceneInstantiator
             // Generate unique Situation ID
             string situationId = $"situation_{sitTemplate.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
 
-            // Situations reference entities directly (no marker resolution)
-            // Categories already evaluated at scene spawn → concrete IDs exist
-            string resolvedLocationId = sitTemplate.RequiredLocationId;
-            string resolvedNpcId = sitTemplate.RequiredNpcId;
-
             // Use narrative template (narrative generation with resolved entities happens later in System 5)
             string description = sitTemplate.NarrativeTemplate;
             if (string.IsNullOrEmpty(description))
@@ -198,6 +193,28 @@ public class SceneInstantiator
                 .FirstOrDefault(c => c.PathType == ChoicePathType.Challenge)
                 ?.DeckId ?? string.Empty;
 
+            // CSS-style hierarchical placement inheritance
+            // Pattern: effectiveFilter = situationFilter ?? sceneBaseFilter
+            // Situation template filters override scene base filters
+            PlacementFilterDTO effectiveLocationFilter = ConvertPlacementFilterToDTO(sitTemplate.LocationFilter)
+                ?? sceneDto.LocationFilter;
+            PlacementFilterDTO effectiveNpcFilter = ConvertPlacementFilterToDTO(sitTemplate.NpcFilter)
+                ?? sceneDto.NpcFilter;
+            PlacementFilterDTO effectiveRouteFilter = ConvertPlacementFilterToDTO(sitTemplate.RouteFilter)
+                ?? sceneDto.RouteFilter;
+
+            // Replace DEPENDENT_LOCATION markers with scene-specific tags
+            // Marker format: "DEPENDENT_LOCATION:private_room" → "{sceneId}_private_room"
+            // This binds situations to dependent locations created by THIS scene
+            if (effectiveLocationFilter?.LocationTags != null)
+            {
+                effectiveLocationFilter.LocationTags = effectiveLocationFilter.LocationTags
+                    .Select(tag => tag.StartsWith("DEPENDENT_LOCATION:")
+                        ? $"{sceneDto.Id}_{tag.Substring("DEPENDENT_LOCATION:".Length)}"
+                        : tag)
+                    .ToList();
+            }
+
             // Build Situation DTO from template
             // Scene-based situations use templates - most DTO properties are for standalone situations
             SituationDTO situationDto = new SituationDTO
@@ -209,8 +226,10 @@ public class SceneInstantiator
                 InteractionType = "Instant",  // Scene situations present choices (instant interaction, choice determines next action)
                 SystemType = sitTemplate.SystemType.ToString(),
                 DeckId = deckId,
-                PlacementLocationId = resolvedLocationId,
-                PlacementNpcId = resolvedNpcId
+                // Hierarchical placement: Situation filters override scene base filters
+                LocationFilter = effectiveLocationFilter,
+                NpcFilter = effectiveNpcFilter,
+                RouteFilter = effectiveRouteFilter
             };
 
             // Copy narrative hints if present
@@ -296,9 +315,8 @@ public class SceneInstantiator
             NarrativeHints = template.NarrativeHints,
             InstantiationState = InstantiationState.Deferred,  // START deferred - actions created at query time
 
-            // PLACEMENT INHERITANCE: ParentScene reference enables GetPlacementId() queries
-            // Scene is single source of truth for placement (HIGHLANDER Pattern C)
-            // Situation queries placement via GetPlacementId(PlacementType) helper
+            // PARENT SCENE REFERENCE: Enables state machine navigation (Scene.AdvanceToNextSituation)
+            // ARCHITECTURAL CHANGE: Situation owns placement directly (not inherited from scene)
             ParentScene = parentScene
         };
 
@@ -1022,7 +1040,10 @@ public class SceneInstantiator
             CanInvestigate = spec.CanInvestigate,
             CanWork = false, // Generated locations don't support work by default,
             WorkType = "",
-            WorkPay = 0
+            WorkPay = 0,
+            // Scene-specific tag for dependent location binding
+            // Enables situations to reference this location via PlacementFilter.LocationTags
+            DomainTags = new List<string> { $"{sceneId}_{spec.TemplateId}" }
         };
 
         // Map properties
@@ -1230,6 +1251,10 @@ public class SceneInstantiator
             MinBond = filter.MinBond,
             MaxBond = filter.MaxBond,
             NpcTags = filter.NpcTags,
+            // Orthogonal Categorical Dimensions - NPC
+            SocialStandings = filter.SocialStandings?.Select(s => s.ToString()).ToList(),
+            StoryRoles = filter.StoryRoles?.Select(r => r.ToString()).ToList(),
+            KnowledgeLevels = filter.KnowledgeLevels?.Select(k => k.ToString()).ToList(),
             // Location filters
             LocationTypes = filter.LocationTypes?.Select(t => t.ToString()).ToList(),
             LocationProperties = filter.LocationProperties?.Select(p => p.ToString()).ToList(),
@@ -1237,6 +1262,11 @@ public class SceneInstantiator
             LocationTags = filter.LocationTags,
             DistrictId = filter.DistrictId,
             RegionId = filter.RegionId,
+            // Orthogonal Categorical Dimensions - Location
+            PrivacyLevels = filter.PrivacyLevels?.Select(p => p.ToString()).ToList(),
+            SafetyLevels = filter.SafetyLevels?.Select(s => s.ToString()).ToList(),
+            ActivityLevels = filter.ActivityLevels?.Select(a => a.ToString()).ToList(),
+            Purposes = filter.Purposes?.Select(p => p.ToString()).ToList(),
             // Route filters
             TerrainTypes = filter.TerrainTypes,
             RouteTier = filter.RouteTier,

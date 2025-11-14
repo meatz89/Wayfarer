@@ -67,9 +67,17 @@ public class Location
 
     // Gameplay properties moved from Location
     public ObligationDiscipline ObligationProfile { get; set; } = ObligationDiscipline.Research;
-    public List<string> DomainTags { get; set; } = new List<string>();
+    public List<string> DomainTags { get; set; } = new List<string>(); // DEPRECATED: Used only for DEPENDENT_LOCATION marker system
     public LocationTypes LocationType { get; set; } = LocationTypes.Crossroads;
     public bool IsStartingLocation { get; set; } = false;
+
+    // Orthogonal Categorical Dimensions (Entity Resolution)
+    // These dimensions compose to create location archetypes
+    // Example: SemiPublic + Safe + Moderate + Dwelling = Inn common room
+    public LocationPrivacy Privacy { get; set; } = LocationPrivacy.Public;
+    public LocationSafety Safety { get; set; } = LocationSafety.Neutral;
+    public LocationActivity Activity { get; set; } = LocationActivity.Moderate;
+    public LocationPurpose Purpose { get; set; } = LocationPurpose.Transit;
 
     /// <summary>
     /// Lock state for location access control

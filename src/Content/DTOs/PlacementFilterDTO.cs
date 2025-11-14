@@ -61,10 +61,33 @@ public class PlacementFilterDTO
     public int? MaxBond { get; set; }
 
     /// <summary>
-    /// Categorical NPC tags
-    /// Example: ["merchant", "guard", "scholar"]
+    /// DEPRECATED: Use orthogonal categorical dimensions instead
     /// </summary>
     public List<string> NpcTags { get; set; } = new List<string>();
+
+    // Orthogonal Categorical Dimensions - NPC
+    // String values from JSON parsed to enums by SceneTemplateParser
+
+    /// <summary>
+    /// Social standing dimension for NPC selection
+    /// Example: ["Notable", "Authority"]
+    /// Maps to NPCSocialStanding enum values
+    /// </summary>
+    public List<string> SocialStandings { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Story role dimension for NPC selection
+    /// Example: ["Obstacle", "Facilitator"]
+    /// Maps to NPCStoryRole enum values
+    /// </summary>
+    public List<string> StoryRoles { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Knowledge level dimension for NPC selection
+    /// Example: ["Informed", "Expert"]
+    /// Maps to NPCKnowledgeLevel enum values
+    /// </summary>
+    public List<string> KnowledgeLevels { get; set; } = new List<string>();
 
     // ====================
     // LOCATION FILTERS
@@ -92,10 +115,40 @@ public class PlacementFilterDTO
     public bool? IsPlayerAccessible { get; set; }
 
     /// <summary>
-    /// Categorical location tags
-    /// Example: ["tavern", "workshop", "warehouse"]
+    /// DEPRECATED: Use orthogonal categorical dimensions instead (kept only for DEPENDENT_LOCATION markers)
     /// </summary>
     public List<string> LocationTags { get; set; } = new List<string>();
+
+    // Orthogonal Categorical Dimensions - Location
+    // String values from JSON parsed to enums by SceneTemplateParser
+
+    /// <summary>
+    /// Privacy dimension for location selection
+    /// Example: ["SemiPublic", "Private"]
+    /// Maps to LocationPrivacy enum values
+    /// </summary>
+    public List<string> PrivacyLevels { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Safety dimension for location selection
+    /// Example: ["Safe"]
+    /// Maps to LocationSafety enum values
+    /// </summary>
+    public List<string> SafetyLevels { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Activity dimension for location selection
+    /// Example: ["Quiet", "Moderate"]
+    /// Maps to LocationActivity enum values
+    /// </summary>
+    public List<string> ActivityLevels { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Purpose dimension for location selection
+    /// Example: ["Dwelling", "Commerce"]
+    /// Maps to LocationPurpose enum values
+    /// </summary>
+    public List<string> Purposes { get; set; } = new List<string>();
 
     /// <summary>
     /// District ID filter (large categorical container)
