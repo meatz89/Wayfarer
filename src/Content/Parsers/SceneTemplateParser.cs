@@ -849,8 +849,10 @@ public class SceneTemplateParser
 
             rewards.Add(new SceneSpawnReward
             {
-                SceneTemplateId = dto.SceneTemplateId
-                // Spawned scene inherits SceneTemplate.PlacementFilter (no override mechanism)
+                SceneTemplateId = dto.SceneTemplateId,
+                // Parametric spawning: parent scene passes parameters to spawned scene
+                // Parameters flow: JSON → DTO → Domain → Scene instance
+                Parameters = dto.Parameters ?? new Dictionary<string, int>()
             });
         }
 
