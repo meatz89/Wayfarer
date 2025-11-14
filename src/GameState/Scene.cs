@@ -293,7 +293,7 @@ public class Scene
     }
 
     /// <summary>
-    /// Check if this Scene should activate at given context (location + optional NPC)
+    /// Check if this Scene should resume at given context (location + optional NPC)
     /// Used for multi-situation scene resumption after navigation
     /// Scene resumes if:
     /// - Scene is Active
@@ -304,25 +304,25 @@ public class Scene
     /// <param name="locationId">Location player is currently at</param>
     /// <param name="npcId">NPC player is currently interacting with (null if none)</param>
     /// <returns>True if scene should resume at this context</returns>
-    public bool ShouldActivateAtContext(string locationId, string npcId)
+    public bool ShouldResumeAtContext(string locationId, string npcId)
     {
-        Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' checking activation at location '{locationId}', npc '{npcId}'");
+        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' checking resumption at location '{locationId}', npc '{npcId}'");
 
         if (State != SceneState.Active)
         {
-            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - State is {State}, not Active");
+            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - State is {State}, not Active");
             return false;
         }
 
         if (CurrentSituation == null)
         {
-            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - CurrentSituation is null");
+            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - CurrentSituation is null");
             return false;
         }
 
         if (CurrentSituation.Template == null)
         {
-            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - CurrentSituation template is null");
+            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - CurrentSituation template is null");
             return false;
         }
 
@@ -330,23 +330,23 @@ public class Scene
         string requiredLocationId = CurrentSituation.Location?.Id;
         string requiredNpcId = CurrentSituation.Npc?.ID;
 
-        Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' requires location '{requiredLocationId}', npc '{requiredNpcId}' | Player at '{locationId}', '{npcId}'");
+        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' requires location '{requiredLocationId}', npc '{requiredNpcId}' | Player at '{locationId}', '{npcId}'");
 
         // Check location match
         if (requiredLocationId != locationId)
         {
-            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - Location mismatch");
+            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - Location mismatch");
             return false;
         }
 
         // Check NPC match (both null = match, both non-null = compare values)
         if (requiredNpcId != npcId)
         {
-            Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' rejected - NPC mismatch");
+            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - NPC mismatch");
             return false;
         }
 
-        Console.WriteLine($"[Scene.ShouldActivateAtContext] Scene '{Id}' ACTIVATED - All conditions met!");
+        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' RESUMED - All conditions met!");
         return true;
     }
 

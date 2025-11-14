@@ -42,7 +42,7 @@ public class SceneFacade
     {
         return _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.ShouldActivateAtContext(locationId, npcId))
+                       s.ShouldResumeAtContext(locationId, npcId))
             .ToList();
     }
 
