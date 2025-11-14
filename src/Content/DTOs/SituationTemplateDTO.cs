@@ -51,25 +51,31 @@ public class SituationTemplateDTO
 
     /// <summary>
     /// Location filter override for this specific situation
-    /// null = inherit from SceneTemplate.BaseLocationFilter (CSS-style fallback)
+    /// CSS-STYLE INHERITANCE: null = inherit from parent scene's base filter
+    /// Resolution: effectiveFilter = this.LocationFilter ?? SceneTemplateDTO.BaseLocationFilter
     /// Non-null = override scene base for this situation only
     /// Enables multi-location scenes: "Negotiate" at Common Room, "Rest" at Private Room
+    /// See also: <see cref="SceneTemplateDTO.BaseLocationFilter"/> for inherited default
     /// </summary>
     public PlacementFilterDTO LocationFilter { get; set; }
 
     /// <summary>
     /// NPC filter override for this specific situation
-    /// null = inherit from SceneTemplate.BaseNpcFilter (CSS-style fallback)
+    /// CSS-STYLE INHERITANCE: null = inherit from parent scene's base filter
+    /// Resolution: effectiveFilter = this.NpcFilter ?? SceneTemplateDTO.BaseNpcFilter
     /// Non-null = override scene base for this situation only
     /// Example: Scene has Innkeeper base, but "Depart" situation has null (no NPC)
+    /// See also: <see cref="SceneTemplateDTO.BaseNpcFilter"/> for inherited default
     /// </summary>
     public PlacementFilterDTO NpcFilter { get; set; }
 
     /// <summary>
     /// Route filter override for this specific situation
-    /// null = inherit from SceneTemplate.BaseRouteFilter (CSS-style fallback)
+    /// CSS-STYLE INHERITANCE: null = inherit from parent scene's base filter
+    /// Resolution: effectiveFilter = this.RouteFilter ?? SceneTemplateDTO.BaseRouteFilter
     /// Non-null = override scene base for this situation only
     /// Rarely used - most situations don't involve routes
+    /// See also: <see cref="SceneTemplateDTO.BaseRouteFilter"/> for inherited default
     /// </summary>
     public PlacementFilterDTO RouteFilter { get; set; }
 

@@ -130,7 +130,8 @@ public static class SceneParser
             PlacementFilterDTO effectiveLocationFilter = situationDto.LocationFilter ?? dto.LocationFilter;
             if (effectiveLocationFilter != null)
             {
-                PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(effectiveLocationFilter, situationDto.Id);
+                string locationContext = $"Scene:{dto.Id}/Situation:{situationDto.Id}/Location";
+                PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(effectiveLocationFilter, locationContext);
                 resolvedLocation = entityResolver.FindOrCreateLocation(locationFilter);
             }
 
@@ -138,7 +139,8 @@ public static class SceneParser
             PlacementFilterDTO effectiveNpcFilter = situationDto.NpcFilter ?? dto.NpcFilter;
             if (effectiveNpcFilter != null)
             {
-                PlacementFilter npcFilter = SceneTemplateParser.ParsePlacementFilter(effectiveNpcFilter, situationDto.Id);
+                string npcContext = $"Scene:{dto.Id}/Situation:{situationDto.Id}/NPC";
+                PlacementFilter npcFilter = SceneTemplateParser.ParsePlacementFilter(effectiveNpcFilter, npcContext);
                 resolvedNpc = entityResolver.FindOrCreateNPC(npcFilter);
             }
 
@@ -146,7 +148,8 @@ public static class SceneParser
             PlacementFilterDTO effectiveRouteFilter = situationDto.RouteFilter ?? dto.RouteFilter;
             if (effectiveRouteFilter != null)
             {
-                PlacementFilter routeFilter = SceneTemplateParser.ParsePlacementFilter(effectiveRouteFilter, situationDto.Id);
+                string routeContext = $"Scene:{dto.Id}/Situation:{situationDto.Id}/Route";
+                PlacementFilter routeFilter = SceneTemplateParser.ParsePlacementFilter(effectiveRouteFilter, routeContext);
                 resolvedRoute = entityResolver.FindOrCreateRoute(routeFilter);
             }
 

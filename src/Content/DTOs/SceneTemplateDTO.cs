@@ -29,26 +29,32 @@ public class SceneTemplateDTO
 
     /// <summary>
     /// Base location filter for all situations in this scene template
-    /// Applied to first situation by default, subsequent situations can override
+    /// CSS-STYLE INHERITANCE: Situations inherit this base filter unless they specify their own override
+    /// Resolution: effectiveFilter = SituationTemplateDTO.LocationFilter ?? BaseLocationFilter
     /// null = no base location (situations must specify their own)
     /// Enables multi-location scenes with shared default location
     /// Example: "Inn Service" scene has base "Common Room" location for most situations
+    /// See also: <see cref="SituationTemplateDTO.LocationFilter"/> for situation-specific overrides
     /// </summary>
     public PlacementFilterDTO BaseLocationFilter { get; set; }
 
     /// <summary>
     /// Base NPC filter for all situations in this scene template
-    /// Applied to first situation by default, subsequent situations can override
+    /// CSS-STYLE INHERITANCE: Situations inherit this base filter unless they specify their own override
+    /// Resolution: effectiveFilter = SituationTemplateDTO.NpcFilter ?? BaseNpcFilter
     /// null = no base NPC (situations must specify their own)
     /// Example: "Innkeeper" for all Inn Service situations unless overridden
+    /// See also: <see cref="SituationTemplateDTO.NpcFilter"/> for situation-specific overrides
     /// </summary>
     public PlacementFilterDTO BaseNpcFilter { get; set; }
 
     /// <summary>
     /// Base route filter for all situations in this scene template
-    /// Applied to first situation by default, subsequent situations can override
+    /// CSS-STYLE INHERITANCE: Situations inherit this base filter unless they specify their own override
+    /// Resolution: effectiveFilter = SituationTemplateDTO.RouteFilter ?? BaseRouteFilter
     /// null = no base route (situations must specify their own)
     /// Rarely used - most situations don't involve routes
+    /// See also: <see cref="SituationTemplateDTO.RouteFilter"/> for situation-specific overrides
     /// </summary>
     public PlacementFilterDTO BaseRouteFilter { get; set; }
 
