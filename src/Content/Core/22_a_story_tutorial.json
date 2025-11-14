@@ -22,7 +22,7 @@
         "isStarter": true,
         "baseNpcFilter": {
           "placementType": "NPC",
-          "npcId": "elena"
+          "professions": ["Innkeeper"]
         },
         "introNarrativeTemplate": "You arrive as the sun sets, tired from the road. The inn's windows glow warm against the evening chill. You need a place to sleep."
       },

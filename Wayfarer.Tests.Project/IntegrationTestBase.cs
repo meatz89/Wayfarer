@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Wayfarer.Tests;
@@ -32,9 +33,7 @@ public class IntegrationTestBase
     {
         if (_serviceProvider == null)
         {
-            ServiceCollection services = new ServiceCollection();
-            ServiceConfiguration.ConfigureServices(services);
-            _serviceProvider = services.BuildServiceProvider();
+            InitializeServiceProvider();
         }
 
         return _serviceProvider.GetRequiredService<GameFacade>();
@@ -48,11 +47,38 @@ public class IntegrationTestBase
     {
         if (_serviceProvider == null)
         {
-            ServiceCollection services = new ServiceCollection();
-            ServiceConfiguration.ConfigureServices(services);
-            _serviceProvider = services.BuildServiceProvider();
+            InitializeServiceProvider();
         }
 
         return _serviceProvider.GetRequiredService<T>();
+    }
+
+    /// <summary>
+    /// Initialize service provider with GameWorld registered (matches Program.cs pattern).
+    /// GameWorld and IConfiguration MUST be registered before ConfigureServices is called.
+    /// </summary>
+    private void InitializeServiceProvider()
+    {
+        ServiceCollection services = new ServiceCollection();
+
+        // Register IConfiguration (required by some services like AINarrativeProvider)
+        IConfigurationRoot configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string>
+            {
+                ["OllamaConfiguration:BaseUrl"] = "http://localhost:11434",
+                ["OllamaConfiguration:Model"] = "llama2",
+                ["OllamaConfiguration:Enabled"] = "false"
+            })
+            .Build();
+        services.AddSingleton<IConfiguration>(configuration);
+
+        // Register GameWorld (same pattern as Program.cs)
+        GameWorld gameWorld = GetGameWorld();
+        services.AddSingleton(gameWorld);
+
+        // Then configure all other services
+        ServiceConfiguration.ConfigureServices(services);
+
+        _serviceProvider = services.BuildServiceProvider();
     }
 }
