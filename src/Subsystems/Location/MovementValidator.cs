@@ -1,14 +1,19 @@
 /// <summary>
 /// Validates movement between locations and Locations.
 /// Enforces movement rules and access requirements.
+/// NEW ARCHITECTURE: Uses LocationAccessibilityService for query-based accessibility
 /// </summary>
 public class MovementValidator
 {
     private readonly GameWorld _gameWorld;
+    private readonly LocationAccessibilityService _accessibilityService;
 
-    public MovementValidator(GameWorld gameWorld)
+    public MovementValidator(
+        GameWorld gameWorld,
+        LocationAccessibilityService accessibilityService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+        _accessibilityService = accessibilityService ?? throw new ArgumentNullException(nameof(accessibilityService));
     }
 
     /// <summary>
@@ -107,13 +112,22 @@ public class MovementValidator
     }
 
     /// <summary>
-    /// Check if a location is accessible at the current time.
+    /// Check if a location is accessible at the current time
+    /// NEW ARCHITECTURE: Query-based accessibility via LocationAccessibilityService
+    /// MIGRATION: Checks both old (IsLocked) and new (query) systems during transition
+    /// Legacy IsLocked will be deleted after new system verified
     /// </summary>
     public bool IsSpotAccessible(Location location)
     {
         if (location == null) return false;
 
+        // LEGACY CHECK (will be deleted): Flag-based accessibility
         if (location.IsLocked)
+            return false;
+
+        // NEW ARCHITECTURE: Query-based accessibility
+        // Location accessible if active situation grants access
+        if (!_accessibilityService.IsLocationAccessible(location))
             return false;
 
         return true;
