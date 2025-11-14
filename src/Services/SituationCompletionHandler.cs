@@ -47,12 +47,8 @@ public class SituationCompletionHandler
             Console.WriteLine($"[SituationCompletionHandler] Challenge succeeded for situation '{situation.Id}'");
         }
 
-        // Scene-Situation Architecture: Apply ProjectedConsequences (bonds, scales, states)
-        _consequenceFacade.ApplyConsequences(
-            situation.ProjectedBondChanges,
-            situation.ProjectedScaleShifts,
-            situation.ProjectedStates
-        );
+        // ProjectedConsequences DELETED - stored projection pattern violates architecture
+        // NEW ARCHITECTURE: Consequences applied from ChoiceReward when choice executed, not from Situation
 
         // Apply rewards from all achieved situation cards (idempotent - only if not already achieved)
         ApplySituationCardRewards(situation);

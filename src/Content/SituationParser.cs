@@ -86,9 +86,7 @@ public static class SituationParser
             InteractionType = ParseInteractionType(dto.InteractionType),
             NavigationPayload = ParseNavigationPayload(dto.NavigationPayload),
             CompoundRequirement = RequirementParser.ConvertDTOToCompoundRequirement(dto.CompoundRequirement),
-            ProjectedBondChanges = ParseBondChanges(dto.ProjectedBondChanges),
-            ProjectedScaleShifts = ParseScaleShifts(dto.ProjectedScaleShifts),
-            ProjectedStates = ParseStateApplications(dto.ProjectedStates),
+            // ProjectedBondChanges/ProjectedScaleShifts/ProjectedStates DELETED - stored projection pattern
             SuccessSpawns = SpawnRuleParser.ParseSpawnRules(dto.SuccessSpawns, dto.Id),
             FailureSpawns = SpawnRuleParser.ParseSpawnRules(dto.FailureSpawns, dto.Id),
             Tier = dto.Tier,

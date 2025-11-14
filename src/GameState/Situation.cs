@@ -177,26 +177,9 @@ public class Situation
     /// </summary>
     public CompoundRequirement CompoundRequirement { get; set; }
 
-    /// <summary>
-    /// Projected bond changes shown to player before selection
-    /// Transparent consequence display for relationship impacts
-    /// Applied when situation resolves successfully
-    /// </summary>
-    public List<BondChange> ProjectedBondChanges { get; set; } = new List<BondChange>();
-
-    /// <summary>
-    /// Projected scale shifts shown to player before selection
-    /// Transparent consequence display for behavioral reputation impacts
-    /// Applied when situation resolves successfully
-    /// </summary>
-    public List<ScaleShift> ProjectedScaleShifts { get; set; } = new List<ScaleShift>();
-
-    /// <summary>
-    /// Projected state applications/removals shown to player before selection
-    /// Transparent consequence display for temporary condition impacts
-    /// Applied when situation resolves successfully
-    /// </summary>
-    public List<StateApplication> ProjectedStates { get; set; } = new List<StateApplication>();
+    // ProjectedBondChanges/ProjectedScaleShifts/ProjectedStates DELETED - stored projection pattern violates architecture
+    // NEW ARCHITECTURE: UI queries ChoiceTemplate.RewardTemplate at display time (Perfect Information)
+    // Consequences applied from ChoiceReward when choice executed, not from Situation properties
 
     /// <summary>
     /// Spawn rules executed when situation succeeds

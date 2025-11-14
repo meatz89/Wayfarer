@@ -171,10 +171,7 @@ public class SpawnFacade
                 SpawnedSegment = _timeManager.CurrentSegment
             },
 
-            // Clone projected consequences
-            ProjectedBondChanges = template.ProjectedBondChanges.ToList(),
-            ProjectedScaleShifts = template.ProjectedScaleShifts.ToList(),
-            ProjectedStates = template.ProjectedStates.ToList(),
+            // ProjectedBondChanges/ProjectedScaleShifts/ProjectedStates DELETED - stored projection pattern
 
             // Clone spawn rules (spawned situations can spawn children)
             SuccessSpawns = template.SuccessSpawns.ToList(),

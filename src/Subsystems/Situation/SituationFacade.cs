@@ -125,12 +125,8 @@ public class SituationFacade
     /// </summary>
     private SituationSelectionResult ResolveInstantSituation(Situation situation)
     {
-        // Apply ProjectedConsequences to game state
-        _consequenceFacade.ApplyConsequences(
-            situation.ProjectedBondChanges,
-            situation.ProjectedScaleShifts,
-            situation.ProjectedStates
-        );
+        // ProjectedConsequences DELETED - stored projection pattern violates architecture
+        // NEW ARCHITECTURE: Consequences applied from ChoiceReward when choice executed
 
         // Mark situation as completed
         situation.Complete();

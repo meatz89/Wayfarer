@@ -168,23 +168,8 @@ public class SituationDTO
     /// </summary>
     public CompoundRequirementDTO CompoundRequirement { get; set; }
 
-    /// <summary>
-    /// Projected bond changes shown to player before selection
-    /// Transparent consequence display for relationship impacts
-    /// </summary>
-    public List<BondChangeDTO> ProjectedBondChanges { get; set; } = new List<BondChangeDTO>();
-
-    /// <summary>
-    /// Projected scale shifts shown to player before selection
-    /// Transparent consequence display for behavioral reputation impacts
-    /// </summary>
-    public List<ScaleShiftDTO> ProjectedScaleShifts { get; set; } = new List<ScaleShiftDTO>();
-
-    /// <summary>
-    /// Projected state applications/removals shown to player before selection
-    /// Transparent consequence display for temporary condition impacts
-    /// </summary>
-    public List<StateApplicationDTO> ProjectedStates { get; set; } = new List<StateApplicationDTO>();
+    // ProjectedBondChanges/ProjectedScaleShifts/ProjectedStates DELETED - stored projection pattern
+    // NEW ARCHITECTURE: UI queries ChoiceTemplate.RewardTemplate at display time
 
     /// <summary>
     /// Spawn rules executed when situation succeeds
