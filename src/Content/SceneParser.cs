@@ -161,7 +161,7 @@ public static class SceneParser
                 resolvedNpc,
                 resolvedRoute);
 
-            // CRITICAL: Set composition relationship (Situation → ParentScene)
+            // Set composition relationship (Situation → ParentScene)
             situation.ParentScene = scene;
 
             // CRITICAL: Resolve Template reference for lazy action instantiation
@@ -175,6 +175,74 @@ public static class SceneParser
                         $"but no such template found in SceneTemplate '{template.Id}'");
                 }
             }
+
+            // ENTITY REFERENCE POPULATION (Post-Parser Fix)
+            // SituationParser doesn't read PlacementLocationId/PlacementNpcId from DTO
+            // SceneParser must populate entity references from DTO's placement properties
+            // This handles BOTH generated scenes (SceneInstantiator) AND saved scenes (PackageLoader)
+            if (!string.IsNullOrEmpty(situationDto.PlacementLocationId))
+            {
+                situation.Location = gameWorld.Locations.FirstOrDefault(loc => loc.Id == situationDto.PlacementLocationId);
+                if (situation.Location == null)
+                {
+                    Console.WriteLine($"[SceneParser] WARNING: Situation '{situation.Id}' DTO specifies PlacementLocationId '{situationDto.PlacementLocationId}' " +
+                        $"but no such location found in GameWorld");
+                }
+            }
+            else if (situation.Template != null && !string.IsNullOrEmpty(situation.Template.RequiredLocationId))
+            {
+                // Fall back to template if DTO doesn't specify placement
+                situation.Location = gameWorld.Locations.FirstOrDefault(loc => loc.Id == situation.Template.RequiredLocationId);
+                if (situation.Location == null)
+                {
+                    Console.WriteLine($"[SceneParser] WARNING: Situation '{situation.Id}' template requires LocationId '{situation.Template.RequiredLocationId}' " +
+                        $"but no such location found in GameWorld");
+                }
+            }
+            else if (scene.Location != null)
+            {
+                // Inherit from Scene placement if neither DTO nor template specify
+                situation.Location = scene.Location;
+            }
+            else if (scene.Npc != null)
+            {
+                // NPC-placed scene: Use NPC's current location as situation location
+                situation.Location = scene.Npc.Location;
+                Console.WriteLine($"[SceneParser] Situation '{situation.Id}' inheriting location from NPC '{scene.Npc.ID}' → location '{situation.Location?.Id}'");
+            }
+
+            // NPC resolution
+            if (!string.IsNullOrEmpty(situationDto.PlacementNpcId))
+            {
+                situation.Npc = gameWorld.NPCs.FirstOrDefault(npc => npc.ID == situationDto.PlacementNpcId);
+                if (situation.Npc == null)
+                {
+                    Console.WriteLine($"[SceneParser] WARNING: Situation '{situation.Id}' DTO specifies PlacementNpcId '{situationDto.PlacementNpcId}' " +
+                        $"but no such NPC found in GameWorld");
+                }
+            }
+            else if (situation.Template != null && !string.IsNullOrEmpty(situation.Template.RequiredNpcId))
+            {
+                // Fall back to template if DTO doesn't specify placement
+                situation.Npc = gameWorld.NPCs.FirstOrDefault(npc => npc.ID == situation.Template.RequiredNpcId);
+                if (situation.Npc == null)
+                {
+                    Console.WriteLine($"[SceneParser] WARNING: Situation '{situation.Id}' template requires NpcId '{situation.Template.RequiredNpcId}' " +
+                        $"but no such NPC found in GameWorld");
+                }
+            }
+            else
+            {
+                // Inherit from Scene placement if neither DTO nor template specify
+                situation.Npc = scene.Npc;
+            }
+
+            // Route resolution: Inherit from Scene placement (no per-situation route requirements)
+            situation.Route = scene.Route;
+
+            // BACKWARD COMPATIBILITY: Populate STRING ID properties from entity references
+            situation.ResolvedRequiredLocationId = situation.Location?.Id;
+            situation.ResolvedRequiredNpcId = situation.Npc?.ID;
 
             scene.Situations.Add(situation);
         }

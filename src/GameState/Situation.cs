@@ -51,33 +51,6 @@ public class Situation
     /// </summary>
     public SituationTemplate Template { get; set; }
 
-    // ==================== PLACEMENT PROPERTIES (PER-SITUATION) ====================
-
-    /// <summary>
-    /// Location where THIS situation occurs
-    /// DIRECT OBJECT REFERENCE - set by SituationParser after EntityResolver returns concrete object
-    /// Multi-situation scenes: Each situation can have different location
-    /// Example: Scene "Inn Service" - Situation 1 at "Common Room", Situation 2 at "Private Room"
-    /// null only for abstract/conceptual situations (rare)
-    /// </summary>
-    public Location Location { get; set; }
-
-    /// <summary>
-    /// NPC involved in THIS situation
-    /// DIRECT OBJECT REFERENCE - set by SituationParser after entity resolution
-    /// null for location-only situations (ambient discoveries, environmental events)
-    /// Example: Situation "Negotiate" with Innkeeper Elena, Situation "Rest" with no NPC
-    /// </summary>
-    public NPC Npc { get; set; }
-
-    /// <summary>
-    /// Route context for THIS situation (travel/journey situations)
-    /// DIRECT OBJECT REFERENCE - set by SituationParser after entity resolution
-    /// null for most situations (only route-specific situations use this)
-    /// Example: Situation "Deal with bandits" on specific route
-    /// </summary>
-    public RouteOption Route { get; set; }
-
     /// <summary>
     /// THREE PARALLEL SYSTEMS - which tactical system this situation uses
     /// </summary>
@@ -149,6 +122,53 @@ public class Situation
     /// Contains destination and auto-trigger scene flag
     /// </summary>
     public NavigationPayload NavigationPayload { get; set; }
+
+    /// <summary>
+    /// Resolved location ID for self-contained scenes (marker resolution at finalization)
+    /// Template.RequiredLocationId may contain marker ("generated:private_room")
+    /// This property contains actual resolved ID ("scene_abc123_private_room")
+    /// null = use Template.RequiredLocationId directly (no marker resolution needed)
+    /// Populated during SceneInstantiator.FinalizeScene from marker resolution
+    /// Context matching uses this property, NOT template property
+    /// </summary>
+    public string ResolvedRequiredLocationId { get; set; }
+
+    /// <summary>
+    /// Resolved NPC ID for self-contained scenes (marker resolution at finalization)
+    /// Template.RequiredNpcId may contain marker (if NPCs were dynamically created)
+    /// This property contains actual resolved ID after finalization
+    /// null = use Template.RequiredNpcId directly (no marker resolution needed)
+    /// Populated during SceneInstantiator.FinalizeScene from marker resolution
+    /// Context matching uses this property, NOT template property
+    /// </summary>
+    public string ResolvedRequiredNpcId { get; set; }
+
+    /// <summary>
+    /// Location where this situation activates
+    /// Each situation can require different location from other situations in same scene
+    /// Used for context matching: player must be at this location for situation to activate
+    /// null = situation has no location requirement (activates anywhere) or uses Template.RequiredLocationId
+    /// ARCHITECTURAL: Situation owns context, Scene is just container
+    /// </summary>
+    public Location Location { get; set; }
+
+    /// <summary>
+    /// NPC associated with this situation (interaction partner)
+    /// Each situation can require different NPC from other situations in same scene
+    /// Used for context matching: player must be with this NPC for situation to activate
+    /// null = situation has no NPC requirement (location-only situation) or uses Template.RequiredNpcId
+    /// ARCHITECTURAL: Situation owns context, Scene is just container
+    /// </summary>
+    public NPC Npc { get; set; }
+
+    /// <summary>
+    /// Route associated with this situation (travel context)
+    /// Each situation can require different route from other situations in same scene
+    /// Used for context matching in route-specific situations
+    /// null = situation has no route requirement or uses Template.RequiredRouteId
+    /// ARCHITECTURAL: Situation owns context, Scene is just container
+    /// </summary>
+    public RouteOption Route { get; set; }
 
     /// <summary>
     /// Compound requirement - multiple OR paths to unlock this situation
@@ -237,6 +257,24 @@ public class Situation
     /// Populated at initialization time from scene's SituationIds
     /// </summary>
     public Scene ParentScene { get; set; }
+
+    /// <summary>
+    /// Get placement ID from own entity references for specified placement type
+    /// ARCHITECTURAL: Situation owns Location/NPC/Route (not Scene)
+    /// Returns null if placement entity doesn't exist
+    /// </summary>
+    /// <param name="placementType">Type of placement to query (Location/NPC/Route)</param>
+    /// <returns>Placement ID if entity reference exists, null otherwise</returns>
+    public string GetPlacementId(PlacementType placementType)
+    {
+        return placementType switch
+        {
+            PlacementType.Location => Location?.Id,
+            PlacementType.NPC => Npc?.ID,
+            PlacementType.Route => Route?.Id,
+            _ => null
+        };
+    }
 
     /// <summary>
     /// Whether this situation is an obligation intro action
