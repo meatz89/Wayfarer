@@ -63,6 +63,17 @@ public class SituationTemplate
     /// </summary>
     public int Priority { get; init; } = 0;
 
+    /// <summary>
+    /// Whether this situation grants location access while active
+    /// Query-based accessibility: LocationAccessibilityService checks active scenes for this property
+    /// true = Location accessible while this situation is current situation in active scene (default)
+    /// false = Situation does not grant access (rare, for special cases)
+    /// PARSE-TIME DATA: Immutable template property defining situation behavior
+    /// Used by: LocationAccessibilityService.IsLocationAccessible for query-based accessibility
+    /// Pattern: Active situation at Location X grants access to Location X
+    /// </summary>
+    public bool GrantsLocationAccess { get; init; } = true;
+
     // ==================== HIERARCHICAL PLACEMENT (OVERRIDE FILTERS) ====================
     // CSS-style inheritance: SituationTemplate can OVERRIDE SceneTemplate base filters
     // Resolution: effectiveFilter = situationFilter ?? sceneBaseFilter

@@ -365,8 +365,8 @@ public class HexRouteGenerator
             scene.Situations.Add(situation);
         }
 
-        // Set CurrentSituation to first Situation (direct object reference)
-        scene.CurrentSituation = scene.Situations.FirstOrDefault();
+        // Set CurrentSituationIndex to first situation (index 0)
+        scene.CurrentSituationIndex = 0;
 
         // Add to GameWorld.Scenes (permanent storage)
         _gameWorld.Scenes.Add(scene);

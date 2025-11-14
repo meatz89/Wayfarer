@@ -91,12 +91,24 @@ public class Scene
     public SituationSpawnRules SpawnRules { get; set; }
 
     /// <summary>
-    /// Current Situation tracking player progress
-    /// Direct object reference (no ID lookup needed)
-    /// Player sees this Situation when they enter placement
-    /// null = scene not started or completed
+    /// Index of current situation in Situations list
+    /// Tracks player progression through sequential situations
+    /// 0-based index: 0 = first situation, Situations.Count = scene complete
+    /// When CurrentSituationIndex >= Situations.Count, scene is complete
+    /// NEW ARCHITECTURE: Index-based progression replaces CurrentSituation object pointer
     /// </summary>
-    public Situation CurrentSituation { get; set; }
+    public int CurrentSituationIndex { get; set; } = 0;
+
+    /// <summary>
+    /// Current Situation derived from CurrentSituationIndex
+    /// COMPUTED PROPERTY: Not stored, derived from index on every access
+    /// Returns null if index out of bounds (scene complete or not started)
+    /// Single source of truth is CurrentSituationIndex, this is convenience accessor
+    /// </summary>
+    public Situation CurrentSituation =>
+        CurrentSituationIndex >= 0 && CurrentSituationIndex < Situations.Count
+            ? Situations[CurrentSituationIndex]
+            : null;
 
     // ==================== STATE PROPERTIES ====================
 
@@ -193,7 +205,7 @@ public class Scene
         {
             // No transitions defined - scene complete after first situation
             Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' has no transitions - marking as complete");
-            CurrentSituation = null;
+            CurrentSituationIndex = Situations.Count; // Out of bounds = complete
             State = SceneState.Completed;
             return SceneRoutingDecision.SceneComplete;
         }
@@ -207,9 +219,16 @@ public class Scene
             Situation nextSituation = Situations
                 .FirstOrDefault(s => s.TemplateId == transition.DestinationSituationId);
 
-            // Update CurrentSituation (direct object reference)
-            CurrentSituation = nextSituation;
-            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' advanced to situation '{(nextSituation != null ? nextSituation.Id : "NULL")}'");
+            // Update CurrentSituationIndex
+            if (nextSituation != null)
+            {
+                CurrentSituationIndex = Situations.IndexOf(nextSituation);
+            }
+            else
+            {
+                CurrentSituationIndex = Situations.Count; // Not found = complete
+            }
+            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' advanced to situation '{(nextSituation != null ? nextSituation.Id : "NULL")}' (index {CurrentSituationIndex})");
 
             // Compare contexts to determine routing
             SceneRoutingDecision decision = CompareContexts(completedSituation, nextSituation);
@@ -220,7 +239,7 @@ public class Scene
         {
             // No valid transition - scene complete
             Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' has no valid transition - marking as complete");
-            CurrentSituation = null;
+            CurrentSituationIndex = Situations.Count; // Out of bounds = complete
             State = SceneState.Completed;
             return SceneRoutingDecision.SceneComplete;
         }

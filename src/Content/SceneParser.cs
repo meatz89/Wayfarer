@@ -180,17 +180,21 @@ public static class SceneParser
         }
 
         // =====================================================
-        // HIGHLANDER PATTERN B: CurrentSituation Resolution
-        // =====================================================
-        // Runtime state (object ONLY, NO ID) - resolved from CurrentSituationId if present
+        // NEW ARCHITECTURE: CurrentSituationIndex from CurrentSituationId
+        // ===================================================================
+        // Find index of situation matching CurrentSituationId from DTO
         if (!string.IsNullOrEmpty(dto.CurrentSituationId))
         {
-            scene.CurrentSituation = scene.Situations.FirstOrDefault(s => s.Id == dto.CurrentSituationId);
-
-            if (scene.CurrentSituation == null)
+            int index = scene.Situations.FindIndex(s => s.Id == dto.CurrentSituationId);
+            if (index >= 0)
+            {
+                scene.CurrentSituationIndex = index;
+            }
+            else
             {
                 Console.WriteLine($"[SceneParser] WARNING: Scene '{dto.Id}' references CurrentSituationId '{dto.CurrentSituationId}' " +
-                    $"but no such situation found in embedded Situations collection");
+                    $"but no such situation found in embedded Situations collection. Defaulting to index 0.");
+                scene.CurrentSituationIndex = 0;
             }
         }
 
