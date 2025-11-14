@@ -20,7 +20,7 @@
         "progressionMode": "Cascade",
         "tier": 0,
         "isStarter": true,
-        "placementFilter": {
+        "baseNpcFilter": {
           "placementType": "NPC",
           "npcId": "elena"
         },
@@ -36,7 +36,7 @@
         "presentationMode": "Modal",
         "progressionMode": "Cascade",
         "tier": 0,
-        "placementFilter": {
+        "baseNpcFilter": {
           "placementType": "NPC",
           "storyRoles": ["Facilitator", "Neutral"],
           "knowledgeLevels": ["Informed"],
@@ -54,7 +54,7 @@
         "presentationMode": "Modal",
         "progressionMode": "Cascade",
         "tier": 0,
-        "placementFilter": {
+        "baseLocationFilter": {
           "placementType": "Location",
           "purposes": ["Commerce", "Transit"],
           "activityLevels": ["Moderate", "Busy"],
