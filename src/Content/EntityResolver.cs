@@ -139,8 +139,9 @@ public class EntityResolver
         // Check accessibility requirements
         if (filter.IsPlayerAccessible.HasValue && filter.IsPlayerAccessible.Value)
         {
-            // Check if location is physically accessible to player
-            if (!loc.HasBeenVisited && loc.IsLocked)
+            // Check if location has been visited by player
+            // NEW ARCHITECTURE: Accessibility controlled by LocationAccessibilityService query
+            if (!loc.HasBeenVisited)
                 return false;
         }
 
@@ -263,8 +264,7 @@ public class EntityResolver
             Familiarity = 0,
             MaxFamiliarity = 3,
             FlowModifier = 0,
-            InvestigationCubes = 0,
-            IsLocked = false
+            InvestigationCubes = 0
         };
 
         return newLocation;

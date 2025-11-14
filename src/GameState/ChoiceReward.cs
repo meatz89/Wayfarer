@@ -104,20 +104,6 @@ public class ChoiceReward
     public List<string> ItemsToRemove { get; set; } = new List<string>();
 
     /// <summary>
-    /// Location IDs to unlock (set IsLocked = false)
-    /// Multi-Situation Scene Pattern: Access situation unlocks upper_floor when player gets key
-    /// Direct property modification - no string matching, strongly typed
-    /// </summary>
-    public List<string> LocationsToUnlock { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Location IDs to lock (set IsLocked = true)
-    /// Multi-Situation Scene Pattern: Depart situation relocks upper_floor when player leaves
-    /// Direct property modification - no string matching, strongly typed
-    /// </summary>
-    public List<string> LocationsToLock { get; set; } = new List<string>();
-
-    /// <summary>
     /// Scenes to spawn as consequences of this Choice
     /// CRITICAL FEATURE: Choices spawn new narrative chains
     /// Creates dynamic cascading storylines

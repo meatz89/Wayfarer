@@ -759,8 +759,6 @@ public class SceneTemplateParser
             AchievementIds = dto.AchievementIds,
             ItemIds = dto.ItemIds,
             ItemsToRemove = dto.ItemsToRemove,
-            LocationsToUnlock = dto.LocationsToUnlock,
-            LocationsToLock = dto.LocationsToLock,
             ScenesToSpawn = ParseSceneSpawnRewards(dto.ScenesToSpawn)
         };
     }

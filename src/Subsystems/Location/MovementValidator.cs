@@ -114,23 +114,15 @@ public class MovementValidator
     /// <summary>
     /// Check if a location is accessible at the current time
     /// NEW ARCHITECTURE: Query-based accessibility via LocationAccessibilityService
-    /// MIGRATION: Checks both old (IsLocked) and new (query) systems during transition
-    /// Legacy IsLocked will be deleted after new system verified
+    /// Pure query pattern - location accessible if active situation grants access
     /// </summary>
     public bool IsSpotAccessible(Location location)
     {
         if (location == null) return false;
 
-        // LEGACY CHECK (will be deleted): Flag-based accessibility
-        if (location.IsLocked)
-            return false;
-
         // NEW ARCHITECTURE: Query-based accessibility
         // Location accessible if active situation grants access
-        if (!_accessibilityService.IsLocationAccessible(location))
-            return false;
-
-        return true;
+        return _accessibilityService.IsLocationAccessible(location);
     }
 
     /// <summary>

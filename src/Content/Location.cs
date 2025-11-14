@@ -80,15 +80,6 @@ public class Location
     public LocationPurpose Purpose { get; set; } = LocationPurpose.Transit;
 
     /// <summary>
-    /// Lock state for location access control
-    /// Used by multi-situation scene pattern: locked locations require items to access
-    /// Scene rewards can modify this state (unlock), cleanup restores original state (relock)
-    /// Tutorial: Upper floor locked until player has room_key, relocked on departure
-    /// HIGHLANDER: Location entity owns its lock state, no duplicate tracking
-    /// </summary>
-    public bool IsLocked { get; set; } = false;
-
-    /// <summary>
     /// Provenance tracking: which scene created this location (if any)
     /// null = location from base game content (not dynamically created)
     /// non-null = location created by scene during gameplay (dependent resource)

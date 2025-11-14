@@ -108,24 +108,6 @@ public class RewardApplicationService
             player.RemoveItem(itemId);
         }
 
-        // Unlock locations (Multi-Situation Scene Pattern: grant access when conditions met)
-        // Direct property modification - no string matching, strongly typed
-        foreach (string locationId in reward.LocationsToUnlock)
-        {
-            Location location = _gameWorld.GetLocation(locationId);
-            if (location != null)
-                location.IsLocked = false;
-        }
-
-        // Lock locations (Multi-Situation Scene Pattern: restore original state on cleanup)
-        // Direct property modification - no string matching, strongly typed
-        foreach (string locationId in reward.LocationsToLock)
-        {
-            Location location = _gameWorld.GetLocation(locationId);
-            if (location != null)
-                location.IsLocked = true;
-        }
-
         // Apply time advancement (NEW - for tutorial Night Rest scene)
         if (reward.AdvanceToBlock.HasValue)
         {
