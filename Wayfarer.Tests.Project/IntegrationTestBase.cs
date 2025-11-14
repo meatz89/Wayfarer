@@ -32,9 +32,7 @@ public class IntegrationTestBase
     {
         if (_serviceProvider == null)
         {
-            ServiceCollection services = new ServiceCollection();
-            ServiceConfiguration.ConfigureServices(services);
-            _serviceProvider = services.BuildServiceProvider();
+            InitializeServiceProvider();
         }
 
         return _serviceProvider.GetRequiredService<GameFacade>();
@@ -48,11 +46,27 @@ public class IntegrationTestBase
     {
         if (_serviceProvider == null)
         {
-            ServiceCollection services = new ServiceCollection();
-            ServiceConfiguration.ConfigureServices(services);
-            _serviceProvider = services.BuildServiceProvider();
+            InitializeServiceProvider();
         }
 
         return _serviceProvider.GetRequiredService<T>();
+    }
+
+    /// <summary>
+    /// Initialize service provider with GameWorld registered (matches Program.cs pattern).
+    /// GameWorld MUST be registered before ConfigureServices is called.
+    /// </summary>
+    private void InitializeServiceProvider()
+    {
+        ServiceCollection services = new ServiceCollection();
+
+        // Register GameWorld first (same pattern as Program.cs)
+        GameWorld gameWorld = GetGameWorld();
+        services.AddSingleton(gameWorld);
+
+        // Then configure all other services
+        ServiceConfiguration.ConfigureServices(services);
+
+        _serviceProvider = services.BuildServiceProvider();
     }
 }
