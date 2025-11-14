@@ -258,6 +258,53 @@ public class SceneFacade
     }
 
     /// <summary>
+    /// Get path cards for specific route segment (geographic specificity)
+    /// READS: GameWorld.Scenes, GameWorld.PathCards
+    /// CREATES: PathCards from ChoiceTemplates
+    /// CREATES: Provisional Scenes for actions with spawn rewards
+    /// Called by UI when player traveling at specific segment of route
+    /// ARCHITECTURAL: Route segment situations enable geographic specificity (Tutorial A3 pattern)
+    /// </summary>
+    public List<PathCard> GetPathCardsForRouteSegment(string routeId, int segmentIndex, Player player)
+    {
+        // Find active Scenes on this route at this specific segment
+        // HIERARCHICAL PLACEMENT: Check CurrentSituation.Route AND CurrentSituation.SegmentIndex
+        List<Scene> scenes = _gameWorld.Scenes
+            .Where(s => s.State == SceneState.Active &&
+                       s.CurrentSituation?.Route?.Id == routeId &&
+                       s.CurrentSituation?.SegmentIndex == segmentIndex)
+            .ToList();
+
+        List<PathCard> allPathCards = new List<PathCard>();
+
+        foreach (Scene scene in scenes)
+        {
+            // PHASE 1.3: Skip completed scenes (state machine method)
+            if (scene.IsComplete()) continue;
+
+            // Get current Situation (direct object reference)
+            Situation situation = scene.CurrentSituation;
+
+            if (situation == null) continue;
+
+            // STATE TRANSITION: Dormant → Active
+            if (situation.InstantiationState == InstantiationState.Deferred)
+            {
+                ActivateSituationForRoute(situation, scene, player);
+            }
+
+            // Fetch already-instantiated path cards
+            List<PathCard> situationCards = _gameWorld.PathCards
+                .Where(pc => pc.SituationId == situation.Id)
+                .ToList();
+
+            allPathCards.AddRange(situationCards);
+        }
+
+        return allPathCards;
+    }
+
+    /// <summary>
     /// Activate dormant Situation for Route context
     /// Instantiates ChoiceTemplates → PathCards
     /// Creates provisional Scenes for actions with spawn rewards

@@ -200,6 +200,7 @@ public class SceneTemplateParser
             MinDifficulty = dto.MinDifficulty,
             MaxDifficulty = dto.MaxDifficulty,
             RouteTags = dto.RouteTags,
+            SegmentIndex = dto.SegmentIndex, // Route segment placement for geographic specificity
             // Variety control
             ExcludeRecentlyUsed = dto.ExcludeRecentlyUsed,
             // Player state filters

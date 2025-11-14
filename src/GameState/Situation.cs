@@ -155,6 +155,16 @@ public class Situation
     public RouteOption Route { get; set; }
 
     /// <summary>
+    /// Specific segment index for route situation placement
+    /// Indicates which segment of route this situation activates at
+    /// Example: SegmentIndex = 0 (first segment), 1 (second segment), 2 (third segment)
+    /// ARCHITECTURAL: Enables geographic specificity - "tree at segment 1" vs abstract "tree on route"
+    /// VERISIMILITUDE: Required for Tutorial A3 (4 obstacles at specific route segments)
+    /// Context matching: Situation visible only when player at this segment of this route
+    /// </summary>
+    public int SegmentIndex { get; set; }
+
+    /// <summary>
     /// Compound requirement - multiple OR paths to unlock this situation
     /// null or empty = always available (no requirements)
     /// Player needs to satisfy at least ONE complete path

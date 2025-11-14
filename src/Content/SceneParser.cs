@@ -125,6 +125,7 @@ public static class SceneParser
             Location resolvedLocation = null;
             NPC resolvedNpc = null;
             RouteOption resolvedRoute = null;
+            int segmentIndex = 0; // Route segment placement for geographic specificity
 
             // CSS-style fallback for location: situation override ?? scene base
             PlacementFilterDTO effectiveLocationFilter = situationDto.LocationFilter ?? dto.LocationFilter;
@@ -151,6 +152,7 @@ public static class SceneParser
                 string routeContext = $"Scene:{dto.Id}/Situation:{situationDto.Id}/Route";
                 PlacementFilter routeFilter = SceneTemplateParser.ParsePlacementFilter(effectiveRouteFilter, routeContext);
                 resolvedRoute = entityResolver.FindOrCreateRoute(routeFilter);
+                segmentIndex = routeFilter.SegmentIndex; // Capture segment placement from filter
             }
 
             // System 5: Situation Instantiation with pre-resolved objects
@@ -163,6 +165,9 @@ public static class SceneParser
 
             // CRITICAL: Set composition relationship (Situation → ParentScene)
             situation.ParentScene = scene;
+
+            // Assign route segment placement from filter (geographic specificity)
+            situation.SegmentIndex = segmentIndex;
 
             // CRITICAL: Resolve Template reference for lazy action instantiation
             // SituationParser sets TemplateId but not Template object

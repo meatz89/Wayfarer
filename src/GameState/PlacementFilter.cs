@@ -224,6 +224,16 @@ public class PlacementFilter
     /// </summary>
     public List<string> RouteTags { get; init; } = new List<string>();
 
+    /// <summary>
+    /// Specific segment index for route situation placement
+    /// Enables geographic specificity: situation activates at THIS segment of route
+    /// Example: SegmentIndex = 0 (first segment), 1 (second segment), 2 (third segment)
+    /// IMMUTABLE: Segment placement determined at parse-time from template
+    /// ARCHITECTURAL: Required for route segment situations (Tutorial A3: 4 segments with obstacles)
+    /// VERISIMILITUDE: "Fallen tree blocks segment 1" = geographic reality, not abstract concept
+    /// </summary>
+    public int SegmentIndex { get; init; }
+
     // ==================== VARIETY CONTROL ====================
 
     /// <summary>

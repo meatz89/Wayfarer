@@ -204,6 +204,16 @@ public class PlacementFilterDTO
     /// </summary>
     public List<string> RouteTags { get; set; } = new List<string>();
 
+    /// <summary>
+    /// Specific segment index for route situation placement
+    /// Enables geographic specificity: situation activates at THIS segment, not entire route
+    /// Example: SegmentIndex = 0 (first segment), 1 (second segment), 2 (third segment)
+    /// null = situation spans entire route (any segment)
+    /// ARCHITECTURAL FOUNDATION: Required for route segment situations (Tutorial A3 pattern)
+    /// VERISIMILITUDE: "Fallen tree at segment 1" vs abstract "tree somewhere on route"
+    /// </summary>
+    public int SegmentIndex { get; set; }
+
     // ====================
     // SYSTEM CONTROL
     // ====================
