@@ -51,15 +51,8 @@ public class LocationPlayabilityValidator
             errors.Add($"Location '{location.Id}' has no properties - locations must have at least one property for action generation");
         }
 
-        // 5. If locked, unlock mechanism must exist
-        if (location.IsLocked)
-        {
-            bool hasUnlockMechanism = CheckUnlockMechanism(location, gameWorld);
-            if (!hasUnlockMechanism)
-            {
-                errors.Add($"Location '{location.Id}' is locked but has no unlock mechanism - player cannot access");
-            }
-        }
+        // 5. IsLocked validation DELETED - new architecture uses query-based accessibility via GrantsLocationAccess
+        // Locations accessible when active situation grants access, not via flag modification
 
         // If any errors, throw with complete error list
         if (errors.Any())
@@ -96,42 +89,7 @@ public class LocationPlayabilityValidator
         return routeExists;
     }
 
-    /// <summary>
-    /// Check if locked location has unlock mechanism.
-    /// Looks for scenes/situations that unlock this location.
-    /// </summary>
-    private bool CheckUnlockMechanism(Location location, GameWorld gameWorld)
-    {
-        // Check if any active scene/situation has choice reward that unlocks this location
-        foreach (Scene scene in gameWorld.Scenes.Where(s => s.State == SceneState.Active))
-        {
-            foreach (Situation situation in scene.Situations)
-            {
-                if (situation.Template?.ChoiceTemplates == null)
-                    continue;
-
-                foreach (ChoiceTemplate choice in situation.Template.ChoiceTemplates)
-                {
-                    // Check LocationsToUnlock in RewardTemplate
-                    if (choice.RewardTemplate?.LocationsToUnlock != null &&
-                        choice.RewardTemplate.LocationsToUnlock.Contains(location.Id))
-                    {
-                        return true;
-                    }
-
-                    // Check OnSuccessReward
-                    if (choice.OnSuccessReward?.LocationsToUnlock != null &&
-                        choice.OnSuccessReward.LocationsToUnlock.Contains(location.Id))
-                    {
-                        return true;
-                    }
-
-                    // Markers deleted in 5-system architecture - locations referenced by concrete IDs only
-                }
-            }
-        }
-
-        // No unlock mechanism found
-        return false;
-    }
+    // CheckUnlockMechanism DELETED - new architecture uses query-based accessibility
+    // Locations accessible when active situation grants access via GrantsLocationAccess property
+    // No flag-based lock/unlock mechanism exists anymore
 }

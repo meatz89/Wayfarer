@@ -1031,7 +1031,7 @@ public class GameWorld
             existing.VenueId = location.VenueId;
             existing.Venue = location.Venue;
             existing.InitialState = location.InitialState;
-            existing.IsLocked = location.IsLocked;
+            // IsLocked DELETED - new architecture uses query-based accessibility via LocationAccessibilityService
             existing.HexPosition = location.HexPosition;
             existing.CurrentTimeBlocks = location.CurrentTimeBlocks;
             existing.LocationProperties = location.LocationProperties;

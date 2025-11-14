@@ -84,15 +84,9 @@ public class LocationActionManager
             bool isAvailable = CanPerformAction(action);
             string lockReason = null;
 
-            if (action.ActionType == LocationActionType.IntraVenueMove && !string.IsNullOrEmpty(action.DestinationLocationId))
-            {
-                Location destination = _gameWorld.GetLocation(action.DestinationLocationId);
-                if (destination != null && destination.IsLocked)
-                {
-                    isAvailable = false;
-                    lockReason = "Location is locked";
-                }
-            }
+            // IsLocked check DELETED - new architecture uses query-based accessibility via LocationAccessibilityService
+            // Accessibility checked by MovementValidator which queries LocationAccessibilityService
+            // UI should not show inaccessible locations as move targets
 
             LocationActionViewModel viewModel = new LocationActionViewModel
             {

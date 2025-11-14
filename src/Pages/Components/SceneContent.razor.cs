@@ -204,7 +204,7 @@ public class SceneContentBase : ComponentBase
             // Map progression unlocks
             List<string> achievementsGranted = reward?.AchievementIds ?? new List<string>();
             List<string> itemsGranted = reward?.ItemIds ?? new List<string>();
-            List<string> locationsUnlocked = reward?.LocationsToUnlock ?? new List<string>();
+            // LocationsToUnlock DELETED - new architecture uses query-based accessibility via GrantsLocationAccess property
 
             // Map scene spawns to display names
             List<string> scenesUnlocked = new List<string>();
@@ -278,7 +278,7 @@ public class SceneContentBase : ComponentBase
                 // All progression unlocks
                 AchievementsGranted = achievementsGranted,
                 ItemsGranted = itemsGranted,
-                LocationsUnlocked = locationsUnlocked,
+                // LocationsUnlocked DELETED - new architecture uses query-based accessibility
                 ScenesUnlocked = scenesUnlocked,
 
                 // Requirement gaps (Perfect Information for locked choices)

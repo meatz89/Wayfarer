@@ -72,7 +72,7 @@
                                      choice.StaminaReward == 0 && choice.FocusReward == 0 && choice.HungerChange == 0 &&
                                      !choice.FullRecovery && !choice.BondChanges.Any() && !choice.ScaleShifts.Any() &&
                                      !choice.StateApplications.Any() && !choice.AchievementsGranted.Any() &&
-                                     !choice.ItemsGranted.Any() && !choice.LocationsUnlocked.Any() && !choice.ScenesUnlocked.Any())
+                                     !choice.ItemsGranted.Any() && !choice.ScenesUnlocked.Any())
                                 {
                                     <div class="consequence-item consequence-none">(None)</div>
                                 }
@@ -221,12 +221,7 @@
                                             🎒 Items: @string.Join(", ", choice.ItemsGranted)
                                         </div>
                                     }
-                                    @if (choice.LocationsUnlocked.Any())
-                                    {
-                                        <div class="consequence-item consequence-unlock">
-                                            🗺️ Unlocks: @string.Join(", ", choice.LocationsUnlocked)
-                                        </div>
-                                    }
+                                    @* LocationsUnlocked display DELETED - new architecture uses query-based accessibility *@
                                     @if (choice.ScenesUnlocked.Any())
                                     {
                                         <div class="consequence-item consequence-unlock">
