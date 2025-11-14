@@ -81,7 +81,7 @@ public class SpawnedScenePlayabilityValidator
         ValidatePlacement(scene, errors);
 
         // RULE 7: Marker resolution DELETED - markers no longer exist in new architecture
-        // Entities reference by concrete IDs or use ResolvedRequiredLocationId/ResolvedRequiredNpcId
+        // Entities use hierarchical placement via Situation.Location/Npc entity references
 
         if (errors.Any())
         {

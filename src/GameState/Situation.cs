@@ -123,25 +123,9 @@ public class Situation
     /// </summary>
     public NavigationPayload NavigationPayload { get; set; }
 
-    /// <summary>
-    /// Resolved location ID for self-contained scenes (marker resolution at finalization)
-    /// Template.RequiredLocationId may contain marker ("generated:private_room")
-    /// This property contains actual resolved ID ("scene_abc123_private_room")
-    /// null = use Template.RequiredLocationId directly (no marker resolution needed)
-    /// Populated during SceneInstantiator.FinalizeScene from marker resolution
-    /// Context matching uses this property, NOT template property
-    /// </summary>
-    public string ResolvedRequiredLocationId { get; set; }
-
-    /// <summary>
-    /// Resolved NPC ID for self-contained scenes (marker resolution at finalization)
-    /// Template.RequiredNpcId may contain marker (if NPCs were dynamically created)
-    /// This property contains actual resolved ID after finalization
-    /// null = use Template.RequiredNpcId directly (no marker resolution needed)
-    /// Populated during SceneInstantiator.FinalizeScene from marker resolution
-    /// Context matching uses this property, NOT template property
-    /// </summary>
-    public string ResolvedRequiredNpcId { get; set; }
+    // ResolvedRequiredLocationId/NpcId DELETED - marker resolution eliminated
+    // NEW ARCHITECTURE: Hierarchical placement via Situation.Location/Npc entity references
+    // Markers deleted - entities reference actual objects, not string IDs
 
     /// <summary>
     /// Location where this situation activates

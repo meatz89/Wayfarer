@@ -15,29 +15,9 @@ public class PlacementFilterDTO
     // CONCRETE ID BINDINGS (ALTERNATIVE TO CATEGORICAL FILTERS)
     // ====================
 
-    /// <summary>
-    /// Concrete NPC ID (alternative to categorical NPC filters)
-    /// When specified, scene targets specific NPC by ID
-    /// Mutually exclusive with categorical NPC filters (PersonalityTypes, Professions, etc.)
-    /// Example: "elena"
-    /// </summary>
-    public string NpcId { get; set; }
-
-    /// <summary>
-    /// Concrete Location ID (alternative to categorical location filters)
-    /// When specified, scene targets specific location by ID
-    /// Mutually exclusive with categorical location filters (LocationTypes, LocationProperties, etc.)
-    /// Example: "common_room"
-    /// </summary>
-    public string LocationId { get; set; }
-
-    /// <summary>
-    /// Concrete Route ID (alternative to categorical route filters)
-    /// When specified, scene targets specific route by ID
-    /// Mutually exclusive with categorical route filters (TerrainTypes, RouteTier, etc.)
-    /// Example: "road_to_mill"
-    /// </summary>
-    public string RouteId { get; set; }
+    // NpcId/LocationId/RouteId DELETED - 100% categorical resolution
+    // NEW ARCHITECTURE: All placement uses categorical filters, no concrete IDs
+    // EntityResolver finds/creates entities matching categories at spawn time
 
     // ====================
     // NPC FILTERS (CATEGORICAL)
