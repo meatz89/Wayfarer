@@ -524,7 +524,7 @@ var scene = gameWorld.Scenes.First(s => s.Id == sceneId);  // ✅ Explicit routi
 
 Scenes spawn independently from different sources:
 
-- Tutorial scenes: Spawn at parse-time (concrete npcId binding)
+- Tutorial scenes: Spawn at parse-time (categorical filters, same as all content)
 - Obligation scenes: Spawn at runtime (categorical filters)
 - Multiple obligations: Can spawn scenes at same NPC simultaneously
 - Each scene: Operates independently until completion

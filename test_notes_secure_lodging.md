@@ -223,7 +223,7 @@ Scene.Npc is the SINGLE source of placement. No duplicate tracking. The architec
 
 **NOT a tactical band-aid:** The fix requires addressing the Parser-JSON-Entity Triangle at ALL vertices.
 
-**Option 1: Migrate JSON to Categorical (RECOMMENDED)**
+**CORRECT SOLUTION: Migrate JSON to Categorical**
 
 Update `22_a_story_tutorial.json` to use categorical filter:
 
@@ -236,50 +236,37 @@ Update `22_a_story_tutorial.json` to use categorical filter:
 
 Then ensure Elena NPC has matching tag in her entity definition.
 
-**Why Recommended:**
+**Why This Is The Only Acceptable Solution:**
 - Aligns with architectural direction (categorical everywhere)
 - No parser changes needed (categorical already works)
 - Future-proof (AI generation uses categorical)
 - Tutorial scenes A1/A2/A3 use same pattern
+- Maintains HIGHLANDER principle (one pattern only)
 
-**Option 2: Add Legacy Concrete-ID Support (TEMPORARY COMPATIBILITY)**
+---
 
-Add backward compatibility to DTO and parser:
+### Rejected Approaches (ARCHITECTURAL VIOLATIONS)
 
-```csharp
-// PlacementFilterDTO.cs
-public string NpcId { get; set; }  // Legacy support
-public string LocationId { get; set; }  // Legacy support
+**REJECTED: Add Legacy Concrete-ID Support**
 
-// SceneTemplateParser.cs
-public static PlacementFilter ParsePlacementFilter(PlacementFilterDTO dto, ...)
-{
-    // If legacy concrete ID present, convert to tag-based filter
-    if (!string.IsNullOrEmpty(dto.NpcId))
-    {
-        dto.NpcTags = dto.NpcTags ?? new List<string>();
-        dto.NpcTags.Add($"npc_{dto.NpcId}");  // Tag-based lookup
-    }
-    // ... rest of parsing
-}
-```
+This approach would add backward compatibility to DTO and parser to support hardcoded entity IDs.
 
-**Why NOT Recommended:**
-- Adds architectural debt (two patterns coexisting)
-- Violates HIGHLANDER (concrete ID path + categorical path)
-- Temporary compatibility becomes permanent
-- Hides migration incompleteness
+**Why REJECTED (NOT merely "not recommended"):**
+- Violates absolute prohibition on hardcoded entity IDs
+- Violates HIGHLANDER (creates two coexisting patterns)
+- Creates permanent architectural debt
+- Incompatible with procedural generation
+- Explicitly rejected in DDR-001
 
-**Option 3: Hybrid (Short-term Fix + Long-term Migration)**
+**REJECTED: Hybrid/Phased Migration**
 
-1. Add legacy support NOW (unblock tutorial testing)
-2. Migrate JSON to categorical in NEXT sprint
-3. Remove legacy support after migration complete
+This approach would add temporary legacy support, then migrate later.
 
-**Why Conditional:**
-- Only acceptable if explicitly time-boxed
-- Requires tracking migration TODO
-- Risk of "temporary" becoming permanent
+**Why REJECTED:**
+- "Temporary" compatibility becomes permanent
+- Still violates hardcoded ID prohibition
+- Hides incomplete migration with band-aid
+- No valid reason to delay proper fix
 
 ---
 

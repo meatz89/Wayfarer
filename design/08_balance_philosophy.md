@@ -1251,7 +1251,7 @@ AI generating infinite content CAN'T know these. Solution: Categorical propertie
 **AI Writes Descriptive Properties**:
 ```json
 {
-  "npcId": "elena_innkeeper",
+  "id": "elena_innkeeper",
   "demeanor": "Friendly",
   "serviceType": "Lodging",
   "quality": "Standard",

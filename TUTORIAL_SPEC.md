@@ -525,7 +525,6 @@ Warehouse master accepts package, inspects seal. "Elena sent you? Good enough." 
 - Action: "Accept completion bonus and conclude business"
 - Rewards:
   - Coins: +10 (completion bonus, paid to all paths)
-  - LocationUnlock: { LocationId: "port_district" }
   - WarehouseMaster bond +1
   - RouteLearn: "market_to_port" (all segments now face-up)
   - **SceneSpawnReward:** {
@@ -542,7 +541,6 @@ Warehouse master accepts package, inspects seal. "Elena sent you? Good enough." 
 - Total earnings: Upfront (8-17) + Completion (10) = 18-27 coins
 - Route costs accumulated: (varies by route choices)
 - Net profit: Total earnings - Route costs - Inn survival (15)
-- Port District unlock shown
 - Route learning shown: "Future travels on this route will show segment details"
 - Projection: "A4 available at Port District. Optional investigation also available."
 

@@ -59,7 +59,7 @@ The A-story operates in two phases: authored tutorial scenes that teach mechanic
 
 **Tutorial Characteristics**:
 - Hand-crafted scene templates stored in JSON files
-- Specific entity references (tutorial_innkeeper, starting_village, mentor_npc)
+- Categorical filters targeting authored entities (uses same filter system as procedural content: professions, locationProperties, personalityTypes)
 - Gradual mechanical introduction pacing
 - Fixed sequence validating as complete chain
 - Establishes pursuit framework narrative (seeking scattered order members)
