@@ -13,6 +13,149 @@ This section documents:
 - **Sweet Spots and Extremes**: Balance matters, extremes have consequences
 - **AI Balance Enablement**: How categorical scaling enables infinite balanced content
 
+---
+
+## Reading Paths: Find What You Need Quickly
+
+This document is comprehensive (2,150+ lines). Use these reading paths to navigate efficiently based on your goal.
+
+### Path 1: "I need to design a balanced situation RIGHT NOW"
+
+**Quick workflow (15 minutes):**
+1. Read Section 8.2.0 "Intra-Situation Choice Balance" - The 8 fundamental rules
+2. Jump to Section 8.9 "Designing Balanced Situations: Step-by-Step Methodology" - Complete 5-phase process
+3. Use [VALIDATION_CHECKLIST.md](VALIDATION_CHECKLIST.md) before committing
+
+**Then consult:**
+- [DESIGN_GUIDE.md](DESIGN_GUIDE.md) - Extracted practical methodology with templates and flowcharts
+- [BASELINE_ECONOMY.md](BASELINE_ECONOMY.md) - Concrete numeric values for costs/rewards
+
+**Cross-reference for details:**
+- Section 8.4 "Four-Choice Balance Pattern" for path design
+- Section 8.10 "Stat Requirement Scaling" for progression-appropriate thresholds
+
+### Path 2: "I need to understand WHY we balance this way"
+
+**Philosophy deep-dive (30-45 minutes):**
+1. Section 8.2 "Core Balance Principles" - The fundamental philosophy and 8 rules explained
+2. Section 8.2.1-8.2.6 - Individual principle deep-dives:
+   - 8.2.1: Perfect Information (no hidden gotchas)
+   - 8.2.2: Resource Scarcity Creates Challenge (not stat checks)
+   - 8.2.3: Specialization Creates Capability AND Vulnerability
+   - 8.2.4: No Unwinnable States (always forward progress)
+   - 8.2.5: Strategic Depth Through Impossible Choices
+   - 8.2.6: Mastery Through Optimization (not power creep)
+3. Section 8.5 "Build Diversity and Specialization" - Why all builds are viable
+
+**Cross-reference:**
+- [design/01_design_vision.md](01_design_vision.md) - Core design philosophy
+- [design/13_player_experience_emergence_laws.md](13_player_experience_emergence_laws.md) - Psychological principles
+
+### Path 3: "How do I set appropriate costs for tier X?"
+
+**Numeric values lookup (5-10 minutes):**
+1. Section 8.10 "Stat Requirement Scaling Across Progression" - Tables by tier (A1-A3, A4-A6, A7-A12, A13-A20, A21+)
+2. Section 8.3 "Difficulty Scaling Mechanisms" - Categorical property multipliers
+3. Section 8.6 "Progression Curve" - Expected player state by tier
+
+**Authoritative source:**
+- [BASELINE_ECONOMY.md](BASELINE_ECONOMY.md) - Complete authoritative numeric configuration with all costs, rewards, and multipliers
+
+**Examples:**
+- Section 8.4.4 "Example Balanced Four-Choice Situation" - Concrete tier 2 example
+- Section 8.9.7 "Complete Design Example Output" - A8 mid-game situation
+
+### Path 4: "I need to understand categorical scaling for AI content"
+
+**AI balance enablement (20-30 minutes):**
+1. Section 8.8 "AI Balance Enablement" - The complete AI content generation strategy
+2. Section 8.8.2 "Categorical Property Architecture" - How AI writes descriptive properties
+3. Section 8.8.3 "Dynamic Scaling via Universal Formulas" - How catalogues translate to balanced numbers
+4. Section 8.8.5 "Infinite Variety Through Property Combinations" - 2,000+ variations from 21 archetypes
+
+**Cross-reference:**
+- Section 8.3.1 "Categorical Property Scaling" - NPCDemeanor, Quality, PowerDynamic, EnvironmentQuality multipliers
+- [design/07_content_generation.md](07_content_generation.md) - 21 situation archetypes and AI workflow
+
+### Path 5: "How do I design crisis situations?"
+
+**Crisis-specific guidance (15 minutes):**
+1. Section 8.2.0 Rule 5 - Crisis situations definition
+2. Section 8.9.8 "Crisis Situation Variation" - Design methodology for damage control
+3. Section 8.4.4 Example "Crisis Situation" subsection - Bandit ambush example
+
+**Related:**
+- Section 8.2.5 "Strategic Depth Through Impossible Choices" - Asymmetric costs philosophy
+- [BASELINE_ECONOMY.md](BASELINE_ECONOMY.md) Section "Crisis Situation Baseline Values"
+
+### Path 6: "I need to validate edge cases and scattered progression"
+
+**Edge case validation (25-35 minutes):**
+1. Section 8.5 "Build Diversity and Specialization" - Multiple viable builds
+2. Section 8.11.3 "Edge Case Validation" - Worst-case player, specialists, generalist, scattered
+3. Review examples in Section 8.9 showing how paths accommodate different builds
+
+**Comprehensive edge case guide:**
+- [DESIGN_GUIDE.md](DESIGN_GUIDE.md) Section "Scattered Stat Progression: Deep Analysis and Handling" - 5 progression patterns, 5 design strategies, 4 validation procedures, 5 common problems with fixes
+
+### Path 7: "What are the common mistakes and how do I avoid them?"
+
+**Anti-patterns and fixes (20 minutes):**
+1. Section 8.2.0 Rules 1-8 with FORBIDDEN examples
+2. Section 8.9.6 Phase 5 "Verify Verisimilitude" - Fiction must justify mechanics
+3. [VALIDATION_CHECKLIST.md](VALIDATION_CHECKLIST.md) - Canonical pre-commit validation
+
+**Common mistakes documented:**
+- Same resource different amounts (Rule violation example in 8.2.0)
+- Narrative-only choices (Rule 2 violation)
+- Dominant strategies (Rule 3 violation)
+- Arbitrary costs (verisimilitude failure)
+
+**Anti-pattern catalog:**
+- [DESIGN_GUIDE.md](DESIGN_GUIDE.md) Section "Common Patterns and Anti-Patterns" - ✓ DO THIS vs ✗ NEVER DO THIS examples
+
+### Path 8: "I need the complete step-by-step design process"
+
+**Full methodology (45-60 minutes):**
+1. Section 8.9 "Designing Balanced Situations: Step-by-Step Methodology" - Read entire section
+   - 8.9.1: Design Process Overview (5 phases)
+   - 8.9.2: Phase 1 - Establish Context
+   - 8.9.3: Phase 2 - Define Outcome
+   - 8.9.4: Phase 3 - Design Four Paths
+   - 8.9.5: Phase 4 - Validate Balance
+   - 8.9.6: Phase 5 - Verify Verisimilitude
+   - 8.9.7: Complete Design Example Output
+   - 8.9.8: Crisis Situation Variation
+2. Section 8.10 "Stat Requirement Scaling" - Progression-appropriate thresholds
+3. [VALIDATION_CHECKLIST.md](VALIDATION_CHECKLIST.md) - Final validation
+
+**Practical companion guide:**
+- [DESIGN_GUIDE.md](DESIGN_GUIDE.md) - Same 5-phase process with templates, flowcharts, decision trees, and enhanced edge case coverage
+
+### Path 9: "How does the economy stay tight throughout progression?"
+
+**Economic balance deep-dive (25 minutes):**
+1. Section 8.3.3 "Economic Pressure (Tight Margins)" - Margins never trivialize
+2. Section 8.6 "Progression Curve" - Early/mid/late game economics
+3. Section 8.4.3 "Resource Competition Across Systems" - Shared scarcity
+
+**Numeric details:**
+- Section 8.10.4 "Scaling Coin Costs Alongside Stat Requirements" - Coin-to-stat equivalence formula
+- [BASELINE_ECONOMY.md](BASELINE_ECONOMY.md) Section "Economic Pressure Validation" - Player reserve expectations, spending patterns, B-to-A ratios
+
+### Path 10: "I'm implementing catalogues and need the scaling formulas"
+
+**Technical implementation (30 minutes):**
+1. Section 8.3.1 "Categorical Property Scaling" - Universal scaling properties and multipliers
+2. Section 8.8.3 "Dynamic Scaling via Universal Formulas" - Formula structure and calculation examples
+3. Section 8.8.4 "Relative Consistency Across Progression" - Proportional scaling guarantees
+
+**Cross-reference:**
+- [arc42/08_crosscutting_concepts.md](../08_crosscutting_concepts.md) Section "Catalogue Pattern" - Technical implementation
+- [BASELINE_ECONOMY.md](BASELINE_ECONOMY.md) Section "Categorical Property Multipliers" - Exact multiplier values
+
+---
+
 ## 8.2 Core Balance Principles
 
 ### 8.2.0 Intra-Situation Choice Balance (The Fundamental Rule)
@@ -513,26 +656,33 @@ Mastery = Route knowledge enabling optimization.
 
 Economy stays tight throughout game. Early game = barely scraping by. Late game = comfortable but not trivial. Margins never become so large that coin costs meaningless.
 
-**Early Game Economics** (Tutorial phase):
-- Earn 5-10 coins per B-story completion
-- Food costs 5 coins (half your earnings)
-- Lodging costs 8-12 coins (full B-story earnings)
-- Money-gated A-paths cost 15-20 coins (two B-stories required)
+**Early Game Economics** (Tier 1: A1-A6):
+- Earn 5-10 coins per B-story completion (typical 7-8)
+- Food costs 5 coins standard meal (half your earnings)
+- Lodging costs 8 coins standard room (full B-story earnings)
+- Money-gated A-paths cost 10-15 coins (1-2 B-stories required)
 - Margins: Tight, every choice matters
 
-**Mid Game Economics** (Procedural phase begins):
-- Earn 15-25 coins per B-story completion
-- Food costs 5 coins (smaller percentage)
-- Lodging costs 10-15 coins (affordable but still meaningful)
-- Money-gated A-paths cost 25-40 coins (1-2 B-stories required)
+**Mid Game Economics** (Tier 2: A7-A12):
+- Earn 15-25 coins per B-story completion (typical 18-20)
+- Food costs 6 coins standard meal (smaller percentage)
+- Lodging costs 12 coins standard room (affordable but still meaningful)
+- Money-gated A-paths cost 20-30 coins (1-2 B-stories required)
 - Margins: More comfortable, but still require planning
 
-**Late Game Economics** (Tier escalation):
-- Earn 30-50 coins per high-tier B-story completion
-- Food costs 5-8 coins (minor expense)
-- Premium lodging costs 30-50 coins (still significant)
-- Money-gated A-paths cost 60-100 coins (2-3 B-stories required)
+**Late Game Economics** (Tier 3: A13-A20):
+- Earn 30-50 coins per high-tier B-story completion (typical 35-40)
+- Food costs 7 coins standard meal (minor expense)
+- Standard lodging costs 18 coins, premium lodging costs 35 coins (still significant)
+- Money-gated A-paths cost 35-50 coins (1-2 B-stories required)
 - Margins: Comfortable buffer, but premium options expensive
+
+**Very Late Game Economics** (Tier 4: A21+):
+- Earn 50-80 coins per high-tier B-story completion (typical 60-65)
+- Food costs 8 coins standard meal (minor expense)
+- Standard lodging costs 25 coins, premium lodging costs 50 coins
+- Money-gated A-paths cost 60-100 coins (1-2 B-stories required)
+- Margins: High numbers, but proportionally tight
 
 **Why Margins Stay Tight**:
 - Premium options scale with progression (luxury inn 50 coins vs basic inn 8 coins)
@@ -540,7 +690,7 @@ Economy stays tight throughout game. Early game = barely scraping by. Late game 
 - Optional high-value purchases (training, rare items, information)
 - Money-gated paths compete with economic security
 
-**Example Late Game**: Player has 80 coins (comfortable by early game standards). But upcoming A-scene money-gated path costs 75 coins. Premium lodging costs 40 coins. Training session costs 30 coins. Still making trade-offs, just at higher numerical scale. Margins never trivialize into infinite wealth.
+**Example Late Game** (Tier 3): Player has 125 coins (comfortable by early game standards). But upcoming A-scene money-gated path costs 45 coins. Premium lodging costs 35 coins. Training session costs 60 coins. Still making trade-offs, just at higher numerical scale. Margins never trivialize into infinite wealth.
 
 ### 8.3.4 Stat Gating (Qualitative Difference, Not Just Easier)
 
@@ -1904,7 +2054,7 @@ Example (A23 situation):
 - Choice 1: Rapport 8 → Exceptional outcome (true masters)
 - Choice 2: Rapport 6 → Best outcome (high specialists)
 - Choice 3: Diplomacy 5 → Good outcome (balanced social builds)
-- Choice 4: 50 coins → Good outcome (economic path, scaling costs)
+- Choice 4: 70 coins → Good outcome (economic path, scaling costs)
 - Choice 5: Mental challenge → Variable outcome
 - Choice 6: 6 time blocks → Minimal outcome (fallback)
 
@@ -1988,148 +2138,63 @@ Balance:
 
 ## 8.11 Balance Validation Checklist
 
-Use this checklist before committing any situation design to ensure balance.
+**For the complete authoritative checklist, see:**
+**[VALIDATION_CHECKLIST.md](VALIDATION_CHECKLIST.md) - Canonical Pre-Commit Validation Checklist**
+
+Use this checklist before committing any situation design to ensure balance. The canonical version in VALIDATION_CHECKLIST.md is the single source of truth, maintained centrally and referenced by all design documents.
+
+**Quick summary of validation areas:**
 
 ### 8.11.1 Structural Validation
 
-**□ Choice Count**
-- A-story situations: 4-6 choices typical
-- B-story situations: 2-4 choices acceptable
-- All situations: Minimum 2 choices required
-
-**□ Progression Guarantee (A-story only)**
-- At least one choice has ZERO requirements
-- That choice CANNOT fail (Instant action or guaranteed outcome)
-- That choice SPAWNS next scene or advances story
-- Fallback path clearly identified
-
-**□ Orthogonal Resource Costs**
-- Each choice costs DIFFERENT resource type
-- No two choices both cost coins (without significant value difference)
-- No two choices both cost same stat (without different thresholds)
-- Resource types: Character build, Coins, Session resources, Time, Multi-resource trade-offs
+- Choice count (minimum 2, typically 4-6 for A-story)
+- Progression guarantee (A-story must have zero-requirement fallback)
+- Orthogonal resource costs (each choice costs different resource type)
 
 ### 8.11.2 Rule Compliance Validation
 
-**□ Rule 1: Minimum 2 Choices**
-- Count >= 2
-
-**□ Rule 2: Resource Juggling**
-- Every choice costs OR rewards something measurable
-- No narrative-only choices (must have mechanical effect)
-- Progression is OUTCOME, not standalone value
-
-**□ Rule 3: Requirements Justify Rewards**
-- Higher stat requirement = Better rewards than lower requirement
-- Coin cost = Better rewards than free (or equivalent value)
-- Challenge risk = Better potential rewards than guaranteed paths
-- Explicitly compare reward values across choices
-
-**□ Rule 4: Intra-Situation Balance**
-- All comparisons within THIS situation only
-- No references to other situations' costs/rewards
-- Cross-situation variance acceptable
-
-**□ Rule 5: Crisis Check**
-- If crisis situation: All choices involve losses
-- If normal situation: Positive outcomes allowed
-- Crisis balance through asymmetric costs, not equal rewards
-
-**□ Rule 6: Multi-Stat Trade-offs**
-- If using multi-stat effects: Asymmetric (gain one, lose another)
-- Not required, but enhances balance when used
-
-**□ Rule 7: Verisimilitude in Costs**
-- All costs reflect actual opportunity costs
-- Time costs: Player couldn't do something else with that time
-- Coin costs: Player can't spend those coins elsewhere
-- Stat requirements: Player invested XP to reach threshold
-
-**□ Rule 8: Coins as Alternative**
-- Coin path exists as alternative to stat path
-- Coin cost appropriately valued (see scaling formulas)
-- Coins feel like Sir Brante willpower (meaningful choice to spend)
+- All 8 balance rules verified
+- Resource juggling (every choice has mechanical effect)
+- Requirements justify rewards (higher cost = better rewards)
+- Intra-situation balance only (no cross-situation comparisons)
+- Crisis vs normal situations properly balanced
+- Verisimilitude in all costs
 
 ### 8.11.3 Edge Case Validation
 
-**□ Worst-Case Player**
-- Player with: 0 coins, minimum stats (0-1), depleted session resources
-- Can this player progress? (Must be YES for A-story)
-- Which path is available? (Must be fallback)
+- Worst-case player (0 coins, 0 stats, 0 resources) can progress
+- All specialist builds find viable paths (Insight, Authority, Rapport, Diplomacy, Cunning)
+- Balanced generalist has options
+- Scattered progression player never soft-locked
+- Wealthy and skilled players can use their advantages
 
-**□ Specialized Player (High Insight, Low Authority)**
-- Can they find viable path? (Must be YES)
-- Is their specialization rewarded? (Stat-gated path unlocked)
+### 8.11.4 Scaling Validation
 
-**□ Alternative Specialized Player (High Authority, Low Insight)**
-- Can they find viable path? (Must be YES)
-- Is their specialization rewarded? (Different stat-gated path unlocked)
+- Stat requirements match progression tier (2-3 for A4-A6 → 7-8+ for A21+)
+- Coin costs match progression tier (10-15 for A4-A6 → 60-100 for A21+)
+- Session resource costs match progression tier (2-3 → 5-6)
+- Time costs appropriate (3-5 blocks typical for fallback)
 
-**□ Wealthy Player (High coins, moderate stats)**
-- Can they use economic power? (Money-gated path available)
-- Does cost feel meaningful? (20-40% of typical reserve)
+### 8.11.5 Verisimilitude Validation
 
-**□ Skilled Player (Good tactical ability)**
-- Can they demonstrate skill? (Challenge path available)
-- Is risk/reward balanced? (Success better than money, failure acceptable)
+- Narrative context supports all paths
+- Requirements justified by fiction
+- Rewards match effort narratively
+- No arbitrary gates or logical contradictions
 
-### 8.11.4 Verisimilitude Validation
+### 8.11.6 Reward Proportionality
 
-**□ Narrative Context Supports All Paths**
-- Each path makes sense in fiction
-- No logical contradictions between paths
-- Requirements justified by NPC personality/context
+- Create comparison matrix for all choices
+- Verify: Stat-gated (best) > Money-gated (good) > Challenge success (excellent) > Challenge failure (adequate) > Fallback (minimal)
+- Higher costs yield better rewards
 
-**□ Rewards Match Effort Narratively**
-- Best mechanical rewards = Best narrative outcomes
-- Minimal mechanical rewards = Adequate narrative outcomes
-- Relationship changes reflect interaction quality
+### 8.11.7 Final Review Questions
 
-**□ No Arbitrary Gates**
-- All requirements have fiction justification
-- Player can understand WHY requirement exists
-- Mechanics emerge from fiction
+- Does this create impossible choice? (Strategic tension)
+- Would I want to play this? (Fair, interesting, appropriate)
+- Can I justify this to players? (Clear reasoning for all costs/requirements)
 
-### 8.11.5 Progression Level Validation
-
-**□ Stat Requirements Match Progression**
-- A4-A6: Requirements 2-3
-- A7-A12: Requirements 4-5
-- A13-A20: Requirements 6-7
-- A21+: Requirements 7-8
-- Check current scene number, verify requirements appropriate
-
-**□ Coin Costs Match Progression**
-- A4-A6: 10-15 coins
-- A7-A12: 20-30 coins
-- A13-A20: 35-50 coins
-- A21+: 60-100 coins
-- Check current economy expectations, verify costs appropriate
-
-**□ Session Resource Costs Match Progression**
-- A4-A6: 2-3 Resolve/Stamina/Focus
-- A7-A12: 3-4 Resolve/Stamina/Focus
-- A13-A20: 4-5 Resolve/Stamina/Focus
-- Check current scene number, verify costs appropriate
-
-### 8.11.6 Final Review Questions
-
-**□ Does this situation create impossible choice?**
-- Are all paths genuinely viable in different contexts?
-- Do different player builds prefer different paths?
-- Is there strategic tension in selection?
-
-**□ Would I want to play this?**
-- Does it feel fair?
-- Does it feel interesting?
-- Does it feel appropriate for context?
-
-**□ Can I justify this to a player asking "Why?"**
-- Why does Path A cost more than Path B?
-- Why does this NPC require this stat?
-- Why do all paths give same base outcome?
-
-If you can answer all these confidently, the situation is likely well-balanced.
+**See [VALIDATION_CHECKLIST.md](VALIDATION_CHECKLIST.md) for complete checkbox-by-checkbox validation procedure.**
 
 ## 8.12 Summary
 

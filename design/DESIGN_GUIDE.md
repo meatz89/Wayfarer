@@ -1201,75 +1201,61 @@ flowchart TD
 
 ## Pre-Commit Validation Checklist
 
-Use this checklist before committing any situation design.
+**For the complete authoritative checklist, see:**
+**[VALIDATION_CHECKLIST.md](VALIDATION_CHECKLIST.md) - Canonical Pre-Commit Validation Checklist**
+
+The canonical version is the single source of truth with detailed explanations for every checkpoint. Use it before committing ANY situation design.
+
+**Quick reference summary:**
 
 ### Structural Validation
+- Minimum 2 choices (4-6 for A-story)
+- Orthogonal resource costs (each choice different resource type)
+- A-story progression guarantee (zero-requirement fallback)
 
-- [ ] Situation has minimum 2 choices (4-6 for A-story)
-- [ ] Each choice costs DIFFERENT resource type (orthogonal costs)
-- [ ] A-story has zero-requirement fallback (cannot soft-lock)
-- [ ] B-story has viable alternative OR walk-away option
-
-### Rule Compliance
-
-- [ ] Rule 1: Minimum 2 choices ✓
-- [ ] Rule 2: All choices have mechanical effects (no narrative-only) ✓
-- [ ] Rule 3: Higher costs = better rewards (create comparison matrix) ✓
-- [ ] Rule 4: All comparisons within THIS situation only ✓
-- [ ] Rule 5: If crisis, all choices negative; if normal, positive allowed ✓
-- [ ] Rule 6: Multi-stat effects used appropriately (optional) ✓
-- [ ] Rule 7: All costs reflect real opportunity costs ✓
-- [ ] Rule 8: Coin path exists as alternative to stat path ✓
+### Rule Compliance (8 Balance Rules)
+- Minimum 2 choices, resource juggling, requirements justify rewards
+- Intra-situation balance only (no cross-situation comparisons)
+- Crisis vs normal situations, verisimilitude in costs
+- Coins as alternative to stats
 
 ### Scaling Validation
-
-- [ ] Stat requirements match progression level (see table)
-- [ ] Coin costs match progression level (see table)
-- [ ] Session resource costs match progression level (see table)
-- [ ] Time costs appropriate (3-5 blocks for fallback)
+- Stat requirements by tier: 2-3 (A4-A6) → 7-8+ (A21+)
+- Coin costs by tier: 10-15 (A4-A6) → 60-100 (A21+)
+- Session resources by tier: 2-3 → 5-6
+- Time costs: 3-5 blocks (universal, no scaling)
 
 ### Edge Case Validation
-
-- [ ] Worst-case player (0 coins, 0 stats, 0 resources) can progress
-- [ ] Insight specialist finds viable path
-- [ ] Authority specialist finds viable path
-- [ ] Rapport specialist finds viable path
-- [ ] Balanced generalist has multiple options
-- [ ] Scattered-stat player never soft-locked
-- [ ] Wealthy player can use economic power
-- [ ] Skilled player can attempt challenges
+- Worst-case player can progress (0 coins, 0 stats, 0 resources)
+- All specialists find viable paths (Insight, Authority, Rapport, Diplomacy, Cunning)
+- Generalist and scattered progression viable
+- Wealthy and skilled players can use advantages
 
 ### Verisimilitude Validation
-
-- [ ] Narrative context supports all paths
-- [ ] Requirements make sense in fiction
-- [ ] Rewards match effort narratively
-- [ ] No logical contradictions
-- [ ] Fiction supports mechanics (not arbitrary)
+- Narrative context supports all paths
+- Requirements justified by fiction
+- Rewards match effort narratively
+- No arbitrary gates or contradictions
 
 ### Reward Proportionality
-
-Create comparison matrix and verify:
-- [ ] Stat-gated path: Best rewards
-- [ ] Money-gated path: Good rewards
-- [ ] Challenge success: Excellent rewards
-- [ ] Challenge failure: Adequate rewards (still progresses)
-- [ ] Fallback: Minimal rewards (but guaranteed)
+Create comparison matrix:
+- Stat-gated (best) > Money-gated (good) > Challenge success (excellent) > Challenge failure (adequate) > Fallback (minimal)
 
 ### Final Questions
+- Impossible choice? (Strategic tension)
+- Would I play this? (Fair, interesting, appropriate)
+- Can I justify this? (Clear reasoning for all costs)
 
-- [ ] Does this create impossible choice? (Genuine tension between options)
-- [ ] Would I want to play this? (Fair, interesting, appropriate)
-- [ ] Can I justify costs/requirements to player? (Clear reasoning)
-
-**If ALL boxes checked: Commit situation. If ANY box unchecked: Fix before committing.**
+**ALL checkboxes must be verified before commit. See [VALIDATION_CHECKLIST.md](VALIDATION_CHECKLIST.md) for complete procedure.**
 
 ---
 
 ## Related Documentation
 
-### Comprehensive Philosophy and Rationale
+### Validation and Balance
+- **[VALIDATION_CHECKLIST.md](VALIDATION_CHECKLIST.md)** - Canonical pre-commit validation checklist (single source of truth)
 - **[08_balance_philosophy.md](08_balance_philosophy.md)** - Complete balance philosophy with extensive examples, crisis situations, AI balance enablement, progression curves
+- **[BASELINE_ECONOMY.md](BASELINE_ECONOMY.md)** - Authoritative numeric values for all costs, rewards, and categorical multipliers
 
 ### Core Game Design Concepts
 - **[01_design_vision.md](01_design_vision.md)** - Perfect information philosophy, impossible choice principle, playability mandate
