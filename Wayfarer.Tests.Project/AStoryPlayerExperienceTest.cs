@@ -48,7 +48,7 @@ public class AStoryPlayerExperienceTest : IntegrationTestBase
 
         // ASSERT: A1 template exists in game content
         SceneTemplate a1Template = gameWorld.SceneTemplates
-            .FirstOrDefault(st => st.Id == "a1_arrival");
+            .FirstOrDefault(st => st.Id == "a1_secure_lodging");
 
         Assert.NotNull(a1Template);
         Assert.NotEmpty(a1Template.SituationTemplates);
@@ -77,7 +77,7 @@ public class AStoryPlayerExperienceTest : IntegrationTestBase
 
         // ASSERT: A3 template exists (spawned after A2)
         SceneTemplate a3Template = gameWorld.SceneTemplates
-            .FirstOrDefault(st => st.Id == "a3_departure");
+            .FirstOrDefault(st => st.Id == "a3_route_travel");
 
         Assert.NotNull(a3Template);
         Assert.NotEmpty(a3Template.SituationTemplates);
