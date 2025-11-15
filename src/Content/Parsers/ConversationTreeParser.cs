@@ -58,7 +58,9 @@ public static class ConversationTreeParser
             Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description ?? "",
-            Npc = npc,  // Resolve object reference during parsing (HIGHLANDER: ID is parsing artifact)
+            // HIGHLANDER Sub-Pattern A: Store both ID (for persistence) and Object (for runtime)
+            NpcId = dto.NpcId,  // From JSON, enables save/load
+            Npc = npc,  // Resolved once at parse-time, cached for runtime
             MinimumRelationship = dto.MinimumRelationship,
             RequiredKnowledge = dto.RequiredKnowledge ?? new List<string>(),
             AvailableTimeBlocks = timeBlocks,

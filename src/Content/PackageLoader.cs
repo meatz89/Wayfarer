@@ -1425,7 +1425,7 @@ public class PackageLoader
         _parsedExchangeCards = new List<ExchangeCardEntry>();
         foreach (ExchangeDTO dto in exchangeDtos)
         {
-            ExchangeCard exchangeCard = ExchangeParser.ParseExchange(dto, dto.NpcId);
+            ExchangeCard exchangeCard = ExchangeParser.ParseExchange(dto, dto.NpcId, _gameWorld);
             _parsedExchangeCards.Add(new ExchangeCardEntry { Id = exchangeCard.Id, Card = exchangeCard });
         }
     }
@@ -1500,11 +1500,8 @@ public class PackageLoader
         string originVenueId = GetVenueIdFromSpotId(forwardRoute.OriginLocationId);
         string destVenueId = GetVenueIdFromSpotId(forwardRoute.DestinationLocationId);
 
-        // Generate reverse route ID by swapping origin and destination
-        string[] idParts = forwardRoute.Id.Split("_to_");
-        string reverseId = idParts.Length == 2
-            ? $"{idParts[1]}_to_{idParts[0]}"
-            : $"{destVenueId}_to_{originVenueId}";
+        // Generate unique ID for reverse route (pure identifier, no encoded data)
+        string reverseId = Guid.NewGuid().ToString();
 
         RouteOption reverseRoute = new RouteOption
         {

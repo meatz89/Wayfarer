@@ -30,8 +30,9 @@ public class RapportBuildPlaythroughTest : IntegrationTestBase
         Player player = gameWorld.GetPlayer();
         int initialRapport = player.Rapport;
 
-        // ACT & ASSERT: A1 - Choose Rapport path
-        Scene a1 = gameWorld.Scenes.First(s => s.Template.Id == "a1_secure_lodging");
+        // ACT & ASSERT: A1 - Choose Rapport path (semantic query by category and sequence)
+        Scene a1 = gameWorld.Scenes.First(s =>
+            s.Template.Category == StoryCategory.MainStory && s.Template.MainStorySequence == 1);
         Assert.Equal(SceneState.Active, a1.State);
 
         // A1 Situation 1: Choose friendly/charm path (builds Rapport)
@@ -46,9 +47,11 @@ public class RapportBuildPlaythroughTest : IntegrationTestBase
         // Complete remaining A1 situations
         // (Would call gameFacade.ExecuteChoiceAsync for each)
 
-        // ACT & ASSERT: A2 spawns
-        Assert.Contains(gameWorld.Scenes, s => s.Template.Id == "a2_morning");
-        Scene a2 = gameWorld.Scenes.First(s => s.Template.Id == "a2_morning");
+        // ACT & ASSERT: A2 spawns (semantic query by category and sequence)
+        Assert.Contains(gameWorld.Scenes, s =>
+            s.Template.Category == StoryCategory.MainStory && s.Template.MainStorySequence == 2);
+        Scene a2 = gameWorld.Scenes.First(s =>
+            s.Template.Category == StoryCategory.MainStory && s.Template.MainStorySequence == 2);
 
         // A2 Situation 2: Accept job (advance)
         // A2 Situation 3: Check Rapport path availability
@@ -81,11 +84,15 @@ public class RapportBuildPlaythroughTest : IntegrationTestBase
         Assert.True(a2.Template.SituationTemplates.Any(), "A2 should have situations to complete");
 
         // Verify A3 will spawn (check A2 final situation rewards)
+        // Semantic query: Look for any scene spawn with MainStorySequence == 3
         SituationTemplate finalA2Sit = a2.Template.SituationTemplates.Last();
+        SceneTemplate a3Template = gameWorld.SceneTemplates.FirstOrDefault(st =>
+            st.Category == StoryCategory.MainStory && st.MainStorySequence == 3);
+        Assert.NotNull(a3Template); // A3 template must exist
         bool a3WillSpawn = finalA2Sit.ChoiceTemplates.Any(c =>
-            c.RewardTemplate?.ScenesToSpawn?.Any(s => s.SceneTemplateId == "a3_route_travel") == true ||
-            c.OnSuccessReward?.ScenesToSpawn?.Any(s => s.SceneTemplateId == "a3_route_travel") == true ||
-            c.OnFailureReward?.ScenesToSpawn?.Any(s => s.SceneTemplateId == "a3_route_travel") == true);
+            c.RewardTemplate?.ScenesToSpawn?.Any(s => s.SceneTemplateId == a3Template.Id) == true ||
+            c.OnSuccessReward?.ScenesToSpawn?.Any(s => s.SceneTemplateId == a3Template.Id) == true ||
+            c.OnFailureReward?.ScenesToSpawn?.Any(s => s.SceneTemplateId == a3Template.Id) == true);
 
         Assert.True(a3WillSpawn, "A2 final situation should spawn A3");
     }
@@ -95,8 +102,9 @@ public class RapportBuildPlaythroughTest : IntegrationTestBase
     {
         // ARRANGE
         GameWorld gameWorld = GetGameWorld();
+        // Semantic query by category and sequence instead of hardcoded ID
         SceneTemplate a1Template = gameWorld.SceneTemplates
-            .First(st => st.Id == "a1_secure_lodging");
+            .First(st => st.Category == StoryCategory.MainStory && st.MainStorySequence == 1);
 
         // ACT: Get first situation (negotiation)
         SituationTemplate negotiateSit = a1Template.SituationTemplates.First();
@@ -115,8 +123,9 @@ public class RapportBuildPlaythroughTest : IntegrationTestBase
     {
         // ARRANGE
         GameWorld gameWorld = GetGameWorld();
+        // Semantic query by category and sequence instead of hardcoded ID
         SceneTemplate a2Template = gameWorld.SceneTemplates
-            .First(st => st.Id == "a2_morning");
+            .First(st => st.Category == StoryCategory.MainStory && st.MainStorySequence == 2);
 
         // ACT: Get negotiation situation
         SituationTemplate negotiateSit = a2Template.SituationTemplates

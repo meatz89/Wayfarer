@@ -7,7 +7,7 @@ public static class ExchangeParser
     /// <summary>
     /// Parse a single ExchangeDTO into an ExchangeCard
     /// </summary>
-    public static ExchangeCard ParseExchange(ExchangeDTO dto, string npcId)
+    public static ExchangeCard ParseExchange(ExchangeDTO dto, string npcId, GameWorld gameWorld)
     {
         if (dto == null)
             throw new ArgumentNullException(nameof(dto));
@@ -16,12 +16,22 @@ public static class ExchangeParser
         if (string.IsNullOrEmpty(dto.Name))
             throw new InvalidOperationException($"Exchange '{dto.Id}' missing required field 'name'");
 
+        // Verify NPC exists and resolve object reference
+        NPC npc = gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc == null)
+        {
+            throw new InvalidOperationException(
+                $"Exchange '{dto.Id}' references unknown NPC '{npcId}'");
+        }
+
         ExchangeCard card = new ExchangeCard
         {
             Id = dto.Id,
             Name = dto.Name,
             Description = GenerateDescription(dto),
-            NpcId = npcId,
+            // HIGHLANDER Sub-Pattern A: Store both ID (for persistence) and Object (for runtime)
+            NpcId = npcId,  // From JSON, enables save/load
+            Npc = npc,  // Resolved once at parse-time, cached for runtime (avoids repeated lookups)
 
             // Default to trade type
             ExchangeType = dto.GiveCurrency == "coins" ? ExchangeType.Purchase : ExchangeType.Trade,
@@ -138,7 +148,9 @@ public static class ExchangeParser
                     Id = $"{npc.ID}_food_purchase",
                     Name = "Buy Hunger",
                     Description = "Purchase provisions from the merchant",
+                    // HIGHLANDER Sub-Pattern A: Store both ID (for persistence) and Object (for runtime)
                     NpcId = npc.ID,
+                    Npc = npc,
                     ExchangeType = ExchangeType.Purchase,
                     Cost = new ExchangeCostStructure
                     {
@@ -164,7 +176,9 @@ public static class ExchangeParser
                     Id = $"{npc.ID}_rest_service",
                     Name = "Rest at Inn",
                     Description = "Pay for a comfortable rest",
+                    // HIGHLANDER Sub-Pattern A: Store both ID (for persistence) and Object (for runtime)
                     NpcId = npc.ID,
+                    Npc = npc,
                     ExchangeType = ExchangeType.Service,
                     Cost = new ExchangeCostStructure
                     {

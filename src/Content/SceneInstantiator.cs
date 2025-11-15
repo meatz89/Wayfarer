@@ -104,8 +104,8 @@ public class SceneInstantiator
     /// </summary>
     private SceneDTO GenerateSceneDTO(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
-        // Generate unique Scene ID
-        string sceneId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+        // Generate unique Scene ID (pure identifier, TemplateId property tracks source template)
+        string sceneId = Guid.NewGuid().ToString();
 
         // Calculate expiration day
         int? expiresOnDay = template.ExpirationDays.HasValue
@@ -176,8 +176,8 @@ public class SceneInstantiator
 
         foreach (SituationTemplate sitTemplate in template.SituationTemplates)
         {
-            // Generate unique Situation ID
-            string situationId = $"situation_{sitTemplate.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+            // Generate unique Situation ID (pure identifier, TemplateId property tracks source template)
+            string situationId = Guid.NewGuid().ToString();
 
             // Use narrative template (narrative generation with resolved entities happens later in System 5)
             string description = sitTemplate.NarrativeTemplate;
@@ -300,8 +300,8 @@ public class SceneInstantiator
     /// </summary>
     private Situation InstantiateSituation(SituationTemplate template, Scene parentScene, SceneSpawnContext context)
     {
-        // Generate unique Situation ID
-        string situationId = $"situation_{template.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+        // Generate unique Situation ID (pure identifier, TemplateId property tracks source template)
+        string situationId = Guid.NewGuid().ToString();
 
         // Create Situation from template
         Situation situation = new Situation

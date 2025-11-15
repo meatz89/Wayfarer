@@ -28,19 +28,25 @@ public class ParametricSpawningTests : IntegrationTestBase
     {
         // ARRANGE
         GameWorld gameWorld = GetGameWorld();
+        // Semantic query by category and sequence instead of hardcoded ID
         SceneTemplate a2Template = gameWorld.SceneTemplates
-            .First(st => st.Id == "a2_morning");
+            .First(st => st.Category == StoryCategory.MainStory && st.MainStorySequence == 2);
 
         // ACT: Get negotiation situation (Situation 2 - after offer)
         SituationTemplate negotiateSituation = a2Template.SituationTemplates
-            .First(sit => sit.Id.Contains("negotiate"));
+            .First(sit => sit.Id.Contains("negotiate")); // TODO: Replace with semantic property query
 
         // ASSERT: All negotiation choices spawn A3 with parameters
+        // Semantic query: Get A3 template to compare against
+        SceneTemplate a3Template = gameWorld.SceneTemplates.FirstOrDefault(st =>
+            st.Category == StoryCategory.MainStory && st.MainStorySequence == 3);
+        Assert.NotNull(a3Template); // A3 template must exist
+
         foreach (ChoiceTemplate choice in negotiateSituation.ChoiceTemplates)
         {
             List<SceneSpawnReward> spawns = GetAllSpawnsFromChoice(choice);
             List<SceneSpawnReward> a3Spawns = spawns
-                .Where(s => s.SceneTemplateId == "a3_route_travel")
+                .Where(s => s.SceneTemplateId == a3Template.Id)
                 .ToList();
 
             Assert.NotEmpty(a3Spawns);
@@ -65,19 +71,22 @@ public class ParametricSpawningTests : IntegrationTestBase
         GameFacade gameFacade = GetGameFacade();
         await gameFacade.StartGameAsync();
 
-        // Navigate to A2 (skip A1 for test speed)
-        Scene a1 = gameWorld.Scenes.First(s => s.Template.Id == "a1_secure_lodging");
+        // Navigate to A2 (skip A1 for test speed) - semantic queries by category and sequence
+        Scene a1 = gameWorld.Scenes.First(s =>
+            s.Template.Category == StoryCategory.MainStory && s.Template.MainStorySequence == 1);
         CompleteSceneWithFallbacks(a1, gameWorld.GetPlayer());
 
         // ACT: Complete A2 with standard negotiation (ContractPayment = 20)
-        Scene a2 = gameWorld.Scenes.First(s => s.Template.Id == "a2_morning");
+        Scene a2 = gameWorld.Scenes.First(s =>
+            s.Template.Category == StoryCategory.MainStory && s.Template.MainStorySequence == 2);
         ChoiceTemplate standardChoice = a2.CurrentSituation.Template.ChoiceTemplates
             .First(c => c.PathType == ChoicePathType.Fallback);
 
         await ExecuteChoice(standardChoice, a2, gameWorld.GetPlayer(), gameFacade);
 
-        // ASSERT: A3 spawned with parameters
-        Scene a3 = gameWorld.Scenes.FirstOrDefault(s => s.Template.Id == "a3_route_travel");
+        // ASSERT: A3 spawned with parameters (semantic query by category and sequence)
+        Scene a3 = gameWorld.Scenes.FirstOrDefault(s =>
+            s.Template.Category == StoryCategory.MainStory && s.Template.MainStorySequence == 3);
         Assert.NotNull(a3);
         Assert.NotNull(a3.Parameters);
         Assert.True(a3.Parameters.ContainsKey("ContractPayment"));
@@ -94,17 +103,20 @@ public class ParametricSpawningTests : IntegrationTestBase
 
         int initialCoins = gameWorld.GetPlayer().Coins;
 
-        // Complete A1 and A2
-        Scene a1 = gameWorld.Scenes.First(s => s.Template.Id == "a1_secure_lodging");
+        // Complete A1 and A2 (semantic queries by category and sequence)
+        Scene a1 = gameWorld.Scenes.First(s =>
+            s.Template.Category == StoryCategory.MainStory && s.Template.MainStorySequence == 1);
         CompleteSceneWithFallbacks(a1, gameWorld.GetPlayer());
 
-        Scene a2 = gameWorld.Scenes.First(s => s.Template.Id == "a2_morning");
+        Scene a2 = gameWorld.Scenes.First(s =>
+            s.Template.Category == StoryCategory.MainStory && s.Template.MainStorySequence == 2);
         CompleteSceneWithFallbacks(a2, gameWorld.GetPlayer());
 
         int coinsAfterA2 = gameWorld.GetPlayer().Coins;
 
-        // ACT: Complete A3 (all situations)
-        Scene a3 = gameWorld.Scenes.First(s => s.Template.Id == "a3_route_travel");
+        // ACT: Complete A3 (all situations) - semantic query by category and sequence
+        Scene a3 = gameWorld.Scenes.First(s =>
+            s.Template.Category == StoryCategory.MainStory && s.Template.MainStorySequence == 3);
         CompleteSceneWithFallbacks(a3, gameWorld.GetPlayer());
 
         // ASSERT: Player received ContractPayment + base reward
