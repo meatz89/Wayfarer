@@ -60,12 +60,207 @@ This is the most fundamental balance principle. Every comparison, every evaluati
 - Example: +2 Insight, -1 Health (intensive mental effort exhausts body)
 - Balance emerges from asymmetric exchanges (gain in one area, lose in others)
 
+**Multi-Stat Trade-Off Ratio Guidelines:**
+
+**Symmetric Gains (Multiple Positives):**
+When choice grants MULTIPLE stats, reduce individual gains to maintain balance.
+
+Standard single-stat gain: +2 to one stat
+Multi-stat symmetric gain: +1 to each of two stats (total +2 distributed)
+- Example: "+1 Insight, +1 Cunning" (analytical and strategic thinking)
+- Balanced against "+2 Insight" (pure analytical specialization)
+- Player chooses: Depth in one area OR breadth across two areas
+
+Three-stat gain: +1 to each of three stats (rare, represents broad learning)
+- Example: "+1 Insight, +1 Rapport, +1 Diplomacy" (holistic growth)
+- Balanced against "+2 Insight" (specialist gets more depth)
+- Use sparingly (encourages generalist builds, dilutes specialization)
+
+**Asymmetric Trades (Gain One, Lose Another):**
+Exchanges create interesting tension between different character aspects.
+
+2-for-1 trade: +2 in one stat, -1 in another stat
+- Example: "+2 Authority, -1 Rapport" (assertive leadership alienates)
+- Net gain: +1 total stats (same as pure +1 single stat)
+- BUT: Directional shift (trading social warmth for command presence)
+- Use when: Choice represents philosophical shift or character transformation
+
+3-for-1 trade: +3 in one stat, -1 in another stat
+- Example: "+3 Authority, -1 Cunning" (direct confrontation, abandon subtlety)
+- Net gain: +2 total stats (standard gain amount)
+- Larger shift: Significant character evolution
+- Use when: Dramatic choice, major character moment
+
+Even trade: +2 in one stat, -2 in another stat
+- Example: "+2 Insight, -2 Health" (intensive study causes exhaustion and neglect)
+- Net gain: 0 total stats
+- Pure trade-off: No power gain, only character shift
+- Use when: Choice represents sacrifice or cost of obsession
+
+**Multi-Stat Requirements:**
+
+Single requirement: Stat ≥ 5
+Multi-requirement (2 stats): Both stats ≥ 3 (total 6 points required)
+- Lower individual thresholds, higher total investment
+- Rewards balanced builds
+- Example: "Diplomacy ≥ 3 AND Rapport ≥ 3" (empathetic negotiation)
+
+Multi-requirement (2 stats, asymmetric): Primary ≥ 5, Secondary ≥ 2 (total 7 points)
+- Specialist with secondary competence
+- Example: "Insight ≥ 5 AND Cunning ≥ 2" (strategic investigation)
+
+**Concrete Multi-Stat Choice Examples:**
+
+**Example 1: Confrontation with Authority Figure**
+
+Choice A (Pure Authority): "Assert your position forcefully"
+- Requirement: Authority ≥ 5
+- Outcome: Target backs down, you gain respect, relationship +0 (professional distance)
+- Stat gain: +1 Authority
+- Pure specialist path
+
+Choice B (Balanced Approach): "Balance firmness with understanding"
+- Requirement: Authority ≥ 3 AND Diplomacy ≥ 3
+- Outcome: Target accepts middle ground, mutual respect, relationship +2
+- Stat gain: +1 Diplomacy
+- Balanced specialist path (requires total 6 points across two stats)
+
+Choice C (Transformative Shift): "Force the issue, consequences be damned"
+- Requirement: None
+- Outcome: Target capitulates, others fear you, relationship -2
+- Stat gain: +3 Authority, -1 Rapport
+- Available to anyone, transforms character (gain command, lose warmth)
+
+**Example 2: Intensive Study Session**
+
+Choice A (Standard Study): "Study normally"
+- Requirement: None
+- Cost: 2 time blocks
+- Outcome: +1 Insight
+- Baseline
+
+Choice B (Intense Focus): "Push yourself to exhaustion"
+- Requirement: None
+- Cost: 3 time blocks
+- Outcome: +2 Insight, -2 Health (mental gains, physical toll)
+- Trade-off: Knowledge for wellbeing
+
+Choice C (Balanced Learning): "Integrate multiple disciplines"
+- Requirement: None
+- Cost: 3 time blocks
+- Outcome: +1 Insight, +1 Diplomacy (analytical and interpersonal learning)
+- Breadth over depth
+
+**Example 3: Leadership Opportunity**
+
+Choice A (Command): "Take charge decisively"
+- Requirement: Authority ≥ 4
+- Outcome: Group follows, task succeeds efficiently
+- Stat gain: +1 Authority
+- Specialist path
+
+Choice B (Inspire): "Lead through connection and vision"
+- Requirement: Rapport ≥ 4
+- Outcome: Group enthusiastically commits, task succeeds with energy
+- Stat gain: +1 Rapport
+- Alternative specialist path
+
+Choice C (Balanced Leadership): "Combine direction with empathy"
+- Requirement: Authority ≥ 3 AND Rapport ≥ 3
+- Outcome: Group trusts and follows, task succeeds with commitment and efficiency
+- Stat gain: +1 Authority, +1 Rapport (total +2, distributed)
+- Balanced path (requires more total investment: 6 vs 4 points)
+
+**When to Use Multi-Stat Effects:**
+
+Use symmetric multi-stat GAINS when:
+- Representing holistic learning or growth
+- Validating balanced builds
+- Offering breadth as alternative to depth
+- Frequency: 10-15% of stat-granting choices
+
+Use asymmetric TRADES when:
+- Choice represents philosophical shift
+- Character transformation or sacrifice
+- Dramatic moments with consequences
+- Costs of specialization or obsession
+- Frequency: 5-10% of stat-affecting choices
+
+Use multi-stat REQUIREMENTS when:
+- Genuinely complex challenges
+- Validating balanced builds
+- Representing sophisticated capability
+- Offering exceptional rewards
+- Frequency: 10-15% of stat-gated choices
+
+**Balance Validation for Multi-Stat Choices:**
+
+Test 1: Does total value match single-stat alternatives?
+- "+1 Insight, +1 Cunning" (total +2) = "+2 Insight" ✓
+
+Test 2: Is there genuine trade-off for player?
+- "+2 Authority, -1 Rapport": Gain command, lose warmth ✓
+- Different builds value differently ✓
+
+Test 3: Do requirements justify rewards?
+- "Authority 3 AND Rapport 3" (total 6) gives better rewards than "Authority 5" (total 5) ✓
+- More investment = better outcome ✓
+
+Test 4: Does fiction support the multi-stat effect?
+- "Intensive study" causing +Insight, -Health: Yes, exhaustion is narratively appropriate ✓
+- "Balanced leadership" requiring Authority AND Rapport: Yes, combining directive and empathetic ✓
+
 **Rule 7: Versimilitude in costs (opportunity cost accuracy)**
 - Costs must reflect actual opportunity cost, not just exist on paper
 - Example: Resting in private room costs Time segment, but if staying the night anyway, time passes regardless
 - Therefore: Alternative to resting must give reward for NOT resting (since not actually saving time)
 - Example: "Study while resting" gives +1 Understanding but restores less Health
 - The cost is reduced restoration, NOT time (time already spent)
+
+**More Verisimilitude Examples:**
+
+**Travel Costs Example:**
+INCORRECT: "Fast travel" costs 5 coins, "Slow travel" costs 0 coins but takes 3 time blocks
+- Problem: Player traveling either way, time passes regardless of which route
+- Both routes should cost TIME, difference is in risk/encounters
+
+CORRECT: "Safe route" costs 5 time blocks (longer, more segments), "Dangerous shortcut" costs 3 time blocks but higher risk
+- Both cost time (real opportunity cost)
+- Trade-off: Safety vs speed, not money vs time
+- Verisimilitude: Longer route is actually longer (more segments to traverse)
+
+**Persuasion Costs Example:**
+INCORRECT: "Intimidate" costs Authority 5, "Bribe" costs 0 coins but takes longer
+- Problem: Bribing with 0 coins makes no sense narratively
+- Time cost alone doesn't justify success
+
+CORRECT: "Intimidate" costs Authority 5 (stat requirement), "Bribe" costs 20 coins (actual payment)
+- Both have real costs
+- Trade-off: Specialization vs economic resource
+- Verisimilitude: Intimidation requires commanding presence, bribery requires money
+
+**Investigation Costs Example:**
+INCORRECT: "Thorough investigation" costs 4 time blocks, finds ALL clues. "Quick investigation" costs 2 time blocks, finds SOME clues. Both free.
+- Problem: No reason to ever choose quick investigation (time not that scarce, all clues strictly better)
+- Dominant strategy (thorough always better)
+
+CORRECT: "Thorough investigation" costs 4 time blocks + 3 Focus (mentally exhausting). "Quick investigation" costs 2 time blocks, no Focus (surface level).
+- Both have real costs (time + mental energy vs time only)
+- Trade-off: Completeness vs resource preservation
+- Thorough path finds more but depletes Focus (might need that Focus for other challenges today)
+- Quick path preserves Focus for other uses
+- Verisimilitude: Deep investigation is mentally draining
+
+**Equipment Purchase Example:**
+INCORRECT: "Buy sword" costs 50 coins. "Borrow sword" costs 0 coins but must return later.
+- Problem: Borrowing has no real cost if player never needs to return it
+- "Return later" is vague promise, not mechanical cost
+
+CORRECT: "Buy sword" costs 50 coins, permanent ownership. "Rent sword" costs 10 coins, must return after 5 days OR pay 50 coins.
+- Both have real costs (purchase vs rental)
+- Trade-off: Upfront investment vs short-term access
+- Rental deadline creates real pressure (must complete task or lose item)
+- Verisimilitude: Rental has lower upfront cost but creates obligation
 
 **Rule 8: Coins as alternative resource (inspired by Sir Brante's willpower)**
 - Coins can function like willpower: alternative to stat requirements OR way to gain greater rewards
