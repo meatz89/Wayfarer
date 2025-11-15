@@ -1012,7 +1012,931 @@ Result: Effectively infinite content, all balanced via universal formulas.
 
 **Result**: AI generates infinite balanced content by describing entities categorically. System translates to numbers. Perfect division of labor.
 
-## 8.9 Summary
+## 8.9 Designing Balanced Situations: Step-by-Step Methodology
+
+This section provides comprehensive methodology for designing balanced situations from scratch. Follow this process to ensure all 8 core balance rules are satisfied.
+
+### 8.9.1 The Design Process Overview
+
+**Five-Phase Design Process:**
+
+1. **Establish Context** - What is the situation about? What does the player need?
+2. **Define Outcome** - What happens when situation resolves? What does player gain?
+3. **Design Four Paths** - Create orthogonal resource costs for same outcome
+4. **Validate Balance** - Check all 8 rules, test edge cases
+5. **Verify Verisimilitude** - Ensure fiction justifies mechanics
+
+Each phase has specific methodology and validation criteria.
+
+### 8.9.2 Phase 1: Establish Context
+
+**Questions to Answer:**
+
+1. **What does the player need to accomplish?**
+   - Information (learn where to go next)
+   - Access (enter restricted location)
+   - Service (rest, healing, equipment)
+   - Relationship (build NPC trust)
+
+2. **What is the narrative context?**
+   - Who is involved? (NPC personality, power dynamic)
+   - Where is this happening? (location type, atmosphere)
+   - What are the stakes? (urgent vs casual, high vs low importance)
+
+3. **What entry state does player bring?**
+   - Tags from previous choices (reputation, relationships)
+   - Current resource levels (coins, health, stats)
+   - Build specialization (high Insight vs high Authority)
+
+4. **Is this A-story or B-story?**
+   - A-story: Progression fallback required (must advance)
+   - B-story: Verisimilitude fallback acceptable (can walk away)
+
+**Example Context Establishment:**
+
+**Situation**: "Gain innkeeper's trust to learn about mysterious stranger"
+
+1. Need: Information about stranger's destination
+2. Context: Small town inn, friendly innkeeper, casual stakes
+3. Entry state: Just arrived (no prior relationship), moderate coins, varied stats
+4. Type: A-story (critical path, must progress)
+
+**Result**: This is an A-story information-gathering situation at a friendly inn with a willing NPC. Progression fallback required.
+
+### 8.9.3 Phase 2: Define Outcome
+
+**Questions to Answer:**
+
+1. **What is the BASE outcome all choices share?**
+   - Same fundamental result regardless of path
+   - Difference is in HOW player gets there, not WHETHER
+
+2. **What are PROPORTIONAL REWARDS for harder paths?**
+   - Stat-gated path: Best rewards (validates specialization)
+   - Money-gated path: Good rewards (efficient but costly)
+   - Challenge path: Variable rewards (skill expression)
+   - Fallback path: Minimal rewards (guaranteed but inefficient)
+
+3. **What tags should be applied?**
+   - Entry state for next scene
+   - Relationship changes with NPCs
+   - World state alterations
+
+4. **What scenes spawn next?**
+   - A-story: ALL four choices spawn same next scene (different entry states)
+   - B-story: Choices may spawn different follow-ups OR none
+
+**Example Outcome Definition:**
+
+**Base Outcome (All Paths):**
+- Learn stranger went north to Grimwood
+- Next scene spawns: "Travel to Grimwood"
+
+**Proportional Rewards:**
+
+**Stat-gated path (Rapport 4):**
+- Tag: "InnkeeperTrusts" (best relationship)
+- Innkeeper relationship +2
+- Bonus: Free meal (5 coin value)
+- Information quality: Detailed (exact route, warnings about dangers)
+
+**Money-gated path (15 coins):**
+- Tag: "InnkeeperPaid" (transactional relationship)
+- Innkeeper relationship +1
+- Cost: 15 coins
+- Information quality: Complete (destination and general route)
+
+**Challenge path (Social challenge, 3 Resolve):**
+- Success: Tag "InnkeeperConvinced", relationship +2, detailed information
+- Failure: Tag "InnkeeperReluctant", relationship +0, basic information
+- Both outcomes progress (information received either way)
+
+**Fallback path (4 time blocks helping):**
+- Tag: "InnkeeperHelped" (earned through patience)
+- Innkeeper relationship +1
+- Cost: 4 time blocks (opportunity cost)
+- Information quality: Complete but slowly gained
+
+**Result**: All four paths give information and spawn next scene. Rewards scale with difficulty. Fallback guarantees progression.
+
+### 8.9.4 Phase 3: Design Four Paths
+
+This is the critical phase where orthogonal resource costs are designed.
+
+**Path 1: Stat-Gated (Optimal Specialization Path)**
+
+**Design Questions:**
+
+1. **Which stat makes narrative sense?**
+   - Rapport for social connection
+   - Insight for analytical observation
+   - Authority for commanding presence
+   - Diplomacy for balanced negotiation
+   - Cunning for strategic manipulation
+
+2. **What threshold is appropriate for progression level?**
+   - Early game (A1-A3): No requirements (identity building)
+   - Early-mid game (A4-A6): Stat 2-3 (first specialization)
+   - Mid game (A7-A12): Stat 4-5 (moderate specialization)
+   - Late game (A13-A20): Stat 6-7 (deep specialization)
+   - Very late game (A21+): Stat 7-8 (mastery)
+
+3. **What are the BEST rewards?**
+   - Highest relationship gains (+2 vs +1)
+   - Bonus tangible rewards (free items, extra coins, time saved)
+   - Best information quality (most detailed, most useful)
+   - Optimal entry state for next scene
+
+4. **Why should this path be FREE?**
+   - Player invested permanent resources (XP) to reach stat threshold
+   - Build specialization should be rewarded
+   - Validates character investment decisions
+
+**Example Path 1 Design:**
+
+Friendly innkeeper scenario, mid-game (A7):
+
+**Choice: "Connect with innkeeper through genuine empathy"**
+- Requirement: Rapport ≥ 4 (mid-game threshold)
+- Cost: Free (validates Rapport specialization)
+- Outcome: Innkeeper shares detailed info willingly, relationship +2, free meal
+- Tag: "InnkeeperTrusts"
+- Verisimilitude: High Rapport character naturally builds trust quickly
+
+**Path 2: Money-Gated (Reliable Economic Path)**
+
+**Design Questions:**
+
+1. **What coin cost is SUBSTANTIAL but AFFORDABLE?**
+   - Must feel meaningful (not trivial)
+   - Must be achievable via 1-2 B-story completions
+   - Scales with progression (higher costs later)
+
+2. **What is baseline coin availability at this progression level?**
+   - Early game (A1-A3): 5-15 coins per B-story, 20-40 coins typical reserve
+   - Mid game (A7-A12): 15-25 coins per B-story, 40-80 coins typical reserve
+   - Late game (A13-A20): 30-50 coins per B-story, 80-150 coins typical reserve
+
+3. **What percentage of typical reserve is meaningful?**
+   - 20-40% feels substantial but not devastating
+   - Mid-game: 40-80 coin reserve → 15-25 coin cost range
+   - This example: 15 coins (about 30% of 50 coin midpoint)
+
+4. **What rewards justify the cost?**
+   - Good rewards (not as good as stat path, better than fallback)
+   - Reliable outcome (no variance, instant resolution)
+   - Efficient (faster than time-based paths)
+
+**Example Path 2 Design:**
+
+**Choice: "Offer generous tip for information"**
+- Requirement: None (always visible)
+- Cost: 15 coins (meaningful but affordable)
+- Outcome: Innkeeper shares complete info, relationship +1
+- Tag: "InnkeeperPaid"
+- Verisimilitude: Money greases wheels, transactional but effective
+
+**Validation**: 15 coins is 60% of typical B-story reward (25 coins), requires player to have completed 1 B-story recently or saved from previous earnings. Substantial enough to matter, affordable enough to be viable.
+
+**Path 3: Challenge (Risky Skill Expression Path)**
+
+**Design Questions:**
+
+1. **Which challenge type makes narrative sense?**
+   - Social challenge: Conversations, negotiations, persuasion
+   - Mental challenge: Analysis, investigation, deduction
+   - Physical challenge: Action, confrontation, endurance
+
+2. **What session resource cost is appropriate?**
+   - Early game: 2-3 Resolve/Stamina/Focus
+   - Mid game: 3-4 Resolve/Stamina/Focus
+   - Late game: 4-5 Resolve/Stamina/Focus
+
+3. **What are SUCCESS and FAILURE outcomes?**
+   - Both must advance progression (no soft-lock)
+   - Success: Excellent rewards (better than money path)
+   - Failure: Adequate rewards (worse than money path, better than fallback)
+   - Variance creates risk/reward trade-off
+
+4. **Is failure genuinely acceptable?**
+   - Player still gets information (base outcome)
+   - Relationship might be neutral instead of positive
+   - Next scene still spawns (progression guaranteed)
+   - Failure is SETBACK not DISASTER
+
+**Example Path 3 Design:**
+
+**Choice: "Engage in friendly conversation, persuade gently"**
+- Requirement: None (always visible)
+- Cost: 3 Resolve (mid-game standard)
+- Challenge: Social challenge session
+- Success outcome: Detailed information, relationship +2, Understanding +1
+- Success tag: "InnkeeperConvinced"
+- Failure outcome: Basic information, relationship +0
+- Failure tag: "InnkeeperReluctant"
+- Verisimilitude: Skilled conversation can build trust OR fall flat
+
+**Validation**: Both outcomes progress story (information received). Success gives best total value (relationship +2, Understanding +1, detailed info). Failure gives base outcome only. Both acceptable.
+
+**Path 4: Fallback (Guaranteed Progression Path)**
+
+**Design Questions:**
+
+1. **What zero-requirement path makes narrative sense?**
+   - Patient approach (wait, help, build trust slowly)
+   - Alternative method (find different source, work around)
+   - Brute force (inefficient but reliable)
+
+2. **What is the opportunity cost?**
+   - Time blocks (most common)
+   - Alternative resources (less common)
+   - Never coins (overlaps with Path 2)
+   - Never stats (contradicts zero-requirement principle)
+
+3. **How much time is MEANINGFUL but not PUNISHING?**
+   - 3-5 time blocks typical (2-4 hours in-game)
+   - Enough to feel costly (could do B-story instead)
+   - Not so much that it feels like punishment
+
+4. **What are MINIMAL rewards?**
+   - Base outcome only (information received)
+   - Small relationship gain (+1 typical)
+   - No bonus rewards
+   - Adequate entry state for next scene
+
+5. **Does this GUARANTEE progression?**
+   - Zero requirements (any player can select)
+   - Cannot fail (Instant action or guaranteed challenge)
+   - Spawns next scene (A-story advances)
+   - This is NON-NEGOTIABLE for A-story
+
+**Example Path 4 Design:**
+
+**Choice: "Help with inn chores, build trust over time"**
+- Requirement: None (zero requirements, always available)
+- Cost: 4 time blocks (meaningful opportunity cost)
+- Outcome: Complete information, relationship +1
+- Tag: "InnkeeperHelped"
+- Cannot fail: Instant action (not a challenge)
+- Progresses: Spawns next scene
+- Verisimilitude: Patient work builds trust naturally
+
+**Validation**: Zero requirements ✓, Cannot fail ✓, Spawns next scene ✓. Progression guaranteed even for player with 0 stats, 0 coins, 0 Resolve.
+
+### 8.9.5 Phase 4: Validate Balance
+
+Now apply all 8 core balance rules systematically.
+
+**Rule 1: Every situation must have at least 2 choices minimum**
+
+Test: Count choices.
+- Path 1, Path 2, Path 3, Path 4 = 4 choices
+- Result: ✓ Pass
+
+**Rule 2: Player must always juggle resources**
+
+Test: Does every choice cost OR reward something measurable?
+- Path 1: Costs stat investment (permanent resource)
+- Path 2: Costs 15 coins (consumable resource)
+- Path 3: Costs 3 Resolve (session resource)
+- Path 4: Costs 4 time blocks (opportunity cost)
+- All choices have mechanical consequences
+- Result: ✓ Pass
+
+**Rule 3: Choices with requirements/costs MUST give better rewards**
+
+Test: Do higher costs = better rewards?
+
+Comparison matrix:
+| Path | Cost | Relationship | Info Quality | Bonus | Total Value |
+|------|------|--------------|--------------|-------|-------------|
+| 1 | Stat 4 | +2 | Detailed | Free meal | Highest |
+| 2 | 15 coins | +1 | Complete | None | Good |
+| 3 (success) | 3 Resolve | +2 | Detailed | +1 Understanding | Excellent |
+| 3 (failure) | 3 Resolve | +0 | Basic | None | Minimal |
+| 4 | 4 time | +1 | Complete | None | Minimal |
+
+Analysis:
+- Path 1 (stat requirement): Best relationship, best info, bonus reward
+- Path 2 (coin cost): Middle relationship, adequate info, no bonus
+- Path 3 (success): Best total (relationship + Understanding)
+- Path 3 (failure): Minimal (acceptable setback)
+- Path 4 (time cost): Minimal but adequate
+
+Validation:
+- Stat requirement gives best rewards ✓
+- Money cost gives good rewards ✓
+- Challenge success gives excellent rewards ✓
+- Challenge failure gives minimal but acceptable rewards ✓
+- Fallback gives minimal rewards ✓
+- Result: ✓ Pass
+
+**Rule 4: Balance within situation, NOT across situations**
+
+Test: Are we comparing to choices in OTHER situations?
+- No cross-situation comparisons made
+- All balance judgments relative to THIS situation's four choices
+- Result: ✓ Pass
+
+**Rule 5: Crisis situations = All choices are damage control**
+
+Test: Is this a crisis situation?
+- No, this is standard information-gathering
+- Not all choices involve losses
+- Most choices give positive rewards
+- Result: ✓ N/A (not crisis situation)
+
+**Rule 6: Multi-stat effects create balance through trade-offs**
+
+Test: Do any choices affect multiple stats asymmetrically?
+- Current design: Single-stat gains only
+- Opportunity: Could add multi-stat trade-offs
+- Not required but could enhance
+
+Potential enhancement:
+- Path 1 could give +2 Rapport, -1 Authority (too friendly, lose commanding presence)
+- Path 2 could give relationship +1, but tag "TransactionalRelationship" (limits future options)
+
+Decision: Keep simple for this example, but multi-stat effects are valid tool.
+- Result: ✓ Pass (not required, could enhance)
+
+**Rule 7: Versimilitude in costs (opportunity cost accuracy)**
+
+Test: Do costs reflect actual opportunity cost?
+
+Path 1 (Stat requirement):
+- Real cost: XP invested over many challenges to reach Rapport 4
+- Opportunity cost: Could have invested in different stats
+- Verisimilitude: ✓ (specialization should be rewarded)
+
+Path 2 (15 coins):
+- Real cost: 15 coins from player's reserve
+- Opportunity cost: Could have bought food, lodging, equipment
+- Verisimilitude: ✓ (money is fungible, can be spent elsewhere)
+
+Path 3 (3 Resolve):
+- Real cost: 3 Resolve from session pool
+- Opportunity cost: Could use Resolve for other Social challenges today
+- Verisimilitude: ✓ (social energy is finite)
+
+Path 4 (4 time blocks):
+- Real cost: 4 time blocks from day's budget
+- Opportunity cost: Could do B-story for coins, other scenes, rest
+- Verisimilitude: ✓ (time spent here cannot be spent elsewhere)
+
+Result: ✓ Pass (all costs reflect real opportunity costs)
+
+**Rule 8: Coins as alternative resource (inspired by Sir Brante's willpower)**
+
+Test: Do coins function as alternative to stat requirements OR enhancement?
+
+Current design:
+- Path 1: Stat requirement (Rapport 4)
+- Path 2: Coin cost (15 coins)
+- These are ALTERNATIVES (either high Rapport OR coins achieves good outcome)
+
+Is 15 coins appropriately valued relative to Rapport 4?
+
+Valuation analysis:
+- Rapport 4 requires ~12-15 challenges worth of XP
+- Each challenge takes 3-5 segments (average 4)
+- Total time investment: 48-60 segments
+- Alternative: Do 1-2 B-stories (8-12 segments) to earn 15 coins
+- Time ratio: Stat path takes 4-5× longer than coin path
+- BUT stat path is permanent, coin path is consumable
+- Balance: Coins are more accessible but depletable, stats are harder but permanent
+
+Conclusion: 15 coins is appropriately valued as alternative to Rapport 4.
+
+Result: ✓ Pass
+
+### 8.9.6 Phase 5: Verify Verisimilitude
+
+Final check: Does fiction justify mechanics?
+
+**Test Questions:**
+
+1. **Does the narrative context support all four paths?**
+   - Friendly innkeeper willing to help
+   - Can be convinced through empathy (Path 1) ✓
+   - Can be paid for information (Path 2) ✓
+   - Can be persuaded through conversation (Path 3) ✓
+   - Will share info after building trust through work (Path 4) ✓
+
+2. **Do requirements make sense in fiction?**
+   - Rapport 4 for instant trust: Yes, empathetic people build connection quickly
+   - 15 coins for information: Yes, generous tip encourages sharing
+   - Social challenge: Yes, persuasion can work but might fail
+   - 4 time blocks helping: Yes, actions build trust over time
+
+3. **Do rewards match effort in narrative terms?**
+   - High Rapport gets best relationship: Yes, natural connection
+   - Money gets transactional outcome: Yes, business relationship
+   - Skilled persuasion gets appreciation: Yes, NPC respects ability
+   - Patient work gets gratitude: Yes, innkeeper values help
+
+4. **Are there any logical contradictions?**
+   - Scan all paths for narrative inconsistencies
+   - Path 1 instant trust vs Path 4 slow trust: Consistent (Rapport skill accelerates natural process)
+   - Path 2 payment vs Path 1 free: Consistent (empathy bypasses need for payment)
+   - Path 3 risk of failure: Consistent (even skilled conversation can fail)
+
+Result: ✓ Pass (all paths make narrative sense)
+
+### 8.9.7 Complete Design Example Output
+
+**Situation: "Gain Innkeeper's Trust" (A7 mid-game)**
+
+**Context:**
+- Location: Small town inn, common room
+- NPC: Friendly innkeeper, willing to help but cautious
+- Goal: Learn where mysterious stranger went
+- Type: A-story (progression required)
+
+**Outcome (All Paths):**
+- Information: Stranger went north to Grimwood
+- Progression: Next scene "Travel to Grimwood" spawns
+
+**Choice 1: Connect through empathy (Stat-Gated)**
+- Requirement: Rapport ≥ 4
+- Cost: Free
+- Outcome: Detailed information (exact route, danger warnings), relationship +2, free meal (5 coin value), Understanding +0
+- Tag: "InnkeeperTrusts"
+- Narrative: "Your genuine warmth puts the innkeeper at ease. They share everything willingly, even insisting you take provisions for the journey."
+
+**Choice 2: Offer generous tip (Money-Gated)**
+- Requirement: None
+- Cost: 15 coins
+- Outcome: Complete information (destination and general route), relationship +1, Understanding +0
+- Tag: "InnkeeperPaid"
+- Narrative: "The coin purse lands on the bar with a satisfying clink. The innkeeper's eyes light up, and they're suddenly quite helpful."
+
+**Choice 3: Persuade gently (Challenge)**
+- Requirement: None
+- Cost: 3 Resolve (Social challenge)
+- Success: Detailed information, relationship +2, Understanding +1
+- Success tag: "InnkeeperConvinced"
+- Failure: Basic information (destination only), relationship +0, Understanding +0
+- Failure tag: "InnkeeperReluctant"
+- Narrative Success: "Your careful words and attentive listening draw out the whole story. The innkeeper appreciates your genuine interest."
+- Narrative Failure: "Despite your efforts, the innkeeper remains guarded. They provide the basic facts but little else."
+
+**Choice 4: Help with chores (Fallback)**
+- Requirement: None
+- Cost: 4 time blocks
+- Outcome: Complete information, relationship +1, Understanding +0
+- Tag: "InnkeeperHelped"
+- Narrative: "You spend the afternoon helping in the common room. The innkeeper warms to you gradually, eventually sharing what they know over evening stew."
+
+**Balance Validation:**
+- ✓ Four choices (Rule 1)
+- ✓ All choices cost resources (Rule 2)
+- ✓ Higher costs = better rewards (Rule 3)
+- ✓ Balanced within situation (Rule 4)
+- ✓ Verisimilitude in all costs (Rule 7)
+- ✓ Coins as willpower alternative (Rule 8)
+- ✓ Progression guaranteed (Choice 4 zero requirements, cannot fail)
+
+### 8.9.8 Crisis Situation Variation
+
+The above methodology applies to STANDARD situations. Crisis situations require modifications.
+
+**Crisis Situation Definition:**
+- All choices involve LOSSES or damage
+- No purely positive outcomes
+- Player chooses WHICH harm to accept
+- Balance through asymmetric costs, not equal rewards
+
+**When to Use Crisis Situations:**
+
+1. **Narrative Justification Required:**
+   - Fiction must support unavoidable bad outcome
+   - Examples: Ambush, disaster, betrayal, crisis point
+   - Never arbitrary (player should understand WHY all options bad)
+
+2. **Frequency Guidelines:**
+   - Rare (5-10% of A-story situations)
+   - Clustered in dramatic moments (not evenly distributed)
+   - Followed by recovery opportunities (not back-to-back crises)
+
+3. **Progression Level Appropriate:**
+   - Early game (A1-A6): Very rare, lower stakes
+   - Mid game (A7-A12): Occasional, moderate stakes
+   - Late game (A13+): More frequent, higher stakes
+
+**Crisis Situation Design Modifications:**
+
+**Path 1: Stat-Gated (Minimize Loss Path)**
+- Requirement: Stat threshold
+- Cost: Smaller loss than alternatives
+- Outcome: Least bad option (still negative)
+- Purpose: Specialization reduces damage
+
+**Path 2: Money-Gated (Economic Damage Path)**
+- Requirement: None
+- Cost: Substantial coins (larger than normal)
+- Outcome: Preserve other resources
+- Purpose: Wealth as damage mitigation
+
+**Path 3: Challenge (Risk Management Path)**
+- Requirement: None
+- Cost: Session resource
+- Success: Moderate loss
+- Failure: Severe loss
+- Both outcomes negative, variance in severity
+
+**Path 4: Fallback (Accept Maximum Loss Path)**
+- Requirement: None
+- Cost: Catastrophic loss (worst outcome)
+- Outcome: Survive but devastated
+- Purpose: Progression guaranteed even in disaster
+
+**Example Crisis Situation:**
+
+**Situation: "Bandit Ambush" (A9, late mid-game)**
+
+**Context:**
+- Unavoidable ambush on route
+- Bandits demand valuables
+- No peaceful resolution available
+- All choices involve losses
+
+**Choice 1: Fight back (Authority 5) - Stat-Gated**
+- Requirement: Authority ≥ 5
+- Outcome: Lose 4 Health, keep all coins, gain +1 Authority (learning)
+- Tag: "FoughtBandits"
+- Verisimilitude: Commanding presence deters some attackers, reduces violence
+
+**Choice 2: Pay them off (25 coins) - Money-Gated**
+- Requirement: None
+- Cost: 25 coins (substantial, ~60% of typical mid-game reserve)
+- Outcome: Lose 25 coins, keep Health, bandit relationship +1 (they remember you paid)
+- Tag: "PaidBandits"
+- Verisimilitude: Bandits take payment and leave
+
+**Choice 3: Physical challenge (4 Stamina) - Challenge**
+- Requirement: None
+- Cost: 4 Stamina
+- Success: Lose 3 Health, keep 20 coins (they grab some), gain +1 Cunning
+- Failure: Lose 6 Health, lose 15 coins, gain nothing
+- Tags: "EscapedBandits" (success), "BeatenByBandits" (failure)
+- Verisimilitude: Attempting escape risky, might work or fail badly
+
+**Choice 4: Surrender everything - Fallback**
+- Requirement: None
+- Outcome: Lose ALL coins, lose 2 Health (beaten), lose 1 Rapport (humiliation)
+- Tag: "SurrenderedToBandits"
+- Verisimilitude: Complete capitulation, maximum loss but survive
+
+**Crisis Balance Analysis:**
+
+Validation:
+- All choices negative ✓
+- Different players value different resources ✓
+- Wealthy player picks Path 2 (has coins to spare) ✓
+- Healthy player picks Path 1 (can afford Health loss) ✓
+- Specialized fighter picks Path 3 (skills improve odds) ✓
+- Desperate player picks Path 4 (survives, loses everything) ✓
+- Progression guaranteed (Path 4 available, cannot soft-lock) ✓
+
+Asymmetric costs create balance:
+- 4 Health vs 25 coins vs (3-6 Health + 0-15 coins) vs (all coins + 2 Health + 1 Rapport)
+- No universally best choice
+- Player situation determines optimal selection
+
+## 8.10 Stat Requirement Scaling Across Progression (A4-A20+)
+
+Early game scenes (A1-A3) use identity building (no requirements). From A4 onward, stat requirements emerge and scale with player progression.
+
+### 8.10.1 Progression Curve Philosophy
+
+**Key Principles:**
+
+1. **Player has built foundation by A4:**
+   - A1-A3 choices offered stat gains
+   - Typical player has 2-4 total stat points distributed
+   - At least one stat has reached 2-3
+   - Ensures first stat-gated paths become accessible
+
+2. **Requirements scale with expected capability:**
+   - Early requirements match early player capability
+   - Later requirements assume specialization has occurred
+   - Never assume player has ALL stats high (specialization expected)
+
+3. **Always provide alternatives:**
+   - Stat-gated path is OPTIMAL, not REQUIRED
+   - Money/Challenge/Fallback paths always available
+   - Specialization unlocks best path, doesn't gate progression
+
+### 8.10.2 Stat Requirement Scaling Table
+
+**A4-A6 (Early Specialization Begins):**
+
+Typical Player State:
+- Total XP invested: 3-5 stat points
+- Specialization: 1 stat at 2-3, others at 0-1
+- Expected capability: Can meet ONE stat-2 requirement consistently
+
+Recommended Stat Requirements:
+- Primary stat path: Requirement 2-3
+- Alternative stat path: Requirement 2-3 (different stat)
+- Ensures 1-2 stat paths accessible based on player's chosen specialization
+- Money/Challenge/Fallback always available
+
+Example (A5 situation):
+- Choice 1: Insight 2 → Optimal outcome (analytical players)
+- Choice 2: Rapport 2 → Optimal outcome (social players)
+- Choice 3: 12 coins → Good outcome (economic players)
+- Choice 4: Social challenge → Variable outcome (skill players)
+- Choice 5: 3 time blocks → Minimal outcome (fallback)
+
+Note: Five choices valid when offering multiple stat paths. Validates different specializations.
+
+**A7-A12 (Moderate Specialization):**
+
+Typical Player State:
+- Total XP invested: 8-12 stat points
+- Specialization: 1-2 stats at 4-5, others at 1-2
+- Expected capability: Dominates ONE stat domain, adequate in another
+
+Recommended Stat Requirements:
+- Primary stat path: Requirement 4-5
+- Alternative stat path: Requirement 4-5 (different stat)
+- Specialist players (focused on one stat) hit primary path consistently
+- Balanced players (spread across 2-3 stats) hit one path sometimes
+
+Example (A9 situation):
+- Choice 1: Authority 5 → Best outcome (leadership specialists)
+- Choice 2: Cunning 4 → Best outcome (strategic specialists)
+- Choice 3: 20 coins → Good outcome (economic path)
+- Choice 4: Mental challenge → Variable outcome (skill expression)
+- Choice 5: 4 time blocks → Minimal outcome (fallback)
+
+**A13-A20 (Deep Specialization):**
+
+Typical Player State:
+- Total XP invested: 15-25 stat points
+- Specialization: 1-2 stats at 6-7, 1 stat at 3-4, others at 1-2
+- Expected capability: Mastery in primary domain, competent in secondary
+
+Recommended Stat Requirements:
+- Primary stat path: Requirement 6-7
+- Secondary stat path: Requirement 4-5
+- Specialist players hit primary consistently, secondary sometimes
+- Balanced players hit secondary consistently, primary rarely
+
+Example (A15 situation):
+- Choice 1: Diplomacy 7 → Best outcome (master diplomats only)
+- Choice 2: Insight 5 → Good outcome (moderate specialists)
+- Choice 3: 35 coins → Good outcome (economic path, higher costs)
+- Choice 4: Social challenge → Variable outcome
+- Choice 5: 5 time blocks → Minimal outcome (fallback)
+
+**A21+ (Mastery and Extremes):**
+
+Typical Player State:
+- Total XP invested: 30+ stat points
+- Specialization: 1-2 stats at 7-8, 1-2 stats at 4-5, others at 2-3
+- Expected capability: Mastery in primary, competence in secondary/tertiary
+
+Recommended Stat Requirements:
+- Elite stat path: Requirement 8+ (rare, exceptional specialists only)
+- Primary stat path: Requirement 6-7 (standard high specialists)
+- Secondary stat path: Requirement 4-5 (moderate capability)
+- Provides challenges even for masters while maintaining alternatives
+
+Example (A23 situation):
+- Choice 1: Rapport 8 → Exceptional outcome (true masters)
+- Choice 2: Rapport 6 → Best outcome (high specialists)
+- Choice 3: Diplomacy 5 → Good outcome (balanced social builds)
+- Choice 4: 50 coins → Good outcome (economic path, scaling costs)
+- Choice 5: Mental challenge → Variable outcome
+- Choice 6: 6 time blocks → Minimal outcome (fallback)
+
+Note: Later situations may offer MORE than four choices to provide variety while maintaining guaranteed progression.
+
+### 8.10.3 Multi-Stat Requirements (Compound Gates)
+
+**When to Use:**
+- Rare (10-15% of situations)
+- Represents genuinely complex challenges requiring multiple capabilities
+- Always provide single-stat alternatives
+
+**Design Pattern:**
+
+Compound requirement path:
+- Requirement: Stat A ≥ X AND Stat B ≥ Y
+- Rewards: EXCEPTIONAL (justifies compound requirement)
+- Purpose: Reward balanced builds, create distinct path
+
+Alternative paths:
+- Single stat paths (higher threshold, good rewards)
+- Money/Challenge/Fallback paths (standard alternatives)
+
+**Example (A12 situation - Complex Negotiation):**
+
+- Choice 1: Diplomacy 5 AND Authority 4 → Exceptional outcome (balanced leadership)
+- Choice 2: Diplomacy 6 → Best outcome (pure diplomat, no authority needed)
+- Choice 3: Authority 6 → Best outcome (pure commander, no diplomacy needed)
+- Choice 4: 30 coins → Good outcome (economic path)
+- Choice 5: Social challenge → Variable outcome
+- Choice 6: 5 time blocks → Minimal outcome (fallback)
+
+Analysis:
+- Compound path (Diplomacy 5 + Authority 4): Requires 9 total points across two stats
+- Single stat paths (Diplomacy 6 OR Authority 6): Requires 6 points in one stat
+- Specialist beats compound for single-stat approach
+- Balanced build unlocks compound for exceptional rewards
+- Both build types validated
+
+### 8.10.4 Scaling Coin Costs Alongside Stat Requirements
+
+As stat requirements increase, coin costs should scale proportionally to maintain balance.
+
+**Coin-to-Stat Equivalence Formula:**
+
+**Early Game (A4-A6):**
+- Stat requirement 2-3 ≈ 10-15 coins
+- Reasoning: 1 B-story worth of earnings
+
+**Mid Game (A7-A12):**
+- Stat requirement 4-5 ≈ 20-30 coins
+- Reasoning: 1-2 B-stories worth of earnings
+
+**Late Game (A13-A20):**
+- Stat requirement 6-7 ≈ 35-50 coins
+- Reasoning: 1-2 B-stories worth of earnings (higher B-story rewards)
+
+**Very Late Game (A21+):**
+- Stat requirement 8+ ≈ 60-100 coins
+- Reasoning: 2-3 B-stories worth of earnings
+
+**Why This Scaling:**
+
+Stat path cost:
+- Reaching Stat 5 requires ~15-20 challenges worth of XP
+- Each challenge takes 3-5 segments
+- Total: 60-80 segments invested over time
+- Permanent benefit (keeps stat forever)
+
+Coin path cost:
+- Earning 25 coins requires 1-2 B-stories
+- Each B-story takes 8-12 segments
+- Total: 10-20 segments invested immediately
+- Consumable cost (coins spent, gone forever)
+
+Balance:
+- Coin path is 3-4× faster than stat path
+- BUT coins are consumable (one-time use)
+- Stats are permanent (reusable forever)
+- Fair trade-off: Speed vs permanence
+
+## 8.11 Balance Validation Checklist
+
+Use this checklist before committing any situation design to ensure balance.
+
+### 8.11.1 Structural Validation
+
+**□ Choice Count**
+- A-story situations: 4-6 choices typical
+- B-story situations: 2-4 choices acceptable
+- All situations: Minimum 2 choices required
+
+**□ Progression Guarantee (A-story only)**
+- At least one choice has ZERO requirements
+- That choice CANNOT fail (Instant action or guaranteed outcome)
+- That choice SPAWNS next scene or advances story
+- Fallback path clearly identified
+
+**□ Orthogonal Resource Costs**
+- Each choice costs DIFFERENT resource type
+- No two choices both cost coins (without significant value difference)
+- No two choices both cost same stat (without different thresholds)
+- Resource types: Character build, Coins, Session resources, Time, Multi-resource trade-offs
+
+### 8.11.2 Rule Compliance Validation
+
+**□ Rule 1: Minimum 2 Choices**
+- Count >= 2
+
+**□ Rule 2: Resource Juggling**
+- Every choice costs OR rewards something measurable
+- No narrative-only choices (must have mechanical effect)
+- Progression is OUTCOME, not standalone value
+
+**□ Rule 3: Requirements Justify Rewards**
+- Higher stat requirement = Better rewards than lower requirement
+- Coin cost = Better rewards than free (or equivalent value)
+- Challenge risk = Better potential rewards than guaranteed paths
+- Explicitly compare reward values across choices
+
+**□ Rule 4: Intra-Situation Balance**
+- All comparisons within THIS situation only
+- No references to other situations' costs/rewards
+- Cross-situation variance acceptable
+
+**□ Rule 5: Crisis Check**
+- If crisis situation: All choices involve losses
+- If normal situation: Positive outcomes allowed
+- Crisis balance through asymmetric costs, not equal rewards
+
+**□ Rule 6: Multi-Stat Trade-offs**
+- If using multi-stat effects: Asymmetric (gain one, lose another)
+- Not required, but enhances balance when used
+
+**□ Rule 7: Verisimilitude in Costs**
+- All costs reflect actual opportunity costs
+- Time costs: Player couldn't do something else with that time
+- Coin costs: Player can't spend those coins elsewhere
+- Stat requirements: Player invested XP to reach threshold
+
+**□ Rule 8: Coins as Alternative**
+- Coin path exists as alternative to stat path
+- Coin cost appropriately valued (see scaling formulas)
+- Coins feel like Sir Brante willpower (meaningful choice to spend)
+
+### 8.11.3 Edge Case Validation
+
+**□ Worst-Case Player**
+- Player with: 0 coins, minimum stats (0-1), depleted session resources
+- Can this player progress? (Must be YES for A-story)
+- Which path is available? (Must be fallback)
+
+**□ Specialized Player (High Insight, Low Authority)**
+- Can they find viable path? (Must be YES)
+- Is their specialization rewarded? (Stat-gated path unlocked)
+
+**□ Alternative Specialized Player (High Authority, Low Insight)**
+- Can they find viable path? (Must be YES)
+- Is their specialization rewarded? (Different stat-gated path unlocked)
+
+**□ Wealthy Player (High coins, moderate stats)**
+- Can they use economic power? (Money-gated path available)
+- Does cost feel meaningful? (20-40% of typical reserve)
+
+**□ Skilled Player (Good tactical ability)**
+- Can they demonstrate skill? (Challenge path available)
+- Is risk/reward balanced? (Success better than money, failure acceptable)
+
+### 8.11.4 Verisimilitude Validation
+
+**□ Narrative Context Supports All Paths**
+- Each path makes sense in fiction
+- No logical contradictions between paths
+- Requirements justified by NPC personality/context
+
+**□ Rewards Match Effort Narratively**
+- Best mechanical rewards = Best narrative outcomes
+- Minimal mechanical rewards = Adequate narrative outcomes
+- Relationship changes reflect interaction quality
+
+**□ No Arbitrary Gates**
+- All requirements have fiction justification
+- Player can understand WHY requirement exists
+- Mechanics emerge from fiction
+
+### 8.11.5 Progression Level Validation
+
+**□ Stat Requirements Match Progression**
+- A4-A6: Requirements 2-3
+- A7-A12: Requirements 4-5
+- A13-A20: Requirements 6-7
+- A21+: Requirements 7-8
+- Check current scene number, verify requirements appropriate
+
+**□ Coin Costs Match Progression**
+- A4-A6: 10-15 coins
+- A7-A12: 20-30 coins
+- A13-A20: 35-50 coins
+- A21+: 60-100 coins
+- Check current economy expectations, verify costs appropriate
+
+**□ Session Resource Costs Match Progression**
+- A4-A6: 2-3 Resolve/Stamina/Focus
+- A7-A12: 3-4 Resolve/Stamina/Focus
+- A13-A20: 4-5 Resolve/Stamina/Focus
+- Check current scene number, verify costs appropriate
+
+### 8.11.6 Final Review Questions
+
+**□ Does this situation create impossible choice?**
+- Are all paths genuinely viable in different contexts?
+- Do different player builds prefer different paths?
+- Is there strategic tension in selection?
+
+**□ Would I want to play this?**
+- Does it feel fair?
+- Does it feel interesting?
+- Does it feel appropriate for context?
+
+**□ Can I justify this to a player asking "Why?"**
+- Why does Path A cost more than Path B?
+- Why does this NPC require this stat?
+- Why do all paths give same base outcome?
+
+If you can answer all these confidently, the situation is likely well-balanced.
+
+## 8.12 Summary
 
 Wayfarer's balance philosophy:
 
@@ -1031,5 +1955,7 @@ Wayfarer's balance philosophy:
 **Mastery via Optimization**: Skilled players improve resource management, route learning, tactical execution. Not power creep or stat grinding.
 
 **AI-Enabled Balance**: Categorical properties + universal formulas = infinite balanced content without AI needing balance knowledge.
+
+**Methodology Provided**: Step-by-step process for designing balanced situations, comprehensive validation checklist, stat/coin scaling formulas across all progression levels.
 
 The result: Strategic depth through resource competition, build diversity through specialization, meaningful progression through scope escalation, and infinite content through categorical scaling. Challenge emerges from impossible choices, not from gates or grind.
