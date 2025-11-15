@@ -156,8 +156,8 @@ public class TravelFacade
             };
         }
 
-        // Calculate time and cost
-        int travelTime = _travelTimeCalculator.CalculateTravelTime(currentLocationId, locationId, transportMethod);
+        // Calculate time and cost (pass route object for improvement lookup)
+        int travelTime = _travelTimeCalculator.CalculateTravelTime(route, transportMethod);
         int coinCost = _travelTimeCalculator.CalculateTravelCost(route, transportMethod);
 
         // Check if player can afford
@@ -217,7 +217,18 @@ public class TravelFacade
         {
             return 0;
         }
-        return _travelTimeCalculator.CalculateTravelTime(currentLocationId, toLocationId, transportMethod);
+
+        // Find route between current location and destination
+        RouteOption route = _routeRepository.GetRoutesBetween(currentLocationId, toLocationId)
+            .FirstOrDefault();
+
+        if (route == null)
+        {
+            // No route found - fallback to hex distance calculation
+            return _travelTimeCalculator.GetBaseTravelTime(currentLocationId, toLocationId);
+        }
+
+        return _travelTimeCalculator.CalculateTravelTime(route, transportMethod);
     }
 
     public int CalculateTravelCost(RouteOption route, TravelMethods transportMethod)
