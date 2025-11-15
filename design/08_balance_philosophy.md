@@ -15,6 +15,105 @@ This section documents:
 
 ## 8.2 Core Balance Principles
 
+### 8.2.0 Intra-Situation Choice Balance (The Fundamental Rule)
+
+**All choices in a situation must be balanced RELATIVE TO EACH OTHER, not relative to choices in other situations.**
+
+This is the most fundamental balance principle. Every comparison, every evaluation, every balance judgment happens WITHIN the same situation. Cross-situation balance is deliberately avoided.
+
+**The Core Rules:**
+
+**Rule 1: Every situation must have at least 2 choices minimum**
+- No single-choice situations (that's not a choice, it's a cutscene)
+- Typical A-story situations have 4 choices (stat/money/challenge/fallback)
+- B-story situations may have 2-3 choices (simpler structure)
+
+**Rule 2: Player must always juggle resources**
+- NO choice should only progress narrative without resource consequence
+- Every choice costs OR rewards something measurable (stats, coins, time, resources)
+- Narrative progression is OUTCOME, not standalone value
+- Example FORBIDDEN: "Listen to story" → Only narrative text, no mechanical effect
+
+**Rule 3: Choices with requirements/costs MUST give better rewards**
+- If Choice A costs coins and Choice B is free, Choice A MUST give better outcome
+- If Choice A has stat requirement and Choice B doesn't, Choice A MUST give better outcome
+- If Choice A costs more than Choice B (same resource type), Choice A MUST give proportionally better outcome
+- NO choice should be notably better than another without ALSO having higher requirement or cost
+
+**Rule 4: Balance within situation, NOT across situations**
+- Situation A might give +2 Insight for 10 coins
+- Situation B might give +1 Insight for 15 coins
+- This is ACCEPTABLE because they're different situations (different contexts, different narrative weight)
+- Within Situation A, if one choice gives +2 Insight for 10 coins, another choice should NOT give +2 Insight for 5 coins
+- Compare choices ONLY to other choices in same situation
+
+**Rule 5: Crisis situations = All choices are damage control**
+- Some situations are CRISES where every choice is bad
+- All choices may REDUCE stats or apply negative consequences
+- Balance: Choices trade off which damage to accept
+- Example: Choice A loses 2 Health, Choice B loses 15 coins, Choice C loses 1 Rapport
+- NOT balanced by rewards being equal, but by different players valuing different costs
+
+**Rule 6: Multi-stat effects create balance through trade-offs**
+- Choices can affect multiple stats (gain one, lose another)
+- Example: +2 Authority, -1 Rapport (commanding presence alienates some)
+- Example: +2 Insight, -1 Health (intensive mental effort exhausts body)
+- Balance emerges from asymmetric exchanges (gain in one area, lose in others)
+
+**Rule 7: Versimilitude in costs (opportunity cost accuracy)**
+- Costs must reflect actual opportunity cost, not just exist on paper
+- Example: Resting in private room costs Time segment, but if staying the night anyway, time passes regardless
+- Therefore: Alternative to resting must give reward for NOT resting (since not actually saving time)
+- Example: "Study while resting" gives +1 Understanding but restores less Health
+- The cost is reduced restoration, NOT time (time already spent)
+
+**Rule 8: Coins as alternative resource (inspired by Sir Brante's willpower)**
+- Coins can function like willpower: alternative to stat requirements OR way to gain greater rewards
+- Example: Choice A requires Insight 5, Choice B costs 20 coins (similar value paths)
+- Example: Choice A gives +1 Rapport (free), Choice B costs 15 coins and gives +2 Rapport (better but costly)
+- Spending coins for better outcome is valid IF coin cost is substantial relative to current economy
+- This creates "do I spend limited economic resource now for advantage, or save for future needs?"
+
+**Practical Examples:**
+
+**CORRECT Intra-Situation Balance (Lodging Negotiation):**
+- Choice 1: Rapport 4 → Room for 3 coins, relationship +1 (stat requirement, best deal)
+- Choice 2: 8 coins → Room for 8 coins, relationship 0 (money cost, neutral)
+- Choice 3: Social challenge (costs Resolve) → Success: Room for 5 coins, relationship +2 | Failure: Room for 8 coins (risk/reward, skill expression)
+- Choice 4: Help for 3 time blocks → Room for free, relationship +1 (time cost, guaranteed)
+
+**Balance Analysis:**
+- Choice 1 requires stat investment (permanent cost), best economic outcome
+- Choice 2 requires money (depletable cost), reliable but expensive
+- Choice 3 requires tactical resource + skill, variable outcome, both results acceptable
+- Choice 4 requires time (opportunity cost), zero money but slow
+- ALL balanced within this situation: Different costs, proportional rewards
+
+**INCORRECT Intra-Situation Balance (FORBIDDEN):**
+- Choice 1: 10 coins → +1 Insight
+- Choice 2: 5 coins → +1 Insight
+- Choice 3: Free → +1 Insight
+- Choice 4: Insight 3 → +1 Insight
+
+**Why Wrong:** All give same reward but costs vary wildly. Choice 3 strictly dominates all others (same reward, zero cost). Choice 1 and 2 both cost coins but 2 is cheaper (dominates 1). No reason to ever pick Choice 1 or 4. False choices.
+
+**CORRECT Crisis Situation (Damage Control):**
+
+Situation: "Bandit ambush - unavoidable conflict"
+
+- Choice 1: Fight back (Authority 4) → Lose 3 Health, keep 20 coins, gain +1 Authority (stat requirement, defend property)
+- Choice 2: Pay them off → Lose 20 coins, keep Health, relationship with bandits +1 (economic cost)
+- Choice 3: Physical challenge → Success: Lose 2 Health, keep 15 coins | Failure: Lose 5 Health, lose 10 coins (risky)
+- Choice 4: Run away → Lose all coins, lose 1 Cunning (shame), preserve Health (guaranteed escape, terrible outcome)
+
+**Balance Analysis:**
+- ALL choices involve losses (crisis = damage control)
+- Different players value different resources
+- Wealthy player picks Choice 2 (has coins to spare)
+- Healthy player picks Choice 1 (can afford Health loss)
+- Poor player forced into Choice 3 or 4 (devastating but survivable)
+- Balance through asymmetric costs, not equal rewards
+
 ### 8.2.1 Perfect Information Enables Optimization, Not Artificial Difficulty
 
 Players see exact costs, rewards, and requirements before every decision. Challenge emerges from resource allocation strategy, not from hidden information or surprise penalties.

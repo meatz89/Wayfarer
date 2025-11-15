@@ -65,41 +65,54 @@ Wayfarer uses a multi-layered resource system inspired by Sir Brante's impossibl
 
 ---
 
-## 3.2 Stat Progression: The Five Core Stats
+## 3.2 Stat Progression: The Five Core Stats (Sir Brante Model)
 
-### Unified Stat System
+### Unified Stat System - Starting from Zero
 
-Wayfarer uses **single unified progression system** across all three challenge types (Mental, Physical, Social). Five stats govern all tactical gameplay:
+Wayfarer uses **single unified progression system** across all three challenge types (Mental, Physical, Social), inspired by The Life and Suffering of Sir Brante's identity-building progression. Five stats govern all tactical gameplay, **all starting at 0**:
 
-**Insight:**
+**Starting State Philosophy:**
+- All stats begin at 0 (complete novice)
+- Early scenes (A1-A3) have NO stat requirements (player couldn't meet them anyway)
+- Early choices focus on **identity building**: "Do I want to be good at THIS or THAT?"
+- Each early choice offers different stat gains, shaping initial character direction
+- Later scenes (A4+) introduce stat requirements, but player has built at least one stat by then
+- Ensures player always has at least one viable stat-gated path after character foundation
+
+**Insight:** (starts at 0)
 - Pattern recognition, analysis, understanding
 - Mental: Analyzing evidence, deduction, crime scenes
 - Physical: Structural analysis, reading terrain, finding weaknesses
 - Social: Understanding NPC motivations, reading between lines, hidden agendas
+- **Early identity choice**: "I notice patterns and details others miss"
 
-**Rapport:**
+**Rapport:** (starts at 0)
 - Empathy, connection, emotional intelligence
 - Mental: Empathetic observation, sensing emotions in clues
 - Physical: Flow state, body awareness, natural movement
 - Social: Building emotional connection, creating trust, resonating
+- **Early identity choice**: "I connect with people through genuine empathy"
 
-**Authority:**
+**Authority:** (starts at 0)
 - Command, decisiveness, power
 - Mental: Commanding the scene, decisive analysis, authoritative conclusions
 - Physical: Decisive action, power moves, commanding environment
 - Social: Asserting position, directing conversation, establishing dominance
+- **Early identity choice**: "I take charge and lead through presence"
 
-**Diplomacy:**
+**Diplomacy:** (starts at 0)
 - Balance, patience, measured approach
 - Mental: Balanced investigation, patient observation, measured reasoning
 - Physical: Measured technique, controlled force, pacing endurance
 - Social: Finding middle ground, compromise, balanced conversation
+- **Early identity choice**: "I find balance and seek middle ground"
 
-**Cunning:**
+**Cunning:** (starts at 0)
 - Subtlety, strategy, risk management
 - Mental: Subtle investigation, covering tracks, tactical information gathering
 - Physical: Risk management, tactical precision, adaptive technique
 - Social: Strategic conversation, subtle manipulation, reading and responding
+- **Early identity choice**: "I work subtly and strategically"
 
 ### Card Binding and Depth Access
 
@@ -174,6 +187,57 @@ Examples:
 - "Spot hidden path" needs Insight 2
 - "Intimidate bandits" needs Authority 3
 - Locked choices visible with requirement shown
+
+### Early Game: Identity Building Through Stat Selection (A1-A3)
+
+**The First Three Scenes - Tutorial Foundation:**
+
+Early game scenes present **identity-defining choices** where stat requirements don't exist yet (player has 0 in everything). Instead of gating content, early choices offer **different stat gains** based on which approach the player finds appealing.
+
+**A1 Example: "Arrive at Roadside Inn"**
+
+Final situation: "How do you approach the innkeeper?"
+
+- Choice 1: "Notice their weary expression, offer kind words" → Gain +1 Rapport (empathy approach)
+- Choice 2: "Assess the situation analytically, offer practical help" → Gain +1 Insight (analytical approach)
+- Choice 3: "Speak with confidence and authority" → Gain +1 Authority (commanding approach)
+- Choice 4: "Approach carefully, read the room first" → Gain +1 Cunning (strategic approach)
+
+**No stat requirements.** Player chooses based on personal preference: "Do I want to be empathetic OR analytical OR commanding OR strategic?" This choice begins defining character identity.
+
+**A2 Example: "Morning Conversation with Merchant"**
+
+Situation: "The merchant offers to teach you something. What interests you?"
+
+- Choice 1: "How to read people's true intentions" → Gain +1 Rapport, +1 Insight (social perception)
+- Choice 2: "How to command respect in negotiations" → Gain +1 Authority, +1 Diplomacy (leadership)
+- Choice 3: "How to analyze situations strategically" → Gain +1 Insight, +1 Cunning (cerebral tactics)
+- Choice 4: "How to find balance in conflict" → Gain +1 Diplomacy, +1 Rapport (mediation)
+
+**Still no requirements.** Player continues building initial stat profile through preference.
+
+**A3 Example: "First Real Challenge"**
+
+Situation: "A traveler asks for help with a problem"
+
+By now, player has 2-3 stat points distributed. First appearance of **optional stat requirements**:
+
+- Choice 1: "Analyze the problem systematically" (Insight 2) → Best outcome IF qualified, otherwise locked
+- Choice 2: "Connect emotionally and help directly" (Rapport 2) → Best outcome IF qualified, otherwise locked
+- Choice 3: "Pay coins to hire professional help" → Reliable outcome, costs 10 coins
+- Choice 4: "Take your time, learn as you go" → Guaranteed outcome, slower, minimal rewards
+
+**Critical Pattern**: Player HAS built at least one stat to 2+ by this point (from A1-A2 choices). At least one stat-gated path unlocks, validating their character direction. But the FALLBACK choice (Choice 4) ensures progression even if player somehow has scattered stats.
+
+**From A4 Onward:**
+
+All subsequent scenes can use stat requirements freely because:
+- Player has established character direction (2-4 points in 1-2 stats)
+- At least one viable stat-gated path always exists
+- Fallback paths still guarantee progression
+- Specialization begins to create identity
+
+**This is the Sir Brante model**: Start with no requirements, build identity through preference, then requirements emerge naturally as player gains capability.
 
 ### Specialization is Intentional
 

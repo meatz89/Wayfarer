@@ -96,13 +96,53 @@ Return to strategic layer with results applied. Next decision: Continue story, r
 - Purpose: Tactical gameplay integration, skill expression
 
 **Choice 4: Fallback Path (Patient)**
-- PathType: InstantSuccess or Navigate
+- PathType: InstantSuccess or Navigate (for progression) OR Navigate-Return (for verisimilitude)
 - Requirement: None (always visible, always selectable)
 - Cost: Time (wait days, help with needs, persistent gentle effort)
 - Outcome: Minimal rewards, poor efficiency, but GUARANTEED progression
 - Purpose: Prevent soft-locks, reflect realistic relationship building
 
 **Critical Guarantee**: Choice 4 MUST have zero requirements, cannot fail, and MUST advance progression. This prevents soft-locks.
+
+**Fallback Path Variants:**
+
+**Progression Fallback (Standard):**
+- Resolves situation and advances story
+- Example: "Wait patiently, help with their needs over several days" → Innkeeper eventually shares information, next scene spawns
+- Use: A-story situations where progression is critical
+
+**Verisimilitude Fallback (Alternative):**
+- Does NOT resolve situation, returns player to location
+- Situation remains active, player can leave and come back
+- Example: "Leave for now, perhaps another time" → Return to location, situation still available
+- Use: B-story situations, optional content, when refusing should feel natural
+- Purpose: Realism (not every situation must be resolved immediately)
+
+**When to Use Which:**
+
+A-story critical path: ALWAYS use Progression Fallback
+- Must guarantee forward progress
+- Cannot create soft-locks
+- Fourth choice MUST resolve and spawn next scene
+
+B-story optional content: MAY use Verisimilitude Fallback
+- Player can decline and walk away
+- Situation stays in scene list
+- Can return later when resources available
+- Respects player agency (not forced into content)
+
+**Example - Progression Fallback:**
+Situation: "Gain innkeeper's trust for critical information" (A-story)
+- Choice 1-3: Stat/Money/Challenge paths
+- Choice 4: "Help with their needs patiently" → Costs 4 time blocks, minimal rewards, BUT next scene spawns (progression guaranteed)
+
+**Example - Verisimilitude Fallback:**
+Situation: "Merchant offers rare equipment for sale" (B-story)
+- Choice 1: Rapport 4 → Discount price (60 coins)
+- Choice 2: 80 coins → Standard price
+- Choice 3: "Not interested right now" → Return to location, situation remains active
+- Player can leave, earn coins, return when affordable
+- Situation doesn't disappear until player purchases OR another event replaces it
 
 **Why This Works**:
 - Player chooses HOW to progress, not IF they progress

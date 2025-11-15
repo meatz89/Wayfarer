@@ -128,13 +128,85 @@ The core player capabilities determining card access, choice availability, and b
 
 **Definition:** Design requirement ensuring forward progress from every game state, preventing soft-locks.
 
-The non-negotiable principle (TIER 1) that every A-story situation must have at least one choice with zero requirements, cannot fail, and advances progression. Player cannot become stuck - worst case is slow/poor outcome but always moves forward. Critical for infinite game where player cannot "restart" 50 hours deep. Implemented via Four-Choice Archetype's fallback path.
+The non-negotiable principle (TIER 1) that every A-story situation must have at least one choice with zero requirements, cannot fail, and advances progression. Player cannot become stuck - worst case is slow/poor outcome but always moves forward. Critical for infinite game where player cannot "restart" 50 hours deep. Implemented via Four-Choice Archetype's Progression Fallback path.
 
 **Example:** Situation requires negotiation. Choice 1: Rapport 3 (player has 2, disabled). Choice 2: 15 coins (player has 3, disabled). Choice 3: Social challenge (costs Resolve, player exhausted). Choice 4: "Wait patiently for them to be ready" (no requirements, always available, minimal reward, advances progression).
 
 **Distinguishing from:** Easy Mode (difficulty reduction), Safety Net (recoverable failure). Guaranteed progression means always forward path, not easier path.
 
-**Cross-reference:** DDR-007 (Four-Choice Pattern), No Soft-Lock, Fallback Path, TIER 1 Principles
+**Cross-reference:** DDR-007 (Four-Choice Pattern), No Soft-Lock, Progression Fallback, TIER 1 Principles
+
+---
+
+### Crisis Situation
+
+**Definition:** Situation type where all choices involve losses or damage, forcing players to choose which harm to accept.
+
+A scenario design pattern where no good outcome exists - every choice reduces stats, depletes resources, or applies negative consequences. Balance emerges not from equal rewards but from asymmetric costs letting different builds accept different damages. Wealthy player pays coins. Healthy player accepts injury. Player with high Authority uses stat-gated path to minimize loss. Crisis situations test resource allocation under pressure.
+
+**Example:** Bandit ambush situation. Choice 1 (Authority 4): Lose 3 Health, keep coins, gain +1 Authority. Choice 2: Lose 20 coins, keep Health. Choice 3 (Physical challenge): Risky, variable losses. Choice 4: Lose all coins, lose 1 Cunning (shame), preserve Health. ALL choices involve losses - player chooses which loss acceptable based on current resources and build.
+
+**Distinguishing from:** Difficult Situation (hard to succeed), Moral Dilemma (ethical choice), Damage Control (general concept). Crisis Situation is specific pattern where all choices are damage control.
+
+**Cross-reference:** Intra-Situation Balance, Impossible Choice, Damage Control
+
+---
+
+### Identity Building (Early Progression)
+
+**Definition:** Tutorial phase design pattern (A1-A3) where choices offer stat gains instead of requiring stats, shaping initial character direction through preference.
+
+The Sir Brante-inspired progression model where all stats start at 0 and early situations have NO stat requirements (player couldn't meet them anyway). Instead, early choices present different stat gain options letting player answer "Do I want to be good at THIS or THAT?" Each choice builds initial capability in different direction (empathy vs analysis vs command vs strategy). By A3, player has 2-4 stat points distributed, ensuring at least one viable stat-gated path when requirements begin appearing in A4+.
+
+**Example:** A1 situation "How do you approach the innkeeper?" Choice 1: "Notice their expression, offer kindness" → +1 Rapport. Choice 2: "Assess analytically, offer practical help" → +1 Insight. Choice 3: "Speak with confidence" → +1 Authority. Choice 4: "Read the room carefully" → +1 Cunning. No requirements, player chooses preferred approach, begins defining character identity.
+
+**Distinguishing from:** Tutorial (teaching mechanics), Character Creation (pre-game selection), Class Selection (predetermined path). Identity Building emerges from early choices, not upfront decision.
+
+**Cross-reference:** Sir Brante Model, Specialization, Build, Early Game Progression
+
+---
+
+### Intra-Situation Balance
+
+**Definition:** The fundamental balance principle that choices must be balanced RELATIVE TO EACH OTHER within same situation, not across different situations.
+
+The core rule governing choice design. All comparisons happen within single situation - choices with higher requirements/costs MUST give better rewards than choices without, but only compared to other choices in THAT situation. Situation A giving +2 Insight for 10 coins and Situation B giving +1 Insight for 15 coins is acceptable (different contexts, different narrative weight). Within Situation A, one choice giving +2 Insight for 5 coins while another gives +1 Insight for 10 coins is FORBIDDEN (direct dominance).
+
+**Example CORRECT:** Situation offers Choice A (Rapport 4 → best outcome), Choice B (15 coins → good outcome), Choice C (challenge → variable), Choice D (time cost → minimal outcome). Stat requirement, money cost, risk, and time cost are DIFFERENT resources. Balance via orthogonal costs.
+
+**Example FORBIDDEN:** Situation offers Choice A (10 coins → +2 stat), Choice B (5 coins → +2 stat), Choice C (free → +2 stat). All give same reward, costs vary wildly. Choice C dominates A and B. False choices.
+
+**Distinguishing from:** Global Balance (economy-wide), Cross-Content Balance (comparing situations), Difficulty Scaling (progression-based). Intra-Situation Balance is local to single situation only.
+
+**Cross-reference:** Balance Philosophy Rule 3, Rule 4, Orthogonal Resource Costs, Four-Choice Pattern
+
+---
+
+### Progression Fallback
+
+**Definition:** Fallback choice variant that resolves situation and advances story, guaranteeing forward progress (standard A-story pattern).
+
+The primary fallback path implementation ensuring no soft-locks. Fourth choice in A-story situations has zero requirements, costs only time/patience, provides minimal rewards, but ALWAYS resolves situation and spawns next scene. Player cannot become stuck - worst case is slow inefficient path forward. Required for infinite game where restart is not viable option 50 hours deep.
+
+**Example:** "Gain innkeeper's trust" situation. Choices 1-3 require stats/coins/tactical-resources. Choice 4: "Help with their needs patiently over several days" → Costs 4 time blocks, minimal relationship bonus, BUT innkeeper shares information and next scene spawns. Guaranteed progression.
+
+**Distinguishing from:** Verisimilitude Fallback (returns without resolving), Easy Path (lower difficulty), Safe Option (avoiding risk). Progression Fallback specifically ensures story advancement.
+
+**Cross-reference:** Guaranteed Progression, Four-Choice Pattern, Verisimilitude Fallback, No Soft-Lock
+
+---
+
+### Verisimilitude Fallback
+
+**Definition:** Fallback choice variant that returns player to location WITHOUT resolving situation, leaving it active for later return (optional B-story pattern).
+
+Alternative fallback implementation for optional content where player declining should feel natural. Fourth choice allows walking away - situation remains in scene list, player can return when resources available or when ready to engage. Used for B-story content, merchant transactions, optional challenges where forcing resolution breaks realism. Not used for A-story (would break guaranteed progression).
+
+**Example:** "Merchant offers rare equipment" situation. Choice 1 (Rapport 4): Discount. Choice 2 (80 coins): Standard price. Choice 3: "Not interested right now" → Returns to location, situation stays active, player can leave and return when wealthy enough. Respects player agency.
+
+**Distinguishing from:** Progression Fallback (resolves and advances), Decline Option (refusing content permanently), Leave Button (navigation). Verisimilitude Fallback preserves content for later.
+
+**Cross-reference:** Progression Fallback, Four-Choice Pattern, B-Story, Optional Content
 
 ---
 
