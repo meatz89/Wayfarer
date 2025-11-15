@@ -1175,6 +1175,110 @@ This glossary provides canonical game design term definitions for Wayfarer. For 
 
 ---
 
+## Experience Emergence Laws
+
+The following terms define the seven psychological laws that create meaningful player experiences from mechanical systems. See [13_player_experience_emergence_laws.md](13_player_experience_emergence_laws.md) for complete details.
+
+---
+
+### Law 1: Identity Before Validation
+
+**Definition:** Psychological principle requiring players BUILD capability through choices before game VALIDATES that capability through requirements.
+
+Players must discover who they are by choosing what appeals to them, accumulating capability organically, before requirements appear that recognize that capability. Early game (A1-A3) offers stat-granting choices with zero requirements. Mid game (A4+) introduces requirements at thresholds player has already reached. Requirements feel like recognition ("you can do this special thing because of who you've become") not barriers ("grind until qualified"). Prevents anxiety of being asked "who are you?" before player knows.
+
+**Example:** A1 offers three paths granting +1 Rapport (empathy), +1 Authority (command), or +1 Cunning (strategy). Player chooses empathy twice, authority once - discovers "I'm someone who connects with people." A4 presents Rapport 2 requirement - player already has Rapport 2 from previous choices. Requirement validates emerging identity rather than blocking progress.
+
+**Distinguishing from:** Tutorial Design (mechanical teaching), Progression Gating (boolean blocks). Law 1 is psychological principle about identity formation through preference expression.
+
+**Cross-reference:** Sir Brante Progression Model, Identity Building, Guaranteed Progression, Perfect Information
+
+---
+
+### Law 2: Orthogonal Expression
+
+**Definition:** Design principle requiring choices represent PERSONALITY AXES not POWER LEVELS, creating identity expression instead of optimization.
+
+Choices must offer different ways of being (charm vs authority vs cunning) rather than better/worse approaches. Charm path isn't "Tier 1" and authority "Tier 2" - they're perpendicular dimensions of selfhood. Player selecting charm isn't optimizing stats but expressing "this is who I am." No universal best choice - charm specialist prefers charm path, authority specialist prefers authority path, patient player prefers time-based fallback. Choice reveals identity through instinctive preference, not calculated superiority.
+
+**Example:** Four choices in negotiation. Rapport 4 path (connect emotionally), Authority 4 path (command respect), 15 coins path (economic solution), 4 time blocks path (patient service). All reach same outcome, orthogonal costs. Player with high Rapport chooses first, player with coins chooses third. Choice expresses build and values, not optimal solution.
+
+**Distinguishing from:** Orthogonal Resource Costs (mechanical balance), Build Diversity (system variety). Law 2 is psychological principle about choices creating identity.
+
+**Cross-reference:** Four-Choice Pattern, Orthogonal Resource Costs, Specialization, Impossible Choice
+
+---
+
+### Law 3: Scarcity Gradient
+
+**Definition:** Economic principle requiring scarcity SCALE PROPORTIONALLY with power, maintaining pressure across all progression levels.
+
+Absolute resource numbers increase (10 coins early game, 80 coins late game) but proportional scarcity stays constant. Early game: Room costs 10 coins when earning 15 per delivery (66%). Late game: Room costs 60 coins when earning 90 per delivery (66%). Same psychological pressure, different absolute values. Prevents wealth trivializing costs. Ensures hour 1 and hour 50 both feel economically tense. Scarcity gradient maintains tight margins throughout infinite progression.
+
+**Example:** A1: Earn 15 coins from delivery, lodging 10 coins, food 5 coins, net 0 (tight margins, must optimize). A15: Earn 90 coins from delivery, lodging 60 coins, food 15 coins, equipment 20 coins, net -5 (equally tight margins at higher scale). Player never reaches "money doesn't matter" - always sweating decisions.
+
+**Distinguishing from:** Economic Pressure (current scarcity), Tight Economy (design philosophy). Law 3 is scaling principle maintaining pressure across progression.
+
+**Cross-reference:** Resource Scarcity, Economic Pressure, Tight Margins, Progression Scaling
+
+---
+
+### Law 4: Sacrifice Architecture
+
+**Definition:** Choice design principle requiring selecting one option CLOSES others permanently, creating mourning of unchosen possibilities.
+
+Player can pursue only ONE path per situation despite seeing multiple valid options. Choosing charm means NOT choosing authority or cunning - unchosen paths disappear forever. Cannot "do both" or "retry for different reward." Emotional weight emerges from loss, not gain. Player regrets alternatives hours later: "I wish I'd helped that NPC, but I needed the coins..." This mourning creates investment in future choices and specialization through consistent sacrifice in same direction.
+
+**Example:** Situation offers four paths. Player has high Rapport (stat path accessible), sufficient coins (money path affordable), and time (fallback viable). Player selects Rapport path - gets best outcome. Other three paths vanish. Hours later encounters similar situation lacking Rapport - regrets not having built coins or alternative stats earlier. Sacrifice pattern emerges over many choices.
+
+**Distinguishing from:** Impossible Choice (resource constraint), Specialization (build focus). Law 4 is psychological principle about loss creating meaning.
+
+**Cross-reference:** Impossible Choice, Specialization, Orthogonal Expression, Resource Trade-Offs
+
+---
+
+### Law 5: Emergent Tutorial
+
+**Definition:** Pedagogical principle requiring game teach through EXPERIENCED CONSEQUENCES not EXPLICIT INSTRUCTION.
+
+No tooltips explaining mechanics. No tutorial mode announcement. No disconnected exercises. Player learns by playing actual game content and discovering patterns through repetition. "Time is precious" learned by experiencing opportunity cost across multiple situations, not reading tooltip. "Specialization matters" learned by seeing stat gates unlock as player focuses stats, not being told "Tip: Specialize in 2-3 stats!" Respects player intelligence - shows patterns, lets player recognize them.
+
+**Example:** A1 Situation 2 offers "Rest fully" (max recovery) vs "Study while resting" (+1 Insight, less recovery). No explanation of trade-off. Player chooses study, notices partial recovery, infers trade-off. A2 presents similar choice, player remembers consequence, makes informed decision. A5: Player automatically weighs growth vs recovery based on learned pattern. Tutorial invisible.
+
+**Distinguishing from:** Tutorial Design (structured teaching), Learning Curve (difficulty progression). Law 5 is pedagogical principle about discovery through play.
+
+**Cross-reference:** Tutorial Philosophy, Gradual Complexity, Perfect Information, Natural Learning
+
+---
+
+### Law 6: Capability Emergence
+
+**Definition:** Continuity principle requiring current capabilities VISIBLY RESULT from specific past choices, creating identity continuity.
+
+Player doesn't have "Rapport 5" - player has Rapport 5 because they chose empathy in A1 (+1), helped innkeeper in A2 (+1), persuaded merchant in A5 (+1), trained with scholar in A8 (+2). Current state traces to specific moments. Tags flow forward ("InnkeeperTrusts" from A1 affects A5). Relationships accumulate (bond levels persist). Equipment stays owned. Route knowledge permanent. Player sees continuity of becoming someone specific through accumulated choices, not arbitrary stat assignment.
+
+**Example:** Player in A15 unlocks Rapport 6 path. They remember exact history: A1 empathy choice, A2 patient help, A3 conversation training, A5 persuasion success, A8 scholar bond, A12 relationship focus. Current capability is visible autobiography of past decisions. Identity feels earned through journey.
+
+**Distinguishing from:** Progression Systems (mechanical advancement), Character Development (narrative arc). Law 6 is psychological principle about past echoing forward.
+
+**Cross-reference:** Frieren Principle, Infinite Journey, Specialization, Tag System
+
+---
+
+### Law 7: Verisimilitude in Fiction
+
+**Definition:** Narrative coherence principle requiring ALL mechanical requirements emerge from fictional context, never arbitrary gates.
+
+Friendly innkeeper requires Rapport 2-3 (warm person, low barrier). Hostile guard requires Authority 5-6 (respects only power, high barrier). Cunning thief requires Cunning 4+ (recognizes fellow strategist). Requirements make intuitive sense given NPC personality - player never asks "why Rapport 4?" because answer obvious from fiction. Categorical properties (Friendly/Hostile, Generous/Greedy) drive mechanical thresholds via universal formulas. Fiction generates numbers, numbers don't generate arbitrary fiction.
+
+**Example:** Two merchants selling same item. Merchant A: Friendly demeanor, Rapport 2 required for discount. Merchant B: Hostile demeanor, Authority 5 required for discount. Same mechanical pattern (stat requirement for better price), different thresholds justified by personality. Player understands WHY requirements differ - fiction explains mechanics.
+
+**Distinguishing from:** Verisimilitude (general realism), Categorical Scaling (implementation). Law 7 is design principle about fiction justifying mechanics.
+
+**Cross-reference:** Categorical Property Scaling, NPC Personalities, Fiction-First Design, Narrative Coherence
+
+---
+
 ## Related Documentation
 
 **Game Design Documentation:**

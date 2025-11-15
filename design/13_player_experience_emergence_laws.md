@@ -1,4 +1,4 @@
-# Design Section 10: Player Experience Emergence
+# Design Section 13: Player Experience Emergence Laws
 
 ## Purpose
 
@@ -8,7 +8,7 @@ These principles apply to ALL situations - not just A1-A3 tutorial, but every pr
 
 ---
 
-## 10.1 The Seven Laws of Experience Emergence
+## 13.1 The Seven Laws of Experience Emergence
 
 These laws are non-negotiable. Violating them creates generic RPG experiences instead of identity-forming narratives.
 
@@ -284,7 +284,7 @@ These laws are non-negotiable. Violating them creates generic RPG experiences in
 
 ---
 
-## 10.2 Sequencing Psychology: The Order of Experience Matters
+## 13.2 Sequencing Psychology: The Order of Experience Matters
 
 These laws create experiences, but WHEN they're applied determines whether player hooks or bounces.
 
@@ -376,7 +376,7 @@ These laws create experiences, but WHEN they're applied determines whether playe
 
 ---
 
-## 10.3 Procedural Content Generation: Applying Laws to Infinite Situations
+## 13.3 Procedural Content Generation: Applying Laws to Infinite Situations
 
 How does AI generate situations that follow these laws without manually designing each one?
 
@@ -486,7 +486,7 @@ Validation:
 
 ---
 
-## 10.4 Anti-Pattern Recognition: Detecting Experience Failures
+## 13.4 Anti-Pattern Recognition: Detecting Experience Failures
 
 How do we detect when procedurally generated content violates experience laws?
 
@@ -529,7 +529,7 @@ How do we detect when procedurally generated content violates experience laws?
 
 ---
 
-## 10.5 The Meta-Goal: Identity Formation Over Power Accumulation
+## 13.5 The Meta-Goal: Identity Formation Over Power Accumulation
 
 **Traditional RPG**: Player accumulates power to overcome challenges
 
@@ -557,7 +557,213 @@ How do we detect when procedurally generated content violates experience laws?
 
 ---
 
-## 10.6 Summary: The Laws Enable Emergence
+## 13.6 Relationship to Core Design Concepts
+
+These seven laws are not isolated principles - they are the **psychological foundation** that makes existing design concepts create meaningful experiences. This section maps the explicit connections.
+
+### 13.6.1 Law 1 (Identity Before Validation) ↔ Sir Brante Progression Model
+
+**Design Concept**: Sir Brante Progression Model (design/03_progression_systems.md Section 3.2)
+
+**The Connection**:
+The Sir Brante model implements Law 1 by having all stats start at 0 and providing stat-granting choices in A1-A3 before any requirements appear. This ensures capability precedes validation.
+
+**Why It Works**:
+- A1-A3: Player chooses charm/authority/cunning based on instinct, discovering "I'm empathetic" through repeated selection
+- A4+: Rapport 2 requirements appear when player already has Rapport 2-3, feeling like recognition
+- Requirements say "you can do this because of who you've become" not "grind to unlock"
+
+**Implementation Detail**:
+A1 choice offering +1 Rapport (empathy approach), +1 Authority (command approach), +1 Cunning (strategic approach) lets player express personality. By A4, player has naturally specialized, making first requirements feel earned.
+
+**Cross-Reference**: See design/03_progression_systems.md Section 3.2 for complete Sir Brante progression model details.
+
+---
+
+### 13.6.2 Law 2 (Orthogonal Expression) ↔ Four-Choice Pattern
+
+**Design Concept**: Four-Choice Pattern (design/08_balance_philosophy.md, design/09_design_patterns.md)
+
+**The Connection**:
+The four-choice archetype (stat/money/challenge/fallback) implements Law 2 by providing orthogonal resource costs that represent personality axes rather than power rankings.
+
+**Why It Works**:
+- Stat path (Rapport 4): Empathetic personality, builds through connection
+- Money path (15 coins): Economic pragmatist, solves through resources
+- Challenge path (3 Resolve): Skilled conversationalist, demonstrates ability
+- Fallback path (4 time): Patient helper, earns through service
+
+**None is objectively better** - charm specialist prefers stat path, wealthy player prefers money path, patient player prefers fallback. Choice reveals identity.
+
+**Implementation Detail**:
+Charm/Authority/Cunning aren't ranked as Tier 1/2/3 power levels - they're perpendicular axes of selfhood. Player selecting charm path isn't "choosing the best option" but "expressing who I am."
+
+**Cross-Reference**: See design/08_balance_philosophy.md Section 8.2 for intra-situation balance rules, design/09_design_patterns.md Section 9.2 for four-choice pattern details.
+
+---
+
+### 13.6.3 Law 3 (Scarcity Gradient) ↔ Tight Economy
+
+**Design Concept**: Tight Economy / Resource Scarcity (design/05_resource_economy.md Section 5.3)
+
+**The Connection**:
+The tight economy implements Law 3 by maintaining proportional scarcity as absolute numbers scale - 10 coins matters at hour 1, 60 coins matters at hour 50.
+
+**Why It Works**:
+- Early game (A1-A6): Earn 15 coins, lodging costs 10 coins (66% of income) - tight margins
+- Late game (A13-A20): Earn 90 coins, lodging costs 60 coins (66% of income) - same proportional tightness
+- Scarcity never disappears despite power scaling
+
+**Pressure Formula**:
+Meaningful cost = 20-40% of typical player reserve at that progression level. This percentage stays constant while absolute numbers increase.
+
+**Implementation Detail**:
+Room costs 10 coins when player has 20 coins feels identical psychologically to room costing 60 coins when player has 150 coins. Both create "do I spend this or save it?" tension.
+
+**Cross-Reference**: See design/05_resource_economy.md Section 5.3 for complete tight economy philosophy and scaling formulas.
+
+---
+
+### 13.6.4 Law 4 (Sacrifice Architecture) ↔ Impossible Choices
+
+**Design Concept**: Impossible Choices (design/01_design_vision.md Section 1.1, design/05_resource_economy.md)
+
+**The Connection**:
+Impossible choices implement Law 4 by forcing players to choose ONE path per situation, creating mourning of unchosen possibilities.
+
+**Why It Works**:
+- Player sees four valid paths
+- Can only select one
+- Choosing charm means NOT choosing authority or cunning
+- Cannot "do both" or "come back for different reward"
+- Mourning unchosen paths creates emotional weight
+
+**The Feeling**:
+"I want to help this NPC AND save coins AND build this relationship, but I can only afford one. Choosing means losing."
+
+**Implementation Detail**:
+Situation resolves when one choice selected. Unchosen paths disappear. Player regrets alternatives hours later: "I wish I'd helped that innkeeper, but I needed the coins..." This regret creates investment in future choices.
+
+**Cross-Reference**: See design/01_design_vision.md Section 1.1 for core impossible choice philosophy, design/05_resource_economy.md for resource competition creating trade-offs.
+
+---
+
+### 13.6.5 Law 5 (Emergent Tutorial) ↔ Tutorial Through Natural Play
+
+**Design Concept**: Tutorial Philosophy (design/10_tutorial_design.md Section 10.2)
+
+**The Connection**:
+Tutorial design implements Law 5 by teaching through consequences, never through tooltips or explicit instruction.
+
+**Why It Works**:
+- No announcement: "Welcome to tutorial!"
+- No explicit instruction: "Press X to jump"
+- No disconnected exercises: "Practice combat on dummy"
+- Learning emerges from: Experiencing trade-offs, seeing patterns repeat, discovering optimization
+
+**The Pattern**:
+A1 Situation 2: Player chooses between "Rest fully" (max recovery) vs "Study while resting" (+1 Insight, less recovery). Next time they rest, they remember the trade-off. Pattern recognition teaches without instruction.
+
+**Implementation Detail**:
+"Time is precious" learned by experiencing opportunity cost across multiple situations. "Specialization matters" learned by seeing stat gates unlock as player specializes. No tooltip says "Tip: Specialize in 2-3 stats!" - player discovers through gameplay.
+
+**Cross-Reference**: See design/10_tutorial_design.md Section 10.2 for complete emergent tutorial philosophy.
+
+---
+
+### 13.6.6 Law 6 (Capability Emergence) ↔ Frieren Principle
+
+**Design Concept**: Frieren Principle / Infinite Journey (design/01_design_vision.md Section 1.6, design/06_narrative_design.md)
+
+**The Connection**:
+The Frieren Principle implements Law 6 by creating infinite journey where past choices echo forward, building continuity of identity.
+
+**Why It Works**:
+- No ending = no pressure to rush = player engages deeply with each moment
+- Tags flow forward: "InnkeeperTrusts" from A1 affects A5 inn interaction
+- Relationships persist: Bond levels accumulate over time
+- Capabilities trace to specific moments: "I can do this because I chose X in A2"
+
+**The Experience**:
+Player in A15 uses Rapport 6 to unlock path. They remember: Chose empathy in A1 (earned first point), helped innkeeper in A2 (+1), persuaded merchant in A5 (+1), trained with scholar in A8 (+2), built relationships in A12 (+1). Current capability is **visible history** of past choices.
+
+**Implementation Detail**:
+Infinite A-story means no reset, no new game+, no "start over with power." Every choice is permanent addition to player's evolving self. Journey becomes autobiography written through decisions.
+
+**Cross-Reference**: See design/01_design_vision.md Section 1.6 for Frieren Principle, design/06_narrative_design.md for infinite A-story architecture.
+
+---
+
+### 13.6.7 Law 7 (Verisimilitude in Fiction) ↔ Categorical Property Scaling
+
+**Design Concept**: Categorical Property Scaling (design/07_content_generation.md, design/08_balance_philosophy.md Rule 7)
+
+**The Connection**:
+Categorical properties implement Law 7 by deriving mechanical requirements from narrative context, ensuring fiction generates mechanics rather than arbitrary gates.
+
+**Why It Works**:
+- Friendly innkeeper: Rapport 2-3 requirement (warm person, low barrier)
+- Hostile guard: Authority 5-6 requirement (respects only power, high barrier)
+- Cunning thief: Cunning 4+ requirement (recognizes fellow strategist)
+- Scholarly sage: Insight 5+ requirement (values intellectual capability)
+
+**The Pattern**:
+NPC personality properties (Friendly/Neutral/Hostile) drive mechanical thresholds via universal formula. Same archetype + different properties = contextually appropriate difficulty. Fiction explains numbers.
+
+**Implementation Detail**:
+Player never asks "Why does this NPC need Rapport 4?" - answer obvious from NPC personality. Mechanics emerge from fiction: Friendly people are easier to befriend, hostile people require more capability. Verisimilitude throughout.
+
+**Cross-Reference**: See design/07_content_generation.md for categorical scaling system, design/08_balance_philosophy.md Section 8.2 Rule 7 for verisimilitude in costs.
+
+---
+
+### 13.6.8 Perfect Information ↔ Law 1 (Enabling Informed Identity Formation)
+
+**Design Concept**: Perfect Information (design/01_design_vision.md Section 1.7)
+
+**The Connection**:
+Perfect information enables Law 1 by letting players see requirements before committing, understanding capability gaps, and planning identity building.
+
+**Why It Works**:
+- Locked choice shows: "Requires Rapport 3, you have 2, need 1 more"
+- Player sees gap, plans training: "One more Rapport point unlocks this path"
+- Next situation offering Rapport gain: Player chooses it intentionally
+- Identity building becomes deliberate through visibility
+
+**Without Perfect Information**:
+Player tries choice → "You need more Rapport" → Frustration. No way to know how much more. No way to plan.
+
+**With Perfect Information**:
+Player sees "Rapport 3" requirement → Checks current stats (2) → Understands gap (1) → Plans next steps → Achieves capability → Returns and unlocks. Identity building feels earned.
+
+**Cross-Reference**: See design/01_design_vision.md Section 1.7 for perfect information philosophy.
+
+---
+
+### 13.6.9 Guaranteed Progression ↔ Law 4 (Sacrifice Without Soft-Locks)
+
+**Design Concept**: No Soft-Locks / Guaranteed Progression (design/01_design_vision.md Section 1.9 TIER 1)
+
+**The Connection**:
+Guaranteed progression (fallback paths) enables Law 4 by ensuring sacrifice is meaningful choice, not forced error.
+
+**Why It Works**:
+- Four-choice pattern always includes zero-requirement fallback
+- Choosing stat path over fallback is genuine sacrifice (trading time for optimization)
+- Choosing money path over fallback is genuine sacrifice (trading coins for efficiency)
+- But player who chose poorly earlier can still progress via fallback
+
+**The Balance**:
+Sacrifice creates emotional weight ONLY when it's choice, not punishment. If poor choices create soft-locks, player learns "don't experiment" not "choose based on values."
+
+**Implementation Detail**:
+Fallback path costs time (4 blocks) and gives minimal rewards, making it suboptimal but never catastrophic. Player who chose badly earlier proceeds slowly but surely. Sacrifice of efficiency, not possibility.
+
+**Cross-Reference**: See design/01_design_vision.md Section 1.9 for TIER 1 design principles including no soft-locks.
+
+---
+
+## 13.7 Summary: The Laws Enable Emergence
 
 These seven laws are sufficient to generate meaningful player experience across infinite procedural content:
 

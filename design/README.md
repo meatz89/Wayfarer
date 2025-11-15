@@ -18,6 +18,7 @@ This directory contains comprehensive game design documentation for Wayfarer, or
 | 10 | [10_tutorial_design.md](10_tutorial_design.md) | A1-A10 objectives, layered complexity, player guidance |
 | 11 | [11_design_decisions.md](11_design_decisions.md) | DDRs documenting major design decisions with alternatives |
 | 12 | [12_design_glossary.md](12_design_glossary.md) | 67 canonical game design terms with examples |
+| 13 | [13_player_experience_emergence_laws.md](13_player_experience_emergence_laws.md) | 7 psychological laws creating meaningful experiences, connections to core concepts |
 
 ## Design vs Technical Documentation
 
