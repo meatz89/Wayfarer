@@ -128,13 +128,85 @@ The core player capabilities determining card access, choice availability, and b
 
 **Definition:** Design requirement ensuring forward progress from every game state, preventing soft-locks.
 
-The non-negotiable principle (TIER 1) that every A-story situation must have at least one choice with zero requirements, cannot fail, and advances progression. Player cannot become stuck - worst case is slow/poor outcome but always moves forward. Critical for infinite game where player cannot "restart" 50 hours deep. Implemented via Four-Choice Archetype's fallback path.
+The non-negotiable principle (TIER 1) that every A-story situation must have at least one choice with zero requirements, cannot fail, and advances progression. Player cannot become stuck - worst case is slow/poor outcome but always moves forward. Critical for infinite game where player cannot "restart" 50 hours deep. Implemented via Four-Choice Archetype's Progression Fallback path.
 
 **Example:** Situation requires negotiation. Choice 1: Rapport 3 (player has 2, disabled). Choice 2: 15 coins (player has 3, disabled). Choice 3: Social challenge (costs Resolve, player exhausted). Choice 4: "Wait patiently for them to be ready" (no requirements, always available, minimal reward, advances progression).
 
 **Distinguishing from:** Easy Mode (difficulty reduction), Safety Net (recoverable failure). Guaranteed progression means always forward path, not easier path.
 
-**Cross-reference:** DDR-007 (Four-Choice Pattern), No Soft-Lock, Fallback Path, TIER 1 Principles
+**Cross-reference:** DDR-007 (Four-Choice Pattern), No Soft-Lock, Progression Fallback, TIER 1 Principles
+
+---
+
+### Crisis Situation
+
+**Definition:** Situation type where all choices involve losses or damage, forcing players to choose which harm to accept.
+
+A scenario design pattern where no good outcome exists - every choice reduces stats, depletes resources, or applies negative consequences. Balance emerges not from equal rewards but from asymmetric costs letting different builds accept different damages. Wealthy player pays coins. Healthy player accepts injury. Player with high Authority uses stat-gated path to minimize loss. Crisis situations test resource allocation under pressure.
+
+**Example:** Bandit ambush situation. Choice 1 (Authority 4): Lose 3 Health, keep coins, gain +1 Authority. Choice 2: Lose 20 coins, keep Health. Choice 3 (Physical challenge): Risky, variable losses. Choice 4: Lose all coins, lose 1 Cunning (shame), preserve Health. ALL choices involve losses - player chooses which loss acceptable based on current resources and build.
+
+**Distinguishing from:** Difficult Situation (hard to succeed), Moral Dilemma (ethical choice), Damage Control (general concept). Crisis Situation is specific pattern where all choices are damage control.
+
+**Cross-reference:** Intra-Situation Balance, Impossible Choice, Damage Control
+
+---
+
+### Identity Building (Early Progression)
+
+**Definition:** Tutorial phase design pattern (A1-A3) where choices offer stat gains instead of requiring stats, shaping initial character direction through preference.
+
+The Sir Brante-inspired progression model where all stats start at 0 and early situations have NO stat requirements (player couldn't meet them anyway). Instead, early choices present different stat gain options letting player answer "Do I want to be good at THIS or THAT?" Each choice builds initial capability in different direction (empathy vs analysis vs command vs strategy). By A3, player has 2-4 stat points distributed, ensuring at least one viable stat-gated path when requirements begin appearing in A4+.
+
+**Example:** A1 situation "How do you approach the innkeeper?" Choice 1: "Notice their expression, offer kindness" → +1 Rapport. Choice 2: "Assess analytically, offer practical help" → +1 Insight. Choice 3: "Speak with confidence" → +1 Authority. Choice 4: "Read the room carefully" → +1 Cunning. No requirements, player chooses preferred approach, begins defining character identity.
+
+**Distinguishing from:** Tutorial (teaching mechanics), Character Creation (pre-game selection), Class Selection (predetermined path). Identity Building emerges from early choices, not upfront decision.
+
+**Cross-reference:** Sir Brante Model, Specialization, Build, Early Game Progression
+
+---
+
+### Intra-Situation Balance
+
+**Definition:** The fundamental balance principle that choices must be balanced RELATIVE TO EACH OTHER within same situation, not across different situations.
+
+The core rule governing choice design. All comparisons happen within single situation - choices with higher requirements/costs MUST give better rewards than choices without, but only compared to other choices in THAT situation. Situation A giving +2 Insight for 10 coins and Situation B giving +1 Insight for 15 coins is acceptable (different contexts, different narrative weight). Within Situation A, one choice giving +2 Insight for 5 coins while another gives +1 Insight for 10 coins is FORBIDDEN (direct dominance).
+
+**Example CORRECT:** Situation offers Choice A (Rapport 4 → best outcome), Choice B (15 coins → good outcome), Choice C (challenge → variable), Choice D (time cost → minimal outcome). Stat requirement, money cost, risk, and time cost are DIFFERENT resources. Balance via orthogonal costs.
+
+**Example FORBIDDEN:** Situation offers Choice A (10 coins → +2 stat), Choice B (5 coins → +2 stat), Choice C (free → +2 stat). All give same reward, costs vary wildly. Choice C dominates A and B. False choices.
+
+**Distinguishing from:** Global Balance (economy-wide), Cross-Content Balance (comparing situations), Difficulty Scaling (progression-based). Intra-Situation Balance is local to single situation only.
+
+**Cross-reference:** Balance Philosophy Rule 3, Rule 4, Orthogonal Resource Costs, Four-Choice Pattern
+
+---
+
+### Progression Fallback
+
+**Definition:** Fallback choice variant that resolves situation and advances story, guaranteeing forward progress (standard A-story pattern).
+
+The primary fallback path implementation ensuring no soft-locks. Fourth choice in A-story situations has zero requirements, costs only time/patience, provides minimal rewards, but ALWAYS resolves situation and spawns next scene. Player cannot become stuck - worst case is slow inefficient path forward. Required for infinite game where restart is not viable option 50 hours deep.
+
+**Example:** "Gain innkeeper's trust" situation. Choices 1-3 require stats/coins/tactical-resources. Choice 4: "Help with their needs patiently over several days" → Costs 4 time blocks, minimal relationship bonus, BUT innkeeper shares information and next scene spawns. Guaranteed progression.
+
+**Distinguishing from:** Verisimilitude Fallback (returns without resolving), Easy Path (lower difficulty), Safe Option (avoiding risk). Progression Fallback specifically ensures story advancement.
+
+**Cross-reference:** Guaranteed Progression, Four-Choice Pattern, Verisimilitude Fallback, No Soft-Lock
+
+---
+
+### Verisimilitude Fallback
+
+**Definition:** Fallback choice variant that returns player to location WITHOUT resolving situation, leaving it active for later return (optional B-story pattern).
+
+Alternative fallback implementation for optional content where player declining should feel natural. Fourth choice allows walking away - situation remains in scene list, player can return when resources available or when ready to engage. Used for B-story content, merchant transactions, optional challenges where forcing resolution breaks realism. Not used for A-story (would break guaranteed progression).
+
+**Example:** "Merchant offers rare equipment" situation. Choice 1 (Rapport 4): Discount. Choice 2 (80 coins): Standard price. Choice 3: "Not interested right now" → Returns to location, situation stays active, player can leave and return when wealthy enough. Respects player agency.
+
+**Distinguishing from:** Progression Fallback (resolves and advances), Decline Option (refusing content permanently), Leave Button (navigation). Verisimilitude Fallback preserves content for later.
+
+**Cross-reference:** Progression Fallback, Four-Choice Pattern, B-Story, Optional Content
 
 ---
 
@@ -1100,6 +1172,110 @@ This glossary provides canonical game design term definitions for Wayfarer. For 
 - For technical terms, defer to arc42 section 12_glossary.md
 - When confusion arises, consult Distinctions section
 - Cross-references connect related concepts
+
+---
+
+## Experience Emergence Laws
+
+The following terms define the seven psychological laws that create meaningful player experiences from mechanical systems. See [13_player_experience_emergence_laws.md](13_player_experience_emergence_laws.md) for complete details.
+
+---
+
+### Law 1: Identity Before Validation
+
+**Definition:** Psychological principle requiring players BUILD capability through choices before game VALIDATES that capability through requirements.
+
+Players must discover who they are by choosing what appeals to them, accumulating capability organically, before requirements appear that recognize that capability. Early game (A1-A3) offers stat-granting choices with zero requirements. Mid game (A4+) introduces requirements at thresholds player has already reached. Requirements feel like recognition ("you can do this special thing because of who you've become") not barriers ("grind until qualified"). Prevents anxiety of being asked "who are you?" before player knows.
+
+**Example:** A1 offers three paths granting +1 Rapport (empathy), +1 Authority (command), or +1 Cunning (strategy). Player chooses empathy twice, authority once - discovers "I'm someone who connects with people." A4 presents Rapport 2 requirement - player already has Rapport 2 from previous choices. Requirement validates emerging identity rather than blocking progress.
+
+**Distinguishing from:** Tutorial Design (mechanical teaching), Progression Gating (boolean blocks). Law 1 is psychological principle about identity formation through preference expression.
+
+**Cross-reference:** Sir Brante Progression Model, Identity Building, Guaranteed Progression, Perfect Information
+
+---
+
+### Law 2: Orthogonal Expression
+
+**Definition:** Design principle requiring choices represent PERSONALITY AXES not POWER LEVELS, creating identity expression instead of optimization.
+
+Choices must offer different ways of being (charm vs authority vs cunning) rather than better/worse approaches. Charm path isn't "Tier 1" and authority "Tier 2" - they're perpendicular dimensions of selfhood. Player selecting charm isn't optimizing stats but expressing "this is who I am." No universal best choice - charm specialist prefers charm path, authority specialist prefers authority path, patient player prefers time-based fallback. Choice reveals identity through instinctive preference, not calculated superiority.
+
+**Example:** Four choices in negotiation. Rapport 4 path (connect emotionally), Authority 4 path (command respect), 15 coins path (economic solution), 4 time blocks path (patient service). All reach same outcome, orthogonal costs. Player with high Rapport chooses first, player with coins chooses third. Choice expresses build and values, not optimal solution.
+
+**Distinguishing from:** Orthogonal Resource Costs (mechanical balance), Build Diversity (system variety). Law 2 is psychological principle about choices creating identity.
+
+**Cross-reference:** Four-Choice Pattern, Orthogonal Resource Costs, Specialization, Impossible Choice
+
+---
+
+### Law 3: Scarcity Gradient
+
+**Definition:** Economic principle requiring scarcity SCALE PROPORTIONALLY with power, maintaining pressure across all progression levels.
+
+Absolute resource numbers increase (10 coins early game, 80 coins late game) but proportional scarcity stays constant. Early game: Room costs 10 coins when earning 15 per delivery (66%). Late game: Room costs 60 coins when earning 90 per delivery (66%). Same psychological pressure, different absolute values. Prevents wealth trivializing costs. Ensures hour 1 and hour 50 both feel economically tense. Scarcity gradient maintains tight margins throughout infinite progression.
+
+**Example:** A1: Earn 15 coins from delivery, lodging 10 coins, food 5 coins, net 0 (tight margins, must optimize). A15: Earn 90 coins from delivery, lodging 60 coins, food 15 coins, equipment 20 coins, net -5 (equally tight margins at higher scale). Player never reaches "money doesn't matter" - always sweating decisions.
+
+**Distinguishing from:** Economic Pressure (current scarcity), Tight Economy (design philosophy). Law 3 is scaling principle maintaining pressure across progression.
+
+**Cross-reference:** Resource Scarcity, Economic Pressure, Tight Margins, Progression Scaling
+
+---
+
+### Law 4: Sacrifice Architecture
+
+**Definition:** Choice design principle requiring selecting one option CLOSES others permanently, creating mourning of unchosen possibilities.
+
+Player can pursue only ONE path per situation despite seeing multiple valid options. Choosing charm means NOT choosing authority or cunning - unchosen paths disappear forever. Cannot "do both" or "retry for different reward." Emotional weight emerges from loss, not gain. Player regrets alternatives hours later: "I wish I'd helped that NPC, but I needed the coins..." This mourning creates investment in future choices and specialization through consistent sacrifice in same direction.
+
+**Example:** Situation offers four paths. Player has high Rapport (stat path accessible), sufficient coins (money path affordable), and time (fallback viable). Player selects Rapport path - gets best outcome. Other three paths vanish. Hours later encounters similar situation lacking Rapport - regrets not having built coins or alternative stats earlier. Sacrifice pattern emerges over many choices.
+
+**Distinguishing from:** Impossible Choice (resource constraint), Specialization (build focus). Law 4 is psychological principle about loss creating meaning.
+
+**Cross-reference:** Impossible Choice, Specialization, Orthogonal Expression, Resource Trade-Offs
+
+---
+
+### Law 5: Emergent Tutorial
+
+**Definition:** Pedagogical principle requiring game teach through EXPERIENCED CONSEQUENCES not EXPLICIT INSTRUCTION.
+
+No tooltips explaining mechanics. No tutorial mode announcement. No disconnected exercises. Player learns by playing actual game content and discovering patterns through repetition. "Time is precious" learned by experiencing opportunity cost across multiple situations, not reading tooltip. "Specialization matters" learned by seeing stat gates unlock as player focuses stats, not being told "Tip: Specialize in 2-3 stats!" Respects player intelligence - shows patterns, lets player recognize them.
+
+**Example:** A1 Situation 2 offers "Rest fully" (max recovery) vs "Study while resting" (+1 Insight, less recovery). No explanation of trade-off. Player chooses study, notices partial recovery, infers trade-off. A2 presents similar choice, player remembers consequence, makes informed decision. A5: Player automatically weighs growth vs recovery based on learned pattern. Tutorial invisible.
+
+**Distinguishing from:** Tutorial Design (structured teaching), Learning Curve (difficulty progression). Law 5 is pedagogical principle about discovery through play.
+
+**Cross-reference:** Tutorial Philosophy, Gradual Complexity, Perfect Information, Natural Learning
+
+---
+
+### Law 6: Capability Emergence
+
+**Definition:** Continuity principle requiring current capabilities VISIBLY RESULT from specific past choices, creating identity continuity.
+
+Player doesn't have "Rapport 5" - player has Rapport 5 because they chose empathy in A1 (+1), helped innkeeper in A2 (+1), persuaded merchant in A5 (+1), trained with scholar in A8 (+2). Current state traces to specific moments. Tags flow forward ("InnkeeperTrusts" from A1 affects A5). Relationships accumulate (bond levels persist). Equipment stays owned. Route knowledge permanent. Player sees continuity of becoming someone specific through accumulated choices, not arbitrary stat assignment.
+
+**Example:** Player in A15 unlocks Rapport 6 path. They remember exact history: A1 empathy choice, A2 patient help, A3 conversation training, A5 persuasion success, A8 scholar bond, A12 relationship focus. Current capability is visible autobiography of past decisions. Identity feels earned through journey.
+
+**Distinguishing from:** Progression Systems (mechanical advancement), Character Development (narrative arc). Law 6 is psychological principle about past echoing forward.
+
+**Cross-reference:** Frieren Principle, Infinite Journey, Specialization, Tag System
+
+---
+
+### Law 7: Verisimilitude in Fiction
+
+**Definition:** Narrative coherence principle requiring ALL mechanical requirements emerge from fictional context, never arbitrary gates.
+
+Friendly innkeeper requires Rapport 2-3 (warm person, low barrier). Hostile guard requires Authority 5-6 (respects only power, high barrier). Cunning thief requires Cunning 4+ (recognizes fellow strategist). Requirements make intuitive sense given NPC personality - player never asks "why Rapport 4?" because answer obvious from fiction. Categorical properties (Friendly/Hostile, Generous/Greedy) drive mechanical thresholds via universal formulas. Fiction generates numbers, numbers don't generate arbitrary fiction.
+
+**Example:** Two merchants selling same item. Merchant A: Friendly demeanor, Rapport 2 required for discount. Merchant B: Hostile demeanor, Authority 5 required for discount. Same mechanical pattern (stat requirement for better price), different thresholds justified by personality. Player understands WHY requirements differ - fiction explains mechanics.
+
+**Distinguishing from:** Verisimilitude (general realism), Categorical Scaling (implementation). Law 7 is design principle about fiction justifying mechanics.
+
+**Cross-reference:** Categorical Property Scaling, NPC Personalities, Fiction-First Design, Narrative Coherence
 
 ---
 
