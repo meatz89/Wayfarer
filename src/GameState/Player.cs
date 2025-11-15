@@ -36,7 +36,14 @@ public class Player
     // Travel capabilities
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
 
-    public PlayerStats Stats { get; private set; } = new();
+    // Five Stats - Simple integers like Coins/Health/Stamina
+    // Granted directly through choice rewards (Sir Brante pattern)
+    // No XP, no levels, no complex progression - just numbers
+    public int Insight { get; set; } = 0;
+    public int Rapport { get; set; } = 0;
+    public int Authority { get; set; } = 0;
+    public int Diplomacy { get; set; } = 0;
+    public int Cunning { get; set; } = 0;
 
     // Hex-first architecture: Player position is hex coordinates
     // Location derived via: hexMap.GetHex(player.CurrentPosition)?.LocationId

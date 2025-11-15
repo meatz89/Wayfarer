@@ -36,41 +36,79 @@ namespace Wayfarer.Pages.Components
 
         protected void RefreshStatData()
         {
-            PlayerStats playerStats = GameFacade.GetPlayerStats();
+            Player player = GameFacade.GetPlayer();
 
-            StatDisplayInfos = new List<StatDisplayInfo>();
-
-            foreach (PlayerStatType statType in Enum.GetValues<PlayerStatType>())
+            StatDisplayInfos = new List<StatDisplayInfo>
             {
-                int level = playerStats.GetLevel(statType);
-                int currentXP = playerStats.GetXP(statType);
-                int xpToNext = playerStats.GetXPToNextLevel(statType);
-                int progressPercent = playerStats.GetProgressPercent(statType);
-                int successBonus = playerStats.GetSuccessBonus(statType);
-
-                StatDisplayInfos.Add(new StatDisplayInfo
+                new StatDisplayInfo
                 {
-                    StatType = statType,
-                    Name = GetStatDisplayName(statType),
-                    Description = GetStatDescription(statType),
-                    Level = level,
-                    CurrentXP = currentXP,
-                    XPToNext = level >= 5 ? 0 : xpToNext,
-                    ProgressPercent = progressPercent,
-                    SuccessBonus = successBonus,
-                    HasPersistenceBonus = playerStats.HasPersistenceBonus(statType)
-                });
-            }
+                    StatType = PlayerStatType.Insight,
+                    Name = "Insight",
+                    Description = GetStatDescription(PlayerStatType.Insight),
+                    Level = player.Insight,
+                    CurrentXP = 0,
+                    XPToNext = 0,
+                    ProgressPercent = 0,
+                    SuccessBonus = 0,
+                    HasPersistenceBonus = false
+                },
+                new StatDisplayInfo
+                {
+                    StatType = PlayerStatType.Rapport,
+                    Name = "Rapport",
+                    Description = GetStatDescription(PlayerStatType.Rapport),
+                    Level = player.Rapport,
+                    CurrentXP = 0,
+                    XPToNext = 0,
+                    ProgressPercent = 0,
+                    SuccessBonus = 0,
+                    HasPersistenceBonus = false
+                },
+                new StatDisplayInfo
+                {
+                    StatType = PlayerStatType.Authority,
+                    Name = "Authority",
+                    Description = GetStatDescription(PlayerStatType.Authority),
+                    Level = player.Authority,
+                    CurrentXP = 0,
+                    XPToNext = 0,
+                    ProgressPercent = 0,
+                    SuccessBonus = 0,
+                    HasPersistenceBonus = false
+                },
+                new StatDisplayInfo
+                {
+                    StatType = PlayerStatType.Diplomacy,
+                    Name = "Diplomacy",
+                    Description = GetStatDescription(PlayerStatType.Diplomacy),
+                    Level = player.Diplomacy,
+                    CurrentXP = 0,
+                    XPToNext = 0,
+                    ProgressPercent = 0,
+                    SuccessBonus = 0,
+                    HasPersistenceBonus = false
+                },
+                new StatDisplayInfo
+                {
+                    StatType = PlayerStatType.Cunning,
+                    Name = "Cunning",
+                    Description = GetStatDescription(PlayerStatType.Cunning),
+                    Level = player.Cunning,
+                    CurrentXP = 0,
+                    XPToNext = 0,
+                    ProgressPercent = 0,
+                    SuccessBonus = 0,
+                    HasPersistenceBonus = false
+                }
+            };
 
-            // Sort by level descending, then by XP descending
+            // Sort by level descending
             StatDisplayInfos = StatDisplayInfos
                 .OrderByDescending(s => s.Level)
-                .ThenByDescending(s => s.CurrentXP)
                 .ToList();
 
-            TotalLevel = playerStats.GetTotalLevel();
-            TotalXP = playerStats.GetTotalXP();
-            // DELETED: PrimaryStat concept - stats don't have global "primary" role
+            TotalLevel = player.Insight + player.Rapport + player.Authority + player.Diplomacy + player.Cunning;
+            TotalXP = 0; // No XP system anymore
             PrimaryStatName = "N/A"; // Stats are equal, no "primary" stat
         }
 

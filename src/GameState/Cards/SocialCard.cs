@@ -109,14 +109,7 @@ public class SocialCard
         return BoundStat.HasValue ? 1 : 0;
     }
 
-    /// <summary>
-    /// Check if this card can be accessed by a player with given stat levels
-    /// </summary>
-    public bool CanAccessWithStats(PlayerStats playerStats)
-    {
-        if (!BoundStat.HasValue || playerStats == null) return true;
-        return playerStats.GetLevel(BoundStat.Value) >= (int)Depth;
-    }
+    // CanAccessWithStats method deleted - replaced by tier-based system in SocialSessionCardDeck
 
     /// <summary>
     /// Check if token requirements are met for this signature card

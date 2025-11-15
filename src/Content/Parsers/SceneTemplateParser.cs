@@ -753,6 +753,11 @@ public class SceneTemplateParser
             Hunger = dto.Hunger,
             Stamina = dto.Stamina,
             Focus = dto.Focus,
+            Insight = dto.Insight,
+            Rapport = dto.Rapport,
+            Authority = dto.Authority,
+            Diplomacy = dto.Diplomacy,
+            Cunning = dto.Cunning,
             FullRecovery = dto.FullRecovery,
             BondChanges = ParseBondChanges(dto.BondChanges),
             ScaleShifts = ParseScaleShifts(dto.ScaleShifts),
@@ -850,10 +855,7 @@ public class SceneTemplateParser
 
             rewards.Add(new SceneSpawnReward
             {
-                SceneTemplateId = dto.SceneTemplateId,
-                // Parametric spawning: parent scene passes parameters to spawned scene
-                // Parameters flow: JSON → DTO → Domain → Scene instance
-                Parameters = dto.Parameters ?? new Dictionary<string, int>()
+                SceneTemplateId = dto.SceneTemplateId
             });
         }
 

@@ -140,7 +140,15 @@ public class ConversationTreeFacade
         // Validate stat requirements
         if (response.RequiredStat.HasValue && response.RequiredStatLevel.HasValue)
         {
-            int statLevel = player.Stats.GetLevel(response.RequiredStat.Value);
+            int statLevel = response.RequiredStat.Value switch
+            {
+                PlayerStatType.Insight => player.Insight,
+                PlayerStatType.Rapport => player.Rapport,
+                PlayerStatType.Authority => player.Authority,
+                PlayerStatType.Diplomacy => player.Diplomacy,
+                PlayerStatType.Cunning => player.Cunning,
+                _ => 0
+            };
             if (statLevel < response.RequiredStatLevel.Value)
             {
                 return ConversationTreeResult.Failed(
@@ -228,12 +236,14 @@ public class ConversationTreeFacade
 
     private Dictionary<PlayerStatType, int> BuildPlayerStats(Player player)
     {
-        Dictionary<PlayerStatType, int> stats = new Dictionary<PlayerStatType, int>();
-
-        foreach (PlayerStatType statType in Enum.GetValues(typeof(PlayerStatType)))
+        Dictionary<PlayerStatType, int> stats = new Dictionary<PlayerStatType, int>
         {
-            stats[statType] = player.Stats.GetLevel(statType);
-        }
+            { PlayerStatType.Insight, player.Insight },
+            { PlayerStatType.Rapport, player.Rapport },
+            { PlayerStatType.Authority, player.Authority },
+            { PlayerStatType.Diplomacy, player.Diplomacy },
+            { PlayerStatType.Cunning, player.Cunning }
+        };
 
         return stats;
     }

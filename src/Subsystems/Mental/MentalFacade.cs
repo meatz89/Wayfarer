@@ -252,11 +252,9 @@ public class MentalFacade
             5 or 6 => 3,
             _ => 0
         };
-        _gameWorld.CurrentMentalSession.CurrentLeads += leadsGenerated;// PROGRESSION SYSTEM: Award XP to bound stat (XP pre-calculated at parse time)
-        if (card.MentalCardTemplate.BoundStat != PlayerStatType.None)
-        {
-            player.Stats.AddXP(card.MentalCardTemplate.BoundStat, card.MentalCardTemplate.XPReward);
-        }
+        _gameWorld.CurrentMentalSession.CurrentLeads += leadsGenerated;
+        // Stats are now simple integers - no XP system
+        // XP granting deleted as part of XP system removal
 
         _gameWorld.CurrentMentalSession.Deck.PlayCard(card);
         // NO DRAWING - Methods move to Applied pile, only OBSERVE draws cards

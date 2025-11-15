@@ -152,13 +152,11 @@ public class PhysicalFacade
                 _gameWorld.CurrentPhysicalSession.CurrentDanger += projection.DangerChange;
                 _gameWorld.CurrentPhysicalSession.Aggression += projection.BalanceChange; // Includes action -2 AND card approach modifier
 
-                // Award XP for this card
-                if (card.PhysicalCardTemplate.BoundStat != PlayerStatType.None)
-                {
-                    player.Stats.AddXP(card.PhysicalCardTemplate.BoundStat, card.PhysicalCardTemplate.XPReward);
-                }
+                // Stats are now simple integers - no XP system
+                // XP granting deleted as part of XP system removal
             }
-        }// Shuffle exhaust (locked cards) + hand back to deck, draw fresh
+        }
+        // Shuffle exhaust (locked cards) + hand back to deck, draw fresh
         _gameWorld.CurrentPhysicalSession.Deck.ShuffleExhaustAndHandBackToDeck();
 
         int cardsToDraw = _gameWorld.CurrentPhysicalSession.GetDrawCount();

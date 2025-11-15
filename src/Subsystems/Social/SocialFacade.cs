@@ -95,7 +95,7 @@ public class SocialFacade
 
         // Calculate starting resources based on player's highest stat
         Player player = _gameWorld.GetPlayer();
-        int highestStat = player.Stats.GetHighestLevel();
+        int highestStat = Math.Max(player.Insight, Math.Max(player.Rapport, Math.Max(player.Authority, Math.Max(player.Diplomacy, player.Cunning))));
         int statBonus = (int)Math.Floor(highestStat / 3.0);
 
         int startingUnderstanding = 2 + statBonus;
@@ -131,8 +131,8 @@ public class SocialFacade
         _gameWorld.CurrentSocialSession.CheckAndUnlockTiers();// THEN: Perform initial draw of regular cards with tier-based filtering
                                                               // This is the initial conversation start, so we just draw cards without exhausting
         int drawCount = _gameWorld.CurrentSocialSession.GetDrawCount();
-        // Draw with tier-based filtering
-        _gameWorld.CurrentSocialSession.Deck.DrawToHand(drawCount, _gameWorld.CurrentSocialSession, player.Stats);
+        // Draw with tier-based filtering (stats passed individually now)
+        _gameWorld.CurrentSocialSession.Deck.DrawToHand(drawCount, _gameWorld.CurrentSocialSession, player);
 
         // Update request card playability based on initiative
         UpdateSituationCardPlayability(_gameWorld.CurrentSocialSession);
@@ -373,13 +373,9 @@ public class SocialFacade
         // 6. Process Card Results
         CardPlayResult playResult = ProcessInitiativeCardPlay(selectedCard, success, _gameWorld.CurrentSocialSession);
 
-        // 7. Grant XP to player stat (unchanged)
+        // Stats are now simple integers - no XP system
+        // XP granting deleted as part of XP system removal
         Player player = _gameWorld.GetPlayer();
-        if (selectedCard.SocialCardTemplate.BoundStat.HasValue)
-        {
-            int xpAmount = CalculateXPAmount(_gameWorld.CurrentSocialSession);
-            player.Stats.AddXP(selectedCard.SocialCardTemplate.BoundStat.Value, xpAmount);
-        }
 
         // Knowledge system eliminated - no knowledge/secret granting
 
@@ -673,7 +669,7 @@ public class SocialFacade
     {
         // Draw with tier and stat filtering
         Player player = _gameWorld.GetPlayer();
-        session.Deck.DrawToHand(cardsToDraw, session, player.Stats);
+        session.Deck.DrawToHand(cardsToDraw, session, player);
 
         // Return the newly drawn cards (last N cards in hand)
         return session.Deck.HandCards.TakeLast(cardsToDraw).ToList();
@@ -829,7 +825,7 @@ public class SocialFacade
         if (projection.CardsToDraw > 0)
         {
             Player player = _gameWorld.GetPlayer();
-            session.Deck.DrawToHand(projection.CardsToDraw, session, player.Stats);
+            session.Deck.DrawToHand(projection.CardsToDraw, session, player);
         }
 
         // Add any specific card instances (legacy support)
@@ -1042,7 +1038,7 @@ public class SocialFacade
             session.MomentumManager.AddDoubt(session, impulseCount);
         }
         Player player = _gameWorld.GetPlayer();
-        session.Deck.DrawToHand(baseDrawCount, session, player.Stats);
+        session.Deck.DrawToHand(baseDrawCount, session, player);
 
         // Get the drawn cards for return value
         List<CardInstance> drawnCards = session.Deck.HandCards.TakeLast(baseDrawCount).ToList();

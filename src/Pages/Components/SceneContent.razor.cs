@@ -314,7 +314,15 @@ public class SceneContentBase : ComponentBase
     {
         if (!Enum.TryParse<PlayerStatType>(statName, ignoreCase: true, out PlayerStatType statType))
             return 0;
-        return player.Stats.GetLevel(statType);
+        return statType switch
+        {
+            PlayerStatType.Insight => player.Insight,
+            PlayerStatType.Rapport => player.Rapport,
+            PlayerStatType.Authority => player.Authority,
+            PlayerStatType.Diplomacy => player.Diplomacy,
+            PlayerStatType.Cunning => player.Cunning,
+            _ => 0
+        };
     }
 
     private string FormatBondGap(string npcId, int threshold, Player player)
@@ -499,13 +507,25 @@ public class SceneContentBase : ComponentBase
             return;
         }
 
-        // INSTANT PATH: Apply rewards immediately and complete situation
+        // INSTANT PATH: Apply rewards immediately
         if (choiceTemplate.RewardTemplate != null)
         {
             await RewardApplicationService.ApplyChoiceReward(choiceTemplate.RewardTemplate, CurrentSituation);
         }
 
-        // MULTI-SITUATION SCENE: Complete situation and advance
+        // FALLBACK PATH: Non-advancing choice (situation stays active and repeatable)
+        if (choiceTemplate.PathType == ChoicePathType.Fallback)
+        {
+            Console.WriteLine($"[SceneContent.HandleChoiceSelected] FALLBACK choice - situation remains active");
+            // Rewards already applied above
+            // Situation NOT completed - player can retry or leave and return
+            // Reload choices to show updated state (costs may have changed player resources)
+            LoadChoices();
+            StateHasChanged();
+            return;
+        }
+
+        // ADVANCING PATH: Complete situation and advance scene
         // Scene entity owns state machine via Scene.AdvanceToNextSituation()
         // UI queries new current situation after completion
         Console.WriteLine($"[SceneContent.HandleChoiceSelected] Completing situation '{CurrentSituation.Id}'");

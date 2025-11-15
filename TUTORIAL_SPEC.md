@@ -244,68 +244,69 @@ Elena waves you over. "Good timing! A merchant needs a courier. Package to Port 
 - GrantsLocationAccess: false
 
 **Narrative:**
-The merchant presents the sealed package. "Port District warehouse, by evening. Standard rate is 20 coins."
+The merchant presents the sealed package. "Port District warehouse, by evening. Standard terms: advance payment plus 10 coin completion bonus."
 
-**Choices (ALL SPAWN A3 WITH PARAMETERS):**
+**Choices (ALL SPAWN A3, SPLIT PAYMENT MODEL):**
 
 **1. Rapport-Gated (Optimal)**
 - Requirements: Rapport ≥ 3
 - Cost: None
-- Action: "Leverage reputation for better rate"
+- Action: "Leverage reputation for 15 coin advance"
 - Rewards:
+  - Coins: +15 (upfront payment)
   - Merchant bond +1
   - **SceneSpawnReward:** {
       Template: "a3_route_travel",
-      RouteFilter: { From: "CurrentLocation", To: "PortDistrict", Difficulty: "Moderate" },
-      Parameters: { ContractPayment: 25 }
+      RouteFilter: { From: "CurrentLocation", To: "PortDistrict", Difficulty: "Moderate" }
     }
 
 **2. Money-Gated (Insurance)**
 - Requirements: None
 - Cost: 3 coins (deposit)
-- Action: "Offer insurance guarantee"
+- Action: "Offer 3 coin deposit for 12 coin advance"
 - Rewards:
+  - Coins: +12 (upfront payment, net +9 after deposit)
   - Merchant bond +1
   - **SceneSpawnReward:** {
       Template: "a3_route_travel",
-      RouteFilter: { From: "CurrentLocation", To: "PortDistrict", Difficulty: "Moderate" },
-      Parameters: { ContractPayment: 23 }
+      RouteFilter: { From: "CurrentLocation", To: "PortDistrict", Difficulty: "Moderate" }
     }
 
 **3. Social Challenge (Risky)**
 - Requirements: None
 - Cost: 1 time block, 10 Resolve
-- Action: "Negotiate aggressively (Social Challenge)"
+- Action: "Negotiate aggressively for maximum advance"
 - Challenge: Social, Medium (Momentum 12)
 - Success Rewards:
+  - Coins: +17 (premium upfront payment)
   - Merchant bond +2
   - **SceneSpawnReward:** {
       Template: "a3_route_travel",
-      RouteFilter: { From: "CurrentLocation", To: "PortDistrict", Difficulty: "Moderate" },
-      Parameters: { ContractPayment: 27 }
+      RouteFilter: { From: "CurrentLocation", To: "PortDistrict", Difficulty: "Moderate" }
     }
 - Failure Rewards:
+  - Coins: +8 (minimal upfront payment)
   - Merchant bond -1
   - **SceneSpawnReward:** {
       Template: "a3_route_travel",
-      RouteFilter: { From: "CurrentLocation", To: "PortDistrict", Difficulty: "Moderate" },
-      Parameters: { ContractPayment: 18 }
+      RouteFilter: { From: "CurrentLocation", To: "PortDistrict", Difficulty: "Moderate" }
     }
 
 **4. Fallback (Standard Accept)**
 - Requirements: None
 - Cost: None
-- Action: "Accept standard terms immediately"
+- Action: "Accept standard 10 coin advance terms"
 - Rewards:
+  - Coins: +10 (standard upfront payment)
   - **SceneSpawnReward:** {
       Template: "a3_route_travel",
-      RouteFilter: { From: "CurrentLocation", To: "PortDistrict", Difficulty: "Moderate" },
-      Parameters: { ContractPayment: 20 }
+      RouteFilter: { From: "CurrentLocation", To: "PortDistrict", Difficulty: "Moderate" }
     }
 
 **Perfect Information Display:**
-- All four payment amounts visible
-- Net profit calculations shown (payment - 15 survival = net)
+- All four upfront payments visible: 17/15/12/10 coins (plus 10 completion)
+- Total payouts: 27/25/22/20 coins (upfront + completion)
+- Net profit calculations shown (total - 15 survival = net)
 - Rapport requirement vs player's Rapport
 - Challenge difficulty parameters
 - Projection: "Advances to: Route Travel (4 segments, Moderate danger)"
@@ -514,16 +515,16 @@ Road opens to Port District. Ship masts visible. Warehouse district ahead.
 - GrantsLocationAccess: false
 
 **Narrative:**
-Warehouse master accepts package, inspects seal. "Elena sent you? Good enough." Counts out payment.
+Warehouse master accepts package, inspects seal. "Elena sent you? Good enough." Counts out completion bonus.
 
 **Choices (SPAWNS A4):**
 
 **1. Complete Delivery**
 - Requirements: None
 - Cost: None
-- Action: "Accept payment and conclude business"
+- Action: "Accept completion bonus and conclude business"
 - Rewards:
-  - Coins: {ContractPayment} (parameter from A2: 18-27)
+  - Coins: +10 (completion bonus, paid to all paths)
   - LocationUnlock: { LocationId: "port_district" }
   - WarehouseMaster bond +1
   - RouteLearn: "market_to_port" (all segments now face-up)
@@ -537,9 +538,10 @@ Warehouse master accepts package, inspects seal. "Elena sent you? Good enough." 
     }
 
 **Perfect Information Display:**
-- Total payment received: {ContractPayment}
-- Route costs accumulated: (varies by choices)
-- Net profit: Payment - Costs
+- Completion bonus: +10 coins
+- Total earnings: Upfront (8-17) + Completion (10) = 18-27 coins
+- Route costs accumulated: (varies by route choices)
+- Net profit: Total earnings - Route costs - Inn survival (15)
 - Port District unlock shown
 - Route learning shown: "Future travels on this route will show segment details"
 - Projection: "A4 available at Port District. Optional investigation also available."

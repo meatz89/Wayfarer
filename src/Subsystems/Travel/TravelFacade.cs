@@ -347,12 +347,21 @@ public class TravelFacade
                 // Convert string stat name to PlayerStatType enum
                 if (Enum.TryParse<PlayerStatType>(statRequirement.Key, true, out PlayerStatType statType))
                 {
-                    if (player.Stats.GetLevel(statType) < statRequirement.Value)
+                    int currentLevel = statType switch
+                    {
+                        PlayerStatType.Insight => player.Insight,
+                        PlayerStatType.Rapport => player.Rapport,
+                        PlayerStatType.Authority => player.Authority,
+                        PlayerStatType.Diplomacy => player.Diplomacy,
+                        PlayerStatType.Cunning => player.Cunning,
+                        _ => 0
+                    };
+                    if (currentLevel < statRequirement.Value)
                     {
                         return new PathCardAvailability
                         {
                             CanPlay = false,
-                            Reason = $"Requires {statRequirement.Key} level {statRequirement.Value}, have {player.Stats.GetLevel(statType)}"
+                            Reason = $"Requires {statRequirement.Key} level {statRequirement.Value}, have {currentLevel}"
                         };
                     }
                 }

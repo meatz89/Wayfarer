@@ -421,7 +421,15 @@ namespace Wayfarer.Pages.Components
                     {
                         string statName = GetStatDisplayName(statType);
                         int required = statReq.Value;
-                        int current = player.Stats.GetLevel(statType);
+                        int current = statType switch
+                        {
+                            PlayerStatType.Insight => player.Insight,
+                            PlayerStatType.Rapport => player.Rapport,
+                            PlayerStatType.Authority => player.Authority,
+                            PlayerStatType.Diplomacy => player.Diplomacy,
+                            PlayerStatType.Cunning => player.Cunning,
+                            _ => 0
+                        };
 
                         if (current >= required)
                         {

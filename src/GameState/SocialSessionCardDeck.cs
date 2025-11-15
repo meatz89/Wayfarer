@@ -114,14 +114,14 @@ public class SocialSessionCardDeck
     /// Draw cards directly to hand with tier-based filtering
     /// Uses ConversationSession to get unlocked tiers and stat bonuses for depth access
     /// </summary>
-    public void DrawToHand(int count, SocialSession session, PlayerStats playerStats)
+    public void DrawToHand(int count, SocialSession session, Player player)
     {
         int maxDepth = session.GetUnlockedMaxDepth(); int cardsDrawn = 0;
 
         for (int i = 0; i < count; i++)
         {
             // Check if there are accessible cards before attempting draw
-            bool hasAccessibleCards = deckPile.Cards.Any(card => CanAccessCard(card.SocialCardTemplate, session, playerStats));
+            bool hasAccessibleCards = deckPile.Cards.Any(card => CanAccessCard(card.SocialCardTemplate, session, player));
 
             if (!hasAccessibleCards && spokenPile.Count > 0)
             {
@@ -135,7 +135,7 @@ public class SocialSessionCardDeck
             }
 
             // Apply tier-based filtering
-            CardInstance card = DrawNextAccessibleCard(session, playerStats);
+            CardInstance card = DrawNextAccessibleCard(session, player);
 
             if (card != null)
             {
@@ -428,7 +428,7 @@ public class SocialSessionCardDeck
     /// Tier system: Tier 1 (depths 1-2), Tier 2 (depths 3-4), Tier 3 (depths 5-6), Tier 4 (depths 7-8)
     /// Tiers unlock at Understanding thresholds (0/6/12/18) and persist once unlocked
     /// </summary>
-    private bool CanAccessCard(SocialCard card, SocialSession session, PlayerStats playerStats)
+    private bool CanAccessCard(SocialCard card, SocialSession session, Player player)
     {
         if (card == null) return false;
 
@@ -439,9 +439,19 @@ public class SocialSessionCardDeck
         if (cardDepth <= tierMaxDepth) return true;
 
         // Specialist bonus access - can access deeper cards if stat matches
-        if (card.BoundStat.HasValue && playerStats != null)
+        if (card.BoundStat.HasValue && player != null)
         {
-            int statBonus = playerStats.GetDepthBonus(card.BoundStat.Value);
+            int statLevel = card.BoundStat.Value switch
+            {
+                PlayerStatType.Insight => player.Insight,
+                PlayerStatType.Rapport => player.Rapport,
+                PlayerStatType.Authority => player.Authority,
+                PlayerStatType.Diplomacy => player.Diplomacy,
+                PlayerStatType.Cunning => player.Cunning,
+                _ => 0
+            };
+            // GetDepthBonus logic: +1 depth access at level 4+, +2 at level 6+
+            int statBonus = statLevel >= 6 ? 2 : (statLevel >= 4 ? 1 : 0);
             if (cardDepth <= tierMaxDepth + statBonus) return true;
         }
 
@@ -452,12 +462,12 @@ public class SocialSessionCardDeck
     /// Check if a card can be played RIGHT NOW (tier + Statement requirements + Initiative cost).
     /// This is used by UI to determine which cards in hand are playable vs locked.
     /// </summary>
-    public bool CanPlayCard(CardInstance card, SocialSession session, PlayerStats playerStats)
+    public bool CanPlayCard(CardInstance card, SocialSession session, Player player)
     {
         if (card == null) return false;
 
         // Check tier access
-        if (!CanAccessCard(card.SocialCardTemplate, session, playerStats))
+        if (!CanAccessCard(card.SocialCardTemplate, session, player))
             return false;
 
         // Check Statement requirements (signature card lock)
@@ -476,14 +486,14 @@ public class SocialSessionCardDeck
     /// Maintains deck order - draws the first accessible card from top of deck
     /// Returns null if no accessible cards are available
     /// </summary>
-    private CardInstance DrawNextAccessibleCard(SocialSession session, PlayerStats playerStats)
+    private CardInstance DrawNextAccessibleCard(SocialSession session, Player player)
     {
         int maxDepth = session.GetUnlockedMaxDepth();
 
         // Go through deck in order (top to bottom) and find first accessible card
         foreach (CardInstance card in deckPile.Cards)
         {
-            if (CanAccessCard(card.SocialCardTemplate, session, playerStats))
+            if (CanAccessCard(card.SocialCardTemplate, session, player))
             {
                 // Found the first accessible card - remove and return it
                 deckPile.Remove(card);

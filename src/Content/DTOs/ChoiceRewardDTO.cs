@@ -66,6 +66,17 @@ public class ChoiceRewardDTO
     public int Focus { get; set; } = 0;
 
     /// <summary>
+    /// Five Stats - Simple integers granted or deducted through choices
+    /// Sir Brante pattern: Direct stat grants (no XP/level system)
+    /// 0 = no stat change
+    /// </summary>
+    public int Insight { get; set; } = 0;
+    public int Rapport { get; set; } = 0;
+    public int Authority { get; set; } = 0;
+    public int Diplomacy { get; set; } = 0;
+    public int Cunning { get; set; } = 0;
+
+    /// <summary>
     /// Full recovery flag - restores all resources to maximum
     /// Used for securing room at inn
     /// false = normal resource grants, true = full recovery

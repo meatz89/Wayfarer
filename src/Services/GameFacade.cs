@@ -156,11 +156,7 @@ public class GameFacade
     }
 
     // ========== PLAYER STATS OPERATIONS ==========
-
-    public PlayerStats GetPlayerStats()
-    {
-        return _gameWorld.GetPlayer().Stats;
-    }
+    // PlayerStats class deleted - stats are now simple integers on Player
 
     public List<NPC> GetAvailableStrangers(string venueId)
     {
@@ -1259,67 +1255,74 @@ public class GameFacade
     /// </summary>
     public bool DebugSetStatLevel(PlayerStatType statType, int level)
     {
-        if (level < 1 || level > 5)
+        if (level < 0 || level > 10)
         {
-            _messageSystem.AddSystemMessage($"Invalid stat level {level}. Must be 1-5.", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage($"Invalid stat level {level}. Must be 0-10.", SystemMessageTypes.Danger);
             return false;
         }
 
         Player player = _gameWorld.GetPlayer();
 
-        // Since there's no SetLevel method, we need to manipulate the internal state
-        // We'll add XP to reach the desired level
-        int currentLevel = player.Stats.GetLevel(statType);
-
-        if (currentLevel < level)
+        // Direct stat assignment - no XP system anymore
+        switch (statType)
         {
-            // Calculate XP needed to reach target level
-            int totalXPNeeded = 0;
-            for (int lvl = 1; lvl < level; lvl++)
-            {
-                totalXPNeeded += lvl switch
-                {
-                    1 => 10,
-                    2 => 25,
-                    3 => 50,
-                    4 => 100,
-                    _ => 0
-                };
-            }
-
-            // Add enough XP to reach the target level
-            player.Stats.AddXP(statType, totalXPNeeded);
+            case PlayerStatType.Insight:
+                player.Insight = level;
+                break;
+            case PlayerStatType.Rapport:
+                player.Rapport = level;
+                break;
+            case PlayerStatType.Authority:
+                player.Authority = level;
+                break;
+            case PlayerStatType.Diplomacy:
+                player.Diplomacy = level;
+                break;
+            case PlayerStatType.Cunning:
+                player.Cunning = level;
+                break;
         }
 
-        _messageSystem.AddSystemMessage($"Set {statType} to level {level}", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"Set {statType} to {level}", SystemMessageTypes.Success);
         return true;
     }
 
     /// <summary>
-    /// Debug: Add XP to a specific stat
+    /// Debug: Add points to a specific stat
     /// </summary>
-    public bool DebugAddStatXP(PlayerStatType statType, int xp)
+    public bool DebugAddStatXP(PlayerStatType statType, int points)
     {
-        if (xp <= 0)
+        if (points <= 0)
         {
-            _messageSystem.AddSystemMessage($"Invalid XP amount {xp}. Must be positive.", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage($"Invalid points amount {points}. Must be positive.", SystemMessageTypes.Danger);
             return false;
         }
 
         Player player = _gameWorld.GetPlayer();
-        int oldLevel = player.Stats.GetLevel(statType);
-        player.Stats.AddXP(statType, xp);
-        int newLevel = player.Stats.GetLevel(statType);
 
-        if (newLevel > oldLevel)
+        // Direct stat modification - no XP system anymore
+        switch (statType)
         {
-            _messageSystem.AddSystemMessage($"Added {xp} XP to {statType}. LEVEL UP! Now level {newLevel}.", SystemMessageTypes.Success);
-        }
-        else
-        {
-            int currentXP = player.Stats.GetXP(statType);
-            int required = player.Stats.GetXPToNextLevel(statType);
-            _messageSystem.AddSystemMessage($"Added {xp} XP to {statType}. Progress: {currentXP}/{required}", SystemMessageTypes.Success);
+            case PlayerStatType.Insight:
+                player.Insight = Math.Min(10, player.Insight + points);
+                _messageSystem.AddSystemMessage($"Added {points} to Insight. Now {player.Insight}", SystemMessageTypes.Success);
+                break;
+            case PlayerStatType.Rapport:
+                player.Rapport = Math.Min(10, player.Rapport + points);
+                _messageSystem.AddSystemMessage($"Added {points} to Rapport. Now {player.Rapport}", SystemMessageTypes.Success);
+                break;
+            case PlayerStatType.Authority:
+                player.Authority = Math.Min(10, player.Authority + points);
+                _messageSystem.AddSystemMessage($"Added {points} to Authority. Now {player.Authority}", SystemMessageTypes.Success);
+                break;
+            case PlayerStatType.Diplomacy:
+                player.Diplomacy = Math.Min(10, player.Diplomacy + points);
+                _messageSystem.AddSystemMessage($"Added {points} to Diplomacy. Now {player.Diplomacy}", SystemMessageTypes.Success);
+                break;
+            case PlayerStatType.Cunning:
+                player.Cunning = Math.Min(10, player.Cunning + points);
+                _messageSystem.AddSystemMessage($"Added {points} to Cunning. Now {player.Cunning}", SystemMessageTypes.Success);
+                break;
         }
 
         return true;
@@ -1330,9 +1333,9 @@ public class GameFacade
     /// </summary>
     public void DebugSetAllStats(int level)
     {
-        if (level < 1 || level > 5)
+        if (level < 0 || level > 10)
         {
-            _messageSystem.AddSystemMessage($"Invalid stat level {level}. Must be 1-5.", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage($"Invalid stat level {level}. Must be 0-10.", SystemMessageTypes.Danger);
             return;
         }
 
@@ -1341,26 +1344,23 @@ public class GameFacade
             DebugSetStatLevel(statType, level);
         }
 
-        _messageSystem.AddSystemMessage($"All stats set to level {level}", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"All stats set to {level}", SystemMessageTypes.Success);
     }
 
     /// <summary>
-    /// Debug: Display current stat levels and XP
+    /// Debug: Display current stat values
     /// </summary>
     public string DebugGetStatInfo()
     {
         Player player = _gameWorld.GetPlayer();
-        StringBuilder statInfo = new System.Text.StringBuilder();
+        StringBuilder statInfo = new StringBuilder();
 
         statInfo.AppendLine("=== Player Stats ===");
-        foreach (PlayerStatType statType in Enum.GetValues(typeof(PlayerStatType)))
-        {
-            int level = player.Stats.GetLevel(statType);
-            int xp = player.Stats.GetXP(statType);
-            int required = player.Stats.GetXPToNextLevel(statType);
-
-            statInfo.AppendLine($"{statType}: Level {level} ({xp}/{required} XP)");
-        }
+        statInfo.AppendLine($"Insight: {player.Insight}");
+        statInfo.AppendLine($"Rapport: {player.Rapport}");
+        statInfo.AppendLine($"Authority: {player.Authority}");
+        statInfo.AppendLine($"Diplomacy: {player.Diplomacy}");
+        statInfo.AppendLine($"Cunning: {player.Cunning}");
 
         return statInfo.ToString();
     }

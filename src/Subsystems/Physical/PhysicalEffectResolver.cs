@@ -108,7 +108,15 @@ public class PhysicalEffectResolver
         // BONUS 2: Stat Level (Player progression)
         if (template.BoundStat != PlayerStatType.None)
         {
-            int statLevel = player.Stats.GetLevel(template.BoundStat);
+            int statLevel = template.BoundStat switch
+            {
+                PlayerStatType.Insight => player.Insight,
+                PlayerStatType.Rapport => player.Rapport,
+                PlayerStatType.Authority => player.Authority,
+                PlayerStatType.Diplomacy => player.Diplomacy,
+                PlayerStatType.Cunning => player.Cunning,
+                _ => 0
+            };
             if (statLevel >= 5)
             {
                 int bonus = (statLevel - 4) / 2;  // +1 at level 5-6, +2 at level 7-8, etc.

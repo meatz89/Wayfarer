@@ -315,14 +315,8 @@ public class ObligationActivity
                 SystemMessageTypes.Success);
         }
 
-        // Grant player stat XP rewards
-        foreach (StatXPReward xpReward in obligation.CompletionRewardXP)
-        {
-            player.Stats.AddXP(xpReward.Stat, xpReward.XPAmount);
-            _messageSystem.AddSystemMessage(
-                $"Gained {xpReward.XPAmount} {xpReward.Stat} XP",
-                SystemMessageTypes.Success);
-        }
+        // Stats are now simple integers - no XP system
+        // CompletionRewardXP deleted as part of XP system removal
 
         // Spawn new obligations
         foreach (string obligationId in obligation.SpawnedObligationIds)

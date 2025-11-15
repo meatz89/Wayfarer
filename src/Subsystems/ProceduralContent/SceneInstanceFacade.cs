@@ -95,22 +95,13 @@ public class SceneInstanceFacade
             throw new InvalidOperationException($"Scene from template '{template.Id}' failed to load via PackageLoader");
         }
 
-        // PHASE 2.4.1: Apply parametric spawning (if parameters present)
-        // Parametric spawning: parent scene passes parameters to spawned scene
-        // Example: A2 negotiation passes ContractPayment=20, A3 reads it for reward calculation
-        if (spawnReward != null && spawnReward.Parameters != null && spawnReward.Parameters.Any())
-        {
-            spawnedScene.Parameters = new Dictionary<string, int>(spawnReward.Parameters);
-            Console.WriteLine($"[SceneInstanceFacade] Applied {spawnReward.Parameters.Count} parameters to scene '{spawnedScene.Id}'");
-        }
-
-        // PHASE 2.5: Post-load orchestration (dependent resources)
+        // PHASE 2.4: Post-load orchestration (dependent resources)
         if (template.DependentLocations.Any() || template.DependentItems.Any())
         {
             PostLoadOrchestration(spawnedScene, template, context.Player);
         }
 
-        // PHASE 2.6: RUNTIME PLAYABILITY VALIDATION (FAIL-FAST)
+        // PHASE 2.5: RUNTIME PLAYABILITY VALIDATION (FAIL-FAST)
         // Validates spawned scene is actually playable by player
         // THROWS InvalidOperationException if scene creates soft-lock condition
         // Architectural principle: "PLAYABILITY OVER COMPILATION" - unplayable scene worse than crash

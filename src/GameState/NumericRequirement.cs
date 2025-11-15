@@ -116,7 +116,15 @@ public class NumericRequirement
         }
 
         // Check if player's stat level meets threshold
-        int statLevel = player.Stats.GetLevel(statType);
+        int statLevel = statType switch
+        {
+            PlayerStatType.Insight => player.Insight,
+            PlayerStatType.Rapport => player.Rapport,
+            PlayerStatType.Authority => player.Authority,
+            PlayerStatType.Diplomacy => player.Diplomacy,
+            PlayerStatType.Cunning => player.Cunning,
+            _ => 0
+        };
         return statLevel >= threshold;
     }
 

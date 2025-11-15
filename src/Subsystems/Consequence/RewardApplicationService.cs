@@ -70,6 +70,22 @@ public class RewardApplicationService
 
             if (reward.Hunger != 0)
                 player.Hunger = Math.Clamp(player.Hunger + reward.Hunger, 0, player.MaxHunger);
+
+            // Apply stat rewards (Sir Brante pattern: direct grants, no XP system)
+            if (reward.Insight != 0)
+                player.Insight += reward.Insight;
+
+            if (reward.Rapport != 0)
+                player.Rapport += reward.Rapport;
+
+            if (reward.Authority != 0)
+                player.Authority += reward.Authority;
+
+            if (reward.Diplomacy != 0)
+                player.Diplomacy += reward.Diplomacy;
+
+            if (reward.Cunning != 0)
+                player.Cunning += reward.Cunning;
         }
 
         // Apply consequences (bonds, scales, states)

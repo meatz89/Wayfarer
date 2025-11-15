@@ -565,7 +565,15 @@
                                                     if (Enum.TryParse<PlayerStatType>(statReq.Key, true, out PlayerStatType statType))
                                                     {
                                                         statName = GetStatDisplayName(statType);
-                                                        current = player.Stats.GetLevel(statType);
+                                                        current = statType switch
+                                                        {
+                                                            PlayerStatType.Insight => player.Insight,
+                                                            PlayerStatType.Rapport => player.Rapport,
+                                                            PlayerStatType.Authority => player.Authority,
+                                                            PlayerStatType.Diplomacy => player.Diplomacy,
+                                                            PlayerStatType.Cunning => player.Cunning,
+                                                            _ => 0
+                                                        };
                                                         meetsRequirement = current >= required;
                                                     }
                                                     <div class="stat-requirement @(meetsRequirement ? "met" : "unmet")">

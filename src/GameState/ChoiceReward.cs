@@ -57,6 +57,16 @@ public class ChoiceReward
     public int Focus { get; set; } = 0;
 
     /// <summary>
+    /// Five Stats - Simple integers granted or deducted
+    /// Sir Brante pattern: Choices directly grant stat points (no XP system)
+    /// </summary>
+    public int Insight { get; set; } = 0;
+    public int Rapport { get; set; } = 0;
+    public int Authority { get; set; } = 0;
+    public int Diplomacy { get; set; } = 0;
+    public int Cunning { get; set; } = 0;
+
+    /// <summary>
     /// Full recovery of all resources to maximum
     /// Used for securing room at inn - restores Health/Stamina/Focus to max, Hunger to 0
     /// Tutorial: Paying for lodging grants full recovery

@@ -423,19 +423,19 @@ public class LocationFacade
     {
         List<ObligationApproach> approaches = new List<ObligationApproach> { ObligationApproach.Standard };
 
-        if (player.Stats.GetLevel(PlayerStatType.Insight) >= 2)
+        if (player.Insight >= 2)
             approaches.Add(ObligationApproach.Systematic);
 
-        if (player.Stats.GetLevel(PlayerStatType.Rapport) >= 2)
+        if (player.Rapport >= 2)
             approaches.Add(ObligationApproach.LocalInquiry);
 
-        if (player.Stats.GetLevel(PlayerStatType.Authority) >= 2)
+        if (player.Authority >= 2)
             approaches.Add(ObligationApproach.DemandAccess);
 
-        if (player.Stats.GetLevel(PlayerStatType.Diplomacy) >= 2)
+        if (player.Diplomacy >= 2)
             approaches.Add(ObligationApproach.PurchaseInfo);
 
-        if (player.Stats.GetLevel(PlayerStatType.Cunning) >= 2)
+        if (player.Cunning >= 2)
             approaches.Add(ObligationApproach.CovertSearch);
 
         return approaches;

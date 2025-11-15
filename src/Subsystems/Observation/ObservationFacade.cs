@@ -126,7 +126,15 @@ public class ObservationFacade
         // Validate stat requirements
         if (point.RequiredStat.HasValue && point.RequiredStatLevel.HasValue)
         {
-            int statLevel = player.Stats.GetLevel(point.RequiredStat.Value);
+            int statLevel = point.RequiredStat.Value switch
+            {
+                PlayerStatType.Insight => player.Insight,
+                PlayerStatType.Rapport => player.Rapport,
+                PlayerStatType.Authority => player.Authority,
+                PlayerStatType.Diplomacy => player.Diplomacy,
+                PlayerStatType.Cunning => player.Cunning,
+                _ => 0
+            };
             if (statLevel < point.RequiredStatLevel.Value)
             {
                 return ObservationResult.Failed(
@@ -228,12 +236,14 @@ public class ObservationFacade
 
     private Dictionary<PlayerStatType, int> BuildPlayerStats(Player player)
     {
-        Dictionary<PlayerStatType, int> stats = new Dictionary<PlayerStatType, int>();
-
-        foreach (PlayerStatType statType in Enum.GetValues(typeof(PlayerStatType)))
+        Dictionary<PlayerStatType, int> stats = new Dictionary<PlayerStatType, int>
         {
-            stats[statType] = player.Stats.GetLevel(statType);
-        }
+            { PlayerStatType.Insight, player.Insight },
+            { PlayerStatType.Rapport, player.Rapport },
+            { PlayerStatType.Authority, player.Authority },
+            { PlayerStatType.Diplomacy, player.Diplomacy },
+            { PlayerStatType.Cunning, player.Cunning }
+        };
 
         return stats;
     }

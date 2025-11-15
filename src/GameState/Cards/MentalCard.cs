@@ -52,14 +52,7 @@ public class MentalCard
         return Depth <= 2 ? 1 : 0;
     }
 
-    /// <summary>
-    /// Check if player can access this card with their current stats
-    /// </summary>
-    public bool CanAccessWithStats(PlayerStats playerStats)
-    {
-        if (playerStats == null) return true;
-        return playerStats.GetLevel(BoundStat) >= Depth;
-    }
+    // CanAccessWithStats method deleted - tier-based system not needed for Mental cards (no stat filtering)
 }
 
 /// <summary>

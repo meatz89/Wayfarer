@@ -536,10 +536,8 @@ public class GameWorld
             Player.Inventory.AddItem(itemId);
         }
 
-        foreach (StatXPReward xpReward in obligation.CompletionRewardXP)
-        {
-            Player.Stats.AddXP(xpReward.Stat, xpReward.XPAmount);
-        }
+        // Stats are now simple integers - no XP system
+        // CompletionRewardXP deleted as part of XP system removal
 
         foreach (string spawnedId in obligation.SpawnedObligationIds)
         {

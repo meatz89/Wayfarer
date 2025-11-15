@@ -26,8 +26,7 @@
         "name": "Test Inn",
         "description": "A simple test inn for lodging scene tests",
         "districtId": "test_district",
-        "tier": 1,
-        "locationType": "Tavern"
+        "tier": 1
       }
     ],
     "locations": [

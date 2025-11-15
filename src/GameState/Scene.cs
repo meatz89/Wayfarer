@@ -29,17 +29,6 @@ public class Scene
     /// </summary>
     public SceneTemplate Template { get; set; }
 
-    /// <summary>
-    /// Parameters passed from spawning scene for dynamic configuration (parametric spawning)
-    /// Enables parent scene choice to configure child scene behavior
-    /// Example: A2 negotiation passes ContractPayment=20, A3 reads it for reward calculation
-    /// Keys: Parameter names (e.g., "ContractPayment", "Difficulty", "TimeLimit")
-    /// Values: Integer values (coins, thresholds, segments, etc.)
-    /// Empty dictionary = no parameters (standard spawning)
-    /// Populated by SceneInstanceFacade.SpawnScene() from SceneSpawnReward.Parameters
-    /// </summary>
-    public Dictionary<string, int> Parameters { get; set; } = new Dictionary<string, int>();
-
     // ==================== PLACEMENT MOVED TO SITUATION ====================
     // ARCHITECTURAL CHANGE: Placement is per-situation, not per-scene
     // Multi-situation scenes require each situation to have its own location/NPC/route

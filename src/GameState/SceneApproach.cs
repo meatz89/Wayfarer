@@ -28,7 +28,15 @@ public class SceneApproach
 
         foreach (KeyValuePair<PlayerStatType, int> statReq in StatRequirements)
         {
-            int currentLevel = player.Stats.GetLevel(statReq.Key);
+            int currentLevel = statReq.Key switch
+            {
+                PlayerStatType.Insight => player.Insight,
+                PlayerStatType.Rapport => player.Rapport,
+                PlayerStatType.Authority => player.Authority,
+                PlayerStatType.Diplomacy => player.Diplomacy,
+                PlayerStatType.Cunning => player.Cunning,
+                _ => 0
+            };
             if (currentLevel < statReq.Value)
                 return false;
         }
