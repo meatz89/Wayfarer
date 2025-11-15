@@ -106,12 +106,12 @@ public static class SceneArchetypeCatalog
                 Id = $"{negotiateSitId}_friendly",
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Chat warmly with {NPCName}",
-                RequirementFormula = new CompoundRequirement(),  // No requirements
-                CostTemplate = new ChoiceCost(),  // No costs
+                RequirementFormula = new CompoundRequirement(),
+                CostTemplate = new ChoiceCost { Coins = 10 },
                 RewardTemplate = new ChoiceReward
                 {
                     ItemIds = new List<string> { "generated:room_key" },
-                    Rapport = 1  // Build friendly rapport
+                    Rapport = 1
                 },
                 ActionType = ChoiceActionType.Instant
             },
@@ -121,25 +121,25 @@ public static class SceneArchetypeCatalog
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Assert your need for accommodation",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost(),
+                CostTemplate = new ChoiceCost { Coins = 10 },
                 RewardTemplate = new ChoiceReward
                 {
                     ItemIds = new List<string> { "generated:room_key" },
-                    Authority = 1  // Build authoritative presence
+                    Authority = 1
                 },
                 ActionType = ChoiceActionType.Instant
             },
             new ChoiceTemplate
             {
-                Id = $"{negotiateSitId}_observant",
+                Id = $"{negotiateSitId}_cunning",
                 PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Study the room prices carefully",
+                ActionTextTemplate = "Seek advantageous deal",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost(),
+                CostTemplate = new ChoiceCost { Coins = 10 },
                 RewardTemplate = new ChoiceReward
                 {
                     ItemIds = new List<string> { "generated:room_key" },
-                    Insight = 1  // Build observational insight
+                    Cunning = 1
                 },
                 ActionType = ChoiceActionType.Instant
             },
@@ -149,11 +149,11 @@ public static class SceneArchetypeCatalog
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Negotiate a fair arrangement",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost(),
+                CostTemplate = new ChoiceCost { Coins = 10 },
                 RewardTemplate = new ChoiceReward
                 {
                     ItemIds = new List<string> { "generated:room_key" },
-                    Diplomacy = 1  // Build diplomatic skill
+                    Diplomacy = 1
                 },
                 ActionType = ChoiceActionType.Instant
             }
@@ -251,7 +251,10 @@ public static class SceneArchetypeCatalog
                 CostTemplate = new ChoiceCost(),
                 RewardTemplate = new ChoiceReward
                 {
-                    Insight = 1  // Studying builds insight
+                    Insight = 1,
+                    Health = 1,
+                    Stamina = 1,
+                    Focus = 1
                 },
                 ActionType = ChoiceActionType.Instant
             },
@@ -382,7 +385,16 @@ public static class SceneArchetypeCatalog
         ChoiceReward socializeReward = new ChoiceReward
         {
             ItemsToRemove = new List<string> { "generated:room_key" },
-            Rapport = 1  // Morning conversation builds rapport
+            Rapport = 1,
+            BondChanges = new List<BondChange>
+            {
+                new BondChange
+                {
+                    NpcId = "SITUATION_NPC",
+                    Delta = 1,
+                    Reason = "Grateful for kind farewell"
+                }
+            }
         };
 
         // A1 tutorial: ALL departure choices spawn A2
@@ -656,7 +668,7 @@ public static class SceneArchetypeCatalog
             CompoundRequirement modifiedRequirement = choice.RequirementFormula;
 
             // Tutorial A2 (sequence 2): Lower stat requirements to 2 (player has 3-5 from A1)
-            // Also spawns A3 from ALL negotiation choices
+            // Grant immediate coin payment, spawn A3
             if (context.AStorySequence.HasValue && context.AStorySequence.Value == 2)
             {
                 // Lower stat requirements from 3 to 2 (achievable with A1 stats)
@@ -688,27 +700,46 @@ public static class SceneArchetypeCatalog
                     SceneTemplateId = "a3_route_travel"
                 };
 
-                // Add A3 spawning to appropriate reward based on path type
+                // Determine choice type and set immediate coin payment
+                bool hasStatRequirement = modifiedRequirement != null &&
+                                         modifiedRequirement.OrPaths != null &&
+                                         modifiedRequirement.OrPaths.Any();
+                bool hasCoinCost = choice.CostTemplate != null && choice.CostTemplate.Coins > 0;
+
+                // Add A3 spawning and immediate coin payment to appropriate reward based on path type
                 switch (choice.PathType)
                 {
                     case ChoicePathType.InstantSuccess:
-                        // Stat/money paths: add to base reward
+                        // Distinguish stat path vs money path
+                        if (hasStatRequirement)
+                        {
+                            // Stat path (Rapport): Coins = 15, spawn A3
+                            baseReward.Coins = 15;
+                        }
+                        else if (hasCoinCost)
+                        {
+                            // Money path: Coins = 13, spawn A3
+                            baseReward.Coins = 13;
+                        }
                         baseReward.ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn };
                         break;
 
                     case ChoicePathType.Challenge:
-                        // Challenge path: add to BOTH success and failure rewards (A3 spawns regardless)
+                        // Challenge path: Success = 17, Failure = 8, spawn A3 regardless
                         if (successReward == null)
                             successReward = new ChoiceReward();
+                        successReward.Coins = 17;
                         successReward.ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn };
 
                         if (failureReward == null)
                             failureReward = new ChoiceReward();
+                        failureReward.Coins = 8;
                         failureReward.ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn };
                         break;
 
                     case ChoicePathType.Fallback:
-                        // Fallback: add to base reward
+                        // Fallback: Coins = 8 (standard rate), spawn A3
+                        baseReward.Coins = 8;
                         baseReward.ScenesToSpawn = new List<SceneSpawnReward> { a3Spawn };
                         break;
                 }
@@ -1170,10 +1201,10 @@ public static class SceneArchetypeCatalog
             }
         };
 
-        // Tutorial A3 (sequence 3): Add +10 coin completion bonus
+        // Tutorial A3 (sequence 3): Fixed +10 coin completion bonus (totals with A2: 25/23/27/18/20)
         if (context.AStorySequence.HasValue && context.AStorySequence.Value == 3)
         {
-            arrivalChoices[0].RewardTemplate.Coins = 10;  // Completion bonus
+            arrivalChoices[0].RewardTemplate.Coins = 10;
         }
 
         SituationTemplate arrivalSituation = new SituationTemplate
