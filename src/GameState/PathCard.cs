@@ -6,11 +6,6 @@
 public class PathCard
 {
     /// <summary>
-    /// Unique identifier for this path card
-    /// </summary>
-    public string Id { get; set; }
-
-    /// <summary>
     /// Display name for this path card
     /// </summary>
     public string Name { get; set; }

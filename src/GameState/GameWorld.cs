@@ -15,14 +15,6 @@ public class GameWorld
     // HIGHLANDER: GameWorld.WorldHexGrid owns all Hex entities
     public HexMap WorldHexGrid { get; set; } = new HexMap();
 
-    // ==================== EPHEMERAL ACTION COLLECTIONS (QUERY-TIME INSTANTIATION) ====================
-    // Actions created by SceneFacade when player enters context (Situation: Dormant → Active)
-    // NOT persisted in save files - recreated from Situation.Template.ChoiceTemplates on load
-    // Flat collections for executor access (HIGHLANDER Pattern A)
-    public List<LocationAction> LocationActions { get; set; } = new List<LocationAction>();
-    public List<NPCAction> NPCActions { get; set; } = new List<NPCAction>();
-    public List<PathCard> PathCards { get; set; } = new List<PathCard>();
-
     public List<PlayerAction> PlayerActions { get; set; } = new List<PlayerAction>();
 
     // TimeBlock tracking for stranger refresh

@@ -7,11 +7,6 @@
 public class NPCAction
 {
     /// <summary>
-    /// Unique identifier for this NPC action
-    /// </summary>
-    public string Id { get; set; }
-
-    /// <summary>
     /// Display name for this action
     /// Example: "Ask about the missing grain", "Trade for supplies", "Challenge to a duel"
     /// </summary>
