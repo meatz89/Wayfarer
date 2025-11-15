@@ -18,11 +18,11 @@
         "isStarter": true,
         "baseLocationFilter": {
           "placementType": "Location",
-          "locationId": "common_room"
+          "locationProperties": ["Commercial", "Restful"]
         },
         "baseNpcFilter": {
           "placementType": "NPC",
-          "npcId": "elena"
+          "professions": ["Innkeeper"]
         }
       },
       {
@@ -34,7 +34,7 @@
         "isStarter": true,
         "baseLocationFilter": {
           "placementType": "Location",
-          "locationId": "fountain_plaza"
+          "locationProperties": ["Public", "Outdoor"]
         }
       }
     ]
