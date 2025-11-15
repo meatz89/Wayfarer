@@ -105,7 +105,7 @@ public class SceneFacade
         {
             LocationAction action = new LocationAction
             {
-                Id = $"{situation.Id}_action_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
+                Id = Guid.NewGuid().ToString("N"),
                 Name = choiceTemplate.ActionTextTemplate,
                 Description = "",
                 ChoiceTemplate = choiceTemplate,
@@ -192,7 +192,7 @@ public class SceneFacade
         {
             NPCAction action = new NPCAction
             {
-                Id = $"{situation.Id}_npcaction_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
+                Id = Guid.NewGuid().ToString("N"),
                 Name = choiceTemplate.ActionTextTemplate,
                 Description = "",
                 NPCId = npc?.ID,
@@ -317,7 +317,7 @@ public class SceneFacade
         {
             PathCard pathCard = new PathCard
             {
-                Id = $"{situation.Id}_pathcard_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
+                Id = Guid.NewGuid().ToString("N"),
                 Name = choiceTemplate.ActionTextTemplate,
                 NarrativeText = "",
                 ChoiceTemplate = choiceTemplate,
