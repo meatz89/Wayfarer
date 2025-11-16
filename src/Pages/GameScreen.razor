@@ -65,7 +65,7 @@
     {
         var activeJob = GetActiveDeliveryJob();
         <div class="active-job-banner">
-            <div class="active-job-icon">📦</div>
+            <div class="active-job-icon"><Icon Name="backpack" CssClass="icon-neutral" /></div>
             <div class="active-job-info">
                 <div class="active-job-label">Active Delivery:</div>
                 <div class="active-job-description">@activeJob.JobDescription</div>
@@ -76,8 +76,8 @@
 
     <!-- Fixed Buttons Container (Journal + Map) -->
     <div class="fixed-buttons-container">
-        <button class="journal-btn" @onclick="ToggleJournal">📖 Journal</button>
-        <button class="map-btn" @onclick="ToggleMap">🗺️ Map</button>
+        <button class="journal-btn" @onclick="ToggleJournal"><Icon Name="open-book" CssClass="icon-neutral" /> Journal</button>
+        <button class="map-btn" @onclick="ToggleMap"><Icon Name="magnifying-glass" CssClass="icon-neutral" /> Map</button>
     </div>
 
     <!-- Journal Modal -->
