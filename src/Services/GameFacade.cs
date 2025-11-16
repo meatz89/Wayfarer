@@ -1025,7 +1025,7 @@ public class GameFacade
         }
 
         _locationFacade.InvestigateLocation(currentSpot.Id);
-        _messageSystem.AddSystemMessage("{icon:magnifying-glass} Investigated location, gaining familiarity", SystemMessageTypes.Info);
+        _messageSystem.AddSystemMessage("Investigated location, gaining familiarity", SystemMessageTypes.Info, MessageCategory.Discovery);
         return IntentResult.Executed(requiresRefresh: true);
     }
 

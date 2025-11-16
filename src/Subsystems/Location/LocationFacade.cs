@@ -338,7 +338,6 @@ public class LocationFacade
                 {
                     Id = obs.Id,
                     Text = obs.Text,
-                    Icon = obs.Type == ObservationType.Important ? "hazard-sign" : "magnifying-glass",
                     Relevance = BuildRelevanceString(obs),
                     IsObserved = false // ObservationManager eliminated
                 });
@@ -688,8 +687,7 @@ public class LocationFacade
                 Detail = action.Description,
                 ActionType = action.ActionType.ToString().ToLower(),
                 Cost = GetCostDisplay(action.Costs),
-                IsAvailable = true,
-                Icon = ""
+                IsAvailable = true
             });
         }
 

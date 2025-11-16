@@ -579,6 +579,305 @@ private string RenderMessageWithIcons(string message)
 
 ---
 
+# BACKEND/FRONTEND SEPARATION PRINCIPLE
+
+**CORE PRINCIPLE: Backend returns domain semantics (WHAT), Frontend decides presentation (HOW).**
+
+The backend exists to model game logic and player state. The frontend exists to display that state. These concerns must be completely separated.
+
+## PRINCIPLE STATEMENT
+
+Backend code MUST NEVER:
+- Decide how information is displayed (visual presentation)
+- Select display formats, colors, or styling (CSS classes)
+- Choose icon names or visual representations
+- Map domain concepts to presentation tokens
+- Generate display strings that contain presentation metadata
+
+Backend code MUST ONLY:
+- Model domain entities (Player, Location, Resource, etc.)
+- Calculate game state and validity (business logic)
+- Return domain semantics (enums, plain values, descriptions)
+- Expose game state for frontend consumption
+
+Frontend code MUST:
+- Transform domain state into visual presentation
+- Map domain enums/values to visual representations
+- Select colors, icons, and styling based on game state
+- Decide how player-facing information is organized
+- Apply all presentation logic after receiving backend data
+
+## WHY THIS MATTERS
+
+**Architectural clarity:** Separating concerns makes the codebase understandable. Backend = game rules. Frontend = game presentation.
+
+**Testing independence:** Business logic tested without UI concerns. UI tested independently of game logic. No cross-layer dependencies.
+
+**Maintainability:** Changing how something looks never touches game logic. Changing game mechanics never requires UI updates (only data flow).
+
+**Designer autonomy:** Game designers modify presentation without touching code. Content creators can edit display strings independently.
+
+**Code organization:** Clear responsibility boundaries prevent "magic strings" and presentation logic creeping into domain services.
+
+## VIOLATIONS (FORBIDDEN)
+
+**Violation: Backend setting CSS classes**
+```csharp
+// FORBIDDEN - Backend deciding presentation
+public class TravelStatusViewModel
+{
+    public string FocusClass { get; set; } // CSS class: "", "warning", "danger"
+}
+
+// FORBIDDEN - Backend setting the value
+return new TravelStatusViewModel
+{
+    FocusClass = weight > 50 ? "danger" : weight > 25 ? "warning" : ""
+};
+```
+
+**Violation: Backend selecting icon names**
+```csharp
+// FORBIDDEN - Backend choosing display representation
+public class RouteTokenRequirementViewModel
+{
+    public string Icon { get; set; }
+}
+
+var requirement = new RouteTokenRequirementViewModel
+{
+    Icon = "coins", // Backend should never choose this
+};
+```
+
+**Violation: Backend mapping domain to display strings**
+```csharp
+// FORBIDDEN - Backend deciding how conversation types display
+string displayText = conversationType switch
+{
+    "friendly_chat" => "Friendly Chat",
+    "request" => "Request",
+    "delivery" => "Deliver Letter",
+    _ => "Talk"
+};
+```
+
+**Violation: Backend generating display messages with presentation tokens**
+```csharp
+// FORBIDDEN - Backend embedding icon names in messages
+_messageSystem.AddSystemMessage("{icon:coins} Spent {0} coins on {1}", amount, item);
+
+// FORBIDDEN - Backend creating formatted display strings
+_messageSystem.AddSystemMessage($"Health: {health} | Focus: {focus} | Stamina: {stamina}");
+```
+
+**Violation: Backend choosing description text for display**
+```csharp
+// FORBIDDEN - Backend generating "friendly" display descriptions
+public class NPCInteractionViewModel
+{
+    public string Description { get; set; }
+}
+
+var description = connectionState switch
+{
+    ConnectionState.Friendly => "This NPC likes you",
+    ConnectionState.Neutral => "This NPC is neutral to you",
+    ConnectionState.Hostile => "This NPC dislikes you",
+};
+```
+
+## CORRECT PATTERNS (REQUIRED)
+
+**Pattern: Backend exposes domain enum, frontend decides presentation**
+```csharp
+// Backend: Domain enum
+public enum ConnectionState
+{
+    Neutral,
+    Friendly,
+    Hostile
+}
+
+// Backend: ViewModel with domain value, NOT presentation
+public class NPCInteractionViewModel
+{
+    public string NPCId { get; set; }
+    public ConnectionState RelationshipState { get; set; } // Domain, not presentation
+}
+
+// Frontend: Maps domain to presentation
+@switch(Model.RelationshipState)
+{
+    case ConnectionState.Friendly:
+        <span class="connection-friendly">
+            <Icon Name="hearts" CssClass="stat-rapport" />
+            This NPC likes you
+        </span>
+        break;
+    case ConnectionState.Neutral:
+        <span class="connection-neutral">
+            <Icon Name="scales" CssClass="icon-neutral" />
+            This NPC is neutral
+        </span>
+        break;
+    // ...
+}
+```
+
+**Pattern: Backend provides values, frontend decides styling**
+```csharp
+// Backend: Pure domain data
+public class TravelStatusViewModel
+{
+    public int TotalWeight { get; set; }
+    public int MaxCapacity { get; set; }
+}
+
+// Frontend: Decides presentation based on values
+@{
+    double weightRatio = (double)Model.TotalWeight / Model.MaxCapacity;
+    string cssClass = weightRatio > 0.8 ? "danger" :
+                     weightRatio > 0.6 ? "warning" : "";
+}
+
+<div class="travel-capacity @cssClass">
+    <Icon Name="backpack" CssClass="resource-item" />
+    Weight: @Model.TotalWeight / @Model.MaxCapacity
+</div>
+```
+
+**Pattern: Backend provides domain data, frontend generates display text**
+```csharp
+// Backend: Domain enum for action type
+public enum ConversationAction
+{
+    FriendlyChat,
+    ServiceRequest,
+    Delivery,
+    Negotiation
+}
+
+// Backend: ViewModel with enum, NOT display text
+public class InteractionOptionViewModel
+{
+    public ConversationAction ActionType { get; set; }
+}
+
+// Frontend: Generates display text based on enum
+private string GetActionDisplayText(ConversationAction action) => action switch
+{
+    ConversationAction.FriendlyChat => "Friendly Chat",
+    ConversationAction.ServiceRequest => "Request Service",
+    ConversationAction.Delivery => "Deliver Letter",
+    ConversationAction.Negotiation => "Make Amends",
+    _ => "Interact"
+};
+```
+
+**Pattern: Backend provides raw state, frontend decides icon selection**
+```csharp
+// Backend: Domain enum for resource type
+public enum ResourceType
+{
+    Coins,
+    Stamina,
+    Health,
+    Focus
+}
+
+// Backend: ViewModel with resource type, NOT icon name
+public class ResourceDisplayViewModel
+{
+    public ResourceType Type { get; set; }
+    public int Amount { get; set; }
+}
+
+// Frontend: Maps resource type to icon
+private string GetResourceIconName(ResourceType type) => type switch
+{
+    ResourceType.Coins => "coins",
+    ResourceType.Stamina => "biceps",
+    ResourceType.Health => "health-normal",
+    ResourceType.Focus => "cut-diamond",
+    _ => "sparkles"
+};
+
+<Icon Name="@GetResourceIconName(Model.Type)" CssClass="@GetResourceClass(Model.Type)" />
+```
+
+**Pattern: Backend provides reason codes, frontend generates messages**
+```csharp
+// Backend: Domain enum for restriction reason
+public enum ActionRestrictionReason
+{
+    InsufficientStamina,
+    InsufficientCoins,
+    RequiredItemMissing,
+    TimeBlockRestriction,
+    TutorialRestriction
+}
+
+// Backend: ViewModel with enum, NOT message text
+public class ActionAvailabilityViewModel
+{
+    public bool IsAvailable { get; set; }
+    public ActionRestrictionReason? RestrictionReason { get; set; }
+}
+
+// Frontend: Generates user-friendly message
+private string GetRestrictionMessage(ActionRestrictionReason reason) => reason switch
+{
+    ActionRestrictionReason.InsufficientStamina => "You're too tired for this action",
+    ActionRestrictionReason.InsufficientCoins => "You can't afford this",
+    ActionRestrictionReason.RequiredItemMissing => "You don't have the required item",
+    ActionRestrictionReason.TimeBlockRestriction => "This action isn't available now",
+    ActionRestrictionReason.TutorialRestriction => "This is blocked during the tutorial",
+    _ => "This action is unavailable"
+};
+```
+
+## ENFORCEMENT
+
+**Code review checklist - REJECT pull requests with:**
+- ❌ ViewModels containing CSS class properties (`CssClass`, `StyleClass`, etc.)
+- ❌ ViewModels containing icon name properties (`Icon`, `IconName`, etc.)
+- ❌ Backend code switching on display type: `switch (displayType) { case "icon": ... }`
+- ❌ Backend generating display strings for presentation: `"Friendly Chat"` hardcoded in service
+- ❌ Message tokens with presentation: `"{icon:coins}"` in backend messages
+- ❌ Display text generation in services: `nameof()` for display, `ToString()` with formatting
+- ❌ CSS class names flowing through domain services
+- ❌ Icon selection logic in backend facades
+- ❌ Display formatting logic in backend (spacing, punctuation for display)
+
+**Code review checklist - APPROVE pull requests with:**
+- ✓ Domain enums flowing from backend to frontend
+- ✓ Plain values (int, string, bool) in ViewModels
+- ✓ Frontend helper methods mapping domain → presentation
+- ✓ CSS classes applied only in Razor components
+- ✓ Icon selection in frontend only
+- ✓ Display text generated in frontend helper methods
+- ✓ System messages containing ONLY domain data, no presentation
+
+**Verification command:**
+```bash
+# Find CSS class properties in ViewModels
+grep -r "CssClass\|StyleClass\|IconClass" src/ViewModels --include="*.cs"
+
+# Find backend setting icon names
+grep -r "Icon =" src/Services src/Subsystems --include="*.cs" | grep -v "Icon component"
+
+# Find backend display text hardcoding
+grep -r "\"Friendly Chat\"\|\"Request\"\|\"Deliver\"" src --include="*.cs" | grep -v "Frontend\|Razor"
+```
+
+**Test requirements:**
+- Backend tests verify domain logic, NOT presentation
+- Test uses domain enums/values, never checks CSS classes or icon names
+- Frontend tests (if applicable) verify presentation mapping, NOT game logic
+
+---
+
 # WORKING PRINCIPLES
 
 **Refactoring Philosophy:**

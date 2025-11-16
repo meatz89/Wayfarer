@@ -6,6 +6,13 @@
         @foreach (var message in Messages)
         {
             <div class="message @GetMessageClass(message.Type)">
+                @{
+                    string categoryIcon = GetCategoryIcon(message.Category);
+                }
+                @if (categoryIcon != null)
+                {
+                    <Icon Name="@categoryIcon" CssClass="message-icon" />
+                }
                 <span class="message-text">
                     @foreach (var segment in ParseMessageSegments(message.Message))
                     {

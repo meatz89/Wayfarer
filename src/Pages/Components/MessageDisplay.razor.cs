@@ -81,7 +81,7 @@ public class MessageDisplayBase : ComponentBase, IDisposable
         if (string.IsNullOrEmpty(message))
             return segments;
 
-        Regex iconPattern = new Regex(@"\{icon:([a-z-]+)\}", RegexOptions.IgnoreCase);
+        Regex iconPattern = new Regex(@"\{icon:([a-z-]+)}\}", RegexOptions.IgnoreCase);
         int lastIndex = 0;
 
         foreach (Match match in iconPattern.Matches(message))
@@ -105,6 +105,24 @@ public class MessageDisplayBase : ComponentBase, IDisposable
         }
 
         return segments;
+    }
+
+    protected string GetCategoryIcon(MessageCategory? category)
+    {
+        if (category == null)
+            return null;
+
+        return category.Value switch
+        {
+            MessageCategory.ResourceChange => "coins",
+            MessageCategory.TimeProgression => "alarm-clock",
+            MessageCategory.Discovery => "magnifying-glass",
+            MessageCategory.Achievement => "round-star",
+            MessageCategory.Danger => "hazard-sign",
+            MessageCategory.Narrative => "open-book",
+            MessageCategory.Social => "shaking-hands",
+            _ => null
+        };
     }
 
     public void Dispose()

@@ -22,7 +22,6 @@ public class LocationScreenViewModel
 public class LocationActionViewModel
 {
     public string Id { get; set; }
-    public string Icon { get; set; }
     public string Title { get; set; }
     public string Detail { get; set; }
     public string Cost { get; set; }
@@ -60,7 +59,6 @@ public class InteractionOptionViewModel
 public class ObservationViewModel
 {
     public string Id { get; set; }  // Unique identifier for the observation
-    public string Icon { get; set; }
     public string Text { get; set; }
     public bool IsUnknown { get; set; }
     public string Relevance { get; set; }

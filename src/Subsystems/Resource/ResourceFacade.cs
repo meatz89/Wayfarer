@@ -45,15 +45,17 @@ public class ResourceFacade
         if (player.Coins < amount)
         {
             _messageSystem.AddSystemMessage(
-                $"{{icon:coins}} Not enough coins! Need {amount}, have {player.Coins}",
-                SystemMessageTypes.Warning);
+                $"Not enough coins! Need {amount}, have {player.Coins}",
+                SystemMessageTypes.Warning,
+                MessageCategory.ResourceChange);
             return false;
         }
 
         player.Coins -= amount;
         _messageSystem.AddSystemMessage(
-            $"{{icon:coins}} Spent {amount} coins on {reason} ({player.Coins} remaining)",
-            SystemMessageTypes.Info);
+            $"Spent {amount} coins on {reason} ({player.Coins} remaining)",
+            SystemMessageTypes.Info,
+            MessageCategory.ResourceChange);
         return true;
     }
 
@@ -67,8 +69,9 @@ public class ResourceFacade
         Player player = _gameWorld.GetPlayer();
         player.Coins += amount;
         _messageSystem.AddSystemMessage(
-            $"{{icon:coins}} Received {amount} coins from {source} (total: {player.Coins})",
-            SystemMessageTypes.Success);
+            $"Received {amount} coins from {source} (total: {player.Coins})",
+            SystemMessageTypes.Success,
+            MessageCategory.ResourceChange);
     }
 
     // ========== HEALTH OPERATIONS ==========
@@ -88,14 +91,16 @@ public class ResourceFacade
         if (actualDamage > 0)
         {
             _messageSystem.AddSystemMessage(
-                $"{{icon:hearts}} Took {actualDamage} damage from {source} (Health: {player.Health}/{player.MaxHealth})",
-                SystemMessageTypes.Warning);
+                $"Took {actualDamage} damage from {source} (Health: {player.Health}/{player.MaxHealth})",
+                SystemMessageTypes.Warning,
+                MessageCategory.ResourceChange);
 
             if (player.Health == 0)
             {
                 _messageSystem.AddSystemMessage(
-                    "{icon:hazard-sign} You have died!",
-                    SystemMessageTypes.Warning);
+                    "You have died!",
+                    SystemMessageTypes.Warning,
+                    MessageCategory.Danger);
             }
         }
     }
@@ -110,8 +115,9 @@ public class ResourceFacade
         if (actualHealing > 0)
         {
             _messageSystem.AddSystemMessage(
-                $"{{icon:health-normal}} Healed {actualHealing} from {source} (Health: {player.Health}/{player.MaxHealth})",
-                SystemMessageTypes.Success);
+                $"Healed {actualHealing} from {source} (Health: {player.Health}/{player.MaxHealth})",
+                SystemMessageTypes.Success,
+                MessageCategory.ResourceChange);
         }
     }
 
@@ -138,14 +144,16 @@ public class ResourceFacade
         {
             string hungerLevel = player.GetHungerLevelDescription();
             _messageSystem.AddSystemMessage(
-                $"{{icon:meal}} Hunger increased by {actualIncrease} - {reason} ({player.Hunger}/{player.MaxHunger} - {hungerLevel})",
-                SystemMessageTypes.Info);
+                $"Hunger increased by {actualIncrease} - {reason} ({player.Hunger}/{player.MaxHunger} - {hungerLevel})",
+                SystemMessageTypes.Info,
+                MessageCategory.ResourceChange);
 
             if (player.IsStarving())
             {
                 _messageSystem.AddSystemMessage(
-                    "{icon:hazard-sign} You are starving! Find food soon!",
-                    SystemMessageTypes.Warning);
+                    "You are starving! Find food soon!",
+                    SystemMessageTypes.Warning,
+                    MessageCategory.Danger);
             }
         }
     }
@@ -161,8 +169,9 @@ public class ResourceFacade
         {
             string hungerLevel = player.GetHungerLevelDescription();
             _messageSystem.AddSystemMessage(
-                $"{{icon:meal}} Ate {source}, hunger reduced by {actualDecrease} ({player.Hunger}/{player.MaxHunger} - {hungerLevel})",
-                SystemMessageTypes.Success);
+                $"Ate {source}, hunger reduced by {actualDecrease} ({player.Hunger}/{player.MaxHunger} - {hungerLevel})",
+                SystemMessageTypes.Success,
+                MessageCategory.ResourceChange);
         }
     }
 
@@ -201,8 +210,9 @@ public class ResourceFacade
         }
 
         _messageSystem.AddSystemMessage(
-            "{icon:alarm-clock} A new day dawns. Relationships naturally shift toward neutral over time.",
-            SystemMessageTypes.Info);
+            "A new day dawns. Relationships naturally shift toward neutral over time.",
+            SystemMessageTypes.Info,
+            MessageCategory.TimeProgression);
     }
 
     // ========== COMBINED RESOURCE OPERATIONS ==========
@@ -323,15 +333,15 @@ public class ResourceFacade
         // Generate message about recovery
         if (healthRecovered > 0 || staminaRecovered > 0 || statesCleared > 0)
         {
-            string recoveryMessage = "{icon:health-normal} Rested for 1 segment.";
+            string recoveryMessage = "Rested for 1 segment.";
             if (healthRecovered > 0) recoveryMessage += $" Health +{healthRecovered}";
             if (staminaRecovered > 0) recoveryMessage += $" Stamina +{staminaRecovered}";
             if (statesCleared > 0) recoveryMessage += $" Cleared {statesCleared} state{(statesCleared == 1 ? "" : "s")}";
-            _messageSystem.AddSystemMessage(recoveryMessage, SystemMessageTypes.Success);
+            _messageSystem.AddSystemMessage(recoveryMessage, SystemMessageTypes.Success, MessageCategory.ResourceChange);
         }
         else
         {
-            _messageSystem.AddSystemMessage("{icon:health-normal} Rested for 1 segment (already at full health/stamina)", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage("Rested for 1 segment (already at full health/stamina)", SystemMessageTypes.Info, MessageCategory.ResourceChange);
         }
     }
 
@@ -394,7 +404,7 @@ public class ResourceFacade
         // Hunger increases by +5 per segment (automatic via time progression)
         // No resource recovery - just passing time
 
-        _messageSystem.AddSystemMessage("{icon:alarm-clock} Waited for 1 segment, passing time without activity", SystemMessageTypes.Info);
+        _messageSystem.AddSystemMessage("Waited for 1 segment, passing time without activity", SystemMessageTypes.Info, MessageCategory.TimeProgression);
     }
 
     /// <summary>
@@ -417,7 +427,7 @@ public class ResourceFacade
         // Generate message about hunger impact if any
         string hungerMessage = hungerPenalty > 0 ? $" (reduced by {hungerPenalty} due to hunger)" : "";
 
-        _messageSystem.AddSystemMessage($"{{icon:coins}} Earned {coinsEarned} coins from work{hungerMessage}", SystemMessageTypes.Success);
+        _messageSystem.AddSystemMessage($"Earned {coinsEarned} coins from work{hungerMessage}", SystemMessageTypes.Success, MessageCategory.ResourceChange);
 
         return new WorkResult
         {
