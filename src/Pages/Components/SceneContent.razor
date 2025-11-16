@@ -82,90 +82,90 @@
                                     @if (choice.ResolveCost > 0)
                                     {
                                         <div class="consequence-item">
-                                            🎯 -@choice.ResolveCost Resolve (now @choice.CurrentResolve, will have @choice.FinalResolve)
+                                            <Icon Name="target-arrows" CssClass="icon-neutral" /> -@choice.ResolveCost Resolve (now @choice.CurrentResolve, will have @choice.FinalResolve)
                                         </div>
                                     }
                                     @if (choice.CoinsCost > 0)
                                     {
                                         <div class="consequence-item">
-                                            💰 -@choice.CoinsCost Coins (now @choice.CurrentCoins, will have @choice.FinalCoins)
+                                            <Icon Name="coins" CssClass="resource-coin" /> -@choice.CoinsCost Coins (now @choice.CurrentCoins, will have @choice.FinalCoins)
                                         </div>
                                     }
                                     @if (choice.HealthCost > 0)
                                     {
                                         <div class="consequence-item">
-                                            ❤️ -@choice.HealthCost Health (now @choice.CurrentHealth, will have @choice.FinalHealth)
+                                            <Icon Name="health-normal" CssClass="resource-health" /> -@choice.HealthCost Health (now @choice.CurrentHealth, will have @choice.FinalHealth)
                                         </div>
                                     }
                                     @if (choice.StaminaCost > 0)
                                     {
                                         <div class="consequence-item">
-                                            💪 -@choice.StaminaCost Stamina (now @choice.CurrentStamina, will have @choice.FinalStamina)
+                                            <Icon Name="biceps" CssClass="resource-stamina" /> -@choice.StaminaCost Stamina (now @choice.CurrentStamina, will have @choice.FinalStamina)
                                         </div>
                                     }
                                     @if (choice.FocusCost > 0)
                                     {
                                         <div class="consequence-item">
-                                            🔷 -@choice.FocusCost Focus (now @choice.CurrentFocus, will have @choice.FinalFocus)
+                                            <Icon Name="cut-diamond" CssClass="resource-focus" /> -@choice.FocusCost Focus (now @choice.CurrentFocus, will have @choice.FinalFocus)
                                         </div>
                                     }
                                     @if (choice.HungerCost > 0)
                                     {
                                         <div class="consequence-item">
-                                            🍽️ +@choice.HungerCost Hunger (now @choice.CurrentHunger, will have @choice.FinalHunger)
+                                            <Icon Name="meal" CssClass="resource-hunger" /> +@choice.HungerCost Hunger (now @choice.CurrentHunger, will have @choice.FinalHunger)
                                         </div>
                                     }
                                     @if (choice.TimeSegments > 0)
                                     {
                                         <div class="consequence-item">
-                                            ⏱️ @choice.TimeSegments Segments
+                                            <Icon Name="alarm-clock" CssClass="icon-neutral" /> @choice.TimeSegments Segments
                                         </div>
                                     }
 
                                     @* Resource rewards *@
                                     @if (choice.FullRecovery)
                                     {
-                                        <div class="consequence-item">✨ Full Recovery (all resources restored)</div>
+                                        <div class="consequence-item"><Icon Name="sparkles" CssClass="icon-positive" /> Full Recovery (all resources restored)</div>
                                     }
                                     @if (choice.CoinsReward != 0)
                                     {
                                         <div class="consequence-item">
-                                            💰 @(choice.CoinsReward > 0 ? "+" : "")@choice.CoinsReward Coins
+                                            <Icon Name="coins" CssClass="resource-coin" /> @(choice.CoinsReward > 0 ? "+" : "")@choice.CoinsReward Coins
                                             <span class="final-value">(will have @choice.FinalCoins)</span>
                                         </div>
                                     }
                                     @if (choice.ResolveReward != 0)
                                     {
                                         <div class="consequence-item">
-                                            🎯 @(choice.ResolveReward > 0 ? "+" : "")@choice.ResolveReward Resolve
+                                            <Icon Name="target-arrows" CssClass="icon-neutral" /> @(choice.ResolveReward > 0 ? "+" : "")@choice.ResolveReward Resolve
                                             <span class="final-value">(will have @choice.FinalResolve)</span>
                                         </div>
                                     }
                                     @if (choice.HealthReward != 0)
                                     {
                                         <div class="consequence-item">
-                                            ❤️ @(choice.HealthReward > 0 ? "+" : "")@choice.HealthReward Health
+                                            <Icon Name="health-normal" CssClass="resource-health" /> @(choice.HealthReward > 0 ? "+" : "")@choice.HealthReward Health
                                             <span class="final-value">(will have @choice.FinalHealth)</span>
                                         </div>
                                     }
                                     @if (choice.StaminaReward != 0)
                                     {
                                         <div class="consequence-item">
-                                            💪 @(choice.StaminaReward > 0 ? "+" : "")@choice.StaminaReward Stamina
+                                            <Icon Name="biceps" CssClass="resource-stamina" /> @(choice.StaminaReward > 0 ? "+" : "")@choice.StaminaReward Stamina
                                             <span class="final-value">(will have @choice.FinalStamina)</span>
                                         </div>
                                     }
                                     @if (choice.FocusReward != 0)
                                     {
                                         <div class="consequence-item">
-                                            🔷 @(choice.FocusReward > 0 ? "+" : "")@choice.FocusReward Focus
+                                            <Icon Name="cut-diamond" CssClass="resource-focus" /> @(choice.FocusReward > 0 ? "+" : "")@choice.FocusReward Focus
                                             <span class="final-value">(will have @choice.FinalFocus)</span>
                                         </div>
                                     }
                                     @if (choice.HungerChange != 0)
                                     {
                                         <div class="consequence-item">
-                                            🍽️ @(choice.HungerChange > 0 ? "+" : "")@choice.HungerChange Hunger
+                                            <Icon Name="meal" CssClass="resource-hunger" /> @(choice.HungerChange > 0 ? "+" : "")@choice.HungerChange Hunger
                                             <span class="final-value">(will have @choice.FinalHunger)</span>
                                         </div>
                                     }
@@ -174,35 +174,35 @@
                                     @if (choice.InsightReward != 0)
                                     {
                                         <div class="consequence-item">
-                                            🧠 @(choice.InsightReward > 0 ? "+" : "")@choice.InsightReward Insight
+                                            <Icon Name="brain" CssClass="stat-insight" /> @(choice.InsightReward > 0 ? "+" : "")@choice.InsightReward Insight
                                             <span class="final-value">(will have @choice.FinalInsight)</span>
                                         </div>
                                     }
                                     @if (choice.RapportReward != 0)
                                     {
                                         <div class="consequence-item">
-                                            💙 @(choice.RapportReward > 0 ? "+" : "")@choice.RapportReward Rapport
+                                            <Icon Name="hearts" CssClass="stat-rapport" /> @(choice.RapportReward > 0 ? "+" : "")@choice.RapportReward Rapport
                                             <span class="final-value">(will have @choice.FinalRapport)</span>
                                         </div>
                                     }
                                     @if (choice.AuthorityReward != 0)
                                     {
                                         <div class="consequence-item">
-                                            👑 @(choice.AuthorityReward > 0 ? "+" : "")@choice.AuthorityReward Authority
+                                            <Icon Name="crown" CssClass="stat-authority" /> @(choice.AuthorityReward > 0 ? "+" : "")@choice.AuthorityReward Authority
                                             <span class="final-value">(will have @choice.FinalAuthority)</span>
                                         </div>
                                     }
                                     @if (choice.DiplomacyReward != 0)
                                     {
                                         <div class="consequence-item">
-                                            🤝 @(choice.DiplomacyReward > 0 ? "+" : "")@choice.DiplomacyReward Diplomacy
+                                            <Icon Name="shaking-hands" CssClass="stat-diplomacy" /> @(choice.DiplomacyReward > 0 ? "+" : "")@choice.DiplomacyReward Diplomacy
                                             <span class="final-value">(will have @choice.FinalDiplomacy)</span>
                                         </div>
                                     }
                                     @if (choice.CunningReward != 0)
                                     {
                                         <div class="consequence-item">
-                                            🎭 @(choice.CunningReward > 0 ? "+" : "")@choice.CunningReward Cunning
+                                            <Icon Name="drama-masks" CssClass="stat-cunning" /> @(choice.CunningReward > 0 ? "+" : "")@choice.CunningReward Cunning
                                             <span class="final-value">(will have @choice.FinalCunning)</span>
                                         </div>
                                     }
@@ -211,7 +211,7 @@
                                     @foreach (var bondChange in choice.BondChanges)
                                     {
                                         <div class="consequence-item consequence-bond">
-                                            💙 @(bondChange.Delta > 0 ? "+" : "")@bondChange.Delta Bond with @bondChange.NpcName
+                                            <Icon Name="hearts" CssClass="stat-rapport" /> @(bondChange.Delta > 0 ? "+" : "")@bondChange.Delta Bond with @bondChange.NpcName
                                             <span class="final-value">(now @bondChange.CurrentBond, will have @bondChange.FinalBond)</span>
                                             @if (!string.IsNullOrEmpty(bondChange.Reason))
                                             {
@@ -224,7 +224,7 @@
                                     @foreach (var scaleShift in choice.ScaleShifts)
                                     {
                                         <div class="consequence-item consequence-scale">
-                                            ⚖️ @(scaleShift.Delta > 0 ? "+" : "")@scaleShift.Delta @scaleShift.ScaleName
+                                            <Icon Name="scales" CssClass="icon-neutral" /> @(scaleShift.Delta > 0 ? "+" : "")@scaleShift.Delta @scaleShift.ScaleName
                                             <span class="final-value">(now @scaleShift.CurrentScale, will have @scaleShift.FinalScale)</span>
                                             @if (!string.IsNullOrEmpty(scaleShift.Reason))
                                             {

@@ -1,0 +1,63 @@
+@namespace Wayfarer.Pages.Components
+@inject HttpClient Http
+
+@if (!string.IsNullOrEmpty(_svgContent))
+{
+    @((MarkupString)_svgContent)
+}
+
+@code {
+    [Parameter]
+    public string Name { get; set; }
+
+    [Parameter]
+    public string Size { get; set; } = "16px";
+
+    [Parameter]
+    public string Color { get; set; } = "currentColor";
+
+    [Parameter]
+    public string CssClass { get; set; } = "";
+
+    private string _svgContent = "";
+    private static Dictionary<string, string> _iconCache = new Dictionary<string, string>();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (string.IsNullOrEmpty(Name))
+        {
+            return;
+        }
+
+        if (_iconCache.ContainsKey(Name))
+        {
+            _svgContent = ApplyStyling(_iconCache[Name]);
+            return;
+        }
+
+        try
+        {
+            string svgPath = $"game-icons/{Name}.svg";
+            string rawSvg = await Http.GetStringAsync(svgPath);
+            _iconCache[Name] = rawSvg;
+            _svgContent = ApplyStyling(rawSvg);
+        }
+        catch
+        {
+            _svgContent = "";
+        }
+    }
+
+    private string ApplyStyling(string rawSvg)
+    {
+        string styledSvg = rawSvg;
+
+        styledSvg = System.Text.RegularExpressions.Regex.Replace(
+            styledSvg,
+            @"<svg([^>]*)>",
+            $"<svg$1 width=\"{Size}\" height=\"{Size}\" style=\"fill: {Color};\" class=\"game-icon {CssClass}\">"
+        );
+
+        return styledSvg;
+    }
+}

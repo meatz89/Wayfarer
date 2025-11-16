@@ -1,0 +1,93 @@
+/* ==========================================
+   ICON COMPONENT STYLING
+   Game Icons SVG loader component
+   ========================================== */
+
+.game-icon {
+    display: inline-block;
+    vertical-align: middle;
+    line-height: 1;
+}
+
+/* Icon size variants */
+.game-icon.icon-sm {
+    width: 12px;
+    height: 12px;
+}
+
+.game-icon.icon-md {
+    width: 16px;
+    height: 16px;
+}
+
+.game-icon.icon-lg {
+    width: 20px;
+    height: 20px;
+}
+
+.game-icon.icon-xl {
+    width: 24px;
+    height: 24px;
+}
+
+/* Five Stats colors (Sir Brante pattern) */
+.game-icon.stat-insight {
+    fill: #7a9cc6;
+}
+
+.game-icon.stat-rapport {
+    fill: #9b89c9;
+}
+
+.game-icon.stat-authority {
+    fill: #d4a76a;
+}
+
+.game-icon.stat-diplomacy {
+    fill: #7fb069;
+}
+
+.game-icon.stat-cunning {
+    fill: #c97b89;
+}
+
+/* Resource colors (matching existing palette) */
+.game-icon.resource-coin {
+    fill: #d4a76a;
+}
+
+.game-icon.resource-health {
+    fill: #d4704a;
+}
+
+.game-icon.resource-stamina {
+    fill: #7fb069;
+}
+
+.game-icon.resource-focus {
+    fill: #7a9cc6;
+}
+
+.game-icon.resource-hunger {
+    fill: #8b5a26;
+}
+
+/* Neutral/action colors */
+.game-icon.icon-neutral {
+    fill: #7a6250;
+}
+
+.game-icon.icon-positive {
+    fill: #7fb069;
+}
+
+.game-icon.icon-negative {
+    fill: #d4704a;
+}
+
+/* Ensure icons maintain aspect ratio */
+.game-icon svg {
+    display: block;
+    max-width: 100%;
+    max-height: 100%;
+}
