@@ -5,11 +5,6 @@
 public class LocationAction
 {
     /// <summary>
-    /// Unique identifier for this action
-    /// </summary>
-    public string Id { get; set; }
-
-    /// <summary>
     /// Source location where this action was generated (if location-specific)
     /// null = global action available at any matching location
     /// non-null = only available at this specific location

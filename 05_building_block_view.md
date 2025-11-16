@@ -87,6 +87,11 @@ public List<PhysicalChallengeDeck> PhysicalChallengeDecks { get; }
 public List<SceneTemplate> SceneTemplates { get; set; }
 public List<Scene> Scenes { get; set; }
 
+// Atmospheric Action Layer (Persistent Gameplay Scaffolding)
+// STORES ONLY static atmospheric actions (Travel/Work/Rest/Movement)
+// Does NOT store ephemeral scene-based actions (passed by object reference, no storage)
+public List<LocationAction> LocationActions { get; set; }
+
 // Player Stats System
 public List<PlayerStatDefinition> PlayerStatDefinitions { get; set; }
 public StatProgression StatProgression { get; set; }

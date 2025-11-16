@@ -48,10 +48,14 @@ public class TravelTimeCalculator
 
     /// <summary>
     /// Calculate actual travel time with transport method modifier and route improvements.
+    /// Uses Route.Id directly for improvement lookup (no ID construction/parsing).
     /// </summary>
-    public int CalculateTravelTime(string fromLocationId, string toLocationId, TravelMethods transportMethod)
+    public int CalculateTravelTime(RouteOption route, TravelMethods transportMethod)
     {
-        int baseTime = GetBaseTravelTime(fromLocationId, toLocationId);
+        if (route == null)
+            throw new ArgumentNullException(nameof(route));
+
+        int baseTime = GetBaseTravelTime(route.OriginLocationId, route.DestinationLocationId);
 
         // Apply transport method modifier
         double modifier = GetTransportModifier(transportMethod);
@@ -61,9 +65,11 @@ public class TravelTimeCalculator
         actualTime = ApplyWeatherEffects(actualTime);
 
         // Apply route improvements (V2 Obligation System)
-        // Find route by matching RouteOption.Id or constructing route key
-        string routeKey = $"{fromLocationId}_to_{toLocationId}";
-        List<RouteImprovement> improvements = _gameWorld.RouteImprovements.Where(ri => ri.RouteId == routeKey).ToList();
+        // Use route.Id directly - no string construction/parsing
+        List<RouteImprovement> improvements = _gameWorld.RouteImprovements
+            .Where(ri => ri.RouteId == route.Id)
+            .ToList();
+
         if (improvements != null && improvements.Count > 0)
         {
             foreach (RouteImprovement improvement in improvements)

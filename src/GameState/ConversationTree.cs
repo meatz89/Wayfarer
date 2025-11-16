@@ -7,7 +7,10 @@ public class ConversationTree
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public NPC Npc { get; set; }  // Resolved during parsing
+
+    // HIGHLANDER Sub-Pattern A: Both ID (persistence) and Object (runtime)
+    public string NpcId { get; set; }  // From JSON, for save/load persistence
+    public NPC Npc { get; set; }  // Resolved once at parse-time, cached for runtime
 
     // Availability conditions
     public int MinimumRelationship { get; set; }

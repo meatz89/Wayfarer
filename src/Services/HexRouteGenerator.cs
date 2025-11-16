@@ -380,7 +380,8 @@ public class HexRouteGenerator
     /// </summary>
     private Situation InstantiateSituation(SituationTemplate template, Scene parentScene, RouteOption route)
     {
-        string situationId = $"situation_{template.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+        // No .Substring() on GUID (forbidden operation per CLAUDE.md)
+        string situationId = $"situation_{template.Id}_{Guid.NewGuid().ToString("N")}";
 
         Situation situation = new Situation
         {

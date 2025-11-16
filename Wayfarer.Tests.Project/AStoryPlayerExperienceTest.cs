@@ -46,9 +46,9 @@ public class AStoryPlayerExperienceTest : IntegrationTestBase
         // ARRANGE & ACT
         GameWorld gameWorld = GetGameWorld();
 
-        // ASSERT: A1 template exists in game content
+        // ASSERT: A1 template exists in game content (semantic query by category and sequence)
         SceneTemplate a1Template = gameWorld.SceneTemplates
-            .FirstOrDefault(st => st.Id == "a1_secure_lodging");
+            .FirstOrDefault(st => st.Category == StoryCategory.MainStory && st.MainStorySequence == 1);
 
         Assert.NotNull(a1Template);
         Assert.NotEmpty(a1Template.SituationTemplates);
@@ -61,9 +61,9 @@ public class AStoryPlayerExperienceTest : IntegrationTestBase
         // ARRANGE & ACT
         GameWorld gameWorld = GetGameWorld();
 
-        // ASSERT: A2 template exists (spawned after A1)
+        // ASSERT: A2 template exists (spawned after A1) - semantic query by category and sequence
         SceneTemplate a2Template = gameWorld.SceneTemplates
-            .FirstOrDefault(st => st.Id == "a2_morning");
+            .FirstOrDefault(st => st.Category == StoryCategory.MainStory && st.MainStorySequence == 2);
 
         Assert.NotNull(a2Template);
         Assert.NotEmpty(a2Template.SituationTemplates);
@@ -75,9 +75,9 @@ public class AStoryPlayerExperienceTest : IntegrationTestBase
         // ARRANGE & ACT
         GameWorld gameWorld = GetGameWorld();
 
-        // ASSERT: A3 template exists (spawned after A2)
+        // ASSERT: A3 template exists (spawned after A2) - semantic query by category and sequence
         SceneTemplate a3Template = gameWorld.SceneTemplates
-            .FirstOrDefault(st => st.Id == "a3_route_travel");
+            .FirstOrDefault(st => st.Category == StoryCategory.MainStory && st.MainStorySequence == 3);
 
         Assert.NotNull(a3Template);
         Assert.NotEmpty(a3Template.SituationTemplates);
@@ -88,8 +88,9 @@ public class AStoryPlayerExperienceTest : IntegrationTestBase
     {
         // ARRANGE & ACT
         GameWorld gameWorld = GetGameWorld();
+        // Semantic query by category instead of parsing ID string
         List<SceneTemplate> aStoryTemplates = gameWorld.SceneTemplates
-            .Where(st => st.Id.StartsWith("a") && char.IsDigit(st.Id[1]))
+            .Where(st => st.Category == StoryCategory.MainStory)
             .ToList();
 
         // ASSERT: Every A-Story template has situations with choices

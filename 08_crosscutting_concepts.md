@@ -222,6 +222,56 @@ Player at Location → SceneFacade queries → If Deferred + Context Met
                                          → Set InstantiationState = Instantiated
 ```
 
+#### CRITICAL: Two Action Generation Patterns
+
+**Actions exist in TWO architectural forms with different timing:**
+
+**1. Atmospheric/Static LocationActions (Parse-Time, Tier 1):**
+- Generated ONCE during package loading via LocationActionCatalog
+- Stored PERMANENTLY in GameWorld.LocationActions
+- Always available (Travel, Work, Rest, Intra-Venue Movement)
+- NEVER deleted (persistent gameplay scaffolding)
+- Purpose: Prevent dead ends, ensure player freedom
+
+**Example Flow:**
+```
+PARSE TIME:
+JSON Package Load → LocationActionCatalog.GenerateActionsForLocation()
+                                        → Create LocationAction entities
+                                        → Add to GameWorld.LocationActions
+                                        → Stored permanently
+```
+
+**2. Scene-Based Ephemeral Actions (Query-Time, Tier 3):**
+- Generated fresh when SceneFacade queries active Situation
+- Passed by direct object reference to UI (NOT stored in GameWorld)
+- Available only while parent Scene/Situation active
+- Discarded after execution
+- Purpose: Dynamic narrative content
+- Types: LocationAction (scene at location), NPCAction (scene at NPC), PathCard (scene on route)
+
+**Example Flow:**
+```
+QUERY TIME:
+Player at Location → SceneFacade.GetActionsAtLocation()
+                                         → Create ephemeral LocationAction from ChoiceTemplate
+                                         → Return directly to UI (NO storage)
+                                         → UI passes to GameFacade.ExecuteLocationAction()
+                                         → Action discarded after execution
+```
+
+**Key Distinction:**
+- LocationAction exists in BOTH forms (static atmospheric AND ephemeral scene-based)
+- NPCAction and PathCard are ONLY ephemeral (no static equivalent)
+- GameWorld.LocationActions stores ONLY static atmospheric actions
+- Ephemeral actions passed by object reference, never stored
+
+**Why This Matters:**
+- Nearly deleted LocationActionCatalog generation thinking it was obsolete
+- Static atmospheric actions are CORE GAMEPLAY (travel/work/rest)
+- Deleting static actions would remove player's ability to earn money and progress
+- Both patterns must coexist: persistent scaffolding + dynamic narrative
+
 ---
 
 ### 8.2.4 Let It Crash Pattern
@@ -524,7 +574,7 @@ var scene = gameWorld.Scenes.First(s => s.Id == sceneId);  // ✅ Explicit routi
 
 Scenes spawn independently from different sources:
 
-- Tutorial scenes: Spawn at parse-time (concrete npcId binding)
+- Tutorial scenes: Spawn at parse-time (categorical filters, same as all content)
 - Obligation scenes: Spawn at runtime (categorical filters)
 - Multiple obligations: Can spawn scenes at same NPC simultaneously
 - Each scene: Operates independently until completion

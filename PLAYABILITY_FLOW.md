@@ -221,27 +221,29 @@ This document traces the complete player experience through Wayfarer's infinite 
 
 ### The Problem
 
-`src/Content/Core/22_a_story_tutorial.json` uses old placement format:
+`src/Content/Core/21_tutorial_scenes.json` (LEGACY FILE) uses ARCHITECTURALLY INCORRECT hardcoded ID format:
 
 ```json
 "placementFilter": {
   "placementType": "NPC",
-  "npcId": "elena"
+  "npcId": "elena"  ← ARCHITECTURAL VIOLATION: Hardcoded entity ID
 }
 ```
 
-Parser expects new hierarchical format:
+CORRECT format (categorical filters):
 
 ```json
 "baseLocationFilter": {
   "placementType": "Location",
-  "locationId": "common_room"
+  "locationProperties": ["Commercial", "Restful"]  ← Categorical, not hardcoded
 },
 "baseNpcFilter": {
   "placementType": "NPC",
-  "npcId": "elena"
+  "professions": ["Innkeeper"]  ← Categorical, not hardcoded
 }
 ```
+
+**Note:** File 22_a_story_tutorial.json already uses the correct categorical pattern.
 
 ### The Impact
 

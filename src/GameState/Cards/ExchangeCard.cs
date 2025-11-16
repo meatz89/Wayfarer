@@ -26,10 +26,12 @@ public class ExchangeCard
     public ExchangeType ExchangeType { get; set; }
 
     /// <summary>
-    /// The NPC offering this exchange.
-    /// Empty string for location-based or system exchanges.
+    /// HIGHLANDER Sub-Pattern A: Both ID (persistence) and Object (runtime)
+    /// NPC offering this exchange - ID from JSON for save/load, Object cached for runtime access
+    /// Empty/null for location-based or system exchanges.
     /// </summary>
-    public string NpcId { get; set; }
+    public string NpcId { get; set; }  // From JSON, for save/load persistence
+    public NPC Npc { get; set; }  // Resolved once at parse-time, cached for runtime (avoids repeated lookups)
 
     /// <summary>
     /// Cost structure for this exchange.

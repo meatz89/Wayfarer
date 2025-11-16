@@ -102,7 +102,7 @@ public class PackageLoader
         // CATALOGUE PATTERN: Generate content from loaded entities (ONCE after all packages loaded)
         // Must happen AFTER all packages loaded because catalogues need complete entity lists
         GeneratePlayerActionsFromCatalogue();
-        GenerateLocationActionsFromCatalogue();
+        GenerateLocationActionsFromCatalogue(); // ATMOSPHERIC LAYER: Static gameplay actions (Travel/Work/Rest)
         GenerateProceduralRoutes();
         GenerateDeliveryJobsFromCatalogue();
 
@@ -287,7 +287,7 @@ public class PackageLoader
         // Load with skeletons allowed for dynamic content
         LoadPackageContent(package, allowSkeletons: true);
 
-        // Regenerate location actions for newly added locations
+        // Regenerate static location actions for dynamic packages
         // Dynamic packages may add locations that need intra-venue movement actions
         // Must regenerate for ALL locations because adjacency relationships may have changed
         GenerateLocationActionsFromCatalogue();
@@ -413,8 +413,13 @@ public class PackageLoader
             // Add generated actions to GameWorld
             foreach (LocationAction action in generatedActions)
             {
-                // Avoid duplicates if multiple packages loaded
-                if (!_gameWorld.LocationActions.Any(a => a.Id == action.Id))
+                // Avoid duplicates if multiple packages loaded (semantic deduplication, not ID matching)
+                bool isDuplicate = _gameWorld.LocationActions.Any(a =>
+                    a.ActionType == action.ActionType &&
+                    a.SourceLocationId == action.SourceLocationId &&
+                    a.DestinationLocationId == action.DestinationLocationId);
+
+                if (!isDuplicate)
                 {
                     _gameWorld.LocationActions.Add(action);
                 }
@@ -1425,7 +1430,7 @@ public class PackageLoader
         _parsedExchangeCards = new List<ExchangeCardEntry>();
         foreach (ExchangeDTO dto in exchangeDtos)
         {
-            ExchangeCard exchangeCard = ExchangeParser.ParseExchange(dto, dto.NpcId);
+            ExchangeCard exchangeCard = ExchangeParser.ParseExchange(dto, dto.NpcId, _gameWorld);
             _parsedExchangeCards.Add(new ExchangeCardEntry { Id = exchangeCard.Id, Card = exchangeCard });
         }
     }
@@ -1500,11 +1505,8 @@ public class PackageLoader
         string originVenueId = GetVenueIdFromSpotId(forwardRoute.OriginLocationId);
         string destVenueId = GetVenueIdFromSpotId(forwardRoute.DestinationLocationId);
 
-        // Generate reverse route ID by swapping origin and destination
-        string[] idParts = forwardRoute.Id.Split("_to_");
-        string reverseId = idParts.Length == 2
-            ? $"{idParts[1]}_to_{idParts[0]}"
-            : $"{destVenueId}_to_{originVenueId}";
+        // Generate unique ID for reverse route (pure identifier, no encoded data)
+        string reverseId = Guid.NewGuid().ToString();
 
         RouteOption reverseRoute = new RouteOption
         {

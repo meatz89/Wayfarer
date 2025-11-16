@@ -44,7 +44,6 @@ public static class LocationActionCatalog
             Console.WriteLine($"[LocationActionCatalog] ✅ Crossroads found - generating Travel action");
             actions.Add(new LocationAction
             {
-                Id = $"travel_{location.Id}",
                 SourceLocationId = location.Id,  // Bind to specific location
                 Name = "Travel to Another Location",
                 Description = "Select a route to travel to another location",

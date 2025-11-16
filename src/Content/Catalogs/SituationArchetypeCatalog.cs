@@ -654,6 +654,7 @@ public static class SituationArchetypeCatalog
         {
             Id = "service_negotiation",
             Name = "Service Negotiation",
+            Category = ArchetypeCategory.ServiceNegotiation,  // Enum-based routing
             Domain = Domain.Economic,
             PrimaryStat = PlayerStatType.Rapport,
             SecondaryStat = PlayerStatType.Diplomacy,
@@ -691,6 +692,7 @@ public static class SituationArchetypeCatalog
         {
             Id = "service_execution_rest",
             Name = "Service Execution (Rest)",
+            Category = ArchetypeCategory.ServiceExecutionRest,  // Enum-based routing
             Domain = Domain.Physical,
             PrimaryStat = PlayerStatType.None,
             SecondaryStat = PlayerStatType.None,
@@ -728,6 +730,7 @@ public static class SituationArchetypeCatalog
         {
             Id = "service_departure",
             Name = "Service Departure",
+            Category = ArchetypeCategory.ServiceDeparture,  // Enum-based routing
             Domain = Domain.Physical,
             PrimaryStat = PlayerStatType.Insight,
             SecondaryStat = PlayerStatType.Cunning,
@@ -755,22 +758,23 @@ public static class SituationArchetypeCatalog
         string situationTemplateId,
         GenerationContext context)
     {
-        // Specialized generation for service archetypes
-        if (archetype.Id == "service_negotiation")
+        // Enum-based routing for specialized choice generation (no ID string matching)
+        switch (archetype.Category)
         {
-            return GenerateServiceNegotiationChoices(archetype, situationTemplateId, context);
-        }
-        else if (archetype.Id == "service_execution_rest")
-        {
-            return GenerateServiceExecutionRestChoices(situationTemplateId, context);
-        }
-        else if (archetype.Id == "service_departure")
-        {
-            return GenerateServiceDepartureChoices(situationTemplateId, context);
-        }
+            case ArchetypeCategory.ServiceNegotiation:
+                return GenerateServiceNegotiationChoices(archetype, situationTemplateId, context);
 
-        // Fallback to standard generation
-        return GenerateChoiceTemplates(archetype, situationTemplateId);
+            case ArchetypeCategory.ServiceExecutionRest:
+                return GenerateServiceExecutionRestChoices(situationTemplateId, context);
+
+            case ArchetypeCategory.ServiceDeparture:
+                return GenerateServiceDepartureChoices(situationTemplateId, context);
+
+            case ArchetypeCategory.Standard:
+            default:
+                // Standard 4-choice pattern
+                return GenerateChoiceTemplates(archetype, situationTemplateId);
+        }
     }
 
     /// <summary>

@@ -1283,16 +1283,21 @@ SpawnConditions gate access without changing what happens when scene spawns. The
 ```json
 {
   "sceneArchetypeId": "service_with_location_access",
-  "targetNpcId": "elena_npc",
-  "targetLocationId": "common_room",
-  "targetDependentLocation": "private_room"
+  "baseNpcFilter": {
+    "placementType": "NPC",
+    "professions": ["Innkeeper"]
+  },
+  "baseLocationFilter": {
+    "placementType": "Location",
+    "locationProperties": ["Commercial", "Restful"]
+  }
 }
 ```
 
-**Entity Properties**:
-- Elena: Personality=Innkeeper, Demeanor=Friendly
-- Common Room: Services=Lodging, Quality=Standard, DangerLevel=Safe
-- Private Room: PrivacyLevel=Private, Comfort=Standard
+**Matched Entity Properties**:
+- Elena (matches Innkeeper profession): Personality=Innkeeper, Demeanor=Friendly
+- Common Room (matches Commercial+Restful): Services=Lodging, Quality=Standard, DangerLevel=Safe
+- Private Room (dependent location): PrivacyLevel=Private, Comfort=Standard
 
 **Generation Process**:
 

@@ -408,8 +408,8 @@ public class LocationContentBase : ComponentBase
 
     protected async Task HandleExecuteNPCAction(ActionCardViewModel action)
     {
-        // Execute NPCAction through GameFacade (unified action architecture)
-        IntentResult result = await GameFacade.ExecuteNPCAction(action.SituationId, action.Id);
+        // Execute NPCAction through GameFacade (direct object reference)
+        IntentResult result = await GameFacade.ExecuteNPCAction(action.SourceAction);
 
         if (result.Success)
         {

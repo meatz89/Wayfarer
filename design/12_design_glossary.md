@@ -12,6 +12,34 @@ This glossary provides canonical definitions for game design terms used across W
 
 ## 12.2 Core Gameplay Terms
 
+### Atmospheric Action Layer
+
+**Definition:** Always-available core gameplay actions (Travel, Work, Rest, Movement) forming persistent scaffolding independent of narrative scenes.
+
+The foundational action layer ensuring player freedom and preventing dead ends. Atmospheric actions are ALWAYS present at every location regardless of scene state - player can always travel to earn money, work to gain coins, rest to recover, move between nearby locations. These actions exist in parallel with scene-based narrative actions, not replacing them. When scenes complete or expire, atmospheric actions remain, guaranteeing forward progress options.
+
+**Example:** Player at Market Square with no active scenes. Atmospheric actions available: (1) Travel (initiate route to another venue, earn delivery coins), (2) Work (perform odd jobs, immediate coin income), (3) Rest (consume food/lodging, restore Health/Stamina), (4) Move to Adjacent Location (intra-venue navigation). Scene spawns offering "Investigate Missing Goods" - scene action appears alongside atmospheric actions. Player selects investigation, completes scene. Scene disappears. Atmospheric actions still present - never trapped with "nothing to do."
+
+**Distinguishing from:** Scene-Based Actions (temporary narrative content), Static Actions (technical term emphasizing implementation). Atmospheric emphasizes design role as persistent baseline.
+
+**Cross-reference:** Core Game Loop, Delivery Loop, Guaranteed Progression, No Soft-Lock, Four-Choice Archetype, Scene-Based Action
+
+---
+
+### Scene-Based Action
+
+**Definition:** Temporary narrative action available only while parent Scene/Situation is active, providing dynamic story content.
+
+The dynamic action layer creating narrative variety and progression. Scene-based actions appear when scenes spawn (A-story progression, B-story opportunities, C-story moments), present choices within active situations, then disappear when situations complete or scenes expire. Examples: "Negotiate with innkeeper for room," "Investigate crime scene," "Help stranded traveler on route." These actions layer on top of persistent atmospheric actions, not replacing them. Player sees BOTH atmospheric baseline AND scene-based narrative options simultaneously.
+
+**Example:** Scene A spawns at Market Square: "Missing Merchant Investigation." Situation 1 presents actions: (1) "Search warehouse" (Mental challenge), (2) "Question witnesses" (Social challenge), (3) "Examine ledgers" (Insight check), (4) "Report to guard captain" (fallback). Player selects warehouse search. Situation completes, advances to Situation 2 with different actions. Scene completes. All scene-based actions disappear. Atmospheric actions (Travel/Work/Rest/Move) still present.
+
+**Distinguishing from:** Atmospheric Action Layer (persistent scaffolding), Ephemeral Action (technical term). Scene-based emphasizes design role as temporary narrative content.
+
+**Cross-reference:** A-Story, B-Story, C-Story, Scene-Situation-Choice Flow, Atmospheric Action Layer
+
+---
+
 ### A-Story
 
 **Definition:** The primary narrative progression thread providing infinite structure without resolution.

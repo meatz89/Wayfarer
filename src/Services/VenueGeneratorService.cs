@@ -34,8 +34,8 @@ public class VenueGeneratorService
         // 2. Find unoccupied hex cluster based on allocation strategy
         AxialCoordinates centerHex = FindUnoccupiedCluster(template.HexAllocation, gameWorld);
 
-        // 3. Generate unique venue ID
-        string venueId = $"generated_venue_{Guid.NewGuid().ToString().Substring(0, 8)}";
+        // 3. Generate unique venue ID (pure identifier, no encoded metadata)
+        string venueId = Guid.NewGuid().ToString();
 
         // 4. Replace placeholders in name/description
         string venueName = ReplacePlaceholders(template.NamePattern, context, districtId);

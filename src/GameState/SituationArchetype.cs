@@ -1,5 +1,35 @@
 
 /// <summary>
+/// Categorizes situation archetypes by choice generation pattern.
+/// Used for routing to specialized choice generators instead of ID string matching.
+/// </summary>
+public enum ArchetypeCategory
+{
+    /// <summary>
+    /// Standard 4-choice archetype (stat-gated, money, challenge, fallback)
+    /// </summary>
+    Standard,
+
+    /// <summary>
+    /// Service negotiation archetype (inn booking, service contracts)
+    /// Has specialized choice generation logic
+    /// </summary>
+    ServiceNegotiation,
+
+    /// <summary>
+    /// Service execution archetype (rest at inn, consume service)
+    /// Has specialized choice generation logic
+    /// </summary>
+    ServiceExecutionRest,
+
+    /// <summary>
+    /// Service departure archetype (leaving service venue)
+    /// Has specialized choice generation logic
+    /// </summary>
+    ServiceDeparture
+}
+
+/// <summary>
 /// SituationArchetype - mechanical template for procedural situation generation
 /// Defines the 4-choice structure pattern that players learn to recognize and prepare for
 ///
@@ -27,6 +57,12 @@ public class SituationArchetype
     /// Display name for this archetype
     /// </summary>
     public string Name { get; init; }
+
+    /// <summary>
+    /// Archetype category for choice generation routing.
+    /// Enables enum-based switching instead of ID string matching.
+    /// </summary>
+    public ArchetypeCategory Category { get; init; } = ArchetypeCategory.Standard;
 
     /// <summary>
     /// Primary domain where this archetype commonly appears

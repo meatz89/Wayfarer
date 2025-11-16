@@ -52,8 +52,9 @@ public class FallbackPathTests : IntegrationTestBase
     {
         // ARRANGE
         GameWorld gameWorld = GetGameWorld();
+        // Semantic query by category and sequence instead of hardcoded ID
         SceneTemplate a1 = gameWorld.SceneTemplates
-            .First(st => st.Id == "a1_secure_lodging");
+            .First(st => st.Category == StoryCategory.MainStory && st.MainStorySequence == 1);
 
         // ACT & ASSERT
         Assert.Equal(3, a1.SituationTemplates.Count); // Inn lodging = 3 situations
@@ -75,8 +76,9 @@ public class FallbackPathTests : IntegrationTestBase
     {
         // ARRANGE
         GameWorld gameWorld = GetGameWorld();
+        // Semantic query by category and sequence instead of hardcoded ID
         SceneTemplate a2 = gameWorld.SceneTemplates
-            .First(st => st.Id == "a2_morning");
+            .First(st => st.Category == StoryCategory.MainStory && st.MainStorySequence == 2);
 
         // ACT & ASSERT
         foreach (SituationTemplate situation in a2.SituationTemplates)
@@ -96,8 +98,9 @@ public class FallbackPathTests : IntegrationTestBase
     {
         // ARRANGE
         GameWorld gameWorld = GetGameWorld();
+        // Semantic query by category and sequence instead of hardcoded ID
         SceneTemplate a3 = gameWorld.SceneTemplates
-            .First(st => st.Id == "a3_route_travel");
+            .First(st => st.Category == StoryCategory.MainStory && st.MainStorySequence == 3);
 
         // ACT & ASSERT
         Assert.Equal(5, a3.SituationTemplates.Count); // Route = 5 situations (4 segments + arrival)

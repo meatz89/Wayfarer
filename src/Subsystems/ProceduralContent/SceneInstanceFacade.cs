@@ -78,7 +78,8 @@ public class SceneInstanceFacade
         }
 
         // PHASE 2.2: Write JSON to disk
-        string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N").Substring(0, 8)}_package";
+        // No .Substring() on GUID (forbidden operation per CLAUDE.md)
+        string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}_package";
         await _contentGenerationFacade.CreateDynamicPackageFile(packageJson, packageId);
 
         // PHASE 2.3: Load package via PackageLoader (HIGHLANDER: JSON → Parser → Entity)

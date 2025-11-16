@@ -48,9 +48,8 @@ public class SceneFacade
 
     /// <summary>
     /// Get all actions available at a location
-    /// TRIGGERS: Situation Dormant → Active transition
-    /// CREATES: LocationActions from ChoiceTemplates
-    /// CREATES: Provisional Scenes for actions with spawn rewards
+    /// THREE-TIER TIMING MODEL: Creates ephemeral actions (Tier 3) fresh on every query
+    /// Actions never stored, always rebuilt from ChoiceTemplates
     /// Called by UI when player enters location
     /// </summary>
     public List<LocationAction> GetActionsAtLocation(string locationId, Player player)
@@ -66,76 +65,50 @@ public class SceneFacade
 
         foreach (Scene scene in scenes)
         {
-            // PHASE 1.3: Skip completed scenes (state machine method)
+            // Skip completed scenes
             if (scene.IsComplete()) continue;
 
             // Get current Situation (direct object reference)
             Situation situation = scene.CurrentSituation;
-
             if (situation == null) continue;
 
-            // STATE TRANSITION: Deferred → Instantiated
-            if (situation.InstantiationState == InstantiationState.Deferred)
+            // Create actions fresh from ChoiceTemplates (ephemeral, not stored)
+            foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
             {
-                ActivateSituationForLocation(situation, scene, player);
+                LocationAction action = new LocationAction
+                {
+                    Name = choiceTemplate.ActionTextTemplate,
+                    Description = "",
+                    ChoiceTemplate = choiceTemplate,
+                    SituationId = situation.Id,
+
+                    // Legacy properties (empty - use ChoiceTemplate)
+                    RequiredProperties = new List<LocationPropertyType>(),
+                    OptionalProperties = new List<LocationPropertyType>(),
+                    ExcludedProperties = new List<LocationPropertyType>(),
+                    Costs = new ActionCosts(),
+                    Rewards = new ActionRewards(),
+                    TimeRequired = 0,
+                    Availability = new List<TimeBlocks>(),
+                    Priority = 100
+                };
+
+                // PERFECT INFORMATION: Generate scene previews from template metadata
+                action.ScenePreviews = GenerateScenePreviews(choiceTemplate, scene, player);
+
+                allActions.Add(action); // Add to return list only (NOT stored in GameWorld)
             }
-
-            // Fetch already-instantiated actions
-            List<LocationAction> situationActions = _gameWorld.LocationActions
-                .Where(a => a.SituationId == situation.Id)
-                .ToList();
-
-            allActions.AddRange(situationActions);
         }
 
         return allActions;
-    }
-
-    /// <summary>
-    /// Activate dormant Situation for Location context
-    /// Instantiates ChoiceTemplates → LocationActions
-    /// Creates provisional Scenes for actions with spawn rewards
-    /// </summary>
-    private void ActivateSituationForLocation(Situation situation, Scene scene, Player player)
-    {
-        situation.InstantiationState = InstantiationState.Instantiated;
-
-        // Instantiate actions from ChoiceTemplates
-        foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
-        {
-            LocationAction action = new LocationAction
-            {
-                Id = $"{situation.Id}_action_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
-                Name = choiceTemplate.ActionTextTemplate,
-                Description = "",
-                ChoiceTemplate = choiceTemplate,
-                SituationId = situation.Id,
-
-                // Legacy properties (empty - use ChoiceTemplate)
-                RequiredProperties = new List<LocationPropertyType>(),
-                OptionalProperties = new List<LocationPropertyType>(),
-                ExcludedProperties = new List<LocationPropertyType>(),
-                Costs = new ActionCosts(),
-                Rewards = new ActionRewards(),
-                TimeRequired = 0,
-                Availability = new List<TimeBlocks>(),
-                Priority = 100
-            };
-
-            // PERFECT INFORMATION: Generate scene previews from template metadata
-            action.ScenePreviews = GenerateScenePreviews(choiceTemplate, scene, player);
-
-            _gameWorld.LocationActions.Add(action);
-        }
     }
 
     // ==================== NPC CONTEXT ====================
 
     /// <summary>
     /// Get all actions available with an NPC
-    /// TRIGGERS: Situation Dormant → Active transition
-    /// CREATES: NPCActions from ChoiceTemplates
-    /// CREATES: Provisional Scenes for actions with spawn rewards
+    /// THREE-TIER TIMING MODEL: Creates ephemeral actions (Tier 3) fresh on every query
+    /// Actions never stored, always rebuilt from ChoiceTemplates
     /// Called by UI when player opens conversation with NPC
     /// </summary>
     public List<NPCAction> GetActionsForNPC(string npcId, Player player)
@@ -151,72 +124,47 @@ public class SceneFacade
 
         foreach (Scene scene in scenes)
         {
-            // PHASE 1.3: Skip completed scenes (state machine method)
+            // Skip completed scenes
             if (scene.IsComplete()) continue;
 
             // Get current Situation (direct object reference)
             Situation situation = scene.CurrentSituation;
-
             if (situation == null) continue;
 
-            // STATE TRANSITION: Dormant → Active
-            if (situation.InstantiationState == InstantiationState.Deferred)
+            // Get NPC from situation (direct object reference)
+            NPC npc = situation.Npc;
+
+            // Create actions fresh from ChoiceTemplates (ephemeral, not stored)
+            foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
             {
-                ActivateSituationForNPC(situation, scene, player);
+                NPCAction action = new NPCAction
+                {
+                    Name = choiceTemplate.ActionTextTemplate,
+                    Description = "",
+                    NPCId = npc?.ID,
+                    ChoiceTemplate = choiceTemplate,
+                    SituationId = situation.Id,
+                    ActionType = DetermineNPCActionType(choiceTemplate),
+                    ChallengeId = choiceTemplate.ChallengeId,
+                    ChallengeType = choiceTemplate.ChallengeType
+                };
+
+                // PERFECT INFORMATION: Generate scene previews from template metadata
+                action.ScenePreviews = GenerateScenePreviews(choiceTemplate, scene, player);
+
+                allActions.Add(action); // Add to return list only (NOT stored in GameWorld)
             }
-
-            // Fetch already-instantiated actions
-            List<NPCAction> situationActions = _gameWorld.NPCActions
-                .Where(a => a.SituationId == situation.Id)
-                .ToList();
-
-            allActions.AddRange(situationActions);
         }
 
         return allActions;
-    }
-
-    /// <summary>
-    /// Activate dormant Situation for NPC context
-    /// Instantiates ChoiceTemplates → NPCActions
-    /// Creates provisional Scenes for actions with spawn rewards
-    /// </summary>
-    private void ActivateSituationForNPC(Situation situation, Scene scene, Player player)
-    {
-        situation.InstantiationState = InstantiationState.Instantiated;
-
-        // ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
-        NPC npc = situation.Npc;
-
-        foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
-        {
-            NPCAction action = new NPCAction
-            {
-                Id = $"{situation.Id}_npcaction_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
-                Name = choiceTemplate.ActionTextTemplate,
-                Description = "",
-                NPCId = npc?.ID,
-                ChoiceTemplate = choiceTemplate,
-                SituationId = situation.Id,
-                ActionType = DetermineNPCActionType(choiceTemplate),
-                ChallengeId = choiceTemplate.ChallengeId,
-                ChallengeType = choiceTemplate.ChallengeType
-            };
-
-            // PERFECT INFORMATION: Generate scene previews from template metadata
-            action.ScenePreviews = GenerateScenePreviews(choiceTemplate, scene, player);
-
-            _gameWorld.NPCActions.Add(action);
-        }
     }
 
     // ==================== ROUTE CONTEXT ====================
 
     /// <summary>
     /// Get all path cards available on a route
-    /// TRIGGERS: Situation Dormant → Active transition
-    /// CREATES: PathCards from ChoiceTemplates
-    /// CREATES: Provisional Scenes for actions with spawn rewards
+    /// THREE-TIER TIMING MODEL: Creates ephemeral path cards (Tier 3) fresh on every query
+    /// Path cards never stored, always rebuilt from ChoiceTemplates
     /// Called by UI when player begins traveling route
     /// </summary>
     public List<PathCard> GetPathCardsForRoute(string routeId, Player player)
@@ -232,26 +180,37 @@ public class SceneFacade
 
         foreach (Scene scene in scenes)
         {
-            // PHASE 1.3: Skip completed scenes (state machine method)
+            // Skip completed scenes
             if (scene.IsComplete()) continue;
 
             // Get current Situation (direct object reference)
             Situation situation = scene.CurrentSituation;
-
             if (situation == null) continue;
 
-            // STATE TRANSITION: Dormant → Active
-            if (situation.InstantiationState == InstantiationState.Deferred)
+            // Create path cards fresh from ChoiceTemplates (ephemeral, not stored)
+            foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
             {
-                ActivateSituationForRoute(situation, scene, player);
+                PathCard pathCard = new PathCard
+                {
+                    Name = choiceTemplate.ActionTextTemplate,
+                    NarrativeText = "",
+                    ChoiceTemplate = choiceTemplate,
+
+                    // Legacy properties (default - use ChoiceTemplate)
+                    StartsRevealed = true,
+                    IsHidden = false,
+                    ExplorationThreshold = 0,
+                    IsOneTime = false,
+                    StaminaCost = 0,
+                    TravelTimeSegments = 0,
+                    StatRequirements = new Dictionary<string, int>()
+                };
+
+                // PERFECT INFORMATION: Generate scene previews from template metadata
+                pathCard.ScenePreviews = GenerateScenePreviews(choiceTemplate, scene, player);
+
+                allPathCards.Add(pathCard); // Add to return list only (NOT stored in GameWorld)
             }
-
-            // Fetch already-instantiated path cards
-            List<PathCard> situationCards = _gameWorld.PathCards
-                .Where(pc => pc.SituationId == situation.Id)
-                .ToList();
-
-            allPathCards.AddRange(situationCards);
         }
 
         return allPathCards;
@@ -259,9 +218,8 @@ public class SceneFacade
 
     /// <summary>
     /// Get path cards for specific route segment (geographic specificity)
-    /// READS: GameWorld.Scenes, GameWorld.PathCards
-    /// CREATES: PathCards from ChoiceTemplates
-    /// CREATES: Provisional Scenes for actions with spawn rewards
+    /// THREE-TIER TIMING MODEL: Creates ephemeral path cards (Tier 3) fresh on every query
+    /// Path cards never stored, always rebuilt from ChoiceTemplates
     /// Called by UI when player traveling at specific segment of route
     /// ARCHITECTURAL: Route segment situations enable geographic specificity (Tutorial A3 pattern)
     /// </summary>
@@ -279,64 +237,40 @@ public class SceneFacade
 
         foreach (Scene scene in scenes)
         {
-            // PHASE 1.3: Skip completed scenes (state machine method)
+            // Skip completed scenes
             if (scene.IsComplete()) continue;
 
             // Get current Situation (direct object reference)
             Situation situation = scene.CurrentSituation;
-
             if (situation == null) continue;
 
-            // STATE TRANSITION: Dormant → Active
-            if (situation.InstantiationState == InstantiationState.Deferred)
+            // Create path cards fresh from ChoiceTemplates (ephemeral, not stored)
+            foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
             {
-                ActivateSituationForRoute(situation, scene, player);
+                PathCard pathCard = new PathCard
+                {
+                    Name = choiceTemplate.ActionTextTemplate,
+                    NarrativeText = "",
+                    ChoiceTemplate = choiceTemplate,
+
+                    // Legacy properties (default - use ChoiceTemplate)
+                    StartsRevealed = true,
+                    IsHidden = false,
+                    ExplorationThreshold = 0,
+                    IsOneTime = false,
+                    StaminaCost = 0,
+                    TravelTimeSegments = 0,
+                    StatRequirements = new Dictionary<string, int>()
+                };
+
+                // PERFECT INFORMATION: Generate scene previews from template metadata
+                pathCard.ScenePreviews = GenerateScenePreviews(choiceTemplate, scene, player);
+
+                allPathCards.Add(pathCard); // Add to return list only (NOT stored in GameWorld)
             }
-
-            // Fetch already-instantiated path cards
-            List<PathCard> situationCards = _gameWorld.PathCards
-                .Where(pc => pc.SituationId == situation.Id)
-                .ToList();
-
-            allPathCards.AddRange(situationCards);
         }
 
         return allPathCards;
-    }
-
-    /// <summary>
-    /// Activate dormant Situation for Route context
-    /// Instantiates ChoiceTemplates → PathCards
-    /// Creates provisional Scenes for actions with spawn rewards
-    /// </summary>
-    private void ActivateSituationForRoute(Situation situation, Scene scene, Player player)
-    {
-        situation.InstantiationState = InstantiationState.Instantiated;
-
-        foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
-        {
-            PathCard pathCard = new PathCard
-            {
-                Id = $"{situation.Id}_pathcard_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
-                Name = choiceTemplate.ActionTextTemplate,
-                NarrativeText = "",
-                ChoiceTemplate = choiceTemplate,
-
-                // Legacy properties (default - use ChoiceTemplate)
-                StartsRevealed = true,
-                IsHidden = false,
-                ExplorationThreshold = 0,
-                IsOneTime = false,
-                StaminaCost = 0,
-                TravelTimeSegments = 0,
-                StatRequirements = new Dictionary<string, int>()
-            };
-
-            // PERFECT INFORMATION: Generate scene previews from template metadata
-            pathCard.ScenePreviews = GenerateScenePreviews(choiceTemplate, scene, player);
-
-            _gameWorld.PathCards.Add(pathCard);
-        }
     }
 
     // ==================== SHARED HELPERS ====================
