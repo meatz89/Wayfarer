@@ -277,83 +277,72 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 
 ---
 
-# ID ANTIPATTERN (NO STRING ENCODING/PARSING)
+# TYPE-SAFE ROUTING PRINCIPLE
 
-**FORBIDDEN:**
-- ❌ Encoding data in ID strings: `Id = $"move_to_{destinationId}"`
-- ❌ Parsing IDs to extract data: `StartsWith("move_to_")`, `Substring()`
-- ❌ String matching on IDs for routing: `if (action.Id.StartsWith(...))`
+**Principle:** Use strongly-typed enums for routing decisions and explicit properties for parameters. IDs exist only for uniqueness and debugging, never for conditional logic or data extraction.
 
-**CORRECT:**
+**Why:** Enum-based routing catches errors at compile time instead of runtime. String parsing hides intent in opaque manipulation and fails silently. Strongly-typed properties flow through the entire stack with compiler verification.
+
+**Correct pattern:**
 - ActionType enum as routing key (switch on enum, NOT ID)
 - Strongly-typed properties for parameters (DestinationLocationId property)
 - Properties flow through entire data stack (Domain → ViewModel → Intent)
 - Direct property access (action.DestinationLocationId), NO parsing
 
-**IDs Acceptable For:**
-1. Uniqueness (dictionary keys, UI rendering keys)
+**IDs are acceptable for:**
+1. Uniqueness (collection keys, UI rendering keys)
 2. Debugging/logging (display only, never logic)
 3. Simple passthrough (domain → ViewModel, no logic)
 
-**IDs NEVER For:**
+**Never use IDs for:**
 - Routing decisions (use ActionType enum)
 - Conditional logic (use strongly-typed properties)
-- Data extraction (add properties instead)
-
-**Enforcement:**
-- No `.Substring()`, `.Split()`, regex on IDs
-- No `.StartsWith()`, `.Contains()`, `.EndsWith()` on IDs
-- No `$"prefix_{data}"` patterns
-- ActionType routing, not ID matching
-- Properties flow: Domain → ViewModel → Intent
+- Data extraction (add explicit properties instead)
 
 ---
 
-# GENERIC PROPERTY MODIFICATION ANTIPATTERN
+# EXPLICIT PROPERTY PRINCIPLE
 
-**FORBIDDEN:**
-- ❌ `PropertyName` string field with runtime switch/if: `if (change.PropertyName == "IsLocked")`
-- ❌ String value storage requiring parsing: `NewValue = "true"` → `bool.Parse()`
-- ❌ Generic systems for hypothetical future properties (YAGNI violation)
-- ❌ Trying to be "flexible" via string-based routing instead of types
+**Principle:** Use explicit strongly-typed properties for state modifications. Never route property changes through string-based generic systems.
 
-**CORRECT:**
+**Why:** String property names require runtime parsing and fail silently. Strongly-typed properties catch errors at compile time and make intent explicit. Generic "flexible" systems are YAGNI violations - add properties when actually needed, not hypothetically.
+
+**Correct pattern:**
 - Explicit strongly-typed properties: `LocationsToUnlock`, `LocationsToLock`
 - Direct property modification: `location.IsLocked = false` (no string matching)
 - Add new properties when needed: `LocationsToHide`, `LocationsToReveal`
-- Each property one purpose only
+- Each property serves one purpose only
 
-**Enforcement:**
-- No string-based property routing fields
-- No runtime parsing (`bool.Parse`, `int.Parse` from strings)
-- No "extensible" generic modification systems
-- Catalogues for entity generation, explicit properties for state modification
+**Catalogues for entity generation, explicit properties for state modification.**
 
 ---
 
-# CUSTOM NAMESPACE ANTIPATTERN (HIDING CONFLICTS)
+# GLOBAL NAMESPACE PRINCIPLE
 
-**CRITICAL PRINCIPLE: Custom namespaces hide conflicts with redundant files and duplicate classes. Global namespace exposes conflicts immediately for cleanup.**
+**Principle:** Use global namespace for all domain code to expose conflicts immediately and eliminate organizational overhead.
 
-## THE POLICY
+**Why:** Custom namespaces hide duplicate classes and redundant implementations by allowing them to coexist in different namespaces. Directory structure already provides organization. Global namespace forces the compiler to detect conflicts, eliminates boilerplate, and reduces refactoring friction.
 
-**FORBIDDEN:**
-- ❌ Custom namespaces for domain code (GameState, Services, Subsystems, Repositories, Models, Infrastructure)
-- ❌ `namespace Wayfarer.GameState;` declarations
-- ❌ `namespace Wayfarer.Services;` declarations
-- ❌ `namespace Wayfarer.Subsystems.*;` declarations
-- ❌ Any namespace declaration outside of Blazor/UI components
+## Policy
 
-**ALLOWED:**
-- ✓ Blazor component namespaces ONLY: `namespace Wayfarer.Pages.Components;`
-- ✓ Test project namespaces: `namespace Wayfarer.Tests;`
-- ✓ Global namespace (no namespace declaration) for ALL domain code
+**Domain code (GameState, Services, Subsystems, etc.):**
+- No namespace declarations
+- All classes globally available
+- Compiler enforces uniqueness
 
-## WHY CUSTOM NAMESPACES ARE HARMFUL
+**Blazor components (framework requirement):**
+- `namespace Wayfarer.Pages.Components;` allowed
+- Razor runtime requires namespaces
+
+**Test projects:**
+- `namespace Wayfarer.Tests;` allowed
+- Standard test project convention
+
+## Why Custom Namespaces Are Architecturally Harmful
 
 ### 1. Hiding Duplicate Classes
 
-**With custom namespaces (FORBIDDEN):**
+**With custom namespaces (PROBLEM):**
 ```csharp
 // File: GameState/MessageCategory.cs
 namespace Wayfarer.GameState;
@@ -367,7 +356,7 @@ public enum MessageCategory { ... } // DUPLICATE HIDDEN BY NAMESPACE!
 // Code becomes confusing - which MessageCategory is authoritative?
 ```
 
-**Without namespaces (CORRECT):**
+**Without namespaces (SOLUTION):**
 ```csharp
 // File: GameState/MessageCategory.cs
 public enum MessageCategory { ... }
@@ -456,7 +445,7 @@ Moving a class between directories WITHOUT namespaces:
 
 **Global namespace = zero refactoring overhead.**
 
-## CORRECT PATTERN
+## Correct Pattern
 
 **Domain code (GameState, Services, Subsystems, etc.):**
 ```csharp
@@ -492,37 +481,7 @@ public class MessageDisplayBase : ComponentBase
 
 **Blazor components need namespaces for Razor runtime.**
 
-## ENFORCEMENT
-
-**Code review checklist - REJECT pull requests with:**
-- ❌ `namespace Wayfarer.GameState;` in domain code
-- ❌ `namespace Wayfarer.Services;` in facade code
-- ❌ `namespace Wayfarer.Subsystems.*;` in subsystem code
-- ❌ `using Wayfarer.*;` statements (except in Blazor components if absolutely needed)
-- ❌ Multiple classes with same name in different custom namespaces
-
-**Code review checklist - APPROVE pull requests with:**
-- ✓ Domain code with NO namespace declarations
-- ✓ Blazor components with `namespace Wayfarer.Pages.Components;` ONLY
-- ✓ Compiler errors forcing duplicate class cleanup
-- ✓ Zero using statements for domain code
-
-**Verification commands:**
-```bash
-# Find custom namespace declarations in domain code (should be empty)
-grep -r "^namespace Wayfarer" src/GameState src/Services src/Subsystems src/Repositories src/Models --include="*.cs"
-
-# Find using statements for custom namespaces (should only be in Blazor files)
-grep -r "^using Wayfarer\." src --include="*.cs" | grep -v "Pages/Components"
-```
-
-**If violations found:**
-- Remove namespace declarations from domain code
-- Remove using statements from consuming files
-- Let compiler find and fix duplicate classes
-- Move/delete redundant implementations
-
-## THE PRINCIPLE
+## The Principle
 
 **Namespaces for LIBRARIES (external consumption).**
 **NO namespaces for APPLICATIONS (internal code).**
@@ -535,9 +494,11 @@ This is an application, not a library. Global namespace is correct.
 
 ---
 
-# DICTIONARY/HASHSET ANTIPATTERN (PREMATURE OPTIMIZATION)
+# DOMAIN COLLECTION PRINCIPLE
 
-**CRITICAL PRINCIPLE: This is a synchronous, browser-based, single-player game with minimal scale. Performance optimization is PREMATURE and HARMFUL.**
+**Principle:** Use `List<T>` with LINQ for all domain entity collections to optimize for maintainability and semantic clarity.
+
+**Why:** This is a small-scale, single-player, turn-based game where performance optimization is premature. Dictionary/HashSet optimize for scale this game doesn't have, while introducing complexity, semantic dishonesty, and debugging friction. List<T> with LINQ provides readable domain queries, fail-fast errors, and architectural purity.
 
 ## THE GAME CONTEXT (WHY PERFORMANCE DOESN'T MATTER)
 
@@ -568,7 +529,7 @@ Using Dictionary/HashSet for "performance" is like using a forklift to carry a s
 2. The complexity cost is very real and very harmful
 3. The maintainability burden compounds over time
 
-## WHY DICTIONARY/HASHSET ARE ARCHITECTURALLY WRONG
+## Why Dictionary/HashSet Are Architecturally Wrong
 
 **Dictionary/HashSet optimize for SCALE. This game doesn't SCALE. Therefore, optimization is PREMATURE.**
 
@@ -802,7 +763,7 @@ var npc = _npcs.FirstOrDefault(n => n.Id == id); // Domain query, safe
 
 **The repository stores ENTITIES, not KEY-VALUE PAIRS.** GameWorld is a domain model, not a database schema.
 
-## THE ROOT PRINCIPLE
+## The Root Principle
 
 **Dictionary/HashSet optimize for SCALE.**
 **This game doesn't SCALE.**
@@ -823,7 +784,7 @@ Using Dictionary for 20 NPCs is like:
 
 "You're using a DICTIONARY for 20 NPCS? That's like using a FORKLIFT to carry a SANDWICH! O(1) lookup? For TWENTY ENTITIES? The performance gain is ONE MICROSECOND! Your browser takes SIXTEEN MILLISECONDS to render a FRAME! You've added complexity for LITERALLY ZERO BENEFIT! This is OVER-ENGINEERED NONSENSE!"
 
-## WHAT TO USE INSTEAD
+## Correct Pattern
 
 **ALWAYS use `List<T>` for entity collections:**
 
@@ -865,44 +826,7 @@ public List<NPC> GetFriendlyNPCs()
 - Testable (pure functions, no side effects)
 - Type-safe (compiler catches errors)
 
-## ENFORCEMENT
-
-**Code review checklist - REJECT pull requests with:**
-- ❌ `Dictionary<string, NPC>` or similar entity dictionaries
-- ❌ `HashSet<string>` for entity ID storage
-- ❌ `Dictionary<string, Location>` for location lookups
-- ❌ `ConcurrentDictionary` (no concurrency in this game!)
-- ❌ Any `Dictionary` or `HashSet` for domain entity storage
-- ❌ Comments justifying Dictionary "for performance"
-- ❌ `.TryGetValue()` patterns spreading through codebase
-- ❌ `_entityLookup`, `_entityCache`, `_entityIndex` naming patterns
-
-**Code review checklist - APPROVE pull requests with:**
-- ✓ `List<NPC>`, `List<Location>`, `List<Scene>` entity collections
-- ✓ LINQ queries: `.FirstOrDefault()`, `.Where()`, `.Select()`, `.OrderBy()`
-- ✓ Domain queries that read like English
-- ✓ Fail-fast null handling at call sites
-- ✓ Simple, readable, maintainable code
-
-**Verification commands:**
-```bash
-# Find Dictionary usage in domain code
-grep -r "Dictionary<" src/GameState src/Services src/Subsystems --include="*.cs"
-
-# Find HashSet usage in domain code
-grep -r "HashSet<" src/GameState src/Services src/Subsystems --include="*.cs"
-
-# Find TryGetValue patterns
-grep -r "TryGetValue" src --include="*.cs"
-```
-
-**Refactoring existing Dictionary usage:**
-- All existing Dictionary usage for entities is TECHNICAL DEBT
-- Replace systematically: Dictionary → List, `[id]` → `.FirstOrDefault(x => x.Id == id)`
-- No new Dictionary usage for domain entities (zero tolerance)
-- Document refactorings in commit messages
-
-## RARE EXCEPTIONS (WHEN DICTIONARY IS ACCEPTABLE)
+## Rare Exceptions (When Dictionary Is Acceptable)
 
 **Dictionary is acceptable ONLY for:**
 
@@ -928,15 +852,14 @@ grep -r "TryGetValue" src --include="*.cs"
    Dictionary<string, OllamaResponse> _responseCache;
    ```
 
-**Dictionary is NEVER acceptable for:**
-- ❌ GameWorld entity collections (NPCs, Locations, Scenes, Routes, Items)
-- ❌ Player state (inventory, stats, relationships)
-- ❌ Game session data (visited locations, completed scenes)
-- ❌ Any domain entity storage
+**Dictionary is NEVER acceptable for domain entities:**
+- GameWorld entity collections (NPCs, Locations, Scenes, Routes, Items)
+- Player state (inventory, stats, relationships)
+- Game session data (visited locations, completed scenes)
 
 **The test:** If it's a domain entity or game state, use `List<T>`. No exceptions.
 
-## SUMMARY
+## Summary
 
 **This game optimizes for MAINTAINABILITY, not PERFORMANCE.**
 
