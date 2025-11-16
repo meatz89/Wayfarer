@@ -128,10 +128,15 @@ public class SceneInstanceFacade
         };
 
         // Set provenance and generate routes for locations
+        // ARCHITECTURAL FIX: Find locations by scene provenance (created with this scene)
+        // Locations are now created with SceneProvenance, no need for composite ID lookup
         foreach (DependentLocationSpec locationSpec in template.DependentLocations)
         {
-            string locationId = $"{scene.Id}_{locationSpec.TemplateId}";
-            Location location = _gameWorld.GetLocation(locationId);
+            // Find location by template and provenance (locations created by this scene)
+            Location location = _gameWorld.Locations
+                .FirstOrDefault(loc => loc.Provenance?.SceneId == scene.Id &&
+                                      loc.LocationTemplate?.Id == locationSpec.TemplateId);
+
             if (location != null)
             {
                 location.Provenance = provenance;
@@ -149,10 +154,14 @@ public class SceneInstanceFacade
         }
 
         // Set provenance and add items to inventory (if specified in spec)
+        // ARCHITECTURAL FIX: Find items by scene provenance (created with this scene)
         foreach (DependentItemSpec itemSpec in template.DependentItems)
         {
-            string itemId = $"{scene.Id}_{itemSpec.TemplateId}";
-            Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
+            // Find item by template and provenance (items created by this scene)
+            Item item = _gameWorld.Items
+                .FirstOrDefault(i => i.Provenance?.SceneId == scene.Id &&
+                                    i.ItemTemplate?.Id == itemSpec.TemplateId);
+
             if (item != null)
             {
                 item.Provenance = provenance;
@@ -174,9 +183,10 @@ public class SceneInstanceFacade
     ///
     /// RUNTIME GUARDS: Validates required entities still exist (spawn-to-interaction gap protection)
     ///
+    /// ARCHITECTURAL FIX: Accepts object references instead of string IDs
     /// Returns list of Situation instances matching context
     /// </summary>
-    public List<Situation> GetSituationsAtContext(string locationId, string npcId = null)
+    public List<Situation> GetSituationsAtContext(Location location, NPC npc = null)
     {
         List<Situation> matchingSituations = new();
 
@@ -193,29 +203,25 @@ public class SceneInstanceFacade
                 if (situation.IsCompleted)
                     continue;
 
-                // Hierarchical placement: Situation has direct object reference
-                string requiredLocationId = situation.Location?.Id;
-
                 // RUNTIME GUARD: Validate required location still exists in GameWorld
                 if (situation.Location != null && !_gameWorld.Locations.Contains(situation.Location))
                 {
-                    Console.WriteLine($"[SceneInstanceFacade] Situation '{situation.Id}' requires deleted location '{situation.Location.Id}' - skipping");
+                    Console.WriteLine($"[SceneInstanceFacade] Situation '{situation.Name}' requires deleted location '{situation.Location.Name}' - skipping");
                     continue; // Entity deleted between spawn and interaction - skip situation
                 }
 
-                bool locationMatches = string.IsNullOrEmpty(requiredLocationId) || requiredLocationId == locationId;
-
-                // Hierarchical placement: Situation has direct object reference
-                string requiredNpcId = situation.Npc?.ID;
+                // Object reference comparison (no ID extraction)
+                bool locationMatches = situation.Location == null || situation.Location == location;
 
                 // RUNTIME GUARD: Validate required NPC still exists in GameWorld
                 if (situation.Npc != null && !_gameWorld.NPCs.Contains(situation.Npc))
                 {
-                        Console.WriteLine($"[SceneInstanceFacade] Situation '{situation.Id}' requires deleted NPC '{requiredNpcId}' - skipping");
-                        continue; // Entity deleted between spawn and interaction - skip situation
-                    }
+                    Console.WriteLine($"[SceneInstanceFacade] Situation '{situation.Name}' requires deleted NPC '{situation.Npc.Name}' - skipping");
+                    continue; // Entity deleted between spawn and interaction - skip situation
+                }
 
-                bool npcMatches = string.IsNullOrEmpty(requiredNpcId) || requiredNpcId == npcId;
+                // Object reference comparison (no ID extraction)
+                bool npcMatches = situation.Npc == null || situation.Npc == npc;
 
                 if (locationMatches && npcMatches)
                 {

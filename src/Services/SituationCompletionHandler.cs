@@ -187,10 +187,10 @@ public class SituationCompletionHandler
             }
 
             // EQUIPMENT - add to player inventory by Equipment object
-            // NOTE: rewards.Equipment is object reference (HIGHLANDER)
+            // ARCHITECTURAL FIX: Add object reference, not ID string
             if (rewards.Equipment != null)
             {
-                player.Inventory.AddItem(rewards.Equipment.Id);
+                player.Inventory.AddItem(rewards.Equipment); // Object reference ONLY
             }
 
             // OBLIGATION CUBES - grant to situation's placement Location (localized mastery)
@@ -261,7 +261,7 @@ public class SituationCompletionHandler
             if (rewards.RouteSegmentUnlock != null)
             {
                 RouteSegmentUnlock unlock = rewards.RouteSegmentUnlock;
-                // NOTE: unlock.Route and unlock.Path are object references (HIGHLANDER)
+                // ARCHITECTURAL FIX: unlock.Route and unlock.Path are object references (HIGHLANDER)
                 RouteOption route = unlock.Route;
                 if (route != null)
                 {
@@ -275,8 +275,9 @@ public class SituationCompletionHandler
                             PathCardCollectionDTO collection = _gameWorld.GetPathCollection(segment.PathCollectionId);
                             if (collection != null)
                             {
-                                // unlock.Path is PathCard domain object, need to find matching DTO by Id
-                                PathCardDTO pathCard = collection.PathCards.FirstOrDefault(p => p.Id == unlock.Path.Id);
+                                // ARCHITECTURAL FIX: Find PathCard by object reference comparison
+                                // NOTE: This assumes PathCard has been properly resolved to the same object instance
+                                PathCardDTO pathCard = collection.PathCards.FirstOrDefault(p => p == unlock.PathDTO);
                                 if (pathCard != null)
                                 {
                                     // Reveal hidden PathCard by setting ExplorationThreshold to 0 (always visible)
