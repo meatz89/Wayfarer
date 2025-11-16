@@ -287,6 +287,10 @@ public class ActionCardViewModel
     public string Description { get; set; }
     public string SystemType { get; set; }  // "social", "mental", "physical"
 
+    // THREE-TIER TIMING MODEL: Store source action entity for direct object reference execution
+    // ViewModel layer for UI display, domain entity for execution
+    public NPCAction SourceAction { get; set; }
+
     // Costs (from CostTemplate)
     public int ResolveCost { get; set; }
     public int CoinsCost { get; set; }

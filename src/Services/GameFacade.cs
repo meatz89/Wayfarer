@@ -1694,20 +1694,16 @@ public class GameFacade
     /// Execute LocationAction through unified action architecture
     /// HIGHLANDER PATTERN: All location actions flow through this method
     /// </summary>
-    public async Task<IntentResult> ExecuteLocationAction(string situationId, string actionId)
+    public async Task<IntentResult> ExecuteLocationAction(LocationAction action)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Verify Situation exists
-        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
+        // Verify Situation exists (get from action.SituationId)
+        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == action.SituationId);
         if (situation == null)
             return IntentResult.Failed();
 
-        // Actions stored in FLAT GameWorld collections (QUERY-TIME INSTANTIATION)
-        // Actions created by SceneFacade when Situation activated (Dormant → Active)
-        LocationAction action = _gameWorld.LocationActions.FirstOrDefault(a => a.Id == actionId && a.SituationId == situationId);
-        if (action == null)
-            return IntentResult.Failed();
+        // THREE-TIER TIMING MODEL: Action passed directly (ephemeral object, no lookup)
 
         // STEP 1: Validate and extract execution plan
         ActionExecutionPlan plan = _locationActionExecutor.ValidateAndExtract(action, player, _gameWorld);
@@ -1756,10 +1752,7 @@ public class GameFacade
                 ApplyLegacyRewards(plan.LegacyRewards);
             }
 
-            // CLEANUP: Delete all ephemeral actions for this Situation
-            // Actions are query-time instances, not persistent data
-            // After execution, remove them so they can be regenerated on next query
-            CleanupActionsForSituation(situationId);
+            // THREE-TIER TIMING MODEL: No cleanup needed (actions are ephemeral, not stored)
 
             // MULTI-SITUATION SCENE: Complete situation and advance scene
             // Scene.AdvanceToNextSituation() called by completion handler
@@ -1804,20 +1797,16 @@ public class GameFacade
     /// Execute NPCAction through unified action architecture
     /// HIGHLANDER PATTERN: All NPC actions flow through this method
     /// </summary>
-    public async Task<IntentResult> ExecuteNPCAction(string situationId, string actionId)
+    public async Task<IntentResult> ExecuteNPCAction(NPCAction action)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Verify Situation exists
-        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
+        // Verify Situation exists (get from action.SituationId)
+        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == action.SituationId);
         if (situation == null)
             return IntentResult.Failed();
 
-        // Actions stored in FLAT GameWorld collections (QUERY-TIME INSTANTIATION)
-        // Actions created by SceneFacade when Situation activated (Dormant → Active)
-        NPCAction action = _gameWorld.NPCActions.FirstOrDefault(a => a.Id == actionId && a.SituationId == situationId);
-        if (action == null)
-            return IntentResult.Failed();
+        // THREE-TIER TIMING MODEL: Action passed directly (ephemeral object, no lookup)
 
         // TRIGGER POINT 2: Record NPC interaction when action execution starts
         // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
@@ -1873,10 +1862,7 @@ public class GameFacade
                 ApplyLegacyRewards(plan.LegacyRewards);
             }
 
-            // CLEANUP: Delete all ephemeral actions for this Situation
-            // Actions are query-time instances, not persistent data
-            // After execution, remove them so they can be regenerated on next query
-            CleanupActionsForSituation(situationId);
+            // THREE-TIER TIMING MODEL: No cleanup needed (actions are ephemeral, not stored)
 
             // MULTI-SITUATION SCENE: Complete situation and advance scene
             // Scene.AdvanceToNextSituation() called by completion handler
@@ -1921,20 +1907,16 @@ public class GameFacade
     /// Execute PathCard through unified action architecture
     /// HIGHLANDER PATTERN: All path cards flow through this method
     /// </summary>
-    public async Task<IntentResult> ExecutePathCard(string situationId, string cardId)
+    public async Task<IntentResult> ExecutePathCard(PathCard card)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Verify Situation exists
-        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
+        // Verify Situation exists (get from card.SituationId)
+        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == card.SituationId);
         if (situation == null)
             return IntentResult.Failed();
 
-        // Actions stored in FLAT GameWorld collections (QUERY-TIME INSTANTIATION)
-        // PathCards created by SceneFacade when Situation activated (Dormant → Active)
-        PathCard card = _gameWorld.PathCards.FirstOrDefault(c => c.Id == cardId && c.SituationId == situationId);
-        if (card == null)
-            return IntentResult.Failed();
+        // THREE-TIER TIMING MODEL: PathCard passed directly (ephemeral object, no lookup)
 
         // STEP 1: Validate and extract execution plan
         ActionExecutionPlan plan = _pathCardExecutor.ValidateAndExtract(card, player, _gameWorld);
@@ -1968,10 +1950,7 @@ public class GameFacade
                 ApplyLegacyPathCardRewards(card);
             }
 
-            // CLEANUP: Delete all ephemeral actions for this Situation
-            // Actions are query-time instances, not persistent data
-            // After execution, remove them so they can be regenerated on next query
-            CleanupActionsForSituation(situationId);
+            // THREE-TIER TIMING MODEL: No cleanup needed (actions are ephemeral, not stored)
 
             // MULTI-SITUATION SCENE: Complete situation and advance scene
             // Scene.AdvanceToNextSituation() called by completion handler
@@ -2109,26 +2088,6 @@ public class GameFacade
     /// After action execution, delete all actions so they can be regenerated on next query
     /// This is CRITICAL for three-tier timing model (Query-time instantiation)
     /// </summary>
-    private void CleanupActionsForSituation(string situationId)
-    {
-        // Remove all ephemeral LocationActions for this Situation
-        _gameWorld.LocationActions.RemoveAll(a => a.SituationId == situationId);
-
-        // Remove all ephemeral NPCActions for this Situation
-        _gameWorld.NPCActions.RemoveAll(a => a.SituationId == situationId);
-
-        // Remove all ephemeral PathCards for this Situation
-        _gameWorld.PathCards.RemoveAll(pc => pc.SituationId == situationId);
-
-        // STATE MACHINE: Reset Situation to Dormant for re-entry
-        // Next time player enters context, SceneFacade will recreate actions fresh
-        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
-        if (situation != null)
-        {
-            situation.InstantiationState = InstantiationState.Deferred;
-        }
-    }
-
     private void ApplyLegacyRewards(ActionRewards rewards)
     {
         Player player = _gameWorld.GetPlayer();

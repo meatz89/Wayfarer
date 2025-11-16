@@ -15,6 +15,12 @@ public class GameWorld
     // HIGHLANDER: GameWorld.WorldHexGrid owns all Hex entities
     public HexMap WorldHexGrid { get; set; } = new HexMap();
 
+    // ATMOSPHERIC ACTION LAYER: Static gameplay actions (Travel, Work, Rest, Intra-Venue Movement)
+    // Generated once at parse-time from LocationActionCatalog
+    // Always available regardless of scene state - prevents dead ends and soft-locks
+    // DISTINCT from scene-spawned ephemeral actions (created fresh from ChoiceTemplates)
+    public List<LocationAction> LocationActions { get; set; } = new List<LocationAction>();
+
     public List<PlayerAction> PlayerActions { get; set; } = new List<PlayerAction>();
 
     // TimeBlock tracking for stranger refresh

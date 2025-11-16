@@ -102,7 +102,7 @@ public class PackageLoader
         // CATALOGUE PATTERN: Generate content from loaded entities (ONCE after all packages loaded)
         // Must happen AFTER all packages loaded because catalogues need complete entity lists
         GeneratePlayerActionsFromCatalogue();
-        GenerateLocationActionsFromCatalogue();
+        GenerateLocationActionsFromCatalogue(); // ATMOSPHERIC LAYER: Static gameplay actions (Travel/Work/Rest)
         GenerateProceduralRoutes();
         GenerateDeliveryJobsFromCatalogue();
 
@@ -287,7 +287,7 @@ public class PackageLoader
         // Load with skeletons allowed for dynamic content
         LoadPackageContent(package, allowSkeletons: true);
 
-        // Regenerate location actions for newly added locations
+        // Regenerate static location actions for dynamic packages
         // Dynamic packages may add locations that need intra-venue movement actions
         // Must regenerate for ALL locations because adjacency relationships may have changed
         GenerateLocationActionsFromCatalogue();
@@ -413,8 +413,13 @@ public class PackageLoader
             // Add generated actions to GameWorld
             foreach (LocationAction action in generatedActions)
             {
-                // Avoid duplicates if multiple packages loaded
-                if (!_gameWorld.LocationActions.Any(a => a.Id == action.Id))
+                // Avoid duplicates if multiple packages loaded (semantic deduplication, not ID matching)
+                bool isDuplicate = _gameWorld.LocationActions.Any(a =>
+                    a.ActionType == action.ActionType &&
+                    a.SourceLocationId == action.SourceLocationId &&
+                    a.DestinationLocationId == action.DestinationLocationId);
+
+                if (!isDuplicate)
                 {
                     _gameWorld.LocationActions.Add(action);
                 }
