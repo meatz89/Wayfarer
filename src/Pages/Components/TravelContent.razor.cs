@@ -257,9 +257,11 @@ namespace Wayfarer.Pages.Components
         {
             if (!CanTakeRoute(route)) return;
 
-            // Start a path cards journey instead of instant travel
-            TravelSession session = TravelManager.StartJourney(route.Route);
-            if (session != null)
+            // Use TravelFacade for path card journeys (not Intent - that's for instant travel)
+            // Facade handles validation, then delegates to TravelManager
+            bool success = TravelFacade.StartPathCardJourney(route.Route);
+
+            if (success)
             {
                 // Refresh to show the path cards interface
                 LoadTravelState();

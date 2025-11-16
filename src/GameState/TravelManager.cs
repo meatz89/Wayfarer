@@ -17,8 +17,9 @@ public class TravelManager
 
     /// <summary>
     /// Start a journey on a specific route, initializing a travel session
+    /// INTERNAL: Called by TravelFacade, not directly by UI
     /// </summary>
-    public TravelSession StartJourney(RouteOption route)
+    internal TravelSession StartJourney(RouteOption route)
     {
         // No lookup needed!
         if (route == null)

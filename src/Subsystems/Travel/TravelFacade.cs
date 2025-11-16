@@ -463,10 +463,9 @@ public class TravelFacade
     /// <summary>
     /// Start a new path card journey
     /// </summary>
-    public bool StartPathCardJourney(string routeId)
+    public bool StartPathCardJourney(RouteOption route)
     {
-        // Check if player can travel to the route
-        RouteOption route = GetRouteById(routeId);
+        // No lookup needed - route passed as object
         if (route == null)
         {
             return false;
@@ -486,7 +485,7 @@ public class TravelFacade
 
         // Delegate to TravelManager to actually start the journey
         // TravelManager will create the session and set up initial state
-        TravelSession session = _travelManager.StartJourney(routeId);
+        TravelSession session = _travelManager.StartJourney(route);
         return session != null;
     }
 
