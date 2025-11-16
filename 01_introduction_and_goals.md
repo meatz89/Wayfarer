@@ -100,6 +100,24 @@ The following quality goals are prioritized in three tiers, defining the archite
 
 **Rationale:** Relationships should feel natural, not backwards. Does explanation feel forced? Scenes spawn from Obligations (correct), not Locations own Scenes (backwards).
 
+**7. Maintainability Over Performance**
+- Code optimizes for long-term readability and debuggability
+- Use `List<T>` for domain entity collections (NOT Dictionary/HashSet)
+- LINQ queries over imperative loops (declarative over procedural)
+- Performance optimization explicitly deprioritized at current scale
+
+**Rationale:** This is a synchronous, browser-based, single-player, turn-based narrative game with minimal scale (20 NPCs, 30 Locations max). Performance optimization provides **literally zero measurable benefit** (List scan: 0.001ms, browser render: 16ms, human reaction: 200ms+) while imposing **significant maintainability cost**. Dictionary for 20 entities is premature optimization. Code should be CLEAR, not CLEVER.
+
+**See also:** [10_quality_requirements.md Section 10.1.1](10_quality_requirements.md) for game context analysis, [CLAUDE.md Dictionary/HashSet Antipattern](CLAUDE.md) for detailed enforcement.
+
+**8. Clarity Over Cleverness**
+- Code reads like prose expressing domain intent directly
+- Semantic honesty (method names match actual behavior exactly)
+- Domain-driven collections (entities, not indexes)
+- Fail-fast error handling (immediate null-reference at call site)
+
+**Rationale:** Code is read 10× more than written. Future maintainers (including AI assistants) must understand intent without explanation. Clever algorithms that save microseconds while obscuring meaning are rejected. Explicit domain types beat generic abstractions.
+
 ---
 
 ## 1.3 Stakeholders
@@ -129,12 +147,26 @@ The following quality goals are prioritized in three tiers, defining the archite
 - Single source of truth eliminating desync bugs
 - Explicit ownership preventing orphaned entities
 - Parse-time validation catching errors early
+- Code optimized for readability over performance (List<T> + LINQ, NOT Dictionary/HashSet)
+- Declarative LINQ queries over imperative loops
+- Domain-driven collections (entities, not indexes)
 
 **Concerns:**
 - Can I add new content without breaking existing systems?
 - Are dependencies explicit and manageable?
 - Does type system catch design errors at compile time?
 - Can I test features in isolation?
+- Is code readable and debuggable six months later?
+- Are performance optimizations necessary or premature?
+
+**Quality Priorities:**
+1. **Maintainability** (CRITICAL) - Code must be readable, debuggable, modifiable
+2. **Correctness** (CRITICAL) - Behavior matches domain semantics exactly
+3. **Testability** (CRITICAL) - Business logic verifiable via automated tests
+4. **Clarity** (Important) - Code reads like prose, expresses intent directly
+5. **Performance** (NOT REQUIRED) - Explicitly deprioritized at n=20 entity scale
+
+**See also:** [10_quality_requirements.md Section 10.1.1](10_quality_requirements.md) for non-functional quality requirements and game context, [CLAUDE.md](CLAUDE.md) for coding standards and enforcement.
 
 ### Content Authors (Game Designers)
 
@@ -160,30 +192,51 @@ The following quality goals are prioritized in three tiers, defining the archite
 **Expectations:**
 - Explicit coding standards (type restrictions, lambda rules, formatting)
 - Documented architectural patterns with enforcement rules
-- Investigation protocols before making changes
-- Semantic honesty (names match reality)
+- Investigation protocols before making changes (read docs FIRST, achieve 100% certainty)
+- Semantic honesty (names match reality, no backwards explanations)
 - Gordon Ramsay enforcement philosophy (partner, not sycophant)
+- Maintainability over performance (List<T> + LINQ, NOT Dictionary/HashSet)
+- Game context understanding (synchronous, browser-based, n=20 entities = performance irrelevant)
 
 **Concerns:**
 - Are constraints explicit and machine-verifiable?
-- Can I distinguish between principles and preferences?
+- Can I distinguish between principles (mandatory) and preferences (guidance)?
 - Will the codebase reject invalid changes automatically?
 - Are there clear tests for architectural correctness?
+- Why is Dictionary forbidden? (Game context: 0.001ms vs 16ms vs 200ms = unmeasurable benefit)
+- When is performance optimization premature? (Always, at this game's scale)
+
+**Critical Understanding:**
+This game optimizes for **MAINTAINABILITY, not PERFORMANCE**. Performance optimization provides zero measurable benefit (browser render 16ms, human reaction 200ms+ dominate timing). Dictionary/HashSet are **premature optimization** for n=20 entities. Use List<T> with LINQ queries. Code should be **CLEAR, not CLEVER**.
+
+**See also:** [CLAUDE.md](CLAUDE.md) for mandatory documentation protocol and Dictionary/HashSet antipattern, [10_quality_requirements.md](10_quality_requirements.md) for quality scenarios.
 
 ### Future Maintainers (Long-Term Stakeholders)
 
 **Interest:** Understanding system design decisions and rationale
 **Expectations:**
 - Architecture decision records (ADRs) documenting WHY choices were made
-- Principle priority hierarchy for conflict resolution
+- Principle priority hierarchy for conflict resolution (TIER 1 > TIER 2 > TIER 3)
 - Clear glossary of canonical term definitions
 - Implementation status matrix (what's real vs. planned)
+- Game context documentation explaining architectural choices (why no Dictionary)
+- Non-functional quality requirements (maintainability over performance)
 
 **Concerns:**
 - Why was this design chosen over alternatives?
 - Which principles take priority when they conflict?
 - What terminology is current vs. deprecated?
 - What features exist vs. are designed but not implemented?
+- Why is performance optimization deprioritized? (Game context: synchronous, browser-based, n=20 entities)
+- Why use List<T> instead of Dictionary? (Maintainability benefit >> unmeasurable performance cost)
+
+**Key Design Decisions:**
+- **Maintainability over Performance:** Code optimized for readability, not speed (List<T> + LINQ patterns)
+- **Game Context Drives Architecture:** Browser render (16ms) and human cognition (200ms+) dominate timing, data structure choice (0.001ms) irrelevant
+- **Premature Optimization Forbidden:** Dictionary/HashSet provide zero measurable benefit at n=20 entity scale
+- **Clarity over Cleverness:** Explicit domain types, declarative LINQ, fail-fast error handling
+
+**See also:** [09_architecture_decisions.md](09_architecture_decisions.md) for ADR-006 (principle priority hierarchy) and conflict resolution examples, [10_quality_requirements.md](10_quality_requirements.md) for detailed quality scenarios.
 
 ---
 
