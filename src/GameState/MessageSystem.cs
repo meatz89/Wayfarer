@@ -1,4 +1,6 @@
-﻿public class MessageSystem
+﻿namespace Wayfarer.GameState;
+
+public class MessageSystem
 {
     private readonly GameWorld _gameWorld;
 
