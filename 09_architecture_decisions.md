@@ -591,9 +591,189 @@ This meta-decision IS the alignment framework for all other principles.
 
 ---
 
+## ADR-007: Hex-Based Spatial Architecture (ID Elimination)
+
+> **For complete spatial hierarchy and location relationships**, see [03_context_and_scope.md](03_context_and_scope.md) and [05_building_block_view.md](05_building_block_view.md).
+
+### Status
+**Accepted** - Fundamental architectural pattern (currently violated, requires refactoring)
+
+### Context
+
+**Current Implementation (WRONG):**
+- Domain entities store synthetic ID strings (`NPC.ID`, `RouteOption.OriginLocationId`)
+- JSON files contain ID cross-references (`"locationId": "common_room"`, `"venueId": "brass_bell_inn"`)
+- Parsers perform ID lookups to resolve references (`gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId)`)
+- Redundant storage of both IDs and object references (RouteOption comment: "HIGHLANDER Pattern A (BOTH ID + Object)")
+- Routes manually defined in JSON with origin/destination ID references
+
+**Problems with ID-Based Architecture:**
+1. **Serialization Leakage**: IDs are JSON parsing artifacts polluting domain entities
+2. **Redundancy**: Entities store both ID strings AND object references
+3. **Violations Enabled**: Composite IDs, ID parsing, GetHashCode misuse
+4. **Manual Route Definition**: Routes hardcoded in JSON instead of generated procedurally
+
+**Architectural Intent (from code comments):**
+- Location.cs line 15: *"HIGHLANDER: Location.HexPosition is source of truth, Hex.LocationId is derived lookup"*
+- NPCParser.cs line 107: *"HIGHLANDER: ID is parsing artifact"*
+
+**System Context:**
+- Blazor Server in-process execution (no serialization between frontend/backend)
+- Hex-based world map for spatial scaffolding
+- Procedural route generation via A* pathfinding
+- Natural keys available (NPC.Name, Location.Name are unique)
+
+### Decision
+
+**Eliminate synthetic IDs from domain entities. Use hex-based spatial positioning and object references for all relationships.**
+
+**JSON Layer:**
+- Locations defined with hex coordinates (Q, R) indicating spatial position
+- NPCs defined with hex coordinates (where they spawn), NOT locationId cross-reference
+- Routes NOT defined in JSON - generated procedurally from hex grid
+- Hex grid defines terrain, danger levels, traversability at each coordinate
+
+**Parser Layer:**
+- Resolves spatial relationships via hex coordinate matching
+- Builds object graph during parsing without requiring ID lookups
+- Creates object references based on spatial proximity
+- IDs used temporarily during multi-pass parsing (if needed) but discarded before domain instantiation
+
+**Domain Layer:**
+- Entities have object references, NOT ID strings
+- NPC has `Location` object reference (no `ID`, `LocationId` properties)
+- RouteOption has `OriginLocation`, `DestinationLocation` objects (no ID strings)
+- Location.HexPosition (AxialCoordinates) is spatial source of truth
+
+**Runtime:**
+- Routes generated procedurally via pathfinding: `Origin.HexPosition → Destination.HexPosition`
+- Travel system navigates hex grid terrain and danger levels
+- No hardcoded route definitions - all routes emerge from spatial data
+
+**Identity When Needed:**
+- Use natural keys (NPC.Name, Location.Name) for debugging/logging
+- Natural keys are human-readable and domain-meaningful
+- Compiler enforces uniqueness where required
+
+### Consequences
+
+**Positive:**
+- **Eliminates Redundancy**: No duplicate storage (ID string + object reference)
+- **Prevents Violations**: No composite IDs, ID parsing, or GetHashCode misuse possible
+- **Procedural Generation**: Routes emerge from spatial data, not manual authoring
+- **Clear Domain Model**: Entities model game concepts, not database schemas
+- **Compile-Time Safety**: Object references catch errors at compile time vs runtime ID lookups
+
+**Negative:**
+- **Requires Refactoring**: Massive codebase change across JSON, DTOs, parsers, domain, services
+- **Migration Complexity**: Must update all 5 layers simultaneously (JSON → DTO → Parser → Entity → Services)
+- **Breaking Change**: Existing JSON files need restructuring (add Q,R coordinates, remove ID cross-references)
+
+**Technical Requirements:**
+- Add Q,R properties to LocationDTO, NPCDTO
+- Remove ID properties from all domain entities
+- Refactor parsers to use spatial resolution instead of ID lookups
+- Remove 04_connections.json (routes generated procedurally)
+- Update services to use object references instead of ID strings
+- Add unit tests for spatial resolution logic
+
+**Migration Strategy:**
+1. **Phase 1: Fix Immediate Violations** (Quick wins)
+   - NPC.cs line 148: Replace `ID.GetHashCode()` with dedicated `DeterministicSeed` property
+   - HexRouteGenerator.cs: Replace composite IDs with opaque GUIDs, add origin/destination object properties
+2. **Phase 2: JSON Restructuring** (Data layer)
+   - Add Q,R coordinates to all location JSON (source of truth for spatial position)
+   - Add Q,R coordinates to all NPC JSON (where they spawn)
+   - Remove locationId, venueId cross-references
+   - Delete 04_connections.json (routes generated procedurally)
+3. **Phase 3: Domain Entity Cleanup** (Model layer)
+   - Remove ID properties from NPC, RouteOption, Location
+   - Remove LocationId, OriginLocationId, DestinationLocationId redundant properties
+4. **Phase 4: Parser Refactoring** (Resolution layer)
+   - Spatial resolution: Match entities by hex coordinates
+   - Build object graph during parsing
+   - Eliminate ID lookup patterns
+5. **Phase 5: Service Layer Updates** (Application layer)
+   - Replace ID parameters with object parameters
+   - Remove `GetById` methods, use object references
+   - Update frontend to pass objects instead of ID strings
+
+### Alternatives Considered
+
+**Option 1: Keep IDs for "Performance"**
+- Rejected: O(1) lookup vs O(n) scan irrelevant for collections of size 20-100
+- Premature optimization (see DOMAIN COLLECTION PRINCIPLE in CLAUDE.md)
+- Complexity cost > performance benefit in this context
+
+**Option 2: Hybrid Approach (IDs in DTOs, Objects in Domain)**
+- Partially implemented currently (redundant storage pattern)
+- Rejected: Redundancy creates maintenance burden, enables violations
+- Better to eliminate IDs completely
+
+**Option 3: Lazy Loading via ID References**
+- Rejected: No database in this architecture, entities loaded at startup
+- Blazor Server in-process, no serialization boundary requiring lazy loading
+
+**Option 4: Keep ID Cross-References in JSON, Resolve at Parse Time**
+- Current implementation (being replaced)
+- Rejected: JSON structure should reflect spatial reality (hex coordinates), not parsing convenience
+
+### Principle Alignment
+
+- **Single Source of Truth (TIER 1)**: Location.HexPosition is spatial source of truth, eliminates ID redundancy
+- **No Soft-Locks (TIER 1)**: Procedural route generation ensures connectivity between all reachable locations
+- **Playability Over Compilation (TIER 2)**: Routes must be actually traversable, not just defined in JSON
+- **HIGHLANDER (TIER 3)**: One source of truth for entity positioning (hex coordinates), one relationship type (object references)
+- **Verisimilitude (TIER 3)**: Spatial relationships match player mental model (hex grid positions)
+
+### Current Violations
+
+1. **NPC.cs line 148**: `(currentDay * ID.GetHashCode()) % ExchangeDeck.Count` - Misusing ID for randomization
+2. **HexRouteGenerator.cs**: `routeId = $"route_{origin.Id}_{destination.Id}"` - Composite ID generation
+3. **All JSON files**: `"locationId": "common_room"` - ID cross-references instead of hex coordinates
+4. **RouteOption.cs lines 58-63**: Redundant storage of both ID strings and object references
+5. **04_connections.json**: Manual route definitions instead of procedural generation
+
+### Implementation Notes
+
+**Natural Key Pattern Example:**
+```csharp
+// CORRECT - Natural key for identity, object reference for relationship
+public class NPC
+{
+    public string Name { get; set; }  // Natural key (unique, human-readable)
+    public Location Location { get; set; }  // Object reference
+    public AxialCoordinates SpawnPosition { get; set; }  // Spatial data
+}
+
+// Parser resolves via spatial matching
+Location location = gameWorld.Locations.FirstOrDefault(l =>
+    l.HexPosition.Q == dto.Q && l.HexPosition.R == dto.R);
+npc.Location = location ?? throw new InvalidDataException($"No location at ({dto.Q}, {dto.R})");
+```
+
+**Procedural Route Generation Example:**
+```csharp
+// CORRECT - Routes generated from hex coordinates
+List<AxialCoordinates> hexPath = pathfinder.FindPath(
+    origin.HexPosition,
+    destination.HexPosition,
+    hexMap);
+
+RouteOption route = new RouteOption
+{
+    OriginLocation = origin,  // Object reference
+    DestinationLocation = destination,  // Object reference
+    HexPath = hexPath,  // Spatial path
+    DangerRating = hexPath.Sum(coord => hexMap.GetHex(coord).DangerLevel)
+};
+```
+
+---
+
 ## 9.2 Summary
 
-These six ADRs represent the foundational architectural decisions shaping Wayfarer:
+These seven ADRs represent the foundational architectural decisions shaping Wayfarer:
 
 1. **Infinite A-Story**: Never-ending journey without resolution
 2. **Resource Arithmetic**: Perfect information through numeric comparisons
@@ -601,6 +781,7 @@ These six ADRs represent the foundational architectural decisions shaping Wayfar
 4. **Parse-Time Translation**: Catalogues enable AI generation and dynamic scaling
 5. **ServerPrerendered Mode**: Fast initial load despite double-rendering complexity
 6. **Principle Priority**: Three-tier hierarchy resolves design conflicts
+7. **Hex-Based Spatial Architecture**: Object references and spatial positioning, no synthetic IDs
 
 **Common Themes:**
 - Player agency through perfect information
