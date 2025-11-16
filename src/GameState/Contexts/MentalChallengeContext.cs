@@ -16,11 +16,11 @@ public class MentalChallengeContext
     public string TimeDisplay { get; set; }
 
     /// <summary>
-    /// Situation ID for scene progression tracking
+    /// Situation for scene progression tracking (object reference, NO ID)
     /// Set when challenge started from scene choice
-    /// Used to find situation for LastChallengeSucceeded tracking
+    /// Used for LastChallengeSucceeded tracking and scene advancement
     /// </summary>
-    public string SituationId { get; set; }
+    public Situation Situation { get; set; }
 
     /// <summary>
     /// Reward to apply if mental challenge succeeds

@@ -9,8 +9,8 @@ public class SceneContext
     public string ErrorMessage { get; set; }
     public Scene Scene { get; set; }
     public Situation CurrentSituation { get; set; }
-    public string LocationId { get; set; }
-    public string LocationName { get; set; }
+    public Location Location { get; set; } // Object reference, NO ID
+    public string LocationName { get; set; } // Display name (redundant with Location.Name, but kept for UI convenience)
 
     public SceneContext()
     {

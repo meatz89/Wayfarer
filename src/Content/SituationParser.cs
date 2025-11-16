@@ -352,8 +352,10 @@ public static class SituationParser
 
     /// <summary>
     /// Parse list of BondChange from DTOs
+    /// NOTE: Currently dead code - BondChanges parsed in SceneTemplateParser only
+    /// Resolves NPC object references from NpcId strings
     /// </summary>
-    private static List<BondChange> ParseBondChanges(List<BondChangeDTO> dtos)
+    private static List<BondChange> ParseBondChanges(List<BondChangeDTO> dtos, GameWorld gameWorld)
     {
         if (dtos == null || dtos.Count == 0)
             return new List<BondChange>();
@@ -361,9 +363,16 @@ public static class SituationParser
         List<BondChange> bondChanges = new List<BondChange>();
         foreach (BondChangeDTO dto in dtos)
         {
+            NPC npc = gameWorld.NPCs.FirstOrDefault(n => n.ID == dto.NpcId);
+            if (npc == null)
+            {
+                Console.WriteLine($"[SituationParser.ParseBondChanges] WARNING: NPC '{dto.NpcId}' not found for BondChange");
+                continue; // Skip invalid bond change
+            }
+
             bondChanges.Add(new BondChange
             {
-                NpcId = dto.NpcId,
+                Npc = npc, // Object reference, NO ID
                 Delta = dto.Delta,
                 Reason = dto.Reason
             });

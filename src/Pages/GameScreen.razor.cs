@@ -102,7 +102,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         Location currentLocation = GameFacade.GetCurrentLocation();
         if (currentLocation != null)
         {
-            List<Scene> resumableScenes = SceneFacade.GetResumableScenesAtContext(currentLocation.Id, null);
+            List<Scene> resumableScenes = SceneFacade.GetResumableScenesAtContext(currentLocation, null);
             if (resumableScenes.Count > 0)
             {
                 Scene modalScene = resumableScenes.First();
@@ -166,20 +166,17 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     private string BuildLocationPath(string locationName)
     {
-        // Get the current venue directly from GameFacade by ID
+        // Get the current venue directly from GameFacade
         Venue venue = GameFacade.GetCurrentLocation().Venue;
         if (venue == null) return locationName;
 
-        // Get the district from the venue's district ID
-        if (string.IsNullOrEmpty(venue.District))
-            return venue.Name;
-
-        District district = GameFacade.GetDistrictById(venue.District);
+        // Get the district for the venue (object reference, NO ID lookup)
+        District district = GameFacade.GetDistrictForLocation(venue);
         if (district == null)
             return venue.Name;
 
-        // Get the region from the district
-        Region region = GameFacade.GetRegionForDistrict(district.Id);
+        // Get the region from the district (object reference, NO ID extraction)
+        Region region = GameFacade.GetRegionForDistrict(district);
 
         // Build the breadcrumb path
         List<string> path = new List<string>();
@@ -279,7 +276,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         switch (CurrentScreen)
         {
             case ScreenMode.SocialChallenge:
-                state.NpcId = CurrentSocialContext?.NpcId;
+                state.Npc = CurrentSocialContext?.Npc;
                 break;
         }
 
@@ -303,7 +300,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task StartExchange(NPC npc)
     {
-        CurrentExchangeContext = await GameFacade.CreateExchangeContext(npc.ID);
+        CurrentExchangeContext = await GameFacade.CreateExchangeContext(npc);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -585,7 +582,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             IsValid = true,
             Scene = scene,
             CurrentSituation = currentSituation,
-            LocationId = currentLocation?.Id,
+            Location = currentLocation, // Object reference, NO ID
             LocationName = currentLocation?.Name
         };
 
@@ -631,7 +628,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             IsValid = true,
             Scene = scene,
             CurrentSituation = currentSituation,
-            LocationId = currentLocation?.Id,
+            Location = currentLocation, // Object reference, NO ID
             LocationName = currentLocation?.Name
         };
 
@@ -968,13 +965,14 @@ public class ScreenContext
 
 /// <summary>
 /// Strongly typed state data for screen transitions
+/// NOTE: This is UI navigation state, not domain state
+/// Object references used where possible, IDs acceptable for serialization needs
 /// </summary>
 public class ScreenStateData
 {
-    public string NpcId { get; set; }
-    public string VenueId { get; set; }
-    public string TravelDestination { get; set; }
-    public string RequestId { get; set; }
-    public string SelectedCardId { get; set; }
-    public int? SelectedObligationIndex { get; set; }
+    public NPC Npc { get; set; } // Object reference for current NPC interaction
+    public string VenueId { get; set; } // May be needed for venue-based navigation
+    public string TravelDestination { get; set; } // May be needed for travel resumption
+    public string SelectedCardId { get; set; } // Card instance tracking
+    public int? SelectedObligationIndex { get; set; } // Obligation selection tracking
 }
