@@ -12,7 +12,7 @@ public class CardAnimationManager
     public static bool AnimationsEnabled = true;
 
     private readonly List<AnimatingCard> animatingCards = new();
-    private readonly Dictionary<string, CardAnimationState> cardStates = new();
+    private readonly List<CardAnimationState> cardStates = new();
 
     /// <summary>
     /// Get the list of currently animating cards (played cards only).
@@ -22,7 +22,7 @@ public class CardAnimationManager
     /// <summary>
     /// Get the current animation states for cards.
     /// </summary>
-    public Dictionary<string, CardAnimationState> CardStates => cardStates;
+    public List<CardAnimationState> CardStates => cardStates;
 
     /// <summary>
     /// SYNCHRONOUS PRINCIPLE: Mark a card for visual animation only.

@@ -18,10 +18,8 @@ public class ExchangeRewardStructure
 
     /// <summary>
     /// Tokens granted by this exchange.
-    /// Key: ConnectionType (Trust/Diplomacy/Status/Shadow)
-    /// Value: Number of tokens to grant
     /// </summary>
-    public Dictionary<ConnectionType, int> Tokens { get; set; } = new Dictionary<ConnectionType, int>();
+    public List<TokenCount> Tokens { get; set; } = new List<TokenCount>();
 
     /// <summary>
     /// Optional effects that trigger upon exchange completion.
@@ -46,11 +44,11 @@ public class ExchangeRewardStructure
             parts.Add($"1x {item}");
         }
 
-        foreach (KeyValuePair<ConnectionType, int> token in Tokens)
+        foreach (TokenCount token in Tokens)
         {
-            if (token.Value > 0)
+            if (token.Count > 0)
             {
-                parts.Add($"{token.Value} {token.Key} Token{(token.Value > 1 ? "s" : "")}");
+                parts.Add($"{token.Count} {token.Type} Token{(token.Count > 1 ? "s" : "")}");
             }
         }
 
