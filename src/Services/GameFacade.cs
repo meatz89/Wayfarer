@@ -788,7 +788,7 @@ public class GameFacade
 
             // Delivery job intents (Core Loop Phase 3)
             ViewJobBoardIntent => ProcessViewJobBoardIntent(),
-            AcceptDeliveryJobIntent accept => ProcessAcceptDeliveryJobIntent(accept.JobId),
+            AcceptDeliveryJobIntent accept => ProcessAcceptDeliveryJobIntent(accept.Job),
             CompleteDeliveryIntent => await ProcessCompleteDeliveryIntent(),
 
             // Conversation/NPC intents
@@ -1023,7 +1023,7 @@ public class GameFacade
         return IntentResult.NavigateView(LocationViewState.JobBoard);
     }
 
-    private IntentResult ProcessAcceptDeliveryJobIntent(string jobId)
+    private IntentResult ProcessAcceptDeliveryJobIntent(DeliveryJob job)
     {
         Player player = _gameWorld.GetPlayer();
 
@@ -1034,8 +1034,7 @@ public class GameFacade
             return IntentResult.Failed();
         }
 
-        // Get job and validate
-        DeliveryJob job = _gameWorld.GetJobById(jobId);
+        // Validate job is available
         if (job == null || !job.IsAvailable)
         {
             _messageSystem.AddSystemMessage("Job no longer available", SystemMessageTypes.Warning);
@@ -1043,7 +1042,7 @@ public class GameFacade
         }
 
         // Accept job
-        player.ActiveDeliveryJobId = jobId;
+        player.ActiveDeliveryJobId = job.Id;
         job.IsAvailable = false;
 
         _messageSystem.AddSystemMessage($"Accepted: {job.JobDescription}", SystemMessageTypes.Success);

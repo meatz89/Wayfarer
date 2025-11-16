@@ -200,11 +200,11 @@ public class ViewJobBoardIntent : PlayerIntent
 /// </summary>
 public class AcceptDeliveryJobIntent : PlayerIntent
 {
-    public string JobId { get; }
+    public DeliveryJob Job { get; }
 
-    public AcceptDeliveryJobIntent(string jobId)
+    public AcceptDeliveryJobIntent(DeliveryJob job)
     {
-        JobId = jobId;
+        Job = job;
     }
 }
 

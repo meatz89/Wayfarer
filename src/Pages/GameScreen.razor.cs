@@ -335,9 +335,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await NavigateToScreen(ScreenMode.Location);
     }
 
-    public async Task StartConversationSession(string npcId, string situationId)
+    public async Task StartConversationSession(NPC npc, Situation situation)
     {
-        CurrentSocialContext = await GameFacade.CreateConversationContext(npcId, situationId);
+        CurrentSocialContext = await GameFacade.CreateConversationContext(npc, situation);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -376,19 +376,19 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartMentalSession(string deckId, string locationId, string situationId, string obligationId)
+    public async Task StartMentalSession(MentalChallengeDeck deck, Location location, Situation situation, Obligation obligation)
     {
-        MentalSession session = GameFacade.StartMentalSession(deckId, locationId, situationId, obligationId);
+        MentalSession session = GameFacade.StartMentalSession(deck, location, situation, obligation);
 
         // Create context parallel to Social pattern
         CurrentMentalContext = new MentalChallengeContext
         {
             IsValid = session != null,
             ErrorMessage = session == null ? "Failed to start Mental session" : string.Empty,
-            DeckId = deckId,
+            DeckId = deck?.Id,
             Session = session,
-            Venue = GameFacade.GetCurrentLocation().Venue,
-            LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"
+            Venue = location?.Venue,
+            LocationName = location?.Name ?? "Unknown"
         };
 
         // Always refresh UI after GameFacade action
@@ -425,19 +425,19 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartPhysicalSession(string deckId, string locationId, string situationId, string obligationId)
+    public async Task StartPhysicalSession(PhysicalChallengeDeck deck, Location location, Situation situation, Obligation obligation)
     {
-        PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationId, situationId, obligationId);
+        PhysicalSession session = GameFacade.StartPhysicalSession(deck, location, situation, obligation);
 
         // Create context parallel to Social pattern
         CurrentPhysicalContext = new PhysicalChallengeContext
         {
             IsValid = session != null,
             ErrorMessage = session == null ? "Failed to start Physical session" : string.Empty,
-            DeckId = deckId,
+            DeckId = deck?.Id,
             Session = session,
-            Venue = GameFacade.GetCurrentLocation().Venue,
-            LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"
+            Venue = location?.Venue,
+            LocationName = location?.Name ?? "Unknown"
         };
 
         // Always refresh UI after GameFacade action

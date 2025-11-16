@@ -52,16 +52,15 @@ public class LocationContentBase : ComponentBase
 
         // Load available conversation trees and observation scenes for current location
         Location currentLocation = GameWorld.GetPlayerCurrentLocation();
-        string locationId = currentLocation?.Id;
-        if (locationId != null)
+        if (currentLocation != null)
         {
-            AvailableConversationTrees = GameFacade.GetAvailableConversationTreesAtLocation(locationId);
-            AvailableObservationScenes = GameFacade.GetAvailableObservationScenesAtLocation(locationId);
+            AvailableConversationTrees = GameFacade.GetAvailableConversationTreesAtLocation(currentLocation);
+            AvailableObservationScenes = GameFacade.GetAvailableObservationScenesAtLocation(currentLocation);
 
             // MULTI-SITUATION SCENE RESUMPTION: Check if player navigated to location required by waiting scene
             // Scene completed Situation 1 with ExitToWorld routing (different context required)
             // Player navigated to required location - auto-resume scene to continue progression
-            List<Scene> resumableScenes = SceneFacade.GetResumableScenesAtContext(locationId, null);
+            List<Scene> resumableScenes = SceneFacade.GetResumableScenesAtContext(currentLocation, null);
             if (resumableScenes.Count > 0)
             {
                 // Auto-resume first waiting scene (should only be one per location context)
@@ -161,7 +160,7 @@ public class LocationContentBase : ComponentBase
     protected async Task HandleCommitToSituation(Situation situation)
     {
         // STRATEGIC LAYER: Validate requirements, consume Resolve/Time/Coins, route to appropriate subsystem
-        SituationSelectionResult result = GameFacade.GetSituationFacade().SelectAndExecuteSituation(situation.Id);
+        SituationSelectionResult result = GameFacade.GetSituationFacade().SelectAndExecuteSituation(situation);
 
         if (!result.Success)
         {
@@ -184,23 +183,29 @@ public class LocationContentBase : ComponentBase
             // Challenge facade will consume tactical costs (Focus/Stamina)
             if (result.ChallengeType == TacticalSystemType.Social)
             {
-                await GameScreen.StartConversationSession(result.ChallengeTargetId, result.ChallengeSituationId);
+                await GameScreen.StartConversationSession(result.ChallengeNpc, result.ChallengeSituation);
             }
             else if (result.ChallengeType == TacticalSystemType.Mental)
             {
-                Player player = GameWorld.GetPlayer();
-                await GameScreen.StartMentalSession(result.ChallengeDeckId, result.ChallengeTargetId, result.ChallengeSituationId, situation.Obligation?.Id);
+                await GameScreen.StartMentalSession(
+                    (MentalChallengeDeck)result.ChallengeDeck,
+                    result.ChallengeLocation,
+                    result.ChallengeSituation,
+                    situation.Obligation);
             }
             else if (result.ChallengeType == TacticalSystemType.Physical)
             {
-                Player player = GameWorld.GetPlayer();
-                await GameScreen.StartPhysicalSession(result.ChallengeDeckId, result.ChallengeTargetId, result.ChallengeSituationId, situation.Obligation?.Id);
+                await GameScreen.StartPhysicalSession(
+                    (PhysicalChallengeDeck)result.ChallengeDeck,
+                    result.ChallengeLocation,
+                    result.ChallengeSituation,
+                    situation.Obligation);
             }
         }
         else if (result.ResultType == SituationResultType.Navigation)
         {
             // Navigation - move player and optionally trigger scene at destination
-            bool success = await GameFacade.MoveToSpot(result.NavigationDestinationId);
+            bool success = await GameFacade.MoveToSpot(result.NavigationDestination);
             if (success)
             {
                 ResetNavigation();
@@ -213,7 +218,7 @@ public class LocationContentBase : ComponentBase
 
     protected async Task MoveToSpot(Location spot)
     {
-        bool success = await GameFacade.MoveToSpot(spot.Id);
+        bool success = await GameFacade.MoveToSpot(spot);
 
         if (success)
         {
@@ -319,18 +324,18 @@ public class LocationContentBase : ComponentBase
 
     protected async Task HandleStartExchange(NPC npc)
     {
-        await GameScreen.StartExchange(npc.ID);
+        await GameScreen.StartExchange(npc);
     }
 
     protected async Task HandleTalkToNPC(NPC npc, Scene scene)
     {
-        await GameScreen.StartNPCEngagement(npc.ID, scene);
+        await GameScreen.StartNPCEngagement(npc, scene);
     }
 
     protected async Task HandleAcceptJob(DeliveryJob job)
     {
         // Execute through intent system - backend handles validation
-        IntentResult result = await GameFacade.ProcessIntent(new AcceptDeliveryJobIntent(job.Id));
+        IntentResult result = await GameFacade.ProcessIntent(new AcceptDeliveryJobIntent(job));
 
         if (result.Success)
         {
@@ -356,27 +361,27 @@ public class LocationContentBase : ComponentBase
         // Search in Mental situations (ambient + scenes)
         if (situationCard == null)
         {
-            situationCard = ViewModel.AmbientMentalSituations.FirstOrDefault(g => g.Id == SelectedSituation.Id);
+            situationCard = ViewModel.AmbientMentalSituations.FirstOrDefault(g => g.Situation == SelectedSituation);
         }
 
         if (situationCard == null)
         {
             situationCard = ViewModel.MentalScenes
                 .SelectMany(scene => scene.Situations)
-                .FirstOrDefault(g => g.Id == SelectedSituation.Id);
+                .FirstOrDefault(g => g.Situation == SelectedSituation);
         }
 
         // Search in Physical situations (ambient + scenes)
         if (situationCard == null)
         {
-            situationCard = ViewModel.AmbientPhysicalSituations.FirstOrDefault(g => g.Id == SelectedSituation.Id);
+            situationCard = ViewModel.AmbientPhysicalSituations.FirstOrDefault(g => g.Situation == SelectedSituation);
         }
 
         if (situationCard == null)
         {
             situationCard = ViewModel.PhysicalScenes
                 .SelectMany(scene => scene.Situations)
-                .FirstOrDefault(g => g.Id == SelectedSituation.Id);
+                .FirstOrDefault(g => g.Situation == SelectedSituation);
         }
 
         int difficulty = situationCard?.Difficulty ?? 0;
