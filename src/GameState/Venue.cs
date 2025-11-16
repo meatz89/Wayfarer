@@ -1,11 +1,11 @@
 ﻿public class Venue
 {
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - Venue identified by Name (natural key)
     public string Name { get; set; } // Changed from private set for procedural generation
     public string Description { get; set; }
 
     // Hierarchical organization - Venue only knows its District
-    public string District { get; set; } // e.g., "Lower Wards"
+    public string District { get; set; } // e.g., "Lower Wards" (string category, not entity)
 
     // Skeleton tracking
     public bool IsSkeleton { get; set; } = false;

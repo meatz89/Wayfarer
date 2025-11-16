@@ -1,8 +1,8 @@
 public class Location
 {
-    public string Id { get; set; }
+    // HIGHLANDER: Name is natural key, NO Id property
     public string Name { get; set; }
-    public string VenueId { get; set; }
+    // HIGHLANDER: Object reference ONLY, no VenueId
     public Venue Venue { get; internal set; }
 
     // HEX-BASED TRAVEL SYSTEM: Location is THE primary spatial entity
@@ -26,9 +26,8 @@ public class Location
     public string InitialState { get; set; }
     // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 
-    // Active situation IDs for this location (Mental/Physical challenges)
-    // References situations in Scene.Situations (situations embedded in scenes)
-    public List<string> ActiveSituationIds { get; set; } = new List<string>();
+    // NOTE: ActiveSituationIds DELETED - situations embedded in scenes
+    // Query GameWorld.Scenes.SelectMany(s => s.Situations).Where(sit => sit.Location == this)
 
     // NOTE: SceneIds removed - OLD equipment-based Scene system deleted
     // NEW Scene-Situation architecture: Query GameWorld.Scenes by PlacementType/PlacementId

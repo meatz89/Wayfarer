@@ -7,10 +7,7 @@
 /// </summary>
 public class Situation
 {
-    /// <summary>
-    /// Unique identifier for the situation
-    /// </summary>
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - Situation identified by object reference
 
     /// <summary>
     /// Display name for the situation
@@ -63,10 +60,8 @@ public class Situation
     /// </summary>
     public SituationType Type { get; set; } = SituationType.Normal;
 
-    /// <summary>
-    /// The deck ID this situation uses for challenge generation
-    /// </summary>
-    public string DeckId { get; set; }
+    // NOTE: DeckId DELETED - if deck reference needed, store deck object
+    // Challenge generation should work with deck objects, not ID lookups
 
     // Scene-Situation Architecture additions (spawn tracking, completion tracking, template system)
 
@@ -74,15 +69,17 @@ public class Situation
     /// Template ID this situation was spawned from (for runtime instances)
     /// References the original situation definition used as template
     /// null for non-spawned situations (authored directly in JSON)
+    /// EXCEPTION: Template IDs are acceptable (immutable archetypes)
     /// </summary>
     public string TemplateId { get; set; }
 
     /// <summary>
-    /// Parent situation ID that spawned this situation (for cascade chains)
+    /// Parent situation that spawned this situation (for cascade chains)
     /// null if this is a root situation (not spawned by another)
     /// Enables tracking of situation hierarchies and dependencies
+    /// HIGHLANDER: Object reference ONLY, no ParentSituationId
     /// </summary>
-    public string ParentSituationId { get; set; }
+    public Situation ParentSituation { get; set; }
 
     /// <summary>
     /// Lifecycle tracking (spawn and completion timestamps)
@@ -92,13 +89,9 @@ public class Situation
     /// </summary>
     public SpawnTracking Lifecycle { get; set; } = new SpawnTracking();
 
-    /// <summary>
-    /// ID of the last choice selected by player for this situation
-    /// Populated when player selects a choice from this situation's ChoiceTemplates
-    /// Used for conditional transition evaluation (TransitionCondition.OnChoice)
-    /// null = situation not yet completed or no choice selected
-    /// </summary>
-    public string LastChoiceId { get; set; }
+    // NOTE: LastChoiceId DELETED - if choice tracking needed for transitions,
+    // store ChoiceTemplate object reference or use choice index
+    // Transitions should evaluate based on choice semantics, not ID matching
 
     /// <summary>
     /// Whether the last challenge attempt succeeded

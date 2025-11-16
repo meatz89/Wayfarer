@@ -8,16 +8,15 @@ public class Scene
 {
     // ==================== IDENTITY PROPERTIES ====================
 
-    /// <summary>
-    /// Unique identifier for this Scene instance
-    /// </summary>
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - Scene is identified by object reference
+    // Name property provides display identifier if needed
 
     /// <summary>
     /// Template identifier - which SceneTemplate spawned this instance
     /// References SceneTemplate in GameWorld.SceneTemplates
     /// null for manually-authored Scenes (not template-spawned)
     /// Used for save/load persistence
+    /// EXCEPTION: Template IDs are acceptable (immutable archetypes)
     /// </summary>
     public string TemplateId { get; set; }
 
@@ -125,8 +124,9 @@ public class Scene
     /// Set during provisional Scene creation in SceneInstantiator
     /// When action selected, all provisional Scenes from same Situation are deleted (except finalized ones)
     /// null for finalized Scenes or manually-authored Scenes
+    /// HIGHLANDER: Object reference ONLY, no SourceSituationId
     /// </summary>
-    public string SourceSituationId { get; set; }
+    public Situation SourceSituation { get; set; }
 
     /// <summary>
     /// Day when this Scene expires (transitions to Expired state)

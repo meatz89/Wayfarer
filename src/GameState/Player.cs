@@ -66,28 +66,28 @@ public class Player
 
     // Active Obligations (Core Loop design)
     // Tracks obligations player has activated (NPCCommissioned have deadlines)
-    // References obligations in GameWorld.Obligations (single source of truth)
-    public List<string> ActiveObligationIds { get; set; } = new List<string>();
+    // HIGHLANDER: Object references ONLY, no ActiveObligationIds
+    public List<Obligation> ActiveObligations { get; set; } = new List<Obligation>();
 
     // ============================================
     // DELIVERY JOB SYSTEM (Core Loop - Phase 3)
     // ============================================
 
     /// <summary>
-    /// Active delivery job ID (empty = no active job)
+    /// Active delivery job (null = no active job)
     /// Player can only have ONE active delivery job at a time
-    /// References job in GameWorld.AvailableDeliveryJobs (single source of truth)
+    /// HIGHLANDER: Object reference ONLY, no ActiveDeliveryJobId
     /// </summary>
-    public string ActiveDeliveryJobId { get; set; } = "";
+    public DeliveryJob ActiveDeliveryJob { get; set; }
 
     /// <summary>
     /// Check if player has an active delivery job
     /// </summary>
-    public bool HasActiveDeliveryJob => !string.IsNullOrEmpty(ActiveDeliveryJobId);
+    public bool HasActiveDeliveryJob => ActiveDeliveryJob != null;
 
-    // Equipment ownership: Player.Inventory stores item IDs (single source of truth)
-    // ItemRepository resolves IDs to Equipment entities from GameWorld.Items
-    // No inline Equipment storage - references by ID only (architecture principle)
+    // Equipment ownership: Player.Inventory stores Item objects (HIGHLANDER principle)
+    // Inventory class has List<Item> Items property with direct object references
+    // No ID lookups - objects stored directly
 
     // Route Familiarity System (0-5 scale per route)
     // ID is route ID, level is familiarity level (0=Unknown, 5=Mastered)
@@ -122,11 +122,11 @@ public class Player
     /// </summary>
     public List<RouteTraversalRecord> RouteTraversals { get; set; } = new List<RouteTraversalRecord>();
 
-    // Observation tracking - IDs of observation cards collected
-    public List<string> CollectedObservations { get; set; } = new List<string>();
+    // NOTE: CollectedObservations DELETED - if observation tracking needed, store Observation objects
+    // Mental system should work with observation objects, not ID strings
 
-    // Persistent injury cards for Physical tactical system
-    public List<string> InjuryCardIds { get; set; } = new List<string>();
+    // NOTE: InjuryCardIds DELETED - if injury tracking needed, store InjuryCard objects
+    // Physical system should work with card objects, not ID strings
 
     // Reputation system - Physical success builds reputation affecting Social and Physical engagements
     public int Reputation { get; set; } = 0;
@@ -189,8 +189,9 @@ public class Player
     /// Completed Situation IDs - tracking which situations player has finished
     /// Used for spawn rules and requirement checking
     /// Situations can spawn child situations creating cascading chains
+    /// HIGHLANDER: Object references ONLY, no CompletedSituationIds
     /// </summary>
-    public List<string> CompletedSituationIds { get; set; } = new List<string>();
+    public List<Situation> CompletedSituations { get; set; } = new List<Situation>();
 
     public void AddKnownRoute(RouteOption route)
     {

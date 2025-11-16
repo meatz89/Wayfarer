@@ -5,10 +5,7 @@
 /// </summary>
 public class ExchangeCard
 {
-    /// <summary>
-    /// Unique identifier for this exchange card template.
-    /// </summary>
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - ExchangeCard identified by Name or object reference
 
     /// <summary>
     /// Display name for this exchange.
@@ -26,12 +23,11 @@ public class ExchangeCard
     public ExchangeType ExchangeType { get; set; }
 
     /// <summary>
-    /// HIGHLANDER Sub-Pattern A: Both ID (persistence) and Object (runtime)
-    /// NPC offering this exchange - ID from JSON for save/load, Object cached for runtime access
-    /// Empty/null for location-based or system exchanges.
+    /// NPC offering this exchange
+    /// null for location-based or system exchanges
+    /// HIGHLANDER: Object reference ONLY, no NpcId (Pattern A DELETED per 08_crosscutting_concepts.md)
     /// </summary>
-    public string NpcId { get; set; }  // From JSON, for save/load persistence
-    public NPC Npc { get; set; }  // Resolved once at parse-time, cached for runtime (avoids repeated lookups)
+    public NPC Npc { get; set; }
 
     /// <summary>
     /// Cost structure for this exchange.
@@ -81,9 +77,10 @@ public class ExchangeCard
 
     /// <summary>
     /// Venue requirement for this exchange.
-    /// Null means available everywhere, otherwise must be at specified location.
+    /// Null means available everywhere, otherwise must be at specified venue.
+    /// HIGHLANDER: Object reference ONLY, no RequiredVenueId
     /// </summary>
-    public string RequiredVenueId { get; set; }
+    public Venue RequiredVenue { get; set; }
 
     /// <summary>
     /// Time block requirements for this exchange.
@@ -120,10 +117,11 @@ public class ExchangeCard
     // EXCHANGE EFFECTS
 
     /// <summary>
-    /// Exchange ID that becomes unlocked after completing this exchange.
+    /// Exchange that becomes unlocked after completing this exchange.
     /// Null means no exchange is unlocked.
+    /// HIGHLANDER: Object reference ONLY, no UnlocksExchangeId
     /// </summary>
-    public string UnlocksExchangeId { get; set; }
+    public ExchangeCard UnlocksExchange { get; set; }
 
     /// <summary>
     /// Story event ID that triggers when this exchange completes.
