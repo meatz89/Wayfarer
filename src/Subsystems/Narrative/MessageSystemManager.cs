@@ -221,7 +221,7 @@ public class MessageSystemManager
     /// </summary>
     public void AddMilestoneMessage(string achievement)
     {
-        string message = $"🏆 Achievement: {achievement}";
+        string message = $"{{icon:round-star}} Achievement: {achievement}";
         AddNarrativeMessage(message, SystemMessageTypes.Success);
     }
 

@@ -320,12 +320,12 @@ public class StandingObligationManager
             npc.PlayerRelationship = NPCRelationship.Betrayed;
 
             _messageSystem.AddSystemMessage(
-                $"💀 {npc.Name} is now HOSTILE - breaking {obligationName} has severe consequences!",
+                $"{{icon:hazard-sign}} {npc.Name} is now HOSTILE - breaking {obligationName} has severe consequences!",
                 SystemMessageTypes.Danger
             );
 
             _messageSystem.AddSystemMessage(
-                $"🗡️ Betrayal conversation options are now available with {npc.Name}",
+                $"{{icon:drama-masks}} Betrayal conversation options are now available with {npc.Name}",
                 SystemMessageTypes.Warning
             );
 

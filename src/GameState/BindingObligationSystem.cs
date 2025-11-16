@@ -148,15 +148,15 @@ public class BindingObligationSystem
     private string GetObligationIcon(ObligationType type, ObligationUrgency urgency)
     {
         if (urgency == ObligationUrgency.Critical)
-            return "🔥"; // Critical obligations burn
+            return "alarm-clock"; // Critical urgency
 
         return type switch
         {
-            ObligationType.Promise => "🤝",
-            ObligationType.Debt => "💰",
-            ObligationType.Favor => "⭐",
-            ObligationType.Secret => "🤫",
-            _ => "⛓"
+            ObligationType.Promise => "shaking-hands",
+            ObligationType.Debt => "coins",
+            ObligationType.Favor => "round-star",
+            ObligationType.Secret => "drama-masks",
+            _ => "padlock" // Binding/restriction
         };
     }
 

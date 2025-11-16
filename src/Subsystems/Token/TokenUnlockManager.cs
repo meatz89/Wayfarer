@@ -262,7 +262,7 @@ public class TokenUnlockManager
     private void ProcessUnlock(string npcId, string npcName, ConnectionType tokenType, UnlockDefinition unlock)
     {
         _messageSystem.AddSystemMessage(
-            $"🔓 New {tokenType} unlock with {npcName}: {unlock.Name}",
+            $"{{icon:sparkles}} New {tokenType} unlock with {npcName}: {unlock.Name}",
             SystemMessageTypes.Success
         );
 
@@ -279,7 +279,7 @@ public class TokenUnlockManager
             if (totalTokens == milestone.Threshold)
             {
                 _messageSystem.AddSystemMessage(
-                    $"💫 Relationship milestone with {npcName}: {milestone.Name}",
+                    $"{{icon:sparkles}} Relationship milestone with {npcName}: {milestone.Name}",
                     SystemMessageTypes.Success
                 );
             }

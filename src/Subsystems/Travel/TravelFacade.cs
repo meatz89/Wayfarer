@@ -264,7 +264,7 @@ public class TravelFacade
         {
             player.UnlockedTravelMethods.Add(methodName);
             _messageSystem.AddSystemMessage(
-                $"🎯 Unlocked new transport method: {method}",
+                $"{{icon:target-arrows}} Unlocked new transport method: {method}",
                 SystemMessageTypes.Success);
         }
     }

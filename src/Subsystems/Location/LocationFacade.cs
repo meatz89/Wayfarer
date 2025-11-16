@@ -338,7 +338,7 @@ public class LocationFacade
                 {
                     Id = obs.Id,
                     Text = obs.Text,
-                    Icon = obs.Type == ObservationType.Important ? "⚠️" : "👁️",
+                    Icon = obs.Type == ObservationType.Important ? "hazard-sign" : "magnifying-glass",
                     Relevance = BuildRelevanceString(obs),
                     IsObserved = false // ObservationManager eliminated
                 });
