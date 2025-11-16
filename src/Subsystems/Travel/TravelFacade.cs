@@ -1,5 +1,3 @@
-using Wayfarer.GameState;
-
 /// <summary>
 /// Public facade for all travel-related operations.
 /// Single entry point for travel, routes, and exploration.

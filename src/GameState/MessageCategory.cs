@@ -1,5 +1,3 @@
-namespace Wayfarer.GameState;
-
 /// <summary>
 /// Semantic category of a system message, indicating WHAT type of event occurred.
 /// Backend provides domain meaning through this enum.

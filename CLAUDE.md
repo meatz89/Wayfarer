@@ -331,6 +331,210 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 
 ---
 
+# CUSTOM NAMESPACE ANTIPATTERN (HIDING CONFLICTS)
+
+**CRITICAL PRINCIPLE: Custom namespaces hide conflicts with redundant files and duplicate classes. Global namespace exposes conflicts immediately for cleanup.**
+
+## THE POLICY
+
+**FORBIDDEN:**
+- ❌ Custom namespaces for domain code (GameState, Services, Subsystems, Repositories, Models, Infrastructure)
+- ❌ `namespace Wayfarer.GameState;` declarations
+- ❌ `namespace Wayfarer.Services;` declarations
+- ❌ `namespace Wayfarer.Subsystems.*;` declarations
+- ❌ Any namespace declaration outside of Blazor/UI components
+
+**ALLOWED:**
+- ✓ Blazor component namespaces ONLY: `namespace Wayfarer.Pages.Components;`
+- ✓ Test project namespaces: `namespace Wayfarer.Tests;`
+- ✓ Global namespace (no namespace declaration) for ALL domain code
+
+## WHY CUSTOM NAMESPACES ARE HARMFUL
+
+### 1. Hiding Duplicate Classes
+
+**With custom namespaces (FORBIDDEN):**
+```csharp
+// File: GameState/MessageCategory.cs
+namespace Wayfarer.GameState;
+public enum MessageCategory { ... }
+
+// File: Models/MessageCategory.cs
+namespace Wayfarer.Models;
+public enum MessageCategory { ... } // DUPLICATE HIDDEN BY NAMESPACE!
+
+// Compiler doesn't complain - both exist in different namespaces
+// Code becomes confusing - which MessageCategory is authoritative?
+```
+
+**Without namespaces (CORRECT):**
+```csharp
+// File: GameState/MessageCategory.cs
+public enum MessageCategory { ... }
+
+// File: Models/MessageCategory.cs
+public enum MessageCategory { ... } // COMPILER ERROR: Duplicate class!
+
+// Conflict exposed immediately - forces cleanup
+// Only ONE MessageCategory can exist
+```
+
+### 2. Hiding Redundant Files
+
+Custom namespaces allow redundant implementations to coexist:
+- `Wayfarer.GameState.SystemMessage` vs `Wayfarer.Models.SystemMessage`
+- `Wayfarer.Services.TokenManager` vs `Wayfarer.Subsystems.Token.TokenManager`
+- Multiple competing implementations hidden by namespace separation
+
+**Global namespace forces ONE canonical implementation.**
+
+### 3. False Sense of Organization
+
+**The lie:** "Namespaces organize code logically"
+**The truth:** Directory structure ALREADY organizes code
+
+```
+GameState/
+  NPC.cs              → public class NPC { ... }
+  Location.cs         → public class Location { ... }
+Services/
+  GameFacade.cs       → public class GameFacade { ... }
+Subsystems/
+  Token/
+    TokenManager.cs   → public class TokenManager { ... }
+```
+
+**Directory structure IS the organization.** Namespaces add nothing but complexity.
+
+### 4. Namespace Declaration Overhead
+
+**Every file needs:**
+- Namespace declaration at top (boilerplate)
+- Using statements in consuming files (more boilerplate)
+- Mental overhead tracking which namespace each class lives in
+
+**Global namespace eliminates all overhead:**
+- No namespace declarations
+- No using statements (except framework/external libraries)
+- Class name uniqueness enforced automatically
+
+### 5. Implicit Usings Don't Help
+
+C# 10+ implicit usings only import FRAMEWORK namespaces:
+- `System.*`
+- `System.Collections.Generic.*`
+- `Microsoft.AspNetCore.*`
+
+**Custom namespaces STILL require explicit using statements.**
+
+With custom namespaces:
+```csharp
+using Wayfarer.GameState;        // Required
+using Wayfarer.Services;         // Required
+using Wayfarer.Subsystems.Token; // Required
+
+public class SomeClass { ... }
+```
+
+Without namespaces:
+```csharp
+// No using statements needed - all domain classes globally available
+
+public class SomeClass { ... }
+```
+
+### 6. Refactoring Brittleness
+
+Moving a class between directories with namespaces:
+1. Change namespace declaration in file
+2. Update ALL using statements in ALL consuming files
+3. Fix build errors from missed using statements
+4. Search/replace namespace references in tests
+
+Moving a class between directories WITHOUT namespaces:
+1. Move the file (done)
+
+**Global namespace = zero refactoring overhead.**
+
+## CORRECT PATTERN
+
+**Domain code (GameState, Services, Subsystems, etc.):**
+```csharp
+// File: GameState/MessageCategory.cs
+/// <summary>
+/// Semantic category of system messages
+/// </summary>
+public enum MessageCategory
+{
+    ResourceChange,
+    TimeProgression,
+    Discovery,
+    Achievement,
+    Danger
+}
+```
+
+**NO namespace declaration. Globally available.**
+
+**Blazor components (EXCEPTION - namespaces allowed):**
+```csharp
+// File: Pages/Components/MessageDisplay.razor.cs
+using Microsoft.AspNetCore.Components;
+
+namespace Wayfarer.Pages.Components;
+
+public class MessageDisplayBase : ComponentBase
+{
+    // MessageCategory available without using statement (global namespace)
+    protected string GetIconForCategory(MessageCategory category) { ... }
+}
+```
+
+**Blazor components need namespaces for Razor runtime.**
+
+## ENFORCEMENT
+
+**Code review checklist - REJECT pull requests with:**
+- ❌ `namespace Wayfarer.GameState;` in domain code
+- ❌ `namespace Wayfarer.Services;` in facade code
+- ❌ `namespace Wayfarer.Subsystems.*;` in subsystem code
+- ❌ `using Wayfarer.*;` statements (except in Blazor components if absolutely needed)
+- ❌ Multiple classes with same name in different custom namespaces
+
+**Code review checklist - APPROVE pull requests with:**
+- ✓ Domain code with NO namespace declarations
+- ✓ Blazor components with `namespace Wayfarer.Pages.Components;` ONLY
+- ✓ Compiler errors forcing duplicate class cleanup
+- ✓ Zero using statements for domain code
+
+**Verification commands:**
+```bash
+# Find custom namespace declarations in domain code (should be empty)
+grep -r "^namespace Wayfarer" src/GameState src/Services src/Subsystems src/Repositories src/Models --include="*.cs"
+
+# Find using statements for custom namespaces (should only be in Blazor files)
+grep -r "^using Wayfarer\." src --include="*.cs" | grep -v "Pages/Components"
+```
+
+**If violations found:**
+- Remove namespace declarations from domain code
+- Remove using statements from consuming files
+- Let compiler find and fix duplicate classes
+- Move/delete redundant implementations
+
+## THE PRINCIPLE
+
+**Namespaces for LIBRARIES (external consumption).**
+**NO namespaces for APPLICATIONS (internal code).**
+
+This is an application, not a library. Global namespace is correct.
+
+**Gordon Ramsay Standard:**
+
+"You've wrapped EVERYTHING in namespaces to 'organize' the code? The DIRECTORY STRUCTURE is the organization! Now you've got THREE different `TokenManager` classes in different namespaces and nobody knows which one is canonical! RIP OUT the custom namespaces, let the compiler SCREAM about the duplicates, and DELETE the redundant garbage!"
+
+---
+
 # DICTIONARY/HASHSET ANTIPATTERN (PREMATURE OPTIMIZATION)
 
 **CRITICAL PRINCIPLE: This is a synchronous, browser-based, single-player game with minimal scale. Performance optimization is PREMATURE and HARMFUL.**

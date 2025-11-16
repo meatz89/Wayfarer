@@ -1,5 +1,3 @@
-using Wayfarer.GameState;
-
 /// <summary>
 /// Public facade for all resource-related operations.
 /// Manages coins, health, hunger, and attention across the game.

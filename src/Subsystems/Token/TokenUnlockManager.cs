@@ -1,5 +1,3 @@
-using Wayfarer.GameState;
-
 /// <summary>
 /// Manages what gets unlocked with tokens - conversation options, letter categories, special actions.
 /// Uses strongly-typed UnlockDefinition objects instead of string-based dictionaries.
