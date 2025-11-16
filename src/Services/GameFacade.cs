@@ -1,4 +1,5 @@
 using System.Text;
+using Wayfarer.GameState;
 
 /// <summary>
 /// GameFacade - Pure orchestrator for UI-Backend communication.

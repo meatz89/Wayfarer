@@ -1,3 +1,5 @@
+using Wayfarer.GameState;
+
 /// <summary>
 /// Strongly typed context for contextual messages
 /// </summary>

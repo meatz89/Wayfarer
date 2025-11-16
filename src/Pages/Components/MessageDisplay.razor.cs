@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using System.Text.RegularExpressions;
+using Wayfarer.GameState;
 
 namespace Wayfarer.Pages.Components;
 

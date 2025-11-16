@@ -173,10 +173,10 @@ public class ExchangeValidator
             return true; // No token requirements
         }
 
-        foreach (KeyValuePair<ConnectionType, int> requirement in exchange.Cost.TokenRequirements)
+        foreach (TokenCount requirement in exchange.Cost.TokenRequirements)
         {
-            int currentTokens = npcTokens.GetValueOrDefault(requirement.Key, 0);
-            if (currentTokens < requirement.Value)
+            int currentTokens = npcTokens.GetValueOrDefault(requirement.Type, 0);
+            if (currentTokens < requirement.Count)
             {
                 return false;
             }
@@ -259,8 +259,8 @@ public class ExchangeValidator
             return "Insufficient relationship";
         }
 
-        KeyValuePair<ConnectionType, int> firstRequirement = exchange.Cost.TokenRequirements.First();
-        return $"Requires {firstRequirement.Value} {firstRequirement.Key} tokens";
+        TokenCount firstRequirement = exchange.Cost.TokenRequirements.First();
+        return $"Requires {firstRequirement.Count} {firstRequirement.Type} tokens";
     }
 }
 

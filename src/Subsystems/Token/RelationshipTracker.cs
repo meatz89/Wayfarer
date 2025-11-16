@@ -9,14 +9,14 @@ public class RelationshipTracker
     private readonly MessageSystem _messageSystem;
 
     // Relationship milestones
-    private readonly List<RelationshipMilestone> _relationshipMilestones = new List<RelationshipMilestone>
+    private readonly List<MilestoneMessage> _relationshipMilestones = new List<MilestoneMessage>
     {
-        new RelationshipMilestone { TokenThreshold = 3, Message = "now trusts you enough to share private correspondence" },
-        new RelationshipMilestone { TokenThreshold = 5, Message = "bond has deepened. They'll offer more valuable letters" },
-        new RelationshipMilestone { TokenThreshold = 8, Message = "considers you among their most trusted associates" },
-        new RelationshipMilestone { TokenThreshold = 12, Message = "few people enjoy this level of trust" },
-        new RelationshipMilestone { TokenThreshold = 15, Message = "would trust you with their life" },
-        new RelationshipMilestone { TokenThreshold = 20, Message = "shares an unbreakable bond with you" }
+        new MilestoneMessage { TokenThreshold = 3, Message = "now trusts you enough to share private correspondence" },
+        new MilestoneMessage { TokenThreshold = 5, Message = "bond has deepened. They'll offer more valuable letters" },
+        new MilestoneMessage { TokenThreshold = 8, Message = "considers you among their most trusted associates" },
+        new MilestoneMessage { TokenThreshold = 12, Message = "few people enjoy this level of trust" },
+        new MilestoneMessage { TokenThreshold = 15, Message = "would trust you with their life" },
+        new MilestoneMessage { TokenThreshold = 20, Message = "shares an unbreakable bond with you" }
     };
 
     public RelationshipTracker(
@@ -61,7 +61,7 @@ public class RelationshipTracker
         NPC npc = _npcRepository.GetById(npcId);
         if (npc == null) return;
 
-        RelationshipMilestone milestone = _relationshipMilestones
+        MilestoneMessage milestone = _relationshipMilestones
             .FirstOrDefault(m => m.TokenThreshold == totalTokens);
 
         if (milestone != null)
@@ -317,7 +317,7 @@ public class RelationshipSummary
     public List<string> AvailableUnlocks { get; set; } = new List<string>();
 }
 
-public class RelationshipMilestone
+public class MilestoneMessage
 {
     public int TokenThreshold { get; set; }
     public string Message { get; set; }

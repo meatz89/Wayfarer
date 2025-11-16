@@ -98,9 +98,9 @@ public class ExchangeOrchestrator
         // Check for relationship milestones from token rewards
         if (exchange.Reward != null && exchange.Reward.Tokens != null)
         {
-            foreach (KeyValuePair<ConnectionType, int> tokenReward in exchange.Reward.Tokens)
+            foreach (TokenCount tokenReward in exchange.Reward.Tokens)
             {
-                CheckRelationshipMilestone(npc.ID, tokenReward.Key, tokenReward.Value);
+                CheckRelationshipMilestone(npc.ID, tokenReward.Type, tokenReward.Count);
             }
         }
 
