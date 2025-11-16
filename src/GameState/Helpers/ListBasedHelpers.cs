@@ -74,15 +74,6 @@ public class FamiliarityEntry
 }
 
 /// <summary>
-/// Helper class for card deck entries (replaces Dictionary<string, int>)
-/// </summary>
-public class CardDeckEntry
-{
-    public string CardId { get; set; }
-    public int Count { get; set; }
-}
-
-/// <summary>
 /// Helper class for NPC exchange card entries (replaces Dictionary<string, List<ExchangeCard>>)
 /// </summary>
 public class NPCExchangeCardEntry
@@ -134,15 +125,6 @@ public class TravelEventEntry
 {
     public string EventId { get; set; }
     public TravelEventDTO TravelEvent { get; set; }
-}
-
-/// <summary>
-/// Helper class for token unlock entries (replaces Dictionary<int, List<string>>)
-/// </summary>
-public class TokenUnlockEntry
-{
-    public int TokenCount { get; set; }
-    public List<string> UnlockedIds { get; set; } = new List<string>();
 }
 
 // ALL EXTENSION METHODS DELETED - Domain logic moved to Player.cs and GameWorld.cs

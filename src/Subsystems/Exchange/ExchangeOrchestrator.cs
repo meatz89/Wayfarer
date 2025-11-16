@@ -9,7 +9,7 @@ public class ExchangeOrchestrator
     private readonly ExchangeProcessor _processor;
     private readonly MessageSystem _messageSystem;
 
-    private Dictionary<string, ExchangeSession> _activeSessions;
+    private List<ExchangeSession> _activeSessions;
 
     public ExchangeOrchestrator(
         GameWorld gameWorld,
@@ -21,7 +21,7 @@ public class ExchangeOrchestrator
         _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         _processor = processor ?? throw new ArgumentNullException(nameof(processor));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-        _activeSessions = new Dictionary<string, ExchangeSession>();
+        _activeSessions = new List<ExchangeSession>();
     }
 
     /// <summary>
@@ -30,7 +30,8 @@ public class ExchangeOrchestrator
     public ExchangeSession CreateSession(NPC npc, List<ExchangeOption> availableExchanges)
     {
         // End any existing session with this NPC
-        if (_activeSessions.ContainsKey(npc.ID))
+        ExchangeSession existingSession = _activeSessions.FirstOrDefault(s => s.NpcId == npc.ID);
+        if (existingSession != null)
         {
             EndSession(npc.ID);
         }
@@ -45,7 +46,7 @@ public class ExchangeOrchestrator
             IsActive = true
         };
 
-        _activeSessions[npc.ID] = session;
+        _activeSessions.Add(session);
 
         _messageSystem.AddSystemMessage(
             $"Exchange session started with {npc.Name}",
@@ -59,10 +60,11 @@ public class ExchangeOrchestrator
     /// </summary>
     public void EndSession(string npcId)
     {
-        if (_activeSessions.TryGetValue(npcId, out ExchangeSession session))
+        ExchangeSession session = _activeSessions.FirstOrDefault(s => s.NpcId == npcId);
+        if (session != null)
         {
             session.IsActive = false;
-            _activeSessions.Remove(npcId);
+            _activeSessions.Remove(session);
 
             NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == session.NpcId);
             string npcName = npc != null ? npc.Name : "NPC";
@@ -77,7 +79,7 @@ public class ExchangeOrchestrator
     /// </summary>
     public ExchangeSession GetActiveSession(string npcId)
     {
-        return _activeSessions.TryGetValue(npcId, out ExchangeSession session) ? session : null;
+        return _activeSessions.FirstOrDefault(s => s.NpcId == npcId);
     }
 
     /// <summary>
@@ -85,7 +87,7 @@ public class ExchangeOrchestrator
     /// </summary>
     public bool HasActiveSession(string npcId)
     {
-        return _activeSessions.ContainsKey(npcId);
+        return _activeSessions.Any(s => s.NpcId == npcId);
     }
 
     /// <summary>
@@ -120,7 +122,8 @@ public class ExchangeOrchestrator
     /// </summary>
     public void ClearAllSessions()
     {
-        foreach (string npcId in _activeSessions.Keys.ToList())
+        List<string> npcIds = _activeSessions.Select(s => s.NpcId).ToList();
+        foreach (string npcId in npcIds)
         {
             EndSession(npcId);
         }

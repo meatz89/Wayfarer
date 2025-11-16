@@ -8,22 +8,16 @@ public class RelationshipTracker
     private readonly NPCRepository _npcRepository;
     private readonly MessageSystem _messageSystem;
 
-    // Track debts separately for easier querying
-    private readonly Dictionary<string, Dictionary<ConnectionType, int>> _activeDebts;
-
-    // Track last interaction times for decay calculations
-    private readonly Dictionary<string, DateTime> _lastInteractionTimes;
-
     // Relationship milestones
-    private readonly Dictionary<int, string> _relationshipMilestones = new Dictionary<int, string>
-{
-    { 3, "now trusts you enough to share private correspondence" },
-    { 5, "bond has deepened. They'll offer more valuable letters" },
-    { 8, "considers you among their most trusted associates" },
-    { 12, "few people enjoy this level of trust" },
-    { 15, "would trust you with their life" },
-    { 20, "shares an unbreakable bond with you" }
-};
+    private readonly List<RelationshipMilestone> _relationshipMilestones = new List<RelationshipMilestone>
+    {
+        new RelationshipMilestone { TokenThreshold = 3, Message = "now trusts you enough to share private correspondence" },
+        new RelationshipMilestone { TokenThreshold = 5, Message = "bond has deepened. They'll offer more valuable letters" },
+        new RelationshipMilestone { TokenThreshold = 8, Message = "considers you among their most trusted associates" },
+        new RelationshipMilestone { TokenThreshold = 12, Message = "few people enjoy this level of trust" },
+        new RelationshipMilestone { TokenThreshold = 15, Message = "would trust you with their life" },
+        new RelationshipMilestone { TokenThreshold = 20, Message = "shares an unbreakable bond with you" }
+    };
 
     public RelationshipTracker(
         GameWorld gameWorld,
@@ -35,8 +29,6 @@ public class RelationshipTracker
         _tokenManager = tokenManager;
         _npcRepository = npcRepository;
         _messageSystem = messageSystem;
-        _activeDebts = new Dictionary<string, Dictionary<ConnectionType, int>>();
-        _lastInteractionTimes = new Dictionary<string, DateTime>();
     }
 
     /// <summary>
@@ -46,39 +38,16 @@ public class RelationshipTracker
     {
         if (string.IsNullOrEmpty(npcId)) return;
 
-        // Update last interaction time
-        _lastInteractionTimes[npcId] = DateTime.Now;
-
-        // Check for new debts
-        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
-        bool hasDebt = false;
-
-        foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
+        // Update last interaction time on NPC entity
+        NPC npc = _npcRepository.GetById(npcId);
+        if (npc != null)
         {
-            if (type == ConnectionType.None) continue;
-
-            int tokenCount = tokens.GetValueOrDefault(type, 0);
-            if (tokenCount < 0)
-            {
-                hasDebt = true;
-
-                // Track this debt
-                if (!_activeDebts.ContainsKey(npcId))
-                {
-                    _activeDebts[npcId] = new Dictionary<ConnectionType, int>();
-                }
-                _activeDebts[npcId][type] = Math.Abs(tokenCount);
-            }
-            else if (_activeDebts.ContainsKey(npcId) && _activeDebts[npcId].ContainsKey(type))
-            {
-                // Debt cleared
-                _activeDebts[npcId].Remove(type);
-                if (_activeDebts[npcId].Count == 0)
-                {
-                    _activeDebts.Remove(npcId);
-                }
-            }
+            npc.LastInteractionTime = DateTime.Now;
         }
+
+        // Check if NPC has debt (negative tokens)
+        List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npcId);
+        bool hasDebt = tokens.Any(t => t.Count < 0);
 
         // Update NPC state if needed
         UpdateNPCDisposition(npcId, hasDebt);
@@ -92,25 +61,23 @@ public class RelationshipTracker
         NPC npc = _npcRepository.GetById(npcId);
         if (npc == null) return;
 
-        foreach (KeyValuePair<int, string> milestone in _relationshipMilestones)
+        RelationshipMilestone milestone = _relationshipMilestones
+            .FirstOrDefault(m => m.TokenThreshold == totalTokens);
+
+        if (milestone != null)
         {
-            if (totalTokens == milestone.Key)
+            _messageSystem.AddSystemMessage(
+                $"{npc.Name} {milestone.Message}.",
+                SystemMessageTypes.Success
+            );
+
+            // Special announcements for major milestones
+            if (milestone.TokenThreshold >= 10)
             {
                 _messageSystem.AddSystemMessage(
-                    $"{npc.Name} {milestone.Value}.",
+                    $"Your relationship with {npc.Name} has reached a rare level of trust.",
                     SystemMessageTypes.Success
                 );
-
-                // Special announcements for major milestones
-                if (milestone.Key >= 10)
-                {
-                    _messageSystem.AddSystemMessage(
-                        $"Your relationship with {npc.Name} has reached a rare level of trust.",
-                        SystemMessageTypes.Success
-                    );
-                }
-
-                break;
             }
         }
     }
@@ -122,13 +89,7 @@ public class RelationshipTracker
     {
         if (amount <= 0) return;
 
-        if (!_activeDebts.ContainsKey(npcId))
-        {
-            _activeDebts[npcId] = new Dictionary<ConnectionType, int>();
-        }
-
-        _activeDebts[npcId][type] = amount;
-
+        // Debts are tracked as negative tokens - no separate storage needed
         NPC npc = _npcRepository.GetById(npcId);
         if (npc != null)
         {
@@ -144,21 +105,14 @@ public class RelationshipTracker
     /// </summary>
     public ConnectionType GetPrimaryConnection(string npcId)
     {
-        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
+        List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npcId);
 
-        ConnectionType primaryType = ConnectionType.None;
-        int highestCount = 0;
+        TokenCount highest = tokens
+            .Where(t => t.Type != ConnectionType.None && t.Count > 0)
+            .OrderByDescending(t => t.Count)
+            .FirstOrDefault();
 
-        foreach (KeyValuePair<ConnectionType, int> kvp in tokens)
-        {
-            if (kvp.Key != ConnectionType.None && kvp.Value > highestCount)
-            {
-                highestCount = kvp.Value;
-                primaryType = kvp.Key;
-            }
-        }
-
-        return primaryType;
+        return highest?.Type ?? ConnectionType.None;
     }
 
     /// <summary>
@@ -183,17 +137,25 @@ public class RelationshipTracker
     {
         List<DebtInfo> debts = new List<DebtInfo>();
 
-        foreach (KeyValuePair<string, Dictionary<ConnectionType, int>> npcDebt in _activeDebts)
+        foreach (string npcId in _tokenManager.GetNPCsWithTokens())
         {
-            NPC npc = _npcRepository.GetById(npcDebt.Key);
+            List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npcId);
+            List<TokenCount> negativeTokens = tokens
+                .Where(t => t.Count < 0)
+                .Select(t => new TokenCount { Type = t.Type, Count = Math.Abs(t.Count) })
+                .ToList();
+
+            if (negativeTokens.Count == 0) continue;
+
+            NPC npc = _npcRepository.GetById(npcId);
             if (npc == null) continue;
 
             DebtInfo debtInfo = new DebtInfo
             {
-                NPCId = npcDebt.Key,
+                NPCId = npcId,
                 NPCName = npc.Name,
-                Debts = new Dictionary<ConnectionType, int>(npcDebt.Value),
-                TotalDebt = npcDebt.Value.Values.Sum()
+                Debts = negativeTokens,
+                TotalDebt = negativeTokens.Sum(t => t.Count)
             };
 
             debts.Add(debtInfo);
@@ -207,7 +169,15 @@ public class RelationshipTracker
     /// </summary>
     public bool HasAnyDebt()
     {
-        return _activeDebts.Count > 0;
+        foreach (string npcId in _tokenManager.GetNPCsWithTokens())
+        {
+            List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npcId);
+            if (tokens.Any(t => t.Count < 0))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>
@@ -218,19 +188,21 @@ public class RelationshipTracker
         NPC npc = _npcRepository.GetById(npcId);
         if (npc == null) return null;
 
-        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
+        List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npcId);
+        bool hasDebt = tokens.Any(t => t.Count < 0);
+        int totalDebt = tokens.Where(t => t.Count < 0).Sum(t => Math.Abs(t.Count));
 
         return new RelationshipSummary
         {
             NPCId = npcId,
             NPCName = npc.Name,
-            Tokens = new Dictionary<ConnectionType, int>(tokens),
+            Tokens = tokens,
             PrimaryConnection = GetPrimaryConnection(npcId),
             RelationshipTier = GetRelationshipTier(npcId),
             TotalPositiveTokens = GetTotalPositiveTokens(npcId),
-            HasDebt = _activeDebts.ContainsKey(npcId),
-            TotalDebt = _activeDebts.ContainsKey(npcId) ? _activeDebts[npcId].Values.Sum() : 0,
-            LastInteraction = _lastInteractionTimes.ContainsKey(npcId) ? _lastInteractionTimes[npcId] : DateTime.MinValue
+            HasDebt = hasDebt,
+            TotalDebt = totalDebt,
+            LastInteraction = npc.LastInteractionTime
         };
     }
 
@@ -243,43 +215,40 @@ public class RelationshipTracker
 
         foreach (string npcId in _tokenManager.GetNPCsWithTokens())
         {
-            if (!_lastInteractionTimes.ContainsKey(npcId)) continue;
+            NPC npc = _npcRepository.GetById(npcId);
+            if (npc == null) continue;
 
-            DateTime lastInteraction = _lastInteractionTimes[npcId];
+            DateTime lastInteraction = npc.LastInteractionTime;
+            if (lastInteraction == DateTime.MinValue) continue;
+
             int daysSinceInteraction = (int)(now - lastInteraction).TotalDays;
 
             // Only decay after a week of no interaction
             if (daysSinceInteraction < 7) continue;
 
-            Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
+            List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npcId);
             bool hadDecay = false;
 
-            foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
+            foreach (TokenCount tokenCount in tokens)
             {
-                if (type == ConnectionType.None) continue;
-
-                int currentTokens = tokens.GetValueOrDefault(type, 0);
-                if (currentTokens <= 0) continue;
+                if (tokenCount.Type == ConnectionType.None) continue;
+                if (tokenCount.Count <= 0) continue;
 
                 // Calculate decay based on time and token type
-                int decay = CalculateDecay(type, currentTokens, daysSinceInteraction);
+                int decay = CalculateDecay(tokenCount.Type, tokenCount.Count, daysSinceInteraction);
                 if (decay > 0)
                 {
-                    _tokenManager.RemoveTokensFromNPC(type, decay, npcId);
+                    _tokenManager.RemoveTokensFromNPC(tokenCount.Type, decay, npcId);
                     hadDecay = true;
                 }
             }
 
             if (hadDecay)
             {
-                NPC npc = _npcRepository.GetById(npcId);
-                if (npc != null)
-                {
-                    _messageSystem.AddSystemMessage(
-                        $"Your relationship with {npc.Name} has weakened due to lack of contact.",
-                        SystemMessageTypes.Warning
-                    );
-                }
+                _messageSystem.AddSystemMessage(
+                    $"Your relationship with {npc.Name} has weakened due to lack of contact.",
+                    SystemMessageTypes.Warning
+                );
             }
         }
     }
@@ -300,8 +269,8 @@ public class RelationshipTracker
 
     private int GetTotalPositiveTokens(string npcId)
     {
-        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
-        return tokens.Values.Where(v => v > 0).Sum();
+        List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npcId);
+        return tokens.Where(t => t.Count > 0).Sum(t => t.Count);
     }
 
     private int CalculateDecay(ConnectionType type, int currentTokens, int daysSinceInteraction)
@@ -338,7 +307,7 @@ public class RelationshipSummary
 {
     public string NPCId { get; set; }
     public string NPCName { get; set; }
-    public Dictionary<ConnectionType, int> Tokens { get; set; }
+    public List<TokenCount> Tokens { get; set; }
     public ConnectionType PrimaryConnection { get; set; }
     public RelationshipTier RelationshipTier { get; set; }
     public int TotalPositiveTokens { get; set; }
@@ -346,4 +315,10 @@ public class RelationshipSummary
     public int TotalDebt { get; set; }
     public DateTime LastInteraction { get; set; }
     public List<string> AvailableUnlocks { get; set; } = new List<string>();
+}
+
+public class RelationshipMilestone
+{
+    public int TokenThreshold { get; set; }
+    public string Message { get; set; }
 }

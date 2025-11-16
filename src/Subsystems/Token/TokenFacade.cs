@@ -342,7 +342,7 @@ public class DebtInfo
 {
     public string NPCId { get; set; }
     public string NPCName { get; set; }
-    public Dictionary<ConnectionType, int> Debts { get; set; }
+    public List<TokenCount> Debts { get; set; }
     public int TotalDebt { get; set; }
 }
 

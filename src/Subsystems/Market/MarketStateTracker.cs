@@ -8,7 +8,7 @@ public class MarketStateTracker
     private readonly ItemRepository _itemRepository;
 
     // Track supply and demand per Venue per item
-    private Dictionary<string, Dictionary<string, MarketMetrics>> _marketMetrics;
+    private List<MarketMetrics> _marketMetrics;
 
     // Track trade history for trend analysis
     private List<TradeRecord> _tradeHistory;
@@ -20,7 +20,7 @@ public class MarketStateTracker
     {
         _gameWorld = gameWorld;
         _itemRepository = itemRepository;
-        _marketMetrics = new Dictionary<string, Dictionary<string, MarketMetrics>>();
+        _marketMetrics = new List<MarketMetrics>();
         _tradeHistory = new List<TradeRecord>();
     }
 
@@ -29,6 +29,8 @@ public class MarketStateTracker
     /// </summary>
     public class MarketMetrics
     {
+        public string VenueId { get; set; }
+        public string ItemId { get; set; }
         public float SupplyLevel { get; set; } = 1.0f; // 0.5 = scarce, 1.0 = normal, 2.0 = abundant
         public float DemandLevel { get; set; } = 1.0f; // 0.5 = low demand, 1.0 = normal, 2.0 = high demand
         public int RecentPurchases { get; set; }
@@ -228,7 +230,11 @@ public class MarketStateTracker
             TrendingItems = new List<string>()
         };
 
-        if (!_marketMetrics.ContainsKey(venueId))
+        List<MarketMetrics> locationMetrics = _marketMetrics
+            .Where(m => m.VenueId == venueId)
+            .ToList();
+
+        if (locationMetrics.Count == 0)
         {
             // Return default conditions if no data
             conditions.OverallSupplyIndex = 1.0f;
@@ -236,15 +242,11 @@ public class MarketStateTracker
             return conditions;
         }
 
-        Dictionary<string, MarketMetrics> locationMetrics = _marketMetrics[venueId];
-
         float totalSupply = 0;
         float totalDemand = 0;
 
-        foreach (KeyValuePair<string, MarketMetrics> kvp in locationMetrics)
+        foreach (MarketMetrics metrics in locationMetrics)
         {
-            MarketMetrics metrics = kvp.Value;
-
             conditions.TotalItems++;
             totalSupply += metrics.SupplyLevel;
             totalDemand += metrics.DemandLevel;
@@ -257,7 +259,7 @@ public class MarketStateTracker
             // Items traded in last hour are trending
             if (metrics.LastTradeTime > DateTime.Now.AddHours(-1))
             {
-                conditions.TrendingItems.Add(kvp.Key);
+                conditions.TrendingItems.Add(metrics.ItemId);
             }
         }
 
@@ -280,14 +282,11 @@ public class MarketStateTracker
     /// </summary>
     public List<string> GetHighMarginItems(string venueId, int topN = 5)
     {
-        if (!_marketMetrics.ContainsKey(venueId))
-            return new List<string>();
-
-        return _marketMetrics[venueId]
-            .Where(kvp => kvp.Value.DemandLevel > 1.2f && kvp.Value.SupplyLevel < 0.8f)
-            .OrderByDescending(kvp => kvp.Value.DemandLevel / kvp.Value.SupplyLevel)
+        return _marketMetrics
+            .Where(m => m.VenueId == venueId && m.DemandLevel > 1.2f && m.SupplyLevel < 0.8f)
+            .OrderByDescending(m => m.DemandLevel / m.SupplyLevel)
             .Take(topN)
-            .Select(kvp => kvp.Key)
+            .Select(m => m.ItemId)
             .ToList();
     }
 
@@ -296,12 +295,9 @@ public class MarketStateTracker
     /// </summary>
     public List<string> GetOversuppliedItems(string venueId)
     {
-        if (!_marketMetrics.ContainsKey(venueId))
-            return new List<string>();
-
-        return _marketMetrics[venueId]
-            .Where(kvp => kvp.Value.SupplyLevel > 1.5f && kvp.Value.DemandLevel < 1.0f)
-            .Select(kvp => kvp.Key)
+        return _marketMetrics
+            .Where(m => m.VenueId == venueId && m.SupplyLevel > 1.5f && m.DemandLevel < 1.0f)
+            .Select(m => m.ItemId)
             .ToList();
     }
 
@@ -371,17 +367,19 @@ public class MarketStateTracker
     /// </summary>
     private MarketMetrics GetOrCreateMetrics(string venueId, string itemId)
     {
-        if (!_marketMetrics.ContainsKey(venueId))
+        MarketMetrics metrics = _marketMetrics.FirstOrDefault(m => m.VenueId == venueId && m.ItemId == itemId);
+
+        if (metrics == null)
         {
-            _marketMetrics[venueId] = new Dictionary<string, MarketMetrics>();
+            metrics = new MarketMetrics
+            {
+                VenueId = venueId,
+                ItemId = itemId
+            };
+            _marketMetrics.Add(metrics);
         }
 
-        if (!_marketMetrics[venueId].ContainsKey(itemId))
-        {
-            _marketMetrics[venueId][itemId] = new MarketMetrics();
-        }
-
-        return _marketMetrics[venueId][itemId];
+        return metrics;
     }
 
     /// <summary>
@@ -399,22 +397,19 @@ public class MarketStateTracker
     public void SimulateMarketEvolution()
     {
         // Gradually normalize supply and demand levels
-        foreach (Dictionary<string, MarketMetrics> locationMetrics in _marketMetrics.Values)
+        foreach (MarketMetrics metrics in _marketMetrics)
         {
-            foreach (MarketMetrics metrics in locationMetrics.Values)
-            {
-                // Supply trends toward normal
-                if (metrics.SupplyLevel > 1.0f)
-                    metrics.SupplyLevel = Math.Max(1.0f, metrics.SupplyLevel - 0.02f);
-                else if (metrics.SupplyLevel < 1.0f)
-                    metrics.SupplyLevel = Math.Min(1.0f, metrics.SupplyLevel + 0.02f);
+            // Supply trends toward normal
+            if (metrics.SupplyLevel > 1.0f)
+                metrics.SupplyLevel = Math.Max(1.0f, metrics.SupplyLevel - 0.02f);
+            else if (metrics.SupplyLevel < 1.0f)
+                metrics.SupplyLevel = Math.Min(1.0f, metrics.SupplyLevel + 0.02f);
 
-                // Demand trends toward normal
-                if (metrics.DemandLevel > 1.0f)
-                    metrics.DemandLevel = Math.Max(1.0f, metrics.DemandLevel - 0.01f);
-                else if (metrics.DemandLevel < 1.0f)
-                    metrics.DemandLevel = Math.Min(1.0f, metrics.DemandLevel + 0.01f);
-            }
+            // Demand trends toward normal
+            if (metrics.DemandLevel > 1.0f)
+                metrics.DemandLevel = Math.Max(1.0f, metrics.DemandLevel - 0.01f);
+            else if (metrics.DemandLevel < 1.0f)
+                metrics.DemandLevel = Math.Min(1.0f, metrics.DemandLevel + 0.01f);
         }
     }
 }

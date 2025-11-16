@@ -225,14 +225,14 @@ public static class HexParser
     /// </summary>
     private static void ValidateDuplicateCoordinates(HexMap hexMap)
     {
-        HashSet<CoordinatePair> seenCoordinates = new HashSet<CoordinatePair>();
+        List<CoordinatePair> seenCoordinates = new List<CoordinatePair>();
 
         for (int i = 0; i < hexMap.Hexes.Count; i++)
         {
             Hex hex = hexMap.Hexes[i];
             CoordinatePair coords = new CoordinatePair(hex.Coordinates.Q, hex.Coordinates.R);
 
-            if (seenCoordinates.Contains(coords))
+            if (seenCoordinates.Any(c => c.Equals(coords)))
             {
                 throw new InvalidDataException(
                     $"Duplicate hex coordinate ({hex.Coordinates.Q}, {hex.Coordinates.R}) found in hex_grid.json. " +
@@ -250,24 +250,37 @@ public static class HexParser
     /// </summary>
     private static void ValidateDuplicateLocationIds(HexMap hexMap)
     {
-        Dictionary<string, AxialCoordinates> locationToHex = new Dictionary<string, AxialCoordinates>();
+        List<LocationHexMapping> locationMappings = new List<LocationHexMapping>();
 
         foreach (Hex hex in hexMap.Hexes)
         {
             if (string.IsNullOrEmpty(hex.LocationId))
                 continue; // Wilderness hex, skip
 
-            if (locationToHex.ContainsKey(hex.LocationId))
+            LocationHexMapping existing = locationMappings.FirstOrDefault(m => m.LocationId == hex.LocationId);
+            if (existing != null)
             {
-                AxialCoordinates firstHex = locationToHex[hex.LocationId];
                 throw new InvalidDataException(
                     $"Location '{hex.LocationId}' referenced by multiple hexes: " +
-                    $"({firstHex.Q}, {firstHex.R}) and ({hex.Coordinates.Q}, {hex.Coordinates.R}). " +
+                    $"({existing.Coordinates.Q}, {existing.Coordinates.R}) and ({hex.Coordinates.Q}, {hex.Coordinates.R}). " +
                     $"Each location must occupy exactly one hex position.");
             }
 
-            locationToHex[hex.LocationId] = hex.Coordinates;
+            locationMappings.Add(new LocationHexMapping
+            {
+                LocationId = hex.LocationId,
+                Coordinates = hex.Coordinates
+            });
         }
+    }
+
+    /// <summary>
+    /// Helper class for location-hex validation mapping
+    /// </summary>
+    private class LocationHexMapping
+    {
+        public string LocationId { get; set; }
+        public AxialCoordinates Coordinates { get; set; }
     }
 
     /// <summary>

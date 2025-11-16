@@ -22,7 +22,7 @@ public class ConnectionTokenManager
     /// <summary>
     /// Get all tokens with a specific NPC
     /// </summary>
-    public Dictionary<ConnectionType, int> GetTokensWithNPC(string npcId)
+    public List<TokenCount> GetTokensWithNPC(string npcId)
     {
         Player player = _gameWorld.GetPlayer();
         List<NPCTokenEntry> npcTokens = player.NPCTokens;
@@ -30,21 +30,21 @@ public class ConnectionTokenManager
         NPCTokenEntry? entry = npcTokens.FirstOrDefault(x => x.NpcId == npcId);
         if (entry != null)
         {
-            // Build dictionary from properties
-            Dictionary<ConnectionType, int> tokens = new Dictionary<ConnectionType, int>
+            // Build list from properties
+            return new List<TokenCount>
             {
-                [ConnectionType.Trust] = entry.Trust,
-                [ConnectionType.Diplomacy] = entry.Diplomacy,
-                [ConnectionType.Status] = entry.Status
+                new TokenCount { Type = ConnectionType.Trust, Count = entry.Trust },
+                new TokenCount { Type = ConnectionType.Diplomacy, Count = entry.Diplomacy },
+                new TokenCount { Type = ConnectionType.Status, Count = entry.Status },
+                new TokenCount { Type = ConnectionType.Shadow, Count = entry.Shadow }
             };
-            return tokens;
         }
 
-        // Return empty dictionary if no tokens with this NPC
-        Dictionary<ConnectionType, int> emptyTokens = new Dictionary<ConnectionType, int>();
+        // Return empty list if no tokens with this NPC
+        List<TokenCount> emptyTokens = new List<TokenCount>();
         foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
         {
-            emptyTokens[tokenType] = 0;
+            emptyTokens.Add(new TokenCount { Type = tokenType, Count = 0 });
         }
         return emptyTokens;
     }
@@ -54,8 +54,9 @@ public class ConnectionTokenManager
     /// </summary>
     public int GetTokenCount(string npcId, ConnectionType type)
     {
-        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npcId);
-        return tokens.GetValueOrDefault(type, 0);
+        List<TokenCount> tokens = GetTokensWithNPC(npcId);
+        TokenCount token = tokens.FirstOrDefault(t => t.Type == type);
+        return token?.Count ?? 0;
     }
 
     /// <summary>
@@ -265,8 +266,9 @@ public class ConnectionTokenManager
     {
         if (string.IsNullOrEmpty(npcId)) return 0;
 
-        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npcId);
-        int tokenCount = tokens.GetValueOrDefault(type, 0);
+        List<TokenCount> tokens = GetTokensWithNPC(npcId);
+        TokenCount token = tokens.FirstOrDefault(t => t.Type == type);
+        int tokenCount = token?.Count ?? 0;
 
         // Return absolute value if negative, 0 otherwise
         return tokenCount < 0 ? Math.Abs(tokenCount) : 0;
@@ -305,4 +307,13 @@ public class ConnectionTokenManager
             player.GetNPCTokenEntry(npcId);
         }
     }
+}
+
+/// <summary>
+/// Represents a token count for a specific connection type
+/// </summary>
+public class TokenCount
+{
+    public ConnectionType Type { get; set; }
+    public int Count { get; set; }
 }

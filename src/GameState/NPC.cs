@@ -74,6 +74,11 @@ public class NPC
     /// </summary>
     public int BondStrength { get; set; } = 0;
 
+    /// <summary>
+    /// Last time player interacted with this NPC (for relationship decay)
+    /// </summary>
+    public DateTime LastInteractionTime { get; set; } = DateTime.MinValue;
+
     // Calculated properties from single flow value
     public ConnectionState CurrentState => GetConnectionState();
 
