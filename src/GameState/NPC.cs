@@ -135,19 +135,9 @@ public class NPC
         return ExchangeDeck != null && ExchangeDeck.Any();
     }
 
-    // Get today's exchange card (selected deterministically at dawn)
-    public ExchangeCard GetTodaysExchange(int currentDay)
-    {
-        // Exchange cards only for Mercantile NPCs
-        if (PersonalityType != PersonalityType.MERCANTILE || ExchangeDeck == null || !ExchangeDeck.Any())
-            return null;
-
-        // Use deterministic selection based on day and NPC ID
-        if (ExchangeDeck.Count == 0) return null;
-
-        int index = (currentDay * ID.GetHashCode()) % ExchangeDeck.Count;
-        return ExchangeDeck[Math.Abs(index)];
-    }
+    // NOTE: GetTodaysExchange() DELETED - violates Catalogue Pattern and Perfect Information
+    // ExchangeCard filtering handled by ExchangeFacade.GetAvailableExchanges() with categorical properties
+    // No deterministic selection needed - player sees all available exchanges filtered by game state
 
     // Helper methods for UI display
     public string ProfessionDescription => Profession.ToString().Replace('_', ' ');
