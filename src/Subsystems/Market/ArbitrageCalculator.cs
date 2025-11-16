@@ -74,21 +74,21 @@ public class ArbitrageCalculator
         // Compare all Location pairs
         foreach (Location buyLocation in locations)
         {
-            int buyPrice = _priceManager.GetBuyPrice(itemId, buyLocation.Id);
+            int buyPrice = _priceManager.GetBuyPrice(itemId, buyLocation.Name);
             if (buyPrice <= 0) continue; // Item not available for purchase here
 
             foreach (Location sellLocation in locations)
             {
-                if (buyLocation.Id == sellLocation.Id) continue; // Skip same location
+                if (buyLocation == sellLocation) continue; // Skip same location
 
-                int sellPrice = _priceManager.GetSellPrice(itemId, sellLocation.Id);
+                int sellPrice = _priceManager.GetSellPrice(itemId, sellLocation.Name);
                 if (sellPrice <= 0) continue; // Can't sell here
 
                 int grossProfit = sellPrice - buyPrice;
                 if (grossProfit <= 0) continue; // Not profitable
 
                 // Calculate travel cost
-                int distance = CalculateDistance(buyLocation.Id, sellLocation.Id);
+                int distance = CalculateDistance(buyLocation.Name, sellLocation.Name);
                 int travelCost = CalculateTravelCost(distance);
                 int netProfit = grossProfit - travelCost;
 
@@ -99,10 +99,10 @@ public class ArbitrageCalculator
                     {
                         ItemId = itemId,
                         ItemName = item.Name,
-                        BuyLocationId = buyLocation.Id,
+                        BuyLocationId = buyLocation.Name,
                         BuyLocationName = buyLocation.Name,
                         BuyPrice = buyPrice,
-                        SellLocationId = sellLocation.Id,
+                        SellLocationId = sellLocation.Name,
                         SellLocationName = sellLocation.Name,
                         SellPrice = sellPrice,
                         GrossProfit = grossProfit,
@@ -184,7 +184,7 @@ public class ArbitrageCalculator
         if (currentLocation == null)
             throw new InvalidOperationException("Player has no current location");
 
-        string currentLocationId = currentLocation.Id;
+        string currentLocationId = currentLocation.Name;
         List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
         List<Item> allItems = _itemRepository.GetAllItems();
 
@@ -196,12 +196,12 @@ public class ArbitrageCalculator
             List<Location> locations = _gameWorld.Locations;
             foreach (Location sellLocation in locations)
             {
-                if (sellLocation.Id == currentLocationId) continue;
+                if (sellLocation.Name == currentLocationId) continue;
 
-                int sellPrice = _priceManager.GetSellPrice(item.Id, sellLocation.Id);
+                int sellPrice = _priceManager.GetSellPrice(item.Id, sellLocation.Name);
                 if (sellPrice <= 0) continue;
 
-                int distance = CalculateDistance(currentLocationId, sellLocation.Id);
+                int distance = CalculateDistance(currentLocationId, sellLocation.Name);
                 int travelCost = CalculateTravelCost(distance);
                 int netProfit = sellPrice - buyPrice - travelCost;
 
@@ -214,7 +214,7 @@ public class ArbitrageCalculator
                         BuyLocationId = currentLocationId,
                         BuyLocationName = currentLocation.Name,
                         BuyPrice = buyPrice,
-                        SellLocationId = sellLocation.Id,
+                        SellLocationId = sellLocation.Name,
                         SellLocationName = sellLocation.Name,
                         SellPrice = sellPrice,
                         GrossProfit = sellPrice - buyPrice,
@@ -244,7 +244,7 @@ public class ArbitrageCalculator
         if (currentLocation == null)
             throw new InvalidOperationException("Player has no current location");
 
-        string currentLocationId = currentLocation.Id;
+        string currentLocationId = currentLocation.Name;
         List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
 
         foreach (string itemId in player.Inventory.GetItemIds())
@@ -258,12 +258,12 @@ public class ArbitrageCalculator
 
             foreach (Location sellLocation in locations)
             {
-                if (sellLocation.Id == currentLocationId) continue;
+                if (sellLocation.Name == currentLocationId) continue;
 
-                int otherSellPrice = _priceManager.GetSellPrice(itemId, sellLocation.Id);
+                int otherSellPrice = _priceManager.GetSellPrice(itemId, sellLocation.Name);
                 if (otherSellPrice <= currentSellPrice) continue;
 
-                int distance = CalculateDistance(currentLocationId, sellLocation.Id);
+                int distance = CalculateDistance(currentLocationId, sellLocation.Name);
                 int travelCost = CalculateTravelCost(distance);
                 int netProfit = otherSellPrice - currentSellPrice - travelCost;
 
@@ -276,7 +276,7 @@ public class ArbitrageCalculator
                         BuyLocationId = currentLocationId,
                         BuyLocationName = currentLocation.Name,
                         BuyPrice = currentSellPrice, // What we could sell for here
-                        SellLocationId = sellLocation.Id,
+                        SellLocationId = sellLocation.Name,
                         SellLocationName = sellLocation.Name,
                         SellPrice = otherSellPrice,
                         GrossProfit = otherSellPrice - currentSellPrice,
@@ -308,7 +308,7 @@ public class ArbitrageCalculator
         if (currentLocationEntity == null)
             throw new InvalidOperationException("Player has no current location");
 
-        string startLocation = currentLocationEntity.Id;
+        string startLocation = currentLocationEntity.Name;
         int availableCapital = player.Coins;
 
         TradeRoute bestRoute = new TradeRoute();
@@ -366,12 +366,12 @@ public class ArbitrageCalculator
 
             foreach (Location sellLocation in locations)
             {
-                if (sellLocation.Id == fromLocationId) continue;
+                if (sellLocation.Name == fromLocationId) continue;
 
-                int sellPrice = _priceManager.GetSellPrice(item.Id, sellLocation.Id);
+                int sellPrice = _priceManager.GetSellPrice(item.Id, sellLocation.Name);
                 if (sellPrice <= buyPrice) continue;
 
-                int distance = CalculateDistance(fromLocationId, sellLocation.Id);
+                int distance = CalculateDistance(fromLocationId, sellLocation.Name);
                 int travelCost = CalculateTravelCost(distance);
                 int netProfit = sellPrice - buyPrice - travelCost;
 
@@ -384,7 +384,7 @@ public class ArbitrageCalculator
                         BuyLocationId = fromLocationId,
                         BuyLocationName = fromLocation.Name,
                         BuyPrice = buyPrice,
-                        SellLocationId = sellLocation.Id,
+                        SellLocationId = sellLocation.Name,
                         SellLocationName = sellLocation.Name,
                         SellPrice = sellPrice,
                         GrossProfit = sellPrice - buyPrice,
