@@ -3,12 +3,13 @@
 /// </summary>
 public class MarketItem
 {
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - MarketItem identified by object reference
     public string Name { get; set; }
     public int Price { get; set; }
     public int Stock { get; set; }
-    public string TraderId { get; set; }
-    public string ItemId { get; set; }
+    // HIGHLANDER: Object reference ONLY, no TraderId
+    public NPC Trader { get; set; }
+    // Item property already exists below, no need for ItemId
 
     public int BuyPrice => Price;
     public int SellPrice => (int)(Price * 0.7); // 70% of buy price

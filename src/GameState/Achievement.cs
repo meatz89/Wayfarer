@@ -5,10 +5,7 @@
 /// </summary>
 public class Achievement
 {
-    /// <summary>
-    /// Unique identifier for this achievement
-    /// </summary>
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - Achievement identified by object reference
 
     /// <summary>
     /// Category of this achievement

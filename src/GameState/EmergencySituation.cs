@@ -4,14 +4,15 @@
 /// </summary>
 public class EmergencySituation
 {
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - EmergencySituation identified by object reference
     public string Name { get; set; }
     public string Description { get; set; }
 
     // Trigger conditions
     public int? TriggerDay { get; set; }
     public int? TriggerSegment { get; set; }
-    public List<string> TriggerLocationIds { get; set; } = new List<string>();
+    // HIGHLANDER: Object references ONLY, no TriggerLocationIds
+    public List<Location> TriggerLocations { get; set; } = new List<Location>();
     public int ResponseWindowSegments { get; set; }  // How long player has to respond
 
     // Response options
@@ -32,7 +33,7 @@ public class EmergencySituation
 /// </summary>
 public class EmergencyResponse
 {
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - EmergencyResponse identified by object reference
     public string ResponseText { get; set; }
     public string Description { get; set; }
 
@@ -52,10 +53,13 @@ public class EmergencyResponse
 public class EmergencyOutcome
 {
     public int RelationshipDelta { get; set; }  // General reputation change
-    public Dictionary<string, int> NPCRelationshipDeltas { get; set; } = new Dictionary<string, int>();
+    // HIGHLANDER: Object references ONLY, no NPCRelationshipDeltas with IDs
+    public Dictionary<NPC, int> NPCRelationshipDeltas { get; set; } = new Dictionary<NPC, int>();
     public List<string> GrantedKnowledge { get; set; } = new List<string>();
-    public List<string> SpawnedSituationIds { get; set; } = new List<string>();
-    public List<string> GrantedItemIds { get; set; } = new List<string>();
+    // HIGHLANDER: Object references ONLY, no SpawnedSituationIds
+    public List<Situation> SpawnedSituations { get; set; } = new List<Situation>();
+    // HIGHLANDER: Object references ONLY, no GrantedItemIds
+    public List<Item> GrantedItems { get; set; } = new List<Item>();
     public int CoinReward { get; set; }
     public string NarrativeResult { get; set; }
 }

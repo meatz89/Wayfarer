@@ -1,7 +1,8 @@
 public class RouteImprovement
 {
-    public string Id { get; set; }
-    public string RouteId { get; set; } // Which route this improvement applies to
+    // HIGHLANDER: NO Id property - RouteImprovement identified by object reference
+    // HIGHLANDER: Object reference ONLY, no RouteId
+    public RouteOption Route { get; set; } // Which route this improvement applies to
     public string Name { get; set; }
     public string Description { get; set; }
     public int TimeReduction { get; set; }

@@ -5,7 +5,7 @@
 /// </summary>
 public class Obligation
 {
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - Obligation identified by object reference
     public string Name { get; set; }
     public string Description { get; set; }
     public string CompletionNarrative { get; set; } // Narrative shown when obligation completes
@@ -36,14 +36,8 @@ public class Obligation
     /// <summary>
     /// NPC who commissioned this obligation (if NPCCommissioned type)
     /// Null for SelfDiscovered obligations
+    /// HIGHLANDER: Object reference ONLY, no PatronNpcId
     /// </summary>
-    public string PatronNpcId { get; set; }
-
-    /// <summary>
-    /// Object reference to patron NPC (for runtime navigation)
-    /// Populated at initialization time from PatronNpcId
-    /// </summary>
-    [System.Text.Json.Serialization.JsonIgnore]
     public NPC PatronNpc { get; set; }
 
     /// <summary>
@@ -59,9 +53,10 @@ public class Obligation
     public int CompletionRewardCoins { get; set; } = 0;
 
     /// <summary>
-    /// Items granted when obligation completes (equipment IDs)
+    /// Items granted when obligation completes
+    /// HIGHLANDER: Object references ONLY, no CompletionRewardItems IDs
     /// </summary>
-    public List<string> CompletionRewardItems { get; set; } = new List<string>();
+    public List<Item> CompletionRewardItems { get; set; } = new List<Item>();
 
     /// <summary>
     /// Player stat XP rewards granted when obligation completes
@@ -70,9 +65,9 @@ public class Obligation
 
     /// <summary>
     /// New obligations spawned when obligation completes
-    /// References to other Obligation IDs in GameWorld.Obligations
+    /// HIGHLANDER: Object references ONLY, no SpawnedObligationIds
     /// </summary>
-    public List<string> SpawnedObligationIds { get; set; } = new List<string>();
+    public List<Obligation> SpawnedObligations { get; set; } = new List<Obligation>();
 
     /// <summary>
     /// Tracks whether this obligation failed to meet deadline
@@ -89,7 +84,7 @@ public class Obligation
 /// </summary>
 public class ObligationPhaseDefinition
 {
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - ObligationPhaseDefinition identified by object reference
     public string Name { get; set; }
     public string Description { get; set; }
     public string CompletionNarrative { get; set; } // Narrative shown when obligation completes

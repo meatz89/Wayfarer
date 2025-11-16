@@ -5,7 +5,7 @@
 /// </summary>
 public class PhysicalChallengeDeck
 {
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - PhysicalChallengeDeck identified by object reference
     public string Name { get; set; }
     public string Description { get; set; }
     public int DangerThreshold { get; set; }

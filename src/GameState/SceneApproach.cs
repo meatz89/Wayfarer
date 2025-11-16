@@ -5,7 +5,7 @@
 /// </summary>
 public class SceneApproach
 {
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - SceneApproach identified by object reference
     public string Name { get; set; }
     public string Description { get; set; }
     public int SuccessProbability { get; set; }

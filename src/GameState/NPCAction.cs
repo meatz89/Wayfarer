@@ -20,10 +20,10 @@ public class NPCAction
 
     /// <summary>
     /// Target NPC for this action
-    /// References NPC.ID in GameWorld.NPCs
+    /// HIGHLANDER: Object reference ONLY, no NPCId
     /// Determines which NPC portrait/name to display
     /// </summary>
-    public string NPCId { get; set; }
+    public NPC NPC { get; set; }
 
     /// <summary>
     /// What happens when player selects this action
@@ -39,33 +39,36 @@ public class NPCAction
     // ==================== ROUTING PAYLOADS ====================
 
     /// <summary>
-    /// Target Situation ID to initiate (if ActionType = InitiateSituation)
+    /// Target Situation to initiate (if ActionType = InitiateSituation)
+    /// HIGHLANDER: Object reference ONLY, no TargetSituationId
     /// References Situation in Scene.Situations (situations embedded in scenes)
     /// null for other action types
-    /// RENAMED from SituationId to avoid confusion with SourceSituationId below
     /// </summary>
-    public string TargetSituationId { get; set; }
+    public Situation TargetSituation { get; set; }
 
     /// <summary>
-    /// Conversation tree ID to start (if ActionType = StartConversationTree)
+    /// Conversation tree to start (if ActionType = StartConversationTree)
+    /// HIGHLANDER: Object reference ONLY, no ConversationTreeId
     /// References ConversationTree in GameWorld.ConversationTrees
     /// null for other action types
     /// </summary>
-    public string ConversationTreeId { get; set; }
+    public ConversationTree ConversationTree { get; set; }
 
     /// <summary>
-    /// Exchange offer ID (if ActionType = StartExchange)
+    /// Exchange offer (if ActionType = StartExchange)
+    /// HIGHLANDER: Object reference ONLY, no ExchangeId
     /// References ExchangeOffer in NPC.ExchangeDeck or GameWorld.NPCExchangeCards
     /// null for other action types
     /// </summary>
-    public string ExchangeId { get; set; }
+    public ExchangeCard Exchange { get; set; }
 
     /// <summary>
-    /// Challenge identifier for Social challenges (if ActionType = StartConversation)
+    /// Challenge (if ActionType = StartConversation)
+    /// HIGHLANDER: Object reference ONLY, no ChallengeId
     /// May reference specific conversation request or challenge setup
     /// null for other action types
     /// </summary>
-    public string ChallengeId { get; set; }
+    public Situation Challenge { get; set; }
 
     /// <summary>
     /// Challenge type classification (if action starts a challenge)
@@ -96,14 +99,15 @@ public class NPCAction
     public ChoiceTemplate ChoiceTemplate { get; set; }
 
     /// <summary>
-    /// THREE-TIER TIMING MODEL: Source Situation ID
+    /// THREE-TIER TIMING MODEL: Source Situation
+    /// HIGHLANDER: Object reference ONLY, no SituationId
     /// Links ephemeral action to source Situation for cleanup after execution
     /// Actions are QUERY-TIME instances (Tier 3), created when Situation activates
     /// After action executes, GameFacade deletes ALL actions for this Situation
     /// Next time player enters context, actions recreated fresh from ChoiceTemplates
-    /// NOTE: Different from TargetSituationId above (which is for InitiateSituation routing)
+    /// NOTE: Different from TargetSituation above (which is for InitiateSituation routing)
     /// </summary>
-    public string SituationId { get; set; }
+    public Situation Situation { get; set; }
 
     /// <summary>
     /// PERFECT INFORMATION: Scene spawn previews

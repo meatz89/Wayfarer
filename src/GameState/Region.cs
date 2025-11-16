@@ -1,11 +1,12 @@
 public class Region
 {
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - Region identified by object reference
     public string Name { get; set; }
     public string Description { get; set; }
 
+    // HIGHLANDER: Object references ONLY, no DistrictIds
     // Regions contain multiple districts
-    public List<string> DistrictIds { get; set; } = new List<string>();
+    public List<District> Districts { get; set; } = new List<District>();
 
     // Region tier (1-3: personal/local/regional scope)
     // Tier 1: Starting region (personal stakes)

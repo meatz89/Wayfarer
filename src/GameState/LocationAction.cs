@@ -6,18 +6,20 @@ public class LocationAction
 {
     /// <summary>
     /// Source location where this action was generated (if location-specific)
+    /// HIGHLANDER: Object reference ONLY, no SourceLocationId
     /// null = global action available at any matching location
     /// non-null = only available at this specific location
     /// </summary>
-    public string SourceLocationId { get; set; }
+    public Location SourceLocation { get; set; }
 
     /// <summary>
     /// Destination location for IntraVenueMove actions
+    /// HIGHLANDER: Object reference ONLY, no DestinationLocationId
     /// Strongly-typed property replacing ID string parsing antipattern
     /// Only populated for LocationActionType.IntraVenueMove
     /// null for all other action types
     /// </summary>
-    public string DestinationLocationId { get; set; }
+    public Location DestinationLocation { get; set; }
 
     /// <summary>
     /// Display name shown to the player
@@ -83,9 +85,10 @@ public class LocationAction
     public string EngagementType { get; set; }
 
     /// <summary>
-    /// Obligation ID if this action launches an obligation (V2)
+    /// Obligation if this action launches an obligation (V2)
+    /// HIGHLANDER: Object reference ONLY, no ObligationId
     /// </summary>
-    public string ObligationId { get; set; }
+    public Obligation Obligation { get; set; }
 
     /// <summary>
     /// ChoiceTemplate source (Sir Brante layer - Scene-Situation architecture)
@@ -106,13 +109,14 @@ public class LocationAction
     public ChoiceTemplate ChoiceTemplate { get; set; }
 
     /// <summary>
-    /// THREE-TIER TIMING MODEL: Source Situation ID
+    /// THREE-TIER TIMING MODEL: Source Situation
+    /// HIGHLANDER: Object reference ONLY, no SituationId
     /// Links ephemeral action to source Situation for cleanup after execution
     /// Actions are QUERY-TIME instances (Tier 3), created when Situation activates
     /// After action executes, GameFacade deletes ALL actions for this Situation
     /// Next time player enters context, actions recreated fresh from ChoiceTemplates
     /// </summary>
-    public string SituationId { get; set; }
+    public Situation Situation { get; set; }
 
     /// <summary>
     /// PERFECT INFORMATION: Scene spawn previews
@@ -135,7 +139,7 @@ public class LocationAction
         if (location == null) return false;
 
         // Check location identity first (if action is location-specific)
-        if (!string.IsNullOrEmpty(SourceLocationId) && location.Id != SourceLocationId)
+        if (SourceLocation != null && location != SourceLocation)
             return false; // Location-specific action at wrong location
 
         // Get all active properties for the current time
