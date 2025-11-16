@@ -373,6 +373,21 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 - No regions
 - No inline styles
 
+**Emojis and Icons (PRINCIPLE):**
+- FORBIDDEN: Emojis for resource/content display (coins, health, stats, items, actions)
+- FORBIDDEN: Emojis in code comments, documentation, commit messages
+- ALLOWED: Minimal interface emojis ONLY (✕ close buttons, ✓ checkmarks)
+- REQUIRED: PNG, SVG, or CSS icon libraries (Font Awesome, Heroicons, Lucide, Material Icons)
+- Icon library must be cohesive with consistent visual style
+- All resource icons must be scalable vector graphics
+
+**Why this principle exists:**
+- Professional visual appearance (game quality standard)
+- Scalability and resolution independence (vector vs raster)
+- Customizable colors and styling (theme support)
+- Accessibility (screen reader compatibility, ARIA labels)
+- Cross-platform consistency (emojis render unpredictably)
+
 ---
 
 # WORKING PRINCIPLES
@@ -387,6 +402,16 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 - NO SHORTCUTS: Never document violations as "acceptable"
 - Massive refactorings REQUIRED if they fix violations
 - Partner not sycophant: Do hard work, not easy path
+
+**Documentation Philosophy (META-PRINCIPLE):**
+- Document PRINCIPLES, never current broken state
+- FORBIDDEN: "Technical debt" sections legitimizing violations
+- FORBIDDEN: "TODO: Fix this later" in documentation
+- FORBIDDEN: "Current implementation violates X but will be fixed"
+- CORRECT: State the principle clearly, violations are just violations
+- If code violates principle: Fix it (massive refactoring if needed)
+- If you can't fix now: Don't document the violation at all
+- Documentation describes HOW THINGS SHOULD BE, not how they currently are wrong
 
 **Process Discipline:**
 - Read documentation FIRST (achieve 100% certainty before acting)
