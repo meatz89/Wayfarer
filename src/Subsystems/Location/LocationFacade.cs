@@ -169,7 +169,7 @@ public class LocationFacade
             viewModel.NPCsPresent = GetNPCsWithInteractions(location, currentTime, npcConversationOptions);
 
             // Add observations
-            viewModel.Observations = GetLocationObservations(location.Id);
+            viewModel.Observations = GetLocationObservations(location.Name);
 
             // Add areas within location
             viewModel.AreasWithinLocation = _spotManager.GetAreasWithinVenue(venue, location, currentTime, _npcRepository);
@@ -210,7 +210,7 @@ public class LocationFacade
             throw new InvalidOperationException("Player has no current location");
 
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        return _npcTracker.GetNPCsAtSpot(_gameWorld.GetPlayerCurrentLocation().Id, currentTime);
+        return _npcTracker.GetNPCsAtSpot(_gameWorld.GetPlayerCurrentLocation().Name, currentTime);
     }
 
 
@@ -226,7 +226,7 @@ public class LocationFacade
 
     private List<NPCInteractionViewModel> GetNPCsWithInteractions(Location location, TimeBlocks currentTime, List<NPCConversationOptions> npcConversationOptions)
     {
-        List<NPCInteractionViewModel> result = new List<NPCInteractionViewModel>(); List<NPC> npcs = _npcRepository.GetNPCsForLocationAndTime(location.Id, currentTime); foreach (NPC npc in npcs)
+        List<NPCInteractionViewModel> result = new List<NPCInteractionViewModel>(); List<NPC> npcs = _npcRepository.GetNPCsForLocationAndTime(location.Name, currentTime); foreach (NPC npc in npcs)
         {
             ConnectionState connectionState = GetNPCConnectionState(npc);
             List<InteractionOptionViewModel> interactions = new List<InteractionOptionViewModel>();
@@ -300,22 +300,22 @@ public class LocationFacade
         return _narrativeRenderer.RenderTemplate(template);
     }
 
-    private List<ObservationViewModel> GetLocationObservations(string locationId)
+    private List<ObservationViewModel> GetLocationObservations(string locationName)
     {
         List<ObservationViewModel> observations = new List<ObservationViewModel>();
 
-        // Get location to derive venueId if needed
-        Location location = _gameWorld.GetLocation(locationId);
+        // Get location to derive venue name if needed
+        Location location = _gameWorld.GetLocation(locationName);
         if (location == null)
-            throw new InvalidOperationException($"Location not found: {locationId}");
+            throw new InvalidOperationException($"Location not found: {locationName}");
 
-        string venueId = location.VenueId;
-        List<Observation> locationObservations = _observationSystem.GetObservationsForLocation(venueId, locationId);
+        string venueName = location.Venue.Name;
+        List<Observation> locationObservations = _observationSystem.GetObservationsForLocation(venueName, locationName);
         if (locationObservations.Count > 0)
         {
             TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
             int currentSegment = _timeManager.CurrentSegment;
-            List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationAndTime(locationId, currentTimeBlock);
+            List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationAndTime(locationName, currentTimeBlock);
 
             foreach (Observation obs in locationObservations)
             {
@@ -363,21 +363,21 @@ public class LocationFacade
     private List<RouteOptionViewModel> GetRoutesFromLocation(Venue venue)
     {
         List<RouteOptionViewModel> routes = new List<RouteOptionViewModel>();
-        IEnumerable<RouteOption> availableRoutes = _routeRepository.GetRoutesFromLocation(venue.Id);
+        IEnumerable<RouteOption> availableRoutes = _routeRepository.GetRoutesFromLocation(venue.Name);
 
         foreach (RouteOption route in availableRoutes)
         {
-            Location destSpot = _gameWorld.GetLocation(route.DestinationLocationId);
+            Location destSpot = route.DestinationLocation;
             if (destSpot == null)
-                throw new InvalidOperationException($"Destination location spot not found: {route.DestinationLocationId}");
+                throw new InvalidOperationException($"Destination location not found for route: {route.Name}");
 
-            Venue destination = _locationManager.GetVenue(destSpot.VenueId);
+            Venue destination = destSpot.Venue;
             if (destination == null)
-                throw new InvalidOperationException($"Destination venue not found: {destSpot.VenueId}");
+                throw new InvalidOperationException($"Destination venue not found for location: {destSpot.Name}");
 
             routes.Add(new RouteOptionViewModel
             {
-                RouteId = route.Id,
+                RouteId = route.Name,
                 Destination = destination.Name,
                 TravelTime = $"{route.TravelTimeSegments} seg",
                 Detail = route.Description,
@@ -397,7 +397,7 @@ public class LocationFacade
     private int GetNPCCountAtSpot(Location location)
     {
         if (location == null) return 0;
-        return _npcRepository.GetNPCsForLocationAndTime(location.Id, _timeManager.GetCurrentTimeBlock()).Count();
+        return _npcRepository.GetNPCsForLocationAndTime(location.Name, _timeManager.GetCurrentTimeBlock()).Count();
     }
 
     /// <summary>
@@ -518,7 +518,7 @@ public class LocationFacade
 
             LockedSituationViewModel vm = new LockedSituationViewModel
             {
-                SituationId = situation.Id,
+                Situation = situation,
                 Name = situation.Name,
                 Description = situation.Description,
                 SystemType = situation.SystemType.ToString().ToLower(),
@@ -546,7 +546,7 @@ public class LocationFacade
 
     private LocationHeaderViewModel BuildLocationHeader(Venue venue, Location spot, TimeBlocks currentTime)
     {
-        List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot.Id, currentTime);
+        List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot.Name, currentTime);
 
         return new LocationHeaderViewModel
         {
@@ -725,8 +725,8 @@ public class LocationFacade
         List<NpcWithSituationsViewModel> result = new List<NpcWithSituationsViewModel>();
 
         // Get NPCs at spot
-        List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot.Id, currentTime);
-        Console.WriteLine($"[LocationFacade.BuildNPCsWithSituations] Found {npcsAtSpot.Count} NPCs at '{spot.Id}' during {currentTime}");
+        List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot.Name, currentTime);
+        Console.WriteLine($"[LocationFacade.BuildNPCsWithSituations] Found {npcsAtSpot.Count} NPCs at '{spot.Name}' during {currentTime}");
 
         // Build SIMPLE NPC cards for "Look Around" view
         // NPCs ALWAYS visible (physical presence), button conditional on scene availability
@@ -880,7 +880,7 @@ public class LocationFacade
         List<Scene> scenesAtLocation = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
                        s.CurrentSituation?.Location != null &&
-                       s.CurrentSituation.Location.Id == spot.Id)
+                       s.CurrentSituation.Location == spot)
             .ToList();
 
         // Get all situations from scenes at this location (direct object ownership)
@@ -896,7 +896,8 @@ public class LocationFacade
             .ToList();
 
         // Group situations by scene (ambient situations have no scene parent)
-        Dictionary<string, List<Situation>> situationsByScene = new Dictionary<string, List<Situation>>();
+        // DOMAIN COLLECTION PRINCIPLE: Use List, not Dictionary
+        List<(Scene Scene, List<Situation> Situations)> situationsByScene = new List<(Scene, List<Situation>)>();
         List<Situation> ambientSituationsList = new List<Situation>();
 
         foreach (Situation situation in systemSituations)
@@ -906,11 +907,16 @@ public class LocationFacade
 
             if (parentScene != null)
             {
-                if (!situationsByScene.ContainsKey(parentScene.Id))
+                // Find existing entry by object equality
+                (Scene Scene, List<Situation> Situations)? existing = situationsByScene.FirstOrDefault(entry => entry.Scene == parentScene);
+                if (existing.HasValue)
                 {
-                    situationsByScene[parentScene.Id] = new List<Situation>();
+                    existing.Value.Situations.Add(situation);
                 }
-                situationsByScene[parentScene.Id].Add(situation);
+                else
+                {
+                    situationsByScene.Add((parentScene, new List<Situation> { situation }));
+                }
             }
             else
             {
@@ -922,13 +928,9 @@ public class LocationFacade
         ambientSituations = ambientSituationsList.Select(g => BuildSituationCard(g, systemTypeStr, difficultyLabel)).ToList();
 
         // Build scene groups
-        foreach (KeyValuePair<string, List<Situation>> kvp in situationsByScene)
+        foreach ((Scene scene, List<Situation> situations) in situationsByScene)
         {
-            Scene scene = _gameWorld.Scenes.FirstOrDefault(o => o.Id == kvp.Key);
-            if (scene != null)
-            {
-                sceneGroups.Add(BuildSceneWithSituations(scene, kvp.Value, systemTypeStr, difficultyLabel));
-            }
+            sceneGroups.Add(BuildSceneWithSituations(scene, situations, systemTypeStr, difficultyLabel));
         }
 
         return new ChallengeBuildResult(ambientSituations, sceneGroups);
@@ -936,12 +938,12 @@ public class LocationFacade
 
     private Scene FindParentScene(Location spot, Situation situation)
     {
-        // Query GameWorld.Scenes by placement, check if SituationIds contains this situation.Id
+        // Query GameWorld.Scenes by placement, check if situation matches
         // HIERARCHICAL PLACEMENT: Check if any situation in scene is at this location
         return _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active)
-            .Where(s => s.Situations.Any(sit => sit.Location?.Id == spot.Id))
-            .FirstOrDefault(s => s.Situations.Any(sit => sit.Id == situation.Id));
+            .Where(s => s.Situations.Any(sit => sit.Location == spot))
+            .FirstOrDefault(s => s.Situations.Contains(situation));
     }
 
     private ChallengeBuildResult GroupSituationsByScene(
@@ -951,7 +953,8 @@ public class LocationFacade
         List<SceneWithSituationsViewModel> sceneGroups = new List<SceneWithSituationsViewModel>();
 
         // Group situations by scene (ambient situations have no scene parent)
-        Dictionary<string, List<Situation>> situationsByScene = new Dictionary<string, List<Situation>>();
+        // DOMAIN COLLECTION PRINCIPLE: Use List, not Dictionary
+        List<(Scene Scene, List<Situation> Situations)> situationsByScene = new List<(Scene, List<Situation>)>();
         List<Situation> ambientSituationsList = new List<Situation>();
 
         foreach (Situation situation in situations)
@@ -961,11 +964,16 @@ public class LocationFacade
 
             if (parentScene != null)
             {
-                if (!situationsByScene.ContainsKey(parentScene.Id))
+                // Find existing entry by object equality
+                (Scene Scene, List<Situation> Situations)? existing = situationsByScene.FirstOrDefault(entry => entry.Scene == parentScene);
+                if (existing.HasValue)
                 {
-                    situationsByScene[parentScene.Id] = new List<Situation>();
+                    existing.Value.Situations.Add(situation);
                 }
-                situationsByScene[parentScene.Id].Add(situation);
+                else
+                {
+                    situationsByScene.Add((parentScene, new List<Situation> { situation }));
+                }
             }
             else
             {
@@ -977,13 +985,9 @@ public class LocationFacade
         ambientSituations = ambientSituationsList.Select(g => BuildSituationCard(g, systemTypeStr, difficultyLabel)).ToList();
 
         // Build scene groups
-        foreach (KeyValuePair<string, List<Situation>> kvp in situationsByScene)
+        foreach ((Scene scene, List<Situation> situations) in situationsByScene)
         {
-            Scene scene = _gameWorld.Scenes.FirstOrDefault(o => o.Id == kvp.Key);
-            if (scene != null)
-            {
-                sceneGroups.Add(BuildSceneWithSituations(scene, kvp.Value, systemTypeStr, difficultyLabel));
-            }
+            sceneGroups.Add(BuildSceneWithSituations(scene, situations, systemTypeStr, difficultyLabel));
         }
 
         return new ChallengeBuildResult(ambientSituations, sceneGroups);
@@ -991,20 +995,20 @@ public class LocationFacade
 
     private Scene FindParentSceneForNPC(NPC npc, Situation situation)
     {
-        // Query GameWorld.Scenes by placement type, check if SituationIds contains this situation.Id
+        // Query GameWorld.Scenes by placement type, check if situation matches
         // HIERARCHICAL PLACEMENT: Check if any situation in scene has this NPC
         // HIGHLANDER: Object equality, no ID comparison
         return _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active)
             .Where(s => s.Situations.Any(sit => sit.Npc == npc))
-            .FirstOrDefault(s => s.Situations.Any(sit => sit.Id == situation.Id));
+            .FirstOrDefault(s => s.Situations.Contains(situation));
     }
 
     private SceneWithSituationsViewModel BuildSceneWithSituations(Scene scene, List<Situation> situations, string systemTypeStr, string difficultyLabel)
     {
         return new SceneWithSituationsViewModel
         {
-            Id = scene.Id,
+            Scene = scene,
             Name = scene.DisplayName,
             Description = scene.IntroNarrative,
             Intensity = 0,  // Intensity removed from Scene - defaulting to 0
@@ -1021,15 +1025,15 @@ public class LocationFacade
 
         return new SituationCardViewModel
         {
-            Id = situation.Id,
+            Situation = situation,
             Name = situation.Name,
             Description = situation.Description,
             SystemType = systemType,
             Type = situation.Type.ToString(),  // Copy from domain entity (Normal/Crisis)
             Difficulty = difficultyResult.FinalDifficulty,
             DifficultyLabel = difficultyLabel,
-            ObligationId = situation.Obligation?.Id,
-            IsIntroAction = !string.IsNullOrEmpty(situation.Obligation?.Id),
+            Obligation = situation.Obligation,
+            IsIntroAction = situation.Obligation != null,
             FocusCost = situation.Costs.Focus,
             StaminaCost = situation.Costs.Stamina
         };

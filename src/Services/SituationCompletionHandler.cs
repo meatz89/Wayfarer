@@ -39,12 +39,14 @@ public class SituationCompletionHandler
         // TRANSITION TRACKING: Set LastChallengeSucceeded if completing from challenge
         // Challenge facades call CompleteSituation when player plays SituationCard (success)
         // This enables OnSuccess/OnFailure transitions in scene state machine
-        if (_gameWorld.PendingMentalContext?.SituationId == situation.Id ||
-            _gameWorld.PendingPhysicalContext?.SituationId == situation.Id ||
-            _gameWorld.PendingSocialContext?.SituationId == situation.Id)
+        // NOTE: ChallengeContext.SituationId is DOMAIN VIOLATION - should be Situation object reference
+        // Workaround: Check if any challenge context exists (only one challenge can be pending at a time)
+        if (_gameWorld.PendingMentalContext != null ||
+            _gameWorld.PendingPhysicalContext != null ||
+            _gameWorld.PendingSocialContext != null)
         {
             situation.LastChallengeSucceeded = true;
-            Console.WriteLine($"[SituationCompletionHandler] Challenge succeeded for situation '{situation.Id}'");
+            Console.WriteLine($"[SituationCompletionHandler] Challenge succeeded for situation '{situation.Name}'");
         }
 
         // ProjectedConsequences DELETED - stored projection pattern violates architecture
@@ -53,11 +55,9 @@ public class SituationCompletionHandler
         // Apply rewards from all achieved situation cards (idempotent - only if not already achieved)
         ApplySituationCardRewards(situation);
 
-        // If DeleteOnSuccess, remove from ActiveSituations
-        if (situation.DeleteOnSuccess)
-        {
-            RemoveSituationFromActiveSituations(situation);
-        }
+        // NOTE: ActiveSituationIds DELETED from NPC/Location - situations embedded in scenes
+        // DeleteOnSuccess behavior: Situation marked complete, query filters it out
+        // No need to remove from separate collections - situations queried from scenes by lifecycle status
 
         // Check for simple obligation completion (Player.ActiveObligationIds system)
         CheckSimpleObligationCompletion(situation);
@@ -65,7 +65,7 @@ public class SituationCompletionHandler
         // Check for obligation progress (phase-based ObligationJournal system)
         if (!string.IsNullOrEmpty(situation.Obligation?.Id))
         {
-            await CheckObligationProgress(situation.Id, situation.Obligation?.Id);
+            await CheckObligationProgress(situation, situation.Obligation?.Id);
         }
 
         // PHASE 3: Execute SuccessSpawns - recursive situation spawning
@@ -90,12 +90,9 @@ public class SituationCompletionHandler
     /// Check for obligation progress when situation completes
     /// Handles both intro actions (Discovered → Active) and regular situations (phase progression)
     /// </summary>
-    private async Task CheckObligationProgress(string situationId, string obligationId)
+    private async Task CheckObligationProgress(Situation situation, string obligationId)
     {
         // Check if this is an intro action (Discovered → Active transition)
-        Situation situation = _gameWorld.Scenes
-            .SelectMany(s => s.Situations)
-            .FirstOrDefault(sit => sit.Id == situationId);
         if (situation != null && situation.IsIntroAction)
         {
             // This is intro completion - activate obligation and spawn Phase 1
@@ -104,7 +101,9 @@ public class SituationCompletionHandler
         }
 
         // Regular situation completion
-        ObligationProgressResult progressResult = await _obligationActivity.CompleteSituation(situationId, obligationId);
+        // NOTE: ObligationActivity.CompleteSituation still uses string situationId - Phase 7 edge case
+        string situationTemplateId = situation?.SituationTemplate?.Id;
+        ObligationProgressResult progressResult = await _obligationActivity.CompleteSituation(situationTemplateId, obligationId);
 
         // Log progress for UI modal display (UI will handle modal)
 
@@ -133,12 +132,14 @@ public class SituationCompletionHandler
         // TRANSITION TRACKING: Set LastChallengeSucceeded if failing from challenge
         // Challenge facades call FailSituation when player escapes/abandons (failure)
         // This enables OnFailure transitions in scene state machine
-        if (_gameWorld.PendingMentalContext?.SituationId == situation.Id ||
-            _gameWorld.PendingPhysicalContext?.SituationId == situation.Id ||
-            _gameWorld.PendingSocialContext?.SituationId == situation.Id)
+        // NOTE: ChallengeContext.SituationId is DOMAIN VIOLATION - should be Situation object reference
+        // Workaround: Check if any challenge context exists (only one challenge can be pending at a time)
+        if (_gameWorld.PendingMentalContext != null ||
+            _gameWorld.PendingPhysicalContext != null ||
+            _gameWorld.PendingSocialContext != null)
         {
             situation.LastChallengeSucceeded = false;
-            Console.WriteLine($"[SituationCompletionHandler] Challenge failed for situation '{situation.Id}'");
+            Console.WriteLine($"[SituationCompletionHandler] Challenge failed for situation '{situation.Name}'");
         }
 
         // PHASE 3: Execute FailureSpawns - recursive situation spawning on failure
@@ -185,10 +186,11 @@ public class SituationCompletionHandler
                 player.AddCoins(rewards.Coins.Value);
             }
 
-            // ITEM - add to player inventory by ID
-            if (!string.IsNullOrEmpty(rewards.EquipmentId))
+            // EQUIPMENT - add to player inventory by Equipment object
+            // NOTE: rewards.Equipment is object reference (HIGHLANDER)
+            if (rewards.Equipment != null)
             {
-                player.Inventory.AddItem(rewards.EquipmentId);
+                player.Inventory.AddItem(rewards.Equipment.Id);
             }
 
             // OBLIGATION CUBES - grant to situation's placement Location (localized mastery)
@@ -197,7 +199,7 @@ public class SituationCompletionHandler
             {
                 if (situation.Location != null)
                 {
-                    _gameWorld.GrantLocationCubes(situation.Location.Id, rewards.InvestigationCubes.Value);
+                    _gameWorld.GrantLocationCubes(situation.Location.Name, rewards.InvestigationCubes.Value);
                     string locationName = situation.Location.Name;
                 }
             }
@@ -208,7 +210,7 @@ public class SituationCompletionHandler
             {
                 if (situation.Npc != null)
                 {
-                    _gameWorld.GrantNPCCubes(situation.Npc.ID, rewards.StoryCubes.Value);
+                    _gameWorld.GrantNPCCubes(situation.Npc.Name, rewards.StoryCubes.Value);
                     string npcName = situation.Npc.Name;
                 }
             }
@@ -219,7 +221,7 @@ public class SituationCompletionHandler
             {
                 if (situation.Route != null)
                 {
-                    _gameWorld.GrantRouteCubes(situation.Route.Id, rewards.ExplorationCubes.Value);
+                    _gameWorld.GrantRouteCubes(situation.Route.Name, rewards.ExplorationCubes.Value);
                     string routeName = situation.Route.Name;
                 }
                 // Situation without route context - exploration cubes can't be granted
@@ -232,7 +234,8 @@ public class SituationCompletionHandler
             {
                 CreateObligationReward data = rewards.CreateObligationData;
 
-                NPC patron = _gameWorld.NPCs.FirstOrDefault(n => n.ID == data.PatronNpcId);
+                // NOTE: data.PatronNpc is object reference (HIGHLANDER)
+                NPC patron = data.PatronNpc;
                 if (patron == null)
                 {
                 }
@@ -244,23 +247,22 @@ public class SituationCompletionHandler
                 }
             }
 
-            // OBLIGATION ID - activate existing obligation (SelfDiscovered or NPCCommissioned)
+            // OBLIGATION - activate existing obligation (SelfDiscovered or NPCCommissioned)
             // Adds to Player.ActiveObligationIds and sets deadline if NPCCommissioned
-            if (!string.IsNullOrEmpty(rewards.ObligationId))
+            // NOTE: rewards.Obligation is object reference (HIGHLANDER)
+            if (rewards.Obligation != null)
             {
-                Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == rewards.ObligationId);
-                if (obligation != null)
-                {
-                    // Activate obligation (adds to Player.ActiveObligationIds, sets deadline if NPCCommissioned)
-                    _gameWorld.ActivateObligation(rewards.ObligationId, _timeManager);
-                }
+                // Activate obligation (adds to Player.ActiveObligationIds, sets deadline if NPCCommissioned)
+                // GameWorld.ActivateObligation still uses string obligationId - Template.Id is allowed
+                _gameWorld.ActivateObligation(rewards.Obligation.Id, _timeManager);
             }
 
             // ROUTE SEGMENT UNLOCK - reveal hidden PathCard by setting ExplorationThreshold to 0
             if (rewards.RouteSegmentUnlock != null)
             {
                 RouteSegmentUnlock unlock = rewards.RouteSegmentUnlock;
-                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == unlock.RouteId);
+                // NOTE: unlock.Route and unlock.Path are object references (HIGHLANDER)
+                RouteOption route = unlock.Route;
                 if (route != null)
                 {
                     if (unlock.SegmentPosition >= 0 && unlock.SegmentPosition < route.Segments.Count)
@@ -273,7 +275,8 @@ public class SituationCompletionHandler
                             PathCardCollectionDTO collection = _gameWorld.GetPathCollection(segment.PathCollectionId);
                             if (collection != null)
                             {
-                                PathCardDTO pathCard = collection.PathCards.FirstOrDefault(p => p.Id == unlock.PathId);
+                                // unlock.Path is PathCard domain object, need to find matching DTO by Id
+                                PathCardDTO pathCard = collection.PathCards.FirstOrDefault(p => p.Id == unlock.Path.Id);
                                 if (pathCard != null)
                                 {
                                     // Reveal hidden PathCard by setting ExplorationThreshold to 0 (always visible)
@@ -295,29 +298,6 @@ public class SituationCompletionHandler
         }
     }
 
-    /// <summary>
-    /// Remove situation from NPC.ActiveSituationIds or Location.ActiveSituationIds
-    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
-    /// </summary>
-    private void RemoveSituationFromActiveSituations(Situation situation)
-    {
-        if (situation.Npc != null)
-        {
-            // Remove from NPC.ActiveSituationIds
-            if (situation.Npc.ActiveSituationIds.Contains(situation.Id))
-            {
-                situation.Npc.ActiveSituationIds.Remove(situation.Id);
-            }
-        }
-        else if (situation.Location != null)
-        {
-            // Remove from Location.ActiveSituationIds
-            if (situation.Location.ActiveSituationIds.Contains(situation.Id))
-            {
-                situation.Location.ActiveSituationIds.Remove(situation.Id);
-            }
-        }
-    }
 
     /// <summary>
     /// Check if completing this situation completes an active obligation (simple Player.ActiveObligationIds system)

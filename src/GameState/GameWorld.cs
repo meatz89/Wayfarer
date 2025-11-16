@@ -250,33 +250,33 @@ public class GameWorld
     }
 
     // Hierarchy lookup methods
-    public District GetDistrictForLocation(string venueId)
+    public District GetDistrictForLocation(string venueName)
     {
-        Venue venue = Venues.FirstOrDefault(l => l.Id == venueId);
+        Venue venue = Venues.FirstOrDefault(l => l.Name == venueName);
         if (venue == null || string.IsNullOrEmpty(venue.District))
             return null;
 
-        return Districts.FirstOrDefault(d => d.Id == venue.District);
+        return Districts.FirstOrDefault(d => d.Name == venue.District);
     }
 
-    public Region GetRegionForDistrict(string districtId)
+    public Region GetRegionForDistrict(string districtName)
     {
-        District district = Districts.FirstOrDefault(d => d.Id == districtId);
-        if (district == null || string.IsNullOrEmpty(district.RegionId))
+        District district = Districts.FirstOrDefault(d => d.Name == districtName);
+        if (district == null || district.Region == null)
             return null;
 
-        return Regions.FirstOrDefault(r => r.Id == district.RegionId);
+        return district.Region;
     }
 
-    public string GetFullLocationPath(string venueId)
+    public string GetFullLocationPath(string venueName)
     {
-        Venue? venue = Venues.FirstOrDefault(l => l.Id == venueId);
+        Venue? venue = Venues.FirstOrDefault(l => l.Name == venueName);
         if (venue == null) return "";
 
-        District district = GetDistrictForLocation(venueId);
+        District district = GetDistrictForLocation(venueName);
         if (district == null) return venue.Name;
 
-        Region region = GetRegionForDistrict(district.Id);
+        Region region = GetRegionForDistrict(district.Name);
         if (region == null) return $"{venue.Name}, {district.Name}";
 
         return $"{venue.Name}, {district.Name}, {region.Name}";
@@ -334,11 +334,11 @@ public class GameWorld
         return NPCs;
     }
 
-    /// Get a Venue location by ID from primary storage
+    /// Get a location by name from primary storage
     /// </summary>
-    public Location GetLocation(string LocationId)
+    public Location GetLocation(string locationName)
     {
-        return Locations.FirstOrDefault(l => l.Id == LocationId);
+        return Locations.FirstOrDefault(l => l.Name == locationName);
     }
 
     /// <summary>
@@ -357,27 +357,27 @@ public class GameWorld
     }
 
     /// <summary>
-    /// Get a SocialChallengeDeck by ID
+    /// Get a SocialChallengeDeck by name
     /// </summary>
-    public SocialChallengeDeck GetSocialDeckById(string id)
+    public SocialChallengeDeck GetSocialDeckByName(string name)
     {
-        return SocialChallengeDecks.FirstOrDefault(d => d.Id == id);
+        return SocialChallengeDecks.FirstOrDefault(d => d.Name == name);
     }
 
     /// <summary>
-    /// Get a MentalChallengeDeck by ID
+    /// Get a MentalChallengeDeck by name
     /// </summary>
-    public MentalChallengeDeck GetMentalDeckById(string id)
+    public MentalChallengeDeck GetMentalDeckByName(string name)
     {
-        return MentalChallengeDecks.FirstOrDefault(d => d.Id == id);
+        return MentalChallengeDecks.FirstOrDefault(d => d.Name == name);
     }
 
     /// <summary>
-    /// Get a PhysicalChallengeDeck by ID
+    /// Get a PhysicalChallengeDeck by name
     /// </summary>
-    public PhysicalChallengeDeck GetPhysicalDeckById(string id)
+    public PhysicalChallengeDeck GetPhysicalDeckByName(string name)
     {
-        return PhysicalChallengeDecks.FirstOrDefault(d => d.Id == id);
+        return PhysicalChallengeDecks.FirstOrDefault(d => d.Name == name);
     }
 
     /// <summary>
@@ -394,10 +394,10 @@ public class GameWorld
     /// <summary>
     /// Add a stranger NPC to a specific location
     /// </summary>
-    public void AddStrangerToLocation(string locationId, NPC stranger)
+    public void AddStrangerToLocation(string locationName, NPC stranger)
     {
         if (stranger == null) return;
-        stranger.Location = Locations.FirstOrDefault(l => l.Id == locationId);
+        stranger.Location = Locations.FirstOrDefault(l => l.Name == locationName);
         stranger.IsStranger = true;
         NPCs.Add(stranger);
     }
@@ -405,12 +405,12 @@ public class GameWorld
     /// <summary>
     /// Get available strangers at a location for the current time block
     /// </summary>
-    public List<NPC> GetAvailableStrangers(string locationId, TimeBlocks currentTimeBlock)
+    public List<NPC> GetAvailableStrangers(string locationName, TimeBlocks currentTimeBlock)
     {
         List<NPC> availableStrangers = new List<NPC>();
         foreach (NPC npc in NPCs)
         {
-            if (npc.IsStranger && npc.Location?.Id == locationId && npc.IsAvailableAtTime(currentTimeBlock))
+            if (npc.IsStranger && npc.Location?.Name == locationName && npc.IsAvailableAtTime(currentTimeBlock))
             {
                 availableStrangers.Add(npc);
             }
@@ -419,13 +419,13 @@ public class GameWorld
     }
 
     /// <summary>
-    /// Get stranger by ID across all locations
+    /// Get stranger by name across all locations
     /// </summary>
-    public NPC GetStrangerById(string strangerId)
+    public NPC GetStrangerByName(string strangerName)
     {
         foreach (NPC npc in NPCs)
         {
-            if (npc.IsStranger && npc.ID == strangerId)
+            if (npc.IsStranger && npc.Name == strangerName)
             {
                 return npc;
             }
@@ -454,9 +454,9 @@ public class GameWorld
     /// <summary>
     /// Mark a stranger as talked to for current time block
     /// </summary>
-    public void MarkStrangerAsTalkedTo(string strangerId)
+    public void MarkStrangerAsTalkedTo(string strangerName)
     {
-        NPC stranger = GetStrangerById(strangerId);
+        NPC stranger = GetStrangerByName(strangerName);
         if (stranger != null)
             stranger.MarkAsEncountered();
     }
@@ -486,21 +486,21 @@ public class GameWorld
     /// NPCCommissioned: Sets absolute deadline segment and tracks in active obligations
     /// SelfDiscovered: No deadline tracking (freedom-based exploration)
     /// </summary>
-    public void ActivateObligation(string obligationId, TimeManager timeManager)
+    public void ActivateObligation(string obligationName, TimeManager timeManager)
     {
-        Obligation obligation = Obligations.FirstOrDefault(i => i.Id == obligationId);
+        Obligation obligation = Obligations.FirstOrDefault(i => i.Name == obligationName);
         if (obligation == null) return;
 
-        if (!Player.ActiveObligationIds.Contains(obligationId))
+        if (!Player.ActiveObligationIds.Contains(obligationName))
         {
-            Player.ActiveObligationIds.Add(obligationId);
+            Player.ActiveObligationIds.Add(obligationName);
         }
 
         if (obligation.ObligationType == ObligationObligationType.NPCCommissioned)
         {
             int currentSegment = timeManager.CurrentSegment;
             if (!obligation.DeadlineSegment.HasValue)
-                throw new System.InvalidOperationException($"Obligation {obligationId} is NPCCommissioned but has no DeadlineSegment configured");
+                throw new System.InvalidOperationException($"Obligation {obligationName} is NPCCommissioned but has no DeadlineSegment configured");
             int deadlineDuration = obligation.DeadlineSegment.Value;
             obligation.DeadlineSegment = currentSegment + deadlineDuration;
         }
@@ -511,39 +511,36 @@ public class GameWorld
     /// Applies coins, items, XP, and increases relationship with patron (NPCCommissioned only)
     /// Chains spawned obligations by activating each spawned obligation
     /// </summary>
-    public void CompleteObligation(string obligationId, TimeManager timeManager)
+    public void CompleteObligation(string obligationName, TimeManager timeManager)
     {
-        Obligation obligation = Obligations.FirstOrDefault(i => i.Id == obligationId);
+        Obligation obligation = Obligations.FirstOrDefault(i => i.Name == obligationName);
         if (obligation == null) return;
 
         Player.ModifyCoins(obligation.CompletionRewardCoins);
 
-        foreach (string itemId in obligation.CompletionRewardItems)
+        foreach (Item item in obligation.CompletionRewardItems)
         {
-            Player.Inventory.AddItem(itemId);
+            Player.Inventory.Add(item);
         }
 
         // Stats are now simple integers - no XP system
         // CompletionRewardXP deleted as part of XP system removal
 
-        foreach (string spawnedId in obligation.SpawnedObligationIds)
+        foreach (Obligation spawnedObligation in obligation.SpawnedObligations)
         {
-            ActivateObligation(spawnedId, timeManager);
+            ActivateObligation(spawnedObligation.Name, timeManager);
         }
 
-        if (Player.ActiveObligationIds.Contains(obligationId))
+        if (Player.ActiveObligationIds.Contains(obligationName))
         {
-            Player.ActiveObligationIds.Remove(obligationId);
+            Player.ActiveObligationIds.Remove(obligationName);
         }
 
         if (obligation.ObligationType == ObligationObligationType.NPCCommissioned &&
-            !string.IsNullOrEmpty(obligation.PatronNpcId))
+            obligation.PatronNpc != null)
         {
-            NPC patron = NPCs.FirstOrDefault(n => n.ID == obligation.PatronNpcId);
-            if (patron != null)
-            {
-                patron.RelationshipFlow = Math.Min(24, patron.RelationshipFlow + 2);
-            }
+            NPC patron = obligation.PatronNpc;
+            patron.RelationshipFlow = Math.Min(24, patron.RelationshipFlow + 2);
         }
     }
 
@@ -555,40 +552,42 @@ public class GameWorld
     /// Get all available delivery jobs at a specific location for current time
     /// Used by LocationActionManager to show job board actions
     /// </summary>
-    public List<DeliveryJob> GetJobsAvailableAt(string locationId, TimeBlocks currentTime)
+    public List<DeliveryJob> GetJobsAvailableAt(string locationName, TimeBlocks currentTime)
     {
         return AvailableDeliveryJobs
-            .Where(job => job.OriginLocationId == locationId)
+            .Where(job => job.OriginLocation.Name == locationName)
             .Where(job => job.IsAvailable)
             .Where(job => job.AvailableAt.Count == 0 || job.AvailableAt.Contains(currentTime))
             .ToList();
     }
 
     /// <summary>
-    /// Get delivery job by ID
+    /// Get delivery job by origin and destination location names
     /// </summary>
-    public DeliveryJob GetJobById(string jobId)
+    public DeliveryJob GetJobByLocations(string originLocationName, string destinationLocationName)
     {
-        return AvailableDeliveryJobs.FirstOrDefault(j => j.Id == jobId);
+        return AvailableDeliveryJobs.FirstOrDefault(j =>
+            j.OriginLocation.Name == originLocationName &&
+            j.DestinationLocation.Name == destinationLocationName);
     }
 
     /// <summary>
     /// Check for expired obligations by comparing current segment to deadline
-    /// Returns list of obligation IDs that have exceeded their deadline
+    /// Returns list of obligation names that have exceeded their deadline
     /// </summary>
     public List<string> CheckDeadlines(int currentSegment)
     {
         List<string> expiredObligations = new List<string>();
 
-        foreach (string obligationId in Player.ActiveObligationIds)
+        foreach (string obligationName in Player.ActiveObligationIds)
         {
-            Obligation obligation = Obligations.FirstOrDefault(i => i.Id == obligationId);
+            Obligation obligation = Obligations.FirstOrDefault(i => i.Name == obligationName);
             if (obligation != null &&
                 obligation.ObligationType == ObligationObligationType.NPCCommissioned &&
                 obligation.DeadlineSegment.HasValue &&
                 currentSegment >= obligation.DeadlineSegment.Value)
             {
-                expiredObligations.Add(obligationId);
+                expiredObligations.Add(obligationName);
             }
         }
 
@@ -599,27 +598,24 @@ public class GameWorld
     /// Apply deadline consequences for missed obligation
     /// Penalizes relationship with patron NPC, removes StoryCubes, and removes from active obligations
     /// </summary>
-    public void ApplyDeadlineConsequences(string obligationId)
+    public void ApplyDeadlineConsequences(string obligationName)
     {
-        Obligation obligation = Obligations.FirstOrDefault(i => i.Id == obligationId);
+        Obligation obligation = Obligations.FirstOrDefault(i => i.Name == obligationName);
         if (obligation == null) return;
 
         if (obligation.ObligationType == ObligationObligationType.NPCCommissioned &&
-            !string.IsNullOrEmpty(obligation.PatronNpcId))
+            obligation.PatronNpc != null)
         {
-            NPC patron = NPCs.FirstOrDefault(n => n.ID == obligation.PatronNpcId);
-            if (patron != null)
-            {
-                patron.RelationshipFlow = Math.Max(0, patron.RelationshipFlow - 3);
+            NPC patron = obligation.PatronNpc;
+            patron.RelationshipFlow = Math.Max(0, patron.RelationshipFlow - 3);
 
-                int cubeReduction = Math.Min(2, patron.StoryCubes);
-                patron.StoryCubes = Math.Max(0, patron.StoryCubes - cubeReduction);
-            }
+            int cubeReduction = Math.Min(2, patron.StoryCubes);
+            patron.StoryCubes = Math.Max(0, patron.StoryCubes - cubeReduction);
         }
 
-        if (Player.ActiveObligationIds.Contains(obligationId))
+        if (Player.ActiveObligationIds.Contains(obligationName))
         {
-            Player.ActiveObligationIds.Remove(obligationId);
+            Player.ActiveObligationIds.Remove(obligationName);
         }
 
         obligation.IsFailed = true;
@@ -631,9 +627,9 @@ public class GameWorld
     public List<Obligation> GetActiveObligations()
     {
         List<Obligation> activeObligations = new List<Obligation>();
-        foreach (string obligationId in Player.ActiveObligationIds)
+        foreach (string obligationName in Player.ActiveObligationIds)
         {
-            Obligation obligation = Obligations.FirstOrDefault(i => i.Id == obligationId);
+            Obligation obligation = Obligations.FirstOrDefault(i => i.Name == obligationName);
             if (obligation != null)
             {
                 activeObligations.Add(obligation);
@@ -683,11 +679,11 @@ public class GameWorld
     /// <summary>
     /// Get InvestigationCubes for a location (0-10 scale)
     /// </summary>
-    public int GetLocationCubes(string locationId)
+    public int GetLocationCubes(string locationName)
     {
-        Location location = GetLocation(locationId);
+        Location location = GetLocation(locationName);
         if (location == null)
-            throw new InvalidOperationException($"Location not found: {locationId}");
+            throw new InvalidOperationException($"Location not found: {locationName}");
 
         return location.InvestigationCubes;
     }
@@ -695,11 +691,11 @@ public class GameWorld
     /// <summary>
     /// Get StoryCubes for an NPC (0-10 scale)
     /// </summary>
-    public int GetNPCCubes(string npcId)
+    public int GetNPCCubes(string npcName)
     {
-        NPC npc = NPCs.FirstOrDefault(n => n.ID == npcId);
+        NPC npc = NPCs.FirstOrDefault(n => n.Name == npcName);
         if (npc == null)
-            throw new InvalidOperationException($"NPC not found: {npcId}");
+            throw new InvalidOperationException($"NPC not found: {npcName}");
 
         return npc.StoryCubes;
     }
@@ -707,7 +703,7 @@ public class GameWorld
     /// <summary>
     /// Get ExplorationCubes for a route (0-10 scale)
     /// </summary>
-    public int GetRouteCubes(string routeId)
+    public int GetRouteCubes(string routeName)
     {
         // Routes are stored as RouteOption - need to find through venue system
         // This method will be implemented when route storage is clarified
@@ -717,9 +713,9 @@ public class GameWorld
     /// <summary>
     /// Grant InvestigationCubes to a location (max 10)
     /// </summary>
-    public void GrantLocationCubes(string locationId, int amount)
+    public void GrantLocationCubes(string locationName, int amount)
     {
-        Location location = GetLocation(locationId);
+        Location location = GetLocation(locationName);
         if (location != null)
         {
             location.InvestigationCubes = Math.Min(10, location.InvestigationCubes + amount);
@@ -729,9 +725,9 @@ public class GameWorld
     /// <summary>
     /// Grant StoryCubes to an NPC (max 10)
     /// </summary>
-    public void GrantNPCCubes(string npcId, int amount)
+    public void GrantNPCCubes(string npcName, int amount)
     {
-        NPC npc = NPCs.FirstOrDefault(n => n.ID == npcId);
+        NPC npc = NPCs.FirstOrDefault(n => n.Name == npcName);
         if (npc != null)
         {
             npc.StoryCubes = Math.Min(10, npc.StoryCubes + amount);
@@ -741,7 +737,7 @@ public class GameWorld
     /// <summary>
     /// Grant ExplorationCubes to a route (max 10)
     /// </summary>
-    public void GrantRouteCubes(string routeId, int amount)
+    public void GrantRouteCubes(string routeName, int amount)
     {
         // Routes are stored as RouteOption - need to find through venue system
         // This method will be implemented when route storage is clarified
@@ -778,11 +774,11 @@ public class GameWorld
     }
 
     /// <summary>
-    /// Get an Achievement definition by ID
+    /// Get an Achievement definition by name
     /// </summary>
-    public Achievement GetAchievementById(string achievementId)
+    public Achievement GetAchievementByName(string achievementName)
     {
-        return Achievements.FirstOrDefault(a => a.Id == achievementId);
+        return Achievements.FirstOrDefault(a => a.Name == achievementName);
     }
 
     /// <summary>
@@ -1000,12 +996,12 @@ public class GameWorld
 
     /// <summary>
     /// Add or update location spot
-    /// CRITICAL: Maintains bidirectional Venue ↔ Location relationship
+    /// CRITICAL: Maintains unidirectional Location → Venue relationship
     /// Updates existing location IN-PLACE (no removal - entities persist forever)
     /// </summary>
-    public void AddOrUpdateLocation(string locationId, Location location)
+    public void AddOrUpdateLocation(string locationName, Location location)
     {
-        Location existing = Locations.FirstOrDefault(l => l.Id == locationId);
+        Location existing = Locations.FirstOrDefault(l => l.Name == locationName);
         if (existing != null)
         {
             // UPDATE EXISTING IN-PLACE - Never remove entities
@@ -1013,7 +1009,6 @@ public class GameWorld
 
             // Copy all properties from new location to existing (preserve object identity)
             existing.Name = location.Name;
-            existing.VenueId = location.VenueId;
             existing.Venue = location.Venue;
             existing.InitialState = location.InitialState;
             // IsLocked DELETED - new architecture uses query-based accessibility via LocationAccessibilityService
@@ -1031,7 +1026,7 @@ public class GameWorld
             Locations.Add(location);
         }
 
-        // Relationship is unidirectional: Location → Venue via Location.VenueId
+        // Relationship is unidirectional: Location → Venue via Location.Venue object reference
         // No bidirectional tracking needed
     }
 
@@ -1039,11 +1034,11 @@ public class GameWorld
 
     /// <summary>
     /// Count how many locations are in the specified venue.
-    /// Queries Locations collection by VenueId.
+    /// Queries Locations collection by Venue object reference.
     /// </summary>
-    public int GetLocationCountInVenue(string venueId)
+    public int GetLocationCountInVenue(string venueName)
     {
-        return Locations.Count(loc => loc.VenueId == venueId);
+        return Locations.Count(loc => loc.Venue != null && loc.Venue.Name == venueName);
     }
 
     /// <summary>
@@ -1051,7 +1046,7 @@ public class GameWorld
     /// </summary>
     public bool CanVenueAddMoreLocations(Venue venue)
     {
-        int currentCount = GetLocationCountInVenue(venue.Id);
+        int currentCount = GetLocationCountInVenue(venue.Name);
         return currentCount < venue.MaxLocations;
     }
 
