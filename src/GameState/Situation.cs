@@ -60,8 +60,13 @@ public class Situation
     /// </summary>
     public SituationType Type { get; set; } = SituationType.Normal;
 
-    // NOTE: DeckId DELETED - if deck reference needed, store deck object
-    // Challenge generation should work with deck objects, not ID lookups
+    /// <summary>
+    /// Challenge deck for Mental/Physical/Social challenges
+    /// PHASE 4: Object reference instead of DeckId string
+    /// Type: MentalChallengeDeck | PhysicalChallengeDeck | SocialChallengeDeck (polymorphic)
+    /// null for situations without challenges (Instant, Navigation)
+    /// </summary>
+    public object Deck { get; set; }
 
     // Scene-Situation Architecture additions (spawn tracking, completion tracking, template system)
 

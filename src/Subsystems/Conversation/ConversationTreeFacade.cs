@@ -27,16 +27,16 @@ public class ConversationTreeFacade
 
     /// <summary>
     /// Create context for a conversation tree screen
+    /// PHASE 4: Accept ConversationTree object instead of ID
     /// </summary>
-    public ConversationTreeContext CreateContext(string treeId)
+    public ConversationTreeContext CreateContext(ConversationTree tree)
     {
-        ConversationTree tree = _gameWorld.ConversationTrees.FirstOrDefault(t => t.Id == treeId);
         if (tree == null)
         {
             return new ConversationTreeContext
             {
                 IsValid = false,
-                ErrorMessage = $"Conversation tree '{treeId}' not found"
+                ErrorMessage = "Conversation tree is null"
             };
         }
 
@@ -116,20 +116,18 @@ public class ConversationTreeFacade
 
     /// <summary>
     /// Select a dialogue response and apply outcomes
+    /// PHASE 4: Accept object references instead of IDs
     /// </summary>
-    public ConversationTreeResult SelectResponse(string treeId, string nodeId, string responseId)
+    public ConversationTreeResult SelectResponse(ConversationTree tree, DialogueNode currentNode, DialogueResponse response)
     {
-        ConversationTree tree = _gameWorld.ConversationTrees.FirstOrDefault(t => t.Id == treeId);
         if (tree == null)
-            return ConversationTreeResult.Failed("Conversation tree not found");
+            return ConversationTreeResult.Failed("Conversation tree is null");
 
-        DialogueNode currentNode = tree.Nodes.FirstOrDefault(n => n.Id == nodeId);
         if (currentNode == null)
-            return ConversationTreeResult.Failed("Dialogue node not found");
+            return ConversationTreeResult.Failed("Dialogue node is null");
 
-        DialogueResponse response = currentNode.Responses.FirstOrDefault(r => r.Id == responseId);
         if (response == null)
-            return ConversationTreeResult.Failed("Response not found");
+            return ConversationTreeResult.Failed("Response is null");
 
         Player player = _gameWorld.GetPlayer();
 
@@ -210,7 +208,13 @@ public class ConversationTreeFacade
         // Check for escalation to Social challenge
         if (response.EscalatesToSocialChallenge)
         {
-            return ConversationTreeResult.EscalateToChallenge(response.SocialChallengeSituationId);
+            // TODO PHASE 5: DialogueResponse should have Situation object reference, not SocialChallengeSituationId string
+            // For now, need to look up situation by ID
+            Situation challengeSituation = _gameWorld.Scenes
+                .SelectMany(s => s.Situations)
+                .FirstOrDefault(sit => sit.Id == response.SocialChallengeSituationId);
+
+            return ConversationTreeResult.EscalateToChallenge(challengeSituation);
         }
 
         // Navigate to next node
@@ -296,6 +300,7 @@ public class ConversationTreeFacade
 
 /// <summary>
 /// Result of a conversation tree response selection
+/// PHASE 4: ID properties replaced with object references
 /// </summary>
 public class ConversationTreeResult
 {
@@ -303,7 +308,7 @@ public class ConversationTreeResult
     public string Message { get; set; }
     public bool IsComplete { get; set; }
     public bool EscalatesToChallenge { get; set; }
-    public string ChallengeSituationId { get; set; }
+    public Situation ChallengeSituation { get; set; }  // PHASE 4: Object reference instead of ID
     public DialogueNode NextNode { get; set; }
 
     public static ConversationTreeResult Failed(string message)
@@ -321,13 +326,13 @@ public class ConversationTreeResult
         return new ConversationTreeResult { Success = true, NextNode = nextNode };
     }
 
-    public static ConversationTreeResult EscalateToChallenge(string situationId)
+    public static ConversationTreeResult EscalateToChallenge(Situation situation)
     {
         return new ConversationTreeResult
         {
             Success = true,
             EscalatesToChallenge = true,
-            ChallengeSituationId = situationId
+            ChallengeSituation = situation
         };
     }
 }

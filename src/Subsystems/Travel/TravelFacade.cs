@@ -73,25 +73,36 @@ public class TravelFacade
         return destinations;
     }
 
-    public RouteOption GetRouteBetweenLocations(string fromLocationId, string toLocationId)
+    /// <summary>
+    /// PHASE 4: Accept Location objects instead of IDs
+    /// </summary>
+    public RouteOption GetRouteBetweenLocations(Location fromLocation, Location toLocation)
     {
-        return _routeManager.GetRouteBetweenLocations(fromLocationId, toLocationId);
+        if (fromLocation == null || toLocation == null)
+            return null;
+
+        return _routeManager.GetRouteBetweenLocations(fromLocation.Id, toLocation.Id);
     }
 
     // ========== TRAVEL OPERATIONS ==========
 
-    public bool CanTravelTo(string locationId)
+    /// <summary>
+    /// PHASE 4: Accept Location object instead of ID
+    /// </summary>
+    public bool CanTravelTo(Location location)
     {
+        if (location == null)
+            return false;
+
         Player player = _gameWorld.GetPlayer();
         Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
-        string currentLocationId = currentLocation?.Id;
-        if (currentLocationId == null)
+        if (currentLocation == null)
         {
             return false;
         }
 
         // Check if route exists
-        RouteOption route = GetRouteBetweenLocations(currentLocationId, locationId);
+        RouteOption route = GetRouteBetweenLocations(currentLocation, location);
         if (route == null)
         {
             return false;
@@ -108,12 +119,23 @@ public class TravelFacade
         return true;
     }
 
-    public TravelResult TravelTo(string locationId, TravelMethods transportMethod)
+    /// <summary>
+    /// PHASE 4: Accept Location object instead of ID
+    /// </summary>
+    public TravelResult TravelTo(Location location, TravelMethods transportMethod)
     {
+        if (location == null)
+        {
+            return new TravelResult
+            {
+                Success = false,
+                Reason = "Destination location is null"
+            };
+        }
+
         Player player = _gameWorld.GetPlayer();
         Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
-        string currentLocationId = currentLocation?.Id;
-        if (currentLocationId == null)
+        if (currentLocation == null)
         {
             return new TravelResult
             {
@@ -123,7 +145,7 @@ public class TravelFacade
         }
 
         // Get route
-        RouteOption route = GetRouteBetweenLocations(currentLocationId, locationId);
+        RouteOption route = GetRouteBetweenLocations(currentLocation, location);
         if (route == null)
         {
             return new TravelResult
@@ -178,8 +200,8 @@ public class TravelFacade
             TravelTimeSegments = travelTime,
             SegmentCost = travelTime, // Direct segments usage
             CoinCost = coinCost,
-            RouteId = route.Id,
-            DestinationId = locationId,
+            Route = route,  // PHASE 4: Object reference
+            Destination = location,  // PHASE 4: Object reference
             TransportMethod = transportMethod
         };
     }
@@ -208,24 +230,29 @@ public class TravelFacade
 
     // ========== TIME CALCULATIONS ==========
 
-    public int CalculateTravelTime(string toLocationId, TravelMethods transportMethod)
+    /// <summary>
+    /// PHASE 4: Accept Location object instead of ID
+    /// </summary>
+    public int CalculateTravelTime(Location toLocation, TravelMethods transportMethod)
     {
+        if (toLocation == null)
+            return 0;
+
         Player player = _gameWorld.GetPlayer();
         Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
-        string currentLocationId = currentLocation?.Id;
-        if (currentLocationId == null)
+        if (currentLocation == null)
         {
             return 0;
         }
 
         // Find route between current location and destination
-        RouteOption route = _routeRepository.GetRoutesBetween(currentLocationId, toLocationId)
+        RouteOption route = _routeRepository.GetRoutesBetween(currentLocation.Id, toLocation.Id)
             .FirstOrDefault();
 
         if (route == null)
         {
             // No route found - fallback to hex distance calculation
-            return _travelTimeCalculator.GetBaseTravelTime(currentLocationId, toLocationId);
+            return _travelTimeCalculator.GetBaseTravelTime(currentLocation.Id, toLocation.Id);
         }
 
         return _travelTimeCalculator.CalculateTravelTime(route, transportMethod);
@@ -283,7 +310,9 @@ public class TravelFacade
             return null;
         }
 
-        RouteOption route = GetRouteById(session.RouteId);
+        // TODO PHASE 5: TravelSession should have Route object reference, not RouteId string
+        // For now, look up route by ID
+        RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == session.RouteId);
         if (route == null)
         {
             return null;
@@ -620,13 +649,7 @@ public class TravelFacade
         return null;
     }
 
-    /// <summary>
-    /// Get route by ID from centralized route storage
-    /// </summary>
-    private RouteOption GetRouteById(string routeId)
-    {
-        return _gameWorld.Routes.FirstOrDefault(r => r.Id == routeId);
-    }
+    // PHASE 4: GetRouteById DELETED - ID lookups forbidden, use object references
 
     /// <summary>
     /// Turn back and cancel the journey
@@ -690,6 +713,7 @@ public class PathCardAvailability
 
 /// <summary>
 /// Result of a travel attempt.
+/// PHASE 4: ID properties replaced with object references
 /// </summary>
 public class TravelResult
 {
@@ -698,7 +722,7 @@ public class TravelResult
     public int TravelTimeSegments { get; set; }
     public int SegmentCost { get; set; }
     public int CoinCost { get; set; }
-    public string RouteId { get; set; }
-    public string DestinationId { get; set; }
+    public RouteOption Route { get; set; }  // PHASE 4: Object reference instead of RouteId
+    public Location Destination { get; set; }  // PHASE 4: Object reference instead of DestinationId
     public TravelMethods TransportMethod { get; set; }
 }
