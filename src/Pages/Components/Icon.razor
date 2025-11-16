@@ -20,7 +20,7 @@
     public string CssClass { get; set; } = "";
 
     private string _svgContent = "";
-    private static Dictionary<string, string> _iconCache = new Dictionary<string, string>();
+    private static System.Collections.Concurrent.ConcurrentDictionary<string, string> _iconCache = new System.Collections.Concurrent.ConcurrentDictionary<string, string>();
 
     protected override async Task OnParametersSetAsync()
     {
@@ -29,9 +29,9 @@
             return;
         }
 
-        if (_iconCache.ContainsKey(Name))
+        if (_iconCache.TryGetValue(Name, out string cachedSvg))
         {
-            _svgContent = ApplyStyling(_iconCache[Name]);
+            _svgContent = ApplyStyling(cachedSvg);
             return;
         }
 
@@ -39,7 +39,7 @@
         {
             string svgPath = $"game-icons/{Name}.svg";
             string rawSvg = await Http.GetStringAsync(svgPath);
-            _iconCache[Name] = rawSvg;
+            _iconCache.TryAdd(Name, rawSvg);
             _svgContent = ApplyStyling(rawSvg);
         }
         catch

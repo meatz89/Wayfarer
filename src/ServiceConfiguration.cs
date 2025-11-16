@@ -90,13 +90,23 @@ public static class ServiceConfiguration
         services.AddSingleton<DialogueGenerationService>();
 
         // Narrative Generation System (AI and JSON fallback)
-        // Infrastructure for Ollama  
+        // Infrastructure for Ollama
         services.AddHttpClient<OllamaClient>(client =>
         {
             // Short timeout to prevent hanging when Ollama unavailable
             client.Timeout = TimeSpan.FromSeconds(5);
         });
         services.AddSingleton<OllamaConfiguration>();
+
+        // HttpClient for Icon component (SVG loading from wwwroot)
+        services.AddScoped<HttpClient>(sp =>
+        {
+            var navigationManager = sp.GetRequiredService<NavigationManager>();
+            return new HttpClient
+            {
+                BaseAddress = new Uri(navigationManager.BaseUri)
+            };
+        });
 
         // Narrative Generation Services
         services.AddSingleton<NarrativeStreamingService>();
