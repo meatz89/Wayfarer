@@ -31,7 +31,7 @@
                         {
                             <div class="scene-locked-indicator">
                                 <div class="lock-header">
-                                    <span class="lock-icon">🔒</span>
+                                    <span class="lock-icon"><Icon Name="padlock" CssClass="icon-warning" /></span>
                                     <span class="lock-title">UNAVAILABLE</span>
                                 </div>
                                 @if (!choice.RequirementsMet && choice.RequirementPaths.Any())
@@ -249,20 +249,20 @@
                                     @if (choice.AchievementsGranted.Any())
                                     {
                                         <div class="consequence-item consequence-unlock">
-                                            🏆 Achievements: @string.Join(", ", choice.AchievementsGranted)
+                                            <Icon Name="round-star" CssClass="icon-positive" /> Achievements: @string.Join(", ", choice.AchievementsGranted)
                                         </div>
                                     }
                                     @if (choice.ItemsGranted.Any())
                                     {
                                         <div class="consequence-item consequence-unlock">
-                                            🎒 Items: @string.Join(", ", choice.ItemsGranted)
+                                            <Icon Name="backpack" CssClass="icon-neutral" /> Items: @string.Join(", ", choice.ItemsGranted)
                                         </div>
                                     }
                                     @* LocationsUnlocked display DELETED - new architecture uses query-based accessibility *@
                                     @if (choice.ScenesUnlocked.Any())
                                     {
                                         <div class="consequence-item consequence-unlock">
-                                            📖 Unlocks Scenes: @string.Join(", ", choice.ScenesUnlocked)
+                                            <Icon Name="open-book" CssClass="icon-neutral" /> Unlocks Scenes: @string.Join(", ", choice.ScenesUnlocked)
                                         </div>
                                     }
                                 }

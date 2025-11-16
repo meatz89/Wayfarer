@@ -3,7 +3,7 @@
 
 <div class="discovery-journal">
     <div class="journal-header">
-        <h2>📖 Obligation Journal</h2>
+        <h2><Icon Name="open-book" CssClass="icon-neutral" /> Obligation Journal</h2>
         <button class="close-btn" @onclick="CloseJournal">✕</button>
     </div>
 
@@ -87,7 +87,7 @@
             else
             {
                 <div class="empty-state">
-                    <div class="empty-icon">🔍</div>
+                    <div class="empty-icon"><Icon Name="magnifying-glass" CssClass="icon-neutral" /></div>
                     <div class="empty-text">No active obligations</div>
                 </div>
             }
@@ -105,7 +105,7 @@
                     {
                         <div class="obligation-card discovered-card">
                             <div class="discovered-header">
-                                <div class="discovered-icon">🔍</div>
+                                <div class="discovered-icon"><Icon Name="magnifying-glass" CssClass="icon-neutral" /></div>
                                 <div class="discovered-title">@inv.Name</div>
                             </div>
                             <div class="discovered-description">@inv.Description</div>
@@ -120,7 +120,7 @@
             else
             {
                 <div class="empty-state">
-                    <div class="empty-icon">🔍</div>
+                    <div class="empty-icon"><Icon Name="magnifying-glass" CssClass="icon-neutral" /></div>
                     <div class="empty-text">No obligations discovered yet</div>
                 </div>
             }
@@ -152,7 +152,7 @@
             else
             {
                 <div class="empty-state">
-                    <div class="empty-icon">✨</div>
+                    <div class="empty-icon"><Icon Name="sparkles" CssClass="icon-positive" /></div>
                     <div class="empty-text">No completed obligations yet</div>
                 </div>
             }
@@ -208,7 +208,7 @@
                                 Familiarity: @GetRouteFamiliarity(route.Id)/5
                                 @if (GetRouteFamiliarity(route.Id) >= 5)
                                 {
-                                    <span class="mastered-badge">★ Mastered</span>
+                                    <span class="mastered-badge"><Icon Name="round-star" CssClass="icon-positive" /> Mastered</span>
                                 }
                             </div>
                         </div>

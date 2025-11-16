@@ -91,7 +91,7 @@ else
                             @if (route.Requirements.Any())
                             {
                                 <div class="route-requirements @(isLocked ? "requirement-missing" : "")">
-                                    <div class="requirement-label">@(isLocked ? "⚠️ Requirements Not Met" : "Requirements:")</div>
+                                    <div class="requirement-label">@if (isLocked) { <Icon Name="hazard-sign" CssClass="icon-warning" /> <text>Requirements Not Met</text> } else { <text>Requirements:</text> }</div>
                                     <div class="requirement-list">
                                         @foreach (var req in route.Requirements)
                                         {
@@ -180,7 +180,7 @@ else
                             @if (route.Requirements.Any())
                             {
                                 <div class="route-requirements @(isLocked ? "requirement-missing" : "")">
-                                    <div class="requirement-label">@(isLocked ? "⚠️ Requirements Not Met" : "Requirements:")</div>
+                                    <div class="requirement-label">@if (isLocked) { <Icon Name="hazard-sign" CssClass="icon-warning" /> <text>Requirements Not Met</text> } else { <text>Requirements:</text> }</div>
                                     <div class="requirement-list">
                                         @foreach (var req in route.Requirements)
                                         {
