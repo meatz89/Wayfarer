@@ -42,18 +42,18 @@ public class SpawnedScenePlayabilityValidator
         // RULE 1: Scene must have current situation
         if (scene.CurrentSituation == null)
         {
-            errors.Add($"Scene '{scene.Id}' has no CurrentSituation - player cannot interact");
+            errors.Add($"Scene (template '{scene.TemplateId}') has no CurrentSituation - player cannot interact");
         }
         else
         {
             // RULE 2: Current situation must have choices
             if (scene.CurrentSituation.Template == null)
             {
-                errors.Add($"Scene '{scene.Id}' current situation '{scene.CurrentSituation.Id}' has no Template - cannot generate choices");
+                errors.Add($"Scene (template '{scene.TemplateId}') current situation (template '{scene.CurrentSituation.TemplateId}') has no Template - cannot generate choices");
             }
             else if (scene.CurrentSituation.Template.ChoiceTemplates == null || !scene.CurrentSituation.Template.ChoiceTemplates.Any())
             {
-                errors.Add($"Scene '{scene.Id}' current situation '{scene.CurrentSituation.Id}' has no ChoiceTemplates - player has no options");
+                errors.Add($"Scene (template '{scene.TemplateId}') current situation (template '{scene.CurrentSituation.TemplateId}') has no ChoiceTemplates - player has no options");
             }
             else
             {
@@ -64,7 +64,7 @@ public class SpawnedScenePlayabilityValidator
                     bool hasGuaranteedPath = scene.CurrentSituation.Template.ChoiceTemplates.Any(IsGuaranteedAccessibleChoice);
                     if (!hasGuaranteedPath)
                     {
-                        errors.Add($"A-story scene '{scene.Id}' (A{scene.MainStorySequence}) situation '{scene.CurrentSituation.Id}' " +
+                        errors.Add($"A-story scene (template '{scene.TemplateId}') (A{scene.MainStorySequence}) situation (template '{scene.CurrentSituation.TemplateId}') " +
                                   $"has no guaranteed accessible path - SOFT LOCK RISK");
                     }
                 }
@@ -87,16 +87,16 @@ public class SpawnedScenePlayabilityValidator
         {
             string errorSummary = string.Join("\n", errors);
             throw new InvalidOperationException(
-                $"Scene '{scene.Id}' failed playability validation:\n{errorSummary}\n\n" +
+                $"Scene (template '{scene.TemplateId}') failed playability validation:\n{errorSummary}\n\n" +
                 $"Scene Details:\n" +
                 $"- TemplateId: {scene.TemplateId}\n" +
                 $"- Category: {scene.Category}\n" +
                 $"- MainStorySequence: {scene.MainStorySequence}\n" +
                 $"- State: {scene.State}\n" +
-                $"- CurrentSituationId: {scene.CurrentSituation?.Id}\n" +
-                $"- CurrentSituation Location: {scene.CurrentSituation?.Location?.Id}\n" +
-                $"- CurrentSituation Npc: {scene.CurrentSituation?.Npc?.ID}\n" +
-                $"- CurrentSituation Route: {scene.CurrentSituation?.Route?.Id}\n" +
+                $"- CurrentSituation TemplateId: {scene.CurrentSituation?.TemplateId}\n" +
+                $"- CurrentSituation Location: {scene.CurrentSituation?.Location?.Name}\n" +
+                $"- CurrentSituation Npc: {scene.CurrentSituation?.Npc?.Name}\n" +
+                $"- CurrentSituation Route: {scene.CurrentSituation?.Route?.Name}\n" +
                 $"- Situations Count: {scene.Situations.Count}\n" +
                 $"This scene spawned successfully but is UNPLAYABLE. Player will be SOFT LOCKED."
             );
@@ -147,7 +147,7 @@ public class SpawnedScenePlayabilityValidator
             // Verify the location reference is still valid in GameWorld
             if (!_gameWorld.Locations.Contains(situation.Location))
             {
-                errors.Add($"Situation '{situation.Id}' references location '{situation.Location.Id}' which is no longer in GameWorld");
+                errors.Add($"Situation (template '{situation.TemplateId}') references location '{situation.Location.Name}' which is no longer in GameWorld");
             }
         }
     }
@@ -163,7 +163,7 @@ public class SpawnedScenePlayabilityValidator
             // Verify the NPC reference is still valid in GameWorld
             if (!_gameWorld.NPCs.Contains(situation.Npc))
             {
-                errors.Add($"Situation '{situation.Id}' references NPC '{situation.Npc.ID}' which is no longer in GameWorld");
+                errors.Add($"Situation (template '{situation.TemplateId}') references NPC '{situation.Npc.Name}' which is no longer in GameWorld");
             }
         }
     }
@@ -181,7 +181,7 @@ public class SpawnedScenePlayabilityValidator
 
         if (!hasPlacement)
         {
-            errors.Add($"Scene '{scene.Id}' has no situations with placement (all situations have null Location/Npc/Route) - player cannot find it");
+            errors.Add($"Scene (template '{scene.TemplateId}') has no situations with placement (all situations have null Location/Npc/Route) - player cannot find it");
             return;
         }
 
@@ -191,30 +191,30 @@ public class SpawnedScenePlayabilityValidator
             // Validate Location placement if present
             if (situation.Location != null)
             {
-                Location location = _gameWorld.GetLocation(situation.Location.Id);
+                Location location = _gameWorld.GetLocation(situation.Location.Name);
                 if (location == null)
                 {
-                    errors.Add($"Situation '{situation.Id}' references Location '{situation.Location.Id}' which does not exist in GameWorld");
+                    errors.Add($"Situation (template '{situation.TemplateId}') references Location '{situation.Location.Name}' which does not exist in GameWorld");
                 }
             }
 
             // Validate NPC placement if present
             if (situation.Npc != null)
             {
-                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == situation.Npc.ID);
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n == situation.Npc);
                 if (npc == null)
                 {
-                    errors.Add($"Situation '{situation.Id}' references NPC '{situation.Npc.ID}' which does not exist in GameWorld");
+                    errors.Add($"Situation (template '{situation.TemplateId}') references NPC '{situation.Npc.Name}' which does not exist in GameWorld");
                 }
             }
 
             // Validate Route placement if present
             if (situation.Route != null)
             {
-                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == situation.Route.Id);
+                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r == situation.Route);
                 if (route == null)
                 {
-                    errors.Add($"Situation '{situation.Id}' references Route '{situation.Route.Id}' which does not exist in GameWorld");
+                    errors.Add($"Situation (template '{situation.TemplateId}') references Route '{situation.Route.Name}' which does not exist in GameWorld");
                 }
             }
         }

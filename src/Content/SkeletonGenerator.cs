@@ -38,7 +38,7 @@ public static class SkeletonGenerator
 
         NPC npc = new NPC
         {
-            // NPC.ID will be DELETED when HIGHLANDER refactoring completes
+            // NPC no longer has ID property (HIGHLANDER pattern - Name is natural key)
             Name = $"{GenericNpcNames[0]} (missing content)",  // Simple default, no hash
             Description = "This person's story has not yet been told.",
             Role = "Unknown",
@@ -124,7 +124,7 @@ public static class SkeletonGenerator
 
         ExchangeCard card = new ExchangeCard
         {
-            Id = id,  // ExchangeCard.Id will be DELETED when HIGHLANDER refactoring completes
+            // ExchangeCard uses object references, no ID property
             Name = "Exchange (missing content)",
             Description = "A simple trade of resources.",
             IsSkeleton = true,
@@ -166,35 +166,35 @@ public static class SkeletonGenerator
     /// <summary>
     /// Check if an entity needs a skeleton and generate it
     /// </summary>
-    public static bool TryGenerateSkeleton<T>(string id, string source, GameWorld gameWorld, out T skeleton) where T : class
+    public static bool TryGenerateSkeleton<T>(string name, string source, GameWorld gameWorld, out T skeleton) where T : class
     {
         skeleton = null;
 
         if (typeof(T) == typeof(NPC))
         {
-            if (!gameWorld.NPCs.Any(n => n.ID == id))
+            if (!gameWorld.NPCs.Any(n => n.Name == name))
             {
-                skeleton = GenerateSkeletonNPC(id, source) as T;
+                skeleton = GenerateSkeletonNPC(name, source) as T;
                 return true;
             }
         }
         else if (typeof(T) == typeof(Venue))
         {
-            if (!gameWorld.Locations.Any(l => l.Id == id))
+            if (!gameWorld.Venues.Any(v => v.Name == name))
             {
-                skeleton = GenerateSkeletonVenue(id, source) as T;
+                skeleton = GenerateSkeletonVenue(name, source) as T;
                 return true;
             }
         }
         else if (typeof(T) == typeof(Location))
         {
-            if (!gameWorld.Locations.Any(s => s.Id == id))
+            if (!gameWorld.Locations.Any(l => l.Name == name))
             {
                 // Need to find or create parent Venue first
                 string venueId = source.Contains("location_")
                     ? source.Substring(source.IndexOf("location_") + 9).Split('_')[0]
                     : "unknown_location";
-                skeleton = GenerateSkeletonSpot(id, venueId, source) as T;
+                skeleton = GenerateSkeletonSpot(name, venueId, source) as T;
                 return true;
             }
         }
