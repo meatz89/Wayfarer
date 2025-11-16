@@ -35,7 +35,7 @@ public class TravelManager
 
         TravelSession session = new TravelSession
         {
-            RouteId = routeId,
+            Route = route,  // HIGHLANDER: Object reference, not RouteId
             CurrentSegment = 1,
             StaminaRemaining = startingStamina,
             StaminaCapacity = startingStamina,
@@ -60,7 +60,7 @@ public class TravelManager
             return new List<PathCardDTO>();
         }
 
-        RouteOption route = GetRoute(session.RouteId);
+        RouteOption route = session.Route;  // HIGHLANDER: Object reference
         if (route == null || session.CurrentSegment > route.Segments.Count)
         {
             return new List<PathCardDTO>();
@@ -295,7 +295,7 @@ public class TravelManager
         UpdateTravelState(session);
 
         // Check if we're on the last segment
-        RouteOption route = GetRoute(session.RouteId);
+        RouteOption route = session.Route;  // HIGHLANDER: Object reference
         if (route != null && session.CurrentSegment == route.Segments.Count)
         {
             // This was the last segment - mark journey as ready to complete
@@ -322,7 +322,7 @@ public class TravelManager
         }
 
         // Check if this is an event response card (from Event segment)
-        RouteOption route = GetRoute(session.RouteId);
+        RouteOption route = session.Route;  // HIGHLANDER: Object reference
         if (route != null && session.CurrentSegment <= route.Segments.Count)
         {
             RouteSegment segment = route.Segments[session.CurrentSegment - 1];
@@ -379,7 +379,7 @@ public class TravelManager
         _messageSystem.AddSystemMessage($"Scene resolved: {scene.DisplayName}", SystemMessageTypes.Success);
 
         // Now advance segment or complete route
-        RouteOption route = GetRoute(session.RouteId);
+        RouteOption route = session.Route;  // HIGHLANDER: Object reference
         if (route != null && session.CurrentSegment == route.Segments.Count)
         {
             session.IsReadyToComplete = true;
@@ -475,7 +475,7 @@ public class TravelManager
             return null;
         }
 
-        RouteOption route = GetRoute(session.RouteId);
+        RouteOption route = session.Route;  // HIGHLANDER: Object reference
         if (route == null || session.CurrentSegment > route.Segments.Count)
         {
             return null;
@@ -654,11 +654,11 @@ public class TravelManager
     /// </summary>
     private void AdvanceSegment(TravelSession session)
     {
-        RouteOption route = GetRoute(session.RouteId);
+        RouteOption route = session.Route;  // HIGHLANDER: Object reference
         if (route == null) return;
 
         // Mark current segment as completed
-        session.CompletedSegments.Add($"{session.RouteId}_{session.CurrentSegment}");
+        session.CompletedSegments.Add($"{route.Name}_{session.CurrentSegment}");
 
         // Check if there are more segments
         if (session.CurrentSegment < route.Segments.Count)
@@ -683,7 +683,7 @@ public class TravelManager
     /// </summary>
     private void CompleteJourney(TravelSession session)
     {
-        RouteOption route = GetRoute(session.RouteId);
+        RouteOption route = session.Route;  // HIGHLANDER: Object reference
         if (route == null) return;
 
         Player player = _gameWorld.GetPlayer();
@@ -706,7 +706,7 @@ public class TravelManager
         }
 
         // Increase route familiarity (max 5)
-        player.IncreaseRouteFamiliarity(session.RouteId, 1);
+        player.IncreaseRouteFamiliarity(route.Name, 1);
 
         // Grant ExplorationCubes for route mastery (max 10)
         // Each completion grants +1 cube, revealing more hidden paths

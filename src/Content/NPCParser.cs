@@ -14,7 +14,7 @@ public static class NPCParser
 
         NPC npc = new NPC
         {
-            ID = dto.Id,
+            // HIGHLANDER: No ID property - Name is natural key
             Name = dto.Name,
             Role = !string.IsNullOrEmpty(dto.Role) ? dto.Role : dto.Name, // Use name as role if role not specified
             Description = dto.Description, // Description is optional
@@ -42,7 +42,7 @@ public static class NPCParser
         else
         {
             // NO FALLBACKS - crash if personalityType not in DTO
-            throw new InvalidOperationException($"NPC '{npc.Name}' (ID: {npc.ID}) is missing 'personalityType' in DTO or has invalid value '{dto.PersonalityType}' - fix DTO data");
+            throw new InvalidOperationException($"NPC '{npc.Name}' (DTO ID: {dto.Id}) is missing 'personalityType' in DTO or has invalid value '{dto.PersonalityType}' - fix DTO data");
         }
 
         // Set default player relationship
@@ -107,7 +107,7 @@ public static class NPCParser
         // Resolve Location object reference during parsing (HIGHLANDER: ID is parsing artifact)
         if (!string.IsNullOrEmpty(dto.LocationId))
         {
-            npc.Location = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId);
+            npc.Location = gameWorld.Locations.FirstOrDefault(l => l.Name == dto.LocationId);
         }
 
         // NOTE: Old inline scene parsing removed - NEW Scene-Situation architecture

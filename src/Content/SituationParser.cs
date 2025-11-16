@@ -84,7 +84,7 @@ public static class SituationParser
 
             // Scene-Situation Architecture (interaction/requirements/consequences/spawns)
             InteractionType = ParseInteractionType(dto.InteractionType),
-            NavigationPayload = ParseNavigationPayload(dto.NavigationPayload),
+            NavigationPayload = ParseNavigationPayload(dto.NavigationPayload, gameWorld),
             CompoundRequirement = RequirementParser.ConvertDTOToCompoundRequirement(dto.CompoundRequirement),
             // ProjectedBondChanges/ProjectedScaleShifts/ProjectedStates DELETED - stored projection pattern
             SuccessSpawns = SpawnRuleParser.ParseSpawnRules(dto.SuccessSpawns, dto.Id),
@@ -327,15 +327,25 @@ public static class SituationParser
 
     /// <summary>
     /// Parse NavigationPayload from DTO
+    /// Resolves Destination Location object from ID
     /// </summary>
-    private static NavigationPayload ParseNavigationPayload(NavigationPayloadDTO dto)
+    private static NavigationPayload ParseNavigationPayload(NavigationPayloadDTO dto, GameWorld gameWorld)
     {
         if (dto == null)
             return null;
 
+        // Resolve destination location from DestinationId
+        Location destination = null;
+        if (!string.IsNullOrEmpty(dto.DestinationId))
+        {
+            destination = gameWorld.Locations.FirstOrDefault(l => l.Name == dto.DestinationId);
+            if (destination == null)
+                throw new InvalidOperationException($"NavigationPayload references unknown Location: '{dto.DestinationId}'");
+        }
+
         return new NavigationPayload
         {
-            DestinationId = dto.DestinationId,
+            Destination = destination,
             AutoTriggerScene = dto.AutoTriggerScene
         };
     }

@@ -217,12 +217,9 @@ public class SituationFacade
         situation.Lifecycle.CompletedTimeBlock = _timeFacade.GetCurrentTimeBlock();
         situation.Lifecycle.CompletedSegment = _timeFacade.GetCurrentSegment();
 
-        // TODO PHASE 5: NavigationPayload.Destination should be Location object, not DestinationId string
-        // For now, need to look up location by ID
-        Location destination = _gameWorld.Locations.FirstOrDefault(l => l.Id == situation.NavigationPayload.DestinationId);
-
+        // HIGHLANDER: NavigationPayload.Destination is object reference (no ID lookup needed)
         return SituationSelectionResult.Navigation(
-            destination,
+            situation.NavigationPayload.Destination,
             situation.NavigationPayload.AutoTriggerScene
         );
     }

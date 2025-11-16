@@ -310,9 +310,8 @@ public class TravelFacade
             return null;
         }
 
-        // TODO PHASE 5: TravelSession should have Route object reference, not RouteId string
-        // For now, look up route by ID
-        RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Id == session.RouteId);
+        // HIGHLANDER: TravelSession.Route is object reference (no ID lookup needed)
+        RouteOption route = session.Route;
         if (route == null)
         {
             return null;
@@ -568,7 +567,7 @@ public class TravelFacade
             return false;
         }
 
-        RouteOption route = GetRouteById(session.RouteId);
+        RouteOption route = session.Route;  // HIGHLANDER: Object reference
         if (route == null || session.CurrentSegment > route.Segments.Count)
         {
             return false;
@@ -611,7 +610,7 @@ public class TravelFacade
             return null;
         }
 
-        RouteOption route = GetRouteById(session.RouteId);
+        RouteOption route = session.Route;  // HIGHLANDER: Object reference
         if (route == null || session.CurrentSegment > route.Segments.Count)
         {
             return null;

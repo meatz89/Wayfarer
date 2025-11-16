@@ -864,15 +864,25 @@ public class SceneTemplateParser
 
     /// <summary>
     /// Parse NavigationPayload from DTO
+    /// Resolves Destination Location object from ID
     /// </summary>
     private NavigationPayload ParseNavigationPayload(NavigationPayloadDTO dto)
     {
         if (dto == null)
             return null;
 
+        // Resolve destination location from DestinationId
+        Location destination = null;
+        if (!string.IsNullOrEmpty(dto.DestinationId))
+        {
+            destination = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.DestinationId);
+            if (destination == null)
+                throw new InvalidOperationException($"NavigationPayload references unknown Location: '{dto.DestinationId}'");
+        }
+
         return new NavigationPayload
         {
-            DestinationId = dto.DestinationId,
+            Destination = destination,
             AutoTriggerScene = dto.AutoTriggerScene
         };
     }

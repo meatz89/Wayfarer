@@ -3,7 +3,12 @@
 /// </summary>
 public class TravelSession
 {
-    public string RouteId { get; set; }
+    /// <summary>
+    /// Route being traveled
+    /// HIGHLANDER: Object reference ONLY, no RouteId
+    /// </summary>
+    public RouteOption Route { get; set; }
+
     public int CurrentSegment { get; set; } = 1;
     public int StaminaRemaining { get; set; }
     public int StaminaCapacity { get; set; } = 3; // Based on state
