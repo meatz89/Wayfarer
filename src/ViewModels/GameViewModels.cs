@@ -36,13 +36,15 @@ public class LocationActionViewModel
     /// Replaces ID string parsing antipattern
     /// Only populated for ActionType == "intravenuemove"
     /// null for all other action types
+    /// HIGHLANDER: Object reference, not ID string
     /// </summary>
-    public string DestinationLocationId { get; set; }
+    public Location DestinationLocation { get; set; }
 }
 
 public class NPCInteractionViewModel
 {
-    public string Id { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public NPC Npc { get; set; }
     public string Name { get; set; }
     public string ConnectionStateName { get; set; }
     public string Description { get; set; }
@@ -58,7 +60,8 @@ public class InteractionOptionViewModel
 
 public class ObservationViewModel
 {
-    public string Id { get; set; }  // Unique identifier for the observation
+    // HIGHLANDER: Object reference, not ID string
+    public Observation Observation { get; set; }
     public string Text { get; set; }
     public bool IsUnknown { get; set; }
     public string Relevance { get; set; }
@@ -74,7 +77,8 @@ public class ObservationsViewModel
 // Summary view model for UI display of observations
 public class ObservationSummaryViewModel
 {
-    public string Id { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public Observation Observation { get; set; }
     public string Title { get; set; }
     public string Type { get; set; }
 }
@@ -83,14 +87,16 @@ public class AreaWithinLocationViewModel
 {
     public string Name { get; set; }
     public string Detail { get; set; }
-    public string LocationId { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public Location Location { get; set; }
     public bool IsCurrent { get; set; }
     public bool IsTravelHub { get; set; } // Indicates if this location allows travel
 }
 
 public class RouteOptionViewModel
 {
-    public string RouteId { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public RouteOption Route { get; set; }
     public string Destination { get; set; }
     public string TravelTime { get; set; }
     public string Detail { get; set; }
@@ -110,7 +116,8 @@ public class RouteOptionViewModel
 // Simplified route view model for TravelContent component
 public class SimpleRouteViewModel
 {
-    public string Id { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public RouteOption Route { get; set; }
     public string Destination { get; set; }
     public string TransportType { get; set; }
     public int TravelTimeInSegments { get; set; }
@@ -141,7 +148,8 @@ public enum MechanicEffectType
 
 public class LeverageViewModel
 {
-    public string NPCId { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public NPC Npc { get; set; }
     public string NPCName { get; set; }
     public ConnectionType TokenType { get; set; }
     public int TotalLeverage { get; set; }
@@ -219,7 +227,8 @@ public class LocationHeaderViewModel
 /// </summary>
 public class NpcWithSituationsViewModel
 {
-    public string Id { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public NPC Npc { get; set; }
     public string Name { get; set; }
     public string PersonalityType { get; set; }
     public string ConnectionState { get; set; }
@@ -249,14 +258,16 @@ public class NpcSceneViewModel
 /// </summary>
 public class SituationCardViewModel
 {
-    public string Id { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public Situation Situation { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string SystemType { get; set; }  // "social", "mental", "physical"
     public string Type { get; set; }  // "Normal" or "Crisis" - for UI visual weight
     public int Difficulty { get; set; }  // Pre-calculated difficulty
     public string DifficultyLabel { get; set; }  // "Doubt", "Exposure", "Danger"
-    public string ObligationId { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public Obligation Obligation { get; set; }
     public bool IsIntroAction { get; set; }
 
     // Costs
@@ -271,7 +282,8 @@ public class SituationCardViewModel
 public class ActionCardViewModel
 {
     public string Id { get; set; }
-    public string SituationId { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public Situation Situation { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string SystemType { get; set; }  // "social", "mental", "physical"
@@ -405,7 +417,8 @@ public class RequirementPathVM
 /// </summary>
 public class SceneWithSituationsViewModel
 {
-    public string Id { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public Scene Scene { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public int Intensity { get; set; }
@@ -422,7 +435,8 @@ public class SceneWithSituationsViewModel
 /// </summary>
 public class LockedSituationViewModel
 {
-    public string SituationId { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public Situation Situation { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string SystemType { get; set; }  // "social", "mental", "physical", "instant", "navigation"

@@ -2,7 +2,8 @@
 
 public class TravelDestinationViewModel
 {
-    public string LocationId { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public Location Location { get; set; }
     public string LocationName { get; set; }
     public string Description { get; set; }
     public bool CanTravel { get; set; }
@@ -44,7 +45,8 @@ public class TravelContextViewModel
 
 public class TravelRouteViewModel
 {
-    public string RouteId { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public RouteOption Route { get; set; }
     public string RouteName { get; set; }
     public string Description { get; set; }
     public TravelMethods TransportMethod { get; set; }
@@ -82,7 +84,8 @@ public class RouteTokenRequirementViewModel
 
 public class RouteDiscoveryOptionViewModel
 {
-    public string TeachingNPCId { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public NPC TeachingNPC { get; set; }
     public string TeachingNPCName { get; set; }
     public int RequiredTokens { get; set; }
     public int PlayerTokens { get; set; }
@@ -102,7 +105,8 @@ public class InventoryViewModel
 
 public class InventoryItemViewModel
 {
-    public string ItemId { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public Item Item { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public int Weight { get; set; }
@@ -205,10 +209,12 @@ public class TimeBlockServiceViewModel
 
 public class NPCRelationshipViewModel
 {
-    public string NPCId { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public NPC Npc { get; set; }
     public string NPCName { get; set; }
     public string Role { get; set; }
-    public string VenueId { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public Location Venue { get; set; }
     public string LocationName { get; set; }
     public int ConnectionTokens { get; set; }
     public bool CanMakeDirectOffer { get; set; }
@@ -237,7 +243,8 @@ public class DetailedObligationsViewModel
 
 public class ActiveObligationViewModel
 {
-    public string ID { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public Obligation Obligation { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string Source { get; set; }
@@ -253,7 +260,8 @@ public class ActiveObligationViewModel
 
 public class DebtObligationViewModel
 {
-    public string ID { get; set; }
+    // HIGHLANDER: Object reference, not ID string
+    public Obligation Obligation { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string LeverageHolderName { get; set; }
