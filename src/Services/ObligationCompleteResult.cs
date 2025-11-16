@@ -4,7 +4,7 @@
 /// </summary>
 public class ObligationCompleteResult
 {
-    public string ObligationId { get; set; }
+    public Obligation Obligation { get; set; }
     public string ObligationName { get; set; }
     public string CompletionNarrative { get; set; }
     public ObligationRewards Rewards { get; set; } = new ObligationRewards();

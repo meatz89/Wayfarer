@@ -35,12 +35,6 @@ public class RouteRepository : IRouteRepository
         return _gameWorld.Routes;
     }
 
-    // Get a specific route by ID
-    public RouteOption GetRouteById(string routeId)
-    {
-        List<RouteOption> allRoutes = GetAll();
-        return allRoutes.FirstOrDefault(r => r.Id == routeId);
-    }
 
     // Get available routes from the player's current location
     public IEnumerable<RouteOption> GetAvailableRoutes(string fromLocationId, Player player)

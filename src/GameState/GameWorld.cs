@@ -357,17 +357,6 @@ public class GameWorld
     }
 
     /// <summary>
-    /// Get a Situation by ID by searching across all scenes
-    /// Used for cross-scene queries (e.g., obligation system)
-    /// </summary>
-    public Situation GetSituationById(string id)
-    {
-        return Scenes
-            .SelectMany(s => s.Situations)
-            .FirstOrDefault(sit => sit.Id == id);
-    }
-
-    /// <summary>
     /// Get a SocialChallengeDeck by ID
     /// </summary>
     public SocialChallengeDeck GetSocialDeckById(string id)

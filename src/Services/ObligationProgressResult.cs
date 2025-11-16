@@ -4,7 +4,7 @@
 /// </summary>
 public class ObligationProgressResult
 {
-    public string ObligationId { get; set; }
+    public Obligation Obligation { get; set; }
     public string ObligationName { get; set; }
     public string CompletedSituationName { get; set; }
     public string OutcomeNarrative { get; set; }

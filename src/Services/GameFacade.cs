@@ -158,10 +158,10 @@ public class GameFacade
     // ========== PLAYER STATS OPERATIONS ==========
     // PlayerStats class deleted - stats are now simple integers on Player
 
-    public List<NPC> GetAvailableStrangers(string venueId)
+    public List<NPC> GetAvailableStrangers(Venue venue)
     {
         TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
-        return _gameWorld.GetAvailableStrangers(venueId, currentTime);
+        return _gameWorld.GetAvailableStrangers(venue.Id, currentTime);
     }
 
     public List<ObligationApproach> GetAvailableObligationApproaches()
@@ -183,9 +183,9 @@ public class GameFacade
         return _locationFacade.GetCurrentLocation();
     }
 
-    public async Task<bool> MoveToSpot(string locationId)
+    public async Task<bool> MoveToSpot(Location location)
     {
-        bool success = _locationFacade.MoveToSpot(locationId);
+        bool success = _locationFacade.MoveToSpot(location.Id);
 
         // Movement to new Venue may unlock obligation discovery (ImmediateVisibility, EnvironmentalObservation triggers)
         if (success)
@@ -206,14 +206,10 @@ public class GameFacade
         return _situationFacade;
     }
 
-    public NPC GetNPCById(string npcId)
-    {
-        return _locationFacade.GetNPCById(npcId);
-    }
 
-    public List<NPC> GetNPCsAtLocation(string venueId)
+    public List<NPC> GetNPCsAtLocation(Venue venue)
     {
-        return _locationFacade.GetNPCsAtLocation(venueId);
+        return _locationFacade.GetNPCsAtLocation(venue.Id);
     }
 
     public List<NPC> GetNPCsAtCurrentSpot()
@@ -425,9 +421,9 @@ public class GameFacade
         return _conversationFacade;
     }
 
-    public async Task<SocialChallengeContext> CreateConversationContext(string npcId, string requestId)
+    public async Task<SocialChallengeContext> CreateConversationContext(NPC npc, Situation situation)
     {
-        return await _conversationFacade.CreateConversationContext(npcId, requestId);
+        return await _conversationFacade.CreateConversationContext(npc.ID, situation.Id);
     }
 
     /// <summary>
@@ -494,14 +490,13 @@ public class GameFacade
     /// Start a new Mental tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public MentalSession StartMentalSession(string deckId, string locationId, string situationId, string obligationId)
+    public MentalSession StartMentalSession(MentalChallengeDeck challengeDeck, Location location, Situation situation, Obligation obligation)
     {
         if (_mentalFacade.IsSessionActive())
             throw new InvalidOperationException("Mental session already active");
 
-        MentalChallengeDeck challengeDeck = _gameWorld.MentalChallengeDecks.FirstOrDefault(d => d.Id == deckId);
         if (challengeDeck == null)
-            throw new InvalidOperationException($"MentalChallengeDeck {deckId} not found");
+            throw new InvalidOperationException($"MentalChallengeDeck is null");
 
         Player player = _gameWorld.GetPlayer();
 
@@ -509,7 +504,7 @@ public class GameFacade
         MentalDeckBuildResult buildResult = _mentalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _mentalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situationId, obligationId);
+        return _mentalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situation?.Id, obligation?.Id);
     }
 
     /// <summary>
@@ -568,14 +563,13 @@ public class GameFacade
     /// Start a new Physical tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public PhysicalSession StartPhysicalSession(string deckId, string locationId, string situationId, string obligationId)
+    public PhysicalSession StartPhysicalSession(PhysicalChallengeDeck challengeDeck, Location location, Situation situation, Obligation obligation)
     {
         if (_physicalFacade.IsSessionActive())
             throw new InvalidOperationException("Physical session already active");
 
-        PhysicalChallengeDeck challengeDeck = _gameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == deckId);
         if (challengeDeck == null)
-            throw new InvalidOperationException($"PhysicalChallengeDeck {deckId} not found");
+            throw new InvalidOperationException($"PhysicalChallengeDeck is null");
 
         Player player = _gameWorld.GetPlayer();
 
@@ -583,7 +577,7 @@ public class GameFacade
         PhysicalDeckBuildResult buildResult = _physicalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _physicalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situationId, obligationId);
+        return _physicalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situation?.Id, obligation?.Id);
     }
 
     /// <summary>
@@ -631,13 +625,12 @@ public class GameFacade
         return _physicalFacade.IsSessionActive();
     }
 
-    public async Task<ExchangeContext> CreateExchangeContext(string npcId)
+    public async Task<ExchangeContext> CreateExchangeContext(NPC npc)
     {
-        // Get NPC
-        NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        // NPC passed as object - no lookup needed
         if (npc == null)
         {
-            _messageSystem.AddSystemMessage($"NPC {npcId} not found", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage($"NPC is null", SystemMessageTypes.Danger);
             return null;
         }
 
@@ -835,7 +828,11 @@ public class GameFacade
 
     private async Task<IntentResult> ProcessMoveIntent(string targetSpotId)
     {
-        bool success = await MoveToSpot(targetSpotId);
+        Location targetLocation = _gameWorld.GetLocation(targetSpotId);
+        if (targetLocation == null)
+            return IntentResult.Failed();
+
+        bool success = await MoveToSpot(targetLocation);
 
         if (success)
         {
@@ -1112,13 +1109,17 @@ public class GameFacade
 
     private async Task<IntentResult> ProcessTalkIntent(string npcId)
     {
+        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc == null)
+            return IntentResult.Failed();
+
         // TODO: Implement conversation initiation
-        _messageSystem.AddSystemMessage($"Talking to NPC {npcId} not yet implemented", SystemMessageTypes.Info);
+        _messageSystem.AddSystemMessage($"Talking to NPC {npc.Name} not yet implemented", SystemMessageTypes.Info);
         await Task.CompletedTask;
         return IntentResult.Executed(requiresRefresh: false);
     }
 
-    public ConnectionState GetNPCConnectionState(string npcId)
+    public ConnectionState GetNPCConnectionState(NPC npc)
     {
         return ConnectionState.NEUTRAL;
     }
@@ -1128,7 +1129,7 @@ public class GameFacade
         return _travelFacade.GetAvailableRoutesFromCurrentLocation();
     }
 
-    public List<RouteOption> GetRoutesToDestination(string destinationId)
+    public List<RouteOption> GetRoutesToDestination(Location destination)
     {
         return new List<RouteOption>();
     }
@@ -1217,17 +1218,17 @@ public class GameFacade
     /// <summary>
     /// Gets the district containing a location
     /// </summary>
-    public District GetDistrictForLocation(string venueId)
+    public District GetDistrictForLocation(Venue venue)
     {
-        return _gameWorld.GetDistrictForLocation(venueId);
+        return _gameWorld.GetDistrictForLocation(venue.Id);
     }
 
     /// <summary>
     /// Gets the region containing a district
     /// </summary>
-    public Region GetRegionForDistrict(string districtId)
+    public Region GetRegionForDistrict(District district)
     {
-        return _gameWorld.GetRegionForDistrict(districtId);
+        return _gameWorld.GetRegionForDistrict(district.Id);
     }
 
     /// <summary>
@@ -1238,13 +1239,6 @@ public class GameFacade
         return _gameWorld.Venues;
     }
 
-    /// <summary>
-    /// Gets a district by its ID
-    /// </summary>
-    public District GetDistrictById(string districtId)
-    {
-        return _gameWorld.Districts.FirstOrDefault(d => d.Id == districtId);
-    }
 
     // ============================================
     // DEBUG COMMANDS
@@ -1449,18 +1443,18 @@ public class GameFacade
     /// Complete obligation intro action - activates obligation and spawns Phase 1
     /// RPG quest acceptance pattern: Player clicks button → Obligation activates immediately
     /// </summary>
-    public async Task CompleteObligationIntro(string obligationId)
+    public async Task CompleteObligationIntro(Obligation obligation)
     {
-        await _obligationActivity.CompleteIntroAction(obligationId);
+        await _obligationActivity.CompleteIntroAction(obligation.Id);
     }
 
     /// <summary>
     /// Set pending intro action - prepares quest acceptance modal
     /// RPG quest acceptance: Button → Modal → "Begin" → Activate
     /// </summary>
-    public void SetPendingIntroAction(string obligationId)
+    public void SetPendingIntroAction(Obligation obligation)
     {
-        _obligationActivity.SetPendingIntroAction(obligationId);
+        _obligationActivity.SetPendingIntroAction(obligation.Id);
     }
 
     /// <summary>
@@ -1471,31 +1465,23 @@ public class GameFacade
         return _obligationActivity.GetAndClearPendingIntroResult();
     }
 
-    /// <summary>
-    /// Get route by ID (V2 Travel Integration)
-    /// </summary>
-    public RouteOption GetRouteById(string routeId)
-    {
-        return _travelFacade.GetAvailableRoutesFromCurrentLocation()
-            .FirstOrDefault(r => r.Id == routeId);
-    }
 
     // ========== CONVERSATION TREE OPERATIONS ==========
 
     /// <summary>
     /// Create context for conversation tree screen
     /// </summary>
-    public ConversationTreeContext CreateConversationTreeContext(string treeId)
+    public ConversationTreeContext CreateConversationTreeContext(ConversationTree tree)
     {
-        return _conversationTreeFacade.CreateContext(treeId);
+        return _conversationTreeFacade.CreateContext(tree.Id);
     }
 
     /// <summary>
     /// Select a dialogue response in conversation tree
     /// </summary>
-    public ConversationTreeResult SelectConversationResponse(string treeId, string nodeId, string responseId)
+    public ConversationTreeResult SelectConversationResponse(ConversationTree tree, DialogueNode node, DialogueResponse response)
     {
-        return _conversationTreeFacade.SelectResponse(treeId, nodeId, responseId);
+        return _conversationTreeFacade.SelectResponse(tree.Id, node.Id, response.Id);
     }
 
     // ========== OBSERVATION SCENE OPERATIONS ==========
@@ -1503,17 +1489,17 @@ public class GameFacade
     /// <summary>
     /// Create context for observation scene screen
     /// </summary>
-    public ObservationContext CreateObservationContext(string sceneId)
+    public ObservationContext CreateObservationContext(ObservationScene scene)
     {
-        return _observationFacade.CreateContext(sceneId);
+        return _observationFacade.CreateContext(scene.Id);
     }
 
     /// <summary>
     /// Examine a point in an observation scene
     /// </summary>
-    public ObservationResult ExaminePoint(string sceneId, string pointId)
+    public ObservationResult ExaminePoint(ObservationScene scene, ObservationPoint point)
     {
-        return _observationFacade.ExaminePoint(sceneId, pointId);
+        return _observationFacade.ExaminePoint(scene.Id, point.Id);
     }
 
     // ========== EMERGENCY SITUATION OPERATIONS ==========
@@ -1529,25 +1515,25 @@ public class GameFacade
     /// <summary>
     /// Create context for emergency screen
     /// </summary>
-    public EmergencyContext CreateEmergencyContext(string emergencyId)
+    public EmergencyContext CreateEmergencyContext(EmergencySituation emergency)
     {
-        return _emergencyFacade.CreateContext(emergencyId);
+        return _emergencyFacade.CreateContext(emergency.Id);
     }
 
     /// <summary>
     /// Select a response to an emergency situation
     /// </summary>
-    public EmergencyResult SelectEmergencyResponse(string emergencyId, string responseId)
+    public EmergencyResult SelectEmergencyResponse(EmergencySituation emergency, EmergencyResponse response)
     {
-        return _emergencyFacade.SelectResponse(emergencyId, responseId);
+        return _emergencyFacade.SelectResponse(emergency.Id, response.Id);
     }
 
     /// <summary>
     /// Ignore an emergency situation
     /// </summary>
-    public EmergencyResult IgnoreEmergency(string emergencyId)
+    public EmergencyResult IgnoreEmergency(EmergencySituation emergency)
     {
-        return _emergencyFacade.IgnoreEmergency(emergencyId);
+        return _emergencyFacade.IgnoreEmergency(emergency.Id);
     }
 
     // ========== LOCATION QUERY METHODS ==========
@@ -1555,17 +1541,17 @@ public class GameFacade
     /// <summary>
     /// Get all conversation trees available at a specific location
     /// </summary>
-    public List<ConversationTree> GetAvailableConversationTreesAtLocation(string locationId)
+    public List<ConversationTree> GetAvailableConversationTreesAtLocation(Location location)
     {
-        return _conversationTreeFacade.GetAvailableTreesAtLocation(locationId);
+        return _conversationTreeFacade.GetAvailableTreesAtLocation(location.Id);
     }
 
     /// <summary>
     /// Get all observation scenes available at a specific location
     /// </summary>
-    public List<ObservationScene> GetAvailableObservationScenesAtLocation(string locationId)
+    public List<ObservationScene> GetAvailableObservationScenesAtLocation(Location location)
     {
-        return _observationFacade.GetAvailableScenesAtLocation(locationId);
+        return _observationFacade.GetAvailableScenesAtLocation(location.Id);
     }
 
     /// <summary>
@@ -1574,17 +1560,16 @@ public class GameFacade
     /// Scene-embedded Situations inherit placement from parent Scene
     /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
     /// </summary>
-    public List<Situation> GetAvailableSituationsAtLocation(string locationId)
+    public List<Situation> GetAvailableSituationsAtLocation(Location location)
     {
         // PLAYABILITY VALIDATION: Location must exist
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
         if (location == null)
-            throw new InvalidOperationException($"Location '{locationId}' not found in GameWorld - cannot query situations!");
+            throw new InvalidOperationException($"Location is null - cannot query situations!");
 
         // Query all Situations (both legacy and Scene-embedded) at this location
         // HIERARCHICAL PLACEMENT: Situations own their own Location (direct property access)
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
-            .Where(sit => sit.Location?.Id == locationId)
+            .Where(sit => sit.Location?.Id == location.Id)
             .ToList();
     }
 
@@ -1593,15 +1578,14 @@ public class GameFacade
     /// Includes both legacy standalone Situations and Scene-embedded Situations
     /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
     /// </summary>
-    public List<Situation> GetAvailableSituationsForNPC(string npcId)
+    public List<Situation> GetAvailableSituationsForNPC(NPC npc)
     {
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null) return new List<Situation>();
 
         // Query all Situations (both legacy and Scene-embedded) for this NPC
         // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
-            .Where(sit => sit.Npc != null && sit.Npc.ID == npcId)
+            .Where(sit => sit.Npc != null && sit.Npc.ID == npc.ID)
             .ToList();
     }
 

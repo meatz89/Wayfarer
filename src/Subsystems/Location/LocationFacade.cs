@@ -213,14 +213,6 @@ public class LocationFacade
         return _npcTracker.GetNPCsAtSpot(_gameWorld.GetPlayerCurrentLocation().Id, currentTime);
     }
 
-    /// <summary>
-    /// Get a specific NPC by ID.
-    /// </summary>
-    public NPC GetNPCById(string npcId)
-    {
-        // KEEP - npcId is external input from caller
-        return _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-    }
 
     /// <summary>
     /// Get all NPCs in the game world.

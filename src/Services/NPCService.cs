@@ -68,10 +68,6 @@ public class NPCService
         });
     }
 
-    internal NPC GetNPCById(string npcId)
-    {
-        return _repository.GetById(npcId);
-    }
 }
 
 /// <summary>
