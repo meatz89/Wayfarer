@@ -75,7 +75,7 @@ namespace Wayfarer.Pages.Components
 
             AvailableRoutes = routes.Select(r => new RouteViewModel
             {
-                Id = r.Id,
+                Route = r,  // Object reference
                 Name = r.Name,  // Store the actual route name from JSON
                 DestinationName = GetDestinationVenueName(r.DestinationLocationId),
                 DestinationSpotName = GetDestinationLocationName(r.DestinationLocationId),
@@ -258,7 +258,7 @@ namespace Wayfarer.Pages.Components
             if (!CanTakeRoute(route)) return;
 
             // Start a path cards journey instead of instant travel
-            TravelSession session = TravelManager.StartJourney(route.Id);
+            TravelSession session = TravelManager.StartJourney(route.Route);
             if (session != null)
             {
                 // Refresh to show the path cards interface
@@ -410,7 +410,7 @@ namespace Wayfarer.Pages.Components
 
     public class RouteViewModel
     {
-        public string Id { get; set; }
+        public RouteOption Route { get; set; }  // Object reference
         public string Name { get; set; }  // The route name from JSON
         public string DestinationName { get; set; }  // The actual Venue name
         public string DestinationSpotName { get; set; }  // The actual Venue location name

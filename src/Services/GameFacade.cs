@@ -252,15 +252,12 @@ public class GameFacade
         return GetTravelDestinations();
     }
 
-    public async Task<bool> TravelToDestinationAsync(string routeName)
+    public async Task<bool> TravelToDestinationAsync(RouteOption route)
     {
-        // Get all routes and find the one with matching name
-        List<RouteOption> allRoutes = _travelFacade.GetAvailableRoutesFromCurrentLocation();
-        RouteOption? targetRoute = allRoutes.FirstOrDefault(r => r.Name == routeName);
-
-        if (targetRoute == null)
+        // No lookup needed!
+        if (route == null)
         {
-            _narrativeFacade.AddSystemMessage($"Route {routeName} not found", SystemMessageTypes.Danger);
+            _narrativeFacade.AddSystemMessage("Route not found", SystemMessageTypes.Danger);
             return false;
         }
 
@@ -276,7 +273,7 @@ public class GameFacade
         // 2. CALCULATE ACTUAL HUNGER COST
         // Base hunger cost from route plus any load penalties
         int itemCount = player.Inventory.GetAllItems().Count(i => !string.IsNullOrEmpty(i));
-        int hungerCost = targetRoute.BaseStaminaCost; // This is actually the hunger cost in the data
+        int hungerCost = route.BaseStaminaCost; // This is actually the hunger cost in the data
 
         // Add load penalties if carrying many items
         if (itemCount > 3) // Light load threshold
@@ -294,7 +291,7 @@ public class GameFacade
         }
 
         // 6. CHECK COIN COST
-        int coinCost = targetRoute.BaseCoinCost;
+        int coinCost = route.BaseCoinCost;
         if (coinCost > 0 && player.Coins < coinCost)
         {
             _narrativeFacade.AddSystemMessage($"Not enough coins. Need {coinCost}, have {player.Coins}", SystemMessageTypes.Warning);
@@ -312,41 +309,33 @@ public class GameFacade
         // Travel does NOT cost attention - removed incorrect attention spending
 
         // Create travel result for processing
-        int travelTime = targetRoute.TravelTimeSegments;
+        int travelTime = route.TravelTimeSegments;
         TravelResult travelResult = new TravelResult
         {
             Success = true,
             TravelTimeSegments = travelTime,
             CoinCost = coinCost,
-            RouteId = routeName,
-            TransportMethod = targetRoute.Method
+            RouteId = route.Name,
+            TransportMethod = route.Method
         };
 
         if (travelResult.Success)
         {
+            // Find the destination location by name from GameWorld's Locations
+            Location? destSpot = _gameWorld.GetLocation(route.DestinationLocationName);
 
-            // Get the actual destination location from the route
-            RouteOption? actualRoute = _travelFacade.GetAvailableRoutesFromCurrentLocation()
-                .FirstOrDefault(r => r.Name == routeName);
-
-            if (actualRoute != null)
+            if (destSpot != null)
             {
-                // Find the destination location by name from GameWorld's Locations
-                Location? destSpot = _gameWorld.GetLocation(actualRoute.DestinationLocationName);
+                if (!destSpot.HexPosition.HasValue)
+                    throw new InvalidOperationException($"Destination location '{destSpot.Name}' has no HexPosition - cannot move player");
 
-                if (destSpot != null)
-                {
-                    if (!destSpot.HexPosition.HasValue)
-                        throw new InvalidOperationException($"Destination location '{destSpot.Name}' has no HexPosition - cannot move player");
+                player.CurrentPosition = destSpot.HexPosition.Value;
 
-                    player.CurrentPosition = destSpot.HexPosition.Value;
+                // TRIGGER POINT 1: Record location visit after successful travel
+                RecordLocationVisit(destSpot.Name);
 
-                    // TRIGGER POINT 1: Record location visit after successful travel
-                    RecordLocationVisit(destSpot.Name);
-
-                    // TRIGGER POINT 3: Record route traversal after successful travel
-                    RecordRouteTraversal(routeName);
-                }
+                // TRIGGER POINT 3: Record route traversal after successful travel
+                RecordRouteTraversal(route.Name);
             }
 
             TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
@@ -361,7 +350,7 @@ public class GameFacade
             });
 
             // Get destination Venue name for the message
-            Location? finalDestSpot = _gameWorld.GetLocation(targetRoute.DestinationLocationName);
+            Location? finalDestSpot = _gameWorld.GetLocation(route.DestinationLocationName);
 
             string destinationName = "Unknown";
             if (finalDestSpot != null)
@@ -780,7 +769,7 @@ public class GameFacade
         {
             // Navigation intents
             OpenTravelScreenIntent => ProcessOpenTravelScreenIntent(),
-            TravelIntent travel => await ProcessTravelIntentAsync(travel.RouteId),
+            TravelIntent travel => await ProcessTravelIntentAsync(travel.Route),
 
             // Movement intents
             MoveIntent move => await ProcessMoveIntent(move.TargetSpotId),
@@ -817,10 +806,10 @@ public class GameFacade
         return IntentResult.NavigateScreen(ScreenMode.Travel);
     }
 
-    private async Task<IntentResult> ProcessTravelIntentAsync(string routeName)
+    private async Task<IntentResult> ProcessTravelIntentAsync(RouteOption route)
     {
         // Backend authority: Navigate to Travel screen (screen-level navigation)
-        bool success = await TravelToDestinationAsync(routeName);
+        bool success = await TravelToDestinationAsync(route);
         return success ? IntentResult.NavigateScreen(ScreenMode.Travel) : IntentResult.Failed();
     }
 

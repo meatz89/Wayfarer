@@ -83,11 +83,11 @@ public class ExploreAreaIntent : PlayerIntent
 /// </summary>
 public class TravelIntent : PlayerIntent
 {
-    public string RouteId { get; }
+    public RouteOption Route { get; }
 
-    public TravelIntent(string routeId)
+    public TravelIntent(RouteOption route)
     {
-        RouteId = routeId;
+        Route = route;
     }
 }
 

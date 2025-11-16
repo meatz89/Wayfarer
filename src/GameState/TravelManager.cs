@@ -18,9 +18,9 @@ public class TravelManager
     /// <summary>
     /// Start a journey on a specific route, initializing a travel session
     /// </summary>
-    public TravelSession StartJourney(string routeId)
+    public TravelSession StartJourney(RouteOption route)
     {
-        RouteOption route = GetRoute(routeId);
+        // No lookup needed!
         if (route == null)
         {
             return null;
@@ -531,15 +531,6 @@ public class TravelManager
 
         // Find the card in the embedded event cards
         return travelEvent.EventCards.FirstOrDefault(c => c.Id == cardId);
-    }
-
-    /// <summary>
-    /// Get route by ID from world state
-    /// </summary>
-    private RouteOption GetRoute(string routeId)
-    {
-        // Find route in world state - routes are stored centrally in GameWorld
-        return _gameWorld.Routes.FirstOrDefault(r => r.Id == routeId);
     }
 
     /// <summary>
