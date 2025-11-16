@@ -88,13 +88,61 @@ This document provides canonical definitions for all specialized terms used acro
 **PathType Enum:** InstantSuccess (immediate resolution), Challenge (enters tactical layer), Fallback (always available poor outcome).
 **Key Properties:** Id, PathType enum, ActionTextTemplate (with {Placeholders}), RequirementFormula (CompoundRequirement), CostTemplate (ChoiceCost), RewardTemplate (ChoiceReward), ActionType enum, ChallengeType (if PathType.Challenge).
 
-### Action
-**Type:** Runtime Entity (ephemeral)
-**Owner:** GameWorld.LocationActions / GameWorld.NPCActions / GameWorld.PathCards
-**Definition:** Ephemeral entity created at query-time from ChoiceTemplate when Situation transitions from Deferred to Instantiated. Represents player-executable choice in UI.
-**Lifecycle:** Created when SceneFacade queries active Situation → Stored in flat GameWorld collections → Deleted when Situation completes or Scene expires.
-**NOT Persisted:** Actions recreated from Templates on game load. Not saved in save files.
-**Concrete Types:** LocationAction (scene placed at location), NPCAction (scene placed at NPC), PathCard (scene placed on route).
+### Action (General)
+**Type:** Runtime Entity (two distinct patterns)
+**Definition:** Player-executable choice in UI. Actions exist in TWO architectural forms with different lifecycles:
+
+**1. Static Atmospheric Actions:**
+- **Owner:** GameWorld.LocationActions (ONLY LocationAction type)
+- **Source:** Generated once at parse-time from LocationActionCatalog
+- **Purpose:** Core gameplay freedom (Travel, Work, Rest, Intra-Venue Movement)
+- **Lifecycle:** Created during package loading → Stored permanently in GameWorld.LocationActions → Never deleted
+- **Availability:** Always present regardless of scene state (prevents dead ends and soft-locks)
+- **Persistence:** Saved in save files, part of world state
+
+**2. Ephemeral Scene-Based Actions:**
+- **Owner:** None (created fresh on query, passed by object reference, NOT stored)
+- **Source:** Generated at query-time from ChoiceTemplate when Situation is active
+- **Purpose:** Narrative scene content (choices within Scene-Situation architecture)
+- **Lifecycle:** Created when SceneFacade queries active Situation → Returned to UI directly → Discarded after execution
+- **Availability:** Appear/disappear with parent Scene state
+- **Persistence:** NOT saved (recreated from templates on game load)
+- **Concrete Types:** LocationAction (scene at location), NPCAction (scene at NPC), PathCard (scene on route)
+
+**CRITICAL:** LocationAction exists in BOTH forms. NPCAction and PathCard are ONLY ephemeral (no static equivalent).
+
+**Historical Note:** Earlier architecture stored ephemeral actions in GameWorld collections. Current architecture passes ephemeral actions by direct object reference (no storage).
+
+### Atmospheric Action
+**Type:** Runtime Entity (persistent)
+**Owner:** GameWorld.LocationActions
+**Definition:** Always-available LocationAction providing core gameplay scaffolding independent of scene state. Prevents dead ends and soft-locks by ensuring player always has Travel/Work/Rest/Movement options.
+**Generated:** Parse-time via LocationActionCatalog.GenerateActionsForLocation()
+**Examples:**
+- **Travel:** Initiate route travel from venue hub to another venue
+- **Work:** Perform delivery jobs to earn coins
+- **Rest:** Restore Health/Stamina by consuming resources (food/lodging)
+- **Intra-Venue Movement:** Navigate between locations within same venue
+**Design Philosophy:** Atmospheric actions form persistent baseline existence ensuring player freedom and forward progress regardless of narrative state. Scene-based actions layer on top as temporary narrative content.
+**See Also:** Static Action (synonym), Ephemeral Action (opposite pattern), design/02_core_gameplay_loops.md lines 491-578
+
+### Static Action
+**Synonym:** Atmospheric Action (see above)
+**Usage Note:** "Static" emphasizes parse-time generation and permanent storage. "Atmospheric" emphasizes design role as persistent scaffolding. Same concept, different emphasis.
+
+### Ephemeral Action
+**Type:** Runtime Entity (query-time instance)
+**Owner:** None (not stored, passed by object reference)
+**Definition:** Temporary action created fresh when SceneFacade queries active Situation, passed directly to UI, discarded after execution. Represents narrative choice within Scene-Situation architecture.
+**Generated:** Query-time via SceneFacade.GetActionsAtLocation/GetActionsForNPC/GetPathCardsForRoute
+**Lifecycle:** Created → Returned to UI → Passed to GameFacade execution → Discarded
+**Three-Tier Timing:** Actions are Tier 3 (query-time instantiation from Tier 2 Situations which reference Tier 1 Templates)
+**Examples:**
+- NPCAction: "Negotiate with innkeeper" (from Scene placed at Elena)
+- LocationAction: "Investigate crime scene" (from Scene placed at mill location)
+- PathCard: "Help stranded traveler" (from Scene placed on route)
+**Design Philosophy:** Ephemeral actions appear/disappear with parent Scene state, creating dynamic narrative content layered on top of persistent atmospheric actions.
+**See Also:** Atmospheric Action (opposite pattern), Action (General) for complete distinction
 
 ---
 
