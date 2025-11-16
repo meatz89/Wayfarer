@@ -348,17 +348,11 @@ public class PhysicalFacade
         };
 
         // TRANSITION TRACKING: If challenge failed, call FailSituation for OnFailure transitions
-        // Mirrors Social EndConversation pattern (lines 157-169)
-        if (!success && _gameWorld.PendingPhysicalContext?.SituationId != null)
+        // Mirrors Social EndConversation pattern
+        // HIGHLANDER: Use Situation object reference, not SituationId string
+        if (!success && _gameWorld.PendingPhysicalContext?.Situation != null)
         {
-            Situation situation = _gameWorld.Scenes
-                .SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingPhysicalContext.SituationId);
-
-            if (situation != null)
-            {
-                _situationCompletionHandler.FailSituation(situation);
-            }
+            _situationCompletionHandler.FailSituation(_gameWorld.PendingPhysicalContext.Situation);
         }
 
         // Check for obligation progress if this was an obligation situation

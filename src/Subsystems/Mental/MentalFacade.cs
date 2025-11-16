@@ -429,17 +429,11 @@ public class MentalFacade
         };
 
         // TRANSITION TRACKING: If challenge failed, call FailSituation for OnFailure transitions
-        // Mirrors Social EndConversation pattern (lines 157-169)
-        if (!success && _gameWorld.PendingMentalContext?.SituationId != null)
+        // Mirrors Social EndConversation pattern
+        // HIGHLANDER: Use Situation object reference, not SituationId string
+        if (!success && _gameWorld.PendingMentalContext?.Situation != null)
         {
-            Situation situation = _gameWorld.Scenes
-                .SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingMentalContext.SituationId);
-
-            if (situation != null)
-            {
-                _situationCompletionHandler.FailSituation(situation);
-            }
+            _situationCompletionHandler.FailSituation(_gameWorld.PendingMentalContext.Situation);
         }
 
         // Obligation progress now handled by SituationCompletionHandler (system-agnostic)

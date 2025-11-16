@@ -155,17 +155,11 @@ public class SocialFacade
         _gameWorld.LastSocialOutcome = FinalizeConversation(_gameWorld.CurrentSocialSession);
 
         // TRANSITION TRACKING: If conversation failed, call FailSituation for OnFailure transitions
-        if (!_gameWorld.LastSocialOutcome.Success && _gameWorld.PendingSocialContext?.SituationId != null)
+        // HIGHLANDER: Use Situation object reference, not SituationId string
+        if (!_gameWorld.LastSocialOutcome.Success && _gameWorld.PendingSocialContext?.Situation != null)
         {
-            Situation situation = _gameWorld.Scenes
-                .SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingSocialContext.SituationId);
-
-            if (situation != null)
-            {
-                // Call FailSituation to set LastChallengeSucceeded = false and trigger OnFailure
-                _situationCompletionHandler.FailSituation(situation);
-            }
+            // Call FailSituation to set LastChallengeSucceeded = false and trigger OnFailure
+            _situationCompletionHandler.FailSituation(_gameWorld.PendingSocialContext.Situation);
         }
 
         // Calculate and save the final flow value back to the NPC (persistence)
