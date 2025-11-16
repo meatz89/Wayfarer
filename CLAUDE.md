@@ -277,27 +277,144 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 
 ---
 
-# TYPE-SAFE ROUTING PRINCIPLE
+# HEX-BASED SPATIAL ARCHITECTURE PRINCIPLE
 
-**Principle:** Use strongly-typed enums for routing decisions and explicit properties for parameters. IDs exist only for uniqueness and debugging, never for conditional logic or data extraction.
+**Principle:** Entity relationships are established through spatial positioning on hex grid and object references, NOT through ID cross-references. IDs should not exist in domain entities - they are temporary parsing artifacts that pollute domain models with serialization concerns.
 
-**Why:** Enum-based routing catches errors at compile time instead of runtime. String parsing hides intent in opaque manipulation and fails silently. Strongly-typed properties flow through the entire stack with compiler verification.
+**Why:** This architecture separates spatial data (hex coordinates) from entity identity, enabling procedural content generation and eliminating redundant ID storage. Location.HexPosition is source of truth for spatial positioning. Routes are generated procedurally via pathfinding, not manually defined in JSON.
 
-**Correct pattern:**
-- ActionType enum as routing key (switch on enum, NOT ID)
-- Strongly-typed properties for parameters (DestinationLocationId property)
-- Properties flow through entire data stack (Domain → ViewModel → Intent)
-- Direct property access (action.DestinationLocationId), NO parsing
+## Spatial Scaffolding Pattern
 
-**IDs are acceptable for:**
-1. Uniqueness (collection keys, UI rendering keys)
-2. Debugging/logging (display only, never logic)
-3. Simple passthrough (domain → ViewModel, no logic)
+**JSON Layer - Hex Coordinates as Source of Truth:**
+- Locations defined with hex coordinates (Q, R) indicating spatial position
+- NPCs defined with hex coordinates (where they spawn in the world)
+- Routes NOT defined in JSON - generated procedurally from hex grid
+- Hex grid defines terrain, danger levels, and traversability
 
-**Never use IDs for:**
-- Routing decisions (use ActionType enum)
-- Conditional logic (use strongly-typed properties)
-- Data extraction (add explicit properties instead)
+**Parser Layer - Spatial Resolution:**
+- Resolves entity relationships via hex coordinate matching
+- Creates object references during parsing based on spatial proximity
+- Builds object graph without requiring ID lookups
+- IDs are temporary artifacts needed only during multi-pass parsing (if at all)
+
+**Domain Layer - Object References Only:**
+- Entities have object references, NOT ID strings
+- NPC has `Location` object reference (not `LocationId` string)
+- RouteOption has `OriginLocation`, `DestinationLocation` objects (not ID strings)
+- Location.HexPosition (AxialCoordinates) is spatial source of truth
+
+**Runtime - Procedural Generation:**
+- Routes generated via A* pathfinding: Origin.HexPosition → Destination.HexPosition
+- Travel system navigates hex grid terrain and danger levels
+- No hardcoded route definitions - all routes emerge from spatial data
+
+## Type-Safe Routing (Related Pattern)
+
+**Enum-based routing for action dispatch:**
+- ActionType enum as routing key (switch on enum, NOT ID parsing)
+- Strongly-typed properties for parameters (DestinationLocation object, not LocationId string)
+- Properties flow through entire stack with compiler verification
+- Direct object access (action.DestinationLocation.Name), NO string lookups
+
+## Why IDs Should Not Exist in Domain
+
+**IDs are serialization artifacts:**
+- Only needed at JSON deserialization boundary (DTOs)
+- Parser converts ID strings → object references → discards IDs
+- Domain entities work with objects, not lookup keys
+
+**IDs create redundancy:**
+- Current WRONG pattern: RouteOption has OriginLocationId (string) + OriginLocation (object)
+- CORRECT pattern: RouteOption has only OriginLocation (object)
+- Comment in RouteOption.cs acknowledges this: "HIGHLANDER: ID is parsing artifact"
+
+**IDs pollute domain with serialization concerns:**
+- Domain should model game entities, not database schemas
+- Object references are natural domain relationships
+- ID lookups are technical query patterns that don't belong in domain
+
+**IDs enable violations:**
+- Composite ID generation: `routeId = $"route_{origin.Id}_{destination.Id}"` ❌
+- ID parsing for logic: `if (id.StartsWith("route_"))` ❌
+- Hash code misuse: `(day * ID.GetHashCode()) % count` ❌
+
+## Correct Patterns
+
+**Use object references for relationships:**
+```csharp
+// CORRECT - Direct object references
+public class NPC
+{
+    public string Name { get; set; }  // Natural key for identity
+    public Location Location { get; set; }  // Object reference
+}
+
+public class RouteOption
+{
+    public Location OriginLocation { get; set; }  // Object reference
+    public Location DestinationLocation { get; set; }  // Object reference
+    public List<AxialCoordinates> HexPath { get; set; }  // Spatial path
+}
+```
+
+**Use hex coordinates for spatial positioning:**
+```csharp
+// CORRECT - Spatial positioning via hex coordinates
+public class Location
+{
+    public string Name { get; set; }  // Natural key for identity
+    public AxialCoordinates HexPosition { get; set; }  // Spatial source of truth
+}
+
+// Routes generated procedurally
+List<AxialCoordinates> hexPath = pathfinder.FindPath(origin.HexPosition, destination.HexPosition);
+RouteOption route = new RouteOption
+{
+    OriginLocation = origin,
+    DestinationLocation = destination,
+    HexPath = hexPath
+};
+```
+
+**Use enums for categorical routing:**
+```csharp
+// CORRECT - Enum-based action routing
+public enum ActionType
+{
+    Travel,
+    Conversation,
+    Investigation,
+    Rest
+}
+
+// Dispatcher switches on enum, not string parsing
+switch (action.Type)
+{
+    case ActionType.Travel:
+        HandleTravel(action.DestinationLocation);  // Object reference
+        break;
+    case ActionType.Conversation:
+        HandleConversation(action.TargetNPC);  // Object reference
+        break;
+}
+```
+
+## Natural Keys for Identity
+
+**When entities need unique identification, use natural keys:**
+- NPC.Name (unique within game world)
+- Location.Name (unique within venue)
+- Item.Name (unique within item catalogue)
+
+**Natural keys are:**
+- Human-readable (debugging, logging)
+- Domain-meaningful (part of game design, not technical artifact)
+- Compiler-enforced unique (if needed)
+
+**Synthetic IDs (like "npc_001") are:**
+- Technical artifacts with no domain meaning
+- Redundant when Name already provides uniqueness
+- Serialization leakage polluting domain model
 
 ---
 
