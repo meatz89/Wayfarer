@@ -157,7 +157,7 @@ public class TimeManager
         if (result.CrossedTimeBlock)
         {
             _messageSystem.AddSystemMessage(
-                $"🕐 Entering {result.NewTimeBlock.ToString().ToLower()} period",
+                $"{{icon:alarm-clock}} Entering {result.NewTimeBlock.ToString().ToLower()} period",
                 SystemMessageTypes.Info);
         }
 
@@ -165,7 +165,7 @@ public class TimeManager
         if (result.CrossedDayBoundary)
         {
             _messageSystem.AddSystemMessage(
-                $"🌅 Day {result.NewState.CurrentDay} begins",
+                $"{{icon:alarm-clock}} Day {result.NewState.CurrentDay} begins",
                 SystemMessageTypes.Info);
         }
     }

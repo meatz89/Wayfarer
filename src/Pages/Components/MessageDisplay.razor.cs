@@ -1,6 +1,13 @@
 using Microsoft.AspNetCore.Components;
+using System.Text.RegularExpressions;
 
 namespace Wayfarer.Pages.Components;
+
+public class MessageSegment
+{
+    public bool IsIcon { get; set; }
+    public string Content { get; set; }
+}
 
 public class MessageDisplayBase : ComponentBase, IDisposable
 {
@@ -65,6 +72,39 @@ public class MessageDisplayBase : ComponentBase, IDisposable
             SystemMessageTypes.Tutorial => "tutorial",
             _ => "info"
         };
+    }
+
+    protected List<MessageSegment> ParseMessageSegments(string message)
+    {
+        List<MessageSegment> segments = new List<MessageSegment>();
+
+        if (string.IsNullOrEmpty(message))
+            return segments;
+
+        Regex iconPattern = new Regex(@"\{icon:([a-z-]+)\}", RegexOptions.IgnoreCase);
+        int lastIndex = 0;
+
+        foreach (Match match in iconPattern.Matches(message))
+        {
+            if (match.Index > lastIndex)
+            {
+                string textBefore = message.Substring(lastIndex, match.Index - lastIndex);
+                segments.Add(new MessageSegment { IsIcon = false, Content = textBefore });
+            }
+
+            string iconName = match.Groups[1].Value;
+            segments.Add(new MessageSegment { IsIcon = true, Content = iconName });
+
+            lastIndex = match.Index + match.Length;
+        }
+
+        if (lastIndex < message.Length)
+        {
+            string textAfter = message.Substring(lastIndex);
+            segments.Add(new MessageSegment { IsIcon = false, Content = textAfter });
+        }
+
+        return segments;
     }
 
     public void Dispose()

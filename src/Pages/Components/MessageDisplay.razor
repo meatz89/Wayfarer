@@ -6,7 +6,19 @@
         @foreach (var message in Messages)
         {
             <div class="message @GetMessageClass(message.Type)">
-                <span class="message-text">@message.Message</span>
+                <span class="message-text">
+                    @foreach (var segment in ParseMessageSegments(message.Message))
+                    {
+                        @if (segment.IsIcon)
+                        {
+                            <Icon Name="@segment.Content" CssClass="message-icon" />
+                        }
+                        else
+                        {
+                            @segment.Content
+                        }
+                    }
+                </span>
                 <button class="message-close" @onclick="() => DismissMessage(message)"><span class="icon-close"></span></button>
             </div>
         }
