@@ -27,9 +27,9 @@ namespace Wayfarer.Pages.Components
             }
         }
 
-        protected async Task HandleAcceptJob(string jobId)
+        protected async Task HandleAcceptJob(DeliveryJob job)
         {
-            await OnAcceptJob.InvokeAsync(jobId);
+            await OnAcceptJob.InvokeAsync(job.Id);
         }
 
         protected string GetDifficultyClass(DifficultyTier tier)

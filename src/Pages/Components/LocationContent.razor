@@ -80,7 +80,7 @@
                                         @* Scene interaction buttons - one per active scene (multi-scene display) *@
                                         @foreach (var sceneVm in npc.AvailableScenes)
                                         {
-                                            <div class="situation-action-btn" @onclick="async () => await HandleTalkToNPC(npc.Id, sceneVm.Scene)">
+                                            <div class="situation-action-btn" @onclick="async () => await HandleTalkToNPC(npc.Npc, sceneVm.Scene)">
                                                 <div class="situation-name">@sceneVm.Label</div>
                                             </div>
                                         }
@@ -88,7 +88,7 @@
                                         @* Exchange Option for MERCANTILE NPCs *@
                                         @if (npc.HasExchange)
                                         {
-                                            <div class="situation-action-btn" @onclick="async () => await HandleStartExchange(npc.Id)">
+                                            <div class="situation-action-btn" @onclick="async () => await HandleStartExchange(npc.Npc)">
                                                 <div class="situation-system-badge exchange">Exchange</div>
                                                 <div class="situation-name">Trading</div>
                                                 <div class="situation-description">@npc.ExchangeDescription</div>
@@ -109,7 +109,7 @@
                             @foreach (var tree in AvailableConversationTrees)
                             {
                                 <div class="situation-action-btn"
-                                     @onclick="async () => await HandleStartConversationTree(tree.Id)">
+                                     @onclick="async () => await HandleStartConversationTree(tree)">
                                     <div class="situation-system-badge conversation">Conversation</div>
                                     <div class="situation-name">@tree.Name</div>
                                     @if (!string.IsNullOrEmpty(tree.Description))
@@ -134,7 +134,7 @@
                             @foreach (var scene in AvailableObservationScenes)
                             {
                                 <div class="situation-action-btn"
-                                     @onclick="async () => await HandleStartObservationScene(scene.Id)">
+                                     @onclick="async () => await HandleStartObservationScene(scene)">
                                     <div class="situation-system-badge observation">Observation</div>
                                     <div class="situation-name">@scene.Name</div>
                                     @if (!string.IsNullOrEmpty(scene.Description))

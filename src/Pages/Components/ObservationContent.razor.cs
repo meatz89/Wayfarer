@@ -20,11 +20,11 @@ namespace Wayfarer.Pages.Components
 
         [Inject] protected GameFacade GameFacade { get; set; }
 
-        protected async Task HandleExaminePoint(string pointId)
+        protected async Task HandleExaminePoint(ExaminationPoint point)
         {
             if (Context == null || !Context.IsValid) return;
 
-            ObservationResult result = GameFacade.ExaminePoint(Context.Scene.Id, pointId);
+            ObservationResult result = GameFacade.ExaminePoint(Context.Scene.Id, point.Id);
 
             if (!result.Success)
             {

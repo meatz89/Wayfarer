@@ -35,7 +35,7 @@
             <!-- Affordable Points -->
             @foreach (var point in Context.GetAffordablePoints())
             {
-                <div class="examination-point available" @onclick="() => HandleExaminePoint(point.Id)">
+                <div class="examination-point available" @onclick="() => HandleExaminePoint(point)">
                     <div class="point-header">
                         <div class="point-title">@point.Title</div>
                     </div>

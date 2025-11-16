@@ -92,7 +92,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         EmergencySituation activeEmergency = GameFacade.GetActiveEmergency();
         if (activeEmergency != null)
         {
-            await StartEmergency(activeEmergency.Id);
+            await StartEmergency(activeEmergency);
             return; // Emergency takes priority, skip normal initialization
         }
 
@@ -106,7 +106,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             if (resumableScenes.Count > 0)
             {
                 Scene modalScene = resumableScenes.First();
-                await StartScene(modalScene.Id);
+                await StartScene(modalScene);
                 return; // Modal scene takes priority over normal location display
             }
         }
@@ -301,9 +301,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshTimeDisplay();
     }
 
-    public async Task StartExchange(string npcId)
+    public async Task StartExchange(NPC npc)
     {
-        CurrentExchangeContext = await GameFacade.CreateExchangeContext(npcId);
+        CurrentExchangeContext = await GameFacade.CreateExchangeContext(npc.ID);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -454,9 +454,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         { }
     }
 
-    public async Task StartConversationTree(string treeId)
+    public async Task StartConversationTree(ConversationTree tree)
     {
-        CurrentConversationTreeContext = GameFacade.CreateConversationTreeContext(treeId);
+        CurrentConversationTreeContext = GameFacade.CreateConversationTreeContext(tree.Id);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -470,9 +470,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
     }
 
-    public async Task StartObservationScene(string sceneId)
+    public async Task StartObservationScene(ObservationScene scene)
     {
-        CurrentObservationContext = GameFacade.CreateObservationContext(sceneId);
+        CurrentObservationContext = GameFacade.CreateObservationContext(scene.Id);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -486,9 +486,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
     }
 
-    public async Task StartEmergency(string emergencyId)
+    public async Task StartEmergency(EmergencySituation emergency)
     {
-        CurrentEmergencyContext = GameFacade.CreateEmergencyContext(emergencyId);
+        CurrentEmergencyContext = GameFacade.CreateEmergencyContext(emergency.Id);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -567,9 +567,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartScene(string sceneId)
+    public async Task StartScene(Scene scene)
     {
-        Scene scene = GameWorld.Scenes.FirstOrDefault(s => s.Id == sceneId);
         if (scene == null)
             return;
 
@@ -599,7 +598,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartNPCEngagement(string npcId, Scene scene)
+    public async Task StartNPCEngagement(NPC npc, Scene scene)
     {
         // Direct scene object passed from UI (HIGHLANDER Pattern B - no lookup needed)
         // Defensive validation: Scene must be active and belong to this NPC
@@ -613,9 +612,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         Situation currentSituation = scene.CurrentSituation;
 
         // ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
-        if (currentSituation?.Npc == null || currentSituation.Npc.ID != npcId)
+        if (currentSituation?.Npc == null || currentSituation.Npc.ID != npc.ID)
         {
-            Console.WriteLine($"[GameScreen] Scene {scene.Id} current situation does not involve NPC {npcId}");
+            Console.WriteLine($"[GameScreen] Scene {scene.Id} current situation does not involve NPC {npc.ID}");
             return;
         }
 

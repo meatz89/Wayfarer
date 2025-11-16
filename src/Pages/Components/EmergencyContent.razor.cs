@@ -20,11 +20,11 @@ namespace Wayfarer.Pages.Components
 
         [Inject] protected GameFacade GameFacade { get; set; }
 
-        protected async Task HandleSelectResponse(string responseId)
+        protected async Task HandleSelectResponse(EmergencyResponse response)
         {
             if (Context == null || !Context.IsValid) return;
 
-            EmergencyResult result = GameFacade.SelectEmergencyResponse(Context.Emergency.Id, responseId);
+            EmergencyResult result = GameFacade.SelectEmergencyResponse(Context.Emergency.Id, response.Id);
 
             if (!result.Success)
             {

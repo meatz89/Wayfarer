@@ -66,7 +66,7 @@ public class LocationContentBase : ComponentBase
             {
                 // Auto-resume first waiting scene (should only be one per location context)
                 Scene resumableScene = resumableScenes[0];
-                await GameScreen.StartScene(resumableScene.Id);
+                await GameScreen.StartScene(resumableScene);
             }
         }
 
@@ -148,7 +148,11 @@ public class LocationContentBase : ComponentBase
                     string forcedSceneId = GameWorld.PendingForcedSceneId;
                     GameWorld.PendingForcedSceneId = null; // Clear pending flag
 
-                    await GameScreen.StartScene(forcedSceneId);
+                    Scene forcedScene = GameWorld.Scenes.FirstOrDefault(s => s.Id == forcedSceneId);
+                    if (forcedScene != null)
+                    {
+                        await GameScreen.StartScene(forcedScene);
+                    }
                 }
             }
         }
@@ -207,9 +211,9 @@ public class LocationContentBase : ComponentBase
         }
     }
 
-    protected async Task MoveToSpot(string spotId)
+    protected async Task MoveToSpot(Location spot)
     {
-        bool success = await GameFacade.MoveToSpot(spotId);
+        bool success = await GameFacade.MoveToSpot(spot.Id);
 
         if (success)
         {
@@ -225,7 +229,11 @@ public class LocationContentBase : ComponentBase
                 string forcedSceneId = GameWorld.PendingForcedSceneId;
                 GameWorld.PendingForcedSceneId = null; // Clear pending flag
 
-                await GameScreen.StartScene(forcedSceneId);
+                Scene forcedScene = GameWorld.Scenes.FirstOrDefault(s => s.Id == forcedSceneId);
+                if (forcedScene != null)
+                {
+                    await GameScreen.StartScene(forcedScene);
+                }
             }
         }
     }
@@ -296,34 +304,33 @@ public class LocationContentBase : ComponentBase
         await ExecuteLocationAction(action);
     }
 
-    protected void HandleNavigateToSituation(string situationId)
+    protected void HandleNavigateToSituation(Situation situation)
     {
-        Situation situation = GameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
         if (situation != null)
         {
             NavigateToView(LocationViewState.SituationDetail, situation);
         }
     }
 
-    protected async Task HandleMoveToSpot(string spotId)
+    protected async Task HandleMoveToSpot(Location spot)
     {
-        await MoveToSpot(spotId);
+        await MoveToSpot(spot);
     }
 
-    protected async Task HandleStartExchange(string npcId)
+    protected async Task HandleStartExchange(NPC npc)
     {
-        await GameScreen.StartExchange(npcId);
+        await GameScreen.StartExchange(npc.ID);
     }
 
-    protected async Task HandleTalkToNPC(string npcId, Scene scene)
+    protected async Task HandleTalkToNPC(NPC npc, Scene scene)
     {
-        await GameScreen.StartNPCEngagement(npcId, scene);
+        await GameScreen.StartNPCEngagement(npc.ID, scene);
     }
 
-    protected async Task HandleAcceptJob(string jobId)
+    protected async Task HandleAcceptJob(DeliveryJob job)
     {
         // Execute through intent system - backend handles validation
-        IntentResult result = await GameFacade.ProcessIntent(new AcceptDeliveryJobIntent(jobId));
+        IntentResult result = await GameFacade.ProcessIntent(new AcceptDeliveryJobIntent(job.Id));
 
         if (result.Success)
         {
@@ -392,14 +399,14 @@ public class LocationContentBase : ComponentBase
     // SCREEN EXPANSION HANDLERS
     // ============================================
 
-    protected async Task HandleStartConversationTree(string treeId)
+    protected async Task HandleStartConversationTree(ConversationTree tree)
     {
-        await GameScreen.StartConversationTree(treeId);
+        await GameScreen.StartConversationTree(tree.Id);
     }
 
-    protected async Task HandleStartObservationScene(string sceneId)
+    protected async Task HandleStartObservationScene(ObservationScene scene)
     {
-        await GameScreen.StartObservationScene(sceneId);
+        await GameScreen.StartObservationScene(scene.Id);
     }
 
     // ============================================
