@@ -279,7 +279,9 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 
 # HEX-BASED SPATIAL ARCHITECTURE PRINCIPLE
 
-**Principle:** Entity relationships are established through spatial positioning on hex grid and object references, NOT through ID cross-references. IDs should not exist in domain entities - they are temporary parsing artifacts that pollute domain models with serialization concerns.
+**Principle:** Entity relationships are established through spatial positioning on hex grid and object references, NOT through ID cross-references. IDs do not exist in domain entities.
+
+**Exception:** Template IDs are acceptable (SceneTemplate.Id, SituationTemplate.Id) because templates are immutable archetypes, not mutable entity instances. Templates are content definitions, not game state.
 
 **Why:** This architecture separates spatial data (hex coordinates) from entity identity, enabling procedural content generation and eliminating redundant ID storage. Location.HexPosition is source of truth for spatial positioning. Routes are generated procedurally via pathfinding, not manually defined in JSON.
 
@@ -295,7 +297,7 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 - Resolves entity relationships via hex coordinate matching
 - Creates object references during parsing based on spatial proximity
 - Builds object graph without requiring ID lookups
-- IDs are temporary artifacts needed only during multi-pass parsing (if at all)
+- Parser uses categorical properties to find/create entities (EntityResolver.FindOrCreate pattern)
 
 **Domain Layer - Object References Only:**
 - Entities have object references, NOT ID strings
@@ -316,41 +318,46 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 - Properties flow through entire stack with compiler verification
 - Direct object access (action.DestinationLocation.Name), NO string lookups
 
-## Why IDs Should Not Exist in Domain
+## Why IDs Do Not Exist in Domain
 
-**IDs are serialization artifacts:**
-- Only needed at JSON deserialization boundary (DTOs)
-- Parser converts ID strings → object references → discards IDs
-- Domain entities work with objects, not lookup keys
+**IDs are NOT needed anywhere:**
+- NOT needed in DTOs - parsers use categorical properties to find/create entities
+- NOT needed in domain entities - entities use object references
+- NOT needed for debugging - Name and categorical properties provide context
+- Exception: Template IDs acceptable (immutable content definitions, not game state)
 
 **IDs create redundancy:**
 - Current WRONG pattern: RouteOption has OriginLocationId (string) + OriginLocation (object)
 - CORRECT pattern: RouteOption has only OriginLocation (object)
-- Comment in RouteOption.cs acknowledges this: "HIGHLANDER: ID is parsing artifact"
+- Storing both ID and object reference violates Single Source of Truth
 
-**IDs pollute domain with serialization concerns:**
-- Domain should model game entities, not database schemas
+**IDs pollute domain with database thinking:**
+- Domain models game entities (NPC, Location, Route), not database rows
 - Object references are natural domain relationships
-- ID lookups are technical query patterns that don't belong in domain
+- ID lookups are SQL query patterns that don't belong in object-oriented domain
 
 **IDs enable violations:**
 - Composite ID generation: `routeId = $"route_{origin.Id}_{destination.Id}"` ❌
 - ID parsing for logic: `if (id.StartsWith("route_"))` ❌
 - Hash code misuse: `(day * ID.GetHashCode()) % count` ❌
+- GetHashCode misuse: `int seed = ID.GetHashCode()` ❌
+- Hash-based selection: `PersonalityType = types[hash % types.Length]` ❌
 
 ## Correct Patterns
 
 **Use object references for relationships:**
 ```csharp
-// CORRECT - Direct object references
+// CORRECT - Direct object references, NO IDs
 public class NPC
 {
-    public string Name { get; set; }  // Natural key for identity
+    // NO ID property
+    public string Name { get; set; }
     public Location Location { get; set; }  // Object reference
 }
 
 public class RouteOption
 {
+    // NO Id property
     public Location OriginLocation { get; set; }  // Object reference
     public Location DestinationLocation { get; set; }  // Object reference
     public List<AxialCoordinates> HexPath { get; set; }  // Spatial path
@@ -359,19 +366,20 @@ public class RouteOption
 
 **Use hex coordinates for spatial positioning:**
 ```csharp
-// CORRECT - Spatial positioning via hex coordinates
+// CORRECT - Spatial positioning via hex coordinates, NO IDs
 public class Location
 {
-    public string Name { get; set; }  // Natural key for identity
+    // NO Id property
+    public string Name { get; set; }
     public AxialCoordinates HexPosition { get; set; }  // Spatial source of truth
 }
 
-// Routes generated procedurally
+// Routes generated procedurally from spatial data
 List<AxialCoordinates> hexPath = pathfinder.FindPath(origin.HexPosition, destination.HexPosition);
 RouteOption route = new RouteOption
 {
-    OriginLocation = origin,
-    DestinationLocation = destination,
+    OriginLocation = origin,  // Object reference
+    DestinationLocation = destination,  // Object reference
     HexPath = hexPath
 };
 ```
@@ -399,22 +407,31 @@ switch (action.Type)
 }
 ```
 
-## Natural Keys for Identity
+**Use categorical properties to find/create entities:**
+```csharp
+// CORRECT - EntityResolver.FindOrCreate pattern
+public Location FindOrCreateLocation(PlacementFilter filter)
+{
+    // Query existing by categorical properties
+    Location existing = _gameWorld.Locations
+        .Where(loc => loc.LocationProperties.Contains(filter.PropertyRequired))
+        .Where(loc => loc.Purpose == filter.Purpose)
+        .Where(loc => loc.Safety == filter.Safety)
+        .FirstOrDefault();
 
-**When entities need unique identification, use natural keys:**
-- NPC.Name (unique within game world)
-- Location.Name (unique within venue)
-- Item.Name (unique within item catalogue)
+    if (existing != null) return existing;  // Found - return object
 
-**Natural keys are:**
-- Human-readable (debugging, logging)
-- Domain-meaningful (part of game design, not technical artifact)
-- Compiler-enforced unique (if needed)
-
-**Synthetic IDs (like "npc_001") are:**
-- Technical artifacts with no domain meaning
-- Redundant when Name already provides uniqueness
-- Serialization leakage polluting domain model
+    // Not found - create new from categorical properties
+    Location newLocation = new Location
+    {
+        Purpose = filter.Purpose,
+        Safety = filter.Safety,
+        LocationProperties = filter.Properties
+    };
+    _gameWorld.Locations.Add(newLocation);
+    return newLocation;  // Return object reference, NO ID
+}
+```
 
 ---
 

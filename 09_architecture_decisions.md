@@ -627,6 +627,8 @@ This meta-decision IS the alignment framework for all other principles.
 
 **Eliminate synthetic IDs from domain entities. Use hex-based spatial positioning and object references for all relationships.**
 
+**Exception:** Template IDs are acceptable (SceneTemplate.Id, SituationTemplate.Id) because templates are immutable archetypes, not mutable entity instances. Templates are content definitions, not game state.
+
 **JSON Layer:**
 - Locations defined with hex coordinates (Q, R) indicating spatial position
 - NPCs defined with hex coordinates (where they spawn), NOT locationId cross-reference
@@ -635,25 +637,22 @@ This meta-decision IS the alignment framework for all other principles.
 
 **Parser Layer:**
 - Resolves spatial relationships via hex coordinate matching
-- Builds object graph during parsing without requiring ID lookups
-- Creates object references based on spatial proximity
-- IDs used temporarily during multi-pass parsing (if needed) but discarded before domain instantiation
+- Builds object graph using categorical properties (EntityResolver.FindOrCreate)
+- Creates object references based on categorical matching
+- Parser queries existing entities by categorical properties, creates new if no match
 
 **Domain Layer:**
 - Entities have object references, NOT ID strings
 - NPC has `Location` object reference (no `ID`, `LocationId` properties)
 - RouteOption has `OriginLocation`, `DestinationLocation` objects (no ID strings)
 - Location.HexPosition (AxialCoordinates) is spatial source of truth
+- Player has `List<Obligation>` (not `List<string> ObligationIds`)
 
 **Runtime:**
 - Routes generated procedurally via pathfinding: `Origin.HexPosition → Destination.HexPosition`
 - Travel system navigates hex grid terrain and danger levels
 - No hardcoded route definitions - all routes emerge from spatial data
-
-**Identity When Needed:**
-- Use natural keys (NPC.Name, Location.Name) for debugging/logging
-- Natural keys are human-readable and domain-meaningful
-- Compiler enforces uniqueness where required
+- Entity queries use categorical properties (profession, personality, location, tier)
 
 ### Consequences
 
@@ -736,20 +735,26 @@ This meta-decision IS the alignment framework for all other principles.
 
 ### Implementation Notes
 
-**Natural Key Pattern Example:**
+**Entity Pattern Example:**
 ```csharp
-// CORRECT - Natural key for identity, object reference for relationship
+// CORRECT - NO ID, object references only
 public class NPC
 {
-    public string Name { get; set; }  // Natural key (unique, human-readable)
+    // NO ID property
+    public string Name { get; set; }
     public Location Location { get; set; }  // Object reference
-    public AxialCoordinates SpawnPosition { get; set; }  // Spatial data
+    public Professions Profession { get; set; }  // Categorical property
+    public PersonalityType PersonalityType { get; set; }  // Categorical property
 }
 
-// Parser resolves via spatial matching
-Location location = gameWorld.Locations.FirstOrDefault(l =>
-    l.HexPosition.Q == dto.Q && l.HexPosition.R == dto.R);
-npc.Location = location ?? throw new InvalidDataException($"No location at ({dto.Q}, {dto.R})");
+// Parser uses categorical properties to find/create
+Location location = EntityResolver.FindOrCreateLocation(new PlacementFilter
+{
+    Purpose = dto.Purpose,
+    Safety = dto.Safety,
+    LocationProperties = dto.Properties
+});
+npc.Location = location;  // Store object reference
 ```
 
 **Procedural Route Generation Example:**
