@@ -155,15 +155,6 @@ public class LeverageViewModel
     public string Level { get; set; }
     public string Narrative { get; set; }
 
-    public string LeverageIcon => TotalLeverage switch
-    {
-        >= 10 => "🔴",
-        >= 5 => "🟠",
-        >= 3 => "🟡",
-        >= 1 => "⚪",
-        _ => ""
-    };
-
     public string LeverageColor => TotalLeverage switch
     {
         >= 10 => "danger",

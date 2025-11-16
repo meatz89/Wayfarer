@@ -54,7 +54,7 @@ public class EventNarrator
         if (milestones.TryGetValue(totalTokens, out string message))
         {
             string additional = totalTokens == 3
-                ? $"📮 {npc.Name} may now offer you letter delivery opportunities!"
+                ? $"{{icon:open-book}} {npc.Name} may now offer you letter delivery opportunities!"
                 : null;
             return new MilestoneNarrativeResult(message, additional);
         }
@@ -314,10 +314,10 @@ public class EventNarrator
     {
         return new[]
         {
-        $"📮 {npcName} approached you {timeNarrative} with a letter request.",
-        $"📮 {npcName} caught your attention {timeNarrative} with urgent business.",
-        $"📮 You encountered {npcName} {timeNarrative}, who has a delivery need.",
-        $"📮 {npcName} sought you out {timeNarrative} with correspondence."
+        $"{{icon:open-book}} {npcName} approached you {timeNarrative} with a letter request.",
+        $"{{icon:open-book}} {npcName} caught your attention {timeNarrative} with urgent business.",
+        $"{{icon:open-book}} You encountered {npcName} {timeNarrative}, who has a delivery need.",
+        $"{{icon:open-book}} {npcName} sought you out {timeNarrative} with correspondence."
     };
     }
 

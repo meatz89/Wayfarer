@@ -306,18 +306,6 @@ namespace Wayfarer.Pages.Components
             return "";
         }
 
-        protected string GetTransportIcon(string transportType)
-        {
-            return transportType?.ToLower() switch
-            {
-                "walk" => "🚶",
-                "cart" => "🛒",
-                "horse" => "🐴",
-                "boat" => "⛵",
-                _ => "🚶"
-            };
-        }
-
         protected string GetTravelTimeDisplay(int segments)
         {
             return $"{segments} seg";
