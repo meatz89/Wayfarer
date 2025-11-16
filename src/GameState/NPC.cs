@@ -1,7 +1,6 @@
 public class NPC
 {
-    // Identity
-    public string ID { get; set; }
+    // Identity - Name is natural key (NO ID property per HIGHLANDER: object references only)
     public string Name { get; set; }
     public string Role { get; set; }
     public string Description { get; set; }
@@ -48,8 +47,9 @@ public class NPC
     // DeliveryObligation offering system
 
     // Work and Home locations (for deeper world building)
-    public string WorkLocationId { get; set; }
-    public string HomeLocationId { get; set; }
+    // HIGHLANDER: Object references ONLY, no ID properties
+    public Location WorkLocation { get; set; }
+    public Location HomeLocation { get; set; }
 
     // Known routes (for HELP verb sharing)
     private List<RouteOption> _knownRoutes = new List<RouteOption>();
@@ -86,10 +86,7 @@ public class NPC
     // ObservationDeck and BurdenDeck systems eliminated - replaced by transparent resource competition
     public List<ExchangeCard> ExchangeDeck { get; set; } = new();  // 5-10 exchange cards: Simple instant trades (Mercantile NPCs only)
 
-    // Active situation IDs for this NPC (Social challenges)
-    // References situations in Scene.Situations (situations embedded in scenes)
-    public List<string> ActiveSituationIds { get; set; } = new List<string>();
-
+    // NOTE: ActiveSituationIds DELETED - situations embedded in scenes, query GameWorld.Scenes by NPC
     // NOTE: Old SceneIds property removed - NEW Scene-Situation architecture
     // Scenes now spawn via Situation spawn rewards (SceneSpawnReward) instead of NPC ownership
     // NPCs no longer directly own scenes - scenes are managed by Situation lifecycle
@@ -99,10 +96,10 @@ public class NPC
     /// </summary>
     public Location Location { get; set; }
 
-    // Equipment IDs available for purchase from this vendor NPC (Core Loop design)
-    // References equipment in GameWorld.Equipment list (single source of truth)
+    // Equipment available for purchase from this vendor NPC (Core Loop design)
+    // HIGHLANDER: Object references ONLY, no ID lists
     // Only applicable for NPCs with Mercantile or vendor service types
-    public List<string> AvailableEquipment { get; set; } = new List<string>();
+    public List<Item> AvailableEquipment { get; set; } = new List<Item>();
 
     // Initial token values to be applied during game initialization
     public List<InitialTokenValue> InitialTokenValues { get; set; } = new List<InitialTokenValue>();
