@@ -475,8 +475,8 @@ This is EXPECTED and shows idempotence protection working correctly.
 Design principles inevitably conflict. Examples:
 - HIGHLANDER (fail-fast) vs Playability (graceful degradation)
 - Perfect Information vs Tactical Surprise
-- Single Source of Truth vs Query Performance
 - No Soft-Locks vs Resource Scarcity
+- Maintainability vs Conciseness
 
 Without clear priority, teams make inconsistent decisions or endless debates.
 
@@ -524,8 +524,9 @@ Without clear priority, teams make inconsistent decisions or endless debates.
 
 **Conflict: HIGHLANDER vs Playability**
 - TIER 3 vs TIER 2 → **Playability wins**
-- Example: Cached Template reference violates HIGHLANDER but acceptable for performance
-- Solution: Store authoritative ID + ephemeral cache (not redundant if one is cache)
+- Example: Template reference in Situation enables lazy instantiation (playability pattern)
+- Solution: Store authoritative ID + template reference for deferred materialization
+- Note: NOT for performance optimization, for playability (deferred instantiation pattern)
 
 **Conflict: Perfect Information vs Tactical Surprise**
 - Both TIER 2 → **Creative solution satisfying both**
@@ -536,8 +537,13 @@ Without clear priority, teams make inconsistent decisions or endless debates.
 - Solution: Add zero-cost fallback choices (scarcity creates choices, fallback prevents locks)
 
 **Conflict: Single Source of Truth vs Query Performance**
-- TIER 1 vs Performance → **TIER 1 wins with pattern**
-- Solution: Store BOTH (ID authoritative, object cached/restored on load)
+- **NOT A REAL CONFLICT** in this game's context (false dichotomy)
+- This game: synchronous, browser-based, single-player, n=20 entities
+- List scan of 20 items: 0.001ms, Dictionary lookup: 0.0001ms, difference: 0.0009ms (unmeasurable)
+- Browser render frame: 16ms (16,000× slower), human reaction: 200ms+ (200,000× slower)
+- **Resolution**: Always choose Single Source of Truth, ignore performance
+- No caching, no indexing, no Dictionary - use simple List<T> with LINQ queries
+- See: 10_quality_requirements.md Section 10.1.1 (Non-Functional Quality Requirements)
 
 ### Decision Framework
 
