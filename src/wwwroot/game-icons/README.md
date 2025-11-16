@@ -11,10 +11,12 @@ See: https://creativecommons.org/licenses/by/3.0/
 ## Attribution
 
 Icons created by:
-- **Lorc:** brain, crown, cut-diamond, drama-masks, magnifying-glass, scales, target-arrows
-- **Delapouite:** alarm-clock, biceps, coins, meal, shaking-hands, sparkles
-- **sbed:** health-normal
+- **Lorc:** brain, crown, cut-diamond, drama-masks, hazard-sign, magnifying-glass, open-book, padlock, scales, target-arrows
+- **Delapouite:** alarm-clock, backpack, biceps, check-mark, coins, meal, round-star, shaking-hands, sparkles
+- **sbed:** cancel, health-normal
 - **Skoll:** hearts
+
+**Total:** 22 icons
 
 ## Usage
 

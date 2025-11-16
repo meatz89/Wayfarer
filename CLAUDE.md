@@ -331,6 +331,205 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 
 ---
 
+# ICON SYSTEM (NO EMOJIS)
+
+**CRITICAL PATTERN: Professional scalable graphics required for all visual content.**
+
+## POLICY
+
+**FORBIDDEN:**
+- ❌ Emojis for game content display (💰 coins, ❤️ health, 💪 strength, 🎯 skills, ⚔️ combat)
+- ❌ Emojis in code comments, documentation, commit messages
+- ❌ Unicode symbols for resource/stat display (★ ◆ ● ▲)
+- ❌ Text-based pseudo-graphics in UI
+
+**ALLOWED (Minimal Exceptions):**
+- ✓ Basic interface controls ONLY (✕ close buttons, ✓ checkmarks, → arrows)
+- Must be purely functional UI elements, NOT game content
+- Must not represent resources, stats, or player-facing entities
+
+**REQUIRED:**
+- SVG icons from game-icons.net via Icon component
+- All resource/stat/entity icons must be vector graphics
+- Cohesive visual style (single icon library: Game Icons collection)
+- Attribution documented in THIRD-PARTY-LICENSES.md
+
+## WHY PROPER ICONS MATTER
+
+**Professional quality standard:**
+- Vector graphics scale to any resolution (emoji quality degrades)
+- Consistent visual style creates polished game aesthetic
+- SVG allows dynamic color theming (emojis fixed appearance)
+
+**Technical superiority:**
+- Scalability and resolution independence (vector vs raster)
+- Customizable via CSS (color, size, filters, animations)
+- Predictable rendering across all platforms and browsers
+- Accessibility support (ARIA labels, screen reader compatible)
+
+**Cross-platform reliability:**
+- Emojis render differently on Windows/Mac/Linux/Mobile
+- SVG displays identically everywhere
+- No font fallback issues or missing glyph problems
+
+**Player experience:**
+- Icons convey game identity and theme
+- Professional presentation builds player trust
+- Consistent iconography aids learning and recognition
+
+## FRONTEND USAGE (Icon Component)
+
+**Basic usage:**
+```razor
+<Icon Name="coins" />
+<Icon Name="hearts" />
+<Icon Name="brain" />
+```
+
+**With CSS class for styling:**
+```razor
+<Icon Name="coins" CssClass="resource-coin" />
+<Icon Name="target-arrows" CssClass="icon-neutral" />
+<Icon Name="sparkles" CssClass="icon-positive" />
+```
+
+**Component parameters:**
+- `Name` (required): Icon filename without .svg extension
+- `Size` (optional): Width/height, defaults to "16px"
+- `Color` (optional): SVG fill color, defaults to "currentColor"
+- `CssClass` (optional): Additional CSS classes for semantic styling
+
+**CSS classes for semantic colors:**
+- Five Stats: `stat-insight`, `stat-rapport`, `stat-authority`, `stat-diplomacy`, `stat-cunning`
+- Resources: `resource-coin`, `resource-health`, `resource-stamina`, `resource-focus`, `resource-hunger`
+- Generic: `icon-neutral`, `icon-positive`, `icon-negative`
+
+**Performance:**
+- Icons cached after first load (ConcurrentDictionary, thread-safe)
+- No redundant HTTP requests for same icon
+- Inline SVG for styling flexibility
+
+## BACKEND PATTERNS (Token System - To Be Implemented)
+
+**Message token replacement pattern:**
+
+When backend generates player-facing messages containing icons, use token system for icon injection at render time.
+
+**Token format convention:**
+```csharp
+// Backend generates message with tokens
+_messageSystem.AddSystemMessage("{icon:coins} Spent {0} coins on {1}", amount, item);
+_messageSystem.AddSystemMessage("{icon:health-normal} Lost {0} health", damage);
+```
+
+**Frontend rendering (planned):**
+```csharp
+// Parse tokens and replace with Icon components
+private string RenderMessageWithIcons(string message)
+{
+    return Regex.Replace(message, @"\{icon:([a-z-]+)\}",
+        match => $"<Icon Name='{match.Groups[1].Value}' CssClass='inline-icon' />");
+}
+```
+
+## AVAILABLE ICONS
+
+**Current icon library (22 icons from Game Icons collection):**
+
+| Icon Name | Used For | Creator |
+|-----------|----------|---------|
+| alarm-clock | Time, urgency, scheduling | Delapouite |
+| backpack | Inventory, belongings, items | Delapouite |
+| biceps | Strength, physical power, stamina | Delapouite |
+| brain | Intelligence, insight, mental attributes | Lorc |
+| cancel | Failed actions, cancellation | sbed |
+| check-mark | Completed actions, confirmation | Delapouite |
+| coins | Currency, wealth, economy | Delapouite |
+| crown | Authority, leadership, achievements | Lorc |
+| cut-diamond | Rare resources, premium items, focus | Lorc |
+| drama-masks | Cunning, performance, social | Lorc |
+| hazard-sign | Warnings, requirements, danger | Lorc |
+| health-normal | Health, vitality, condition | sbed |
+| hearts | Rapport, affection, relationships | Skoll |
+| magnifying-glass | Search, investigation, discovery | Lorc |
+| meal | Food, hunger, sustenance | Delapouite |
+| open-book | Journal, knowledge, records | Lorc |
+| padlock | Locked actions, restrictions | Lorc |
+| round-star | Mastered, favorites, achievements | Delapouite |
+| scales | Balance, justice, fairness | Lorc |
+| shaking-hands | Diplomacy, agreements, cooperation | Delapouite |
+| sparkles | Magic, special effects, enhancement | Delapouite |
+| target-arrows | Skills, precision, goals, resolve | Lorc |
+
+**Finding icons:**
+- Source: https://game-icons.net
+- Library: 4000+ high-quality SVG icons
+- License: CC BY 3.0 (free with attribution)
+- Style: Cohesive fantasy/game aesthetic
+
+## ADDING NEW ICONS
+
+**Process (MANDATORY for all new icons):**
+
+1. **Search game-icons.net:**
+   - Use search to find appropriate icon
+   - Preview multiple options for best thematic fit
+   - Verify icon conveys intended meaning clearly
+
+2. **Download white SVG version:**
+   - Select icon on game-icons.net
+   - Choose white icon (ffffff) on black background (000000)
+   - Download SVG file
+
+3. **Save to icon directory:**
+   - Path: `src/wwwroot/game-icons/{icon-name}.svg`
+   - Use kebab-case naming (lowercase with hyphens)
+   - Keep original filename from game-icons.net when possible
+
+4. **Document attribution:**
+   - Update `src/wwwroot/game-icons/README.md`
+   - Add creator name to attribution list
+   - Update `THIRD-PARTY-LICENSES.md` with icon and creator
+
+5. **Use via Icon component:**
+   ```razor
+   <Icon Name="{icon-name}" CssClass="appropriate-class" />
+   ```
+
+**Verification:**
+- Icon displays correctly in browser
+- SVG styling applies (color, size work as expected)
+- No console errors when loading icon
+- Attribution documented properly
+
+## ENFORCEMENT
+
+**Code review checklist:**
+- ❌ REJECT: Any PR with emojis in game content (💰❤️💪🎯 etc.)
+- ❌ REJECT: Unicode symbols for resources/stats (★◆●▲)
+- ❌ REJECT: Emoji fallbacks in code ("💰" if icon fails to load)
+- ✓ APPROVE: Icon component usage with proper SVG icons
+- ✓ APPROVE: Minimal interface emojis (✕ ✓ →) for basic UI only
+
+**Refactoring existing emoji usage:**
+- All existing emojis in game content are TECHNICAL DEBT
+- Replace systematically following the Icon System pattern
+- No new emoji usage ever (zero tolerance)
+- Document icon replacements in commit messages
+
+**Testing requirements:**
+- Verify all icons load in browser (no 404s)
+- Test icon appearance across light/dark themes
+- Ensure CSS classes apply colors correctly
+- Check accessibility (icons display with proper context)
+
+**Gordon Ramsay standard:**
+"You're serving emojis in a PROFESSIONAL GAME? Those pixelated unicode turds look different on every bloody platform! Use proper SVG icons or GET OUT!"
+
+**This pattern is MANDATORY. No exceptions. No "temporary" emoji usage. No "I'll fix it later."**
+
+---
+
 # USER CODE PREFERENCES
 
 **Types:**
@@ -373,20 +572,10 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 - No regions
 - No inline styles
 
-**Emojis and Icons (PRINCIPLE):**
-- FORBIDDEN: Emojis for resource/content display (coins, health, stats, items, actions)
-- FORBIDDEN: Emojis in code comments, documentation, commit messages
-- ALLOWED: Minimal interface emojis ONLY (✕ close buttons, ✓ checkmarks)
-- REQUIRED: PNG, SVG, or CSS icon libraries (Font Awesome, Heroicons, Lucide, Material Icons)
-- Icon library must be cohesive with consistent visual style
-- All resource icons must be scalable vector graphics
-
-**Why this principle exists:**
-- Professional visual appearance (game quality standard)
-- Scalability and resolution independence (vector vs raster)
-- Customizable colors and styling (theme support)
-- Accessibility (screen reader compatibility, ARIA labels)
-- Cross-platform consistency (emojis render unpredictably)
+**Emojis and Icons:**
+- See ICON SYSTEM (NO EMOJIS) section above for complete policy
+- FORBIDDEN: Emojis in game content, code comments, documentation
+- REQUIRED: Icon component with SVG icons from game-icons.net
 
 ---
 

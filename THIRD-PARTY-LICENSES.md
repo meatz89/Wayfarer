@@ -14,16 +14,23 @@ This document lists all third-party software, assets, and libraries used in Wayf
 The following SVG icons from Game-Icons.net are used in this project:
 
 - `alarm-clock.svg` - Created by Delapouite
+- `backpack.svg` - Created by Delapouite
 - `biceps.svg` - Created by Delapouite
 - `brain.svg` - Created by Lorc
+- `cancel.svg` - Created by sbed
+- `check-mark.svg` - Created by Delapouite
 - `coins.svg` - Created by Delapouite
 - `crown.svg` - Created by Lorc
 - `cut-diamond.svg` - Created by Lorc
 - `drama-masks.svg` - Created by Lorc
+- `hazard-sign.svg` - Created by Lorc
 - `health-normal.svg` - Created by sbed
 - `hearts.svg` - Created by Skoll
 - `magnifying-glass.svg` - Created by Lorc
 - `meal.svg` - Created by Delapouite
+- `open-book.svg` - Created by Lorc
+- `padlock.svg` - Created by Lorc
+- `round-star.svg` - Created by Delapouite
 - `scales.svg` - Created by Lorc
 - `shaking-hands.svg` - Created by Delapouite
 - `sparkles.svg` - Created by Delapouite
@@ -49,4 +56,5 @@ For complete license terms, see: https://creativecommons.org/licenses/by/3.0/leg
 
 ---
 
+**Icon Count:** 22 icons total
 **Last Updated:** 2025-11-16
