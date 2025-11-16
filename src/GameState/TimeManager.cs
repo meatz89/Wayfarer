@@ -54,7 +54,7 @@ public class TimeManager
         // Show time passing message
         string timeDescription = GetSegmentPassingDescription(segments);
         _messageSystem.AddSystemMessage(
-            $"⏱️ {timeDescription}",
+            $"{{icon:alarm-clock}} {timeDescription}",
             SystemMessageTypes.Info);
 
         // Advance segments in the time model
@@ -71,7 +71,7 @@ public class TimeManager
     public void JumpToNextPeriod()
     {
         _messageSystem.AddSystemMessage(
-            "⏰ Moving to the next time period...",
+            "{icon:alarm-clock} Moving to the next time period...",
             SystemMessageTypes.Info);
 
         TimeAdvancementResult result = _timeModel.JumpToNextPeriod();
@@ -110,7 +110,7 @@ public class TimeManager
         {
             string segmentDesc = segments == 1 ? "1 segment" : $"{segments} segments";
             _messageSystem.AddSystemMessage(
-                $"⏱️ {description}: {segmentDesc}",
+                $"{{icon:alarm-clock}} {description}: {segmentDesc}",
                 SystemMessageTypes.Info);
         }
 

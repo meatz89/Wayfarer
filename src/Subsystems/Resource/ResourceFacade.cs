@@ -110,7 +110,7 @@ public class ResourceFacade
         if (actualHealing > 0)
         {
             _messageSystem.AddSystemMessage(
-                $"❤️ Healed {actualHealing} from {source} (Health: {player.Health}/{player.MaxHealth})",
+                $"{{icon:health-normal}} Healed {actualHealing} from {source} (Health: {player.Health}/{player.MaxHealth})",
                 SystemMessageTypes.Success);
         }
     }
@@ -394,7 +394,7 @@ public class ResourceFacade
         // Hunger increases by +5 per segment (automatic via time progression)
         // No resource recovery - just passing time
 
-        _messageSystem.AddSystemMessage("⏳ Waited for 1 segment, passing time without activity", SystemMessageTypes.Info);
+        _messageSystem.AddSystemMessage("{icon:alarm-clock} Waited for 1 segment, passing time without activity", SystemMessageTypes.Info);
     }
 
     /// <summary>

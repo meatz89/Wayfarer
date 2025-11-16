@@ -179,7 +179,7 @@ public class MessageSystemManager
     /// </summary>
     public void AddDiscoveryMessage(string discovery)
     {
-        string message = $"🔍 You discovered: {discovery}";
+        string message = $"{{icon:magnifying-glass}} You discovered: {discovery}";
         AddNarrativeMessage(message, SystemMessageTypes.Info);
     }
 
