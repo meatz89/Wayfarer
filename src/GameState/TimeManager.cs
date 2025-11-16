@@ -54,8 +54,9 @@ public class TimeManager
         // Show time passing message
         string timeDescription = GetSegmentPassingDescription(segments);
         _messageSystem.AddSystemMessage(
-            $"⏱️ {timeDescription}",
-            SystemMessageTypes.Info);
+            $"{timeDescription}",
+            SystemMessageTypes.Info,
+            MessageCategory.TimeProgression);
 
         // Advance segments in the time model
         TimeAdvancementResult result = _timeModel.AdvanceSegments(segments);
@@ -71,8 +72,9 @@ public class TimeManager
     public void JumpToNextPeriod()
     {
         _messageSystem.AddSystemMessage(
-            "⏰ Moving to the next time period...",
-            SystemMessageTypes.Info);
+            "Moving to the next time period...",
+            SystemMessageTypes.Info,
+            MessageCategory.TimeProgression);
 
         TimeAdvancementResult result = _timeModel.JumpToNextPeriod();
 
@@ -110,8 +112,9 @@ public class TimeManager
         {
             string segmentDesc = segments == 1 ? "1 segment" : $"{segments} segments";
             _messageSystem.AddSystemMessage(
-                $"⏱️ {description}: {segmentDesc}",
-                SystemMessageTypes.Info);
+                $"{description}: {segmentDesc}",
+                SystemMessageTypes.Info,
+                MessageCategory.TimeProgression);
         }
 
         return true;
@@ -157,16 +160,18 @@ public class TimeManager
         if (result.CrossedTimeBlock)
         {
             _messageSystem.AddSystemMessage(
-                $"🕐 Entering {result.NewTimeBlock.ToString().ToLower()} period",
-                SystemMessageTypes.Info);
+                $"Entering {result.NewTimeBlock.ToString().ToLower()} period",
+                SystemMessageTypes.Info,
+                MessageCategory.TimeProgression);
         }
 
         // Day transitions
         if (result.CrossedDayBoundary)
         {
             _messageSystem.AddSystemMessage(
-                $"🌅 Day {result.NewState.CurrentDay} begins",
-                SystemMessageTypes.Info);
+                $"Day {result.NewState.CurrentDay} begins",
+                SystemMessageTypes.Info,
+                MessageCategory.TimeProgression);
         }
     }
 

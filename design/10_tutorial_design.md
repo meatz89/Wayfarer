@@ -214,9 +214,206 @@ Player learned:
 
 This teaches player to avoid systems instead of engaging with them. Forbidden.
 
-## 10.3 Authored Tutorial Sequence (A1-A3, Expandable to A10)
+## 10.3 Generalized Patterns Enabling Tutorial
 
-### 10.3.1 A1: Arrival at Roadside Inn (30-40 minutes)
+Tutorial experience emerges from general architectural patterns, not special-case tutorial systems. Two key patterns create generous tutorial margins while remaining applicable throughout the game.
+
+### 10.3.1 Categorical Property Scaling (Universal Difficulty Control)
+
+**Architectural Principle**: Difficulty scales through categorical property composition, not explicit difficulty tiers.
+
+**How It Works**:
+
+Every situation archetype defines requirements and rewards using categorical base values. Entity categorical properties (NPCDemeanor, LocationQuality, PowerDynamic, etc.) scale these values universally at spawn-time via catalogue multipliers.
+
+**Categorical Properties That Scale Difficulty**:
+
+1. **NPCDemeanor** (0.6× to 1.4× multipliers):
+   - Friendly: 0.6× stat thresholds, 1.2× reward generosity
+   - Neutral: 1.0× baseline (no scaling)
+   - Suspicious: 1.2× stat thresholds, 0.8× reward generosity
+   - Hostile: 1.4× stat thresholds, 0.6× reward generosity
+
+2. **LocationQuality** (cost multipliers):
+   - Basic: 0.6× service costs
+   - Standard: 1.0× baseline costs
+   - Premium: 1.6× service costs
+   - Luxury: 2.4× service costs
+
+3. **PowerDynamic** (requirement/reward scaling):
+   - PlayerAdvantage: 0.7× requirements, 1.3× rewards
+   - Balanced: 1.0× baseline
+   - NPCAdvantage: 1.3× requirements, 0.7× rewards
+
+4. **EnvironmentQuality** (challenge difficulty):
+   - Favorable: Lower thresholds, higher starting resources
+   - Neutral: Baseline values
+   - Harsh: Higher thresholds, lower starting resources
+
+**Tutorial Application (ONE Use Case)**:
+
+Tutorial scenes (A1-A3) use specific categorical combinations:
+- Elena: Demeanor=Friendly (0.6× stat thresholds)
+- Common Room: Quality=Standard (1.0× costs)
+- PowerDynamic=Balanced (1.0× requirements)
+- EnvironmentQuality=Favorable (easy challenges)
+
+**Result**: Base archetype "SOCIAL_ACQUAINTANCE" requiring Rapport 5 becomes Rapport 3 (5 × 0.6) when spawned with Friendly Elena. Same archetype with Suspicious merchant becomes Rapport 6 (5 × 1.2).
+
+**Post-Tutorial Application (Same Pattern)**:
+
+Later content uses different categorical combinations:
+- Merchant: Demeanor=Neutral (1.0× thresholds)
+- Premium Inn: Quality=Premium (1.6× costs)
+- PowerDynamic=NPCAdvantage (1.3× requirements)
+- EnvironmentQuality=Harsh (harder challenges)
+
+**Result**: Same "SOCIAL_ACQUAINTANCE" archetype now requires Rapport 7 (5 × 1.0 × 1.3) with tighter margins. Not a different archetype—same archetype, different properties.
+
+**Key Insight**: Tutorial doesn't need special difficulty tier. It uses GENERAL categorical scaling with Friendly NPCs and Standard locations. Later content uses same archetypes with Neutral/Hostile NPCs and Premium locations. Emergent difficulty from property composition.
+
+**Documentation Location**: Full categorical property catalogue in `design/07_content_generation.md` Section 7.4.
+
+### 10.3.2 Deferred Engagement Pattern (Navigation Without Progression)
+
+**Architectural Principle**: NavigationPayload enables returning to location/NPC without advancing scene state.
+
+**How It Works**:
+
+Choices with ActionType=Navigate and appropriate NavigationPayload can exit current context without marking situation complete. Scene.CurrentSituation remains unchanged. Next player interaction presents same situation again.
+
+**NavigationPayload Structure**:
+```
+{
+  "DestinationType": "ReturnToLocation",
+  "DestinationId": "{current_location_id}",
+  "AutoTrigger": null
+}
+```
+
+**Choice Definition Pattern**:
+```
+{
+  "Id": "defer_engagement",
+  "ActionTextTemplate": "Not tonight",
+  "PathType": "Navigation",
+  "ActionType": "Navigate",
+  "NavigationPayload": {
+    "DestinationType": "ReturnToLocation",
+    "DestinationId": "{current_location_id}"
+  },
+  "RewardTemplate": {},  // Empty - no progression
+  "CostTemplate": {}     // Free navigation
+}
+```
+
+**Execution Flow**:
+
+1. Player selects "Not tonight" choice
+2. ActionType=Navigate triggers navigation flow
+3. DestinationType=ReturnToLocation returns to current location
+4. RewardTemplate empty = no scene progression applied
+5. Scene.CurrentSituation unchanged
+6. Scene.CompletedSituations unchanged
+7. Player exits to location view
+8. Next interaction → same situation presented again
+
+**Tutorial Application (ONE Use Case)**:
+
+A1 Situation 1 (Elena lodging negotiation):
+- Choice D: "Not tonight" returns to location
+- Player can explore other content
+- Elena scene remains active
+- Return later to continue negotiation
+- Same choices available (nothing consumed)
+
+**Other Applications (Same Pattern)**:
+
+**1. NPC Interaction Postponement**:
+```
+Scene: "Magistrate Meeting"
+Choice: "I need to prepare more thoroughly"
+Result: Returns to location, scene active, can gather evidence first
+```
+
+**2. Investigation Pause**:
+```
+Scene: "Mill Investigation"
+Choice: "Return to constable for guidance"
+Result: Exits investigation, can pursue other leads, return later
+```
+
+**3. Challenge Avoidance**:
+```
+Scene: "Tense Confrontation"
+Choice: "Step back, reassess"
+Result: Exits scene, can rest/recover, re-engage when ready
+```
+
+**4. Multi-Visit Requirement**:
+```
+Scene: "Master Craftsman Training"
+Choice: "Practice and return tomorrow"
+Result: Exits for time passage, returns next day for progression
+```
+
+**Key Insight**: Deferred engagement not a special tutorial state machine. It's GENERAL navigation pattern: ActionType=Navigate + DestinationType=ReturnToLocation + Empty RewardTemplate = exit without progression. Tutorial uses it for "Not tonight," but pattern applicable anywhere player needs pause/return capability.
+
+**Contrast Failed Approaches**:
+
+**❌ Special Deferred State** (Over-engineering):
+```
+Scene.SituationLifecycleStatus.Deferred
+Scene.DeferredSituations list
+Special state machine tracking deferred scenes
+```
+
+**✅ Existing Navigation Pattern** (Architectural elegance):
+```
+NavigationPayload already exists
+DestinationType already supports ReturnToLocation
+Empty RewardTemplate already means "no progression"
+No new systems needed
+```
+
+**Documentation Location**: NavigationPayload details in `05_building_block_view.md` Section 5.3, general navigation patterns in `08_crosscutting_concepts.md` Section 8.6.
+
+### 10.3.3 Why Generalized Patterns Matter
+
+**Tutorial as Emergent Property**:
+
+Tutorial "generous margins" aren't coded separately. They emerge from:
+1. Friendly NPCs (existing categorical property)
+2. Standard locations (existing categorical property)
+3. Balanced power dynamics (existing categorical property)
+4. Deferred engagement choices (existing navigation pattern)
+
+**No Special Cases Required**:
+- No tutorial_difficulty_tier enum
+- No tutorial_mode boolean
+- No special tutorial archetypes
+- No tutorial-specific code paths
+
+**Post-Tutorial Transition Seamless**:
+
+A3 → A4 transition changes ONLY entity properties:
+- NPCs shift from Friendly → Neutral/Suspicious
+- Locations shift from Standard → Premium
+- Power dynamics shift toward NPCAdvantage
+- Same archetypes, same patterns, emergent difficulty increase
+
+**Reusability Throughout Game**:
+
+Same patterns used in non-tutorial contexts:
+- Friendly NPC in late game = generous margins (mentor figure)
+- Deferred engagement in crisis = tactical retreat option
+- Categorical scaling applies to ALL content (tutorial or procedural)
+
+**Architectural Benefit**: Tutorial isn't bolted-on teaching mode. It's first application of general patterns that permeate entire game. Learn patterns in tutorial, recognize patterns throughout game, mastery through pattern recognition.
+
+## 10.4 Authored Tutorial Sequence (A1-A3, Expandable to A10)
+
+### 10.4.1 A1: Arrival at Roadside Inn (30-40 minutes)
 
 **Narrative Context**: Player arrives at roadside inn as sun sets, tired from travel. Need lodging, meet innkeeper Elena, settle in for night. Morning comes, handle what needs handling, prepare to continue journey.
 
@@ -265,7 +462,7 @@ This teaches player to avoid systems instead of engaging with them. Forbidden.
 - Generous restoration (recover fully)
 - No time pressure (scene doesn't expire)
 
-### 10.3.2 A2: Meet Constable in Westmarch (45-60 minutes)
+### 10.4.2 A2: Meet Constable in Westmarch (45-60 minutes)
 
 **Narrative Context**: Arrive in Westmarch, small town with constable's office. Constable investigating mill incident, needs help gathering information. Player conducts first investigation, learns Mental challenge basics.
 
@@ -328,7 +525,7 @@ This teaches player to avoid systems instead of engaging with them. Forbidden.
 - Multiple paths (if challenge too hard, use money/fallback)
 - No time pressure (investigation doesn't expire)
 
-### 10.3.3 A3: Traveling Scholar Encounter (60-75 minutes)
+### 10.4.3 A3: Traveling Scholar Encounter (60-75 minutes)
 
 **Narrative Context**: On road to Northreach, encounter traveling scholar. Scholar injured, needs help. Multi-situation arc: Assess situation, provide aid, build relationship, part ways with mutual respect.
 
@@ -388,7 +585,7 @@ This teaches player to avoid systems instead of engaging with them. Forbidden.
 - Multiple relationship paths (conversation OR challenge OR time investment)
 - Generous rewards (training OR item OR enhanced relationship)
 
-### 10.3.4 Post-A3: Procedural Continuation
+### 10.4.4 Post-A3: Procedural Continuation
 
 After A3 completes, procedural generation takes over. A4+ scenes generated using archetypes + categorical properties + AI narrative enrichment.
 
@@ -411,7 +608,7 @@ After A3 completes, procedural generation takes over. A4+ scenes generated using
 - Build diversity (all specializations viable)
 - Strategic depth (resource trade-offs)
 
-### 10.3.5 Expandable to A10 (Future Development)
+### 10.4.5 Expandable to A10 (Future Development)
 
 Current architecture supports expanding tutorial to A10+ authored scenes before procedural continuation.
 
@@ -426,9 +623,9 @@ Current architecture supports expanding tutorial to A10+ authored scenes before 
 
 **Design Flexibility**: Can extend tutorial as long as needed to teach systems. Procedural continuation triggers after final authored scene.
 
-## 10.4 Layered Complexity Introduction
+## 10.5 Layered Complexity Introduction
 
-### 10.4.1 First Hour: Strategic Layer Only
+### 10.5.1 First Hour: Strategic Layer Only
 
 **What's Introduced**:
 - Resource display (Health, Stamina, Focus, coins, time)
@@ -449,7 +646,7 @@ Current architecture supports expanding tutorial to A10+ authored scenes before 
 
 In a lodging negotiation situation, the player sees their current resources clearly displayed alongside four choices with explicit costs. The stat-gated path shows it's locked with exact gap information. The money path shows current and projected coin amounts. The fallback path shows time cost and progression guarantee. Every choice presents complete information about current state versus projected outcome.
 
-### 10.4.2 Hours 2-3: First Tactical Challenges (Social Only)
+### 10.5.2 Hours 2-3: First Tactical Challenges (Social Only)
 
 **What's Introduced**:
 - First challenge type (Social only, not all three)
@@ -476,7 +673,7 @@ In a lodging negotiation situation, the player sees their current resources clea
 
 In a social challenge to persuade an innkeeper, victory requires accumulating sufficient momentum while keeping doubt low. Players start with resolve but no initiative. They must play foundation cards to generate initiative, then spend that initiative on speak cards to build momentum. Listen cards help draw more options and reset tempo. Through several turns of careful resource management and card play, players reach the victory threshold while maintaining safe doubt levels.
 
-### 10.4.3 Hours 4-6: All Three Challenge Types, Specialization Matters
+### 10.5.3 Hours 4-6: All Three Challenge Types, Specialization Matters
 
 **What's Introduced**:
 - Mental challenges (ACT/OBSERVE, Progress/Exposure)
@@ -509,7 +706,7 @@ Strong specialization in authority provides limited mental challenge options, st
 
 Different strengths. Different weaknesses. Specialization creating build identity.
 
-### 10.4.4 Hour 6+: Full Complexity, Procedural Continuation, Player-Driven Priorities
+### 10.5.4 Hour 6+: Full Complexity, Procedural Continuation, Player-Driven Priorities
 
 **What's Introduced**:
 - Full economic pressure (tight margins)
@@ -537,9 +734,9 @@ Choosing the aggressive middle option, the player spends their morning on the si
 
 Tight margins. Every choice matters. Optimization critical.
 
-## 10.5 Perfect Information Display
+## 10.6 Perfect Information Display
 
-### 10.5.1 Costs and Rewards Visible Before Selection
+### 10.6.1 Costs and Rewards Visible Before Selection
 
 **Display Pattern**: Every choice shows exact costs, exact rewards, exact requirements, exact gaps.
 
@@ -565,7 +762,7 @@ Met requirements show the stat threshold, the player's current value exceeding i
 - Strategic planning possible
 - Resource management transparent
 
-### 10.5.2 Stat Thresholds Show Current Value and Gap
+### 10.6.2 Stat Thresholds Show Current Value and Gap
 
 **Pattern**: When stat-gated choice locked, show exact requirement and exact gap.
 
@@ -589,7 +786,7 @@ A choice where the player exceeds the requirement by two points, clearly indicat
 - Shows progress toward unlocking paths
 - Never mystery gate ("need high stat" too vague)
 
-### 10.5.3 Locked Choices Visible with Requirement Paths
+### 10.6.3 Locked Choices Visible with Requirement Paths
 
 **Principle**: Show locked choices, explain why locked, show how to unlock.
 
@@ -605,7 +802,7 @@ A locked choice for systematic evidence analysis displays the insight requiremen
 - Motivates character building (I want to unlock that path)
 - No mystery gates (clear path to unlocking)
 
-### 10.5.4 Resource Changes Immediate and Clear
+### 10.6.4 Resource Changes Immediate and Clear
 
 **Pattern**: After selection, resource changes apply immediately and visibly.
 
@@ -623,7 +820,7 @@ Resource values update immediately to reflect the promised changes. Coins decrea
 - No hidden deductions
 - Builds trust (game does what it says)
 
-### 10.5.5 Challenge Difficulty Visible Before Entry
+### 10.6.5 Challenge Difficulty Visible Before Entry
 
 **Pattern**: Before entering challenge, show difficulty indicators.
 
@@ -641,9 +838,9 @@ A magistrate persuasion challenge preview shows the social challenge type using 
 - Can prepare (rest, acquire supplies, build stats)
 - No surprise difficulty spikes
 
-## 10.6 Implicit Guidance Mechanisms
+## 10.7 Implicit Guidance Mechanisms
 
-### 10.6.1 Route Segment Counts Visible
+### 10.7.1 Route Segment Counts Visible
 
 **Unknown Route** (First visit):
 
@@ -661,7 +858,7 @@ After completing the journey once, the northern road displays exact segment coun
 
 **Guidance**: Travel routes multiple times to master efficient navigation.
 
-### 10.6.2 Fixed Environmental Segments Face-Up After First Visit
+### 10.7.2 Fixed Environmental Segments Face-Up After First Visit
 
 **First Visit** (Unknown):
 
@@ -679,7 +876,7 @@ After initial exploration, the segment reveals its forest terrain and physical o
 
 **Guidance**: Master high-traffic routes for efficient repeated travel.
 
-### 10.6.3 NPC Bond Levels Show Mechanical Benefits
+### 10.7.3 NPC Bond Levels Show Mechanical Benefits
 
 **Bond Display**:
 
@@ -693,7 +890,7 @@ Elena the innkeeper shows bond level three representing strong friendship. Curre
 
 **Guidance**: Build bonds with NPCs strategically based on services needed.
 
-### 10.6.4 Economic Feedback Loop (Profit Margins Signal Optimization)
+### 10.7.4 Economic Feedback Loop (Profit Margins Signal Optimization)
 
 **Suboptimal Play**:
 
@@ -711,7 +908,7 @@ Increased side story earnings of eighteen coins combined with reduced expenses f
 
 **Guidance**: Track profit margins. Adjust spending if running deficits.
 
-### 10.6.5 Challenge Difficulty Shows Stat Requirements
+### 10.7.5 Challenge Difficulty Shows Stat Requirements
 
 **Mental Challenge Card** (Before Entry):
 
@@ -729,9 +926,9 @@ After training to reach insight five, the same systematic analysis card now show
 
 **Guidance**: Build stats aligned with preferred challenge types.
 
-## 10.7 No Hand-Holding
+## 10.8 No Hand-Holding
 
-### 10.7.1 No Quest Markers
+### 10.8.1 No Quest Markers
 
 **Not Present**:
 - Glowing indicators showing "go here"
@@ -761,7 +958,7 @@ The constable mentions strange occurrences at the old mill as a conversational n
 - Multiple paths available (not linear progression)
 - Agency preserved (player decides priorities)
 
-### 10.7.2 No Optimal Path Highlighting
+### 10.8.2 No Optimal Path Highlighting
 
 **Not Present**:
 - Recommended choices marked
@@ -791,7 +988,7 @@ Each choice displays exact requirements with the player's current values, precis
 - Build diversity (different builds prefer different paths)
 - Skill expression (optimization is player skill)
 
-### 10.7.3 No Hidden Gotchas
+### 10.8.3 No Hidden Gotchas
 
 **Not Present**:
 - Surprise consequences after commitment
@@ -821,7 +1018,7 @@ A choice displays immediate assistance gained, explicit reputation cost and tag 
 - Experimentation safe (no surprise punishments)
 - Strategic planning possible (calculate outcomes)
 
-### 10.7.4 No Punishment for Experimentation
+### 10.8.4 No Punishment for Experimentation
 
 **Design Guarantees**:
 - Four-choice pattern (fallback always available)
@@ -845,7 +1042,7 @@ Completing a side story earns eighteen coins, restoring the player to twenty coi
 - Discovery rewarded (find efficient paths)
 - Player agency (safe to try approaches)
 
-### 10.7.5 No Forced Tutorial
+### 10.8.5 No Forced Tutorial
 
 **Design Flexibility**:
 - Can skip A1-A3 if experienced (jump to A4+)
@@ -869,9 +1066,9 @@ Skips the tutorial entirely and jumps directly to full game complexity at A4 and
 - Replayability (skip on subsequent playthroughs)
 - Player agency (choose engagement level)
 
-## 10.8 Discovery Rewards
+## 10.9 Discovery Rewards
 
-### 10.8.1 Route Shortcuts from NPC Bonds
+### 10.9.1 Route Shortcuts from NPC Bonds
 
 **Pattern**: Building relationship with NPC unlocks shortcut routes.
 
@@ -893,7 +1090,7 @@ Elena offers a letter of introduction to her cousin's ferry service, unlocking a
 
 **Guidance**: Build bonds with NPCs in high-traffic areas for travel shortcuts.
 
-### 10.8.2 Stat Synergies Discovered Through Play
+### 10.9.2 Stat Synergies Discovered Through Play
 
 **Pattern**: Player discovers stat combinations unlock better paths.
 
@@ -915,7 +1112,7 @@ Moderate generalist stats lock all three optimal paths, forcing reliance on expe
 
 **Guidance**: Specialize in 2-3 stats for consistent path access.
 
-### 10.8.3 Economic Optimization Mastery
+### 10.9.3 Economic Optimization Mastery
 
 **Pattern**: Player discovers efficient spending patterns.
 
@@ -935,7 +1132,7 @@ The same fifteen-coin income but optimized spending on basic six-coin lodging, s
 
 **Guidance**: Use basic options routinely, premium options strategically.
 
-### 10.8.4 Tactical Skill Improvement
+### 10.9.4 Tactical Skill Improvement
 
 **Pattern**: Challenge success rates improve with card play skill.
 
@@ -955,7 +1152,7 @@ Strategic card sequencing accumulates five leads before observing to maximize de
 
 **Guidance**: Accumulate builder resources before spending session resources.
 
-### 10.8.5 Archetype Pattern Recognition
+### 10.9.5 Archetype Pattern Recognition
 
 **Pattern**: Player recognizes repeating patterns, predicts structure.
 
@@ -979,7 +1176,7 @@ After multiple investigation scenes, the player identifies the hub-and-spoke str
 
 **Guidance**: Learn archetype patterns for faster strategic planning.
 
-## 10.9 Summary
+## 10.10 Summary
 
 Wayfarer's tutorial philosophy:
 

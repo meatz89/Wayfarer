@@ -46,38 +46,6 @@ public class BindingObligationSystem
     }
 
     /// <summary>
-    /// Get active obligations for display
-    /// </summary>
-    public List<BindingObligationViewModel> GetActiveObligations()
-    {
-        int currentSegment = _timeManager.CurrentSegment;
-        List<BindingObligationViewModel> viewModels = new List<BindingObligationViewModel>();
-
-        foreach (BindingObligation? obligation in _activeObligations.Where(o => o.IsActive))
-        {
-            int segmentsRemaining = obligation.DueBySegment - currentSegment;
-            ObligationUrgency urgency = segmentsRemaining switch
-            {
-                <= 2 => ObligationUrgency.Critical,
-                <= 4 => ObligationUrgency.Urgent,
-                <= 8 => ObligationUrgency.Soon,
-                _ => ObligationUrgency.Later
-            };
-
-            viewModels.Add(new BindingObligationViewModel
-            {
-                Icon = GetObligationIcon(obligation.Type, urgency),
-                Text = FormatObligationText(obligation, segmentsRemaining),
-                Urgency = urgency,
-                NpcName = obligation.NpcName
-            });
-        }
-
-        // Sort by urgency
-        return viewModels.OrderBy(o => o.Urgency).Take(3).ToList();
-    }
-
-    /// <summary>
     /// Check if player has specific type of obligation to an NPC
     /// </summary>
     public bool HasObligationTo(string npcId, ObligationType type)
@@ -144,33 +112,6 @@ public class BindingObligationSystem
 
         _tokenManager.AddTokensToNPC(tokenType, penalty, obligation.NpcId);
     }
-
-    private string GetObligationIcon(ObligationType type, ObligationUrgency urgency)
-    {
-        if (urgency == ObligationUrgency.Critical)
-            return "🔥"; // Critical obligations burn
-
-        return type switch
-        {
-            ObligationType.Promise => "🤝",
-            ObligationType.Debt => "💰",
-            ObligationType.Favor => "⭐",
-            ObligationType.Secret => "🤫",
-            _ => "⛓"
-        };
-    }
-
-    private string FormatObligationText(BindingObligation obligation, int segmentsRemaining)
-    {
-        string timeText = segmentsRemaining switch
-        {
-            <= 0 => "OVERDUE",
-            1 => "1 segment",
-            _ => $"{segmentsRemaining} segments"
-        };
-
-        return $"{obligation.NpcName}: {obligation.Description} ({timeText})";
-    }
 }
 
 /// <summary>
@@ -210,15 +151,4 @@ public enum ObligationUrgency
     Urgent = 1,    // <= 4 segments
     Soon = 2,      // <= 8 segments
     Later = 3      // > 8 segments
-}
-
-/// <summary>
-/// View model for displaying binding obligations
-/// </summary>
-public class BindingObligationViewModel
-{
-    public string Icon { get; set; }
-    public string Text { get; set; }
-    public ObligationUrgency Urgency { get; set; }
-    public string NpcName { get; set; }
 }

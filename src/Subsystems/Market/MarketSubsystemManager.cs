@@ -357,7 +357,7 @@ public class MarketSubsystemManager
         if (success)
         {
             result.Message = $"Successfully purchased {item.Name} for {buyPrice} coins";
-            result.SystemMessages.Add($"💰 Bought {item.Name} for {buyPrice} coins");
+            result.SystemMessages.Add($"Bought {item.Name} for {buyPrice} coins");
             result.SystemMessages.Add($"Coins remaining: {player.Coins}");
         }
         else
@@ -427,7 +427,7 @@ public class MarketSubsystemManager
         if (success)
         {
             result.Message = $"Successfully sold {item.Name} for {sellPrice} coins";
-            result.SystemMessages.Add($"💰 Sold {item.Name} for {sellPrice} coins");
+            result.SystemMessages.Add($"Sold {item.Name} for {sellPrice} coins");
             result.SystemMessages.Add($"Total coins: {player.Coins}");
         }
         else

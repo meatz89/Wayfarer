@@ -144,6 +144,13 @@ public class SceneContentBase : ComponentBase
             int hungerChange = reward?.Hunger ?? 0;
             bool fullRecovery = reward?.FullRecovery ?? false;
 
+            // Map Five Stats rewards (Sir Brante pattern: direct grants)
+            int insightReward = reward?.Insight ?? 0;
+            int rapportReward = reward?.Rapport ?? 0;
+            int authorityReward = reward?.Authority ?? 0;
+            int diplomacyReward = reward?.Diplomacy ?? 0;
+            int cunningReward = reward?.Cunning ?? 0;
+
             // Map relationship consequences (BondChanges) with current/final values
             List<BondChangeVM> bondChanges = new List<BondChangeVM>();
             if (reward?.BondChanges != null)
@@ -245,6 +252,13 @@ public class SceneContentBase : ComponentBase
                 HungerChange = hungerChange,
                 FullRecovery = fullRecovery,
 
+                // Five Stats rewards
+                InsightReward = insightReward,
+                RapportReward = rapportReward,
+                AuthorityReward = authorityReward,
+                DiplomacyReward = diplomacyReward,
+                CunningReward = cunningReward,
+
                 // Final values after this choice (Sir Brante-style Perfect Information)
                 FinalCoins = player.Coins - coinsCost + coinsReward,
                 FinalResolve = player.Resolve - resolveCost + resolveReward,
@@ -252,6 +266,13 @@ public class SceneContentBase : ComponentBase
                 FinalStamina = fullRecovery ? player.MaxStamina : (player.Stamina - staminaCost + staminaReward),
                 FinalFocus = fullRecovery ? player.MaxFocus : (player.Focus - focusCost + focusReward),
                 FinalHunger = fullRecovery ? 0 : (player.Hunger + hungerCost + hungerChange),
+
+                // Final stat values after this choice
+                FinalInsight = player.Insight + insightReward,
+                FinalRapport = player.Rapport + rapportReward,
+                FinalAuthority = player.Authority + authorityReward,
+                FinalDiplomacy = player.Diplomacy + diplomacyReward,
+                FinalCunning = player.Cunning + cunningReward,
 
                 // Affordability check - separate from requirements
                 // Requirements = prerequisites (stats, relationships, items)
@@ -269,6 +290,13 @@ public class SceneContentBase : ComponentBase
                 CurrentStamina = player.Stamina,
                 CurrentFocus = player.Focus,
                 CurrentHunger = player.Hunger,
+
+                // Current player stats (for Sir Brante display)
+                CurrentInsight = player.Insight,
+                CurrentRapport = player.Rapport,
+                CurrentAuthority = player.Authority,
+                CurrentDiplomacy = player.Diplomacy,
+                CurrentCunning = player.Cunning,
 
                 // All consequences
                 BondChanges = bondChanges,

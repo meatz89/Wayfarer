@@ -22,7 +22,6 @@ public class LocationScreenViewModel
 public class LocationActionViewModel
 {
     public string Id { get; set; }
-    public string Icon { get; set; }
     public string Title { get; set; }
     public string Detail { get; set; }
     public string Cost { get; set; }
@@ -60,7 +59,6 @@ public class InteractionOptionViewModel
 public class ObservationViewModel
 {
     public string Id { get; set; }  // Unique identifier for the observation
-    public string Icon { get; set; }
     public string Text { get; set; }
     public bool IsUnknown { get; set; }
     public string Relevance { get; set; }
@@ -154,15 +152,6 @@ public class LeverageViewModel
     public int DisplacementCost { get; set; }
     public string Level { get; set; }
     public string Narrative { get; set; }
-
-    public string LeverageIcon => TotalLeverage switch
-    {
-        >= 10 => "🔴",
-        >= 5 => "🟠",
-        >= 3 => "🟡",
-        >= 1 => "⚪",
-        _ => ""
-    };
 
     public string LeverageColor => TotalLeverage switch
     {
@@ -317,6 +306,13 @@ public class ActionCardViewModel
     public int HungerChange { get; set; }
     public bool FullRecovery { get; set; }
 
+    // Five Stats rewards (Sir Brante pattern: direct grants)
+    public int InsightReward { get; set; }
+    public int RapportReward { get; set; }
+    public int AuthorityReward { get; set; }
+    public int DiplomacyReward { get; set; }
+    public int CunningReward { get; set; }
+
     // Final values after this choice (for Sir Brante-style display)
     public int FinalCoins { get; set; }
     public int FinalResolve { get; set; }
@@ -324,6 +320,13 @@ public class ActionCardViewModel
     public int FinalStamina { get; set; }
     public int FinalFocus { get; set; }
     public int FinalHunger { get; set; }
+
+    // Final stat values after this choice
+    public int FinalInsight { get; set; }
+    public int FinalRapport { get; set; }
+    public int FinalAuthority { get; set; }
+    public int FinalDiplomacy { get; set; }
+    public int FinalCunning { get; set; }
 
     // Affordability check - separate from requirements
     // Requirements = prerequisites (stats, relationships, items)
@@ -337,6 +340,13 @@ public class ActionCardViewModel
     public int CurrentStamina { get; set; }
     public int CurrentFocus { get; set; }
     public int CurrentHunger { get; set; }
+
+    // Current player stats (for Sir Brante display)
+    public int CurrentInsight { get; set; }
+    public int CurrentRapport { get; set; }
+    public int CurrentAuthority { get; set; }
+    public int CurrentDiplomacy { get; set; }
+    public int CurrentCunning { get; set; }
 
     // Relationship consequences (transparent before selection)
     public List<BondChangeVM> BondChanges { get; set; } = new();

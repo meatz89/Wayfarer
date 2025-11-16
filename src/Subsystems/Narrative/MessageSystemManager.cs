@@ -29,19 +29,19 @@ public class MessageSystemManager
     /// <summary>
     /// Add a standard system message
     /// </summary>
-    public void AddSystemMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info)
+    public void AddSystemMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info, MessageCategory? category = null)
     {
-        _messageSystem.AddSystemMessage(message, type);
+        _messageSystem.AddSystemMessage(message, type, category);
     }
 
     /// <summary>
     /// Add a narrative-styled message
     /// </summary>
-    public void AddNarrativeMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info)
+    public void AddNarrativeMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info, MessageCategory? category = null)
     {
         // Add narrative flourish based on type
         string styledMessage = ApplyNarrativeStyling(message, type);
-        _messageSystem.AddSystemMessage(styledMessage, type);
+        _messageSystem.AddSystemMessage(styledMessage, type, category);
     }
 
     /// <summary>
@@ -179,8 +179,8 @@ public class MessageSystemManager
     /// </summary>
     public void AddDiscoveryMessage(string discovery)
     {
-        string message = $"🔍 You discovered: {discovery}";
-        AddNarrativeMessage(message, SystemMessageTypes.Info);
+        string message = $"You discovered: {discovery}";
+        AddNarrativeMessage(message, SystemMessageTypes.Info, MessageCategory.Discovery);
     }
 
     /// <summary>
@@ -221,8 +221,8 @@ public class MessageSystemManager
     /// </summary>
     public void AddMilestoneMessage(string achievement)
     {
-        string message = $"🏆 Achievement: {achievement}";
-        AddNarrativeMessage(message, SystemMessageTypes.Success);
+        string message = $"Achievement: {achievement}";
+        AddNarrativeMessage(message, SystemMessageTypes.Success, MessageCategory.Achievement);
     }
 
     /// <summary>

@@ -7,7 +7,7 @@
         _gameWorld = gameWorld;
     }
 
-    public void AddSystemMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info)
+    public void AddSystemMessage(string message, SystemMessageTypes type = SystemMessageTypes.Info, MessageCategory? category = null)
     {
         // Different durations based on message importance
         int duration = type switch
@@ -20,7 +20,7 @@
             _ => 10000
         };
 
-        SystemMessage systemMessage = new SystemMessage(message, type, duration);
+        SystemMessage systemMessage = new SystemMessage(message, type, category, duration);
         _gameWorld.SystemMessages.Add(systemMessage);
         // Also add to permanent event log
         _gameWorld.EventLog.Add(systemMessage);
