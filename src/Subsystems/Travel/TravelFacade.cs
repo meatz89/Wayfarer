@@ -81,7 +81,7 @@ public class TravelFacade
         if (fromLocation == null || toLocation == null)
             return null;
 
-        return _routeManager.GetRouteBetweenLocations(fromLocation.Id, toLocation.Id);
+        return _routeManager.GetRouteBetweenLocations(fromLocation, toLocation);
     }
 
     // ========== TRAVEL OPERATIONS ==========
@@ -246,13 +246,12 @@ public class TravelFacade
         }
 
         // Find route between current location and destination
-        RouteOption route = _routeRepository.GetRoutesBetween(currentLocation.Id, toLocation.Id)
-            .FirstOrDefault();
+        RouteOption route = GetRouteBetweenLocations(currentLocation, toLocation);
 
         if (route == null)
         {
             // No route found - fallback to hex distance calculation
-            return _travelTimeCalculator.GetBaseTravelTime(currentLocation.Id, toLocation.Id);
+            return _travelTimeCalculator.GetBaseTravelTime(currentLocation, toLocation);
         }
 
         return _travelTimeCalculator.CalculateTravelTime(route, transportMethod);
@@ -322,7 +321,7 @@ public class TravelFacade
 
         // Check if player must turn back (exhausted with no paths available)
         bool mustTurnBack = session.CurrentState == TravelState.Exhausted &&
-                           !currentSegmentCards.Any(card => CanPlayPathCard(card.Id));
+                           !currentSegmentCards.Any(card => CanPlayPathCard(card));
 
         return new TravelContext
         {
@@ -337,8 +336,9 @@ public class TravelFacade
 
     /// <summary>
     /// Get availability information for a path card including reasons why it can't be used
+    /// PHASE 6D: Accept PathCardDTO object instead of ID
     /// </summary>
-    public PathCardAvailability GetPathCardAvailability(string pathCardId)
+    public PathCardAvailability GetPathCardAvailability(PathCardDTO card)
     {
         TravelSession session = _gameWorld.CurrentTravelSession;
         if (session == null)
@@ -346,8 +346,6 @@ public class TravelFacade
             return new PathCardAvailability { CanPlay = false, Reason = "No active travel session" };
         }
 
-        // Get the card from the current segment's collection
-        PathCardDTO card = GetCardFromCurrentSegmentCollection(pathCardId);
         if (card == null)
         {
             return new PathCardAvailability { CanPlay = false, Reason = "Card not found" };
@@ -374,7 +372,7 @@ public class TravelFacade
         }
 
         // Check one-time card usage
-        if (card.IsOneTime && _gameWorld.IsPathCardDiscovered(pathCardId))
+        if (card.IsOneTime && _gameWorld.IsPathCardDiscovered(card.Id))
         {
             return new PathCardAvailability { CanPlay = false, Reason = "Already used this one-time path" };
         }
@@ -417,10 +415,11 @@ public class TravelFacade
 
     /// <summary>
     /// Check if a specific path card can be played
+    /// PHASE 6D: Accept PathCardDTO object instead of ID
     /// </summary>
-    public bool CanPlayPathCard(string pathCardId)
+    public bool CanPlayPathCard(PathCardDTO card)
     {
-        return GetPathCardAvailability(pathCardId).CanPlay;
+        return GetPathCardAvailability(card).CanPlay;
     }
 
     /// <summary>
@@ -446,7 +445,7 @@ public class TravelFacade
             bool isDiscovered = isEventSegment ||
                               _gameWorld.IsPathCardDiscovered(card.Id);
 
-            bool canPlay = CanPlayPathCard(card.Id);
+            bool canPlay = CanPlayPathCard(card);
 
             pathCardInfos.Add(new PathCardInfo
             {

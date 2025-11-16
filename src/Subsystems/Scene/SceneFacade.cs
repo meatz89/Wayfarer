@@ -41,12 +41,10 @@ public class SceneFacade
     /// <returns>List of scenes that should resume at this context</returns>
     public List<Scene> GetResumableScenesAtContext(Location location, NPC npc)
     {
-        string locationId = location?.Id;
-        string npcId = npc?.ID;
-
+        // PHASE 6D: Pass objects directly, no ID extraction
         return _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.ShouldResumeAtContext(locationId, npcId))
+                       s.ShouldResumeAtContext(location?.Id, npc?.ID))
             .ToList();
     }
 
@@ -64,9 +62,10 @@ public class SceneFacade
 
         // Find active Scenes at this location
         // HIERARCHICAL PLACEMENT: Check CurrentSituation.Location (situation owns placement)
+        // PHASE 6D: Object comparison instead of ID comparison
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.CurrentSituation?.Location?.Id == location.Id)
+                       s.CurrentSituation?.Location == location)
             .ToList();
 
         List<LocationAction> allActions = new List<LocationAction>();
@@ -88,7 +87,7 @@ public class SceneFacade
                     Name = choiceTemplate.ActionTextTemplate,
                     Description = "",
                     ChoiceTemplate = choiceTemplate,
-                    SituationId = situation.Id,
+                    Situation = situation,
 
                     // Legacy properties (empty - use ChoiceTemplate)
                     RequiredProperties = new List<LocationPropertyType>(),
@@ -153,11 +152,10 @@ public class SceneFacade
                 {
                     Name = choiceTemplate.ActionTextTemplate,
                     Description = "",
-                    NPCId = npc?.ID,
+                    NPC = npc,
                     ChoiceTemplate = choiceTemplate,
-                    SituationId = situation.Id,
+                    Situation = situation,
                     ActionType = DetermineNPCActionType(choiceTemplate),
-                    ChallengeId = choiceTemplate.ChallengeId,
                     ChallengeType = choiceTemplate.ChallengeType
                 };
 
@@ -187,9 +185,10 @@ public class SceneFacade
 
         // Find active Scenes on this route
         // HIERARCHICAL PLACEMENT: Check CurrentSituation.Route (situation owns placement)
+        // PHASE 6D: Object comparison instead of ID comparison
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.CurrentSituation?.Route?.Id == route.Id)
+                       s.CurrentSituation?.Route == route)
             .ToList();
 
         List<PathCard> allPathCards = new List<PathCard>();
@@ -247,9 +246,10 @@ public class SceneFacade
 
         // Find active Scenes on this route at this specific segment
         // HIERARCHICAL PLACEMENT: Check CurrentSituation.Route AND CurrentSituation.SegmentIndex
+        // PHASE 6D: Object comparison instead of ID comparison
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.CurrentSituation?.Route?.Id == route.Id &&
+                       s.CurrentSituation?.Route == route &&
                        s.CurrentSituation?.SegmentIndex == segmentIndex)
             .ToList();
 

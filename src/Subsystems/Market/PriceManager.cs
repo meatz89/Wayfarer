@@ -48,19 +48,27 @@ public class PriceManager
 
     /// <summary>
     /// Get buy price for an item at a location
+    /// PHASE 6D: Accept Item object instead of ID
     /// </summary>
-    public int GetBuyPrice(string itemId, string locationId)
+    public int GetBuyPrice(Item item, string locationId)
     {
-        PricingInfo pricing = GetPricingInfo(itemId, locationId);
+        if (item == null)
+            return -1;
+
+        PricingInfo pricing = GetPricingInfo(item.Id, locationId);
         return pricing.IsAvailable ? pricing.AdjustedBuyPrice : -1;
     }
 
     /// <summary>
     /// Get sell price for an item at a location
+    /// PHASE 6D: Accept Item object instead of ID
     /// </summary>
-    public int GetSellPrice(string itemId, string locationId)
+    public int GetSellPrice(Item item, string locationId)
     {
-        PricingInfo pricing = GetPricingInfo(itemId, locationId);
+        if (item == null)
+            return -1;
+
+        PricingInfo pricing = GetPricingInfo(item.Id, locationId);
         return pricing.IsAvailable ? pricing.AdjustedSellPrice : -1;
     }
 

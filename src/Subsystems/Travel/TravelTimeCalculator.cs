@@ -13,31 +13,28 @@ public class TravelTimeCalculator
     /// <summary>
     /// Get base travel time between two locations in segments.
     /// Calculates distance using hex coordinates (Location.HexPosition).
+    /// PHASE 6D: Accept Location objects instead of IDs
     /// </summary>
-    public int GetBaseTravelTime(string fromLocationId, string toLocationId)
+    public int GetBaseTravelTime(Location fromLocation, Location toLocation)
     {
+        if (fromLocation == null)
+            throw new ArgumentNullException(nameof(fromLocation));
+
+        if (toLocation == null)
+            throw new ArgumentNullException(nameof(toLocation));
+
         // Same Location = no travel time
-        if (fromLocationId == toLocationId)
+        if (fromLocation.Id == toLocation.Id)
         {
             return 0;
         }
 
-        // Get locations from GameWorld
-        Location fromLocation = _gameWorld.GetLocation(fromLocationId);
-        Location toLocation = _gameWorld.GetLocation(toLocationId);
-
-        if (fromLocation == null)
-            throw new InvalidOperationException($"[TravelTimeCalculator] Location not found: {fromLocationId}");
-
-        if (toLocation == null)
-            throw new InvalidOperationException($"[TravelTimeCalculator] Location not found: {toLocationId}");
-
         // Verify locations have hex positions
         if (fromLocation.HexPosition == null)
-            throw new InvalidOperationException($"[TravelTimeCalculator] Location '{fromLocationId}' missing HexPosition");
+            throw new InvalidOperationException($"[TravelTimeCalculator] Location '{fromLocation.Name}' missing HexPosition");
 
         if (toLocation.HexPosition == null)
-            throw new InvalidOperationException($"[TravelTimeCalculator] Location '{toLocationId}' missing HexPosition");
+            throw new InvalidOperationException($"[TravelTimeCalculator] Location '{toLocation.Name}' missing HexPosition");
 
         // Calculate hex distance (number of hexes between locations)
         int hexDistance = fromLocation.HexPosition.Value.DistanceTo(toLocation.HexPosition.Value);
@@ -55,7 +52,11 @@ public class TravelTimeCalculator
         if (route == null)
             throw new ArgumentNullException(nameof(route));
 
-        int baseTime = GetBaseTravelTime(route.OriginLocationId, route.DestinationLocationId);
+        // PHASE 6D: Get locations to pass as objects
+        Location fromLocation = _gameWorld.GetLocation(route.OriginLocationId);
+        Location toLocation = _gameWorld.GetLocation(route.DestinationLocationId);
+
+        int baseTime = GetBaseTravelTime(fromLocation, toLocation);
 
         // Apply transport method modifier
         double modifier = GetTransportModifier(transportMethod);

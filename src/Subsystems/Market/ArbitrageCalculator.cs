@@ -60,12 +60,12 @@ public class ArbitrageCalculator
 
     /// <summary>
     /// Find the best arbitrage opening for a specific item
+    /// PHASE 6D: Accept Item object instead of ID
     /// </summary>
-    public ArbitrageOpening FindBestOpening(string itemId)
+    public ArbitrageOpening FindBestOpening(Item item)
     {
-        Item item = _itemRepository.GetItemById(itemId);
         if (item == null)
-            throw new InvalidOperationException($"Item not found: {itemId}");
+            throw new ArgumentNullException(nameof(item));
 
         List<Location> locations = _gameWorld.Locations;
         ArbitrageOpening bestOpening = null;
@@ -74,14 +74,14 @@ public class ArbitrageCalculator
         // Compare all Location pairs
         foreach (Location buyLocation in locations)
         {
-            int buyPrice = _priceManager.GetBuyPrice(itemId, buyLocation.Name);
+            int buyPrice = _priceManager.GetBuyPrice(item, buyLocation.Name);
             if (buyPrice <= 0) continue; // Item not available for purchase here
 
             foreach (Location sellLocation in locations)
             {
                 if (buyLocation == sellLocation) continue; // Skip same location
 
-                int sellPrice = _priceManager.GetSellPrice(itemId, sellLocation.Name);
+                int sellPrice = _priceManager.GetSellPrice(item, sellLocation.Name);
                 if (sellPrice <= 0) continue; // Can't sell here
 
                 int grossProfit = sellPrice - buyPrice;
@@ -97,7 +97,7 @@ public class ArbitrageCalculator
                     highestProfit = netProfit;
                     bestOpening = new ArbitrageOpening
                     {
-                        ItemId = itemId,
+                        ItemId = item.Id,
                         ItemName = item.Name,
                         BuyLocationId = buyLocation.Name,
                         BuyLocationName = buyLocation.Name,
@@ -132,7 +132,7 @@ public class ArbitrageCalculator
 
         foreach (Item item in allItems)
         {
-            ArbitrageOpening opening = FindBestOpening(item.Id);
+            ArbitrageOpening opening = FindBestOpening(item);
             if (opening != null && opening.IsCurrentlyProfitable)
             {
                 opportunities.Add(opening);
@@ -190,7 +190,7 @@ public class ArbitrageCalculator
 
         foreach (Item item in allItems)
         {
-            int buyPrice = _priceManager.GetBuyPrice(item.Id, currentLocationId);
+            int buyPrice = _priceManager.GetBuyPrice(item, currentLocationId);
             if (buyPrice <= 0) continue;
 
             List<Location> locations = _gameWorld.Locations;
@@ -198,7 +198,7 @@ public class ArbitrageCalculator
             {
                 if (sellLocation.Name == currentLocationId) continue;
 
-                int sellPrice = _priceManager.GetSellPrice(item.Id, sellLocation.Name);
+                int sellPrice = _priceManager.GetSellPrice(item, sellLocation.Name);
                 if (sellPrice <= 0) continue;
 
                 int distance = CalculateDistance(currentLocationId, sellLocation.Name);
@@ -361,14 +361,14 @@ public class ArbitrageCalculator
 
         foreach (Item item in allItems)
         {
-            int buyPrice = _priceManager.GetBuyPrice(item.Id, fromLocationId);
+            int buyPrice = _priceManager.GetBuyPrice(item, fromLocationId);
             if (buyPrice <= 0) continue;
 
             foreach (Location sellLocation in locations)
             {
                 if (sellLocation.Name == fromLocationId) continue;
 
-                int sellPrice = _priceManager.GetSellPrice(item.Id, sellLocation.Name);
+                int sellPrice = _priceManager.GetSellPrice(item, sellLocation.Name);
                 if (sellPrice <= buyPrice) continue;
 
                 int distance = CalculateDistance(fromLocationId, sellLocation.Name);

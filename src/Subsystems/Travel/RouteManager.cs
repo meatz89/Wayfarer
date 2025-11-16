@@ -22,20 +22,25 @@ public class RouteManager
 
     /// <summary>
     /// Get a specific route between two locations.
+    /// PHASE 6D: Accept Location objects instead of IDs
     /// </summary>
-    public RouteOption GetRouteBetweenLocations(string fromLocationId, string toLocationId)
+    public RouteOption GetRouteBetweenLocations(Location fromLocation, Location toLocation)
     {
-        List<RouteOption> routes = GetRoutesFromLocation(fromLocationId);
+        if (fromLocation == null || toLocation == null)
+            return null;
+
+        List<RouteOption> routes = GetRoutesFromLocation(fromLocation.Id);
         // RouteOption uses DestinationLocationId for exact destination
-        return routes.FirstOrDefault(r => r.DestinationLocationId == toLocationId);
+        return routes.FirstOrDefault(r => r.DestinationLocationId == toLocation.Id);
     }
 
     /// <summary>
     /// Check if a route exists between two locations.
+    /// PHASE 6D: Accept Location objects instead of IDs
     /// </summary>
-    public bool RouteExists(string fromLocationId, string toLocationId)
+    public bool RouteExists(Location fromLocation, Location toLocation)
     {
-        return GetRouteBetweenLocations(fromLocationId, toLocationId) != null;
+        return GetRouteBetweenLocations(fromLocation, toLocation) != null;
     }
 
     /// <summary>
