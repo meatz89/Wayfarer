@@ -331,6 +331,427 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 
 ---
 
+# DICTIONARY/HASHSET ANTIPATTERN (PREMATURE OPTIMIZATION)
+
+**CRITICAL PRINCIPLE: This is a synchronous, browser-based, single-player game with minimal scale. Performance optimization is PREMATURE and HARMFUL.**
+
+## THE GAME CONTEXT (WHY PERFORMANCE DOESN'T MATTER)
+
+**This game is NOT:**
+- ❌ A massively multiplayer online game with thousands of concurrent entities
+- ❌ A real-time simulation processing millions of events per second
+- ❌ A distributed system with network latency concerns
+- ❌ A high-frequency trading platform requiring microsecond response times
+
+**This game IS:**
+- ✓ Synchronous (single-threaded execution, no concurrency)
+- ✓ Browser-based (JavaScript VM speed is irrelevant, browser render time dominates)
+- ✓ Single-player (one human making decisions at human speed: hundreds of milliseconds)
+- ✓ Minimal scale (collections contain 10-100 entities maximum, not thousands)
+- ✓ Turn-based narrative (player reads text, makes choice, reads result - seconds between actions)
+
+**The Performance Reality:**
+- Typical collections: 20 NPCs, 30 Locations, 50 Items, 10 Scenes
+- Linear scan of 100 items: **~0.001 milliseconds** (one microsecond)
+- Browser render time: **16+ milliseconds** (one frame at 60fps)
+- Human reaction time: **200+ milliseconds** (reading and decision-making)
+- Network latency: **50-200 milliseconds** (even on localhost)
+
+**THE PERFORMANCE BENEFIT OF DICTIONARY IS LITERALLY UNMEASURABLE IN THIS CONTEXT.**
+
+Using Dictionary/HashSet for "performance" is like using a forklift to carry a sandwich. It's technically faster, but:
+1. The improvement is completely undetectable by any measurement
+2. The complexity cost is very real and very harmful
+3. The maintainability burden compounds over time
+
+## WHY DICTIONARY/HASHSET ARE ARCHITECTURALLY WRONG
+
+**Dictionary/HashSet optimize for SCALE. This game doesn't SCALE. Therefore, optimization is PREMATURE.**
+
+### 1. Semantic Dishonesty (Domain Inversion)
+
+**Dictionary inverts the domain model:**
+```csharp
+// WRONG - Technical data structure leaking into domain
+public class GameWorld
+{
+    private Dictionary<string, NPC> _npcLookup;
+    private Dictionary<string, Location> _locationCache;
+    private HashSet<string> _visitedLocationIds;
+}
+```
+
+This is **DATABASE THINKING**, not **DOMAIN THINKING**. You're organizing code around INDEXES, not ENTITIES.
+
+**Problem:** NPCs aren't "keyed by ID" - they ARE NPCs, and ID is just one property among many. Dictionary makes ID the primary organizing principle, which is semantically backwards.
+
+**CORRECT - Domain collections:**
+```csharp
+public class GameWorld
+{
+    private List<NPC> _npcs;
+    private List<Location> _locations;
+    private List<VisitRecord> _visitHistory;
+}
+```
+
+This is **DOMAIN THINKING**. GameWorld contains ENTITIES (the things that exist in the game world).
+
+### 2. Single Responsibility Violation
+
+**Dictionary does TWO things:**
+1. Stores entities (storage responsibility)
+2. Provides fast lookup by key (query optimization responsibility)
+
+In a game where (2) is unnecessary, you're adding complexity for zero benefit.
+
+**List does ONE thing:**
+1. Stores entities in order (storage responsibility only)
+
+**Lookup is a QUERY concern, not a STORAGE concern.** Separation of concerns suggests storage should be simple.
+
+### 3. Fail-Slow vs Fail-Fast Philosophy
+
+**Dictionary behavior (FAIL-SLOW):**
+```csharp
+// Access pattern 1: Exception at wrong location
+var npc = _npcs[id]; // Throws KeyNotFoundException
+// Stack trace points HERE, but actual problem is "ID doesn't exist in collection"
+
+// Access pattern 2: Silent null propagation
+if (_npcs.TryGetValue(id, out var npc))
+{
+    npc.Name; // Works
+}
+else
+{
+    // Error handling required at EVERY call site
+    npc = null; // Or default
+}
+npc.Name; // May crash LATER if TryGetValue failed
+```
+
+**List behavior (FAIL-FAST):**
+```csharp
+var npc = _npcs.FirstOrDefault(n => n.Id == id); // Returns null if not found
+var name = npc.Name; // IMMEDIATELY throws NullReferenceException
+// Stack trace points EXACTLY to the problem: NPC doesn't exist
+// No silent propagation, no deferred errors
+```
+
+**Why fail-fast is better:**
+- Errors happen at point of use, not at retrieval
+- Stack traces are clear and actionable
+- No need for defensive `TryGetValue` everywhere
+- Null-reference errors immediately reveal logic bugs
+
+### 4. Query Expressiveness Asymmetry
+
+**Dictionary limitations:**
+```csharp
+// Can ONLY query by key efficiently
+var npc = _npcs[id]; // O(1) lookup
+
+// ANY other query requires LINQ over .Values anyway
+var innkeeper = _npcs.Values.FirstOrDefault(n => n.Profession == "Innkeeper"); // O(n)
+var friendlyNpcs = _npcs.Values.Where(n => n.Demeanor == Demeanor.Friendly).ToList(); // O(n)
+var authorities = _npcs.Values.Where(n => n.SocialStanding == SocialStanding.Authority).ToList(); // O(n)
+
+// So you're using Dictionary as a List with extra steps!
+```
+
+**You're paying the complexity cost of Dictionary but still doing O(n) scans for 99% of queries.**
+
+**List uniformity:**
+```csharp
+// ALL queries are uniform and declarative
+var npc = _npcs.FirstOrDefault(n => n.Id == id); // O(n) - but n=20, so irrelevant
+var innkeeper = _npcs.FirstOrDefault(n => n.Profession == "Innkeeper"); // O(n)
+var friendlyNpcs = _npcs.Where(n => n.Demeanor == Demeanor.Friendly).ToList(); // O(n)
+var authorities = _npcs.Where(n => n.SocialStanding == SocialStanding.Authority).ToList(); // O(n)
+```
+
+**Every query looks the same. Every query reads like English. Every query is a domain question.**
+
+### 5. YAGNI Violation (You Aren't Gonna Need It)
+
+**Dictionary optimizes for a problem you DON'T HAVE:**
+- O(1) lookup vs O(n) scan sounds important
+- For n=1000+, it IS important
+- For n=20, it's COMPLETELY IRRELEVANT
+
+**Math:**
+- Dictionary lookup: ~0.0001ms (hash calculation + array access)
+- List scan of 20 items: ~0.001ms (20 equality checks)
+- Difference: **0.0009 milliseconds**
+- Browser render frame: **16 milliseconds**
+- Human perception threshold: **100+ milliseconds**
+
+**You're optimizing something that takes 0.001ms in a system where humans react in 200ms. This is ABSURD.**
+
+### 6. Debugging Visibility
+
+**Dictionary in debugger:**
+```
+_npcs: Dictionary<string, NPC> (Count = 5)
+  [0]: {["npc_001", Wayfarer.GameState.NPC]}
+  [1]: {["npc_002", Wayfarer.GameState.NPC]}
+  [2]: {["npc_003", Wayfarer.GameState.NPC]}
+```
+
+Can't see entity properties without expanding each KeyValuePair. Debugging requires extra clicks.
+
+**List in debugger:**
+```
+_npcs: List<NPC> (Count = 5)
+  [0]: {NPC: Elena, Profession: Innkeeper, Demeanor: Friendly}
+  [1]: {NPC: Marcus, Profession: Guard, Demeanor: Neutral}
+  [2]: {NPC: Thalia, Profession: Merchant, Demeanor: Hostile}
+```
+
+Immediate visibility of entity state. Debug by LOOKING, not by EXPANDING.
+
+### 7. Testing Simplicity
+
+**Dictionary test setup (ID DUPLICATION):**
+```csharp
+var npcs = new Dictionary<string, NPC>
+{
+    ["npc_001"] = new NPC { Id = "npc_001", Name = "Elena" },
+    ["npc_002"] = new NPC { Id = "npc_002", Name = "Marcus" }
+    // ERROR-PRONE: ID appears TWICE (key + property)
+    // If they mismatch, silent bugs
+};
+```
+
+**List test setup (NO DUPLICATION):**
+```csharp
+var npcs = new List<NPC>
+{
+    new NPC { Id = "npc_001", Name = "Elena" },
+    new NPC { Id = "npc_002", Name = "Marcus" }
+    // ID appears ONCE, no duplication risk
+};
+```
+
+### 8. Functional Thinking vs Imperative Thinking
+
+**List encourages declarative pipelines (FUNCTIONAL):**
+```csharp
+var result = _npcs
+    .Where(n => n.Location == currentLocation)
+    .OrderBy(n => n.Name)
+    .Select(n => new NPCViewModel { Name = n.Name })
+    .ToList();
+// Pipeline: Filter → Sort → Transform → Collect
+// Easy to read, easy to modify, easy to test
+```
+
+**Dictionary encourages imperative loops (PROCEDURAL):**
+```csharp
+var result = new List<NPCViewModel>();
+foreach (var kvp in _npcs)
+{
+    if (kvp.Value.Location == currentLocation)
+    {
+        result.Add(new NPCViewModel { Name = kvp.Value.Name });
+    }
+}
+result.Sort((a, b) => a.Name.CompareTo(b.Name));
+// More code, more mutable state, harder to reason about
+```
+
+### 9. Type Safety Erosion
+
+**Dictionary often leads to type erasure:**
+```csharp
+// Common anti-pattern: generic storage
+Dictionary<string, object> _entities; // Lost ALL type information
+// or
+Dictionary<string, IEntity> _entities; // Forcing abstraction for no reason
+```
+
+**List preserves concrete types:**
+```csharp
+List<NPC> _npcs;
+List<Location> _locations;
+List<Item> _items;
+// Each collection is STRONGLY TYPED to its domain entity
+// Compiler catches type errors at compile time
+```
+
+### 10. Architectural Purity (Repository Pattern)
+
+**Dictionary pattern (TECHNICAL ABSTRACTION):**
+```csharp
+// Implies "fast lookup structure" - this is an implementation detail
+Dictionary<string, NPC> _npcs;
+var npc = _npcs[id]; // What if id doesn't exist? Runtime exception!
+```
+
+**List pattern (DOMAIN ABSTRACTION):**
+```csharp
+// Implies "collection of entities" - this is a domain concept
+List<NPC> _npcs;
+var npc = _npcs.FirstOrDefault(n => n.Id == id); // Domain query, safe
+```
+
+**The repository stores ENTITIES, not KEY-VALUE PAIRS.** GameWorld is a domain model, not a database schema.
+
+## THE ROOT PRINCIPLE
+
+**Dictionary/HashSet optimize for SCALE.**
+**This game doesn't SCALE.**
+**Therefore, optimization is PREMATURE and HARMFUL.**
+
+Using Dictionary for 20 NPCs is like:
+- Using a database index on a table with 10 rows
+- Using a CDN for a file served once per day
+- Using multithreading for a calculation that takes 1 microsecond
+- Using a distributed cache for data that fits in 1KB
+
+**It's TECHNICALLY faster, but:**
+1. The improvement is completely unmeasurable
+2. The complexity cost is very real
+3. The maintenance burden compounds over time
+
+**Gordon Ramsay Standard:**
+
+"You're using a DICTIONARY for 20 NPCS? That's like using a FORKLIFT to carry a SANDWICH! O(1) lookup? For TWENTY ENTITIES? The performance gain is ONE MICROSECOND! Your browser takes SIXTEEN MILLISECONDS to render a FRAME! You've added complexity for LITERALLY ZERO BENEFIT! This is OVER-ENGINEERED NONSENSE!"
+
+## WHAT TO USE INSTEAD
+
+**ALWAYS use `List<T>` for entity collections:**
+
+```csharp
+// Domain entity collections (CORRECT)
+public class GameWorld
+{
+    private List<NPC> _npcs = new List<NPC>();
+    private List<Location> _locations = new List<Location>();
+    private List<Scene> _scenes = new List<Scene>();
+    private List<Route> _routes = new List<Route>();
+    private List<Item> _items = new List<Item>();
+}
+
+// Query patterns (declarative, readable, safe)
+public NPC GetNPCById(string id)
+{
+    return _npcs.FirstOrDefault(n => n.Id == id);
+    // Returns null if not found (fail-fast at call site)
+}
+
+public List<NPC> GetNPCsByLocation(string locationId)
+{
+    return _npcs.Where(n => n.CurrentLocation == locationId).ToList();
+    // Reads like English: "NPCs where location matches"
+}
+
+public List<NPC> GetFriendlyNPCs()
+{
+    return _npcs.Where(n => n.Demeanor == Demeanor.Friendly).ToList();
+    // Domain query, not technical lookup
+}
+```
+
+**LINQ queries are:**
+- Declarative (what, not how)
+- Readable (reads like English)
+- Composable (chain operations easily)
+- Testable (pure functions, no side effects)
+- Type-safe (compiler catches errors)
+
+## ENFORCEMENT
+
+**Code review checklist - REJECT pull requests with:**
+- ❌ `Dictionary<string, NPC>` or similar entity dictionaries
+- ❌ `HashSet<string>` for entity ID storage
+- ❌ `Dictionary<string, Location>` for location lookups
+- ❌ `ConcurrentDictionary` (no concurrency in this game!)
+- ❌ Any `Dictionary` or `HashSet` for domain entity storage
+- ❌ Comments justifying Dictionary "for performance"
+- ❌ `.TryGetValue()` patterns spreading through codebase
+- ❌ `_entityLookup`, `_entityCache`, `_entityIndex` naming patterns
+
+**Code review checklist - APPROVE pull requests with:**
+- ✓ `List<NPC>`, `List<Location>`, `List<Scene>` entity collections
+- ✓ LINQ queries: `.FirstOrDefault()`, `.Where()`, `.Select()`, `.OrderBy()`
+- ✓ Domain queries that read like English
+- ✓ Fail-fast null handling at call sites
+- ✓ Simple, readable, maintainable code
+
+**Verification commands:**
+```bash
+# Find Dictionary usage in domain code
+grep -r "Dictionary<" src/GameState src/Services src/Subsystems --include="*.cs"
+
+# Find HashSet usage in domain code
+grep -r "HashSet<" src/GameState src/Services src/Subsystems --include="*.cs"
+
+# Find TryGetValue patterns
+grep -r "TryGetValue" src --include="*.cs"
+```
+
+**Refactoring existing Dictionary usage:**
+- All existing Dictionary usage for entities is TECHNICAL DEBT
+- Replace systematically: Dictionary → List, `[id]` → `.FirstOrDefault(x => x.Id == id)`
+- No new Dictionary usage for domain entities (zero tolerance)
+- Document refactorings in commit messages
+
+## RARE EXCEPTIONS (WHEN DICTIONARY IS ACCEPTABLE)
+
+**Dictionary is acceptable ONLY for:**
+
+1. **Framework requirements (external APIs):**
+   ```csharp
+   // Blazor component parameters require Dictionary
+   var parameters = new Dictionary<string, object>
+   {
+       ["Value"] = someValue
+   };
+   ```
+
+2. **Configuration/settings (non-domain data):**
+   ```csharp
+   // Application configuration (not game entities)
+   Dictionary<string, string> appSettings = configuration.GetSection("Settings");
+   ```
+
+3. **Caching external API responses (if actually needed):**
+   ```csharp
+   // Cache for slow external API calls (Ollama, etc.)
+   // ONLY if profiling proves it's a bottleneck
+   Dictionary<string, OllamaResponse> _responseCache;
+   ```
+
+**Dictionary is NEVER acceptable for:**
+- ❌ GameWorld entity collections (NPCs, Locations, Scenes, Routes, Items)
+- ❌ Player state (inventory, stats, relationships)
+- ❌ Game session data (visited locations, completed scenes)
+- ❌ Any domain entity storage
+
+**The test:** If it's a domain entity or game state, use `List<T>`. No exceptions.
+
+## SUMMARY
+
+**This game optimizes for MAINTAINABILITY, not PERFORMANCE.**
+
+Dictionary/HashSet are performance optimizations. In a game with:
+- 20 NPCs (not 20,000)
+- Single-threaded execution (not concurrent)
+- Human-speed interactions (not microsecond latency)
+- Browser-based rendering (not real-time simulation)
+
+**Performance optimization is PREMATURE, HARMFUL, and FORBIDDEN.**
+
+Use `List<T>` with LINQ. Write readable, maintainable, domain-driven code. Let the code be CLEAR, not CLEVER.
+
+**"Premature optimization is the root of all evil." - Donald Knuth**
+
+In this codebase, Dictionary for domain entities IS premature optimization. Use List<T>.
+
+---
+
 # ICON SYSTEM (NO EMOJIS)
 
 **CRITICAL PATTERN: Professional scalable graphics required for all visual content.**
