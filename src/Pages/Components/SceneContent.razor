@@ -170,6 +170,43 @@
                                         </div>
                                     }
 
+                                    @* Five Stats rewards (Sir Brante pattern: direct grants) *@
+                                    @if (choice.InsightReward != 0)
+                                    {
+                                        <div class="consequence-item">
+                                            🧠 @(choice.InsightReward > 0 ? "+" : "")@choice.InsightReward Insight
+                                            <span class="final-value">(will have @choice.FinalInsight)</span>
+                                        </div>
+                                    }
+                                    @if (choice.RapportReward != 0)
+                                    {
+                                        <div class="consequence-item">
+                                            💙 @(choice.RapportReward > 0 ? "+" : "")@choice.RapportReward Rapport
+                                            <span class="final-value">(will have @choice.FinalRapport)</span>
+                                        </div>
+                                    }
+                                    @if (choice.AuthorityReward != 0)
+                                    {
+                                        <div class="consequence-item">
+                                            👑 @(choice.AuthorityReward > 0 ? "+" : "")@choice.AuthorityReward Authority
+                                            <span class="final-value">(will have @choice.FinalAuthority)</span>
+                                        </div>
+                                    }
+                                    @if (choice.DiplomacyReward != 0)
+                                    {
+                                        <div class="consequence-item">
+                                            🤝 @(choice.DiplomacyReward > 0 ? "+" : "")@choice.DiplomacyReward Diplomacy
+                                            <span class="final-value">(will have @choice.FinalDiplomacy)</span>
+                                        </div>
+                                    }
+                                    @if (choice.CunningReward != 0)
+                                    {
+                                        <div class="consequence-item">
+                                            🎭 @(choice.CunningReward > 0 ? "+" : "")@choice.CunningReward Cunning
+                                            <span class="final-value">(will have @choice.FinalCunning)</span>
+                                        </div>
+                                    }
+
                                     @* Relationship consequences *@
                                     @foreach (var bondChange in choice.BondChanges)
                                     {
