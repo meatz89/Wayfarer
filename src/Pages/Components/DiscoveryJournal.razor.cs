@@ -98,14 +98,15 @@ namespace Wayfarer.Pages.Components
             return GameWorld.ObligationJournal.ActiveObligations.ToList();
         }
 
-        protected List<string> GetCompletedObligationIds()
+        // HIGHLANDER: Object references ONLY - return obligations, not IDs
+        protected List<Obligation> GetCompletedObligations()
         {
-            return GameWorld.ObligationJournal.CompletedObligationIds.ToList();
+            return GameWorld.ObligationJournal.CompletedObligations.ToList();
         }
 
-        protected List<string> GetDiscoveredObligationIds()
+        protected List<Obligation> GetDiscoveredObligations()
         {
-            return GameWorld.ObligationJournal.DiscoveredObligationIds.ToList();
+            return GameWorld.ObligationJournal.DiscoveredObligations.ToList();
         }
 
         protected Obligation GetObligationById(string obligationId)

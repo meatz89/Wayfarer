@@ -3,11 +3,11 @@ using System.Collections.Immutable;
 /// <summary>
 /// Immutable state container for NPC data.
 /// All modifications must go through operations/commands.
+/// HIGHLANDER: No ID property - Name is natural key
 /// </summary>
 public sealed class NPCState
 {
     // Identity
-    public string ID { get; }
     public string Name { get; }
     public string Role { get; }
     public string Description { get; }
@@ -18,7 +18,6 @@ public sealed class NPCState
     public NPCRelationship PlayerRelationship { get; }
 
     public NPCState(
-        string id,
         string name,
         string role,
         string description,
@@ -26,7 +25,6 @@ public sealed class NPCState
         Professions profession,
         NPCRelationship playerRelationship)
     {
-        ID = id;
         Name = name;
         Role = role;
         Description = description;
@@ -41,7 +39,7 @@ public sealed class NPCState
     public NPCState WithRelationship(NPCRelationship relationship)
     {
         return new NPCState(
-        ID, Name, Role, Description, LocationId,
+        Name, Role, Description, LocationId,
         Profession, relationship);
     }
 
@@ -51,7 +49,7 @@ public sealed class NPCState
     public NPCState WithLocation(string newSpotId)
     {
         return new NPCState(
-        ID, Name, Role, Description, newSpotId,
+        Name, Role, Description, newSpotId,
         Profession, PlayerRelationship);
     }
 
@@ -61,7 +59,6 @@ public sealed class NPCState
     public static NPCState FromNPC(NPC npc)
     {
         return new NPCState(
-            npc.ID,
             npc.Name,
             npc.Role,
             npc.Description,

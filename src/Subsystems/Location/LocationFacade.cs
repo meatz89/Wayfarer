@@ -78,12 +78,12 @@ public class LocationFacade
     /// Move player to a different Location within the current Venue.
     /// Movement between Locations within a Venue is FREE (no attention cost).
     /// </summary>
-    public bool MoveToSpot(string locationId)
+    public bool MoveToSpot(string locationName)
     {
         // Validation
-        if (string.IsNullOrEmpty(locationId))
+        if (string.IsNullOrEmpty(locationName))
         {
-            _messageSystem.AddSystemMessage("Invalid location ID", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("Invalid location name", SystemMessageTypes.Warning);
             return false;
         }
 
@@ -99,17 +99,17 @@ public class LocationFacade
         }
 
         // Check if already at target
-        if (currentLocation.Id == locationId)
+        if (currentLocation.Name == locationName)
         {
             return true; // Already there - no-op success
         }
 
-        // Find target location by ID (HIGHLANDER: runtime lookups use ID only)
-        List<Location> Locations = _spotManager.GetLocationsForVenue(currentVenue.Id);
-        Location targetSpot = Locations.FirstOrDefault(s => s.Id == locationId);
+        // Find target location by name
+        List<Location> Locations = _spotManager.GetLocationsForVenue(currentVenue.Name);
+        Location targetSpot = Locations.FirstOrDefault(s => s.Name == locationName);
         if (targetSpot == null)
         {
-            _messageSystem.AddSystemMessage($"Location ID '{locationId}' not found in {currentVenue.Name}", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"Location '{locationName}' not found in {currentVenue.Name}", SystemMessageTypes.Warning);
             return false;
         }
 
@@ -123,7 +123,7 @@ public class LocationFacade
 
         // Execute movement
         _locationManager.SetCurrentSpot(targetSpot);
-        player.AddKnownLocation(targetSpot.Id);
+        player.AddKnownLocation(targetSpot.Name);
         _messageSystem.AddSystemMessage($"Moved to {targetSpot.Name}", SystemMessageTypes.Info);
 
         return true;
@@ -232,7 +232,8 @@ public class LocationFacade
             List<InteractionOptionViewModel> interactions = new List<InteractionOptionViewModel>();
 
             // Find conversation options for this NPC if provided
-            NPCConversationOptions? npcOptions = npcConversationOptions.FirstOrDefault(opt => opt.NpcId == npc.ID);
+            // HIGHLANDER: Name is natural key, no ID property
+            NPCConversationOptions? npcOptions = npcConversationOptions.FirstOrDefault(opt => opt.NpcId == npc.Name);
             if (npcOptions != null)
             {
                 foreach (string conversationType in npcOptions.AvailableTypes)
@@ -253,7 +254,7 @@ public class LocationFacade
 
             result.Add(new NPCInteractionViewModel
             {
-                Id = npc.ID,
+                Id = npc.Name, // HIGHLANDER: Name is natural key
                 Name = npc.Name,
                 ConnectionStateName = connectionState.ToString(),
                 Description = GetNPCDescription(npc, connectionState),
@@ -315,14 +316,14 @@ public class LocationFacade
             TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
             int currentSegment = _timeManager.CurrentSegment;
             List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationAndTime(locationId, currentTimeBlock);
-            List<string> npcIdsAtCurrentSpot = npcsAtCurrentSpot.Select(n => n.ID).ToList();
 
             foreach (Observation obs in locationObservations)
             {
                 // For observations that require specific NPCs, only show if NPC is present
+                // HIGHLANDER: Direct object comparison, no ID extraction
                 if (obs.Automatic == true && obs.RelevantNPCs?.Any() == true)
                 {
-                    bool hasNpcAtSpot = obs.RelevantNPCs.Any(npcId => npcIdsAtCurrentSpot.Contains(npcId));
+                    bool hasNpcAtSpot = obs.RelevantNPCs.Any(npc => npcsAtCurrentSpot.Contains(npc));
                     if (!hasNpcAtSpot) continue;
                 }
 
@@ -738,7 +739,7 @@ public class LocationFacade
             List<Scene> activeScenes = _gameWorld.Scenes.Where(s =>
                 s.State == SceneState.Active &&
                 s.CurrentSituation?.Npc != null &&
-                s.CurrentSituation.Npc.ID == npc.ID).ToList();
+                s.CurrentSituation.Npc == npc).ToList(); // HIGHLANDER: Object equality
 
             // Build scene view model for each active scene
             List<NpcSceneViewModel> availableScenes = new List<NpcSceneViewModel>();
@@ -775,7 +776,7 @@ public class LocationFacade
 
             NpcWithSituationsViewModel viewModel = new NpcWithSituationsViewModel
             {
-                Id = npc.ID,
+                Id = npc.Name, // HIGHLANDER: Name is natural key
                 Name = npc.Name,
                 PersonalityType = npc.PersonalityType.ToString(),
                 ConnectionState = connectionState.ToString(),
@@ -990,11 +991,12 @@ public class LocationFacade
 
     private Scene FindParentSceneForNPC(NPC npc, Situation situation)
     {
-        // Query GameWorld.Scenes by placement type and ID, check if SituationIds contains this situation.Id
+        // Query GameWorld.Scenes by placement type, check if SituationIds contains this situation.Id
         // HIERARCHICAL PLACEMENT: Check if any situation in scene has this NPC
+        // HIGHLANDER: Object equality, no ID comparison
         return _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active)
-            .Where(s => s.Situations.Any(sit => sit.Npc?.ID == npc.ID))
+            .Where(s => s.Situations.Any(sit => sit.Npc == npc))
             .FirstOrDefault(s => s.Situations.Any(sit => sit.Id == situation.Id));
     }
 

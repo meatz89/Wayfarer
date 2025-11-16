@@ -20,9 +20,9 @@ public class ObligationDiscoveryEvaluator
     {
         List<Obligation> discoverable = new List<Obligation>();
 
-        foreach (string obligationId in _gameWorld.ObligationJournal.PotentialObligationIds)
+        // HIGHLANDER: Object references ONLY, iterate over objects directly
+        foreach (Obligation obligation in _gameWorld.ObligationJournal.PotentialObligations)
         {
-            Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
             if (obligation == null)
             {
                 continue;

@@ -94,13 +94,12 @@
         }
         else if (CurrentTab == "discovered")
         {
-            <!-- Discovered Obligations Tab -->
-            var discoveredIds = GetDiscoveredObligationIds();
-            @if (discoveredIds.Any())
+            <!-- Discovered Obligations Tab - HIGHLANDER: Object references ONLY -->
+            var discoveredObligations = GetDiscoveredObligations();
+            @if (discoveredObligations.Any())
             {
-                @foreach (string discoveredId in discoveredIds)
+                @foreach (Obligation inv in discoveredObligations)
                 {
-                    Obligation inv = GetObligationById(discoveredId);
                     if (inv != null && inv.IntroAction != null)
                     {
                         <div class="obligation-card discovered-card">
@@ -127,13 +126,12 @@
         }
         else if (CurrentTab == "completed")
         {
-            <!-- Completed Obligations Tab -->
-            var completedIds = GetCompletedObligationIds();
-            @if (completedIds.Any())
+            <!-- Completed Obligations Tab - HIGHLANDER: Object references ONLY -->
+            var completedObligations = GetCompletedObligations();
+            @if (completedObligations.Any())
             {
-                @foreach (string completedId in completedIds)
+                @foreach (Obligation inv in completedObligations)
                 {
-                    Obligation inv = GetObligationById(completedId);
                     if (inv != null)
                     {
                         <div class="obligation-card">

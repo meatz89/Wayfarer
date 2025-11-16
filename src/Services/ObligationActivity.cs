@@ -132,9 +132,9 @@ public class ObligationActivity
             throw new ArgumentException($"Obligation '{obligationId}' not found in GameWorld");
         }
 
-        // Remove from potential and discovered
-        _gameWorld.ObligationJournal.PotentialObligationIds.Remove(obligationId);
-        _gameWorld.ObligationJournal.DiscoveredObligationIds.Remove(obligationId);
+        // Remove from potential and discovered - HIGHLANDER: Object references ONLY
+        _gameWorld.ObligationJournal.PotentialObligations.Remove(obligation);
+        _gameWorld.ObligationJournal.DiscoveredObligations.Remove(obligation);
 
         // Create active obligation
         ActiveObligation activeObligation = new ActiveObligation
@@ -262,9 +262,9 @@ public class ObligationActivity
             return null; // Not yet complete - need more Understanding
         }
 
-        // Move from Active → Completed
+        // Move from Active → Completed - HIGHLANDER: Object references ONLY
         _gameWorld.ObligationJournal.ActiveObligations.Remove(activeInv);
-        _gameWorld.ObligationJournal.CompletedObligationIds.Add(obligationId);
+        _gameWorld.ObligationJournal.CompletedObligations.Add(obligation);
 
         // Grant rewards
         GrantObligationRewards(obligation);
@@ -325,7 +325,8 @@ public class ObligationActivity
             if (spawnedObligation != null)
             {
                 // Move to Discovered state (player must accept it via intro action)
-                _gameWorld.ObligationJournal.DiscoveredObligationIds.Add(obligationId);
+                // HIGHLANDER: Object references ONLY
+                _gameWorld.ObligationJournal.DiscoveredObligations.Add(spawnedObligation);
                 _messageSystem.AddSystemMessage(
                     $"New obligation available: {spawnedObligation.Name}",
                     SystemMessageTypes.Info);
@@ -349,8 +350,8 @@ public class ObligationActivity
         if (obligation.IntroAction == null)
             throw new InvalidOperationException($"Obligation '{obligationId}' has no intro action defined");
 
-        // Move Potential → Active (skip Discovered state entirely)
-        _gameWorld.ObligationJournal.PotentialObligationIds.Remove(obligationId);
+        // Move Potential → Active (skip Discovered state entirely) - HIGHLANDER: Object references ONLY
+        _gameWorld.ObligationJournal.PotentialObligations.Remove(obligation);
 
         // Create active obligation
         ActiveObligation activeObligation = new ActiveObligation

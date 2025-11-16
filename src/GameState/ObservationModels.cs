@@ -7,8 +7,8 @@ public class Observation
     public string Text { get; set; }
     public ObservationType Type { get; set; }
     public int AttentionCost { get; set; } = 0;
-    // HIGHLANDER: Object references ONLY, no RelevantNPCs IDs (using string array for NPC names)
-    public string[] RelevantNPCs { get; set; }
+    // HIGHLANDER: Object references ONLY, no RelevantNPCs IDs
+    public List<NPC> RelevantNPCs { get; set; } = new List<NPC>();
     public ConnectionState? CreatesState { get; set; }
     public string CardTemplate { get; set; }
     public string Description { get; set; }

@@ -161,7 +161,7 @@ public class GameFacade
     public List<NPC> GetAvailableStrangers(Venue venue)
     {
         TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
-        return _gameWorld.GetAvailableStrangers(venue.Id, currentTime);
+        return _gameWorld.GetAvailableStrangers(venue.Name, currentTime);
     }
 
     public List<ObligationApproach> GetAvailableObligationApproaches()
@@ -185,7 +185,7 @@ public class GameFacade
 
     public async Task<bool> MoveToSpot(Location location)
     {
-        bool success = _locationFacade.MoveToSpot(location.Id);
+        bool success = _locationFacade.MoveToSpot(location.Name);
 
         // Movement to new Venue may unlock obligation discovery (ImmediateVisibility, EnvironmentalObservation triggers)
         if (success)
@@ -209,7 +209,7 @@ public class GameFacade
 
     public List<NPC> GetNPCsAtLocation(Venue venue)
     {
-        return _locationFacade.GetNPCsAtLocation(venue.Id);
+        return _locationFacade.GetNPCsAtLocation(venue.Name);
     }
 
     public List<NPC> GetNPCsAtCurrentSpot()
@@ -252,15 +252,15 @@ public class GameFacade
         return GetTravelDestinations();
     }
 
-    public async Task<bool> TravelToDestinationAsync(string routeId)
+    public async Task<bool> TravelToDestinationAsync(string routeName)
     {
-        // Get all routes and find the one with matching ID
+        // Get all routes and find the one with matching name
         List<RouteOption> allRoutes = _travelFacade.GetAvailableRoutesFromCurrentLocation();
-        RouteOption? targetRoute = allRoutes.FirstOrDefault(r => r.Id == routeId);
+        RouteOption? targetRoute = allRoutes.FirstOrDefault(r => r.Name == routeName);
 
         if (targetRoute == null)
         {
-            _narrativeFacade.AddSystemMessage($"Route {routeId} not found", SystemMessageTypes.Danger);
+            _narrativeFacade.AddSystemMessage($"Route {routeName} not found", SystemMessageTypes.Danger);
             return false;
         }
 
@@ -318,7 +318,7 @@ public class GameFacade
             Success = true,
             TravelTimeSegments = travelTime,
             CoinCost = coinCost,
-            RouteId = routeId,
+            RouteId = routeName,
             TransportMethod = targetRoute.Method
         };
 
@@ -327,25 +327,25 @@ public class GameFacade
 
             // Get the actual destination location from the route
             RouteOption? actualRoute = _travelFacade.GetAvailableRoutesFromCurrentLocation()
-                .FirstOrDefault(r => r.Id == routeId);
+                .FirstOrDefault(r => r.Name == routeName);
 
             if (actualRoute != null)
             {
-                // Find the destination location by its ID from GameWorld's Locations dictionary
-                Location? destSpot = _gameWorld.GetLocation(actualRoute.DestinationLocationId);
+                // Find the destination location by name from GameWorld's Locations
+                Location? destSpot = _gameWorld.GetLocation(actualRoute.DestinationLocationName);
 
                 if (destSpot != null)
                 {
                     if (!destSpot.HexPosition.HasValue)
-                        throw new InvalidOperationException($"Destination location '{destSpot.Id}' has no HexPosition - cannot move player");
+                        throw new InvalidOperationException($"Destination location '{destSpot.Name}' has no HexPosition - cannot move player");
 
                     player.CurrentPosition = destSpot.HexPosition.Value;
 
                     // TRIGGER POINT 1: Record location visit after successful travel
-                    RecordLocationVisit(destSpot.Id);
+                    RecordLocationVisit(destSpot.Name);
 
                     // TRIGGER POINT 3: Record route traversal after successful travel
-                    RecordRouteTraversal(routeId);
+                    RecordRouteTraversal(routeName);
                 }
             }
 
@@ -361,13 +361,13 @@ public class GameFacade
             });
 
             // Get destination Venue name for the message
-            Location? finalDestSpot = _gameWorld.GetLocation(targetRoute.DestinationLocationId);
+            Location? finalDestSpot = _gameWorld.GetLocation(targetRoute.DestinationLocationName);
 
             string destinationName = "Unknown";
             if (finalDestSpot != null)
             {
                 Venue? destLocation = _gameWorld.Venues
-                    .FirstOrDefault(l => l.Id == finalDestSpot.VenueId);
+                    .FirstOrDefault(l => l.Name == finalDestSpot.VenueName);
                 if (destLocation != null)
                 {
                     destinationName = destLocation.Name;
@@ -423,7 +423,7 @@ public class GameFacade
 
     public async Task<SocialChallengeContext> CreateConversationContext(NPC npc, Situation situation)
     {
-        return await _conversationFacade.CreateConversationContext(npc.ID, situation.Id);
+        return await _conversationFacade.CreateConversationContext(npc.Name, situation.TemplateId);
     }
 
     /// <summary>
@@ -504,7 +504,7 @@ public class GameFacade
         MentalDeckBuildResult buildResult = _mentalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _mentalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situation?.Id, obligation?.Id);
+        return _mentalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situation?.TemplateId, obligation?.Name);
     }
 
     /// <summary>
@@ -577,7 +577,7 @@ public class GameFacade
         PhysicalDeckBuildResult buildResult = _physicalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _physicalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situation?.Id, obligation?.Id);
+        return _physicalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situation?.TemplateId, obligation?.Name);
     }
 
     /// <summary>
@@ -645,13 +645,13 @@ public class GameFacade
         PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
 
         // Get player's tokens with this specific NPC
-        Dictionary<ConnectionType, int> npcTokens = _tokenFacade.GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> npcTokens = _tokenFacade.GetTokensWithNPC(npc.Name);
 
         // Get relationship tier with this NPC
-        RelationshipTier relationshipTier = _tokenFacade.GetRelationshipTier(npcId);
+        RelationshipTier relationshipTier = _tokenFacade.GetRelationshipTier(npc.Name);
 
         // Get available exchanges from ExchangeFacade - now orchestrating properly
-        List<ExchangeOption> availableExchanges = _exchangeFacade.GetAvailableExchanges(npcId, playerResources, npcTokens, relationshipTier);
+        List<ExchangeOption> availableExchanges = _exchangeFacade.GetAvailableExchanges(npc.Name, playerResources, npcTokens, relationshipTier);
 
         if (!availableExchanges.Any())
         {
@@ -660,7 +660,7 @@ public class GameFacade
         }
 
         // Create exchange session through ExchangeFacade
-        ExchangeSession session = _exchangeFacade.CreateExchangeSession(npcId);
+        ExchangeSession session = _exchangeFacade.CreateExchangeSession(npc.Name);
         if (session == null)
         {
             _messageSystem.AddSystemMessage($"Could not create exchange session with {npc.Name}", SystemMessageTypes.Danger);
@@ -672,15 +672,15 @@ public class GameFacade
         {
             NpcInfo = new NpcInfo
             {
-                NpcId = npc.ID,
+                NpcId = npc.Name,
                 Name = npc.Name,
-                TokenCounts = _tokenFacade.GetTokensWithNPC(npc.ID)
+                TokenCounts = _tokenFacade.GetTokensWithNPC(npc.Name)
             },
             LocationInfo = new LocationInfo
             {
-                LocationId = currentLocation.Id,
+                LocationId = currentLocation.Name,
                 LocationName = currentLocation.Name,
-                VenueId = currentLocation.VenueId,
+                VenueId = currentLocation.VenueName,
                 VenueName = venue?.Name,
                 Description = venue?.Description
             },
@@ -690,8 +690,8 @@ public class GameFacade
             PlayerInventory = GetPlayerInventoryAsDictionary(),
             Session = new ExchangeSession
             {
-                NpcId = npcId,
-                LocationId = currentLocation.Id,
+                NpcId = npc.Name,
+                LocationId = currentLocation.Name,
                 AvailableExchanges = availableExchanges
             }
         };
@@ -733,19 +733,19 @@ public class GameFacade
         // Initialize player at starting Venue from GameWorld initial conditions
         // HEX-FIRST ARCHITECTURE: Player position is hex coordinates
         Player player = _gameWorld.GetPlayer();
-        string startingSpotId = _gameWorld.InitialLocationId;
-        Console.WriteLine($"[StartGameAsync] Starting location ID: {startingSpotId}");
+        string startingSpotName = _gameWorld.InitialLocationName;
+        Console.WriteLine($"[StartGameAsync] Starting location name: {startingSpotName}");
 
-        Location? startingSpot = _gameWorld.Locations.FirstOrDefault(s => s.Id == startingSpotId);
+        Location? startingSpot = _gameWorld.Locations.FirstOrDefault(s => s.Name == startingSpotName);
         if (startingSpot == null)
-            throw new InvalidOperationException($"Invalid InitialLocationId '{startingSpotId}' - no matching Location found in GameWorld.Locations");
+            throw new InvalidOperationException($"Invalid InitialLocationName '{startingSpotName}' - no matching Location found in GameWorld.Locations");
 
         if (!startingSpot.HexPosition.HasValue)
-            throw new InvalidOperationException($"Starting location '{startingSpotId}' has no HexPosition - cannot initialize player position");
+            throw new InvalidOperationException($"Starting location '{startingSpotName}' has no HexPosition - cannot initialize player position");
 
         Console.WriteLine($"[StartGameAsync] Setting player position to hex ({startingSpot.HexPosition.Value.Q}, {startingSpot.HexPosition.Value.R})");
         player.CurrentPosition = startingSpot.HexPosition.Value;
-        Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);
+        Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Name == startingSpot.VenueName);
 
         // Player resources already applied by PackageLoader.ApplyInitialPlayerConfiguration()
         // No need to re-apply here - HIGHLANDER PRINCIPLE: initialization happens ONCE
@@ -817,18 +817,18 @@ public class GameFacade
         return IntentResult.NavigateScreen(ScreenMode.Travel);
     }
 
-    private async Task<IntentResult> ProcessTravelIntentAsync(string routeId)
+    private async Task<IntentResult> ProcessTravelIntentAsync(string routeName)
     {
         // Backend authority: Navigate to Travel screen (screen-level navigation)
-        bool success = await TravelToDestinationAsync(routeId);
+        bool success = await TravelToDestinationAsync(routeName);
         return success ? IntentResult.NavigateScreen(ScreenMode.Travel) : IntentResult.Failed();
     }
 
     // ========== MOVEMENT INTENT HANDLERS ==========
 
-    private async Task<IntentResult> ProcessMoveIntent(string targetSpotId)
+    private async Task<IntentResult> ProcessMoveIntent(string targetSpotName)
     {
-        Location targetLocation = _gameWorld.GetLocation(targetSpotId);
+        Location targetLocation = _gameWorld.GetLocation(targetSpotName);
         if (targetLocation == null)
             return IntentResult.Failed();
 
@@ -837,7 +837,7 @@ public class GameFacade
         if (success)
         {
             // TRIGGER POINT 1: Record location visit after successful movement
-            RecordLocationVisit(targetSpotId);
+            RecordLocationVisit(targetSpotName);
         }
 
         return success ? IntentResult.Executed(requiresRefresh: true) : IntentResult.Failed();
@@ -1021,7 +1021,7 @@ public class GameFacade
             return IntentResult.Failed();
         }
 
-        _locationFacade.InvestigateLocation(currentSpot.Id);
+        _locationFacade.InvestigateLocation(currentSpot.Name);
         _messageSystem.AddSystemMessage("Investigated location, gaining familiarity", SystemMessageTypes.Info, MessageCategory.Discovery);
         return IntentResult.Executed(requiresRefresh: true);
     }
@@ -1107,9 +1107,9 @@ public class GameFacade
 
     // ========== NPC INTERACTION INTENT HANDLERS ==========
 
-    private async Task<IntentResult> ProcessTalkIntent(string npcId)
+    private async Task<IntentResult> ProcessTalkIntent(string npcName)
     {
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.Name == npcName);
         if (npc == null)
             return IntentResult.Failed();
 
@@ -1197,19 +1197,20 @@ public class GameFacade
     /// <summary>
     /// Converts player inventory to Dictionary format for ExchangeContext
     /// Key: ItemId, Value: Quantity
+    /// HIGHLANDER: Object references ONLY - work with Item objects
     /// </summary>
     private Dictionary<string, int> GetPlayerInventoryAsDictionary()
     {
         Player player = _gameWorld.GetPlayer();
         Dictionary<string, int> inventoryDict = new Dictionary<string, int>();
 
-        List<string> allItems = player.Inventory.GetAllItems();
-        List<string> uniqueItemIds = player.Inventory.GetItemIds();
+        List<Item> allItems = player.Inventory.GetAllItems();
+        List<Item> uniqueItems = allItems.Distinct().ToList();
 
-        foreach (string itemId in uniqueItemIds)
+        foreach (Item item in uniqueItems)
         {
-            int count = player.Inventory.GetItemCount(itemId);
-            inventoryDict[itemId] = count;
+            int count = player.Inventory.Count(item);
+            inventoryDict[item.Id] = count;
         }
 
         return inventoryDict;
@@ -1220,7 +1221,7 @@ public class GameFacade
     /// </summary>
     public District GetDistrictForLocation(Venue venue)
     {
-        return _gameWorld.GetDistrictForLocation(venue.Id);
+        return _gameWorld.GetDistrictForLocation(venue.Name);
     }
 
     /// <summary>
@@ -1228,7 +1229,7 @@ public class GameFacade
     /// </summary>
     public Region GetRegionForDistrict(District district)
     {
-        return _gameWorld.GetRegionForDistrict(district.Id);
+        return _gameWorld.GetRegionForDistrict(district.Name);
     }
 
     /// <summary>
@@ -1385,27 +1386,27 @@ public class GameFacade
         }
     }
 
-    public void DebugTeleportToLocation(string venueId, string LocationId)
+    public void DebugTeleportToLocation(string venueName, string locationName)
     {
         Player player = _gameWorld.GetPlayer();
-        Location location = _gameWorld.GetLocation(LocationId);
+        Location location = _gameWorld.GetLocation(locationName);
 
         if (location == null)
         {
-            _messageSystem.AddSystemMessage($"location '{LocationId}' not found", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"location '{locationName}' not found", SystemMessageTypes.Warning);
             return;
         }
 
         if (!location.HexPosition.HasValue)
         {
-            _messageSystem.AddSystemMessage($"location '{LocationId}' has no HexPosition - cannot teleport", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"location '{locationName}' has no HexPosition - cannot teleport", SystemMessageTypes.Warning);
             return;
         }
 
-        Venue? venue = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
+        Venue? venue = _gameWorld.Venues.FirstOrDefault(l => l.Name == venueName);
         if (venue == null)
         {
-            _messageSystem.AddSystemMessage($"Location '{venueId}' not found", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"Location '{venueName}' not found", SystemMessageTypes.Warning);
             return;
         }
 
@@ -1429,7 +1430,7 @@ public class GameFacade
         foreach (Obligation obligation in discoverable)
         {// DiscoverObligation moves Potential→Discovered and spawns intro situation at location
          // No return value - situation is added directly to Location.ActiveSituations
-            await _obligationActivity.DiscoverObligation(obligation.Id);
+            await _obligationActivity.DiscoverObligation(obligation.Name);
 
             // Pending discovery result is now set in ObligationActivity
             // GameScreen will check for it and display the modal
@@ -1445,7 +1446,7 @@ public class GameFacade
     /// </summary>
     public async Task CompleteObligationIntro(Obligation obligation)
     {
-        await _obligationActivity.CompleteIntroAction(obligation.Id);
+        await _obligationActivity.CompleteIntroAction(obligation.Name);
     }
 
     /// <summary>
@@ -1454,7 +1455,7 @@ public class GameFacade
     /// </summary>
     public void SetPendingIntroAction(Obligation obligation)
     {
-        _obligationActivity.SetPendingIntroAction(obligation.Id);
+        _obligationActivity.SetPendingIntroAction(obligation.Name);
     }
 
     /// <summary>
@@ -1543,7 +1544,7 @@ public class GameFacade
     /// </summary>
     public List<ConversationTree> GetAvailableConversationTreesAtLocation(Location location)
     {
-        return _conversationTreeFacade.GetAvailableTreesAtLocation(location.Id);
+        return _conversationTreeFacade.GetAvailableTreesAtLocation(location.Name);
     }
 
     /// <summary>
@@ -1551,7 +1552,7 @@ public class GameFacade
     /// </summary>
     public List<ObservationScene> GetAvailableObservationScenesAtLocation(Location location)
     {
-        return _observationFacade.GetAvailableScenesAtLocation(location.Id);
+        return _observationFacade.GetAvailableScenesAtLocation(location.Name);
     }
 
     /// <summary>
@@ -1569,7 +1570,7 @@ public class GameFacade
         // Query all Situations (both legacy and Scene-embedded) at this location
         // HIERARCHICAL PLACEMENT: Situations own their own Location (direct property access)
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
-            .Where(sit => sit.Location?.Id == location.Id)
+            .Where(sit => sit.Location == location)
             .ToList();
     }
 
@@ -1585,7 +1586,7 @@ public class GameFacade
         // Query all Situations (both legacy and Scene-embedded) for this NPC
         // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
-            .Where(sit => sit.Npc != null && sit.Npc.ID == npc.ID)
+            .Where(sit => sit.Npc == npc)
             .ToList();
     }
 
@@ -1682,8 +1683,8 @@ public class GameFacade
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Verify Situation exists (get from action.SituationId)
-        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == action.SituationId);
+        // Verify Situation exists (get from action.Situation object reference)
+        Situation situation = action.Situation;
         if (situation == null)
             return IntentResult.Failed();
 
@@ -1785,8 +1786,8 @@ public class GameFacade
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Verify Situation exists (get from action.SituationId)
-        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == action.SituationId);
+        // Verify Situation exists (get from action.Situation object reference)
+        Situation situation = action.Situation;
         if (situation == null)
             return IntentResult.Failed();
 
@@ -1796,7 +1797,7 @@ public class GameFacade
         // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
         if (situation.Npc != null)
         {
-            RecordNPCInteraction(situation.Npc.ID);
+            RecordNPCInteraction(situation.Npc.Name);
         }
 
         // STEP 1: Validate and extract execution plan
@@ -1895,8 +1896,8 @@ public class GameFacade
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Verify Situation exists (get from card.SituationId)
-        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == card.SituationId);
+        // Verify Situation exists (get from card.Situation object reference)
+        Situation situation = card.Situation;
         if (situation == null)
             return IntentResult.Failed();
 
@@ -2164,8 +2165,7 @@ public class GameFacade
         if (_gameWorld.LastSocialOutcome?.Success == true &&
             _gameWorld.PendingSocialContext?.CompletionReward != null)
         {
-            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentSocialSession?.RequestId);
+            Situation currentSituation = _gameWorld.PendingSocialContext.Situation;
             await _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingSocialContext.CompletionReward,
                 currentSituation);
@@ -2173,8 +2173,7 @@ public class GameFacade
         else if (_gameWorld.LastSocialOutcome?.Success == false &&
                  _gameWorld.PendingSocialContext?.FailureReward != null)
         {
-            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingSocialContext.SituationId);
+            Situation currentSituation = _gameWorld.PendingSocialContext.Situation;
             await _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingSocialContext.FailureReward,
                 currentSituation);
@@ -2191,8 +2190,7 @@ public class GameFacade
         if (_gameWorld.LastMentalOutcome?.Success == true &&
             _gameWorld.PendingMentalContext?.CompletionReward != null)
         {
-            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentMentalSituationId);
+            Situation currentSituation = _gameWorld.PendingMentalContext.Situation;
             await _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingMentalContext.CompletionReward,
                 currentSituation);
@@ -2200,8 +2198,7 @@ public class GameFacade
         else if (_gameWorld.LastMentalOutcome?.Success == false &&
                  _gameWorld.PendingMentalContext?.FailureReward != null)
         {
-            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingMentalContext.SituationId);
+            Situation currentSituation = _gameWorld.PendingMentalContext.Situation;
             await _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingMentalContext.FailureReward,
                 currentSituation);
@@ -2218,8 +2215,7 @@ public class GameFacade
         if (_gameWorld.LastPhysicalOutcome?.Success == true &&
             _gameWorld.PendingPhysicalContext?.CompletionReward != null)
         {
-            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentPhysicalSituationId);
+            Situation currentSituation = _gameWorld.PendingPhysicalContext.Situation;
             await _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingPhysicalContext.CompletionReward,
                 currentSituation);
@@ -2227,8 +2223,7 @@ public class GameFacade
         else if (_gameWorld.LastPhysicalOutcome?.Success == false &&
                  _gameWorld.PendingPhysicalContext?.FailureReward != null)
         {
-            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingPhysicalContext.SituationId);
+            Situation currentSituation = _gameWorld.PendingPhysicalContext.Situation;
             await _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingPhysicalContext.FailureReward,
                 currentSituation);

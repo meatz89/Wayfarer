@@ -1,24 +1,6 @@
 using System.Text.Json;
 
 /// <summary>
-/// Helper class for exchange card lookups
-/// </summary>
-internal class ExchangeCardEntry
-{
-    public string Id { get; set; }
-    public ExchangeCard Card { get; set; }
-}
-
-/// <summary>
-/// Helper class for path card lookups
-/// </summary>
-internal class PathCardEntry
-{
-    public string Id { get; set; }
-    public PathCardDTO Card { get; set; }
-}
-
-/// <summary>
 /// Orchestrates loading of game packages, delegating to specialized parsers for conversion.
 /// Uses simple sequential loading in dependency order for static content.
 ///
@@ -33,7 +15,7 @@ public class PackageLoader
 {
     private readonly GameWorld _gameWorld;
     private bool _isFirstPackage = true;
-    private List<ExchangeCardEntry> _parsedExchangeCards;
+    private List<ExchangeCard> _parsedExchangeCards; // HIGHLANDER: Object references ONLY, no wrapper class
     private string _currentPackageId = "unknown"; // Track current package for error reporting
 
     // Track loaded packages to prevent reloading
@@ -196,9 +178,9 @@ public class PackageLoader
         // Actions are now GENERATED from catalogues at parse time (see GeneratePlayerActionsFromCatalogue/GenerateLocationActionsFromCatalogue)
         // CATALOGUE PATTERN: Actions generated from categorical properties, never from JSON
 
-        // 8. Travel content
-        List<PathCardEntry> pathCardLookup = LoadPathCards(package.Content.PathCards, allowSkeletons);
-        List<PathCardEntry> eventCardLookup = LoadEventCards(package.Content.EventCards, allowSkeletons);
+        // 8. Travel content - HIGHLANDER: Object references ONLY, no wrapper classes
+        List<PathCardDTO> pathCardLookup = LoadPathCards(package.Content.PathCards, allowSkeletons);
+        List<PathCardDTO> eventCardLookup = LoadEventCards(package.Content.EventCards, allowSkeletons);
         LoadTravelEvents(package.Content.TravelEvents, eventCardLookup, allowSkeletons);
         LoadEventCollections(package.Content.PathCardCollections, pathCardLookup, eventCardLookup, allowSkeletons);
 
@@ -1123,31 +1105,28 @@ public class PackageLoader
         if (dialogueTemplates == null) return; _gameWorld.DialogueTemplates = dialogueTemplates;
     }
 
-    private List<PathCardEntry> LoadPathCards(List<PathCardDTO> pathCardDtos, bool allowSkeletons)
+    /// <summary>
+    /// Load path cards - HIGHLANDER: Object references ONLY, no wrapper classes
+    /// </summary>
+    private List<PathCardDTO> LoadPathCards(List<PathCardDTO> pathCardDtos, bool allowSkeletons)
     {
-        if (pathCardDtos == null) return new List<PathCardEntry>();
-
-        List<PathCardEntry> pathCardLookup = new List<PathCardEntry>();
-        foreach (PathCardDTO dto in pathCardDtos)
-        {
-            pathCardLookup.Add(new PathCardEntry { Id = dto.Name, Card = dto });
-        }
-        return pathCardLookup;
+        if (pathCardDtos == null) return new List<PathCardDTO>();
+        return pathCardDtos;
     }
 
-    private List<PathCardEntry> LoadEventCards(List<PathCardDTO> eventCardDtos, bool allowSkeletons)
+    /// <summary>
+    /// Load event cards - HIGHLANDER: Object references ONLY, no wrapper classes
+    /// </summary>
+    private List<PathCardDTO> LoadEventCards(List<PathCardDTO> eventCardDtos, bool allowSkeletons)
     {
-        if (eventCardDtos == null) return new List<PathCardEntry>();
-
-        List<PathCardEntry> eventCardLookup = new List<PathCardEntry>();
-        foreach (PathCardDTO dto in eventCardDtos)
-        {
-            eventCardLookup.Add(new PathCardEntry { Id = dto.Name, Card = dto });
-        }
-        return eventCardLookup;
+        if (eventCardDtos == null) return new List<PathCardDTO>();
+        return eventCardDtos;
     }
 
-    private void LoadTravelEvents(List<TravelEventDTO> travelEventDtos, List<PathCardEntry> eventCardLookup, bool allowSkeletons)
+    /// <summary>
+    /// Load travel events - HIGHLANDER: Object references ONLY, lookup by Name not wrapper ID
+    /// </summary>
+    private void LoadTravelEvents(List<TravelEventDTO> travelEventDtos, List<PathCardDTO> eventCardLookup, bool allowSkeletons)
     {
         if (travelEventDtos == null) return;
 
@@ -1158,10 +1137,10 @@ public class PackageLoader
             {
                 foreach (string cardId in dto.EventCardIds)
                 {
-                    PathCardEntry? eventCardEntry = eventCardLookup.FirstOrDefault(e => e.Id == cardId);
-                    if (eventCardEntry != null)
+                    PathCardDTO? eventCard = eventCardLookup.FirstOrDefault(e => e.Name == cardId);
+                    if (eventCard != null)
                     {
-                        dto.EventCards.Add(eventCardEntry.Card);
+                        dto.EventCards.Add(eventCard);
                     }
                 }
             }
@@ -1170,7 +1149,10 @@ public class PackageLoader
         }
     }
 
-    private void LoadEventCollections(List<PathCardCollectionDTO> collectionDtos, List<PathCardEntry> pathCardLookup, List<PathCardEntry> eventCardLookup, bool allowSkeletons)
+    /// <summary>
+    /// Load event collections - HIGHLANDER: Object references ONLY, lookup by Name not wrapper ID
+    /// </summary>
+    private void LoadEventCollections(List<PathCardCollectionDTO> collectionDtos, List<PathCardDTO> pathCardLookup, List<PathCardDTO> eventCardLookup, bool allowSkeletons)
     {
         if (collectionDtos == null) return;
 
@@ -1190,10 +1172,10 @@ public class PackageLoader
             {
                 foreach (string cardId in dto.PathCardIds)
                 {
-                    PathCardEntry? pathCardEntry = pathCardLookup.FirstOrDefault(p => p.Id == cardId);
-                    if (pathCardEntry != null)
+                    PathCardDTO? pathCard = pathCardLookup.FirstOrDefault(p => p.Name == cardId);
+                    if (pathCard != null)
                     {
-                        dto.PathCards.Add(pathCardEntry.Card);
+                        dto.PathCards.Add(pathCard);
                     }
                 }
             }
@@ -1250,10 +1232,10 @@ public class PackageLoader
                     int count = kvp.Value;
 
                     // Find the exchange card from the parsed exchange cards
-                    ExchangeCardEntry? exchangeEntry = _parsedExchangeCards?.FirstOrDefault(e => e.Id == cardId);
-                    if (exchangeEntry != null)
+                    // HIGHLANDER: Object references ONLY, lookup by Name not wrapper ID
+                    ExchangeCard? exchangeCard = _parsedExchangeCards?.FirstOrDefault(e => e.Name == cardId);
+                    if (exchangeCard != null)
                     {
-                        ExchangeCard exchangeCard = exchangeEntry.Card;
                         // Add the specified number of copies to the deck
                         for (int i = 0; i < count; i++)
                         {
@@ -1426,11 +1408,12 @@ public class PackageLoader
 
         // Parse exchanges into ExchangeCard objects and store them
         // These will be referenced when building NPC decks
-        _parsedExchangeCards = new List<ExchangeCardEntry>();
+        // HIGHLANDER: Object references ONLY, no wrapper class
+        _parsedExchangeCards = new List<ExchangeCard>();
         foreach (ExchangeDTO dto in exchangeDtos)
         {
             ExchangeCard exchangeCard = ExchangeParser.ParseExchange(dto, dto.NpcId, _gameWorld);
-            _parsedExchangeCards.Add(new ExchangeCardEntry { Id = exchangeCard.Name, Card = exchangeCard });
+            _parsedExchangeCards.Add(exchangeCard);
         }
     }
 
@@ -1476,15 +1459,16 @@ public class PackageLoader
     /// <summary>
     /// Initialize obligation journal with all obligations as Potential (awaiting discovery triggers)
     /// Called AFTER all packages are loaded to ensure all obligations exist
+    /// HIGHLANDER: Object references ONLY, no ID collections
     /// </summary>
     private void InitializeObligationJournal()
     {
         ObligationJournal obligationJournal = _gameWorld.ObligationJournal;
 
-        obligationJournal.PotentialObligationIds.Clear();
+        obligationJournal.PotentialObligations.Clear();
         foreach (Obligation obligation in _gameWorld.Obligations)
         {
-            obligationJournal.PotentialObligationIds.Add(obligation.Name);
+            obligationJournal.PotentialObligations.Add(obligation);
         }
     }
 
