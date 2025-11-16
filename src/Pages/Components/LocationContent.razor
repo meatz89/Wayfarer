@@ -170,7 +170,7 @@
 
 
             case LocationViewState.JobBoard:
-                <JobBoardView CurrentLocationId="@GameWorld.GetPlayerCurrentLocation().Id"
+                <JobBoardView CurrentLocation="@GameWorld.GetPlayerCurrentLocation()"
                               OnAcceptJob="HandleAcceptJob"
                               OnNavigateBack="NavigateBack" />
                 break;

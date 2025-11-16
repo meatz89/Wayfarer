@@ -552,10 +552,10 @@ public class GameWorld
     /// Get all available delivery jobs at a specific location for current time
     /// Used by LocationActionManager to show job board actions
     /// </summary>
-    public List<DeliveryJob> GetJobsAvailableAt(string locationName, TimeBlocks currentTime)
+    public List<DeliveryJob> GetJobsAvailableAt(Location location, TimeBlocks currentTime)
     {
         return AvailableDeliveryJobs
-            .Where(job => job.OriginLocation.Name == locationName)
+            .Where(job => job.OriginLocation == location)
             .Where(job => job.IsAvailable)
             .Where(job => job.AvailableAt.Count == 0 || job.AvailableAt.Contains(currentTime))
             .ToList();

@@ -35,7 +35,7 @@ namespace Wayfarer.Pages.Components
         {
             Player player = GameWorld.GetPlayer();
             return GameWorld.Locations
-                .Where(l => player.LocationFamiliarity.Any(f => f.EntityId == l.Id))
+                .Where(l => player.LocationFamiliarity.Any(f => f.EntityId == l.Name))
                 .OrderBy(l => l.Name)
                 .ToList();
         }
@@ -77,10 +77,10 @@ namespace Wayfarer.Pages.Components
                 {
                     routes.Add(new RouteInfo
                     {
-                        Id = $"{route.OriginLocationId}_{route.DestinationLocationId}",
-                        OriginName = route.OriginLocationId,
-                        DestinationName = route.DestinationLocationId,
-                        Familiarity = player.GetRouteFamiliarity($"{route.OriginLocationId}_{route.DestinationLocationId}")
+                        Id = route.Name,
+                        OriginName = route.OriginLocation.Name,
+                        DestinationName = route.DestinationLocation.Name,
+                        Familiarity = player.GetRouteFamiliarity(route.Name)
                     });
                 }
             }

@@ -186,20 +186,16 @@ namespace Wayfarer.Pages.Components
             if (TravelContext.CurrentRoute == null)
                 throw new InvalidOperationException("No current route in travel context");
 
-            // Extract destination from route
-            string destinationSpot = TravelContext.CurrentRoute.DestinationLocationId;
-            if (string.IsNullOrEmpty(destinationSpot))
+            // Get destination from route (object reference)
+            Location destination = TravelContext.CurrentRoute.DestinationLocation;
+            if (destination == null)
                 return "Unknown Destination";
 
-            // Get Venue location and Venue name
-            Location location = GameFacade.GetLocation(destinationSpot);
-            if (location != null)
+            // Get Venue from destination location (object reference)
+            Venue venue = destination.Venue;
+            if (venue != null)
             {
-                Venue venue = GameFacade.GetLocation(location.VenueId).Venue;
-                if (venue != null)
-                {
-                    return venue.Name;
-                }
+                return venue.Name;
             }
 
             return "Unknown Destination";
