@@ -5,7 +5,8 @@
 /// </summary>
 public class MentalChallengeDeck
 {
-    // HIGHLANDER: NO Id property - MentalChallengeDeck identified by object reference
+    // ADR-007: Id property RESTORED - Templates (immutable archetypes) ARE allowed to have IDs
+    public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public int DangerThreshold { get; set; }

@@ -4,7 +4,8 @@
 /// </summary>
 public class ConversationTree
 {
-    // HIGHLANDER: NO Id property - ConversationTree identified by object reference
+    // ADR-007: Id property RESTORED - Templates (immutable archetypes) ARE allowed to have IDs
+    public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
 
@@ -32,7 +33,8 @@ public class ConversationTree
 /// </summary>
 public class DialogueNode
 {
-    // HIGHLANDER: NO Id property - DialogueNode identified by object reference
+    // ADR-007: Id property RESTORED - Templates (immutable archetypes) ARE allowed to have IDs
+    public string Id { get; set; }
     public string NpcDialogue { get; set; }
     public List<DialogueResponse> Responses { get; set; } = new List<DialogueResponse>();
 }
@@ -43,7 +45,8 @@ public class DialogueNode
 /// </summary>
 public class DialogueResponse
 {
-    // HIGHLANDER: NO Id property - DialogueResponse identified by object reference
+    // ADR-007: Id property RESTORED - Templates (immutable archetypes) ARE allowed to have IDs
+    public string Id { get; set; }
     public string ResponseText { get; set; }
 
     // Costs

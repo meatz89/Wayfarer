@@ -4,7 +4,8 @@
 /// </summary>
 public class EmergencySituation
 {
-    // HIGHLANDER: NO Id property - EmergencySituation identified by object reference
+    // ADR-007: Id property RESTORED - Templates (immutable archetypes) ARE allowed to have IDs
+    public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
 
@@ -33,7 +34,8 @@ public class EmergencySituation
 /// </summary>
 public class EmergencyResponse
 {
-    // HIGHLANDER: NO Id property - EmergencyResponse identified by object reference
+    // ADR-007: Id property RESTORED - Templates (immutable archetypes) ARE allowed to have IDs
+    public string Id { get; set; }
     public string ResponseText { get; set; }
     public string Description { get; set; }
 

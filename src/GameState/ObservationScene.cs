@@ -6,7 +6,8 @@
 /// </summary>
 public class ObservationScene
 {
-    // HIGHLANDER: NO Id property - ObservationScene identified by object reference
+    // ADR-007: Id property RESTORED - Templates (immutable archetypes) ARE allowed to have IDs
+    public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
 
