@@ -1370,13 +1370,18 @@ public class PackageLoader
             _gameWorld.ExchangeDefinitions.Add(dto);
         }
 
+        // EntityResolver for categorical entity resolution (DDR-006)
+        Player player = _gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
+        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
+
         // Parse exchanges into ExchangeCard objects and store them
         // These will be referenced when building NPC decks
         // HIGHLANDER: Object references ONLY, no wrapper class
         _parsedExchangeCards = new List<ExchangeCard>();
         foreach (ExchangeDTO dto in exchangeDtos)
         {
-            ExchangeCard exchangeCard = ExchangeParser.ParseExchange(dto, dto.NpcId, _gameWorld);
+            ExchangeCard exchangeCard = ExchangeParser.ParseExchange(dto, entityResolver);
             _parsedExchangeCards.Add(exchangeCard);
         }
     }

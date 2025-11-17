@@ -4,14 +4,17 @@
     "name": "Equipment Exchange Cards",
     "timestamp": "2025-10-17T00:00:00Z",
     "description": "Exchange cards for purchasing equipment from merchant NPCs",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "content": {
     "exchanges": [
       {
         "id": "buy_rope",
         "name": "Purchase Sturdy Rope",
-        "npcId": "merchant_general",
+        "providerFilter": {
+          "placementType": "NPC",
+          "professions": ["Merchant"]
+        },
         "giveCurrency": "Coins",
         "giveAmount": 10,
         "grantedItems": ["rope"]
@@ -19,7 +22,10 @@
       {
         "id": "buy_waders",
         "name": "Purchase Waders",
-        "npcId": "merchant_general",
+        "providerFilter": {
+          "placementType": "NPC",
+          "professions": ["Merchant"]
+        },
         "giveCurrency": "Coins",
         "giveAmount": 12,
         "grantedItems": ["waders"]
@@ -27,7 +33,10 @@
       {
         "id": "buy_lantern",
         "name": "Purchase Oil Lantern",
-        "npcId": "merchant_general",
+        "providerFilter": {
+          "placementType": "NPC",
+          "professions": ["Merchant"]
+        },
         "giveCurrency": "Coins",
         "giveAmount": 15,
         "grantedItems": ["lantern"]
@@ -35,7 +44,10 @@
       {
         "id": "buy_tools",
         "name": "Purchase Tools",
-        "npcId": "merchant_general",
+        "providerFilter": {
+          "placementType": "NPC",
+          "professions": ["Merchant"]
+        },
         "giveCurrency": "Coins",
         "giveAmount": 20,
         "grantedItems": ["tools"]
@@ -43,7 +55,10 @@
       {
         "id": "buy_quality_clothing",
         "name": "Purchase Quality Clothing",
-        "npcId": "merchant_general",
+        "providerFilter": {
+          "placementType": "NPC",
+          "professions": ["Merchant"]
+        },
         "giveCurrency": "Coins",
         "giveAmount": 25,
         "grantedItems": ["quality_clothing"]
@@ -51,7 +66,10 @@
       {
         "id": "buy_rations",
         "name": "Purchase Rations",
-        "npcId": "merchant_general",
+        "providerFilter": {
+          "placementType": "NPC",
+          "professions": ["Merchant"]
+        },
         "giveCurrency": "Coins",
         "giveAmount": 5,
         "grantedItems": ["rations"]
@@ -59,7 +77,10 @@
       {
         "id": "buy_climbing_gear",
         "name": "Purchase Climbing Gear",
-        "npcId": "merchant_general",
+        "providerFilter": {
+          "placementType": "NPC",
+          "professions": ["Merchant"]
+        },
         "giveCurrency": "Coins",
         "giveAmount": 30,
         "grantedItems": ["climbing_gear"]

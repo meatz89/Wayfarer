@@ -5,8 +5,9 @@ public static class ConversationTreeParser
 {
     /// <summary>
     /// Convert ConversationTreeDTO to ConversationTree entity
+    /// Uses EntityResolver.FindOrCreate for categorical NPC resolution (DDR-006)
     /// </summary>
-    public static ConversationTree Parse(ConversationTreeDTO dto, GameWorld gameWorld)
+    public static ConversationTree Parse(ConversationTreeDTO dto, EntityResolver entityResolver)
     {
         if (dto == null)
             throw new ArgumentNullException(nameof(dto));
@@ -17,8 +18,8 @@ public static class ConversationTreeParser
         if (string.IsNullOrEmpty(dto.Name))
             throw new InvalidOperationException($"ConversationTree '{dto.Id}' missing required 'Name' field");
 
-        if (string.IsNullOrEmpty(dto.NpcId))
-            throw new InvalidOperationException($"ConversationTree '{dto.Id}' missing required 'NpcId' field");
+        if (dto.ParticipantFilter == null)
+            throw new InvalidOperationException($"ConversationTree '{dto.Id}' missing required 'participantFilter' field");
 
         if (dto.Nodes == null || dto.Nodes.Count == 0)
             throw new InvalidOperationException($"ConversationTree '{dto.Id}' must have at least one node");
@@ -26,13 +27,9 @@ public static class ConversationTreeParser
         if (string.IsNullOrEmpty(dto.StartingNodeId))
             throw new InvalidOperationException($"ConversationTree '{dto.Id}' missing required 'StartingNodeId' field");
 
-        // Verify NPC exists
-        NPC npc = gameWorld.NPCs.FirstOrDefault(n => n.ID == dto.NpcId);
-        if (npc == null)
-        {
-            throw new InvalidOperationException(
-                $"ConversationTree '{dto.Id}' references unknown NPC '{dto.NpcId}'");
-        }
+        // EntityResolver.FindOrCreate pattern - categorical entity resolution
+        PlacementFilter participantFilter = SceneTemplateParser.ParsePlacementFilter(dto.ParticipantFilter, $"ConversationTree:{dto.Id}");
+        NPC npc = entityResolver.FindOrCreateNPC(participantFilter);
 
         // Parse time blocks from string to enum
         List<TimeBlocks> timeBlocks = new List<TimeBlocks>();
@@ -58,9 +55,8 @@ public static class ConversationTreeParser
             Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description ?? "",
-            // HIGHLANDER Sub-Pattern A: Store both ID (for persistence) and Object (for runtime)
-            NpcId = dto.NpcId,  // From JSON, enables save/load
-            Npc = npc,  // Resolved once at parse-time, cached for runtime
+            // HIGHLANDER: Object reference only (no ID string)
+            Npc = npc,  // Categorical resolution via EntityResolver.FindOrCreate
             MinimumRelationship = dto.MinimumRelationship,
             RequiredKnowledge = dto.RequiredKnowledge ?? new List<string>(),
             AvailableTimeBlocks = timeBlocks,

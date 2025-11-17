@@ -1,7 +1,7 @@
 {
   "packageId": "core_observation_scenes",
   "metadata": {
-    "version": "1.0",
+    "version": "2.0",
     "author": "Wayfarer Core",
     "description": "Core observation scenes for Brass Bell Inn and Town Square tutorial area"
   },
@@ -10,7 +10,13 @@
       "id": "common_room_investigation",
       "name": "Study the Common Room",
       "description": "Carefully observe the inn's common room and its occupants.",
-      "locationId": "common_room",
+      "locationFilter": {
+        "placementType": "Location",
+        "privacyLevels": ["SemiPublic"],
+        "safetyLevels": ["Safe"],
+        "activityLevels": ["Moderate"],
+        "purposes": ["Dwelling"]
+      },
       "requiredKnowledge": [],
       "isRepeatable": false,
       "examinationPoints": [
@@ -69,7 +75,13 @@
       "id": "town_square_survey",
       "name": "Survey the Town Square",
       "description": "Get your bearings by studying the central square and its connections.",
-      "locationId": "square_center",
+      "locationFilter": {
+        "placementType": "Location",
+        "privacyLevels": ["Public"],
+        "safetyLevels": ["Safe"],
+        "activityLevels": ["Busy"],
+        "purposes": ["Commerce"]
+      },
       "requiredKnowledge": [],
       "isRepeatable": false,
       "examinationPoints": [
@@ -128,7 +140,13 @@
       "id": "grain_mystery_clues",
       "name": "Investigate Grain Shortage Evidence",
       "description": "Search for concrete evidence about the missing grain delivery.",
-      "locationId": "square_center",
+      "locationFilter": {
+        "placementType": "Location",
+        "privacyLevels": ["Public"],
+        "safetyLevels": ["Safe"],
+        "activityLevels": ["Busy"],
+        "purposes": ["Commerce"]
+      },
       "requiredKnowledge": ["thomas_grain_missing"],
       "isRepeatable": false,
       "examinationPoints": [
@@ -183,7 +201,13 @@
       "id": "inn_after_hours",
       "name": "Late Night Inn Investigation",
       "description": "Investigate the inn when most guests are asleep.",
-      "locationId": "common_room",
+      "locationFilter": {
+        "placementType": "Location",
+        "privacyLevels": ["SemiPublic"],
+        "safetyLevels": ["Safe"],
+        "activityLevels": ["Moderate"],
+        "purposes": ["Dwelling"]
+      },
       "requiredKnowledge": ["locked_room_noted"],
       "isRepeatable": false,
       "examinationPoints": [

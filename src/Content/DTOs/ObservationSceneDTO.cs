@@ -2,13 +2,14 @@
 /// DTO for deserializing ObservationScene from JSON.
 /// ObservationScenes are investigation gameplay - players spend Focus to examine points.
 /// Part of Mental challenge system (NOT the old equipment-based Scene system).
+/// Uses categorical properties to match locations (DDR-006)
 /// </summary>
 public class ObservationSceneDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public string LocationId { get; set; }
+    public PlacementFilterDTO LocationFilter { get; set; }
     public List<string> RequiredKnowledge { get; set; } = new List<string>();
     public bool IsRepeatable { get; set; }
     public List<ExaminationPointDTO> ExaminationPoints { get; set; } = new List<ExaminationPointDTO>();

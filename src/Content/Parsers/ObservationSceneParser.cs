@@ -1,22 +1,21 @@
 /// <summary>
 /// Parser for ObservationScene - Mental challenge system for scene investigation.
-/// Translates JSON DTOs into domain entities with GameWorld references resolved.
+/// Translates JSON DTOs into domain entities with EntityResolver for categorical matching (DDR-006).
 /// </summary>
 public static class ObservationSceneParser
 {
-    public static ObservationScene Parse(ObservationSceneDTO dto, GameWorld gameWorld)
+    public static ObservationScene Parse(ObservationSceneDTO dto, EntityResolver entityResolver)
     {
         if (dto == null)
             throw new ArgumentNullException(nameof(dto));
-        if (gameWorld == null)
-            throw new ArgumentNullException(nameof(gameWorld));
-        if (string.IsNullOrWhiteSpace(dto.LocationId))
-            throw new InvalidOperationException($"ObservationScene '{dto.Name}' must have a LocationId");
+        if (entityResolver == null)
+            throw new ArgumentNullException(nameof(entityResolver));
+        if (dto.LocationFilter == null)
+            throw new InvalidOperationException($"ObservationScene '{dto.Name}' must have a locationFilter");
 
-        // Resolve location reference
-        Location location = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId);
-        if (location == null)
-            throw new InvalidOperationException($"ObservationScene '{dto.Name}' references unknown Location '{dto.LocationId}'");
+        // EntityResolver.FindOrCreate pattern - categorical entity resolution
+        PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(dto.LocationFilter, $"ObservationScene:{dto.Name}");
+        Location location = entityResolver.FindOrCreateLocation(locationFilter);
 
         ObservationScene scene = new ObservationScene
         {
@@ -33,7 +32,7 @@ public static class ObservationSceneParser
         Dictionary<string, ExaminationPoint> pointsById = new Dictionary<string, ExaminationPoint>();
         foreach (ExaminationPointDTO pointDto in dto.ExaminationPoints)
         {
-            ExaminationPoint point = ParseExaminationPoint(pointDto, gameWorld);
+            ExaminationPoint point = ParseExaminationPoint(pointDto);
             scene.ExaminationPoints.Add(point);
 
             // Track by DTO Id for second pass reference resolution
@@ -61,7 +60,7 @@ public static class ObservationSceneParser
         return scene;
     }
 
-    private static ExaminationPoint ParseExaminationPoint(ExaminationPointDTO dto, GameWorld gameWorld)
+    private static ExaminationPoint ParseExaminationPoint(ExaminationPointDTO dto)
     {
         ExaminationPoint point = new ExaminationPoint
         {

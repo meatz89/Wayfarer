@@ -1,11 +1,12 @@
 /// <summary>
 /// Data transfer object for exchange definitions
+/// Uses categorical properties to match provider NPCs (DDR-006)
 /// </summary>
 public class ExchangeDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
-    public string NpcId { get; set; }
+    public PlacementFilterDTO ProviderFilter { get; set; }
     public string GiveCurrency { get; set; }
     public int GiveAmount { get; set; }
     public string ReceiveCurrency { get; set; }

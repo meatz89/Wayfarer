@@ -8,7 +8,7 @@
 
 ## CONVERSION STATUS
 
-### ✅ COMPLETED (2 files)
+### ✅ COMPLETED (6 files - PHASE 1 COMPLETE)
 
 **01_foundation.json** (Locations):
 - ❌ REMOVED: `venueId` from all locations
@@ -25,6 +25,38 @@
 - Status: All NPCs use categorical spawn location matching
 - Pattern: NPCs spawn via categorical location properties
 
+**11_exchange_cards.json** (Exchange Cards):
+- ❌ REMOVED: `npcId: "merchant_general"` from all 7 exchange cards
+- ✅ ADDED: `providerFilter` (PlacementFilterDTO) to all exchanges
+  - All cards: `{ placementType: "NPC", professions: ["Merchant"] }`
+- Status: All 7 exchange cards use categorical provider matching
+- Pattern: Exchange cards match ANY merchant via categorical properties
+
+**15_conversation_trees.json** (Conversation Trees):
+- ❌ REMOVED: `npcId` from all 4 conversation trees
+- ✅ ADDED: `participantFilter` (PlacementFilterDTO) to all trees
+  - Elena welcome/late night: `{ professions: ["Innkeeper"], socialStandings: ["Notable"], storyRoles: ["Obstacle"], knowledgeLevels: ["Informed"] }`
+  - Thomas intro: `{ professions: ["Dock_Boss"], socialStandings: ["Commoner"], storyRoles: ["Neutral"], knowledgeLevels: ["Ignorant"] }`
+  - Merchant small talk: `{ professions: ["Merchant"], socialStandings: ["Commoner"], storyRoles: ["Neutral"], knowledgeLevels: ["Ignorant"] }`
+- Status: All 4 conversation trees use categorical participant matching
+- Pattern: Conversation trees trigger based on NPC categorical properties
+
+**16_observation_scenes.json** (Observation Scenes):
+- ❌ REMOVED: `locationId` from all 4 observation scenes
+- ✅ ADDED: `locationFilter` (PlacementFilterDTO) to all scenes
+  - Common room scenes (2): `{ privacyLevels: ["SemiPublic"], safetyLevels: ["Safe"], activityLevels: ["Moderate"], purposes: ["Dwelling"] }`
+  - Square center scenes (2): `{ privacyLevels: ["Public"], safetyLevels: ["Safe"], activityLevels: ["Busy"], purposes: ["Commerce"] }`
+- Status: All 4 observation scenes use categorical location matching
+- Pattern: Observation scenes trigger at ANY location matching categorical properties
+
+**Test/01_test_lodging.json** (Test Data):
+- ❌ REMOVED: `venueId` from location, `LocationId` from NPC
+- ✅ ADDED: Categorical dimensions to location (privacy, safety, activity, purpose)
+- ✅ ADDED: `spawnLocation` (PlacementFilterDTO) to NPC
+  - Test innkeeper: `{ privacyLevels: ["SemiPublic"], safetyLevels: ["Safe"], activityLevels: ["Moderate"], purposes: ["Dwelling"] }`
+- Status: Test data validates categorical matching architecture
+- Pattern: Test content uses same categorical properties as production content
+
 ---
 
 ## ⚠️ SPECIAL CASE (1 file)
@@ -38,48 +70,15 @@
 
 ---
 
-## 📋 PENDING CONVERSION (6 files)
-
-### High Priority (Tutorial Content)
-
-**11_exchange_cards.json** (Exchange Cards):
-- Found: 7 instances of `"npcId": "merchant_general"`
-- Violation: Hardcoded entity instance ID reference
-- Target Pattern: `"npcFilter": { "professions": ["Merchant"], "purposes": ["Commerce"] }`
-- Impact: Exchange cards should match NPCs categorically, not by ID
-- Why: Same exchange card must work with ANY merchant across procedural worlds
-
-**15_conversation_trees.json** (Conversation Trees):
-- Found: 4 instances of `npcId` (elena_innkeeper, thomas_foreman, merchant_general)
-- Violation: Hardcoded entity instance ID references
-- Target Pattern: `"participantFilter": { "professions": ["Innkeeper"], "storyRoles": ["Obstacle"] }`
-- Impact: Conversation trees should trigger based on NPC categorical properties
-- Why: Same conversation tree must work with ANY innkeeper across procedural worlds
-
-**16_observation_scenes.json** (Observation/Mental Scenes):
-- Found: 4 instances of `locationId` (common_room, square_center)
-- Violation: Hardcoded entity instance ID references
-- Target Pattern: `"locationFilter": { "privacyLevels": ["SemiPublic"], "purposes": ["Dwelling"] }`
-- Impact: Observation scenes should trigger at locations matching categorical properties
-- Why: Same observation scene must work at ANY inn common room across procedural worlds
-
-### Medium Priority (Narrative Content)
+## 📋 OPTIONAL CLEANUP (1 file)
 
 **Narratives/conversation_narratives.json** (Conversation Narratives):
-- Found: Unknown count of npcId references (grep shows matches)
-- Violation: Hardcoded entity instance ID references
-- Target Pattern: Embed narrative templates in conversation trees (no separate ID reference)
-- Impact: Narratives coupled to categorical conversation triggers
-- Why: Narrative follows conversation pattern, not specific NPC
-
-### Low Priority (Test Content)
-
-**Test/01_test_lodging.json** (Test Data):
-- Found: Unknown count of locationId/npcId/venueId references
-- Violation: Test data using old ID pattern
-- Target Pattern: Convert to categorical properties for consistency
-- Impact: Test data should validate categorical matching, not ID lookups
-- Why: Tests verify correct architecture patterns
+- Found: 12 instances of `"npcId": null`
+- **NOT A VIOLATION**: All npcId values are null (categorical wildcards, not hardcoded IDs)
+- Current Pattern: Narrative templates match ANY NPC based on flow/rapport ranges
+- Optional Cleanup: Remove npcId field entirely (serves no purpose when always null)
+- Impact: None - already using correct categorical architecture
+- Status: **NO CONVERSION NEEDED** (optional field removal only)
 
 ---
 
@@ -193,14 +192,21 @@ After conversion, verify:
 
 ---
 
-## EXECUTION ORDER
+## ✅ PHASE 1: JSON INPUT BOUNDARY (COMPLETE)
 
-1. **ExchangeCardDTO** + 11_exchange_cards.json (7 violations)
-2. **ConversationTreeDTO** + 15_conversation_trees.json (4 violations)
-3. **ObservationSceneDTO** + 16_observation_scenes.json (4 violations)
-4. **ConversationNarrativeDTO** + conversation_narratives.json (unknown count)
-5. **Test data** + 01_test_lodging.json (low priority)
+**Converted Files** (6 total):
+1. ✅ **01_foundation.json** - Locations with categorical dimensions
+2. ✅ **03_npcs.json** - NPCs with spawnLocation filters
+3. ✅ **11_exchange_cards.json** - Exchange cards with providerFilter (7 cards)
+4. ✅ **15_conversation_trees.json** - Conversation trees with participantFilter (4 trees)
+5. ✅ **16_observation_scenes.json** - Observation scenes with locationFilter (4 scenes)
+6. ✅ **Test/01_test_lodging.json** - Test data with categorical properties
 
-**Phase 1 (Input Boundary) Complete When**: All JSON files use categorical properties, zero entity instance ID references remain.
+**Verification**:
+- ✅ Zero entity instance IDs in JSON (except Hex.LocationId derived lookup)
+- ✅ All entity references use PlacementFilterDTO (categorical properties only)
+- ✅ 15 entity instance ID violations eliminated in Phase 1
 
-**Then Proceed To**: Phase 2 (Parser Transformation) - Update parsers to use EntityResolver with new JSON structure.
+**Phase 1 Status**: COMPLETE
+
+**Next Step**: Phase 2 (Parser Transformation) - Update DTOs and parsers to use EntityResolver with new JSON structure.
