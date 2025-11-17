@@ -1,8 +1,50 @@
 # DTO ARCHITECTURE REDESIGN
 
+**STATUS**: PAUSED FOR STABILIZATION
+
 **Problem**: DTOs use entity instance IDs (LocationId, NpcId, VenueId) instead of categorical properties. This breaks procedural content generation - same template can't work across different procedural worlds.
 
 **Solution**: Use PlacementFilterDTO with categorical properties everywhere. EntityResolver.FindOrCreate queries existing entities first, generates new from categories if no match.
+
+**STABILIZATION COMPLETED** (2025-11-17):
+1. ✅ Planning bloat deleted (8 files, ~120KB)
+2. ✅ Venue logic restored (LocationDTO.VenueId, LocationParser venue resolution)
+3. ✅ DTO migration path restored (NPCDTO.LocationId/VenueId temporarily kept for parsing existing JSON)
+4. ⚠️ **REMAINING**: String lookup methods elimination
+
+**REMAINING WORK BEFORE DTO REDESIGN**:
+
+### String Lookup Methods to DELETE (Not Rename, COMPLETELY REMOVE):
+
+**GameWorld.cs**:
+- `GetLocation(string locationName)` - DELETE + fix 40+ callers with 9-step pattern
+- `GetDistrictForLocation(string venueName)` - DELETE + trace callers
+- `AddStrangerToLocation(string locationName, NPC stranger)` - DELETE + fix callers
+- `GetJobByLocations(string originLocationName, string destinationLocationName)` - DELETE + fix callers
+- `GetLocationCubes(string locationName)` - DELETE + fix callers
+- `GrantLocationCubes(string locationName, int amount)` - DELETE + fix callers
+- `GetLocationCountInVenue(string venueName)` - DELETE + fix callers
+- `GetAvailableStrangers(string locationName, TimeBlocks currentTimeBlock)` - DELETE + fix callers
+- `GetStrangerByName(string strangerName)` - DELETE + fix callers
+- `GetNPCCubes(string npcName)` - DELETE + fix callers
+- `GrantNPCCubes(string npcName, int amount)` - DELETE + fix callers
+
+**NPCRepository.cs**:
+- `GetById(string id)` - DELETE + fix callers
+- `GetByName(string name)` - DELETE + fix callers
+
+**9-Step Holistic Pattern for Each Method**:
+1. Find method with string parameter
+2. Grep ALL callers
+3. Read caller files completely
+4. Trace where caller got the string (object.Name extraction)
+5. Change caller to pass object instead
+6. Change method signature to accept object
+7. Delete lookup from method body
+8. Repeat up entire chain to UI
+9. Verify: 0 .Name lookups for entity resolution
+
+After string lookup elimination complete, THEN proceed with DTO layer redesign.
 
 ---
 
