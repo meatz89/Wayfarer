@@ -40,7 +40,7 @@ public class MeetingManager
     public MeetingObligation GetMeetingWithNPC(string npcId)
     {
         return GetActiveMeetingObligations()
-            .FirstOrDefault(m => m.RequesterId == npcId);
+            .FirstOrDefault(m => m.Requester?.ID == npcId);
     }
 
     /// <summary>
@@ -61,8 +61,8 @@ public class MeetingManager
         MeetingResult result = new MeetingResult
         {
             Operation = MeetingOperation.Add,
-            NPCId = meeting.RequesterId,
-            NPCName = meeting.RequesterName
+            NPCId = meeting.Requester?.ID,
+            NPCName = meeting.Requester?.Name
         };
 
         // Validate the meeting request
@@ -74,10 +74,10 @@ public class MeetingManager
         }
 
         // Check if there's already a meeting with this NPC
-        MeetingObligation existingMeeting = GetMeetingWithNPC(meeting.RequesterId);
+        MeetingObligation existingMeeting = GetMeetingWithNPC(meeting.Requester?.ID);
         if (existingMeeting != null)
         {
-            result.ErrorMessage = $"Already have a meeting scheduled with {meeting.RequesterName}";
+            result.ErrorMessage = $"Already have a meeting scheduled with {meeting.Requester?.Name}";
             return result;
         }
 
@@ -116,8 +116,8 @@ public class MeetingManager
             return result;
         }
 
-        result.NPCId = meeting.RequesterId;
-        result.NPCName = meeting.RequesterName;
+        result.NPCId = meeting.Requester?.ID;
+        result.NPCName = meeting.Requester?.Name;
 
         // Validate the meeting can be completed
         MeetingResult validation = ValidateMeetingCompletion(meeting);
@@ -137,7 +137,7 @@ public class MeetingManager
         result.AffectedMeeting = meeting;
 
         _messageSystem.AddSystemMessage(
-            $"Met with {meeting.RequesterName}",
+            $"Met with {meeting.Requester?.Name}",
             SystemMessageTypes.Success
         );
 
@@ -161,18 +161,18 @@ public class MeetingManager
             return result;
         }
 
-        result.NPCId = meeting.RequesterId;
-        result.NPCName = meeting.RequesterName;
+        result.NPCId = meeting.Requester?.ID;
+        result.NPCName = meeting.Requester?.Name;
 
         // Remove the meeting
         _gameWorld.GetPlayer().MeetingObligations.Remove(meeting);
 
         // Apply minor relationship penalty for cancellation
-        if (meeting.RequesterId != null)
+        if (meeting.Requester != null)
         {
-            _tokenManager.RemoveTokensFromNPC(ConnectionType.Trust, 1, meeting.RequesterId);
+            _tokenManager.RemoveTokensFromNPC(ConnectionType.Trust, 1, meeting.Requester);
             _messageSystem.AddSystemMessage(
-                $"Lost 1 Trust token with {meeting.RequesterName} for canceling meeting",
+                $"Lost 1 Trust token with {meeting.Requester.Name} for canceling meeting",
                 SystemMessageTypes.Warning
             );
         }
@@ -181,7 +181,7 @@ public class MeetingManager
         result.AffectedMeeting = meeting;
 
         _messageSystem.AddSystemMessage(
-            $"Canceled meeting with {meeting.RequesterName}",
+            $"Canceled meeting with {meeting.Requester?.Name}",
             SystemMessageTypes.Warning
         );
 
@@ -235,14 +235,14 @@ public class MeetingManager
     {
         MeetingResult result = new MeetingResult { Success = true };
 
-        if (string.IsNullOrEmpty(meeting.RequesterId))
+        if (meeting.Requester == null || string.IsNullOrEmpty(meeting.Requester.ID))
         {
             result.Success = false;
-            result.ErrorMessage = "Meeting must have a valid requester ID";
+            result.ErrorMessage = "Meeting must have a valid requester";
             return result;
         }
 
-        NPC npc = _npcRepository.GetById(meeting.RequesterId);
+        NPC npc = _npcRepository.GetById(meeting.Requester.ID);
         if (npc == null)
         {
             result.Success = false;
@@ -257,10 +257,10 @@ public class MeetingManager
         MeetingResult result = new MeetingResult { Success = true };
 
         // Check if player is at NPC's location
-        if (!IsPlayerAtNPCLocation(meeting.RequesterId))
+        if (!IsPlayerAtNPCLocation(meeting.Requester?.ID))
         {
             result.Success = false;
-            result.ErrorMessage = $"You must be at {meeting.RequesterName}'s Venue to meet";
+            result.ErrorMessage = $"You must be at {meeting.Requester?.Name}'s Venue to meet";
             return result;
         }
 
@@ -272,8 +272,8 @@ public class MeetingManager
         MeetingResult result = new MeetingResult
         {
             Operation = MeetingOperation.Expire,
-            NPCId = expiredMeeting.RequesterId,
-            NPCName = expiredMeeting.RequesterName,
+            NPCId = expiredMeeting.Requester?.ID,
+            NPCName = expiredMeeting.Requester?.Name,
             AffectedMeeting = expiredMeeting
         };
 
@@ -286,7 +286,7 @@ public class MeetingManager
         result.Success = true;
 
         _messageSystem.AddSystemMessage(
-            $"Meeting with {expiredMeeting.RequesterName} has expired!",
+            $"Meeting with {expiredMeeting.Requester?.Name} has expired!",
             SystemMessageTypes.Danger
         );
 
@@ -298,10 +298,10 @@ public class MeetingManager
         int tokensAwarded = 1; // Base reward
         ConnectionType tokenType = ConnectionType.Trust; // Meetings typically build trust
 
-        _tokenManager.AddTokensToNPC(tokenType, tokensAwarded, meeting.RequesterId);
+        _tokenManager.AddTokensToNPC(tokenType, tokensAwarded, meeting.Requester);
 
         _messageSystem.AddSystemMessage(
-            $"Gained {tokensAwarded} {tokenType} tokens with {meeting.RequesterName}",
+            $"Gained {tokensAwarded} {tokenType} tokens with {meeting.Requester?.Name}",
             SystemMessageTypes.Success
         );
     }
@@ -311,10 +311,10 @@ public class MeetingManager
         int tokenPenalty = 2; // Meetings are important social commitments
         ConnectionType tokenType = ConnectionType.Trust;
 
-        _tokenManager.RemoveTokensFromNPC(tokenType, tokenPenalty, expiredMeeting.RequesterId);
+        _tokenManager.RemoveTokensFromNPC(tokenType, tokenPenalty, expiredMeeting.Requester);
 
         _messageSystem.AddSystemMessage(
-            $"Lost {tokenPenalty} {tokenType} tokens with {expiredMeeting.RequesterName} for missing meeting!",
+            $"Lost {tokenPenalty} {tokenType} tokens with {expiredMeeting.Requester?.Name} for missing meeting!",
             SystemMessageTypes.Danger
         );
     }

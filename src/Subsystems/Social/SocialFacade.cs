@@ -82,7 +82,7 @@ public class SocialFacade
         _personalityEnforcer = new PersonalityRuleEnforcer(npc.ConversationModifier);
 
         // Get NPC token counts for session initialization
-        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.Name);
+        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID); // GetTokensWithNPC still uses ID (not refactored)
 
         // Create session deck and get request cards from the request
         SocialDeckBuildResult buildResult = _deckBuilder.CreateConversationDeck(npc, situation);
@@ -176,7 +176,7 @@ public class SocialFacade
         if (_gameWorld.LastSocialOutcome.TokensEarned != 0)
         {
             ConnectionType connectionType = DetermineConnectionTypeFromConversation(_gameWorld.CurrentSocialSession);
-            _tokenManager.AddTokensToNPC(connectionType, _gameWorld.LastSocialOutcome.TokensEarned, _gameWorld.CurrentSocialSession.NPC.Name);
+            _tokenManager.AddTokensToNPC(connectionType, _gameWorld.LastSocialOutcome.TokensEarned, _gameWorld.CurrentSocialSession.NPC);
         }
 
         // TACTICAL LAYER: Do NOT apply CompletionReward here
