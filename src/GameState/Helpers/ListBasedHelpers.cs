@@ -75,10 +75,11 @@ public class FamiliarityEntry
 
 /// <summary>
 /// Helper class for NPC exchange card entries (replaces Dictionary<string, List<ExchangeCard>>)
+/// HIGHLANDER: Object reference only, no string ID
 /// </summary>
 public class NPCExchangeCardEntry
 {
-    public string NpcId { get; set; }
+    public NPC Npc { get; set; }
     public List<ExchangeCard> ExchangeCards { get; set; } = new List<ExchangeCard>();
 }
 
