@@ -122,7 +122,7 @@ namespace Wayfarer.Pages.Components
             return activeInv.UnderstandingAccumulated;
         }
 
-        protected int GetObligationTotalSituations(string obligationId)
+        protected int GetObligationTotalSituations(Obligation obligation)
         {
             // PhaseDefinitions eliminated - return static understanding requirement for now
             // NOTE: Scenes no longer have ObligationId - UI needs redesign
@@ -132,7 +132,7 @@ namespace Wayfarer.Pages.Components
 
         protected double GetObligationProgressPercent(ActiveObligation activeInv)
         {
-            int total = GetObligationTotalSituations(activeInv.ObligationId);
+            int total = GetObligationTotalSituations(activeInv.Obligation);
             if (total == 0) return 0;
             // CompletedSituationIds eliminated - use resolved scene count instead
             int resolved = GetObligationProgress(activeInv);

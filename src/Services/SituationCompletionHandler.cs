@@ -63,9 +63,9 @@ public class SituationCompletionHandler
         CheckSimpleObligationCompletion(situation);
 
         // Check for obligation progress (phase-based ObligationJournal system)
-        if (!string.IsNullOrEmpty(situation.Obligation?.Id))
+        if (situation.Obligation != null)
         {
-            await CheckObligationProgress(situation, situation.Obligation?.Id);
+            await CheckObligationProgress(situation, situation.Obligation);
         }
 
         // PHASE 3: Execute SuccessSpawns - recursive situation spawning
@@ -90,25 +90,23 @@ public class SituationCompletionHandler
     /// Check for obligation progress when situation completes
     /// Handles both intro actions (Discovered → Active) and regular situations (phase progression)
     /// </summary>
-    private async Task CheckObligationProgress(Situation situation, string obligationId)
+    private async Task CheckObligationProgress(Situation situation, Obligation obligation)
     {
         // Check if this is an intro action (Discovered → Active transition)
         if (situation != null && situation.IsIntroAction)
         {
             // This is intro completion - activate obligation and spawn Phase 1
-            await _obligationActivity.CompleteIntroAction(obligationId);
+            await _obligationActivity.CompleteIntroAction(obligation);
             return;
         }
 
         // Regular situation completion
-        // NOTE: ObligationActivity.CompleteSituation still uses string situationId - Phase 7 edge case
-        string situationTemplateId = situation?.SituationTemplate?.Id;
-        ObligationProgressResult progressResult = await _obligationActivity.CompleteSituation(situationTemplateId, obligationId);
+        ObligationProgressResult progressResult = await _obligationActivity.CompleteSituation(situation, obligation);
 
         // Log progress for UI modal display (UI will handle modal)
 
         // Check if obligation is now complete
-        ObligationCompleteResult completeResult = _obligationActivity.CheckObligationCompletion(obligationId);
+        ObligationCompleteResult completeResult = _obligationActivity.CheckObligationCompletion(obligation);
         if (completeResult != null)
         {
             // Obligation complete - UI will display completion modal

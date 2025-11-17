@@ -39,7 +39,7 @@ public class ObligationJournal
 /// </summary>
 public class ActiveObligation
 {
-    public string ObligationId { get; set; }
+    public Obligation Obligation { get; set; }
 
     /// <summary>
     /// Accumulated understanding points from completed phases (0-10 scale)

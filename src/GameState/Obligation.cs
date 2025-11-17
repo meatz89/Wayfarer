@@ -2,10 +2,11 @@
 /// Obligation template - contains metadata and phase definitions for situation creation
 /// Obligation does NOT spawn tactical sessions directly - it creates LocationSituations/NPCSituations
 /// which are evaluated by the existing situation system
+/// TEMPLATE PATTERN: Obligation is an immutable archetype loaded from JSON, so Id is acceptable
 /// </summary>
 public class Obligation
 {
-    // HIGHLANDER: NO Id property - Obligation identified by object reference
+    public string Id { get; init; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string CompletionNarrative { get; set; } // Narrative shown when obligation completes
@@ -81,10 +82,11 @@ public class Obligation
 /// <summary>
 /// Phase definition - references an existing situation from Scene.Situations
 /// When prerequisites met, obligation system looks up situation and adds to ActiveSituations
+/// TEMPLATE PATTERN: Part of Obligation template structure, Id is acceptable
 /// </summary>
 public class ObligationPhaseDefinition
 {
-    // HIGHLANDER: NO Id property - ObligationPhaseDefinition identified by object reference
+    public string Id { get; init; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string CompletionNarrative { get; set; } // Narrative shown when obligation completes

@@ -900,11 +900,14 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     {
         _showObligationDiscoveryModal = false;
 
-        string obligationId = _obligationDiscoveryResult.ObligationId;
+        Obligation obligation = _obligationDiscoveryResult.Obligation;
         _obligationDiscoveryResult = null;
 
+        if (obligation == null)
+            return;
+
         // Activate obligation and spawn Phase 1 scene
-        await ObligationActivity.CompleteIntroAction(obligationId);
+        await ObligationActivity.CompleteIntroAction(obligation);
 
         // Refresh UI after activation
         await RefreshLocationDisplay();
@@ -940,11 +943,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     {
         _showObligationIntroModal = false;
 
-        string obligationId = _obligationIntroResult.ObligationId;
+        Obligation obligation = _obligationIntroResult.Obligation;
         _obligationIntroResult = null;
 
         // Activate obligation and spawn Phase 1 scene
-        await GameFacade.CompleteObligationIntro(obligationId);
+        await GameFacade.CompleteObligationIntro(obligation);
 
         // Refresh UI after activation
         await RefreshLocationDisplay();

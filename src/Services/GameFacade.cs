@@ -1418,7 +1418,7 @@ public class GameFacade
         foreach (Obligation obligation in discoverable)
         {// DiscoverObligation moves Potential→Discovered and spawns intro situation at location
          // No return value - situation is added directly to Location.ActiveSituations
-            await _obligationActivity.DiscoverObligation(obligation.Name);
+            await _obligationActivity.DiscoverObligation(obligation);
 
             // Pending discovery result is now set in ObligationActivity
             // GameScreen will check for it and display the modal
@@ -1434,7 +1434,7 @@ public class GameFacade
     /// </summary>
     public async Task CompleteObligationIntro(Obligation obligation)
     {
-        await _obligationActivity.CompleteIntroAction(obligation.Name);
+        await _obligationActivity.CompleteIntroAction(obligation);
     }
 
     /// <summary>
@@ -1443,7 +1443,7 @@ public class GameFacade
     /// </summary>
     public void SetPendingIntroAction(Obligation obligation)
     {
-        _obligationActivity.SetPendingIntroAction(obligation.Name);
+        _obligationActivity.SetPendingIntroAction(obligation);
     }
 
     /// <summary>

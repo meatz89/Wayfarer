@@ -356,9 +356,9 @@ public class PhysicalFacade
         }
 
         // Check for obligation progress if this was an obligation situation
-        if (success && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalSituationId) && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalObligationId))
+        if (success && _gameWorld.PendingPhysicalContext?.Situation != null && _gameWorld.PendingPhysicalContext?.Obligation != null)
         {
-            await CheckObligationProgress(_gameWorld.CurrentPhysicalSituationId, _gameWorld.CurrentPhysicalObligationId);
+            await CheckObligationProgress(_gameWorld.PendingPhysicalContext.Situation, _gameWorld.PendingPhysicalContext.Obligation);
         }
 
         // Award Reputation on success (Reputation system)
@@ -472,26 +472,27 @@ public class PhysicalFacade
     /// <summary>
     /// Check for obligation progress when Physical situation completes
     /// </summary>
-    private async Task CheckObligationProgress(string situationId, string obligationId)
+    private async Task CheckObligationProgress(Situation situation, Obligation obligation)
     {
-        // KEEP - obligationId is external input from session
+        if (situation == null || obligation == null)
+            return;
+
         // Check if this is an intro action (Discovered → Active transition)
-        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
-        if (obligation != null && situationId == "notice_waterwheel")
+        if (situation.SituationTemplate?.Id == "notice_waterwheel")
         {
             // This is intro completion - activate obligation
             // CompleteIntroAction spawns situations directly to ActiveSituations
-            _obligationActivity.CompleteIntroAction(obligationId);
+            await _obligationActivity.CompleteIntroAction(obligation);
             return;
         }
 
         // Regular situation completion
-        ObligationProgressResult progressResult = await _obligationActivity.CompleteSituation(situationId, obligationId);
+        ObligationProgressResult progressResult = await _obligationActivity.CompleteSituation(situation, obligation);
 
         // Log progress for UI modal display (UI will handle modal)
 
         // Check if obligation is now complete
-        ObligationCompleteResult completeResult = _obligationActivity.CheckObligationCompletion(obligationId);
+        ObligationCompleteResult completeResult = _obligationActivity.CheckObligationCompletion(obligation);
         if (completeResult != null)
         {
             // Obligation complete - UI will display completion modal
