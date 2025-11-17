@@ -25,30 +25,30 @@ public class LocationPlayabilityValidator
             Hex hex = gameWorld.WorldHexGrid.GetHex(location.HexPosition.Value.Q, location.HexPosition.Value.R);
             if (hex == null)
             {
-                errors.Add($"Location '{location.Id}' has invalid hex position ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}) - hex does not exist");
+                // ADR-007: Use Name instead of deleted Id
+                errors.Add($"Location '{location.Name}' has invalid hex position ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}) - hex does not exist");
             }
         }
 
         // 2. Location must be reachable from player (or within same venue)
         if (!IsReachableFromPlayer(location, gameWorld))
         {
-            errors.Add($"Location '{location.Id}' is not reachable - no route exists and not in same venue as player");
+            // ADR-007: Use Name instead of deleted Id
+            errors.Add($"Location '{location.Name}' is not reachable - no route exists and not in same venue as player");
         }
 
         // 3. Venue must exist and be valid
-        if (string.IsNullOrEmpty(location.VenueId))
+        // ADR-007: Check Venue object instead of deleted VenueId string
+        if (location.Venue == null)
         {
-            errors.Add($"Location '{location.Id}' has no venue ID - every location must belong to a venue");
-        }
-        else if (location.Venue == null)
-        {
-            errors.Add($"Location '{location.Id}' has venue ID '{location.VenueId}' but venue object not resolved");
+            errors.Add($"Location '{location.Name}' has no venue - every location must belong to a venue");
         }
 
         // 4. Required properties must be present
         if (location.LocationProperties == null || !location.LocationProperties.Any())
         {
-            errors.Add($"Location '{location.Id}' has no properties - locations must have at least one property for action generation");
+            // ADR-007: Use Name instead of deleted Id
+            errors.Add($"Location '{location.Name}' has no properties - locations must have at least one property for action generation");
         }
 
         // 5. IsLocked validation DELETED - new architecture uses query-based accessibility via GrantsLocationAccess
@@ -75,7 +75,8 @@ public class LocationPlayabilityValidator
         if (playerLocation == null) return true; // Player not yet placed
 
         // Check if same venue (instant/free travel)
-        if (location.VenueId == playerLocation.VenueId)
+        // ADR-007: Use Venue object reference instead of deleted VenueId
+        if (location.Venue == playerLocation.Venue)
         {
             return true;
         }

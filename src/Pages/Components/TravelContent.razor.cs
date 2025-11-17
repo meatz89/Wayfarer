@@ -94,7 +94,8 @@ namespace Wayfarer.Pages.Components
         {
             // Get the Venue name for this destination Location
             Location location = GameFacade.GetLocation(destinationSpotId);
-            Venue venue = GameFacade.GetLocation(location.VenueId).Venue;
+            // ADR-007: Use Venue object reference instead of deleted VenueId
+            Venue venue = location.Venue;
 
             if (venue != null)
             {
@@ -119,7 +120,8 @@ namespace Wayfarer.Pages.Components
         {
             // NO FALLBACKS - let it fail if data is missing
             Location location = GameFacade.GetLocation(destinationSpotId);
-            Venue venue = GameFacade.GetAllLocations().FirstOrDefault(v => v.Name == location.VenueId);
+            // ADR-007: Use Venue object reference instead of deleted VenueId
+            Venue venue = location.Venue;
             District district = GameFacade.GetDistrictForLocation(venue.Name);
             Region region = GameFacade.GetRegionForDistrict(district.Name);
 

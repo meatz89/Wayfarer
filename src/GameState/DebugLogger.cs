@@ -178,8 +178,9 @@ public class DebugLogger
         Location currentLocation = gameWorld.GetPlayerCurrentLocation();
         if (currentLocation == null)
             throw new System.InvalidOperationException("Player current location is null");
-        report.Add($"  Location: {currentLocation.VenueId}");
-        report.Add($"  location: {currentLocation.Id}");
+        // ADR-007: Use Venue.Name and Name instead of deleted VenueId/Id
+        report.Add($"  Venue: {currentLocation.Venue?.Name}");
+        report.Add($"  Location: {currentLocation.Name}");
         report.Add($"  Stamina: {player.Stamina}");
         report.Add($"  Coins: {player.Coins}");
         report.Add("");

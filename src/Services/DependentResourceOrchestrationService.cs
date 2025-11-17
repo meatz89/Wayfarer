@@ -95,8 +95,9 @@ public class DependentResourceOrchestrationService
                     CreatedSegment = _timeManager.CurrentSegment
                 };
 
-                Console.WriteLine($"[DependentResources] Created location: {createdLocation.Name} ({createdLocation.Id})");
-                Console.WriteLine($"[DependentResources]   VenueId: {createdLocation.VenueId}, HexPosition: {(createdLocation.HexPosition.HasValue ? createdLocation.HexPosition.Value.ToString() : "NONE (intra-venue)")}");
+                // ADR-007: Use Name and Venue.Name instead of deleted Id/VenueId
+                Console.WriteLine($"[DependentResources] Created location: {createdLocation.Name}");
+                Console.WriteLine($"[DependentResources]   Venue: {createdLocation.Venue?.Name}, HexPosition: {(createdLocation.HexPosition.HasValue ? createdLocation.HexPosition.Value.ToString() : "NONE (intra-venue)")}");
 
                 if (createdLocation.HexPosition.HasValue)
                 {

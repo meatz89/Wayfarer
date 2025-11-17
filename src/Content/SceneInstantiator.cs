@@ -1112,7 +1112,8 @@ public class SceneInstantiator
             case VenueIdSource.SameAsBase:
                 if (context.CurrentLocation == null)
                     throw new InvalidOperationException("VenueIdSource.SameAsBase requires CurrentLocation in context");
-                return context.CurrentLocation.VenueId; // Location.VenueId (source of truth)
+                // ADR-007: Use Venue.Name instead of deleted VenueId
+                return context.CurrentLocation.Venue.Name;
 
             case VenueIdSource.GenerateNew:
                 // Generate new venue for this location
@@ -1164,7 +1165,8 @@ public class SceneInstantiator
 
                 // CRITICAL: Maintain venue separation during organic growth
                 // Find first unoccupied neighbor that doesn't violate venue separation
-                string baseVenueId = baseLocation.VenueId;
+                // ADR-007: Use Venue.Name instead of deleted VenueId
+                string baseVenueId = baseLocation.Venue.Name;
 
                 foreach (Hex neighborHex in neighbors)
                 {
@@ -1221,8 +1223,9 @@ public class SceneInstantiator
             if (neighborLocation != null)
             {
                 // If location exists and belongs to DIFFERENT venue, separation violated
-                if (!string.IsNullOrEmpty(neighborLocation.VenueId) &&
-                    neighborLocation.VenueId != currentVenueId)
+                // ADR-007: Use Venue.Name instead of deleted VenueId
+                if (neighborLocation.Venue != null &&
+                    neighborLocation.Venue.Name != currentVenueId)
                 {
                     return true; // Adjacent to other venue
                 }

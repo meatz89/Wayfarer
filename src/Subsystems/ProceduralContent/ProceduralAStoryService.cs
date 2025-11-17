@@ -455,12 +455,14 @@ public class ProceduralAStoryService
             // Extract region from current situation's placement location
             // ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
             Location situationLocation = scene.CurrentSituation?.Location;
-            if (situationLocation != null && !string.IsNullOrEmpty(situationLocation.VenueId))
+            // ADR-007: Use Venue.Name instead of deleted VenueId
+            if (situationLocation?.Venue != null)
             {
                 // RegionId removed from Location - track by VenueId instead
-                if (!context.RecentRegionIds.Contains(situationLocation.VenueId))
+                string venueId = situationLocation.Venue.Name;
+                if (!context.RecentRegionIds.Contains(venueId))
                 {
-                    context.RecentRegionIds.Add(situationLocation.VenueId);
+                    context.RecentRegionIds.Add(venueId);
                 }
             }
 

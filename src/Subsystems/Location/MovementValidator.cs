@@ -34,7 +34,8 @@ public class MovementValidator
         if (currentLocation == null) return false;
 
         // Verify consistency between Venue and location
-        if (!currentSpot.VenueId.Equals(currentLocation.Id, StringComparison.OrdinalIgnoreCase))
+        // ADR-007: Use Venue object reference instead of deleted VenueId/Id
+        if (currentSpot.Venue != currentLocation)
         {
             return false;
         }
@@ -49,8 +50,8 @@ public class MovementValidator
     {
         if (currentSpot == null || string.IsNullOrEmpty(targetSpotIdentifier)) return false;
 
-        return currentSpot.Name.Equals(targetSpotIdentifier, StringComparison.OrdinalIgnoreCase) ||
-               currentSpot.Id.Equals(targetSpotIdentifier, StringComparison.OrdinalIgnoreCase);
+        // ADR-007: Use Name only (natural key, no Id property)
+        return currentSpot.Name.Equals(targetSpotIdentifier, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
@@ -68,11 +69,12 @@ public class MovementValidator
             return result;
         }
 
-        // Verify location belongs to current location
-        if (!targetSpot.VenueId.Equals(currentLocation.Id, StringComparison.OrdinalIgnoreCase))
+        // Verify location belongs to current venue
+        // ADR-007: Use Venue object reference instead of deleted VenueId/Id
+        if (targetSpot.Venue != currentLocation)
         {
             result.IsValid = false;
-            result.ErrorMessage = "Cannot move to a location in a different location";
+            result.ErrorMessage = "Cannot move to a location in a different venue";
             return result;
         }
 

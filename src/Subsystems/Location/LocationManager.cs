@@ -53,8 +53,9 @@ public class LocationManager
         if (string.IsNullOrEmpty(venueId))
             throw new ArgumentException("Venue ID cannot be null or empty", nameof(venueId));
 
+        // ADR-007: Use Venue.Name instead of deleted VenueId
         return _gameWorld.Locations
-            .Where(s => s.VenueId.Equals(venueId, StringComparison.OrdinalIgnoreCase))
+            .Where(s => s.Venue.Name.Equals(venueId, StringComparison.OrdinalIgnoreCase))
             .ToList();
     }
 
@@ -106,7 +107,8 @@ public class LocationManager
         if (venue == null) throw new ArgumentNullException(nameof(venue));
 
         // Validate that the location belongs to the venue
-        if (location != null && !location.VenueId.Equals(venue.Name, StringComparison.OrdinalIgnoreCase))
+        // ADR-007: Use Venue object reference instead of deleted VenueId
+        if (location != null && location.Venue != venue)
         {
             throw new InvalidOperationException($"location {location.Name} does not belong to venue {venue.Name}");
         }
@@ -182,8 +184,7 @@ public class LocationManager
     {
         if (location == null) return false;
 
-        Venue venue = GetVenue(location.VenueId);
-
+        // ADR-007: Venue variable deleted (was unused, accessed deleted VenueId)
         // Travel happens at any location with Crossroads property
         return location.LocationProperties.Contains(LocationPropertyType.Crossroads);
     }
@@ -387,7 +388,8 @@ public class LocationManager
 
         // For now, all Locations in the same Venue are accessible
         // This could be enhanced with specific connectivity rules
-        return GetLocationsForVenue(currentSpot.VenueId)
+        // ADR-007: Use Venue.Name instead of deleted VenueId
+        return GetLocationsForVenue(currentSpot.Venue.Name)
             .Where(s => s != currentSpot)
             .ToList();
     }

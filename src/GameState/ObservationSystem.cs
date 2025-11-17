@@ -28,9 +28,10 @@ public class ObservationSystem
     /// </summary>
     public List<Observation> GetAllObservationsForLocation(string venueId)
     {
+        // ADR-007: Use Venue.Name and Name instead of deleted VenueId/Id
         List<string> locationIds = _gameWorld.Locations
-            .Where(loc => loc.VenueId == venueId)
-            .Select(loc => loc.Id)
+            .Where(loc => loc.Venue.Name == venueId)
+            .Select(loc => loc.Name)
             .ToList();
 
         return _gameWorld.Observations

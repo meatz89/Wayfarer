@@ -41,9 +41,9 @@
     /// </summary>
     public int MaxLocations { get; set; } = 20;
 
-    public Venue(string id, string name)
+    // ADR-007: Constructor uses Name only (natural key, no Id parameter)
+    public Venue(string name)
     {
-        Id = id;
         Name = name;
     }
 

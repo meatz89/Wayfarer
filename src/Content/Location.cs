@@ -87,9 +87,9 @@ public class Location
 
     public string? Description { get; internal set; }
 
-    public Location(string id, string name)
+    // ADR-007: Constructor uses Name only (natural key, no Id parameter)
+    public Location(string name)
     {
-        Id = id;
         Name = name;
     }
 

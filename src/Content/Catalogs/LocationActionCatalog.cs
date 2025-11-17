@@ -150,7 +150,8 @@ public static class LocationActionCatalog
         // Find ADJACENT locations in the same venue (7-hex cluster pattern)
         List<Location> adjacentSameVenueLocations = allLocations
             .Where(l =>
-                l.VenueId == location.VenueId &&  // Same venue (7-hex cluster)
+                // ADR-007: Use Venue object reference instead of deleted VenueId
+                l.Venue == location.Venue &&  // Same venue (7-hex cluster)
                 l != location &&  // Different location (object reference comparison)
                 l.HexPosition.HasValue &&  // Destination must have hex position
                 AreHexesAdjacent(location.HexPosition.Value, l.HexPosition.Value))  // Must be adjacent hexes

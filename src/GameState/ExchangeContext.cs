@@ -52,8 +52,8 @@ public class ExchangeContext
         if (Session == null)
             return new List<ExchangeCard>();
 
-        // ADR-007: Get VenueId from Location object (not LocationInfo.VenueId)
-        string venueId = Location?.VenueName;
+        // ADR-007: Use Venue.Name instead of deleted VenueId
+        string venueId = Location?.Venue?.Name;
         return Session.AvailableExchanges
             .Where(e => e.ExchangeCard != null && e.ExchangeCard.IsAvailable(venueId, CurrentTimeBlock))
             .Select(e => e.ExchangeCard)

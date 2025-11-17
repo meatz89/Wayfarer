@@ -1060,9 +1060,10 @@ public class PackageLoader
         Location location = _gameWorld.GetLocation(LocationId);
         if (location == null)
             throw new InvalidDataException($"Location '{LocationId}' not found when attempting to get VenueId");
-        if (string.IsNullOrEmpty(location.VenueId))
-            throw new InvalidDataException($"Location '{LocationId}' has no VenueId assigned");
-        return location.VenueId;
+        // ADR-007: Use Venue object reference instead of deleted VenueId
+        if (location.Venue == null)
+            throw new InvalidDataException($"Location '{LocationId}' has no Venue assigned");
+        return location.Venue.Name;
     }
 
     private void LoadDialogueTemplates(DialogueTemplates dialogueTemplates, bool allowSkeletons)
@@ -1549,11 +1550,12 @@ public class PackageLoader
         List<VenueLocationGrouping> spotsByLocation = new List<VenueLocationGrouping>();
         foreach (Location location in _gameWorld.Locations)
         {
-            int groupIndex = spotsByLocation.FindIndex(g => g.VenueId == location.VenueId);
+            // ADR-007: Use Venue.Name instead of deleted VenueId
+            int groupIndex = spotsByLocation.FindIndex(g => g.VenueId == location.Venue.Name);
             if (groupIndex == -1)
             {
                 VenueLocationGrouping group = new VenueLocationGrouping();
-                group.VenueId = location.VenueId;
+                group.VenueId = location.Venue.Name;
                 group.Locations.Add(location);
                 spotsByLocation.Add(group);
             }

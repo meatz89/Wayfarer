@@ -53,7 +53,8 @@ public class RouteManager
         if (currentLocation == null)
             return new List<RouteOption>();
 
-        string currentVenueId = currentLocation.VenueId;
+        // ADR-007: Use Venue.Name instead of deleted VenueId
+        string currentVenueId = currentLocation.Venue.Name;
         return GetRoutesFromLocation(currentVenueId);
     }
 
