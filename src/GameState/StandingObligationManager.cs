@@ -280,7 +280,12 @@ public class StandingObligationManager
         // Apply exactly -5 token penalty for breaking obligations (US-8.3)
         if (!string.IsNullOrEmpty(obligation.RelatedNPCId))
         {
-            _connectionTokenManager.RemoveTokensFromNPC(obligation.RelatedTokenType.Value, GameRules.OBLIGATION_BREAKING_PENALTY, obligation.RelatedNPCId);
+            // Get NPC object from ID
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == obligation.RelatedNPCId);
+            if (npc != null)
+            {
+                _connectionTokenManager.RemoveTokensFromNPC(obligation.RelatedTokenType.Value, GameRules.OBLIGATION_BREAKING_PENALTY, npc);
+            }
         }
         else
         {

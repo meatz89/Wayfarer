@@ -190,19 +190,19 @@ public class ExchangeHandler
                     break;
 
                 case ResourceType.TrustToken:
-                    _tokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Amount, npc.ID);
+                    _tokenManager.AddTokensToNPC(ConnectionType.Trust, reward.Amount, npc);
                     break;
 
                 case ResourceType.DiplomacyToken:
-                    _tokenManager.AddTokensToNPC(ConnectionType.Diplomacy, reward.Amount, npc.ID);
+                    _tokenManager.AddTokensToNPC(ConnectionType.Diplomacy, reward.Amount, npc);
                     break;
 
                 case ResourceType.StatusToken:
-                    _tokenManager.AddTokensToNPC(ConnectionType.Status, reward.Amount, npc.ID);
+                    _tokenManager.AddTokensToNPC(ConnectionType.Status, reward.Amount, npc);
                     break;
 
                 case ResourceType.ShadowToken:
-                    _tokenManager.AddTokensToNPC(ConnectionType.Shadow, reward.Amount, npc.ID);
+                    _tokenManager.AddTokensToNPC(ConnectionType.Shadow, reward.Amount, npc);
                     break;
             }
         }

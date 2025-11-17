@@ -238,7 +238,7 @@ public class RelationshipTracker
                 int decay = CalculateDecay(tokenCount.Type, tokenCount.Count, daysSinceInteraction);
                 if (decay > 0)
                 {
-                    _tokenManager.RemoveTokensFromNPC(tokenCount.Type, decay, npcId);
+                    _tokenManager.RemoveTokensFromNPC(tokenCount.Type, decay, npc);
                     hadDecay = true;
                 }
             }
