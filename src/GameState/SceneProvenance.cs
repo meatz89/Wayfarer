@@ -17,24 +17,24 @@
 /// DependentResourceOrchestrationService populates when creating resource:
 ///   location.Provenance = new SceneProvenance
 ///   {
-///       SceneId = scene.Id,
+///       Scene = scene,
 ///       CreatedDay = currentDay,
 ///       CreatedTimeBlock = currentTimeBlock,
 ///       CreatedSegment = currentSegment
 ///   };
 ///
 /// FORENSIC QUERIES:
-/// - "Which scene created this location?" → location.Provenance.SceneId
-/// - "Find all resources from scene X" → locations.Where(l => l.Provenance?.SceneId == sceneId)
+/// - "Which scene created this location?" → location.Provenance.Scene
+/// - "Find all resources from scene X" → locations.Where(l => l.Provenance?.Scene == scene)
 /// - "Resources created today" → locations.Where(l => l.Provenance?.CreatedDay == currentDay)
 /// </remarks>
 public record SceneProvenance
 {
     /// <summary>
-    /// Scene ID that created this resource
-    /// References Scene.Id in GameWorld.Scenes
+    /// ADR-007: Scene object reference (not SceneId string)
+    /// HIGHLANDER: Object reference only
     /// </summary>
-    public string SceneId { get; init; }
+    public Scene Scene { get; init; }
 
     /// <summary>
     /// Day when this resource was created (spawned/instantiated)

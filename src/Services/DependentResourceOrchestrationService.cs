@@ -53,7 +53,8 @@ public class DependentResourceOrchestrationService
             return;
         }
 
-        Console.WriteLine($"[DependentResources] Scene '{scene.Id}' has dependent resources");
+        // ADR-007: Use scene.TemplateId or scene.DisplayName for logging (no scene.Id)
+        Console.WriteLine($"[DependentResources] Scene '{scene.TemplateId ?? scene.DisplayName}' has dependent resources");
         Console.WriteLine($"[DependentResources]   Locations: {dependentSpecs.CreatedLocationIds.Count}, Items: {dependentSpecs.ItemsToAddToInventory.Count}");
 
         await _contentGenerationFacade.CreateDynamicPackageFile(dependentSpecs.PackageJson, dependentSpecs.PackageId);
@@ -64,13 +65,15 @@ public class DependentResourceOrchestrationService
 
         foreach (string itemId in dependentSpecs.ItemsToAddToInventory)
         {
-            Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
+            // ADR-007: Use Name instead of deleted Id
+            Item item = _gameWorld.Items.FirstOrDefault(i => i.Name == itemId);
             if (item != null)
             {
                 // Set provenance tracking
+                // ADR-007: Use Scene object reference instead of SceneId
                 item.Provenance = new SceneProvenance
                 {
-                    SceneId = scene.Id,
+                    Scene = scene,
                     CreatedDay = _timeManager.CurrentDay,
                     CreatedTimeBlock = _timeManager.CurrentTimeBlock,
                     CreatedSegment = _timeManager.CurrentSegment
@@ -88,9 +91,10 @@ public class DependentResourceOrchestrationService
             if (createdLocation != null)
             {
                 // Set provenance tracking
+                // ADR-007: Use Scene object reference instead of SceneId
                 createdLocation.Provenance = new SceneProvenance
                 {
-                    SceneId = scene.Id,
+                    Scene = scene,
                     CreatedDay = _timeManager.CurrentDay,
                     CreatedTimeBlock = _timeManager.CurrentTimeBlock,
                     CreatedSegment = _timeManager.CurrentSegment

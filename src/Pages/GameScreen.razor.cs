@@ -601,7 +601,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         // Defensive validation: Scene must be active and belong to this NPC
         if (scene.State != SceneState.Active)
         {
-            Console.WriteLine($"[GameScreen] Scene {scene.Id} is not active (state: {scene.State})");
+            // ADR-007: Use DisplayName or TemplateId for logging (no Id property)
+            Console.WriteLine($"[GameScreen] Scene {scene.DisplayName} is not active (state: {scene.State})");
             return;
         }
 
@@ -609,15 +610,16 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         Situation currentSituation = scene.CurrentSituation;
 
         // ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
-        if (currentSituation?.Npc == null || currentSituation.Npc.ID != npc.ID)
+        // ADR-007: Use Name instead of deleted ID
+        if (currentSituation?.Npc == null || currentSituation.Npc.Name != npc.Name)
         {
-            Console.WriteLine($"[GameScreen] Scene {scene.Id} current situation does not involve NPC {npc.ID}");
+            Console.WriteLine($"[GameScreen] Scene {scene.DisplayName} current situation does not involve NPC {npc.Name}");
             return;
         }
 
         if (currentSituation == null)
         {
-            Console.WriteLine($"[GameScreen] No current situation found for scene {scene.Id}");
+            Console.WriteLine($"[GameScreen] No current situation found for scene {scene.DisplayName}");
             return;
         }
 

@@ -119,9 +119,10 @@ public class SceneInstanceFacade
     /// </summary>
     private void PostLoadOrchestration(Scene scene, SceneTemplate template, Player player)
     {
+        // ADR-007: Use Scene object reference instead of SceneId
         SceneProvenance provenance = new SceneProvenance
         {
-            SceneId = scene.Id,
+            Scene = scene,
             CreatedDay = _timeManager.CurrentDay,
             CreatedTimeBlock = _timeManager.CurrentTimeBlock,
             CreatedSegment = _timeManager.CurrentSegment
@@ -133,8 +134,9 @@ public class SceneInstanceFacade
         foreach (DependentLocationSpec locationSpec in template.DependentLocations)
         {
             // Find location by template and provenance (locations created by this scene)
+            // ADR-007: Use object reference comparison
             Location location = _gameWorld.Locations
-                .FirstOrDefault(loc => loc.Provenance?.SceneId == scene.Id &&
+                .FirstOrDefault(loc => loc.Provenance?.Scene == scene &&
                                       loc.LocationTemplate?.Id == locationSpec.TemplateId);
 
             if (location != null)
@@ -158,8 +160,9 @@ public class SceneInstanceFacade
         foreach (DependentItemSpec itemSpec in template.DependentItems)
         {
             // Find item by template and provenance (items created by this scene)
+            // ADR-007: Use object reference comparison
             Item item = _gameWorld.Items
-                .FirstOrDefault(i => i.Provenance?.SceneId == scene.Id &&
+                .FirstOrDefault(i => i.Provenance?.Scene == scene &&
                                     i.ItemTemplate?.Id == itemSpec.TemplateId);
 
             if (item != null)

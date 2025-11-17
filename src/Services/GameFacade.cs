@@ -1473,10 +1473,11 @@ public class GameFacade
 
     /// <summary>
     /// Examine a point in an observation scene
+    /// ADR-007: Passes objects directly (not IDs)
     /// </summary>
     public ObservationResult ExaminePoint(ObservationScene scene, ExaminationPoint point)
     {
-        return _observationFacade.ExaminePoint(scene.Id, point.Id);
+        return _observationFacade.ExaminePoint(scene, point);
     }
 
     // ========== EMERGENCY SITUATION OPERATIONS ==========

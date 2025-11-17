@@ -261,7 +261,8 @@ public class RewardApplicationService
 
             if (scene != null)
             {
-                Console.WriteLine($"[RewardApplicationService] Spawned scene '{scene.DisplayName}' ({scene.Id})");
+                // ADR-007: Use TemplateId for logging (no Id property)
+                Console.WriteLine($"[RewardApplicationService] Spawned scene '{scene.DisplayName}' ({scene.TemplateId})");
             }
         }
 
