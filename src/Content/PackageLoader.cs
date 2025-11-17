@@ -911,6 +911,11 @@ public class PackageLoader
     {
         if (npcDtos == null) return;
 
+        // EntityResolver for categorical entity resolution (DDR-006)
+        Player player = _gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
+        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
+
         foreach (NPCDTO dto in npcDtos)
         {
             // Check if this NPC already exists - UPDATE IN-PLACE (never remove)
@@ -922,7 +927,7 @@ public class PackageLoader
                 List<ExchangeCard> preservedExchangeCards = existing.ExchangeDeck.ToList();
 
                 // Parse full NPC from DTO to get updated properties
-                NPC parsed = NPCParser.ConvertDTOToNPC(dto, _gameWorld);
+                NPC parsed = NPCParser.ConvertDTOToNPC(dto, _gameWorld, entityResolver);
 
                 // UPDATE existing NPC properties in-place (preserve object identity)
                 existing.Name = parsed.Name;
@@ -935,7 +940,7 @@ public class PackageLoader
                 existing.PersonalityDescription = parsed.PersonalityDescription;
                 existing.PersonalityType = parsed.PersonalityType;
                 existing.ConversationModifier = parsed.ConversationModifier;
-                existing.Location = parsed.Location; // Resolved from LocationId during parsing
+                existing.Location = parsed.Location; // Resolved via EntityResolver.FindOrCreate
                 existing.IsSkeleton = false;
 
                 // PRESERVE ExchangeDeck: Merge authored initial cards + preserved runtime cards
@@ -953,7 +958,7 @@ public class PackageLoader
             else
             {
                 // New NPC - add to collection
-                NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld);
+                NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld, entityResolver);
                 _gameWorld.NPCs.Add(npc);
             }
         }

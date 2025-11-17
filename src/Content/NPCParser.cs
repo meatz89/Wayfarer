@@ -2,17 +2,16 @@ public static class NPCParser
 {
     /// <summary>
     /// Convert an NPCDTO to an NPC domain model
-    /// MIGRATION: Currently uses LocationId for entity resolution
-    /// FUTURE: Will use EntityResolver.FindOrCreate with PlacementFilterDTO
+    /// Uses EntityResolver.FindOrCreate for categorical entity resolution (DDR-006)
     /// </summary>
-    public static NPC ConvertDTOToNPC(NPCDTO dto, GameWorld gameWorld)
+    public static NPC ConvertDTOToNPC(NPCDTO dto, GameWorld gameWorld, EntityResolver entityResolver)
     {
         if (string.IsNullOrEmpty(dto.Id))
             throw new InvalidOperationException("NPC DTO missing required 'Id' field");
         if (string.IsNullOrEmpty(dto.Name))
             throw new InvalidOperationException($"NPC {dto.Id} missing required 'Name' field");
-        if (string.IsNullOrEmpty(dto.LocationId))
-            throw new InvalidOperationException($"NPC {dto.Id} missing required 'LocationId' field");
+        if (dto.SpawnLocation == null)
+            throw new InvalidOperationException($"NPC {dto.Id} missing required 'SpawnLocation' filter");
 
         NPC npc = new NPC
         {
@@ -106,13 +105,12 @@ public static class NPCParser
             npc.KnowledgeLevel = knowledgeLevel;
         }
 
-        // MIGRATION: Resolve Location object reference from LocationId during parsing
-        // Parser resolves dto.LocationId (string) → npc.Location (object reference)
-        // Runtime code uses ONLY npc.Location (object), never LocationId lookups
-        // FUTURE: Will use EntityResolver.FindOrCreateLocation with PlacementFilterDTO
-        if (!string.IsNullOrEmpty(dto.LocationId))
+        // EntityResolver.FindOrCreate pattern - categorical entity resolution
+        // Query existing locations first (reuse), generate if no match (eager creation)
+        if (dto.SpawnLocation != null)
         {
-            npc.Location = gameWorld.Locations.FirstOrDefault(l => l.Name == dto.LocationId);
+            PlacementFilter spawnFilter = SceneTemplateParser.ParsePlacementFilter(dto.SpawnLocation, $"NPC:{dto.Id}");
+            npc.Location = entityResolver.FindOrCreateLocation(spawnFilter);
         }
 
         // NOTE: Old inline scene parsing removed - NEW Scene-Situation architecture
