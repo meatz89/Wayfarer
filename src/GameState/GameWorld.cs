@@ -881,7 +881,8 @@ public class GameWorld
     /// </summary>
     public PathCardCollectionDTO GetPathCollection(string collectionId)
     {
-        PathCollectionEntry entry = AllPathCollections.FirstOrDefault(c => c.CollectionId == collectionId);
+        // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
+        PathCollectionEntry entry = AllPathCollections.FirstOrDefault(c => c.Collection.Id == collectionId);
         if (entry == null)
             throw new InvalidOperationException($"No collection entry found for collection '{collectionId}' - ensure collection exists before accessing");
         return entry.Collection;
@@ -892,14 +893,15 @@ public class GameWorld
     /// </summary>
     public void AddOrUpdatePathCollection(string collectionId, PathCardCollectionDTO collection)
     {
-        PathCollectionEntry existing = AllPathCollections.FirstOrDefault(c => c.CollectionId == collectionId);
+        // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
+        PathCollectionEntry existing = AllPathCollections.FirstOrDefault(c => c.Collection.Id == collectionId);
         if (existing != null)
         {
             existing.Collection = collection;
         }
         else
         {
-            AllPathCollections.Add(new PathCollectionEntry { CollectionId = collectionId, Collection = collection });
+            AllPathCollections.Add(new PathCollectionEntry { Collection = collection });
         }
     }
 
@@ -912,7 +914,8 @@ public class GameWorld
     /// </summary>
     public TravelEventDTO GetTravelEvent(string eventId)
     {
-        TravelEventEntry entry = AllTravelEvents.FirstOrDefault(e => e.EventId == eventId);
+        // ADR-007: Use TravelEvent.Id (object property) instead of deleted EventId
+        TravelEventEntry entry = AllTravelEvents.FirstOrDefault(e => e.TravelEvent.Id == eventId);
         if (entry == null)
             throw new InvalidOperationException($"No event entry found for event '{eventId}' - ensure event exists before accessing");
         return entry.TravelEvent;

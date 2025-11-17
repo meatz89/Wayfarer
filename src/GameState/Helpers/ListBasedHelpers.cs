@@ -111,19 +111,21 @@ public class EventDeckPositionEntry
 
 /// <summary>
 /// Helper class for path collection entries (replaces Dictionary<string, PathCardCollectionDTO>)
+/// HIGHLANDER: Collection object contains Id - no need to store separately
 /// </summary>
 public class PathCollectionEntry
 {
-    public string CollectionId { get; set; }
+    // ADR-007: CollectionId DELETED - use Collection.Id instead (object has Id property)
     public PathCardCollectionDTO Collection { get; set; }
 }
 
 /// <summary>
 /// Helper class for travel event entries (replaces Dictionary<string, TravelEventDTO>)
+/// HIGHLANDER: TravelEvent object contains Id - no need to store separately
 /// </summary>
 public class TravelEventEntry
 {
-    public string EventId { get; set; }
+    // ADR-007: EventId DELETED - use TravelEvent.Id instead (object has Id property)
     public TravelEventDTO TravelEvent { get; set; }
 }
 

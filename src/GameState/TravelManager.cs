@@ -89,7 +89,8 @@ public class TravelManager
     {
         string collectionId = segment.PathCollectionId;
 
-        if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.Any(p => p.CollectionId == collectionId))
+        // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
+        if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.Any(p => p.Collection.Id == collectionId))
         {
             return new List<PathCardDTO>();
         }
@@ -114,7 +115,8 @@ public class TravelManager
         }
 
         // Check for normalized structure
-        if (_gameWorld.AllEventCollections.Any(e => e.CollectionId == eventCollectionId))
+        // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
+        if (_gameWorld.AllEventCollections.Any(e => e.Collection.Id == eventCollectionId))
         {
             return HandleNormalizedEventSegment(segment, session, eventCollectionId);
         }
@@ -139,7 +141,8 @@ public class TravelManager
         string eventId = GetOrDrawEventForSegment(segment, session, eventCollection.EventIds);
 
         // Step 3: Get the event
-        if (!_gameWorld.AllTravelEvents.Any(e => e.EventId == eventId))
+        // ADR-007: Use TravelEvent.Id (object property) instead of deleted EventId
+        if (!_gameWorld.AllTravelEvents.Any(e => e.TravelEvent.Id == eventId))
         {
             return new List<PathCardDTO>();
         }
@@ -506,7 +509,8 @@ public class TravelManager
     {
         string collectionId = segment.PathCollectionId;
 
-        if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.Any(p => p.CollectionId == collectionId))
+        // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
+        if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.Any(p => p.Collection.Id == collectionId))
         {
             return null;
         }

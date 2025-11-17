@@ -1110,7 +1110,8 @@ public class PackageLoader
                 }
             }
 
-            _gameWorld.AllTravelEvents.Add(new TravelEventEntry { EventId = dto.Id, TravelEvent = dto });
+            // ADR-007: EventId property deleted - use TravelEvent.Id instead
+            _gameWorld.AllTravelEvents.Add(new TravelEventEntry { TravelEvent = dto });
         }
     }
 
@@ -1149,20 +1150,21 @@ public class PackageLoader
             bool isEventCollection = (dto.Events != null && dto.Events.Count > 0);
             bool isPathCollection = (dto.PathCards != null && dto.PathCards.Count > 0);
 
+            // ADR-007: CollectionId property deleted - use Collection.Id instead
             if (isEventCollection)
             {
                 // This is an event collection - contains child events for random selection
-                _gameWorld.AllEventCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });
+                _gameWorld.AllEventCollections.Add(new PathCollectionEntry { Collection = dto });
             }
             else if (isPathCollection)
             {
                 // This is a path collection - contains actual path cards for FixedPath segments
-                _gameWorld.AllPathCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });
+                _gameWorld.AllPathCollections.Add(new PathCollectionEntry { Collection = dto });
             }
             else
             {
                 // Fallback: treat as path collection if no clear indicators
-                _gameWorld.AllPathCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });
+                _gameWorld.AllPathCollections.Add(new PathCollectionEntry { Collection = dto });
             }
         }
     }
@@ -1414,7 +1416,8 @@ public class PackageLoader
         // Initialize EventDeckPositions for routes with event pools
         foreach (PathCollectionEntry entry in _gameWorld.AllEventCollections)
         {
-            string routeId = entry.CollectionId;
+            // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
+            string routeId = entry.Collection.Id;
             string deckKey = $"route_{routeId}_events";
 
             // Start at position 0 for deterministic event drawing
@@ -1508,12 +1511,12 @@ public class PackageLoader
         reverseRoute.EncounterDeckIds.AddRange(forwardRoute.EncounterDeckIds);
 
         // If the forward route has a route-level event pool, copy it to the reverse route
-        PathCollectionEntry? forwardEntry = _gameWorld.AllEventCollections.FirstOrDefault(x => x.CollectionId == forwardRoute.Id);
+        // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
+        PathCollectionEntry? forwardEntry = _gameWorld.AllEventCollections.FirstOrDefault(x => x.Collection.Id == forwardRoute.Id);
         if (forwardEntry != null)
         {
             PathCollectionEntry reverseEntry = new PathCollectionEntry
             {
-                CollectionId = reverseRoute.Id,
                 Collection = forwardEntry.Collection
             };
             _gameWorld.AllEventCollections.Add(reverseEntry);

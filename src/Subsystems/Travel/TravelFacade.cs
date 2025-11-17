@@ -588,8 +588,9 @@ public class TravelFacade
         }
 
         // ADR-007: Check if we have CurrentEvent object (not ID)
+        // Use Collection.Id (object property) instead of deleted CollectionId
         if (session.CurrentEvent != null &&
-            _gameWorld.AllPathCollections.Any(p => p.CollectionId == session.CurrentEvent.Id))
+            _gameWorld.AllPathCollections.Any(p => p.Collection.Id == session.CurrentEvent.Id))
         {
             PathCardCollectionDTO collection = _gameWorld.GetPathCollection(session.CurrentEvent.Id);
             return collection.NarrativeText;
@@ -632,7 +633,8 @@ public class TravelFacade
             // For FixedPath segments: use PathCollectionId
             string collectionId = segment.PathCollectionId;
 
-            if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.Any(p => p.CollectionId == collectionId))
+            // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
+            if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.Any(p => p.Collection.Id == collectionId))
             {
                 return null;
             }
