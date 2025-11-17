@@ -1642,9 +1642,14 @@ public class PackageLoader
     {
         if (conversationTrees == null) return;
 
+        // EntityResolver for categorical entity resolution (DDR-006)
+        Player player = _gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
+        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
+
         foreach (ConversationTreeDTO dto in conversationTrees)
         {
-            ConversationTree tree = ConversationTreeParser.Parse(dto, _gameWorld);
+            ConversationTree tree = ConversationTreeParser.Parse(dto, entityResolver);
             _gameWorld.ConversationTrees.Add(tree);
         }
     }
@@ -1653,9 +1658,14 @@ public class PackageLoader
     {
         if (observationScenes == null) return;
 
+        // EntityResolver for categorical entity resolution (DDR-006)
+        Player player = _gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
+        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
+
         foreach (ObservationSceneDTO dto in observationScenes)
         {
-            ObservationScene scene = ObservationSceneParser.Parse(dto, _gameWorld);
+            ObservationScene scene = ObservationSceneParser.Parse(dto, entityResolver);
             _gameWorld.ObservationScenes.Add(scene);
         }
     }
