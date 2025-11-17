@@ -205,11 +205,9 @@ public class PhysicalFacade
         {
             // ADR-007: Complete situation through SituationCompletionHandler (applies rewards: coins, StoryCubes, equipment)
             // Use PendingPhysicalContext.Obligation.Situation (object reference), no ID lookup
-            Situation completedSituation = _gameWorld.PendingPhysicalContext?.Obligation?.Situation;
-            if (completedSituation != null)
-            {
-                await _situationCompletionHandler.CompleteSituation(completedSituation);
-            }
+            // NO DEFENSIVE NULLS: Let it crash if context missing (reveals architectural problem)
+            Situation completedSituation = _gameWorld.PendingPhysicalContext!.Obligation!.Situation;
+            await _situationCompletionHandler.CompleteSituation(completedSituation);
 
             // SituationCards execute immediately (not locked for combo)
             // Move to PlayedCards for success detection (matches Mental pattern)
@@ -301,12 +299,9 @@ public class PhysicalFacade
 
         // TRANSITION TRACKING: Find situation and call FailSituation for OnFailure transitions
         // ADR-007: Use PendingPhysicalContext.Obligation.Situation (object reference), no ID lookup
-        Situation situation = _gameWorld.PendingPhysicalContext?.Obligation?.Situation;
-        if (situation != null)
-        {
-            // Call FailSituation to set LastChallengeSucceeded = false and trigger OnFailure
-            _situationCompletionHandler.FailSituation(situation);
-        }
+        // NO DEFENSIVE NULLS: Let it crash if context missing (reveals architectural problem)
+        Situation situation = _gameWorld.PendingPhysicalContext!.Obligation!.Situation;
+        _situationCompletionHandler.FailSituation(situation);
 
         PhysicalOutcome outcome = new PhysicalOutcome
         {
@@ -345,15 +340,16 @@ public class PhysicalFacade
         // TRANSITION TRACKING: If challenge failed, call FailSituation for OnFailure transitions
         // Mirrors Social EndConversation pattern
         // HIGHLANDER: Use Situation object reference, not SituationId string
-        if (!success && _gameWorld.PendingPhysicalContext?.Situation != null)
+        // NO DEFENSIVE NULLS: Let it crash if context missing (reveals architectural problem)
+        if (!success)
         {
-            _situationCompletionHandler.FailSituation(_gameWorld.PendingPhysicalContext.Situation);
+            _situationCompletionHandler.FailSituation(_gameWorld.PendingPhysicalContext!.Obligation!.Situation);
         }
 
         // Check for obligation progress if this was an obligation situation
-        if (success && _gameWorld.PendingPhysicalContext?.Situation != null && _gameWorld.PendingPhysicalContext?.Obligation != null)
+        if (success)
         {
-            await CheckObligationProgress(_gameWorld.PendingPhysicalContext.Situation, _gameWorld.PendingPhysicalContext.Obligation);
+            await CheckObligationProgress(_gameWorld.PendingPhysicalContext!.Obligation!.Situation, _gameWorld.PendingPhysicalContext!.Obligation);
         }
 
         // Award Reputation on success (Reputation system)

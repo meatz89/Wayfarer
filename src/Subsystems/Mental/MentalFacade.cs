@@ -190,11 +190,9 @@ public class MentalFacade
 
             // ADR-007: Complete situation through SituationCompletionHandler (handles obligation progress)
             // Use PendingMentalContext.Situation (object reference), no ID lookup needed
-            Situation completedSituation = _gameWorld.PendingMentalContext?.Situation;
-            if (completedSituation != null)
-            {
-                await _situationCompletionHandler.CompleteSituation(completedSituation);
-            }
+            // NO DEFENSIVE NULLS: Let it crash if context missing (reveals architectural problem)
+            Situation completedSituation = _gameWorld.PendingMentalContext!.Situation;
+            await _situationCompletionHandler.CompleteSituation(completedSituation);
 
             _gameWorld.CurrentMentalSession.Deck.PlayCard(card); // Mark card as played
             EndSession(); // Immediate end on SituationCard play
@@ -377,14 +375,10 @@ public class MentalFacade
 
         // TRANSITION TRACKING: Find situation and call FailSituation for OnFailure transitions
         // ADR-007: Use PendingMentalContext.Situation (object reference), no ID lookup
+        // NO DEFENSIVE NULLS: Let it crash if context missing (reveals architectural problem)
         {
-            Situation situation = _gameWorld.PendingMentalContext?.Situation;
-
-            if (situation != null)
-            {
-                // Call FailSituation to set LastChallengeSucceeded = false and trigger OnFailure
-                _situationCompletionHandler.FailSituation(situation);
-            }
+            Situation situation = _gameWorld.PendingMentalContext!.Situation;
+            _situationCompletionHandler.FailSituation(situation);
         }
 
         MentalOutcome outcome = new MentalOutcome
@@ -424,9 +418,10 @@ public class MentalFacade
         // TRANSITION TRACKING: If challenge failed, call FailSituation for OnFailure transitions
         // Mirrors Social EndConversation pattern
         // HIGHLANDER: Use Situation object reference, not SituationId string
-        if (!success && _gameWorld.PendingMentalContext?.Situation != null)
+        // NO DEFENSIVE NULLS: Let it crash if context missing (reveals architectural problem)
+        if (!success)
         {
-            _situationCompletionHandler.FailSituation(_gameWorld.PendingMentalContext.Situation);
+            _situationCompletionHandler.FailSituation(_gameWorld.PendingMentalContext!.Situation);
         }
 
         // Obligation progress now handled by SituationCompletionHandler (system-agnostic)
