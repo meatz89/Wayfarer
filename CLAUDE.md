@@ -1573,6 +1573,49 @@ grep -r "\"Friendly Chat\"\|\"Request\"\|\"Deliver\"" src --include="*.cs" | gre
 - Massive refactorings REQUIRED if they fix violations
 - Partner not sycophant: Do hard work, not easy path
 
+**CONTRACT BOUNDARIES FIRST (Refactoring Order):**
+When refactoring across system boundaries, define contracts at boundaries BEFORE touching internal implementation.
+
+**The Five Phases (STRICT ORDER)**:
+
+1. **INPUT BOUNDARY** (JSON/External Data)
+   - Remove entity instance IDs from JSON files
+   - Replace with categorical properties
+   - Define PlacementFilter structure
+   - Example: ❌ `"npcId": "elena"` → ✅ `"npcFilter": { "profession": "Innkeeper", "demeanor": "Friendly" }`
+
+2. **PARSER TRANSFORMATION** (DTO → Domain)
+   - DTOs match JSON structure (categorical properties)
+   - Parsers use EntityResolver.FindOrCreate
+   - Output: Domain objects with object references
+   - NO ID lookups, NO string parameters
+
+3. **PUBLIC API** (GameWorld/Facade Interface)
+   - GameWorld exposes collections: `.Locations`, `.NPCs`, `.Scenes`
+   - Facades accept objects, not strings
+   - NO `GetById` methods, NO string parameter methods
+   - Query collections directly or use LINQ
+
+4. **OUTPUT BOUNDARY** (ViewModels/UI)
+   - ViewModels contain objects, not ID strings
+   - Event handlers receive objects, not strings
+   - Pass objects through entire chain
+
+5. **INTERNAL IMPLEMENTATION** (Falls into Place)
+   - Services implement against clear contracts
+   - Managers use object references
+   - No lookups needed (contracts provide objects)
+
+**Why This Order**:
+- Input defines what data looks like (categorical properties)
+- Parser defines transformation (categorical → objects)
+- Public API defines access patterns (object queries)
+- Output defines presentation (objects → display)
+- Internal code adapts to boundaries (no choice, must use objects)
+
+**Example Violation**: Changing services before fixing JSON = chaos (services don't know if data is IDs or properties)
+**Correct Pattern**: Fix JSON → Fix Parser → Fix API → Services adapt automatically
+
 **Documentation Philosophy (META-PRINCIPLE):**
 - Document PRINCIPLES, never current broken state
 - FORBIDDEN: "Technical debt" sections legitimizing violations
