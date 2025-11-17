@@ -1486,7 +1486,7 @@ public class GameFacade
     /// <summary>
     /// Examine a point in an observation scene
     /// </summary>
-    public ObservationResult ExaminePoint(ObservationScene scene, ObservationPoint point)
+    public ObservationResult ExaminePoint(ObservationScene scene, ExaminationPoint point)
     {
         return _observationFacade.ExaminePoint(scene.Id, point.Id);
     }

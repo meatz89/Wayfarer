@@ -96,8 +96,6 @@ public class SituationCardRewards
     public int? ExplorationCubes { get; set; }
 
     // Core Loop reward types
-    // HIGHLANDER: Object reference ONLY, no EquipmentId
-    public Equipment Equipment { get; set; }
     public CreateObligationReward CreateObligationData { get; set; }
     public RouteSegmentUnlock RouteSegmentUnlock { get; set; }
 }

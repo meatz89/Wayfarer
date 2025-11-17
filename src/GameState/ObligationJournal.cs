@@ -54,11 +54,4 @@ public class ActiveObligation
     /// Null for SelfDiscovered obligations
     /// </summary>
     public int? ActivationSegment { get; set; }
-
-    /// <summary>
-    /// Object reference to obligation (for runtime navigation)
-    /// Populated at initialization time from ObligationId
-    /// </summary>
-    [System.Text.Json.Serialization.JsonIgnore]
-    public Obligation Obligation { get; set; }
 }
