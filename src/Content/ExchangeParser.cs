@@ -145,7 +145,7 @@ public static class ExchangeParser
             case Professions.Merchant:
                 exchanges.Add(new ExchangeCard
                 {
-                    Id = $"{npc.ID}_food_purchase",
+                    Id = $"exchange_food_purchase_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
                     Name = "Buy Hunger",
                     Description = "Purchase provisions from the merchant",
                     // HIGHLANDER Sub-Pattern A: Store both ID (for persistence) and Object (for runtime)
@@ -173,7 +173,7 @@ public static class ExchangeParser
             case Professions.Innkeeper:
                 exchanges.Add(new ExchangeCard
                 {
-                    Id = $"{npc.ID}_rest_service",
+                    Id = $"exchange_rest_service_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
                     Name = "Rest at Inn",
                     Description = "Pay for a comfortable rest",
                     // HIGHLANDER Sub-Pattern A: Store both ID (for persistence) and Object (for runtime)

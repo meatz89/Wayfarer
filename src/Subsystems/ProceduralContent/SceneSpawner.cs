@@ -10,7 +10,7 @@ public static class SceneSpawner
         string sceneId = $"scene_{Guid.NewGuid():N}";
 
         List<string> situationIds = request.Template.SituationTemplates
-            .Select(st => $"{sceneId}_{st.Id}")
+            .Select(st => $"situation_{st.Id}_{Guid.NewGuid():N}")
             .ToList();
 
         // Markers and tracking properties deleted in 5-system architecture

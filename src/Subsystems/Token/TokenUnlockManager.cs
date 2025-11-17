@@ -204,7 +204,7 @@ public class TokenUnlockManager
                 {
                     availableUnlocks.Add(new TokenUnlock
                     {
-                        UnlockId = $"{npcId}_{type}_{unlock.Threshold}",
+                        UnlockId = $"unlock_{type}_{unlock.Threshold}",
                         Name = unlock.Name,
                         Description = unlock.Description,
                         Requirement = new TokenRequirement
@@ -246,7 +246,7 @@ public class TokenUnlockManager
 
             foreach (UnlockDefinition unlock in unlocks)
             {
-                string unlockId = $"{npcId}_{type}_{unlock.Threshold}";
+                string unlockId = $"unlock_{type}_{unlock.Threshold}";
                 requirements[unlockId] = new TokenRequirement
                 {
                     NPCId = npcId,

@@ -263,7 +263,7 @@ public class SceneInstantiator
     {
         Package package = new Package
         {
-            PackageId = $"scene_{sceneDto.Id}_package",
+            PackageId = $"scene_package_{Guid.NewGuid().ToString("N")}",
             Metadata = new PackageMetadata
             {
                 Name = $"Scene {sceneDto.DisplayName}",
@@ -953,7 +953,7 @@ public class SceneInstantiator
         {
             if (spec.AddToInventoryOnCreation)
             {
-                string itemId = $"{scene.Id}_{spec.TemplateId}";
+                string itemId = $"{spec.TemplateId}_{Guid.NewGuid().ToString("N")}";
                 itemsToAddToInventory.Add(itemId);
             }
         }
@@ -978,7 +978,7 @@ public class SceneInstantiator
     private LocationDTO BuildLocationDTO(DependentLocationSpec spec, string sceneId, SceneSpawnContext context)
     {
         // Generate unique ID
-        string locationId = $"{sceneId}_{spec.TemplateId}";
+        string locationId = $"{spec.TemplateId}_{Guid.NewGuid().ToString("N")}";
 
         // Use patterns directly (AI generates complete text with entity context)
         string locationName = spec.NamePattern;
@@ -1068,7 +1068,7 @@ public class SceneInstantiator
     private ItemDTO BuildItemDTO(DependentItemSpec spec, string sceneId, SceneSpawnContext context, List<LocationDTO> createdLocations)
     {
         // Generate unique ID
-        string itemId = $"{sceneId}_{spec.TemplateId}";
+        string itemId = $"{spec.TemplateId}_{Guid.NewGuid().ToString("N")}";
 
         // Use patterns directly (AI generates complete text with entity context)
         string itemName = spec.NamePattern;
