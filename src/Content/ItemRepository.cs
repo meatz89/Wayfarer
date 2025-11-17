@@ -48,9 +48,10 @@
 
         foreach (Item item in items)
         {
-            if (_gameWorld.Items.Any(i => i.Id == item.Id))
+            // ADR-007: Use Name instead of deleted Id
+            if (_gameWorld.Items.Any(i => i.Name == item.Name))
             {
-                throw new InvalidOperationException($"Item with ID '{item.Id}' already exists.");
+                throw new InvalidOperationException($"Item '{item.Name}' already exists.");
             }
 
             _gameWorld.Items.Add(item);

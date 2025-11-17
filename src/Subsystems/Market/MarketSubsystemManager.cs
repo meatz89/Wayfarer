@@ -247,13 +247,14 @@ public class MarketSubsystemManager
         List<Item> allItems = _itemRepository.GetAllItems();
         foreach (Item item in allItems)
         {
-            LocationPricing pricing = GetDynamicPricing(locationId, item.Id);
+            // ADR-007: Use Name instead of deleted Id
+            LocationPricing pricing = GetDynamicPricing(locationId, item.Name);
             if (pricing.IsAvailable && pricing.BuyPrice > 0)
             {
                 // Create a copy with location-specific pricing
+                // ADR-007: No Id property (Name is natural key)
                 Item pricedItem = new Item
                 {
-                    Id = item.Id,
                     Name = item.Name,
                     Description = item.Description,
                     InitiativeCost = item.InitiativeCost,
@@ -471,10 +472,11 @@ public class MarketSubsystemManager
         List<Item> items = GetAvailableItems(locationId);
 
         // Convert to MarketItem format
+        // ADR-007: Use Name instead of deleted Id
         return items.Select(item => new MarketItem
         {
-            Id = item.Id,
-            ItemId = item.Id,
+            Id = item.Name,
+            ItemId = item.Name,
             Name = item.Name,
             Price = item.BuyPrice,
             Stock = 10, // Default stock level
@@ -556,21 +558,23 @@ public class MarketSubsystemManager
 
                 foreach (Location loc in allLocations)
                 {
-                    if (loc.Id == currentLocationId) continue;
-                    int sellPrice = GetItemPrice(loc.Id, item.Id, false);
+                    // ADR-007: Use Name instead of deleted Id
+                    if (loc.Name == currentLocationId) continue;
+                    int sellPrice = GetItemPrice(loc.Name, item.Name, false);
                     if (sellPrice > maxSellPrice)
                     {
                         maxSellPrice = sellPrice;
-                        bestSellLocation = loc.Id;
+                        bestSellLocation = loc.Name;
                     }
                 }
 
                 int profit = maxSellPrice - buyPriceHere;
                 if (profit > 5) // Minimum profit threshold
                 {
+                    // ADR-007: Use Name instead of deleted Id
                     recommendations.Add(new TradeRecommendation
                     {
-                        ItemId = item.Id,
+                        ItemId = item.Name,
                         ItemName = item.Name,
                         RecommendedAction = TradeAction.Buy,
                         LocationId = currentLocationId,
