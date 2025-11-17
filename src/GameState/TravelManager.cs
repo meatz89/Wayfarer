@@ -43,7 +43,8 @@ public class TravelManager
             CurrentState = DetermineInitialTravelState(player),
             SegmentsElapsed = 0,
             CompletedSegments = new List<string>(),
-            SelectedPathId = ""
+            // ADR-007: SelectedPath initialized to null (no empty string ID)
+            SelectedPath = null
         };
 
         _gameWorld.CurrentTravelSession = session;
