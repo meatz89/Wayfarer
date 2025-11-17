@@ -9,7 +9,8 @@ public static class LocationParser
     /// </summary>
     public static Location ConvertDTOToLocation(LocationDTO dto, GameWorld gameWorld)
     {
-        Location location = new Location(dto.Id, dto.Name)
+        // ADR-007: Constructor uses Name only (no Id parameter)
+        Location location = new Location(dto.Name)
         {
             InitialState = dto.InitialState ?? "" // Optional - defaults to empty if missing
         };
@@ -23,7 +24,8 @@ public static class LocationParser
         if (dto.Q.HasValue && dto.R.HasValue)
         {
             location.HexPosition = new AxialCoordinates(dto.Q.Value, dto.R.Value);
-            Console.WriteLine($"[LocationParser] Set HexPosition for '{dto.Id}' from DTO: ({dto.Q.Value}, {dto.R.Value})");
+            // ADR-007: Use Name instead of Id in logging
+            Console.WriteLine($"[LocationParser] Set HexPosition for '{dto.Name}' from DTO: ({dto.Q.Value}, {dto.R.Value})");
         }
 
         // Parse time windows

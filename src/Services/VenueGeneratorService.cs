@@ -34,15 +34,13 @@ public class VenueGeneratorService
         // 2. Find unoccupied hex cluster based on allocation strategy
         AxialCoordinates centerHex = FindUnoccupiedCluster(template.HexAllocation, gameWorld);
 
-        // 3. Generate unique venue ID (pure identifier, no encoded metadata)
-        string venueId = Guid.NewGuid().ToString();
-
-        // 4. Replace placeholders in name/description
+        // 3. Replace placeholders in name/description
         string venueName = ReplacePlaceholders(template.NamePattern, context, districtId);
         string venueDescription = ReplacePlaceholders(template.DescriptionPattern, context, districtId);
 
-        // 5. Create Venue entity
-        Venue venue = new Venue(venueId, venueName)
+        // 4. Create Venue entity
+        // ADR-007: Constructor uses Name only (no Id parameter or generation)
+        Venue venue = new Venue(venueName)
         {
             Description = venueDescription,
             Type = template.Type,

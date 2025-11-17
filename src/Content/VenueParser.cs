@@ -18,11 +18,13 @@ public static class VenueParser
         {
             if (!Enum.TryParse<VenueType>(dto.LocationType, true, out venueType))
             {
-                throw new InvalidDataException($"Venue {dto.Id} has invalid LocationType '{dto.LocationType}'. Valid values: {string.Join(", ", Enum.GetNames(typeof(VenueType)))}");
+                // ADR-007: Use Name instead of Id in error messages
+                throw new InvalidDataException($"Venue {dto.Name} has invalid LocationType '{dto.LocationType}'. Valid values: {string.Join(", ", Enum.GetNames(typeof(VenueType)))}");
             }
         }
 
-        Venue venue = new Venue(dto.Id, dto.Name)
+        // ADR-007: Constructor uses Name only (no Id parameter)
+        Venue venue = new Venue(dto.Name)
         {
             Description = dto.Description,
             District = dto.DistrictId,

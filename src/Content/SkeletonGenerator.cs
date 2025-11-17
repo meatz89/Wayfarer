@@ -69,7 +69,8 @@ public static class SkeletonGenerator
     {
         // VIOLATION REMOVED: No more id.GetHashCode() - use simple defaults instead
 
-        Venue venue = new Venue(id, $"{GenericLocationNames[0]} (missing content)")
+        // ADR-007: Constructor uses Name only (no Id parameter)
+        Venue venue = new Venue($"{id} - {GenericLocationNames[0]} (missing content)")
         {
             Description = "This place remains to be discovered.",
             IsSkeleton = true,
@@ -90,9 +91,11 @@ public static class SkeletonGenerator
     {
         // VIOLATION REMOVED: No more id.GetHashCode() - use simple defaults instead
 
-        Location location = new Location(id, $"{GenericSpotNames[0]} (missing content)")
+        // ADR-007: Constructor uses Name only (no Id parameter)
+        Location location = new Location($"{id} - {GenericSpotNames[0]} (missing content)")
         {
-            VenueId = venueId,
+            // ADR-007: VenueId deleted - venue assignment happens during parsing/resolution
+            // Skeleton locations will have Venue assigned when venue is resolved
             IsSkeleton = true,
             SkeletonSource = source,
 
