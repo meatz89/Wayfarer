@@ -17,10 +17,10 @@ public class TravelSession
     public List<string> CompletedSegments { get; set; } = new();
 
     // ADR-007: SelectedPathId DELETED - use SelectedPath object reference
-    public TravelPath SelectedPath { get; set; }
+    public PathCardDTO SelectedPath { get; set; }
 
     // ADR-007: CurrentEventId DELETED - use CurrentEvent object reference
-    public TravelEvent CurrentEvent { get; set; }
+    public TravelEventDTO CurrentEvent { get; set; }
 
     // Track which event was drawn for each segment (for deterministic behavior)
     public Dictionary<string, string> SegmentEventDraws { get; set; } = new Dictionary<string, string>();
@@ -32,7 +32,7 @@ public class TravelSession
     public bool IsRevealingCard { get; set; } = false;
 
     // ADR-007: RevealedCardId DELETED - use RevealedCard object reference
-    public TravelCard RevealedCard { get; set; }
+    public PathCardDTO RevealedCard { get; set; }
 
     // Journey completion state - true when last segment is completed and ready to finish
     public bool IsReadyToComplete { get; set; } = false;
