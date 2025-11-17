@@ -23,10 +23,11 @@
         </div>
 
         <!-- NPC Header (if NPC exchange) -->
-        @if (!string.IsNullOrEmpty(Context.NpcInfo?.Name))
+        @* ADR-007: Use Npc object (not NpcInfo) *@
+        @if (!string.IsNullOrEmpty(Context.Npc?.Name))
         {
             <div class="npc-header">
-                <div class="npc-name">@Context.NpcInfo.Name</div>
+                <div class="npc-name">@Context.Npc.Name</div>
                 <div class="npc-state">@GetNpcStatusLine()</div>
             </div>
 
@@ -69,13 +70,15 @@
 
         <!-- Exchange Cards Section -->
         <div class="exchange-section">
-            <div class="exchange-title">Available Exchanges (@GetAvailableCount() drawn from @(Context.NpcInfo?.Name ?? "location")'s deck)</div>
+            @* ADR-007: Use Npc object (not NpcInfo) *@
+            <div class="exchange-title">Available Exchanges (@GetAvailableCount() drawn from @(Context.Npc?.Name ?? "location")'s deck)</div>
             
             <div class="exchange-grid">
                 @foreach (var exchange in GetAvailableExchanges())
                 {
                     var canAfford = Context.CanAfford(exchange);
-                    var isSelected = SelectedExchangeId == exchange.Id;
+                    @* HIGHLANDER: Object equality, not ID comparison *@
+                    var isSelected = SelectedExchange == exchange;
                     
                     <div class="exchange-card @(!canAfford ? "unavailable" : "") @(isSelected ? "selected" : "")"
                          @onclick="() => SelectExchange(exchange)">

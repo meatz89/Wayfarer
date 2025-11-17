@@ -657,33 +657,19 @@ public class GameFacade
             return null;
         }
 
-        // Build the context
+        // ADR-007: Build context using session object (not creating redundant session)
         ExchangeContext context = new ExchangeContext
         {
-            NpcInfo = new NpcInfo
-            {
-                NpcId = npc.Name,
-                Name = npc.Name,
-                TokenCounts = _tokenFacade.GetTokensWithNPC(npc.Name)
-            },
-            LocationInfo = new LocationInfo
-            {
-                LocationId = currentLocation.Name,
-                LocationName = currentLocation.Name,
-                VenueId = currentLocation.VenueName,
-                VenueName = venue?.Name,
-                Description = venue?.Description
-            },
+            // ADR-007: Store NPC object reference (not NpcId string)
+            Npc = npc,
+            // ADR-007: Store Location object reference (not LocationId string)
+            Location = currentLocation,
             CurrentTimeBlock = timeBlock,
             PlayerResources = playerResources,
             PlayerTokens = npcTokens,
             PlayerInventory = GetPlayerInventoryAsDictionary(),
-            Session = new ExchangeSession
-            {
-                NpcId = npc.Name,
-                LocationId = currentLocation.Name,
-                AvailableExchanges = availableExchanges
-            }
+            // ADR-007: Use existing session object (already has Npc and Location)
+            Session = session
         };
 
         return await Task.FromResult(context);

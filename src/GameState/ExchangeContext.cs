@@ -26,16 +26,17 @@ public class ExchangeContext
     /// </summary>
     public Dictionary<string, int> PlayerInventory { get; set; } = new Dictionary<string, int>();
 
+    // ADR-007: NpcInfo DELETED - use NPC object reference directly
     /// <summary>
-    /// Information about the NPC offering exchanges.
-    /// Null for location-based exchanges.
+    /// The NPC offering exchanges. Null for location-based exchanges.
     /// </summary>
-    public NpcInfo NpcInfo { get; set; }
+    public NPC Npc { get; set; }
 
+    // ADR-007: LocationInfo DELETED - use Location object reference directly
     /// <summary>
-    /// Current Venue information.
+    /// Current location where exchange is happening.
     /// </summary>
-    public LocationInfo LocationInfo { get; set; }
+    public Location Location { get; set; }
 
     /// <summary>
     /// Current time block.
@@ -51,8 +52,10 @@ public class ExchangeContext
         if (Session == null)
             return new List<ExchangeCard>();
 
+        // ADR-007: Get VenueId from Location object (not LocationInfo.VenueId)
+        string venueId = Location?.VenueName;
         return Session.AvailableExchanges
-            .Where(e => e.ExchangeCard != null && e.ExchangeCard.IsAvailable(LocationInfo.VenueId, CurrentTimeBlock))
+            .Where(e => e.ExchangeCard != null && e.ExchangeCard.IsAvailable(venueId, CurrentTimeBlock))
             .Select(e => e.ExchangeCard)
             .ToList();
     }
@@ -224,26 +227,6 @@ public class ResourcePreview
     public int Stamina { get; set; }
 }
 
-/// <summary>
-/// Basic NPC information for exchange context.
-/// </summary>
-public class NpcInfo
-{
-    public string NpcId { get; set; }
-    public string Name { get; set; }
-    public string Portrait { get; set; }
-    public Dictionary<ConnectionType, int> TokenCounts { get; set; } = new Dictionary<ConnectionType, int>();
-}
-
-/// <summary>
-/// Location information for exchange context.
-/// Stores LocationId as primary reference, VenueId/VenueName derived for display and filtering.
-/// </summary>
-public class LocationInfo
-{
-    public string LocationId { get; set; }
-    public string LocationName { get; set; }
-    public string VenueId { get; set; }  // Derived from Location.VenueId (for IsAvailable checks)
-    public string VenueName { get; set; }  // Derived from Location.Venue.Name (for display)
-    public string Description { get; set; }
-}
+// ADR-007: NpcInfo and LocationInfo classes DELETED
+// These were redundant DTOs wrapping domain entities with IDs
+// Use NPC and Location object references directly in ExchangeContext
