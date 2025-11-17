@@ -19,22 +19,20 @@ public class SocialChallengeDeckBuilder
     /// </summary>
     public SocialDeckBuildResult CreateConversationDeck(
         NPC npc,
-        string requestId)
+        Situation situation)
     {
         string sessionId = Guid.NewGuid().ToString();
 
-        // Get the situation which drives everything - from centralized GameWorld storage
-        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == requestId);
         if (situation == null)
         {
-            throw new ArgumentException($"Situation {requestId} not found in any Scene.Situations");
+            throw new ArgumentNullException(nameof(situation));
         }
 
         // THREE PARALLEL SYSTEMS: Get Social engagement deck directly (no Types, just Decks)
-        SocialChallengeDeck deckDefinition = _gameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
+        SocialChallengeDeck deckDefinition = situation.Deck as SocialChallengeDeck;
         if (deckDefinition == null)
         {
-            throw new InvalidOperationException($"[ConversationDeckBuilder] Conversation deck '{situation.DeckId}' not found in GameWorld.SocialChallengeDecks");
+            throw new InvalidOperationException($"[ConversationDeckBuilder] Situation '{situation.Name}' has no SocialChallengeDeck");
         }
 
         // Build card instances from engagement deck (no depth distribution - deck has explicit card list)
@@ -98,7 +96,7 @@ public class SocialChallengeDeckBuilder
             instance.Context = new CardContext
             {
                 threshold = situationCard.threshold,
-                RequestId = situation.Id
+                Situation = situation
             };
 
             // Situation cards start unplayable until momentum threshold met

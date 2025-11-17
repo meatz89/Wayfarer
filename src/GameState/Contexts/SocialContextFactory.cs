@@ -9,7 +9,7 @@ public static class SocialContextFactory
     /// Create a Social challenge context
     /// </summary>
     public static SocialChallengeContext CreateContext(
-        string conversationTypeId,
+        Situation situation,
         NPC npc,
         SocialSession session,
         List<CardInstance> observationCards,
@@ -21,9 +21,8 @@ public static class SocialContextFactory
         SocialChallengeContext context = new SocialChallengeContext
         {
             IsValid = true,
-            NpcId = npc.ID,
+            Situation = situation,
             Npc = npc,
-            ConversationTypeId = conversationTypeId,
             InitialState = ConnectionState.NEUTRAL,
             Session = session,
             ObservationCards = observationCards,

@@ -7,9 +7,7 @@ public class SocialChallengeContext
 {
     public bool IsValid { get; set; }
     public string ErrorMessage { get; set; }
-    public string NpcId { get; set; }
     public NPC Npc { get; set; }
-    public string ConversationTypeId { get; set; }
     public ConnectionState InitialState { get; set; }
     public SocialSession Session { get; set; }
     public List<CardInstance> ObservationCards { get; set; }

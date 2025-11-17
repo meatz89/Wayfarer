@@ -412,7 +412,7 @@ public class GameFacade
 
     public async Task<SocialChallengeContext> CreateConversationContext(NPC npc, Situation situation)
     {
-        return await _conversationFacade.CreateConversationContext(npc.Name, situation.TemplateId);
+        return await _conversationFacade.CreateConversationContext(npc, situation);
     }
 
     /// <summary>
