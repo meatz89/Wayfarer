@@ -71,8 +71,6 @@ public class MentalFacade
         }
 
         // Track obligation context
-        _gameWorld.CurrentMentalSituationId = situationId;
-        _gameWorld.CurrentMentalObligationId = obligationId;
 
         Player player = _gameWorld.GetPlayer();
         Location location = _gameWorld.GetPlayerCurrentLocation();
@@ -190,10 +188,9 @@ public class MentalFacade
         if (card.CardType == CardTypes.Situation)
         {
 
-            // Complete situation through SituationCompletionHandler (handles obligation progress)
-            Situation completedSituation = _gameWorld.Scenes
-                .SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentMentalSituationId);
+            // ADR-007: Complete situation through SituationCompletionHandler (handles obligation progress)
+            // Use PendingMentalContext.Situation (object reference), no ID lookup needed
+            Situation completedSituation = _gameWorld.PendingMentalContext?.Situation;
             if (completedSituation != null)
             {
                 await _situationCompletionHandler.CompleteSituation(completedSituation);
@@ -379,11 +376,9 @@ public class MentalFacade
         }
 
         // TRANSITION TRACKING: Find situation and call FailSituation for OnFailure transitions
-        if (!string.IsNullOrEmpty(_gameWorld.CurrentMentalSituationId))
+        // ADR-007: Use PendingMentalContext.Situation (object reference), no ID lookup
         {
-            Situation situation = _gameWorld.Scenes
-                .SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentMentalSituationId);
+            Situation situation = _gameWorld.PendingMentalContext?.Situation;
 
             if (situation != null)
             {
@@ -400,12 +395,10 @@ public class MentalFacade
             SessionSaved = false
         };
 
-        // Clear obligation context
-        _gameWorld.CurrentMentalSituationId = null;
-        _gameWorld.CurrentMentalObligationId = null;
-
+        // ADR-007: Clear session and context (CurrentMentalSituationId/ObligationId deleted)
         _gameWorld.CurrentMentalSession.Deck.Clear();
         _gameWorld.CurrentMentalSession = null;
+        _gameWorld.PendingMentalContext = null;
 
         return outcome;
     }
@@ -452,12 +445,10 @@ public class MentalFacade
         // Rewards are strategic layer concern - GameFacade applies them after receiving outcome
         // PendingContext stays alive for GameFacade to process
 
-        // Clear obligation context
-        _gameWorld.CurrentMentalSituationId = null;
-        _gameWorld.CurrentMentalObligationId = null;
-
+        // ADR-007: Clear session and context (CurrentMentalSituationId/ObligationId deleted)
         _gameWorld.CurrentMentalSession.Deck.Clear();
         _gameWorld.CurrentMentalSession = null;
+        _gameWorld.PendingMentalContext = null;
 
         return outcome;
     }

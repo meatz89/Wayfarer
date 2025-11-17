@@ -74,11 +74,12 @@ public class GameWorld
     // ActiveEmergency - Currently triggering emergency that interrupts gameplay (set at sync points)
     public EmergencySituation ActiveEmergency { get; set; }
 
-    // PendingForcedSceneId - Modal scene that should auto-trigger on location entry
-    // Set by movement methods (ProcessMoveIntent, TravelToDestinationAsync) after checking for forced scenes
+    // ADR-007: PendingForcedSceneId DELETED - replaced with PendingForcedScene object reference
+    // Modal scene that should auto-trigger on location entry
+    // Set by movement methods after checking for forced scenes
     // Checked by UI layer (LocationContent) after movement completes
     // HIGHLANDER: Single pending forced scene at any time
-    public string PendingForcedSceneId { get; set; }
+    public Scene PendingForcedScene { get; set; }
 
     // Dialogue templates from packages
     public DialogueTemplates DialogueTemplates { get; set; }
@@ -88,8 +89,8 @@ public class GameWorld
     // Travel System
     public List<RouteImprovement> RouteImprovements { get; set; } = new List<RouteImprovement>();
 
+    // ADR-007: InitialLocationId DELETED (dead code - never read)
     // Initialization data - stored in GameWorld, not passed between phases
-    public string InitialLocationId { get; set; }
     public PlayerInitialConfig InitialPlayerConfig { get; set; }
 
     // Time initialization (applied to TimeModel after DI initialization)
@@ -120,11 +121,9 @@ public class GameWorld
     public MentalSession CurrentMentalSession { get; set; }
     public PhysicalSession CurrentPhysicalSession { get; set; }
 
-    // Session context (obligation tracking for Mental/Physical)
-    public string CurrentMentalSituationId { get; set; }
-    public string CurrentMentalObligationId { get; set; }
-    public string CurrentPhysicalSituationId { get; set; }
-    public string CurrentPhysicalObligationId { get; set; }
+    // ADR-007: Session context IDs DELETED - MentalChallengeContext/PhysicalChallengeContext hold objects
+    // Session contexts already contain SituationCard and Obligation object references
+    // No need for redundant ID storage in GameWorld
 
     // Last outcomes (UI display after session ends)
     public SocialChallengeOutcome LastSocialOutcome { get; set; }

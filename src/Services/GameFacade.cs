@@ -566,7 +566,8 @@ public class GameFacade
         PhysicalDeckBuildResult buildResult = _physicalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _physicalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situation?.TemplateId, obligation?.Name);
+        // ADR-007: Pass Situation and Obligation objects (not IDs)
+        return _physicalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situation, obligation);
     }
 
     /// <summary>

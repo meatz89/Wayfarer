@@ -299,7 +299,6 @@ public class PackageLoader
         if (startingLocation == null)
             throw new InvalidOperationException($"StartingSpotId '{conditions.StartingSpotId}' not found in parsed locations - player cannot spawn!");
 
-        _gameWorld.InitialLocationId = conditions.StartingSpotId;
 
         // Apply starting obligations
         if (conditions.StartingObligations != null)

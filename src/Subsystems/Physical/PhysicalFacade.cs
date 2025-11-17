@@ -62,16 +62,15 @@ public class PhysicalFacade
     }
 
     public PhysicalSession StartSession(PhysicalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
-        string situationId, string obligationId)
+        Situation situation, Obligation obligation)
     {
         if (IsSessionActive())
         {
             EndSession();
         }
 
-        // Track obligation context
-        _gameWorld.CurrentPhysicalSituationId = situationId;
-        _gameWorld.CurrentPhysicalObligationId = obligationId;
+        // ADR-007: PendingPhysicalContext already set upstream (GameFacade/SceneContent)
+        // No ID storage needed - context contains object references
 
         Player player = _gameWorld.GetPlayer();
 
@@ -91,9 +90,8 @@ public class PhysicalFacade
         _gameWorld.CurrentPhysicalSession.Deck = PhysicalSessionDeck.CreateFromInstances(deck, startingHand);
         _gameWorld.CurrentPhysicalSession.Deck = _gameWorld.CurrentPhysicalSession.Deck;
 
-        // Extract SituationCards from Situation and add to session deck (MATCH SOCIAL PATTERN)
-        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
-        if (!string.IsNullOrEmpty(situationId) && situation != null)
+        // ADR-007: Extract SituationCards from Situation object (no ID lookup)
+        if (situation != null)
         {
             if (situation.SituationCards.Any())
             {
@@ -205,9 +203,9 @@ public class PhysicalFacade
         // Situation cards have no PhysicalCardTemplate, so must be checked first
         if (card.CardType == CardTypes.Situation)
         {
-
-            // Complete situation through SituationCompletionHandler (applies rewards: coins, StoryCubes, equipment)
-            Situation completedSituation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == _gameWorld.CurrentPhysicalSituationId);
+            // ADR-007: Complete situation through SituationCompletionHandler (applies rewards: coins, StoryCubes, equipment)
+            // Use PendingPhysicalContext.Obligation.Situation (object reference), no ID lookup
+            Situation completedSituation = _gameWorld.PendingPhysicalContext?.Obligation?.Situation;
             if (completedSituation != null)
             {
                 await _situationCompletionHandler.CompleteSituation(completedSituation);
@@ -302,17 +300,12 @@ public class PhysicalFacade
         player.Stamina -= staminaCost;
 
         // TRANSITION TRACKING: Find situation and call FailSituation for OnFailure transitions
-        if (!string.IsNullOrEmpty(_gameWorld.CurrentPhysicalSituationId))
+        // ADR-007: Use PendingPhysicalContext.Obligation.Situation (object reference), no ID lookup
+        Situation situation = _gameWorld.PendingPhysicalContext?.Obligation?.Situation;
+        if (situation != null)
         {
-            Situation situation = _gameWorld.Scenes
-                .SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentPhysicalSituationId);
-
-            if (situation != null)
-            {
-                // Call FailSituation to set LastChallengeSucceeded = false and trigger OnFailure
-                _situationCompletionHandler.FailSituation(situation);
-            }
+            // Call FailSituation to set LastChallengeSucceeded = false and trigger OnFailure
+            _situationCompletionHandler.FailSituation(situation);
         }
 
         PhysicalOutcome outcome = new PhysicalOutcome
@@ -323,8 +316,10 @@ public class PhysicalFacade
             EscapeCost = $"{healthCost} Health, {staminaCost} Stamina"
         };
 
+        // ADR-007: Clear session and context (CurrentPhysicalSituationId/ObligationId deleted)
         _gameWorld.CurrentPhysicalSession.Deck.Clear();
         _gameWorld.CurrentPhysicalSession = null;
+        _gameWorld.PendingPhysicalContext = null;
 
         return outcome;
     }
@@ -380,11 +375,11 @@ public class PhysicalFacade
         // PendingContext stays alive for GameFacade to process
 
         // Clear obligation context
-        _gameWorld.CurrentPhysicalSituationId = null;
-        _gameWorld.CurrentPhysicalObligationId = null;
 
+        // ADR-007: Clear session and context (CurrentPhysicalSituationId/ObligationId deleted)
         _gameWorld.CurrentPhysicalSession.Deck.Clear();
         _gameWorld.CurrentPhysicalSession = null;
+        _gameWorld.PendingPhysicalContext = null;
 
         return outcome;
     }

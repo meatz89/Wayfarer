@@ -140,18 +140,13 @@ public class LocationContentBase : ComponentBase
                 await OnActionExecuted.InvokeAsync();
 
                 // MODAL SCENE FORCING: Check if action triggered a forced modal scene
-                // GameFacade sets PendingForcedSceneId after successful movement actions
+                // ADR-007: GameFacade sets PendingForcedScene object after successful movement actions
                 // If found, navigate to forced scene immediately (Sir Brante forced moment pattern)
-                if (!string.IsNullOrEmpty(GameWorld.PendingForcedSceneId))
+                if (GameWorld.PendingForcedScene != null)
                 {
-                    string forcedSceneId = GameWorld.PendingForcedSceneId;
-                    GameWorld.PendingForcedSceneId = null; // Clear pending flag
-
-                    Scene forcedScene = GameWorld.Scenes.FirstOrDefault(s => s.Id == forcedSceneId);
-                    if (forcedScene != null)
-                    {
-                        await GameScreen.StartScene(forcedScene);
-                    }
+                    Scene forcedScene = GameWorld.PendingForcedScene;
+                    GameWorld.PendingForcedScene = null; // Clear pending flag
+                    await GameScreen.StartScene(forcedScene);
                 }
             }
         }
@@ -227,18 +222,13 @@ public class LocationContentBase : ComponentBase
             await OnActionExecuted.InvokeAsync();
 
             // MODAL SCENE FORCING: Check if movement triggered a forced modal scene
-            // GameFacade sets PendingForcedSceneId after successful movement
+            // ADR-007: GameFacade sets PendingForcedScene object after successful movement
             // If found, navigate to forced scene immediately (Sir Brante forced moment pattern)
-            if (!string.IsNullOrEmpty(GameWorld.PendingForcedSceneId))
+            if (GameWorld.PendingForcedScene != null)
             {
-                string forcedSceneId = GameWorld.PendingForcedSceneId;
-                GameWorld.PendingForcedSceneId = null; // Clear pending flag
-
-                Scene forcedScene = GameWorld.Scenes.FirstOrDefault(s => s.Id == forcedSceneId);
-                if (forcedScene != null)
-                {
-                    await GameScreen.StartScene(forcedScene);
-                }
+                Scene forcedScene = GameWorld.PendingForcedScene;
+                GameWorld.PendingForcedScene = null; // Clear pending flag
+                await GameScreen.StartScene(forcedScene);
             }
         }
     }
