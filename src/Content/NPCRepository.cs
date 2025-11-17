@@ -27,7 +27,8 @@ public class NPCRepository
     /// </summary>
     private bool IsNPCVisible(NPC npc)
     {
-        return _visibilityService.IsNPCVisible(npc.ID);
+        // ADR-007: Use Name (natural key) instead of deleted ID property
+        return _visibilityService.IsNPCVisible(npc.Name);
     }
 
     /// <summary>
@@ -46,7 +47,8 @@ public class NPCRepository
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
 
-        NPC? npc = characters.FirstOrDefault(n => n.ID == id);
+        // ADR-007: NPC.ID deleted - use Name as natural key
+        NPC? npc = characters.FirstOrDefault(n => n.Name == id);
         if (npc != null && !IsNPCVisible(npc))
             return null;
 
@@ -136,7 +138,8 @@ public class NPCRepository
         Console.WriteLine($"[NPCRepository] Checking {npcs.Count} NPCs for location '{location.Name}'");
         foreach (NPC npc in npcs)
         {
-            Console.WriteLine($"[NPCRepository]   NPC '{npc.Name}' (ID={npc.ID}) - Location: {(npc.Location != null ? $"'{npc.Location.Name}'" : "NULL")}");
+            // ADR-007: NPC.ID deleted - use Name for logging
+            Console.WriteLine($"[NPCRepository]   NPC '{npc.Name}' - Location: {(npc.Location != null ? $"'{npc.Location.Name}'" : "NULL")}");
         }
 
         List<NPC> npcsAtLocation = npcs.Where(n => n.Location == location).ToList();
@@ -144,8 +147,9 @@ public class NPCRepository
         // Apply visibility filtering
         npcsAtLocation = FilterByVisibility(npcsAtLocation);
 
+        // ADR-007: NPC.ID deleted - use Name for logging
         _debugLogger?.LogDebug($"Found {npcsAtLocation.Count} NPCs at location '{location.Name}': " +
-            string.Join(", ", npcsAtLocation.Select(n => $"{n.Name} ({n.ID}) - Available: {n.IsAvailable(currentTime)}")));
+            string.Join(", ", npcsAtLocation.Select(n => $"{n.Name} - Available: {n.IsAvailable(currentTime)}")));
 
         return npcsAtLocation;
     }
@@ -203,10 +207,11 @@ public class NPCRepository
             throw new InvalidOperationException("No NPCs collection exists.");
         }
 
-        NPC existingNPC = npcs.FirstOrDefault(n => n.ID == npc.ID);
+        // ADR-007: NPC.ID deleted - use Name as natural key
+        NPC existingNPC = npcs.FirstOrDefault(n => n.Name == npc.Name);
         if (existingNPC == null)
         {
-            throw new InvalidOperationException($"NPC with ID '{npc.ID}' not found.");
+            throw new InvalidOperationException($"NPC '{npc.Name}' not found.");
         }
 
         int index = npcs.IndexOf(existingNPC);
