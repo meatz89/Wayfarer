@@ -9,19 +9,7 @@ public class NPCDTO
     public string Name { get; set; }
     public string Profession { get; set; }
 
-    /// <summary>
-    /// MIGRATION: Venue ID temporarily kept for parsing existing JSON
-    /// Parser resolves to NPC.Location.Venue via Location lookup
-    /// FUTURE: Will use PlacementFilterDTO for categorical spawn location matching
-    /// </summary>
-    public string VenueId { get; set; }
-
-    /// <summary>
-    /// MIGRATION: Location ID temporarily kept for parsing existing JSON
-    /// Parser resolves to NPC.Location object reference
-    /// FUTURE: Will use PlacementFilterDTO for categorical spawn location matching
-    /// </summary>
-    public string LocationId { get; set; }
+    public PlacementFilterDTO SpawnLocation { get; set; }
 
     public string Description { get; set; }
     public string Personality { get; set; }
