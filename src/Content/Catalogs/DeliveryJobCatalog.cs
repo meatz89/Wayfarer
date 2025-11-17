@@ -35,14 +35,14 @@ public static class DeliveryJobCatalog
         // Filter routes connecting Commercial locations
         foreach (RouteOption route in routes)
         {
-            // Get origin and destination locations
-            Location origin = locations.FirstOrDefault(l => l.Id == route.OriginLocationId);
-            Location destination = locations.FirstOrDefault(l => l.Id == route.DestinationLocationId);
+            // Get origin and destination locations directly from route object references
+            Location origin = route.OriginLocation;
+            Location destination = route.DestinationLocation;
 
             // Skip if locations not found
             if (origin == null || destination == null)
             {
-                Console.WriteLine($"[DeliveryJobCatalog] ⚠️ Skipping route '{route.Id}' - origin or destination not found");
+                Console.WriteLine($"[DeliveryJobCatalog] ⚠️ Skipping route '{route.Name}' - origin or destination not found");
                 continue;
             }
 
@@ -57,7 +57,7 @@ public static class DeliveryJobCatalog
             DeliveryJob job = GenerateJob(route, origin, destination);
             jobs.Add(job);
 
-            Console.WriteLine($"[DeliveryJobCatalog] ✅ Generated job '{job.Id}' - {job.DifficultyTier} - {job.Payment} coins");
+            Console.WriteLine($"[DeliveryJobCatalog] ✅ Generated job to {destination.Name} - {job.DifficultyTier} - {job.Payment} coins");
         }
 
         Console.WriteLine($"[DeliveryJobCatalog] Generated {jobs.Count} delivery jobs total");
@@ -82,10 +82,9 @@ public static class DeliveryJobCatalog
         // Create job entity
         DeliveryJob job = new DeliveryJob
         {
-            Id = $"delivery_{origin.Id}_to_{destination.Id}",
-            OriginLocationId = origin.Id,
-            DestinationLocationId = destination.Id,
-            RouteId = route.Id,
+            OriginLocation = origin,
+            DestinationLocation = destination,
+            Route = route,
             Payment = payment,
             CargoDescription = cargo,
             JobDescription = $"Deliver {cargo} to {destination.Name}",

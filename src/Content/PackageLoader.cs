@@ -395,11 +395,11 @@ public class PackageLoader
             // Add generated actions to GameWorld
             foreach (LocationAction action in generatedActions)
             {
-                // Avoid duplicates if multiple packages loaded (semantic deduplication, not ID matching)
+                // Avoid duplicates if multiple packages loaded (semantic deduplication via object references)
                 bool isDuplicate = _gameWorld.LocationActions.Any(a =>
                     a.ActionType == action.ActionType &&
-                    a.SourceLocationId == action.SourceLocationId &&
-                    a.DestinationLocationId == action.DestinationLocationId);
+                    a.SourceLocation == action.SourceLocation &&
+                    a.DestinationLocation == action.DestinationLocation);
 
                 if (!isDuplicate)
                 {
@@ -1307,9 +1307,7 @@ public class PackageLoader
         {
             // RouteOption uses Name as natural key (no Id property)
             Name = dto.Name,
-            OriginLocationId = dto.OriginSpotId,
             OriginLocation = _gameWorld.GetLocation(dto.OriginSpotId),
-            DestinationLocationId = dto.DestinationSpotId,
             DestinationLocation = _gameWorld.GetLocation(dto.DestinationSpotId),
             Method = Enum.TryParse<TravelMethods>(dto.Method, out TravelMethods method) ? method : TravelMethods.Walking,
             BaseCoinCost = dto.BaseCoinCost,
@@ -1484,21 +1482,15 @@ public class PackageLoader
     /// </summary>
     private RouteOption GenerateReverseRoute(RouteOption forwardRoute)
     {
-        // Extract Venue IDs from the location IDs for naming
-        string originVenueId = GetVenueIdFromSpotId(forwardRoute.OriginLocationId);
-        string destVenueId = GetVenueIdFromSpotId(forwardRoute.DestinationLocationId);
-
-        // Generate unique ID for reverse route (pure identifier, no encoded data)
-        string reverseId = Guid.NewGuid().ToString();
+        // Extract Venue IDs from the location names for naming
+        string originVenueId = GetVenueIdFromSpotId(forwardRoute.OriginLocation.Name);
+        string destVenueId = GetVenueIdFromSpotId(forwardRoute.DestinationLocation.Name);
 
         RouteOption reverseRoute = new RouteOption
         {
-            Id = reverseId,
             Name = $"Return to {GetLocationNameFromId(originVenueId)}",
-            // Swap origin and destination (both IDs and objects)
-            OriginLocationId = forwardRoute.DestinationLocationId,
+            // Swap origin and destination locations
             OriginLocation = forwardRoute.DestinationLocation,
-            DestinationLocationId = forwardRoute.OriginLocationId,
             DestinationLocation = forwardRoute.OriginLocation,
 
             // Keep the same properties for both directions
@@ -1627,10 +1619,10 @@ public class PackageLoader
         List<string> routeSpotIds = new List<string>();
         foreach (RouteOption route in _gameWorld.Routes)
         {
-            if (!routeSpotIds.Contains(route.OriginLocationId))
-                routeSpotIds.Add(route.OriginLocationId);
-            if (!routeSpotIds.Contains(route.DestinationLocationId))
-                routeSpotIds.Add(route.DestinationLocationId);
+            if (!routeSpotIds.Contains(route.OriginLocation.Name))
+                routeSpotIds.Add(route.OriginLocation.Name);
+            if (!routeSpotIds.Contains(route.DestinationLocation.Name))
+                routeSpotIds.Add(route.DestinationLocation.Name);
         }
 
         foreach (string LocationId in routeSpotIds)

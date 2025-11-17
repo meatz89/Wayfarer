@@ -63,12 +63,12 @@ public class LocationActionManager
         if (player.HasActiveDeliveryJob)
         {
             DeliveryJob activeJob = _gameWorld.GetJobById(player.ActiveDeliveryJobId);
-            if (activeJob != null && activeJob.DestinationLocationId == LocationId)
+            if (activeJob != null && activeJob.DestinationLocation.Name == LocationId)
             {
                 // Create dynamic ViewModel directly (no domain entity for dynamic actions)
                 actions.Add(new LocationActionViewModel
                 {
-                    Id = $"complete_delivery_{activeJob.Id}",
+                    Id = $"complete_delivery_{activeJob.DestinationLocation.Name}",
                     ActionType = "completedelivery",
                     Title = $"Complete Delivery ({activeJob.Payment} coins)",
                     Detail = $"Deliver {activeJob.CargoDescription} and receive {activeJob.Payment} coins payment.",
@@ -90,7 +90,7 @@ public class LocationActionManager
 
             LocationActionViewModel viewModel = new LocationActionViewModel
             {
-                Id = action.Id,
+                Id = action.Name,  // Use action name as identifier
                 ActionType = action.ActionType.ToString().ToLower(),
                 Title = action.Name,
                 Detail = action.Description,
@@ -98,7 +98,7 @@ public class LocationActionManager
                 IsAvailable = isAvailable,
                 LockReason = lockReason,
                 EngagementType = action.EngagementType,
-                DestinationLocationId = action.DestinationLocationId
+                DestinationLocationId = action.DestinationLocation?.Name  // Object reference -> Name
             };
             actions.Add(viewModel);
         }

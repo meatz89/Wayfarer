@@ -22,8 +22,8 @@ public class RouteRepository : IRouteRepository
         if (_gameWorld.Routes == null)
             return new List<RouteOption>();
 
-        // Direct query by OriginLocation (no iteration needed)
-        return _gameWorld.Routes.Where(r => r.OriginLocationId == locationId);
+        // Query by OriginLocation object reference (compare location names)
+        return _gameWorld.Routes.Where(r => r.OriginLocation != null && r.OriginLocation.Name == locationId);
     }
 
     // Get all routes in the world
@@ -44,7 +44,7 @@ public class RouteRepository : IRouteRepository
         if (location == null) return new List<RouteOption>();
 
         // Get all routes that start from this location
-        IEnumerable<RouteOption> allRoutes = GetRoutesFromLocation(location.Id);
+        IEnumerable<RouteOption> allRoutes = GetRoutesFromLocation(location.Name);
         List<RouteOption> availableRoutes = new List<RouteOption>();
 
         foreach (RouteOption route in allRoutes)
@@ -53,7 +53,7 @@ public class RouteRepository : IRouteRepository
             // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
             // Check if route is blocked
-            if (IsRouteBlocked(route.Id))
+            if (IsRouteBlocked(route.Name))
                 continue;
 
             availableRoutes.Add(route);

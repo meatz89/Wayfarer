@@ -52,9 +52,9 @@ public class TravelTimeCalculator
         if (route == null)
             throw new ArgumentNullException(nameof(route));
 
-        // PHASE 6D: Get locations to pass as objects
-        Location fromLocation = _gameWorld.GetLocation(route.OriginLocationId);
-        Location toLocation = _gameWorld.GetLocation(route.DestinationLocationId);
+        // PHASE 7B: Use location object references directly
+        Location fromLocation = route.OriginLocation;
+        Location toLocation = route.DestinationLocation;
 
         int baseTime = GetBaseTravelTime(fromLocation, toLocation);
 
@@ -66,9 +66,9 @@ public class TravelTimeCalculator
         actualTime = ApplyWeatherEffects(actualTime);
 
         // Apply route improvements (V2 Obligation System)
-        // Use route.Id directly - no string construction/parsing
+        // Use route.Name directly - no string construction/parsing
         List<RouteImprovement> improvements = _gameWorld.RouteImprovements
-            .Where(ri => ri.RouteId == route.Id)
+            .Where(ri => ri.RouteId == route.Name)
             .ToList();
 
         if (improvements != null && improvements.Count > 0)

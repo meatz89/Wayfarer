@@ -82,8 +82,8 @@ public class LocationPlayabilityValidator
 
         // Check if any route exists (either direction)
         bool routeExists = gameWorld.Routes.Any(r =>
-            (r.OriginLocationId == playerLocation.Id && r.DestinationLocationId == location.Id) ||
-            (r.OriginLocationId == location.Id && r.DestinationLocationId == playerLocation.Id)
+            (r.OriginLocation == playerLocation && r.DestinationLocation == location) ||
+            (r.OriginLocation == location && r.DestinationLocation == playerLocation)
         );
 
         return routeExists;

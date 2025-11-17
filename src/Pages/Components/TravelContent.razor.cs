@@ -77,9 +77,9 @@ namespace Wayfarer.Pages.Components
             {
                 Route = r,  // Object reference
                 Name = r.Name,  // Store the actual route name from JSON
-                DestinationName = GetDestinationVenueName(r.DestinationLocationId),
-                DestinationSpotName = GetDestinationLocationName(r.DestinationLocationId),
-                District = GetDestinationDistrict(r.DestinationLocationId),
+                DestinationName = GetDestinationVenueName(r.DestinationLocation.Name),
+                DestinationSpotName = GetDestinationLocationName(r.DestinationLocation.Name),
+                District = GetDestinationDistrict(r.DestinationLocation.Name),
                 TransportType = FormatTransportType(r.Method),
                 TravelTime = r.TravelTimeSegments,
                 Cost = r.BaseCoinCost,
@@ -119,9 +119,9 @@ namespace Wayfarer.Pages.Components
         {
             // NO FALLBACKS - let it fail if data is missing
             Location location = GameFacade.GetLocation(destinationSpotId);
-            Venue venue = GameFacade.GetAllLocations().FirstOrDefault(v => v.Id == location.VenueId);
-            District district = GameFacade.GetDistrictForLocation(venue.Id);
-            Region region = GameFacade.GetRegionForDistrict(district.Id);
+            Venue venue = GameFacade.GetAllLocations().FirstOrDefault(v => v.Name == location.VenueId);
+            District district = GameFacade.GetDistrictForLocation(venue.Name);
+            Region region = GameFacade.GetRegionForDistrict(district.Name);
 
             if (region != null)
             {

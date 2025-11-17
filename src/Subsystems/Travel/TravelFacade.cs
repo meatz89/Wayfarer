@@ -47,8 +47,8 @@ public class TravelFacade
 
         foreach (RouteOption route in routes)
         {
-            // Get destination Location directly (DestinationLocationId is the ID)
-            Location destination = _gameWorld.GetLocation(route.DestinationLocationId);
+            // Get destination Location directly from object reference
+            Location destination = route.DestinationLocation;
             if (destination != null)
             {
                 // Core Loop: All routes physically exist and are visible from game start

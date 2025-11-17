@@ -29,9 +29,9 @@ public class RouteManager
         if (fromLocation == null || toLocation == null)
             return null;
 
-        List<RouteOption> routes = GetRoutesFromLocation(fromLocation.Id);
-        // RouteOption uses DestinationLocationId for exact destination
-        return routes.FirstOrDefault(r => r.DestinationLocationId == toLocation.Id);
+        List<RouteOption> routes = GetRoutesFromLocation(fromLocation.Name);
+        // RouteOption uses DestinationLocation object reference
+        return routes.FirstOrDefault(r => r.DestinationLocation == toLocation);
     }
 
     /// <summary>

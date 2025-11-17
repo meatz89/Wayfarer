@@ -682,13 +682,12 @@ public class TravelManager
 
         // Move player to destination
         // HEX-FIRST ARCHITECTURE: Set player position via hex coordinates
-        Location targetSpot = _gameWorld.Locations
-            .FirstOrDefault(s => s.Id == route.DestinationLocationId);
+        Location targetSpot = route.DestinationLocation;
 
         if (targetSpot != null)
         {
             if (!targetSpot.HexPosition.HasValue)
-                throw new InvalidOperationException($"Destination location '{targetSpot.Id}' has no HexPosition - cannot complete journey");
+                throw new InvalidOperationException($"Destination location '{targetSpot.Name}' has no HexPosition - cannot complete journey");
 
             player.CurrentPosition = targetSpot.HexPosition.Value;
 
