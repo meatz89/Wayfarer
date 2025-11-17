@@ -469,7 +469,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task StartObservationScene(ObservationScene scene)
     {
-        CurrentObservationContext = GameFacade.CreateObservationContext(scene.Id);
+        CurrentObservationContext = GameFacade.CreateObservationContext(scene);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();

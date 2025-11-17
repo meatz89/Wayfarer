@@ -135,7 +135,7 @@ public class GameFacade
         Player player = _gameWorld.GetPlayer();
         if (player != null && player.HasActiveDeliveryJob)
         {
-            return _gameWorld.GetJobById(player.ActiveDeliveryJobId);
+            return player.ActiveDeliveryJob;
         }
         return null;
     }
@@ -1042,7 +1042,7 @@ public class GameFacade
         }
 
         // Accept job
-        player.ActiveDeliveryJobId = job.Id;
+        player.ActiveDeliveryJob = job;
         job.IsAvailable = false;
 
         _messageSystem.AddSystemMessage($"Accepted: {job.JobDescription}", SystemMessageTypes.Success);
@@ -1062,7 +1062,7 @@ public class GameFacade
             return IntentResult.Failed();
         }
 
-        DeliveryJob job = _gameWorld.GetJobById(player.ActiveDeliveryJobId);
+        DeliveryJob job = player.ActiveDeliveryJob;
         if (job == null)
         {
             _messageSystem.AddSystemMessage("Delivery job data not found", SystemMessageTypes.Warning);
@@ -1073,7 +1073,7 @@ public class GameFacade
         player.ModifyCoins(job.Payment);
 
         // Clear active job
-        player.ActiveDeliveryJobId = "";
+        player.ActiveDeliveryJob = null;
 
         // Advance time (delivery takes time)
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
@@ -1480,7 +1480,7 @@ public class GameFacade
     /// </summary>
     public ObservationContext CreateObservationContext(ObservationScene scene)
     {
-        return _observationFacade.CreateContext(scene.Id);
+        return _observationFacade.CreateContext(scene);
     }
 
     /// <summary>

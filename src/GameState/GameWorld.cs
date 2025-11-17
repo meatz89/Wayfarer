@@ -189,7 +189,7 @@ public class GameWorld
 
     // Delivery Job System - Core game loop (Phase 3)
     // Jobs generated procedurally at parse time from routes by DeliveryJobCatalog
-    // Players can accept ONE active job at a time (tracked in Player.ActiveDeliveryJobId)
+    // Players can accept ONE active job at a time (tracked in Player.ActiveDeliveryJob)
     public List<DeliveryJob> AvailableDeliveryJobs { get; set; } = new();
 
     // Card system removed - using conversation and Venue action systems

@@ -411,7 +411,7 @@ public class LocationContentBase : ComponentBase
 
     protected async Task HandleStartObservationScene(ObservationScene scene)
     {
-        await GameScreen.StartObservationScene(scene.Id);
+        await GameScreen.StartObservationScene(scene);
     }
 
     // ============================================

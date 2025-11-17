@@ -62,7 +62,7 @@ public class LocationActionManager
         Player player = _gameWorld.GetPlayer();
         if (player.HasActiveDeliveryJob)
         {
-            DeliveryJob activeJob = _gameWorld.GetJobById(player.ActiveDeliveryJobId);
+            DeliveryJob activeJob = player.ActiveDeliveryJob;
             if (activeJob != null && activeJob.DestinationLocation.Name == LocationId)
             {
                 // Create dynamic ViewModel directly (no domain entity for dynamic actions)

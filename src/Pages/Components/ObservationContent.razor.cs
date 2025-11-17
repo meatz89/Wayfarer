@@ -36,7 +36,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // Refresh context to reflect changes
-            Context = GameFacade.CreateObservationContext(Context.Scene.Id);
+            Context = GameFacade.CreateObservationContext(Context.Scene);
 
             // Show results through message system (knowledge gained, items found, etc. are already shown by facade)
             if (result.SceneCompleted)

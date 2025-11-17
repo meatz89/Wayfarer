@@ -136,8 +136,9 @@ public class ExchangeFacade
 
     /// <summary>
     /// Execute an exchange with an NPC
+    /// HIGHLANDER: Accepts ExchangeCard object, not string ID
     /// </summary>
-    public async Task<ExchangeResult> ExecuteExchange(string npcId, string exchangeId, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens, RelationshipTier relationshipTier)
+    public async Task<ExchangeResult> ExecuteExchange(string npcId, ExchangeCard exchange, PlayerResourceState playerResources, Dictionary<ConnectionType, int> npcTokens, RelationshipTier relationshipTier)
     {
         // KEEP - npcId is external input from UI
         // Get NPC
@@ -151,22 +152,13 @@ public class ExchangeFacade
             };
         }
 
-        // Get exchange data from GameWorld// Query GameWorld for the exchange
-        NPCExchangeCardEntry entry = _gameWorld.NPCExchangeCards.FirstOrDefault(x => x.NpcId == npcId);
-        ExchangeCard exchange = entry.ExchangeCards.FirstOrDefault(e => e.Name == exchangeId);
-
-        // Also check NPC.ExchangeDeck if not found
-        if (exchange == null)
-        {
-            exchange = npc.ExchangeDeck.FirstOrDefault(e => e.Name == exchangeId);
-        }
-
+        // HIGHLANDER: Exchange object passed directly, no lookup needed
         if (exchange == null)
         {
             return new ExchangeResult
             {
                 Success = false,
-                Message = "Exchange not found"
+                Message = "Exchange not provided"
             };
         }
 

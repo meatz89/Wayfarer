@@ -23,7 +23,8 @@ namespace Wayfarer.Pages.Components
         [Inject] protected GameFacade GameFacade { get; set; }
 
         // Component state
-        protected string SelectedExchangeId { get; set; }
+        // HIGHLANDER: Store ExchangeCard object, not ID string
+        protected ExchangeCard SelectedExchange { get; set; }
         protected string CurrentNarrative { get; set; }
         protected bool IsProcessingTrade { get; set; } = false;
         protected ExchangeResult LastResult { get; set; }
@@ -46,7 +47,7 @@ namespace Wayfarer.Pages.Components
             // Reset selection when context changes
             if (Context.Session.SessionId != LastContextId)
             {
-                SelectedExchangeId = null;
+                SelectedExchange = null;
                 LastResult = null;
                 GenerateInitialNarrative();
                 LastContextId = Context.Session.SessionId;
@@ -208,20 +209,21 @@ namespace Wayfarer.Pages.Components
 
         /// <summary>
         /// Selects an exchange card.
+        /// HIGHLANDER: Uses object equality, not ID comparison
         /// </summary>
         protected void SelectExchange(ExchangeCard exchange)
         {
             if (exchange == null || !Context.CanAfford(exchange))
                 return;
 
-            // Toggle selection
-            if (SelectedExchangeId == exchange.Id)
+            // Toggle selection (object equality)
+            if (SelectedExchange == exchange)
             {
-                SelectedExchangeId = null;
+                SelectedExchange = null;
             }
             else
             {
-                SelectedExchangeId = exchange.Id;
+                SelectedExchange = exchange;
             }
 
             StateHasChanged();
@@ -229,6 +231,7 @@ namespace Wayfarer.Pages.Components
 
         /// <summary>
         /// Checks if a trade can be executed.
+        /// HIGHLANDER: Uses SelectedExchange object directly, no lookup needed
         /// </summary>
         protected bool CanExecuteTrade()
         {
@@ -238,11 +241,10 @@ namespace Wayfarer.Pages.Components
             if (IsProcessingTrade)
                 return false;
 
-            if (string.IsNullOrEmpty(SelectedExchangeId))
+            if (SelectedExchange == null)
                 return false;
 
-            ExchangeCard exchange = GetAvailableExchanges().FirstOrDefault(e => e.Id == SelectedExchangeId);
-            return exchange != null && Context.CanAfford(exchange);
+            return Context.CanAfford(SelectedExchange);
         }
 
         /// <summary>
@@ -253,7 +255,7 @@ namespace Wayfarer.Pages.Components
             if (IsProcessingTrade)
                 return "Processing trade...";
 
-            if (string.IsNullOrEmpty(SelectedExchangeId))
+            if (SelectedExchange == null)
                 return "Select an exchange";
 
             return "Execute selected exchange";
@@ -276,6 +278,7 @@ namespace Wayfarer.Pages.Components
                     throw new InvalidOperationException("Exchange context is required");
 
                 // Execute the exchange through the facade
+                // HIGHLANDER: Pass ExchangeCard object, not ID string
                 string npcId = Context.NpcInfo != null ? Context.NpcInfo.NpcId : "";
 
                 // Get required parameters
@@ -287,7 +290,7 @@ namespace Wayfarer.Pages.Components
                     : new Dictionary<ConnectionType, int>();
                 RelationshipTier relationshipTier = RelationshipTier.None; // Default for now
 
-                LastResult = await ExchangeFacade.ExecuteExchange(npcId, SelectedExchangeId, playerResources, npcTokens, relationshipTier);
+                LastResult = await ExchangeFacade.ExecuteExchange(npcId, SelectedExchange, playerResources, npcTokens, relationshipTier);
 
                 if (LastResult == null)
                     throw new InvalidOperationException("Exchange execution returned null result");
@@ -298,7 +301,7 @@ namespace Wayfarer.Pages.Components
                     CurrentNarrative = GenerateSuccessNarrative(LastResult);
 
                     // Clear selection
-                    SelectedExchangeId = null;
+                    SelectedExchange = null;
 
                     // Update context with new state
                     Context = await GameFacade.CreateExchangeContext(Context.NpcInfo != null ? Context.NpcInfo.NpcId : null);

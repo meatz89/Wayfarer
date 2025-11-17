@@ -26,16 +26,17 @@ public class ObservationFacade
 
     /// <summary>
     /// Create context for an observation scene screen
+    /// HIGHLANDER: Accepts ObservationScene object, not string ID
     /// </summary>
-    public ObservationContext CreateContext(string sceneId)
+    public ObservationContext CreateContext(ObservationScene scene)
     {
-        ObservationScene scene = _gameWorld.ObservationScenes.FirstOrDefault(s => s.Id == sceneId);
+        // HIGHLANDER: Scene object passed directly, no lookup needed
         if (scene == null)
         {
             return new ObservationContext
             {
                 IsValid = false,
-                ErrorMessage = $"Observation scene '{sceneId}' not found"
+                ErrorMessage = "Observation scene not provided"
             };
         }
 
