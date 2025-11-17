@@ -537,11 +537,12 @@ public class TravelFacade
 
     /// <summary>
     /// Get the ID of the card being revealed
+    /// ADR-007: Get ID from RevealedCard object (not RevealedCardId property)
     /// </summary>
     public string GetRevealedCardId()
     {
         TravelSession session = _gameWorld.CurrentTravelSession;
-        return session?.RevealedCardId;
+        return session?.RevealedCard?.Id;
     }
 
     /// <summary>
@@ -586,11 +587,11 @@ public class TravelFacade
             return null;
         }
 
-        // Check if we have a current event ID from the drawn event
-        if (!string.IsNullOrEmpty(session.CurrentEventId) &&
-            _gameWorld.AllPathCollections.Any(p => p.CollectionId == session.CurrentEventId))
+        // ADR-007: Check if we have CurrentEvent object (not ID)
+        if (session.CurrentEvent != null &&
+            _gameWorld.AllPathCollections.Any(p => p.CollectionId == session.CurrentEvent.Id))
         {
-            PathCardCollectionDTO collection = _gameWorld.GetPathCollection(session.CurrentEventId);
+            PathCardCollectionDTO collection = _gameWorld.GetPathCollection(session.CurrentEvent.Id);
             return collection.NarrativeText;
         }
 
@@ -619,11 +620,10 @@ public class TravelFacade
         // Handle different segment types
         if (segment.Type == SegmentType.Event)
         {
-            // For Event segments: get card from current event
-            if (!string.IsNullOrEmpty(session.CurrentEventId) &&
-                _gameWorld.AllTravelEvents.Any(e => e.EventId == session.CurrentEventId))
+            // ADR-007: For Event segments, use CurrentEvent object (not CurrentEventId)
+            if (session.CurrentEvent != null)
             {
-                TravelEventDTO travelEvent = _gameWorld.GetTravelEvent(session.CurrentEventId);
+                TravelEventDTO travelEvent = session.CurrentEvent;
                 return travelEvent.EventCards?.FirstOrDefault(c => c.Id == cardId);
             }
         }
