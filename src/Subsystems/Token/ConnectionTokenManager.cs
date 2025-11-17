@@ -8,15 +8,18 @@ public class ConnectionTokenManager
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
     private readonly NPCRepository _npcRepository;
+    private readonly TokenMechanicsManager _tokenManager;
 
     public ConnectionTokenManager(
         GameWorld gameWorld,
         MessageSystem messageSystem,
-        NPCRepository npcRepository)
+        NPCRepository npcRepository,
+        TokenMechanicsManager tokenManager)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
         _npcRepository = npcRepository;
+        _tokenManager = tokenManager;
     }
 
     /// <summary>
@@ -61,119 +64,32 @@ public class ConnectionTokenManager
 
     /// <summary>
     /// Add tokens to specific NPC relationship
+    /// HIGHLANDER: Delegates to TokenMechanicsManager (single source of truth)
     /// </summary>
-    public void AddTokensToNPC(ConnectionType type, int count, string npcId)
+    public void AddTokensToNPC(ConnectionType type, int count, NPC npc)
     {
-        if (count <= 0 || string.IsNullOrEmpty(npcId)) return;
-
-        Player player = _gameWorld.GetPlayer();
-        List<NPCTokenEntry> npcTokens = player.NPCTokens;
-
-        // Initialize NPC token tracking if needed
-        EnsureNPCTokensInitialized(npcId);
-
-        // Get or create NPC token entry
-        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npcId);
-
-        // Track old token count for messaging
-        int oldTokenCount = npcEntry.GetTokenCount(type);
-
-        // Update NPC-specific tokens
-        npcEntry.SetTokenCount(type, oldTokenCount + count);
-        int newTokenCount = npcEntry.GetTokenCount(type);
-
-        // Get NPC for narrative feedback
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc != null)
-        {
-            _messageSystem.AddSystemMessage(
-                $"🤝 +{count} {type} token{(count > 1 ? "s" : "")} with {npc.Name} (Total: {newTokenCount})",
-                SystemMessageTypes.Success
-            );
-
-            // Special message if this cleared a debt
-            if (oldTokenCount < 0 && newTokenCount >= 0)
-            {
-                _messageSystem.AddSystemMessage(
-                    $"You've cleared your debt with {npc.Name}.",
-                    SystemMessageTypes.Success
-                );
-            }
-        }
+        // Delegate to TokenMechanicsManager (HIGHLANDER pattern)
+        _tokenManager.AddTokensToNPC(type, count, npc);
     }
 
     /// <summary>
     /// Spend tokens with specific NPC (can go negative)
+    /// HIGHLANDER: Delegates to TokenMechanicsManager (single source of truth)
     /// </summary>
-    public bool SpendTokensWithNPC(ConnectionType type, int count, string npcId)
+    public bool SpendTokensWithNPC(ConnectionType type, int count, NPC npc)
     {
-        if (count <= 0) return true;
-
-        Player player = _gameWorld.GetPlayer();
-        EnsureNPCTokensInitialized(npcId);
-
-        // Get current token count
-        int currentCount = player.GetNPCTokenCount(npcId, type);
-
-        // Reduce from NPC relationship (can go negative)
-        player.SetNPCTokenCount(npcId, type, currentCount - count);
-        int newCount = player.GetNPCTokenCount(npcId, type);
-
-        // Add narrative feedback
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc != null)
-        {
-            _messageSystem.AddSystemMessage(
-                $"You call in {count} {type} favor{(count > 1 ? "s" : "")} with {npc.Name}.",
-                SystemMessageTypes.Info
-            );
-
-            if (newCount < 0)
-            {
-                _messageSystem.AddSystemMessage(
-                    $"You now owe {npc.Name} for this favor.",
-                    SystemMessageTypes.Warning
-                );
-            }
-        }
-
-        return true;
+        // Delegate to TokenMechanicsManager (HIGHLANDER pattern)
+        return _tokenManager.SpendTokensWithNPC(type, count, npc);
     }
 
     /// <summary>
     /// Remove tokens from NPC relationship (for expired letters/damage)
+    /// HIGHLANDER: Delegates to TokenMechanicsManager (single source of truth)
     /// </summary>
-    public void RemoveTokensFromNPC(ConnectionType type, int count, string npcId)
+    public void RemoveTokensFromNPC(ConnectionType type, int count, NPC npc)
     {
-        if (count <= 0 || string.IsNullOrEmpty(npcId)) return;
-
-        Player player = _gameWorld.GetPlayer();
-        EnsureNPCTokensInitialized(npcId);
-
-        // Track old count for messaging
-        int oldCount = player.GetNPCTokenCount(npcId, type);
-
-        // Remove tokens from NPC relationship (can go negative)
-        player.SetNPCTokenCount(npcId, type, oldCount - count);
-        int newCount = player.GetNPCTokenCount(npcId, type);
-
-        // Add narrative feedback for relationship damage
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc != null)
-        {
-            _messageSystem.AddSystemMessage(
-                $"Your relationship with {npc.Name} has been damaged. (-{count} {type} token{(count > 1 ? "s" : "")})",
-                SystemMessageTypes.Warning
-            );
-
-            if (oldCount >= 0 && newCount < 0)
-            {
-                _messageSystem.AddSystemMessage(
-                    $"{npc.Name} feels you owe them for past failures.",
-                    SystemMessageTypes.Danger
-                );
-            }
-        }
+        // Delegate to TokenMechanicsManager (HIGHLANDER pattern)
+        _tokenManager.RemoveTokensFromNPC(type, count, npc);
     }
 
     /// <summary>

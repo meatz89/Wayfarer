@@ -248,11 +248,11 @@ public class EmergencyFacade
             {
                 if (outcome.RelationshipDelta > 0)
                 {
-                    _tokenFacade.AddTokensToNPC(ConnectionType.Trust, outcome.RelationshipDelta, npc.ID);
+                    _tokenFacade.AddTokensToNPC(ConnectionType.Trust, outcome.RelationshipDelta, npc);
                 }
                 else
                 {
-                    _tokenFacade.RemoveTokensFromNPC(ConnectionType.Trust, -outcome.RelationshipDelta, npc.ID);
+                    _tokenFacade.RemoveTokensFromNPC(ConnectionType.Trust, -outcome.RelationshipDelta, npc);
                 }
             }
 
@@ -267,16 +267,18 @@ public class EmergencyFacade
         // Apply specific NPC relationship changes
         foreach (KeyValuePair<string, int> kvp in outcome.NPCRelationshipDeltas)
         {
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == kvp.Key);
+            if (npc == null) continue; // Skip if NPC not found
+
             if (kvp.Value > 0)
             {
-                _tokenFacade.AddTokensToNPC(ConnectionType.Trust, kvp.Value, kvp.Key);
+                _tokenFacade.AddTokensToNPC(ConnectionType.Trust, kvp.Value, npc);
             }
             else if (kvp.Value < 0)
             {
-                _tokenFacade.RemoveTokensFromNPC(ConnectionType.Trust, -kvp.Value, kvp.Key);
+                _tokenFacade.RemoveTokensFromNPC(ConnectionType.Trust, -kvp.Value, npc);
             }
 
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == kvp.Key);
             string npcName = npc?.Name ?? kvp.Key;
             string deltaText = kvp.Value > 0 ? $"+{kvp.Value}" : kvp.Value.ToString();
             _messageSystem.AddSystemMessage(

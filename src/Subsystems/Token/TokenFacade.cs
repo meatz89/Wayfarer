@@ -65,49 +65,52 @@ public class TokenFacade
 
     /// <summary>
     /// Add tokens to a specific NPC relationship (applies equipment modifiers)
+    /// HIGHLANDER: Object reference ONLY, no ID string parameter
     /// </summary>
-    public void AddTokensToNPC(ConnectionType type, int count, string npcId)
+    public void AddTokensToNPC(ConnectionType type, int count, NPC npc)
     {
-        if (count <= 0 || string.IsNullOrEmpty(npcId)) return;
+        if (count <= 0 || npc == null) return;
 
         // Apply equipment modifiers
         int modifiedCount = _tokenEffectProcessor.ApplyGenerationModifiers(type, count);
 
-        // Add tokens
-        _connectionTokenManager.AddTokensToNPC(type, modifiedCount, npcId);
+        // Add tokens (delegate to ConnectionTokenManager)
+        _connectionTokenManager.AddTokensToNPC(type, modifiedCount, npc);
 
         // Check for relationship milestones
-        int totalWithNPC = GetTotalTokensWithNPC(npcId);
-        _relationshipTracker.CheckRelationshipMilestone(npcId, totalWithNPC);
+        int totalWithNPC = GetTotalTokensWithNPC(npc.ID);
+        _relationshipTracker.CheckRelationshipMilestone(npc.ID, totalWithNPC);
 
         // Check for unlocks
-        _tokenUnlockManager.CheckAndProcessUnlocks(npcId, type, GetTokenCount(npcId, type));
+        _tokenUnlockManager.CheckAndProcessUnlocks(npc.ID, type, GetTokenCount(npc.ID, type));
 
         // Notify relationship change
-        _relationshipTracker.UpdateRelationshipState(npcId);
+        _relationshipTracker.UpdateRelationshipState(npc.ID);
     }
 
     // ========== TOKEN SPENDING OPERATIONS ==========
 
     /// <summary>
     /// Spend tokens with a specific NPC (can go negative to represent debt)
+    /// HIGHLANDER: Object reference ONLY, no ID string parameter
     /// </summary>
-    public bool SpendTokensWithNPC(ConnectionType type, int amount, string npcId)
+    public bool SpendTokensWithNPC(ConnectionType type, int amount, NPC npc)
     {
         if (amount <= 0) return true;
+        if (npc == null) return false;
 
-        bool result = _connectionTokenManager.SpendTokensWithNPC(type, amount, npcId);
+        bool result = _connectionTokenManager.SpendTokensWithNPC(type, amount, npc);
 
         if (result)
         {
             // Update relationship state after spending
-            _relationshipTracker.UpdateRelationshipState(npcId);
+            _relationshipTracker.UpdateRelationshipState(npc.ID);
 
             // Check if we now owe the NPC
-            int currentTokens = GetTokenCount(npcId, type);
+            int currentTokens = GetTokenCount(npc.ID, type);
             if (currentTokens < 0)
             {
-                _relationshipTracker.RecordDebt(npcId, type, Math.Abs(currentTokens));
+                _relationshipTracker.RecordDebt(npc.ID, type, Math.Abs(currentTokens));
             }
         }
 
@@ -128,21 +131,22 @@ public class TokenFacade
 
     /// <summary>
     /// Remove tokens from NPC relationship (for expired letters or relationship damage)
+    /// HIGHLANDER: Object reference ONLY, no ID string parameter
     /// </summary>
-    public void RemoveTokensFromNPC(ConnectionType type, int count, string npcId)
+    public void RemoveTokensFromNPC(ConnectionType type, int count, NPC npc)
     {
-        if (count <= 0 || string.IsNullOrEmpty(npcId)) return;
+        if (count <= 0 || npc == null) return;
 
-        _connectionTokenManager.RemoveTokensFromNPC(type, count, npcId);
+        _connectionTokenManager.RemoveTokensFromNPC(type, count, npc);
 
         // Update relationship state after removal
-        _relationshipTracker.UpdateRelationshipState(npcId);
+        _relationshipTracker.UpdateRelationshipState(npc.ID);
 
         // Check if this created debt
-        int currentTokens = GetTokenCount(npcId, type);
+        int currentTokens = GetTokenCount(npc.ID, type);
         if (currentTokens < 0)
         {
-            _relationshipTracker.RecordDebt(npcId, type, Math.Abs(currentTokens));
+            _relationshipTracker.RecordDebt(npc.ID, type, Math.Abs(currentTokens));
         }
     }
 

@@ -172,11 +172,11 @@ public class ConversationTreeFacade
             {
                 if (response.RelationshipDelta > 0)
                 {
-                    _tokenFacade.AddTokensToNPC(ConnectionType.Trust, response.RelationshipDelta, npc.ID);
+                    _tokenFacade.AddTokensToNPC(ConnectionType.Trust, response.RelationshipDelta, npc);
                 }
                 else
                 {
-                    _tokenFacade.RemoveTokensFromNPC(ConnectionType.Trust, -response.RelationshipDelta, npc.ID);
+                    _tokenFacade.RemoveTokensFromNPC(ConnectionType.Trust, -response.RelationshipDelta, npc);
                 }
 
                 string deltaText = response.RelationshipDelta > 0
