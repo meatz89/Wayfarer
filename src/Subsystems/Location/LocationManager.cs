@@ -245,7 +245,7 @@ public class LocationManager
                 continue;
 
             // Get NPCs at this location
-            List<NPC> npcsAtSpot = npcRepository.GetNPCsForLocationAndTime(loc.Name, currentTime);
+            List<NPC> npcsAtSpot = npcRepository.GetNPCsForLocationAndTime(loc, currentTime);
             List<string> npcNames = npcsAtSpot.Select(n => n.Name).ToList();
 
             // Build detail string with NPCs if present

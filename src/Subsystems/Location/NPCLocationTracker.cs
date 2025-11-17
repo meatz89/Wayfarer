@@ -16,57 +16,57 @@ public class NPCLocationTracker
     /// <summary>
     /// Get all NPCs at a specific location.
     /// </summary>
-    public List<NPC> GetNPCsAtLocation(string locationId)
+    public List<NPC> GetNPCsAtLocation(Location location)
     {
-        if (string.IsNullOrEmpty(locationId)) return new List<NPC>();
+        if (location == null) return new List<NPC>();
 
         // Use NPCRepository which handles visibility filtering
-        return _npcRepository.GetNPCsForLocation(locationId);
+        return _npcRepository.GetNPCsForLocation(location);
     }
 
     /// <summary>
     /// Get NPCs at a location during a specific time block.
     /// </summary>
-    public List<NPC> GetNPCsAtLocationAndTime(string locationId, TimeBlocks timeBlock)
+    public List<NPC> GetNPCsAtLocationAndTime(Location location, TimeBlocks timeBlock)
     {
-        if (string.IsNullOrEmpty(locationId)) return new List<NPC>();
+        if (location == null) return new List<NPC>();
 
         // Use NPCRepository method
-        return _npcRepository.GetNPCsForLocationAndTime(locationId, timeBlock);
+        return _npcRepository.GetNPCsForLocationAndTime(location, timeBlock);
     }
 
     /// <summary>
     /// Get NPCs at a specific location during a time block.
     /// </summary>
-    public List<NPC> GetNPCsAtSpot(string LocationId, TimeBlocks timeBlock)
+    public List<NPC> GetNPCsAtSpot(Location location, TimeBlocks timeBlock)
     {
-        if (string.IsNullOrEmpty(LocationId)) return new List<NPC>();
+        if (location == null) return new List<NPC>();
 
         // Use NPCRepository method for location-specific NPCs
-        return _npcRepository.GetNPCsForLocationAndTime(LocationId, timeBlock);
+        return _npcRepository.GetNPCsForLocationAndTime(location, timeBlock);
     }
 
     /// <summary>
     /// Get the primary NPC for a location if available.
     /// </summary>
-    public NPC GetPrimaryNPCForSpot(string LocationId, TimeBlocks timeBlock)
+    public NPC GetPrimaryNPCForSpot(Location location, TimeBlocks timeBlock)
     {
-        if (string.IsNullOrEmpty(LocationId))
-            throw new ArgumentException("LocationId cannot be null or empty", nameof(LocationId));
+        if (location == null)
+            throw new ArgumentNullException(nameof(location));
 
-        return _npcRepository.GetPrimaryNPCForSpot(LocationId, timeBlock);
+        return _npcRepository.GetPrimaryNPCForSpot(location, timeBlock);
     }
     /// <summary>
     /// Check if an NPC is at a specific location.
     /// </summary>
-    public bool IsNPCAtSpot(string npcId, string LocationId)
+    public bool IsNPCAtSpot(string npcId, Location location)
     {
-        if (string.IsNullOrEmpty(npcId) || string.IsNullOrEmpty(LocationId)) return false;
+        if (string.IsNullOrEmpty(npcId) || location == null) return false;
 
         NPC npc = _npcRepository.GetById(npcId);
         if (npc == null || npc.Location == null) return false;
 
-        return npc.Location.Id.Equals(LocationId, StringComparison.OrdinalIgnoreCase);
+        return npc.Location == location;
     }
 
     /// <summary>
@@ -119,10 +119,10 @@ public class NPCLocationTracker
     /// <summary>
     /// Get all NPCs that will be at a location in the future.
     /// </summary>
-    public List<FutureNPCFocus> GetFutureNPCFocus(string locationId)
+    public List<FutureNPCFocus> GetFutureNPCFocus(Location location)
     {
         List<FutureNPCFocus> result = new List<FutureNPCFocus>();
-        List<NPC> npcs = GetNPCsAtLocation(locationId);
+        List<NPC> npcs = GetNPCsAtLocation(location);
 
         foreach (NPC npc in npcs)
         {
@@ -173,17 +173,17 @@ public class NPCLocationTracker
     /// <summary>
     /// Count NPCs at a location.
     /// </summary>
-    public int CountNPCsAtLocation(string locationId)
+    public int CountNPCsAtLocation(Location location)
     {
-        return GetNPCsAtLocation(locationId).Count;
+        return GetNPCsAtLocation(location).Count;
     }
 
     /// <summary>
     /// Count NPCs at a location during a specific time.
     /// </summary>
-    public int CountNPCsAtSpot(string LocationId, TimeBlocks timeBlock)
+    public int CountNPCsAtSpot(Location location, TimeBlocks timeBlock)
     {
-        return GetNPCsAtSpot(LocationId, timeBlock).Count;
+        return GetNPCsAtSpot(location, timeBlock).Count;
     }
 
     /// <summary>

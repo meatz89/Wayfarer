@@ -147,16 +147,10 @@ public class NPC
         return true;
     }
 
-    public bool IsAvailableAtTime(string locationId, TimeBlocks currentTime)
-    {
-        // NPCs are always available by default
-        // Check if NPC is at the specified Venue location
-        return Location?.Id == locationId && IsAvailable(currentTime);
-    }
     // Method for adding known routes (used by HELP verb)
     public void AddKnownRoute(RouteOption route)
     {
-        if (!_knownRoutes.Any(r => r.Id == route.Id))
+        if (!_knownRoutes.Contains(route))
         {
             _knownRoutes.Add(route);
         }

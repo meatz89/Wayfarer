@@ -332,7 +332,7 @@ public class MeetingManager
         // Get current time block for NPC Venue checking
         TimeBlocks currentTime = GetCurrentTimeBlock();
         List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationAndTime(
-            _gameWorld.GetPlayerCurrentLocation().Id,
+            _gameWorld.GetPlayerCurrentLocation(),
             currentTime);
 
         return npcsAtCurrentSpot.Any(npc => npc.ID == npcId);

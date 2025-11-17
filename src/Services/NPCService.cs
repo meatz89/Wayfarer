@@ -15,11 +15,11 @@ public class NPCService
     /// <summary>
     /// Get time block service planning data for UI display
     /// </summary>
-    public List<TimeBlockServiceInfo> GetTimeBlockServicePlan(string locationId)
+    public List<TimeBlockServiceInfo> GetTimeBlockServicePlan(Location location)
     {
         List<TimeBlockServiceInfo> timeBlockPlan = new List<TimeBlockServiceInfo>();
         TimeBlocks[] allTimeBlocks = Enum.GetValues<TimeBlocks>();
-        List<NPC> locationNPCs = _repository.GetNPCsForLocation(locationId).ToList();
+        List<NPC> locationNPCs = _repository.GetNPCsForLocation(location).ToList();
 
         foreach (TimeBlocks timeBlock in allTimeBlocks)
         {
@@ -54,10 +54,10 @@ public class NPCService
     /// <summary>
     /// Get NPCs available for interaction at a specific Venue location
     /// </summary>
-    public IEnumerable<NPCInteractionInfo> GetAvailableInteractions(string locationId)
+    public IEnumerable<NPCInteractionInfo> GetAvailableInteractions(Location location)
     {
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        IEnumerable<NPC> npcs = _repository.GetNPCsForLocationAndTime(locationId, currentTime);
+        IEnumerable<NPC> npcs = _repository.GetNPCsForLocationAndTime(location, currentTime);
 
         return npcs.Select(npc => new NPCInteractionInfo
         {

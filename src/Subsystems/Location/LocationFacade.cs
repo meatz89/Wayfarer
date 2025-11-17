@@ -226,7 +226,7 @@ public class LocationFacade
 
     private List<NPCInteractionViewModel> GetNPCsWithInteractions(Location location, TimeBlocks currentTime, List<NPCConversationOptions> npcConversationOptions)
     {
-        List<NPCInteractionViewModel> result = new List<NPCInteractionViewModel>(); List<NPC> npcs = _npcRepository.GetNPCsForLocationAndTime(location.Name, currentTime); foreach (NPC npc in npcs)
+        List<NPCInteractionViewModel> result = new List<NPCInteractionViewModel>(); List<NPC> npcs = _npcRepository.GetNPCsForLocationAndTime(location, currentTime); foreach (NPC npc in npcs)
         {
             ConnectionState connectionState = GetNPCConnectionState(npc);
             List<InteractionOptionViewModel> interactions = new List<InteractionOptionViewModel>();
@@ -315,7 +315,7 @@ public class LocationFacade
         {
             TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
             int currentSegment = _timeManager.CurrentSegment;
-            List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationAndTime(locationName, currentTimeBlock);
+            List<NPC> npcsAtCurrentSpot = _npcRepository.GetNPCsForLocationAndTime(location, currentTimeBlock);
 
             foreach (Observation obs in locationObservations)
             {
@@ -397,7 +397,7 @@ public class LocationFacade
     private int GetNPCCountAtSpot(Location location)
     {
         if (location == null) return 0;
-        return _npcRepository.GetNPCsForLocationAndTime(location.Name, _timeManager.GetCurrentTimeBlock()).Count();
+        return _npcRepository.GetNPCsForLocationAndTime(location, _timeManager.GetCurrentTimeBlock()).Count();
     }
 
     /// <summary>

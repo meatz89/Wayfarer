@@ -89,7 +89,9 @@ public class MarketSubsystemManager
     /// </summary>
     public bool IsMarketAvailable(string locationId, TimeBlocks timeBlock)
     {
-        List<NPC> traders = GetTradersAtTime(locationId, timeBlock);
+        Location location = _gameWorld.GetLocation(locationId);
+        if (location == null) return false;
+        List<NPC> traders = GetTradersAtTime(location, timeBlock);
         return traders.Count > 0;
     }
 
@@ -98,7 +100,10 @@ public class MarketSubsystemManager
     /// </summary>
     public string GetMarketAvailabilityStatus(string locationId, TimeBlocks currentTime)
     {
-        List<NPC> currentTraders = GetTradersAtTime(locationId, currentTime);
+        Location location = _gameWorld.GetLocation(locationId);
+        if (location == null) return "Location not found";
+
+        List<NPC> currentTraders = GetTradersAtTime(location, currentTime);
 
         if (currentTraders.Count > 0)
         {
@@ -107,7 +112,7 @@ public class MarketSubsystemManager
         }
 
         // Find next available time
-        List<NPC> allTraders = GetAllTraders(locationId);
+        List<NPC> allTraders = GetAllTraders(location);
         if (allTraders.Count == 0)
         {
             return "No traders at this location";
@@ -120,7 +125,7 @@ public class MarketSubsystemManager
         {
             if (time <= currentTime) continue; // Skip past and current times
 
-            List<NPC> futureTraders = GetTradersAtTime(locationId, time);
+            List<NPC> futureTraders = GetTradersAtTime(location, time);
             if (futureTraders.Count > 0)
             {
                 return $"Market closed - Opens at {time}";
@@ -135,7 +140,9 @@ public class MarketSubsystemManager
     /// </summary>
     public List<NPC> GetAvailableTraders(string locationId, TimeBlocks timeBlock)
     {
-        return GetTradersAtTime(locationId, timeBlock);
+        Location location = _gameWorld.GetLocation(locationId);
+        if (location == null) return new List<NPC>();
+        return GetTradersAtTime(location, timeBlock);
     }
 
     // ========== PRICING LOGIC ==========
@@ -644,9 +651,9 @@ public class MarketSubsystemManager
     /// <summary>
     /// Get all traders at a Location (regardless of time)
     /// </summary>
-    private List<NPC> GetAllTraders(string locationId)
+    private List<NPC> GetAllTraders(Location location)
     {
-        return _npcRepository.GetNPCsForLocation(locationId)
+        return _npcRepository.GetNPCsForLocation(location)
             .Where(npc => npc.Profession == Professions.Merchant)
             .ToList();
     }
@@ -654,9 +661,9 @@ public class MarketSubsystemManager
     /// <summary>
     /// Get traders available at a specific time
     /// </summary>
-    private List<NPC> GetTradersAtTime(string locationId, TimeBlocks timeBlock)
+    private List<NPC> GetTradersAtTime(Location location, TimeBlocks timeBlock)
     {
-        return _npcRepository.GetNPCsForLocationAndTime(locationId, timeBlock)
+        return _npcRepository.GetNPCsForLocationAndTime(location, timeBlock)
             .Where(npc => npc.Profession == Professions.Merchant)
             .ToList();
     }

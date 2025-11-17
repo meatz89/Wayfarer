@@ -219,7 +219,7 @@ public class LocationActionManager
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
 
         // Get NPCs at this location
-        List<NPC> npcs = _npcRepository.GetNPCsForLocationAndTime(location.Id, currentTime);
+        List<NPC> npcs = _npcRepository.GetNPCsForLocationAndTime(location, currentTime);
 
         // Service-based actions removed - use Scene-Situation architecture instead
 
