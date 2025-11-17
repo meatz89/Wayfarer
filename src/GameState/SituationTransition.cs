@@ -2,20 +2,21 @@
 /// <summary>
 /// Defines one transition between Situations in a Scene cascade
 /// Specifies when and how to advance from one Situation to another
+/// ADR-007: HIGHLANDER - object references only, no string IDs
 /// </summary>
 public class SituationTransition
 {
     /// <summary>
-    /// Source Situation identifier (where transition starts)
-    /// References Situation.Id within same Scene
+    /// ADR-007: Source Situation object reference (where transition starts)
+    /// HIGHLANDER: Object reference only, no SourceSituationId
     /// </summary>
-    public string SourceSituationId { get; set; }
+    public Situation SourceSituation { get; set; }
 
     /// <summary>
-    /// Destination Situation identifier (where transition leads)
-    /// References Situation.Id within same Scene
+    /// ADR-007: Destination Situation object reference (where transition leads)
+    /// HIGHLANDER: Object reference only, no DestinationSituationId
     /// </summary>
-    public string DestinationSituationId { get; set; }
+    public Situation DestinationSituation { get; set; }
 
     /// <summary>
     /// Condition that triggers this transition
@@ -27,9 +28,9 @@ public class SituationTransition
     public TransitionCondition Condition { get; set; }
 
     /// <summary>
-    /// Specific Choice identifier (if Condition is OnChoice)
-    /// References Choice.Id within SourceSituation
+    /// ADR-007: Specific Choice template reference (if Condition is OnChoice)
+    /// HIGHLANDER: Object reference only, no SpecificChoiceId
     /// null for other condition types
     /// </summary>
-    public string SpecificChoiceId { get; set; }
+    public ChoiceTemplate SpecificChoice { get; set; }
 }
