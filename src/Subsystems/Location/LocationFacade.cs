@@ -77,13 +77,14 @@ public class LocationFacade
     /// <summary>
     /// Move player to a different Location within the current Venue.
     /// Movement between Locations within a Venue is FREE (no attention cost).
+    /// HIGHLANDER: Accepts Location object, not string identifier
     /// </summary>
-    public bool MoveToSpot(string locationName)
+    public bool MoveToSpot(Location targetLocation)
     {
         // Validation
-        if (string.IsNullOrEmpty(locationName))
+        if (targetLocation == null)
         {
-            _messageSystem.AddSystemMessage("Invalid location name", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage("Invalid location", SystemMessageTypes.Warning);
             return false;
         }
 
@@ -99,22 +100,13 @@ public class LocationFacade
         }
 
         // Check if already at target
-        if (currentLocation.Name == locationName)
+        if (currentLocation == targetLocation)
         {
             return true; // Already there - no-op success
         }
 
-        // Find target location by name
-        List<Location> Locations = _spotManager.GetLocationsForVenue(currentVenue.Name);
-        Location targetSpot = Locations.FirstOrDefault(s => s.Name == locationName);
-        if (targetSpot == null)
-        {
-            _messageSystem.AddSystemMessage($"Location '{locationName}' not found in {currentVenue.Name}", SystemMessageTypes.Warning);
-            return false;
-        }
-
         // Validate movement
-        MovementValidationResult validationResult = _movementValidator.ValidateMovement(currentVenue, currentLocation, targetSpot);
+        MovementValidationResult validationResult = _movementValidator.ValidateMovement(currentVenue, currentLocation, targetLocation);
         if (!validationResult.IsValid)
         {
             _messageSystem.AddSystemMessage(validationResult.ErrorMessage, SystemMessageTypes.Warning);
@@ -122,9 +114,9 @@ public class LocationFacade
         }
 
         // Execute movement
-        _locationManager.SetCurrentSpot(targetSpot);
-        player.AddKnownLocation(targetSpot.Name);
-        _messageSystem.AddSystemMessage($"Moved to {targetSpot.Name}", SystemMessageTypes.Info);
+        _locationManager.SetCurrentSpot(targetLocation);
+        player.AddKnownLocation(targetLocation);
+        _messageSystem.AddSystemMessage($"Moved to {targetLocation.Name}", SystemMessageTypes.Info);
 
         return true;
     }

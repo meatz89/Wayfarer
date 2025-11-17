@@ -26,12 +26,12 @@ public class PriceManager
 
     /// <summary>
     /// Complete pricing information for an item at a location
+    /// HIGHLANDER: Object references only
     /// </summary>
     public class PricingInfo
     {
-        public string ItemId { get; set; }
-        public string ItemName { get; set; }
-        public string LocationId { get; set; }
+        public Item Item { get; set; }
+        public Location Location { get; set; }
         public int BaseBuyPrice { get; set; }
         public int BaseSellPrice { get; set; }
         public int AdjustedBuyPrice { get; set; }

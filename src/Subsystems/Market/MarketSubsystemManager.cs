@@ -27,13 +27,13 @@ public class MarketSubsystemManager
 
     /// <summary>
     /// Result of a trade operation
+    /// HIGHLANDER: Object references only
     /// </summary>
     public class TradeResult
     {
         public bool Success { get; set; }
-        public string ItemId { get; set; }
-        public string ItemName { get; set; }
-        public string LocationId { get; set; }
+        public Item Item { get; set; }
+        public Location Location { get; set; }
         public TradeAction Action { get; set; }
         public int Price { get; set; }
         public int CoinsBefore { get; set; }
@@ -53,14 +53,13 @@ public class MarketSubsystemManager
 
     /// <summary>
     /// Trade recommendation for strategic planning
+    /// HIGHLANDER: Object references only
     /// </summary>
     public class TradeRecommendation
     {
-        public string ItemId { get; set; }
-        public string ItemName { get; set; }
+        public Item Item { get; set; }
         public TradeAction RecommendedAction { get; set; }
-        public string LocationId { get; set; }
-        public string LocationName { get; set; }
+        public Location Location { get; set; }
         public int ExpectedProfit { get; set; }
         public string Reasoning { get; set; }
         public float Confidence { get; set; } // 0.0 to 1.0

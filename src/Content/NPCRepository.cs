@@ -207,14 +207,13 @@ public class NPCRepository
             throw new InvalidOperationException("No NPCs collection exists.");
         }
 
-        // ADR-007: NPC.ID deleted - use Name as natural key
-        NPC existingNPC = npcs.FirstOrDefault(n => n.Name == npc.Name);
-        if (existingNPC == null)
+        // ADR-007: Use object equality instead of string matching
+        int index = npcs.IndexOf(npc);
+        if (index == -1)
         {
-            throw new InvalidOperationException($"NPC '{npc.Name}' not found.");
+            throw new InvalidOperationException($"NPC '{npc.Name}' not found in collection.");
         }
 
-        int index = npcs.IndexOf(existingNPC);
         npcs[index] = npc;
     }
 

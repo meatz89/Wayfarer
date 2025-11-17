@@ -31,7 +31,8 @@ public class Player
     public RelationshipList Relationships { get; set; } = new();
 
     // Venue knowledge - Moved from action system
-    public List<string> LocationActionAvailability { get; set; } = new List<string>();
+    // HIGHLANDER: Object references only, no string IDs
+    public List<Location> LocationActionAvailability { get; set; } = new List<Location>();
 
     // Travel capabilities
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
@@ -507,11 +508,11 @@ public class Player
         return new WeightStatus(GetCurrentWeight(itemRepository), Inventory.GetCapacity());
     }
 
-    public void AddKnownLocation(string LocationId)
+    public void AddKnownLocation(Location location)
     {
-        if (!LocationActionAvailability.Contains(LocationId))
+        if (!LocationActionAvailability.Contains(location))
         {
-            LocationActionAvailability.Add(LocationId);
+            LocationActionAvailability.Add(location);
         }
     }
 

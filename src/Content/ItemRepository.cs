@@ -48,8 +48,8 @@
 
         foreach (Item item in items)
         {
-            // ADR-007: Use Name instead of deleted Id
-            if (_gameWorld.Items.Any(i => i.Name == item.Name))
+            // ADR-007: Use object equality instead of string matching
+            if (_gameWorld.Items.Contains(item))
             {
                 throw new InvalidOperationException($"Item '{item.Name}' already exists.");
             }

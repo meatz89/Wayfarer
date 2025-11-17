@@ -48,14 +48,14 @@ public class LocationManager
     /// <summary>
     /// Get all locations for a specific venue.
     /// </summary>
-    public List<Location> GetLocationsForVenue(string venueId)
+    public List<Location> GetLocationsForVenue(Venue venue)
     {
-        if (string.IsNullOrEmpty(venueId))
-            throw new ArgumentException("Venue ID cannot be null or empty", nameof(venueId));
+        if (venue == null)
+            throw new ArgumentNullException(nameof(venue));
 
-        // ADR-007: Use Venue.Name instead of deleted VenueId
+        // HIGHLANDER: Object equality, no string comparisons
         return _gameWorld.Locations
-            .Where(s => s.Venue.Name.Equals(venueId, StringComparison.OrdinalIgnoreCase))
+            .Where(s => s.Venue == venue)
             .ToList();
     }
 
@@ -157,12 +157,12 @@ public class LocationManager
     /// <summary>
     /// Check if player knows a specific Venue location.
     /// </summary>
-    public bool IsLocationKnown(string LocationId)
+    public bool IsLocationKnown(Location location)
     {
-        if (string.IsNullOrEmpty(LocationId)) return false;
+        if (location == null) return false;
 
         Player player = _gameWorld.GetPlayer();
-        return player.LocationActionAvailability.Contains(LocationId);
+        return player.LocationActionAvailability.Contains(location);
     }
 
     /// <summary>
@@ -173,7 +173,7 @@ public class LocationManager
         Venue venue = GetVenue(venueId);
 
         // Look for Locations with Crossroads property
-        List<Location> Locations = GetLocationsForVenue(venueId);
+        List<Location> Locations = GetLocationsForVenue(venue);
         return Locations.FirstOrDefault(s => s.LocationProperties.Contains(LocationPropertyType.Crossroads));
     }
 
@@ -236,8 +236,8 @@ public class LocationManager
 
         if (location == null) return areas;
 
-        // Get all Locations in the same location
-        List<Location> Locations = GetLocationsForVenue(location.Name);
+        // Get all Locations in the same venue
+        List<Location> Locations = GetLocationsForVenue(location.Venue);
 
         foreach (Location loc in Locations)
         {
@@ -330,36 +330,36 @@ public class LocationManager
     }
 
     /// <summary>
-    /// Get all Locations with a specific property in a location.
+    /// Get all Locations with a specific property in a venue.
     /// </summary>
-    public List<Location> GetLocationsWithProperty(string venueId, LocationPropertyType property, TimeBlocks timeBlock)
+    public List<Location> GetLocationsWithProperty(Venue venue, LocationPropertyType property, TimeBlocks timeBlock)
     {
-        List<Location> Locations = GetLocationsForVenue(venueId);
+        List<Location> Locations = GetLocationsForVenue(venue);
         return Locations.Where(s => LocationHasProperty(s, property, timeBlock)).ToList();
     }
 
     /// <summary>
     /// Check if player has discovered a location.
     /// </summary>
-    public bool IsLocationDiscovered(string LocationId)
+    public bool IsLocationDiscovered(Location location)
     {
-        if (string.IsNullOrEmpty(LocationId)) return false;
+        if (location == null) return false;
 
         Player player = _gameWorld.GetPlayer();
-        return player.LocationActionAvailability.Contains(LocationId);
+        return player.LocationActionAvailability.Contains(location);
     }
 
     /// <summary>
     /// Mark a location as discovered by the player.
     /// </summary>
-    public void MarkLocationDiscovered(string LocationId)
+    public void MarkLocationDiscovered(Location location)
     {
-        if (string.IsNullOrEmpty(LocationId)) return;
+        if (location == null) return;
 
         Player player = _gameWorld.GetPlayer();
-        if (!player.LocationActionAvailability.Contains(LocationId))
+        if (!player.LocationActionAvailability.Contains(location))
         {
-            player.LocationActionAvailability.Add(LocationId);
+            player.LocationActionAvailability.Add(location);
         }
     }
 
@@ -371,7 +371,7 @@ public class LocationManager
         Venue Venue = GetVenue(venueId);
 
         // Look for Locations with Crossroads property
-        List<Location> Locations = GetLocationsForVenue(venueId);
+        List<Location> Locations = GetLocationsForVenue(Venue);
         Location crossroads = Locations.FirstOrDefault(s => s.LocationProperties.Contains(LocationPropertyType.Crossroads));
         if (crossroads != null) return crossroads;
 
@@ -388,8 +388,8 @@ public class LocationManager
 
         // For now, all Locations in the same Venue are accessible
         // This could be enhanced with specific connectivity rules
-        // ADR-007: Use Venue.Name instead of deleted VenueId
-        return GetLocationsForVenue(currentSpot.Venue.Name)
+        // HIGHLANDER: Object reference only, no string identifiers
+        return GetLocationsForVenue(currentSpot.Venue)
             .Where(s => s != currentSpot)
             .ToList();
     }

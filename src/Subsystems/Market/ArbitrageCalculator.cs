@@ -20,16 +20,14 @@ public class ArbitrageCalculator
 
     /// <summary>
     /// Represents an arbitrage opening for trading an item between locations
+    /// HIGHLANDER: Object references only, no string identifiers
     /// </summary>
     public class ArbitrageOpening
     {
-        public string ItemId { get; set; }
-        public string ItemName { get; set; }
-        public string BuyLocationId { get; set; }
-        public string BuyLocationName { get; set; }
+        public Item Item { get; set; }
+        public Location BuyLocation { get; set; }
         public int BuyPrice { get; set; }
-        public string SellLocationId { get; set; }
-        public string SellLocationName { get; set; }
+        public Location SellLocation { get; set; }
         public int SellPrice { get; set; }
         public int GrossProfit { get; set; }
         public int TravelCost { get; set; }
@@ -44,10 +42,11 @@ public class ArbitrageCalculator
 
     /// <summary>
     /// Represents a complete trade route with multiple stops
+    /// HIGHLANDER: Object references only, no string identifiers
     /// </summary>
     public class TradeRoute
     {
-        public List<string> LocationSequence { get; set; } = new List<string>();
+        public List<Location> LocationSequence { get; set; } = new List<Location>();
         public List<ArbitrageOpening> Trades { get; set; } = new List<ArbitrageOpening>();
         public int TotalProfit { get; set; }
         public int RequiredCapital { get; set; }
@@ -97,14 +96,11 @@ public class ArbitrageCalculator
                     highestProfit = netProfit;
                     bestOpening = new ArbitrageOpening
                     {
-                        // ADR-007: Use Name instead of deleted Id
-                        ItemId = item.Name,
-                        ItemName = item.Name,
-                        BuyLocationId = buyLocation.Name,
-                        BuyLocationName = buyLocation.Name,
+                        // HIGHLANDER: Object references only
+                        Item = item,
+                        BuyLocation = buyLocation,
                         BuyPrice = buyPrice,
-                        SellLocationId = sellLocation.Name,
-                        SellLocationName = sellLocation.Name,
+                        SellLocation = sellLocation,
                         SellPrice = sellPrice,
                         GrossProfit = grossProfit,
                         TravelCost = travelCost,
@@ -208,16 +204,13 @@ public class ArbitrageCalculator
 
                 if (netProfit > 0)
                 {
-                    // ADR-007: Use Name instead of deleted Id
+                    // HIGHLANDER: Object references only
                     opportunities.Add(new ArbitrageOpening
                     {
-                        ItemId = item.Name,
-                        ItemName = item.Name,
-                        BuyLocationId = currentLocationId,
-                        BuyLocationName = currentLocation.Name,
+                        Item = item,
+                        BuyLocation = currentLocation,
                         BuyPrice = buyPrice,
-                        SellLocationId = sellLocation.Name,
-                        SellLocationName = sellLocation.Name,
+                        SellLocation = sellLocation,
                         SellPrice = sellPrice,
                         GrossProfit = sellPrice - buyPrice,
                         TravelCost = travelCost,
@@ -273,13 +266,10 @@ public class ArbitrageCalculator
                 {
                     opportunities.Add(new ArbitrageOpening
                     {
-                        ItemId = itemId,
-                        ItemName = item.Name,
-                        BuyLocationId = currentLocationId,
-                        BuyLocationName = currentLocation.Name,
+                        Item = item,
+                        BuyLocation = currentLocation,
                         BuyPrice = currentSellPrice, // What we could sell for here
-                        SellLocationId = sellLocation.Name,
-                        SellLocationName = sellLocation.Name,
+                        SellLocation = sellLocation,
                         SellPrice = otherSellPrice,
                         GrossProfit = otherSellPrice - currentSellPrice,
                         TravelCost = travelCost,
@@ -379,16 +369,13 @@ public class ArbitrageCalculator
 
                 if (netProfit > 0)
                 {
-                    // ADR-007: Use Name instead of deleted Id
+                    // HIGHLANDER: Object references only
                     opportunities.Add(new ArbitrageOpening
                     {
-                        ItemId = item.Name,
-                        ItemName = item.Name,
-                        BuyLocationId = fromLocationId,
-                        BuyLocationName = fromLocation.Name,
+                        Item = item,
+                        BuyLocation = fromLocation,
                         BuyPrice = buyPrice,
-                        SellLocationId = sellLocation.Name,
-                        SellLocationName = sellLocation.Name,
+                        SellLocation = sellLocation,
                         SellPrice = sellPrice,
                         GrossProfit = sellPrice - buyPrice,
                         TravelCost = travelCost,

@@ -185,7 +185,7 @@ public class GameFacade
 
     public async Task<bool> MoveToSpot(Location location)
     {
-        bool success = _locationFacade.MoveToSpot(location.Name);
+        bool success = _locationFacade.MoveToSpot(location);
 
         // Movement to new Venue may unlock obligation discovery (ImmediateVisibility, EnvironmentalObservation triggers)
         if (success)
