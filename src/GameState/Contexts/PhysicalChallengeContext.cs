@@ -6,7 +6,7 @@ public class PhysicalChallengeContext
 {
     public bool IsValid { get; set; }
     public string ErrorMessage { get; set; }
-    public string DeckId { get; set; }
+    // ADR-007: DeckId DELETED - unused dead code (never read)
     public Obligation Obligation { get; set; }
     public int PhaseIndex { get; set; }
     public PhysicalSession Session { get; set; }

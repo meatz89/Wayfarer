@@ -6,8 +6,8 @@ public class MentalChallengeContext
 {
     public bool IsValid { get; set; }
     public string ErrorMessage { get; set; }
-    public string DeckId { get; set; }
-    public string ObligationId { get; set; }
+    // ADR-007: DeckId DELETED - unused dead code (never read)
+    // ADR-007: ObligationId DELETED - unused dead code (never read)
     public int PhaseIndex { get; set; }
     public MentalSession Session { get; set; }
     public Venue Venue { get; set; }
