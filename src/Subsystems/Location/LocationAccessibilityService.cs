@@ -42,7 +42,7 @@ public class LocationAccessibilityService
                     return false;
 
                 // Check if situation is at target location
-                if (currentSituation.Location?.Id == location.Id)
+                if (currentSituation.Location == location)
                     return true;
 
                 return false;

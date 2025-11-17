@@ -262,7 +262,7 @@ public class ConversationTreeFacade
     /// Get all conversation trees available at a specific location
     /// Checks NPC location, completion status, relationship requirements, knowledge requirements, and time blocks
     /// </summary>
-    public List<ConversationTree> GetAvailableTreesAtLocation(string locationId)
+    public List<ConversationTree> GetAvailableTreesAtLocation(Location location)
     {
         Player player = _gameWorld.GetPlayer();
         TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
@@ -278,7 +278,7 @@ public class ConversationTreeFacade
                 if (npc == null) return false;
 
                 // Check if NPC is at this location
-                if (npc.Location?.Id != locationId) return false;
+                if (npc.Location != location) return false;
 
                 // Check relationship requirement
                 int relationship = _tokenFacade.GetTokenCount(npc.ID, ConnectionType.Trust);

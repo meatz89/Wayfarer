@@ -250,12 +250,12 @@ public class ObservationFacade
     /// Get all observation scenes available at a specific location
     /// Checks location match, completion status, and knowledge requirements
     /// </summary>
-    public List<ObservationScene> GetAvailableScenesAtLocation(string locationId)
+    public List<ObservationScene> GetAvailableScenesAtLocation(Location location)
     {
         Player player = _gameWorld.GetPlayer();
 
         return _gameWorld.ObservationScenes
-            .Where(s => s.Location?.Id == locationId)
+            .Where(s => s.Location == location)
             .Where(s => !s.IsCompleted || s.IsRepeatable)
             .Where(s => s.RequiredKnowledge.All(k => player.Knowledge.Contains(k)))
             .ToList();

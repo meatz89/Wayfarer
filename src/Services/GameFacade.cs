@@ -1532,7 +1532,7 @@ public class GameFacade
     /// </summary>
     public List<ConversationTree> GetAvailableConversationTreesAtLocation(Location location)
     {
-        return _conversationTreeFacade.GetAvailableTreesAtLocation(location.Name);
+        return _conversationTreeFacade.GetAvailableTreesAtLocation(location);
     }
 
     /// <summary>
@@ -1540,7 +1540,7 @@ public class GameFacade
     /// </summary>
     public List<ObservationScene> GetAvailableObservationScenesAtLocation(Location location)
     {
-        return _observationFacade.GetAvailableScenesAtLocation(location.Name);
+        return _observationFacade.GetAvailableScenesAtLocation(location);
     }
 
     /// <summary>

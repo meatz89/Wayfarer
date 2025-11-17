@@ -316,7 +316,7 @@ public class SituationCompletionHandler
         // Find all situations for this obligation (cross-scene query)
         List<Situation> obligationSituations = _gameWorld.Scenes
             .SelectMany(s => s.Situations)
-            .Where(sit => sit.Obligation?.Id == completedSituation.Obligation?.Id)
+            .Where(sit => sit.Obligation == completedSituation.Obligation)
             .ToList();
 
         // Check if ALL situations are complete

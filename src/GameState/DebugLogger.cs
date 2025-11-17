@@ -202,7 +202,7 @@ public class DebugLogger
         if (currentLocation != null)
         {
             List<NPC> allNpcs = gameWorld.NPCs;
-            List<NPC> spotNpcs = allNpcs.Where(n => n.Location?.Id == currentLocation.Id).ToList();
+            List<NPC> spotNpcs = allNpcs.Where(n => n.Location == currentLocation).ToList();
             TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
             List<NPC> availableNpcs = spotNpcs.Where(n => n.IsAvailable(currentTime)).ToList();
 

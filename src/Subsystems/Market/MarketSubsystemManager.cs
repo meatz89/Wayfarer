@@ -695,7 +695,10 @@ public class MarketSubsystemManager
         // Check player location
         Player player = _gameWorld.GetPlayer();
         Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
-        if (currentLocation == null || currentLocation.Id != locationId)
+
+        // Resolve locationId to Location object (template boundary)
+        Location targetLocation = _gameWorld.GetLocation(locationId);
+        if (currentLocation == null || targetLocation == null || currentLocation != targetLocation)
         {
             error = "You must be at the Location to trade";
             return false;

@@ -70,10 +70,19 @@ public class ObligationDiscoveryEvaluator
     /// </summary>
     private bool CheckImmediateVisibility(ObligationPrerequisites prereqs, Player player)
     {
-        // Check if player is at required location (LocationId is globally unique)
-        if (!string.IsNullOrEmpty(prereqs.LocationId) && _gameWorld.GetPlayerCurrentLocation().Id != prereqs.LocationId)
+        // Check if player is at required location
+        if (!string.IsNullOrEmpty(prereqs.LocationId))
         {
-            return false;
+            // Resolve LocationId to Location object (template boundary)
+            Location requiredLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == prereqs.LocationId);
+            if (requiredLocation == null)
+                return false;
+
+            // Compare Location objects, not IDs
+            if (_gameWorld.GetPlayerCurrentLocation() != requiredLocation)
+            {
+                return false;
+            }
         }
         return true;
     }
@@ -84,9 +93,18 @@ public class ObligationDiscoveryEvaluator
     /// </summary>
     private bool CheckEnvironmentalObservation(ObligationPrerequisites prereqs, Player player)
     {
-        // Check if player is at required location (LocationId is globally unique)
-        if (!string.IsNullOrEmpty(prereqs.LocationId) && _gameWorld.GetPlayerCurrentLocation().Id != prereqs.LocationId)
-            return false;
+        // Check if player is at required location
+        if (!string.IsNullOrEmpty(prereqs.LocationId))
+        {
+            // Resolve LocationId to Location object (template boundary)
+            Location requiredLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == prereqs.LocationId);
+            if (requiredLocation == null)
+                return false;
+
+            // Compare Location objects, not IDs
+            if (_gameWorld.GetPlayerCurrentLocation() != requiredLocation)
+                return false;
+        }
 
         return true;
     }
