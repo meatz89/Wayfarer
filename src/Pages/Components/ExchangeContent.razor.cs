@@ -44,17 +44,18 @@ namespace Wayfarer.Pages.Components
             if (Context.Session == null)
                 throw new InvalidOperationException("Exchange session is required");
 
-            // Reset selection when context changes
-            if (Context.Session.SessionId != LastContextId)
+            // ADR-007: Reset selection when session object changes (no SessionId comparison)
+            if (Context.Session != LastSession)
             {
                 SelectedExchange = null;
                 LastResult = null;
                 GenerateInitialNarrative();
-                LastContextId = Context.Session.SessionId;
+                LastSession = Context.Session;
             }
         }
 
-        private string LastContextId { get; set; }
+        // ADR-007: Track session by object reference (not string ID)
+        private ExchangeSession LastSession { get; set; }
 
         /// <summary>
         /// Gets the Venue context string for the header.

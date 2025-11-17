@@ -26,21 +26,22 @@ public class ExchangeOrchestrator
 
     /// <summary>
     /// Create a new exchange session with an NPC
+    /// ADR-007: Store NPC object reference (not ID)
     /// </summary>
     public ExchangeSession CreateSession(NPC npc, List<ExchangeOption> availableExchanges)
     {
-        // End any existing session with this NPC
-        ExchangeSession existingSession = _activeSessions.FirstOrDefault(s => s.NpcId == npc.ID);
+        // ADR-007: Find existing session by NPC object reference (not ID comparison)
+        ExchangeSession existingSession = _activeSessions.FirstOrDefault(s => s.Npc == npc);
         if (existingSession != null)
         {
-            EndSession(npc.ID);
+            EndSession(npc);
         }
 
-        // Create new session
+        // ADR-007: Create session with object references (SessionId and NpcId deleted)
         ExchangeSession session = new ExchangeSession
         {
-            SessionId = Guid.NewGuid().ToString(),
-            NpcId = npc.ID,
+            Npc = npc,
+            Location = npc.Location, // Capture location where exchange happening
             AvailableExchanges = availableExchanges,
             StartTime = DateTime.Now,
             IsActive = true
@@ -57,37 +58,42 @@ public class ExchangeOrchestrator
 
     /// <summary>
     /// End an exchange session
+    /// ADR-007: Accept NPC object (not ID)
     /// </summary>
-    public void EndSession(string npcId)
+    public void EndSession(NPC npc)
     {
-        ExchangeSession session = _activeSessions.FirstOrDefault(s => s.NpcId == npcId);
+        // ADR-007: Find session by NPC object reference (not ID)
+        ExchangeSession session = _activeSessions.FirstOrDefault(s => s.Npc == npc);
         if (session != null)
         {
             session.IsActive = false;
             _activeSessions.Remove(session);
 
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == session.NpcId);
-            string npcName = npc != null ? npc.Name : "NPC";
+            // ADR-007: No ID lookup needed - session already has NPC object
             _messageSystem.AddSystemMessage(
-                $"Exchange session with {npcName} ended",
+                $"Exchange session with {session.Npc!.Name} ended",
                 SystemMessageTypes.Info);
         }
     }
 
     /// <summary>
-    /// Get an active session by NPC ID
+    /// Get an active session by NPC
+    /// ADR-007: Accept NPC object (not ID)
     /// </summary>
-    public ExchangeSession GetActiveSession(string npcId)
+    public ExchangeSession GetActiveSession(NPC npc)
     {
-        return _activeSessions.FirstOrDefault(s => s.NpcId == npcId);
+        // ADR-007: Find session by NPC object reference (not ID)
+        return _activeSessions.FirstOrDefault(s => s.Npc == npc);
     }
 
     /// <summary>
     /// Check if an NPC has an active exchange session
+    /// ADR-007: Accept NPC object (not ID)
     /// </summary>
-    public bool HasActiveSession(string npcId)
+    public bool HasActiveSession(NPC npc)
     {
-        return _activeSessions.Any(s => s.NpcId == npcId);
+        // ADR-007: Find session by NPC object reference (not ID)
+        return _activeSessions.Any(s => s.Npc == npc);
     }
 
     /// <summary>
@@ -119,13 +125,15 @@ public class ExchangeOrchestrator
 
     /// <summary>
     /// Clear all active sessions (used when loading game or changing locations)
+    /// ADR-007: Work with NPC objects (not IDs)
     /// </summary>
     public void ClearAllSessions()
     {
-        List<string> npcIds = _activeSessions.Select(s => s.NpcId).ToList();
-        foreach (string npcId in npcIds)
+        // ADR-007: Get NPC objects from sessions (not IDs)
+        List<NPC> npcs = _activeSessions.Select(s => s.Npc).ToList();
+        foreach (NPC npc in npcs)
         {
-            EndSession(npcId);
+            EndSession(npc);
         }
     }
 

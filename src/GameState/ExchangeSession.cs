@@ -2,24 +2,17 @@
 /// Represents an active exchange session between the player and an NPC.
 /// Tracks the state of negotiation and available exchanges.
 /// No hidden state - all mechanics are explicit and visible.
+/// ADR-007: Object references only (no ID properties except tracking IDs)
 /// </summary>
 public class ExchangeSession
 {
-    /// <summary>
-    /// Unique identifier for this session.
-    /// </summary>
-    public string SessionId { get; set; } = Guid.NewGuid().ToString();
+    // ADR-007: SessionId DELETED - sessions tracked by GameWorld reference, not string ID
 
-    /// <summary>
-    /// The NPC involved in this exchange session.
-    /// Empty string for location-based or system exchanges.
-    /// </summary>
-    public string NpcId { get; set; }
+    // ADR-007: NpcId DELETED - use NPC object reference
+    public NPC Npc { get; set; }
 
-    /// <summary>
-    /// The Location where this exchange is taking place.
-    /// </summary>
-    public string LocationId { get; set; }
+    // ADR-007: LocationId DELETED - use Location object reference
+    public Location Location { get; set; }
 
     /// <summary>
     /// The time block when this session started.
@@ -32,17 +25,11 @@ public class ExchangeSession
     /// </summary>
     public List<ExchangeOption> AvailableExchanges { get; set; } = new List<ExchangeOption>();
 
-    /// <summary>
-    /// Exchange cards the player has selected to consider.
-    /// Player can select multiple exchanges to compare.
-    /// </summary>
-    public List<string> SelectedExchangeIds { get; set; } = new List<string>();
+    // ADR-007: SelectedExchangeIds DELETED - use List<ExchangeOption> objects
+    public List<ExchangeOption> SelectedExchanges { get; set; } = new List<ExchangeOption>();
 
-    /// <summary>
-    /// The exchange currently being executed, if any.
-    /// Null when no exchange is in progress.
-    /// </summary>
-    public string ActiveExchangeId { get; set; }
+    // ADR-007: ActiveExchangeId DELETED - use ExchangeOption object reference
+    public ExchangeOption ActiveExchange { get; set; }
 
     /// <summary>
     /// History of completed exchanges in this session.
@@ -100,38 +87,34 @@ public class ExchangeSession
 
     /// <summary>
     /// Gets the currently selected exchange if exactly one is selected.
+    /// ADR-007: Direct object access (no ID lookup)
     /// </summary>
     public ExchangeOption GetSelectedExchange()
     {
-        if (SelectedExchangeIds.Count != 1)
+        if (SelectedExchanges.Count != 1)
             return null;
 
-        return AvailableExchanges.Find(e => e.ExchangeId == SelectedExchangeIds[0]);
+        return SelectedExchanges[0];
     }
 
     /// <summary>
     /// Gets the active exchange being executed.
+    /// ADR-007: Direct object access (no ID lookup)
     /// </summary>
     public ExchangeOption GetActiveExchange()
     {
-        if (string.IsNullOrEmpty(ActiveExchangeId))
-            return null;
-
-        return AvailableExchanges.Find(e => e.ExchangeId == ActiveExchangeId);
+        return ActiveExchange;
     }
 
     /// <summary>
     /// Completes an exchange and records it in history.
+    /// ADR-007: Accept ExchangeOption object (not ID)
     /// </summary>
-    public void CompleteExchange(string exchangeId, bool success, ExchangeCostStructure actualCost, ExchangeRewardStructure actualReward)
+    public void CompleteExchange(ExchangeOption exchange, bool success, ExchangeCostStructure actualCost, ExchangeRewardStructure actualReward)
     {
-        ExchangeOption? exchange = AvailableExchanges.Find(e => e.ExchangeId == exchangeId);
-        if (exchange == null)
-            return;
-
         CompletedExchange completed = new CompletedExchange
         {
-            ExchangeId = exchangeId,
+            ExchangeId = exchange.ExchangeId, // Audit trail preserves ID for history
             ExchangeName = exchange.Name,
             Success = success,
             Cost = actualCost,
@@ -141,8 +124,8 @@ public class ExchangeSession
 
         CompletedExchanges.Add(completed);
 
-        // Clear active exchange
-        ActiveExchangeId = "";
+        // ADR-007: Clear active exchange (null object reference, not empty string ID)
+        ActiveExchange = null;
         CurrentPhase = ExchangePhase.Browsing;
     }
 
