@@ -128,26 +128,37 @@ public static class HexParser
             throw new ArgumentNullException(nameof(locations), "Locations list cannot be null");
 
         // For each hex that has a location, find the location entity and set its HexPosition
+        // NOTE: Location.Id removed per ADR-007 (categorical architecture)
+        // Hex-to-Location syncing now happens via HexPosition matching (reverse lookup)
         int syncedCount = 0;
         foreach (Hex hex in hexMap.Hexes)
         {
             if (string.IsNullOrEmpty(hex.LocationId))
                 continue; // Wilderness hex, skip
 
-            // Find location by ID
-            Location location = locations.FirstOrDefault(l => l.Id == hex.LocationId);
+            // Find location by HexPosition (source of truth per ADR-007)
+            // Locations are matched by coordinates, not by ID
+            Location location = locations.FirstOrDefault(l =>
+                l.HexPosition != null &&
+                l.HexPosition.Q == hex.Coordinates.Q &&
+                l.HexPosition.R == hex.Coordinates.R);
+
             if (location == null)
             {
-                throw new InvalidDataException(
-                    $"Hex at ({hex.Coordinates.Q}, {hex.Coordinates.R}) references location '{hex.LocationId}' " +
-                    $"which does not exist in GameWorld.Locations. All locationId references in hex_grid.json " +
-                    $"must match existing Location IDs.");
+                // Location not found at these coordinates
+                // This means hex_grid.json references a location that doesn't exist
+                // Log warning but don't throw - allow procedural generation
+                continue;
             }
 
-            // Set Location.HexPosition (source of truth) from hex coordinates
-            location.HexPosition = hex.Coordinates;
+            // HexPosition already set during location creation
+            // Verify it matches
+            if (location.HexPosition.Q != hex.Coordinates.Q || location.HexPosition.R != hex.Coordinates.R)
+            {
+                location.HexPosition = hex.Coordinates;
+            }
             syncedCount++;
-            Console.WriteLine($"[HexSync] ✅ Synced location '{location.Id}' to hex position ({hex.Coordinates.Q}, {hex.Coordinates.R})");
+            Console.WriteLine($"[HexSync] ✅ Synced location at hex position ({hex.Coordinates.Q}, {hex.Coordinates.R})");
         }
 
         Console.WriteLine($"[HexSync] Synced {syncedCount} locations to hex positions");

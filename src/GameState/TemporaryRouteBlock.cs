@@ -1,9 +1,9 @@
 /// <summary>
 /// Tracks temporary route block with expiration
-/// Replacement for Dictionary<string, int> TemporaryRouteBlocks
+/// HIGHLANDER: Uses RouteName (RouteOption.Name) as natural key, not Id
 /// </summary>
 public class TemporaryRouteBlock
 {
-    public string RouteId { get; set; }
+    public string RouteName { get; set; }
     public int UnblockDay { get; set; }
 }

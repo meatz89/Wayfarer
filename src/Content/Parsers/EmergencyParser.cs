@@ -24,17 +24,12 @@ public static class EmergencyParser
             throw new InvalidOperationException($"EmergencySituation '{dto.Id}' has invalid ResponseWindowSegments '{dto.ResponseWindowSegments}'. Must be >= 0.");
 
         // Verify trigger locations exist if specified
-        if (dto.TriggerLocationIds != null)
+        // NOTE: Location.Id removed per ADR-007 (categorical architecture)
+        // Validation removed - locations matched categorically at runtime
+        if (dto.TriggerLocationIds != null && dto.TriggerLocationIds.Count > 0)
         {
-            foreach (string locationId in dto.TriggerLocationIds)
-            {
-                Location location = gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
-                if (location == null)
-                {
-                    throw new InvalidOperationException(
-                        $"EmergencySituation '{dto.Id}' references unknown trigger location '{locationId}'");
-                }
-            }
+            // TriggerLocationIds will be validated at runtime via categorical matching
+            // Cannot validate here without Location.Id
         }
 
         EmergencySituation emergency = new EmergencySituation

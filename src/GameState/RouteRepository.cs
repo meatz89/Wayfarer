@@ -10,9 +10,10 @@ public class RouteRepository : IRouteRepository
     }
 
     // Check if a route is blocked
-    public bool IsRouteBlocked(string routeId)
+    // HIGHLANDER: Accepts RouteOption object, delegates to GameWorld
+    public bool IsRouteBlocked(RouteOption route)
     {
-        return _gameWorld.IsRouteBlocked(routeId, _gameWorld.CurrentDay);
+        return _gameWorld.IsRouteBlocked(route, _gameWorld.CurrentDay);
     }
 
     // Get routes from a specific Location
@@ -52,8 +53,8 @@ public class RouteRepository : IRouteRepository
             // Core Loop: All routes physically exist and are visible
             // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
-            // Check if route is blocked
-            if (IsRouteBlocked(route.Name))
+            // Check if route is blocked (HIGHLANDER: pass object, not Name)
+            if (IsRouteBlocked(route))
                 continue;
 
             availableRoutes.Add(route);

@@ -219,13 +219,16 @@ public class GameWorld
 
     /// <summary>
     /// Add a temporary route block that expires after specified days
+    /// HIGHLANDER: Accepts RouteOption object, uses route.Name as natural key
     /// </summary>
-    public void AddTemporaryRouteBlock(string routeId, int daysBlocked, int currentDay)
+    public void AddTemporaryRouteBlock(RouteOption route, int daysBlocked, int currentDay)
     {
-        TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.RouteId == routeId);
+        if (route == null) return;
+
+        TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.RouteName == route.Name);
         if (block == null)
         {
-            block = new TemporaryRouteBlock { RouteId = routeId };
+            block = new TemporaryRouteBlock { RouteName = route.Name };
             TemporaryRouteBlocks.Add(block);
         }
         block.UnblockDay = currentDay + daysBlocked;
@@ -233,10 +236,13 @@ public class GameWorld
 
     /// <summary>
     /// Check if a route is temporarily blocked
+    /// HIGHLANDER: Accepts RouteOption object, uses route.Name as natural key
     /// </summary>
-    public bool IsRouteBlocked(string routeId, int currentDay)
+    public bool IsRouteBlocked(RouteOption route, int currentDay)
     {
-        TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.RouteId == routeId);
+        if (route == null) return false;
+
+        TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.RouteName == route.Name);
         if (block != null)
         {
             if (currentDay >= block.UnblockDay)

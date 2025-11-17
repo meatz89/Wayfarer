@@ -10,8 +10,9 @@ public interface IRouteRepository
 
     /// <summary>
     /// Check if a route is blocked
+    /// HIGHLANDER: Accepts RouteOption object, not string ID
     /// </summary>
-    bool IsRouteBlocked(string routeId);
+    bool IsRouteBlocked(RouteOption route);
 
     /// <summary>
     /// Get available routes considering current conditions
