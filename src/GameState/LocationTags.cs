@@ -42,51 +42,52 @@ public static class LocationTagObservations
 {
     private static readonly Dictionary<LocationTag, List<ObservationAction>> TagActions = new()
     {
+        // ADR-007: No Id parameter - Description is natural key
         [LocationTag.Crowded] = new()
     {
-        new ObservationAction("eavesdrop", "Listen to nearby conversations", 1),
-        new ObservationAction("scan_crowd", "Look for specific individuals", 1),
-        new ObservationAction("notice_pickpocket", "Watch for thieves", 1)
+        new ObservationAction("Listen to nearby conversations", 1),
+        new ObservationAction("Look for specific individuals", 1),
+        new ObservationAction("Watch for thieves", 1)
     },
         [LocationTag.Quiet] = new()
     {
-        new ObservationAction("listen_carefully", "Hear distant sounds", 1),
-        new ObservationAction("notice_breathing", "Detect hidden focus", 1)
+        new ObservationAction("Hear distant sounds", 1),
+        new ObservationAction("Detect hidden focus", 1)
     },
         [LocationTag.Public] = new()
     {
-        new ObservationAction("observe_social", "Note who talks to whom", 1),
-        new ObservationAction("spot_authority", "Identify important figures", 1)
+        new ObservationAction("Note who talks to whom", 1),
+        new ObservationAction("Identify important figures", 1)
     },
         [LocationTag.Private] = new()
     {
-        new ObservationAction("search_hidden", "Look for concealed items", 1),
-        new ObservationAction("check_exits", "Note escape routes", 1)
+        new ObservationAction("Look for concealed items", 1),
+        new ObservationAction("Note escape routes", 1)
     },
         [LocationTag.HearthWarmed] = new()
     {
-        new ObservationAction("observe_flow", "See who's relaxed or guarded", 1),
-        new ObservationAction("notice_regulars", "Identify frequent visitors", 1)
+        new ObservationAction("See who's relaxed or guarded", 1),
+        new ObservationAction("Identify frequent visitors", 1)
     },
         [LocationTag.AleScented] = new()
     {
-        new ObservationAction("spot_drunk", "Identify intoxicated individuals", 1),
-        new ObservationAction("overhear_boasts", "Listen to loose tongues", 1)
+        new ObservationAction("Identify intoxicated individuals", 1),
+        new ObservationAction("Listen to loose tongues", 1)
     },
         [LocationTag.MusicDrifting] = new()
     {
-        new ObservationAction("watch_reactions", "See emotional responses", 1),
-        new ObservationAction("spot_distracted", "Notice who's not listening", 1)
+        new ObservationAction("See emotional responses", 1),
+        new ObservationAction("Notice who's not listening", 1)
     },
         [LocationTag.MarketDay] = new()
     {
-        new ObservationAction("watch_trades", "Observe diplomacy patterns", 1),
-        new ObservationAction("spot_deals", "Notice special transactions", 1)
+        new ObservationAction("Observe diplomacy patterns", 1),
+        new ObservationAction("Notice special transactions", 1)
     },
         [LocationTag.GuardPatrol] = new()
     {
-        new ObservationAction("track_patrols", "Note guard movements", 1),
-        new ObservationAction("spot_nervous", "See who avoids guards", 1)
+        new ObservationAction("Note guard movements", 1),
+        new ObservationAction("See who avoids guards", 1)
     }
     };
 
@@ -122,17 +123,17 @@ public static class LocationTagObservations
 
 /// <summary>
 /// Represents an observation action that costs attention
+/// ADR-007: NO Id property - Description is natural key
 /// </summary>
 public class ObservationAction : IEquatable<ObservationAction>
 {
-    public string Id { get; }
+    // HIGHLANDER: NO Id property - Description is natural key
     public string Description { get; }
     public int AttentionCost { get; }
     public TierLevel RequiredTier { get; }
 
-    public ObservationAction(string id, string description, int attentionCost, TierLevel requiredTier = TierLevel.T1)
+    public ObservationAction(string description, int attentionCost, TierLevel requiredTier = TierLevel.T1)
     {
-        Id = id;
         Description = description;
         AttentionCost = attentionCost;
         RequiredTier = requiredTier;
@@ -141,7 +142,8 @@ public class ObservationAction : IEquatable<ObservationAction>
     public bool Equals(ObservationAction other)
     {
         if (other == null) return false;
-        return Id == other.Id;
+        // ADR-007: Natural key equality (Description, not Id)
+        return Description == other.Description;
     }
 
     public override bool Equals(object obj)
@@ -151,9 +153,8 @@ public class ObservationAction : IEquatable<ObservationAction>
 
     public override int GetHashCode()
     {
-        if (Id == null)
-            return 0;
-        return Id.GetHashCode();
+        // ADR-007: Hash natural key (Description), not synthetic Id
+        return Description?.GetHashCode() ?? 0;
     }
 }
 
