@@ -97,7 +97,8 @@ public class ArbitrageCalculator
                     highestProfit = netProfit;
                     bestOpening = new ArbitrageOpening
                     {
-                        ItemId = item.Id,
+                        // ADR-007: Use Name instead of deleted Id
+                        ItemId = item.Name,
                         ItemName = item.Name,
                         BuyLocationId = buyLocation.Name,
                         BuyLocationName = buyLocation.Name,
@@ -207,9 +208,10 @@ public class ArbitrageCalculator
 
                 if (netProfit > 0)
                 {
+                    // ADR-007: Use Name instead of deleted Id
                     opportunities.Add(new ArbitrageOpening
                     {
-                        ItemId = item.Id,
+                        ItemId = item.Name,
                         ItemName = item.Name,
                         BuyLocationId = currentLocationId,
                         BuyLocationName = currentLocation.Name,
@@ -377,9 +379,10 @@ public class ArbitrageCalculator
 
                 if (netProfit > 0)
                 {
+                    // ADR-007: Use Name instead of deleted Id
                     opportunities.Add(new ArbitrageOpening
                     {
-                        ItemId = item.Id,
+                        ItemId = item.Name,
                         ItemName = item.Name,
                         BuyLocationId = fromLocationId,
                         BuyLocationName = fromLocation.Name,

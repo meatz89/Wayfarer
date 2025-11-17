@@ -55,7 +55,7 @@ public class PriceManager
         if (item == null)
             return -1;
 
-        PricingInfo pricing = GetPricingInfo(item.Id, locationId);
+        PricingInfo pricing = GetPricingInfo(item.Name, locationId);
         return pricing.IsAvailable ? pricing.AdjustedBuyPrice : -1;
     }
 
@@ -68,7 +68,7 @@ public class PriceManager
         if (item == null)
             return -1;
 
-        PricingInfo pricing = GetPricingInfo(item.Id, locationId);
+        PricingInfo pricing = GetPricingInfo(item.Name, locationId);
         return pricing.IsAvailable ? pricing.AdjustedSellPrice : -1;
     }
 
@@ -288,7 +288,7 @@ public class PriceManager
 
         foreach (Item item in allItems)
         {
-            PricingInfo pricing = GetPricingInfo(item.Id, locationId);
+            PricingInfo pricing = GetPricingInfo(item.Name, locationId);
             if (pricing.IsAvailable)
             {
                 prices.Add(pricing);
@@ -396,7 +396,7 @@ public class PriceManager
                     i.Categories.Contains(ItemCategory.Luxury_Items)))
                 {
                     // Increase demand during festival
-                    float currentDemand = _marketStateTracker.GetDemandLevel(item.Id, locationId);
+                    float currentDemand = _marketStateTracker.GetDemandLevel(item.Name, locationId);
                     // Note: Would need to add SetDemandLevel method to MarketStateTracker
                 }
                 break;

@@ -1185,7 +1185,8 @@ public class GameFacade
         foreach (Item item in uniqueItems)
         {
             int count = player.Inventory.Count(item);
-            inventoryDict[item.Id] = count;
+            // ADR-007: Use Name instead of deleted Id
+            inventoryDict[item.Name] = count;
         }
 
         return inventoryDict;

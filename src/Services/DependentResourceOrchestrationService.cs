@@ -77,7 +77,8 @@ public class DependentResourceOrchestrationService
                 };
 
                 player.Inventory.AddItem(item);
-                Console.WriteLine($"[DependentResources] Added item to inventory: {item.Name} ({item.Id})");
+                // ADR-007: No Id property (Name is natural key)
+                Console.WriteLine($"[DependentResources] Added item to inventory: {item.Name}");
             }
         }
 
