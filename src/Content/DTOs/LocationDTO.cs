@@ -12,10 +12,17 @@ public class LocationDTO
     public string InitialState { get; set; }
 
     /// <summary>
+    /// MIGRATION: Venue ID temporarily kept for parsing existing JSON
+    /// Parser resolves to Location.Venue object reference
+    /// FUTURE: Will be removed when all locations use hex-based venue assignment
+    /// </summary>
+    public string VenueId { get; set; }
+
+    /// <summary>
     /// Axial hex coordinate Q (required for all locations)
     /// Venue membership derived from hex position (locations within radius belong to venue)
     /// CORRECT PATTERN: Hex coordinates + spatial radius grouping
-    /// WRONG PATTERN: VenueId entity instance ID
+    /// WRONG PATTERN: VenueId entity instance ID (being migrated away)
     /// </summary>
     public int? Q { get; set; }
 

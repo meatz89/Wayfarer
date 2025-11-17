@@ -10,11 +10,18 @@ public class NPCDTO
     public string Profession { get; set; }
 
     /// <summary>
-    /// Categorical spawn location filter - EntityResolver finds matching location OR creates new
-    /// CORRECT PATTERN: Categorical properties (LocationTypes, Purposes, etc.)
-    /// WRONG PATTERN: Entity instance ID (LocationId string)
+    /// MIGRATION: Venue ID temporarily kept for parsing existing JSON
+    /// Parser resolves to NPC.Location.Venue via Location lookup
+    /// FUTURE: Will use PlacementFilterDTO for categorical spawn location matching
     /// </summary>
-    public PlacementFilterDTO SpawnLocation { get; set; }
+    public string VenueId { get; set; }
+
+    /// <summary>
+    /// MIGRATION: Location ID temporarily kept for parsing existing JSON
+    /// Parser resolves to NPC.Location object reference
+    /// FUTURE: Will use PlacementFilterDTO for categorical spawn location matching
+    /// </summary>
+    public string LocationId { get; set; }
 
     public string Description { get; set; }
     public string Personality { get; set; }

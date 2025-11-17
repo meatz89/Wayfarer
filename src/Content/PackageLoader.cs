@@ -911,13 +911,6 @@ public class PackageLoader
     {
         if (npcDtos == null) return;
 
-        // System 4: Entity Resolver (FindOrCreate) - DDR-006 Categorical Scaling
-        // EntityResolver handles entity resolution: queries existing first, creates if no match
-        // NO skeleton generation needed - FindOrCreate pattern handles missing entities
-        Player player = _gameWorld.GetPlayer();
-        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
-        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
-
         foreach (NPCDTO dto in npcDtos)
         {
             // Check if this NPC already exists - UPDATE IN-PLACE (never remove)
@@ -929,8 +922,7 @@ public class PackageLoader
                 List<ExchangeCard> preservedExchangeCards = existing.ExchangeDeck.ToList();
 
                 // Parse full NPC from DTO to get updated properties
-                // EntityResolver will find/create spawn location from categorical filter
-                NPC parsed = NPCParser.ConvertDTOToNPC(dto, _gameWorld, entityResolver);
+                NPC parsed = NPCParser.ConvertDTOToNPC(dto, _gameWorld);
 
                 // UPDATE existing NPC properties in-place (preserve object identity)
                 existing.Name = parsed.Name;
@@ -943,7 +935,7 @@ public class PackageLoader
                 existing.PersonalityDescription = parsed.PersonalityDescription;
                 existing.PersonalityType = parsed.PersonalityType;
                 existing.ConversationModifier = parsed.ConversationModifier;
-                existing.Location = parsed.Location; // Resolved via EntityResolver
+                existing.Location = parsed.Location; // Resolved from LocationId during parsing
                 existing.IsSkeleton = false;
 
                 // PRESERVE ExchangeDeck: Merge authored initial cards + preserved runtime cards
@@ -961,8 +953,7 @@ public class PackageLoader
             else
             {
                 // New NPC - add to collection
-                // EntityResolver will find/create spawn location from categorical filter
-                NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld, entityResolver);
+                NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld);
                 _gameWorld.NPCs.Add(npc);
             }
         }
