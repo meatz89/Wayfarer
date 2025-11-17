@@ -216,36 +216,33 @@ public class TravelManager
         // Mark card as discovered (face-up)
         _gameWorld.SetPathCardDiscovered(pathCardId, true);
 
-        // Set reveal state
+        // ADR-007: Set reveal state with PathCardDTO object (not ID)
         session.IsRevealingCard = true;
-        session.RevealedCardId = pathCardId;
+        session.RevealedCard = card;
 
         return true;
     }
 
     /// <summary>
     /// Confirm the revealed card and apply its effects, then advance to next segment
+    /// ADR-007: Use RevealedCard object (not RevealedCardId)
     /// </summary>
     public bool ConfirmRevealedCard()
     {
         TravelSession session = _gameWorld.CurrentTravelSession;
-        if (session == null || !session.IsRevealingCard || string.IsNullOrEmpty(session.RevealedCardId))
+        // ADR-007: Check if RevealedCard object is null (not string empty check)
+        if (session == null || !session.IsRevealingCard || session.RevealedCard == null)
         {
             return false;
         }
 
-        string pathCardId = session.RevealedCardId;
-
-        // Get the card from the current segment's collection
-        PathCardDTO card = GetCardFromCurrentSegment(pathCardId);
-        if (card == null)
-        {
-            return false;
-        }
+        // ADR-007: Get card object and ID from RevealedCard (no ID lookup needed)
+        PathCardDTO card = session.RevealedCard;
+        string pathCardId = card.Id;
 
         // Clear reveal state
         session.IsRevealingCard = false;
-        session.RevealedCardId = "";
+        session.RevealedCard = null;
 
         // Apply selection effects (shared logic with discovered cards)
         return ApplyPathCardSelectionEffects(card, pathCardId);
@@ -285,8 +282,8 @@ public class TravelManager
         // Apply effects with messages
         ApplyPathCardEffects(card);
 
-        // Record path selection
-        session.SelectedPathId = pathCardId;
+        // ADR-007: Record path selection with PathCardDTO object (not ID)
+        session.SelectedPath = card;
         if (card.TravelTimeSegments > 0)
         {
             session.SegmentsElapsed += card.TravelTimeSegments;
@@ -330,10 +327,14 @@ public class TravelManager
             RouteSegment segment = route.Segments[session.CurrentSegment - 1];
             if (segment.Type == SegmentType.Event)
             {
-                // For event response cards, they're always face-up
-                // Just set the reveal state so player can confirm
+                // ADR-007: For event response cards, lookup PathCardDTO object first
+                PathCardDTO eventCard = GetCardFromCurrentSegment(pathCardId);
+                if (eventCard == null)
+                    return false;
+
+                // Set reveal state with object reference (not ID)
                 session.IsRevealingCard = true;
-                session.RevealedCardId = pathCardId;
+                session.RevealedCard = eventCard;
                 return true;
             }
         }
@@ -361,23 +362,24 @@ public class TravelManager
     /// <summary>
     /// Resolve pending scene after player completes scene situations
     /// Called by GameFacade after scene intensity reaches 0
+    /// ADR-007: Accept Scene object (not sceneId string)
     /// </summary>
-    public bool ResolveScene(string sceneId)
+    public bool ResolveScene(Scene scene)
     {
         TravelSession session = _gameWorld.CurrentTravelSession;
-        if (session == null || session.PendingSceneId != sceneId)
+        // ADR-007: Check if PendingScene matches (object reference, not ID comparison)
+        if (session == null || session.PendingScene != scene)
         {
             return false;
         }
 
-        Scene scene = _gameWorld.Scenes.FirstOrDefault(o => o.Id == sceneId);
         if (scene == null || scene.State != SceneState.Completed)
         {
             return false;
         }
 
-        // Clear pending scene
-        session.PendingSceneId = null;
+        // ADR-007: Clear pending scene (null object, not null ID)
+        session.PendingScene = null;
         _messageSystem.AddSystemMessage($"Scene resolved: {scene.DisplayName}", SystemMessageTypes.Success);
 
         // Now advance segment or complete route
@@ -517,19 +519,15 @@ public class TravelManager
 
     /// <summary>
     /// Get a specific card from an Event segment
+    /// ADR-007: Use CurrentEvent object (not CurrentEventId)
     /// </summary>
     private PathCardDTO GetCardFromEventSegment(RouteSegment segment, TravelSession session, string cardId)
     {
-        // Get the current event ID from session state
-        if (string.IsNullOrEmpty(session.CurrentEventId))
+        // ADR-007: Get CurrentEvent object (no null/empty check on ID)
+        if (session.CurrentEvent == null)
             return null;
 
-        // Get the travel event
-        TravelEventEntry? eventEntry = _gameWorld.AllTravelEvents.FirstOrDefault(x => x.EventId == session.CurrentEventId);
-        if (eventEntry == null)
-            return null;
-
-        TravelEventDTO travelEvent = eventEntry.TravelEvent;
+        TravelEventDTO travelEvent = session.CurrentEvent;
 
         // Find the card in the embedded event cards
         return travelEvent.EventCards.FirstOrDefault(c => c.Id == cardId);
@@ -657,12 +655,12 @@ public class TravelManager
         if (session.CurrentSegment < route.Segments.Count)
         {
             session.CurrentSegment++;
-            // Clear event state for the new segment
-            session.CurrentEventId = "";
+            // ADR-007: Clear event state for new segment (null object, not empty string ID)
+            session.CurrentEvent = null;
             session.CurrentEventNarrative = "";
 
             // Pre-load cards for the new segment (works for both FixedPath and Event segments)
-            // For Event segments, this triggers event selection and sets CurrentEventId
+            // For Event segments, this triggers event selection and sets CurrentEvent
             // For FixedPath segments, this just ensures cards are ready
             GetSegmentCards();
         }
