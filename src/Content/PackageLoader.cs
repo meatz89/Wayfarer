@@ -911,48 +911,15 @@ public class PackageLoader
     {
         if (npcDtos == null) return;
 
+        // System 4: Entity Resolver (FindOrCreate) - DDR-006 Categorical Scaling
+        // EntityResolver handles entity resolution: queries existing first, creates if no match
+        // NO skeleton generation needed - FindOrCreate pattern handles missing entities
+        Player player = _gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
+        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
+
         foreach (NPCDTO dto in npcDtos)
         {
-            // Check if NPC references a Venue that doesn't exist
-            if (!string.IsNullOrEmpty(dto.VenueId) &&
-                !_gameWorld.Venues.Any(v => v.Name == dto.VenueId))
-            {
-                // Create skeleton venue
-                Venue skeletonVenue = SkeletonGenerator.GenerateSkeletonVenue(
-                    dto.VenueId,
-                    $"npc_{dto.Name}_reference");
-
-                _gameWorld.Venues.Add(skeletonVenue);
-                _gameWorld.AddSkeleton(dto.VenueId, "Venue");
-
-                // Also create a skeleton location for the location
-                string hubSpotId = $"{dto.VenueId}_hub";
-                Location hubSpot = SkeletonGenerator.GenerateSkeletonSpot(
-                    hubSpotId,
-                    dto.VenueId,
-                    $"location_{dto.VenueId}_hub");
-
-                _gameWorld.AddOrUpdateLocation(hubSpotId, hubSpot);
-                _gameWorld.AddSkeleton(hubSpot.Name, "Location");
-            }
-
-            // Check if NPC references a location that doesn't exist
-            if (!string.IsNullOrEmpty(dto.LocationId) &&
-                _gameWorld.GetLocation(dto.LocationId) == null)
-            {
-                // Create skeleton location
-                if (string.IsNullOrEmpty(dto.VenueId))
-                    throw new InvalidDataException($"NPC '{dto.Name}' references LocationId '{dto.LocationId}' but VenueId is missing - cannot create skeleton");
-
-                Location skeletonSpot = SkeletonGenerator.GenerateSkeletonSpot(
-                    dto.LocationId,
-                    dto.VenueId,
-                    $"npc_{dto.Name}_spot_reference");
-
-                _gameWorld.AddOrUpdateLocation(dto.LocationId, skeletonSpot);
-                _gameWorld.AddSkeleton(dto.LocationId, "Location");
-            }
-
             // Check if this NPC already exists - UPDATE IN-PLACE (never remove)
             NPC? existing = _gameWorld.NPCs.FirstOrDefault(n => n.Name == dto.Name);
 
@@ -962,7 +929,8 @@ public class PackageLoader
                 List<ExchangeCard> preservedExchangeCards = existing.ExchangeDeck.ToList();
 
                 // Parse full NPC from DTO to get updated properties
-                NPC parsed = NPCParser.ConvertDTOToNPC(dto, _gameWorld);
+                // EntityResolver will find/create spawn location from categorical filter
+                NPC parsed = NPCParser.ConvertDTOToNPC(dto, _gameWorld, entityResolver);
 
                 // UPDATE existing NPC properties in-place (preserve object identity)
                 existing.Name = parsed.Name;
@@ -975,6 +943,7 @@ public class PackageLoader
                 existing.PersonalityDescription = parsed.PersonalityDescription;
                 existing.PersonalityType = parsed.PersonalityType;
                 existing.ConversationModifier = parsed.ConversationModifier;
+                existing.Location = parsed.Location; // Resolved via EntityResolver
                 existing.IsSkeleton = false;
 
                 // PRESERVE ExchangeDeck: Merge authored initial cards + preserved runtime cards
@@ -992,7 +961,8 @@ public class PackageLoader
             else
             {
                 // New NPC - add to collection
-                NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld);
+                // EntityResolver will find/create spawn location from categorical filter
+                NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld, entityResolver);
                 _gameWorld.NPCs.Add(npc);
             }
         }
