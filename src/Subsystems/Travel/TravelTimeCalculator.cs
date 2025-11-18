@@ -24,7 +24,8 @@ public class TravelTimeCalculator
             throw new ArgumentNullException(nameof(toLocation));
 
         // Same Location = no travel time
-        if (fromLocation.Id == toLocation.Id)
+        // HIGHLANDER: Object equality, not Id comparison
+        if (fromLocation == toLocation)
         {
             return 0;
         }

@@ -610,8 +610,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         Situation currentSituation = scene.CurrentSituation;
 
         // ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
-        // ADR-007: Use Name instead of deleted ID
-        if (currentSituation?.Npc == null || currentSituation.Npc.Name != npc.Name)
+        // HIGHLANDER: Object equality, not Name comparison
+        if (currentSituation?.Npc == null || currentSituation.Npc != npc)
         {
             Console.WriteLine($"[GameScreen] Scene {scene.DisplayName} current situation does not involve NPC {npc.Name}");
             return;

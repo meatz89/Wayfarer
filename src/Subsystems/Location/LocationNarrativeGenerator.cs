@@ -71,7 +71,9 @@ public class LocationNarrativeGenerator
     /// </summary>
     private string GenerateLocationAtmosphere(Venue venue, TimeBlocks currentTime)
     {
-        Location venueLocation = _gameWorld.Locations.FirstOrDefault(x => x.Id == venue.Id);
+        // HIGHLANDER: Find location by venue reference, not Id comparison
+        // Get primary/main location for this venue
+        Location venueLocation = _gameWorld.Locations.FirstOrDefault(x => x.Venue == venue);
         if (venueLocation == null || string.IsNullOrEmpty(venueLocation.Description))
         {
             return GenerateDefaultLocationDescription(venue, currentTime);
