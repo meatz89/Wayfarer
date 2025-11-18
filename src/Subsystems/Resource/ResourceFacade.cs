@@ -349,16 +349,12 @@ public class ResourceFacade
     /// Consume an item and clear states based on item type
     /// TODO: Requires Item entity to have ItemType property (Medical, Food, Remedy, Provisions)
     /// </summary>
-    public bool ConsumeItem(string itemId)
+    public bool ConsumeItem(Item item)
     {
         Player player = _gameWorld.GetPlayer();
 
         // TODO: Verify item exists in inventory
-        // if (!player.Inventory.HasItem(itemId)) return false;
-
-        // TODO: Get item from GameWorld.Items
-        // Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
-        // if (item == null) return false;
+        // if (!player.Inventory.Contains(item)) return false;
 
         // TODO: Determine ItemType from item
         // This requires Item entity to have ItemType property
@@ -368,7 +364,7 @@ public class ResourceFacade
         // - etc.
 
         // TODO: Remove item from inventory
-        // player.Inventory.RemoveItem(itemId);
+        // player.Inventory.Remove(item);
 
         // TODO: Get projection of states to clear
         // ItemType itemType = DetermineItemType(item);
@@ -437,23 +433,40 @@ public class ResourceFacade
         };
     }
 
-    public bool HasItem(string itemId)
+    /// <summary>
+    /// Check if player has specific item
+    /// HIGHLANDER: Accept Item object, not string ID
+    /// </summary>
+    public bool HasItem(Item item)
     {
-        return _gameWorld.GetPlayer().Inventory.HasItem(itemId);
+        return _gameWorld.GetPlayer().Inventory.Contains(item);
     }
 
-    public int GetItemCount(string itemId)
+    /// <summary>
+    /// Get count of specific item in inventory
+    /// HIGHLANDER: Accept Item object, not string ID
+    /// </summary>
+    public int GetItemCount(Item item)
     {
-        return _gameWorld.GetPlayer().Inventory.GetItemCount(itemId);
+        return _gameWorld.GetPlayer().Inventory.Count(item);
     }
 
-    public bool AddItem(string itemId)
+    /// <summary>
+    /// Add item to player inventory
+    /// HIGHLANDER: Accept Item object, not string ID
+    /// </summary>
+    public bool AddItem(Item item)
     {
-        return _gameWorld.GetPlayer().Inventory.AddItem(itemId);
+        _gameWorld.GetPlayer().Inventory.Add(item);
+        return true;
     }
 
-    public bool RemoveItem(string itemId)
+    /// <summary>
+    /// Remove item from player inventory
+    /// HIGHLANDER: Accept Item object, not string ID
+    /// </summary>
+    public bool RemoveItem(Item item)
     {
-        return _gameWorld.GetPlayer().Inventory.RemoveItem(itemId);
+        return _gameWorld.GetPlayer().Inventory.Remove(item);
     }
 }
