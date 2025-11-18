@@ -126,9 +126,10 @@ public class SceneFacade
 
         // Find active Scenes with this NPC
         // HIERARCHICAL PLACEMENT: Check CurrentSituation.Npc (situation owns placement)
+        // HIGHLANDER: Compare NPC objects directly, not .ID
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.CurrentSituation?.Npc?.ID == npc.ID)
+                       s.CurrentSituation?.Npc == npc)
             .ToList();
 
         List<NPCAction> allActions = new List<NPCAction>();
