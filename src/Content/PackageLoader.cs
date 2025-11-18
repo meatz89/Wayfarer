@@ -295,7 +295,8 @@ public class PackageLoader
             throw new InvalidOperationException("StartingSpotId is required in starting conditions - player has no spawn location!");
 
         // Validate starting location exists in parsed locations
-        Location startingLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == conditions.StartingSpotId);
+        // HIGHLANDER: Use GetLocation query method instead of LINQ with Id comparison
+        Location startingLocation = _gameWorld.GetLocation(conditions.StartingSpotId);
         if (startingLocation == null)
             throw new InvalidOperationException($"StartingSpotId '{conditions.StartingSpotId}' not found in parsed locations - player cannot spawn!");
 
