@@ -79,19 +79,23 @@ public class MarketStateTracker
 
     /// <summary>
     /// Get supply level for an item at a location
+    /// HIGHLANDER: Accept typed objects, extract names for internal storage
     /// </summary>
-    public float GetSupplyLevel(string itemId, string venueId)
+    public float GetSupplyLevel(Item item, Location location)
     {
-        MarketMetrics metrics = GetOrCreateMetrics(venueId, itemId);
+        // Extract names for internal storage keying (infrastructure boundary)
+        MarketMetrics metrics = GetOrCreateMetrics(location.Name, item.Name);
         return metrics.SupplyLevel;
     }
 
     /// <summary>
     /// Get demand level for an item at a location
+    /// HIGHLANDER: Accept typed objects, extract names for internal storage
     /// </summary>
-    public float GetDemandLevel(string itemId, string venueId)
+    public float GetDemandLevel(Item item, Location location)
     {
-        MarketMetrics metrics = GetOrCreateMetrics(venueId, itemId);
+        // Extract names for internal storage keying (infrastructure boundary)
+        MarketMetrics metrics = GetOrCreateMetrics(location.Name, item.Name);
         return metrics.DemandLevel;
     }
 

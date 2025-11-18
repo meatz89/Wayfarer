@@ -138,7 +138,7 @@ public class PriceManager
     /// </summary>
     private float CalculateSupplyModifier(Item item, Location location)
     {
-        float supplyLevel = _marketStateTracker.GetSupplyLevel(item.Name, location.Name);
+        float supplyLevel = _marketStateTracker.GetSupplyLevel(item, location);
 
         // Low supply = higher prices, high supply = lower prices
         // Supply 0.5 = 1.3x price, Supply 1.0 = 1.0x price, Supply 2.0 = 0.7x price
@@ -158,7 +158,7 @@ public class PriceManager
     /// </summary>
     private float CalculateDemandModifier(Item item, Location location)
     {
-        float demandLevel = _marketStateTracker.GetDemandLevel(item.Name, location.Name);
+        float demandLevel = _marketStateTracker.GetDemandLevel(item, location);
 
         // High demand = higher prices, low demand = lower prices
         // Demand 0.5 = 0.85x price, Demand 1.0 = 1.0x price, Demand 2.0 = 1.2x price
@@ -405,7 +405,7 @@ public class PriceManager
                     i.Categories.Contains(ItemCategory.Luxury_Items)))
                 {
                     // Increase demand during festival
-                    float currentDemand = _marketStateTracker.GetDemandLevel(item.Name, location.Name);
+                    float currentDemand = _marketStateTracker.GetDemandLevel(item, location);
                     // Note: Would need to add SetDemandLevel method to MarketStateTracker
                 }
                 break;
