@@ -31,10 +31,12 @@ public class TokenMechanicsManager
     }
 
     // Get tokens with specific NPC - returns a new dictionary for compatibility
-    public Dictionary<ConnectionType, int> GetTokensWithNPC(string npcId)
+    // HIGHLANDER: Accepts NPC object, not string ID
+    public Dictionary<ConnectionType, int> GetTokensWithNPC(NPC npc)
     {
         List<NPCTokenEntry> npcTokens = _gameWorld.GetPlayer().NPCTokens;
-        NPCTokenEntry tokenEntry = npcTokens.FirstOrDefault(nt => nt.NpcId == npcId);
+        // HIGHLANDER: Compare NPC objects directly
+        NPCTokenEntry tokenEntry = npcTokens.FirstOrDefault(nt => nt.Npc == npc);
 
         if (tokenEntry != null)
         {
@@ -157,20 +159,22 @@ public class TokenMechanicsManager
     }
 
     // Get tokens of a specific type with a specific NPC
-    public int GetTokenCount(ConnectionType type, string npcId)
+    // HIGHLANDER: Accepts NPC object, not string ID
+    public int GetTokenCount(ConnectionType type, NPC npc)
     {
-        Dictionary<ConnectionType, int> tokensWithNPC = GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> tokensWithNPC = GetTokensWithNPC(npc);
         return tokensWithNPC.GetValueOrDefault(type, 0);
     }
 
     /// <summary>
     /// Leverage Mechanic: Negative tokens represent leverage the NPC has over the player
+    /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public int GetLeverage(string npcId, ConnectionType type)
+    public int GetLeverage(NPC npc, ConnectionType type)
     {
-        if (string.IsNullOrEmpty(npcId)) return 0;
+        if (npc == null) return 0;
 
-        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npc);
         int tokenCount = tokens.GetValueOrDefault(type, 0);
 
         // Return absolute value if negative, 0 otherwise
@@ -270,10 +274,11 @@ public class TokenMechanicsManager
     }
 
     // Spend tokens from a specific NPC
-    public bool SpendTokens(ConnectionType type, int amount, string npcId)
+    // HIGHLANDER: Accepts NPC object, not string ID
+    public bool SpendTokens(ConnectionType type, int amount, NPC npc)
     {
         if (amount <= 0) return true;
-        if (string.IsNullOrEmpty(npcId))
+        if (npc == null)
         {
             _messageSystem.AddSystemMessage(
                 "ERROR: Cannot spend tokens without specifying NPC. Tokens are relational.",
@@ -283,25 +288,22 @@ public class TokenMechanicsManager
         }
 
         Player player = _gameWorld.GetPlayer();
-        Dictionary<ConnectionType, int> npcTokens = GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> npcTokens = GetTokensWithNPC(npc);
         int tokensOfType = npcTokens.GetValueOrDefault(type, 0);
 
         if (tokensOfType < amount)
             return false;
 
         // Get or create NPC token entry and deduct tokens
-        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npcId);
+        // HIGHLANDER: Pass NPC object directly
+        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npc);
         npcEntry.SetTokenCount(type, tokensOfType - amount);
 
         // Add narrative feedback
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc != null)
-        {
-            _messageSystem.AddSystemMessage(
-                $"Spent {amount} {type} token{(amount > 1 ? "s" : "")} with {npc.Name}",
-                SystemMessageTypes.Info
-            );
-        }
+        _messageSystem.AddSystemMessage(
+            $"Spent {amount} {type} token{(amount > 1 ? "s" : "")} with {npc.Name}",
+            SystemMessageTypes.Info
+        );
 
         return true;
     }
