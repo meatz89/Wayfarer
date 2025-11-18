@@ -1,9 +1,13 @@
+/// <summary>
+/// Request to spawn a scene from a template
+/// HIGHLANDER: Object references only, no string IDs
+/// </summary>
 public class SpawnRequest
 {
     public SceneTemplate Template { get; set; }
-    public string LocationId { get; set; }
-    public string NpcId { get; set; }
-    public string PlayerId { get; set; }
+    public Location Location { get; set; }
+    public NPC Npc { get; set; }
+    public Player Player { get; set; }
 }
 
 public class SpawnResult
@@ -25,9 +29,13 @@ public class SpawnResult
     }
 }
 
+/// <summary>
+/// Query interface for game state existence checks
+/// HIGHLANDER: Object references only, no string ID lookups
+/// </summary>
 public interface IGameStateQuery
 {
-    bool HasScene(string templateId);
-    bool HasLocation(string locationId);
-    bool HasNPC(string npcId);
+    bool HasScene(string templateId);  // Template IDs allowed (immutable archetypes)
+    bool HasLocation(Location location);
+    bool HasNPC(NPC npc);
 }
