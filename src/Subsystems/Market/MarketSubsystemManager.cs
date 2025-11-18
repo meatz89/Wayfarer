@@ -67,11 +67,11 @@ public class MarketSubsystemManager
 
     /// <summary>
     /// Market summary for a location
+    /// HIGHLANDER: Object references only
     /// </summary>
     public class MarketSummary
     {
-        public string LocationId { get; set; }
-        public string LocationName { get; set; }
+        public Location Location { get; set; }
         public bool IsOpen { get; set; }
         public List<string> AvailableTraders { get; set; } = new List<string>();
         public int TotalItemsAvailable { get; set; }
@@ -85,10 +85,10 @@ public class MarketSubsystemManager
 
     /// <summary>
     /// Check if market is available at a Location at a specific time
+    /// HIGHLANDER: Accept Location object
     /// </summary>
-    public bool IsMarketAvailable(string locationId, TimeBlocks timeBlock)
+    public bool IsMarketAvailable(Location location, TimeBlocks timeBlock)
     {
-        Location location = _gameWorld.GetLocation(locationId);
         if (location == null) return false;
         List<NPC> traders = GetTradersAtTime(location, timeBlock);
         return traders.Count > 0;
@@ -96,10 +96,10 @@ public class MarketSubsystemManager
 
     /// <summary>
     /// Get market availability status message
+    /// HIGHLANDER: Accept Location object
     /// </summary>
-    public string GetMarketAvailabilityStatus(string locationId, TimeBlocks currentTime)
+    public string GetMarketAvailabilityStatus(Location location, TimeBlocks currentTime)
     {
-        Location location = _gameWorld.GetLocation(locationId);
         if (location == null) return "Location not found";
 
         List<NPC> currentTraders = GetTradersAtTime(location, currentTime);
@@ -136,10 +136,10 @@ public class MarketSubsystemManager
 
     /// <summary>
     /// Get traders available at current time
+    /// HIGHLANDER: Accept Location object
     /// </summary>
-    public List<NPC> GetAvailableTraders(string locationId, TimeBlocks timeBlock)
+    public List<NPC> GetAvailableTraders(Location location, TimeBlocks timeBlock)
     {
-        Location location = _gameWorld.GetLocation(locationId);
         if (location == null) return new List<NPC>();
         return GetTradersAtTime(location, timeBlock);
     }
