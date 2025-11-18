@@ -21,21 +21,23 @@ public class CubeFacade
 
     /// <summary>
     /// Get InvestigationCubes for a location (0-10 scale)
+    /// HIGHLANDER: Accept Location object, not string ID
     /// </summary>
-    public int GetLocationCubes(string locationId)
+    public int GetLocationCubes(Location location)
     {
-        return _gameWorld.GetLocationCubes(locationId);
+        return _gameWorld.GetLocationCubes(location);
     }
 
     /// <summary>
     /// Grant InvestigationCubes to a location (max 10)
     /// Reduces Mental Exposure at this location only
+    /// HIGHLANDER: Accept Location object, not string ID
     /// </summary>
-    public void GrantLocationCubes(string locationId, int amount)
+    public void GrantLocationCubes(Location location, int amount)
     {
-        int before = _gameWorld.GetLocationCubes(locationId);
-        _gameWorld.GrantLocationCubes(locationId, amount);
-        int after = _gameWorld.GetLocationCubes(locationId);
+        int before = _gameWorld.GetLocationCubes(location);
+        _gameWorld.GrantLocationCubes(location, amount);
+        int after = _gameWorld.GetLocationCubes(location);
 
         int actualGranted = after - before;
         if (actualGranted > 0)
@@ -45,10 +47,11 @@ public class CubeFacade
     /// <summary>
     /// Calculate Mental Exposure reduction based on InvestigationCubes
     /// Each cube reduces exposure by 1 point
+    /// HIGHLANDER: Accept Location object, not string ID
     /// </summary>
-    public int GetLocationExposureReduction(string locationId)
+    public int GetLocationExposureReduction(Location location)
     {
-        return _gameWorld.GetLocationCubes(locationId);
+        return _gameWorld.GetLocationCubes(location);
     }
 
     // ============================================

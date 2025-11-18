@@ -684,12 +684,12 @@ public class GameWorld
 
     /// <summary>
     /// Get InvestigationCubes for a location (0-10 scale)
+    /// HIGHLANDER: Accept Location object, not string name
     /// </summary>
-    public int GetLocationCubes(string locationName)
+    public int GetLocationCubes(Location location)
     {
-        Location location = GetLocation(locationName);
         if (location == null)
-            throw new InvalidOperationException($"Location not found: {locationName}");
+            throw new ArgumentNullException(nameof(location));
 
         return location.InvestigationCubes;
     }
@@ -718,14 +718,14 @@ public class GameWorld
 
     /// <summary>
     /// Grant InvestigationCubes to a location (max 10)
+    /// HIGHLANDER: Accept Location object, not string name
     /// </summary>
-    public void GrantLocationCubes(string locationName, int amount)
+    public void GrantLocationCubes(Location location, int amount)
     {
-        Location location = GetLocation(locationName);
-        if (location != null)
-        {
-            location.InvestigationCubes = Math.Min(10, location.InvestigationCubes + amount);
-        }
+        if (location == null)
+            throw new ArgumentNullException(nameof(location));
+
+        location.InvestigationCubes = Math.Min(10, location.InvestigationCubes + amount);
     }
 
     /// <summary>
