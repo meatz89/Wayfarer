@@ -22,21 +22,22 @@ public static class NPCStateOperations
 
     /// <summary>
     /// Moves an NPC to a new location.
+    /// HIGHLANDER: Accept Location object, not string ID
     /// </summary>
-    public static NPCOperationResult MoveToLocation(NPCState state, string LocationId)
+    public static NPCOperationResult MoveToLocation(NPCState state, Location newLocation)
     {
         if (state == null)
             return NPCOperationResult.Failure("NPC state cannot be null");
 
-        if (string.IsNullOrWhiteSpace(LocationId))
-            return NPCOperationResult.Failure("Location ID cannot be empty");
+        if (newLocation == null)
+            return NPCOperationResult.Failure("Location cannot be null");
 
-        if (state.LocationId == LocationId)
+        if (state.Location == newLocation)
             return NPCOperationResult.Success(state, "NPC already at this location");
 
-        NPCState newState = state.WithLocation(LocationId);
+        NPCState newState = state.WithLocation(newLocation);
         return NPCOperationResult.Success(newState,
-            $"Moved {state.Name} to location {LocationId}");
+            $"Moved {state.Name} to location {newLocation.Name}");
     }
     /// <summary>
     /// Validates if an NPC is available at a specific time.
