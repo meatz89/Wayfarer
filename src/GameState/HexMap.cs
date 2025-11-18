@@ -155,19 +155,21 @@ public class HexMap
     /// <summary>
     /// Get hex occupied by specific location
     /// Returns null if location has no hex position
+    /// HIGHLANDER: Accept Location object, compare objects
     /// </summary>
-    public Hex GetHexForLocation(string locationId)
+    public Hex GetHexForLocation(Location location)
     {
-        return Hexes.FirstOrDefault(h => h.LocationId == locationId);
+        return Hexes.FirstOrDefault(h => h.Location == location);
     }
 
     /// <summary>
     /// Get all hexes with locations (occupied hexes)
     /// Excludes wilderness hexes
+    /// HIGHLANDER: Check Location object, not LocationId string
     /// </summary>
     public List<Hex> GetOccupiedHexes()
     {
-        return Hexes.Where(h => h.LocationId != null).ToList();
+        return Hexes.Where(h => h.Location != null).ToList();
     }
 
     /// <summary>
