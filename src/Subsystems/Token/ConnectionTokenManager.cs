@@ -26,7 +26,7 @@ public class ConnectionTokenManager
     /// Get all tokens with a specific NPC
     /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public List<TokenCount> GetTokensWithNPC(NPC npc)
+    public Dictionary<ConnectionType, int> GetTokensWithNPC(NPC npc)
     {
         Player player = _gameWorld.GetPlayer();
         List<NPCTokenEntry> npcTokens = player.NPCTokens;
@@ -35,21 +35,24 @@ public class ConnectionTokenManager
         NPCTokenEntry entry = npcTokens.FirstOrDefault(x => x.Npc == npc);
         if (entry != null)
         {
-            // Build list from properties
-            return new List<TokenCount>
+            // Build dictionary from properties
+            return new Dictionary<ConnectionType, int>
             {
-                new TokenCount { Type = ConnectionType.Trust, Count = entry.Trust },
-                new TokenCount { Type = ConnectionType.Diplomacy, Count = entry.Diplomacy },
-                new TokenCount { Type = ConnectionType.Status, Count = entry.Status },
-                new TokenCount { Type = ConnectionType.Shadow, Count = entry.Shadow }
+                { ConnectionType.Trust, entry.Trust },
+                { ConnectionType.Diplomacy, entry.Diplomacy },
+                { ConnectionType.Status, entry.Status },
+                { ConnectionType.Shadow, entry.Shadow }
             };
         }
 
-        // Return empty list if no tokens with this NPC
-        List<TokenCount> emptyTokens = new List<TokenCount>();
+        // Return empty dictionary if no tokens with this NPC
+        Dictionary<ConnectionType, int> emptyTokens = new Dictionary<ConnectionType, int>();
         foreach (ConnectionType tokenType in Enum.GetValues<ConnectionType>())
         {
-            emptyTokens.Add(new TokenCount { Type = tokenType, Count = 0 });
+            if (tokenType != ConnectionType.None)
+            {
+                emptyTokens.Add(tokenType, 0);
+            }
         }
         return emptyTokens;
     }
@@ -60,9 +63,8 @@ public class ConnectionTokenManager
     /// </summary>
     public int GetTokenCount(NPC npc, ConnectionType type)
     {
-        List<TokenCount> tokens = GetTokensWithNPC(npc);
-        TokenCount token = tokens.FirstOrDefault(t => t.Type == type);
-        return token?.Count ?? 0;
+        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npc);
+        return tokens.TryGetValue(type, out int count) ? count : 0;
     }
 
     /// <summary>
@@ -165,7 +167,8 @@ public class ConnectionTokenManager
             remaining -= toSpend;
 
             // Add narrative feedback for each NPC
-            NPC npc = _npcRepository.GetById(npcEntry.NpcId);
+            // HIGHLANDER: Use NPC object directly from entry
+            NPC npc = npcEntry.Npc;
             if (npc != null && toSpend > 0)
             {
                 _messageSystem.AddSystemMessage(
@@ -180,14 +183,14 @@ public class ConnectionTokenManager
 
     /// <summary>
     /// Get leverage an NPC has over the player (negative tokens)
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public int GetLeverage(string npcId, ConnectionType type)
+    public int GetLeverage(NPC npc, ConnectionType type)
     {
-        if (string.IsNullOrEmpty(npcId)) return 0;
+        if (npc == null) return 0;
 
-        List<TokenCount> tokens = GetTokensWithNPC(npcId);
-        TokenCount token = tokens.FirstOrDefault(t => t.Type == type);
-        int tokenCount = token?.Count ?? 0;
+        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npc);
+        int tokenCount = tokens.TryGetValue(type, out int count) ? count : 0;
 
         // Return absolute value if negative, 0 otherwise
         return tokenCount < 0 ? Math.Abs(tokenCount) : 0;
@@ -195,36 +198,24 @@ public class ConnectionTokenManager
 
     /// <summary>
     /// Get all NPCs with whom the player has tokens (positive or negative)
+    /// HIGHLANDER: Return List of NPC objects, not string IDs
     /// </summary>
-    public List<string> GetNPCsWithTokens()
+    public List<NPC> GetNPCsWithTokens()
     {
         Player player = _gameWorld.GetPlayer();
-        List<string> npcsWithTokens = new List<string>();
+        List<NPC> npcsWithTokens = new List<NPC>();
 
         foreach (NPCTokenEntry entry in player.NPCTokens)
         {
             // Check if NPC has any non-zero tokens
             if (entry.Trust != 0 || entry.Diplomacy != 0 || entry.Status != 0 || entry.Shadow != 0)
             {
-                npcsWithTokens.Add(entry.NpcId);
+                // HIGHLANDER: Add NPC object directly
+                npcsWithTokens.Add(entry.Npc);
             }
         }
 
         return npcsWithTokens;
-    }
-
-    /// <summary>
-    /// Ensure NPC token tracking is initialized
-    /// </summary>
-    private void EnsureNPCTokensInitialized(string npcId)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        if (!player.NPCTokens.Any(t => t.NpcId == npcId))
-        {
-            // The GetNPCTokenEntry method will create a new entry if needed
-            player.GetNPCTokenEntry(npcId);
-        }
     }
 }
 

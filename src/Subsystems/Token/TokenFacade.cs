@@ -163,23 +163,25 @@ public class TokenFacade
 
     /// <summary>
     /// Get leverage an NPC has over the player (negative tokens)
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public int GetLeverage(string npcId, ConnectionType type)
+    public int GetLeverage(NPC npc, ConnectionType type)
     {
-        return _connectionTokenManager.GetLeverage(npcId, type);
+        return _connectionTokenManager.GetLeverage(npc, type);
     }
 
     /// <summary>
     /// Get total leverage an NPC has across all token types
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public int GetTotalLeverage(string npcId)
+    public int GetTotalLeverage(NPC npc)
     {
         int totalLeverage = 0;
         foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
         {
             if (type != ConnectionType.None)
             {
-                totalLeverage += GetLeverage(npcId, type);
+                totalLeverage += GetLeverage(npc, type);
             }
         }
         return totalLeverage;
@@ -254,26 +256,29 @@ public class TokenFacade
 
     /// <summary>
     /// Get all available unlocks for an NPC based on current tokens
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public List<TokenUnlock> GetAvailableUnlocks(string npcId)
+    public List<TokenUnlock> GetAvailableUnlocks(NPC npc)
     {
-        return _tokenUnlockManager.GetAvailableUnlocks(npcId);
+        return _tokenUnlockManager.GetAvailableUnlocks(npc);
     }
 
     /// <summary>
     /// Check if a specific unlock is available
+    /// HIGHLANDER: Accept typed NPC object (unlockId is categorical, not entity ID)
     /// </summary>
-    public bool IsUnlockAvailable(string npcId, string unlockId)
+    public bool IsUnlockAvailable(NPC npc, string unlockId)
     {
-        return _tokenUnlockManager.IsUnlockAvailable(npcId, unlockId);
+        return _tokenUnlockManager.IsUnlockAvailable(npc, unlockId);
     }
 
     /// <summary>
     /// Get unlock requirements for an NPC
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public Dictionary<string, TokenRequirement> GetUnlockRequirements(string npcId)
+    public Dictionary<string, TokenRequirement> GetUnlockRequirements(NPC npc)
     {
-        return _tokenUnlockManager.GetUnlockRequirements(npcId);
+        return _tokenUnlockManager.GetUnlockRequirements(npc);
     }
 
     // ========== DEBT OPERATIONS ==========
@@ -296,15 +301,16 @@ public class TokenFacade
 
     /// <summary>
     /// Get debt to a specific NPC
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public Dictionary<ConnectionType, int> GetDebtToNPC(string npcId)
+    public Dictionary<ConnectionType, int> GetDebtToNPC(NPC npc)
     {
         Dictionary<ConnectionType, int> debt = new Dictionary<ConnectionType, int>();
         foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
         {
             if (type != ConnectionType.None)
             {
-                int leverage = GetLeverage(npcId, type);
+                int leverage = GetLeverage(npc, type);
                 if (leverage > 0)
                 {
                     debt[type] = leverage;
@@ -318,8 +324,9 @@ public class TokenFacade
 
     /// <summary>
     /// Get all NPCs with whom the player has tokens
+    /// HIGHLANDER: Return List of NPC objects, not string IDs
     /// </summary>
-    public List<string> GetNPCsWithTokens()
+    public List<NPC> GetNPCsWithTokens()
     {
         return _connectionTokenManager.GetNPCsWithTokens();
     }
@@ -357,8 +364,10 @@ public class TokenSummary
 
 public class DebtInfo
 {
-    public string NPCId { get; set; }
-    public string NPCName { get; set; }
+    /// <summary>
+    /// HIGHLANDER: Store NPC object reference, not string ID
+    /// </summary>
+    public NPC Npc { get; set; }
     public List<TokenCount> Debts { get; set; }
     public int TotalDebt { get; set; }
 }
