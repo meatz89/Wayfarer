@@ -17,7 +17,8 @@ public class LocationPlayabilityValidator
         // 1. Hex position must exist
         if (!location.HexPosition.HasValue)
         {
-            errors.Add($"Location '{location.Id}' has no hex position - cannot be placed on world map");
+            // HIGHLANDER: Use Name instead of deleted Id
+            errors.Add($"Location '{location.Name}' has no hex position - cannot be placed on world map");
         }
         else
         {

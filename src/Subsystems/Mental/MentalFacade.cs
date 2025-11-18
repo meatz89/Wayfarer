@@ -429,11 +429,12 @@ public class MentalFacade
         Player player = _gameWorld.GetPlayer();
 
         // PROGRESSION SYSTEM: Award Location familiarity on success
+        // HIGHLANDER: Pass Location object to familiarity methods (not Location.Id)
         if (success && _gameWorld.CurrentMentalSession.Location != null)
         {
-            int currentFamiliarity = player.GetLocationFamiliarity(_gameWorld.CurrentMentalSession.Location.Id);
+            int currentFamiliarity = player.GetLocationFamiliarity(_gameWorld.CurrentMentalSession.Location);
             int newFamiliarity = Math.Min(3, currentFamiliarity + 1); // Max familiarity is 3
-            player.SetLocationFamiliarity(_gameWorld.CurrentMentalSession.Location.Id, newFamiliarity);
+            player.SetLocationFamiliarity(_gameWorld.CurrentMentalSession.Location, newFamiliarity);
         }
 
         // TACTICAL LAYER: Do NOT apply CompletionReward here

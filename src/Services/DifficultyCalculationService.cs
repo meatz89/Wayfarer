@@ -69,8 +69,9 @@ public class DifficultyCalculationService
             case ModifierType.Familiarity:
                 // Location understanding (0-3 per Location)
                 // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
+                // HIGHLANDER: Pass Location object to familiarity method (not Location.Id)
                 if (situation.Location == null) return false;
-                int familiarity = player.GetLocationFamiliarity(situation.Location.Id);
+                int familiarity = player.GetLocationFamiliarity(situation.Location);
                 return familiarity >= mod.Threshold;
 
             case ModifierType.ConnectionTokens:
