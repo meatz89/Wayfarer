@@ -208,12 +208,14 @@ public class DebugLogger
             List<NPC> availableNpcs = spotNpcs.Where(n => n.IsAvailable(currentTime)).ToList();
 
             report.Add($"  Total NPCs in game: {allNpcs.Count}");
-            report.Add($"  NPCs at location '{currentLocation.Id}': {spotNpcs.Count}");
+            // HIGHLANDER: Use Name for display, not .Id
+            report.Add($"  NPCs at location '{currentLocation.Name}': {spotNpcs.Count}");
             report.Add($"  Available at time '{currentTime}': {availableNpcs.Count}");
 
             foreach (NPC? npc in availableNpcs)
             {
-                report.Add($"    - {npc.ID}: {npc.Name} ({npc.Profession})");
+                // HIGHLANDER: Use Name for display, not .ID
+                report.Add($"    - {npc.Name} ({npc.Profession})");
             }
         }
         report.Add("");
