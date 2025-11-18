@@ -33,32 +33,29 @@ public class RelationshipTracker
 
     /// <summary>
     /// Update relationship state after token changes
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public void UpdateRelationshipState(string npcId)
+    public void UpdateRelationshipState(NPC npc)
     {
-        if (string.IsNullOrEmpty(npcId)) return;
+        if (npc == null) return;
 
         // Update last interaction time on NPC entity
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc != null)
-        {
-            npc.LastInteractionTime = DateTime.Now;
-        }
+        npc.LastInteractionTime = DateTime.Now;
 
         // Check if NPC has debt (negative tokens)
-        List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npcId);
-        bool hasDebt = tokens.Any(t => t.Count < 0);
+        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc);
+        bool hasDebt = tokens.Values.Any(count => count < 0);
 
         // Update NPC state if needed
-        UpdateNPCDisposition(npcId, hasDebt);
+        UpdateNPCDisposition(npc, hasDebt);
     }
 
     /// <summary>
     /// Check and announce relationship milestones
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public void CheckRelationshipMilestone(string npcId, int totalTokens)
+    public void CheckRelationshipMilestone(NPC npc, int totalTokens)
     {
-        NPC npc = _npcRepository.GetById(npcId);
         if (npc == null) return;
 
         MilestoneMessage milestone = _relationshipMilestones
@@ -84,43 +81,42 @@ public class RelationshipTracker
 
     /// <summary>
     /// Record a debt to an NPC
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public void RecordDebt(string npcId, ConnectionType type, int amount)
+    public void RecordDebt(NPC npc, ConnectionType type, int amount)
     {
-        if (amount <= 0) return;
+        if (amount <= 0 || npc == null) return;
 
         // Debts are tracked as negative tokens - no separate storage needed
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc != null)
-        {
-            _messageSystem.AddSystemMessage(
-                $"You now owe {npc.Name} {amount} {type} favor{(amount > 1 ? "s" : "")}.",
-                SystemMessageTypes.Warning
-            );
-        }
+        _messageSystem.AddSystemMessage(
+            $"You now owe {npc.Name} {amount} {type} favor{(amount > 1 ? "s" : "")}.",
+            SystemMessageTypes.Warning
+        );
     }
 
     /// <summary>
     /// Get the primary connection type with an NPC (highest positive token count)
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public ConnectionType GetPrimaryConnection(string npcId)
+    public ConnectionType GetPrimaryConnection(NPC npc)
     {
-        List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc);
 
-        TokenCount highest = tokens
-            .Where(t => t.Type != ConnectionType.None && t.Count > 0)
-            .OrderByDescending(t => t.Count)
+        KeyValuePair<ConnectionType, int> highest = tokens
+            .Where(kvp => kvp.Key != ConnectionType.None && kvp.Value > 0)
+            .OrderByDescending(kvp => kvp.Value)
             .FirstOrDefault();
 
-        return highest?.Type ?? ConnectionType.None;
+        return highest.Key != ConnectionType.None ? highest.Key : ConnectionType.None;
     }
 
     /// <summary>
     /// Get relationship tier based on total tokens
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public RelationshipTier GetRelationshipTier(string npcId)
+    public RelationshipTier GetRelationshipTier(NPC npc)
     {
-        int totalTokens = GetTotalPositiveTokens(npcId);
+        int totalTokens = GetTotalPositiveTokens(npc);
 
         if (totalTokens >= 13) return RelationshipTier.InnerCircle;
         if (totalTokens >= 9) return RelationshipTier.Confidant;
@@ -132,28 +128,25 @@ public class RelationshipTracker
 
     /// <summary>
     /// Get all NPCs the player owes tokens to
+    /// HIGHLANDER: GetNPCsWithTokens now returns List<NPC>
     /// </summary>
     public List<DebtInfo> GetAllDebts()
     {
         List<DebtInfo> debts = new List<DebtInfo>();
 
-        foreach (string npcId in _tokenManager.GetNPCsWithTokens())
+        foreach (NPC npc in _tokenManager.GetNPCsWithTokens())
         {
-            List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npcId);
+            Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc);
             List<TokenCount> negativeTokens = tokens
-                .Where(t => t.Count < 0)
-                .Select(t => new TokenCount { Type = t.Type, Count = Math.Abs(t.Count) })
+                .Where(kvp => kvp.Value < 0)
+                .Select(kvp => new TokenCount { Type = kvp.Key, Count = Math.Abs(kvp.Value) })
                 .ToList();
 
             if (negativeTokens.Count == 0) continue;
 
-            NPC npc = _npcRepository.GetById(npcId);
-            if (npc == null) continue;
-
             DebtInfo debtInfo = new DebtInfo
             {
-                NPCId = npcId,
-                NPCName = npc.Name,
+                Npc = npc,
                 Debts = negativeTokens,
                 TotalDebt = negativeTokens.Sum(t => t.Count)
             };
@@ -166,13 +159,14 @@ public class RelationshipTracker
 
     /// <summary>
     /// Check if player has any debts
+    /// HIGHLANDER: GetNPCsWithTokens now returns List<NPC>
     /// </summary>
     public bool HasAnyDebt()
     {
-        foreach (string npcId in _tokenManager.GetNPCsWithTokens())
+        foreach (NPC npc in _tokenManager.GetNPCsWithTokens())
         {
-            List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npcId);
-            if (tokens.Any(t => t.Count < 0))
+            Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc);
+            if (tokens.Values.Any(count => count < 0))
             {
                 return true;
             }
@@ -182,24 +176,26 @@ public class RelationshipTracker
 
     /// <summary>
     /// Get relationship summary for an NPC
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public RelationshipSummary GetRelationshipSummary(string npcId)
+    public RelationshipSummary GetRelationshipSummary(NPC npc)
     {
-        NPC npc = _npcRepository.GetById(npcId);
         if (npc == null) return null;
 
-        List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npcId);
-        bool hasDebt = tokens.Any(t => t.Count < 0);
-        int totalDebt = tokens.Where(t => t.Count < 0).Sum(t => Math.Abs(t.Count));
+        Dictionary<ConnectionType, int> tokenDict = _tokenManager.GetTokensWithNPC(npc);
+        List<TokenCount> tokens = tokenDict
+            .Select(kvp => new TokenCount { Type = kvp.Key, Count = kvp.Value })
+            .ToList();
+        bool hasDebt = tokenDict.Values.Any(count => count < 0);
+        int totalDebt = tokenDict.Values.Where(count => count < 0).Sum(count => Math.Abs(count));
 
         return new RelationshipSummary
         {
-            NPCId = npcId,
-            NPCName = npc.Name,
+            Npc = npc,
             Tokens = tokens,
-            PrimaryConnection = GetPrimaryConnection(npcId),
-            RelationshipTier = GetRelationshipTier(npcId),
-            TotalPositiveTokens = GetTotalPositiveTokens(npcId),
+            PrimaryConnection = GetPrimaryConnection(npc),
+            RelationshipTier = GetRelationshipTier(npc),
+            TotalPositiveTokens = GetTotalPositiveTokens(npc),
             HasDebt = hasDebt,
             TotalDebt = totalDebt,
             LastInteraction = npc.LastInteractionTime
@@ -208,16 +204,14 @@ public class RelationshipTracker
 
     /// <summary>
     /// Process relationship decay over time
+    /// HIGHLANDER: GetNPCsWithTokens now returns List<NPC>
     /// </summary>
     public void ProcessRelationshipDecay()
     {
         DateTime now = DateTime.Now;
 
-        foreach (string npcId in _tokenManager.GetNPCsWithTokens())
+        foreach (NPC npc in _tokenManager.GetNPCsWithTokens())
         {
-            NPC npc = _npcRepository.GetById(npcId);
-            if (npc == null) continue;
-
             DateTime lastInteraction = npc.LastInteractionTime;
             if (lastInteraction == DateTime.MinValue) continue;
 
@@ -226,19 +220,19 @@ public class RelationshipTracker
             // Only decay after a week of no interaction
             if (daysSinceInteraction < 7) continue;
 
-            List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npcId);
+            Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc);
             bool hadDecay = false;
 
-            foreach (TokenCount tokenCount in tokens)
+            foreach (KeyValuePair<ConnectionType, int> kvp in tokens)
             {
-                if (tokenCount.Type == ConnectionType.None) continue;
-                if (tokenCount.Count <= 0) continue;
+                if (kvp.Key == ConnectionType.None) continue;
+                if (kvp.Value <= 0) continue;
 
                 // Calculate decay based on time and token type
-                int decay = CalculateDecay(tokenCount.Type, tokenCount.Count, daysSinceInteraction);
+                int decay = CalculateDecay(kvp.Key, kvp.Value, daysSinceInteraction);
                 if (decay > 0)
                 {
-                    _tokenManager.RemoveTokensFromNPC(tokenCount.Type, decay, npc);
+                    _tokenManager.RemoveTokensFromNPC(kvp.Key, decay, npc);
                     hadDecay = true;
                 }
             }
@@ -255,7 +249,10 @@ public class RelationshipTracker
 
     // ========== PRIVATE HELPER METHODS ==========
 
-    private void UpdateNPCDisposition(string npcId, bool hasDebt)
+    /// <summary>
+    /// HIGHLANDER: Accept typed NPC object
+    /// </summary>
+    private void UpdateNPCDisposition(NPC npc, bool hasDebt)
     {
         // This would update NPC's disposition/attitude towards player
         // For now, we just track the state
@@ -267,10 +264,13 @@ public class RelationshipTracker
         }
     }
 
-    private int GetTotalPositiveTokens(string npcId)
+    /// <summary>
+    /// HIGHLANDER: Accept typed NPC object
+    /// </summary>
+    private int GetTotalPositiveTokens(NPC npc)
     {
-        List<TokenCount> tokens = _tokenManager.GetTokensWithNPC(npcId);
-        return tokens.Where(t => t.Count > 0).Sum(t => t.Count);
+        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc);
+        return tokens.Values.Where(count => count > 0).Sum();
     }
 
     private int CalculateDecay(ConnectionType type, int currentTokens, int daysSinceInteraction)
@@ -303,10 +303,12 @@ public class RelationshipTracker
 
 // ========== SUPPORTING TYPES ==========
 
+/// <summary>
+/// HIGHLANDER: Store NPC object reference, not string IDs
+/// </summary>
 public class RelationshipSummary
 {
-    public string NPCId { get; set; }
-    public string NPCName { get; set; }
+    public NPC Npc { get; set; }
     public List<TokenCount> Tokens { get; set; }
     public ConnectionType PrimaryConnection { get; set; }
     public RelationshipTier RelationshipTier { get; set; }
