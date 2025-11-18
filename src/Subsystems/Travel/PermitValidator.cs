@@ -36,18 +36,21 @@ public class PermitValidator
 
     /// <summary>
     /// Check if a Venue requires special access.
+    /// HIGHLANDER: Accept Venue object
     /// </summary>
-    public bool LocationRequiresSpecialAccess(string venueId)
+    public bool LocationRequiresSpecialAccess(Venue venue)
     {
-        // Certain locations always require permits
-        List<string> restrictedLocations = new List<string>
-    {
-        "noble_district",
-        "merchant_guild",
-        "royal_palace"
-    };
+        if (venue == null) return false;
 
-        return restrictedLocations.Contains(venueId);
+        // Certain locations always require permits (categorical check by name)
+        List<string> restrictedLocations = new List<string>
+        {
+            "noble_district",
+            "merchant_guild",
+            "royal_palace"
+        };
+
+        return restrictedLocations.Contains(venue.Name);
     }
 
     /// <summary>
