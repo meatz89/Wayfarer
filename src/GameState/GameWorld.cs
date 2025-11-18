@@ -696,24 +696,26 @@ public class GameWorld
 
     /// <summary>
     /// Get StoryCubes for an NPC (0-10 scale)
+    /// HIGHLANDER: Accept NPC object, not string name
     /// </summary>
-    public int GetNPCCubes(string npcName)
+    public int GetNPCCubes(NPC npc)
     {
-        NPC npc = NPCs.FirstOrDefault(n => n.Name == npcName);
         if (npc == null)
-            throw new InvalidOperationException($"NPC not found: {npcName}");
+            throw new ArgumentNullException(nameof(npc));
 
         return npc.StoryCubes;
     }
 
     /// <summary>
     /// Get ExplorationCubes for a route (0-10 scale)
+    /// HIGHLANDER: Accept RouteOption object, not string name
     /// </summary>
-    public int GetRouteCubes(string routeName)
+    public int GetRouteCubes(RouteOption route)
     {
-        // Routes are stored as RouteOption - need to find through venue system
-        // This method will be implemented when route storage is clarified
-        return 0;
+        if (route == null)
+            throw new ArgumentNullException(nameof(route));
+
+        return route.ExplorationCubes;
     }
 
     /// <summary>
@@ -730,23 +732,26 @@ public class GameWorld
 
     /// <summary>
     /// Grant StoryCubes to an NPC (max 10)
+    /// HIGHLANDER: Accept NPC object, not string name
     /// </summary>
-    public void GrantNPCCubes(string npcName, int amount)
+    public void GrantNPCCubes(NPC npc, int amount)
     {
-        NPC npc = NPCs.FirstOrDefault(n => n.Name == npcName);
-        if (npc != null)
-        {
-            npc.StoryCubes = Math.Min(10, npc.StoryCubes + amount);
-        }
+        if (npc == null)
+            throw new ArgumentNullException(nameof(npc));
+
+        npc.StoryCubes = Math.Min(10, npc.StoryCubes + amount);
     }
 
     /// <summary>
     /// Grant ExplorationCubes to a route (max 10)
+    /// HIGHLANDER: Accept RouteOption object, not string name
     /// </summary>
-    public void GrantRouteCubes(string routeName, int amount)
+    public void GrantRouteCubes(RouteOption route, int amount)
     {
-        // Routes are stored as RouteOption - need to find through venue system
-        // This method will be implemented when route storage is clarified
+        if (route == null)
+            throw new ArgumentNullException(nameof(route));
+
+        route.ExplorationCubes = Math.Min(10, route.ExplorationCubes + amount);
     }
 
     /// <summary>
