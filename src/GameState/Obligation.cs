@@ -140,9 +140,10 @@ public class ObligationIntroAction
     public string ActionText { get; set; }
 
     /// <summary>
-    /// Location where intro button appears (LocationId is globally unique)
+    /// Location where intro button appears
+    /// HIGHLANDER: Object reference only, no string ID
     /// </summary>
-    public string LocationId { get; set; }
+    public Location Location { get; set; }
 
     /// <summary>
     /// Narrative shown in modal when button clicked (quest acceptance text)
@@ -164,10 +165,11 @@ public class ObligationIntroAction
 public class ObligationPrerequisites
 {
     /// <summary>
-    /// Required location (LocationId is globally unique)
+    /// Required location
     /// Obligation becomes discoverable when player enters this location
+    /// HIGHLANDER: Object reference only, no string ID
     /// </summary>
-    public string LocationId { get; set; }
+    public Location Location { get; set; }
 }
 
 /// <summary>

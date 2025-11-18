@@ -96,14 +96,14 @@ public class ObligationActivity
         if (obligation.IntroAction == null)
             throw new InvalidOperationException($"Obligation '{obligation.Name}' has no intro action");
 
-        // Derive venue from location
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Name == obligation.IntroAction.LocationName);
+        // HIGHLANDER: Use object references directly
+        Location location = obligation.IntroAction.Location;
         if (location == null)
-            throw new InvalidOperationException($"Location '{obligation.IntroAction.LocationName}' not found for obligation intro action");
+            throw new InvalidOperationException($"Obligation '{obligation.Name}' IntroAction has no location");
 
-        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Name == location.VenueName);
+        Venue venue = location.Venue;
         if (venue == null)
-            throw new InvalidOperationException($"Venue '{location.VenueName}' not found for location '{location.Name}'");
+            throw new InvalidOperationException($"Location '{location.Name}' has no venue");
 
         // Create intro result for quest acceptance modal
         _pendingIntroResult = new ObligationIntroResult
@@ -366,14 +366,14 @@ public class ObligationActivity
                 SystemMessageTypes.Success);
         }
 
-        // Derive venue from location (LocationName is globally unique)
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Name == obligation.IntroAction.LocationName);
+        // HIGHLANDER: Use object references directly
+        Location location = obligation.IntroAction.Location;
         if (location == null)
-            throw new InvalidOperationException($"Location '{obligation.IntroAction.LocationName}' not found for obligation discovery");
+            throw new InvalidOperationException($"Obligation '{obligation.Name}' IntroAction has no location");
 
-        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Name == location.VenueName);
+        Venue venue = location.Venue;
         if (venue == null)
-            throw new InvalidOperationException($"Venue '{location.VenueName}' not found for location '{location.Name}'");
+            throw new InvalidOperationException($"Location '{location.Name}' has no venue");
 
         // Create discovery result for UI modal (narrative only)
         ObligationDiscoveryResult discoveryResult = new ObligationDiscoveryResult
