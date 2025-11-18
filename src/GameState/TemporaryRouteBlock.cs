@@ -1,9 +1,9 @@
 /// <summary>
 /// Tracks temporary route block with expiration
-/// HIGHLANDER: Uses RouteName (RouteOption.Name) as natural key, not Id
+/// HIGHLANDER: Stores RouteOption object reference, not string name
 /// </summary>
 public class TemporaryRouteBlock
 {
-    public string RouteName { get; set; }
+    public RouteOption Route { get; set; }
     public int UnblockDay { get; set; }
 }

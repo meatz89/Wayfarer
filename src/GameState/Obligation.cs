@@ -185,9 +185,10 @@ public class StatXPReward
 /// <summary>
 /// NPC reputation reward - strongly typed replacement for Dictionary<string, int>
 /// Used in obligation completion rewards
+/// HIGHLANDER: Stores NPC object, not string ID
 /// </summary>
 public class NPCReputationReward
 {
-    public string NpcId { get; set; }
+    public NPC Npc { get; set; }
     public int ReputationChange { get; set; }
 }
