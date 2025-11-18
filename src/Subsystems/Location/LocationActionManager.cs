@@ -21,6 +21,7 @@ public class LocationActionManager
 
     /// <summary>
     /// Get available actions for a Venue and location.
+    /// HIGHLANDER: Accept typed objects, pass typed objects
     /// </summary>
     public List<LocationActionViewModel> GetLocationActions(Venue venue, Location location)
     {
@@ -30,7 +31,7 @@ public class LocationActionManager
             throw new ArgumentNullException(nameof(location));
 
         // Get dynamic actions from GameWorld data
-        List<LocationActionViewModel> dynamicActions = GetDynamicLocationActions(venue.Id, location.Id);
+        List<LocationActionViewModel> dynamicActions = GetDynamicLocationActions(venue, location);
 
         // ActionGenerator DELETED - generated actions now come from SceneFacade at query time
         // Property-based actions (from LocationPropertyType) remain here as legacy system
@@ -41,15 +42,12 @@ public class LocationActionManager
 
     /// <summary>
     /// Get dynamic Venue actions from GameWorld data using property matching.
+    /// HIGHLANDER: Accept Venue and Location objects, compare objects directly
     /// </summary>
-    private List<LocationActionViewModel> GetDynamicLocationActions(string venueId, string LocationId)
+    private List<LocationActionViewModel> GetDynamicLocationActions(Venue venue, Location location)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-
-        Location location = _gameWorld.GetLocation(LocationId);
-        if (location == null)
-            throw new InvalidOperationException($"Location not found: {LocationId}");
 
         List<LocationAction> availableActions = _gameWorld.LocationActions
             .Where(action => action.MatchesLocation(location, currentTime) &&
@@ -63,7 +61,8 @@ public class LocationActionManager
         if (player.HasActiveDeliveryJob)
         {
             DeliveryJob activeJob = player.ActiveDeliveryJob;
-            if (activeJob != null && activeJob.DestinationLocation.Name == LocationId)
+            // HIGHLANDER: Compare Location objects directly
+            if (activeJob != null && activeJob.DestinationLocation == location)
             {
                 // Create dynamic ViewModel directly (no domain entity for dynamic actions)
                 actions.Add(new LocationActionViewModel
@@ -98,7 +97,7 @@ public class LocationActionManager
                 IsAvailable = isAvailable,
                 LockReason = lockReason,
                 EngagementType = action.EngagementType,
-                DestinationLocationId = action.DestinationLocation?.Name  // Object reference -> Name
+                DestinationLocationId = action.DestinationLocation?.Name  // Object reference -> Name for display only
             };
             actions.Add(viewModel);
         }

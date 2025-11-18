@@ -1,6 +1,7 @@
 /// <summary>
 /// Provides observation data for locations from GameWorld
 /// This is a pure data provider with no external file dependencies
+/// HIGHLANDER: Accept Location objects, compare objects
 /// </summary>
 public class ObservationSystem
 {
@@ -14,28 +15,29 @@ public class ObservationSystem
     }
 
     /// <summary>
-    /// Get observations for a specific Venue and location
+    /// Get observations for a specific location
+    /// HIGHLANDER: Accept Location object, compare objects directly
     /// </summary>
-    public List<Observation> GetObservationsForLocation(string venueId, string locationId)
+    public List<Observation> GetObservationsForLocation(Location location)
     {
         return _gameWorld.Observations
-            .Where(obs => obs.LocationId == locationId)
+            .Where(obs => obs.Location == location)
             .ToList();
     }
 
     /// <summary>
     /// Get all observations for a Venue (all Locations combined)
+    /// HIGHLANDER: Accept Venue object, compare objects
     /// </summary>
-    public List<Observation> GetAllObservationsForLocation(string venueId)
+    public List<Observation> GetAllObservationsForVenue(Venue venue)
     {
-        // ADR-007: Use Venue.Name and Name instead of deleted VenueId/Id
-        List<string> locationIds = _gameWorld.Locations
-            .Where(loc => loc.Venue.Name == venueId)
-            .Select(loc => loc.Name)
+        // Get all locations in venue
+        List<Location> venueLocations = _gameWorld.Locations
+            .Where(loc => loc.Venue == venue)
             .ToList();
 
         return _gameWorld.Observations
-            .Where(obs => locationIds.Contains(obs.LocationId))
+            .Where(obs => venueLocations.Contains(obs.Location))
             .ToList();
     }
 
