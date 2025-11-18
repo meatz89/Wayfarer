@@ -317,15 +317,16 @@ public class Scene
     /// Scene resumes if:
     /// - Scene is Active
     /// - CurrentSituation is set (scene has next situation waiting)
-    /// - Current situation's RequiredLocationId matches locationId
-    /// - Current situation's RequiredNpcId matches npcId (or both null)
+    /// - Current situation's Location matches location
+    /// - Current situation's Npc matches npc (or both null)
+    /// HIGHLANDER: Accept Location and NPC objects, compare objects directly
     /// </summary>
-    /// <param name="locationId">Location player is currently at</param>
-    /// <param name="npcId">NPC player is currently interacting with (null if none)</param>
+    /// <param name="location">Location player is currently at</param>
+    /// <param name="npc">NPC player is currently interacting with (null if none)</param>
     /// <returns>True if scene should resume at this context</returns>
-    public bool ShouldResumeAtContext(string locationId, string npcId)
+    public bool ShouldResumeAtContext(Location location, NPC npc)
     {
-        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' checking resumption at location '{locationId}', npc '{npcId}'");
+        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' checking resumption at location '{location?.Name}', npc '{npc?.Name}'");
 
         if (State != SceneState.Active)
         {
@@ -345,21 +346,21 @@ public class Scene
             return false;
         }
 
-        // Hierarchical placement: Situations have direct object references (not template IDs)
-        string requiredLocationId = CurrentSituation.Location?.Id;
-        string requiredNpcId = CurrentSituation.Npc?.ID;
+        // HIGHLANDER: Direct object comparison
+        Location requiredLocation = CurrentSituation.Location;
+        NPC requiredNpc = CurrentSituation.Npc;
 
-        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' requires location '{requiredLocationId}', npc '{requiredNpcId}' | Player at '{locationId}', '{npcId}'");
+        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' requires location '{requiredLocation?.Name}', npc '{requiredNpc?.Name}' | Player at '{location?.Name}', '{npc?.Name}'");
 
-        // Check location match
-        if (requiredLocationId != locationId)
+        // Check location match - object equality
+        if (requiredLocation != location)
         {
             Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - Location mismatch");
             return false;
         }
 
-        // Check NPC match (both null = match, both non-null = compare values)
-        if (requiredNpcId != npcId)
+        // Check NPC match - object equality (both null = match, both non-null = compare objects)
+        if (requiredNpc != npc)
         {
             Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - NPC mismatch");
             return false;
@@ -374,6 +375,7 @@ public class Scene
     /// Same context (location + NPC) = ContinueInScene (seamless cascade)
     /// Different context = ExitToWorld (player must navigate)
     /// PRIVATE: Called internally by AdvanceToNextSituation
+    /// HIGHLANDER: Compare Location and NPC objects directly
     /// </summary>
     /// <param name="previousSituation">Situation that was just completed</param>
     /// <param name="nextSituation">Situation about to become current</param>
@@ -383,21 +385,21 @@ public class Scene
         if (previousSituation?.Template == null || nextSituation?.Template == null)
             return SceneRoutingDecision.ExitToWorld;
 
-        // Hierarchical placement: Situations have direct object references (not template IDs)
-        string prevLocationId = previousSituation.Location?.Id;
-        string nextLocationId = nextSituation.Location?.Id;
+        // HIGHLANDER: Direct object references
+        Location prevLocation = previousSituation.Location;
+        Location nextLocation = nextSituation.Location;
 
-        string prevNpcId = previousSituation.Npc?.ID;
-        string nextNpcId = nextSituation.Npc?.ID;
+        NPC prevNpc = previousSituation.Npc;
+        NPC nextNpc = nextSituation.Npc;
 
-        Console.WriteLine($"[Scene.CompareContexts] Previous: location='{prevLocationId}', npc='{prevNpcId}'");
-        Console.WriteLine($"[Scene.CompareContexts] Next: location='{nextLocationId}', npc='{nextNpcId}'");
+        Console.WriteLine($"[Scene.CompareContexts] Previous: location='{prevLocation?.Name}', npc='{prevNpc?.Name}'");
+        Console.WriteLine($"[Scene.CompareContexts] Next: location='{nextLocation?.Name}', npc='{nextNpc?.Name}'");
 
-        // Compare location context
-        bool sameLocation = prevLocationId == nextLocationId;
+        // Compare location context - object equality
+        bool sameLocation = prevLocation == nextLocation;
 
-        // Compare NPC context
-        bool sameNpc = prevNpcId == nextNpcId;
+        // Compare NPC context - object equality
+        bool sameNpc = prevNpc == nextNpc;
 
         Console.WriteLine($"[Scene.CompareContexts] sameLocation={sameLocation}, sameNpc={sameNpc}");
 
