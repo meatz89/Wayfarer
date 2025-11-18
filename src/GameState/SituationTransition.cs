@@ -2,19 +2,37 @@
 /// <summary>
 /// Defines one transition between Situations in a Scene cascade
 /// Specifies when and how to advance from one Situation to another
-/// ADR-007: HIGHLANDER - object references only, no string IDs
+/// ADR-007: Uses TEMPLATE IDs at template tier, object references at runtime tier
 /// </summary>
 public class SituationTransition
 {
     /// <summary>
-    /// ADR-007: Source Situation object reference (where transition starts)
-    /// HIGHLANDER: Object reference only, no SourceSituationId
+    /// Source Situation template ID (where transition starts)
+    /// TEMPLATE ID: References SituationTemplate.Id within SceneTemplate
+    /// Used at template tier (SceneTemplate, catalogues)
+    /// Acceptable per ADR-007 (templates are immutable archetypes)
+    /// </summary>
+    public string SourceSituationId { get; set; }
+
+    /// <summary>
+    /// Destination Situation template ID (where transition leads)
+    /// TEMPLATE ID: References SituationTemplate.Id within SceneTemplate
+    /// Used at template tier (SceneTemplate, catalogues)
+    /// Acceptable per ADR-007 (templates are immutable archetypes)
+    /// </summary>
+    public string DestinationSituationId { get; set; }
+
+    /// <summary>
+    /// Source Situation object reference (runtime tier)
+    /// Populated during Scene instantiation from template
+    /// Used at runtime tier (Scene.SpawnRules)
     /// </summary>
     public Situation SourceSituation { get; set; }
 
     /// <summary>
-    /// ADR-007: Destination Situation object reference (where transition leads)
-    /// HIGHLANDER: Object reference only, no DestinationSituationId
+    /// Destination Situation object reference (runtime tier)
+    /// Populated during Scene instantiation from template
+    /// Used at runtime tier (Scene.SpawnRules)
     /// </summary>
     public Situation DestinationSituation { get; set; }
 
@@ -28,8 +46,16 @@ public class SituationTransition
     public TransitionCondition Condition { get; set; }
 
     /// <summary>
-    /// ADR-007: Specific Choice template reference (if Condition is OnChoice)
-    /// HIGHLANDER: Object reference only, no SpecificChoiceId
+    /// Specific Choice template ID (if Condition is OnChoice)
+    /// TEMPLATE ID: References ChoiceTemplate.Id
+    /// null for other condition types
+    /// Acceptable per ADR-007 (templates are immutable archetypes)
+    /// </summary>
+    public string SpecificChoiceId { get; set; }
+
+    /// <summary>
+    /// Specific Choice object reference (runtime tier)
+    /// Populated during Scene instantiation
     /// null for other condition types
     /// </summary>
     public ChoiceTemplate SpecificChoice { get; set; }
