@@ -314,8 +314,8 @@ public class MarketSubsystemManager
 
         Player player = _gameWorld.GetPlayer();
 
-        // Check if player has the item (need to get by name since inventory uses names)
-        if (!player.Inventory.HasItem(item.Name))
+        // HIGHLANDER: Check if player has the item using object reference
+        if (!player.Inventory.Contains(item))
             return false;
 
         // Check if Location buys this item
@@ -347,7 +347,7 @@ public class MarketSubsystemManager
             Location = location,
             Action = TradeAction.Buy,
             CoinsBefore = player.Coins,
-            HadItemBefore = player.Inventory.HasItem(item.Name)
+            HadItemBefore = player.Inventory.Contains(item)
         };
 
         // Check market availability
@@ -364,17 +364,17 @@ public class MarketSubsystemManager
 
         // Attempt purchase
         bool success = false;
-        if (buyPrice > 0 && player.Coins >= buyPrice && player.Inventory.CanAddItem(item, _itemRepository))
+        if (buyPrice > 0 && player.Coins >= buyPrice && player.Inventory.CanAddItem(item))
         {
             player.AddCoins(-buyPrice);
-            player.Inventory.AddItem(item.Name);
+            player.Inventory.Add(item);
             success = true;
             _messageSystem.AddSystemMessage($"Bought {item.Name} for {buyPrice} coins", SystemMessageTypes.Success);
         }
 
         result.Success = success;
         result.CoinsAfter = player.Coins;
-        result.HasItemAfter = player.Inventory.HasItem(item.Name);
+        result.HasItemAfter = player.Inventory.Contains(item);
 
         if (success)
         {
@@ -426,7 +426,7 @@ public class MarketSubsystemManager
             Location = location,
             Action = TradeAction.Sell,
             CoinsBefore = player.Coins,
-            HadItemBefore = player.Inventory.HasItem(item.Name)
+            HadItemBefore = player.Inventory.Contains(item)
         };
 
         // Check market availability
@@ -445,7 +445,7 @@ public class MarketSubsystemManager
         bool success = false;
         if (sellPrice > 0 && player.Inventory.HasItem(item.Name))
         {
-            player.Inventory.RemoveItem(item.Name);
+            player.Inventory.Remove(item);
             player.AddCoins(sellPrice);
             success = true;
             _messageSystem.AddSystemMessage($"Sold {item.Name} for {sellPrice} coins", SystemMessageTypes.Success);
@@ -453,7 +453,7 @@ public class MarketSubsystemManager
 
         result.Success = success;
         result.CoinsAfter = player.Coins;
-        result.HasItemAfter = player.Inventory.HasItem(item.Name);
+        result.HasItemAfter = player.Inventory.Contains(item);
 
         if (success)
         {
