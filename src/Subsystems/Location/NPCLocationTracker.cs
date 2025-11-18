@@ -85,20 +85,15 @@ public class NPCLocationTracker
     /// <summary>
     /// Get the schedule for an NPC.
     /// </summary>
-    public NPCSchedule GetNPCSchedule(string npcId)
+    public NPCSchedule GetNPCSchedule(NPC npc)
     {
-        if (string.IsNullOrEmpty(npcId))
-            throw new ArgumentException("NPC ID cannot be null or empty", nameof(npcId));
-
-        NPC npc = _npcRepository.GetById(npcId);
         if (npc == null)
-            throw new InvalidOperationException($"NPC not found: {npcId}");
+            throw new ArgumentNullException(nameof(npc));
 
         NPCSchedule schedule = new NPCSchedule
         {
-            NPCId = npcId,
-            NPCName = npc.Name,
-            LocationId = npc.Location?.Id,
+            Npc = npc,
+            Location = npc.Location,
             TimeSlots = new List<NPCTimeSlot>()
         };
 
@@ -109,7 +104,7 @@ public class NPCLocationTracker
             {
                 TimeBlock = timeBlock,
                 IsAvailable = npc.IsAvailable(timeBlock),
-                LocationId = npc.Location?.Id
+                Location = npc.Location
             });
         }
 
@@ -212,23 +207,24 @@ public class NPCLocationTracker
 
 /// <summary>
 /// Represents an NPC's schedule.
+/// HIGHLANDER: Object references only, no string IDs
 /// </summary>
 public class NPCSchedule
 {
-    public string NPCId { get; set; }
-    public string NPCName { get; set; }
-    public string LocationId { get; set; }
+    public NPC Npc { get; set; }
+    public Location Location { get; set; }
     public List<NPCTimeSlot> TimeSlots { get; set; }
 }
 
 /// <summary>
 /// Represents an NPC's availability in a time slot.
+/// HIGHLANDER: Object references only, no string IDs
 /// </summary>
 public class NPCTimeSlot
 {
     public TimeBlocks TimeBlock { get; set; }
     public bool IsAvailable { get; set; }
-    public string LocationId { get; set; }
+    public Location Location { get; set; }
 }
 
 /// <summary>

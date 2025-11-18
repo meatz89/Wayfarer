@@ -31,11 +31,11 @@ public class Hex
     /// <summary>
     /// Optional location occupying this hex
     /// null if hex is wilderness (no location)
-    /// HIGHLANDER: This is derived lookup, not source of truth
-    /// Source of truth: Location.HexPosition
+    /// HIGHLANDER: Object reference only, not string ID
+    /// This is derived lookup, not source of truth - Source of truth: Location.HexPosition
     /// Locations are THE spatial entities - venues are just abstract wrappers
     /// </summary>
-    public string LocationId { get; set; }
+    public Location Location { get; set; }
 
     /// <summary>
     /// Optional: Hex has been discovered by player (fog of war)
