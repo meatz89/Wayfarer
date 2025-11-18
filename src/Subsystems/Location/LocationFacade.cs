@@ -186,10 +186,11 @@ public class LocationFacade
 
     /// <summary>
     /// Get all NPCs at a specific location.
+    /// HIGHLANDER: Accept Location object
     /// </summary>
-    public List<NPC> GetNPCsAtLocation(string locationId)
+    public List<NPC> GetNPCsAtLocation(Location location)
     {
-        return _npcTracker.GetNPCsAtLocation(locationId);
+        return _npcTracker.GetNPCsAtLocation(location);
     }
 
     /// <summary>
@@ -202,7 +203,7 @@ public class LocationFacade
             throw new InvalidOperationException("Player has no current location");
 
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        return _npcTracker.GetNPCsAtSpot(_gameWorld.GetPlayerCurrentLocation().Name, currentTime);
+        return _npcTracker.GetNPCsAtSpot(_gameWorld.GetPlayerCurrentLocation(), currentTime);
     }
 
 
@@ -540,7 +541,7 @@ public class LocationFacade
 
     private LocationHeaderViewModel BuildLocationHeader(Venue venue, Location spot, TimeBlocks currentTime)
     {
-        List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot.Name, currentTime);
+        List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot, currentTime);
 
         return new LocationHeaderViewModel
         {
@@ -719,7 +720,7 @@ public class LocationFacade
         List<NpcWithSituationsViewModel> result = new List<NpcWithSituationsViewModel>();
 
         // Get NPCs at spot
-        List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot.Name, currentTime);
+        List<NPC> npcsAtSpot = _npcTracker.GetNPCsAtSpot(spot, currentTime);
         Console.WriteLine($"[LocationFacade.BuildNPCsWithSituations] Found {npcsAtSpot.Count} NPCs at '{spot.Name}' during {currentTime}");
 
         // Build SIMPLE NPC cards for "Look Around" view
