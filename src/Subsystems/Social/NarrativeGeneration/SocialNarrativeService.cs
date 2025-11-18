@@ -254,7 +254,7 @@ public class SocialNarrativeService
     {
         return new NPCData
         {
-            NpcId = npc.ID,
+            // HIGHLANDER: NpcId deleted - Name is sufficient for AI narrative generation
             Name = npc.Name,
             Personality = npc.PersonalityType,
             CurrentCrisis = ExtractCurrentCrisis(npc),

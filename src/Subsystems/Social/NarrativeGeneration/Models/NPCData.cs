@@ -1,18 +1,14 @@
 /// <summary>
 /// Simplified NPC information for narrative generation.
 /// Contains only the essential data needed to generate contextually appropriate dialogue.
+/// HIGHLANDER: No ID property - Name is sufficient for AI narrative generation
 /// </summary>
 public class NPCData
 {
     /// <summary>
-    /// Unique identifier for the NPC.
-    /// Used for logging and debugging, not for hardcoded behavior checks.
-    /// </summary>
-    public string NpcId { get; set; }
-
-    /// <summary>
     /// Display name of the NPC.
-    /// Used in narrative generation for natural dialogue references.
+    /// Used in narrative generation for natural dialogue references and identification.
+    /// HIGHLANDER: Name serves both display and identification purposes
     /// </summary>
     public string Name { get; set; }
 
