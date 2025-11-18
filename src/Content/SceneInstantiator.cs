@@ -506,8 +506,9 @@ public class SceneInstantiator
         if (filter.RequiredAchievements != null && filter.RequiredAchievements.Count > 0)
         {
             // Player must have ALL required achievements
-            if (!filter.RequiredAchievements.All(achId =>
-                player.EarnedAchievements.Any(a => a.AchievementId == achId)))
+            // HIGHLANDER: Compare Achievement objects directly
+            if (!filter.RequiredAchievements.All(achievement =>
+                player.EarnedAchievements.Any(a => a.Achievement == achievement)))
                 return false;
         }
 
@@ -591,7 +592,7 @@ public class SceneInstantiator
         if (filter.ForbiddenStates != null && filter.ForbiddenStates.Count > 0)
             criteria.Add($"Forbidden States: [{string.Join(", ", filter.ForbiddenStates)}]");
         if (filter.RequiredAchievements != null && filter.RequiredAchievements.Count > 0)
-            criteria.Add($"Required Achievements: [{string.Join(", ", filter.RequiredAchievements)}]");
+            criteria.Add($"Required Achievements: [{string.Join(", ", filter.RequiredAchievements.Select(a => a.Name))}]");
         if (filter.ScaleRequirements != null && filter.ScaleRequirements.Count > 0)
             criteria.Add($"Scale Requirements: {filter.ScaleRequirements.Count} requirements");
 
@@ -1284,7 +1285,7 @@ public class SceneInstantiator
             // Player state filters
             RequiredStates = filter.RequiredStates?.Select(s => s.ToString()).ToList(),
             ForbiddenStates = filter.ForbiddenStates?.Select(s => s.ToString()).ToList(),
-            RequiredAchievements = filter.RequiredAchievements,
+            RequiredAchievements = filter.RequiredAchievements?.Select(a => a.Name).ToList(),
             ScaleRequirements = filter.ScaleRequirements?.Select(r => new ScaleRequirementDTO
             {
                 ScaleType = r.ScaleType.ToString(),

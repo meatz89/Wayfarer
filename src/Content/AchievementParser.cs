@@ -5,20 +5,19 @@ public static class AchievementParser
 {
     /// <summary>
     /// Convert an AchievementDTO to an Achievement domain model
+    /// HIGHLANDER: Achievement has no Id property - identified by object reference
     /// </summary>
     public static Achievement ConvertDTOToAchievement(AchievementDTO dto)
     {
-        if (string.IsNullOrEmpty(dto.Id))
-            throw new InvalidOperationException("Achievement DTO missing required 'Id' field");
-        if (string.IsNullOrEmpty(dto.Category))
-            throw new InvalidOperationException($"Achievement {dto.Id} missing required 'Category' field");
         if (string.IsNullOrEmpty(dto.Name))
-            throw new InvalidOperationException($"Achievement {dto.Id} missing required 'Name' field");
+            throw new InvalidOperationException("Achievement DTO missing required 'Name' field");
+        if (string.IsNullOrEmpty(dto.Category))
+            throw new InvalidOperationException($"Achievement {dto.Name} missing required 'Category' field");
 
         // Parse category
         if (!Enum.TryParse<AchievementCategory>(dto.Category, true, out AchievementCategory category))
         {
-            throw new InvalidOperationException($"Achievement {dto.Id} has invalid Category value: '{dto.Category}'. Must be valid AchievementCategory enum value.");
+            throw new InvalidOperationException($"Achievement {dto.Name} has invalid Category value: '{dto.Category}'. Must be valid AchievementCategory enum value.");
         }
 
         // Parse grant conditions from Dictionary to strongly-typed structure
@@ -26,7 +25,6 @@ public static class AchievementParser
 
         Achievement achievement = new Achievement
         {
-            Id = dto.Id,
             Category = category,
             Name = dto.Name,
             Description = dto.Description ?? "",

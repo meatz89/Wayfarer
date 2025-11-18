@@ -95,14 +95,15 @@ public class RewardApplicationService
         }
 
         // Apply achievements
-        foreach (string achievementId in reward.AchievementIds)
+        foreach (Achievement achievement in reward.Achievements)
         {
             // Check if achievement already earned
-            if (!player.EarnedAchievements.Any(a => a.AchievementId == achievementId))
+            // HIGHLANDER: Compare Achievement objects directly
+            if (!player.EarnedAchievements.Any(a => a.Achievement == achievement))
             {
                 player.EarnedAchievements.Add(new PlayerAchievement
                 {
-                    AchievementId = achievementId,
+                    Achievement = achievement,
                     EarnedDay = _gameWorld.CurrentDay,
                     EarnedTimeBlock = _timeFacade.GetCurrentTimeBlock(),
                     EarnedSegment = _timeFacade.GetCurrentSegment()
@@ -113,15 +114,15 @@ public class RewardApplicationService
         // Markers deleted in 5-system architecture - entity IDs are concrete, no resolution needed
 
         // Apply item grants
-        foreach (string itemId in reward.ItemIds)
+        foreach (Item item in reward.Items)
         {
-            player.Inventory.AddItem(itemId);
+            player.Inventory.AddItem(item);
         }
 
         // Apply item removals (Multi-Situation Scene Pattern: cleanup phase)
-        foreach (string itemId in reward.ItemsToRemove)
+        foreach (Item item in reward.ItemsToRemove)
         {
-            player.RemoveItem(itemId);
+            player.RemoveItem(item);
         }
 
         // Apply time advancement (NEW - for tutorial Night Rest scene)

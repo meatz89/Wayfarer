@@ -788,23 +788,25 @@ public class GameWorld
 
     /// <summary>
     /// Check if player has earned a specific achievement
+    /// HIGHLANDER: Accepts Achievement object, not string ID
     /// </summary>
-    public bool HasAchievement(string achievementId)
+    public bool HasAchievement(Achievement achievement)
     {
-        return Player.EarnedAchievements.Any(pa => pa.AchievementId == achievementId);
+        return Player.EarnedAchievements.Any(pa => pa.Achievement == achievement);
     }
 
     /// <summary>
     /// Grant achievement to player with current time tracking
+    /// HIGHLANDER: Accepts Achievement object, not string ID
     /// </summary>
-    public void GrantAchievement(string achievementId, int currentDay, TimeBlocks currentTimeBlock, int currentSegment)
+    public void GrantAchievement(Achievement achievement, int currentDay, TimeBlocks currentTimeBlock, int currentSegment)
     {
-        if (HasAchievement(achievementId))
+        if (HasAchievement(achievement))
             return; // Already earned, don't grant again
 
         PlayerAchievement playerAchievement = new PlayerAchievement
         {
-            AchievementId = achievementId,
+            Achievement = achievement,
             EarnedDay = currentDay,
             EarnedTimeBlock = currentTimeBlock,
             EarnedSegment = currentSegment

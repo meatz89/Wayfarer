@@ -521,14 +521,15 @@ public class Player
     // ============================================
 
     /// <summary>
-    /// Remove item from inventory by ID
+    /// Remove item from inventory
     /// Returns true if item was present and removed, false if not found
     /// Used for: Consuming keys, removing temporary access tokens, cleanup
     /// Part of item lifecycle pattern: grant → require → remove
+    /// HIGHLANDER: Accepts Item object, not string ID
     /// </summary>
-    public bool RemoveItem(string itemId)
+    public bool RemoveItem(Item item)
     {
-        return Inventory.RemoveItem(itemId);
+        return Inventory.Remove(item);
     }
 
     /// <summary>

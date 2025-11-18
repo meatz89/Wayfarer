@@ -263,11 +263,10 @@ public class PlacementFilter
 
     /// <summary>
     /// Player must have these achievements for Scene to spawn
-    /// Example: ["FirstCombatVictory", "MercantileGuildMember"]
     /// Player must have ALL specified achievements
-    /// Achievement IDs are concrete, but they represent categorical milestones
+    /// HIGHLANDER: Object references only, no string IDs
     /// </summary>
-    public List<string> RequiredAchievements { get; init; } = new List<string>();
+    public List<Achievement> RequiredAchievements { get; init; } = new List<Achievement>();
 
     /// <summary>
     /// Player scale requirements for spawning

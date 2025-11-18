@@ -110,9 +110,10 @@ public class SpawnFacade
         }
 
         // Check RequiredAchievement
-        if (!string.IsNullOrEmpty(conditions.RequiredAchievement))
+        if (conditions.RequiredAchievement != null)
         {
-            bool hasAchievement = player.EarnedAchievements.Any(a => a.AchievementId == conditions.RequiredAchievement);
+            // HIGHLANDER: Compare Achievement objects directly
+            bool hasAchievement = player.EarnedAchievements.Any(a => a.Achievement == conditions.RequiredAchievement);
             if (!hasAchievement)
             {
                 return false;

@@ -1,14 +1,15 @@
 /// <summary>
 /// Player Achievement instance - achievement earned by the player
 /// Stored in Player.EarnedAchievements list with segment-based earned time
-/// References achievement definition by ID
+/// HIGHLANDER: Object reference to achievement definition
 /// </summary>
 public class PlayerAchievement
 {
     /// <summary>
-    /// Achievement ID - references achievement definition in 19_achievements.json
+    /// Achievement definition - object reference to Achievement
+    /// HIGHLANDER: Object reference only, no string ID
     /// </summary>
-    public string AchievementId { get; set; }
+    public Achievement Achievement { get; set; }
 
     /// <summary>
     /// Day when achievement was earned
@@ -26,14 +27,14 @@ public class PlayerAchievement
     public int EarnedSegment { get; set; }
 
     /// <summary>
-    /// Related NPC ID if achievement was earned through NPC interaction
-    /// null if not NPC-related
+    /// Related NPC if achievement was earned through NPC interaction
+    /// HIGHLANDER: Object reference only, no string ID
     /// </summary>
-    public string RelatedNpcId { get; set; }
+    public NPC RelatedNpc { get; set; }
 
     /// <summary>
-    /// Related Location ID if achievement was earned at a specific location
-    /// null if not location-specific
+    /// Related Location if achievement was earned at a specific location
+    /// HIGHLANDER: Object reference only, no string ID
     /// </summary>
-    public string RelatedLocationId { get; set; }
+    public Location RelatedLocation { get; set; }
 }
