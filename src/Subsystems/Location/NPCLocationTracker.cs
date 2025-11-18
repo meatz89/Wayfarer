@@ -132,10 +132,10 @@ public class NPCLocationTracker
                 {
                     result.Add(new FutureNPCFocus
                     {
-                        NPCId = npc.ID,
-                        NPCName = npc.Name,
+                        // HIGHLANDER: Store NPC and Location objects, not IDs
+                        Npc = npc,
                         TimeBlock = timeBlock,
-                        LocationId = npc.Location?.Id
+                        Location = npc.Location
                     });
                 }
             }
@@ -156,9 +156,9 @@ public class NPCLocationTracker
 
         return new NPCLocation
         {
-            NPCId = npc.ID,
-            NPCName = npc.Name,
-            LocationId = npc.Location?.Id,
+            // HIGHLANDER: Store NPC and Location objects, not IDs
+            Npc = npc,
+            Location = npc.Location,
             IsCurrentlyAvailable = npc.IsAvailable(_gameWorld.CurrentTimeBlock)
         };
     }
@@ -233,22 +233,22 @@ public class NPCTimeSlot
 
 /// <summary>
 /// Represents future NPC focus at a location.
+/// HIGHLANDER: Object references only, no string IDs
 /// </summary>
 public class FutureNPCFocus
 {
-    public string NPCId { get; set; }
-    public string NPCName { get; set; }
+    public NPC Npc { get; set; }
     public TimeBlocks TimeBlock { get; set; }
-    public string LocationId { get; set; }
+    public Location Location { get; set; }
 }
 
 /// <summary>
 /// Represents an NPC's current location.
+/// HIGHLANDER: Object references only, no string IDs
 /// </summary>
 public class NPCLocation
 {
-    public string NPCId { get; set; }
-    public string NPCName { get; set; }
-    public string LocationId { get; set; }
+    public NPC Npc { get; set; }
+    public Location Location { get; set; }
     public bool IsCurrentlyAvailable { get; set; }
 }
