@@ -167,11 +167,10 @@ public class LocationManager
 
     /// <summary>
     /// Get the travel hub location for a location.
+    /// HIGHLANDER: Accept Venue object
     /// </summary>
-    public Location GetTravelHubLocation(string venueId)
+    public Location GetTravelHubLocation(Venue venue)
     {
-        Venue venue = GetVenue(venueId);
-
         // Look for Locations with Crossroads property
         List<Location> Locations = GetLocationsForVenue(venue);
         return Locations.FirstOrDefault(s => s.LocationProperties.Contains(LocationPropertyType.Crossroads));
@@ -365,13 +364,12 @@ public class LocationManager
 
     /// <summary>
     /// Get the default entrance location for a location.
+    /// HIGHLANDER: Accept Venue object
     /// </summary>
-    public Location GetDefaultEntranceLocation(string venueId)
+    public Location GetDefaultEntranceLocation(Venue venue)
     {
-        Venue Venue = GetVenue(venueId);
-
         // Look for Locations with Crossroads property
-        List<Location> Locations = GetLocationsForVenue(Venue);
+        List<Location> Locations = GetLocationsForVenue(venue);
         Location crossroads = Locations.FirstOrDefault(s => s.LocationProperties.Contains(LocationPropertyType.Crossroads));
         if (crossroads != null) return crossroads;
 
