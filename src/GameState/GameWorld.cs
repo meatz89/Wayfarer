@@ -348,17 +348,18 @@ public class GameWorld
 
     /// <summary>
     /// Get player's current location via hex-first architecture
-    /// HEX-FIRST PATTERN: player.CurrentPosition → hex → locationId → Location
-    /// Returns null if player position has no location or location not found
+    /// HEX-FIRST PATTERN: player.CurrentPosition → hex → Location object
+    /// Returns null if player position has no location
+    /// HIGHLANDER: Direct object access (not locationId lookup)
     /// </summary>
     public Location GetPlayerCurrentLocation()
     {
         Player player = GetPlayer();
         Hex currentHex = WorldHexGrid.GetHex(player.CurrentPosition);
-        if (currentHex == null || string.IsNullOrEmpty(currentHex.LocationId))
+        if (currentHex == null || currentHex.Location == null)
             return null;
 
-        return GetLocation(currentHex.LocationId);
+        return currentHex.Location;
     }
 
     /// <summary>

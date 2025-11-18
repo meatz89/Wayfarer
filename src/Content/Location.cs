@@ -12,7 +12,7 @@ public class Location
     /// Same-venue movement = moving between ADJACENT hexes in the same cluster (instant/free BECAUSE adjacent).
     /// Cross-venue travel = moving between non-adjacent hexes (requires routes, costs resources).
     /// Source of truth for location spatial positioning - ALL routes connect locations via hex paths.
-    /// HIGHLANDER: Location.HexPosition is source of truth, Hex.LocationId is derived lookup.
+    /// HIGHLANDER: Location.HexPosition is source of truth, Hex.Location is derived lookup (object reference).
     /// </summary>
     public AxialCoordinates? HexPosition { get; set; }
 

@@ -129,8 +129,9 @@ public class Situation
     /// Location where this situation activates
     /// Each situation can require different location from other situations in same scene
     /// Used for context matching: player must be at this location for situation to activate
-    /// null = situation has no location requirement (activates anywhere) or uses Template.RequiredLocationId
+    /// null = situation has no location requirement (activates anywhere)
     /// ARCHITECTURAL: Situation owns context, Scene is just container
+    /// HIGHLANDER: Object reference only, not string ID
     /// </summary>
     public Location Location { get; set; }
 
