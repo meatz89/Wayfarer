@@ -327,7 +327,8 @@ public class SceneContentBase : ComponentBase
 
     private int GetTotalBond(Player player, NPC npc)
     {
-        NPCTokenEntry entry = player.NPCTokens.FirstOrDefault(t => t.NpcId == npc.ID);
+        // HIGHLANDER: Compare NPC objects directly, not string IDs
+        NPCTokenEntry entry = player.NPCTokens.FirstOrDefault(t => t.Npc == npc);
         if (entry == null) return 0;
         return entry.Trust + entry.Diplomacy + entry.Status + entry.Shadow;
     }
