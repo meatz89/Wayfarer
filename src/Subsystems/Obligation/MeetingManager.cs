@@ -257,7 +257,8 @@ public class MeetingManager
         MeetingResult result = new MeetingResult { Success = true };
 
         // Check if player is at NPC's location
-        if (!IsPlayerAtNPCLocation(meeting.Requester?.ID))
+        // HIGHLANDER: Pass NPC object directly, not .ID
+        if (!IsPlayerAtNPCLocation(meeting.Requester))
         {
             result.Success = false;
             result.ErrorMessage = $"You must be at {meeting.Requester?.Name}'s Venue to meet";
@@ -324,7 +325,11 @@ public class MeetingManager
         return MeetingUrgency.Normal;
     }
 
-    private bool IsPlayerAtNPCLocation(string npcId)
+    /// <summary>
+    /// Check if player is at the same location as an NPC
+    /// HIGHLANDER: Accepts NPC object, not string ID
+    /// </summary>
+    private bool IsPlayerAtNPCLocation(NPC targetNpc)
     {
         Player player = _gameWorld.GetPlayer();
         if (_gameWorld.GetPlayerCurrentLocation() == null) return false;
@@ -335,7 +340,8 @@ public class MeetingManager
             _gameWorld.GetPlayerCurrentLocation(),
             currentTime);
 
-        return npcsAtCurrentSpot.Any(npc => npc.ID == npcId);
+        // HIGHLANDER: Compare NPC objects directly
+        return npcsAtCurrentSpot.Contains(targetNpc);
     }
 
     private TimeBlocks GetCurrentTimeBlock()
