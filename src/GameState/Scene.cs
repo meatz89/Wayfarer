@@ -445,11 +445,11 @@ public enum SceneRoutingDecision
 /// <summary>
 /// Unmet bond requirement - for relationship-gated situations
 /// UI Context: Render NPC portrait, bond progress bar, "Talk to X" guidance
+/// HIGHLANDER: Stores NPC object, not string IDs
 /// </summary>
 public class UnmetBondRequirement
 {
-    public string NpcId { get; set; }
-    public string NpcName { get; set; }
+    public NPC Npc { get; set; }
     public int Required { get; set; }
     public int Current { get; set; }
     public int Gap => Required - Current;
@@ -503,10 +503,11 @@ public class UnmetSituationCountRequirement
 /// <summary>
 /// Unmet achievement requirement - for milestone gates
 /// UI Context: Render achievement badge, link to earning situation
+/// HIGHLANDER: Stores Achievement object, not string ID
 /// </summary>
 public class UnmetAchievementRequirement
 {
-    public string AchievementId { get; set; }
+    public Achievement Achievement { get; set; }
     public bool MustHave { get; set; }  // true = must have, false = must NOT have
 }
 
