@@ -37,16 +37,15 @@ public class SceneGenerationFacade
     /// 3. Return generated SceneArchetypeDefinition
     ///
     /// Called at parse time (or via dynamic package generation) with entities from GameWorld
+    /// HIGHLANDER: Accept NPC and Location objects, not string IDs
     /// </summary>
     public SceneArchetypeDefinition GenerateSceneFromArchetype(
         string archetypeId,
         int tier,
-        string npcId,
-        string locationId,
+        NPC contextNPC,
+        Location contextLocation,
         int? mainStorySequence = null)
     {
-        NPC contextNPC = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-        Location contextLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
         Player contextPlayer = _gameWorld.GetPlayer();
 
         GenerationContext context = GenerationContext.FromEntities(tier, contextNPC, contextLocation, contextPlayer, mainStorySequence);
