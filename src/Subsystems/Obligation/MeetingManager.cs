@@ -36,11 +36,12 @@ public class MeetingManager
 
     /// <summary>
     /// Get meeting obligation with a specific NPC.
+    /// HIGHLANDER: Accept NPC object
     /// </summary>
-    public MeetingObligation GetMeetingWithNPC(string npcId)
+    public MeetingObligation GetMeetingWithNPC(NPC npc)
     {
         return GetActiveMeetingObligations()
-            .FirstOrDefault(m => m.Requester?.ID == npcId);
+            .FirstOrDefault(m => m.Requester == npc);
     }
 
     /// <summary>
@@ -74,7 +75,7 @@ public class MeetingManager
         }
 
         // Check if there's already a meeting with this NPC
-        MeetingObligation existingMeeting = GetMeetingWithNPC(meeting.Requester?.ID);
+        MeetingObligation existingMeeting = GetMeetingWithNPC(meeting.Requester);
         if (existingMeeting != null)
         {
             result.ErrorMessage = $"Already have a meeting scheduled with {meeting.Requester?.Name}";
@@ -219,14 +220,15 @@ public class MeetingManager
 
     /// <summary>
     /// Check if the player can meet with a specific NPC right now.
+    /// HIGHLANDER: Accept NPC object
     /// </summary>
-    public bool CanMeetWithNPC(string npcId)
+    public bool CanMeetWithNPC(NPC npc)
     {
-        MeetingObligation meeting = GetMeetingWithNPC(npcId);
+        MeetingObligation meeting = GetMeetingWithNPC(npc);
         if (meeting == null) return false;
 
         // Check if player is at NPC's location
-        return IsPlayerAtNPCLocation(npcId);
+        return IsPlayerAtNPCLocation(npc);
     }
 
     // Private helper methods
@@ -235,20 +237,14 @@ public class MeetingManager
     {
         MeetingResult result = new MeetingResult { Success = true };
 
-        if (meeting.Requester == null || string.IsNullOrEmpty(meeting.Requester.ID))
+        if (meeting.Requester == null)
         {
             result.Success = false;
             result.ErrorMessage = "Meeting must have a valid requester";
             return result;
         }
 
-        NPC npc = _npcRepository.GetById(meeting.Requester.ID);
-        if (npc == null)
-        {
-            result.Success = false;
-            result.ErrorMessage = "Requester NPC not found";
-            return result;
-        }
+        // Requester is already an NPC object - no lookup needed
         return result;
     }
 
