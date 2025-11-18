@@ -5,7 +5,8 @@
 public class MentalSession
 {
     public string SessionId { get; init; } = Guid.NewGuid().ToString();
-    public string ObligationId { get; set; }
+    // HIGHLANDER: Store Obligation object, not string ID
+    public Obligation Obligation { get; set; }
     public Location Location { get; set; } // PHASE 6D: Track Location object (not ID) for familiarity bonuses
     public MentalSessionDeck Deck { get; set; }
     public int CurrentPhaseIndex { get; set; } = 0; // Which phase (0-based)
