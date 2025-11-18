@@ -498,7 +498,11 @@ public class ExchangeOperationData
     public int PatienceCost { get; set; }
     public string UnlocksExchangeId { get; set; }
     public string TriggerEvent { get; set; }
-    public string NPCId { get; set; }
+    /// <summary>
+    /// NPC this exchange is with
+    /// HIGHLANDER: Object reference only, no string ID
+    /// </summary>
+    public NPC Npc { get; set; }
     public string ExchangeId { get; set; }
     public bool IsUnique { get; set; }
     public ConnectionState? ConnectionStateChange { get; set; }

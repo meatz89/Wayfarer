@@ -106,14 +106,16 @@ public class ExchangeOrchestrator
         {
             foreach (TokenCount tokenReward in exchange.Reward.Tokens)
             {
-                CheckRelationshipMilestone(npc.ID, tokenReward.Type, tokenReward.Count);
+                // HIGHLANDER: Pass NPC object directly, not npc.ID
+                CheckRelationshipMilestone(npc, tokenReward.Type, tokenReward.Count);
             }
         }
 
         // Check for special exchange chains
         if (!string.IsNullOrEmpty(exchange.UnlocksExchangeId))
         {
-            UnlockExchange(npc.ID, exchange.UnlocksExchangeId);
+            // HIGHLANDER: Pass NPC object directly, not npc.ID
+            UnlockExchange(npc, exchange.UnlocksExchangeId);
         }
 
         // Check for story triggers
@@ -139,12 +141,20 @@ public class ExchangeOrchestrator
 
     // Helper methods
 
-    private void CheckRelationshipMilestone(string npcId, ConnectionType tokenType, int amount)
+    /// <summary>
+    /// Check relationship milestones after token rewards
+    /// HIGHLANDER: Accepts NPC object, not string ID
+    /// </summary>
+    private void CheckRelationshipMilestone(NPC npc, ConnectionType tokenType, int amount)
     {
         // This would integrate with the Token subsystem to check milestones
     }
 
-    private void UnlockExchange(string npcId, string exchangeId)
+    /// <summary>
+    /// Unlock new exchange for NPC
+    /// HIGHLANDER: Accepts NPC object, not string ID
+    /// </summary>
+    private void UnlockExchange(NPC npc, string exchangeId)
     {
         // This would integrate with ExchangeInventory to unlock new exchanges
     }
