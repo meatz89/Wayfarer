@@ -18,34 +18,39 @@ public class VenueGeneratorService
     public Venue GenerateVenue(VenueTemplate template, SceneSpawnContext context, GameWorld gameWorld)
     {
         // 1. Resolve district from template or context
-        string districtId = template.District;
-        if (string.IsNullOrEmpty(districtId))
+        // HIGHLANDER: Resolve district name to District object
+        string districtName = template.District;
+        if (string.IsNullOrEmpty(districtName))
         {
-            if (context.CurrentLocation?.Venue != null)
+            if (context.CurrentLocation?.Venue?.District != null)
             {
-                districtId = context.CurrentLocation.Venue.District ?? "wilderness";
+                districtName = context.CurrentLocation.Venue.District.Name;
             }
             else
             {
-                districtId = "wilderness";
+                districtName = "wilderness";
             }
         }
+
+        // Look up District entity (assume it exists, created during world initialization)
+        District district = gameWorld.Districts.FirstOrDefault(d => d.Name == districtName);
 
         // 2. Find unoccupied hex cluster based on allocation strategy
         AxialCoordinates centerHex = FindUnoccupiedCluster(template.HexAllocation, gameWorld);
 
         // 3. Replace placeholders in name/description
-        string venueName = ReplacePlaceholders(template.NamePattern, context, districtId);
-        string venueDescription = ReplacePlaceholders(template.DescriptionPattern, context, districtId);
+        string venueName = ReplacePlaceholders(template.NamePattern, context, districtName);
+        string venueDescription = ReplacePlaceholders(template.DescriptionPattern, context, districtName);
 
         // 4. Create Venue entity
         // ADR-007: Constructor uses Name only (no Id parameter or generation)
+        // HIGHLANDER: Assign District object reference, not string
         Venue venue = new Venue(venueName)
         {
             Description = venueDescription,
             Type = template.Type,
             Tier = template.Tier,
-            District = districtId,
+            District = district, // Object reference
             MaxLocations = template.MaxLocations,
             CenterHex = centerHex,
             IsSkeleton = false

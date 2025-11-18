@@ -410,9 +410,10 @@ public class SceneInstantiator
             }
 
             // Check district (accessed via Location.Venue.District)
+            // HIGHLANDER: District is object reference, filter.DistrictId is string (DTO boundary)
             if (!string.IsNullOrEmpty(filter.DistrictId))
             {
-                if (loc.Venue == null || loc.Venue.District != filter.DistrictId)
+                if (loc.Venue == null || loc.Venue.District == null || loc.Venue.District.Name != filter.DistrictId)
                     return false;
             }
 

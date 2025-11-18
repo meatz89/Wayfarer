@@ -5,7 +5,8 @@
     public string Description { get; set; }
 
     // Hierarchical organization - Venue only knows its District
-    public string District { get; set; } // e.g., "Lower Wards" (string category, not entity)
+    // HIGHLANDER: Object reference ONLY, no string District name
+    public District District { get; set; }
 
     // Skeleton tracking
     public bool IsSkeleton { get; set; } = false;

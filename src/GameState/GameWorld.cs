@@ -255,13 +255,13 @@ public class GameWorld
     }
 
     // Hierarchy lookup methods
-    public District GetDistrictForLocation(string venueName)
+    public District GetDistrictForLocation(Venue venue)
     {
-        Venue venue = Venues.FirstOrDefault(l => l.Name == venueName);
-        if (venue == null || string.IsNullOrEmpty(venue.District))
+        // HIGHLANDER: Accept Venue object, return District object reference directly
+        if (venue == null || venue.District == null)
             return null;
 
-        return Districts.FirstOrDefault(d => d.Name == venue.District);
+        return venue.District;
     }
 
     public Region GetRegionForDistrict(string districtName)
