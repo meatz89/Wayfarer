@@ -54,12 +54,13 @@ public class TokenEffectProcessor
 
     /// <summary>
     /// Calculate relationship effect on action success
+    /// HIGHLANDER: Accept NPC object
     /// </summary>
-    public int CalculateRelationshipBonus(string npcId, ConnectionType actionType)
+    public int CalculateRelationshipBonus(NPC npc, ConnectionType actionType)
     {
-        if (string.IsNullOrEmpty(npcId)) return 0;
+        if (npc == null) return 0;
 
-        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc);
         int relevantTokens = tokens.GetValueOrDefault(actionType, 0);
 
         // Negative tokens (debt) apply penalties
