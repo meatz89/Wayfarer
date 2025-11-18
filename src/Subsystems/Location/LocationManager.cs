@@ -260,7 +260,7 @@ public class LocationManager
             {
                 Name = loc.Name,
                 Detail = detail,
-                LocationId = loc.Name,
+                Location = loc,  // HIGHLANDER: Object reference
                 IsCurrent = false, // Never current since we skip the current location
                 IsTravelHub = IsLocationTravelHub(loc)
             });

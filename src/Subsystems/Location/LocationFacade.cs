@@ -427,21 +427,23 @@ public class LocationFacade
 
     /// <summary>
     /// OLD V2 Obligation - Stubbed out (replaced by V3 card-based system)
+    /// HIGHLANDER: Accept Location object (stub only)
     /// </summary>
-    /// <param name="LocationId">ID of the location where obligation takes place</param>
+    /// <param name="location">Location where obligation takes place</param>
     /// <returns>Always returns false - V2 obligation system removed</returns>
-    public bool InvestigateLocation(string LocationId)
+    public bool InvestigateLocation(Location location)
     {
-        return InvestigateLocation(LocationId, ObligationApproach.Standard);
+        return InvestigateLocation(location, ObligationApproach.Standard);
     }
 
     /// <summary>
     /// OLD V2 Obligation - Stubbed out (replaced by V3 card-based system)
+    /// HIGHLANDER: Accept Location object (stub only)
     /// </summary>
-    /// <param name="LocationId">ID of the location where obligation takes place</param>
+    /// <param name="location">Location where obligation takes place</param>
     /// <param name="approach">Obligation approach to use</param>
     /// <returns>Always returns false - V2 obligation system removed</returns>
-    public bool InvestigateLocation(string LocationId, ObligationApproach approach)
+    public bool InvestigateLocation(Location location, ObligationApproach approach)
     {
         // V2 Obligation system removed - replaced by V3 card-based obligation
         _messageSystem.AddSystemMessage("Obligation system temporarily unavailable (transitioning to new system)", SystemMessageTypes.Warning);

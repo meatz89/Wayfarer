@@ -57,8 +57,8 @@ public class TravelFacade
 
                 destinations.Add(new TravelDestinationViewModel
                 {
-                    LocationId = destination.Id,
-                    LocationName = destination.Name,
+                    Location = destination,  // HIGHLANDER: Object reference
+                    LocationName = destination.Name,  // For display
                     Description = destination.Description,
                     CanTravel = hasPermit,
                     CannotTravelReason = !hasPermit ? "Missing required permits" : null,
