@@ -438,13 +438,13 @@ public class LocationContentBase : ComponentBase
 
     /// <summary>
     /// Create MoveIntent from intra-venue movement action
-    /// Uses strongly-typed DestinationLocationId property (no ID parsing)
+    /// HIGHLANDER: Uses strongly-typed DestinationLocation property (typed object, not ID string)
     /// </summary>
     private MoveIntent CreateIntraVenueMoveIntent(LocationActionViewModel action)
     {
-        if (string.IsNullOrEmpty(action.DestinationLocationId))
-            throw new InvalidOperationException("IntraVenueMove action missing DestinationLocationId property");
+        if (action.DestinationLocation == null)
+            throw new InvalidOperationException("IntraVenueMove action missing DestinationLocation property");
 
-        return new MoveIntent(action.DestinationLocationId);
+        return new MoveIntent(action.DestinationLocation);
     }
 }

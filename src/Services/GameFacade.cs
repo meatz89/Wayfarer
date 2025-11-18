@@ -758,7 +758,7 @@ public class GameFacade
             TravelIntent travel => await ProcessTravelIntentAsync(travel.Route),
 
             // Movement intents
-            MoveIntent move => await ProcessMoveIntent(move.TargetSpotId),
+            MoveIntent move => await ProcessMoveIntent(move.TargetSpot),
 
             // Player action intents
             WaitIntent => await ProcessWaitIntent(),
@@ -778,7 +778,7 @@ public class GameFacade
             CompleteDeliveryIntent => await ProcessCompleteDeliveryIntent(),
 
             // Conversation/NPC intents
-            TalkIntent talk => await ProcessTalkIntent(talk.NpcId),
+            TalkIntent talk => await ProcessTalkIntent(talk.Npc),
 
             _ => IntentResult.Failed()
         };
@@ -801,9 +801,9 @@ public class GameFacade
 
     // ========== MOVEMENT INTENT HANDLERS ==========
 
-    private async Task<IntentResult> ProcessMoveIntent(string targetSpotName)
+    private async Task<IntentResult> ProcessMoveIntent(Location targetLocation)
     {
-        Location targetLocation = _gameWorld.GetLocation(targetSpotName);
+        // HIGHLANDER: Accept Location object directly, no lookup needed
         if (targetLocation == null)
             return IntentResult.Failed();
 
@@ -812,7 +812,7 @@ public class GameFacade
         if (success)
         {
             // TRIGGER POINT 1: Record location visit after successful movement
-            RecordLocationVisit(targetSpotName);
+            RecordLocationVisit(targetLocation);
         }
 
         return success ? IntentResult.Executed(requiresRefresh: true) : IntentResult.Failed();
@@ -1081,9 +1081,9 @@ public class GameFacade
 
     // ========== NPC INTERACTION INTENT HANDLERS ==========
 
-    private async Task<IntentResult> ProcessTalkIntent(string npcName)
+    private async Task<IntentResult> ProcessTalkIntent(NPC npc)
     {
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.Name == npcName);
+        // HIGHLANDER: Accept NPC object directly, no lookup needed
         if (npc == null)
             return IntentResult.Failed();
 
