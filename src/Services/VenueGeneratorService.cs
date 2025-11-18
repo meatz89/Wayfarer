@@ -117,7 +117,8 @@ public class VenueGeneratorService
         if (strategy == HexAllocationStrategy.SingleHex)
         {
             Hex centerHex = gameWorld.WorldHexGrid.GetHex(center.Q, center.R);
-            if (centerHex == null || !string.IsNullOrEmpty(centerHex.LocationId))
+            // HIGHLANDER: Check if hex has Location object, not LocationId string
+            if (centerHex == null || centerHex.Location != null)
             {
                 return false;
             }
@@ -127,7 +128,8 @@ public class VenueGeneratorService
         else // ClusterOf7
         {
             Hex centerHex = gameWorld.WorldHexGrid.GetHex(center.Q, center.R);
-            if (centerHex == null || !string.IsNullOrEmpty(centerHex.LocationId))
+            // HIGHLANDER: Check if hex has Location object, not LocationId string
+            if (centerHex == null || centerHex.Location != null)
             {
                 return false;
             }
@@ -136,7 +138,8 @@ public class VenueGeneratorService
             foreach (AxialCoordinates neighbor in neighbors)
             {
                 Hex neighborHex = gameWorld.WorldHexGrid.GetHex(neighbor.Q, neighbor.R);
-                if (neighborHex == null || !string.IsNullOrEmpty(neighborHex.LocationId))
+                // HIGHLANDER: Check if hex has Location object, not LocationId string
+                if (neighborHex == null || neighborHex.Location != null)
                 {
                     return false;
                 }
@@ -162,6 +165,7 @@ public class VenueGeneratorService
     /// <summary>
     /// Check if hex and its neighbors are separated from all existing venues.
     /// Enforces minimum 1-hex gap: no hex in cluster can be adjacent to hex occupied by another venue.
+    /// HIGHLANDER: Use Location object references directly
     /// </summary>
     private bool IsHexSeparatedFromVenues(AxialCoordinates hexCoords, GameWorld gameWorld)
     {
@@ -175,10 +179,11 @@ public class VenueGeneratorService
                 continue;
             }
 
-            if (!string.IsNullOrEmpty(neighborHex.LocationId))
+            // HIGHLANDER: Check Location object reference directly (not LocationId string)
+            if (neighborHex.Location != null)
             {
-                Location occupyingLocation = gameWorld.Locations.FirstOrDefault(l => l.Id == neighborHex.LocationId);
-                if (occupyingLocation != null && occupyingLocation.Venue != null)
+                // Location already exists on this hex - check if it belongs to a venue
+                if (neighborHex.Location.Venue != null)
                 {
                     return false;
                 }
