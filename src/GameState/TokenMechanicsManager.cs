@@ -70,7 +70,8 @@ public class TokenMechanicsManager
         int modifiedCount = (int)Math.Ceiling(count * modifier);
 
         // Initialize NPC token tracking if needed
-        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npc.ID);
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npc);
 
         // Track old token count for category unlock checking
         int oldTokenCount = npcEntry.GetTokenCount(type);
@@ -105,7 +106,8 @@ public class TokenMechanicsManager
         Player player = _gameWorld.GetPlayer();
 
         // Get or create NPC token entry
-        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npc.ID);
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npc);
         int currentCount = npcEntry.GetTokenCount(type);
 
         // reduce from NPC relationship (can go negative)
@@ -185,7 +187,8 @@ public class TokenMechanicsManager
         List<NPCTokenEntry> npcTokens = player.NPCTokens;
 
         // Get or create NPC token entry
-        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npc.ID);
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npc);
 
         // Track old count for obligation checking
         int oldCount = npcEntry.GetTokenCount(type);

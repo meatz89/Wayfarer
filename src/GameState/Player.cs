@@ -309,13 +309,14 @@ public class Player
 
     /// <summary>
     /// Get NPC token entry (creates if doesn't exist)
+    /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public NPCTokenEntry GetNPCTokenEntry(string npcId)
+    public NPCTokenEntry GetNPCTokenEntry(NPC npc)
     {
-        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.NpcId == npcId);
+        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.Npc == npc);
         if (entry == null)
         {
-            entry = new NPCTokenEntry { NpcId = npcId };
+            entry = new NPCTokenEntry { Npc = npc };
             NPCTokens.Add(entry);
         }
         return entry;

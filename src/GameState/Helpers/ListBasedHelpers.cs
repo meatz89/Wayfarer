@@ -14,10 +14,15 @@ public class ResourceEntry
 
 /// <summary>
 /// Helper class for NPC token entries (replaces nested Dictionary)
+/// HIGHLANDER: Object reference only, no string ID
 /// </summary>
 public class NPCTokenEntry
 {
-    public string NpcId { get; set; }
+    /// <summary>
+    /// NPC entity this token entry tracks
+    /// HIGHLANDER: Object reference only, no string ID
+    /// </summary>
+    public NPC Npc { get; set; }
     public int Trust { get; set; }
     public int Diplomacy { get; set; }
     public int Status { get; set; }
