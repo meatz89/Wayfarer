@@ -159,13 +159,11 @@ public class TokenUnlockManager
 
     /// <summary>
     /// Check and process unlocks when tokens are gained
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public void CheckAndProcessUnlocks(string npcId, ConnectionType tokenType, int newTokenCount)
+    public void CheckAndProcessUnlocks(NPC npc, ConnectionType tokenType, int newTokenCount)
     {
-        if (string.IsNullOrEmpty(npcId) || newTokenCount <= 0) return;
-
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc == null) return;
+        if (npc == null || newTokenCount <= 0) return;
 
         List<UnlockDefinition> unlocks = GetUnlockDefinitions(tokenType);
 
@@ -173,21 +171,22 @@ public class TokenUnlockManager
         {
             if (newTokenCount >= unlock.Threshold && (newTokenCount - 1) < unlock.Threshold)
             {
-                ProcessUnlock(npcId, npc.Name, tokenType, unlock);
+                ProcessUnlock(npc, tokenType, unlock);
             }
         }
 
-        int totalTokens = GetTotalTokensWithNPC(npcId);
-        CheckRelationshipUnlocks(npcId, npc.Name, totalTokens);
+        int totalTokens = GetTotalTokensWithNPC(npc);
+        CheckRelationshipUnlocks(npc, totalTokens);
     }
 
     /// <summary>
     /// Get all available unlocks for an NPC based on current tokens
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public List<TokenUnlock> GetAvailableUnlocks(string npcId)
+    public List<TokenUnlock> GetAvailableUnlocks(NPC npc)
     {
         List<TokenUnlock> availableUnlocks = new List<TokenUnlock>();
-        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc);
 
         foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
         {
@@ -209,7 +208,7 @@ public class TokenUnlockManager
                         Description = unlock.Description,
                         Requirement = new TokenRequirement
                         {
-                            NPCId = npcId,
+                            Npc = npc,
                             TokenType = type,
                             MinimumCount = unlock.Threshold
                         },
@@ -224,17 +223,19 @@ public class TokenUnlockManager
 
     /// <summary>
     /// Check if a specific unlock is available
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public bool IsUnlockAvailable(string npcId, string unlockId)
+    public bool IsUnlockAvailable(NPC npc, string unlockId)
     {
-        List<TokenUnlock> availableUnlocks = GetAvailableUnlocks(npcId);
+        List<TokenUnlock> availableUnlocks = GetAvailableUnlocks(npc);
         return availableUnlocks.Any(u => u.UnlockId == unlockId);
     }
 
     /// <summary>
     /// Get unlock requirements for an NPC
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public Dictionary<string, TokenRequirement> GetUnlockRequirements(string npcId)
+    public Dictionary<string, TokenRequirement> GetUnlockRequirements(NPC npc)
     {
         Dictionary<string, TokenRequirement> requirements = new Dictionary<string, TokenRequirement>();
 
@@ -249,7 +250,7 @@ public class TokenUnlockManager
                 string unlockId = $"unlock_{type}_{unlock.Threshold}";
                 requirements[unlockId] = new TokenRequirement
                 {
-                    NPCId = npcId,
+                    Npc = npc,
                     TokenType = type,
                     MinimumCount = unlock.Threshold
                 };
@@ -259,10 +260,13 @@ public class TokenUnlockManager
         return requirements;
     }
 
-    private void ProcessUnlock(string npcId, string npcName, ConnectionType tokenType, UnlockDefinition unlock)
+    /// <summary>
+    /// HIGHLANDER: Accept typed NPC object, extract name for display only
+    /// </summary>
+    private void ProcessUnlock(NPC npc, ConnectionType tokenType, UnlockDefinition unlock)
     {
         _messageSystem.AddSystemMessage(
-            $"New {tokenType} unlock with {npcName}: {unlock.Name}",
+            $"New {tokenType} unlock with {npc.Name}: {unlock.Name}",
             SystemMessageTypes.Success,
             MessageCategory.Achievement
         );
@@ -273,14 +277,17 @@ public class TokenUnlockManager
         }
     }
 
-    private void CheckRelationshipUnlocks(string npcId, string npcName, int totalTokens)
+    /// <summary>
+    /// HIGHLANDER: Accept typed NPC object, extract name for display only
+    /// </summary>
+    private void CheckRelationshipUnlocks(NPC npc, int totalTokens)
     {
         foreach (RelationshipMilestone milestone in _relationshipMilestones)
         {
             if (totalTokens == milestone.Threshold)
             {
                 _messageSystem.AddSystemMessage(
-                    $"Relationship milestone with {npcName}: {milestone.Name}",
+                    $"Relationship milestone with {npc.Name}: {milestone.Name}",
                     SystemMessageTypes.Success,
                     MessageCategory.Achievement
                 );
@@ -300,9 +307,12 @@ public class TokenUnlockManager
         };
     }
 
-    private int GetTotalTokensWithNPC(string npcId)
+    /// <summary>
+    /// HIGHLANDER: Accept typed NPC object
+    /// </summary>
+    private int GetTotalTokensWithNPC(NPC npc)
     {
-        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> tokens = _tokenManager.GetTokensWithNPC(npc);
         return tokens.Values.Where(v => v > 0).Sum();
     }
 }
