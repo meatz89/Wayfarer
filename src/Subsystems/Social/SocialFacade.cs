@@ -82,7 +82,8 @@ public class SocialFacade
         _personalityEnforcer = new PersonalityRuleEnforcer(npc.ConversationModifier);
 
         // Get NPC token counts for session initialization
-        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID); // GetTokensWithNPC still uses ID (not refactored)
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc);
 
         // Create session deck and get request cards from the request
         SocialDeckBuildResult buildResult = _deckBuilder.CreateConversationDeck(npc, situation);

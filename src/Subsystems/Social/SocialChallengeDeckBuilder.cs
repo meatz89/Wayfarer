@@ -152,7 +152,8 @@ public class SocialChallengeDeckBuilder
         // Get all connection types and their token counts
         foreach (ConnectionType connectionType in Enum.GetValues<ConnectionType>())
         {
-            int tokenCount = _tokenManager.GetTokenCount(connectionType, npc.ID);
+            // HIGHLANDER: Pass NPC object directly, not npc.ID
+            int tokenCount = _tokenManager.GetTokenCount(connectionType, npc);
             tokens[connectionType.ToString()] = tokenCount;
         }
 

@@ -132,22 +132,26 @@ public class ExchangeHandler
                     break;
 
                 case ResourceType.TrustToken:
-                    if (!_tokenManager.SpendTokens(ConnectionType.Trust, cost.Amount, npc.ID))
+                    // HIGHLANDER: Pass NPC object directly, not npc.ID
+                    if (!_tokenManager.SpendTokens(ConnectionType.Trust, cost.Amount, npc))
                         return false;
                     break;
 
                 case ResourceType.DiplomacyToken:
-                    if (!_tokenManager.SpendTokens(ConnectionType.Diplomacy, cost.Amount, npc.ID))
+                    // HIGHLANDER: Pass NPC object directly, not npc.ID
+                    if (!_tokenManager.SpendTokens(ConnectionType.Diplomacy, cost.Amount, npc))
                         return false;
                     break;
 
                 case ResourceType.StatusToken:
-                    if (!_tokenManager.SpendTokens(ConnectionType.Status, cost.Amount, npc.ID))
+                    // HIGHLANDER: Pass NPC object directly, not npc.ID
+                    if (!_tokenManager.SpendTokens(ConnectionType.Status, cost.Amount, npc))
                         return false;
                     break;
 
                 case ResourceType.ShadowToken:
-                    if (!_tokenManager.SpendTokens(ConnectionType.Shadow, cost.Amount, npc.ID))
+                    // HIGHLANDER: Pass NPC object directly, not npc.ID
+                    if (!_tokenManager.SpendTokens(ConnectionType.Shadow, cost.Amount, npc))
                         return false;
                     break;
             }
@@ -224,7 +228,8 @@ public class ExchangeHandler
             return true;
 
         // Check if player has required minimum tokens with this NPC
-        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc);
 
         foreach (KeyValuePair<ConnectionType, int> tokenReq in card.Cost.TokenRequirements)
         {
