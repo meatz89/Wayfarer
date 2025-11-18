@@ -256,27 +256,32 @@ public class Player
 
     /// <summary>
     /// Get familiarity level for a Location (0-3 scale)
+    /// HIGHLANDER: Accept Location object, not string ID
     /// </summary>
-    public int GetLocationFamiliarity(string locationId)
+    public int GetLocationFamiliarity(Location location)
     {
-        FamiliarityEntry entry = LocationFamiliarity.FirstOrDefault(f => f.EntityId == locationId);
+        if (location == null) return 0;
+        FamiliarityEntry entry = LocationFamiliarity.FirstOrDefault(f => f.EntityId == location.Name);
         return entry?.Level ?? 0;
     }
 
     /// <summary>
     /// Set Location familiarity to a specific value (max 3)
+    /// HIGHLANDER: Accept Location object, not string ID
     /// </summary>
-    public void SetLocationFamiliarity(string locationId, int value)
+    public void SetLocationFamiliarity(Location location, int value)
     {
+        if (location == null) return;
+
         int clampedValue = Math.Min(3, Math.Max(0, value));
-        FamiliarityEntry existing = LocationFamiliarity.FirstOrDefault(f => f.EntityId == locationId);
+        FamiliarityEntry existing = LocationFamiliarity.FirstOrDefault(f => f.EntityId == location.Name);
         if (existing != null)
         {
             existing.Level = clampedValue;
         }
         else
         {
-            LocationFamiliarity.Add(new FamiliarityEntry { EntityId = locationId, Level = clampedValue });
+            LocationFamiliarity.Add(new FamiliarityEntry { EntityId = location.Name, Level = clampedValue });
         }
     }
 
