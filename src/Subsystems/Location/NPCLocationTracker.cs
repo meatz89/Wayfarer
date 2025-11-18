@@ -58,25 +58,23 @@ public class NPCLocationTracker
     }
     /// <summary>
     /// Check if an NPC is at a specific location.
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public bool IsNPCAtSpot(string npcId, Location location)
+    public bool IsNPCAtSpot(NPC npc, Location location)
     {
-        if (string.IsNullOrEmpty(npcId) || location == null) return false;
+        if (npc == null || location == null) return false;
 
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc == null || npc.Location == null) return false;
+        if (npc.Location == null) return false;
 
         return npc.Location == location;
     }
 
     /// <summary>
     /// Check if an NPC is available during a time block.
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public bool IsNPCAvailable(string npcId, TimeBlocks timeBlock)
+    public bool IsNPCAvailable(NPC npc, TimeBlocks timeBlock)
     {
-        if (string.IsNullOrEmpty(npcId)) return false;
-
-        NPC npc = _npcRepository.GetById(npcId);
         if (npc == null) return false;
 
         return npc.IsAvailable(timeBlock);
@@ -141,12 +139,10 @@ public class NPCLocationTracker
 
     /// <summary>
     /// Find where an NPC is currently located.
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public NPCLocation FindNPC(string npcId)
+    public NPCLocation FindNPC(NPC npc)
     {
-        if (string.IsNullOrEmpty(npcId)) return null;
-
-        NPC npc = _npcRepository.GetById(npcId);
         if (npc == null) return null;
 
         return new NPCLocation
@@ -183,14 +179,12 @@ public class NPCLocationTracker
 
     /// <summary>
     /// Get time blocks when an NPC is available.
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public List<TimeBlocks> GetNPCAvailableTimes(string npcId)
+    public List<TimeBlocks> GetNPCAvailableTimes(NPC npc)
     {
         List<TimeBlocks> availableTimes = new List<TimeBlocks>();
 
-        if (string.IsNullOrEmpty(npcId)) return availableTimes;
-
-        NPC npc = _npcRepository.GetById(npcId);
         if (npc == null) return availableTimes;
 
         foreach (TimeBlocks timeBlock in Enum.GetValues<TimeBlocks>())
