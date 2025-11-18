@@ -8,9 +8,10 @@
 public class RouteTraversalRecord
 {
     /// <summary>
-    /// Route entity ID this record tracks
+    /// Route entity this record tracks
+    /// HIGHLANDER: Object reference only, no string ID
     /// </summary>
-    public string RouteId { get; set; }
+    public RouteOption Route { get; set; }
 
     /// <summary>
     /// Day of last traversal on this route

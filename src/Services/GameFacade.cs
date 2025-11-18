@@ -332,10 +332,10 @@ public class GameFacade
                 player.CurrentPosition = destSpot.HexPosition.Value;
 
                 // TRIGGER POINT 1: Record location visit after successful travel
-                RecordLocationVisit(destSpot.Name);
+                RecordLocationVisit(destSpot);
 
                 // TRIGGER POINT 3: Record route traversal after successful travel
-                RecordRouteTraversal(route.Name);
+                RecordRouteTraversal(route);
             }
 
             TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
@@ -1949,13 +1949,13 @@ public class GameFacade
     /// Update-in-place pattern: Find existing record or create new
     /// ONE record per location (replaces previous timestamp)
     /// </summary>
-    private void RecordLocationVisit(string locationId)
+    private void RecordLocationVisit(Location location)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Find existing record
+        // Find existing record - HIGHLANDER: object equality
         LocationVisitRecord existingRecord = player.LocationVisits
-            .FirstOrDefault(record => record.LocationId == locationId);
+            .FirstOrDefault(record => record.Location == location);
 
         if (existingRecord != null)
         {
@@ -1969,7 +1969,7 @@ public class GameFacade
             // Create new record
             player.LocationVisits.Add(new LocationVisitRecord
             {
-                LocationId = locationId,
+                Location = location,
                 LastVisitDay = _timeFacade.GetCurrentDay(),
                 LastVisitTimeBlock = _timeFacade.GetCurrentTimeBlock(),
                 LastVisitSegment = _timeFacade.GetCurrentSegment()
@@ -2015,13 +2015,13 @@ public class GameFacade
     /// Update-in-place pattern: Find existing record or create new
     /// ONE record per route (replaces previous timestamp)
     /// </summary>
-    private void RecordRouteTraversal(string routeId)
+    private void RecordRouteTraversal(RouteOption route)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Find existing record
+        // Find existing record - HIGHLANDER: object equality
         RouteTraversalRecord existingRecord = player.RouteTraversals
-            .FirstOrDefault(record => record.RouteId == routeId);
+            .FirstOrDefault(record => record.Route == route);
 
         if (existingRecord != null)
         {
@@ -2035,7 +2035,7 @@ public class GameFacade
             // Create new record
             player.RouteTraversals.Add(new RouteTraversalRecord
             {
-                RouteId = routeId,
+                Route = route,
                 LastTraversalDay = _timeFacade.GetCurrentDay(),
                 LastTraversalTimeBlock = _timeFacade.GetCurrentTimeBlock(),
                 LastTraversalSegment = _timeFacade.GetCurrentSegment()
