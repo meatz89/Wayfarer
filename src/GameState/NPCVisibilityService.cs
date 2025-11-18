@@ -1,6 +1,7 @@
 /// <summary>
 /// Service that manages NPC visibility rules without creating circular dependencies.
 /// Acts as a bridge between NPCRepository and systems that affect visibility.
+/// HIGHLANDER: All methods accept NPC objects, not string IDs
 /// </summary>
 public class NPCVisibilityService
 {
@@ -8,15 +9,16 @@ public class NPCVisibilityService
 
     /// <summary>
     /// Check if an NPC should be visible based on all registered rules
+    /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public bool IsNPCVisible(string npcId)
+    public bool IsNPCVisible(NPC npc)
     {
         // If no rules are registered, all NPCs are visible
         if (!_visibilityRules.Any())
             return true;
 
         // All rules must allow visibility
-        return _visibilityRules.All(rule => rule.IsNPCVisible(npcId));
+        return _visibilityRules.All(rule => rule.IsNPCVisible(npc));
     }
 
     /// <summary>
@@ -27,14 +29,16 @@ public class NPCVisibilityService
         if (!_visibilityRules.Any())
             return npcs;
 
-        return npcs.Where(npc => IsNPCVisible(npc.ID)).ToList();
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        return npcs.Where(npc => IsNPCVisible(npc)).ToList();
     }
 }
 
 /// <summary>
 /// Interface for systems that can affect NPC visibility
+/// HIGHLANDER: Methods accept NPC objects, not string IDs
 /// </summary>
 public interface INPCVisibilityRule
 {
-    bool IsNPCVisible(string npcId);
+    bool IsNPCVisible(NPC npc);
 }
