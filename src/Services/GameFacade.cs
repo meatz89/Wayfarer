@@ -321,8 +321,8 @@ public class GameFacade
 
         if (travelResult.Success)
         {
-            // Find the destination location by name from GameWorld's Locations
-            Location? destSpot = _gameWorld.GetLocation(route.DestinationLocationName);
+            // HIGHLANDER: Use object reference directly, no string lookup
+            Location destSpot = route.DestinationLocation;
 
             if (destSpot != null)
             {
@@ -349,14 +349,13 @@ public class GameFacade
                 SegmentsAdvanced = travelResult.SegmentCost
             });
 
-            // Get destination Venue name for the message
-            Location? finalDestSpot = _gameWorld.GetLocation(route.DestinationLocationName);
+            // HIGHLANDER: Use object references directly, no string lookups
+            Location finalDestSpot = route.DestinationLocation;
 
             string destinationName = "Unknown";
             if (finalDestSpot != null)
             {
-                Venue? destLocation = _gameWorld.Venues
-                    .FirstOrDefault(l => l.Name == finalDestSpot.VenueName);
+                Venue destLocation = finalDestSpot.Venue;
                 if (destLocation != null)
                 {
                     destinationName = destLocation.Name;
