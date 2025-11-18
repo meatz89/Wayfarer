@@ -24,13 +24,15 @@ public class ConnectionTokenManager
 
     /// <summary>
     /// Get all tokens with a specific NPC
+    /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public List<TokenCount> GetTokensWithNPC(string npcId)
+    public List<TokenCount> GetTokensWithNPC(NPC npc)
     {
         Player player = _gameWorld.GetPlayer();
         List<NPCTokenEntry> npcTokens = player.NPCTokens;
 
-        NPCTokenEntry? entry = npcTokens.FirstOrDefault(x => x.NpcId == npcId);
+        // HIGHLANDER: Compare NPC objects directly
+        NPCTokenEntry entry = npcTokens.FirstOrDefault(x => x.Npc == npc);
         if (entry != null)
         {
             // Build list from properties
@@ -54,10 +56,11 @@ public class ConnectionTokenManager
 
     /// <summary>
     /// Get specific token count with an NPC
+    /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public int GetTokenCount(string npcId, ConnectionType type)
+    public int GetTokenCount(NPC npc, ConnectionType type)
     {
-        List<TokenCount> tokens = GetTokensWithNPC(npcId);
+        List<TokenCount> tokens = GetTokensWithNPC(npc);
         TokenCount token = tokens.FirstOrDefault(t => t.Type == type);
         return token?.Count ?? 0;
     }

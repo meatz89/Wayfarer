@@ -55,10 +55,11 @@ public class TokenFacade
 
     /// <summary>
     /// Get specific token count with an NPC
+    /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public int GetTokenCount(string npcId, ConnectionType type)
+    public int GetTokenCount(NPC npc, ConnectionType type)
     {
-        return _connectionTokenManager.GetTokenCount(npcId, type);
+        return _connectionTokenManager.GetTokenCount(npc, type);
     }
 
     // ========== TOKEN GENERATION OPERATIONS ==========

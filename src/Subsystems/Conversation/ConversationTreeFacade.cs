@@ -53,7 +53,8 @@ public class ConversationTreeFacade
         Player player = _gameWorld.GetPlayer();
 
         // Check availability conditions
-        int relationship = _tokenFacade.GetTokenCount(npc.ID, ConnectionType.Trust);
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        int relationship = _tokenFacade.GetTokenCount(npc, ConnectionType.Trust);
         if (relationship < tree.MinimumRelationship)
         {
             return new ConversationTreeContext
@@ -281,7 +282,8 @@ public class ConversationTreeFacade
                 if (npc.Location != location) return false;
 
                 // Check relationship requirement
-                int relationship = _tokenFacade.GetTokenCount(npc.ID, ConnectionType.Trust);
+                // HIGHLANDER: Pass NPC object directly, not npc.ID
+                int relationship = _tokenFacade.GetTokenCount(npc, ConnectionType.Trust);
                 if (relationship < t.MinimumRelationship) return false;
 
                 // Check time blocks (empty list = always available)
