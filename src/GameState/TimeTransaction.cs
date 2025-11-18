@@ -1,14 +1,15 @@
 /// <summary>
 /// Strongly typed context for time-based transactions
+/// HIGHLANDER: All entity references are typed objects, not string IDs
 /// </summary>
 public class TransactionContext
 {
-    public string VenueId { get; set; }
-    public string NpcId { get; set; }
-    public string DestinationId { get; set; }
+    public Venue Venue { get; set; }
+    public NPC Npc { get; set; }
+    public Location Destination { get; set; }
     public int? TravelDistance { get; set; }
-    public string ActionType { get; set; }
-    public string ItemId { get; set; }
+    public string ActionType { get; set; } // Categorical type, not entity ID
+    public Item Item { get; set; }
     public int? ItemQuantity { get; set; }
     public ResourceType? ResourceType { get; set; }
     public int? ResourceAmount { get; set; }
