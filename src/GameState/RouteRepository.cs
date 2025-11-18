@@ -17,14 +17,15 @@ public class RouteRepository : IRouteRepository
     }
 
     // Get routes from a specific Location
-    public IEnumerable<RouteOption> GetRoutesFromLocation(string locationId)
+    // HIGHLANDER: Accept Location object, compare objects
+    public IEnumerable<RouteOption> GetRoutesFromLocation(Location location)
     {
         // ONLY use GameWorld.Routes as the single source of truth
         if (_gameWorld.Routes == null)
             return new List<RouteOption>();
 
-        // Query by OriginLocation object reference (compare location names)
-        return _gameWorld.Routes.Where(r => r.OriginLocation != null && r.OriginLocation.Name == locationId);
+        // Query by OriginLocation object reference (object equality)
+        return _gameWorld.Routes.Where(r => r.OriginLocation == location);
     }
 
     // Get all routes in the world
@@ -38,14 +39,13 @@ public class RouteRepository : IRouteRepository
 
 
     // Get available routes from the player's current location
-    public IEnumerable<RouteOption> GetAvailableRoutes(string fromLocationId, Player player)
+    // HIGHLANDER: Accept Location object
+    public IEnumerable<RouteOption> GetAvailableRoutes(Location fromLocation, Player player)
     {
-        // Get routes from the specified location
-        Location location = _gameWorld.GetLocation(fromLocationId);
-        if (location == null) return new List<RouteOption>();
+        if (fromLocation == null) return new List<RouteOption>();
 
         // Get all routes that start from this location
-        IEnumerable<RouteOption> allRoutes = GetRoutesFromLocation(location.Name);
+        IEnumerable<RouteOption> allRoutes = GetRoutesFromLocation(fromLocation);
         List<RouteOption> availableRoutes = new List<RouteOption>();
 
         foreach (RouteOption route in allRoutes)
