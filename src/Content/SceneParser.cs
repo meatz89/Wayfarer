@@ -90,7 +90,6 @@ public static class SceneParser
         // Scene is narrative container with no specific location/NPC/route
         Scene scene = new Scene
         {
-            Id = dto.Id,
             TemplateId = dto.TemplateId,
             Template = template,
             State = state,
@@ -101,9 +100,16 @@ public static class SceneParser
             PresentationMode = presentationMode,
             ProgressionMode = progressionMode,
             Category = category,
-            MainStorySequence = dto.MainStorySequence,
-            SourceSituationId = dto.SourceSituationId
+            MainStorySequence = dto.MainStorySequence
         };
+
+        // Resolve SourceSituation object from SourceSituationId (parse-time translation)
+        if (!string.IsNullOrEmpty(dto.SourceSituationId))
+        {
+            scene.SourceSituation = gameWorld.Scenes
+                .SelectMany(s => s.Situations)
+                .FirstOrDefault(s => s.Template?.Id == dto.SourceSituationId);
+        }
 
         // =====================================================
         // SPAWN RULES PARSING
@@ -131,7 +137,7 @@ public static class SceneParser
             PlacementFilterDTO effectiveLocationFilter = situationDto.LocationFilter ?? dto.LocationFilter;
             if (effectiveLocationFilter != null)
             {
-                string locationContext = $"Scene:{dto.Id}/Situation:{situationDto.Id}/Location";
+                string locationContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/Location";
                 PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(effectiveLocationFilter, locationContext);
                 resolvedLocation = entityResolver.FindOrCreateLocation(locationFilter);
             }
@@ -140,7 +146,7 @@ public static class SceneParser
             PlacementFilterDTO effectiveNpcFilter = situationDto.NpcFilter ?? dto.NpcFilter;
             if (effectiveNpcFilter != null)
             {
-                string npcContext = $"Scene:{dto.Id}/Situation:{situationDto.Id}/NPC";
+                string npcContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/NPC";
                 PlacementFilter npcFilter = SceneTemplateParser.ParsePlacementFilter(effectiveNpcFilter, npcContext);
                 resolvedNpc = entityResolver.FindOrCreateNPC(npcFilter);
             }
@@ -149,7 +155,7 @@ public static class SceneParser
             PlacementFilterDTO effectiveRouteFilter = situationDto.RouteFilter ?? dto.RouteFilter;
             if (effectiveRouteFilter != null)
             {
-                string routeContext = $"Scene:{dto.Id}/Situation:{situationDto.Id}/Route";
+                string routeContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/Route";
                 PlacementFilter routeFilter = SceneTemplateParser.ParsePlacementFilter(effectiveRouteFilter, routeContext);
                 resolvedRoute = entityResolver.FindOrCreateRoute(routeFilter);
                 segmentIndex = routeFilter.SegmentIndex; // Capture segment placement from filter
@@ -176,7 +182,7 @@ public static class SceneParser
                 situation.Template = template.SituationTemplates.FirstOrDefault(t => t.Id == situationDto.TemplateId);
                 if (situation.Template == null)
                 {
-                    Console.WriteLine($"[SceneParser] WARNING: Situation '{situation.Id}' references TemplateId '{situationDto.TemplateId}' " +
+                    Console.WriteLine($"[SceneParser] WARNING: Situation '{situation.Name}' references TemplateId '{situationDto.TemplateId}' " +
                         $"but no such template found in SceneTemplate '{template.Id}'");
                 }
             }
@@ -197,7 +203,7 @@ public static class SceneParser
             }
             else
             {
-                Console.WriteLine($"[SceneParser] WARNING: Scene '{dto.Id}' references CurrentSituationId '{dto.CurrentSituationId}' " +
+                Console.WriteLine($"[SceneParser] WARNING: Scene '{dto.DisplayName}' references CurrentSituationId '{dto.CurrentSituationId}' " +
                     $"but no such situation found in embedded Situations collection. Defaulting to index 0.");
                 scene.CurrentSituationIndex = 0;
             }
