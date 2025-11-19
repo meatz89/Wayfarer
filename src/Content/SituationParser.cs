@@ -49,7 +49,6 @@ public static class SituationParser
 
         Situation situation = new Situation
         {
-            Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
             // Placement properties (System 5 output - pre-resolved from System 4)
@@ -57,7 +56,6 @@ public static class SituationParser
             Npc = resolvedNpc,
             Route = resolvedRoute,
             SystemType = systemType,
-            DeckId = dto.DeckId,
             IsIntroAction = dto.IsIntroAction,
             // IsAvailable and IsCompleted are computed properties from Status enum (no population needed)
             DeleteOnSuccess = dto.DeleteOnSuccess,
@@ -71,7 +69,6 @@ public static class SituationParser
             TransformDescription = dto.TransformDescription,
             // Scene-Situation Architecture additions (spawn/completion tracking)
             TemplateId = dto.TemplateId,
-            ParentSituationId = dto.ParentSituationId,
             Lifecycle = new SpawnTracking
             {
                 SpawnedDay = dto.SpawnedDay,
@@ -87,27 +84,43 @@ public static class SituationParser
             NavigationPayload = ParseNavigationPayload(dto.NavigationPayload, gameWorld),
             CompoundRequirement = RequirementParser.ConvertDTOToCompoundRequirement(dto.CompoundRequirement),
             // ProjectedBondChanges/ProjectedScaleShifts/ProjectedStates DELETED - stored projection pattern
-            SuccessSpawns = SpawnRuleParser.ParseSpawnRules(dto.SuccessSpawns, dto.Id),
-            FailureSpawns = SpawnRuleParser.ParseSpawnRules(dto.FailureSpawns, dto.Id),
+            SuccessSpawns = SpawnRuleParser.ParseSpawnRules(dto.SuccessSpawns, dto.Name),
+            FailureSpawns = SpawnRuleParser.ParseSpawnRules(dto.FailureSpawns, dto.Name),
             Tier = dto.Tier,
             Repeatable = dto.Repeatable,
             GeneratedNarrative = dto.GeneratedNarrative,
             NarrativeHints = ParseNarrativeHints(dto.NarrativeHints)
         };
 
-        // Resolve object references during parsing (HIGHLANDER: ID is parsing artifact, not entity property)
+        // Resolve object references during parsing (HIGHLANDER: Name is natural key)
         // Parser uses ID from DTO as lookup key, entity stores ONLY object reference
         // PLACEMENT: Location/Npc/Route assigned directly from pre-resolved entities (System 4 output)
 
         if (!string.IsNullOrEmpty(dto.ObligationId))
             situation.Obligation = gameWorld.Obligations.FirstOrDefault(i => i.Id == dto.ObligationId);
 
+        // Resolve Deck object reference from DeckId (parse-time translation)
+        if (!string.IsNullOrEmpty(dto.DeckId))
+        {
+            situation.Deck = gameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == dto.DeckId)
+                ?? (object)gameWorld.MentalChallengeDecks.FirstOrDefault(d => d.Id == dto.DeckId)
+                ?? gameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == dto.DeckId);
+        }
+
+        // Resolve ParentSituation from ParentSituationId - needs to search all situations in all scenes
+        if (!string.IsNullOrEmpty(dto.ParentSituationId))
+        {
+            situation.ParentSituation = gameWorld.Scenes
+                .SelectMany(s => s.Situations)
+                .FirstOrDefault(s => s.Template?.Id == dto.ParentSituationId);
+        }
+
         // Parse situation cards (victory conditions)
         if (dto.SituationCards != null && dto.SituationCards.Any())
         {
             foreach (SituationCardDTO situationCardDTO in dto.SituationCards)
             {
-                SituationCard situationCard = ParseSituationCard(situationCardDTO, dto.Id);
+                SituationCard situationCard = ParseSituationCard(situationCardDTO, dto.Name);
                 situation.SituationCards.Add(situationCard);
             }
         }
