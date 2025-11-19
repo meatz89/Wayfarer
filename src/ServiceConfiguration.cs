@@ -101,7 +101,7 @@ public static class ServiceConfiguration
         // HttpClient for Icon component (SVG loading from wwwroot)
         services.AddScoped<HttpClient>(sp =>
         {
-            var navigationManager = sp.GetRequiredService<NavigationManager>();
+            NavigationManager navigationManager = sp.GetRequiredService<NavigationManager>();
             return new HttpClient
             {
                 BaseAddress = new Uri(navigationManager.BaseUri)

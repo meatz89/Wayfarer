@@ -370,12 +370,12 @@ public class ProceduralAStoryService
     private string SerializeTemplatePackage(SceneTemplateDTO dto)
     {
         // Create package wrapper (same format as authored JSON packages)
-        var package = new
+        ProceduralTemplatePackage package = new ProceduralTemplatePackage
         {
-            packageId = $"a_story_{dto.MainStorySequence}_template",
-            version = "1.0",
-            generatedAt = DateTime.UtcNow.ToString("o"),
-            sceneTemplates = new List<SceneTemplateDTO> { dto }
+            PackageId = $"a_story_{dto.MainStorySequence}_template",
+            Version = "1.0",
+            GeneratedAt = DateTime.UtcNow.ToString("o"),
+            SceneTemplates = new List<SceneTemplateDTO> { dto }
         };
 
         // Serialize with pretty formatting for debugging
@@ -480,4 +480,16 @@ public class ProceduralAStoryService
 
         return context;
     }
+}
+
+/// <summary>
+/// Strongly-typed package wrapper for procedurally-generated scene templates
+/// Replaces anonymous type - HIGHLANDER compliance
+/// </summary>
+public class ProceduralTemplatePackage
+{
+    public string PackageId { get; set; }
+    public string Version { get; set; }
+    public string GeneratedAt { get; set; }
+    public List<SceneTemplateDTO> SceneTemplates { get; set; }
 }

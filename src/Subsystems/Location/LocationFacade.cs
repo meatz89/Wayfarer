@@ -337,13 +337,8 @@ public class LocationFacade
     {
         if (obs.RelevantNPCs != null && obs.RelevantNPCs.Any())
         {
-            string npcs = string.Join(", ", obs.RelevantNPCs.Select(id =>
-            {
-                NPC npc = _npcRepository.GetById(id);
-                if (npc == null)
-                    throw new InvalidOperationException($"NPC not found: {id}");
-                return npc.Name;
-            }));
+            // HIGHLANDER: obs.RelevantNPCs is List<NPC>, directly access Name for display
+            string npcs = string.Join(", ", obs.RelevantNPCs.Select(npc => npc.Name));
 
             if (obs.CreatesState.HasValue)
                 return $"→ {npcs} ({obs.CreatesState.Value})";

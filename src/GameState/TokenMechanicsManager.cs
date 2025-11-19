@@ -259,7 +259,8 @@ public class TokenMechanicsManager
                 remaining -= toSpend;
 
                 // Add narrative feedback for each NPC
-                NPC npc = _npcRepository.GetById(npcEntry.NpcId);
+                // HIGHLANDER: Direct object reference from npcEntry.Npc, no GetById lookup
+                NPC npc = npcEntry.Npc;
                 if (npc != null && toSpend > 0)
                 {
                     _messageSystem.AddSystemMessage(
