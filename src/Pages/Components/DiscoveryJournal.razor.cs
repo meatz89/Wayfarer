@@ -40,15 +40,15 @@ namespace Wayfarer.Pages.Components
                 .ToList();
         }
 
-        protected int GetFamiliarity(string locationId)
+        protected int GetFamiliarity(Location location)
         {
-            return GameWorld.GetPlayer().GetLocationFamiliarity(locationId);
+            return GameWorld.GetPlayer().GetLocationFamiliarity(location.Name);
         }
 
-        protected double GetFamiliarityPercent(string locationId, int max)
+        protected double GetFamiliarityPercent(Location location, int max)
         {
             if (max == 0) return 0;
-            return (double)GetFamiliarity(locationId) / max * 100.0;
+            return (double)GetFamiliarity(location) / max * 100.0;
         }
 
         protected int GetCollectedObservationCount()
