@@ -1403,7 +1403,7 @@ public class PackageLoader
         {
             foreach (PathCardDTO pathCard in collection.PathCards)
             {
-                _gameWorld.SetPathCardDiscovered(pathCard.Name, pathCard.StartsRevealed);
+                _gameWorld.SetPathCardDiscovered(pathCard, pathCard.StartsRevealed);
             }
         }
 
@@ -1412,7 +1412,7 @@ public class PackageLoader
         {
             foreach (PathCardDTO eventCard in collection.EventCards)
             {
-                _gameWorld.SetPathCardDiscovered(eventCard.Name, eventCard.StartsRevealed);
+                _gameWorld.SetPathCardDiscovered(eventCard, eventCard.StartsRevealed);
             }
         }
 

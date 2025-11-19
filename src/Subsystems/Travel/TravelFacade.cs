@@ -372,7 +372,7 @@ public class TravelFacade
         }
 
         // Check one-time card usage
-        if (card.IsOneTime && _gameWorld.IsPathCardDiscovered(card.Id))
+        if (card.IsOneTime && _gameWorld.IsPathCardDiscovered(card))
         {
             return new PathCardAvailability { CanPlay = false, Reason = "Already used this one-time path" };
         }
@@ -443,7 +443,7 @@ public class TravelFacade
             // Event segments: cards are ALWAYS face-up (IsDiscovered = true)
             // FixedPath segments: check PathCardDiscoveries dictionary
             bool isDiscovered = isEventSegment ||
-                              _gameWorld.IsPathCardDiscovered(card.Id);
+                              _gameWorld.IsPathCardDiscovered(card);
 
             bool canPlay = CanPlayPathCard(card);
 

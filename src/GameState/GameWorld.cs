@@ -962,28 +962,36 @@ public class GameWorld
 
     /// <summary>
     /// Check if path card is discovered
+    /// HIGHLANDER: Accept PathCardDTO object, extract Id internally for state tracking
     /// </summary>
-    public bool IsPathCardDiscovered(string cardId)
+    public bool IsPathCardDiscovered(PathCardDTO card)
     {
-        PathCardDiscoveryEntry entry = PathCardDiscoveries.FirstOrDefault(d => d.CardId == cardId);
+        if (card == null)
+            throw new ArgumentNullException(nameof(card));
+
+        PathCardDiscoveryEntry entry = PathCardDiscoveries.FirstOrDefault(d => d.CardId == card.Id);
         if (entry == null)
-            throw new InvalidOperationException($"No discovery entry found for card '{cardId}' - ensure card exists before checking discovery status");
+            throw new InvalidOperationException($"No discovery entry found for card '{card.Name}' - ensure card exists before checking discovery status");
         return entry.IsDiscovered;
     }
 
     /// <summary>
     /// Set path card discovery status
+    /// HIGHLANDER: Accept PathCardDTO object, extract Id internally for state tracking
     /// </summary>
-    public void SetPathCardDiscovered(string cardId, bool discovered)
+    public void SetPathCardDiscovered(PathCardDTO card, bool discovered)
     {
-        PathCardDiscoveryEntry existing = PathCardDiscoveries.FirstOrDefault(d => d.CardId == cardId);
+        if (card == null)
+            throw new ArgumentNullException(nameof(card));
+
+        PathCardDiscoveryEntry existing = PathCardDiscoveries.FirstOrDefault(d => d.CardId == card.Id);
         if (existing != null)
         {
             existing.IsDiscovered = discovered;
         }
         else
         {
-            PathCardDiscoveries.Add(new PathCardDiscoveryEntry { CardId = cardId, IsDiscovered = discovered });
+            PathCardDiscoveries.Add(new PathCardDiscoveryEntry { CardId = card.Id, IsDiscovered = discovered });
         }
     }
 

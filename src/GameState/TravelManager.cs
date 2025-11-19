@@ -193,7 +193,7 @@ public class TravelManager
         }
 
         // Check if card is already discovered (face-up)
-        if (_gameWorld.IsPathCardDiscovered(card.Id))
+        if (_gameWorld.IsPathCardDiscovered(card))
         {
             return false; // Card already revealed
         }
@@ -210,13 +210,13 @@ public class TravelManager
         }
 
         // Check one-time card usage
-        if (card.IsOneTime && _gameWorld.IsPathCardDiscovered(card.Id))
+        if (card.IsOneTime && _gameWorld.IsPathCardDiscovered(card))
         {
             return false;
         }
 
         // Mark card as discovered (face-up)
-        _gameWorld.SetPathCardDiscovered(card.Id, true);
+        _gameWorld.SetPathCardDiscovered(card, true);
 
         // ADR-007: Set reveal state with PathCardDTO object (not ID)
         session.IsRevealingCard = true;
@@ -343,7 +343,7 @@ public class TravelManager
         }
 
         // Check if card is already discovered (face-up)
-        bool isDiscovered = _gameWorld.IsPathCardDiscovered(card.Id);
+        bool isDiscovered = _gameWorld.IsPathCardDiscovered(card);
 
         // For already discovered cards, apply effects immediately (no reveal screen needed)
         if (isDiscovered)
@@ -573,36 +573,6 @@ public class TravelManager
             player.ModifyCoins(card.CoinReward);
             _messageSystem.AddSystemMessage($"Gained {card.CoinReward} coins from path", SystemMessageTypes.Success);
         }
-    }
-
-    /// <summary>
-    /// Apply one-time reward effects with system messages
-    /// </summary>
-    private void ApplyOneTimeReward(PathReward reward, string cardId)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        // Apply typed reward based on reward type
-        switch (reward.RewardType)
-        {
-            case PathRewardType.Coins:
-                int amount = reward.Amount ?? 0;
-                player.ModifyCoins(amount);
-                _messageSystem.AddSystemMessage($"One-time reward claimed: {amount} coins", SystemMessageTypes.Success);
-                break;
-
-            case PathRewardType.Observation:
-                // Observation cards are not implemented in current design
-                _messageSystem.AddSystemMessage($"One-time reward claimed: {reward.SpecificId}", SystemMessageTypes.Success);
-                break;
-
-            case PathRewardType.None:
-                // No reward, do nothing
-                break;
-        }
-
-        // Mark reward as claimed
-        _gameWorld.SetPathCardDiscovered(cardId, true);
     }
 
     /// <summary>
