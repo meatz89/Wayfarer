@@ -269,7 +269,7 @@ public class LocationFacade
         // Generate interaction based on conversation type
         InteractionOptionViewModel interaction = new InteractionOptionViewModel
         {
-            ConversationTypeId = conversationType
+            ConversationType = conversationType
         };
 
         // Set display text based on type

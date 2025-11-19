@@ -125,8 +125,6 @@ public class NarrativeStateViewModel
 
 public class NarrativeViewModel
 {
-    public string NarrativeId { get; set; }
-    public string CurrentStepId { get; set; }
     public string StepName { get; set; }
     public string StepDescription { get; set; }
     public bool IsComplete { get; set; }
@@ -156,7 +154,6 @@ public class RestOptionsViewModel
 /// </summary>
 public class RestOptionViewModel
 {
-    public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public int StaminaRecovery { get; set; }
@@ -174,7 +171,6 @@ public class RestOptionViewModel
 /// </summary>
 public class RestLocationActionViewModel
 {
-    public string Id { get; set; }
     public string Description { get; set; }
     public string NPCName { get; set; }
     public string NPCProfession { get; set; }
@@ -312,7 +308,6 @@ public class InformationDiscoveryViewModel
 /// </summary>
 public class DiscoveredInfoViewModel
 {
-    public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
     public int Tier { get; set; }
@@ -370,7 +365,6 @@ public class ActionGroupViewModel
 /// </summary>
 public class ActionOptionViewModel
 {
-    public string Id { get; set; }
     public string Description { get; set; }
     public string NPCName { get; set; }
     public string NPCProfession { get; set; }

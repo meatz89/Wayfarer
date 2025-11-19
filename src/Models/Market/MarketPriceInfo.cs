@@ -1,11 +1,12 @@
 /// <summary>
 /// Market price information for an item at a location
+/// HIGHLANDER: Object references, no string IDs
 /// </summary>
 public class MarketPriceInfo
 {
-    public string VenueId { get; set; }
+    public Venue Venue { get; set; }
     public string LocationName { get; set; }
-    public string ItemId { get; set; }
+    public Item Item { get; set; }
     public int BuyPrice { get; set; }
     public int SellPrice { get; set; }
     public float SupplyLevel { get; set; }

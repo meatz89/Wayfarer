@@ -348,7 +348,7 @@ namespace Wayfarer.Pages.Components
             LastNarrative = "You listen attentively...";
 
             // For Request conversations, display the request text on LISTEN
-            if (Context?.ConversationTypeId == "request" && !string.IsNullOrEmpty(Context.RequestText))
+            if (Context?.ConversationType == "request" && !string.IsNullOrEmpty(Context.RequestText))
             {
                 LastDialogue = Context.RequestText;
             }

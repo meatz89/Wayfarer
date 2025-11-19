@@ -21,7 +21,6 @@ public class LocationScreenViewModel
 
 public class LocationActionViewModel
 {
-    public string Id { get; set; }
     public string Title { get; set; }
     public string Detail { get; set; }
     public string Cost { get; set; }
@@ -55,7 +54,7 @@ public class InteractionOptionViewModel
 {
     public string Text { get; set; }
     public string Cost { get; set; }
-    public string ConversationTypeId { get; set; } = "friendly_chat";
+    public string ConversationType { get; set; } = "friendly_chat";
 }
 
 public class ObservationViewModel
@@ -281,7 +280,6 @@ public class SituationCardViewModel
 /// </summary>
 public class ActionCardViewModel
 {
-    public string Id { get; set; }
     // HIGHLANDER: Object reference, not ID string
     public Situation Situation { get; set; }
     public string Name { get; set; }

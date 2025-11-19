@@ -1,13 +1,14 @@
 /// <summary>
 /// Result of a trade action
+/// HIGHLANDER: Object references, no string IDs
 /// </summary>
 public class TradeActionResult
 {
     public bool Success { get; set; }
     public string Message { get; set; }
     public string Action { get; set; }
-    public string ItemId { get; set; }
-    public string VenueId { get; set; }
+    public Item Item { get; set; }
+    public Venue Venue { get; set; }
     public int CoinsChanged { get; set; }
     public int QuantityChanged { get; set; }
     public int CoinsBefore { get; set; }

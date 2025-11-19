@@ -236,7 +236,6 @@ public class SceneContentBase : ComponentBase
 
             ActionCardViewModel choice = new ActionCardViewModel
             {
-                Id = choiceTemplate.Id,
                 Name = choiceTemplate.ActionTextTemplate,
                 Description = "",
                 RequirementsMet = requirementsMet,
