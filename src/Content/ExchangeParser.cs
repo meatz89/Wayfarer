@@ -15,19 +15,18 @@ public static class ExchangeParser
 
         // VALIDATION: Name is REQUIRED field
         if (string.IsNullOrEmpty(dto.Name))
-            throw new InvalidOperationException($"Exchange '{dto.Id}' missing required field 'name'");
+            throw new InvalidOperationException($"Exchange '{dto.Name}' missing required field 'name'");
 
         // VALIDATION: ProviderFilter is REQUIRED field
         if (dto.ProviderFilter == null)
-            throw new InvalidOperationException($"Exchange '{dto.Id}' missing required 'providerFilter' field");
+            throw new InvalidOperationException($"Exchange '{dto.Name}' missing required 'providerFilter' field");
 
         // EntityResolver.FindOrCreate pattern - categorical entity resolution
-        PlacementFilter providerFilter = SceneTemplateParser.ParsePlacementFilter(dto.ProviderFilter, $"Exchange:{dto.Id}");
+        PlacementFilter providerFilter = SceneTemplateParser.ParsePlacementFilter(dto.ProviderFilter, $"Exchange:{dto.Name}");
         NPC npc = entityResolver.FindOrCreateNPC(providerFilter);
 
         ExchangeCard card = new ExchangeCard
         {
-            Id = dto.Id,
             Name = dto.Name,
             Description = GenerateDescription(dto),
             // HIGHLANDER: Object reference only (no ID string)
@@ -145,7 +144,6 @@ public static class ExchangeParser
             case Professions.Merchant:
                 exchanges.Add(new ExchangeCard
                 {
-                    Id = $"exchange_food_purchase_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
                     Name = "Buy Hunger",
                     Description = "Purchase provisions from the merchant",
                     // HIGHLANDER: Object reference only
@@ -172,7 +170,6 @@ public static class ExchangeParser
             case Professions.Innkeeper:
                 exchanges.Add(new ExchangeCard
                 {
-                    Id = $"exchange_rest_service_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
                     Name = "Rest at Inn",
                     Description = "Pay for a comfortable rest",
                     // HIGHLANDER: Object reference only
