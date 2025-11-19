@@ -264,9 +264,9 @@ public class GameWorld
         return venue.District;
     }
 
-    public Region GetRegionForDistrict(string districtName)
+    // HIGHLANDER: Accept District object, use object reference (not string lookup)
+    public Region GetRegionForDistrict(District district)
     {
-        District district = Districts.FirstOrDefault(d => d.Name == districtName);
         if (district == null || district.Region == null)
             return null;
 
@@ -278,10 +278,12 @@ public class GameWorld
         Venue? venue = Venues.FirstOrDefault(l => l.Name == venueName);
         if (venue == null) return "";
 
-        District district = GetDistrictForLocation(venueName);
+        // HIGHLANDER: GetDistrictForLocation accepts Venue, not string - need to pass venue object
+        District district = GetDistrictForLocation(venue);
         if (district == null) return venue.Name;
 
-        Region region = GetRegionForDistrict(district.Name);
+        // HIGHLANDER: Pass District object, not string
+        Region region = GetRegionForDistrict(district);
         if (region == null) return $"{venue.Name}, {district.Name}";
 
         return $"{venue.Name}, {district.Name}, {region.Name}";
@@ -339,12 +341,7 @@ public class GameWorld
         return NPCs;
     }
 
-    /// Get a location by name from primary storage
-    /// </summary>
-    public Location GetLocation(string locationName)
-    {
-        return Locations.FirstOrDefault(l => l.Name == locationName);
-    }
+    // HIGHLANDER: GetLocation(string) DELETED - use Locations.FirstOrDefault(l => l.Name == name) directly
 
     /// <summary>
     /// Get player's current location via hex-first architecture
@@ -1050,19 +1047,20 @@ public class GameWorld
 
     /// <summary>
     /// Count how many locations are in the specified venue.
-    /// Queries Locations collection by Venue object reference.
+    /// HIGHLANDER: Accepts Venue object, uses object equality (not .Name comparison)
     /// </summary>
-    public int GetLocationCountInVenue(string venueName)
+    public int GetLocationCountInVenue(Venue venue)
     {
-        return Locations.Count(loc => loc.Venue != null && loc.Venue.Name == venueName);
+        return Locations.Count(loc => loc.Venue == venue);
     }
 
     /// <summary>
     /// Check if venue can accept more locations within its capacity budget.
+    /// HIGHLANDER: Passes Venue object directly (no string extraction)
     /// </summary>
     public bool CanVenueAddMoreLocations(Venue venue)
     {
-        int currentCount = GetLocationCountInVenue(venue.Name);
+        int currentCount = GetLocationCountInVenue(venue);
         return currentCount < venue.MaxLocations;
     }
 

@@ -295,8 +295,8 @@ public class PackageLoader
             throw new InvalidOperationException("StartingSpotId is required in starting conditions - player has no spawn location!");
 
         // Validate starting location exists in parsed locations
-        // HIGHLANDER: Use GetLocation query method instead of LINQ with Id comparison
-        Location startingLocation = _gameWorld.GetLocation(conditions.StartingSpotId);
+        // HIGHLANDER: LINQ query on already-parsed locations
+        Location startingLocation = _gameWorld.Locations.FirstOrDefault(l => l.Name == conditions.StartingSpotId);
         if (startingLocation == null)
             throw new InvalidOperationException($"StartingSpotId '{conditions.StartingSpotId}' not found in parsed locations - player cannot spawn!");
 
@@ -858,7 +858,8 @@ public class PackageLoader
         foreach (LocationDTO dto in spotDtos)
         {
             // Remove skeleton registry entry if location was skeleton (cleanup before update)
-            Location? existingSkeleton = _gameWorld.GetLocation(dto.Name);
+            // HIGHLANDER: LINQ query on already-parsed locations
+            Location? existingSkeleton = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.Name);
             if (existingSkeleton != null && existingSkeleton.IsSkeleton)
             {
                 SkeletonRegistryEntry? spotSkeletonEntry = _gameWorld.SkeletonRegistry.FirstOrDefault(x => x.SkeletonKey == dto.Name);
@@ -879,7 +880,8 @@ public class PackageLoader
             {
                 if (!_gameWorld.CanVenueAddMoreLocations(location.Venue))
                 {
-                    int currentCount = _gameWorld.GetLocationCountInVenue(location.Venue.Name);
+                    // HIGHLANDER: Pass Venue object, not string
+                    int currentCount = _gameWorld.GetLocationCountInVenue(location.Venue);
                     throw new InvalidOperationException(
                         $"Venue '{location.Venue.Name}' has reached capacity " +
                         $"({currentCount}/{location.Venue.MaxLocations} locations). " +
@@ -975,7 +977,8 @@ public class PackageLoader
         foreach (RouteDTO dto in routeDtos)
         {
             // Check origin location
-            Location originSpot = _gameWorld.GetLocation(dto.OriginSpotId);
+            // HIGHLANDER: LINQ query on already-parsed locations
+            Location originSpot = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.OriginSpotId);
             if (originSpot == null)
             {
                 if (allowSkeletons)
@@ -1006,7 +1009,8 @@ public class PackageLoader
             }
 
             // Check destination location
-            Location destSpot = _gameWorld.GetLocation(dto.DestinationSpotId);
+            // HIGHLANDER: LINQ query on already-parsed locations
+            Location destSpot = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.DestinationSpotId);
             if (destSpot == null)
             {
                 if (allowSkeletons)
@@ -1056,14 +1060,13 @@ public class PackageLoader
         }
     }
 
-    private string GetVenueIdFromSpotId(string LocationId)
+    // HIGHLANDER: Accept Location object instead of string LocationId
+    private string GetVenueIdFromSpot(Location location)
     {
-        Location location = _gameWorld.GetLocation(LocationId);
         if (location == null)
-            throw new InvalidDataException($"Location '{LocationId}' not found when attempting to get VenueId");
-        // ADR-007: Use Venue object reference instead of deleted VenueId
+            throw new ArgumentNullException(nameof(location));
         if (location.Venue == null)
-            throw new InvalidDataException($"Location '{LocationId}' has no Venue assigned");
+            throw new InvalidDataException($"Location '{location.Name}' has no Venue assigned");
         return location.Venue.Name;
     }
 
@@ -1272,12 +1275,13 @@ public class PackageLoader
         if (string.IsNullOrEmpty(dto.Description))
             throw new InvalidDataException($"Route '{dto.Name}' missing required field 'Description'");
 
+        // HIGHLANDER: LINQ queries on already-parsed locations (originSpot and destSpot already resolved above)
         RouteOption route = new RouteOption
         {
             // RouteOption uses Name as natural key (no Id property)
             Name = dto.Name,
-            OriginLocation = _gameWorld.GetLocation(dto.OriginSpotId),
-            DestinationLocation = _gameWorld.GetLocation(dto.DestinationSpotId),
+            OriginLocation = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.OriginSpotId),
+            DestinationLocation = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.DestinationSpotId),
             Method = Enum.TryParse<TravelMethods>(dto.Method, out TravelMethods method) ? method : TravelMethods.Walking,
             BaseCoinCost = dto.BaseCoinCost,
             BaseStaminaCost = dto.BaseStaminaCost,
@@ -1458,8 +1462,9 @@ public class PackageLoader
     private RouteOption GenerateReverseRoute(RouteOption forwardRoute)
     {
         // Extract Venue IDs from the location names for naming
-        string originVenueId = GetVenueIdFromSpotId(forwardRoute.OriginLocation.Name);
-        string destVenueId = GetVenueIdFromSpotId(forwardRoute.DestinationLocation.Name);
+        // HIGHLANDER: Pass Location objects directly, not strings
+        string originVenueId = GetVenueIdFromSpot(forwardRoute.OriginLocation);
+        string destVenueId = GetVenueIdFromSpot(forwardRoute.DestinationLocation);
 
         RouteOption reverseRoute = new RouteOption
         {
@@ -1603,7 +1608,8 @@ public class PackageLoader
 
         foreach (string LocationId in routeSpotIds)
         {
-            Location location = _gameWorld.GetLocation(LocationId);
+            // HIGHLANDER: LINQ query on already-parsed locations
+            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Name == LocationId);
             if (location == null)
             {// Create skeleton location with crossroads property (required for routes)
                 location = SkeletonGenerator.GenerateSkeletonSpot(

@@ -162,7 +162,7 @@ public class SpawnConditionsEvaluator
         // Check LocationStates (if placement is a Location)
         if (conditions.LocationStates != null && conditions.LocationStates.Count > 0 && !string.IsNullOrEmpty(placementId))
         {
-            Location location = _gameWorld.GetLocation(placementId);
+            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Name == placementId);
             if (location != null)
             {
                 foreach (StateType requiredState in conditions.LocationStates)

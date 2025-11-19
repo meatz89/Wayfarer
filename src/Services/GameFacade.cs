@@ -172,11 +172,7 @@ public class GameFacade
 
     // ========== LOCATION OPERATIONS ==========
     // Venue is ALWAYS derived from Location: location.Venue
-
-    public Location GetLocation(string LocationId)
-    {
-        return _gameWorld.GetLocation(LocationId);
-    }
+    // HIGHLANDER: GetLocation(string) DELETED - use _gameWorld.Locations LINQ queries
 
     public Location GetCurrentLocation()
     {
@@ -1193,18 +1189,20 @@ public class GameFacade
 
     /// <summary>
     /// Gets the district containing a location
+    /// HIGHLANDER: Pass Venue object directly
     /// </summary>
     public District GetDistrictForLocation(Venue venue)
     {
-        return _gameWorld.GetDistrictForLocation(venue.Name);
+        return _gameWorld.GetDistrictForLocation(venue);
     }
 
     /// <summary>
     /// Gets the region containing a district
+    /// HIGHLANDER: Pass District object directly
     /// </summary>
     public Region GetRegionForDistrict(District district)
     {
-        return _gameWorld.GetRegionForDistrict(district.Name);
+        return _gameWorld.GetRegionForDistrict(district);
     }
 
     /// <summary>
@@ -1364,7 +1362,7 @@ public class GameFacade
     public void DebugTeleportToLocation(string venueName, string locationName)
     {
         Player player = _gameWorld.GetPlayer();
-        Location location = _gameWorld.GetLocation(locationName);
+        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Name == locationName);
 
         if (location == null)
         {

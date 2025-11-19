@@ -161,7 +161,8 @@ public class LocationFacade
             viewModel.NPCsPresent = GetNPCsWithInteractions(location, currentTime, npcConversationOptions);
 
             // Add observations
-            viewModel.Observations = GetLocationObservations(location.Name);
+            // HIGHLANDER: Pass Location object, not string
+            viewModel.Observations = GetLocationObservations(location);
 
             // Add areas within location
             viewModel.AreasWithinLocation = _spotManager.GetAreasWithinVenue(venue, location, currentTime, _npcRepository);
@@ -293,17 +294,16 @@ public class LocationFacade
         return _narrativeRenderer.RenderTemplate(template);
     }
 
-    private List<ObservationViewModel> GetLocationObservations(string locationName)
+    // HIGHLANDER: Accept Location object, not string
+    private List<ObservationViewModel> GetLocationObservations(Location location)
     {
+        if (location == null)
+            throw new ArgumentNullException(nameof(location));
+
         List<ObservationViewModel> observations = new List<ObservationViewModel>();
 
-        // Get location to derive venue name if needed
-        Location location = _gameWorld.GetLocation(locationName);
-        if (location == null)
-            throw new InvalidOperationException($"Location not found: {locationName}");
-
         string venueName = location.Venue.Name;
-        List<Observation> locationObservations = _observationSystem.GetObservationsForLocation(venueName, locationName);
+        List<Observation> locationObservations = _observationSystem.GetObservationsForLocation(venueName, location.Name);
         if (locationObservations.Count > 0)
         {
             TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();

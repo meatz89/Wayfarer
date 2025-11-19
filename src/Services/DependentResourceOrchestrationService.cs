@@ -87,7 +87,8 @@ public class DependentResourceOrchestrationService
 
         foreach (string locationId in dependentSpecs.CreatedLocationIds)
         {
-            Location createdLocation = _gameWorld.GetLocation(locationId);
+            // HIGHLANDER: LINQ query on already-created locations
+            Location createdLocation = _gameWorld.Locations.FirstOrDefault(l => l.Name == locationId);
             if (createdLocation != null)
             {
                 // Set provenance tracking

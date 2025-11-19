@@ -997,7 +997,8 @@ public class SceneInstantiator
 
         if (!_gameWorld.CanVenueAddMoreLocations(venue))
         {
-            int currentCount = _gameWorld.GetLocationCountInVenue(venue.Name);
+            // HIGHLANDER: Pass Venue object, not string
+            int currentCount = _gameWorld.GetLocationCountInVenue(venue);
             throw new InvalidOperationException(
                 $"Venue '{venue.Name}' has reached capacity " +
                 $"({currentCount}/{venue.MaxLocations} locations). " +
@@ -1009,7 +1010,8 @@ public class SceneInstantiator
         AxialCoordinates? hexPosition;
 
         // SPATIAL CONSTRAINT: First location in venue vs. organic growth
-        int venueLocationCount = _gameWorld.GetLocationCountInVenue(venue.Name);
+        // HIGHLANDER: Pass Venue object, not string
+        int venueLocationCount = _gameWorld.GetLocationCountInVenue(venue);
         if (venueLocationCount == 0 && venue.CenterHex.HasValue)
         {
             // First location in newly generated venue: place at venue center

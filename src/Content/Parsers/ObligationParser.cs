@@ -131,7 +131,7 @@ public class ObligationParser
         Location location = null;
         if (!string.IsNullOrEmpty(dto.LocationId))
         {
-            location = _gameWorld.GetLocation(dto.LocationId);
+            location = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.LocationId);
             if (location == null)
                 throw new InvalidDataException($"ObligationIntroAction references unknown location: '{dto.LocationId}'");
         }
@@ -177,7 +177,7 @@ public class ObligationParser
         Location location = null;
         if (!string.IsNullOrEmpty(dto.LocationId))
         {
-            location = _gameWorld.GetLocation(dto.LocationId);
+            location = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.LocationId);
             if (location == null)
                 throw new InvalidDataException($"ObligationPrerequisites references unknown location: '{dto.LocationId}'");
         }

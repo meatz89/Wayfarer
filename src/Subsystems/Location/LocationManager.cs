@@ -59,14 +59,7 @@ public class LocationManager
             .ToList();
     }
 
-    /// <summary>
-    /// Get a specific location by its ID.
-    /// </summary>
-    public Location GetLocation(string LocationId)
-    {
-        // Get location directly from GameWorld's primary storage
-        return _gameWorld.GetLocation(LocationId);
-    }
+    // HIGHLANDER: GetLocation(string) DELETED - use _gameWorld.Locations LINQ queries
 
     /// <summary>
     /// Add a new venue to the world.
