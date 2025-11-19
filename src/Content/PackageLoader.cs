@@ -1324,27 +1324,32 @@ public class PackageLoader
                     NarrativeDescription = segmentDto.NarrativeDescription
                 };
 
-                // Set collection properties based on segment type using normalized properties
+                // HIGHLANDER: Resolve IDs to object references at parse-time
+                // NO string IDs stored in domain entities - only object references
                 if (segmentType == SegmentType.FixedPath)
                 {
-                    // FixedPath segments use pathCollectionId from JSON
-                    segment.PathCollectionId = segmentDto.PathCollectionId;
-                    if (!string.IsNullOrEmpty(segment.PathCollectionId))
-                    { }
+                    // Resolve PathCollectionId → PathCardCollectionDTO object
+                    if (!string.IsNullOrEmpty(segmentDto.PathCollectionId))
+                    {
+                        segment.PathCollection = _gameWorld.GetPathCollection(segmentDto.PathCollectionId);
+                    }
                 }
                 else if (segmentType == SegmentType.Event)
                 {
-                    // Event segments use eventCollectionId from JSON
-                    segment.EventCollectionId = segmentDto.EventCollectionId;
-                    if (!string.IsNullOrEmpty(segment.EventCollectionId))
-                    { }
+                    // Resolve EventCollectionId → PathCardCollectionDTO object
+                    if (!string.IsNullOrEmpty(segmentDto.EventCollectionId))
+                    {
+                        segment.EventCollection = _gameWorld.GetPathCollection(segmentDto.EventCollectionId);
+                    }
                 }
                 else if (segmentType == SegmentType.Encounter)
                 {
-                    // Encounter segments have mandatory scene that MUST be resolved
-                    segment.MandatorySceneId = segmentDto.MandatorySceneId;
-                    if (!string.IsNullOrEmpty(segment.MandatorySceneId))
-                    { }
+                    // Resolve MandatorySceneId → SceneTemplate object
+                    if (!string.IsNullOrEmpty(segmentDto.MandatorySceneId))
+                    {
+                        segment.MandatorySceneTemplate = _gameWorld.SceneTemplates
+                            .FirstOrDefault(t => t.Id == segmentDto.MandatorySceneId);
+                    }
                 }
 
                 route.Segments.Add(segment);

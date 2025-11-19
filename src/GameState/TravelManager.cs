@@ -83,65 +83,57 @@ public class TravelManager
     }
 
     /// <summary>
-    /// Get path cards for FixedPath segments - direct resolution: Collection → Cards
+    /// Get path cards for FixedPath segments - direct access via object reference
+    /// HIGHLANDER: NO lookups - segment has PathCollection object reference from parse-time
     /// </summary>
     private List<PathCardDTO> GetPathCardsForFixedPathSegment(RouteSegment segment)
     {
-        string collectionId = segment.PathCollectionId;
+        // HIGHLANDER: Use object reference directly, NO ID lookup
+        PathCardCollectionDTO collection = segment.PathCollection;
 
-        // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
-        if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.Any(p => p.Collection.Id == collectionId))
+        if (collection == null)
         {
             return new List<PathCardDTO>();
         }
-
-        PathCardCollectionDTO collection = _gameWorld.GetPathCollection(collectionId);
 
         // Return embedded cards directly - no lookup needed
         return collection.PathCards;
     }
 
     /// <summary>
-    /// Get path cards for Event segments - two-step resolution: Collection → Event → Cards
+    /// Get path cards for Event segments - direct access via object reference
+    /// HIGHLANDER: NO lookups - segment has EventCollection object reference from parse-time
     /// </summary>
     private List<PathCardDTO> GetPathCardsForEventSegment(RouteSegment segment, TravelSession session)
     {
-        // Step 1: Get event collection ID
-        string eventCollectionId = segment.EventCollectionId;
+        // HIGHLANDER: Use object reference directly, NO ID lookup
+        PathCardCollectionDTO eventCollection = segment.EventCollection;
 
-        if (string.IsNullOrEmpty(eventCollectionId))
+        if (eventCollection == null)
         {
             return new List<PathCardDTO>();
         }
 
-        // Check for normalized structure
-        // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
-        if (_gameWorld.AllEventCollections.Any(e => e.Collection.Id == eventCollectionId))
-        {
-            return HandleNormalizedEventSegment(segment, session, eventCollectionId);
-        }
-
-        return new List<PathCardDTO>();
+        return HandleNormalizedEventSegment(segment, session, eventCollection);
     }
 
     /// <summary>
     /// Handle normalized event structure: EventCollection → Event → EventCards
+    /// HIGHLANDER: Accept EventCollection object, not eventCollectionId string
     /// </summary>
-    private List<PathCardDTO> HandleNormalizedEventSegment(RouteSegment segment, TravelSession session, string eventCollectionId)
+    private List<PathCardDTO> HandleNormalizedEventSegment(RouteSegment segment, TravelSession session, PathCardCollectionDTO eventCollection)
     {
-        // Step 1: Get event collection
-        PathCardCollectionDTO eventCollection = _gameWorld.GetPathCollection(eventCollectionId);
-
         if (eventCollection.EventIds == null || eventCollection.EventIds.Count == 0)
         {
             return new List<PathCardDTO>();
         }
 
-        // Step 2: Get or draw event for this segment  
+        // Step 1: Get or draw event for this segment
         string eventId = GetOrDrawEventForSegment(segment, session, eventCollection.EventIds);
 
-        // Step 3: Get the event
-        // ADR-007: Use TravelEvent.Id (object property) instead of deleted EventId
+        // Step 2: Get the event - still requires lookup by ID
+        // TODO: EventCollection should have TravelEvent objects, not EventIds strings
+        // For now, keep GetTravelEvent lookup until EventCollection is refactored
         if (!_gameWorld.AllTravelEvents.Any(e => e.TravelEvent.Id == eventId))
         {
             return new List<PathCardDTO>();
@@ -149,10 +141,10 @@ public class TravelManager
 
         TravelEventDTO travelEvent = _gameWorld.GetTravelEvent(eventId);
 
-        // Step 4: Set narrative for UI
+        // Step 3: Set narrative for UI
         session.CurrentEventNarrative = travelEvent.NarrativeText;
 
-        // Step 5: Return embedded event cards directly - no lookup needed
+        // Step 4: Return embedded event cards directly - no lookup needed
         return travelEvent.EventCards;
     }
 
@@ -497,18 +489,17 @@ public class TravelManager
 
     /// <summary>
     /// Get a specific card from a FixedPath segment
+    /// HIGHLANDER: Use PathCollection object reference directly, NO lookup
     /// </summary>
     private PathCardDTO GetCardFromFixedPathSegment(RouteSegment segment, string cardId)
     {
-        string collectionId = segment.PathCollectionId;
+        // HIGHLANDER: Use object reference directly, NO ID lookup
+        PathCardCollectionDTO collection = segment.PathCollection;
 
-        // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
-        if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.Any(p => p.Collection.Id == collectionId))
+        if (collection == null)
         {
             return null;
         }
-
-        PathCardCollectionDTO collection = _gameWorld.GetPathCollection(collectionId);
 
         // Look in embedded path cards
         return collection.PathCards.FirstOrDefault(c => c.Id == cardId);
