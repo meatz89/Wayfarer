@@ -70,7 +70,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     protected ObservationContext CurrentObservationContext { get; set; }
     protected EmergencyContext CurrentEmergencyContext { get; set; }
     protected int PendingLetterCount { get; set; }
-    public string CurrentDeckViewerNpcId { get; set; } // For dev mode deck viewer
 
     protected override async Task OnInitializedAsync()
     {
@@ -971,13 +970,10 @@ public class ScreenContext
 /// <summary>
 /// Strongly typed state data for screen transitions
 /// NOTE: This is UI navigation state, not domain state
-/// Object references used where possible, IDs acceptable for serialization needs
+/// HIGHLANDER: Object references only
 /// </summary>
 public class ScreenStateData
 {
     public NPC Npc { get; set; } // Object reference for current NPC interaction
-    public string VenueId { get; set; } // May be needed for venue-based navigation
-    public string TravelDestination { get; set; } // May be needed for travel resumption
-    public string SelectedCardId { get; set; } // Card instance tracking
     public int? SelectedObligationIndex { get; set; } // Obligation selection tracking
 }

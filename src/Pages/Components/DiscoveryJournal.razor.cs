@@ -77,7 +77,7 @@ namespace Wayfarer.Pages.Components
                 {
                     routes.Add(new RouteInfo
                     {
-                        Id = route.Name,
+                        Route = route,
                         OriginName = route.OriginLocation.Name,
                         DestinationName = route.DestinationLocation.Name,
                         Familiarity = player.GetRouteFamiliarity(route.Name)
@@ -165,7 +165,7 @@ namespace Wayfarer.Pages.Components
 
     public class RouteInfo
     {
-        public string Id { get; set; }
+        public RouteOption Route { get; set; }
         public string OriginName { get; set; }
         public string DestinationName { get; set; }
         public int Familiarity { get; set; }
