@@ -203,8 +203,8 @@
                         <div class="route-entry">
                             <div class="route-path">@route.OriginName → @route.DestinationName</div>
                             <div class="route-familiarity">
-                                Familiarity: @GetRouteFamiliarity(route.Id)/5
-                                @if (GetRouteFamiliarity(route.Id) >= 5)
+                                Familiarity: @GetRouteFamiliarity(route)/5
+                                @if (GetRouteFamiliarity(route) >= 5)
                                 {
                                     <span class="mastered-badge"><Icon Name="round-star" CssClass="icon-positive" /> Mastered</span>
                                 }

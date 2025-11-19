@@ -78,7 +78,8 @@ public class DifficultyCalculationService
                 // NPC relationship strength (0-15 per NPC)
                 // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
                 if (situation.Npc == null) return false;
-                int tokens = player.GetNPCTokenCount(situation.Npc.ID, ConnectionType.Trust);
+                // HIGHLANDER: NPC has no ID property, use Name as natural key
+                int tokens = player.GetNPCTokenCount(situation.Npc.Name, ConnectionType.Trust);
                 return tokens >= mod.Threshold;
 
             case ModifierType.HasItemCategory:

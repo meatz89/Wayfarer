@@ -137,7 +137,8 @@ public class ExchangeContext
 
         return new ExchangePreview
         {
-            ExchangeId = exchange.Id,
+            // HIGHLANDER: ExchangeCard has NO Id property, use Name as natural key
+            ExchangeId = exchange.Name,
             ExchangeName = exchange.Name,
             CanAfford = CanAfford(exchange),
             CostDescription = exchange.Cost.GetDescription(),

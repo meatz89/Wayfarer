@@ -88,9 +88,10 @@ namespace Wayfarer.Pages.Components
             return routes.OrderBy(r => r.OriginName).ToList();
         }
 
-        protected int GetRouteFamiliarity(string routeId)
+        protected int GetRouteFamiliarity(RouteInfo routeInfo)
         {
-            return GameWorld.GetPlayer().GetRouteFamiliarity(routeId);
+            // HIGHLANDER: RouteOption has no Id property, use Name as natural key
+            return GameWorld.GetPlayer().GetRouteFamiliarity(routeInfo.Route.Name);
         }
 
         protected List<ActiveObligation> GetActiveObligations()

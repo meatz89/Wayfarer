@@ -81,7 +81,8 @@ public class PhysicalDeckBuilder
             instance.Context = new CardContext
             {
                 threshold = situationCard.threshold,
-                RequestId = situation.Id
+                // HIGHLANDER: Situation has no Id property, use Name as natural key
+                RequestId = situation.Name
             };
 
             // Situation cards start unplayable until threshold met
@@ -96,9 +97,9 @@ public class PhysicalDeckBuilder
     private List<EquipmentCategory> GetPlayerEquipmentCategories(Player player)
     {
         List<EquipmentCategory> categories = new List<EquipmentCategory>();
-        foreach (string itemId in player.Inventory.GetAllItems())
+        // HIGHLANDER: Inventory.GetAllItems() returns Item objects, not IDs
+        foreach (Item item in player.Inventory.GetAllItems())
         {
-            Item item = _gameWorld.Items?.FirstOrDefault(i => i.Id == itemId);
             if (item?.ProvidedEquipmentCategories != null)
             {
                 categories.AddRange(item.ProvidedEquipmentCategories);

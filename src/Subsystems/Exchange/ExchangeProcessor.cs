@@ -34,11 +34,13 @@ public class ExchangeProcessor
             FlowModifier = exchange.FlowModifier,
             ConsumesPatience = exchange.ConsumesPatience,
             PatienceCost = exchange.PatienceCost,
-            UnlocksExchangeId = exchange.UnlocksExchangeId,
+            // HIGHLANDER: ExchangeCard has UnlocksExchange object, not UnlocksExchangeId string
+            UnlocksExchangeId = exchange.UnlocksExchange?.Name,
             TriggerEvent = exchange.TriggerEvent,
             // HIGHLANDER: Store NPC object, not npc.ID
             Npc = npc,
-            ExchangeId = exchange.Id,
+            // HIGHLANDER: ExchangeCard has NO Id property, use Name as natural key
+            ExchangeId = exchange.Name,
             IsUnique = exchange.SingleUse,
             ConnectionStateChange = exchange.ConnectionStateChange
         };

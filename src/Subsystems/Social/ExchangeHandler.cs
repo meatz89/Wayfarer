@@ -251,7 +251,9 @@ public class ExchangeHandler
         if (!string.IsNullOrEmpty(exchange.Name))
             return exchange.Name;
 
-        return exchange.Id switch
+        // HIGHLANDER: ExchangeCard has NO Id property, use Name as natural key
+        // Since Name is required, this fallback should never execute
+        return exchange.Name switch
         {
             "food_exchange" => "bought travel provisions",
             "healing_exchange" => "received healing",
