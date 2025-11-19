@@ -23,16 +23,13 @@ public static class StrangerParser
         }
 
         // Validate required fields
-        if (string.IsNullOrEmpty(dto.Id))
-            throw new InvalidDataException("StrangerNPC missing required field 'Id'");
         if (string.IsNullOrEmpty(dto.Name))
-            throw new InvalidDataException($"StrangerNPC '{dto.Id}' missing required field 'Name'");
+            throw new InvalidDataException($"StrangerNPC missing required field 'Name'");
         if (string.IsNullOrEmpty(dto.LocationId))
-            throw new InvalidDataException($"StrangerNPC '{dto.Id}' missing required field 'LocationId'");
+            throw new InvalidDataException($"StrangerNPC '{dto.Name}' missing required field 'LocationId'");
 
         NPC stranger = new NPC
         {
-            ID = dto.Id,
             Name = dto.Name,
             PersonalityType = personalityType,
             IsStranger = true,
