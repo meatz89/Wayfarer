@@ -695,12 +695,14 @@ public class TravelManager
             player.CurrentPosition = targetSpot.HexPosition.Value;
 
             // Increment Location familiarity (max 3)
-            int currentFamiliarity = player.GetLocationFamiliarity(targetSpot.Id);
-            player.SetLocationFamiliarity(targetSpot.Id, Math.Min(3, currentFamiliarity + 1));
+            // HIGHLANDER: Pass Location object directly to Player API
+            int currentFamiliarity = player.GetLocationFamiliarity(targetSpot);
+            player.SetLocationFamiliarity(targetSpot, Math.Min(3, currentFamiliarity + 1));
         }
 
         // Increase route familiarity (max 5)
-        player.IncreaseRouteFamiliarity(route.Name, 1);
+        // HIGHLANDER: Pass RouteOption object directly to Player API
+        player.IncreaseRouteFamiliarity(route, 1);
 
         // Grant ExplorationCubes for route mastery (max 10)
         // Each completion grants +1 cube, revealing more hidden paths

@@ -80,7 +80,8 @@ namespace Wayfarer.Pages.Components
                         Route = route,
                         OriginName = route.OriginLocation.Name,
                         DestinationName = route.DestinationLocation.Name,
-                        Familiarity = player.GetRouteFamiliarity(route.Name)
+                        // HIGHLANDER: Pass RouteOption object directly
+                        Familiarity = player.GetRouteFamiliarity(route)
                     });
                 }
             }
@@ -90,8 +91,8 @@ namespace Wayfarer.Pages.Components
 
         protected int GetRouteFamiliarity(RouteInfo routeInfo)
         {
-            // HIGHLANDER: RouteOption has no Id property, use Name as natural key
-            return GameWorld.GetPlayer().GetRouteFamiliarity(routeInfo.Route.Name);
+            // HIGHLANDER: Pass RouteOption object directly to Player API
+            return GameWorld.GetPlayer().GetRouteFamiliarity(routeInfo.Route);
         }
 
         protected List<ActiveObligation> GetActiveObligations()

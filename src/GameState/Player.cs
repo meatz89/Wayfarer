@@ -215,44 +215,52 @@ public class Player
 
     /// <summary>
     /// Get familiarity level for a route (0-5 scale)
+    /// HIGHLANDER: Accept RouteOption object, not string ID
     /// </summary>
-    public int GetRouteFamiliarity(string routeId)
+    public int GetRouteFamiliarity(RouteOption route)
     {
-        FamiliarityEntry entry = RouteFamiliarity.FirstOrDefault(f => f.EntityId == routeId);
+        if (route == null) return 0;
+        FamiliarityEntry entry = RouteFamiliarity.FirstOrDefault(f => f.EntityId == route.Name);
         return entry?.Level ?? 0;
     }
 
     /// <summary>
     /// Set route familiarity to a specific value (max 5)
+    /// HIGHLANDER: Accept RouteOption object, not string ID
     /// </summary>
-    public void SetRouteFamiliarity(string routeId, int level)
+    public void SetRouteFamiliarity(RouteOption route, int level)
     {
-        FamiliarityEntry existing = RouteFamiliarity.FirstOrDefault(f => f.EntityId == routeId);
+        if (route == null) return;
+        FamiliarityEntry existing = RouteFamiliarity.FirstOrDefault(f => f.EntityId == route.Name);
         if (existing != null)
         {
             existing.Level = level;
         }
         else
         {
-            RouteFamiliarity.Add(new FamiliarityEntry { EntityId = routeId, Level = level });
+            RouteFamiliarity.Add(new FamiliarityEntry { EntityId = route.Name, Level = level });
         }
     }
 
     /// <summary>
     /// Increase route familiarity after successful travel (max 5)
+    /// HIGHLANDER: Accept RouteOption object, not string ID
     /// </summary>
-    public void IncreaseRouteFamiliarity(string routeId, int amount = 1)
+    public void IncreaseRouteFamiliarity(RouteOption route, int amount = 1)
     {
-        int current = GetRouteFamiliarity(routeId);
-        SetRouteFamiliarity(routeId, Math.Min(5, current + amount));
+        if (route == null) return;
+        int current = GetRouteFamiliarity(route);
+        SetRouteFamiliarity(route, Math.Min(5, current + amount));
     }
 
     /// <summary>
     /// Check if route is mastered (familiarity = 5)
+    /// HIGHLANDER: Accept RouteOption object, not string ID
     /// </summary>
-    public bool IsRouteMastered(string routeId)
+    public bool IsRouteMastered(RouteOption route)
     {
-        return GetRouteFamiliarity(routeId) >= 5;
+        if (route == null) return false;
+        return GetRouteFamiliarity(route) >= 5;
     }
 
     /// <summary>
@@ -292,22 +300,26 @@ public class Player
 
     /// <summary>
     /// Get token count for specific NPC and connection type
+    /// HIGHLANDER: Accept NPC object, not string ID
     /// </summary>
-    public int GetNPCTokenCount(string npcId, ConnectionType type)
+    public int GetNPCTokenCount(NPC npc, ConnectionType type)
     {
-        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.NpcId == npcId);
+        if (npc == null) return 0;
+        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.NpcId == npc.Name);
         return entry?.GetTokenCount(type) ?? 0;
     }
 
     /// <summary>
     /// Set token count for specific NPC and connection type
+    /// HIGHLANDER: Accept NPC object, not string ID
     /// </summary>
-    public void SetNPCTokenCount(string npcId, ConnectionType type, int count)
+    public void SetNPCTokenCount(NPC npc, ConnectionType type, int count)
     {
-        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.NpcId == npcId);
+        if (npc == null) return;
+        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.NpcId == npc.Name);
         if (entry == null)
         {
-            entry = new NPCTokenEntry { NpcId = npcId };
+            entry = new NPCTokenEntry { NpcId = npc.Name };
             NPCTokens.Add(entry);
         }
         entry.SetTokenCount(type, count);

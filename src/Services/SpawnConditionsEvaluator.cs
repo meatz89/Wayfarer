@@ -220,9 +220,17 @@ public class SpawnConditionsEvaluator
         {
             foreach (KeyValuePair<string, int> kvp in conditions.RouteTravelCount)
             {
+                // HIGHLANDER: Resolve route name to RouteOption object
+                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Name == kvp.Key);
+                if (route == null)
+                {
+                    return false; // Route not found
+                }
+
                 // NOTE: Player has RouteFamiliarity but not RouteTravelCount
                 // Use familiarity as proxy for travel count (familiarity correlates with travel frequency)
-                int routeFamiliarity = player.GetRouteFamiliarity(kvp.Key);
+                // HIGHLANDER: Pass RouteOption object to Player API
+                int routeFamiliarity = player.GetRouteFamiliarity(route);
                 // Rough mapping: 0 travels = 0 familiarity, 5+ travels = 5 familiarity
                 if (routeFamiliarity < Math.Min(kvp.Value, 5))
                 {
