@@ -196,12 +196,13 @@ public class Player
 
     public void AddKnownRoute(RouteOption route)
     {
-        string originName = route.OriginLocation.Name;
+        // HIGHLANDER: Use Location object for lookup, not string name
+        Location origin = route.OriginLocation;
 
-        KnownRouteEntry routeEntry = KnownRoutes.FirstOrDefault(kr => kr.OriginSpotId == originName);
+        KnownRouteEntry routeEntry = KnownRoutes.FirstOrDefault(kr => kr.OriginLocation == origin);
         if (routeEntry == null)
         {
-            routeEntry = new KnownRouteEntry { OriginSpotId = originName };
+            routeEntry = new KnownRouteEntry { OriginLocation = origin };
             KnownRoutes.Add(routeEntry);
         }
 

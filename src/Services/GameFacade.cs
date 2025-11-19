@@ -1769,9 +1769,10 @@ public class GameFacade
 
         // TRIGGER POINT 2: Record NPC interaction when action execution starts
         // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
+        // HIGHLANDER: Pass NPC object, not string name
         if (situation.Npc != null)
         {
-            RecordNPCInteraction(situation.Npc.Name);
+            RecordNPCInteraction(situation.Npc);
         }
 
         // STEP 1: Validate and extract execution plan
@@ -1979,14 +1980,15 @@ public class GameFacade
     /// Record NPC interaction in player interaction history
     /// Update-in-place pattern: Find existing record or create new
     /// ONE record per NPC (replaces previous timestamp)
+    /// HIGHLANDER: Accept NPC object, use object equality
     /// </summary>
-    private void RecordNPCInteraction(string npcId)
+    private void RecordNPCInteraction(NPC npc)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Find existing record
+        // Find existing record using object equality
         NPCInteractionRecord existingRecord = player.NPCInteractions
-            .FirstOrDefault(record => record.NPCId == npcId);
+            .FirstOrDefault(record => record.Npc == npc);
 
         if (existingRecord != null)
         {
@@ -2000,7 +2002,7 @@ public class GameFacade
             // Create new record
             player.NPCInteractions.Add(new NPCInteractionRecord
             {
-                NPCId = npcId,
+                Npc = npc,
                 LastInteractionDay = _timeFacade.GetCurrentDay(),
                 LastInteractionTimeBlock = _timeFacade.GetCurrentTimeBlock(),
                 LastInteractionSegment = _timeFacade.GetCurrentSegment()

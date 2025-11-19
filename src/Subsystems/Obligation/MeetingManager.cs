@@ -117,7 +117,7 @@ public class MeetingManager
             return result;
         }
 
-        result.NPCId = meeting.Requester?.ID;
+        result.Npc = meeting.Requester;
         result.NPCName = meeting.Requester?.Name;
 
         // Validate the meeting can be completed
@@ -162,7 +162,7 @@ public class MeetingManager
             return result;
         }
 
-        result.NPCId = meeting.Requester?.ID;
+        result.Npc = meeting.Requester;
         result.NPCName = meeting.Requester?.Name;
 
         // Remove the meeting

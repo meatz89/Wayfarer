@@ -784,8 +784,9 @@ public class SceneInstantiator
     {
         // Create interaction lookup dictionary for fast access
         // ONE record per NPC (update-in-place pattern) - no GroupBy needed
-        Dictionary<string, NPCInteractionRecord> interactionLookup = player.NPCInteractions
-            .ToDictionary(interaction => interaction.NPCId);
+        // HIGHLANDER: Use NPC object as key, not string ID
+        Dictionary<NPC, NPCInteractionRecord> interactionLookup = player.NPCInteractions
+            .ToDictionary(interaction => interaction.Npc);
 
         // Find candidate with oldest interaction (or never interacted)
         NPC leastRecentNPC = null;
@@ -793,13 +794,13 @@ public class SceneInstantiator
 
         foreach (NPC candidate in candidates)
         {
-            if (!interactionLookup.ContainsKey(candidate.Name))
+            if (!interactionLookup.ContainsKey(candidate))
             {
                 // Never interacted with this NPC - prioritize these
                 return candidate;
             }
 
-            NPCInteractionRecord record = interactionLookup[candidate.Name];
+            NPCInteractionRecord record = interactionLookup[candidate];
             long timestamp = CalculateTimestamp(record.LastInteractionDay, record.LastInteractionTimeBlock, record.LastInteractionSegment);
 
             if (timestamp < oldestTimestamp)
