@@ -120,7 +120,7 @@ public static class SituationParser
         {
             foreach (SituationCardDTO situationCardDTO in dto.SituationCards)
             {
-                SituationCard situationCard = ParseSituationCard(situationCardDTO, dto.Name);
+                SituationCard situationCard = ParseSituationCard(situationCardDTO, dto.Name, gameWorld);
                 situation.SituationCards.Add(situationCard);
             }
         }
@@ -130,18 +130,17 @@ public static class SituationParser
     /// <summary>
     /// Parse a single situation card (victory condition)
     /// </summary>
-    private static SituationCard ParseSituationCard(SituationCardDTO dto, string situationId)
+    private static SituationCard ParseSituationCard(SituationCardDTO dto, string situationId, GameWorld gameWorld)
     {
-        if (string.IsNullOrEmpty(dto.Id))
-            throw new InvalidOperationException($"SituationCard in situation {situationId} missing required 'Id' field");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidOperationException($"SituationCard in situation {situationId} missing required 'Name' field");
 
         SituationCard situationCard = new SituationCard
         {
-            Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
             threshold = dto.threshold,
-            Rewards = ParseSituationCardRewards(dto.Rewards),
+            Rewards = ParseSituationCardRewards(dto.Rewards, gameWorld),
             IsAchieved = false
         };
 
@@ -152,7 +151,7 @@ public static class SituationParser
     /// Parse situation card rewards
     /// Knowledge system eliminated - Understanding resource replaces Knowledge tokens
     /// </summary>
-    private static SituationCardRewards ParseSituationCardRewards(SituationCardRewardsDTO dto)
+    private static SituationCardRewards ParseSituationCardRewards(SituationCardRewardsDTO dto, GameWorld gameWorld)
     {
         if (dto == null)
             return new SituationCardRewards();
@@ -162,8 +161,6 @@ public static class SituationParser
             Coins = dto.Coins,
             Progress = dto.Progress,
             Breakthrough = dto.Breakthrough,
-            ObligationId = dto.ObligationId,
-            Item = dto.Item,
 
             // Cube rewards (strong typing)
             InvestigationCubes = dto.InvestigationCubes,
@@ -171,11 +168,9 @@ public static class SituationParser
             ExplorationCubes = dto.ExplorationCubes,
 
             // Core Loop reward types
-            EquipmentId = dto.EquipmentId,
             CreateObligationData = dto.CreateObligationData != null
                 ? new CreateObligationReward
                 {
-                    PatronNpcId = dto.CreateObligationData.PatronNpcId,
                     StoryCubesGranted = dto.CreateObligationData.StoryCubesGranted,
                     RewardCoins = dto.CreateObligationData.RewardCoins
                 }
@@ -183,14 +178,57 @@ public static class SituationParser
             RouteSegmentUnlock = dto.RouteSegmentUnlock != null
                 ? new RouteSegmentUnlock
                 {
-                    RouteId = dto.RouteSegmentUnlock.RouteId,
-                    SegmentPosition = dto.RouteSegmentUnlock.SegmentPosition,
-                    PathId = dto.RouteSegmentUnlock.PathId
+                    SegmentPosition = dto.RouteSegmentUnlock.SegmentPosition
                 }
                 : null
 
             // SceneReduction deleted - legacy Scene architecture removed
         };
+
+        // Resolve Obligation object from ObligationId (parse-time translation)
+        if (!string.IsNullOrEmpty(dto.ObligationId))
+        {
+            rewards.Obligation = gameWorld.Obligations.FirstOrDefault(o => o.Id == dto.ObligationId);
+        }
+
+        // Resolve Item object from Item name or EquipmentId (parse-time translation)
+        if (!string.IsNullOrEmpty(dto.Item))
+        {
+            rewards.Item = gameWorld.Items.FirstOrDefault(i => i.Name == dto.Item);
+        }
+        else if (!string.IsNullOrEmpty(dto.EquipmentId))
+        {
+            rewards.Item = gameWorld.Items.FirstOrDefault(i => i.Name == dto.EquipmentId);
+        }
+
+        // Resolve PatronNpc object for CreateObligationData (parse-time translation)
+        if (rewards.CreateObligationData != null && !string.IsNullOrEmpty(dto.CreateObligationData.PatronNpcId))
+        {
+            rewards.CreateObligationData.PatronNpc = gameWorld.NPCs.FirstOrDefault(n => n.Name == dto.CreateObligationData.PatronNpcId);
+        }
+
+        // Resolve Route and Path objects for RouteSegmentUnlock (parse-time translation)
+        if (rewards.RouteSegmentUnlock != null)
+        {
+            if (!string.IsNullOrEmpty(dto.RouteSegmentUnlock.RouteId))
+            {
+                rewards.RouteSegmentUnlock.Route = gameWorld.Routes.FirstOrDefault(r => r.Name == dto.RouteSegmentUnlock.RouteId);
+            }
+
+            if (!string.IsNullOrEmpty(dto.RouteSegmentUnlock.PathId) && rewards.RouteSegmentUnlock.Route != null)
+            {
+                // PathCard is found within the route's segments
+                foreach (RouteSegment segment in rewards.RouteSegmentUnlock.Route.Segments)
+                {
+                    PathCard pathCard = segment.Paths.FirstOrDefault(p => p.Name == dto.RouteSegmentUnlock.PathId);
+                    if (pathCard != null)
+                    {
+                        rewards.RouteSegmentUnlock.Path = pathCard;
+                        break;
+                    }
+                }
+            }
+        }
 
         return rewards;
     }
