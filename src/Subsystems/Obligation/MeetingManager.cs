@@ -62,7 +62,7 @@ public class MeetingManager
         MeetingResult result = new MeetingResult
         {
             Operation = MeetingOperation.Add,
-            NPCId = meeting.Requester?.ID,
+            Npc = meeting.Requester,
             NPCName = meeting.Requester?.Name
         };
 
@@ -269,7 +269,7 @@ public class MeetingManager
         MeetingResult result = new MeetingResult
         {
             Operation = MeetingOperation.Expire,
-            NPCId = expiredMeeting.Requester?.ID,
+            Npc = expiredMeeting.Requester,
             NPCName = expiredMeeting.Requester?.Name,
             AffectedMeeting = expiredMeeting
         };

@@ -59,12 +59,13 @@ public class StandingObligationManager
     }
 
     // Remove an obligation (rare, usually has consequences)
-    public bool RemoveObligation(string obligationId, bool isVoluntary = true)
+    // HIGHLANDER: Accepts obligation object, not string ID
+    public bool RemoveObligation(StandingObligation obligation, bool isVoluntary = true)
     {
-        Player player = _gameWorld.GetPlayer();
-        StandingObligation? obligation = player.StandingObligations.FirstOrDefault(o => o.ID == obligationId);
-
         if (obligation == null) return false;
+
+        Player player = _gameWorld.GetPlayer();
+        if (!player.StandingObligations.Contains(obligation)) return false;
 
         // Apply consequences for breaking obligations voluntarily
         if (isVoluntary)
@@ -90,8 +91,8 @@ public class StandingObligationManager
 
         foreach (StandingObligation existing in activeObligations)
         {
-            // Max one obligation per NPC rule (US-8.1)
-            if (existing.RelatedNPCId == newObligation.RelatedNPCId)
+            // Max one obligation per NPC rule (US-8.1) - HIGHLANDER: Object equality
+            if (existing.RelatedNPC != null && existing.RelatedNPC == newObligation.RelatedNPC)
             {
                 conflicts.Add(existing);
                 continue;
@@ -144,9 +145,9 @@ public class StandingObligationManager
             // Get relevant token count
             int tokenCount = GetRelevantTokenCount(template);
 
-            // Check if player already has this obligation
+            // Check if player already has this obligation - HIGHLANDER: Name-based lookup (templates identified by Name)
             StandingObligation? existingObligation = player.StandingObligations
-                .FirstOrDefault(o => o.ID == template.ID);
+                .FirstOrDefault(o => o.Name == template.Name);
 
             if (existingObligation == null)
             {
@@ -173,10 +174,10 @@ public class StandingObligationManager
         if (!obligation.RelatedTokenType.HasValue)
             return 0;
 
-        if (!string.IsNullOrEmpty(obligation.RelatedNPCId))
+        if (obligation.RelatedNPC != null)
         {
-            // Get tokens with specific NPC
-            Dictionary<ConnectionType, int> npcTokens = _connectionTokenManager.GetTokensWithNPC(obligation.RelatedNPCId);
+            // Get tokens with specific NPC - HIGHLANDER: Object reference
+            Dictionary<ConnectionType, int> npcTokens = _connectionTokenManager.GetTokensWithNPC(obligation.RelatedNPC);
             return npcTokens.GetValueOrDefault(obligation.RelatedTokenType.Value, 0);
         }
         else
@@ -189,17 +190,16 @@ public class StandingObligationManager
     // Activate a threshold-based obligation
     private void ActivateThresholdObligation(StandingObligation template, int currentTokenCount)
     {
-        // Create a copy of the template for the player
+        // Create a copy of the template for the player - HIGHLANDER: Copy object references
         StandingObligation newObligation = new StandingObligation
         {
-            ID = template.ID,
             Name = template.Name,
             Description = template.Description,
             Source = template.Source,
             BenefitEffects = new List<ObligationEffect>(template.BenefitEffects),
             ConstraintEffects = new List<ObligationEffect>(template.ConstraintEffects),
             RelatedTokenType = template.RelatedTokenType,
-            RelatedNPCId = template.RelatedNPCId,
+            RelatedNPC = template.RelatedNPC,
             ActivationThreshold = template.ActivationThreshold,
             DeactivationThreshold = template.DeactivationThreshold,
             IsThresholdBased = true,
@@ -216,7 +216,7 @@ public class StandingObligationManager
 
         // Announce activation
         string thresholdDirection = template.ActivatesAboveThreshold ? "reached" : "dropped to";
-        string npcInfo = !string.IsNullOrEmpty(template.RelatedNPCId) ? $" with {template.RelatedNPCId}" : "";
+        string npcInfo = template.RelatedNPC != null ? $" with {template.RelatedNPC.Name}" : "";
 
         _messageSystem.AddSystemMessage(
             $"Standing Obligation Activated: {newObligation.Name}",
@@ -241,7 +241,7 @@ public class StandingObligationManager
 
         // Announce deactivation
         string thresholdDirection = obligation.ActivatesAboveThreshold ? "dropped below" : "risen above";
-        string npcInfo = !string.IsNullOrEmpty(obligation.RelatedNPCId) ? $" with {obligation.RelatedNPCId}" : "";
+        string npcInfo = obligation.RelatedNPC != null ? $" with {obligation.RelatedNPC.Name}" : "";
 
         _messageSystem.AddSystemMessage(
             $"Standing Obligation Deactivated: {obligation.Name}",
@@ -277,15 +277,10 @@ public class StandingObligationManager
 
     private void ApplyBreakingConsequences(StandingObligation obligation)
     {
-        // Apply exactly -5 token penalty for breaking obligations (US-8.3)
-        if (!string.IsNullOrEmpty(obligation.RelatedNPCId))
+        // Apply exactly -5 token penalty for breaking obligations (US-8.3) - HIGHLANDER: Use object reference
+        if (obligation.RelatedNPC != null)
         {
-            // Get NPC object from ID
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == obligation.RelatedNPCId);
-            if (npc != null)
-            {
-                _connectionTokenManager.RemoveTokensFromNPC(obligation.RelatedTokenType.Value, GameRules.OBLIGATION_BREAKING_PENALTY, npc);
-            }
+            _connectionTokenManager.RemoveTokensFromNPC(obligation.RelatedTokenType.Value, GameRules.OBLIGATION_BREAKING_PENALTY, obligation.RelatedNPC);
         }
         else
         {
@@ -300,19 +295,19 @@ public class StandingObligationManager
 
         // CRITICAL: Trigger HOSTILE state by making NPC's letters overdue
         // This creates the path: obligation breaking → overdue letters → HOSTILE state → betrayal cards available
-        if (!string.IsNullOrEmpty(obligation.RelatedNPCId))
+        if (obligation.RelatedNPC != null)
         {
-            TriggerHostileStateForNPC(obligation.RelatedNPCId, obligation.Name);
+            TriggerHostileStateForNPC(obligation.RelatedNPC, obligation.Name);
         }
     }
 
     /// <summary>
     /// Trigger HOSTILE relationship state for an NPC due to broken obligation.
     /// Uses proper NPCRelationship.Hostile state instead of temporal data corruption.
+    /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    private void TriggerHostileStateForNPC(string npcId, string obligationName)
+    private void TriggerHostileStateForNPC(NPC npc, string obligationName)
     {
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null) return;
 
         // Use proper NPCStateOperations to set BETRAYED relationship

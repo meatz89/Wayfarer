@@ -781,7 +781,7 @@ public class SceneTemplateParser
         List<BondChange> bondChanges = new List<BondChange>();
         foreach (BondChangeDTO dto in dtos)
         {
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == dto.NpcId);
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.Name == dto.NpcId);
             if (npc == null)
             {
                 Console.WriteLine($"[SceneTemplateParser.ParseBondChanges] WARNING: NPC '{dto.NpcId}' not found for BondChange");

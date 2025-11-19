@@ -720,8 +720,8 @@ namespace Wayfarer.Pages.Components
             if (string.IsNullOrEmpty(sceneId))
                 return new List<SituationPreviewData>();
 
-            // Query GameWorld.Scenes for scene with matching ID
-            Scene scene = GameWorld.Scenes.FirstOrDefault(s => s.Id == sceneId);
+            // Query GameWorld.Scenes for scene with matching TemplateId
+            Scene scene = GameWorld.Scenes.FirstOrDefault(s => s.TemplateId == sceneId);
             if (scene == null)
                 return new List<SituationPreviewData>();
 

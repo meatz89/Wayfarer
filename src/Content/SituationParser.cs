@@ -363,7 +363,7 @@ public static class SituationParser
         List<BondChange> bondChanges = new List<BondChange>();
         foreach (BondChangeDTO dto in dtos)
         {
-            NPC npc = gameWorld.NPCs.FirstOrDefault(n => n.ID == dto.NpcId);
+            NPC npc = gameWorld.NPCs.FirstOrDefault(n => n.Name == dto.NpcId);
             if (npc == null)
             {
                 Console.WriteLine($"[SituationParser.ParseBondChanges] WARNING: NPC '{dto.NpcId}' not found for BondChange");

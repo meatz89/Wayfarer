@@ -402,7 +402,7 @@ public class SceneContentBase : ComponentBase
 
     private string FormatBondGapFromId(string npcId, int threshold, Player player)
     {
-        NPC npc = GameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        NPC npc = GameWorld.NPCs.FirstOrDefault(n => n.Name == npcId);
         if (npc == null)
         {
             return $"Bond {threshold}+ with {npcId} (NPC not found)";

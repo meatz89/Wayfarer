@@ -187,10 +187,10 @@ public static class SceneParser
         // =====================================================
         // NEW ARCHITECTURE: CurrentSituationIndex from CurrentSituationId
         // ===================================================================
-        // Find index of situation matching CurrentSituationId from DTO
+        // Find index of situation matching CurrentSituationId from DTO - HIGHLANDER: Use Template.Id
         if (!string.IsNullOrEmpty(dto.CurrentSituationId))
         {
-            int index = scene.Situations.FindIndex(s => s.Id == dto.CurrentSituationId);
+            int index = scene.Situations.FindIndex(s => s.Template?.Id == dto.CurrentSituationId);
             if (index >= 0)
             {
                 scene.CurrentSituationIndex = index;
