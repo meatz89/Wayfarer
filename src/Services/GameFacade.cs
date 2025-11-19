@@ -161,7 +161,7 @@ public class GameFacade
     public List<NPC> GetAvailableStrangers(Venue venue)
     {
         TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
-        return _gameWorld.GetAvailableStrangers(venue.Name, currentTime);
+        return _gameWorld.GetAvailableStrangers(venue, currentTime);
     }
 
     public List<ObligationApproach> GetAvailableObligationApproaches()

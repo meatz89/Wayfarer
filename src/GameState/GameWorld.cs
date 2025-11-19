@@ -394,26 +394,18 @@ public class GameWorld
         }
     }
 
-    /// <summary>
-    /// Add a stranger NPC to a specific location
-    /// </summary>
-    public void AddStrangerToLocation(string locationName, NPC stranger)
-    {
-        if (stranger == null) return;
-        stranger.Location = Locations.FirstOrDefault(l => l.Name == locationName);
-        stranger.IsStranger = true;
-        NPCs.Add(stranger);
-    }
+    // HIGHLANDER: AddStrangerToLocation(string) DELETED - no callers, violated object parameter principle
 
     /// <summary>
-    /// Get available strangers at a location for the current time block
+    /// Get available strangers at a venue for the current time block
+    /// HIGHLANDER: Accepts Venue object, uses object equality (not .Name comparison)
     /// </summary>
-    public List<NPC> GetAvailableStrangers(string locationName, TimeBlocks currentTimeBlock)
+    public List<NPC> GetAvailableStrangers(Venue venue, TimeBlocks currentTimeBlock)
     {
         List<NPC> availableStrangers = new List<NPC>();
         foreach (NPC npc in NPCs)
         {
-            if (npc.IsStranger && npc.Location?.Name == locationName && npc.IsAvailableAtTime(currentTimeBlock))
+            if (npc.IsStranger && npc.Location?.Venue == venue && npc.IsAvailableAtTime(currentTimeBlock))
             {
                 availableStrangers.Add(npc);
             }
@@ -564,15 +556,7 @@ public class GameWorld
             .ToList();
     }
 
-    /// <summary>
-    /// Get delivery job by origin and destination location names
-    /// </summary>
-    public DeliveryJob GetJobByLocations(string originLocationName, string destinationLocationName)
-    {
-        return AvailableDeliveryJobs.FirstOrDefault(j =>
-            j.OriginLocation.Name == originLocationName &&
-            j.DestinationLocation.Name == destinationLocationName);
-    }
+    // HIGHLANDER: GetJobByLocations(string, string) DELETED - no callers, violated object parameter principle
 
     /// <summary>
     /// Check for expired obligations by comparing current segment to deadline
