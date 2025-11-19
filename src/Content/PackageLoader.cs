@@ -307,7 +307,7 @@ public class PackageLoader
             foreach (StandingObligationDTO obligationDto in conditions.StartingObligations)
             {
                 // Convert DTO to domain model and add to player's standing obligations
-                StandingObligation obligation = StandingObligationParser.ConvertDTOToStandingObligation(obligationDto);
+                StandingObligation obligation = StandingObligationParser.ConvertDTOToStandingObligation(obligationDto, _gameWorld);
                 _gameWorld.GetPlayer().StandingObligations.Add(obligation);
             }
         }
@@ -1252,7 +1252,7 @@ public class PackageLoader
 
         foreach (StandingObligationDTO dto in obligationDtos)
         {
-            StandingObligation obligation = StandingObligationParser.ConvertDTOToStandingObligation(dto);
+            StandingObligation obligation = StandingObligationParser.ConvertDTOToStandingObligation(dto, _gameWorld);
             _gameWorld.StandingObligationTemplates.Add(obligation);
         }
     }
