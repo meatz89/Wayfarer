@@ -43,10 +43,10 @@ public static class StrangerParser
             Description = $"Level {dto.Level} stranger"
         };
 
-        // Resolve location object reference during parsing (HIGHLANDER: ID is parsing artifact)
+        // Resolve location object reference during parsing (HIGHLANDER: Name is natural key)
         if (!string.IsNullOrEmpty(dto.LocationId))
         {
-            stranger.Location = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId);
+            stranger.Location = gameWorld.Locations.FirstOrDefault(l => l.Name == dto.LocationId);
         }
 
         return stranger;
