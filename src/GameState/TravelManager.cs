@@ -177,24 +177,23 @@ public class TravelManager
 
     /// <summary>
     /// Reveal a face-down path card without playing it
+    /// HIGHLANDER: Accept PathCardDTO object, not string ID
     /// </summary>
-    public bool RevealPathCard(string pathCardId)
+    public bool RevealPathCard(PathCardDTO card)
     {
+        if (card == null)
+        {
+            return false;
+        }
+
         TravelSession session = _gameWorld.CurrentTravelSession;
         if (session == null)
         {
             return false;
         }
 
-        // Get the card from the current segment's collection
-        PathCardDTO card = GetCardFromCurrentSegment(pathCardId);
-        if (card == null)
-        {
-            return false;
-        }
-
         // Check if card is already discovered (face-up)
-        if (_gameWorld.IsPathCardDiscovered(pathCardId))
+        if (_gameWorld.IsPathCardDiscovered(card.Id))
         {
             return false; // Card already revealed
         }
@@ -211,13 +210,13 @@ public class TravelManager
         }
 
         // Check one-time card usage
-        if (card.IsOneTime && _gameWorld.IsPathCardDiscovered(pathCardId))
+        if (card.IsOneTime && _gameWorld.IsPathCardDiscovered(card.Id))
         {
             return false;
         }
 
         // Mark card as discovered (face-up)
-        _gameWorld.SetPathCardDiscovered(pathCardId, true);
+        _gameWorld.SetPathCardDiscovered(card.Id, true);
 
         // ADR-007: Set reveal state with PathCardDTO object (not ID)
         session.IsRevealingCard = true;
@@ -314,9 +313,15 @@ public class TravelManager
 
     /// <summary>
     /// Select and play a path card from the current segment - ALL cards now use reveal mechanic
+    /// HIGHLANDER: Accept PathCardDTO object, not string ID
     /// </summary>
-    public bool SelectPathCard(string pathCardId)
+    public bool SelectPathCard(PathCardDTO card)
     {
+        if (card == null)
+        {
+            return false;
+        }
+
         TravelSession session = _gameWorld.CurrentTravelSession;
         if (session == null)
         {
@@ -330,36 +335,24 @@ public class TravelManager
             RouteSegment segment = route.Segments[session.CurrentSegment - 1];
             if (segment.Type == SegmentType.Event)
             {
-                // ADR-007: For event response cards, lookup PathCardDTO object first
-                PathCardDTO eventCard = GetCardFromCurrentSegment(pathCardId);
-                if (eventCard == null)
-                    return false;
-
                 // Set reveal state with object reference (not ID)
                 session.IsRevealingCard = true;
-                session.RevealedCard = eventCard;
+                session.RevealedCard = card;
                 return true;
             }
         }
 
-        // Check if card exists in current segment's collection
-        PathCardDTO card = GetCardFromCurrentSegment(pathCardId);
-        if (card == null)
-        {
-            return false;
-        }
-
         // Check if card is already discovered (face-up)
-        bool isDiscovered = _gameWorld.IsPathCardDiscovered(pathCardId);
+        bool isDiscovered = _gameWorld.IsPathCardDiscovered(card.Id);
 
         // For already discovered cards, apply effects immediately (no reveal screen needed)
         if (isDiscovered)
         {
-            return ApplyPathCardSelectionEffects(card, pathCardId);
+            return ApplyPathCardSelectionEffects(card, card.Id);
         }
 
         // For undiscovered cards, use the reveal mechanic
-        return RevealPathCard(pathCardId);
+        return RevealPathCard(card);
     }
 
     /// <summary>
