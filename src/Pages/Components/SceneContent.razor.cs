@@ -236,6 +236,7 @@ public class SceneContentBase : ComponentBase
 
             ActionCardViewModel choice = new ActionCardViewModel
             {
+                SourceTemplate = choiceTemplate, // HIGHLANDER: Store template reference for execution
                 Name = choiceTemplate.ActionTextTemplate,
                 Description = "",
                 RequirementsMet = requirementsMet,
@@ -454,9 +455,8 @@ public class SceneContentBase : ComponentBase
         if (choice == null || !choice.RequirementsMet || !choice.IsAffordable)
             return;
 
-        // Find the matching ChoiceTemplate
-        ChoiceTemplate choiceTemplate = CurrentSituation.Template.ChoiceTemplates
-            .FirstOrDefault(ct => ct.Id == choice.Id);
+        // HIGHLANDER: Use direct object reference from ViewModel
+        ChoiceTemplate choiceTemplate = choice.SourceTemplate;
 
         if (choiceTemplate == null)
             return;

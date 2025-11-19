@@ -280,6 +280,9 @@ public class SituationCardViewModel
 /// </summary>
 public class ActionCardViewModel
 {
+    // HIGHLANDER: Object reference to source template for execution
+    public ChoiceTemplate SourceTemplate { get; set; }
+
     // HIGHLANDER: Object reference, not ID string
     public Situation Situation { get; set; }
     public string Name { get; set; }
