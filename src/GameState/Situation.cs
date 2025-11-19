@@ -235,19 +235,20 @@ public class Situation
     public Scene ParentScene { get; set; }
 
     /// <summary>
-    /// Get placement ID from own entity references for specified placement type
+    /// Get placement Name from own entity references for specified placement type
     /// ARCHITECTURAL: Situation owns Location/NPC/Route (not Scene)
     /// Returns null if placement entity doesn't exist
+    /// HIGHLANDER: Returns Name (natural key), not Id (runtime entities have NO Id properties)
     /// </summary>
     /// <param name="placementType">Type of placement to query (Location/NPC/Route)</param>
-    /// <returns>Placement ID if entity reference exists, null otherwise</returns>
+    /// <returns>Placement entity Name if reference exists, null otherwise</returns>
     public string GetPlacementId(PlacementType placementType)
     {
         return placementType switch
         {
-            PlacementType.Location => Location?.Id,
-            PlacementType.NPC => Npc?.ID,
-            PlacementType.Route => Route?.Id,
+            PlacementType.Location => Location?.Name,
+            PlacementType.NPC => Npc?.Name,
+            PlacementType.Route => Route?.Name,
             _ => null
         };
     }
