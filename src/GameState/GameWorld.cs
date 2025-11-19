@@ -626,40 +626,6 @@ public class GameWorld
     }
 
     // ============================================
-    // EQUIPMENT MANAGEMENT (Core Loop design)
-    // ============================================
-
-    /// <summary>
-    /// Purchase equipment and add to player inventory
-    /// </summary>
-    public bool PurchaseEquipment(string equipmentId, int cost)
-    {
-        if (Player.Coins < cost)
-        {
-            return false;
-        }
-
-        Player.ModifyCoins(-cost);
-        Player.Inventory.AddItem(equipmentId);
-        return true;
-    }
-
-    /// <summary>
-    /// Sell equipment from inventory
-    /// </summary>
-    public bool SellEquipment(string equipmentId, int sellPrice)
-    {
-        if (!Player.Inventory.HasItem(equipmentId))
-        {
-            return false;
-        }
-
-        Player.Inventory.RemoveItem(equipmentId);
-        Player.ModifyCoins(sellPrice);
-        return true;
-    }
-
-    // ============================================
     // CUBE MANAGEMENT (Localized Mastery)
     // ============================================
 
