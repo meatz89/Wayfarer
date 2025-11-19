@@ -498,8 +498,6 @@ public class MarketSubsystemManager
         // Convert to MarketItem format
         return items.Select(item => new MarketItem
         {
-            Id = item.Name,
-            ItemId = item.Name,
             Name = item.Name,
             Price = item.BuyPrice,
             Stock = 10, // Default stock level
