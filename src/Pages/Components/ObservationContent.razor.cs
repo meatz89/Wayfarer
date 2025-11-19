@@ -24,7 +24,7 @@ namespace Wayfarer.Pages.Components
         {
             if (Context == null || !Context.IsValid) return;
 
-            ObservationResult result = GameFacade.ExaminePoint(Context.Scene.Id, point.Id);
+            ObservationResult result = GameFacade.ExaminePoint(Context.Scene, point);
 
             if (!result.Success)
             {
