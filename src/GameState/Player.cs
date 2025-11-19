@@ -305,7 +305,8 @@ public class Player
     public int GetNPCTokenCount(NPC npc, ConnectionType type)
     {
         if (npc == null) return 0;
-        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.NpcId == npc.Name);
+        // HIGHLANDER: NPCTokenEntry.Npc is object reference, not string ID
+        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.Npc == npc);
         return entry?.GetTokenCount(type) ?? 0;
     }
 
@@ -316,10 +317,11 @@ public class Player
     public void SetNPCTokenCount(NPC npc, ConnectionType type, int count)
     {
         if (npc == null) return;
-        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.NpcId == npc.Name);
+        // HIGHLANDER: NPCTokenEntry.Npc is object reference, not string ID
+        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.Npc == npc);
         if (entry == null)
         {
-            entry = new NPCTokenEntry { NpcId = npc.Name };
+            entry = new NPCTokenEntry { Npc = npc };
             NPCTokens.Add(entry);
         }
         entry.SetTokenCount(type, count);
@@ -552,40 +554,15 @@ public class Player
     }
 
     /// <summary>
-    /// Check if player possesses specific item
+    /// Check if player possesses specific item by name
     /// Used for: Item possession requirements, gated progression
     /// Part of item lifecycle pattern: required for situation activation
+    /// HIGHLANDER: Inventory.GetAllItems() returns List<Item>, not List<string>
     /// </summary>
-    public bool HasItem(string itemId)
+    public bool HasItem(string itemName)
     {
-        return Inventory.GetAllItems().Contains(itemId);
+        return Inventory.GetAllItems().Any(item => item.Name == itemName);
     }
 
-}
-
-public class NPCConnection
-{
-    private readonly Player _player;
-    private readonly string _npcId;
-    private readonly ConnectionType _tokenType;
-
-    public NPCConnection(Player player, string npcId, ConnectionType tokenType)
-    {
-        _player = player;
-        _npcId = npcId;
-        _tokenType = tokenType;
-    }
-
-    public int GetCurrentValue()
-    {
-        return _player.GetNPCTokenCount(_npcId, _tokenType);
-    }
-
-    public void AdjustValue(int amount)
-    {
-        int currentValue = _player.GetNPCTokenCount(_npcId, _tokenType);
-        int newValue = Math.Max(0, currentValue + amount);
-        _player.SetNPCTokenCount(_npcId, _tokenType, newValue);
-    }
 }
 
