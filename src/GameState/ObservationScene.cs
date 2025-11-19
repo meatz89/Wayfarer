@@ -6,12 +6,13 @@
 /// </summary>
 public class ObservationScene
 {
+    // ADR-007: Id property RESTORED - Templates (immutable archetypes) ARE allowed to have IDs
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
 
+    // HIGHLANDER: Object reference ONLY, no LocationId
     // Placement context (NOT ownership)
-    public string LocationId { get; set; }
     public Location Location { get; set; }
 
     // Access requirements
@@ -22,7 +23,8 @@ public class ObservationScene
 
     // Completion state
     public bool IsCompleted { get; set; }
-    public List<string> ExaminedPointIds { get; set; } = new List<string>();
+    // HIGHLANDER: Object references ONLY, no ExaminedPointIds
+    public List<ExaminationPoint> ExaminedPoints { get; set; } = new List<ExaminationPoint>();
 
     // Examination content
     public List<ExaminationPoint> ExaminationPoints { get; set; } = new List<ExaminationPoint>();

@@ -6,14 +6,15 @@
 /// </summary>
 public class TravelScene
 {
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - TravelScene identified by object reference
     public string Name { get; set; }
     public string Description { get; set; }
     public SceneType Type { get; set; }
 
+    // HIGHLANDER: Object references ONLY, no VenueId or RouteId
     // Placement context (NOT ownership)
-    public string VenueId { get; set; }
-    public string RouteId { get; set; }
+    public Venue Venue { get; set; }
+    public RouteOption Route { get; set; }
 
     // Approach options
     public List<SceneApproach> Approaches { get; set; } = new List<SceneApproach>();

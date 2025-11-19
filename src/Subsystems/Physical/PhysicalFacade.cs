@@ -62,16 +62,15 @@ public class PhysicalFacade
     }
 
     public PhysicalSession StartSession(PhysicalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
-        string situationId, string obligationId)
+        Situation situation, Obligation obligation)
     {
         if (IsSessionActive())
         {
             EndSession();
         }
 
-        // Track obligation context
-        _gameWorld.CurrentPhysicalSituationId = situationId;
-        _gameWorld.CurrentPhysicalObligationId = obligationId;
+        // ADR-007: PendingPhysicalContext already set upstream (GameFacade/SceneContent)
+        // No ID storage needed - context contains object references
 
         Player player = _gameWorld.GetPlayer();
 
@@ -91,9 +90,8 @@ public class PhysicalFacade
         _gameWorld.CurrentPhysicalSession.Deck = PhysicalSessionDeck.CreateFromInstances(deck, startingHand);
         _gameWorld.CurrentPhysicalSession.Deck = _gameWorld.CurrentPhysicalSession.Deck;
 
-        // Extract SituationCards from Situation and add to session deck (MATCH SOCIAL PATTERN)
-        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
-        if (!string.IsNullOrEmpty(situationId) && situation != null)
+        // ADR-007: Extract SituationCards from Situation object (no ID lookup)
+        if (situation != null)
         {
             if (situation.SituationCards.Any())
             {
@@ -205,13 +203,11 @@ public class PhysicalFacade
         // Situation cards have no PhysicalCardTemplate, so must be checked first
         if (card.CardType == CardTypes.Situation)
         {
-
-            // Complete situation through SituationCompletionHandler (applies rewards: coins, StoryCubes, equipment)
-            Situation completedSituation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == _gameWorld.CurrentPhysicalSituationId);
-            if (completedSituation != null)
-            {
-                await _situationCompletionHandler.CompleteSituation(completedSituation);
-            }
+            // ADR-007: Complete situation through SituationCompletionHandler (applies rewards: coins, StoryCubes, equipment)
+            // Use PendingPhysicalContext.Obligation.Situation (object reference), no ID lookup
+            // NO DEFENSIVE NULLS: Let it crash if context missing (reveals architectural problem)
+            Situation completedSituation = _gameWorld.PendingPhysicalContext!.Obligation!.Situation;
+            await _situationCompletionHandler.CompleteSituation(completedSituation);
 
             // SituationCards execute immediately (not locked for combo)
             // Move to PlayedCards for success detection (matches Mental pattern)
@@ -302,18 +298,10 @@ public class PhysicalFacade
         player.Stamina -= staminaCost;
 
         // TRANSITION TRACKING: Find situation and call FailSituation for OnFailure transitions
-        if (!string.IsNullOrEmpty(_gameWorld.CurrentPhysicalSituationId))
-        {
-            Situation situation = _gameWorld.Scenes
-                .SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentPhysicalSituationId);
-
-            if (situation != null)
-            {
-                // Call FailSituation to set LastChallengeSucceeded = false and trigger OnFailure
-                _situationCompletionHandler.FailSituation(situation);
-            }
-        }
+        // ADR-007: Use PendingPhysicalContext.Obligation.Situation (object reference), no ID lookup
+        // NO DEFENSIVE NULLS: Let it crash if context missing (reveals architectural problem)
+        Situation situation = _gameWorld.PendingPhysicalContext!.Obligation!.Situation;
+        _situationCompletionHandler.FailSituation(situation);
 
         PhysicalOutcome outcome = new PhysicalOutcome
         {
@@ -323,8 +311,10 @@ public class PhysicalFacade
             EscapeCost = $"{healthCost} Health, {staminaCost} Stamina"
         };
 
+        // ADR-007: Clear session and context (CurrentPhysicalSituationId/ObligationId deleted)
         _gameWorld.CurrentPhysicalSession.Deck.Clear();
         _gameWorld.CurrentPhysicalSession = null;
+        _gameWorld.PendingPhysicalContext = null;
 
         return outcome;
     }
@@ -348,23 +338,18 @@ public class PhysicalFacade
         };
 
         // TRANSITION TRACKING: If challenge failed, call FailSituation for OnFailure transitions
-        // Mirrors Social EndConversation pattern (lines 157-169)
-        if (!success && _gameWorld.PendingPhysicalContext?.SituationId != null)
+        // Mirrors Social EndConversation pattern
+        // HIGHLANDER: Use Situation object reference, not SituationId string
+        // NO DEFENSIVE NULLS: Let it crash if context missing (reveals architectural problem)
+        if (!success)
         {
-            Situation situation = _gameWorld.Scenes
-                .SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingPhysicalContext.SituationId);
-
-            if (situation != null)
-            {
-                _situationCompletionHandler.FailSituation(situation);
-            }
+            _situationCompletionHandler.FailSituation(_gameWorld.PendingPhysicalContext!.Obligation!.Situation);
         }
 
         // Check for obligation progress if this was an obligation situation
-        if (success && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalSituationId) && !string.IsNullOrEmpty(_gameWorld.CurrentPhysicalObligationId))
+        if (success)
         {
-            await CheckObligationProgress(_gameWorld.CurrentPhysicalSituationId, _gameWorld.CurrentPhysicalObligationId);
+            await CheckObligationProgress(_gameWorld.PendingPhysicalContext!.Obligation!.Situation, _gameWorld.PendingPhysicalContext!.Obligation);
         }
 
         // Award Reputation on success (Reputation system)
@@ -386,11 +371,11 @@ public class PhysicalFacade
         // PendingContext stays alive for GameFacade to process
 
         // Clear obligation context
-        _gameWorld.CurrentPhysicalSituationId = null;
-        _gameWorld.CurrentPhysicalObligationId = null;
 
+        // ADR-007: Clear session and context (CurrentPhysicalSituationId/ObligationId deleted)
         _gameWorld.CurrentPhysicalSession.Deck.Clear();
         _gameWorld.CurrentPhysicalSession = null;
+        _gameWorld.PendingPhysicalContext = null;
 
         return outcome;
     }
@@ -478,26 +463,27 @@ public class PhysicalFacade
     /// <summary>
     /// Check for obligation progress when Physical situation completes
     /// </summary>
-    private async Task CheckObligationProgress(string situationId, string obligationId)
+    private async Task CheckObligationProgress(Situation situation, Obligation obligation)
     {
-        // KEEP - obligationId is external input from session
+        if (situation == null || obligation == null)
+            return;
+
         // Check if this is an intro action (Discovered → Active transition)
-        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
-        if (obligation != null && situationId == "notice_waterwheel")
+        if (situation.SituationTemplate?.Id == "notice_waterwheel")
         {
             // This is intro completion - activate obligation
             // CompleteIntroAction spawns situations directly to ActiveSituations
-            _obligationActivity.CompleteIntroAction(obligationId);
+            await _obligationActivity.CompleteIntroAction(obligation);
             return;
         }
 
         // Regular situation completion
-        ObligationProgressResult progressResult = await _obligationActivity.CompleteSituation(situationId, obligationId);
+        ObligationProgressResult progressResult = await _obligationActivity.CompleteSituation(situation, obligation);
 
         // Log progress for UI modal display (UI will handle modal)
 
         // Check if obligation is now complete
-        ObligationCompleteResult completeResult = _obligationActivity.CheckObligationCompletion(obligationId);
+        ObligationCompleteResult completeResult = _obligationActivity.CheckObligationCompletion(obligation);
         if (completeResult != null)
         {
             // Obligation complete - UI will display completion modal

@@ -16,67 +16,65 @@ public class NPCLocationTracker
     /// <summary>
     /// Get all NPCs at a specific location.
     /// </summary>
-    public List<NPC> GetNPCsAtLocation(string locationId)
+    public List<NPC> GetNPCsAtLocation(Location location)
     {
-        if (string.IsNullOrEmpty(locationId)) return new List<NPC>();
+        if (location == null) return new List<NPC>();
 
         // Use NPCRepository which handles visibility filtering
-        return _npcRepository.GetNPCsForLocation(locationId);
+        return _npcRepository.GetNPCsForLocation(location);
     }
 
     /// <summary>
     /// Get NPCs at a location during a specific time block.
     /// </summary>
-    public List<NPC> GetNPCsAtLocationAndTime(string locationId, TimeBlocks timeBlock)
+    public List<NPC> GetNPCsAtLocationAndTime(Location location, TimeBlocks timeBlock)
     {
-        if (string.IsNullOrEmpty(locationId)) return new List<NPC>();
+        if (location == null) return new List<NPC>();
 
         // Use NPCRepository method
-        return _npcRepository.GetNPCsForLocationAndTime(locationId, timeBlock);
+        return _npcRepository.GetNPCsForLocationAndTime(location, timeBlock);
     }
 
     /// <summary>
     /// Get NPCs at a specific location during a time block.
     /// </summary>
-    public List<NPC> GetNPCsAtSpot(string LocationId, TimeBlocks timeBlock)
+    public List<NPC> GetNPCsAtSpot(Location location, TimeBlocks timeBlock)
     {
-        if (string.IsNullOrEmpty(LocationId)) return new List<NPC>();
+        if (location == null) return new List<NPC>();
 
         // Use NPCRepository method for location-specific NPCs
-        return _npcRepository.GetNPCsForLocationAndTime(LocationId, timeBlock);
+        return _npcRepository.GetNPCsForLocationAndTime(location, timeBlock);
     }
 
     /// <summary>
     /// Get the primary NPC for a location if available.
     /// </summary>
-    public NPC GetPrimaryNPCForSpot(string LocationId, TimeBlocks timeBlock)
+    public NPC GetPrimaryNPCForSpot(Location location, TimeBlocks timeBlock)
     {
-        if (string.IsNullOrEmpty(LocationId))
-            throw new ArgumentException("LocationId cannot be null or empty", nameof(LocationId));
+        if (location == null)
+            throw new ArgumentNullException(nameof(location));
 
-        return _npcRepository.GetPrimaryNPCForSpot(LocationId, timeBlock);
+        return _npcRepository.GetPrimaryNPCForSpot(location, timeBlock);
     }
     /// <summary>
     /// Check if an NPC is at a specific location.
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public bool IsNPCAtSpot(string npcId, string LocationId)
+    public bool IsNPCAtSpot(NPC npc, Location location)
     {
-        if (string.IsNullOrEmpty(npcId) || string.IsNullOrEmpty(LocationId)) return false;
+        if (npc == null || location == null) return false;
 
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc == null || npc.Location == null) return false;
+        if (npc.Location == null) return false;
 
-        return npc.Location.Id.Equals(LocationId, StringComparison.OrdinalIgnoreCase);
+        return npc.Location == location;
     }
 
     /// <summary>
     /// Check if an NPC is available during a time block.
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public bool IsNPCAvailable(string npcId, TimeBlocks timeBlock)
+    public bool IsNPCAvailable(NPC npc, TimeBlocks timeBlock)
     {
-        if (string.IsNullOrEmpty(npcId)) return false;
-
-        NPC npc = _npcRepository.GetById(npcId);
         if (npc == null) return false;
 
         return npc.IsAvailable(timeBlock);
@@ -85,20 +83,15 @@ public class NPCLocationTracker
     /// <summary>
     /// Get the schedule for an NPC.
     /// </summary>
-    public NPCSchedule GetNPCSchedule(string npcId)
+    public NPCSchedule GetNPCSchedule(NPC npc)
     {
-        if (string.IsNullOrEmpty(npcId))
-            throw new ArgumentException("NPC ID cannot be null or empty", nameof(npcId));
-
-        NPC npc = _npcRepository.GetById(npcId);
         if (npc == null)
-            throw new InvalidOperationException($"NPC not found: {npcId}");
+            throw new ArgumentNullException(nameof(npc));
 
         NPCSchedule schedule = new NPCSchedule
         {
-            NPCId = npcId,
-            NPCName = npc.Name,
-            LocationId = npc.Location?.Id,
+            Npc = npc,
+            Location = npc.Location,
             TimeSlots = new List<NPCTimeSlot>()
         };
 
@@ -109,7 +102,7 @@ public class NPCLocationTracker
             {
                 TimeBlock = timeBlock,
                 IsAvailable = npc.IsAvailable(timeBlock),
-                LocationId = npc.Location?.Id
+                Location = npc.Location
             });
         }
 
@@ -119,10 +112,10 @@ public class NPCLocationTracker
     /// <summary>
     /// Get all NPCs that will be at a location in the future.
     /// </summary>
-    public List<FutureNPCFocus> GetFutureNPCFocus(string locationId)
+    public List<FutureNPCFocus> GetFutureNPCFocus(Location location)
     {
         List<FutureNPCFocus> result = new List<FutureNPCFocus>();
-        List<NPC> npcs = GetNPCsAtLocation(locationId);
+        List<NPC> npcs = GetNPCsAtLocation(location);
 
         foreach (NPC npc in npcs)
         {
@@ -132,10 +125,10 @@ public class NPCLocationTracker
                 {
                     result.Add(new FutureNPCFocus
                     {
-                        NPCId = npc.ID,
-                        NPCName = npc.Name,
+                        // HIGHLANDER: Store NPC and Location objects, not IDs
+                        Npc = npc,
                         TimeBlock = timeBlock,
-                        LocationId = npc.Location?.Id
+                        Location = npc.Location
                     });
                 }
             }
@@ -146,19 +139,17 @@ public class NPCLocationTracker
 
     /// <summary>
     /// Find where an NPC is currently located.
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public NPCLocation FindNPC(string npcId)
+    public NPCLocation FindNPC(NPC npc)
     {
-        if (string.IsNullOrEmpty(npcId)) return null;
-
-        NPC npc = _npcRepository.GetById(npcId);
         if (npc == null) return null;
 
         return new NPCLocation
         {
-            NPCId = npc.ID,
-            NPCName = npc.Name,
-            LocationId = npc.Location?.Id,
+            // HIGHLANDER: Store NPC and Location objects, not IDs
+            Npc = npc,
+            Location = npc.Location,
             IsCurrentlyAvailable = npc.IsAvailable(_gameWorld.CurrentTimeBlock)
         };
     }
@@ -173,29 +164,27 @@ public class NPCLocationTracker
     /// <summary>
     /// Count NPCs at a location.
     /// </summary>
-    public int CountNPCsAtLocation(string locationId)
+    public int CountNPCsAtLocation(Location location)
     {
-        return GetNPCsAtLocation(locationId).Count;
+        return GetNPCsAtLocation(location).Count;
     }
 
     /// <summary>
     /// Count NPCs at a location during a specific time.
     /// </summary>
-    public int CountNPCsAtSpot(string LocationId, TimeBlocks timeBlock)
+    public int CountNPCsAtSpot(Location location, TimeBlocks timeBlock)
     {
-        return GetNPCsAtSpot(LocationId, timeBlock).Count;
+        return GetNPCsAtSpot(location, timeBlock).Count;
     }
 
     /// <summary>
     /// Get time blocks when an NPC is available.
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public List<TimeBlocks> GetNPCAvailableTimes(string npcId)
+    public List<TimeBlocks> GetNPCAvailableTimes(NPC npc)
     {
         List<TimeBlocks> availableTimes = new List<TimeBlocks>();
 
-        if (string.IsNullOrEmpty(npcId)) return availableTimes;
-
-        NPC npc = _npcRepository.GetById(npcId);
         if (npc == null) return availableTimes;
 
         foreach (TimeBlocks timeBlock in Enum.GetValues<TimeBlocks>())
@@ -212,43 +201,44 @@ public class NPCLocationTracker
 
 /// <summary>
 /// Represents an NPC's schedule.
+/// HIGHLANDER: Object references only, no string IDs
 /// </summary>
 public class NPCSchedule
 {
-    public string NPCId { get; set; }
-    public string NPCName { get; set; }
-    public string LocationId { get; set; }
+    public NPC Npc { get; set; }
+    public Location Location { get; set; }
     public List<NPCTimeSlot> TimeSlots { get; set; }
 }
 
 /// <summary>
 /// Represents an NPC's availability in a time slot.
+/// HIGHLANDER: Object references only, no string IDs
 /// </summary>
 public class NPCTimeSlot
 {
     public TimeBlocks TimeBlock { get; set; }
     public bool IsAvailable { get; set; }
-    public string LocationId { get; set; }
+    public Location Location { get; set; }
 }
 
 /// <summary>
 /// Represents future NPC focus at a location.
+/// HIGHLANDER: Object references only, no string IDs
 /// </summary>
 public class FutureNPCFocus
 {
-    public string NPCId { get; set; }
-    public string NPCName { get; set; }
+    public NPC Npc { get; set; }
     public TimeBlocks TimeBlock { get; set; }
-    public string LocationId { get; set; }
+    public Location Location { get; set; }
 }
 
 /// <summary>
 /// Represents an NPC's current location.
+/// HIGHLANDER: Object references only, no string IDs
 /// </summary>
 public class NPCLocation
 {
-    public string NPCId { get; set; }
-    public string NPCName { get; set; }
-    public string LocationId { get; set; }
+    public NPC Npc { get; set; }
+    public Location Location { get; set; }
     public bool IsCurrentlyAvailable { get; set; }
 }

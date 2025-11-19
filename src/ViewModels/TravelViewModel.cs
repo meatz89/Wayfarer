@@ -3,7 +3,8 @@
 /// </summary>
 public class TravelViewModel
 {
-    public string CurrentVenueId { get; init; }
+    // HIGHLANDER: Object reference, not ID string
+    public Location CurrentLocation { get; init; }
     public string CurrentLocationName { get; init; }
 
     // Travel context status
@@ -38,7 +39,8 @@ public class TravelStatusViewModel
 /// </summary>
 public class DestinationViewModel
 {
-    public string VenueId { get; init; }
+    // HIGHLANDER: Object reference, not ID string
+    public Location Venue { get; init; }
     public string LocationName { get; init; }
     public bool IsCurrent { get; init; }
 
@@ -52,7 +54,8 @@ public class DestinationViewModel
 /// </summary>
 public class RouteViewModel
 {
-    public string RouteId { get; init; }
+    // HIGHLANDER: Object reference, not ID string
+    public RouteOption Route { get; init; }
     public string TerrainType { get; init; }
     public int CoinCost { get; init; }
     public int StaminaCost { get; init; }
@@ -75,7 +78,8 @@ public class RouteViewModel
 /// </summary>
 public class LockedRouteViewModel
 {
-    public string RouteId { get; init; }
+    // HIGHLANDER: Object reference, not ID string
+    public RouteOption Route { get; init; }
     public string TerrainType { get; init; }
     public List<RouteDiscoveryViewModel> DiscoveryOptions { get; init; } = new();
 }

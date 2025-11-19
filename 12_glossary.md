@@ -183,11 +183,14 @@ This document provides canonical definitions for all specialized terms used acro
 
 ### HIGHLANDER Principle
 **Definition:** "There can be only ONE." One concept, one representation. No redundant storage, no duplicate paths.
+**Core Pattern:** Object references ONLY. NO ID properties on domain entities (except template IDs).
 **Examples:**
 - Situations stored in Scene.Situations (embedded), NOT in separate GameWorld.Situations collection.
 - InstantiationState enum is single source of truth, computed properties derive from it.
-- Templates reference entities by ID, resolved ONCE at parsing/spawning, cached as object reference.
-**Anti-Pattern:** Storing both object reference AND ID for same entity (creates desync risk).
+- Entity relationships via object references: `NPC.Location` (object), `RouteOption.OriginLocation` (object).
+- Parsers use EntityResolver.FindOrCreate with categorical properties, return object references immediately.
+**Template Exception:** SceneTemplate.Id, SituationTemplate.Id acceptable (immutable content definitions, not game state).
+**FORBIDDEN:** Storing both object reference AND ID (`OriginLocationId` + `OriginLocation`), ID-only references requiring GetById lookups.
 
 ### Sentinel Values Over Null
 **Definition:** Never use null for domain logic. Create explicit sentinel objects with internal flags.
@@ -201,15 +204,20 @@ This document provides canonical definitions for all specialized terms used acro
 **Why:** Fails fast, easier debugging, single source of truth, forces fixing root cause.
 
 ### ID Antipattern
-**Definition:** NEVER encode data in ID strings. NEVER parse IDs to extract data.
+**Definition:** IDs do NOT exist on domain entities (except templates). Entities found by categorical properties, object references stored immediately.
 **FORBIDDEN:**
-- Encoding: `Id = $"move_to_{destinationId}"`
-- Parsing: `StartsWith("move_to_")`, `Substring()`, `Split()`
-- Routing: `if (action.Id == "secure_room")`
+- ID properties on domain entities: `NPC.ID`, `Location.Id`, `RouteOption.Id`
+- ID relationship properties: `NPC.WorkLocationId`, `Player.ActiveObligationIds`
+- GetById methods and ID-based lookups
+- Encoding data in IDs: `Id = $"move_to_{destinationId}"`
+- Parsing IDs: `StartsWith("move_to_")`, `Substring()`, `Split()`
+- ID-based routing: `if (action.Id == "secure_room")`
 **CORRECT:**
+- Object references ONLY: `NPC.Location` (not `LocationId`), `Player.ActiveObligations` (not `ActiveObligationIds`)
+- EntityResolver.FindOrCreate with categorical properties (Profession, PersonalityType, Purpose, Safety)
 - ActionType enum for routing (switch on enum, NOT ID)
-- Strongly-typed properties (DestinationLocationId property, not extracted from Id)
-- IDs acceptable for: Uniqueness, debugging, simple passthrough. NEVER for logic.
+- Strongly-typed properties for all entity data
+**Template Exception:** SceneTemplate.Id, SituationTemplate.Id acceptable (immutable content, UI rendering keys only).
 
 ---
 

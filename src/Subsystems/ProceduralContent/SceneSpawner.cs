@@ -10,7 +10,7 @@ public static class SceneSpawner
         string sceneId = $"scene_{Guid.NewGuid():N}";
 
         List<string> situationIds = request.Template.SituationTemplates
-            .Select(st => $"{sceneId}_{st.Id}")
+            .Select(st => $"situation_{st.Id}_{Guid.NewGuid():N}")
             .ToList();
 
         // Markers and tracking properties deleted in 5-system architecture
@@ -24,6 +24,10 @@ public static class SceneSpawner
         };
     }
 
+    /// <summary>
+    /// Check if scene can be spawned
+    /// HIGHLANDER: Accept objects, no string ID checks
+    /// </summary>
     private static bool CanSpawn(SpawnRequest request, IGameStateQuery gameState, out string reason)
     {
         if (gameState.HasScene(request.Template.Id))
@@ -32,15 +36,15 @@ public static class SceneSpawner
             return false;
         }
 
-        if (!string.IsNullOrEmpty(request.LocationId) && !gameState.HasLocation(request.LocationId))
+        if (request.Location != null && !gameState.HasLocation(request.Location))
         {
-            reason = $"Location '{request.LocationId}' not found";
+            reason = $"Location '{request.Location.Name}' not found";
             return false;
         }
 
-        if (!string.IsNullOrEmpty(request.NpcId) && !gameState.HasNPC(request.NpcId))
+        if (request.Npc != null && !gameState.HasNPC(request.Npc))
         {
-            reason = $"NPC '{request.NpcId}' not found";
+            reason = $"NPC '{request.Npc.Name}' not found";
             return false;
         }
 

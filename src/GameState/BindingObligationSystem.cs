@@ -24,17 +24,14 @@ public class BindingObligationSystem
     /// Create a new binding obligation from a conversation choice
     /// </summary>
     public void CreateObligation(
-        string npcId,
-        string npcName,
+        NPC npc,
         ObligationType type,
         string description,
         int segmentsUntilDue = 24)
     {
         BindingObligation obligation = new BindingObligation
         {
-            Id = Guid.NewGuid().ToString(),
-            NpcId = npcId,
-            NpcName = npcName,
+            Npc = npc,
             Type = type,
             Description = description,
             CreatedAtSegment = _timeManager.CurrentSegment,
@@ -48,24 +45,24 @@ public class BindingObligationSystem
     /// <summary>
     /// Check if player has specific type of obligation to an NPC
     /// </summary>
-    public bool HasObligationTo(string npcId, ObligationType type)
+    public bool HasObligationTo(NPC npc, ObligationType type)
     {
         return _activeObligations.Any(o =>
             o.IsActive &&
-            o.NpcId == npcId &&
+            o.Npc == npc &&
             o.Type == type);
     }
 
     /// <summary>
     /// Fulfill an obligation
     /// </summary>
-    public void FulfillObligation(string obligationId)
+    public void FulfillObligation(BindingObligation obligation)
     {
-        BindingObligation? obligation = _activeObligations.FirstOrDefault(o => o.Id == obligationId);
-        if (obligation != null)
+        BindingObligation? foundObligation = _activeObligations.FirstOrDefault(o => o == obligation);
+        if (foundObligation != null)
         {
-            obligation.IsActive = false;
-            obligation.FulfilledAtSegment = _timeManager.CurrentSegment;
+            foundObligation.IsActive = false;
+            foundObligation.FulfilledAtSegment = _timeManager.CurrentSegment;
         }
     }
 
@@ -110,7 +107,7 @@ public class BindingObligationSystem
             _ => ConnectionType.Trust
         };
 
-        _tokenManager.AddTokensToNPC(tokenType, penalty, obligation.NpcId);
+        _tokenManager.AddTokensToNPC(tokenType, penalty, obligation.Npc);
     }
 }
 
@@ -119,9 +116,9 @@ public class BindingObligationSystem
 /// </summary>
 public class BindingObligation
 {
-    public string Id { get; set; }
-    public string NpcId { get; set; }
-    public string NpcName { get; set; }
+    // HIGHLANDER: NO Id property - BindingObligation identified by object reference
+    // HIGHLANDER: Object reference ONLY, no NpcId
+    public NPC Npc { get; set; }
     public ObligationType Type { get; set; }
     public string Description { get; set; }
     public int CreatedAtSegment { get; set; }

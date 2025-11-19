@@ -1,13 +1,14 @@
 /// <summary>
 /// DTO for ConversationTree - simple dialogue tree system for non-tactical NPC conversations.
 /// Can escalate to tactical Social challenges when tension rises.
+/// Uses categorical properties to match participant NPCs (DDR-006)
 /// </summary>
 public class ConversationTreeDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
-    public string NpcId { get; set; }
+    public PlacementFilterDTO ParticipantFilter { get; set; }
 
     /// <summary>
     /// Minimum relationship level required to access this conversation

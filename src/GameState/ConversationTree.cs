@@ -4,13 +4,13 @@
 /// </summary>
 public class ConversationTree
 {
+    // ADR-007: Id property RESTORED - Templates (immutable archetypes) ARE allowed to have IDs
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }
 
-    // HIGHLANDER Sub-Pattern A: Both ID (persistence) and Object (runtime)
-    public string NpcId { get; set; }  // From JSON, for save/load persistence
-    public NPC Npc { get; set; }  // Resolved once at parse-time, cached for runtime
+    // HIGHLANDER: Object reference ONLY, no NpcId
+    public NPC Npc { get; set; }
 
     // Availability conditions
     public int MinimumRelationship { get; set; }
@@ -19,7 +19,8 @@ public class ConversationTree
 
     // Tree structure
     public List<DialogueNode> Nodes { get; set; } = new List<DialogueNode>();
-    public string StartingNodeId { get; set; }
+    // HIGHLANDER: Object reference ONLY, no StartingNodeId
+    public DialogueNode StartingNode { get; set; }
 
     // Lifecycle
     public bool IsRepeatable { get; set; }
@@ -32,6 +33,7 @@ public class ConversationTree
 /// </summary>
 public class DialogueNode
 {
+    // ADR-007: Id property RESTORED - Templates (immutable archetypes) ARE allowed to have IDs
     public string Id { get; set; }
     public string NpcDialogue { get; set; }
     public List<DialogueResponse> Responses { get; set; } = new List<DialogueResponse>();
@@ -43,6 +45,7 @@ public class DialogueNode
 /// </summary>
 public class DialogueResponse
 {
+    // ADR-007: Id property RESTORED - Templates (immutable archetypes) ARE allowed to have IDs
     public string Id { get; set; }
     public string ResponseText { get; set; }
 
@@ -55,12 +58,15 @@ public class DialogueResponse
     public int? RequiredStatLevel { get; set; }
 
     // Outcomes
-    public string NextNodeId { get; set; }  // null = ends conversation
+    // HIGHLANDER: Object reference ONLY, no NextNodeId
+    public DialogueNode NextNode { get; set; }  // null = ends conversation
     public int RelationshipDelta { get; set; }
     public List<string> GrantedKnowledge { get; set; } = new List<string>();
-    public List<string> SpawnedSituationIds { get; set; } = new List<string>();
+    // HIGHLANDER: Object references ONLY, no SpawnedSituationIds
+    public List<Situation> SpawnedSituations { get; set; } = new List<Situation>();
 
     // Escalation to tactical Social challenge
     public bool EscalatesToSocialChallenge { get; set; }
-    public string SocialChallengeSituationId { get; set; }  // If escalates
+    // HIGHLANDER: Object reference ONLY, no SocialChallengeSituationId
+    public Situation SocialChallengeSituation { get; set; }  // If escalates
 }

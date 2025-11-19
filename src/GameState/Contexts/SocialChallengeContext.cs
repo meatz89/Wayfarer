@@ -7,10 +7,7 @@ public class SocialChallengeContext
 {
     public bool IsValid { get; set; }
     public string ErrorMessage { get; set; }
-    public string NpcId { get; set; }
     public NPC Npc { get; set; }
-    public string RequestId { get; set; }
-    public string ConversationTypeId { get; set; }
     public ConnectionState InitialState { get; set; }
     public SocialSession Session { get; set; }
     public List<CardInstance> ObservationCards { get; set; }
@@ -20,11 +17,11 @@ public class SocialChallengeContext
     public string RequestText { get; set; }  // Text displayed when NPC presents a request
 
     /// <summary>
-    /// Situation ID for scene progression tracking
+    /// Situation for scene progression tracking (object reference, NO ID)
     /// Set when challenge started from scene choice
-    /// Used to find situation for LastChallengeSucceeded tracking
+    /// Used for LastChallengeSucceeded tracking and scene advancement
     /// </summary>
-    public string SituationId { get; set; }
+    public Situation Situation { get; set; }
 
     /// <summary>
     /// Reward to apply if conversation succeeds

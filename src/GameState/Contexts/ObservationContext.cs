@@ -17,8 +17,8 @@ public class ObservationContext
     public Dictionary<PlayerStatType, int> PlayerStats { get; set; }
     public List<string> PlayerKnowledge { get; set; }
 
-    // Examination tracking
-    public List<string> ExaminedPointIds { get; set; }
+    // Examination tracking (HIGHLANDER: Object collection, not string IDs)
+    public List<ExaminationPoint> ExaminedPoints { get; set; }
 
     // Display info
     public string TimeDisplay { get; set; }
@@ -29,7 +29,7 @@ public class ObservationContext
         ErrorMessage = string.Empty;
         PlayerStats = new Dictionary<PlayerStatType, int>();
         PlayerKnowledge = new List<string>();
-        ExaminedPointIds = new List<string>();
+        ExaminedPoints = new List<ExaminationPoint>();
     }
 
     // Helper methods for UI
@@ -39,7 +39,7 @@ public class ObservationContext
 
         return Scene.ExaminationPoints
             .Where(p => !p.IsHidden || IsRevealed(p))
-            .Where(p => !ExaminedPointIds.Contains(p.Id))
+            .Where(p => !ExaminedPoints.Contains(p)) // Object collection, not string IDs
             .Where(p => MeetsKnowledgeRequirements(p))
             .ToList();
     }
@@ -63,7 +63,7 @@ public class ObservationContext
         if (Scene == null) return new List<ExaminationPoint>();
 
         return Scene.ExaminationPoints
-            .Where(p => ExaminedPointIds.Contains(p.Id))
+            .Where(p => ExaminedPoints.Contains(p)) // Object collection, not string IDs
             .ToList();
     }
 
@@ -71,10 +71,10 @@ public class ObservationContext
     {
         if (!point.IsHidden) return true;
 
-        // Check if any examined point reveals this one
+        // Check if any examined point reveals this one (using object references)
         return Scene.ExaminationPoints
-            .Any(p => ExaminedPointIds.Contains(p.Id) &&
-                     p.RevealsExaminationPointId == point.Id);
+            .Any(p => ExaminedPoints.Contains(p) &&
+                     p.RevealsExaminationPoint == point); // Object reference, not RevealsExaminationPointId string
     }
 
     private bool CanAfford(ExaminationPoint point)
@@ -119,7 +119,7 @@ public class ObservationContext
 
     public int GetTotalExaminations()
     {
-        return ExaminedPointIds.Count;
+        return ExaminedPoints.Count;
     }
 
     public int GetAvailableExaminations()

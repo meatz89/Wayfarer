@@ -94,15 +94,17 @@ public class ChoiceReward
     /// <summary>
     /// Achievements granted
     /// Permanent player accomplishments
+    /// HIGHLANDER: Object references only, no string IDs
     /// </summary>
-    public List<string> AchievementIds { get; set; } = new List<string>();
+    public List<Achievement> Achievements { get; set; } = new List<Achievement>();
 
     /// <summary>
     /// Items granted to player inventory
     /// Equipment, consumables, quest items
     /// Part of item lifecycle: GRANT phase
+    /// HIGHLANDER: Object references only, no string IDs
     /// </summary>
-    public List<string> ItemIds { get; set; } = new List<string>();
+    public List<Item> Items { get; set; } = new List<Item>();
 
     /// <summary>
     /// Items to remove from player inventory
@@ -110,8 +112,9 @@ public class ChoiceReward
     /// Part of item lifecycle: REMOVE phase
     /// Multi-Situation Scene Pattern: Situations can clean up items granted earlier in arc
     /// Example: Depart situation removes room_key granted by negotiate situation
+    /// HIGHLANDER: Object references only, no string IDs
     /// </summary>
-    public List<string> ItemsToRemove { get; set; } = new List<string>();
+    public List<Item> ItemsToRemove { get; set; } = new List<Item>();
 
     /// <summary>
     /// Scenes to spawn as consequences of this Choice

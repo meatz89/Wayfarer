@@ -71,8 +71,6 @@ public class MentalFacade
         }
 
         // Track obligation context
-        _gameWorld.CurrentMentalSituationId = situationId;
-        _gameWorld.CurrentMentalObligationId = obligationId;
 
         Player player = _gameWorld.GetPlayer();
         Location location = _gameWorld.GetPlayerCurrentLocation();
@@ -88,7 +86,7 @@ public class MentalFacade
         _gameWorld.CurrentMentalSession = new MentalSession
         {
             ObligationId = engagement.Id,
-            LocationId = location.Id,
+            Location = location,
             CurrentAttention = 10,
             MaxAttention = 10,
             CurrentUnderstanding = 0,
@@ -190,14 +188,11 @@ public class MentalFacade
         if (card.CardType == CardTypes.Situation)
         {
 
-            // Complete situation through SituationCompletionHandler (handles obligation progress)
-            Situation completedSituation = _gameWorld.Scenes
-                .SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentMentalSituationId);
-            if (completedSituation != null)
-            {
-                await _situationCompletionHandler.CompleteSituation(completedSituation);
-            }
+            // ADR-007: Complete situation through SituationCompletionHandler (handles obligation progress)
+            // Use PendingMentalContext.Situation (object reference), no ID lookup needed
+            // NO DEFENSIVE NULLS: Let it crash if context missing (reveals architectural problem)
+            Situation completedSituation = _gameWorld.PendingMentalContext!.Situation;
+            await _situationCompletionHandler.CompleteSituation(completedSituation);
 
             _gameWorld.CurrentMentalSession.Deck.PlayCard(card); // Mark card as played
             EndSession(); // Immediate end on SituationCard play
@@ -379,17 +374,11 @@ public class MentalFacade
         }
 
         // TRANSITION TRACKING: Find situation and call FailSituation for OnFailure transitions
-        if (!string.IsNullOrEmpty(_gameWorld.CurrentMentalSituationId))
+        // ADR-007: Use PendingMentalContext.Situation (object reference), no ID lookup
+        // NO DEFENSIVE NULLS: Let it crash if context missing (reveals architectural problem)
         {
-            Situation situation = _gameWorld.Scenes
-                .SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentMentalSituationId);
-
-            if (situation != null)
-            {
-                // Call FailSituation to set LastChallengeSucceeded = false and trigger OnFailure
-                _situationCompletionHandler.FailSituation(situation);
-            }
+            Situation situation = _gameWorld.PendingMentalContext!.Situation;
+            _situationCompletionHandler.FailSituation(situation);
         }
 
         MentalOutcome outcome = new MentalOutcome
@@ -400,12 +389,10 @@ public class MentalFacade
             SessionSaved = false
         };
 
-        // Clear obligation context
-        _gameWorld.CurrentMentalSituationId = null;
-        _gameWorld.CurrentMentalObligationId = null;
-
+        // ADR-007: Clear session and context (CurrentMentalSituationId/ObligationId deleted)
         _gameWorld.CurrentMentalSession.Deck.Clear();
         _gameWorld.CurrentMentalSession = null;
+        _gameWorld.PendingMentalContext = null;
 
         return outcome;
     }
@@ -429,17 +416,12 @@ public class MentalFacade
         };
 
         // TRANSITION TRACKING: If challenge failed, call FailSituation for OnFailure transitions
-        // Mirrors Social EndConversation pattern (lines 157-169)
-        if (!success && _gameWorld.PendingMentalContext?.SituationId != null)
+        // Mirrors Social EndConversation pattern
+        // HIGHLANDER: Use Situation object reference, not SituationId string
+        // NO DEFENSIVE NULLS: Let it crash if context missing (reveals architectural problem)
+        if (!success)
         {
-            Situation situation = _gameWorld.Scenes
-                .SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingMentalContext.SituationId);
-
-            if (situation != null)
-            {
-                _situationCompletionHandler.FailSituation(situation);
-            }
+            _situationCompletionHandler.FailSituation(_gameWorld.PendingMentalContext!.Situation);
         }
 
         // Obligation progress now handled by SituationCompletionHandler (system-agnostic)
@@ -447,23 +429,22 @@ public class MentalFacade
         Player player = _gameWorld.GetPlayer();
 
         // PROGRESSION SYSTEM: Award Location familiarity on success
-        if (success && !string.IsNullOrEmpty(_gameWorld.CurrentMentalSession.LocationId))
+        // HIGHLANDER: Pass Location object to familiarity methods (not Location.Id)
+        if (success && _gameWorld.CurrentMentalSession.Location != null)
         {
-            int currentFamiliarity = player.GetLocationFamiliarity(_gameWorld.CurrentMentalSession.LocationId);
+            int currentFamiliarity = player.GetLocationFamiliarity(_gameWorld.CurrentMentalSession.Location);
             int newFamiliarity = Math.Min(3, currentFamiliarity + 1); // Max familiarity is 3
-            player.SetLocationFamiliarity(_gameWorld.CurrentMentalSession.LocationId, newFamiliarity);
+            player.SetLocationFamiliarity(_gameWorld.CurrentMentalSession.Location, newFamiliarity);
         }
 
         // TACTICAL LAYER: Do NOT apply CompletionReward here
         // Rewards are strategic layer concern - GameFacade applies them after receiving outcome
         // PendingContext stays alive for GameFacade to process
 
-        // Clear obligation context
-        _gameWorld.CurrentMentalSituationId = null;
-        _gameWorld.CurrentMentalObligationId = null;
-
+        // ADR-007: Clear session and context (CurrentMentalSituationId/ObligationId deleted)
         _gameWorld.CurrentMentalSession.Deck.Clear();
         _gameWorld.CurrentMentalSession = null;
+        _gameWorld.PendingMentalContext = null;
 
         return outcome;
     }

@@ -245,10 +245,10 @@ public class EntityResolver
 
     private Location CreateLocationFromCategories(PlacementFilter filter)
     {
-        string locationId = $"generated_location_{Guid.NewGuid()}";
         string locationName = GenerateLocationName(filter);
 
-        Location newLocation = new Location(locationId, locationName)
+        // ADR-007: Constructor uses Name only (no Id parameter or generation)
+        Location newLocation = new Location(locationName)
         {
             IsSkeleton = false,
             HexPosition = null,

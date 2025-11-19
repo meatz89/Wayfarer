@@ -45,30 +45,6 @@ public class NarrativeFacade
     // ========== NARRATIVE GENERATION ==========
 
     /// <summary>
-    /// Generate token gain narrative
-    /// </summary>
-    public TokenNarrativeResult GenerateTokenGainNarrative(ConnectionType type, int count, string npcId)
-    {
-        return _narrativeService.GenerateTokenGainNarrative(type, count, npcId);
-    }
-
-    /// <summary>
-    /// Generate relationship milestone narrative
-    /// </summary>
-    public MilestoneNarrativeResult GenerateRelationshipMilestone(string npcId, int totalTokens)
-    {
-        return _narrativeService.GenerateRelationshipMilestone(npcId, totalTokens);
-    }
-
-    /// <summary>
-    /// Generate relationship damage narrative
-    /// </summary>
-    public NarrativeResult GenerateRelationshipDamageNarrative(string npcId, ConnectionType type, int remainingTokens)
-    {
-        return _narrativeService.GenerateRelationshipDamageNarrative(npcId, type, remainingTokens);
-    }
-
-    /// <summary>
     /// Generate queue reorganization narrative
     /// </summary>
     public string[] GenerateQueueReorganizationNarrative(int removedPosition, int lettersShifted)

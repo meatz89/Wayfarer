@@ -95,9 +95,11 @@ public class NumericRequirement
             return scaleValue <= threshold;
     }
 
-    private bool CheckAchievement(Player player, string achievementId, int threshold)
+    private bool CheckAchievement(Player player, string achievementName, int threshold)
     {
-        bool hasAchievement = player.EarnedAchievements.Any(a => a.AchievementId == achievementId);
+        // HIGHLANDER: PlayerAchievement uses object reference, not string ID
+        // Context stores achievement Name (not ID) for lookup
+        bool hasAchievement = player.EarnedAchievements.Any(a => a.Achievement.Name == achievementName);
         return threshold > 0 ? hasAchievement : !hasAchievement;
     }
 

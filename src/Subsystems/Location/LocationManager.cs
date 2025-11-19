@@ -29,7 +29,7 @@ public class LocationManager
             throw new ArgumentException("Venue ID cannot be null or empty", nameof(venueId));
 
         Venue venue = _gameWorld.Venues.FirstOrDefault(l =>
-            l.Id.Equals(venueId, StringComparison.OrdinalIgnoreCase));
+            l.Name.Equals(venueId, StringComparison.OrdinalIgnoreCase));
 
         if (venue == null)
             throw new InvalidOperationException($"Venue not found: {venueId}");
@@ -48,13 +48,14 @@ public class LocationManager
     /// <summary>
     /// Get all locations for a specific venue.
     /// </summary>
-    public List<Location> GetLocationsForVenue(string venueId)
+    public List<Location> GetLocationsForVenue(Venue venue)
     {
-        if (string.IsNullOrEmpty(venueId))
-            throw new ArgumentException("Venue ID cannot be null or empty", nameof(venueId));
+        if (venue == null)
+            throw new ArgumentNullException(nameof(venue));
 
+        // HIGHLANDER: Object equality, no string comparisons
         return _gameWorld.Locations
-            .Where(s => s.VenueId.Equals(venueId, StringComparison.OrdinalIgnoreCase))
+            .Where(s => s.Venue == venue)
             .ToList();
     }
 
@@ -74,10 +75,9 @@ public class LocationManager
     {
         if (venue == null) throw new ArgumentNullException(nameof(venue));
 
-        if (_gameWorld.Venues.Any(l =>
-            l.Id.Equals(venue.Id, StringComparison.OrdinalIgnoreCase)))
+        if (_gameWorld.Venues.Contains(venue))
         {
-            throw new InvalidOperationException($"Venue '{venue.Id}' already exists.");
+            throw new InvalidOperationException($"Venue '{venue.Name}' already exists.");
         }
 
         _gameWorld.Venues.Add(venue);
@@ -91,9 +91,9 @@ public class LocationManager
         if (location == null) throw new ArgumentNullException(nameof(location));
 
         // Location IDs are globally unique - no need to check VenueId
-        if (_gameWorld.Locations.Any(s => s.Id.Equals(location.Id, StringComparison.OrdinalIgnoreCase)))
+        if (_gameWorld.Locations.Contains(location))
         {
-            throw new InvalidOperationException($"Location '{location.Id}' already exists.");
+            throw new InvalidOperationException($"Location '{location.Name}' already exists.");
         }
 
         _gameWorld.Locations.Add(location);
@@ -107,13 +107,14 @@ public class LocationManager
         if (venue == null) throw new ArgumentNullException(nameof(venue));
 
         // Validate that the location belongs to the venue
-        if (location != null && !location.VenueId.Equals(venue.Id, StringComparison.OrdinalIgnoreCase))
+        // ADR-007: Use Venue object reference instead of deleted VenueId
+        if (location != null && location.Venue != venue)
         {
-            throw new InvalidOperationException($"location {location.Id} does not belong to venue {venue.Id}");
+            throw new InvalidOperationException($"location {location.Name} does not belong to venue {venue.Name}");
         }
 
         if (!location.HexPosition.HasValue)
-            throw new InvalidOperationException($"Location '{location.Id}' has no HexPosition - cannot set player position");
+            throw new InvalidOperationException($"Location '{location.Name}' has no HexPosition - cannot set player position");
 
         _gameWorld.GetPlayer().CurrentPosition = location.HexPosition.Value;
     }
@@ -124,7 +125,7 @@ public class LocationManager
     public void SetCurrentSpot(Location location)
     {
         if (!location.HexPosition.HasValue)
-            throw new InvalidOperationException($"Location '{location.Id}' has no HexPosition - cannot set player position");
+            throw new InvalidOperationException($"Location '{location.Name}' has no HexPosition - cannot set player position");
 
         _gameWorld.GetPlayer().CurrentPosition = location.HexPosition.Value;
     }
@@ -156,23 +157,22 @@ public class LocationManager
     /// <summary>
     /// Check if player knows a specific Venue location.
     /// </summary>
-    public bool IsLocationKnown(string LocationId)
+    public bool IsLocationKnown(Location location)
     {
-        if (string.IsNullOrEmpty(LocationId)) return false;
+        if (location == null) return false;
 
         Player player = _gameWorld.GetPlayer();
-        return player.LocationActionAvailability.Contains(LocationId);
+        return player.LocationActionAvailability.Contains(location);
     }
 
     /// <summary>
     /// Get the travel hub location for a location.
+    /// HIGHLANDER: Accept Venue object
     /// </summary>
-    public Location GetTravelHubLocation(string venueId)
+    public Location GetTravelHubLocation(Venue venue)
     {
-        Venue venue = GetVenue(venueId);
-
         // Look for Locations with Crossroads property
-        List<Location> Locations = GetLocationsForVenue(venueId);
+        List<Location> Locations = GetLocationsForVenue(venue);
         return Locations.FirstOrDefault(s => s.LocationProperties.Contains(LocationPropertyType.Crossroads));
     }
 
@@ -183,8 +183,7 @@ public class LocationManager
     {
         if (location == null) return false;
 
-        Venue venue = GetVenue(location.VenueId);
-
+        // ADR-007: Venue variable deleted (was unused, accessed deleted VenueId)
         // Travel happens at any location with Crossroads property
         return location.LocationProperties.Contains(LocationPropertyType.Crossroads);
     }
@@ -236,17 +235,17 @@ public class LocationManager
 
         if (location == null) return areas;
 
-        // Get all Locations in the same location
-        List<Location> Locations = GetLocationsForVenue(location.Id);
+        // Get all Locations in the same venue
+        List<Location> Locations = GetLocationsForVenue(location.Venue);
 
         foreach (Location loc in Locations)
         {
             // Skip the current location - don't show it in the list
-            if (currentSpot != null && loc.Id == currentSpot.Id)
+            if (currentSpot != null && loc == currentSpot)
                 continue;
 
             // Get NPCs at this location
-            List<NPC> npcsAtSpot = npcRepository.GetNPCsForLocationAndTime(loc.Id, currentTime);
+            List<NPC> npcsAtSpot = npcRepository.GetNPCsForLocationAndTime(loc, currentTime);
             List<string> npcNames = npcsAtSpot.Select(n => n.Name).ToList();
 
             // Build detail string with NPCs if present
@@ -260,7 +259,7 @@ public class LocationManager
             {
                 Name = loc.Name,
                 Detail = detail,
-                LocationId = loc.Id,
+                Location = loc,  // HIGHLANDER: Object reference
                 IsCurrent = false, // Never current since we skip the current location
                 IsTravelHub = IsLocationTravelHub(loc)
             });
@@ -277,7 +276,7 @@ public class LocationManager
         if (location == null) return "";
 
         // Generate detail based on location ID (using categorical approach)
-        return location.Id switch
+        return location.Name switch
         {
             "marcus_stall" => "Cloth merchant's stall",
             "central_fountain" => "Gathering place",
@@ -330,48 +329,47 @@ public class LocationManager
     }
 
     /// <summary>
-    /// Get all Locations with a specific property in a location.
+    /// Get all Locations with a specific property in a venue.
     /// </summary>
-    public List<Location> GetLocationsWithProperty(string venueId, LocationPropertyType property, TimeBlocks timeBlock)
+    public List<Location> GetLocationsWithProperty(Venue venue, LocationPropertyType property, TimeBlocks timeBlock)
     {
-        List<Location> Locations = GetLocationsForVenue(venueId);
+        List<Location> Locations = GetLocationsForVenue(venue);
         return Locations.Where(s => LocationHasProperty(s, property, timeBlock)).ToList();
     }
 
     /// <summary>
     /// Check if player has discovered a location.
     /// </summary>
-    public bool IsLocationDiscovered(string LocationId)
+    public bool IsLocationDiscovered(Location location)
     {
-        if (string.IsNullOrEmpty(LocationId)) return false;
+        if (location == null) return false;
 
         Player player = _gameWorld.GetPlayer();
-        return player.LocationActionAvailability.Contains(LocationId);
+        return player.LocationActionAvailability.Contains(location);
     }
 
     /// <summary>
     /// Mark a location as discovered by the player.
     /// </summary>
-    public void MarkLocationDiscovered(string LocationId)
+    public void MarkLocationDiscovered(Location location)
     {
-        if (string.IsNullOrEmpty(LocationId)) return;
+        if (location == null) return;
 
         Player player = _gameWorld.GetPlayer();
-        if (!player.LocationActionAvailability.Contains(LocationId))
+        if (!player.LocationActionAvailability.Contains(location))
         {
-            player.LocationActionAvailability.Add(LocationId);
+            player.LocationActionAvailability.Add(location);
         }
     }
 
     /// <summary>
     /// Get the default entrance location for a location.
+    /// HIGHLANDER: Accept Venue object
     /// </summary>
-    public Location GetDefaultEntranceLocation(string venueId)
+    public Location GetDefaultEntranceLocation(Venue venue)
     {
-        Venue Venue = GetVenue(venueId);
-
         // Look for Locations with Crossroads property
-        List<Location> Locations = GetLocationsForVenue(venueId);
+        List<Location> Locations = GetLocationsForVenue(venue);
         Location crossroads = Locations.FirstOrDefault(s => s.LocationProperties.Contains(LocationPropertyType.Crossroads));
         if (crossroads != null) return crossroads;
 
@@ -388,8 +386,9 @@ public class LocationManager
 
         // For now, all Locations in the same Venue are accessible
         // This could be enhanced with specific connectivity rules
-        return GetLocationsForVenue(currentSpot.VenueId)
-            .Where(s => s.Id != currentSpot.Id)
+        // HIGHLANDER: Object reference only, no string identifiers
+        return GetLocationsForVenue(currentSpot.Venue)
+            .Where(s => s != currentSpot)
             .ToList();
     }
 

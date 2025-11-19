@@ -5,7 +5,7 @@
 /// </summary>
 public class ExaminationPoint
 {
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - ExaminationPoint identified by object reference
     public string Title { get; set; }
     public string Description { get; set; }
 
@@ -25,14 +25,17 @@ public class ExaminationPoint
     // Rewards
     public List<string> GrantedKnowledge { get; set; } = new List<string>();
 
+    // HIGHLANDER: Object reference ONLY, no RevealsExaminationPointId
     // Reveals other examination points
-    public string RevealsExaminationPointId { get; set; }
+    public ExaminationPoint RevealsExaminationPoint { get; set; }
 
+    // HIGHLANDER: Object reference ONLY, no FoundItemId
     // Item finding
-    public string FoundItemId { get; set; }
+    public Item FoundItem { get; set; }
     public int FindItemChance { get; set; }
 
+    // HIGHLANDER: Object references ONLY, no SpawnedSituationId or SpawnedConversationId
     // Spawn content
-    public string SpawnedSituationId { get; set; }
-    public string SpawnedConversationId { get; set; }
+    public Situation SpawnedSituation { get; set; }
+    public ConversationTree SpawnedConversation { get; set; }
 }

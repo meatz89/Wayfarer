@@ -31,10 +31,11 @@ public class TokenFacade
 
     /// <summary>
     /// Get all tokens with a specific NPC
+    /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public Dictionary<ConnectionType, int> GetTokensWithNPC(string npcId)
+    public Dictionary<ConnectionType, int> GetTokensWithNPC(NPC npc)
     {
-        return _connectionTokenManager.GetTokensWithNPC(npcId);
+        return _connectionTokenManager.GetTokensWithNPC(npc);
     }
 
     /// <summary>
@@ -55,59 +56,68 @@ public class TokenFacade
 
     /// <summary>
     /// Get specific token count with an NPC
+    /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public int GetTokenCount(string npcId, ConnectionType type)
+    public int GetTokenCount(NPC npc, ConnectionType type)
     {
-        return _connectionTokenManager.GetTokenCount(npcId, type);
+        return _connectionTokenManager.GetTokenCount(npc, type);
     }
 
     // ========== TOKEN GENERATION OPERATIONS ==========
 
     /// <summary>
     /// Add tokens to a specific NPC relationship (applies equipment modifiers)
+    /// HIGHLANDER: Object reference ONLY, no ID string parameter
     /// </summary>
-    public void AddTokensToNPC(ConnectionType type, int count, string npcId)
+    public void AddTokensToNPC(ConnectionType type, int count, NPC npc)
     {
-        if (count <= 0 || string.IsNullOrEmpty(npcId)) return;
+        if (count <= 0 || npc == null) return;
 
         // Apply equipment modifiers
         int modifiedCount = _tokenEffectProcessor.ApplyGenerationModifiers(type, count);
 
-        // Add tokens
-        _connectionTokenManager.AddTokensToNPC(type, modifiedCount, npcId);
+        // Add tokens (delegate to ConnectionTokenManager)
+        _connectionTokenManager.AddTokensToNPC(type, modifiedCount, npc);
 
         // Check for relationship milestones
-        int totalWithNPC = GetTotalTokensWithNPC(npcId);
-        _relationshipTracker.CheckRelationshipMilestone(npcId, totalWithNPC);
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        int totalWithNPC = GetTotalTokensWithNPC(npc);
+        _relationshipTracker.CheckRelationshipMilestone(npc, totalWithNPC);
 
         // Check for unlocks
-        _tokenUnlockManager.CheckAndProcessUnlocks(npcId, type, GetTokenCount(npcId, type));
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        _tokenUnlockManager.CheckAndProcessUnlocks(npc, type, GetTokenCount(npc, type));
 
         // Notify relationship change
-        _relationshipTracker.UpdateRelationshipState(npcId);
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        _relationshipTracker.UpdateRelationshipState(npc);
     }
 
     // ========== TOKEN SPENDING OPERATIONS ==========
 
     /// <summary>
     /// Spend tokens with a specific NPC (can go negative to represent debt)
+    /// HIGHLANDER: Object reference ONLY, no ID string parameter
     /// </summary>
-    public bool SpendTokensWithNPC(ConnectionType type, int amount, string npcId)
+    public bool SpendTokensWithNPC(ConnectionType type, int amount, NPC npc)
     {
         if (amount <= 0) return true;
+        if (npc == null) return false;
 
-        bool result = _connectionTokenManager.SpendTokensWithNPC(type, amount, npcId);
+        bool result = _connectionTokenManager.SpendTokensWithNPC(type, amount, npc);
 
         if (result)
         {
             // Update relationship state after spending
-            _relationshipTracker.UpdateRelationshipState(npcId);
+            // HIGHLANDER: Pass NPC object directly, not npc.ID
+            _relationshipTracker.UpdateRelationshipState(npc);
 
             // Check if we now owe the NPC
-            int currentTokens = GetTokenCount(npcId, type);
+            // HIGHLANDER: Pass NPC object directly, not npc.ID
+            int currentTokens = GetTokenCount(npc, type);
             if (currentTokens < 0)
             {
-                _relationshipTracker.RecordDebt(npcId, type, Math.Abs(currentTokens));
+                _relationshipTracker.RecordDebt(npc, type, Math.Abs(currentTokens));
             }
         }
 
@@ -128,21 +138,24 @@ public class TokenFacade
 
     /// <summary>
     /// Remove tokens from NPC relationship (for expired letters or relationship damage)
+    /// HIGHLANDER: Object reference ONLY, no ID string parameter
     /// </summary>
-    public void RemoveTokensFromNPC(ConnectionType type, int count, string npcId)
+    public void RemoveTokensFromNPC(ConnectionType type, int count, NPC npc)
     {
-        if (count <= 0 || string.IsNullOrEmpty(npcId)) return;
+        if (count <= 0 || npc == null) return;
 
-        _connectionTokenManager.RemoveTokensFromNPC(type, count, npcId);
+        _connectionTokenManager.RemoveTokensFromNPC(type, count, npc);
 
         // Update relationship state after removal
-        _relationshipTracker.UpdateRelationshipState(npcId);
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        _relationshipTracker.UpdateRelationshipState(npc);
 
         // Check if this created debt
-        int currentTokens = GetTokenCount(npcId, type);
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        int currentTokens = GetTokenCount(npc, type);
         if (currentTokens < 0)
         {
-            _relationshipTracker.RecordDebt(npcId, type, Math.Abs(currentTokens));
+            _relationshipTracker.RecordDebt(npc, type, Math.Abs(currentTokens));
         }
     }
 
@@ -150,23 +163,25 @@ public class TokenFacade
 
     /// <summary>
     /// Get leverage an NPC has over the player (negative tokens)
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public int GetLeverage(string npcId, ConnectionType type)
+    public int GetLeverage(NPC npc, ConnectionType type)
     {
-        return _connectionTokenManager.GetLeverage(npcId, type);
+        return _connectionTokenManager.GetLeverage(npc, type);
     }
 
     /// <summary>
     /// Get total leverage an NPC has across all token types
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public int GetTotalLeverage(string npcId)
+    public int GetTotalLeverage(NPC npc)
     {
         int totalLeverage = 0;
         foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
         {
             if (type != ConnectionType.None)
             {
-                totalLeverage += GetLeverage(npcId, type);
+                totalLeverage += GetLeverage(npc, type);
             }
         }
         return totalLeverage;
@@ -176,35 +191,39 @@ public class TokenFacade
 
     /// <summary>
     /// Get total tokens with an NPC across all types (only positive values)
+    /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public int GetTotalTokensWithNPC(string npcId)
+    public int GetTotalTokensWithNPC(NPC npc)
     {
-        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npc);
         return tokens.Values.Where(v => v > 0).Sum();
     }
 
     /// <summary>
     /// Get the primary connection type with an NPC (highest token count)
+    /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public ConnectionType GetPrimaryConnection(string npcId)
+    public ConnectionType GetPrimaryConnection(NPC npc)
     {
-        return _relationshipTracker.GetPrimaryConnection(npcId);
+        return _relationshipTracker.GetPrimaryConnection(npc);
     }
 
     /// <summary>
     /// Get relationship tier with an NPC based on total tokens
+    /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public RelationshipTier GetRelationshipTier(string npcId)
+    public RelationshipTier GetRelationshipTier(NPC npc)
     {
-        return _relationshipTracker.GetRelationshipTier(npcId);
+        return _relationshipTracker.GetRelationshipTier(npc);
     }
 
     /// <summary>
     /// Check if player has any relationship with an NPC
+    /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public bool HasRelationship(string npcId)
+    public bool HasRelationship(NPC npc)
     {
-        return GetTotalTokensWithNPC(npcId) > 0;
+        return GetTotalTokensWithNPC(npc) > 0;
     }
 
     // ========== EFFECT CALCULATIONS ==========
@@ -237,26 +256,29 @@ public class TokenFacade
 
     /// <summary>
     /// Get all available unlocks for an NPC based on current tokens
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public List<TokenUnlock> GetAvailableUnlocks(string npcId)
+    public List<TokenUnlock> GetAvailableUnlocks(NPC npc)
     {
-        return _tokenUnlockManager.GetAvailableUnlocks(npcId);
+        return _tokenUnlockManager.GetAvailableUnlocks(npc);
     }
 
     /// <summary>
     /// Check if a specific unlock is available
+    /// HIGHLANDER: Accept typed NPC object (unlockId is categorical, not entity ID)
     /// </summary>
-    public bool IsUnlockAvailable(string npcId, string unlockId)
+    public bool IsUnlockAvailable(NPC npc, string unlockId)
     {
-        return _tokenUnlockManager.IsUnlockAvailable(npcId, unlockId);
+        return _tokenUnlockManager.IsUnlockAvailable(npc, unlockId);
     }
 
     /// <summary>
     /// Get unlock requirements for an NPC
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public Dictionary<string, TokenRequirement> GetUnlockRequirements(string npcId)
+    public Dictionary<string, TokenRequirement> GetUnlockRequirements(NPC npc)
     {
-        return _tokenUnlockManager.GetUnlockRequirements(npcId);
+        return _tokenUnlockManager.GetUnlockRequirements(npc);
     }
 
     // ========== DEBT OPERATIONS ==========
@@ -279,15 +301,16 @@ public class TokenFacade
 
     /// <summary>
     /// Get debt to a specific NPC
+    /// HIGHLANDER: Accept typed NPC object
     /// </summary>
-    public Dictionary<ConnectionType, int> GetDebtToNPC(string npcId)
+    public Dictionary<ConnectionType, int> GetDebtToNPC(NPC npc)
     {
         Dictionary<ConnectionType, int> debt = new Dictionary<ConnectionType, int>();
         foreach (ConnectionType type in Enum.GetValues<ConnectionType>())
         {
             if (type != ConnectionType.None)
             {
-                int leverage = GetLeverage(npcId, type);
+                int leverage = GetLeverage(npc, type);
                 if (leverage > 0)
                 {
                     debt[type] = leverage;
@@ -301,8 +324,9 @@ public class TokenFacade
 
     /// <summary>
     /// Get all NPCs with whom the player has tokens
+    /// HIGHLANDER: Return List of NPC objects, not string IDs
     /// </summary>
-    public List<string> GetNPCsWithTokens()
+    public List<NPC> GetNPCsWithTokens()
     {
         return _connectionTokenManager.GetNPCsWithTokens();
     }
@@ -340,9 +364,11 @@ public class TokenSummary
 
 public class DebtInfo
 {
-    public string NPCId { get; set; }
-    public string NPCName { get; set; }
-    public Dictionary<ConnectionType, int> Debts { get; set; }
+    /// <summary>
+    /// HIGHLANDER: Store NPC object reference, not string ID
+    /// </summary>
+    public NPC Npc { get; set; }
+    public List<TokenCount> Debts { get; set; }
     public int TotalDebt { get; set; }
 }
 

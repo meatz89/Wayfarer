@@ -6,10 +6,7 @@
 /// </summary>
 public class SituationCard
 {
-    /// <summary>
-    /// Unique identifier for this situation card
-    /// </summary>
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - SituationCard identified by object reference
 
     /// <summary>
     /// Display name of this victory condition
@@ -50,8 +47,9 @@ public class CreateObligationReward
 {
     /// <summary>
     /// NPC receiving StoryCubes (creates obligation with this patron)
+    /// HIGHLANDER: Object reference ONLY, no PatronNpcId
     /// </summary>
-    public string PatronNpcId { get; set; }
+    public NPC PatronNpc { get; set; }
 
     /// <summary>
     /// Number of StoryCubes granted to patron (typically 2-5)
@@ -71,9 +69,11 @@ public class CreateObligationReward
 /// </summary>
 public class RouteSegmentUnlock
 {
-    public string RouteId { get; set; }
+    // HIGHLANDER: Object reference ONLY, no RouteId
+    public RouteOption Route { get; set; }
     public int SegmentPosition { get; set; }
-    public string PathId { get; set; }
+    // HIGHLANDER: Object reference ONLY, no PathId
+    public PathCard Path { get; set; }
 }
 
 /// <summary>
@@ -85,8 +85,10 @@ public class SituationCardRewards
     public int? Coins { get; set; }
     public int? Progress { get; set; }
     public int? Breakthrough { get; set; }
-    public string ObligationId { get; set; }
-    public string Item { get; set; }
+    // HIGHLANDER: Object reference ONLY, no ObligationId
+    public Obligation Obligation { get; set; }
+    // HIGHLANDER: Object reference ONLY, no Item ID
+    public Item Item { get; set; }
 
     // Cube rewards (strong typing, auto-applied to situation's context)
     public int? InvestigationCubes { get; set; }
@@ -94,7 +96,6 @@ public class SituationCardRewards
     public int? ExplorationCubes { get; set; }
 
     // Core Loop reward types
-    public string EquipmentId { get; set; }
     public CreateObligationReward CreateObligationData { get; set; }
     public RouteSegmentUnlock RouteSegmentUnlock { get; set; }
 }

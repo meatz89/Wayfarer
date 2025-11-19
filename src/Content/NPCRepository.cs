@@ -27,7 +27,8 @@ public class NPCRepository
     /// </summary>
     private bool IsNPCVisible(NPC npc)
     {
-        return _visibilityService.IsNPCVisible(npc.ID);
+        // ADR-007: Use Name (natural key) instead of deleted ID property
+        return _visibilityService.IsNPCVisible(npc.Name);
     }
 
     /// <summary>
@@ -46,7 +47,8 @@ public class NPCRepository
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
 
-        NPC? npc = characters.FirstOrDefault(n => n.ID == id);
+        // ADR-007: NPC.ID deleted - use Name as natural key
+        NPC? npc = characters.FirstOrDefault(n => n.Name == id);
         if (npc != null && !IsNPCVisible(npc))
             return null;
 
@@ -77,14 +79,14 @@ public class NPCRepository
         return FilterByVisibility(npcs);
     }
 
-    public List<NPC> GetNPCsForLocation(string locationId)
+    public List<NPC> GetNPCsForLocation(Location location)
     {
         List<NPC> npcs = _gameWorld.GetCharacters();
         if (npcs == null)
         {
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
-        List<NPC> locationNpcs = npcs.Where(n => n.Location?.Id == locationId).ToList();
+        List<NPC> locationNpcs = npcs.Where(n => n.Location == location).ToList();
         return FilterByVisibility(locationNpcs);
     }
 
@@ -109,17 +111,17 @@ public class NPCRepository
         List<NPC> professionNpcs = npcs.Where(n => n.Profession == profession).ToList();
         return FilterByVisibility(professionNpcs);
     }
-    public List<NPC> GetNPCsForLocationAndTimeDeprecated(string locationId, TimeBlocks currentTime)
+    public List<NPC> GetNPCsForLocationAndTimeDeprecated(Location location, TimeBlocks currentTime)
     {
         // DEPRECATED: Use GetNPCsForLocationAndTime instead
         // This method is kept temporarily for compatibility
-        return GetNPCsForLocationAndTime(locationId, currentTime);
+        return GetNPCsForLocationAndTime(location, currentTime);
     }
 
     /// <summary>
     /// Gets NPCs available at a specific location and time
     /// </summary>
-    public List<NPC> GetNPCsForLocationAndTime(string LocationId, TimeBlocks currentTime)
+    public List<NPC> GetNPCsForLocationAndTime(Location location, TimeBlocks currentTime)
     {
         // Return all NPCs at this location, regardless of availability
         // UI will handle whether they're interactable based on availability
@@ -131,21 +133,23 @@ public class NPCRepository
 
         // Optional - debugLogger might be null during initialization
         _debugLogger?.LogNPCActivity("GetNPCsForLocationAndTime", null,
-            $"Looking for NPCs at location '{LocationId}' during {currentTime}");
+            $"Looking for NPCs at location '{location.Name}' during {currentTime}");
 
-        Console.WriteLine($"[NPCRepository] Checking {npcs.Count} NPCs for location '{LocationId}'");
+        Console.WriteLine($"[NPCRepository] Checking {npcs.Count} NPCs for location '{location.Name}'");
         foreach (NPC npc in npcs)
         {
-            Console.WriteLine($"[NPCRepository]   NPC '{npc.Name}' (ID={npc.ID}) - Location: {(npc.Location != null ? $"'{npc.Location.Id}'" : "NULL")}");
+            // ADR-007: NPC.ID deleted - use Name for logging
+            Console.WriteLine($"[NPCRepository]   NPC '{npc.Name}' - Location: {(npc.Location != null ? $"'{npc.Location.Name}'" : "NULL")}");
         }
 
-        List<NPC> npcsAtLocation = npcs.Where(n => n.Location?.Id == LocationId).ToList();
+        List<NPC> npcsAtLocation = npcs.Where(n => n.Location == location).ToList();
 
         // Apply visibility filtering
         npcsAtLocation = FilterByVisibility(npcsAtLocation);
 
-        _debugLogger?.LogDebug($"Found {npcsAtLocation.Count} NPCs at location '{LocationId}': " +
-            string.Join(", ", npcsAtLocation.Select(n => $"{n.Name} ({n.ID}) - Available: {n.IsAvailable(currentTime)}")));
+        // ADR-007: NPC.ID deleted - use Name for logging
+        _debugLogger?.LogDebug($"Found {npcsAtLocation.Count} NPCs at location '{location.Name}': " +
+            string.Join(", ", npcsAtLocation.Select(n => $"{n.Name} - Available: {n.IsAvailable(currentTime)}")));
 
         return npcsAtLocation;
     }
@@ -153,14 +157,14 @@ public class NPCRepository
     /// <summary>
     /// Gets the primary NPC for a specific location if available at the current time
     /// </summary>
-    public NPC GetPrimaryNPCForSpot(string locationId, TimeBlocks currentTime)
+    public NPC GetPrimaryNPCForSpot(Location location, TimeBlocks currentTime)
     {
         List<NPC> npcs = _gameWorld.GetCharacters();
         if (npcs == null)
         {
             throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
         }
-        NPC? npc = npcs.FirstOrDefault(n => n.Location?.Id == locationId && n.IsAvailable(currentTime));
+        NPC? npc = npcs.FirstOrDefault(n => n.Location == location && n.IsAvailable(currentTime));
         if (npc != null && !IsNPCVisible(npc))
             return null;
         return npc;
@@ -169,12 +173,12 @@ public class NPCRepository
     /// <summary>
     /// Get time block service planning data for UI display
     /// </summary>
-    public List<TimeBlockServiceInfo> GetTimeBlockServicePlan(string locationId)
+    public List<TimeBlockServiceInfo> GetTimeBlockServicePlan(Location location)
     {
         List<TimeBlockServiceInfo> timeBlockPlan = new List<TimeBlockServiceInfo>();
         TimeBlocks[] allTimeBlocks = Enum.GetValues<TimeBlocks>();
         // GetNPCsForLocation already applies visibility filtering
-        List<NPC> locationNPCs = GetNPCsForLocation(locationId);
+        List<NPC> locationNPCs = GetNPCsForLocation(location);
 
         foreach (TimeBlocks timeBlock in allTimeBlocks)
         {
@@ -203,13 +207,13 @@ public class NPCRepository
             throw new InvalidOperationException("No NPCs collection exists.");
         }
 
-        NPC existingNPC = npcs.FirstOrDefault(n => n.ID == npc.ID);
-        if (existingNPC == null)
+        // ADR-007: Use object equality instead of string matching
+        int index = npcs.IndexOf(npc);
+        if (index == -1)
         {
-            throw new InvalidOperationException($"NPC with ID '{npc.ID}' not found.");
+            throw new InvalidOperationException($"NPC '{npc.Name}' not found in collection.");
         }
 
-        int index = npcs.IndexOf(existingNPC);
         npcs[index] = npc;
     }
 

@@ -92,7 +92,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         EmergencySituation activeEmergency = GameFacade.GetActiveEmergency();
         if (activeEmergency != null)
         {
-            await StartEmergency(activeEmergency.Id);
+            await StartEmergency(activeEmergency);
             return; // Emergency takes priority, skip normal initialization
         }
 
@@ -102,11 +102,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         Location currentLocation = GameFacade.GetCurrentLocation();
         if (currentLocation != null)
         {
-            List<Scene> resumableScenes = SceneFacade.GetResumableScenesAtContext(currentLocation.Id, null);
+            List<Scene> resumableScenes = SceneFacade.GetResumableScenesAtContext(currentLocation, null);
             if (resumableScenes.Count > 0)
             {
                 Scene modalScene = resumableScenes.First();
-                await StartScene(modalScene.Id);
+                await StartScene(modalScene);
                 return; // Modal scene takes priority over normal location display
             }
         }
@@ -166,20 +166,17 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     private string BuildLocationPath(string locationName)
     {
-        // Get the current venue directly from GameFacade by ID
+        // Get the current venue directly from GameFacade
         Venue venue = GameFacade.GetCurrentLocation().Venue;
         if (venue == null) return locationName;
 
-        // Get the district from the venue's district ID
-        if (string.IsNullOrEmpty(venue.District))
-            return venue.Name;
-
-        District district = GameFacade.GetDistrictById(venue.District);
+        // Get the district for the venue (object reference, NO ID lookup)
+        District district = GameFacade.GetDistrictForLocation(venue);
         if (district == null)
             return venue.Name;
 
-        // Get the region from the district
-        Region region = GameFacade.GetRegionForDistrict(district.Id);
+        // Get the region from the district (object reference, NO ID extraction)
+        Region region = GameFacade.GetRegionForDistrict(district);
 
         // Build the breadcrumb path
         List<string> path = new List<string>();
@@ -279,7 +276,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         switch (CurrentScreen)
         {
             case ScreenMode.SocialChallenge:
-                state.NpcId = CurrentSocialContext?.NpcId;
+                state.Npc = CurrentSocialContext?.Npc;
                 break;
         }
 
@@ -301,9 +298,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await RefreshTimeDisplay();
     }
 
-    public async Task StartExchange(string npcId)
+    public async Task StartExchange(NPC npc)
     {
-        CurrentExchangeContext = await GameFacade.CreateExchangeContext(npcId);
+        CurrentExchangeContext = await GameFacade.CreateExchangeContext(npc);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -335,9 +332,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await NavigateToScreen(ScreenMode.Location);
     }
 
-    public async Task StartConversationSession(string npcId, string situationId)
+    public async Task StartConversationSession(NPC npc, Situation situation)
     {
-        CurrentSocialContext = await GameFacade.CreateConversationContext(npcId, situationId);
+        CurrentSocialContext = await GameFacade.CreateConversationContext(npc, situation);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -376,19 +373,19 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartMentalSession(string deckId, string locationId, string situationId, string obligationId)
+    public async Task StartMentalSession(MentalChallengeDeck deck, Location location, Situation situation, Obligation obligation)
     {
-        MentalSession session = GameFacade.StartMentalSession(deckId, locationId, situationId, obligationId);
+        MentalSession session = GameFacade.StartMentalSession(deck, location, situation, obligation);
 
         // Create context parallel to Social pattern
         CurrentMentalContext = new MentalChallengeContext
         {
             IsValid = session != null,
             ErrorMessage = session == null ? "Failed to start Mental session" : string.Empty,
-            DeckId = deckId,
+            DeckId = deck?.Id,
             Session = session,
-            Venue = GameFacade.GetCurrentLocation().Venue,
-            LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"
+            Venue = location?.Venue,
+            LocationName = location?.Name ?? "Unknown"
         };
 
         // Always refresh UI after GameFacade action
@@ -425,19 +422,19 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartPhysicalSession(string deckId, string locationId, string situationId, string obligationId)
+    public async Task StartPhysicalSession(PhysicalChallengeDeck deck, Location location, Situation situation, Obligation obligation)
     {
-        PhysicalSession session = GameFacade.StartPhysicalSession(deckId, locationId, situationId, obligationId);
+        PhysicalSession session = GameFacade.StartPhysicalSession(deck, location, situation, obligation);
 
         // Create context parallel to Social pattern
         CurrentPhysicalContext = new PhysicalChallengeContext
         {
             IsValid = session != null,
             ErrorMessage = session == null ? "Failed to start Physical session" : string.Empty,
-            DeckId = deckId,
+            DeckId = deck?.Id,
             Session = session,
-            Venue = GameFacade.GetCurrentLocation().Venue,
-            LocationName = GameFacade.GetCurrentLocation()?.Name ?? "Unknown"
+            Venue = location?.Venue,
+            LocationName = location?.Name ?? "Unknown"
         };
 
         // Always refresh UI after GameFacade action
@@ -454,9 +451,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         { }
     }
 
-    public async Task StartConversationTree(string treeId)
+    public async Task StartConversationTree(ConversationTree tree)
     {
-        CurrentConversationTreeContext = GameFacade.CreateConversationTreeContext(treeId);
+        CurrentConversationTreeContext = GameFacade.CreateConversationTreeContext(tree.Id);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -470,9 +467,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
     }
 
-    public async Task StartObservationScene(string sceneId)
+    public async Task StartObservationScene(ObservationScene scene)
     {
-        CurrentObservationContext = GameFacade.CreateObservationContext(sceneId);
+        CurrentObservationContext = GameFacade.CreateObservationContext(scene);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -486,9 +483,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         }
     }
 
-    public async Task StartEmergency(string emergencyId)
+    public async Task StartEmergency(EmergencySituation emergency)
     {
-        CurrentEmergencyContext = GameFacade.CreateEmergencyContext(emergencyId);
+        CurrentEmergencyContext = GameFacade.CreateEmergencyContext(emergency.Id);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -567,9 +564,8 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartScene(string sceneId)
+    public async Task StartScene(Scene scene)
     {
-        Scene scene = GameWorld.Scenes.FirstOrDefault(s => s.Id == sceneId);
         if (scene == null)
             return;
 
@@ -586,7 +582,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             IsValid = true,
             Scene = scene,
             CurrentSituation = currentSituation,
-            LocationId = currentLocation?.Id,
+            Location = currentLocation, // Object reference, NO ID
             LocationName = currentLocation?.Name
         };
 
@@ -599,13 +595,14 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    public async Task StartNPCEngagement(string npcId, Scene scene)
+    public async Task StartNPCEngagement(NPC npc, Scene scene)
     {
         // Direct scene object passed from UI (HIGHLANDER Pattern B - no lookup needed)
         // Defensive validation: Scene must be active and belong to this NPC
         if (scene.State != SceneState.Active)
         {
-            Console.WriteLine($"[GameScreen] Scene {scene.Id} is not active (state: {scene.State})");
+            // ADR-007: Use DisplayName or TemplateId for logging (no Id property)
+            Console.WriteLine($"[GameScreen] Scene {scene.DisplayName} is not active (state: {scene.State})");
             return;
         }
 
@@ -613,15 +610,16 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         Situation currentSituation = scene.CurrentSituation;
 
         // ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
-        if (currentSituation?.Npc == null || currentSituation.Npc.ID != npcId)
+        // HIGHLANDER: Object equality, not Name comparison
+        if (currentSituation?.Npc == null || currentSituation.Npc != npc)
         {
-            Console.WriteLine($"[GameScreen] Scene {scene.Id} current situation does not involve NPC {npcId}");
+            Console.WriteLine($"[GameScreen] Scene {scene.DisplayName} current situation does not involve NPC {npc.Name}");
             return;
         }
 
         if (currentSituation == null)
         {
-            Console.WriteLine($"[GameScreen] No current situation found for scene {scene.Id}");
+            Console.WriteLine($"[GameScreen] No current situation found for scene {scene.DisplayName}");
             return;
         }
 
@@ -632,7 +630,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             IsValid = true,
             Scene = scene,
             CurrentSituation = currentSituation,
-            LocationId = currentLocation?.Id,
+            Location = currentLocation, // Object reference, NO ID
             LocationName = currentLocation?.Name
         };
 
@@ -904,11 +902,14 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     {
         _showObligationDiscoveryModal = false;
 
-        string obligationId = _obligationDiscoveryResult.ObligationId;
+        Obligation obligation = _obligationDiscoveryResult.Obligation;
         _obligationDiscoveryResult = null;
 
+        if (obligation == null)
+            return;
+
         // Activate obligation and spawn Phase 1 scene
-        await ObligationActivity.CompleteIntroAction(obligationId);
+        await ObligationActivity.CompleteIntroAction(obligation);
 
         // Refresh UI after activation
         await RefreshLocationDisplay();
@@ -944,11 +945,11 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     {
         _showObligationIntroModal = false;
 
-        string obligationId = _obligationIntroResult.ObligationId;
+        Obligation obligation = _obligationIntroResult.Obligation;
         _obligationIntroResult = null;
 
         // Activate obligation and spawn Phase 1 scene
-        await GameFacade.CompleteObligationIntro(obligationId);
+        await GameFacade.CompleteObligationIntro(obligation);
 
         // Refresh UI after activation
         await RefreshLocationDisplay();
@@ -969,13 +970,14 @@ public class ScreenContext
 
 /// <summary>
 /// Strongly typed state data for screen transitions
+/// NOTE: This is UI navigation state, not domain state
+/// Object references used where possible, IDs acceptable for serialization needs
 /// </summary>
 public class ScreenStateData
 {
-    public string NpcId { get; set; }
-    public string VenueId { get; set; }
-    public string TravelDestination { get; set; }
-    public string RequestId { get; set; }
-    public string SelectedCardId { get; set; }
-    public int? SelectedObligationIndex { get; set; }
+    public NPC Npc { get; set; } // Object reference for current NPC interaction
+    public string VenueId { get; set; } // May be needed for venue-based navigation
+    public string TravelDestination { get; set; } // May be needed for travel resumption
+    public string SelectedCardId { get; set; } // Card instance tracking
+    public int? SelectedObligationIndex { get; set; } // Obligation selection tracking
 }

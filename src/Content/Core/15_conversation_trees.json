@@ -1,7 +1,7 @@
 {
   "packageId": "core_conversation_trees",
   "metadata": {
-    "version": "1.0",
+    "version": "2.0",
     "author": "Wayfarer Core",
     "description": "Core conversation trees for Brass Bell Inn and Town Square tutorial area"
   },
@@ -10,7 +10,13 @@
       "id": "elena_welcome",
       "name": "Welcome to the Brass Bell",
       "description": "The innkeeper greets you warmly.",
-      "npcId": "elena_innkeeper",
+      "participantFilter": {
+        "placementType": "NPC",
+        "professions": ["Innkeeper"],
+        "socialStandings": ["Notable"],
+        "storyRoles": ["Obstacle"],
+        "knowledgeLevels": ["Informed"]
+      },
       "minimumRelationship": 0,
       "requiredKnowledge": [],
       "availableTimeBlocks": ["Evening", "Night"],
@@ -93,7 +99,13 @@
       "id": "thomas_introduction",
       "name": "Grain Shortage Concerns",
       "description": "The foreman seems troubled by supply issues.",
-      "npcId": "thomas_foreman",
+      "participantFilter": {
+        "placementType": "NPC",
+        "professions": ["Dock_Boss"],
+        "socialStandings": ["Commoner"],
+        "storyRoles": ["Neutral"],
+        "knowledgeLevels": ["Ignorant"]
+      },
       "minimumRelationship": 0,
       "requiredKnowledge": [],
       "availableTimeBlocks": ["Evening"],
@@ -148,30 +160,30 @@
             },
             {
               "id": "sympathize",
-              "responseText": "Sounds like a real problem. I hope it gets resolved.",
+              "responseText": "That sounds serious. I hope it gets resolved.",
               "focusCost": 0,
               "timeCost": 0,
               "nextNodeId": null,
-              "relationshipDelta": 1
+              "relationshipDelta": 0
             }
           ]
         },
         {
           "id": "help_response",
-          "npcDialogue": "Problem-solving, huh? Well, if you're serious, I could use someone to track down what happened to our grain merchant. Can't pay much until the delivery comes in, but I'll remember the help.",
+          "npcDialogue": "Problem-solving, eh? Well, I need someone to track down why our grain shipment hasn't arrived. Pay's good if you can figure it out.",
           "responses": [
             {
               "id": "accept_quest",
-              "responseText": "I'll see what I can find out.",
+              "responseText": "I'll look into it. What do you know so far?",
               "focusCost": 0,
-              "timeCost": 0,
-              "nextNodeId": null,
+              "timeCost": 1,
+              "nextNodeId": "quest_details",
               "relationshipDelta": 2,
-              "grantedKnowledge": ["thomas_grain_investigation_accepted"]
+              "grantedKnowledge": ["accepted_grain_quest"]
             },
             {
               "id": "decline",
-              "responseText": "On second thought, I have my own concerns right now.",
+              "responseText": "Sounds risky. I'll pass.",
               "focusCost": 0,
               "timeCost": 0,
               "nextNodeId": null,
@@ -181,20 +193,20 @@
         },
         {
           "id": "investigation_offered",
-          "npcDialogue": "Worth your while? I can scrape together 20 coins if you bring me real answers. Deal?",
+          "npcDialogue": "Worth your while? Fine. Find out what happened to the shipment, and I'll make it worth 25 coins. Deal?",
           "responses": [
             {
-              "id": "accept_deal",
-              "responseText": "Deal. I'll find your answers.",
+              "id": "accept_paid_quest",
+              "responseText": "Deal. I'll get started.",
               "focusCost": 0,
               "timeCost": 0,
-              "nextNodeId": null,
-              "relationshipDelta": 1,
-              "grantedKnowledge": ["thomas_grain_investigation_accepted", "thomas_payment_promised"]
+              "nextNodeId": "quest_details",
+              "relationshipDelta": 0,
+              "grantedKnowledge": ["accepted_grain_quest"]
             },
             {
-              "id": "decline_deal",
-              "responseText": "Not enough. I'll pass.",
+              "id": "decline_offer",
+              "responseText": "Not enough. I'll think about it.",
               "focusCost": 0,
               "timeCost": 0,
               "nextNodeId": null,
@@ -208,7 +220,13 @@
       "id": "elena_late_night",
       "name": "Late Night Conversation",
       "description": "Elena shares insights about the town after hours.",
-      "npcId": "elena_innkeeper",
+      "participantFilter": {
+        "placementType": "NPC",
+        "professions": ["Innkeeper"],
+        "socialStandings": ["Notable"],
+        "storyRoles": ["Obstacle"],
+        "knowledgeLevels": ["Informed"]
+      },
       "minimumRelationship": 3,
       "requiredKnowledge": ["knows_room_cost"],
       "availableTimeBlocks": ["Night"],
@@ -293,7 +311,13 @@
       "id": "merchant_small_talk",
       "name": "Market Gossip",
       "description": "The general merchant shares news and rumors.",
-      "npcId": "merchant_general",
+      "participantFilter": {
+        "placementType": "NPC",
+        "professions": ["Merchant"],
+        "socialStandings": ["Commoner"],
+        "storyRoles": ["Neutral"],
+        "knowledgeLevels": ["Ignorant"]
+      },
       "minimumRelationship": 0,
       "requiredKnowledge": [],
       "availableTimeBlocks": ["Morning", "Afternoon"],

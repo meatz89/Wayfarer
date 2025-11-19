@@ -1,56 +1,69 @@
 /// <summary>
 /// Parser for ObservationScene - Mental challenge system for scene investigation.
-/// Translates JSON DTOs into domain entities with GameWorld references resolved.
+/// Translates JSON DTOs into domain entities with EntityResolver for categorical matching (DDR-006).
 /// </summary>
 public static class ObservationSceneParser
 {
-    public static ObservationScene Parse(ObservationSceneDTO dto, GameWorld gameWorld)
+    public static ObservationScene Parse(ObservationSceneDTO dto, EntityResolver entityResolver)
     {
         if (dto == null)
             throw new ArgumentNullException(nameof(dto));
-        if (gameWorld == null)
-            throw new ArgumentNullException(nameof(gameWorld));
-        if (string.IsNullOrWhiteSpace(dto.Id))
-            throw new InvalidOperationException("ObservationScene must have an Id");
-        if (string.IsNullOrWhiteSpace(dto.LocationId))
-            throw new InvalidOperationException($"ObservationScene '{dto.Id}' must have a LocationId");
+        if (entityResolver == null)
+            throw new ArgumentNullException(nameof(entityResolver));
+        if (dto.LocationFilter == null)
+            throw new InvalidOperationException($"ObservationScene '{dto.Name}' must have a locationFilter");
 
-        // Resolve location reference
-        Location location = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId);
-        if (location == null)
-            throw new InvalidOperationException($"ObservationScene '{dto.Id}' references unknown Location '{dto.LocationId}'");
+        // EntityResolver.FindOrCreate pattern - categorical entity resolution
+        PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(dto.LocationFilter, $"ObservationScene:{dto.Name}");
+        Location location = entityResolver.FindOrCreateLocation(locationFilter);
 
         ObservationScene scene = new ObservationScene
         {
-            Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
-            LocationId = dto.LocationId,
-            Location = location,
+            Location = location, // Object reference, no LocationId
             RequiredKnowledge = new List<string>(dto.RequiredKnowledge),
             IsRepeatable = dto.IsRepeatable,
             IsCompleted = false,
-            ExaminedPointIds = new List<string>()
+            ExaminedPoints = new List<ExaminationPoint>() // Object collection, not ExaminedPointIds
         };
 
-        // Parse examination points
+        // Parse examination points (first pass - no cross-references yet)
+        Dictionary<string, ExaminationPoint> pointsById = new Dictionary<string, ExaminationPoint>();
         foreach (ExaminationPointDTO pointDto in dto.ExaminationPoints)
         {
-            ExaminationPoint point = ParseExaminationPoint(pointDto, dto.Id);
+            ExaminationPoint point = ParseExaminationPoint(pointDto);
             scene.ExaminationPoints.Add(point);
+
+            // Track by DTO Id for second pass reference resolution
+            if (!string.IsNullOrWhiteSpace(pointDto.Id))
+            {
+                pointsById[pointDto.Id] = point;
+            }
+        }
+
+        // Second pass - resolve RevealsExaminationPoint references
+        for (int i = 0; i < dto.ExaminationPoints.Count; i++)
+        {
+            ExaminationPointDTO pointDto = dto.ExaminationPoints[i];
+            ExaminationPoint point = scene.ExaminationPoints[i];
+
+            if (!string.IsNullOrWhiteSpace(pointDto.RevealsExaminationPointId))
+            {
+                if (pointsById.TryGetValue(pointDto.RevealsExaminationPointId, out ExaminationPoint revealedPoint))
+                {
+                    point.RevealsExaminationPoint = revealedPoint;
+                }
+            }
         }
 
         return scene;
     }
 
-    private static ExaminationPoint ParseExaminationPoint(ExaminationPointDTO dto, string sceneId)
+    private static ExaminationPoint ParseExaminationPoint(ExaminationPointDTO dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Id))
-            throw new InvalidOperationException($"ExaminationPoint in scene '{sceneId}' must have an Id");
-
         ExaminationPoint point = new ExaminationPoint
         {
-            Id = dto.Id,
             Title = dto.Title,
             Description = dto.Description,
             FocusCost = dto.FocusCost,
@@ -59,11 +72,9 @@ public static class ObservationSceneParser
             IsHidden = dto.IsHidden,
             IsExamined = false,
             GrantedKnowledge = new List<string>(dto.GrantedKnowledge),
-            RevealsExaminationPointId = dto.RevealsExaminationPointId,
-            FoundItemId = dto.FoundItemId,
-            FindItemChance = dto.FindItemChance,
-            SpawnedSituationId = dto.SpawnedSituationId,
-            SpawnedConversationId = dto.SpawnedConversationId
+            FindItemChance = dto.FindItemChance
+            // RevealsExaminationPoint resolved in second pass
+            // FoundItem, SpawnedSituation, SpawnedConversation: TODO resolve from gameWorld if needed
         };
 
         // Parse optional required stat
@@ -77,7 +88,7 @@ public static class ObservationSceneParser
             else
             {
                 throw new InvalidOperationException(
-                    $"ExaminationPoint '{dto.Id}' in scene '{sceneId}' has invalid RequiredStat '{dto.RequiredStat}'");
+                    $"ExaminationPoint '{dto.Title}' has invalid RequiredStat '{dto.RequiredStat}'");
             }
         }
 

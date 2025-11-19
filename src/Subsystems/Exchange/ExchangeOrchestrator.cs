@@ -9,7 +9,7 @@ public class ExchangeOrchestrator
     private readonly ExchangeProcessor _processor;
     private readonly MessageSystem _messageSystem;
 
-    private Dictionary<string, ExchangeSession> _activeSessions;
+    private List<ExchangeSession> _activeSessions;
 
     public ExchangeOrchestrator(
         GameWorld gameWorld,
@@ -21,31 +21,33 @@ public class ExchangeOrchestrator
         _validator = validator ?? throw new ArgumentNullException(nameof(validator));
         _processor = processor ?? throw new ArgumentNullException(nameof(processor));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-        _activeSessions = new Dictionary<string, ExchangeSession>();
+        _activeSessions = new List<ExchangeSession>();
     }
 
     /// <summary>
     /// Create a new exchange session with an NPC
+    /// ADR-007: Store NPC object reference (not ID)
     /// </summary>
     public ExchangeSession CreateSession(NPC npc, List<ExchangeOption> availableExchanges)
     {
-        // End any existing session with this NPC
-        if (_activeSessions.ContainsKey(npc.ID))
+        // ADR-007: Find existing session by NPC object reference (not ID comparison)
+        ExchangeSession existingSession = _activeSessions.FirstOrDefault(s => s.Npc == npc);
+        if (existingSession != null)
         {
-            EndSession(npc.ID);
+            EndSession(npc);
         }
 
-        // Create new session
+        // ADR-007: Create session with object references (SessionId and NpcId deleted)
         ExchangeSession session = new ExchangeSession
         {
-            SessionId = Guid.NewGuid().ToString(),
-            NpcId = npc.ID,
+            Npc = npc,
+            Location = npc.Location, // Capture location where exchange happening
             AvailableExchanges = availableExchanges,
             StartTime = DateTime.Now,
             IsActive = true
         };
 
-        _activeSessions[npc.ID] = session;
+        _activeSessions.Add(session);
 
         _messageSystem.AddSystemMessage(
             $"Exchange session started with {npc.Name}",
@@ -56,36 +58,42 @@ public class ExchangeOrchestrator
 
     /// <summary>
     /// End an exchange session
+    /// ADR-007: Accept NPC object (not ID)
     /// </summary>
-    public void EndSession(string npcId)
+    public void EndSession(NPC npc)
     {
-        if (_activeSessions.TryGetValue(npcId, out ExchangeSession session))
+        // ADR-007: Find session by NPC object reference (not ID)
+        ExchangeSession session = _activeSessions.FirstOrDefault(s => s.Npc == npc);
+        if (session != null)
         {
             session.IsActive = false;
-            _activeSessions.Remove(npcId);
+            _activeSessions.Remove(session);
 
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == session.NpcId);
-            string npcName = npc != null ? npc.Name : "NPC";
+            // ADR-007: No ID lookup needed - session already has NPC object
             _messageSystem.AddSystemMessage(
-                $"Exchange session with {npcName} ended",
+                $"Exchange session with {session.Npc!.Name} ended",
                 SystemMessageTypes.Info);
         }
     }
 
     /// <summary>
-    /// Get an active session by NPC ID
+    /// Get an active session by NPC
+    /// ADR-007: Accept NPC object (not ID)
     /// </summary>
-    public ExchangeSession GetActiveSession(string npcId)
+    public ExchangeSession GetActiveSession(NPC npc)
     {
-        return _activeSessions.TryGetValue(npcId, out ExchangeSession session) ? session : null;
+        // ADR-007: Find session by NPC object reference (not ID)
+        return _activeSessions.FirstOrDefault(s => s.Npc == npc);
     }
 
     /// <summary>
     /// Check if an NPC has an active exchange session
+    /// ADR-007: Accept NPC object (not ID)
     /// </summary>
-    public bool HasActiveSession(string npcId)
+    public bool HasActiveSession(NPC npc)
     {
-        return _activeSessions.ContainsKey(npcId);
+        // ADR-007: Find session by NPC object reference (not ID)
+        return _activeSessions.Any(s => s.Npc == npc);
     }
 
     /// <summary>
@@ -96,16 +104,18 @@ public class ExchangeOrchestrator
         // Check for relationship milestones from token rewards
         if (exchange.Reward != null && exchange.Reward.Tokens != null)
         {
-            foreach (KeyValuePair<ConnectionType, int> tokenReward in exchange.Reward.Tokens)
+            foreach (TokenCount tokenReward in exchange.Reward.Tokens)
             {
-                CheckRelationshipMilestone(npc.ID, tokenReward.Key, tokenReward.Value);
+                // HIGHLANDER: Pass NPC object directly, not npc.ID
+                CheckRelationshipMilestone(npc, tokenReward.Type, tokenReward.Count);
             }
         }
 
         // Check for special exchange chains
         if (!string.IsNullOrEmpty(exchange.UnlocksExchangeId))
         {
-            UnlockExchange(npc.ID, exchange.UnlocksExchangeId);
+            // HIGHLANDER: Pass NPC object directly, not npc.ID
+            UnlockExchange(npc, exchange.UnlocksExchangeId);
         }
 
         // Check for story triggers
@@ -117,23 +127,34 @@ public class ExchangeOrchestrator
 
     /// <summary>
     /// Clear all active sessions (used when loading game or changing locations)
+    /// ADR-007: Work with NPC objects (not IDs)
     /// </summary>
     public void ClearAllSessions()
     {
-        foreach (string npcId in _activeSessions.Keys.ToList())
+        // ADR-007: Get NPC objects from sessions (not IDs)
+        List<NPC> npcs = _activeSessions.Select(s => s.Npc).ToList();
+        foreach (NPC npc in npcs)
         {
-            EndSession(npcId);
+            EndSession(npc);
         }
     }
 
     // Helper methods
 
-    private void CheckRelationshipMilestone(string npcId, ConnectionType tokenType, int amount)
+    /// <summary>
+    /// Check relationship milestones after token rewards
+    /// HIGHLANDER: Accepts NPC object, not string ID
+    /// </summary>
+    private void CheckRelationshipMilestone(NPC npc, ConnectionType tokenType, int amount)
     {
         // This would integrate with the Token subsystem to check milestones
     }
 
-    private void UnlockExchange(string npcId, string exchangeId)
+    /// <summary>
+    /// Unlock new exchange for NPC
+    /// HIGHLANDER: Accepts NPC object, not string ID
+    /// </summary>
+    private void UnlockExchange(NPC npc, string exchangeId)
     {
         // This would integrate with ExchangeInventory to unlock new exchanges
     }

@@ -23,7 +23,8 @@ namespace Wayfarer.Pages.Components
         [Inject] protected GameFacade GameFacade { get; set; }
 
         // Component state
-        protected string SelectedExchangeId { get; set; }
+        // HIGHLANDER: Store ExchangeCard object, not ID string
+        protected ExchangeCard SelectedExchange { get; set; }
         protected string CurrentNarrative { get; set; }
         protected bool IsProcessingTrade { get; set; } = false;
         protected ExchangeResult LastResult { get; set; }
@@ -43,29 +44,31 @@ namespace Wayfarer.Pages.Components
             if (Context.Session == null)
                 throw new InvalidOperationException("Exchange session is required");
 
-            // Reset selection when context changes
-            if (Context.Session.SessionId != LastContextId)
+            // ADR-007: Reset selection when session object changes (no SessionId comparison)
+            if (Context.Session != LastSession)
             {
-                SelectedExchangeId = null;
+                SelectedExchange = null;
                 LastResult = null;
                 GenerateInitialNarrative();
-                LastContextId = Context.Session.SessionId;
+                LastSession = Context.Session;
             }
         }
 
-        private string LastContextId { get; set; }
+        // ADR-007: Track session by object reference (not string ID)
+        private ExchangeSession LastSession { get; set; }
 
         /// <summary>
         /// Gets the Venue context string for the header.
         /// </summary>
+        // ADR-007: Use Location object (not LocationInfo)
         protected string GetLocationContext()
         {
             if (Context == null)
                 throw new InvalidOperationException("Exchange context is required");
-            if (Context.LocationInfo != null)
+            if (Context.Location != null)
             {
                 string timeStr = GetTimeBlockDisplay(Context.CurrentTimeBlock);
-                return $"{timeStr} - {Context.LocationInfo.VenueName}";
+                return $"{timeStr} - {Context.Location.VenueName}";
             }
             return "Unknown Location";
         }
@@ -89,11 +92,12 @@ namespace Wayfarer.Pages.Components
         /// <summary>
         /// Gets the NPC status line for display.
         /// </summary>
+        // ADR-007: Use Npc object (not NpcInfo)
         protected string GetNpcStatusLine()
         {
             if (Context == null)
                 throw new InvalidOperationException("Exchange context is required");
-            if (Context.NpcInfo == null)
+            if (Context.Npc == null)
                 return "";
 
             List<string> parts = new List<string>();
@@ -113,14 +117,15 @@ namespace Wayfarer.Pages.Components
         /// <summary>
         /// Gets the number of diplomacy tokens with this NPC.
         /// </summary>
+        // ADR-007: Use PlayerTokens (already in Context, no need for NpcInfo.TokenCounts)
         protected int GetDiplomacyTokens()
         {
             if (Context == null)
                 throw new InvalidOperationException("Exchange context is required");
-            if (Context.NpcInfo == null || Context.NpcInfo.TokenCounts == null)
+            if (Context.PlayerTokens == null)
                 return 0;
 
-            return Context.NpcInfo.TokenCounts.GetValueOrDefault(ConnectionType.Diplomacy, 0);
+            return Context.PlayerTokens.GetValueOrDefault(ConnectionType.Diplomacy, 0);
         }
 
         /// <summary>
@@ -140,20 +145,21 @@ namespace Wayfarer.Pages.Components
         /// <summary>
         /// Generates initial narrative when entering exchange mode.
         /// </summary>
+        // ADR-007: Use Npc/Location objects (not NpcInfo/LocationInfo)
         protected void GenerateInitialNarrative()
         {
             if (Context == null)
                 throw new InvalidOperationException("Exchange context is required");
 
-            if (Context.NpcInfo != null)
+            if (Context.Npc != null)
             {
                 // NPC-based exchange
                 CurrentNarrative = GenerateNpcGreeting();
             }
-            else if (Context.LocationInfo != null)
+            else if (Context.Location != null)
             {
                 // Location-based exchange
-                CurrentNarrative = $"You examine the available services at {Context.LocationInfo.VenueName}.";
+                CurrentNarrative = $"You examine the available services at {Context.Location.VenueName}.";
             }
             else
             {
@@ -164,12 +170,13 @@ namespace Wayfarer.Pages.Components
         /// <summary>
         /// Generates a greeting from the NPC.
         /// </summary>
+        // ADR-007: Use Npc object (not NpcInfo)
         protected string GenerateNpcGreeting()
         {
             if (Context == null)
                 throw new InvalidOperationException("Exchange context is required");
 
-            string npcName = Context.NpcInfo != null ? Context.NpcInfo.Name : "The merchant";
+            string npcName = Context.Npc != null ? Context.Npc.Name : "The merchant";
 
             if (Context.Session == null)
                 throw new InvalidOperationException("Exchange session is required");
@@ -208,20 +215,21 @@ namespace Wayfarer.Pages.Components
 
         /// <summary>
         /// Selects an exchange card.
+        /// HIGHLANDER: Uses object equality, not ID comparison
         /// </summary>
         protected void SelectExchange(ExchangeCard exchange)
         {
             if (exchange == null || !Context.CanAfford(exchange))
                 return;
 
-            // Toggle selection
-            if (SelectedExchangeId == exchange.Id)
+            // Toggle selection (object equality)
+            if (SelectedExchange == exchange)
             {
-                SelectedExchangeId = null;
+                SelectedExchange = null;
             }
             else
             {
-                SelectedExchangeId = exchange.Id;
+                SelectedExchange = exchange;
             }
 
             StateHasChanged();
@@ -229,6 +237,7 @@ namespace Wayfarer.Pages.Components
 
         /// <summary>
         /// Checks if a trade can be executed.
+        /// HIGHLANDER: Uses SelectedExchange object directly, no lookup needed
         /// </summary>
         protected bool CanExecuteTrade()
         {
@@ -238,11 +247,10 @@ namespace Wayfarer.Pages.Components
             if (IsProcessingTrade)
                 return false;
 
-            if (string.IsNullOrEmpty(SelectedExchangeId))
+            if (SelectedExchange == null)
                 return false;
 
-            ExchangeCard exchange = GetAvailableExchanges().FirstOrDefault(e => e.Id == SelectedExchangeId);
-            return exchange != null && Context.CanAfford(exchange);
+            return Context.CanAfford(SelectedExchange);
         }
 
         /// <summary>
@@ -253,7 +261,7 @@ namespace Wayfarer.Pages.Components
             if (IsProcessingTrade)
                 return "Processing trade...";
 
-            if (string.IsNullOrEmpty(SelectedExchangeId))
+            if (SelectedExchange == null)
                 return "Select an exchange";
 
             return "Execute selected exchange";
@@ -276,18 +284,19 @@ namespace Wayfarer.Pages.Components
                     throw new InvalidOperationException("Exchange context is required");
 
                 // Execute the exchange through the facade
-                string npcId = Context.NpcInfo != null ? Context.NpcInfo.NpcId : "";
+                // HIGHLANDER: Pass ExchangeCard object, not ID string
+                // ADR-007: Use Npc object (not NpcInfo.NpcId)
+                string npcId = Context.Npc != null ? Context.Npc.Name : "";
 
                 // Get required parameters
                 if (Context.PlayerResources == null)
                     throw new InvalidOperationException("Player resources are required");
                 PlayerResourceState playerResources = Context.PlayerResources;
-                Dictionary<ConnectionType, int> npcTokens = Context.NpcInfo != null && Context.NpcInfo.TokenCounts != null
-                    ? Context.NpcInfo.TokenCounts
-                    : new Dictionary<ConnectionType, int>();
+                // ADR-007: Use PlayerTokens (already in Context, not NpcInfo.TokenCounts)
+                Dictionary<ConnectionType, int> npcTokens = Context.PlayerTokens ?? new Dictionary<ConnectionType, int>();
                 RelationshipTier relationshipTier = RelationshipTier.None; // Default for now
 
-                LastResult = await ExchangeFacade.ExecuteExchange(npcId, SelectedExchangeId, playerResources, npcTokens, relationshipTier);
+                LastResult = await ExchangeFacade.ExecuteExchange(npcId, SelectedExchange, playerResources, npcTokens, relationshipTier);
 
                 if (LastResult == null)
                     throw new InvalidOperationException("Exchange execution returned null result");
@@ -298,10 +307,11 @@ namespace Wayfarer.Pages.Components
                     CurrentNarrative = GenerateSuccessNarrative(LastResult);
 
                     // Clear selection
-                    SelectedExchangeId = null;
+                    SelectedExchange = null;
 
                     // Update context with new state
-                    Context = await GameFacade.CreateExchangeContext(Context.NpcInfo != null ? Context.NpcInfo.NpcId : null);
+                    // ADR-007: Pass Npc object (not NpcInfo.NpcId)
+                    Context = await GameFacade.CreateExchangeContext(Context.Npc?.Name);
                 }
                 else
                 {
@@ -341,9 +351,10 @@ namespace Wayfarer.Pages.Components
             if (Context == null)
                 throw new InvalidOperationException("Exchange context is required");
 
-            if (Context.NpcInfo != null)
+            // ADR-007: Use Npc object (not NpcInfo)
+            if (Context.Npc != null)
             {
-                return $"{Context.NpcInfo.Name} nods. \"Good doing business with you. You receive {rewardDesc}.\"";
+                return $"{Context.Npc.Name} nods. \"Good doing business with you. You receive {rewardDesc}.\"";
             }
             else
             {

@@ -4,7 +4,7 @@
 /// </summary>
 public class ObligationDiscoveryResult
 {
-    public string ObligationId { get; set; }
+    public Obligation Obligation { get; set; }
     public string ObligationName { get; set; }
     public string IntroNarrative { get; set; }
     public string IntroActionText { get; set; }

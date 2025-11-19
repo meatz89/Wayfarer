@@ -10,11 +10,7 @@ public class DeliveryJob
     // IDENTITY
     // ============================================
 
-    /// <summary>
-    /// Unique identifier for this job.
-    /// Format: "delivery_{originId}_to_{destinationId}"
-    /// </summary>
-    public string Id { get; set; } = "";
+    // HIGHLANDER: NO Id property - DeliveryJob identified by object reference
 
     // ============================================
     // ROUTING
@@ -22,21 +18,24 @@ public class DeliveryJob
 
     /// <summary>
     /// Location where this job is offered (job board location).
+    /// HIGHLANDER: Object reference ONLY, no OriginLocationId
     /// Must be a Commercial location.
     /// </summary>
-    public string OriginLocationId { get; set; } = "";
+    public Location OriginLocation { get; set; }
 
     /// <summary>
     /// Location where delivery must be completed.
+    /// HIGHLANDER: Object reference ONLY, no DestinationLocationId
     /// Must be a Commercial location.
     /// </summary>
-    public string DestinationLocationId { get; set; } = "";
+    public Location DestinationLocation { get; set; }
 
     /// <summary>
     /// Route connecting origin to destination.
+    /// HIGHLANDER: Object reference ONLY, no RouteId
     /// Used for calculating payment and displaying route info.
     /// </summary>
-    public string RouteId { get; set; } = "";
+    public RouteOption Route { get; set; }
 
     // ============================================
     // ECONOMICS

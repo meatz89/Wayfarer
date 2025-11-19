@@ -135,7 +135,7 @@ public class GameFacade
         Player player = _gameWorld.GetPlayer();
         if (player != null && player.HasActiveDeliveryJob)
         {
-            return _gameWorld.GetJobById(player.ActiveDeliveryJobId);
+            return player.ActiveDeliveryJob;
         }
         return null;
     }
@@ -158,10 +158,10 @@ public class GameFacade
     // ========== PLAYER STATS OPERATIONS ==========
     // PlayerStats class deleted - stats are now simple integers on Player
 
-    public List<NPC> GetAvailableStrangers(string venueId)
+    public List<NPC> GetAvailableStrangers(Venue venue)
     {
         TimeBlocks currentTime = _timeFacade.GetCurrentTimeBlock();
-        return _gameWorld.GetAvailableStrangers(venueId, currentTime);
+        return _gameWorld.GetAvailableStrangers(venue.Name, currentTime);
     }
 
     public List<ObligationApproach> GetAvailableObligationApproaches()
@@ -183,9 +183,9 @@ public class GameFacade
         return _locationFacade.GetCurrentLocation();
     }
 
-    public async Task<bool> MoveToSpot(string locationId)
+    public async Task<bool> MoveToSpot(Location location)
     {
-        bool success = _locationFacade.MoveToSpot(locationId);
+        bool success = _locationFacade.MoveToSpot(location);
 
         // Movement to new Venue may unlock obligation discovery (ImmediateVisibility, EnvironmentalObservation triggers)
         if (success)
@@ -206,14 +206,10 @@ public class GameFacade
         return _situationFacade;
     }
 
-    public NPC GetNPCById(string npcId)
-    {
-        return _locationFacade.GetNPCById(npcId);
-    }
 
-    public List<NPC> GetNPCsAtLocation(string venueId)
+    public List<NPC> GetNPCsAtLocation(Venue venue)
     {
-        return _locationFacade.GetNPCsAtLocation(venueId);
+        return _locationFacade.GetNPCsAtLocation(venue.Name);
     }
 
     public List<NPC> GetNPCsAtCurrentSpot()
@@ -256,15 +252,12 @@ public class GameFacade
         return GetTravelDestinations();
     }
 
-    public async Task<bool> TravelToDestinationAsync(string routeId)
+    public async Task<bool> TravelToDestinationAsync(RouteOption route)
     {
-        // Get all routes and find the one with matching ID
-        List<RouteOption> allRoutes = _travelFacade.GetAvailableRoutesFromCurrentLocation();
-        RouteOption? targetRoute = allRoutes.FirstOrDefault(r => r.Id == routeId);
-
-        if (targetRoute == null)
+        // No lookup needed!
+        if (route == null)
         {
-            _narrativeFacade.AddSystemMessage($"Route {routeId} not found", SystemMessageTypes.Danger);
+            _narrativeFacade.AddSystemMessage("Route not found", SystemMessageTypes.Danger);
             return false;
         }
 
@@ -280,7 +273,7 @@ public class GameFacade
         // 2. CALCULATE ACTUAL HUNGER COST
         // Base hunger cost from route plus any load penalties
         int itemCount = player.Inventory.GetAllItems().Count(i => !string.IsNullOrEmpty(i));
-        int hungerCost = targetRoute.BaseStaminaCost; // This is actually the hunger cost in the data
+        int hungerCost = route.BaseStaminaCost; // This is actually the hunger cost in the data
 
         // Add load penalties if carrying many items
         if (itemCount > 3) // Light load threshold
@@ -298,7 +291,7 @@ public class GameFacade
         }
 
         // 6. CHECK COIN COST
-        int coinCost = targetRoute.BaseCoinCost;
+        int coinCost = route.BaseCoinCost;
         if (coinCost > 0 && player.Coins < coinCost)
         {
             _narrativeFacade.AddSystemMessage($"Not enough coins. Need {coinCost}, have {player.Coins}", SystemMessageTypes.Warning);
@@ -316,41 +309,33 @@ public class GameFacade
         // Travel does NOT cost attention - removed incorrect attention spending
 
         // Create travel result for processing
-        int travelTime = targetRoute.TravelTimeSegments;
+        int travelTime = route.TravelTimeSegments;
         TravelResult travelResult = new TravelResult
         {
             Success = true,
             TravelTimeSegments = travelTime,
             CoinCost = coinCost,
-            RouteId = routeId,
-            TransportMethod = targetRoute.Method
+            RouteId = route.Name,
+            TransportMethod = route.Method
         };
 
         if (travelResult.Success)
         {
+            // HIGHLANDER: Use object reference directly, no string lookup
+            Location destSpot = route.DestinationLocation;
 
-            // Get the actual destination location from the route
-            RouteOption? actualRoute = _travelFacade.GetAvailableRoutesFromCurrentLocation()
-                .FirstOrDefault(r => r.Id == routeId);
-
-            if (actualRoute != null)
+            if (destSpot != null)
             {
-                // Find the destination location by its ID from GameWorld's Locations dictionary
-                Location? destSpot = _gameWorld.GetLocation(actualRoute.DestinationLocationId);
+                if (!destSpot.HexPosition.HasValue)
+                    throw new InvalidOperationException($"Destination location '{destSpot.Name}' has no HexPosition - cannot move player");
 
-                if (destSpot != null)
-                {
-                    if (!destSpot.HexPosition.HasValue)
-                        throw new InvalidOperationException($"Destination location '{destSpot.Id}' has no HexPosition - cannot move player");
+                player.CurrentPosition = destSpot.HexPosition.Value;
 
-                    player.CurrentPosition = destSpot.HexPosition.Value;
+                // TRIGGER POINT 1: Record location visit after successful travel
+                RecordLocationVisit(destSpot);
 
-                    // TRIGGER POINT 1: Record location visit after successful travel
-                    RecordLocationVisit(destSpot.Id);
-
-                    // TRIGGER POINT 3: Record route traversal after successful travel
-                    RecordRouteTraversal(routeId);
-                }
+                // TRIGGER POINT 3: Record route traversal after successful travel
+                RecordRouteTraversal(route);
             }
 
             TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
@@ -364,14 +349,13 @@ public class GameFacade
                 SegmentsAdvanced = travelResult.SegmentCost
             });
 
-            // Get destination Venue name for the message
-            Location? finalDestSpot = _gameWorld.GetLocation(targetRoute.DestinationLocationId);
+            // HIGHLANDER: Use object references directly, no string lookups
+            Location finalDestSpot = route.DestinationLocation;
 
             string destinationName = "Unknown";
             if (finalDestSpot != null)
             {
-                Venue? destLocation = _gameWorld.Venues
-                    .FirstOrDefault(l => l.Id == finalDestSpot.VenueId);
+                Venue destLocation = finalDestSpot.Venue;
                 if (destLocation != null)
                 {
                     destinationName = destLocation.Name;
@@ -425,9 +409,9 @@ public class GameFacade
         return _conversationFacade;
     }
 
-    public async Task<SocialChallengeContext> CreateConversationContext(string npcId, string requestId)
+    public async Task<SocialChallengeContext> CreateConversationContext(NPC npc, Situation situation)
     {
-        return await _conversationFacade.CreateConversationContext(npcId, requestId);
+        return await _conversationFacade.CreateConversationContext(npc, situation);
     }
 
     /// <summary>
@@ -494,14 +478,13 @@ public class GameFacade
     /// Start a new Mental tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public MentalSession StartMentalSession(string deckId, string locationId, string situationId, string obligationId)
+    public MentalSession StartMentalSession(MentalChallengeDeck challengeDeck, Location location, Situation situation, Obligation obligation)
     {
         if (_mentalFacade.IsSessionActive())
             throw new InvalidOperationException("Mental session already active");
 
-        MentalChallengeDeck challengeDeck = _gameWorld.MentalChallengeDecks.FirstOrDefault(d => d.Id == deckId);
         if (challengeDeck == null)
-            throw new InvalidOperationException($"MentalChallengeDeck {deckId} not found");
+            throw new InvalidOperationException($"MentalChallengeDeck is null");
 
         Player player = _gameWorld.GetPlayer();
 
@@ -509,7 +492,7 @@ public class GameFacade
         MentalDeckBuildResult buildResult = _mentalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _mentalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situationId, obligationId);
+        return _mentalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situation?.TemplateId, obligation?.Name);
     }
 
     /// <summary>
@@ -568,14 +551,13 @@ public class GameFacade
     /// Start a new Physical tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public PhysicalSession StartPhysicalSession(string deckId, string locationId, string situationId, string obligationId)
+    public PhysicalSession StartPhysicalSession(PhysicalChallengeDeck challengeDeck, Location location, Situation situation, Obligation obligation)
     {
         if (_physicalFacade.IsSessionActive())
             throw new InvalidOperationException("Physical session already active");
 
-        PhysicalChallengeDeck challengeDeck = _gameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == deckId);
         if (challengeDeck == null)
-            throw new InvalidOperationException($"PhysicalChallengeDeck {deckId} not found");
+            throw new InvalidOperationException($"PhysicalChallengeDeck is null");
 
         Player player = _gameWorld.GetPlayer();
 
@@ -583,7 +565,8 @@ public class GameFacade
         PhysicalDeckBuildResult buildResult = _physicalFacade.GetDeckBuilder()
             .BuildDeckWithStartingHand(challengeDeck, player);
 
-        return _physicalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situationId, obligationId);
+        // ADR-007: Pass Situation and Obligation objects (not IDs)
+        return _physicalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situation, obligation);
     }
 
     /// <summary>
@@ -631,13 +614,12 @@ public class GameFacade
         return _physicalFacade.IsSessionActive();
     }
 
-    public async Task<ExchangeContext> CreateExchangeContext(string npcId)
+    public async Task<ExchangeContext> CreateExchangeContext(NPC npc)
     {
-        // Get NPC
-        NPC? npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        // NPC passed as object - no lookup needed
         if (npc == null)
         {
-            _messageSystem.AddSystemMessage($"NPC {npcId} not found", SystemMessageTypes.Danger);
+            _messageSystem.AddSystemMessage($"NPC is null", SystemMessageTypes.Danger);
             return null;
         }
 
@@ -652,13 +634,13 @@ public class GameFacade
         PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
 
         // Get player's tokens with this specific NPC
-        Dictionary<ConnectionType, int> npcTokens = _tokenFacade.GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> npcTokens = _tokenFacade.GetTokensWithNPC(npc.Name);
 
         // Get relationship tier with this NPC
-        RelationshipTier relationshipTier = _tokenFacade.GetRelationshipTier(npcId);
+        RelationshipTier relationshipTier = _tokenFacade.GetRelationshipTier(npc.Name);
 
         // Get available exchanges from ExchangeFacade - now orchestrating properly
-        List<ExchangeOption> availableExchanges = _exchangeFacade.GetAvailableExchanges(npcId, playerResources, npcTokens, relationshipTier);
+        List<ExchangeOption> availableExchanges = _exchangeFacade.GetAvailableExchanges(npc.Name, playerResources, npcTokens, relationshipTier);
 
         if (!availableExchanges.Any())
         {
@@ -667,40 +649,26 @@ public class GameFacade
         }
 
         // Create exchange session through ExchangeFacade
-        ExchangeSession session = _exchangeFacade.CreateExchangeSession(npcId);
+        ExchangeSession session = _exchangeFacade.CreateExchangeSession(npc.Name);
         if (session == null)
         {
             _messageSystem.AddSystemMessage($"Could not create exchange session with {npc.Name}", SystemMessageTypes.Danger);
             return null;
         }
 
-        // Build the context
+        // ADR-007: Build context using session object (not creating redundant session)
         ExchangeContext context = new ExchangeContext
         {
-            NpcInfo = new NpcInfo
-            {
-                NpcId = npc.ID,
-                Name = npc.Name,
-                TokenCounts = _tokenFacade.GetTokensWithNPC(npc.ID)
-            },
-            LocationInfo = new LocationInfo
-            {
-                LocationId = currentLocation.Id,
-                LocationName = currentLocation.Name,
-                VenueId = currentLocation.VenueId,
-                VenueName = venue?.Name,
-                Description = venue?.Description
-            },
+            // ADR-007: Store NPC object reference (not NpcId string)
+            Npc = npc,
+            // ADR-007: Store Location object reference (not LocationId string)
+            Location = currentLocation,
             CurrentTimeBlock = timeBlock,
             PlayerResources = playerResources,
             PlayerTokens = npcTokens,
             PlayerInventory = GetPlayerInventoryAsDictionary(),
-            Session = new ExchangeSession
-            {
-                NpcId = npcId,
-                LocationId = currentLocation.Id,
-                AvailableExchanges = availableExchanges
-            }
+            // ADR-007: Use existing session object (already has Npc and Location)
+            Session = session
         };
 
         return await Task.FromResult(context);
@@ -740,19 +708,19 @@ public class GameFacade
         // Initialize player at starting Venue from GameWorld initial conditions
         // HEX-FIRST ARCHITECTURE: Player position is hex coordinates
         Player player = _gameWorld.GetPlayer();
-        string startingSpotId = _gameWorld.InitialLocationId;
-        Console.WriteLine($"[StartGameAsync] Starting location ID: {startingSpotId}");
+        string startingSpotName = _gameWorld.InitialLocationName;
+        Console.WriteLine($"[StartGameAsync] Starting location name: {startingSpotName}");
 
-        Location? startingSpot = _gameWorld.Locations.FirstOrDefault(s => s.Id == startingSpotId);
+        Location? startingSpot = _gameWorld.Locations.FirstOrDefault(s => s.Name == startingSpotName);
         if (startingSpot == null)
-            throw new InvalidOperationException($"Invalid InitialLocationId '{startingSpotId}' - no matching Location found in GameWorld.Locations");
+            throw new InvalidOperationException($"Invalid InitialLocationName '{startingSpotName}' - no matching Location found in GameWorld.Locations");
 
         if (!startingSpot.HexPosition.HasValue)
-            throw new InvalidOperationException($"Starting location '{startingSpotId}' has no HexPosition - cannot initialize player position");
+            throw new InvalidOperationException($"Starting location '{startingSpotName}' has no HexPosition - cannot initialize player position");
 
         Console.WriteLine($"[StartGameAsync] Setting player position to hex ({startingSpot.HexPosition.Value.Q}, {startingSpot.HexPosition.Value.R})");
         player.CurrentPosition = startingSpot.HexPosition.Value;
-        Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Id == startingSpot.VenueId);
+        Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Name == startingSpot.VenueName);
 
         // Player resources already applied by PackageLoader.ApplyInitialPlayerConfiguration()
         // No need to re-apply here - HIGHLANDER PRINCIPLE: initialization happens ONCE
@@ -787,10 +755,10 @@ public class GameFacade
         {
             // Navigation intents
             OpenTravelScreenIntent => ProcessOpenTravelScreenIntent(),
-            TravelIntent travel => await ProcessTravelIntentAsync(travel.RouteId),
+            TravelIntent travel => await ProcessTravelIntentAsync(travel.Route),
 
             // Movement intents
-            MoveIntent move => await ProcessMoveIntent(move.TargetSpotId),
+            MoveIntent move => await ProcessMoveIntent(move.TargetSpot),
 
             // Player action intents
             WaitIntent => await ProcessWaitIntent(),
@@ -806,11 +774,11 @@ public class GameFacade
 
             // Delivery job intents (Core Loop Phase 3)
             ViewJobBoardIntent => ProcessViewJobBoardIntent(),
-            AcceptDeliveryJobIntent accept => ProcessAcceptDeliveryJobIntent(accept.JobId),
+            AcceptDeliveryJobIntent accept => ProcessAcceptDeliveryJobIntent(accept.Job),
             CompleteDeliveryIntent => await ProcessCompleteDeliveryIntent(),
 
             // Conversation/NPC intents
-            TalkIntent talk => await ProcessTalkIntent(talk.NpcId),
+            TalkIntent talk => await ProcessTalkIntent(talk.Npc),
 
             _ => IntentResult.Failed()
         };
@@ -824,23 +792,27 @@ public class GameFacade
         return IntentResult.NavigateScreen(ScreenMode.Travel);
     }
 
-    private async Task<IntentResult> ProcessTravelIntentAsync(string routeId)
+    private async Task<IntentResult> ProcessTravelIntentAsync(RouteOption route)
     {
         // Backend authority: Navigate to Travel screen (screen-level navigation)
-        bool success = await TravelToDestinationAsync(routeId);
+        bool success = await TravelToDestinationAsync(route);
         return success ? IntentResult.NavigateScreen(ScreenMode.Travel) : IntentResult.Failed();
     }
 
     // ========== MOVEMENT INTENT HANDLERS ==========
 
-    private async Task<IntentResult> ProcessMoveIntent(string targetSpotId)
+    private async Task<IntentResult> ProcessMoveIntent(Location targetLocation)
     {
-        bool success = await MoveToSpot(targetSpotId);
+        // HIGHLANDER: Accept Location object directly, no lookup needed
+        if (targetLocation == null)
+            return IntentResult.Failed();
+
+        bool success = await MoveToSpot(targetLocation);
 
         if (success)
         {
             // TRIGGER POINT 1: Record location visit after successful movement
-            RecordLocationVisit(targetSpotId);
+            RecordLocationVisit(targetLocation);
         }
 
         return success ? IntentResult.Executed(requiresRefresh: true) : IntentResult.Failed();
@@ -1024,7 +996,7 @@ public class GameFacade
             return IntentResult.Failed();
         }
 
-        _locationFacade.InvestigateLocation(currentSpot.Id);
+        _locationFacade.InvestigateLocation(currentSpot.Name);
         _messageSystem.AddSystemMessage("Investigated location, gaining familiarity", SystemMessageTypes.Info, MessageCategory.Discovery);
         return IntentResult.Executed(requiresRefresh: true);
     }
@@ -1037,7 +1009,7 @@ public class GameFacade
         return IntentResult.NavigateView(LocationViewState.JobBoard);
     }
 
-    private IntentResult ProcessAcceptDeliveryJobIntent(string jobId)
+    private IntentResult ProcessAcceptDeliveryJobIntent(DeliveryJob job)
     {
         Player player = _gameWorld.GetPlayer();
 
@@ -1048,8 +1020,7 @@ public class GameFacade
             return IntentResult.Failed();
         }
 
-        // Get job and validate
-        DeliveryJob job = _gameWorld.GetJobById(jobId);
+        // Validate job is available
         if (job == null || !job.IsAvailable)
         {
             _messageSystem.AddSystemMessage("Job no longer available", SystemMessageTypes.Warning);
@@ -1057,7 +1028,7 @@ public class GameFacade
         }
 
         // Accept job
-        player.ActiveDeliveryJobId = jobId;
+        player.ActiveDeliveryJob = job;
         job.IsAvailable = false;
 
         _messageSystem.AddSystemMessage($"Accepted: {job.JobDescription}", SystemMessageTypes.Success);
@@ -1077,7 +1048,7 @@ public class GameFacade
             return IntentResult.Failed();
         }
 
-        DeliveryJob job = _gameWorld.GetJobById(player.ActiveDeliveryJobId);
+        DeliveryJob job = player.ActiveDeliveryJob;
         if (job == null)
         {
             _messageSystem.AddSystemMessage("Delivery job data not found", SystemMessageTypes.Warning);
@@ -1088,7 +1059,7 @@ public class GameFacade
         player.ModifyCoins(job.Payment);
 
         // Clear active job
-        player.ActiveDeliveryJobId = "";
+        player.ActiveDeliveryJob = null;
 
         // Advance time (delivery takes time)
         TimeBlocks oldTimeBlock = _timeFacade.GetCurrentTimeBlock();
@@ -1110,15 +1081,19 @@ public class GameFacade
 
     // ========== NPC INTERACTION INTENT HANDLERS ==========
 
-    private async Task<IntentResult> ProcessTalkIntent(string npcId)
+    private async Task<IntentResult> ProcessTalkIntent(NPC npc)
     {
+        // HIGHLANDER: Accept NPC object directly, no lookup needed
+        if (npc == null)
+            return IntentResult.Failed();
+
         // TODO: Implement conversation initiation
-        _messageSystem.AddSystemMessage($"Talking to NPC {npcId} not yet implemented", SystemMessageTypes.Info);
+        _messageSystem.AddSystemMessage($"Talking to NPC {npc.Name} not yet implemented", SystemMessageTypes.Info);
         await Task.CompletedTask;
         return IntentResult.Executed(requiresRefresh: false);
     }
 
-    public ConnectionState GetNPCConnectionState(string npcId)
+    public ConnectionState GetNPCConnectionState(NPC npc)
     {
         return ConnectionState.NEUTRAL;
     }
@@ -1128,7 +1103,7 @@ public class GameFacade
         return _travelFacade.GetAvailableRoutesFromCurrentLocation();
     }
 
-    public List<RouteOption> GetRoutesToDestination(string destinationId)
+    public List<RouteOption> GetRoutesToDestination(Location destination)
     {
         return new List<RouteOption>();
     }
@@ -1196,19 +1171,21 @@ public class GameFacade
     /// <summary>
     /// Converts player inventory to Dictionary format for ExchangeContext
     /// Key: ItemId, Value: Quantity
+    /// HIGHLANDER: Object references ONLY - work with Item objects
     /// </summary>
     private Dictionary<string, int> GetPlayerInventoryAsDictionary()
     {
         Player player = _gameWorld.GetPlayer();
         Dictionary<string, int> inventoryDict = new Dictionary<string, int>();
 
-        List<string> allItems = player.Inventory.GetAllItems();
-        List<string> uniqueItemIds = player.Inventory.GetItemIds();
+        List<Item> allItems = player.Inventory.GetAllItems();
+        List<Item> uniqueItems = allItems.Distinct().ToList();
 
-        foreach (string itemId in uniqueItemIds)
+        foreach (Item item in uniqueItems)
         {
-            int count = player.Inventory.GetItemCount(itemId);
-            inventoryDict[itemId] = count;
+            int count = player.Inventory.Count(item);
+            // ADR-007: Use Name instead of deleted Id
+            inventoryDict[item.Name] = count;
         }
 
         return inventoryDict;
@@ -1217,17 +1194,17 @@ public class GameFacade
     /// <summary>
     /// Gets the district containing a location
     /// </summary>
-    public District GetDistrictForLocation(string venueId)
+    public District GetDistrictForLocation(Venue venue)
     {
-        return _gameWorld.GetDistrictForLocation(venueId);
+        return _gameWorld.GetDistrictForLocation(venue.Name);
     }
 
     /// <summary>
     /// Gets the region containing a district
     /// </summary>
-    public Region GetRegionForDistrict(string districtId)
+    public Region GetRegionForDistrict(District district)
     {
-        return _gameWorld.GetRegionForDistrict(districtId);
+        return _gameWorld.GetRegionForDistrict(district.Name);
     }
 
     /// <summary>
@@ -1238,13 +1215,6 @@ public class GameFacade
         return _gameWorld.Venues;
     }
 
-    /// <summary>
-    /// Gets a district by its ID
-    /// </summary>
-    public District GetDistrictById(string districtId)
-    {
-        return _gameWorld.Districts.FirstOrDefault(d => d.Id == districtId);
-    }
 
     // ============================================
     // DEBUG COMMANDS
@@ -1391,27 +1361,27 @@ public class GameFacade
         }
     }
 
-    public void DebugTeleportToLocation(string venueId, string LocationId)
+    public void DebugTeleportToLocation(string venueName, string locationName)
     {
         Player player = _gameWorld.GetPlayer();
-        Location location = _gameWorld.GetLocation(LocationId);
+        Location location = _gameWorld.GetLocation(locationName);
 
         if (location == null)
         {
-            _messageSystem.AddSystemMessage($"location '{LocationId}' not found", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"location '{locationName}' not found", SystemMessageTypes.Warning);
             return;
         }
 
         if (!location.HexPosition.HasValue)
         {
-            _messageSystem.AddSystemMessage($"location '{LocationId}' has no HexPosition - cannot teleport", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"location '{locationName}' has no HexPosition - cannot teleport", SystemMessageTypes.Warning);
             return;
         }
 
-        Venue? venue = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
+        Venue? venue = _gameWorld.Venues.FirstOrDefault(l => l.Name == venueName);
         if (venue == null)
         {
-            _messageSystem.AddSystemMessage($"Location '{venueId}' not found", SystemMessageTypes.Warning);
+            _messageSystem.AddSystemMessage($"Location '{venueName}' not found", SystemMessageTypes.Warning);
             return;
         }
 
@@ -1435,7 +1405,7 @@ public class GameFacade
         foreach (Obligation obligation in discoverable)
         {// DiscoverObligation moves Potential→Discovered and spawns intro situation at location
          // No return value - situation is added directly to Location.ActiveSituations
-            await _obligationActivity.DiscoverObligation(obligation.Id);
+            await _obligationActivity.DiscoverObligation(obligation);
 
             // Pending discovery result is now set in ObligationActivity
             // GameScreen will check for it and display the modal
@@ -1449,18 +1419,18 @@ public class GameFacade
     /// Complete obligation intro action - activates obligation and spawns Phase 1
     /// RPG quest acceptance pattern: Player clicks button → Obligation activates immediately
     /// </summary>
-    public async Task CompleteObligationIntro(string obligationId)
+    public async Task CompleteObligationIntro(Obligation obligation)
     {
-        await _obligationActivity.CompleteIntroAction(obligationId);
+        await _obligationActivity.CompleteIntroAction(obligation);
     }
 
     /// <summary>
     /// Set pending intro action - prepares quest acceptance modal
     /// RPG quest acceptance: Button → Modal → "Begin" → Activate
     /// </summary>
-    public void SetPendingIntroAction(string obligationId)
+    public void SetPendingIntroAction(Obligation obligation)
     {
-        _obligationActivity.SetPendingIntroAction(obligationId);
+        _obligationActivity.SetPendingIntroAction(obligation);
     }
 
     /// <summary>
@@ -1471,31 +1441,23 @@ public class GameFacade
         return _obligationActivity.GetAndClearPendingIntroResult();
     }
 
-    /// <summary>
-    /// Get route by ID (V2 Travel Integration)
-    /// </summary>
-    public RouteOption GetRouteById(string routeId)
-    {
-        return _travelFacade.GetAvailableRoutesFromCurrentLocation()
-            .FirstOrDefault(r => r.Id == routeId);
-    }
 
     // ========== CONVERSATION TREE OPERATIONS ==========
 
     /// <summary>
     /// Create context for conversation tree screen
     /// </summary>
-    public ConversationTreeContext CreateConversationTreeContext(string treeId)
+    public ConversationTreeContext CreateConversationTreeContext(ConversationTree tree)
     {
-        return _conversationTreeFacade.CreateContext(treeId);
+        return _conversationTreeFacade.CreateContext(tree.Id);
     }
 
     /// <summary>
     /// Select a dialogue response in conversation tree
     /// </summary>
-    public ConversationTreeResult SelectConversationResponse(string treeId, string nodeId, string responseId)
+    public ConversationTreeResult SelectConversationResponse(ConversationTree tree, DialogueNode node, DialogueResponse response)
     {
-        return _conversationTreeFacade.SelectResponse(treeId, nodeId, responseId);
+        return _conversationTreeFacade.SelectResponse(tree.Id, node.Id, response.Id);
     }
 
     // ========== OBSERVATION SCENE OPERATIONS ==========
@@ -1503,17 +1465,18 @@ public class GameFacade
     /// <summary>
     /// Create context for observation scene screen
     /// </summary>
-    public ObservationContext CreateObservationContext(string sceneId)
+    public ObservationContext CreateObservationContext(ObservationScene scene)
     {
-        return _observationFacade.CreateContext(sceneId);
+        return _observationFacade.CreateContext(scene);
     }
 
     /// <summary>
     /// Examine a point in an observation scene
+    /// ADR-007: Passes objects directly (not IDs)
     /// </summary>
-    public ObservationResult ExaminePoint(string sceneId, string pointId)
+    public ObservationResult ExaminePoint(ObservationScene scene, ExaminationPoint point)
     {
-        return _observationFacade.ExaminePoint(sceneId, pointId);
+        return _observationFacade.ExaminePoint(scene, point);
     }
 
     // ========== EMERGENCY SITUATION OPERATIONS ==========
@@ -1529,25 +1492,25 @@ public class GameFacade
     /// <summary>
     /// Create context for emergency screen
     /// </summary>
-    public EmergencyContext CreateEmergencyContext(string emergencyId)
+    public EmergencyContext CreateEmergencyContext(EmergencySituation emergency)
     {
-        return _emergencyFacade.CreateContext(emergencyId);
+        return _emergencyFacade.CreateContext(emergency.Id);
     }
 
     /// <summary>
     /// Select a response to an emergency situation
     /// </summary>
-    public EmergencyResult SelectEmergencyResponse(string emergencyId, string responseId)
+    public EmergencyResult SelectEmergencyResponse(EmergencySituation emergency, EmergencyResponse response)
     {
-        return _emergencyFacade.SelectResponse(emergencyId, responseId);
+        return _emergencyFacade.SelectResponse(emergency.Id, response.Id);
     }
 
     /// <summary>
     /// Ignore an emergency situation
     /// </summary>
-    public EmergencyResult IgnoreEmergency(string emergencyId)
+    public EmergencyResult IgnoreEmergency(EmergencySituation emergency)
     {
-        return _emergencyFacade.IgnoreEmergency(emergencyId);
+        return _emergencyFacade.IgnoreEmergency(emergency.Id);
     }
 
     // ========== LOCATION QUERY METHODS ==========
@@ -1555,17 +1518,17 @@ public class GameFacade
     /// <summary>
     /// Get all conversation trees available at a specific location
     /// </summary>
-    public List<ConversationTree> GetAvailableConversationTreesAtLocation(string locationId)
+    public List<ConversationTree> GetAvailableConversationTreesAtLocation(Location location)
     {
-        return _conversationTreeFacade.GetAvailableTreesAtLocation(locationId);
+        return _conversationTreeFacade.GetAvailableTreesAtLocation(location);
     }
 
     /// <summary>
     /// Get all observation scenes available at a specific location
     /// </summary>
-    public List<ObservationScene> GetAvailableObservationScenesAtLocation(string locationId)
+    public List<ObservationScene> GetAvailableObservationScenesAtLocation(Location location)
     {
-        return _observationFacade.GetAvailableScenesAtLocation(locationId);
+        return _observationFacade.GetAvailableScenesAtLocation(location);
     }
 
     /// <summary>
@@ -1574,17 +1537,16 @@ public class GameFacade
     /// Scene-embedded Situations inherit placement from parent Scene
     /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
     /// </summary>
-    public List<Situation> GetAvailableSituationsAtLocation(string locationId)
+    public List<Situation> GetAvailableSituationsAtLocation(Location location)
     {
         // PLAYABILITY VALIDATION: Location must exist
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == locationId);
         if (location == null)
-            throw new InvalidOperationException($"Location '{locationId}' not found in GameWorld - cannot query situations!");
+            throw new InvalidOperationException($"Location is null - cannot query situations!");
 
         // Query all Situations (both legacy and Scene-embedded) at this location
         // HIERARCHICAL PLACEMENT: Situations own their own Location (direct property access)
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
-            .Where(sit => sit.Location?.Id == locationId)
+            .Where(sit => sit.Location == location)
             .ToList();
     }
 
@@ -1593,15 +1555,14 @@ public class GameFacade
     /// Includes both legacy standalone Situations and Scene-embedded Situations
     /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
     /// </summary>
-    public List<Situation> GetAvailableSituationsForNPC(string npcId)
+    public List<Situation> GetAvailableSituationsForNPC(NPC npc)
     {
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null) return new List<Situation>();
 
         // Query all Situations (both legacy and Scene-embedded) for this NPC
         // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
         return _gameWorld.Scenes.SelectMany(s => s.Situations)
-            .Where(sit => sit.Npc != null && sit.Npc.ID == npcId)
+            .Where(sit => sit.Npc == npc)
             .ToList();
     }
 
@@ -1698,8 +1659,8 @@ public class GameFacade
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Verify Situation exists (get from action.SituationId)
-        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == action.SituationId);
+        // Verify Situation exists (get from action.Situation object reference)
+        Situation situation = action.Situation;
         if (situation == null)
             return IntentResult.Failed();
 
@@ -1801,8 +1762,8 @@ public class GameFacade
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Verify Situation exists (get from action.SituationId)
-        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == action.SituationId);
+        // Verify Situation exists (get from action.Situation object reference)
+        Situation situation = action.Situation;
         if (situation == null)
             return IntentResult.Failed();
 
@@ -1812,7 +1773,7 @@ public class GameFacade
         // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
         if (situation.Npc != null)
         {
-            RecordNPCInteraction(situation.Npc.ID);
+            RecordNPCInteraction(situation.Npc.Name);
         }
 
         // STEP 1: Validate and extract execution plan
@@ -1911,8 +1872,8 @@ public class GameFacade
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Verify Situation exists (get from card.SituationId)
-        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == card.SituationId);
+        // Verify Situation exists (get from card.Situation object reference)
+        Situation situation = card.Situation;
         if (situation == null)
             return IntentResult.Failed();
 
@@ -1988,13 +1949,13 @@ public class GameFacade
     /// Update-in-place pattern: Find existing record or create new
     /// ONE record per location (replaces previous timestamp)
     /// </summary>
-    private void RecordLocationVisit(string locationId)
+    private void RecordLocationVisit(Location location)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Find existing record
+        // Find existing record - HIGHLANDER: object equality
         LocationVisitRecord existingRecord = player.LocationVisits
-            .FirstOrDefault(record => record.LocationId == locationId);
+            .FirstOrDefault(record => record.Location == location);
 
         if (existingRecord != null)
         {
@@ -2008,7 +1969,7 @@ public class GameFacade
             // Create new record
             player.LocationVisits.Add(new LocationVisitRecord
             {
-                LocationId = locationId,
+                Location = location,
                 LastVisitDay = _timeFacade.GetCurrentDay(),
                 LastVisitTimeBlock = _timeFacade.GetCurrentTimeBlock(),
                 LastVisitSegment = _timeFacade.GetCurrentSegment()
@@ -2054,13 +2015,13 @@ public class GameFacade
     /// Update-in-place pattern: Find existing record or create new
     /// ONE record per route (replaces previous timestamp)
     /// </summary>
-    private void RecordRouteTraversal(string routeId)
+    private void RecordRouteTraversal(RouteOption route)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Find existing record
+        // Find existing record - HIGHLANDER: object equality
         RouteTraversalRecord existingRecord = player.RouteTraversals
-            .FirstOrDefault(record => record.RouteId == routeId);
+            .FirstOrDefault(record => record.Route == route);
 
         if (existingRecord != null)
         {
@@ -2074,7 +2035,7 @@ public class GameFacade
             // Create new record
             player.RouteTraversals.Add(new RouteTraversalRecord
             {
-                RouteId = routeId,
+                Route = route,
                 LastTraversalDay = _timeFacade.GetCurrentDay(),
                 LastTraversalTimeBlock = _timeFacade.GetCurrentTimeBlock(),
                 LastTraversalSegment = _timeFacade.GetCurrentSegment()
@@ -2180,8 +2141,7 @@ public class GameFacade
         if (_gameWorld.LastSocialOutcome?.Success == true &&
             _gameWorld.PendingSocialContext?.CompletionReward != null)
         {
-            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentSocialSession?.RequestId);
+            Situation currentSituation = _gameWorld.PendingSocialContext.Situation;
             await _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingSocialContext.CompletionReward,
                 currentSituation);
@@ -2189,8 +2149,7 @@ public class GameFacade
         else if (_gameWorld.LastSocialOutcome?.Success == false &&
                  _gameWorld.PendingSocialContext?.FailureReward != null)
         {
-            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingSocialContext.SituationId);
+            Situation currentSituation = _gameWorld.PendingSocialContext.Situation;
             await _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingSocialContext.FailureReward,
                 currentSituation);
@@ -2207,8 +2166,7 @@ public class GameFacade
         if (_gameWorld.LastMentalOutcome?.Success == true &&
             _gameWorld.PendingMentalContext?.CompletionReward != null)
         {
-            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentMentalSituationId);
+            Situation currentSituation = _gameWorld.PendingMentalContext.Situation;
             await _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingMentalContext.CompletionReward,
                 currentSituation);
@@ -2216,8 +2174,7 @@ public class GameFacade
         else if (_gameWorld.LastMentalOutcome?.Success == false &&
                  _gameWorld.PendingMentalContext?.FailureReward != null)
         {
-            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingMentalContext.SituationId);
+            Situation currentSituation = _gameWorld.PendingMentalContext.Situation;
             await _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingMentalContext.FailureReward,
                 currentSituation);
@@ -2234,8 +2191,7 @@ public class GameFacade
         if (_gameWorld.LastPhysicalOutcome?.Success == true &&
             _gameWorld.PendingPhysicalContext?.CompletionReward != null)
         {
-            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.CurrentPhysicalSituationId);
+            Situation currentSituation = _gameWorld.PendingPhysicalContext.Situation;
             await _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingPhysicalContext.CompletionReward,
                 currentSituation);
@@ -2243,8 +2199,7 @@ public class GameFacade
         else if (_gameWorld.LastPhysicalOutcome?.Success == false &&
                  _gameWorld.PendingPhysicalContext?.FailureReward != null)
         {
-            Situation currentSituation = _gameWorld.Scenes.SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingPhysicalContext.SituationId);
+            Situation currentSituation = _gameWorld.PendingPhysicalContext.Situation;
             await _rewardApplicationService.ApplyChoiceReward(
                 _gameWorld.PendingPhysicalContext.FailureReward,
                 currentSituation);

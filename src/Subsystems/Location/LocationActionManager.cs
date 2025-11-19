@@ -21,6 +21,7 @@ public class LocationActionManager
 
     /// <summary>
     /// Get available actions for a Venue and location.
+    /// HIGHLANDER: Accept typed objects, pass typed objects
     /// </summary>
     public List<LocationActionViewModel> GetLocationActions(Venue venue, Location location)
     {
@@ -30,7 +31,7 @@ public class LocationActionManager
             throw new ArgumentNullException(nameof(location));
 
         // Get dynamic actions from GameWorld data
-        List<LocationActionViewModel> dynamicActions = GetDynamicLocationActions(venue.Id, location.Id);
+        List<LocationActionViewModel> dynamicActions = GetDynamicLocationActions(venue, location);
 
         // ActionGenerator DELETED - generated actions now come from SceneFacade at query time
         // Property-based actions (from LocationPropertyType) remain here as legacy system
@@ -41,15 +42,12 @@ public class LocationActionManager
 
     /// <summary>
     /// Get dynamic Venue actions from GameWorld data using property matching.
+    /// HIGHLANDER: Accept Venue and Location objects, compare objects directly
     /// </summary>
-    private List<LocationActionViewModel> GetDynamicLocationActions(string venueId, string LocationId)
+    private List<LocationActionViewModel> GetDynamicLocationActions(Venue venue, Location location)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-
-        Location location = _gameWorld.GetLocation(LocationId);
-        if (location == null)
-            throw new InvalidOperationException($"Location not found: {LocationId}");
 
         List<LocationAction> availableActions = _gameWorld.LocationActions
             .Where(action => action.MatchesLocation(location, currentTime) &&
@@ -62,13 +60,14 @@ public class LocationActionManager
         Player player = _gameWorld.GetPlayer();
         if (player.HasActiveDeliveryJob)
         {
-            DeliveryJob activeJob = _gameWorld.GetJobById(player.ActiveDeliveryJobId);
-            if (activeJob != null && activeJob.DestinationLocationId == LocationId)
+            DeliveryJob activeJob = player.ActiveDeliveryJob;
+            // HIGHLANDER: Compare Location objects directly
+            if (activeJob != null && activeJob.DestinationLocation == location)
             {
                 // Create dynamic ViewModel directly (no domain entity for dynamic actions)
                 actions.Add(new LocationActionViewModel
                 {
-                    Id = $"complete_delivery_{activeJob.Id}",
+                    Id = $"complete_delivery_{activeJob.DestinationLocation.Name}",
                     ActionType = "completedelivery",
                     Title = $"Complete Delivery ({activeJob.Payment} coins)",
                     Detail = $"Deliver {activeJob.CargoDescription} and receive {activeJob.Payment} coins payment.",
@@ -90,7 +89,7 @@ public class LocationActionManager
 
             LocationActionViewModel viewModel = new LocationActionViewModel
             {
-                Id = action.Id,
+                Id = action.Name,  // Use action name as identifier
                 ActionType = action.ActionType.ToString().ToLower(),
                 Title = action.Name,
                 Detail = action.Description,
@@ -98,7 +97,7 @@ public class LocationActionManager
                 IsAvailable = isAvailable,
                 LockReason = lockReason,
                 EngagementType = action.EngagementType,
-                DestinationLocationId = action.DestinationLocationId
+                DestinationLocationId = action.DestinationLocation?.Name  // Object reference -> Name for display only
             };
             actions.Add(viewModel);
         }
@@ -219,7 +218,7 @@ public class LocationActionManager
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
 
         // Get NPCs at this location
-        List<NPC> npcs = _npcRepository.GetNPCsForLocationAndTime(location.Id, currentTime);
+        List<NPC> npcs = _npcRepository.GetNPCsForLocationAndTime(location, currentTime);
 
         // Service-based actions removed - use Scene-Situation architecture instead
 

@@ -35,7 +35,7 @@ namespace Wayfarer.Pages.Components
         {
             Player player = GameWorld.GetPlayer();
             return GameWorld.Locations
-                .Where(l => player.LocationFamiliarity.Any(f => f.EntityId == l.Id))
+                .Where(l => player.LocationFamiliarity.Any(f => f.EntityId == l.Name))
                 .OrderBy(l => l.Name)
                 .ToList();
         }
@@ -77,10 +77,10 @@ namespace Wayfarer.Pages.Components
                 {
                     routes.Add(new RouteInfo
                     {
-                        Id = $"{route.OriginLocationId}_{route.DestinationLocationId}",
-                        OriginName = route.OriginLocationId,
-                        DestinationName = route.DestinationLocationId,
-                        Familiarity = player.GetRouteFamiliarity($"{route.OriginLocationId}_{route.DestinationLocationId}")
+                        Id = route.Name,
+                        OriginName = route.OriginLocation.Name,
+                        DestinationName = route.DestinationLocation.Name,
+                        Familiarity = player.GetRouteFamiliarity(route.Name)
                     });
                 }
             }
@@ -98,14 +98,15 @@ namespace Wayfarer.Pages.Components
             return GameWorld.ObligationJournal.ActiveObligations.ToList();
         }
 
-        protected List<string> GetCompletedObligationIds()
+        // HIGHLANDER: Object references ONLY - return obligations, not IDs
+        protected List<Obligation> GetCompletedObligations()
         {
-            return GameWorld.ObligationJournal.CompletedObligationIds.ToList();
+            return GameWorld.ObligationJournal.CompletedObligations.ToList();
         }
 
-        protected List<string> GetDiscoveredObligationIds()
+        protected List<Obligation> GetDiscoveredObligations()
         {
-            return GameWorld.ObligationJournal.DiscoveredObligationIds.ToList();
+            return GameWorld.ObligationJournal.DiscoveredObligations.ToList();
         }
 
         protected Obligation GetObligationById(string obligationId)
@@ -121,7 +122,7 @@ namespace Wayfarer.Pages.Components
             return activeInv.UnderstandingAccumulated;
         }
 
-        protected int GetObligationTotalSituations(string obligationId)
+        protected int GetObligationTotalSituations(Obligation obligation)
         {
             // PhaseDefinitions eliminated - return static understanding requirement for now
             // NOTE: Scenes no longer have ObligationId - UI needs redesign
@@ -131,7 +132,7 @@ namespace Wayfarer.Pages.Components
 
         protected double GetObligationProgressPercent(ActiveObligation activeInv)
         {
-            int total = GetObligationTotalSituations(activeInv.ObligationId);
+            int total = GetObligationTotalSituations(activeInv.Obligation);
             if (total == 0) return 0;
             // CompletedSituationIds eliminated - use resolved scene count instead
             int resolved = GetObligationProgress(activeInv);

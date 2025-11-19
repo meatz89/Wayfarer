@@ -20,9 +20,9 @@ public class ObligationDiscoveryEvaluator
     {
         List<Obligation> discoverable = new List<Obligation>();
 
-        foreach (string obligationId in _gameWorld.ObligationJournal.PotentialObligationIds)
+        // HIGHLANDER: Object references ONLY, iterate over objects directly
+        foreach (Obligation obligation in _gameWorld.ObligationJournal.PotentialObligations)
         {
-            Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
             if (obligation == null)
             {
                 continue;
@@ -66,27 +66,35 @@ public class ObligationDiscoveryEvaluator
 
     /// <summary>
     /// ImmediateVisibility: Player is at required location
-    /// Prerequisites: LocationId (globally unique)
+    /// HIGHLANDER: Prerequisites.Location is object reference, not string ID
     /// </summary>
     private bool CheckImmediateVisibility(ObligationPrerequisites prereqs, Player player)
     {
-        // Check if player is at required location (LocationId is globally unique)
-        if (!string.IsNullOrEmpty(prereqs.LocationId) && _gameWorld.GetPlayerCurrentLocation().Id != prereqs.LocationId)
+        // Check if player is at required location
+        if (prereqs.Location != null)
         {
-            return false;
+            // Compare Location objects directly (HIGHLANDER)
+            if (_gameWorld.GetPlayerCurrentLocation() != prereqs.Location)
+            {
+                return false;
+            }
         }
         return true;
     }
 
     /// <summary>
     /// EnvironmentalObservation: Player is at required location
-    /// Prerequisites: LocationId (globally unique)
+    /// HIGHLANDER: Prerequisites.Location is object reference, not string ID
     /// </summary>
     private bool CheckEnvironmentalObservation(ObligationPrerequisites prereqs, Player player)
     {
-        // Check if player is at required location (LocationId is globally unique)
-        if (!string.IsNullOrEmpty(prereqs.LocationId) && _gameWorld.GetPlayerCurrentLocation().Id != prereqs.LocationId)
-            return false;
+        // Check if player is at required location
+        if (prereqs.Location != null)
+        {
+            // Compare Location objects directly (HIGHLANDER)
+            if (_gameWorld.GetPlayerCurrentLocation() != prereqs.Location)
+                return false;
+        }
 
         return true;
     }

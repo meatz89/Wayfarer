@@ -20,7 +20,7 @@ namespace Wayfarer.Pages.Components
 
         [Inject] protected GameFacade GameFacade { get; set; }
 
-        protected async Task HandleSelectResponse(string responseId)
+        protected async Task HandleSelectResponse(DialogueResponse response)
         {
             if (Context == null || !Context.IsValid) return;
             if (Context.CurrentNode == null) return;
@@ -28,7 +28,7 @@ namespace Wayfarer.Pages.Components
             ConversationTreeResult result = GameFacade.SelectConversationResponse(
                 Context.Tree.Id,
                 Context.CurrentNode.Id,
-                responseId);
+                response.Id);
 
             if (!result.Success)
             {
@@ -43,8 +43,8 @@ namespace Wayfarer.Pages.Components
             {
                 // Navigate to Social Challenge screen
                 await GameScreen.StartConversationSession(
-                    Context.Npc.ID,
-                    result.ChallengeSituationId);
+                    Context.Npc,
+                    result.ChallengeSituation);
             }
             else if (result.IsComplete)
             {

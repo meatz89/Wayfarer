@@ -3,34 +3,32 @@ using System.Collections.Immutable;
 /// <summary>
 /// Immutable state container for NPC data.
 /// All modifications must go through operations/commands.
+/// HIGHLANDER: No ID property, object references only
 /// </summary>
 public sealed class NPCState
 {
     // Identity
-    public string ID { get; }
     public string Name { get; }
     public string Role { get; }
     public string Description { get; }
-    public string LocationId { get; }
+    public Location Location { get; }
 
     // Categorical Properties
     public Professions Profession { get; }
     public NPCRelationship PlayerRelationship { get; }
 
     public NPCState(
-        string id,
         string name,
         string role,
         string description,
-        string locationId,
+        Location location,
         Professions profession,
         NPCRelationship playerRelationship)
     {
-        ID = id;
         Name = name;
         Role = role;
         Description = description;
-        LocationId = locationId;
+        Location = location;
         Profession = profession;
         PlayerRelationship = playerRelationship;
     }
@@ -41,31 +39,32 @@ public sealed class NPCState
     public NPCState WithRelationship(NPCRelationship relationship)
     {
         return new NPCState(
-        ID, Name, Role, Description, LocationId,
+        Name, Role, Description, Location,
         Profession, relationship);
     }
 
     /// <summary>
     /// Creates a new NPCState with updated location.
+    /// HIGHLANDER: Accept Location object
     /// </summary>
-    public NPCState WithLocation(string newSpotId)
+    public NPCState WithLocation(Location newLocation)
     {
         return new NPCState(
-        ID, Name, Role, Description, newSpotId,
+        Name, Role, Description, newLocation,
         Profession, PlayerRelationship);
     }
 
     /// <summary>
     /// Creates an NPCState from a mutable NPC object.
+    /// HIGHLANDER: Pass Location object
     /// </summary>
     public static NPCState FromNPC(NPC npc)
     {
         return new NPCState(
-            npc.ID,
             npc.Name,
             npc.Role,
             npc.Description,
-            npc.Location?.Id,
+            npc.Location,
             npc.Profession,
             npc.PlayerRelationship);
     }

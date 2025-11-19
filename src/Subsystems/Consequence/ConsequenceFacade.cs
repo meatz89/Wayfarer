@@ -55,10 +55,11 @@ public class ConsequenceFacade
 
         foreach (BondChange change in bondChanges)
         {
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == change.NpcId);
+            // Direct object reference, NO ID lookup
+            NPC npc = change.Npc;
             if (npc == null)
             {
-                // NPC not found - skip this bond change
+                Console.WriteLine("[ConsequenceFacade.ApplyBondChanges] WARNING: BondChange has null NPC reference");
                 continue;
             }
 

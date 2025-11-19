@@ -52,14 +52,11 @@ public class RouteModification
 
 public class RouteOption
 {
-    public string Id { get; set; }
+    // HIGHLANDER: Name is natural key, NO Id property
     public string Name { get; set; }
 
-    // HIGHLANDER Pattern A (BOTH ID + Object)
-    // From JSON, frequent runtime navigation
-    public string OriginLocationId { get; set; }
+    // HIGHLANDER: Object references ONLY, no ID properties (Pattern A DELETED per 08_crosscutting_concepts.md)
     public Location OriginLocation { get; set; }
-    public string DestinationLocationId { get; set; }
     public Location DestinationLocation { get; set; }
 
     public TravelMethods Method { get; set; }
@@ -82,9 +79,7 @@ public class RouteOption
     // PATH CARD SYSTEM - Route segments with path card options
     public List<RouteSegment> Segments { get; set; } = new List<RouteSegment>();
 
-    // Encounter deck for this route
-    public List<string> EncounterDeckIds { get; set; } = new List<string>();
-
+    // NOTE: EncounterDeckIds DELETED - if encounters needed, store encounter deck objects or query from templates
     // Starting stamina for this route
     public int StartingStamina { get; set; } = 3;
 

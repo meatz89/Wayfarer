@@ -48,32 +48,28 @@ public class SocialFacade
     /// <summary>
     /// Start a new conversation with an NPC using a specific request
     /// </summary>
-    public SocialSession StartConversation(string npcId, string requestId)
+    public SocialSession StartConversation(NPC npc, Situation situation)
     {
         if (IsConversationActive())
         {
             EndConversation();
         }
 
-        // KEEP - npcId is external input from UI
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
         {
-            throw new ArgumentException($"NPC with ID {npcId} not found");
+            throw new ArgumentNullException(nameof(npc));
         }
 
-        // Get the request that drives this conversation - from centralized GameWorld storage
-        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == requestId);
         if (situation == null)
         {
-            throw new ArgumentException($"Situation {requestId} not found in any Scene.Situations");
+            throw new ArgumentNullException(nameof(situation));
         }
 
         // Get the challenge deck to determine max doubt threshold
-        SocialChallengeDeck challengeDeck = _gameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
+        SocialChallengeDeck challengeDeck = situation.Deck as SocialChallengeDeck;
         if (challengeDeck == null)
         {
-            throw new ArgumentException($"SocialChallengeDeck {situation.DeckId} not found in GameWorld.SocialChallengeDecks");
+            throw new ArgumentException($"Situation '{situation.Name}' has no SocialChallengeDeck");
         }
 
         // Get connection state from NPC for session initialization
@@ -86,10 +82,11 @@ public class SocialFacade
         _personalityEnforcer = new PersonalityRuleEnforcer(npc.ConversationModifier);
 
         // Get NPC token counts for session initialization
-        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc.ID);
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc);
 
         // Create session deck and get request cards from the request
-        SocialDeckBuildResult buildResult = _deckBuilder.CreateConversationDeck(npc, requestId);
+        SocialDeckBuildResult buildResult = _deckBuilder.CreateConversationDeck(npc, situation);
         SocialSessionCardDeck deck = buildResult.Deck;
         List<CardInstance> SituationCards = buildResult.SituationCards;
 
@@ -108,8 +105,8 @@ public class SocialFacade
         _gameWorld.CurrentSocialSession = new SocialSession
         {
             NPC = npc,
-            RequestId = requestId,
-            DeckId = situation.DeckId,
+            Situation = situation,
+            ChallengeDeck = challengeDeck,
             CurrentState = initialState,
             InitialState = initialState,
             CurrentInitiative = startingInitiative,
@@ -155,17 +152,11 @@ public class SocialFacade
         _gameWorld.LastSocialOutcome = FinalizeConversation(_gameWorld.CurrentSocialSession);
 
         // TRANSITION TRACKING: If conversation failed, call FailSituation for OnFailure transitions
-        if (!_gameWorld.LastSocialOutcome.Success && _gameWorld.PendingSocialContext?.SituationId != null)
+        // HIGHLANDER: Use Situation object reference, not SituationId string
+        if (!_gameWorld.LastSocialOutcome.Success && _gameWorld.PendingSocialContext?.Situation != null)
         {
-            Situation situation = _gameWorld.Scenes
-                .SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == _gameWorld.PendingSocialContext.SituationId);
-
-            if (situation != null)
-            {
-                // Call FailSituation to set LastChallengeSucceeded = false and trigger OnFailure
-                _situationCompletionHandler.FailSituation(situation);
-            }
+            // Call FailSituation to set LastChallengeSucceeded = false and trigger OnFailure
+            _situationCompletionHandler.FailSituation(_gameWorld.PendingSocialContext.Situation);
         }
 
         // Calculate and save the final flow value back to the NPC (persistence)
@@ -186,7 +177,7 @@ public class SocialFacade
         if (_gameWorld.LastSocialOutcome.TokensEarned != 0)
         {
             ConnectionType connectionType = DetermineConnectionTypeFromConversation(_gameWorld.CurrentSocialSession);
-            _tokenManager.AddTokensToNPC(connectionType, _gameWorld.LastSocialOutcome.TokensEarned, _gameWorld.CurrentSocialSession.NPC.ID);
+            _tokenManager.AddTokensToNPC(connectionType, _gameWorld.LastSocialOutcome.TokensEarned, _gameWorld.CurrentSocialSession.NPC);
         }
 
         // TACTICAL LAYER: Do NOT apply CompletionReward here
@@ -295,7 +286,7 @@ public class SocialFacade
         {
 
             // Complete situation through SituationCompletionHandler (applies rewards: coins, StoryCubes, equipment)
-            Situation completedSituation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == _gameWorld.CurrentSocialSession.RequestId);
+            Situation completedSituation = _gameWorld.CurrentSocialSession.Situation;
             if (completedSituation != null)
             {
                 await _situationCompletionHandler.CompleteSituation(completedSituation);
@@ -437,28 +428,24 @@ public class SocialFacade
     /// <summary>
     /// Create a conversation context for UI - returns typed context
     /// </summary>
-    public async Task<SocialChallengeContext> CreateConversationContext(string npcId, string requestId)
+    public async Task<SocialChallengeContext> CreateConversationContext(NPC npc, Situation situation)
     {
-        // KEEP - npcId is external input from UI
-        NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
         if (npc == null)
         {
-            return SocialContextFactory.CreateInvalidContext("NPC not found");
+            return SocialContextFactory.CreateInvalidContext("NPC is null");
         }
 
-        // Get request to determine attention cost - from centralized GameWorld storage
-        Situation situation = _gameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == requestId);
         if (situation == null)
         {
-            return SocialContextFactory.CreateInvalidContext($"Situation {requestId} not found in any Scene.Situations");
+            return SocialContextFactory.CreateInvalidContext("Situation is null");
         }
 
         // Start conversation with the request (doubt starts at 0, max from deck)
-        SocialSession session = StartConversation(npcId, requestId);
+        SocialSession session = StartConversation(npc, situation);
 
         // Create typed context based on request's conversation type
         SocialChallengeContext context = SocialContextFactory.CreateContext(
-            situation.DeckId,
+            situation,
             npc,
             session,
             new List<CardInstance>(), // observationCards - empty for now
@@ -1004,16 +991,8 @@ public class SocialFacade
     /// </summary>
     private ConnectionType DetermineConnectionTypeFromConversation(SocialSession session)
     {
-        // Map conversation types to their corresponding connection types
-        return session.DeckId switch
-        {
-            // Diplomacy removed - exchanges use separate Exchange system
-            "request" => ConnectionType.Trust, // Request bundles with promise cards
-            "resolution" => ConnectionType.Trust,
-            "delivery" => ConnectionType.Trust,
-            "friendly_chat" => ConnectionType.Trust,
-            _ => ConnectionType.Trust  // Default fallback
-        };
+        // Use the connection type from the situation
+        return session.Situation?.ConnectionType ?? ConnectionType.Trust;
     }
 
     #endregion
@@ -1139,61 +1118,6 @@ public class SocialFacade
         return _gameWorld.CurrentSocialSession.Deck.HandCards;
     }
 
-    #region Obligation Integration
-
-    /// <summary>
-    /// Check if completed NPC request is part of an active obligation and trigger progress
-    /// RPG PATTERN: Intro actions are NOT situations - they're quest acceptance buttons
-    /// This method ONLY checks for phase situations in ACTIVE obligations
-    /// </summary>
-    private async Task CheckObligationProgress(string npcId, string requestId)
-    {
-        // SCORCHED EARTH: Removed intro action check - intro is NOT a situation, it's a button
-        // Intro action completion happens via GameFacade.CompleteObligationIntro(), not through conversations
-
-        // Search active obligations for a phase matching this npcId + requestId
-        foreach (ActiveObligation activeInv in _gameWorld.ObligationJournal.ActiveObligations)
-        {
-            // USE OBJECT REFERENCE - ActiveObligation.Obligation (O(1) instead of O(n))
-            Obligation obligation = activeInv.Obligation;
-            if (obligation == null) continue;
-
-            // Find phase that matches this phase ID (phases no longer reference situations)
-            // Match directly by phase ID (phase.Id == requestId)
-            ObligationPhaseDefinition matchingPhase = obligation.PhaseDefinitions.FirstOrDefault(p => p.Id == requestId);
-
-            if (matchingPhase != null)
-            {
-                // This request is part of an obligation - mark situation as complete
-                ObligationProgressResult progressResult = await _obligationActivity.CompleteSituation(matchingPhase.Id, obligation.Id);
-
-                // Log progress for UI modal display (UI will handle modal)
-                Console.WriteLine($"[ConversationFacade] Obligation '{obligation.Name}' progress: {progressResult.CompletedSituationCount}/{progressResult.TotalSituationCount} situations complete");
-
-                if (progressResult.NewLeads != null && progressResult.NewLeads.Count > 0)
-                {
-                    foreach (NewLeadInfo lead in progressResult.NewLeads)
-                    {
-                        _messageSystem.AddSystemMessage(
-                            $"New lead unlocked: {lead.SituationName} at {lead.LocationName}",
-                            SystemMessageTypes.Info);
-                    }
-                }
-
-                // Check if obligation is now complete
-                ObligationCompleteResult completeResult = _obligationActivity.CheckObligationCompletion(obligation.Id);
-                if (completeResult != null)
-                {
-                    // Obligation complete - UI will display completion modal
-                    Console.WriteLine($"[ConversationFacade] Obligation '{obligation.Name}' COMPLETE!");
-                }
-
-                break; // Found matching obligation, stop searching
-            }
-        }
-    }
-
-    #endregion
 
     #endregion
 }

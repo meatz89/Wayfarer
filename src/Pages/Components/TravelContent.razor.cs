@@ -75,11 +75,11 @@ namespace Wayfarer.Pages.Components
 
             AvailableRoutes = routes.Select(r => new RouteViewModel
             {
-                Id = r.Id,
+                Route = r,  // Object reference
                 Name = r.Name,  // Store the actual route name from JSON
-                DestinationName = GetDestinationVenueName(r.DestinationLocationId),
-                DestinationSpotName = GetDestinationLocationName(r.DestinationLocationId),
-                District = GetDestinationDistrict(r.DestinationLocationId),
+                DestinationName = GetDestinationVenueName(r.DestinationLocation.Name),
+                DestinationSpotName = GetDestinationLocationName(r.DestinationLocation.Name),
+                District = GetDestinationDistrict(r.DestinationLocation.Name),
                 TransportType = FormatTransportType(r.Method),
                 TravelTime = r.TravelTimeSegments,
                 Cost = r.BaseCoinCost,
@@ -94,7 +94,8 @@ namespace Wayfarer.Pages.Components
         {
             // Get the Venue name for this destination Location
             Location location = GameFacade.GetLocation(destinationSpotId);
-            Venue venue = GameFacade.GetLocation(location.VenueId).Venue;
+            // ADR-007: Use Venue object reference instead of deleted VenueId
+            Venue venue = location.Venue;
 
             if (venue != null)
             {
@@ -119,9 +120,10 @@ namespace Wayfarer.Pages.Components
         {
             // NO FALLBACKS - let it fail if data is missing
             Location location = GameFacade.GetLocation(destinationSpotId);
-            Venue venue = GameFacade.GetAllLocations().FirstOrDefault(v => v.Id == location.VenueId);
-            District district = GameFacade.GetDistrictForLocation(venue.Id);
-            Region region = GameFacade.GetRegionForDistrict(district.Id);
+            // ADR-007: Use Venue object reference instead of deleted VenueId
+            Venue venue = location.Venue;
+            District district = GameFacade.GetDistrictForLocation(venue.Name);
+            Region region = GameFacade.GetRegionForDistrict(district.Name);
 
             if (region != null)
             {
@@ -257,9 +259,11 @@ namespace Wayfarer.Pages.Components
         {
             if (!CanTakeRoute(route)) return;
 
-            // Start a path cards journey instead of instant travel
-            TravelSession session = TravelManager.StartJourney(route.Id);
-            if (session != null)
+            // Use TravelFacade for path card journeys (not Intent - that's for instant travel)
+            // Facade handles validation, then delegates to TravelManager
+            bool success = TravelFacade.StartPathCardJourney(route.Route);
+
+            if (success)
             {
                 // Refresh to show the path cards interface
                 LoadTravelState();
@@ -410,7 +414,7 @@ namespace Wayfarer.Pages.Components
 
     public class RouteViewModel
     {
-        public string Id { get; set; }
+        public RouteOption Route { get; set; }  // Object reference
         public string Name { get; set; }  // The route name from JSON
         public string DestinationName { get; set; }  // The actual Venue name
         public string DestinationSpotName { get; set; }  // The actual Venue location name

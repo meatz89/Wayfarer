@@ -29,13 +29,14 @@ public class MarketViewModel
 /// </summary>
 public class MarketItemViewModel
 {
-    public string ItemId { get; init; }
     public string Name { get; init; }
     public int BuyPrice { get; init; }
     public int SellPrice { get; init; }
     public bool CanBuy { get; init; }
     public bool CanSell { get; init; }
-    public string TraderId { get; init; } // ID of the trader selling this item
+    // HIGHLANDER: Object reference, not ID string
+    public NPC Trader { get; init; }
     public List<string> Categories { get; init; } = new();
+    // HIGHLANDER: Object reference, not ID string (ItemId removed as redundant)
     public Item Item { get; init; } // Reference to the full item for description and token effects
 }

@@ -2,10 +2,11 @@
 /// Obligation template - contains metadata and phase definitions for situation creation
 /// Obligation does NOT spawn tactical sessions directly - it creates LocationSituations/NPCSituations
 /// which are evaluated by the existing situation system
+/// TEMPLATE PATTERN: Obligation is an immutable archetype loaded from JSON, so Id is acceptable
 /// </summary>
 public class Obligation
 {
-    public string Id { get; set; }
+    public string Id { get; init; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string CompletionNarrative { get; set; } // Narrative shown when obligation completes
@@ -36,14 +37,8 @@ public class Obligation
     /// <summary>
     /// NPC who commissioned this obligation (if NPCCommissioned type)
     /// Null for SelfDiscovered obligations
+    /// HIGHLANDER: Object reference ONLY, no PatronNpcId
     /// </summary>
-    public string PatronNpcId { get; set; }
-
-    /// <summary>
-    /// Object reference to patron NPC (for runtime navigation)
-    /// Populated at initialization time from PatronNpcId
-    /// </summary>
-    [System.Text.Json.Serialization.JsonIgnore]
     public NPC PatronNpc { get; set; }
 
     /// <summary>
@@ -59,9 +54,10 @@ public class Obligation
     public int CompletionRewardCoins { get; set; } = 0;
 
     /// <summary>
-    /// Items granted when obligation completes (equipment IDs)
+    /// Items granted when obligation completes
+    /// HIGHLANDER: Object references ONLY, no CompletionRewardItems IDs
     /// </summary>
-    public List<string> CompletionRewardItems { get; set; } = new List<string>();
+    public List<Item> CompletionRewardItems { get; set; } = new List<Item>();
 
     /// <summary>
     /// Player stat XP rewards granted when obligation completes
@@ -70,9 +66,9 @@ public class Obligation
 
     /// <summary>
     /// New obligations spawned when obligation completes
-    /// References to other Obligation IDs in GameWorld.Obligations
+    /// HIGHLANDER: Object references ONLY, no SpawnedObligationIds
     /// </summary>
-    public List<string> SpawnedObligationIds { get; set; } = new List<string>();
+    public List<Obligation> SpawnedObligations { get; set; } = new List<Obligation>();
 
     /// <summary>
     /// Tracks whether this obligation failed to meet deadline
@@ -86,10 +82,11 @@ public class Obligation
 /// <summary>
 /// Phase definition - references an existing situation from Scene.Situations
 /// When prerequisites met, obligation system looks up situation and adds to ActiveSituations
+/// TEMPLATE PATTERN: Part of Obligation template structure, Id is acceptable
 /// </summary>
 public class ObligationPhaseDefinition
 {
-    public string Id { get; set; }
+    public string Id { get; init; }
     public string Name { get; set; }
     public string Description { get; set; }
     public string CompletionNarrative { get; set; } // Narrative shown when obligation completes
@@ -143,9 +140,10 @@ public class ObligationIntroAction
     public string ActionText { get; set; }
 
     /// <summary>
-    /// Location where intro button appears (LocationId is globally unique)
+    /// Location where intro button appears
+    /// HIGHLANDER: Object reference only, no string ID
     /// </summary>
-    public string LocationId { get; set; }
+    public Location Location { get; set; }
 
     /// <summary>
     /// Narrative shown in modal when button clicked (quest acceptance text)
@@ -167,10 +165,11 @@ public class ObligationIntroAction
 public class ObligationPrerequisites
 {
     /// <summary>
-    /// Required location (LocationId is globally unique)
+    /// Required location
     /// Obligation becomes discoverable when player enters this location
+    /// HIGHLANDER: Object reference only, no string ID
     /// </summary>
-    public string LocationId { get; set; }
+    public Location Location { get; set; }
 }
 
 /// <summary>
@@ -186,9 +185,10 @@ public class StatXPReward
 /// <summary>
 /// NPC reputation reward - strongly typed replacement for Dictionary<string, int>
 /// Used in obligation completion rewards
+/// HIGHLANDER: Stores NPC object, not string ID
 /// </summary>
 public class NPCReputationReward
 {
-    public string NpcId { get; set; }
+    public NPC Npc { get; set; }
     public int ReputationChange { get; set; }
 }

@@ -1,9 +1,9 @@
 /// <summary>
 /// Tracks temporary route block with expiration
-/// Replacement for Dictionary<string, int> TemporaryRouteBlocks
+/// HIGHLANDER: Stores RouteOption object reference, not string name
 /// </summary>
 public class TemporaryRouteBlock
 {
-    public string RouteId { get; set; }
+    public RouteOption Route { get; set; }
     public int UnblockDay { get; set; }
 }

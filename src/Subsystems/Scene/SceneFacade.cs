@@ -34,15 +34,17 @@ public class SceneFacade
     /// Example: Player completes Situation 1 at common_room, navigates to upper_floor,
     ///          this method finds the scene waiting at upper_floor and returns it for resumption
     /// ALL ACTIVE SCENES auto-activate when you enter their context (no "modal" vs "atmospheric" distinction)
+    /// PHASE 4: Accept object references instead of IDs
     /// </summary>
-    /// <param name="locationId">Location player is currently at</param>
-    /// <param name="npcId">NPC player is currently interacting with (null if none)</param>
+    /// <param name="location">Location player is currently at</param>
+    /// <param name="npc">NPC player is currently interacting with (null if none)</param>
     /// <returns>List of scenes that should resume at this context</returns>
-    public List<Scene> GetResumableScenesAtContext(string locationId, string npcId)
+    public List<Scene> GetResumableScenesAtContext(Location location, NPC npc)
     {
+        // PHASE 6D: Pass objects directly, no ID extraction
         return _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.ShouldResumeAtContext(locationId, npcId))
+                       s.ShouldResumeAtContext(location?.Id, npc?.ID))
             .ToList();
     }
 
@@ -51,14 +53,19 @@ public class SceneFacade
     /// THREE-TIER TIMING MODEL: Creates ephemeral actions (Tier 3) fresh on every query
     /// Actions never stored, always rebuilt from ChoiceTemplates
     /// Called by UI when player enters location
+    /// PHASE 4: Accept Location object instead of ID
     /// </summary>
-    public List<LocationAction> GetActionsAtLocation(string locationId, Player player)
+    public List<LocationAction> GetActionsAtLocation(Location location, Player player)
     {
+        if (location == null)
+            return new List<LocationAction>();
+
         // Find active Scenes at this location
         // HIERARCHICAL PLACEMENT: Check CurrentSituation.Location (situation owns placement)
+        // PHASE 6D: Object comparison instead of ID comparison
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.CurrentSituation?.Location?.Id == locationId)
+                       s.CurrentSituation?.Location == location)
             .ToList();
 
         List<LocationAction> allActions = new List<LocationAction>();
@@ -80,7 +87,7 @@ public class SceneFacade
                     Name = choiceTemplate.ActionTextTemplate,
                     Description = "",
                     ChoiceTemplate = choiceTemplate,
-                    SituationId = situation.Id,
+                    Situation = situation,
 
                     // Legacy properties (empty - use ChoiceTemplate)
                     RequiredProperties = new List<LocationPropertyType>(),
@@ -110,14 +117,19 @@ public class SceneFacade
     /// THREE-TIER TIMING MODEL: Creates ephemeral actions (Tier 3) fresh on every query
     /// Actions never stored, always rebuilt from ChoiceTemplates
     /// Called by UI when player opens conversation with NPC
+    /// PHASE 4: Accept NPC object instead of ID
     /// </summary>
-    public List<NPCAction> GetActionsForNPC(string npcId, Player player)
+    public List<NPCAction> GetActionsForNPC(NPC npc, Player player)
     {
+        if (npc == null)
+            return new List<NPCAction>();
+
         // Find active Scenes with this NPC
         // HIERARCHICAL PLACEMENT: Check CurrentSituation.Npc (situation owns placement)
+        // HIGHLANDER: Compare NPC objects directly, not .ID
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.CurrentSituation?.Npc?.ID == npcId)
+                       s.CurrentSituation?.Npc == npc)
             .ToList();
 
         List<NPCAction> allActions = new List<NPCAction>();
@@ -141,11 +153,10 @@ public class SceneFacade
                 {
                     Name = choiceTemplate.ActionTextTemplate,
                     Description = "",
-                    NPCId = npc?.ID,
+                    NPC = npc,
                     ChoiceTemplate = choiceTemplate,
-                    SituationId = situation.Id,
+                    Situation = situation,
                     ActionType = DetermineNPCActionType(choiceTemplate),
-                    ChallengeId = choiceTemplate.ChallengeId,
                     ChallengeType = choiceTemplate.ChallengeType
                 };
 
@@ -166,14 +177,19 @@ public class SceneFacade
     /// THREE-TIER TIMING MODEL: Creates ephemeral path cards (Tier 3) fresh on every query
     /// Path cards never stored, always rebuilt from ChoiceTemplates
     /// Called by UI when player begins traveling route
+    /// PHASE 4: Accept RouteOption object instead of ID
     /// </summary>
-    public List<PathCard> GetPathCardsForRoute(string routeId, Player player)
+    public List<PathCard> GetPathCardsForRoute(RouteOption route, Player player)
     {
+        if (route == null)
+            return new List<PathCard>();
+
         // Find active Scenes on this route
         // HIERARCHICAL PLACEMENT: Check CurrentSituation.Route (situation owns placement)
+        // PHASE 6D: Object comparison instead of ID comparison
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.CurrentSituation?.Route?.Id == routeId)
+                       s.CurrentSituation?.Route == route)
             .ToList();
 
         List<PathCard> allPathCards = new List<PathCard>();
@@ -222,14 +238,19 @@ public class SceneFacade
     /// Path cards never stored, always rebuilt from ChoiceTemplates
     /// Called by UI when player traveling at specific segment of route
     /// ARCHITECTURAL: Route segment situations enable geographic specificity (Tutorial A3 pattern)
+    /// PHASE 4: Accept RouteOption object instead of ID
     /// </summary>
-    public List<PathCard> GetPathCardsForRouteSegment(string routeId, int segmentIndex, Player player)
+    public List<PathCard> GetPathCardsForRouteSegment(RouteOption route, int segmentIndex, Player player)
     {
+        if (route == null)
+            return new List<PathCard>();
+
         // Find active Scenes on this route at this specific segment
         // HIERARCHICAL PLACEMENT: Check CurrentSituation.Route AND CurrentSituation.SegmentIndex
+        // PHASE 6D: Object comparison instead of ID comparison
         List<Scene> scenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.CurrentSituation?.Route?.Id == routeId &&
+                       s.CurrentSituation?.Route == route &&
                        s.CurrentSituation?.SegmentIndex == segmentIndex)
             .ToList();
 

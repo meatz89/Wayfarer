@@ -5,9 +5,10 @@
 public class NavigationPayload
 {
     /// <summary>
-    /// Destination location ID where navigation leads
+    /// Destination location where navigation leads
+    /// HIGHLANDER: Object reference ONLY, no DestinationId
     /// </summary>
-    public string DestinationId { get; set; }
+    public Location Destination { get; set; }
 
     /// <summary>
     /// Whether to automatically trigger scene at destination

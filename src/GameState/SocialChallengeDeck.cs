@@ -5,6 +5,7 @@
 /// </summary>
 public class SocialChallengeDeck
 {
+    // ADR-007: Id property RESTORED - Templates (immutable archetypes) ARE allowed to have IDs
     public string Id { get; set; }
     public string Name { get; set; }
     public string Description { get; set; }

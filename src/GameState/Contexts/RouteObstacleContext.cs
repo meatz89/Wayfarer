@@ -10,7 +10,7 @@ public class RouteObstacleContext
 
     // Scene data
     public TravelScene scene { get; set; }
-    public string RouteId { get; set; }
+    // ADR-007: RouteId DELETED - unused dead code (never read)
 
     // Player state
     public int CurrentStamina { get; set; }

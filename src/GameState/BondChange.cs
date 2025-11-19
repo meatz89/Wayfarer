@@ -5,9 +5,9 @@
 public class BondChange
 {
     /// <summary>
-    /// NPC ID whose bond will change
+    /// NPC whose bond will change (object reference, NO ID)
     /// </summary>
-    public string NpcId { get; set; }
+    public NPC Npc { get; set; }
 
     /// <summary>
     /// Bond strength delta (positive or negative)

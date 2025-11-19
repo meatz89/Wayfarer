@@ -771,18 +771,32 @@ public class SceneTemplateParser
 
     /// <summary>
     /// Parse BondChanges from DTOs
+    /// Resolves NPC object references from NpcId strings
     /// </summary>
     private List<BondChange> ParseBondChanges(List<BondChangeDTO> dtos)
     {
         if (dtos == null || !dtos.Any())
             return new List<BondChange>();
 
-        return dtos.Select(dto => new BondChange
+        List<BondChange> bondChanges = new List<BondChange>();
+        foreach (BondChangeDTO dto in dtos)
         {
-            NpcId = dto.NpcId,
-            Delta = dto.Delta,
-            Reason = dto.Reason
-        }).ToList();
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == dto.NpcId);
+            if (npc == null)
+            {
+                Console.WriteLine($"[SceneTemplateParser.ParseBondChanges] WARNING: NPC '{dto.NpcId}' not found for BondChange");
+                continue; // Skip invalid bond change
+            }
+
+            bondChanges.Add(new BondChange
+            {
+                Npc = npc, // Object reference, NO ID
+                Delta = dto.Delta,
+                Reason = dto.Reason
+            });
+        }
+
+        return bondChanges;
     }
 
     /// <summary>
@@ -864,15 +878,25 @@ public class SceneTemplateParser
 
     /// <summary>
     /// Parse NavigationPayload from DTO
+    /// Resolves Destination Location object from ID
     /// </summary>
     private NavigationPayload ParseNavigationPayload(NavigationPayloadDTO dto)
     {
         if (dto == null)
             return null;
 
+        // Resolve destination location from DestinationId
+        Location destination = null;
+        if (!string.IsNullOrEmpty(dto.DestinationId))
+        {
+            destination = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.DestinationId);
+            if (destination == null)
+                throw new InvalidOperationException($"NavigationPayload references unknown Location: '{dto.DestinationId}'");
+        }
+
         return new NavigationPayload
         {
-            DestinationId = dto.DestinationId,
+            Destination = destination,
             AutoTriggerScene = dto.AutoTriggerScene
         };
     }

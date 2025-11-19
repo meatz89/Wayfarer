@@ -26,12 +26,12 @@ public class PriceManager
 
     /// <summary>
     /// Complete pricing information for an item at a location
+    /// HIGHLANDER: Object references only
     /// </summary>
     public class PricingInfo
     {
-        public string ItemId { get; set; }
-        public string ItemName { get; set; }
-        public string LocationId { get; set; }
+        public Item Item { get; set; }
+        public Location Location { get; set; }
         public int BaseBuyPrice { get; set; }
         public int BaseSellPrice { get; set; }
         public int AdjustedBuyPrice { get; set; }
@@ -48,52 +48,68 @@ public class PriceManager
 
     /// <summary>
     /// Get buy price for an item at a location
+    /// HIGHLANDER: Accept Item and Location objects
     /// </summary>
-    public int GetBuyPrice(string itemId, string locationId)
+    public int GetBuyPrice(Item item, Location location)
     {
-        PricingInfo pricing = GetPricingInfo(itemId, locationId);
+        if (item == null || location == null)
+            return -1;
+
+        PricingInfo pricing = GetPricingInfo(item, location);
         return pricing.IsAvailable ? pricing.AdjustedBuyPrice : -1;
     }
 
     /// <summary>
     /// Get sell price for an item at a location
+    /// HIGHLANDER: Accept Item and Location objects
     /// </summary>
-    public int GetSellPrice(string itemId, string locationId)
+    public int GetSellPrice(Item item, Location location)
     {
-        PricingInfo pricing = GetPricingInfo(itemId, locationId);
+        if (item == null || location == null)
+            return -1;
+
+        PricingInfo pricing = GetPricingInfo(item, location);
         return pricing.IsAvailable ? pricing.AdjustedSellPrice : -1;
     }
 
     /// <summary>
     /// Get complete pricing information for an item at a location
+    /// HIGHLANDER: Accept Item and Location objects
     /// </summary>
-    public PricingInfo GetPricingInfo(string itemId, string locationId)
+    public PricingInfo GetPricingInfo(Item item, Location location)
     {
-        Item item = _itemRepository.GetItemById(itemId);
         if (item == null)
         {
             return new PricingInfo
             {
-                ItemId = itemId,
                 IsAvailable = false,
                 PriceExplanation = "Item not found"
             };
         }
 
+        if (location == null)
+        {
+            return new PricingInfo
+            {
+                Item = item,
+                IsAvailable = false,
+                PriceExplanation = "Location not found"
+            };
+        }
+
         PricingInfo pricing = new PricingInfo
         {
-            ItemId = itemId,
-            ItemName = item.Name,
-            LocationId = locationId,
+            Item = item,
+            Location = location,
             BaseBuyPrice = item.BuyPrice,
             BaseSellPrice = item.SellPrice,
             IsAvailable = true
         };
 
         // Calculate modifiers
-        pricing.SupplyModifier = CalculateSupplyModifier(itemId, locationId);
-        pricing.DemandModifier = CalculateDemandModifier(itemId, locationId);
-        pricing.LocationModifier = CalculateLocationModifier(itemId, locationId);
+        pricing.SupplyModifier = CalculateSupplyModifier(item, location);
+        pricing.DemandModifier = CalculateDemandModifier(item, location);
+        pricing.LocationModifier = CalculateLocationModifier(item, location);
 
         // Combine modifiers
         pricing.FinalModifier = pricing.SupplyModifier * pricing.DemandModifier * pricing.LocationModifier;
@@ -118,10 +134,11 @@ public class PriceManager
 
     /// <summary>
     /// Calculate supply-based price modifier
+    /// HIGHLANDER: Accept Item and Location objects
     /// </summary>
-    private float CalculateSupplyModifier(string itemId, string locationId)
+    private float CalculateSupplyModifier(Item item, Location location)
     {
-        float supplyLevel = _marketStateTracker.GetSupplyLevel(itemId, locationId);
+        float supplyLevel = _marketStateTracker.GetSupplyLevel(item, location);
 
         // Low supply = higher prices, high supply = lower prices
         // Supply 0.5 = 1.3x price, Supply 1.0 = 1.0x price, Supply 2.0 = 0.7x price
@@ -137,10 +154,11 @@ public class PriceManager
 
     /// <summary>
     /// Calculate demand-based price modifier
+    /// HIGHLANDER: Accept Item and Location objects
     /// </summary>
-    private float CalculateDemandModifier(string itemId, string locationId)
+    private float CalculateDemandModifier(Item item, Location location)
     {
-        float demandLevel = _marketStateTracker.GetDemandLevel(itemId, locationId);
+        float demandLevel = _marketStateTracker.GetDemandLevel(item, location);
 
         // High demand = higher prices, low demand = lower prices
         // Demand 0.5 = 0.85x price, Demand 1.0 = 1.0x price, Demand 2.0 = 1.2x price
@@ -156,17 +174,10 @@ public class PriceManager
 
     /// <summary>
     /// Calculate location-based price modifier based on Location properties
+    /// HIGHLANDER: Accept Item and Location objects
     /// </summary>
-    private float CalculateLocationModifier(string itemId, string locationId)
+    private float CalculateLocationModifier(Item item, Location location)
     {
-        Location location = _gameWorld.GetLocation(locationId);
-        if (location == null)
-            throw new InvalidOperationException($"Location not found: {locationId}");
-
-        Item item = _itemRepository.GetItemById(itemId);
-        if (item == null)
-            throw new InvalidOperationException($"Item not found: {itemId}");
-
         float modifier = 1.0f;
 
         // Location properties determine pricing (NOT Venue type)
@@ -272,15 +283,16 @@ public class PriceManager
 
     /// <summary>
     /// Get prices for all items at a location
+    /// HIGHLANDER: Accept Location object
     /// </summary>
-    public List<PricingInfo> GetLocationPrices(string locationId)
+    public List<PricingInfo> GetLocationPrices(Location location)
     {
         List<PricingInfo> prices = new List<PricingInfo>();
         List<Item> allItems = _itemRepository.GetAllItems();
 
         foreach (Item item in allItems)
         {
-            PricingInfo pricing = GetPricingInfo(item.Id, locationId);
+            PricingInfo pricing = GetPricingInfo(item, location);
             if (pricing.IsAvailable)
             {
                 prices.Add(pricing);
@@ -292,15 +304,16 @@ public class PriceManager
 
     /// <summary>
     /// Get price comparison for an item across all locations (checks all Locations in world)
+    /// HIGHLANDER: Accept Item object
     /// </summary>
-    public List<PricingInfo> GetItemPriceComparison(string itemId)
+    public List<PricingInfo> GetItemPriceComparison(Item item)
     {
         List<PricingInfo> prices = new List<PricingInfo>();
         List<Location> allLocations = _gameWorld.Locations;
 
         foreach (Location location in allLocations)
         {
-            PricingInfo pricing = GetPricingInfo(itemId, location.Id);
+            PricingInfo pricing = GetPricingInfo(item, location);
             if (pricing.IsAvailable)
             {
                 prices.Add(pricing);
@@ -312,10 +325,11 @@ public class PriceManager
 
     /// <summary>
     /// Find items with best profit margins at a location
+    /// HIGHLANDER: Accept Location object
     /// </summary>
-    public List<PricingInfo> GetHighMarginItems(string locationId, int topN = 5)
+    public List<PricingInfo> GetHighMarginItems(Location location, int topN = 5)
     {
-        List<PricingInfo> prices = GetLocationPrices(locationId);
+        List<PricingInfo> prices = GetLocationPrices(location);
 
         return prices
             .OrderByDescending(p => (float)(p.AdjustedSellPrice - p.AdjustedBuyPrice) / p.AdjustedBuyPrice)
@@ -327,19 +341,20 @@ public class PriceManager
 
     /// <summary>
     /// Predict future price based on current trends
+    /// HIGHLANDER: Accept Item and Location objects
     /// </summary>
-    public int PredictFuturePrice(string itemId, string locationId, bool isBuyPrice)
+    public int PredictFuturePrice(Item item, Location location, bool isBuyPrice)
     {
-        PricingInfo current = GetPricingInfo(itemId, locationId);
+        PricingInfo current = GetPricingInfo(item, location);
         if (!current.IsAvailable) return -1;
 
         // Get market conditions
-        MarketStateTracker.MarketConditions conditions = _marketStateTracker.GetMarketConditions(locationId);
+        MarketStateTracker.MarketConditions conditions = _marketStateTracker.GetMarketConditions(location.Name);
 
         float trendModifier = 1.0f;
 
         // If item is trending, prices might increase
-        if (conditions.TrendingItems.Contains(itemId))
+        if (conditions.TrendingItems.Contains(item.Name))
         {
             trendModifier = 1.05f;
         }
@@ -357,10 +372,11 @@ public class PriceManager
 
     /// <summary>
     /// Calculate price volatility for an item
+    /// HIGHLANDER: Accept Item object
     /// </summary>
-    public float CalculatePriceVolatility(string itemId)
+    public float CalculatePriceVolatility(Item item)
     {
-        List<PricingInfo> prices = GetItemPriceComparison(itemId);
+        List<PricingInfo> prices = GetItemPriceComparison(item);
         if (prices.Count < 2) return 0;
 
         float avgPrice = (float)prices.Average(p => p.AdjustedBuyPrice);
@@ -374,8 +390,9 @@ public class PriceManager
 
     /// <summary>
     /// Apply special event pricing (festivals, shortages, etc.)
+    /// HIGHLANDER: Accept Location object
     /// </summary>
-    public void ApplyEventPricing(string eventType, string locationId)
+    public void ApplyEventPricing(string eventType, Location location)
     {
         switch (eventType)
         {
@@ -388,7 +405,7 @@ public class PriceManager
                     i.Categories.Contains(ItemCategory.Luxury_Items)))
                 {
                     // Increase demand during festival
-                    float currentDemand = _marketStateTracker.GetDemandLevel(item.Id, locationId);
+                    float currentDemand = _marketStateTracker.GetDemandLevel(item, location);
                     // Note: Would need to add SetDemandLevel method to MarketStateTracker
                 }
                 break;
@@ -407,10 +424,11 @@ public class PriceManager
 
     /// <summary>
     /// Calculate bulk discount for multiple purchases
+    /// HIGHLANDER: Accept Item and Location objects
     /// </summary>
-    public int CalculateBulkPrice(string itemId, string locationId, int quantity)
+    public int CalculateBulkPrice(Item item, Location location, int quantity)
     {
-        int singlePrice = GetBuyPrice(itemId, locationId);
+        int singlePrice = GetBuyPrice(item, location);
         if (singlePrice <= 0) return -1;
 
         float discount = 1.0f;

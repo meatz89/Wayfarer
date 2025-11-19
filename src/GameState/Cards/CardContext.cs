@@ -11,8 +11,8 @@ public class CardContext
     /// </summary>
     public int threshold { get; set; }
 
-    public string RequestId { get; set; } // ID of the Situation this card belongs to
-    public string SituationCardId { get; set; } // ID of the specific SituationCard (victory condition)
+    public Situation Situation { get; set; } // Object reference to the Situation this card belongs to
+    // ADR-007: SituationCardId DELETED - unused dead code (never read)
 
     // Additional context properties
     public ConnectionState ConnectionState { get; set; }

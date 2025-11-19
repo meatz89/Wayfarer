@@ -36,8 +36,8 @@ public class HexRouteGenerator
 
         // Find all existing locations in DIFFERENT venues
         List<Location> otherLocations = _gameWorld.Locations
-            .Where(loc => loc.Id != newLocation.Id &&
-                         loc.VenueId != newLocation.VenueId && // Different venue = requires route
+            .Where(loc => loc != newLocation && // Object reference comparison
+                         loc.Venue != newLocation.Venue && // Object reference comparison
                          loc.HexPosition.HasValue)
             .ToList();
 
@@ -112,7 +112,7 @@ public class HexRouteGenerator
                 Location loc2 = locationsWithPosition[j];
 
                 // Only generate routes between different venues
-                if (loc1.VenueId == loc2.VenueId)
+                if (loc1.Venue == loc2.Venue) // Object reference comparison
                     continue; // Same venue = instant travel, no route needed
 
                 // Try pathfinding with Walking (most universal)
@@ -166,9 +166,6 @@ public class HexRouteGenerator
         float pathCost,
         TransportType transportType)
     {
-        // Generate unique route ID
-        string routeId = $"route_{origin.Id}_{destination.Id}";
-
         // Calculate time segments based on path length and terrain
         int timeSegments = CalculateTimeSegments(hexPath, transportType);
 
@@ -181,12 +178,9 @@ public class HexRouteGenerator
         // Create route
         RouteOption route = new RouteOption
         {
-            Id = routeId,
             Name = $"{origin.Name} to {destination.Name}",
-            OriginLocationId = origin.Id,
-            OriginLocation = origin,
-            DestinationLocationId = destination.Id,
-            DestinationLocation = destination,
+            OriginLocation = origin, // Object reference ONLY
+            DestinationLocation = destination, // Object reference ONLY
             Method = ConvertTransportToTravelMethod(transportType),
             BaseCoinCost = coinCost,
             BaseStaminaCost = staminaCost,
@@ -252,8 +246,8 @@ public class HexRouteGenerator
                 // Spawn scene for this segment
                 Scene scene = SpawnActiveSceneForRoute(selectedTemplate, route, segment);
 
-                // Assign scene ID to segment
-                segment.MandatorySceneId = scene.Id;
+                // Assign scene object reference to segment
+                segment.MandatoryScene = scene; // Object reference ONLY (no ID storage)
             }
         }
     }
@@ -341,8 +335,9 @@ public class HexRouteGenerator
     /// </summary>
     private Scene SpawnActiveSceneForRoute(SceneTemplate template, RouteOption route, RouteSegment segment)
     {
-        // Generate unique Scene ID
-        string sceneId = $"scene_{template.Id}_{route.Id}_seg{segment.SegmentNumber}";
+        // Generate unique Scene ID using template and GUID (no route ID needed)
+        // No .Substring() on GUID (forbidden operation per CLAUDE.md)
+        string sceneId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}_seg{segment.SegmentNumber}";
 
         // Create Scene directly as Active (skip provisional step)
         // HIERARCHICAL PLACEMENT: Route set on Situation, not Scene

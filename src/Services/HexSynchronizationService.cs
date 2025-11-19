@@ -1,13 +1,14 @@
 /// <summary>
-/// Maintains synchronization between Location.HexPosition and Hex.LocationId.
-/// HIGHLANDER PRINCIPLE: Location.HexPosition is source of truth, Hex.LocationId is derived lookup.
+/// Maintains synchronization between Location.HexPosition and Hex.Location.
+/// HIGHLANDER PRINCIPLE: Location.HexPosition is source of truth, Hex.Location is derived lookup (object reference).
 /// This service ensures the derived lookup stays synchronized.
 /// </summary>
 public class HexSynchronizationService
 {
     /// <summary>
-    /// Sync Hex.LocationId when Location.HexPosition is set.
+    /// Sync Hex.Location when Location.HexPosition is set.
     /// Called when location is added or hex position changes.
+    /// HIGHLANDER: Assign Location object to hex, not string ID
     /// </summary>
     public void SyncLocationToHex(Location location, GameWorld gameWorld)
     {
@@ -22,27 +23,31 @@ public class HexSynchronizationService
         if (hex == null)
         {
             throw new InvalidOperationException(
-                $"Location {location.Id} has hex position ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}) " +
+                $"Location {location.Name} has hex position ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}) " +
                 $"but no hex exists at those coordinates. HexMap may be incorrectly initialized."
             );
         }
 
-        // Update derived lookup
-        hex.LocationId = location.Id;
+        // Update derived lookup with object reference
+        hex.Location = location;
     }
 
     /// <summary>
-    /// Clear Hex.LocationId when location is removed.
+    /// Clear Hex.Location when location is removed.
     /// Called during location cleanup to maintain referential integrity.
+    /// HIGHLANDER: Accept Location object, not string ID
     /// </summary>
-    public void ClearHexLocationReference(string locationId, GameWorld gameWorld)
+    public void ClearHexLocationReference(Location location, GameWorld gameWorld)
     {
-        // Find hex via reverse lookup (before we clear the reference)
-        Hex hex = gameWorld.WorldHexGrid.GetHexForLocation(locationId);
-        if (hex != null)
+        if (location == null || !location.HexPosition.HasValue)
+            return;
+
+        // Find hex at location's position
+        Hex hex = gameWorld.WorldHexGrid.GetHex(location.HexPosition.Value.Q, location.HexPosition.Value.R);
+        if (hex != null && hex.Location == location)
         {
             // Clear derived lookup
-            hex.LocationId = null;
+            hex.Location = null;
         }
     }
 }

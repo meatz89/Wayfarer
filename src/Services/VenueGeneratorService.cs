@@ -18,36 +18,39 @@ public class VenueGeneratorService
     public Venue GenerateVenue(VenueTemplate template, SceneSpawnContext context, GameWorld gameWorld)
     {
         // 1. Resolve district from template or context
-        string districtId = template.District;
-        if (string.IsNullOrEmpty(districtId))
+        // HIGHLANDER: Resolve district name to District object
+        string districtName = template.District;
+        if (string.IsNullOrEmpty(districtName))
         {
-            if (context.CurrentLocation?.Venue != null)
+            if (context.CurrentLocation?.Venue?.District != null)
             {
-                districtId = context.CurrentLocation.Venue.District ?? "wilderness";
+                districtName = context.CurrentLocation.Venue.District.Name;
             }
             else
             {
-                districtId = "wilderness";
+                districtName = "wilderness";
             }
         }
+
+        // Look up District entity (assume it exists, created during world initialization)
+        District district = gameWorld.Districts.FirstOrDefault(d => d.Name == districtName);
 
         // 2. Find unoccupied hex cluster based on allocation strategy
         AxialCoordinates centerHex = FindUnoccupiedCluster(template.HexAllocation, gameWorld);
 
-        // 3. Generate unique venue ID (pure identifier, no encoded metadata)
-        string venueId = Guid.NewGuid().ToString();
+        // 3. Replace placeholders in name/description
+        string venueName = ReplacePlaceholders(template.NamePattern, context, districtName);
+        string venueDescription = ReplacePlaceholders(template.DescriptionPattern, context, districtName);
 
-        // 4. Replace placeholders in name/description
-        string venueName = ReplacePlaceholders(template.NamePattern, context, districtId);
-        string venueDescription = ReplacePlaceholders(template.DescriptionPattern, context, districtId);
-
-        // 5. Create Venue entity
-        Venue venue = new Venue(venueId, venueName)
+        // 4. Create Venue entity
+        // ADR-007: Constructor uses Name only (no Id parameter or generation)
+        // HIGHLANDER: Assign District object reference, not string
+        Venue venue = new Venue(venueName)
         {
             Description = venueDescription,
             Type = template.Type,
             Tier = template.Tier,
-            District = districtId,
+            District = district, // Object reference
             MaxLocations = template.MaxLocations,
             CenterHex = centerHex,
             IsSkeleton = false
@@ -119,7 +122,8 @@ public class VenueGeneratorService
         if (strategy == HexAllocationStrategy.SingleHex)
         {
             Hex centerHex = gameWorld.WorldHexGrid.GetHex(center.Q, center.R);
-            if (centerHex == null || !string.IsNullOrEmpty(centerHex.LocationId))
+            // HIGHLANDER: Check if hex has Location object, not LocationId string
+            if (centerHex == null || centerHex.Location != null)
             {
                 return false;
             }
@@ -129,7 +133,8 @@ public class VenueGeneratorService
         else // ClusterOf7
         {
             Hex centerHex = gameWorld.WorldHexGrid.GetHex(center.Q, center.R);
-            if (centerHex == null || !string.IsNullOrEmpty(centerHex.LocationId))
+            // HIGHLANDER: Check if hex has Location object, not LocationId string
+            if (centerHex == null || centerHex.Location != null)
             {
                 return false;
             }
@@ -138,7 +143,8 @@ public class VenueGeneratorService
             foreach (AxialCoordinates neighbor in neighbors)
             {
                 Hex neighborHex = gameWorld.WorldHexGrid.GetHex(neighbor.Q, neighbor.R);
-                if (neighborHex == null || !string.IsNullOrEmpty(neighborHex.LocationId))
+                // HIGHLANDER: Check if hex has Location object, not LocationId string
+                if (neighborHex == null || neighborHex.Location != null)
                 {
                     return false;
                 }
@@ -164,6 +170,7 @@ public class VenueGeneratorService
     /// <summary>
     /// Check if hex and its neighbors are separated from all existing venues.
     /// Enforces minimum 1-hex gap: no hex in cluster can be adjacent to hex occupied by another venue.
+    /// HIGHLANDER: Use Location object references directly
     /// </summary>
     private bool IsHexSeparatedFromVenues(AxialCoordinates hexCoords, GameWorld gameWorld)
     {
@@ -177,10 +184,11 @@ public class VenueGeneratorService
                 continue;
             }
 
-            if (!string.IsNullOrEmpty(neighborHex.LocationId))
+            // HIGHLANDER: Check Location object reference directly (not LocationId string)
+            if (neighborHex.Location != null)
             {
-                Location occupyingLocation = gameWorld.Locations.FirstOrDefault(l => l.Id == neighborHex.LocationId);
-                if (occupyingLocation != null && occupyingLocation.Venue != null)
+                // Location already exists on this hex - check if it belongs to a venue
+                if (neighborHex.Location.Venue != null)
                 {
                     return false;
                 }

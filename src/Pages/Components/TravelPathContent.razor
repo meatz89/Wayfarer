@@ -797,10 +797,10 @@ else
 
         var player = GameFacade.GetPlayer();
         Location currentLocation = GameFacade.GetPlayerCurrentLocation();
-        if (currentLocation?.VenueId != null)
+        // ADR-007: Use Venue object reference instead of deleted VenueId
+        if (currentLocation?.Venue != null)
         {
-            var Venue = GameFacade.GetLocation(currentLocation.VenueId).Venue;
-            return Venue?.Name ?? "Origin";
+            return currentLocation.Venue.Name ?? "Origin";
         }
 
         return "Origin";
@@ -844,20 +844,15 @@ else
         return false;
     }
 
+    // ADR-007: Get RevealedCard object directly (no ID lookup needed)
     protected PathCardDTO GetRevealedCard()
     {
         if (TravelContext?.Session == null)
             throw new InvalidOperationException("Cannot get revealed card: TravelContext.Session is null");
 
-        if (string.IsNullOrEmpty(TravelContext.Session.RevealedCardId))
-            throw new InvalidOperationException("Cannot get revealed card: RevealedCardId is null or empty");
+        if (TravelContext.Session.RevealedCard == null)
+            throw new InvalidOperationException("Cannot get revealed card: RevealedCard is null");
 
-        var allCards = GetAvailablePathCards();
-        PathCardDTO? cardNullable = allCards.FirstOrDefault(c => c.Card.Id == TravelContext.Session.RevealedCardId)?.Card;
-
-        if (cardNullable == null)
-            throw new InvalidOperationException($"Revealed card '{TravelContext.Session.RevealedCardId}' not found in available path cards");
-
-        return cardNullable;
+        return TravelContext.Session.RevealedCard;
     }
 }

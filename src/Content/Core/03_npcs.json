@@ -5,7 +5,7 @@
     "timestamp": "2025-10-21T00:00:00Z",
     "description": "Tutorial: Elena (Innkeeper) offers Social work, Thomas (Foreman) offers Physical work",
     "author": "Wayfarer Team",
-    "version": "4.0.0"
+    "version": "5.0.0"
   },
   "content": {
     "npcs": [
@@ -14,8 +14,13 @@
         "name": "Elena",
         "level": 2,
         "profession": "Innkeeper",
-        "venueId": "brass_bell_inn",
-        "locationId": "common_room",
+        "spawnLocation": {
+          "placementType": "Location",
+          "privacyLevels": ["SemiPublic"],
+          "safetyLevels": ["Safe"],
+          "activityLevels": ["Moderate"],
+          "purposes": ["Dwelling"]
+        },
         "description": "The innkeeper, efficient and observant, managing the evening crowd with practiced ease. She wipes down tables while watching travelers settle in for the night.",
         "personality": "Practical but warm. Takes care of travelers. Has seen many road-worn wanderers stumble through her door.",
         "personalityType": "MERCANTILE",
@@ -33,10 +38,13 @@
         "name": "Thomas",
         "level": 1,
         "profession": "Warehouse Foreman",
-        "venueId": "brass_bell_inn",
-        "locationId": "common_room",
-        "workLocationId": "common_room",
-        "homeLocationId": "common_room",
+        "spawnLocation": {
+          "placementType": "Location",
+          "privacyLevels": ["SemiPublic"],
+          "safetyLevels": ["Safe"],
+          "activityLevels": ["Moderate"],
+          "purposes": ["Dwelling"]
+        },
         "description": "A warehouse foreman sitting at a corner table, looking for labor help with tonight's shipment. Direct, no-nonsense, pays fair for honest work.",
         "personality": "Straightforward and business-minded. Always needs capable hands. Values hard work over idle conversation.",
         "personalityType": "STEADFAST",
@@ -54,8 +62,13 @@
         "name": "General Merchant",
         "level": 1,
         "profession": "Merchant",
-        "venueId": "town_square",
-        "locationId": "square_center",
+        "spawnLocation": {
+          "placementType": "Location",
+          "privacyLevels": ["Public"],
+          "safetyLevels": ["Safe"],
+          "activityLevels": ["Busy"],
+          "purposes": ["Commerce"]
+        },
         "description": "A traveling merchant with various goods for sale. Practical equipment for travelers and adventurers.",
         "personality": "Business-minded and efficient. Knows the value of good equipment.",
         "personalityType": "MERCANTILE",

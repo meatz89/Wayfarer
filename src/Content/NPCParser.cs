@@ -2,19 +2,20 @@ public static class NPCParser
 {
     /// <summary>
     /// Convert an NPCDTO to an NPC domain model
+    /// Uses EntityResolver.FindOrCreate for categorical entity resolution (DDR-006)
     /// </summary>
-    public static NPC ConvertDTOToNPC(NPCDTO dto, GameWorld gameWorld)
+    public static NPC ConvertDTOToNPC(NPCDTO dto, GameWorld gameWorld, EntityResolver entityResolver)
     {
         if (string.IsNullOrEmpty(dto.Id))
             throw new InvalidOperationException("NPC DTO missing required 'Id' field");
         if (string.IsNullOrEmpty(dto.Name))
             throw new InvalidOperationException($"NPC {dto.Id} missing required 'Name' field");
-        if (string.IsNullOrEmpty(dto.LocationId))
-            throw new InvalidOperationException($"NPC {dto.Id} missing required 'LocationId' field");
+        if (dto.SpawnLocation == null)
+            throw new InvalidOperationException($"NPC {dto.Id} missing required 'SpawnLocation' filter");
 
         NPC npc = new NPC
         {
-            ID = dto.Id,
+            // HIGHLANDER: No ID property - Name is natural key
             Name = dto.Name,
             Role = !string.IsNullOrEmpty(dto.Role) ? dto.Role : dto.Name, // Use name as role if role not specified
             Description = dto.Description, // Description is optional
@@ -42,7 +43,7 @@ public static class NPCParser
         else
         {
             // NO FALLBACKS - crash if personalityType not in DTO
-            throw new InvalidOperationException($"NPC '{npc.Name}' (ID: {npc.ID}) is missing 'personalityType' in DTO or has invalid value '{dto.PersonalityType}' - fix DTO data");
+            throw new InvalidOperationException($"NPC '{npc.Name}' (DTO ID: {dto.Id}) is missing 'personalityType' in DTO or has invalid value '{dto.PersonalityType}' - fix DTO data");
         }
 
         // Set default player relationship
@@ -104,10 +105,12 @@ public static class NPCParser
             npc.KnowledgeLevel = knowledgeLevel;
         }
 
-        // Resolve Location object reference during parsing (HIGHLANDER: ID is parsing artifact)
-        if (!string.IsNullOrEmpty(dto.LocationId))
+        // EntityResolver.FindOrCreate pattern - categorical entity resolution
+        // Query existing locations first (reuse), generate if no match (eager creation)
+        if (dto.SpawnLocation != null)
         {
-            npc.Location = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId);
+            PlacementFilter spawnFilter = SceneTemplateParser.ParsePlacementFilter(dto.SpawnLocation, $"NPC:{dto.Id}");
+            npc.Location = entityResolver.FindOrCreateLocation(spawnFilter);
         }
 
         // NOTE: Old inline scene parsing removed - NEW Scene-Situation architecture

@@ -7,7 +7,7 @@
 /// - Clones template situations
 /// - Applies requirement offsets (makes children easier/harder)
 /// - Validates spawn conditions before execution
-/// - Adds spawned situations to GameWorld and ActiveSituationIds
+/// - Adds spawned situations to parent Scene.Situations collection
 ///
 /// Scene spawning moved to reward-driven architecture (RewardApplicationService)
 /// Scenes spawn via ScenesToSpawn rewards from choice execution, not condition-based triggers
@@ -57,12 +57,12 @@ public class SpawnFacade
                 continue;
             }
 
-            // Find template situation
-            Situation template = _gameWorld.Scenes.SelectMany(sc => sc.Situations).FirstOrDefault(sit => sit.Id == rule.TemplateId);
+            // Find template situation by TemplateId
+            Situation template = _gameWorld.Scenes.SelectMany(sc => sc.Situations).FirstOrDefault(sit => sit.TemplateId == rule.TemplateId);
             if (template == null)
             {
                 // Template not found - skip this spawn
-                // TODO: Log warning about missing template
+                Console.WriteLine($"[SpawnFacade] WARNING: Template '{rule.TemplateId}' not found - skipping spawn");
                 continue;
             }
 
@@ -74,15 +74,14 @@ public class SpawnFacade
             {
                 spawnedSituation.ParentScene = parentSituation.ParentScene;
                 parentSituation.ParentScene.Situations.Add(spawnedSituation);
-                Console.WriteLine($"[SpawnFacade] Spawned situation '{spawnedSituation.Id}' added to scene '{parentSituation.ParentScene.Id}'");
+                Console.WriteLine($"[SpawnFacade] Spawned situation '{spawnedSituation.Name}' added to scene");
             }
             else
             {
-                Console.WriteLine($"[SpawnFacade] WARNING: Parent situation '{parentSituation.Id}' has no ParentScene - spawned situation orphaned!");
+                Console.WriteLine($"[SpawnFacade] WARNING: Parent situation '{parentSituation.Name}' has no ParentScene - spawned situation orphaned!");
             }
 
-            // Add to ActiveSituationIds based on placement
-            AddToActiveSituations(spawnedSituation);
+            // ActiveSituationIds DELETED from NPC/Location - situations now tracked via Scene.Situations
         }
     }
 
@@ -111,9 +110,10 @@ public class SpawnFacade
         }
 
         // Check RequiredAchievement
-        if (!string.IsNullOrEmpty(conditions.RequiredAchievement))
+        if (conditions.RequiredAchievement != null)
         {
-            bool hasAchievement = player.EarnedAchievements.Any(a => a.AchievementId == conditions.RequiredAchievement);
+            // HIGHLANDER: Compare Achievement objects directly
+            bool hasAchievement = player.EarnedAchievements.Any(a => a.Achievement == conditions.RequiredAchievement);
             if (!hasAchievement)
             {
                 return false;
@@ -125,21 +125,18 @@ public class SpawnFacade
 
     /// <summary>
     /// Clone template situation and apply spawn modifications
-    /// Creates new situation instance with unique ID, spawn tracking, and requirement offsets
+    /// Creates new situation instance with spawn tracking and requirement offsets
+    /// HIGHLANDER: NO Id property - situations identified by object reference
     /// </summary>
     private Situation CloneTemplateWithModifications(Situation template, Situation parentSituation, SpawnRule rule)
     {
-        // Generate unique ID for spawned situation (template ID + parent ID + timestamp)
-        string spawnedId = $"{template.Id}_spawned_{parentSituation.Id}_{_timeManager.CurrentDay}_{_timeManager.CurrentSegment}";
-
-        // Create cloned situation
+        // Create cloned situation (NO Id generation - HIGHLANDER principle)
         Situation spawned = new Situation
         {
-            Id = spawnedId,
             Name = template.Name,
             Description = template.Description,
             SystemType = template.SystemType,
-            DeckId = template.DeckId,
+            Deck = template.Deck, // Object reference, not DeckId
             IsIntroAction = template.IsIntroAction,
             // IsAvailable and IsCompleted are computed properties from Status enum (no assignment needed)
             DeleteOnSuccess = template.DeleteOnSuccess,
@@ -163,7 +160,7 @@ public class SpawnFacade
 
             // Spawn tracking
             Template = null, // TODO: Replace with proper template reference when using SituationTemplate system
-            ParentSituationId = parentSituation.Id, // Track parent situation
+            ParentSituation = parentSituation, // Object reference, not ParentSituationId
             Lifecycle = new SpawnTracking
             {
                 SpawnedDay = _timeManager.CurrentDay,
@@ -281,27 +278,4 @@ public class SpawnFacade
         spawned.Obligation = parent.Obligation;
     }
 
-    /// <summary>
-    /// Add spawned situation to ActiveSituationIds based on placement
-    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
-    /// </summary>
-    private void AddToActiveSituations(Situation situation)
-    {
-        if (situation.Npc != null)
-        {
-            // Add to NPC's ActiveSituationIds
-            if (!situation.Npc.ActiveSituationIds.Contains(situation.Id))
-            {
-                situation.Npc.ActiveSituationIds.Add(situation.Id);
-            }
-        }
-        else if (situation.Location != null)
-        {
-            // Add to Location's ActiveSituationIds
-            if (!situation.Location.ActiveSituationIds.Contains(situation.Id))
-            {
-                situation.Location.ActiveSituationIds.Add(situation.Id);
-            }
-        }
-    }
 }

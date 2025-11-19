@@ -1,11 +1,12 @@
 ﻿public class Venue
 {
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - Venue identified by Name (natural key)
     public string Name { get; set; } // Changed from private set for procedural generation
     public string Description { get; set; }
 
     // Hierarchical organization - Venue only knows its District
-    public string District { get; set; } // e.g., "Lower Wards"
+    // HIGHLANDER: Object reference ONLY, no string District name
+    public District District { get; set; }
 
     // Skeleton tracking
     public bool IsSkeleton { get; set; } = false;
@@ -41,9 +42,9 @@
     /// </summary>
     public int MaxLocations { get; set; } = 20;
 
-    public Venue(string id, string name)
+    // ADR-007: Constructor uses Name only (natural key, no Id parameter)
+    public Venue(string name)
     {
-        Id = id;
         Name = name;
     }
 

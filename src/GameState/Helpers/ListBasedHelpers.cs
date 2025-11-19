@@ -14,10 +14,15 @@ public class ResourceEntry
 
 /// <summary>
 /// Helper class for NPC token entries (replaces nested Dictionary)
+/// HIGHLANDER: Object reference only, no string ID
 /// </summary>
 public class NPCTokenEntry
 {
-    public string NpcId { get; set; }
+    /// <summary>
+    /// NPC entity this token entry tracks
+    /// HIGHLANDER: Object reference only, no string ID
+    /// </summary>
+    public NPC Npc { get; set; }
     public int Trust { get; set; }
     public int Diplomacy { get; set; }
     public int Status { get; set; }
@@ -74,20 +79,12 @@ public class FamiliarityEntry
 }
 
 /// <summary>
-/// Helper class for card deck entries (replaces Dictionary<string, int>)
-/// </summary>
-public class CardDeckEntry
-{
-    public string CardId { get; set; }
-    public int Count { get; set; }
-}
-
-/// <summary>
 /// Helper class for NPC exchange card entries (replaces Dictionary<string, List<ExchangeCard>>)
+/// HIGHLANDER: Object reference only, no string ID
 /// </summary>
 public class NPCExchangeCardEntry
 {
-    public string NpcId { get; set; }
+    public NPC Npc { get; set; }
     public List<ExchangeCard> ExchangeCards { get; set; } = new List<ExchangeCard>();
 }
 
@@ -120,29 +117,22 @@ public class EventDeckPositionEntry
 
 /// <summary>
 /// Helper class for path collection entries (replaces Dictionary<string, PathCardCollectionDTO>)
+/// HIGHLANDER: Collection object contains Id - no need to store separately
 /// </summary>
 public class PathCollectionEntry
 {
-    public string CollectionId { get; set; }
+    // ADR-007: CollectionId DELETED - use Collection.Id instead (object has Id property)
     public PathCardCollectionDTO Collection { get; set; }
 }
 
 /// <summary>
 /// Helper class for travel event entries (replaces Dictionary<string, TravelEventDTO>)
+/// HIGHLANDER: TravelEvent object contains Id - no need to store separately
 /// </summary>
 public class TravelEventEntry
 {
-    public string EventId { get; set; }
+    // ADR-007: EventId DELETED - use TravelEvent.Id instead (object has Id property)
     public TravelEventDTO TravelEvent { get; set; }
-}
-
-/// <summary>
-/// Helper class for token unlock entries (replaces Dictionary<int, List<string>>)
-/// </summary>
-public class TokenUnlockEntry
-{
-    public int TokenCount { get; set; }
-    public List<string> UnlockedIds { get; set; } = new List<string>();
 }
 
 // ALL EXTENSION METHODS DELETED - Domain logic moved to Player.cs and GameWorld.cs

@@ -49,11 +49,12 @@ public class PathCard
     public int CoinRequirement { get; set; } = 0;
 
     /// <summary>
-    /// Permit/license ID required to use this path
+    /// Permit/license required to use this path
+    /// HIGHLANDER: Object reference ONLY, no PermitRequirement ID
     /// null = no permit required
     /// References permit in player inventory
     /// </summary>
-    public string PermitRequirement { get; set; }
+    public Item PermitRequirement { get; set; }
 
     /// <summary>
     /// Stat requirements - minimum stat levels required to use this path
@@ -139,12 +140,12 @@ public class PathCard
     public bool ForceReturn { get; set; } = false;
 
     /// <summary>
-    /// Optional scene ID on this path
-    /// References Scene in GameWorld.Scenes
+    /// Optional scene on this path
+    /// HIGHLANDER: Object reference ONLY, no SceneId
     /// Player can preview scene and see equipment applicability before committing
     /// Scene engagement may be required or optional depending on scene type
     /// </summary>
-    public string SceneId { get; set; }
+    public Scene Scene { get; set; }
 
     // ==================== SIR BRANTE LAYER (UNIFIED ACTION ARCHITECTURE) ====================
 
@@ -167,14 +168,15 @@ public class PathCard
     public ChoiceTemplate ChoiceTemplate { get; set; }
 
     /// <summary>
-    /// THREE-TIER TIMING MODEL: Source Situation ID
+    /// THREE-TIER TIMING MODEL: Source Situation
+    /// HIGHLANDER: Object reference ONLY, no SituationId
     /// Links ephemeral path card to source Situation for cleanup after execution
     /// Path cards are QUERY-TIME instances (Tier 3), created when Situation activates
     /// After card executes, GameFacade deletes ALL path cards for this Situation
     /// Next time player enters route context, cards recreated fresh from ChoiceTemplates
-    /// NOTE: SceneId property (line 151) is for EXISTING scenes on route, NOT for scene spawns
+    /// NOTE: Scene property above is for EXISTING scenes on route, NOT for scene spawns
     /// </summary>
-    public string SituationId { get; set; }
+    public Situation Situation { get; set; }
 
     /// <summary>
     /// PERFECT INFORMATION: Scene spawn previews

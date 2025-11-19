@@ -34,7 +34,7 @@
 
             @foreach (var response in Context.GetAvailableResponses())
             {
-                <div class="response-option available" @onclick="() => HandleSelectResponse(response.Id)">
+                <div class="response-option available" @onclick="() => HandleSelectResponse(response)">
                     <div class="response-text">@response.ResponseText</div>
                     <div class="response-costs">
                         @if (response.FocusCost > 0)

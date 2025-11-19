@@ -36,7 +36,8 @@ public class ExchangeProcessor
             PatienceCost = exchange.PatienceCost,
             UnlocksExchangeId = exchange.UnlocksExchangeId,
             TriggerEvent = exchange.TriggerEvent,
-            NPCId = npc.ID,
+            // HIGHLANDER: Store NPC object, not npc.ID
+            Npc = npc,
             ExchangeId = exchange.Id,
             IsUnique = exchange.SingleUse,
             ConnectionStateChange = exchange.ConnectionStateChange

@@ -127,12 +127,21 @@ public class ObligationParser
     {
         if (dto == null) return null; // Optional intro action - valid to be null
 
+        // HIGHLANDER: Resolve LocationId from DTO to Location object
+        Location location = null;
+        if (!string.IsNullOrEmpty(dto.LocationId))
+        {
+            location = _gameWorld.GetLocation(dto.LocationId);
+            if (location == null)
+                throw new InvalidDataException($"ObligationIntroAction references unknown location: '{dto.LocationId}'");
+        }
+
         return new ObligationIntroAction
         {
             TriggerType = ParseTriggerType(dto.TriggerType), // Handles null with default
             TriggerPrerequisites = ParseObligationPrerequisites(dto.TriggerPrerequisites), // Handles null
             ActionText = dto.ActionText,
-            LocationId = dto.LocationId,
+            Location = location, // Object reference, not string ID
             IntroNarrative = dto.IntroNarrative,
             CompletionReward = ParseCompletionReward(dto.CompletionReward) // Handles null
         };
@@ -164,9 +173,18 @@ public class ObligationParser
     {
         if (dto == null) return new ObligationPrerequisites(); // Optional prerequisites - return empty if null
 
+        // HIGHLANDER: Resolve LocationId from DTO to Location object
+        Location location = null;
+        if (!string.IsNullOrEmpty(dto.LocationId))
+        {
+            location = _gameWorld.GetLocation(dto.LocationId);
+            if (location == null)
+                throw new InvalidDataException($"ObligationPrerequisites references unknown location: '{dto.LocationId}'");
+        }
+
         return new ObligationPrerequisites
         {
-            LocationId = dto.LocationId
+            Location = location // Object reference, not string ID
         };
     }
 

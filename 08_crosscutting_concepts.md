@@ -17,78 +17,93 @@ This section documents patterns, principles, and conventions that span multiple 
 
 ### 8.2.1 HIGHLANDER Pattern (One Concept, One Representation)
 
-**Core Principle**: "There can be only ONE." One concept gets one representation. No redundant storage, no duplicate paths.
+**Core Principle**: "There can be only ONE." One concept gets one representation. Domain entities use object references ONLY. No IDs, no redundant storage, no duplicate paths.
 
-#### Sub-Pattern A: Persistence IDs with Runtime Navigation (BOTH ID + Object)
-
-**Use When**: Property from JSON, frequent runtime navigation
+**Exception**: Templates can have IDs (SceneTemplate.Id, SituationTemplate.Id) because templates are immutable archetypes, not mutable entity instances. Templates are content definitions, not game state.
 
 **Pattern**:
-- ID comes from JSON (persistence/serialization)
-- Object resolved by parser via GameWorld lookup ONCE
-- Runtime uses ONLY object reference, never ID lookup
-- ID immutable after parsing
+- Domain entities have NO ID properties
+- Relationships use object references ONLY
+- Parser uses categorical properties to find/create entities (EntityResolver.FindOrCreate)
+- NEVER store both ID and object reference (violates Single Source of Truth)
 
-**Example**:
+**Correct Examples**:
 ```csharp
-public class Situation {
-    public string TemplateId { get; set; }        // From JSON (for save/load)
-    public SituationTemplate Template { get; set; } // Resolved once, cached
+// CORRECT - Object reference ONLY, NO ID
+public class NPC {
+    // NO ID property
+    public Location Location { get; set; }  // Object reference
 }
 
-// Parser resolves ONCE
-situation.Template = gameWorld.SituationTemplates[situation.TemplateId];
-
-// Runtime uses cached reference (NEVER looks up by ID again)
-var choices = situation.Template.ChoiceTemplates;
-```
-
-#### Sub-Pattern B: Runtime-Only Navigation (Object ONLY, NO ID)
-
-**Use When**: Runtime state, not from JSON, changes during gameplay
-
-**Pattern**:
-- NO ID property exists
-- Object reference everywhere consistently
-- NEVER add ID alongside object (DESYNC RISK)
-
-**Example**:
-```csharp
 public class Scene {
-    public Situation CurrentSituation { get; set; }  // Runtime state, no ID
+    // NO Id property
+    public Situation CurrentSituation { get; set; }  // Object reference
+    public Location Location { get; set; }  // Object reference
+    public NPC Npc { get; set; }  // Object reference
 }
 
-// Runtime navigation
-scene.CurrentSituation = scene.Situations[0];
-
-// ❌ FORBIDDEN - Don't add CurrentSituationId alongside CurrentSituation
-// Object IS the single source of truth
+public class Situation {
+    // NO Id property
+    public SituationTemplate Template { get; set; }  // Template reference (templates can have IDs)
+    public Location Location { get; set; }  // Object reference
+    public Scene ParentScene { get; set; }  // Object reference
+}
 ```
 
-#### Sub-Pattern C: Lookup on Demand (ID ONLY, NO Object)
-
-**Use When**: From JSON, but infrequent lookups
-
-**Pattern**:
-- ID property only
-- GameWorld lookup when needed
-- No cached object (saves memory)
-
-**Example**:
+**Parser Pattern (EntityResolver.FindOrCreate)**:
 ```csharp
-public class SceneSpawnReward {
-    public string SceneTemplateId { get; set; }  // Just ID, no cached object
-}
+// Parser uses categorical properties to find/create
+public Location FindOrCreateLocation(PlacementFilter filter)
+{
+    // Query existing by categorical properties
+    Location existing = _gameWorld.Locations
+        .Where(loc => loc.Purpose == filter.Purpose)
+        .Where(loc => loc.Safety == filter.Safety)
+        .FirstOrDefault();
 
-// Lookup on demand (rare operation)
-var template = gameWorld.SceneTemplates[reward.SceneTemplateId];
+    if (existing != null) return existing;  // Found - return object
+
+    // Not found - create from categorical properties
+    Location newLocation = new Location
+    {
+        Purpose = filter.Purpose,
+        Safety = filter.Safety,
+        LocationProperties = filter.Properties
+    };
+    _gameWorld.Locations.Add(newLocation);
+    return newLocation;  // Return object reference, NO ID
+}
 ```
 
-#### Decision Tree
+**FORBIDDEN Patterns**:
+```csharp
+// ❌ WRONG - Both ID and Object (redundant storage)
+public class RouteOption {
+    public string OriginLocationId { get; set; }    // ❌ Violates HIGHLANDER
+    public Location OriginLocation { get; set; }    // ✓ Object reference correct
+}
 
-- **From JSON + frequent access** → Pattern A (BOTH: ID for persistence, Object for runtime)
-- **From JSON + rare access** → Pattern C (ID only, lookup on demand)
-- **Runtime state only** → Pattern B (Object ONLY, no ID)
+// ❌ WRONG - ID-only (requires lookup)
+public class SceneSpawnReward {
+    public string SceneTemplateId { get; set; }  // ❌ Use object reference instead
+}
+
+// ❌ WRONG - ID lists instead of objects
+public class Player {
+    public List<string> ActiveObligationIds { get; set; }  // ❌ Violates HIGHLANDER
+}
+
+// ✓ CORRECT - Object references
+public class Player {
+    public List<Obligation> ActiveObligations { get; set; }  // ✓ Object list
+}
+```
+
+**Why This Pattern**:
+- **Single Source of Truth**: Object IS the truth, no ID to get out of sync
+- **Compile-time Safety**: Object references checked by compiler, IDs fail at runtime
+- **Domain Clarity**: Entities reference entities, not string lookups
+- **Procedural Generation**: Categorical properties enable FindOrCreate pattern
 
 ---
 

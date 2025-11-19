@@ -107,8 +107,8 @@ public static class HexParser
             Coordinates = new AxialCoordinates(dto.q, dto.r),
             Terrain = terrainType,
             DangerLevel = dto.dangerLevel,
-            LocationId = dto.locationId, // Optional - null if wilderness hex
             IsDiscovered = dto.isDiscovered
+            // Location assigned later via SyncLocationHexPositions/EnsureHexGridCompleteness
         };
 
         return hex;
@@ -117,7 +117,7 @@ public static class HexParser
     /// <summary>
     /// Update Location entities with hex position references after hex grid is loaded
     /// CRITICAL: This must be called AFTER hex grid is loaded but BEFORE locations are used
-    /// Syncs Location.HexPosition (source of truth) with Hex.LocationId (derived lookup)
+    /// Syncs Location.HexPosition (source of truth) with Hex.Location (derived lookup)
     /// </summary>
     public static void SyncLocationHexPositions(HexMap hexMap, List<Location> locations)
     {
@@ -127,27 +127,32 @@ public static class HexParser
         if (locations == null)
             throw new ArgumentNullException(nameof(locations), "Locations list cannot be null");
 
-        // For each hex that has a location, find the location entity and set its HexPosition
+        // For each location, find matching hex and assign Location object reference
+        // HIGHLANDER: Hex.Location stores object reference, not string ID
+        // Hex-to-Location syncing now happens via HexPosition matching (reverse lookup)
         int syncedCount = 0;
-        foreach (Hex hex in hexMap.Hexes)
+        foreach (Location location in locations)
         {
-            if (string.IsNullOrEmpty(hex.LocationId))
-                continue; // Wilderness hex, skip
+            if (!location.HexPosition.HasValue)
+                continue; // Intra-venue location, skip
 
-            // Find location by ID
-            Location location = locations.FirstOrDefault(l => l.Id == hex.LocationId);
-            if (location == null)
+            // Find hex at this location's coordinates
+            Hex hex = hexMap.GetHex(location.HexPosition.Value);
+
+            if (hex == null)
             {
-                throw new InvalidDataException(
-                    $"Hex at ({hex.Coordinates.Q}, {hex.Coordinates.R}) references location '{hex.LocationId}' " +
-                    $"which does not exist in GameWorld.Locations. All locationId references in hex_grid.json " +
-                    $"must match existing Location IDs.");
+                // Hex not found at these coordinates
+                // Will be created later by EnsureHexGridCompleteness if needed
+                continue;
             }
 
-            // Set Location.HexPosition (source of truth) from hex coordinates
-            location.HexPosition = hex.Coordinates;
-            syncedCount++;
-            Console.WriteLine($"[HexSync] ✅ Synced location '{location.Id}' to hex position ({hex.Coordinates.Q}, {hex.Coordinates.R})");
+            // Assign Location object reference to hex
+            if (hex.Location == null || hex.Location != location)
+            {
+                hex.Location = location;
+                syncedCount++;
+                Console.WriteLine($"[HexSync] ✅ Synced location '{location.Name}' at hex position ({hex.Coordinates.Q}, {hex.Coordinates.R})");
+            }
         }
 
         Console.WriteLine($"[HexSync] Synced {syncedCount} locations to hex positions");
@@ -183,11 +188,12 @@ public static class HexParser
 
             if (existingHex != null)
             {
-                // Hex exists - update its LocationId if it's null or different
-                if (string.IsNullOrEmpty(existingHex.LocationId) || existingHex.LocationId != location.Id)
+                // Hex exists - update its Location if it's null or different
+                // HIGHLANDER: Compare Location objects directly, assign object not ID
+                if (existingHex.Location == null || existingHex.Location != location)
                 {
-                    Console.WriteLine($"[HexGridCompleteness] Updating hex at ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}): LocationId '{existingHex.LocationId}' → '{location.Id}'");
-                    existingHex.LocationId = location.Id;
+                    Console.WriteLine($"[HexGridCompleteness] Updating hex at ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}): Location '{existingHex.Location?.Name}' → '{location.Name}'");
+                    existingHex.Location = location;
                     hexesCreated++;
                 }
             }
@@ -197,7 +203,8 @@ public static class HexParser
                 Hex hex = new Hex
                 {
                     Coordinates = location.HexPosition.Value,
-                    LocationId = location.Id,
+                    // HIGHLANDER: Assign Location object, not location.Id
+                    Location = location,
                     Terrain = TerrainType.Road, // Default safe terrain for scene-generated locations (within settlements)
                     DangerLevel = 0, // Default safe for dependent locations
                     IsDiscovered = true // Player knows about scene-generated content
@@ -206,7 +213,7 @@ public static class HexParser
                 hexMap.Hexes.Add(hex);
                 hexesCreated++;
 
-                Console.WriteLine($"[HexGridCompleteness] ✅ Created hex at ({hex.Coordinates.Q}, {hex.Coordinates.R}) for location '{location.Id}'");
+                Console.WriteLine($"[HexGridCompleteness] ✅ Created hex at ({hex.Coordinates.Q}, {hex.Coordinates.R}) for location '{location.Name}'");
             }
         }
 
@@ -225,14 +232,14 @@ public static class HexParser
     /// </summary>
     private static void ValidateDuplicateCoordinates(HexMap hexMap)
     {
-        HashSet<CoordinatePair> seenCoordinates = new HashSet<CoordinatePair>();
+        List<CoordinatePair> seenCoordinates = new List<CoordinatePair>();
 
         for (int i = 0; i < hexMap.Hexes.Count; i++)
         {
             Hex hex = hexMap.Hexes[i];
             CoordinatePair coords = new CoordinatePair(hex.Coordinates.Q, hex.Coordinates.R);
 
-            if (seenCoordinates.Contains(coords))
+            if (seenCoordinates.Any(c => c.Equals(coords)))
             {
                 throw new InvalidDataException(
                     $"Duplicate hex coordinate ({hex.Coordinates.Q}, {hex.Coordinates.R}) found in hex_grid.json. " +
@@ -244,30 +251,44 @@ public static class HexParser
     }
 
     /// <summary>
-    /// Validate no duplicate locationIds exist across hexes
+    /// Validate no duplicate locations exist across hexes
     /// CRITICAL: Prevents same location appearing on multiple hexes (impossible spatial state)
     /// Called after coordinate validation, before BuildLookup()
     /// </summary>
     private static void ValidateDuplicateLocationIds(HexMap hexMap)
     {
-        Dictionary<string, AxialCoordinates> locationToHex = new Dictionary<string, AxialCoordinates>();
+        List<LocationHexMapping> locationMappings = new List<LocationHexMapping>();
 
         foreach (Hex hex in hexMap.Hexes)
         {
-            if (string.IsNullOrEmpty(hex.LocationId))
+            if (hex.Location == null)
                 continue; // Wilderness hex, skip
 
-            if (locationToHex.ContainsKey(hex.LocationId))
+            LocationHexMapping existing = locationMappings.FirstOrDefault(m => m.Location == hex.Location);
+            if (existing != null)
             {
-                AxialCoordinates firstHex = locationToHex[hex.LocationId];
                 throw new InvalidDataException(
-                    $"Location '{hex.LocationId}' referenced by multiple hexes: " +
-                    $"({firstHex.Q}, {firstHex.R}) and ({hex.Coordinates.Q}, {hex.Coordinates.R}). " +
+                    $"Location '{hex.Location.Name}' referenced by multiple hexes: " +
+                    $"({existing.Coordinates.Q}, {existing.Coordinates.R}) and ({hex.Coordinates.Q}, {hex.Coordinates.R}). " +
                     $"Each location must occupy exactly one hex position.");
             }
 
-            locationToHex[hex.LocationId] = hex.Coordinates;
+            locationMappings.Add(new LocationHexMapping
+            {
+                Location = hex.Location,
+                Coordinates = hex.Coordinates
+            });
         }
+    }
+
+    /// <summary>
+    /// Helper class for location-hex validation mapping
+    /// HIGHLANDER: Uses Location object, not string ID
+    /// </summary>
+    private class LocationHexMapping
+    {
+        public Location Location { get; set; }
+        public AxialCoordinates Coordinates { get; set; }
     }
 
     /// <summary>
@@ -283,7 +304,7 @@ public static class HexParser
         {
             if (!location.HexPosition.HasValue)
             {
-                missingPositions.Add(location.Id);
+                missingPositions.Add(location.Name);
             }
         }
 

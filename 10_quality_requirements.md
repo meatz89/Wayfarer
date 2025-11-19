@@ -18,8 +18,82 @@ Wayfarer Quality Goals
 │  └─ Elegance Over Complexity
 │
 └─ TIER 3: Architectural Quality (Long-Term Maintainability)
-   └─ Verisimilitude in All Systems
+   ├─ Verisimilitude in All Systems
+   ├─ Maintainability Over Performance
+   └─ Clarity Over Cleverness
 ```
+
+---
+
+## 10.1.1 Non-Functional Quality Requirements
+
+### Game Context (Why Performance Doesn't Matter)
+
+Wayfarer is a **synchronous, browser-based, single-player, turn-based narrative game** with fundamentally different quality priorities than real-time, multiplayer, or high-scale systems.
+
+**This game is:**
+- Synchronous (single-threaded execution, no concurrency)
+- Browser-based (browser render time dominates, 16ms+ per frame)
+- Single-player (one human making decisions at human speed: 200ms+ reaction time)
+- Minimal scale (20 NPCs, 30 Locations, 50 Items, 10 active Scenes maximum)
+- Turn-based narrative (seconds between player actions while reading text)
+
+**Performance Reality:**
+- Typical collection sizes: 20 NPCs, 30 Locations, 50 Items, 10 Scenes
+- Linear scan of 100 items: ~0.001 milliseconds (one microsecond)
+- Browser render frame: 16+ milliseconds (16,000× slower than scan)
+- Human reaction time: 200+ milliseconds (200,000× slower than scan)
+- Network latency: 50-200 milliseconds (even localhost)
+
+**Conclusion:** Performance optimization of data structures provides unmeasurable benefit in a system where human cognition (200ms+) and browser rendering (16ms+) dominate timing.
+
+### Priority Hierarchy
+
+**TIER 1 (Critical):**
+1. **Maintainability** - Code must be readable, debuggable, and modifiable by future developers
+2. **Correctness** - System behavior must match domain semantics exactly
+3. **Testability** - All business logic must be verifiable through automated tests
+
+**TIER 2 (Important):**
+4. **Clarity** - Code should read like prose, expressing intent directly
+5. **Debuggability** - Errors should fail-fast with clear stack traces
+6. **Domain Alignment** - Technical implementation should mirror game design concepts
+
+**TIER 3 (Nice to Have):**
+7. **Conciseness** - Minimize ceremony while preserving clarity
+
+**NOT REQUIRED (Explicitly Deprioritized):**
+- ❌ **Performance** - Optimization provides no measurable benefit at current scale
+- ❌ **Scalability** - Game design constrains scale to 10-100 entities per collection
+- ❌ **Concurrency** - Single-player, single-threaded execution model
+- ❌ **Cleverness** - Sophisticated algorithms add complexity without benefit
+
+### Architectural Principles
+
+**Principle 1: Domain-Driven Collections**
+- Use `List<T>` for all entity collections (NPCs, Locations, Scenes, Items)
+- Never use `Dictionary<TKey, TValue>` or `HashSet<T>` for domain entities
+- Rationale: Dictionary optimizes for O(1) lookup, which is irrelevant for n=20 entities
+
+**Principle 2: LINQ for Queries**
+- Use declarative LINQ for all collection queries (`.Where()`, `.FirstOrDefault()`, `.Select()`)
+- Never use imperative loops with early returns
+- Rationale: LINQ reads like English, composes cleanly, and is easier to test
+
+**Principle 3: Fail-Fast Error Handling**
+- Let null-reference exceptions surface immediately at call site
+- Never use `TryGetValue()` patterns that defer errors
+- Rationale: Early failures produce clear stack traces pointing to root cause
+
+**Principle 4: Explicit Domain Types**
+- Use strongly-typed entities with explicit properties
+- Never use `Dictionary<string, object>` or type erasure patterns
+- Rationale: Compiler catches type errors at compile time, not runtime
+
+**Principle 5: Semantic Honesty**
+- Collections should represent domain concepts (entities), not technical structures (indexes)
+- Method names must match actual behavior exactly
+- Rationale: Code should be self-documenting through honest naming
 
 ---
 
@@ -445,6 +519,132 @@ Each quality goal translates into concrete, testable scenarios. Scenarios follow
 
 ---
 
+### QS-008: Maintainability Over Performance (TIER 3)
+
+**Quality Goal**: Code optimizes for long-term maintainability. Performance optimizations are rejected if they harm readability or debuggability.
+
+#### Scenario 8.1: Entity Collection Storage
+
+**Context:**
+- GameWorld stores domain entities (NPCs, Locations, Scenes, Items)
+- Developer chooses data structure for entity storage
+- Collections contain 10-100 entities maximum
+
+**Stimulus:**
+- Code review evaluates data structure choice
+
+**Response:**
+- Uses `List<T>` for all entity collections (NOT Dictionary/HashSet)
+- Queries use LINQ: `.Where()`, `.FirstOrDefault()`, `.Select()`
+- Justification: Maintainability (readable queries) outweighs performance (0.001ms difference)
+- **Metric**: Zero Dictionary/HashSet usage for domain entity storage
+- **Validation**: Code search for `Dictionary<string, NPC>` returns zero results
+
+**Anti-Pattern Example (REJECTED):**
+```csharp
+// WRONG - Premature optimization
+private Dictionary<string, NPC> _npcs;
+
+public NPC GetNPCById(string id)
+{
+    return _npcs[id]; // KeyNotFoundException if not found
+}
+
+public List<NPC> GetFriendlyNPCs()
+{
+    return _npcs.Values.Where(n => n.Demeanor == Demeanor.Friendly).ToList();
+    // Using Dictionary as List with extra steps
+}
+```
+
+**Correct Pattern (APPROVED):**
+```csharp
+// CORRECT - Domain-driven collection
+private List<NPC> _npcs;
+
+public NPC GetNPCById(string id)
+{
+    return _npcs.FirstOrDefault(n => n.Id == id);
+    // Null if not found, fail-fast at call site
+}
+
+public List<NPC> GetFriendlyNPCs()
+{
+    return _npcs.Where(n => n.Demeanor == Demeanor.Friendly).ToList();
+    // Uniform LINQ query pattern
+}
+```
+
+**Performance Analysis:**
+- Dictionary lookup: ~0.0001ms (O(1) hash calculation)
+- List scan of 20 items: ~0.001ms (O(n) equality checks)
+- Difference: **0.0009 milliseconds** (completely unmeasurable)
+- Browser render frame: **16 milliseconds** (16,000× slower)
+- Conclusion: Performance benefit is **ZERO** in practice
+
+**Maintainability Analysis:**
+- Dictionary: Requires `TryGetValue()` defensive code, confusing debugger view, ID duplication in tests
+- List: Declarative LINQ queries, clear debugger view, simple test setup
+- Conclusion: Maintainability benefit is **SIGNIFICANT**
+
+#### Scenario 8.2: Code Review for Clarity
+
+**Context:**
+- Developer implements new service method
+- Method queries GameWorld entities
+
+**Stimulus:**
+- Code review evaluates readability
+
+**Response:**
+- LINQ queries read like English: "Get NPCs where location matches"
+- No clever optimizations or sophisticated algorithms
+- Domain concepts map directly to code structure
+- **Metric**: Code reviewers understand intent without explanation
+- **Validation**: Peer review requires zero clarification questions
+
+**Example (APPROVED):**
+```csharp
+public List<NPC> GetNPCsAtLocation(string locationId)
+{
+    return _npcs
+        .Where(n => n.CurrentLocation == locationId)
+        .OrderBy(n => n.Name)
+        .ToList();
+    // Reads: "NPCs where current location matches, ordered by name"
+}
+```
+
+#### Scenario 8.3: Debugging Session Efficiency
+
+**Context:**
+- Bug reported: "NPC not appearing at expected location"
+- Developer debugs using Visual Studio
+
+**Stimulus:**
+- Set breakpoint, inspect GameWorld state
+
+**Response:**
+- List debugger view shows immediate entity state:
+  ```
+  _npcs: List<NPC> (Count = 5)
+    [0]: {NPC: Elena, Location: common_room, Demeanor: Friendly}
+    [1]: {NPC: Marcus, Location: market_square, Demeanor: Neutral}
+  ```
+- Developer sees problem IMMEDIATELY (location mismatch visible)
+- No need to expand KeyValuePair structures
+- **Metric**: Average debug session time reduced by 30% vs Dictionary
+- **Validation**: Developer productivity tracking
+
+**Anti-Pattern (Dictionary):**
+```
+_npcs: Dictionary<string, NPC> (Count = 5)
+  [0]: {["npc_001", Wayfarer.GameState.NPC]}  // Must expand to see properties
+  [1]: {["npc_002", Wayfarer.GameState.NPC]}  // Extra clicks required
+```
+
+---
+
 ## 10.3 Quality Metrics Summary
 
 ### Automated Validation (Continuous Integration)
@@ -458,6 +658,8 @@ Each quality goal translates into concrete, testable scenarios. Scenarios follow
 | Perfect Information | Choices showing costs/rewards | 100% | UI review checklist |
 | Elegance | Cross-system dependencies | <5% | Dependency analysis |
 | Verisimilitude | Playtester confusion rate | <10% | Survey feedback |
+| Maintainability | Dictionary/HashSet for entities | 0 | Code search + review |
+| Clarity | LINQ usage for queries | 100% | Code review checklist |
 
 ### Manual Validation (Release Checklist)
 
@@ -484,8 +686,21 @@ When quality goals conflict, resolve via principle priority (see ADR-006):
 | No Soft-Locks vs Resource Scarcity | Add zero-cost fallback choices | TIER 1 wins, scarcity preserved via poor fallback rewards |
 | Perfect Information vs Tactical Surprise | Layer separation | Strategic = perfect info, Tactical = hidden complexity |
 | Elegance vs Playability | Accept complexity for critical features | TIER 2 > TIER 3 |
-| Single Source of Truth vs Performance | Ephemeral cache + authoritative ID | TIER 1 satisfied if one is cache |
+| Maintainability vs Performance | Always choose maintainability | Performance optimization provides zero measurable benefit (n=20, not n=20000) |
+| Clarity vs Conciseness | Choose clarity (explicit over implicit) | TIER 2 wins, verbose clear code beats clever terse code |
 | Verisimilitude vs Implementation Cost | Hierarchical spatial model | TIER 3 quality worth implementation complexity |
+
+### Non-Conflicts (Not Actually Trade-Offs)
+
+Some apparent conflicts are **false dichotomies** in this game's context:
+
+| Apparent Conflict | Why It's Not Actually a Trade-Off | Resolution |
+|---|---|---|
+| Single Source of Truth vs Performance | Performance optimization (caching, indexing) provides unmeasurable benefit at game's scale | Use simple List<T>, no caching needed |
+| Correctness vs Performance | O(n) vs O(1) lookup saves 0.0009ms in system where human reaction is 200ms | Always choose correctness, ignore performance |
+| Debuggability vs Performance | Dictionary makes debugging harder (KeyValuePair expansion) for zero performance gain | Always choose debuggability |
+
+**Key Insight:** In a synchronous, browser-based, single-player, turn-based narrative game with n=20 entities, performance optimization is **premature optimization**. The browser render frame (16ms) and human cognition (200ms+) dominate all timing. Data structure choice (List vs Dictionary) provides **literally zero measurable benefit** while imposing **significant maintainability cost**.
 
 ---
 
@@ -495,3 +710,4 @@ When quality goals conflict, resolve via principle priority (see ADR-006):
 - **09_architecture_decisions.md** - ADRs implementing quality requirements
 - **02_constraints.md** - Constraints affecting quality achievement
 - **08_crosscutting_concepts.md** - Patterns ensuring quality across system
+- **CLAUDE.md** - Detailed enforcement of maintainability principles (Dictionary/HashSet antipattern, coding standards)

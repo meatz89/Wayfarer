@@ -31,10 +31,12 @@ public class TokenMechanicsManager
     }
 
     // Get tokens with specific NPC - returns a new dictionary for compatibility
-    public Dictionary<ConnectionType, int> GetTokensWithNPC(string npcId)
+    // HIGHLANDER: Accepts NPC object, not string ID
+    public Dictionary<ConnectionType, int> GetTokensWithNPC(NPC npc)
     {
         List<NPCTokenEntry> npcTokens = _gameWorld.GetPlayer().NPCTokens;
-        NPCTokenEntry tokenEntry = npcTokens.FirstOrDefault(nt => nt.NpcId == npcId);
+        // HIGHLANDER: Compare NPC objects directly
+        NPCTokenEntry tokenEntry = npcTokens.FirstOrDefault(nt => nt.Npc == npc);
 
         if (tokenEntry != null)
         {
@@ -57,9 +59,10 @@ public class TokenMechanicsManager
     }
 
     // Add tokens to specific NPC relationship
-    public void AddTokensToNPC(ConnectionType type, int count, string npcId)
+    // HIGHLANDER: Object reference ONLY, no ID string parameter
+    public void AddTokensToNPC(ConnectionType type, int count, NPC npc)
     {
-        if (count <= 0 || string.IsNullOrEmpty(npcId)) return;
+        if (count <= 0 || npc == null) return;
 
         Player player = _gameWorld.GetPlayer();
         List<NPCTokenEntry> npcTokens = player.NPCTokens;
@@ -69,7 +72,8 @@ public class TokenMechanicsManager
         int modifiedCount = (int)Math.Ceiling(count * modifier);
 
         // Initialize NPC token tracking if needed
-        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npcId);
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npc);
 
         // Track old token count for category unlock checking
         int oldTokenCount = npcEntry.GetTokenCount(type);
@@ -78,56 +82,51 @@ public class TokenMechanicsManager
         npcEntry.SetTokenCount(type, oldTokenCount + modifiedCount);
         int newTokenCount = npcEntry.GetTokenCount(type);
 
-        // Get NPC for narrative feedback
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc != null)
-        {
-            string bonusText = modifiedCount > count ? $" (+{modifiedCount - count} from equipment)" : "";
-            _messageSystem.AddSystemMessage(
-                $"🤝 +{modifiedCount} {type} token{(modifiedCount > 1 ? "s" : "")} with {npc.Name}{bonusText} (Total: {newTokenCount})",
-                SystemMessageTypes.Success
-            );
+        // Narrative feedback using NPC object directly (no GetById needed)
+        string bonusText = modifiedCount > count ? $" (+{modifiedCount - count} from equipment)" : "";
+        _messageSystem.AddSystemMessage(
+            $"🤝 +{modifiedCount} {type} token{(modifiedCount > 1 ? "s" : "")} with {npc.Name}{bonusText} (Total: {newTokenCount})",
+            SystemMessageTypes.Success
+        );
 
-            // Check relationship milestones
-            int totalWithNPC = npcEntry.Trust + npcEntry.Diplomacy + npcEntry.Status + npcEntry.Shadow;
-            CheckRelationshipMilestone(npc, totalWithNPC);
+        // Check relationship milestones
+        int totalWithNPC = npcEntry.Trust + npcEntry.Diplomacy + npcEntry.Status + npcEntry.Shadow;
+        CheckRelationshipMilestone(npc, totalWithNPC);
 
-            // Category service removed - letters created through conversation choices only
-        }
+        // Category service removed - letters created through conversation choices only
 
         // Token change notifications are handled by GameFacade orchestration
     }
 
     // Spend tokens with specific NPC context (for queue manipulation)
-    public bool SpendTokensWithNPC(ConnectionType type, int count, string npcId)
+    // HIGHLANDER: Object reference ONLY, no ID string parameter
+    public bool SpendTokensWithNPC(ConnectionType type, int count, NPC npc)
     {
         if (count <= 0) return true;
+        if (npc == null) return false;
 
         Player player = _gameWorld.GetPlayer();
 
         // Get or create NPC token entry
-        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npcId);
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npc);
         int currentCount = npcEntry.GetTokenCount(type);
 
         // reduce from NPC relationship (can go negative)
         npcEntry.SetTokenCount(type, currentCount - count);
 
-        // Add narrative feedback
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc != null)
+        // Narrative feedback using NPC object directly (no GetById needed)
+        _messageSystem.AddSystemMessage(
+            $"You call in {count} {type} favor{(count > 1 ? "s" : "")} with {npc.Name}.",
+            SystemMessageTypes.Info
+        );
+
+        if (npcEntry.GetTokenCount(type) < 0)
         {
             _messageSystem.AddSystemMessage(
-                $"You call in {count} {type} favor{(count > 1 ? "s" : "")} with {npc.Name}.",
-                SystemMessageTypes.Info
+                $"You now owe {npc.Name} for this favor.",
+                SystemMessageTypes.Warning
             );
-
-            if (npcEntry.GetTokenCount(type) < 0)
-            {
-                _messageSystem.AddSystemMessage(
-                    $"You now owe {npc.Name} for this favor.",
-                    SystemMessageTypes.Warning
-                );
-            }
         }
 
         return true;
@@ -160,20 +159,22 @@ public class TokenMechanicsManager
     }
 
     // Get tokens of a specific type with a specific NPC
-    public int GetTokenCount(ConnectionType type, string npcId)
+    // HIGHLANDER: Accepts NPC object, not string ID
+    public int GetTokenCount(ConnectionType type, NPC npc)
     {
-        Dictionary<ConnectionType, int> tokensWithNPC = GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> tokensWithNPC = GetTokensWithNPC(npc);
         return tokensWithNPC.GetValueOrDefault(type, 0);
     }
 
     /// <summary>
     /// Leverage Mechanic: Negative tokens represent leverage the NPC has over the player
+    /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public int GetLeverage(string npcId, ConnectionType type)
+    public int GetLeverage(NPC npc, ConnectionType type)
     {
-        if (string.IsNullOrEmpty(npcId)) return 0;
+        if (npc == null) return 0;
 
-        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> tokens = GetTokensWithNPC(npc);
         int tokenCount = tokens.GetValueOrDefault(type, 0);
 
         // Return absolute value if negative, 0 otherwise
@@ -181,15 +182,17 @@ public class TokenMechanicsManager
     }
 
     // Remove tokens from NPC relationship (for expired letters)
-    public void RemoveTokensFromNPC(ConnectionType type, int count, string npcId)
+    // HIGHLANDER: Object reference ONLY, no ID string parameter
+    public void RemoveTokensFromNPC(ConnectionType type, int count, NPC npc)
     {
-        if (count <= 0 || string.IsNullOrEmpty(npcId)) return;
+        if (count <= 0 || npc == null) return;
 
         Player player = _gameWorld.GetPlayer();
         List<NPCTokenEntry> npcTokens = player.NPCTokens;
 
         // Get or create NPC token entry
-        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npcId);
+        // HIGHLANDER: Pass NPC object directly, not npc.ID
+        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npc);
 
         // Track old count for obligation checking
         int oldCount = npcEntry.GetTokenCount(type);
@@ -197,22 +200,18 @@ public class TokenMechanicsManager
         // Remove tokens from NPC relationship (can go negative)
         npcEntry.SetTokenCount(type, oldCount - count);
 
-        // Add narrative feedback for relationship damage
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc != null)
+        // Narrative feedback using NPC object directly (no GetById needed)
+        _messageSystem.AddSystemMessage(
+            $"Your relationship with {npc.Name} has been damaged. (-{count} {type} token{(count > 1 ? "s" : "")})",
+            SystemMessageTypes.Warning
+        );
+
+        if (npcEntry.GetTokenCount(type) < 0)
         {
             _messageSystem.AddSystemMessage(
-                $"Your relationship with {npc.Name} has been damaged. (-{count} {type} token{(count > 1 ? "s" : "")})",
-                SystemMessageTypes.Warning
+                $"{npc.Name} feels you owe them for past failures.",
+                SystemMessageTypes.Danger
             );
-
-            if (npcEntry.GetTokenCount(type) < 0)
-            {
-                _messageSystem.AddSystemMessage(
-                    $"{npc.Name} feels you owe them for past failures.",
-                    SystemMessageTypes.Danger
-                );
-            }
         }
 
         // Token change notifications are handled by GameFacade orchestration
@@ -275,10 +274,11 @@ public class TokenMechanicsManager
     }
 
     // Spend tokens from a specific NPC
-    public bool SpendTokens(ConnectionType type, int amount, string npcId)
+    // HIGHLANDER: Accepts NPC object, not string ID
+    public bool SpendTokens(ConnectionType type, int amount, NPC npc)
     {
         if (amount <= 0) return true;
-        if (string.IsNullOrEmpty(npcId))
+        if (npc == null)
         {
             _messageSystem.AddSystemMessage(
                 "ERROR: Cannot spend tokens without specifying NPC. Tokens are relational.",
@@ -288,25 +288,22 @@ public class TokenMechanicsManager
         }
 
         Player player = _gameWorld.GetPlayer();
-        Dictionary<ConnectionType, int> npcTokens = GetTokensWithNPC(npcId);
+        Dictionary<ConnectionType, int> npcTokens = GetTokensWithNPC(npc);
         int tokensOfType = npcTokens.GetValueOrDefault(type, 0);
 
         if (tokensOfType < amount)
             return false;
 
         // Get or create NPC token entry and deduct tokens
-        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npcId);
+        // HIGHLANDER: Pass NPC object directly
+        NPCTokenEntry npcEntry = player.GetNPCTokenEntry(npc);
         npcEntry.SetTokenCount(type, tokensOfType - amount);
 
         // Add narrative feedback
-        NPC npc = _npcRepository.GetById(npcId);
-        if (npc != null)
-        {
-            _messageSystem.AddSystemMessage(
-                $"Spent {amount} {type} token{(amount > 1 ? "s" : "")} with {npc.Name}",
-                SystemMessageTypes.Info
-            );
-        }
+        _messageSystem.AddSystemMessage(
+            $"Spent {amount} {type} token{(amount > 1 ? "s" : "")} with {npc.Name}",
+            SystemMessageTypes.Info
+        );
 
         return true;
     }

@@ -68,7 +68,8 @@ public class SituationSpawnConditions
     public string RequiredState { get; set; }
 
     /// <summary>
-    /// Required achievement ID
+    /// Required achievement
+    /// HIGHLANDER: Object reference only, no string ID
     /// </summary>
-    public string RequiredAchievement { get; set; }
+    public Achievement RequiredAchievement { get; set; }
 }

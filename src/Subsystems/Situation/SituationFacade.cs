@@ -52,14 +52,12 @@ public class SituationFacade
     /// <summary>
     /// Select and execute a situation - STRATEGIC LAYER ENTRY POINT
     /// Validates requirements, consumes strategic costs, routes to appropriate subsystem
+    /// PHASE 4: Accept Situation object instead of ID
     /// </summary>
-    public SituationSelectionResult SelectAndExecuteSituation(string situationId)
+    public SituationSelectionResult SelectAndExecuteSituation(Situation situation)
     {
-        Situation situation = _gameWorld.Scenes
-            .SelectMany(s => s.Situations)
-            .FirstOrDefault(sit => sit.Id == situationId);
         if (situation == null)
-            return SituationSelectionResult.Failed($"Situation '{situationId}' not found");
+            return SituationSelectionResult.Failed("Situation is null");
 
         Player player = _gameWorld.GetPlayer();
 
@@ -143,7 +141,7 @@ public class SituationFacade
     /// <summary>
     /// Initiate Mental challenge - route to MentalFacade with challenge payload
     /// MentalFacade consumes tactical costs (Focus) during challenge execution
-    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
+    /// PHASE 4: Pass object references instead of IDs
     /// </summary>
     private SituationSelectionResult InitiateMentalChallenge(Situation situation)
     {
@@ -151,19 +149,19 @@ public class SituationFacade
         // MentalFacade will consume Focus (tactical cost) during challenge
         // SituationFacade has already consumed Resolve (strategic cost)
 
-        string locationId = situation.Location?.Id;
         return SituationSelectionResult.LaunchChallenge(
             TacticalSystemType.Mental,
-            situation.Id,
-            situation.DeckId,
-            locationId
+            situation,
+            situation.Deck,
+            npc: null,
+            location: situation.Location
         );
     }
 
     /// <summary>
     /// Initiate Physical challenge - route to PhysicalFacade with challenge payload
     /// PhysicalFacade consumes tactical costs (Stamina) during challenge execution
-    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
+    /// PHASE 4: Pass object references instead of IDs
     /// </summary>
     private SituationSelectionResult InitiatePhysicalChallenge(Situation situation)
     {
@@ -171,19 +169,19 @@ public class SituationFacade
         // PhysicalFacade will consume Stamina (tactical cost) during challenge
         // SituationFacade has already consumed Resolve (strategic cost)
 
-        string locationId = situation.Location?.Id;
         return SituationSelectionResult.LaunchChallenge(
             TacticalSystemType.Physical,
-            situation.Id,
-            situation.DeckId,
-            locationId
+            situation,
+            situation.Deck,
+            npc: null,
+            location: situation.Location
         );
     }
 
     /// <summary>
     /// Initiate Social challenge - route to SocialFacade with challenge payload
     /// SocialFacade consumes tactical costs during challenge execution
-    /// ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
+    /// PHASE 4: Pass object references instead of IDs
     /// </summary>
     private SituationSelectionResult InitiateSocialChallenge(Situation situation)
     {
@@ -191,18 +189,19 @@ public class SituationFacade
         // SocialFacade will consume tactical costs during challenge
         // SituationFacade has already consumed Resolve (strategic cost)
 
-        string npcId = situation.Npc?.ID;
         return SituationSelectionResult.LaunchChallenge(
             TacticalSystemType.Social,
-            situation.Id,
-            null, // Social uses NPC, not deck
-            npcId
+            situation,
+            situation.Deck,
+            npc: situation.Npc,
+            location: null
         );
     }
 
     /// <summary>
     /// Handle navigation situation - move player to destination
     /// May trigger scene at destination
+    /// PHASE 4: Pass object reference instead of ID
     /// </summary>
     private SituationSelectionResult HandleNavigation(Situation situation)
     {
@@ -218,9 +217,9 @@ public class SituationFacade
         situation.Lifecycle.CompletedTimeBlock = _timeFacade.GetCurrentTimeBlock();
         situation.Lifecycle.CompletedSegment = _timeFacade.GetCurrentSegment();
 
-        // Navigation result will tell UI to move player and optionally trigger scene
+        // HIGHLANDER: NavigationPayload.Destination is object reference (no ID lookup needed)
         return SituationSelectionResult.Navigation(
-            situation.NavigationPayload.DestinationId,
+            situation.NavigationPayload.Destination,
             situation.NavigationPayload.AutoTriggerScene
         );
     }
@@ -229,6 +228,7 @@ public class SituationFacade
 /// <summary>
 /// Result of situation selection at strategic layer
 /// Tells UI what to do next (instant resolution, launch challenge, navigate)
+/// PHASE 4: ID properties replaced with object references
 /// </summary>
 public class SituationSelectionResult
 {
@@ -239,14 +239,15 @@ public class SituationSelectionResult
     // For instant resolution
     public Situation ResolvedSituation { get; set; }
 
-    // For challenge launch
+    // For challenge launch - PHASE 4: Object references instead of IDs
     public TacticalSystemType? ChallengeType { get; set; }
-    public string ChallengeSituationId { get; set; }
-    public string ChallengeDeckId { get; set; }
-    public string ChallengeTargetId { get; set; }
+    public Situation ChallengeSituation { get; set; }
+    public object ChallengeDeck { get; set; }  // MentalChallengeDeck | PhysicalChallengeDeck | SocialChallengeDeck
+    public NPC ChallengeNpc { get; set; }  // For Social challenges
+    public Location ChallengeLocation { get; set; }  // For Mental/Physical challenges
 
-    // For navigation
-    public string NavigationDestinationId { get; set; }
+    // For navigation - PHASE 4: Object reference instead of ID
+    public Location NavigationDestination { get; set; }
     public bool NavigationAutoTriggerScene { get; set; }
 
     public static SituationSelectionResult Failed(string message)
@@ -271,28 +272,30 @@ public class SituationSelectionResult
 
     public static SituationSelectionResult LaunchChallenge(
         TacticalSystemType challengeType,
-        string situationId,
-        string deckId,
-        string targetId)
+        Situation situation,
+        object deck,
+        NPC npc = null,
+        Location location = null)
     {
         return new SituationSelectionResult
         {
             Success = true,
             ResultType = SituationResultType.LaunchChallenge,
             ChallengeType = challengeType,
-            ChallengeSituationId = situationId,
-            ChallengeDeckId = deckId,
-            ChallengeTargetId = targetId
+            ChallengeSituation = situation,
+            ChallengeDeck = deck,
+            ChallengeNpc = npc,
+            ChallengeLocation = location
         };
     }
 
-    public static SituationSelectionResult Navigation(string destinationId, bool autoTriggerScene)
+    public static SituationSelectionResult Navigation(Location destination, bool autoTriggerScene)
     {
         return new SituationSelectionResult
         {
             Success = true,
             ResultType = SituationResultType.Navigation,
-            NavigationDestinationId = destinationId,
+            NavigationDestination = destination,
             NavigationAutoTriggerScene = autoTriggerScene
         };
     }

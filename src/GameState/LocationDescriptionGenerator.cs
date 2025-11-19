@@ -280,11 +280,18 @@ public class LocationDescriptionGenerator
 
     /// <summary>
     /// Get a consistent variant index for text variety
-    /// Uses simple hash to ensure same input produces same output
+    /// Uses explicit enum value cast for determinism (no GetHashCode)
     /// </summary>
     private int GetVariantIndex(object input)
     {
-        int hash = input.GetHashCode();
+        // ADR-007: Explicit deterministic hash (no GetHashCode() for procedural selection)
+        // Cast enum to int for stable, platform-independent hashing
+        int hash = input switch
+        {
+            LocationPropertyType prop => (int)prop,
+            TimeBlocks time => (int)time,
+            _ => 0
+        };
         return Math.Abs(hash) % 3; // We have 3 variants per property
     }
 }

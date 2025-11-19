@@ -1,14 +1,16 @@
 /// <summary>
 /// Data Transfer Object for deserializing NPC data from JSON.
-/// Maps to the structure in npcs.json.
+/// Uses categorical properties via PlacementFilterDTO for entity resolution (DDR-006).
+/// EntityResolver.FindOrCreate pattern: queries existing entities first, generates if no match.
 /// </summary>
 public class NPCDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
     public string Profession { get; set; }
-    public string VenueId { get; set; }
-    public string LocationId { get; set; }
+
+    public PlacementFilterDTO SpawnLocation { get; set; }
+
     public string Description { get; set; }
     public string Personality { get; set; }
     public string PersonalityType { get; set; }

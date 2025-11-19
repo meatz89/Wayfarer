@@ -9,9 +9,10 @@
 public class LocationVisitRecord
 {
     /// <summary>
-    /// Location entity ID this record tracks
+    /// Location entity this record tracks
+    /// HIGHLANDER: Object reference only, no string ID
     /// </summary>
-    public string LocationId { get; set; }
+    public Location Location { get; set; }
 
     /// <summary>
     /// Day of last visit to this location

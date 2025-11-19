@@ -5,10 +5,7 @@
 /// </summary>
 public class PlayerAction
 {
-    /// <summary>
-    /// Unique identifier for this action
-    /// </summary>
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - PlayerAction identified by object reference
 
     /// <summary>
     /// Display name shown to the player

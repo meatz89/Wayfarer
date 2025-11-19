@@ -4,9 +4,9 @@
 /// </summary>
 public class MeetingObligation
 {
-    public string Id { get; set; }
-    public string RequesterId { get; set; }  // NPC who requested the meeting
-    public string RequesterName { get; set; }
+    // HIGHLANDER: NO Id property - MeetingObligation identified by object reference
+    // HIGHLANDER: Object reference ONLY, no RequesterId
+    public NPC Requester { get; set; }  // NPC who requested the meeting
     public string Reason { get; set; }  // Why they need to meet
 
 }

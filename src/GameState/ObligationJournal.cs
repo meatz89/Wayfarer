@@ -1,6 +1,7 @@
 /// <summary>
 /// Obligation Journal - tracks player's obligation progress
 /// Obligations have four states: Potential → Discovered → Active → Completed
+/// HIGHLANDER: Object references ONLY, no ID collections
 /// </summary>
 public class ObligationJournal
 {
@@ -9,14 +10,14 @@ public class ObligationJournal
     /// Awaiting discovery trigger evaluation
     /// NOT displayed in UI
     /// </summary>
-    public List<string> PotentialObligationIds { get; set; } = new List<string>();
+    public List<Obligation> PotentialObligations { get; set; } = new List<Obligation>();
 
     /// <summary>
     /// Discovered obligations - trigger fired, intro action available
     /// Player can see these in journal but hasn't completed intro yet
     /// Displayed in journal's "Discovered" tab
     /// </summary>
-    public List<string> DiscoveredObligationIds { get; set; } = new List<string>();
+    public List<Obligation> DiscoveredObligations { get; set; } = new List<Obligation>();
 
     /// <summary>
     /// Active obligations - intro completed, situations are being created and evaluated
@@ -28,7 +29,7 @@ public class ObligationJournal
     /// Completed obligations - all required situations finished
     /// Displayed in journal's "Completed" tab
     /// </summary>
-    public List<string> CompletedObligationIds { get; set; } = new List<string>();
+    public List<Obligation> CompletedObligations { get; set; } = new List<Obligation>();
 }
 
 /// <summary>
@@ -38,7 +39,7 @@ public class ObligationJournal
 /// </summary>
 public class ActiveObligation
 {
-    public string ObligationId { get; set; }
+    public Obligation Obligation { get; set; }
 
     /// <summary>
     /// Accumulated understanding points from completed phases (0-10 scale)
@@ -53,11 +54,4 @@ public class ActiveObligation
     /// Null for SelfDiscovered obligations
     /// </summary>
     public int? ActivationSegment { get; set; }
-
-    /// <summary>
-    /// Object reference to obligation (for runtime navigation)
-    /// Populated at initialization time from ObligationId
-    /// </summary>
-    [System.Text.Json.Serialization.JsonIgnore]
-    public Obligation Obligation { get; set; }
 }

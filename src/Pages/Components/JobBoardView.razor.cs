@@ -11,7 +11,7 @@ namespace Wayfarer.Pages.Components
         [Inject] protected GameWorld GameWorld { get; set; }
         [Inject] protected TimeManager TimeManager { get; set; }
 
-        [Parameter] public string CurrentLocationId { get; set; }
+        [Parameter] public Location CurrentLocation { get; set; }
         [Parameter] public EventCallback<string> OnAcceptJob { get; set; }
         [Parameter] public EventCallback OnNavigateBack { get; set; }
 
@@ -20,16 +20,16 @@ namespace Wayfarer.Pages.Components
         protected override void OnParametersSet()
         {
             // Get jobs available at current location
-            if (!string.IsNullOrEmpty(CurrentLocationId))
+            if (CurrentLocation != null)
             {
                 TimeBlocks currentTime = TimeManager.GetCurrentTimeBlock();
-                AvailableJobs = GameWorld.GetJobsAvailableAt(CurrentLocationId, currentTime);
+                AvailableJobs = GameWorld.GetJobsAvailableAt(CurrentLocation, currentTime);
             }
         }
 
-        protected async Task HandleAcceptJob(string jobId)
+        protected async Task HandleAcceptJob(DeliveryJob job)
         {
-            await OnAcceptJob.InvokeAsync(jobId);
+            await OnAcceptJob.InvokeAsync(job.Id);
         }
 
         protected string GetDifficultyClass(DifficultyTier tier)

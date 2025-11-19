@@ -20,11 +20,11 @@ namespace Wayfarer.Pages.Components
 
         [Inject] protected GameFacade GameFacade { get; set; }
 
-        protected async Task HandleExaminePoint(string pointId)
+        protected async Task HandleExaminePoint(ExaminationPoint point)
         {
             if (Context == null || !Context.IsValid) return;
 
-            ObservationResult result = GameFacade.ExaminePoint(Context.Scene.Id, pointId);
+            ObservationResult result = GameFacade.ExaminePoint(Context.Scene.Id, point.Id);
 
             if (!result.Success)
             {
@@ -36,7 +36,7 @@ namespace Wayfarer.Pages.Components
             }
 
             // Refresh context to reflect changes
-            Context = GameFacade.CreateObservationContext(Context.Scene.Id);
+            Context = GameFacade.CreateObservationContext(Context.Scene);
 
             // Show results through message system (knowledge gained, items found, etc. are already shown by facade)
             if (result.SceneCompleted)

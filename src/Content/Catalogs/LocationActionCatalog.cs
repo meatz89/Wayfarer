@@ -34,7 +34,7 @@ public static class LocationActionCatalog
         List<LocationAction> actions = new List<LocationAction>();
 
         // DIAGNOSTIC LOGGING
-        Console.WriteLine($"[LocationActionCatalog] Generating actions for location '{location.Id}'");
+        Console.WriteLine($"[LocationActionCatalog] Generating actions for location '{location.Name}'");
         Console.WriteLine($"[LocationActionCatalog] Properties: {string.Join(", ", location.LocationProperties)}");
         Console.WriteLine($"[LocationActionCatalog] Property count: {location.LocationProperties.Count}");
 
@@ -44,7 +44,7 @@ public static class LocationActionCatalog
             Console.WriteLine($"[LocationActionCatalog] ✅ Crossroads found - generating Travel action");
             actions.Add(new LocationAction
             {
-                SourceLocationId = location.Id,  // Bind to specific location
+                SourceLocation = location,
                 Name = "Travel to Another Location",
                 Description = "Select a route to travel to another location",
                 ActionType = LocationActionType.Travel,
@@ -64,8 +64,7 @@ public static class LocationActionCatalog
             Console.WriteLine($"[LocationActionCatalog] ✅ Commercial found - generating Work action");
             actions.Add(new LocationAction
             {
-                Id = $"work_{location.Id}",
-                SourceLocationId = location.Id,  // Bind to specific location
+                SourceLocation = location,
                 Name = "Work",
                 Description = "Earn coins through labor. Base pay 8 coins, reduced by hunger penalty.",
                 ActionType = LocationActionType.Work,
@@ -88,8 +87,7 @@ public static class LocationActionCatalog
             Console.WriteLine($"[LocationActionCatalog] ✅ Commercial found - generating View Job Board action");
             actions.Add(new LocationAction
             {
-                Id = $"view_job_board_{location.Id}",
-                SourceLocationId = location.Id,  // Bind to specific location
+                SourceLocation = location,
                 Name = "View Job Board",
                 Description = "Check available delivery jobs. Accept one job at a time to earn coins through deliveries.",
                 ActionType = LocationActionType.ViewJobBoard,
@@ -109,8 +107,7 @@ public static class LocationActionCatalog
             Console.WriteLine($"[LocationActionCatalog] ✅ SleepingSpace found - generating Rest action");
             actions.Add(new LocationAction
             {
-                Id = $"rest_{location.Id}",
-                SourceLocationId = location.Id,  // Bind to specific location
+                SourceLocation = location,
                 Name = "Rest",
                 Description = "Rest in the safety of this sleeping space. Advances 1 time segment. Restores +1 Health and +1 Stamina. Hunger increases by +5 automatically.",
                 ActionType = LocationActionType.Rest,
@@ -146,15 +143,16 @@ public static class LocationActionCatalog
         // Source location must have hex position
         if (!location.HexPosition.HasValue)
         {
-            Console.WriteLine($"[LocationActionCatalog] ⚠️ Location '{location.Id}' has no HexPosition - cannot generate movement actions");
+            Console.WriteLine($"[LocationActionCatalog] ⚠️ Location '{location.Name}' has no HexPosition - cannot generate movement actions");
             return actions;
         }
 
         // Find ADJACENT locations in the same venue (7-hex cluster pattern)
         List<Location> adjacentSameVenueLocations = allLocations
             .Where(l =>
-                l.VenueId == location.VenueId &&  // Same venue (7-hex cluster)
-                l.Id != location.Id &&  // Different location
+                // ADR-007: Use Venue object reference instead of deleted VenueId
+                l.Venue == location.Venue &&  // Same venue (7-hex cluster)
+                l != location &&  // Different location (object reference comparison)
                 l.HexPosition.HasValue &&  // Destination must have hex position
                 AreHexesAdjacent(location.HexPosition.Value, l.HexPosition.Value))  // Must be adjacent hexes
             .ToList();
@@ -168,10 +166,8 @@ public static class LocationActionCatalog
         {
             actions.Add(new LocationAction
             {
-                // ID for debugging/uniqueness only (no parsing)
-                Id = $"move_to_{destination.Id}",
-                SourceLocationId = location.Id,  // Bind to specific source location
-                DestinationLocationId = destination.Id,  // ✅ Strongly-typed property (replaces ID parsing antipattern)
+                SourceLocation = location,
+                DestinationLocation = destination,
                 Name = $"Move to {destination.Name}",
                 Description = $"Walk to {destination.Name} within the same venue (instant, free)",
                 ActionType = LocationActionType.IntraVenueMove,  // Strongly typed: intra-venue movement (distinct from cross-venue Travel)

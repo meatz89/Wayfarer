@@ -178,8 +178,9 @@ public class DebugLogger
         Location currentLocation = gameWorld.GetPlayerCurrentLocation();
         if (currentLocation == null)
             throw new System.InvalidOperationException("Player current location is null");
-        report.Add($"  Location: {currentLocation.VenueId}");
-        report.Add($"  location: {currentLocation.Id}");
+        // ADR-007: Use Venue.Name and Name instead of deleted VenueId/Id
+        report.Add($"  Venue: {currentLocation.Venue?.Name}");
+        report.Add($"  Location: {currentLocation.Name}");
         report.Add($"  Stamina: {player.Stamina}");
         report.Add($"  Coins: {player.Coins}");
         report.Add("");
@@ -202,17 +203,19 @@ public class DebugLogger
         if (currentLocation != null)
         {
             List<NPC> allNpcs = gameWorld.NPCs;
-            List<NPC> spotNpcs = allNpcs.Where(n => n.Location?.Id == currentLocation.Id).ToList();
+            List<NPC> spotNpcs = allNpcs.Where(n => n.Location == currentLocation).ToList();
             TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
             List<NPC> availableNpcs = spotNpcs.Where(n => n.IsAvailable(currentTime)).ToList();
 
             report.Add($"  Total NPCs in game: {allNpcs.Count}");
-            report.Add($"  NPCs at location '{currentLocation.Id}': {spotNpcs.Count}");
+            // HIGHLANDER: Use Name for display, not .Id
+            report.Add($"  NPCs at location '{currentLocation.Name}': {spotNpcs.Count}");
             report.Add($"  Available at time '{currentTime}': {availableNpcs.Count}");
 
             foreach (NPC? npc in availableNpcs)
             {
-                report.Add($"    - {npc.ID}: {npc.Name} ({npc.Profession})");
+                // HIGHLANDER: Use Name for display, not .ID
+                report.Add($"    - {npc.Name} ({npc.Profession})");
             }
         }
         report.Add("");

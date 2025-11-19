@@ -52,21 +52,20 @@ public class LocationContentBase : ComponentBase
 
         // Load available conversation trees and observation scenes for current location
         Location currentLocation = GameWorld.GetPlayerCurrentLocation();
-        string locationId = currentLocation?.Id;
-        if (locationId != null)
+        if (currentLocation != null)
         {
-            AvailableConversationTrees = GameFacade.GetAvailableConversationTreesAtLocation(locationId);
-            AvailableObservationScenes = GameFacade.GetAvailableObservationScenesAtLocation(locationId);
+            AvailableConversationTrees = GameFacade.GetAvailableConversationTreesAtLocation(currentLocation);
+            AvailableObservationScenes = GameFacade.GetAvailableObservationScenesAtLocation(currentLocation);
 
             // MULTI-SITUATION SCENE RESUMPTION: Check if player navigated to location required by waiting scene
             // Scene completed Situation 1 with ExitToWorld routing (different context required)
             // Player navigated to required location - auto-resume scene to continue progression
-            List<Scene> resumableScenes = SceneFacade.GetResumableScenesAtContext(locationId, null);
+            List<Scene> resumableScenes = SceneFacade.GetResumableScenesAtContext(currentLocation, null);
             if (resumableScenes.Count > 0)
             {
                 // Auto-resume first waiting scene (should only be one per location context)
                 Scene resumableScene = resumableScenes[0];
-                await GameScreen.StartScene(resumableScene.Id);
+                await GameScreen.StartScene(resumableScene);
             }
         }
 
@@ -141,14 +140,13 @@ public class LocationContentBase : ComponentBase
                 await OnActionExecuted.InvokeAsync();
 
                 // MODAL SCENE FORCING: Check if action triggered a forced modal scene
-                // GameFacade sets PendingForcedSceneId after successful movement actions
+                // ADR-007: GameFacade sets PendingForcedScene object after successful movement actions
                 // If found, navigate to forced scene immediately (Sir Brante forced moment pattern)
-                if (!string.IsNullOrEmpty(GameWorld.PendingForcedSceneId))
+                if (GameWorld.PendingForcedScene != null)
                 {
-                    string forcedSceneId = GameWorld.PendingForcedSceneId;
-                    GameWorld.PendingForcedSceneId = null; // Clear pending flag
-
-                    await GameScreen.StartScene(forcedSceneId);
+                    Scene forcedScene = GameWorld.PendingForcedScene;
+                    GameWorld.PendingForcedScene = null; // Clear pending flag
+                    await GameScreen.StartScene(forcedScene);
                 }
             }
         }
@@ -157,7 +155,7 @@ public class LocationContentBase : ComponentBase
     protected async Task HandleCommitToSituation(Situation situation)
     {
         // STRATEGIC LAYER: Validate requirements, consume Resolve/Time/Coins, route to appropriate subsystem
-        SituationSelectionResult result = GameFacade.GetSituationFacade().SelectAndExecuteSituation(situation.Id);
+        SituationSelectionResult result = GameFacade.GetSituationFacade().SelectAndExecuteSituation(situation);
 
         if (!result.Success)
         {
@@ -180,23 +178,29 @@ public class LocationContentBase : ComponentBase
             // Challenge facade will consume tactical costs (Focus/Stamina)
             if (result.ChallengeType == TacticalSystemType.Social)
             {
-                await GameScreen.StartConversationSession(result.ChallengeTargetId, result.ChallengeSituationId);
+                await GameScreen.StartConversationSession(result.ChallengeNpc, result.ChallengeSituation);
             }
             else if (result.ChallengeType == TacticalSystemType.Mental)
             {
-                Player player = GameWorld.GetPlayer();
-                await GameScreen.StartMentalSession(result.ChallengeDeckId, result.ChallengeTargetId, result.ChallengeSituationId, situation.Obligation?.Id);
+                await GameScreen.StartMentalSession(
+                    (MentalChallengeDeck)result.ChallengeDeck,
+                    result.ChallengeLocation,
+                    result.ChallengeSituation,
+                    situation.Obligation);
             }
             else if (result.ChallengeType == TacticalSystemType.Physical)
             {
-                Player player = GameWorld.GetPlayer();
-                await GameScreen.StartPhysicalSession(result.ChallengeDeckId, result.ChallengeTargetId, result.ChallengeSituationId, situation.Obligation?.Id);
+                await GameScreen.StartPhysicalSession(
+                    (PhysicalChallengeDeck)result.ChallengeDeck,
+                    result.ChallengeLocation,
+                    result.ChallengeSituation,
+                    situation.Obligation);
             }
         }
         else if (result.ResultType == SituationResultType.Navigation)
         {
             // Navigation - move player and optionally trigger scene at destination
-            bool success = await GameFacade.MoveToSpot(result.NavigationDestinationId);
+            bool success = await GameFacade.MoveToSpot(result.NavigationDestination);
             if (success)
             {
                 ResetNavigation();
@@ -207,9 +211,9 @@ public class LocationContentBase : ComponentBase
         }
     }
 
-    protected async Task MoveToSpot(string spotId)
+    protected async Task MoveToSpot(Location spot)
     {
-        bool success = await GameFacade.MoveToSpot(spotId);
+        bool success = await GameFacade.MoveToSpot(spot);
 
         if (success)
         {
@@ -218,14 +222,13 @@ public class LocationContentBase : ComponentBase
             await OnActionExecuted.InvokeAsync();
 
             // MODAL SCENE FORCING: Check if movement triggered a forced modal scene
-            // GameFacade sets PendingForcedSceneId after successful movement
+            // ADR-007: GameFacade sets PendingForcedScene object after successful movement
             // If found, navigate to forced scene immediately (Sir Brante forced moment pattern)
-            if (!string.IsNullOrEmpty(GameWorld.PendingForcedSceneId))
+            if (GameWorld.PendingForcedScene != null)
             {
-                string forcedSceneId = GameWorld.PendingForcedSceneId;
-                GameWorld.PendingForcedSceneId = null; // Clear pending flag
-
-                await GameScreen.StartScene(forcedSceneId);
+                Scene forcedScene = GameWorld.PendingForcedScene;
+                GameWorld.PendingForcedScene = null; // Clear pending flag
+                await GameScreen.StartScene(forcedScene);
             }
         }
     }
@@ -296,34 +299,33 @@ public class LocationContentBase : ComponentBase
         await ExecuteLocationAction(action);
     }
 
-    protected void HandleNavigateToSituation(string situationId)
+    protected void HandleNavigateToSituation(Situation situation)
     {
-        Situation situation = GameWorld.Scenes.SelectMany(s => s.Situations).FirstOrDefault(sit => sit.Id == situationId);
         if (situation != null)
         {
             NavigateToView(LocationViewState.SituationDetail, situation);
         }
     }
 
-    protected async Task HandleMoveToSpot(string spotId)
+    protected async Task HandleMoveToSpot(Location spot)
     {
-        await MoveToSpot(spotId);
+        await MoveToSpot(spot);
     }
 
-    protected async Task HandleStartExchange(string npcId)
+    protected async Task HandleStartExchange(NPC npc)
     {
-        await GameScreen.StartExchange(npcId);
+        await GameScreen.StartExchange(npc);
     }
 
-    protected async Task HandleTalkToNPC(string npcId, Scene scene)
+    protected async Task HandleTalkToNPC(NPC npc, Scene scene)
     {
-        await GameScreen.StartNPCEngagement(npcId, scene);
+        await GameScreen.StartNPCEngagement(npc, scene);
     }
 
-    protected async Task HandleAcceptJob(string jobId)
+    protected async Task HandleAcceptJob(DeliveryJob job)
     {
         // Execute through intent system - backend handles validation
-        IntentResult result = await GameFacade.ProcessIntent(new AcceptDeliveryJobIntent(jobId));
+        IntentResult result = await GameFacade.ProcessIntent(new AcceptDeliveryJobIntent(job));
 
         if (result.Success)
         {
@@ -349,27 +351,27 @@ public class LocationContentBase : ComponentBase
         // Search in Mental situations (ambient + scenes)
         if (situationCard == null)
         {
-            situationCard = ViewModel.AmbientMentalSituations.FirstOrDefault(g => g.Id == SelectedSituation.Id);
+            situationCard = ViewModel.AmbientMentalSituations.FirstOrDefault(g => g.Situation == SelectedSituation);
         }
 
         if (situationCard == null)
         {
             situationCard = ViewModel.MentalScenes
                 .SelectMany(scene => scene.Situations)
-                .FirstOrDefault(g => g.Id == SelectedSituation.Id);
+                .FirstOrDefault(g => g.Situation == SelectedSituation);
         }
 
         // Search in Physical situations (ambient + scenes)
         if (situationCard == null)
         {
-            situationCard = ViewModel.AmbientPhysicalSituations.FirstOrDefault(g => g.Id == SelectedSituation.Id);
+            situationCard = ViewModel.AmbientPhysicalSituations.FirstOrDefault(g => g.Situation == SelectedSituation);
         }
 
         if (situationCard == null)
         {
             situationCard = ViewModel.PhysicalScenes
                 .SelectMany(scene => scene.Situations)
-                .FirstOrDefault(g => g.Id == SelectedSituation.Id);
+                .FirstOrDefault(g => g.Situation == SelectedSituation);
         }
 
         int difficulty = situationCard?.Difficulty ?? 0;
@@ -392,14 +394,14 @@ public class LocationContentBase : ComponentBase
     // SCREEN EXPANSION HANDLERS
     // ============================================
 
-    protected async Task HandleStartConversationTree(string treeId)
+    protected async Task HandleStartConversationTree(ConversationTree tree)
     {
-        await GameScreen.StartConversationTree(treeId);
+        await GameScreen.StartConversationTree(tree.Id);
     }
 
-    protected async Task HandleStartObservationScene(string sceneId)
+    protected async Task HandleStartObservationScene(ObservationScene scene)
     {
-        await GameScreen.StartObservationScene(sceneId);
+        await GameScreen.StartObservationScene(scene);
     }
 
     // ============================================
@@ -436,13 +438,13 @@ public class LocationContentBase : ComponentBase
 
     /// <summary>
     /// Create MoveIntent from intra-venue movement action
-    /// Uses strongly-typed DestinationLocationId property (no ID parsing)
+    /// HIGHLANDER: Uses strongly-typed DestinationLocation property (typed object, not ID string)
     /// </summary>
     private MoveIntent CreateIntraVenueMoveIntent(LocationActionViewModel action)
     {
-        if (string.IsNullOrEmpty(action.DestinationLocationId))
-            throw new InvalidOperationException("IntraVenueMove action missing DestinationLocationId property");
+        if (action.DestinationLocation == null)
+            throw new InvalidOperationException("IntraVenueMove action missing DestinationLocation property");
 
-        return new MoveIntent(action.DestinationLocationId);
+        return new MoveIntent(action.DestinationLocation);
     }
 }

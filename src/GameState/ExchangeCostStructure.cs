@@ -14,10 +14,8 @@ public class ExchangeCostStructure
     /// <summary>
     /// Token requirements that gate access to this exchange.
     /// These are prerequisites, not consumed by the exchange.
-    /// Key: ConnectionType (Trust/Diplomacy/Status/Shadow)
-    /// Value: Minimum number of tokens required
     /// </summary>
-    public Dictionary<ConnectionType, int> TokenRequirements { get; set; } = new Dictionary<ConnectionType, int>();
+    public List<TokenCount> TokenRequirements { get; set; } = new List<TokenCount>();
 
     /// <summary>
     /// Items that will be consumed (removed from inventory) by this exchange.
@@ -56,15 +54,17 @@ public class ExchangeCostStructure
     /// Checks if token requirements are met.
     /// Tokens are not consumed, just checked as prerequisites.
     /// </summary>
-    public bool MeetsTokenRequirements(Dictionary<ConnectionType, int> playerTokens)
+    public bool MeetsTokenRequirements(List<TokenCount> playerTokens)
     {
         if (TokenRequirements == null || TokenRequirements.Count == 0)
             return true;
 
-        foreach (KeyValuePair<ConnectionType, int> requirement in TokenRequirements)
+        foreach (TokenCount requirement in TokenRequirements)
         {
-            if (!playerTokens.ContainsKey(requirement.Key) ||
-                playerTokens[requirement.Key] < requirement.Value)
+            TokenCount playerToken = playerTokens.FirstOrDefault(t => t.Type == requirement.Type);
+            int playerCount = playerToken?.Count ?? 0;
+
+            if (playerCount < requirement.Count)
             {
                 return false;
             }

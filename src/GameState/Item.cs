@@ -35,7 +35,7 @@ public enum SizeCategory
 
 public class Item
 {
-    public string Id { get; set; }
+    // HIGHLANDER: NO Id property - Item identified by Name (natural key)
     public string Name { get; set; }
     public int InitiativeCost { get; set; } = 1;
     public int BuyPrice { get; set; }
@@ -48,8 +48,8 @@ public class Item
     // Enhanced Categorical Properties
     public SizeCategory Size { get; set; } = SizeCategory.Medium;
 
-    public string VenueId { get; set; }
-    public string LocationId { get; set; }
+    // NOTE: VenueId, LocationId DELETED - if placement needed, use object references
+    // Items should reference Venue/Location objects, not ID strings
     public string Description { get; set; }
 
     // Token generation modifiers for equipment

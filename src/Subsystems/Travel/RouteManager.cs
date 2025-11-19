@@ -14,32 +14,39 @@ public class RouteManager
 
     /// <summary>
     /// Get all routes from a specific location.
+    /// HIGHLANDER: Accept Location object, not string ID
     /// </summary>
-    public List<RouteOption> GetRoutesFromLocation(string locationId)
+    public List<RouteOption> GetRoutesFromLocation(Location location)
     {
-        return _routeRepository.GetRoutesFromLocation(locationId).ToList();
+        return _routeRepository.GetRoutesFromLocation(location).ToList();
     }
 
     /// <summary>
     /// Get a specific route between two locations.
+    /// HIGHLANDER: Accept Location objects, use object equality
     /// </summary>
-    public RouteOption GetRouteBetweenLocations(string fromLocationId, string toLocationId)
+    public RouteOption GetRouteBetweenLocations(Location fromLocation, Location toLocation)
     {
-        List<RouteOption> routes = GetRoutesFromLocation(fromLocationId);
-        // RouteOption uses DestinationLocationId for exact destination
-        return routes.FirstOrDefault(r => r.DestinationLocationId == toLocationId);
+        if (fromLocation == null || toLocation == null)
+            return null;
+
+        List<RouteOption> routes = GetRoutesFromLocation(fromLocation);
+        // RouteOption uses DestinationLocation object reference
+        return routes.FirstOrDefault(r => r.DestinationLocation == toLocation);
     }
 
     /// <summary>
     /// Check if a route exists between two locations.
+    /// HIGHLANDER: Accept Location objects
     /// </summary>
-    public bool RouteExists(string fromLocationId, string toLocationId)
+    public bool RouteExists(Location fromLocation, Location toLocation)
     {
-        return GetRouteBetweenLocations(fromLocationId, toLocationId) != null;
+        return GetRouteBetweenLocations(fromLocation, toLocation) != null;
     }
 
     /// <summary>
     /// Get all available routes from current location.
+    /// HIGHLANDER: Use Location object directly
     /// </summary>
     public List<RouteOption> GetAvailableRoutesFromCurrentLocation()
     {
@@ -48,8 +55,7 @@ public class RouteManager
         if (currentLocation == null)
             return new List<RouteOption>();
 
-        string currentVenueId = currentLocation.VenueId;
-        return GetRoutesFromLocation(currentVenueId);
+        return GetRoutesFromLocation(currentLocation);
     }
 
 }

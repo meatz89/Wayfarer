@@ -36,8 +36,8 @@ public enum ObligationEffect
 
 public class StandingObligation
 {
+    // HIGHLANDER: NO Id property - StandingObligation identified by object reference
     // Identity
-    public string ID { get; set; } = "";
     public string Name { get; set; } = "";
     public string Description { get; set; } = "";
     public string Source { get; set; } = ""; // NPC or entity that granted this obligation
@@ -51,7 +51,8 @@ public class StandingObligation
     public ConnectionType? RelatedTokenType { get; set; } // Which token type this obligation affects
 
     // Threshold-based activation
-    public string? RelatedNPCId { get; set; } // NPC whose tokens trigger this obligation
+    // HIGHLANDER: Object reference ONLY, no RelatedNPCId
+    public NPC RelatedNPC { get; set; } // NPC whose tokens trigger this obligation
     public int? ActivationThreshold { get; set; } // Token threshold that activates this obligation
     public int? DeactivationThreshold { get; set; } // Token threshold that deactivates this obligation
     public bool IsThresholdBased { get; set; } = false; // Whether this obligation auto-activates
@@ -165,9 +166,9 @@ public class StandingObligation
             if (result != "") result += "\n";
             string thresholdOperator = ActivatesAboveThreshold ? "≥" : "≤";
             result += $"Triggers at {RelatedTokenType} tokens {thresholdOperator} {ActivationThreshold}";
-            if (!string.IsNullOrEmpty(RelatedNPCId))
+            if (RelatedNPC != null)
             {
-                result += $" with {RelatedNPCId}";
+                result += $" with {RelatedNPC.Name}";
             }
         }
 

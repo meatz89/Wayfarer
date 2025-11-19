@@ -47,8 +47,8 @@ public class TravelFacade
 
         foreach (RouteOption route in routes)
         {
-            // Get destination Location directly (DestinationLocationId is the ID)
-            Location destination = _gameWorld.GetLocation(route.DestinationLocationId);
+            // Get destination Location directly from object reference
+            Location destination = route.DestinationLocation;
             if (destination != null)
             {
                 // Core Loop: All routes physically exist and are visible from game start
@@ -57,8 +57,8 @@ public class TravelFacade
 
                 destinations.Add(new TravelDestinationViewModel
                 {
-                    LocationId = destination.Id,
-                    LocationName = destination.Name,
+                    Location = destination,  // HIGHLANDER: Object reference
+                    LocationName = destination.Name,  // For display
                     Description = destination.Description,
                     CanTravel = hasPermit,
                     CannotTravelReason = !hasPermit ? "Missing required permits" : null,
@@ -73,25 +73,36 @@ public class TravelFacade
         return destinations;
     }
 
-    public RouteOption GetRouteBetweenLocations(string fromLocationId, string toLocationId)
+    /// <summary>
+    /// PHASE 4: Accept Location objects instead of IDs
+    /// </summary>
+    public RouteOption GetRouteBetweenLocations(Location fromLocation, Location toLocation)
     {
-        return _routeManager.GetRouteBetweenLocations(fromLocationId, toLocationId);
+        if (fromLocation == null || toLocation == null)
+            return null;
+
+        return _routeManager.GetRouteBetweenLocations(fromLocation, toLocation);
     }
 
     // ========== TRAVEL OPERATIONS ==========
 
-    public bool CanTravelTo(string locationId)
+    /// <summary>
+    /// PHASE 4: Accept Location object instead of ID
+    /// </summary>
+    public bool CanTravelTo(Location location)
     {
+        if (location == null)
+            return false;
+
         Player player = _gameWorld.GetPlayer();
         Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
-        string currentLocationId = currentLocation?.Id;
-        if (currentLocationId == null)
+        if (currentLocation == null)
         {
             return false;
         }
 
         // Check if route exists
-        RouteOption route = GetRouteBetweenLocations(currentLocationId, locationId);
+        RouteOption route = GetRouteBetweenLocations(currentLocation, location);
         if (route == null)
         {
             return false;
@@ -108,12 +119,23 @@ public class TravelFacade
         return true;
     }
 
-    public TravelResult TravelTo(string locationId, TravelMethods transportMethod)
+    /// <summary>
+    /// PHASE 4: Accept Location object instead of ID
+    /// </summary>
+    public TravelResult TravelTo(Location location, TravelMethods transportMethod)
     {
+        if (location == null)
+        {
+            return new TravelResult
+            {
+                Success = false,
+                Reason = "Destination location is null"
+            };
+        }
+
         Player player = _gameWorld.GetPlayer();
         Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
-        string currentLocationId = currentLocation?.Id;
-        if (currentLocationId == null)
+        if (currentLocation == null)
         {
             return new TravelResult
             {
@@ -123,7 +145,7 @@ public class TravelFacade
         }
 
         // Get route
-        RouteOption route = GetRouteBetweenLocations(currentLocationId, locationId);
+        RouteOption route = GetRouteBetweenLocations(currentLocation, location);
         if (route == null)
         {
             return new TravelResult
@@ -178,8 +200,8 @@ public class TravelFacade
             TravelTimeSegments = travelTime,
             SegmentCost = travelTime, // Direct segments usage
             CoinCost = coinCost,
-            RouteId = route.Id,
-            DestinationId = locationId,
+            Route = route,  // PHASE 4: Object reference
+            Destination = location,  // PHASE 4: Object reference
             TransportMethod = transportMethod
         };
     }
@@ -208,24 +230,28 @@ public class TravelFacade
 
     // ========== TIME CALCULATIONS ==========
 
-    public int CalculateTravelTime(string toLocationId, TravelMethods transportMethod)
+    /// <summary>
+    /// PHASE 4: Accept Location object instead of ID
+    /// </summary>
+    public int CalculateTravelTime(Location toLocation, TravelMethods transportMethod)
     {
+        if (toLocation == null)
+            return 0;
+
         Player player = _gameWorld.GetPlayer();
         Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
-        string currentLocationId = currentLocation?.Id;
-        if (currentLocationId == null)
+        if (currentLocation == null)
         {
             return 0;
         }
 
         // Find route between current location and destination
-        RouteOption route = _routeRepository.GetRoutesBetween(currentLocationId, toLocationId)
-            .FirstOrDefault();
+        RouteOption route = GetRouteBetweenLocations(currentLocation, toLocation);
 
         if (route == null)
         {
             // No route found - fallback to hex distance calculation
-            return _travelTimeCalculator.GetBaseTravelTime(currentLocationId, toLocationId);
+            return _travelTimeCalculator.GetBaseTravelTime(currentLocation, toLocation);
         }
 
         return _travelTimeCalculator.CalculateTravelTime(route, transportMethod);
@@ -283,7 +309,8 @@ public class TravelFacade
             return null;
         }
 
-        RouteOption route = GetRouteById(session.RouteId);
+        // HIGHLANDER: TravelSession.Route is object reference (no ID lookup needed)
+        RouteOption route = session.Route;
         if (route == null)
         {
             return null;
@@ -294,7 +321,7 @@ public class TravelFacade
 
         // Check if player must turn back (exhausted with no paths available)
         bool mustTurnBack = session.CurrentState == TravelState.Exhausted &&
-                           !currentSegmentCards.Any(card => CanPlayPathCard(card.Id));
+                           !currentSegmentCards.Any(card => CanPlayPathCard(card));
 
         return new TravelContext
         {
@@ -309,8 +336,9 @@ public class TravelFacade
 
     /// <summary>
     /// Get availability information for a path card including reasons why it can't be used
+    /// PHASE 6D: Accept PathCardDTO object instead of ID
     /// </summary>
-    public PathCardAvailability GetPathCardAvailability(string pathCardId)
+    public PathCardAvailability GetPathCardAvailability(PathCardDTO card)
     {
         TravelSession session = _gameWorld.CurrentTravelSession;
         if (session == null)
@@ -318,8 +346,6 @@ public class TravelFacade
             return new PathCardAvailability { CanPlay = false, Reason = "No active travel session" };
         }
 
-        // Get the card from the current segment's collection
-        PathCardDTO card = GetCardFromCurrentSegmentCollection(pathCardId);
         if (card == null)
         {
             return new PathCardAvailability { CanPlay = false, Reason = "Card not found" };
@@ -346,7 +372,7 @@ public class TravelFacade
         }
 
         // Check one-time card usage
-        if (card.IsOneTime && _gameWorld.IsPathCardDiscovered(pathCardId))
+        if (card.IsOneTime && _gameWorld.IsPathCardDiscovered(card.Id))
         {
             return new PathCardAvailability { CanPlay = false, Reason = "Already used this one-time path" };
         }
@@ -389,10 +415,11 @@ public class TravelFacade
 
     /// <summary>
     /// Check if a specific path card can be played
+    /// PHASE 6D: Accept PathCardDTO object instead of ID
     /// </summary>
-    public bool CanPlayPathCard(string pathCardId)
+    public bool CanPlayPathCard(PathCardDTO card)
     {
-        return GetPathCardAvailability(pathCardId).CanPlay;
+        return GetPathCardAvailability(card).CanPlay;
     }
 
     /// <summary>
@@ -418,7 +445,7 @@ public class TravelFacade
             bool isDiscovered = isEventSegment ||
                               _gameWorld.IsPathCardDiscovered(card.Id);
 
-            bool canPlay = CanPlayPathCard(card.Id);
+            bool canPlay = CanPlayPathCard(card);
 
             pathCardInfos.Add(new PathCardInfo
             {
@@ -435,10 +462,9 @@ public class TravelFacade
     /// <summary>
     /// Start a new path card journey
     /// </summary>
-    public bool StartPathCardJourney(string routeId)
+    public bool StartPathCardJourney(RouteOption route)
     {
-        // Check if player can travel to the route
-        RouteOption route = GetRouteById(routeId);
+        // No lookup needed - route passed as object
         if (route == null)
         {
             return false;
@@ -458,7 +484,7 @@ public class TravelFacade
 
         // Delegate to TravelManager to actually start the journey
         // TravelManager will create the session and set up initial state
-        TravelSession session = _travelManager.StartJourney(routeId);
+        TravelSession session = _travelManager.StartJourney(route);
         return session != null;
     }
 
@@ -511,11 +537,12 @@ public class TravelFacade
 
     /// <summary>
     /// Get the ID of the card being revealed
+    /// ADR-007: Get ID from RevealedCard object (not RevealedCardId property)
     /// </summary>
     public string GetRevealedCardId()
     {
         TravelSession session = _gameWorld.CurrentTravelSession;
-        return session?.RevealedCardId;
+        return session?.RevealedCard?.Id;
     }
 
     /// <summary>
@@ -539,7 +566,7 @@ public class TravelFacade
             return false;
         }
 
-        RouteOption route = GetRouteById(session.RouteId);
+        RouteOption route = session.Route;  // HIGHLANDER: Object reference
         if (route == null || session.CurrentSegment > route.Segments.Count)
         {
             return false;
@@ -560,11 +587,12 @@ public class TravelFacade
             return null;
         }
 
-        // Check if we have a current event ID from the drawn event
-        if (!string.IsNullOrEmpty(session.CurrentEventId) &&
-            _gameWorld.AllPathCollections.Any(p => p.CollectionId == session.CurrentEventId))
+        // ADR-007: Check if we have CurrentEvent object (not ID)
+        // Use Collection.Id (object property) instead of deleted CollectionId
+        if (session.CurrentEvent != null &&
+            _gameWorld.AllPathCollections.Any(p => p.Collection.Id == session.CurrentEvent.Id))
         {
-            PathCardCollectionDTO collection = _gameWorld.GetPathCollection(session.CurrentEventId);
+            PathCardCollectionDTO collection = _gameWorld.GetPathCollection(session.CurrentEvent.Id);
             return collection.NarrativeText;
         }
 
@@ -582,7 +610,7 @@ public class TravelFacade
             return null;
         }
 
-        RouteOption route = GetRouteById(session.RouteId);
+        RouteOption route = session.Route;  // HIGHLANDER: Object reference
         if (route == null || session.CurrentSegment > route.Segments.Count)
         {
             return null;
@@ -593,11 +621,10 @@ public class TravelFacade
         // Handle different segment types
         if (segment.Type == SegmentType.Event)
         {
-            // For Event segments: get card from current event
-            if (!string.IsNullOrEmpty(session.CurrentEventId) &&
-                _gameWorld.AllTravelEvents.Any(e => e.EventId == session.CurrentEventId))
+            // ADR-007: For Event segments, use CurrentEvent object (not CurrentEventId)
+            if (session.CurrentEvent != null)
             {
-                TravelEventDTO travelEvent = _gameWorld.GetTravelEvent(session.CurrentEventId);
+                TravelEventDTO travelEvent = session.CurrentEvent;
                 return travelEvent.EventCards?.FirstOrDefault(c => c.Id == cardId);
             }
         }
@@ -606,7 +633,8 @@ public class TravelFacade
             // For FixedPath segments: use PathCollectionId
             string collectionId = segment.PathCollectionId;
 
-            if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.Any(p => p.CollectionId == collectionId))
+            // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
+            if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.Any(p => p.Collection.Id == collectionId))
             {
                 return null;
             }
@@ -620,13 +648,7 @@ public class TravelFacade
         return null;
     }
 
-    /// <summary>
-    /// Get route by ID from centralized route storage
-    /// </summary>
-    private RouteOption GetRouteById(string routeId)
-    {
-        return _gameWorld.Routes.FirstOrDefault(r => r.Id == routeId);
-    }
+    // PHASE 4: GetRouteById DELETED - ID lookups forbidden, use object references
 
     /// <summary>
     /// Turn back and cancel the journey
@@ -690,6 +712,7 @@ public class PathCardAvailability
 
 /// <summary>
 /// Result of a travel attempt.
+/// PHASE 4: ID properties replaced with object references
 /// </summary>
 public class TravelResult
 {
@@ -698,7 +721,7 @@ public class TravelResult
     public int TravelTimeSegments { get; set; }
     public int SegmentCost { get; set; }
     public int CoinCost { get; set; }
-    public string RouteId { get; set; }
-    public string DestinationId { get; set; }
+    public RouteOption Route { get; set; }  // PHASE 4: Object reference instead of RouteId
+    public Location Destination { get; set; }  // PHASE 4: Object reference instead of DestinationId
     public TravelMethods TransportMethod { get; set; }
 }

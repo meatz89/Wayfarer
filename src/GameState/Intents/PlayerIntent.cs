@@ -17,27 +17,29 @@ public abstract class PlayerIntent
 
 /// <summary>
 /// Intent to move to a different Venue location
+/// HIGHLANDER: Stores Location object, not string ID
 /// </summary>
 public class MoveIntent : PlayerIntent
 {
-    public string TargetSpotId { get; }
+    public Location TargetSpot { get; }
 
-    public MoveIntent(string targetSpotId)
+    public MoveIntent(Location targetSpot)
     {
-        TargetSpotId = targetSpotId;
+        TargetSpot = targetSpot;
     }
 }
 
 /// <summary>
 /// Intent to have a conversation with an NPC
+/// HIGHLANDER: Stores NPC object, not string ID
 /// </summary>
 public class TalkIntent : PlayerIntent
 {
-    public string NpcId { get; }
+    public NPC Npc { get; }
 
-    public TalkIntent(string npcId)
+    public TalkIntent(NPC npc)
     {
-        NpcId = npcId;
+        Npc = npc;
     }
 }
 /// <summary>
@@ -83,26 +85,27 @@ public class ExploreAreaIntent : PlayerIntent
 /// </summary>
 public class TravelIntent : PlayerIntent
 {
-    public string RouteId { get; }
+    public RouteOption Route { get; }
 
-    public TravelIntent(string routeId)
+    public TravelIntent(RouteOption route)
     {
-        RouteId = routeId;
+        Route = route;
     }
 }
 
 /// <summary>
 /// Intent to discover a route from an NPC
+/// HIGHLANDER: Stores typed objects, not string IDs
 /// </summary>
 public class DiscoverRouteIntent : PlayerIntent
 {
-    public string NpcId { get; }
-    public string RouteId { get; }
+    public NPC Npc { get; }
+    public RouteOption Route { get; }
 
-    public DiscoverRouteIntent(string npcId, string routeId)
+    public DiscoverRouteIntent(NPC npc, RouteOption route)
     {
-        NpcId = npcId;
-        RouteId = routeId;
+        Npc = npc;
+        Route = route;
     }
 }
 
@@ -118,14 +121,15 @@ public class CheckBelongingsIntent : PlayerIntent
 /// Intent to engage with an NPC
 /// Spawns scene for NPC engagement, shows situations/choices
 /// This is the CORRECT way to interact with NPCs (not direct challenge execution)
+/// HIGHLANDER: Stores NPC object, not string ID
 /// </summary>
 public class EngageNPCIntent : PlayerIntent
 {
-    public string NpcId { get; }
+    public NPC Npc { get; }
 
-    public EngageNPCIntent(string npcId)
+    public EngageNPCIntent(NPC npc)
     {
-        NpcId = npcId ?? throw new ArgumentNullException(nameof(npcId));
+        Npc = npc ?? throw new ArgumentNullException(nameof(npc));
     }
 }
 
@@ -200,11 +204,11 @@ public class ViewJobBoardIntent : PlayerIntent
 /// </summary>
 public class AcceptDeliveryJobIntent : PlayerIntent
 {
-    public string JobId { get; }
+    public DeliveryJob Job { get; }
 
-    public AcceptDeliveryJobIntent(string jobId)
+    public AcceptDeliveryJobIntent(DeliveryJob job)
     {
-        JobId = jobId;
+        Job = job;
     }
 }
 

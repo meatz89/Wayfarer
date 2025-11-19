@@ -1,24 +1,6 @@
 using System.Text.Json;
 
 /// <summary>
-/// Helper class for exchange card lookups
-/// </summary>
-internal class ExchangeCardEntry
-{
-    public string Id { get; set; }
-    public ExchangeCard Card { get; set; }
-}
-
-/// <summary>
-/// Helper class for path card lookups
-/// </summary>
-internal class PathCardEntry
-{
-    public string Id { get; set; }
-    public PathCardDTO Card { get; set; }
-}
-
-/// <summary>
 /// Orchestrates loading of game packages, delegating to specialized parsers for conversion.
 /// Uses simple sequential loading in dependency order for static content.
 ///
@@ -33,7 +15,7 @@ public class PackageLoader
 {
     private readonly GameWorld _gameWorld;
     private bool _isFirstPackage = true;
-    private List<ExchangeCardEntry> _parsedExchangeCards;
+    private List<ExchangeCard> _parsedExchangeCards; // HIGHLANDER: Object references ONLY, no wrapper class
     private string _currentPackageId = "unknown"; // Track current package for error reporting
 
     // Track loaded packages to prevent reloading
@@ -196,9 +178,9 @@ public class PackageLoader
         // Actions are now GENERATED from catalogues at parse time (see GeneratePlayerActionsFromCatalogue/GenerateLocationActionsFromCatalogue)
         // CATALOGUE PATTERN: Actions generated from categorical properties, never from JSON
 
-        // 8. Travel content
-        List<PathCardEntry> pathCardLookup = LoadPathCards(package.Content.PathCards, allowSkeletons);
-        List<PathCardEntry> eventCardLookup = LoadEventCards(package.Content.EventCards, allowSkeletons);
+        // 8. Travel content - HIGHLANDER: Object references ONLY, no wrapper classes
+        List<PathCardDTO> pathCardLookup = LoadPathCards(package.Content.PathCards, allowSkeletons);
+        List<PathCardDTO> eventCardLookup = LoadEventCards(package.Content.EventCards, allowSkeletons);
         LoadTravelEvents(package.Content.TravelEvents, eventCardLookup, allowSkeletons);
         LoadEventCollections(package.Content.PathCardCollections, pathCardLookup, eventCardLookup, allowSkeletons);
 
@@ -313,11 +295,11 @@ public class PackageLoader
             throw new InvalidOperationException("StartingSpotId is required in starting conditions - player has no spawn location!");
 
         // Validate starting location exists in parsed locations
-        Location startingLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == conditions.StartingSpotId);
+        // HIGHLANDER: Use GetLocation query method instead of LINQ with Id comparison
+        Location startingLocation = _gameWorld.GetLocation(conditions.StartingSpotId);
         if (startingLocation == null)
             throw new InvalidOperationException($"StartingSpotId '{conditions.StartingSpotId}' not found in parsed locations - player cannot spawn!");
 
-        _gameWorld.InitialLocationId = conditions.StartingSpotId;
 
         // Apply starting obligations
         if (conditions.StartingObligations != null)
@@ -384,8 +366,8 @@ public class PackageLoader
         // Add to GameWorld (check for duplicates if multiple packages)
         foreach (PlayerAction action in playerActions)
         {
-            // Avoid duplicates if multiple packages loaded
-            if (!_gameWorld.PlayerActions.Any(a => a.Id == action.Id))
+            // Avoid duplicates if multiple packages loaded (object equality check)
+            if (!_gameWorld.PlayerActions.Any(a => a == action))
             {
                 _gameWorld.PlayerActions.Add(action);
             }
@@ -413,11 +395,11 @@ public class PackageLoader
             // Add generated actions to GameWorld
             foreach (LocationAction action in generatedActions)
             {
-                // Avoid duplicates if multiple packages loaded (semantic deduplication, not ID matching)
+                // Avoid duplicates if multiple packages loaded (semantic deduplication via object references)
                 bool isDuplicate = _gameWorld.LocationActions.Any(a =>
                     a.ActionType == action.ActionType &&
-                    a.SourceLocationId == action.SourceLocationId &&
-                    a.DestinationLocationId == action.DestinationLocationId);
+                    a.SourceLocation == action.SourceLocation &&
+                    a.DestinationLocation == action.DestinationLocation);
 
                 if (!isDuplicate)
                 {
@@ -444,8 +426,8 @@ public class PackageLoader
         // Add generated jobs to GameWorld
         foreach (DeliveryJob job in generatedJobs)
         {
-            // Avoid duplicates if multiple packages loaded
-            if (!_gameWorld.AvailableDeliveryJobs.Any(j => j.Id == job.Id))
+            // Avoid duplicates if multiple packages loaded (object equality check)
+            if (!_gameWorld.AvailableDeliveryJobs.Any(j => j == job))
             {
                 _gameWorld.AvailableDeliveryJobs.Add(job);
             }
@@ -599,7 +581,8 @@ public class PackageLoader
         foreach (RouteOption route in generatedRoutes)
         {
             // Check if route already exists (manually-authored routes take precedence)
-            bool routeExists = _gameWorld.Routes.Any(r => r.Id == route.Id);
+            // Use Name as natural key for route identity
+            bool routeExists = _gameWorld.Routes.Any(r => r.Name == route.Name);
             if (!routeExists)
             {
                 _gameWorld.Routes.Add(route);
@@ -620,7 +603,7 @@ public class PackageLoader
         {
             Region region = new Region
             {
-                Id = dto.Id,
+                // Region uses Name as natural key (no Id property)
                 Name = dto.Name,
                 Description = dto.Description,
                 DistrictIds = dto.DistrictIds,
@@ -643,7 +626,7 @@ public class PackageLoader
         {
             District district = new District
             {
-                Id = dto.Id,
+                // District uses Name as natural key (no Id property)
                 Name = dto.Name,
                 Description = dto.Description,
                 RegionId = dto.RegionId,
@@ -825,7 +808,7 @@ public class PackageLoader
         {
             // Check if this venue was previously a skeleton - UPDATE IN-PLACE (never remove)
             Venue? existing = _gameWorld.Venues
-                .FirstOrDefault(l => l.Id == dto.Id);
+                .FirstOrDefault(v => v.Name == dto.Name);
 
             if (existing != null)
             {
@@ -841,7 +824,7 @@ public class PackageLoader
                 {
                     if (!Enum.TryParse<VenueType>(dto.LocationType, true, out venueType))
                     {
-                        throw new InvalidDataException($"Venue {dto.Id} has invalid LocationType '{dto.LocationType}'. Valid values: {string.Join(", ", Enum.GetNames(typeof(VenueType)))}");
+                        throw new InvalidDataException($"Venue '{dto.Name}' has invalid LocationType '{dto.LocationType}'. Valid values: {string.Join(", ", Enum.GetNames(typeof(VenueType)))}");
                     }
                 }
                 existing.Type = venueType;
@@ -853,7 +836,7 @@ public class PackageLoader
                 existing.IsSkeleton = false;
 
                 // Remove from skeleton registry if present
-                SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FirstOrDefault(x => x.SkeletonKey == dto.Id);
+                SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FirstOrDefault(x => x.SkeletonKey == dto.Name);
                 if (skeletonEntry != null)
                 {
                     _gameWorld.SkeletonRegistry.Remove(skeletonEntry);
@@ -875,10 +858,10 @@ public class PackageLoader
         foreach (LocationDTO dto in spotDtos)
         {
             // Remove skeleton registry entry if location was skeleton (cleanup before update)
-            Location? existingSkeleton = _gameWorld.GetLocation(dto.Id);
+            Location? existingSkeleton = _gameWorld.GetLocation(dto.Name);
             if (existingSkeleton != null && existingSkeleton.IsSkeleton)
             {
-                SkeletonRegistryEntry? spotSkeletonEntry = _gameWorld.SkeletonRegistry.FirstOrDefault(x => x.SkeletonKey == dto.Id);
+                SkeletonRegistryEntry? spotSkeletonEntry = _gameWorld.SkeletonRegistry.FirstOrDefault(x => x.SkeletonKey == dto.Name);
                 if (spotSkeletonEntry != null)
                 {
                     _gameWorld.SkeletonRegistry.Remove(spotSkeletonEntry);
@@ -896,11 +879,11 @@ public class PackageLoader
             {
                 if (!_gameWorld.CanVenueAddMoreLocations(location.Venue))
                 {
-                    int currentCount = _gameWorld.GetLocationCountInVenue(location.Venue.Id);
+                    int currentCount = _gameWorld.GetLocationCountInVenue(location.Venue.Name);
                     throw new InvalidOperationException(
-                        $"Venue '{location.Venue.Id}' ({location.Venue.Name}) has reached capacity " +
+                        $"Venue '{location.Venue.Name}' has reached capacity " +
                         $"({currentCount}/{location.Venue.MaxLocations} locations). " +
-                        $"Cannot add location '{location.Id}'. " +
+                        $"Cannot add location '{location.Name}'. " +
                         $"Increase MaxLocations in venue definition or reduce authored locations.");
                 }
 
@@ -912,14 +895,14 @@ public class PackageLoader
                 _hexSync.SyncLocationToHex(location, _gameWorld);
 
                 // AddOrUpdateLocation handles skeleton replacement via in-place property updates
-                _gameWorld.AddOrUpdateLocation(location.Id, location);
+                _gameWorld.AddOrUpdateLocation(location.Name, location);
             }
             else
             {
                 // Location has no venue (shouldn't happen, but handle gracefully)
                 // Skip validation - happens after hex sync
                 _hexSync.SyncLocationToHex(location, _gameWorld);
-                _gameWorld.AddOrUpdateLocation(location.Id, location);
+                _gameWorld.AddOrUpdateLocation(location.Name, location);
             }
         }
     }
@@ -928,50 +911,15 @@ public class PackageLoader
     {
         if (npcDtos == null) return;
 
+        // EntityResolver for categorical entity resolution (DDR-006)
+        Player player = _gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
+        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
+
         foreach (NPCDTO dto in npcDtos)
         {
-            // Check if NPC references a Venue that doesn't exist
-            if (!string.IsNullOrEmpty(dto.VenueId) &&
-                !_gameWorld.Venues.Any(l => l.Id == dto.VenueId))
-            {
-                // Create skeleton venue
-                Venue skeletonVenue = SkeletonGenerator.GenerateSkeletonVenue(
-                    dto.VenueId,
-                    $"npc_{dto.Id}_reference");
-
-                _gameWorld.Venues.Add(skeletonVenue);
-                _gameWorld.AddSkeleton(dto.VenueId, "Venue");
-
-                // Also create a skeleton location for the location
-                string hubSpotId = $"{dto.VenueId}_hub";
-                Location hubSpot = SkeletonGenerator.GenerateSkeletonSpot(
-                    hubSpotId,
-                    dto.VenueId,
-                    $"location_{dto.VenueId}_hub");
-
-                _gameWorld.AddOrUpdateLocation(hubSpotId, hubSpot);
-                _gameWorld.AddSkeleton(hubSpot.Id, "Location");
-            }
-
-            // Check if NPC references a location that doesn't exist
-            if (!string.IsNullOrEmpty(dto.LocationId) &&
-                _gameWorld.GetLocation(dto.LocationId) == null)
-            {
-                // Create skeleton location
-                if (string.IsNullOrEmpty(dto.VenueId))
-                    throw new InvalidDataException($"NPC '{dto.Id}' references LocationId '{dto.LocationId}' but VenueId is missing - cannot create skeleton");
-
-                Location skeletonSpot = SkeletonGenerator.GenerateSkeletonSpot(
-                    dto.LocationId,
-                    dto.VenueId,
-                    $"npc_{dto.Id}_spot_reference");
-
-                _gameWorld.AddOrUpdateLocation(dto.LocationId, skeletonSpot);
-                _gameWorld.AddSkeleton(dto.LocationId, "Location");
-            }
-
             // Check if this NPC already exists - UPDATE IN-PLACE (never remove)
-            NPC? existing = _gameWorld.NPCs.FirstOrDefault(n => n.ID == dto.Id);
+            NPC? existing = _gameWorld.NPCs.FirstOrDefault(n => n.Name == dto.Name);
 
             if (existing != null)
             {
@@ -979,7 +927,7 @@ public class PackageLoader
                 List<ExchangeCard> preservedExchangeCards = existing.ExchangeDeck.ToList();
 
                 // Parse full NPC from DTO to get updated properties
-                NPC parsed = NPCParser.ConvertDTOToNPC(dto, _gameWorld);
+                NPC parsed = NPCParser.ConvertDTOToNPC(dto, _gameWorld, entityResolver);
 
                 // UPDATE existing NPC properties in-place (preserve object identity)
                 existing.Name = parsed.Name;
@@ -992,6 +940,7 @@ public class PackageLoader
                 existing.PersonalityDescription = parsed.PersonalityDescription;
                 existing.PersonalityType = parsed.PersonalityType;
                 existing.ConversationModifier = parsed.ConversationModifier;
+                existing.Location = parsed.Location; // Resolved via EntityResolver.FindOrCreate
                 existing.IsSkeleton = false;
 
                 // PRESERVE ExchangeDeck: Merge authored initial cards + preserved runtime cards
@@ -1000,7 +949,7 @@ public class PackageLoader
                 existing.ExchangeDeck.AddRange(preservedExchangeCards); // Runtime cards preserved
 
                 // Remove from skeleton registry if present
-                SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FirstOrDefault(x => x.SkeletonKey == dto.Id);
+                SkeletonRegistryEntry? skeletonEntry = _gameWorld.SkeletonRegistry.FirstOrDefault(x => x.SkeletonKey == dto.Name);
                 if (skeletonEntry != null)
                 {
                     _gameWorld.SkeletonRegistry.Remove(skeletonEntry);
@@ -1009,7 +958,7 @@ public class PackageLoader
             else
             {
                 // New NPC - add to collection
-                NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld);
+                NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld, entityResolver);
                 _gameWorld.NPCs.Add(npc);
             }
         }
@@ -1032,13 +981,13 @@ public class PackageLoader
                 if (allowSkeletons)
                 {
                     if (string.IsNullOrEmpty(dto.OriginVenueId))
-                        throw new InvalidDataException($"Route '{dto.Id}' missing OriginVenueId - cannot create skeleton origin location");
+                        throw new InvalidDataException($"Route '{dto.Name}' missing OriginVenueId - cannot create skeleton origin location");
 
                     // Create skeleton location with crossroads property (required for routes)
                     originSpot = SkeletonGenerator.GenerateSkeletonSpot(
                         dto.OriginSpotId,
                         dto.OriginVenueId,
-                        $"route_{dto.Id}_origin"
+                        $"route_{dto.Name}_origin"
                     );
 
                     // Ensure skeleton has crossroads property for route connectivity
@@ -1052,7 +1001,7 @@ public class PackageLoader
                 }
                 else
                 {
-                    throw new Exception($"[PackageLoader] Route '{dto.Id}' references missing origin location '{dto.OriginSpotId}'. Ensure Locations are loaded before routes.");
+                    throw new Exception($"[PackageLoader] Route '{dto.Name}' references missing origin location '{dto.OriginSpotId}'. Ensure Locations are loaded before routes.");
                 }
             }
 
@@ -1063,13 +1012,13 @@ public class PackageLoader
                 if (allowSkeletons)
                 {
                     if (string.IsNullOrEmpty(dto.DestinationVenueId))
-                        throw new InvalidDataException($"Route '{dto.Id}' missing DestinationVenueId - cannot create skeleton destination location");
+                        throw new InvalidDataException($"Route '{dto.Name}' missing DestinationVenueId - cannot create skeleton destination location");
 
                     // Create skeleton location with crossroads property (required for routes)
                     destSpot = SkeletonGenerator.GenerateSkeletonSpot(
                         dto.DestinationSpotId,
                         dto.DestinationVenueId,
-                        $"route_{dto.Id}_destination"
+                        $"route_{dto.Name}_destination"
                     );
 
                     // Ensure skeleton has crossroads property for route connectivity
@@ -1083,7 +1032,7 @@ public class PackageLoader
                 }
                 else
                 {
-                    throw new Exception($"[PackageLoader] Route '{dto.Id}' references missing destination location '{dto.DestinationSpotId}'. Ensure Locations are loaded before routes.");
+                    throw new Exception($"[PackageLoader] Route '{dto.Name}' references missing destination location '{dto.DestinationSpotId}'. Ensure Locations are loaded before routes.");
                 }
             }
         }
@@ -1112,9 +1061,10 @@ public class PackageLoader
         Location location = _gameWorld.GetLocation(LocationId);
         if (location == null)
             throw new InvalidDataException($"Location '{LocationId}' not found when attempting to get VenueId");
-        if (string.IsNullOrEmpty(location.VenueId))
-            throw new InvalidDataException($"Location '{LocationId}' has no VenueId assigned");
-        return location.VenueId;
+        // ADR-007: Use Venue object reference instead of deleted VenueId
+        if (location.Venue == null)
+            throw new InvalidDataException($"Location '{LocationId}' has no Venue assigned");
+        return location.Venue.Name;
     }
 
     private void LoadDialogueTemplates(DialogueTemplates dialogueTemplates, bool allowSkeletons)
@@ -1122,31 +1072,28 @@ public class PackageLoader
         if (dialogueTemplates == null) return; _gameWorld.DialogueTemplates = dialogueTemplates;
     }
 
-    private List<PathCardEntry> LoadPathCards(List<PathCardDTO> pathCardDtos, bool allowSkeletons)
+    /// <summary>
+    /// Load path cards - HIGHLANDER: Object references ONLY, no wrapper classes
+    /// </summary>
+    private List<PathCardDTO> LoadPathCards(List<PathCardDTO> pathCardDtos, bool allowSkeletons)
     {
-        if (pathCardDtos == null) return new List<PathCardEntry>();
-
-        List<PathCardEntry> pathCardLookup = new List<PathCardEntry>();
-        foreach (PathCardDTO dto in pathCardDtos)
-        {
-            pathCardLookup.Add(new PathCardEntry { Id = dto.Id, Card = dto });
-        }
-        return pathCardLookup;
+        if (pathCardDtos == null) return new List<PathCardDTO>();
+        return pathCardDtos;
     }
 
-    private List<PathCardEntry> LoadEventCards(List<PathCardDTO> eventCardDtos, bool allowSkeletons)
+    /// <summary>
+    /// Load event cards - HIGHLANDER: Object references ONLY, no wrapper classes
+    /// </summary>
+    private List<PathCardDTO> LoadEventCards(List<PathCardDTO> eventCardDtos, bool allowSkeletons)
     {
-        if (eventCardDtos == null) return new List<PathCardEntry>();
-
-        List<PathCardEntry> eventCardLookup = new List<PathCardEntry>();
-        foreach (PathCardDTO dto in eventCardDtos)
-        {
-            eventCardLookup.Add(new PathCardEntry { Id = dto.Id, Card = dto });
-        }
-        return eventCardLookup;
+        if (eventCardDtos == null) return new List<PathCardDTO>();
+        return eventCardDtos;
     }
 
-    private void LoadTravelEvents(List<TravelEventDTO> travelEventDtos, List<PathCardEntry> eventCardLookup, bool allowSkeletons)
+    /// <summary>
+    /// Load travel events - HIGHLANDER: Object references ONLY, lookup by Name not wrapper ID
+    /// </summary>
+    private void LoadTravelEvents(List<TravelEventDTO> travelEventDtos, List<PathCardDTO> eventCardLookup, bool allowSkeletons)
     {
         if (travelEventDtos == null) return;
 
@@ -1157,19 +1104,23 @@ public class PackageLoader
             {
                 foreach (string cardId in dto.EventCardIds)
                 {
-                    PathCardEntry? eventCardEntry = eventCardLookup.FirstOrDefault(e => e.Id == cardId);
-                    if (eventCardEntry != null)
+                    PathCardDTO? eventCard = eventCardLookup.FirstOrDefault(e => e.Name == cardId);
+                    if (eventCard != null)
                     {
-                        dto.EventCards.Add(eventCardEntry.Card);
+                        dto.EventCards.Add(eventCard);
                     }
                 }
             }
 
-            _gameWorld.AllTravelEvents.Add(new TravelEventEntry { EventId = dto.Id, TravelEvent = dto });
+            // ADR-007: EventId property deleted - use TravelEvent.Id instead
+            _gameWorld.AllTravelEvents.Add(new TravelEventEntry { TravelEvent = dto });
         }
     }
 
-    private void LoadEventCollections(List<PathCardCollectionDTO> collectionDtos, List<PathCardEntry> pathCardLookup, List<PathCardEntry> eventCardLookup, bool allowSkeletons)
+    /// <summary>
+    /// Load event collections - HIGHLANDER: Object references ONLY, lookup by Name not wrapper ID
+    /// </summary>
+    private void LoadEventCollections(List<PathCardCollectionDTO> collectionDtos, List<PathCardDTO> pathCardLookup, List<PathCardDTO> eventCardLookup, bool allowSkeletons)
     {
         if (collectionDtos == null) return;
 
@@ -1189,10 +1140,10 @@ public class PackageLoader
             {
                 foreach (string cardId in dto.PathCardIds)
                 {
-                    PathCardEntry? pathCardEntry = pathCardLookup.FirstOrDefault(p => p.Id == cardId);
-                    if (pathCardEntry != null)
+                    PathCardDTO? pathCard = pathCardLookup.FirstOrDefault(p => p.Name == cardId);
+                    if (pathCard != null)
                     {
-                        dto.PathCards.Add(pathCardEntry.Card);
+                        dto.PathCards.Add(pathCard);
                     }
                 }
             }
@@ -1201,20 +1152,21 @@ public class PackageLoader
             bool isEventCollection = (dto.Events != null && dto.Events.Count > 0);
             bool isPathCollection = (dto.PathCards != null && dto.PathCards.Count > 0);
 
+            // ADR-007: CollectionId property deleted - use Collection.Id instead
             if (isEventCollection)
             {
                 // This is an event collection - contains child events for random selection
-                _gameWorld.AllEventCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });
+                _gameWorld.AllEventCollections.Add(new PathCollectionEntry { Collection = dto });
             }
             else if (isPathCollection)
             {
                 // This is a path collection - contains actual path cards for FixedPath segments
-                _gameWorld.AllPathCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });
+                _gameWorld.AllPathCollections.Add(new PathCollectionEntry { Collection = dto });
             }
             else
             {
                 // Fallback: treat as path collection if no clear indicators
-                _gameWorld.AllPathCollections.Add(new PathCollectionEntry { CollectionId = dto.Id, Collection = dto });
+                _gameWorld.AllPathCollections.Add(new PathCollectionEntry { Collection = dto });
             }
         }
     }
@@ -1232,10 +1184,10 @@ public class PackageLoader
             NPCDeckDefinitionDTO deckDef = null;
             if (deckCompositions != null)
             {
-                // Check for NPC-specific deck first
-                if (deckCompositions.NpcDecks != null && deckCompositions.NpcDecks.ContainsKey(npc.ID))
+                // Check for NPC-specific deck first (use Name as key since NPC.ID deleted)
+                if (deckCompositions.NpcDecks != null && deckCompositions.NpcDecks.ContainsKey(npc.Name))
                 {
-                    deckDef = deckCompositions.NpcDecks[npc.ID];
+                    deckDef = deckCompositions.NpcDecks[npc.Name];
                 }
                 // No default deck anymore - NPCs only have specific decks
             }
@@ -1249,10 +1201,10 @@ public class PackageLoader
                     int count = kvp.Value;
 
                     // Find the exchange card from the parsed exchange cards
-                    ExchangeCardEntry? exchangeEntry = _parsedExchangeCards?.FirstOrDefault(e => e.Id == cardId);
-                    if (exchangeEntry != null)
+                    // HIGHLANDER: Object references ONLY, lookup by Name not wrapper ID
+                    ExchangeCard? exchangeCard = _parsedExchangeCards?.FirstOrDefault(e => e.Name == cardId);
+                    if (exchangeCard != null)
                     {
-                        ExchangeCard exchangeCard = exchangeEntry.Card;
                         // Add the specified number of copies to the deck
                         for (int i = 0; i < count; i++)
                         {
@@ -1311,25 +1263,21 @@ public class PackageLoader
 
     private RouteOption ConvertRouteDTOToModel(RouteDTO dto)
     {
-        if (string.IsNullOrEmpty(dto.Id))
-            throw new InvalidDataException("Route missing required field 'Id'");
         if (string.IsNullOrEmpty(dto.Name))
-            throw new InvalidDataException($"Route '{dto.Id}' missing required field 'Name'");
+            throw new InvalidDataException("Route missing required field 'Name'");
         if (string.IsNullOrEmpty(dto.OriginSpotId))
-            throw new InvalidDataException($"Route '{dto.Id}' missing required field 'OriginSpotId'");
+            throw new InvalidDataException($"Route '{dto.Name}' missing required field 'OriginSpotId'");
         if (string.IsNullOrEmpty(dto.DestinationSpotId))
-            throw new InvalidDataException($"Route '{dto.Id}' missing required field 'DestinationSpotId'");
+            throw new InvalidDataException($"Route '{dto.Name}' missing required field 'DestinationSpotId'");
         if (string.IsNullOrEmpty(dto.Description))
-            throw new InvalidDataException($"Route '{dto.Id}' missing required field 'Description'");
+            throw new InvalidDataException($"Route '{dto.Name}' missing required field 'Description'");
 
         RouteOption route = new RouteOption
         {
-            Id = dto.Id,
+            // RouteOption uses Name as natural key (no Id property)
             Name = dto.Name,
-            OriginLocationId = dto.OriginSpotId,
-            OriginLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == dto.OriginSpotId),
-            DestinationLocationId = dto.DestinationSpotId,
-            DestinationLocation = _gameWorld.Locations.FirstOrDefault(l => l.Id == dto.DestinationSpotId),
+            OriginLocation = _gameWorld.GetLocation(dto.OriginSpotId),
+            DestinationLocation = _gameWorld.GetLocation(dto.DestinationSpotId),
             Method = Enum.TryParse<TravelMethods>(dto.Method, out TravelMethods method) ? method : TravelMethods.Walking,
             BaseCoinCost = dto.BaseCoinCost,
             BaseStaminaCost = dto.BaseStaminaCost,
@@ -1425,13 +1373,19 @@ public class PackageLoader
             _gameWorld.ExchangeDefinitions.Add(dto);
         }
 
+        // EntityResolver for categorical entity resolution (DDR-006)
+        Player player = _gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
+        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
+
         // Parse exchanges into ExchangeCard objects and store them
         // These will be referenced when building NPC decks
-        _parsedExchangeCards = new List<ExchangeCardEntry>();
+        // HIGHLANDER: Object references ONLY, no wrapper class
+        _parsedExchangeCards = new List<ExchangeCard>();
         foreach (ExchangeDTO dto in exchangeDtos)
         {
-            ExchangeCard exchangeCard = ExchangeParser.ParseExchange(dto, dto.NpcId, _gameWorld);
-            _parsedExchangeCards.Add(new ExchangeCardEntry { Id = exchangeCard.Id, Card = exchangeCard });
+            ExchangeCard exchangeCard = ExchangeParser.ParseExchange(dto, entityResolver);
+            _parsedExchangeCards.Add(exchangeCard);
         }
     }
 
@@ -1445,7 +1399,7 @@ public class PackageLoader
         {
             foreach (PathCardDTO pathCard in collection.PathCards)
             {
-                _gameWorld.SetPathCardDiscovered(pathCard.Id, pathCard.StartsRevealed);
+                _gameWorld.SetPathCardDiscovered(pathCard.Name, pathCard.StartsRevealed);
             }
         }
 
@@ -1454,7 +1408,7 @@ public class PackageLoader
         {
             foreach (PathCardDTO eventCard in collection.EventCards)
             {
-                _gameWorld.SetPathCardDiscovered(eventCard.Id, eventCard.StartsRevealed);
+                _gameWorld.SetPathCardDiscovered(eventCard.Name, eventCard.StartsRevealed);
             }
         }
 
@@ -1464,7 +1418,8 @@ public class PackageLoader
         // Initialize EventDeckPositions for routes with event pools
         foreach (PathCollectionEntry entry in _gameWorld.AllEventCollections)
         {
-            string routeId = entry.CollectionId;
+            // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
+            string routeId = entry.Collection.Id;
             string deckKey = $"route_{routeId}_events";
 
             // Start at position 0 for deterministic event drawing
@@ -1477,15 +1432,16 @@ public class PackageLoader
     /// <summary>
     /// Initialize obligation journal with all obligations as Potential (awaiting discovery triggers)
     /// Called AFTER all packages are loaded to ensure all obligations exist
+    /// HIGHLANDER: Object references ONLY, no ID collections
     /// </summary>
     private void InitializeObligationJournal()
     {
         ObligationJournal obligationJournal = _gameWorld.ObligationJournal;
 
-        obligationJournal.PotentialObligationIds.Clear();
+        obligationJournal.PotentialObligations.Clear();
         foreach (Obligation obligation in _gameWorld.Obligations)
         {
-            obligationJournal.PotentialObligationIds.Add(obligation.Id);
+            obligationJournal.PotentialObligations.Add(obligation);
         }
     }
 
@@ -1501,21 +1457,15 @@ public class PackageLoader
     /// </summary>
     private RouteOption GenerateReverseRoute(RouteOption forwardRoute)
     {
-        // Extract Venue IDs from the location IDs for naming
-        string originVenueId = GetVenueIdFromSpotId(forwardRoute.OriginLocationId);
-        string destVenueId = GetVenueIdFromSpotId(forwardRoute.DestinationLocationId);
-
-        // Generate unique ID for reverse route (pure identifier, no encoded data)
-        string reverseId = Guid.NewGuid().ToString();
+        // Extract Venue IDs from the location names for naming
+        string originVenueId = GetVenueIdFromSpotId(forwardRoute.OriginLocation.Name);
+        string destVenueId = GetVenueIdFromSpotId(forwardRoute.DestinationLocation.Name);
 
         RouteOption reverseRoute = new RouteOption
         {
-            Id = reverseId,
             Name = $"Return to {GetLocationNameFromId(originVenueId)}",
-            // Swap origin and destination (both IDs and objects)
-            OriginLocationId = forwardRoute.DestinationLocationId,
+            // Swap origin and destination locations
             OriginLocation = forwardRoute.DestinationLocation,
-            DestinationLocationId = forwardRoute.OriginLocationId,
             DestinationLocation = forwardRoute.OriginLocation,
 
             // Keep the same properties for both directions
@@ -1563,12 +1513,12 @@ public class PackageLoader
         reverseRoute.EncounterDeckIds.AddRange(forwardRoute.EncounterDeckIds);
 
         // If the forward route has a route-level event pool, copy it to the reverse route
-        PathCollectionEntry? forwardEntry = _gameWorld.AllEventCollections.FirstOrDefault(x => x.CollectionId == forwardRoute.Id);
+        // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
+        PathCollectionEntry? forwardEntry = _gameWorld.AllEventCollections.FirstOrDefault(x => x.Collection.Id == forwardRoute.Id);
         if (forwardEntry != null)
         {
             PathCollectionEntry reverseEntry = new PathCollectionEntry
             {
-                CollectionId = reverseRoute.Id,
                 Collection = forwardEntry.Collection
             };
             _gameWorld.AllEventCollections.Add(reverseEntry);
@@ -1583,7 +1533,7 @@ public class PackageLoader
         if (string.IsNullOrEmpty(venueId))
             throw new InvalidDataException("GetLocationNameFromId called with null/empty venueId");
 
-        Venue venue = _gameWorld.Venues.FirstOrDefault(l => l.Id == venueId);
+        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Name == venueId);
         if (venue == null)
             return venueId.Replace("_", " ").Replace("-", " "); // Fallback to formatted ID if venue not found
         return venue.Name;
@@ -1601,11 +1551,12 @@ public class PackageLoader
         List<VenueLocationGrouping> spotsByLocation = new List<VenueLocationGrouping>();
         foreach (Location location in _gameWorld.Locations)
         {
-            int groupIndex = spotsByLocation.FindIndex(g => g.VenueId == location.VenueId);
+            // ADR-007: Use Venue.Name instead of deleted VenueId
+            int groupIndex = spotsByLocation.FindIndex(g => g.VenueId == location.Venue.Name);
             if (groupIndex == -1)
             {
                 VenueLocationGrouping group = new VenueLocationGrouping();
-                group.VenueId = location.VenueId;
+                group.VenueId = location.Venue.Name;
                 group.Locations.Add(location);
                 spotsByLocation.Add(group);
             }
@@ -1618,10 +1569,10 @@ public class PackageLoader
         // Validate each venue has exactly one crossroads location
         foreach (Venue venue in _gameWorld.Venues)
         {
-            VenueLocationGrouping locationGroup = spotsByLocation.FirstOrDefault(g => g.VenueId == venue.Id);
+            VenueLocationGrouping locationGroup = spotsByLocation.FirstOrDefault(g => g.VenueId == venue.Name);
             if (locationGroup == null || locationGroup.VenueId == null)
             {
-                throw new InvalidOperationException($"Venue '{venue.Id}' ({venue.Name}) has no Locations defined");
+                throw new InvalidOperationException($"Venue '{venue.Name}' has no Locations defined");
             }
 
             List<Location> locations = locationGroup.Locations;
@@ -1631,12 +1582,12 @@ public class PackageLoader
 
             if (crossroadsSpots.Count == 0)
             {
-                throw new InvalidOperationException($"Location '{venue.Id}' ({venue.Name}) has no Locations with Crossroads property. Every Venue must have exactly one crossroads location for travel.");
+                throw new InvalidOperationException($"Venue '{venue.Name}' has no Locations with Crossroads property. Every Venue must have exactly one crossroads location for travel.");
             }
             else if (crossroadsSpots.Count > 1)
             {
-                string spotsInfo = string.Join(", ", crossroadsSpots.Select(s => $"'{s.Id}' ({s.Name})"));
-                throw new InvalidOperationException($"Location '{venue.Id}' ({venue.Name}) has {crossroadsSpots.Count} Locations with Crossroads property: {spotsInfo}. Only one crossroads location is allowed per location.");
+                string spotsInfo = string.Join(", ", crossroadsSpots.Select(s => $"'{s.Name}'"));
+                throw new InvalidOperationException($"Venue '{venue.Name}' has {crossroadsSpots.Count} Locations with Crossroads property: {spotsInfo}. Only one crossroads location is allowed per location.");
             }
         }
 
@@ -1644,10 +1595,10 @@ public class PackageLoader
         List<string> routeSpotIds = new List<string>();
         foreach (RouteOption route in _gameWorld.Routes)
         {
-            if (!routeSpotIds.Contains(route.OriginLocationId))
-                routeSpotIds.Add(route.OriginLocationId);
-            if (!routeSpotIds.Contains(route.DestinationLocationId))
-                routeSpotIds.Add(route.DestinationLocationId);
+            if (!routeSpotIds.Contains(route.OriginLocation.Name))
+                routeSpotIds.Add(route.OriginLocation.Name);
+            if (!routeSpotIds.Contains(route.DestinationLocation.Name))
+                routeSpotIds.Add(route.DestinationLocation.Name);
         }
 
         foreach (string LocationId in routeSpotIds)
@@ -1696,9 +1647,14 @@ public class PackageLoader
     {
         if (conversationTrees == null) return;
 
+        // EntityResolver for categorical entity resolution (DDR-006)
+        Player player = _gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
+        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
+
         foreach (ConversationTreeDTO dto in conversationTrees)
         {
-            ConversationTree tree = ConversationTreeParser.Parse(dto, _gameWorld);
+            ConversationTree tree = ConversationTreeParser.Parse(dto, entityResolver);
             _gameWorld.ConversationTrees.Add(tree);
         }
     }
@@ -1707,9 +1663,14 @@ public class PackageLoader
     {
         if (observationScenes == null) return;
 
+        // EntityResolver for categorical entity resolution (DDR-006)
+        Player player = _gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
+        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
+
         foreach (ObservationSceneDTO dto in observationScenes)
         {
-            ObservationScene scene = ObservationSceneParser.Parse(dto, _gameWorld);
+            ObservationScene scene = ObservationSceneParser.Parse(dto, entityResolver);
             _gameWorld.ObservationScenes.Add(scene);
         }
     }

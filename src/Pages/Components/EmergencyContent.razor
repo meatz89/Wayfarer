@@ -42,7 +42,7 @@
             <!-- Affordable Responses -->
             @foreach (var response in Context.GetAffordableResponses())
             {
-                <div class="response-option available" @onclick="() => HandleSelectResponse(response.Id)">
+                <div class="response-option available" @onclick="() => HandleSelectResponse(response)">
                     <div class="response-header">
                         <div class="response-text">@response.ResponseText</div>
                     </div>

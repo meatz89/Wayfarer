@@ -88,28 +88,27 @@ public class ObligationActivity
     /// Set pending intro action - prepares quest acceptance modal but doesn't activate
     /// RPG Pattern: Button click → Modal → "Begin Obligation" → Activate
     /// </summary>
-    public void SetPendingIntroAction(string obligationId)
+    public void SetPendingIntroAction(Obligation obligation)
     {
-        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
         if (obligation == null)
-            throw new ArgumentException($"Obligation '{obligationId}' not found");
+            throw new ArgumentNullException(nameof(obligation));
 
         if (obligation.IntroAction == null)
-            throw new InvalidOperationException($"Obligation '{obligationId}' has no intro action");
+            throw new InvalidOperationException($"Obligation '{obligation.Name}' has no intro action");
 
-        // Derive venue from location
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == obligation.IntroAction.LocationId);
+        // HIGHLANDER: Use object references directly
+        Location location = obligation.IntroAction.Location;
         if (location == null)
-            throw new InvalidOperationException($"Location '{obligation.IntroAction.LocationId}' not found for obligation intro action");
+            throw new InvalidOperationException($"Obligation '{obligation.Name}' IntroAction has no location");
 
-        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId);
+        Venue venue = location.Venue;
         if (venue == null)
-            throw new InvalidOperationException($"Venue '{location.VenueId}' not found for location '{location.Id}'");
+            throw new InvalidOperationException($"Location '{location.Name}' has no venue");
 
         // Create intro result for quest acceptance modal
         _pendingIntroResult = new ObligationIntroResult
         {
-            ObligationId = obligationId,
+            ObligationId = obligation.Id,
             ObligationName = obligation.Name,
             IntroNarrative = obligation.IntroAction.IntroNarrative,
             IntroActionText = obligation.IntroAction.ActionText,
@@ -123,23 +122,19 @@ public class ObligationActivity
     /// Activate obligation - looks up situations and spawns them at locations/NPCs
     /// Moves obligation from Pending → Active in GameWorld.ObligationJournal
     /// </summary>
-    public void ActivateObligation(string obligationId)
+    public void ActivateObligation(Obligation obligation)
     {
-        // Load obligation template from GameWorld
-        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
         if (obligation == null)
-        {
-            throw new ArgumentException($"Obligation '{obligationId}' not found in GameWorld");
-        }
+            throw new ArgumentNullException(nameof(obligation));
 
-        // Remove from potential and discovered
-        _gameWorld.ObligationJournal.PotentialObligationIds.Remove(obligationId);
-        _gameWorld.ObligationJournal.DiscoveredObligationIds.Remove(obligationId);
+        // Remove from potential and discovered - HIGHLANDER: Object references ONLY
+        _gameWorld.ObligationJournal.PotentialObligations.Remove(obligation);
+        _gameWorld.ObligationJournal.DiscoveredObligations.Remove(obligation);
 
         // Create active obligation
         ActiveObligation activeObligation = new ActiveObligation
         {
-            ObligationId = obligationId
+            ObligationId = obligation.Id
         };
         _gameWorld.ObligationJournal.ActiveObligations.Add(activeObligation);
 
@@ -156,31 +151,30 @@ public class ObligationActivity
     /// Mark situation complete - checks for obligation progress
     /// Returns ObligationProgressResult for UI modal display
     /// </summary>
-    public async Task<ObligationProgressResult> CompleteSituation(string situationId, string obligationId)
+    public async Task<ObligationProgressResult> CompleteSituation(Situation situation, Obligation obligation)
     {
+        if (situation == null)
+            throw new ArgumentNullException(nameof(situation));
+        if (obligation == null)
+            throw new ArgumentNullException(nameof(obligation));
+
         // Find active obligation
         ActiveObligation activeInv = _gameWorld.ObligationJournal.ActiveObligations
-            .FirstOrDefault(inv => inv.ObligationId == obligationId);
+            .FirstOrDefault(inv => inv.Obligation == obligation);
 
         if (activeInv == null)
         {
-            throw new ArgumentException($"Obligation '{obligationId}' is not active");
+            throw new ArgumentException($"Obligation '{obligation.Name}' is not active");
         }
 
-        // Load obligation template
-        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
-        if (obligation == null)
-        {
-            throw new ArgumentException($"Obligation '{obligationId}' not found");
-        }
-
-        // Find completed phase definition
+        // Find completed phase definition using template ID
+        string situationTemplateId = situation.SituationTemplate?.Id;
         ObligationPhaseDefinition completedPhase = obligation.PhaseDefinitions
-            .FirstOrDefault(p => p.Id == situationId);
+            .FirstOrDefault(p => p.Id == situationTemplateId);
 
         if (completedPhase == null)
         {
-            throw new ArgumentException($"Phase '{situationId}' not found in obligation '{obligationId}'");
+            throw new ArgumentException($"Phase '{situationTemplateId}' not found in obligation '{obligation.Name}'");
         }
 
         // Grant Understanding from phase completion rewards (0-10 max)
@@ -217,7 +211,7 @@ public class ObligationActivity
         // Build result for UI modal
         ObligationProgressResult result = new ObligationProgressResult
         {
-            ObligationId = obligationId,
+            ObligationId = obligation.Id,
             ObligationName = obligation.Name,
             CompletedSituationName = completedPhase.Name,
             OutcomeNarrative = completedPhase.OutcomeNarrative,
@@ -235,22 +229,18 @@ public class ObligationActivity
     /// Check if obligation is complete - all situations done
     /// Returns ObligationCompleteResult if complete, null otherwise
     /// </summary>
-    public ObligationCompleteResult CheckObligationCompletion(string obligationId)
+    public ObligationCompleteResult CheckObligationCompletion(Obligation obligation)
     {
+        if (obligation == null)
+            return null;
+
         // Find active obligation
         ActiveObligation activeInv = _gameWorld.ObligationJournal.ActiveObligations
-            .FirstOrDefault(inv => inv.ObligationId == obligationId);
+            .FirstOrDefault(inv => inv.Obligation == obligation);
 
         if (activeInv == null)
         {
             return null; // Not active
-        }
-
-        // Load obligation template
-        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
-        if (obligation == null)
-        {
-            return null;
         }
 
         // NOTE: Scenes no longer have ObligationId property - obligations tracked via Understanding resource
@@ -262,9 +252,9 @@ public class ObligationActivity
             return null; // Not yet complete - need more Understanding
         }
 
-        // Move from Active → Completed
+        // Move from Active → Completed - HIGHLANDER: Object references ONLY
         _gameWorld.ObligationJournal.ActiveObligations.Remove(activeInv);
-        _gameWorld.ObligationJournal.CompletedObligationIds.Add(obligationId);
+        _gameWorld.ObligationJournal.CompletedObligations.Add(obligation);
 
         // Grant rewards
         GrantObligationRewards(obligation);
@@ -272,7 +262,7 @@ public class ObligationActivity
         // Build result for UI modal
         ObligationCompleteResult result = new ObligationCompleteResult
         {
-            ObligationId = obligationId,
+            ObligationId = obligation.Id,
             ObligationName = obligation.Name,
             CompletionNarrative = obligation.CompletionNarrative,
             Rewards = new ObligationRewards
@@ -319,17 +309,14 @@ public class ObligationActivity
         // CompletionRewardXP deleted as part of XP system removal
 
         // Spawn new obligations
-        foreach (string obligationId in obligation.SpawnedObligationIds)
+        foreach (Obligation spawnedObligation in obligation.SpawnedObligations)
         {
-            Obligation spawnedObligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
-            if (spawnedObligation != null)
-            {
-                // Move to Discovered state (player must accept it via intro action)
-                _gameWorld.ObligationJournal.DiscoveredObligationIds.Add(obligationId);
-                _messageSystem.AddSystemMessage(
-                    $"New obligation available: {spawnedObligation.Name}",
-                    SystemMessageTypes.Info);
-            }
+            // Move to Discovered state (player must accept it via intro action)
+            // HIGHLANDER: Object references ONLY
+            _gameWorld.ObligationJournal.DiscoveredObligations.Add(spawnedObligation);
+            _messageSystem.AddSystemMessage(
+                $"New obligation available: {spawnedObligation.Name}",
+                SystemMessageTypes.Info);
         }
 
         // ObservationCardRewards system eliminated - replaced by transparent resource competition
@@ -340,22 +327,21 @@ public class ObligationActivity
     /// DISCOVERED = ACTIVE: No intermediate state, discovery immediately activates obligation
     /// Sets pending discovery result for UI modal display
     /// </summary>
-    public async Task DiscoverObligation(string obligationId)
+    public async Task DiscoverObligation(Obligation obligation)
     {
-        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
         if (obligation == null)
-            throw new ArgumentException($"Obligation '{obligationId}' not found");
+            throw new ArgumentNullException(nameof(obligation));
 
         if (obligation.IntroAction == null)
-            throw new InvalidOperationException($"Obligation '{obligationId}' has no intro action defined");
+            throw new InvalidOperationException($"Obligation '{obligation.Name}' has no intro action defined");
 
-        // Move Potential → Active (skip Discovered state entirely)
-        _gameWorld.ObligationJournal.PotentialObligationIds.Remove(obligationId);
+        // Move Potential → Active (skip Discovered state entirely) - HIGHLANDER: Object references ONLY
+        _gameWorld.ObligationJournal.PotentialObligations.Remove(obligation);
 
         // Create active obligation
         ActiveObligation activeObligation = new ActiveObligation
         {
-            ObligationId = obligationId
+            ObligationId = obligation.Id
         };
         _gameWorld.ObligationJournal.ActiveObligations.Add(activeObligation);
 
@@ -380,19 +366,19 @@ public class ObligationActivity
                 SystemMessageTypes.Success);
         }
 
-        // Derive venue from location (LocationId is globally unique)
-        Location location = _gameWorld.Locations.FirstOrDefault(l => l.Id == obligation.IntroAction.LocationId);
+        // HIGHLANDER: Use object references directly
+        Location location = obligation.IntroAction.Location;
         if (location == null)
-            throw new InvalidOperationException($"Location '{obligation.IntroAction.LocationId}' not found for obligation discovery");
+            throw new InvalidOperationException($"Obligation '{obligation.Name}' IntroAction has no location");
 
-        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Id == location.VenueId);
+        Venue venue = location.Venue;
         if (venue == null)
-            throw new InvalidOperationException($"Venue '{location.VenueId}' not found for location '{location.Id}'");
+            throw new InvalidOperationException($"Location '{location.Name}' has no venue");
 
         // Create discovery result for UI modal (narrative only)
         ObligationDiscoveryResult discoveryResult = new ObligationDiscoveryResult
         {
-            ObligationId = obligationId,
+            ObligationId = obligation.Id,
             ObligationName = obligation.Name,
             IntroNarrative = obligation.IntroAction.IntroNarrative,
             IntroActionText = obligation.IntroAction.ActionText,
@@ -412,11 +398,14 @@ public class ObligationActivity
     /// DiscoverObligation() now immediately activates and spawns scenes
     /// This method is safe to call but does nothing if obligation already active
     /// </summary>
-    public async Task CompleteIntroAction(string obligationId)
+    public async Task CompleteIntroAction(Obligation obligation)
     {
+        if (obligation == null)
+            throw new ArgumentNullException(nameof(obligation));
+
         // Check if already active - discovery now activates immediately
         ActiveObligation activeInv = _gameWorld.ObligationJournal.ActiveObligations
-            .FirstOrDefault(inv => inv.ObligationId == obligationId);
+            .FirstOrDefault(inv => inv.Obligation == obligation);
 
         if (activeInv != null)
         {
@@ -424,15 +413,8 @@ public class ObligationActivity
             return;
         }
 
-        // Legacy path - should not be reached with new flow
-        Obligation obligation = _gameWorld.Obligations.FirstOrDefault(i => i.Id == obligationId);
-        if (obligation == null)
-        {
-            throw new ArgumentException($"Obligation '{obligationId}' not found");
-        }
-
         // Activate obligation (moves Discovered → Active)
-        ActivateObligation(obligationId);
+        ActivateObligation(obligation);
 
         // Spawn scenes from intro completion reward using Scene-Situation template architecture
         if (obligation.IntroAction.CompletionReward != null && obligation.IntroAction.CompletionReward.ScenesToSpawn.Count > 0)
@@ -458,7 +440,7 @@ public class ObligationActivity
         // Create activation result for UI modal
         _pendingActivationResult = new ObligationActivationResult
         {
-            ObligationId = obligationId,
+            ObligationId = obligation.Id,
             ObligationName = obligation.Name,
             IntroNarrative = obligation.IntroAction.IntroNarrative
         };

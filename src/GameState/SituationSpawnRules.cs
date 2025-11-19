@@ -1,4 +1,3 @@
-
 /// <summary>
 /// Defines how Situations within a Scene lead into each other
 /// Creates rule cascades - narrative progression patterns
@@ -15,8 +14,9 @@ public class SituationSpawnRules
 
     /// <summary>
     /// Initial Situation identifier (what player sees first)
-    /// References Situation.Id within Scene
+    /// References Situation.Id within Scene/SceneTemplate
     /// Scene starts with this Situation active
+    /// TEMPLATE ID: Acceptable per ADR-007 (templates are immutable archetypes)
     /// </summary>
     public string InitialSituationId { get; set; }
 

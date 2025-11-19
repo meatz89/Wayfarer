@@ -28,13 +28,14 @@ public class EmergencyFacade
     /// <summary>
     /// Check for active emergencies that should trigger
     /// Called at sync points (time advancement, location entry)
+    /// HIGHLANDER: Use Location objects, not string IDs
     /// </summary>
     public EmergencySituation CheckForActiveEmergency()
     {
         int currentDay = _gameWorld.CurrentDay;
         int currentSegment = _timeFacade.GetCurrentSegment();
         Player player = _gameWorld.GetPlayer();
-        string currentLocationId = _gameWorld.GetPlayerCurrentLocation()?.Id;
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
 
         foreach (EmergencySituation emergency in _gameWorld.EmergencySituations)
         {
@@ -52,9 +53,9 @@ public class EmergencyFacade
                     // Check segment if specified
                     if (!emergency.TriggerSegment.HasValue || currentSegment == emergency.TriggerSegment.Value)
                     {
-                        // Check location if specified
-                        if (emergency.TriggerLocationIds.Count == 0 ||
-                            emergency.TriggerLocationIds.Contains(currentLocationId))
+                        // Check location if specified (HIGHLANDER: object equality)
+                        if (emergency.TriggerLocations.Count == 0 ||
+                            emergency.TriggerLocations.Contains(currentLocation))
                         {
                             shouldTrigger = true;
                         }
@@ -248,11 +249,11 @@ public class EmergencyFacade
             {
                 if (outcome.RelationshipDelta > 0)
                 {
-                    _tokenFacade.AddTokensToNPC(ConnectionType.Trust, outcome.RelationshipDelta, npc.ID);
+                    _tokenFacade.AddTokensToNPC(ConnectionType.Trust, outcome.RelationshipDelta, npc);
                 }
                 else
                 {
-                    _tokenFacade.RemoveTokensFromNPC(ConnectionType.Trust, -outcome.RelationshipDelta, npc.ID);
+                    _tokenFacade.RemoveTokensFromNPC(ConnectionType.Trust, -outcome.RelationshipDelta, npc);
                 }
             }
 
@@ -265,22 +266,24 @@ public class EmergencyFacade
         }
 
         // Apply specific NPC relationship changes
-        foreach (KeyValuePair<string, int> kvp in outcome.NPCRelationshipDeltas)
+        // HIGHLANDER: NPCRelationshipDeltas is Dictionary<NPC, int> with object keys
+        foreach (KeyValuePair<NPC, int> kvp in outcome.NPCRelationshipDeltas)
         {
-            if (kvp.Value > 0)
+            NPC npc = kvp.Key;
+            int delta = kvp.Value;
+
+            if (delta > 0)
             {
-                _tokenFacade.AddTokensToNPC(ConnectionType.Trust, kvp.Value, kvp.Key);
+                _tokenFacade.AddTokensToNPC(ConnectionType.Trust, delta, npc);
             }
-            else if (kvp.Value < 0)
+            else if (delta < 0)
             {
-                _tokenFacade.RemoveTokensFromNPC(ConnectionType.Trust, -kvp.Value, kvp.Key);
+                _tokenFacade.RemoveTokensFromNPC(ConnectionType.Trust, -delta, npc);
             }
 
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == kvp.Key);
-            string npcName = npc?.Name ?? kvp.Key;
-            string deltaText = kvp.Value > 0 ? $"+{kvp.Value}" : kvp.Value.ToString();
+            string deltaText = delta > 0 ? $"+{delta}" : delta.ToString();
             _messageSystem.AddSystemMessage(
-                $"Relationship with {npcName}: {deltaText}",
+                $"Relationship with {npc.Name}: {deltaText}",
                 SystemMessageTypes.Info);
         }
 
@@ -295,10 +298,11 @@ public class EmergencyFacade
         }
 
         // Grant items
-        foreach (string itemId in outcome.GrantedItemIds)
+        // HIGHLANDER: GrantedItems is List<Item> with object references
+        foreach (Item item in outcome.GrantedItems)
         {
             // TODO: Implement item granting when inventory system is in place
-            _messageSystem.AddSystemMessage($"Received item: {itemId}", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"Received item: {item.Name}", SystemMessageTypes.Info);
         }
 
         // Grant/remove coins
@@ -315,10 +319,11 @@ public class EmergencyFacade
         }
 
         // Spawn situations
-        foreach (string situationId in outcome.SpawnedSituationIds)
+        // HIGHLANDER: SpawnedSituations is List<Situation> with object references
+        foreach (Situation situation in outcome.SpawnedSituations)
         {
             // TODO: Implement situation spawning when situation system is in place
-            _messageSystem.AddSystemMessage($"New situation available: {situationId}", SystemMessageTypes.Info);
+            _messageSystem.AddSystemMessage($"New situation available: {situation.Name}", SystemMessageTypes.Info);
         }
 
         // Display narrative result

@@ -48,9 +48,10 @@
 
         foreach (Item item in items)
         {
-            if (_gameWorld.Items.Any(i => i.Id == item.Id))
+            // ADR-007: Use object equality instead of string matching
+            if (_gameWorld.Items.Contains(item))
             {
-                throw new InvalidOperationException($"Item with ID '{item.Id}' already exists.");
+                throw new InvalidOperationException($"Item '{item.Name}' already exists.");
             }
 
             _gameWorld.Items.Add(item);

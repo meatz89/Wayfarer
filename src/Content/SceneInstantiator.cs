@@ -157,7 +157,7 @@ public class SceneInstantiator
             MainStorySequence = template.MainStorySequence, // Copy from template for A-story sequence tracking
             SpawnRules = spawnRulesDto,
             CurrentSituationId = null, // Will be set to first situation ID after situations generated
-            SourceSituationId = context.CurrentSituation?.Id
+            SourceSituationId = context.CurrentSituation?.TemplateId
         };
 
         return dto;
@@ -263,7 +263,7 @@ public class SceneInstantiator
     {
         Package package = new Package
         {
-            PackageId = $"scene_{sceneDto.Id}_package",
+            PackageId = $"scene_package_{Guid.NewGuid().ToString("N")}",
             Metadata = new PackageMetadata
             {
                 Name = $"Scene {sceneDto.DisplayName}",
@@ -388,7 +388,7 @@ public class SceneInstantiator
 
         // Apply selection strategy to choose ONE from multiple matches
         NPC selectedNPC = ApplySelectionStrategyNPC(matchingNPCs, filter.SelectionStrategy, player);
-        return selectedNPC?.ID;
+        return selectedNPC?.Name;
     }
 
     /// <summary>
@@ -410,9 +410,10 @@ public class SceneInstantiator
             }
 
             // Check district (accessed via Location.Venue.District)
+            // HIGHLANDER: District is object reference, filter.DistrictId is string (DTO boundary)
             if (!string.IsNullOrEmpty(filter.DistrictId))
             {
-                if (loc.Venue == null || loc.Venue.District != filter.DistrictId)
+                if (loc.Venue == null || loc.Venue.District == null || loc.Venue.District.Name != filter.DistrictId)
                     return false;
             }
 
@@ -437,7 +438,7 @@ public class SceneInstantiator
 
         // Apply selection strategy to choose ONE from multiple matches
         Location selectedLocation = ApplySelectionStrategyLocation(matchingLocations, filter.SelectionStrategy, player);
-        return selectedLocation?.Id;
+        return selectedLocation?.Name;
     }
 
     /// <summary>
@@ -477,7 +478,7 @@ public class SceneInstantiator
             return true;
         });
 
-        return matchingRoute?.Id;
+        return matchingRoute?.Name;
     }
 
     /// <summary>
@@ -506,8 +507,9 @@ public class SceneInstantiator
         if (filter.RequiredAchievements != null && filter.RequiredAchievements.Count > 0)
         {
             // Player must have ALL required achievements
-            if (!filter.RequiredAchievements.All(achId =>
-                player.EarnedAchievements.Any(a => a.AchievementId == achId)))
+            // HIGHLANDER: Compare Achievement objects directly
+            if (!filter.RequiredAchievements.All(achievement =>
+                player.EarnedAchievements.Any(a => a.Achievement == achievement)))
                 return false;
         }
 
@@ -591,7 +593,7 @@ public class SceneInstantiator
         if (filter.ForbiddenStates != null && filter.ForbiddenStates.Count > 0)
             criteria.Add($"Forbidden States: [{string.Join(", ", filter.ForbiddenStates)}]");
         if (filter.RequiredAchievements != null && filter.RequiredAchievements.Count > 0)
-            criteria.Add($"Required Achievements: [{string.Join(", ", filter.RequiredAchievements)}]");
+            criteria.Add($"Required Achievements: [{string.Join(", ", filter.RequiredAchievements.Select(a => a.Name))}]");
         if (filter.ScaleRequirements != null && filter.ScaleRequirements.Count > 0)
             criteria.Add($"Scale Requirements: {filter.ScaleRequirements.Count} requirements");
 
@@ -610,7 +612,7 @@ public class SceneInstantiator
                 int locationCount = _gameWorld.Locations.Count;
                 List<string> locationSummaries = _gameWorld.Locations
                     .Take(10) // Show first 10
-                    .Select(loc => $"  - {loc.Id} ({loc.Name}): Properties={string.Join(",", loc.LocationProperties)}")
+                    .Select(loc => $"  - {loc.Name}: Properties={string.Join(",", loc.LocationProperties)}")
                     .ToList();
                 if (locationCount > 10)
                     locationSummaries.Add($"  ... and {locationCount - 10} more locations");
@@ -620,7 +622,7 @@ public class SceneInstantiator
                 int npcCount = _gameWorld.NPCs.Count;
                 List<string> npcSummaries = _gameWorld.NPCs
                     .Take(10)
-                    .Select(npc => $"  - {npc.ID} ({npc.Name}): Personality={npc.PersonalityType}, Bond={npc.BondStrength}")
+                    .Select(npc => $"  - {npc.Name}: Personality={npc.PersonalityType}, Bond={npc.BondStrength}")
                     .ToList();
                 if (npcCount > 10)
                     npcSummaries.Add($"  ... and {npcCount - 10} more NPCs");
@@ -630,7 +632,7 @@ public class SceneInstantiator
                 int routeCount = _gameWorld.Routes.Count;
                 List<string> routeSummaries = _gameWorld.Routes
                     .Take(10)
-                    .Select(route => $"  - {route.Id}: Tier={route.Tier}, Danger={route.DangerRating}")
+                    .Select(route => $"  - {route.Name}: Tier={route.Tier}, Danger={route.DangerRating}")
                     .ToList();
                 if (routeCount > 10)
                     routeSummaries.Add($"  ... and {routeCount - 10} more routes");
@@ -655,17 +657,17 @@ public class SceneInstantiator
         contextInfo.Add($"Player States: {(context.Player?.ActiveStates.Count ?? 0)} active");
 
         if (context.CurrentLocation != null)
-            contextInfo.Add($"Current Location: {context.CurrentLocation.Id} ({context.CurrentLocation.Name})");
+            contextInfo.Add($"Current Location: {context.CurrentLocation.Name}");
         else
             contextInfo.Add($"Current Location: null");
 
         if (context.CurrentNPC != null)
-            contextInfo.Add($"Current NPC: {context.CurrentNPC.ID} ({context.CurrentNPC.Name})");
+            contextInfo.Add($"Current NPC: {context.CurrentNPC.Name}");
         else
             contextInfo.Add($"Current NPC: null");
 
         if (context.CurrentRoute != null)
-            contextInfo.Add($"Current Route: {context.CurrentRoute.Id}");
+            contextInfo.Add($"Current Route: {context.CurrentRoute.Name}");
         else
             contextInfo.Add($"Current Route: null");
 
@@ -791,13 +793,13 @@ public class SceneInstantiator
 
         foreach (NPC candidate in candidates)
         {
-            if (!interactionLookup.ContainsKey(candidate.ID))
+            if (!interactionLookup.ContainsKey(candidate.Name))
             {
                 // Never interacted with this NPC - prioritize these
                 return candidate;
             }
 
-            NPCInteractionRecord record = interactionLookup[candidate.ID];
+            NPCInteractionRecord record = interactionLookup[candidate.Name];
             long timestamp = CalculateTimestamp(record.LastInteractionDay, record.LastInteractionTimeBlock, record.LastInteractionSegment);
 
             if (timestamp < oldestTimestamp)
@@ -848,13 +850,13 @@ public class SceneInstantiator
 
         foreach (Location candidate in candidates)
         {
-            if (!visitLookup.ContainsKey(candidate.Id))
+            if (!visitLookup.ContainsKey(candidate.Name))
             {
                 // Never visited this location - prioritize these
                 return candidate;
             }
 
-            LocationVisitRecord record = visitLookup[candidate.Id];
+            LocationVisitRecord record = visitLookup[candidate.Name];
             long timestamp = CalculateTimestamp(record.LastVisitDay, record.LastVisitTimeBlock, record.LastVisitSegment);
 
             if (timestamp < oldestTimestamp)
@@ -896,6 +898,9 @@ public class SceneInstantiator
     /// </summary>
     private DependentResourceSpecs GenerateDependentResourceSpecs(Scene scene, SceneSpawnContext context)
     {
+        // Generate unique ID for this package (Scene.Id no longer exists)
+        string uniqueSceneId = Guid.NewGuid().ToString();
+
         // Build lists of DTOs
         List<LocationDTO> locationDtos = new List<LocationDTO>();
         List<ItemDTO> itemDtos = new List<ItemDTO>();
@@ -903,25 +908,25 @@ public class SceneInstantiator
         // Generate LocationDTOs from specifications
         foreach (DependentLocationSpec spec in scene.Template.DependentLocations)
         {
-            LocationDTO locationDto = BuildLocationDTO(spec, scene.Id, context);
+            LocationDTO locationDto = BuildLocationDTO(spec, uniqueSceneId, context);
             locationDtos.Add(locationDto);
         }
 
         // Generate ItemDTOs from specifications
         foreach (DependentItemSpec spec in scene.Template.DependentItems)
         {
-            ItemDTO itemDto = BuildItemDTO(spec, scene.Id, context, locationDtos);
+            ItemDTO itemDto = BuildItemDTO(spec, uniqueSceneId, context, locationDtos);
             itemDtos.Add(itemDto);
         }
 
         // Create Package object
-        string packageId = $"scene_{scene.Id}_dep";
+        string packageId = $"scene_{uniqueSceneId}_dep";
         Package package = new Package
         {
             PackageId = packageId,
             Metadata = new PackageMetadata
             {
-                Name = $"Scene {scene.Id} Dependent Resources",
+                Name = $"Scene (template '{scene.TemplateId}') Dependent Resources",
                 Author = "Scene System",
                 Version = "1.0.0"
             },
@@ -950,7 +955,7 @@ public class SceneInstantiator
         {
             if (spec.AddToInventoryOnCreation)
             {
-                string itemId = $"{scene.Id}_{spec.TemplateId}";
+                string itemId = $"{spec.TemplateId}_{Guid.NewGuid().ToString("N")}";
                 itemsToAddToInventory.Add(itemId);
             }
         }
@@ -975,7 +980,7 @@ public class SceneInstantiator
     private LocationDTO BuildLocationDTO(DependentLocationSpec spec, string sceneId, SceneSpawnContext context)
     {
         // Generate unique ID
-        string locationId = $"{sceneId}_{spec.TemplateId}";
+        string locationId = $"{spec.TemplateId}_{Guid.NewGuid().ToString("N")}";
 
         // Use patterns directly (AI generates complete text with entity context)
         string locationName = spec.NamePattern;
@@ -986,15 +991,15 @@ public class SceneInstantiator
 
         // FAIL-FAST BUDGET VALIDATION: Check venue capacity BEFORE creating DTO
         // Since all locations persist forever, budget violations cannot be cleaned up
-        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Id == venueId);
+        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Name == venueId);
         if (venue == null)
             throw new InvalidOperationException($"Venue '{venueId}' not found for location '{locationId}'");
 
         if (!_gameWorld.CanVenueAddMoreLocations(venue))
         {
-            int currentCount = _gameWorld.GetLocationCountInVenue(venue.Id);
+            int currentCount = _gameWorld.GetLocationCountInVenue(venue.Name);
             throw new InvalidOperationException(
-                $"Venue '{venue.Id}' ({venue.Name}) has reached capacity " +
+                $"Venue '{venue.Name}' has reached capacity " +
                 $"({currentCount}/{venue.MaxLocations} locations). " +
                 $"Cannot add location '{locationId}'. " +
                 $"Increase MaxLocations or use different venue.");
@@ -1004,7 +1009,7 @@ public class SceneInstantiator
         AxialCoordinates? hexPosition;
 
         // SPATIAL CONSTRAINT: First location in venue vs. organic growth
-        int venueLocationCount = _gameWorld.GetLocationCountInVenue(venue.Id);
+        int venueLocationCount = _gameWorld.GetLocationCountInVenue(venue.Name);
         if (venueLocationCount == 0 && venue.CenterHex.HasValue)
         {
             // First location in newly generated venue: place at venue center
@@ -1023,7 +1028,7 @@ public class SceneInstantiator
             if (!hexPosition.HasValue)
                 throw new InvalidOperationException($"Failed to find hex position for dependent location '{locationId}' using strategy '{spec.HexPlacement}'");
 
-            Console.WriteLine($"[DependentLocation] Placed '{locationId}' at hex ({hexPosition.Value.Q}, {hexPosition.Value.R}) adjacent to base location '{baseLocation.Id}'");
+            Console.WriteLine($"[DependentLocation] Placed '{locationId}' at hex ({hexPosition.Value.Q}, {hexPosition.Value.R}) adjacent to base location '{baseLocation.Name}'");
         }
 
         // Build LocationDTO
@@ -1065,7 +1070,7 @@ public class SceneInstantiator
     private ItemDTO BuildItemDTO(DependentItemSpec spec, string sceneId, SceneSpawnContext context, List<LocationDTO> createdLocations)
     {
         // Generate unique ID
-        string itemId = $"{sceneId}_{spec.TemplateId}";
+        string itemId = $"{spec.TemplateId}_{Guid.NewGuid().ToString("N")}";
 
         // Use patterns directly (AI generates complete text with entity context)
         string itemName = spec.NamePattern;
@@ -1109,7 +1114,8 @@ public class SceneInstantiator
             case VenueIdSource.SameAsBase:
                 if (context.CurrentLocation == null)
                     throw new InvalidOperationException("VenueIdSource.SameAsBase requires CurrentLocation in context");
-                return context.CurrentLocation.VenueId; // Location.VenueId (source of truth)
+                // ADR-007: Use Venue.Name instead of deleted VenueId
+                return context.CurrentLocation.Venue.Name;
 
             case VenueIdSource.GenerateNew:
                 // Generate new venue for this location
@@ -1124,7 +1130,7 @@ public class SceneInstantiator
                     HexAllocation = HexAllocationStrategy.ClusterOf7
                 };
                 Venue generatedVenue = _venueGenerator.GenerateVenue(venueTemplate, context, _gameWorld);
-                return generatedVenue.Id;
+                return generatedVenue.Name;
 
             default:
                 throw new InvalidOperationException($"Unknown VenueIdSource: {source}");
@@ -1146,7 +1152,7 @@ public class SceneInstantiator
                 // SameVenue = adjacent hex in SAME venue (intra-venue travel)
                 // Adjacent = adjacent hex (may be different venue if crossing venue boundary)
                 if (!baseLocation.HexPosition.HasValue)
-                    throw new InvalidOperationException($"Base location '{baseLocation.Id}' has no HexPosition - cannot find adjacent hex");
+                    throw new InvalidOperationException($"Base location '{baseLocation.Name}' has no HexPosition - cannot find adjacent hex");
 
                 // Get neighbors from hex map
                 HexMap hexMap = _gameWorld.WorldHexGrid;
@@ -1161,7 +1167,8 @@ public class SceneInstantiator
 
                 // CRITICAL: Maintain venue separation during organic growth
                 // Find first unoccupied neighbor that doesn't violate venue separation
-                string baseVenueId = baseLocation.VenueId;
+                // ADR-007: Use Venue.Name instead of deleted VenueId
+                string baseVenueId = baseLocation.Venue.Name;
 
                 foreach (Hex neighborHex in neighbors)
                 {
@@ -1188,7 +1195,7 @@ public class SceneInstantiator
                 }
 
                 throw new InvalidOperationException(
-                    $"No unoccupied adjacent hexes found for location '{baseLocation.Id}' " +
+                    $"No unoccupied adjacent hexes found for location '{baseLocation.Name}' " +
                     $"that maintain venue separation. Venue '{baseVenueId}' may have reached spatial density limit.");
 
             case HexPlacementStrategy.Distance:
@@ -1218,8 +1225,9 @@ public class SceneInstantiator
             if (neighborLocation != null)
             {
                 // If location exists and belongs to DIFFERENT venue, separation violated
-                if (!string.IsNullOrEmpty(neighborLocation.VenueId) &&
-                    neighborLocation.VenueId != currentVenueId)
+                // ADR-007: Use Venue.Name instead of deleted VenueId
+                if (neighborLocation.Venue != null &&
+                    neighborLocation.Venue.Name != currentVenueId)
                 {
                     return true; // Adjacent to other venue
                 }
@@ -1278,7 +1286,7 @@ public class SceneInstantiator
             // Player state filters
             RequiredStates = filter.RequiredStates?.Select(s => s.ToString()).ToList(),
             ForbiddenStates = filter.ForbiddenStates?.Select(s => s.ToString()).ToList(),
-            RequiredAchievements = filter.RequiredAchievements,
+            RequiredAchievements = filter.RequiredAchievements?.Select(a => a.Name).ToList(),
             ScaleRequirements = filter.ScaleRequirements?.Select(r => new ScaleRequirementDTO
             {
                 ScaleType = r.ScaleType.ToString(),

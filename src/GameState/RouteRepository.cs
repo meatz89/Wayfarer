@@ -10,20 +10,22 @@ public class RouteRepository : IRouteRepository
     }
 
     // Check if a route is blocked
-    public bool IsRouteBlocked(string routeId)
+    // HIGHLANDER: Accepts RouteOption object, delegates to GameWorld
+    public bool IsRouteBlocked(RouteOption route)
     {
-        return _gameWorld.IsRouteBlocked(routeId, _gameWorld.CurrentDay);
+        return _gameWorld.IsRouteBlocked(route, _gameWorld.CurrentDay);
     }
 
     // Get routes from a specific Location
-    public IEnumerable<RouteOption> GetRoutesFromLocation(string locationId)
+    // HIGHLANDER: Accept Location object, compare objects
+    public IEnumerable<RouteOption> GetRoutesFromLocation(Location location)
     {
         // ONLY use GameWorld.Routes as the single source of truth
         if (_gameWorld.Routes == null)
             return new List<RouteOption>();
 
-        // Direct query by OriginLocation (no iteration needed)
-        return _gameWorld.Routes.Where(r => r.OriginLocationId == locationId);
+        // Query by OriginLocation object reference (object equality)
+        return _gameWorld.Routes.Where(r => r.OriginLocation == location);
     }
 
     // Get all routes in the world
@@ -35,22 +37,15 @@ public class RouteRepository : IRouteRepository
         return _gameWorld.Routes;
     }
 
-    // Get a specific route by ID
-    public RouteOption GetRouteById(string routeId)
-    {
-        List<RouteOption> allRoutes = GetAll();
-        return allRoutes.FirstOrDefault(r => r.Id == routeId);
-    }
 
     // Get available routes from the player's current location
-    public IEnumerable<RouteOption> GetAvailableRoutes(string fromLocationId, Player player)
+    // HIGHLANDER: Accept Location object
+    public IEnumerable<RouteOption> GetAvailableRoutes(Location fromLocation, Player player)
     {
-        // Get routes from the specified location
-        Location location = _gameWorld.GetLocation(fromLocationId);
-        if (location == null) return new List<RouteOption>();
+        if (fromLocation == null) return new List<RouteOption>();
 
         // Get all routes that start from this location
-        IEnumerable<RouteOption> allRoutes = GetRoutesFromLocation(location.Id);
+        IEnumerable<RouteOption> allRoutes = GetRoutesFromLocation(fromLocation);
         List<RouteOption> availableRoutes = new List<RouteOption>();
 
         foreach (RouteOption route in allRoutes)
@@ -58,8 +53,8 @@ public class RouteRepository : IRouteRepository
             // Core Loop: All routes physically exist and are visible
             // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
-            // Check if route is blocked
-            if (IsRouteBlocked(route.Id))
+            // Check if route is blocked (HIGHLANDER: pass object, not Name)
+            if (IsRouteBlocked(route))
                 continue;
 
             availableRoutes.Add(route);

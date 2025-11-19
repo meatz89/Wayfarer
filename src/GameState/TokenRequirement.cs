@@ -1,6 +1,9 @@
+/// <summary>
+/// HIGHLANDER: Store NPC object reference, not string ID
+/// </summary>
 public class TokenRequirement
 {
-    public string NPCId { get; set; }
+    public NPC Npc { get; set; }
     public ConnectionType TokenType { get; set; }
     public int MinimumCount { get; set; }
 }

@@ -20,9 +20,9 @@ public class GenerationContext
     // Used to calculate next A-scene ID for final situation spawn rewards
     public int? AStorySequence { get; set; }
 
-    // Entity IDs for RequiredLocationId/RequiredNpcId in situations
-    public string LocationId { get; set; }  // Base location ID (ALWAYS present)
-    public string NpcId { get; set; }       // NPC ID (null for location-only scenes)
+    // HIGHLANDER: Entity objects for situation placement (not string IDs)
+    public Location Location { get; set; }  // Base location (ALWAYS present)
+    public NPC Npc { get; set; }            // NPC (null for location-only scenes)
 
     // NPC Context (for categorical property derivation)
     public PersonalityType? NpcPersonality { get; set; }
@@ -49,14 +49,15 @@ public class GenerationContext
     /// <summary>
     /// Create categorical context (tier-based only, no entity derivation).
     /// Used for abstract archetype testing.
+    /// HIGHLANDER: No entities assigned (null Location/Npc)
     /// </summary>
     public static GenerationContext Categorical(int tier)
     {
         return new GenerationContext
         {
             Tier = tier,
-            LocationId = null,
-            NpcId = null,
+            Location = null,
+            Npc = null,
             NpcPersonality = null,
             NpcName = "",
             PlayerCoins = 0,
@@ -70,17 +71,18 @@ public class GenerationContext
     ///
     /// Supports two scenarios:
     /// 1. NPC-placed scenes: npc != null, location = NPC's location
-    ///    - LocationId = NPC's location ID
-    ///    - NpcId = NPC's ID
+    ///    - Location = NPC's location object
+    ///    - Npc = NPC object
     ///    - Full categorical properties (including NPC-derived)
     ///
     /// 2. Location-placed scenes: npc == null, location = placement location
-    ///    - LocationId = placement location ID
-    ///    - NpcId = null
+    ///    - Location = placement location object
+    ///    - Npc = null
     ///    - Limited categorical properties (no NPC-derived properties)
     ///
     /// ALL universal properties are derived from entity state.
     /// NO manual property setting required.
+    /// HIGHLANDER: Store entity objects, not string IDs
     /// </summary>
     public static GenerationContext FromEntities(
         int tier,
@@ -94,9 +96,9 @@ public class GenerationContext
             Tier = tier,
             AStorySequence = mainStorySequence,
 
-            // Entity IDs (for RequiredLocationId/RequiredNpcId)
-            LocationId = location?.Id,  // Base location (NPC's location OR placement location)
-            NpcId = npc?.ID,            // NPC ID (null for location-only scenes)
+            // HIGHLANDER: Entity objects (not IDs)
+            Location = location,  // Base location (NPC's location OR placement location)
+            Npc = npc,            // NPC (null for location-only scenes)
 
             // NPC context
             NpcPersonality = npc?.PersonalityType,

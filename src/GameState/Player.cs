@@ -31,7 +31,8 @@ public class Player
     public RelationshipList Relationships { get; set; } = new();
 
     // Venue knowledge - Moved from action system
-    public List<string> LocationActionAvailability { get; set; } = new List<string>();
+    // HIGHLANDER: Object references only, no string IDs
+    public List<Location> LocationActionAvailability { get; set; } = new List<Location>();
 
     // Travel capabilities
     public List<string> UnlockedTravelMethods { get; set; } = new List<string>();
@@ -66,28 +67,28 @@ public class Player
 
     // Active Obligations (Core Loop design)
     // Tracks obligations player has activated (NPCCommissioned have deadlines)
-    // References obligations in GameWorld.Obligations (single source of truth)
-    public List<string> ActiveObligationIds { get; set; } = new List<string>();
+    // HIGHLANDER: Object references ONLY, no ActiveObligationIds
+    public List<Obligation> ActiveObligations { get; set; } = new List<Obligation>();
 
     // ============================================
     // DELIVERY JOB SYSTEM (Core Loop - Phase 3)
     // ============================================
 
     /// <summary>
-    /// Active delivery job ID (empty = no active job)
+    /// Active delivery job (null = no active job)
     /// Player can only have ONE active delivery job at a time
-    /// References job in GameWorld.AvailableDeliveryJobs (single source of truth)
+    /// HIGHLANDER: Object reference ONLY, no ActiveDeliveryJobId
     /// </summary>
-    public string ActiveDeliveryJobId { get; set; } = "";
+    public DeliveryJob ActiveDeliveryJob { get; set; }
 
     /// <summary>
     /// Check if player has an active delivery job
     /// </summary>
-    public bool HasActiveDeliveryJob => !string.IsNullOrEmpty(ActiveDeliveryJobId);
+    public bool HasActiveDeliveryJob => ActiveDeliveryJob != null;
 
-    // Equipment ownership: Player.Inventory stores item IDs (single source of truth)
-    // ItemRepository resolves IDs to Equipment entities from GameWorld.Items
-    // No inline Equipment storage - references by ID only (architecture principle)
+    // Equipment ownership: Player.Inventory stores Item objects (HIGHLANDER principle)
+    // Inventory class has List<Item> Items property with direct object references
+    // No ID lookups - objects stored directly
 
     // Route Familiarity System (0-5 scale per route)
     // ID is route ID, level is familiarity level (0=Unknown, 5=Mastered)
@@ -122,11 +123,11 @@ public class Player
     /// </summary>
     public List<RouteTraversalRecord> RouteTraversals { get; set; } = new List<RouteTraversalRecord>();
 
-    // Observation tracking - IDs of observation cards collected
-    public List<string> CollectedObservations { get; set; } = new List<string>();
+    // NOTE: CollectedObservations DELETED - if observation tracking needed, store Observation objects
+    // Mental system should work with observation objects, not ID strings
 
-    // Persistent injury cards for Physical tactical system
-    public List<string> InjuryCardIds { get; set; } = new List<string>();
+    // NOTE: InjuryCardIds DELETED - if injury tracking needed, store InjuryCard objects
+    // Physical system should work with card objects, not ID strings
 
     // Reputation system - Physical success builds reputation affecting Social and Physical engagements
     public int Reputation { get; set; } = 0;
@@ -189,12 +190,13 @@ public class Player
     /// Completed Situation IDs - tracking which situations player has finished
     /// Used for spawn rules and requirement checking
     /// Situations can spawn child situations creating cascading chains
+    /// HIGHLANDER: Object references ONLY, no CompletedSituationIds
     /// </summary>
-    public List<string> CompletedSituationIds { get; set; } = new List<string>();
+    public List<Situation> CompletedSituations { get; set; } = new List<Situation>();
 
     public void AddKnownRoute(RouteOption route)
     {
-        string originName = route.OriginLocationId;
+        string originName = route.OriginLocation.Name;
 
         KnownRouteEntry routeEntry = KnownRoutes.FirstOrDefault(kr => kr.OriginSpotId == originName);
         if (routeEntry == null)
@@ -254,27 +256,32 @@ public class Player
 
     /// <summary>
     /// Get familiarity level for a Location (0-3 scale)
+    /// HIGHLANDER: Accept Location object, not string ID
     /// </summary>
-    public int GetLocationFamiliarity(string locationId)
+    public int GetLocationFamiliarity(Location location)
     {
-        FamiliarityEntry entry = LocationFamiliarity.FirstOrDefault(f => f.EntityId == locationId);
+        if (location == null) return 0;
+        FamiliarityEntry entry = LocationFamiliarity.FirstOrDefault(f => f.EntityId == location.Name);
         return entry?.Level ?? 0;
     }
 
     /// <summary>
     /// Set Location familiarity to a specific value (max 3)
+    /// HIGHLANDER: Accept Location object, not string ID
     /// </summary>
-    public void SetLocationFamiliarity(string locationId, int value)
+    public void SetLocationFamiliarity(Location location, int value)
     {
+        if (location == null) return;
+
         int clampedValue = Math.Min(3, Math.Max(0, value));
-        FamiliarityEntry existing = LocationFamiliarity.FirstOrDefault(f => f.EntityId == locationId);
+        FamiliarityEntry existing = LocationFamiliarity.FirstOrDefault(f => f.EntityId == location.Name);
         if (existing != null)
         {
             existing.Level = clampedValue;
         }
         else
         {
-            LocationFamiliarity.Add(new FamiliarityEntry { EntityId = locationId, Level = clampedValue });
+            LocationFamiliarity.Add(new FamiliarityEntry { EntityId = location.Name, Level = clampedValue });
         }
     }
 
@@ -307,13 +314,14 @@ public class Player
 
     /// <summary>
     /// Get NPC token entry (creates if doesn't exist)
+    /// HIGHLANDER: Accepts NPC object, not string ID
     /// </summary>
-    public NPCTokenEntry GetNPCTokenEntry(string npcId)
+    public NPCTokenEntry GetNPCTokenEntry(NPC npc)
     {
-        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.NpcId == npcId);
+        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.Npc == npc);
         if (entry == null)
         {
-            entry = new NPCTokenEntry { NpcId = npcId };
+            entry = new NPCTokenEntry { Npc = npc };
             NPCTokens.Add(entry);
         }
         return entry;
@@ -506,11 +514,11 @@ public class Player
         return new WeightStatus(GetCurrentWeight(itemRepository), Inventory.GetCapacity());
     }
 
-    public void AddKnownLocation(string LocationId)
+    public void AddKnownLocation(Location location)
     {
-        if (!LocationActionAvailability.Contains(LocationId))
+        if (!LocationActionAvailability.Contains(location))
         {
-            LocationActionAvailability.Add(LocationId);
+            LocationActionAvailability.Add(location);
         }
     }
 
@@ -519,14 +527,15 @@ public class Player
     // ============================================
 
     /// <summary>
-    /// Remove item from inventory by ID
+    /// Remove item from inventory
     /// Returns true if item was present and removed, false if not found
     /// Used for: Consuming keys, removing temporary access tokens, cleanup
     /// Part of item lifecycle pattern: grant → require → remove
+    /// HIGHLANDER: Accepts Item object, not string ID
     /// </summary>
-    public bool RemoveItem(string itemId)
+    public bool RemoveItem(Item item)
     {
-        return Inventory.RemoveItem(itemId);
+        return Inventory.Remove(item);
     }
 
     /// <summary>

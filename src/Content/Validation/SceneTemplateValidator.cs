@@ -44,7 +44,7 @@ public static class SceneTemplateValidator
             return;
         }
 
-        HashSet<string> situationIds = template.SituationTemplates.Select(s => s.Id).ToHashSet();
+        List<string> situationIds = template.SituationTemplates.Select(s => s.Id).ToList();
 
         foreach (SituationTransition transition in template.SpawnRules.Transitions ?? Enumerable.Empty<SituationTransition>())
         {
@@ -139,7 +139,7 @@ public static class SceneTemplateValidator
             return;
         }
 
-        HashSet<string> situationIds = template.SituationTemplates.Select(s => s.Id).ToHashSet();
+        List<string> situationIds = template.SituationTemplates.Select(s => s.Id).ToList();
         List<SituationTemplate> finalSituations = template.SituationTemplates.Where(s => IsFinalSituation(s, template.SpawnRules)).ToList();
 
         foreach (SituationTemplate? finalSituation in finalSituations)

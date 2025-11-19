@@ -5,7 +5,7 @@
     "timestamp": "2025-01-01T00:00:00Z",
     "description": "Minimal test content for lodging scene integration tests",
     "author": "Test Suite",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "content": {
     "hexMap": {
@@ -32,10 +32,13 @@
     "locations": [
       {
         "id": "test_inn_common",
-        "venueId": "test_inn_venue",
         "name": "Common Room",
         "description": "The common room of the test inn",
         "hexCoordinate": "0,0",
+        "privacy": "SemiPublic",
+        "safety": "Safe",
+        "activity": "Moderate",
+        "purpose": "Dwelling",
         "properties": {
           "base": ["indoor", "social", "restful", "crossroads"]
         },
@@ -48,7 +51,13 @@
         "name": "Test Innkeeper",
         "description": "A friendly innkeeper for testing",
         "personalityType": "MERCANTILE",
-        "LocationId": "test_inn_common",
+        "spawnLocation": {
+          "placementType": "Location",
+          "privacyLevels": ["SemiPublic"],
+          "safetyLevels": ["Safe"],
+          "activityLevels": ["Moderate"],
+          "purposes": ["Dwelling"]
+        },
         "bondStrength": 0,
         "Profession": "Innkeeper",
         "CurrentState": "NEUTRAL"

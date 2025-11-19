@@ -157,13 +157,20 @@ public class SceneContentBase : ComponentBase
             {
                 foreach (BondChange bondChange in reward.BondChanges)
                 {
-                    NPC npc = GameWorld.NPCs.FirstOrDefault(n => n.ID == bondChange.NpcId);
-                    int currentBond = GetTotalBond(player, bondChange.NpcId);
+                    // Direct object reference, NO ID lookup
+                    NPC npc = bondChange.Npc;
+                    if (npc == null)
+                    {
+                        Console.WriteLine("[SceneContent.LoadChoices] WARNING: BondChange has null NPC reference");
+                        continue;
+                    }
+
+                    int currentBond = GetTotalBond(player, npc);
                     int finalBond = currentBond + bondChange.Delta;
 
                     bondChanges.Add(new BondChangeVM
                     {
-                        NpcName = npc?.Name ?? bondChange.NpcId,
+                        NpcName = npc.Name,
                         Delta = bondChange.Delta,
                         Reason = bondChange.Reason ?? "",
                         CurrentBond = currentBond,
@@ -209,8 +216,9 @@ public class SceneContentBase : ComponentBase
             }
 
             // Map progression unlocks
-            List<string> achievementsGranted = reward?.AchievementIds ?? new List<string>();
-            List<string> itemsGranted = reward?.ItemIds ?? new List<string>();
+            // HIGHLANDER: reward uses Achievement and Item objects, extract Names for display
+            List<string> achievementsGranted = reward?.Achievements?.Select(a => a.Name).ToList() ?? new List<string>();
+            List<string> itemsGranted = reward?.Items?.Select(i => i.Name).ToList() ?? new List<string>();
             // LocationsToUnlock DELETED - new architecture uses query-based accessibility via GrantsLocationAccess property
 
             // Map scene spawns to display names
@@ -317,9 +325,10 @@ public class SceneContentBase : ComponentBase
         }
     }
 
-    private int GetTotalBond(Player player, string npcId)
+    private int GetTotalBond(Player player, NPC npc)
     {
-        NPCTokenEntry entry = player.NPCTokens.FirstOrDefault(t => t.NpcId == npcId);
+        // HIGHLANDER: Compare NPC objects directly, not string IDs
+        NPCTokenEntry entry = player.NPCTokens.FirstOrDefault(t => t.Npc == npc);
         if (entry == null) return 0;
         return entry.Trust + entry.Diplomacy + entry.Status + entry.Shadow;
     }
@@ -353,12 +362,10 @@ public class SceneContentBase : ComponentBase
         };
     }
 
-    private string FormatBondGap(string npcId, int threshold, Player player)
+    private string FormatBondGap(NPC npc, int threshold, Player player)
     {
-        int current = GetTotalBond(player, npcId);
-        NPC npc = GameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
-        string npcName = npc?.Name ?? npcId;
-        return $"Bond {threshold}+ with {npcName} (now {current})";
+        int current = GetTotalBond(player, npc);
+        return $"Bond {threshold}+ with {npc.Name} (now {current})";
     }
 
     private string FormatScaleGap(string scaleName, int threshold, Player player)
@@ -380,7 +387,7 @@ public class SceneContentBase : ComponentBase
     {
         return req.Type switch
         {
-            "BondStrength" => FormatBondGap(req.Context, req.Threshold, player),
+            "BondStrength" => FormatBondGapFromId(req.Context, req.Threshold, player),
             "Scale" => FormatScaleGap(req.Context, req.Threshold, player),
             "PlayerStat" => FormatPlayerStatGap(req.Context, req.Threshold, player),
             "Resolve" => $"Resolve {req.Threshold}+ (now {player.Resolve})",
@@ -391,6 +398,16 @@ public class SceneContentBase : ComponentBase
             "HasItem" => req.Threshold > 0 ? $"Need Item: {req.Context}" : $"Must NOT have Item: {req.Context}",
             _ => "Unknown requirement"
         };
+    }
+
+    private string FormatBondGapFromId(string npcId, int threshold, Player player)
+    {
+        NPC npc = GameWorld.NPCs.FirstOrDefault(n => n.ID == npcId);
+        if (npc == null)
+        {
+            return $"Bond {threshold}+ with {npcId} (NPC not found)";
+        }
+        return FormatBondGap(npc, threshold, player);
     }
 
     private List<RequirementPathVM> GetRequirementGaps(CompoundRequirement compoundReq, Player player, Dictionary<string, string> markerMap)
@@ -497,34 +514,31 @@ public class SceneContentBase : ComponentBase
                 NPC npc = CurrentSituation?.Npc;
                 GameWorld.CurrentSocialSession = new SocialSession
                 {
-                    RequestId = CurrentSituation.Id,
                     NPC = npc // CurrentSituation.Npc may be null if situation is location-only
                 };
                 GameWorld.PendingSocialContext = new SocialChallengeContext
                 {
+                    Situation = CurrentSituation, // Object reference, NO ID
                     CompletionReward = choiceTemplate.OnSuccessReward,
-                    FailureReward = choiceTemplate.OnFailureReward,
-                    SituationId = CurrentSituation.Id
+                    FailureReward = choiceTemplate.OnFailureReward
                 };
             }
             else if (choiceTemplate.ChallengeType == TacticalSystemType.Mental)
             {
-                GameWorld.CurrentMentalSituationId = CurrentSituation.Id;
                 GameWorld.PendingMentalContext = new MentalChallengeContext
                 {
+                    Situation = CurrentSituation, // Object reference, NO ID
                     CompletionReward = choiceTemplate.OnSuccessReward,
-                    FailureReward = choiceTemplate.OnFailureReward,
-                    SituationId = CurrentSituation.Id
+                    FailureReward = choiceTemplate.OnFailureReward
                 };
             }
             else if (choiceTemplate.ChallengeType == TacticalSystemType.Physical)
             {
-                GameWorld.CurrentPhysicalSituationId = CurrentSituation.Id;
                 GameWorld.PendingPhysicalContext = new PhysicalChallengeContext
                 {
+                    Situation = CurrentSituation, // Object reference, NO ID
                     CompletionReward = choiceTemplate.OnSuccessReward,
-                    FailureReward = choiceTemplate.OnFailureReward,
-                    SituationId = CurrentSituation.Id
+                    FailureReward = choiceTemplate.OnFailureReward
                 };
             }
 

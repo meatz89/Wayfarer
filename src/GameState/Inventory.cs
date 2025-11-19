@@ -1,25 +1,22 @@
-﻿public class Inventory
+﻿/// <summary>
+/// HIGHLANDER: Object references ONLY - stores Item objects, not IDs
+/// Weight-based inventory system: 10 weight capacity, items have 1-6 weight
+/// </summary>
+public class Inventory
 {
-    // Weight-based inventory system: 10 weight capacity, items have 1-6 weight
     private const int BASE_WEIGHT_CAPACITY = 10;
-    private readonly List<string> _items;
+    private readonly List<Item> _items = new List<Item>();
 
     public int MaxWeight { get; private set; }
 
     public Inventory(int maxWeight = BASE_WEIGHT_CAPACITY)
     {
         MaxWeight = maxWeight;
-        _items = new List<string>();
     }
 
-    public List<string> GetAllItems()
+    public List<Item> GetAllItems()
     {
         return _items.ToList();
-    }
-
-    public List<string> GetItemIds()
-    {
-        return _items.Distinct().ToList();
     }
 
     public void Clear()
@@ -32,57 +29,51 @@
         return MaxWeight;
     }
 
-    public void SetItemCount(string item, int count)
+    public void SetItemCount(Item item, int count)
     {
-        int currentCount = GetItemCount(item);
+        int currentCount = Count(item);
 
         if (count > currentCount)
         {
-            while (currentCount < count && AddItem(item))
+            for (int i = currentCount; i < count; i++)
             {
-                currentCount++;
+                _items.Add(item);
             }
         }
         else if (count < currentCount)
         {
-            while (currentCount > count && RemoveItem(item))
+            for (int i = currentCount; i > count; i--)
             {
-                currentCount--;
+                _items.Remove(item);
             }
         }
     }
 
     public void Add(Item item)
     {
-        AddItem(item.Id);
+        if (item == null) throw new ArgumentNullException(nameof(item));
+        _items.Add(item);
     }
 
-    public int AddItems(string resource, int count)
+    public int AddItems(Item item, int count)
     {
-        int addedCount = 0;
+        if (item == null) throw new ArgumentNullException(nameof(item));
 
         for (int i = 0; i < count; i++)
         {
-            if (AddItem(resource))
-            {
-                addedCount++;
-            }
-            else
-            {
-                break;
-            }
+            _items.Add(item);
         }
-
-        return addedCount;
+        return count;
     }
 
-    public int RemoveItems(string resource, int count)
+    public int RemoveItems(Item item, int count)
     {
-        int removedCount = 0;
+        if (item == null) throw new ArgumentNullException(nameof(item));
 
+        int removedCount = 0;
         for (int i = 0; i < count; i++)
         {
-            if (RemoveItem(resource))
+            if (_items.Remove(item))
             {
                 removedCount++;
             }
@@ -91,58 +82,39 @@
                 break;
             }
         }
-
         return removedCount;
     }
 
-    public bool AddItem(Item Item)
-    {
-        return AddItem(Item.ToString());
-    }
-
-    public bool AddItem(string item)
-    {
-        // Weight check happens in CanAddItem - this just adds to collection
-        _items.Add(item);
-        return true;
-    }
-
-    public bool RemoveItem(string item)
+    public bool Remove(Item item)
     {
         return _items.Remove(item);
     }
 
-    public bool HasItem(string item)
+    public bool Contains(Item item)
     {
         return _items.Contains(item);
     }
 
-    public bool HasFreeWeight(ItemRepository itemRepository)
-    {
-        return GetUsedWeight(itemRepository) < MaxWeight;
-    }
-
-    public int GetItemCount(string item)
+    public int Count(Item item)
     {
         return _items.Count(i => i == item);
+    }
+
+    public bool HasFreeWeight()
+    {
+        return GetUsedWeight() < MaxWeight;
     }
 
     /// <summary>
     /// Calculate the total weight currently used
     /// </summary>
-    public int GetUsedWeight(ItemRepository itemRepository)
+    public int GetUsedWeight()
     {
         int totalWeight = 0;
-
-        foreach (string itemId in _items)
+        foreach (Item item in _items)
         {
-            Item item = itemRepository.GetItemById(itemId);
-            if (item != null)
-            {
-                totalWeight += item.GetWeight();
-            }
+            totalWeight += item.GetWeight();
         }
-
         return totalWeight;
     }
 
@@ -151,47 +123,45 @@
     /// </summary>
     public int GetMaxWeight(TravelMethods? currentTransport)
     {
-        // Base inventory: 10 weight as per documentation
         int baseWeight = MaxWeight;
 
-        // Add transport bonuses (converted from slot bonuses to weight)
         if (currentTransport.HasValue)
         {
             switch (currentTransport.Value)
             {
                 case TravelMethods.Cart:
-                    baseWeight += 6; // Cart adds significant capacity
+                    baseWeight += 6;
                     break;
                 case TravelMethods.Carriage:
-                    baseWeight += 3; // Carriage adds modest capacity
+                    baseWeight += 3;
                     break;
-                    // Walking, Horseback, Boat use base capacity
             }
         }
 
         return baseWeight;
     }
 
-    /// <summary>
-    /// Add item with weight checking
-    /// </summary>
-    public bool AddItemWithWeightCheck(Item item, ItemRepository itemRepository, TravelMethods? currentTransport)
+    public bool AddItemWithWeightCheck(Item item, TravelMethods? currentTransport)
     {
-        return AddItem(item.Id);
+        if (item == null) throw new ArgumentNullException(nameof(item));
+
+        int maxCapacity = GetMaxWeight(currentTransport);
+        if (GetUsedWeight() + item.GetWeight() <= maxCapacity)
+        {
+            _items.Add(item);
+            return true;
+        }
+        return false;
     }
 
-    public bool IsFull(ItemRepository itemRepository)
+    public bool IsFull()
     {
-        return GetUsedWeight(itemRepository) >= MaxWeight;
+        return GetUsedWeight() >= MaxWeight;
     }
 
-    public void Remove(Item item)
+    public bool CanAddItem(Item item)
     {
-        RemoveItem(item.Id);
-    }
-
-    internal bool CanAddItem(Item? item, ItemRepository itemRepository)
-    {
-        return true;
+        if (item == null) return false;
+        return GetUsedWeight() + item.GetWeight() <= MaxWeight;
     }
 }
