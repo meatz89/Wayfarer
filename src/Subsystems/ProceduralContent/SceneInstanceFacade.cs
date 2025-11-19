@@ -108,7 +108,7 @@ public class SceneInstanceFacade
         // Architectural principle: "PLAYABILITY OVER COMPILATION" - unplayable scene worse than crash
         _playabilityValidator.ValidatePlayability(spawnedScene);
 
-        Console.WriteLine($"[SceneInstanceFacade] Spawned scene '{spawnedScene.Id}' via HIGHLANDER flow - playability validated");
+        Console.WriteLine($"[SceneInstanceFacade] Spawned scene '{spawnedScene.TemplateId}' via HIGHLANDER flow - playability validated");
 
         return spawnedScene;
     }

@@ -584,7 +584,7 @@ public class SceneContentBase : ComponentBase
 
             if (nextSituation != null)
             {
-                Console.WriteLine($"[SceneContent.HandleChoiceSelected] Next situation: '{nextSituation.Id}'");
+                Console.WriteLine($"[SceneContent.HandleChoiceSelected] Next situation: '{nextSituation.Name}'");
                 // Reload modal with next situation - no exit to world
                 // Situations are fully instantiated during FinalizeScene, no on-demand instantiation needed
                 CurrentSituation = nextSituation;
