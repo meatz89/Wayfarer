@@ -6,16 +6,13 @@ public static class ItemParser
     public static Item ConvertDTOToItem(ItemDTO dto)
     {
         // Validate required fields
-        if (string.IsNullOrEmpty(dto.Id))
-            throw new InvalidDataException("Item missing required field 'Id'");
         if (string.IsNullOrEmpty(dto.Name))
-            throw new InvalidDataException($"Item '{dto.Id}' missing required field 'Name'");
+            throw new InvalidDataException("Item missing required field 'Name'");
         if (string.IsNullOrEmpty(dto.Description))
-            throw new InvalidDataException($"Item '{dto.Id}' missing required field 'Description'");
+            throw new InvalidDataException($"Item '{dto.Name}' missing required field 'Description'");
 
         Item item = new Item
         {
-            Id = dto.Id,
             Name = dto.Name,
             InitiativeCost = dto.InitiativeCost,
             BuyPrice = dto.BuyPrice,
