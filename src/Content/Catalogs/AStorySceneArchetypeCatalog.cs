@@ -240,22 +240,10 @@ public static class AStorySceneArchetypeCatalog
         List<ChoiceTemplate> enrichedSearchChoices = new List<ChoiceTemplate>();
         foreach (ChoiceTemplate choice in searchChoices)
         {
-            ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
+            // NOTE: Dependent item granting (evidence) cannot be handled at catalog time
+            // because the items don't exist until scene instantiation.
 
-            // DELETED: ItemIds property removed in HIGHLANDER refactoring
-            // TODO: Implement correct pattern for granting dependent items
-
-            enrichedSearchChoices.Add(new ChoiceTemplate
-            {
-                Id = choice.Id,
-                PathType = choice.PathType,
-                ActionTextTemplate = choice.ActionTextTemplate,
-                RequirementFormula = choice.RequirementFormula,
-                CostTemplate = choice.CostTemplate,
-                RewardTemplate = reward,
-                ActionType = choice.ActionType,
-                ChallengeType = choice.ChallengeType
-            });
+            enrichedSearchChoices.Add(choice); // Pass through unchanged
         }
 
         SituationTemplate searchSituation = new SituationTemplate
@@ -766,21 +754,10 @@ public static class AStorySceneArchetypeCatalog
         List<ChoiceTemplate> enrichedAcquireChoices = new List<ChoiceTemplate>();
         foreach (ChoiceTemplate choice in acquireChoices)
         {
-            ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
-            // DELETED: ItemIds property removed in HIGHLANDER refactoring
-            // TODO: Implement correct pattern for granting dependent items
+            // NOTE: Dependent item granting (order_artifact) cannot be handled at catalog time
+            // because the items don't exist until scene instantiation.
 
-            enrichedAcquireChoices.Add(new ChoiceTemplate
-            {
-                Id = choice.Id,
-                PathType = choice.PathType,
-                ActionTextTemplate = choice.ActionTextTemplate,
-                RequirementFormula = choice.RequirementFormula,
-                CostTemplate = choice.CostTemplate,
-                RewardTemplate = reward,
-                ActionType = choice.ActionType,
-                ChallengeType = choice.ChallengeType
-            });
+            enrichedAcquireChoices.Add(choice); // Pass through unchanged
         }
 
         SituationTemplate acquireSituation = new SituationTemplate

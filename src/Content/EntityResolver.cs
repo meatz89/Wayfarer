@@ -274,7 +274,6 @@ public class EntityResolver
     {
         NPC newNPC = new NPC
         {
-            ID = $"generated_npc_{Guid.NewGuid()}",
             Name = GenerateNPCName(filter),
             IsSkeleton = false,
 
@@ -301,7 +300,6 @@ public class EntityResolver
     {
         RouteOption newRoute = new RouteOption
         {
-            Id = $"generated_route_{Guid.NewGuid()}",
             Name = GenerateRouteName(filter),
 
             // Apply categorical properties from filter

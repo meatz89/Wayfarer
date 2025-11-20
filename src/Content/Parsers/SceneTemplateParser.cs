@@ -762,9 +762,9 @@ public class SceneTemplateParser
             BondChanges = ParseBondChanges(dto.BondChanges),
             ScaleShifts = ParseScaleShifts(dto.ScaleShifts),
             StateApplications = ParseStateApplications(dto.StateApplications),
-            // TODO: Implement ParseAchievements to resolve AchievementIds to Achievement objects
-            // TODO: Implement ParseItems to resolve ItemIds to Item objects
-            // TODO: Implement ParseItemsToRemove to resolve ItemsToRemove IDs to Item objects
+            Achievements = ParseAchievements(dto.AchievementIds),
+            Items = ParseItems(dto.ItemIds),
+            ItemsToRemove = ParseItemsToRemove(dto.ItemsToRemove),
             ScenesToSpawn = ParseSceneSpawnRewards(dto.ScenesToSpawn)
         };
     }
@@ -874,6 +874,84 @@ public class SceneTemplateParser
         }
 
         return rewards;
+    }
+
+    /// <summary>
+    /// Parse Items from item ID strings
+    /// Resolves Item object references from string IDs at parse-time
+    /// HIGHLANDER: Returns object references, not IDs
+    /// </summary>
+    private List<Item> ParseItems(List<string> itemIds)
+    {
+        if (itemIds == null || !itemIds.Any())
+            return new List<Item>();
+
+        List<Item> items = new List<Item>();
+        foreach (string itemId in itemIds)
+        {
+            Item item = _gameWorld.Items.FirstOrDefault(i => i.Name == itemId);
+            if (item == null)
+            {
+                Console.WriteLine($"[SceneTemplateParser.ParseItems] WARNING: Item '{itemId}' not found");
+                continue; // Skip invalid item
+            }
+
+            items.Add(item); // Object reference, NO ID
+        }
+
+        return items;
+    }
+
+    /// <summary>
+    /// Parse Achievements from achievement ID strings
+    /// Resolves Achievement object references from string IDs at parse-time
+    /// HIGHLANDER: Returns object references, not IDs
+    /// </summary>
+    private List<Achievement> ParseAchievements(List<string> achievementIds)
+    {
+        if (achievementIds == null || !achievementIds.Any())
+            return new List<Achievement>();
+
+        List<Achievement> achievements = new List<Achievement>();
+        foreach (string achievementId in achievementIds)
+        {
+            Achievement achievement = _gameWorld.Achievements.FirstOrDefault(a => a.Name == achievementId);
+            if (achievement == null)
+            {
+                Console.WriteLine($"[SceneTemplateParser.ParseAchievements] WARNING: Achievement '{achievementId}' not found");
+                continue; // Skip invalid achievement
+            }
+
+            achievements.Add(achievement); // Object reference, NO ID
+        }
+
+        return achievements;
+    }
+
+    /// <summary>
+    /// Parse Items to Remove from item ID strings
+    /// Resolves Item object references from string IDs at parse-time
+    /// HIGHLANDER: Returns object references, not IDs
+    /// </summary>
+    private List<Item> ParseItemsToRemove(List<string> itemIds)
+    {
+        if (itemIds == null || !itemIds.Any())
+            return new List<Item>();
+
+        List<Item> items = new List<Item>();
+        foreach (string itemId in itemIds)
+        {
+            Item item = _gameWorld.Items.FirstOrDefault(i => i.Name == itemId);
+            if (item == null)
+            {
+                Console.WriteLine($"[SceneTemplateParser.ParseItemsToRemove] WARNING: Item '{itemId}' not found");
+                continue; // Skip invalid item
+            }
+
+            items.Add(item); // Object reference, NO ID
+        }
+
+        return items;
     }
 
     /// <summary>

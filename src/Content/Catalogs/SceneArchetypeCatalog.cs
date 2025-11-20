@@ -164,37 +164,10 @@ public static class SceneArchetypeCatalog
                 negotiateSitId,
                 context);
 
-            // Enrich with room_key grant on successful paths
-            List<ChoiceTemplate> enrichedChoices = new List<ChoiceTemplate>();
-            foreach (ChoiceTemplate choice in negotiateChoices)
-            {
-                ChoiceReward baseReward = choice.RewardTemplate ?? new ChoiceReward();
-                ChoiceReward successReward = choice.OnSuccessReward;
-
-                if (choice.PathType == ChoicePathType.InstantSuccess || choice.PathType == ChoicePathType.Challenge)
-                {
-                    // DELETED: ItemIds property removed in HIGHLANDER refactoring
-                    // TODO: Implement correct pattern for granting dependent items via choice rewards
-                }
-
-                enrichedChoices.Add(new ChoiceTemplate
-                {
-                    Id = choice.Id,
-                    PathType = choice.PathType,
-                    ActionTextTemplate = choice.ActionTextTemplate,
-                    RequirementFormula = choice.RequirementFormula,
-                    CostTemplate = choice.CostTemplate,
-                    RewardTemplate = baseReward,
-                    OnSuccessReward = successReward,
-                    OnFailureReward = choice.OnFailureReward,
-                    ActionType = choice.ActionType,
-                    ChallengeId = choice.ChallengeId,
-                    ChallengeType = choice.ChallengeType,
-                    DeckId = choice.DeckId,
-                    NavigationPayload = choice.NavigationPayload
-                });
-            }
-            negotiateChoices = enrichedChoices;
+            // NOTE: Dependent item granting (room_key) cannot be handled at catalog time
+            // because the items don't exist until scene instantiation. The dependent item
+            // will be granted via DependentItemSpec.AddToInventoryOnCreation or through
+            // a separate choice-triggered item grant mechanism (to be designed).
         }
 
         SituationTemplate negotiateSituation = new SituationTemplate

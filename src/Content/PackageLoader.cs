@@ -1512,9 +1512,9 @@ public class PackageLoader
                 SegmentNumber = segmentNumber++,
                 Type = originalSegment.Type,
                 // Keep the same collections - they represent the same physical locations
-                PathCollectionId = originalSegment.PathCollectionId,
-                EventCollectionId = originalSegment.EventCollectionId,
-                MandatorySceneId = originalSegment.MandatorySceneId
+                PathCollection = originalSegment.PathCollection,
+                EventCollection = originalSegment.EventCollection,
+                MandatorySceneTemplate = originalSegment.MandatorySceneTemplate
             };
             reverseRoute.Segments.Add(reverseSegment);
         }
@@ -1523,8 +1523,8 @@ public class PackageLoader
         reverseRoute.EncounterDeckIds.AddRange(forwardRoute.EncounterDeckIds);
 
         // If the forward route has a route-level event pool, copy it to the reverse route
-        // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
-        PathCollectionEntry? forwardEntry = _gameWorld.AllEventCollections.FirstOrDefault(x => x.Collection.Id == forwardRoute.Id);
+        // HIGHLANDER: Use RouteOption.Name (natural key) instead of deleted Id property
+        PathCollectionEntry? forwardEntry = _gameWorld.AllEventCollections.FirstOrDefault(x => x.Collection.Id == forwardRoute.Name);
         if (forwardEntry != null)
         {
             PathCollectionEntry reverseEntry = new PathCollectionEntry
