@@ -11,10 +11,16 @@ public class ExchangeRewardStructure
     public List<ResourceAmount> Resources { get; set; } = new List<ResourceAmount>();
 
     /// <summary>
-    /// Items granted by this exchange.
-    /// These are item template IDs that will be instantiated.
+    /// Items granted by this exchange (parse-time IDs).
+    /// Resolved to Items at parse time.
     /// </summary>
     public List<string> ItemIds { get; set; } = new List<string>();
+
+    /// <summary>
+    /// Items granted by this exchange (runtime objects).
+    /// HIGHLANDER: Object references resolved from ItemIds at parse time.
+    /// </summary>
+    public List<Item> Items { get; set; } = new List<Item>();
 
     /// <summary>
     /// Tokens granted by this exchange.

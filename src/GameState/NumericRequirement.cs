@@ -66,7 +66,7 @@ public class NumericRequirement
 
     private bool CheckBondStrength(Player player, string npcId, int threshold)
     {
-        NPCTokenEntry entry = player.NPCTokens.FirstOrDefault(t => t.NpcId == npcId);
+        NPCTokenEntry entry = player.NPCTokens.FirstOrDefault(t => t.Npc.Name == npcId);
         if (entry == null) return false;
 
         int totalBond = entry.Trust + entry.Diplomacy + entry.Status + entry.Shadow;

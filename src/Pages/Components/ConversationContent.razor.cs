@@ -680,7 +680,7 @@ namespace Wayfarer.Pages.Components
         {
             if (GameWorld == null) return 10;
 
-            SocialChallengeDeck deck = GameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
+            SocialChallengeDeck deck = situation.Deck as SocialChallengeDeck;
             return deck?.DangerThreshold ?? 10;
         }
 

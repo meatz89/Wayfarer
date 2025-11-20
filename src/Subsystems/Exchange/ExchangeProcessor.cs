@@ -27,7 +27,8 @@ public class ExchangeProcessor
         {
             Costs = exchange.GetCostAsList(),
             Rewards = exchange.GetRewardAsList(),
-            ItemRewards = exchange.GetItemRewards(),
+            // HIGHLANDER: GetItemRewards returns List<Item>, convert to names for display
+            ItemRewards = exchange.GetItemRewards().Select(item => item.Name).ToList(),
             AdvancesTime = ShouldAdvanceTime(exchange),
             TimeAdvancementHours = CalculateTimeAdvancement(exchange),
             AffectsRelationship = exchange.AffectsRelationship,

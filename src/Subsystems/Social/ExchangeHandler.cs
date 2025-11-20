@@ -212,9 +212,10 @@ public class ExchangeHandler
         }
 
         // Apply item rewards (grant items to inventory)
-        foreach (string itemId in exchange.GetItemRewards())
+        // HIGHLANDER: Use Item objects, not string IDs
+        foreach (Item item in exchange.GetItemRewards())
         {
-            player.Inventory.AddItem(itemId);
+            player.Inventory.Add(item);
         }
     }
 

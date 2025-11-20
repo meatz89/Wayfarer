@@ -110,7 +110,6 @@ public static class SceneArchetypeCatalog
                 CostTemplate = new ChoiceCost { Coins = 10 },
                 RewardTemplate = new ChoiceReward
                 {
-                    ItemIds = new List<string> { "generated:room_key" },
                     Rapport = 1
                 },
                 ActionType = ChoiceActionType.Instant
@@ -124,7 +123,6 @@ public static class SceneArchetypeCatalog
                 CostTemplate = new ChoiceCost { Coins = 10 },
                 RewardTemplate = new ChoiceReward
                 {
-                    ItemIds = new List<string> { "generated:room_key" },
                     Authority = 1
                 },
                 ActionType = ChoiceActionType.Instant
@@ -138,7 +136,6 @@ public static class SceneArchetypeCatalog
                 CostTemplate = new ChoiceCost { Coins = 10 },
                 RewardTemplate = new ChoiceReward
                 {
-                    ItemIds = new List<string> { "generated:room_key" },
                     Cunning = 1
                 },
                 ActionType = ChoiceActionType.Instant
@@ -152,7 +149,6 @@ public static class SceneArchetypeCatalog
                 CostTemplate = new ChoiceCost { Coins = 10 },
                 RewardTemplate = new ChoiceReward
                 {
-                    ItemIds = new List<string> { "generated:room_key" },
                     Diplomacy = 1
                 },
                 ActionType = ChoiceActionType.Instant
@@ -177,17 +173,8 @@ public static class SceneArchetypeCatalog
 
                 if (choice.PathType == ChoicePathType.InstantSuccess || choice.PathType == ChoicePathType.Challenge)
                 {
-                    // Instant success and challenge success grant room key
-                    if (choice.PathType == ChoicePathType.InstantSuccess)
-                    {
-                        baseReward.ItemIds = new List<string> { "generated:room_key" };
-                    }
-                    else
-                    {
-                        if (successReward == null)
-                            successReward = new ChoiceReward();
-                        successReward.ItemIds = new List<string> { "generated:room_key" };
-                    }
+                    // DELETED: ItemIds property removed in HIGHLANDER refactoring
+                    // TODO: Implement correct pattern for granting dependent items via choice rewards
                 }
 
                 enrichedChoices.Add(new ChoiceTemplate

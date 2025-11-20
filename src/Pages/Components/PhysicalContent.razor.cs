@@ -836,7 +836,7 @@ namespace Wayfarer.Pages.Components
         {
             if (GameWorld == null) return 10;
 
-            PhysicalChallengeDeck deck = GameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
+            PhysicalChallengeDeck deck = situation.Deck as PhysicalChallengeDeck;
             return deck?.DangerThreshold ?? 10;
         }
 

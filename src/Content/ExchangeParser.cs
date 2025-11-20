@@ -56,7 +56,7 @@ public static class ExchangeParser
                     Amount = dto.GiveAmount
                 }
             } : new List<ResourceAmount>(),
-                TokenRequirements = dto.TokenGate?.Count > 0 ? new Dictionary<ConnectionType, int>() : null,
+                TokenRequirements = dto.TokenGate?.Count > 0 ? new List<TokenCount>() : new List<TokenCount>(),
                 ConsumedItemIds = new List<string>() // DEPRECATED: consumedItems never appears in JSON (0% frequency)
             },
 

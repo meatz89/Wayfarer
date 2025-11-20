@@ -242,10 +242,8 @@ public static class AStorySceneArchetypeCatalog
         {
             ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
 
-            if (choice.PathType != ChoicePathType.Fallback)
-            {
-                reward.ItemIds = new List<string> { "generated:evidence" };
-            }
+            // DELETED: ItemIds property removed in HIGHLANDER refactoring
+            // TODO: Implement correct pattern for granting dependent items
 
             enrichedSearchChoices.Add(new ChoiceTemplate
             {
@@ -769,7 +767,8 @@ public static class AStorySceneArchetypeCatalog
         foreach (ChoiceTemplate choice in acquireChoices)
         {
             ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
-            reward.ItemIds = new List<string> { "generated:order_artifact" };
+            // DELETED: ItemIds property removed in HIGHLANDER refactoring
+            // TODO: Implement correct pattern for granting dependent items
 
             enrichedAcquireChoices.Add(new ChoiceTemplate
             {

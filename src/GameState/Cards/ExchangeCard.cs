@@ -241,10 +241,11 @@ public class ExchangeCard
 
     /// <summary>
     /// Gets item rewards granted by this exchange.
+    /// HIGHLANDER: Returns Item objects, not string IDs
     /// </summary>
-    public List<string> GetItemRewards()
+    public List<Item> GetItemRewards()
     {
-        return Reward.ItemIds;
+        return Reward.Items;
     }
 
     /// <summary>

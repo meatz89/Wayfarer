@@ -742,7 +742,7 @@ namespace Wayfarer.Pages.Components
         {
             if (GameWorld == null) return 10;
 
-            MentalChallengeDeck deck = GameWorld.MentalChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
+            MentalChallengeDeck deck = situation.Deck as MentalChallengeDeck;
             return deck?.DangerThreshold ?? 10;
         }
 

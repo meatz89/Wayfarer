@@ -1034,15 +1034,15 @@ public class LocationFacade
         switch (situation.SystemType)
         {
             case TacticalSystemType.Social:
-                SocialChallengeDeck socialDeck = _gameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
+                SocialChallengeDeck socialDeck = situation.Deck as SocialChallengeDeck;
                 return socialDeck?.DangerThreshold ?? 10;
 
             case TacticalSystemType.Mental:
-                MentalChallengeDeck mentalDeck = _gameWorld.MentalChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
+                MentalChallengeDeck mentalDeck = situation.Deck as MentalChallengeDeck;
                 return mentalDeck?.DangerThreshold ?? 10;
 
             case TacticalSystemType.Physical:
-                PhysicalChallengeDeck physicalDeck = _gameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
+                PhysicalChallengeDeck physicalDeck = situation.Deck as PhysicalChallengeDeck;
                 return physicalDeck?.DangerThreshold ?? 10;
 
             default:

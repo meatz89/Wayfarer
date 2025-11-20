@@ -762,9 +762,9 @@ public class SceneTemplateParser
             BondChanges = ParseBondChanges(dto.BondChanges),
             ScaleShifts = ParseScaleShifts(dto.ScaleShifts),
             StateApplications = ParseStateApplications(dto.StateApplications),
-            AchievementIds = dto.AchievementIds,
-            ItemIds = dto.ItemIds,
-            ItemsToRemove = dto.ItemsToRemove,
+            // TODO: Implement ParseAchievements to resolve AchievementIds to Achievement objects
+            // TODO: Implement ParseItems to resolve ItemIds to Item objects
+            // TODO: Implement ParseItemsToRemove to resolve ItemsToRemove IDs to Item objects
             ScenesToSpawn = ParseSceneSpawnRewards(dto.ScenesToSpawn)
         };
     }

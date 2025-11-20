@@ -453,15 +453,16 @@ public class ExchangeFacade
 
     /// <summary>
     /// Apply exchange item rewards to player
+    /// HIGHLANDER: Use Item objects, not string IDs
     /// </summary>
     private List<string> ApplyExchangeItemRewards(ExchangeCard exchange, Player player)
     {
         List<string> itemsGranted = new List<string>();
 
-        foreach (string itemId in exchange.GetItemRewards())
+        foreach (Item item in exchange.GetItemRewards())
         {
-            player.Inventory.AddItem(itemId);
-            itemsGranted.Add(itemId);
+            player.Inventory.Add(item);
+            itemsGranted.Add(item.Name);
         }
 
         return itemsGranted;
