@@ -39,7 +39,6 @@ public static class EmergencyParser
             Description = dto.Description ?? "",
             TriggerDay = dto.TriggerDay,
             TriggerSegment = dto.TriggerSegment,
-            TriggerLocationIds = dto.TriggerLocationIds ?? new List<string>(),
             ResponseWindowSegments = dto.ResponseWindowSegments,
             IsTriggered = dto.IsTriggered,
             IsResolved = dto.IsResolved,
@@ -136,8 +135,6 @@ public static class EmergencyParser
             RelationshipDelta = dto.RelationshipDelta,
             NPCRelationshipDeltas = dto.NPCRelationshipDeltas ?? new Dictionary<string, int>(),
             GrantedKnowledge = dto.GrantedKnowledge ?? new List<string>(),
-            SpawnedSituationIds = dto.SpawnedSituationIds ?? new List<string>(),
-            GrantedItemIds = dto.GrantedItemIds ?? new List<string>(),
             CoinReward = dto.CoinReward,
             NarrativeResult = dto.NarrativeResult ?? ""
         };

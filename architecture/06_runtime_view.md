@@ -20,18 +20,7 @@ Content authors create minimal JSON specifying WHAT content should exist (secure
 **Who**: Content authors or AI generators
 **What**: Authors write tiny SceneTemplate JSON
 
-```json
-{
-  "id": "inn_lodging_001",
-  "archetypeId": "service_negotiation",
-  "tier": "basic",
-  "placementFilter": {
-    "npcDemeanor": "Friendly",
-    "locationType": "Inn",
-    "quality": "Standard"
-  }
-}
-```
+Content authors write minimal scene template definitions containing only essential categorical properties. A typical template specifies an identifier, an archetype reference that determines behavioral patterns, a difficulty tier, and a placement filter describing contextual requirements. The placement filter uses categorical properties like character demeanor, location type, and quality level to describe where and how the scene should manifest, without naming specific entities or locations.
 
 **Why Minimal Authoring**:
 - No individual situations, choices, costs, or rewards specified
@@ -69,18 +58,8 @@ SceneTemplate stored in GameWorld.SceneTemplates
 - Reusable templates spawn instantly at runtime
 
 **Context-Aware Scaling Example**:
-```
-Base archetype: StatThreshold = 5, CoinCost = 8
 
-Applied context:
-- NPCDemeanor: Friendly (0.6× difficulty multiplier)
-- Quality: Standard (1.0× cost multiplier)
-- PowerDynamic: Equal (1.0× multiplier)
-
-Scaled results:
-- StatThreshold: 5 × 0.6 = 3 (friendly = easier negotiation)
-- CoinCost: 8 × 1.0 = 8 (standard = baseline cost)
-```
+Catalogues apply contextual multipliers to base archetype values during generation. A base archetype might define a stat threshold of five and a coin cost of eight. When applied to a friendly character context, the system reduces difficulty by applying a sixty percent multiplier, lowering the stat threshold to three. Quality levels affect cost multipliers, with standard quality maintaining baseline pricing at one-to-one. Power dynamics between characters also influence these multipliers. The result is mechanically identical situations that feel appropriately scaled to their narrative context—negotiating with a friendly character is measurably easier than with a hostile one.
 
 ### Phase 3: Spawn-Time Template Instantiation
 

@@ -61,8 +61,7 @@ public static class ConversationTreeParser
             RequiredKnowledge = dto.RequiredKnowledge ?? new List<string>(),
             AvailableTimeBlocks = timeBlocks,
             IsRepeatable = dto.IsRepeatable,
-            IsCompleted = dto.IsCompleted,
-            StartingNodeId = dto.StartingNodeId
+            IsCompleted = dto.IsCompleted
         };
 
         // Parse dialogue nodes
@@ -168,12 +167,9 @@ public static class ConversationTreeParser
             TimeCost = timeCost,
             RequiredStat = requiredStat,
             RequiredStatLevel = dto.RequiredStatLevel,
-            NextNodeId = dto.NextNodeId,
             RelationshipDelta = dto.RelationshipDelta,
             GrantedKnowledge = dto.GrantedKnowledge ?? new List<string>(),
-            SpawnedSituationIds = dto.SpawnedSituationIds ?? new List<string>(),
-            EscalatesToSocialChallenge = dto.EscalatesToSocialChallenge,
-            SocialChallengeSituationId = dto.SocialChallengeSituationId
+            EscalatesToSocialChallenge = dto.EscalatesToSocialChallenge
         };
 
         return response;

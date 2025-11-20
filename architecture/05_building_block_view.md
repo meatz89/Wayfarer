@@ -66,47 +66,15 @@ GameWorld is the **single source of truth** for all game state. It contains stat
 
 ### State Collections
 
-```csharp
-// Core Entities
-public List<NPC> NPCs { get; set; }
-public List<Venue> Venues { get; set; }
-public List<LocationEntry> Locations { get; set; }
-private Player Player { get; set; }
+GameWorld maintains collections for core game entities including character entities, venue entities, location entries, and a single player instance. For the three parallel tactical systems, it stores card template collections for each challenge type and challenge deck collections organizing cards by difficulty and context. The strategic layer is represented through scene template collections defining reusable scene archetypes and active scene instances currently in play.
 
-// Three Parallel Tactical Systems - Card Templates
-public List<SocialCard> SocialCards { get; set; }
-public List<MentalCard> MentalCards { get; set; }
-public List<PhysicalCard> PhysicalCards { get; set; }
+For persistent gameplay scaffolding, GameWorld stores static atmospheric actions that provide ongoing gameplay options like travel, work, rest, and movement between locations. These are distinct from ephemeral scene-based actions which are passed by object reference without requiring storage. The player stats system is represented through stat definition collections describing available character attributes and a stat progression structure tracking advancement.
 
-// Three Parallel Tactical Systems - Challenge Decks
-public List<SocialChallengeDeck> SocialChallengeDecks { get; }
-public List<MentalChallengeDeck> MentalChallengeDecks { get; }
-public List<PhysicalChallengeDeck> PhysicalChallengeDecks { get; }
-
-// Strategic Layer - Scene System
-public List<SceneTemplate> SceneTemplates { get; set; }
-public List<Scene> Scenes { get; set; }
-
-// Atmospheric Action Layer (Persistent Gameplay Scaffolding)
-// STORES ONLY static atmospheric actions (Travel/Work/Rest/Movement)
-// Does NOT store ephemeral scene-based actions (passed by object reference, no storage)
-public List<LocationAction> LocationActions { get; set; }
-
-// Player Stats System
-public List<PlayerStatDefinition> PlayerStatDefinitions { get; set; }
-public StatProgression StatProgression { get; set; }
-```
+All collections use strongly-typed list containers holding domain entities with object references rather than ID lookups.
 
 ### State Operations
 
-```csharp
-GetPlayer() → Single player instance
-GetPlayerResourceState() → Current player resources
-GetLocation(string locationId) → Location by ID
-GetAvailableStrangers() → NPCs available at venue/time
-RefreshStrangersForTimeBlock() → Time-based NPC availability
-ApplyInitialPlayerConfiguration() → Apply starting conditions from JSON
-```
+GameWorld exposes methods for retrieving the single player instance, accessing current player resource states including health and stamina, and locating specific location entries through identifier lookup. For character management, it provides methods to retrieve available stranger characters based on current venue and time context, refresh stranger availability when time blocks transition, and apply initial player configuration from loaded content data at game start.
 
 ### Critical Principles
 
@@ -236,31 +204,9 @@ InvestigationCompleteModal.razor   → Investigation completion rewards
 
 ### Component Communication Pattern
 
-**Direct Parent-Child Communication**:
-```csharp
-// Child receives parent reference
-<CascadingValue Value="@this">
-  <LocationContent OnActionExecuted="RefreshUI" />
-</CascadingValue>
+**Direct Parent-Child Communication**: Child components receive a reference to their parent screen through cascading values, enabling them to invoke parent methods directly for actions like navigation, initiating challenges, or executing game actions. The parent passes callback delegates to children for refresh notifications and state synchronization.
 
-// Child calls parent methods directly
-GameScreen.StartConversation(npcId, requestId)
-GameScreen.NavigateToQueue()
-GameScreen.HandleTravelRoute(routeId)
-```
-
-**Context Objects for Complex State**:
-```csharp
-THREE PARALLEL TACTICAL SYSTEMS
-SocialChallengeContext   → Complete conversation state (Social challenge)
-MentalSession            → Investigation state (Mental challenge)
-PhysicalSession          → Obstacle state (Physical challenge)
-
-SUPPORTING CONTEXTS
-ExchangeContext          → NPC trading session state
-TravelDestinationViewModel → Route and destination display state
-LocationScreenViewModel  → Location exploration state
-```
+**Context Objects for Complex State**: The three parallel tactical systems each maintain dedicated context objects that encapsulate complete challenge state including resources, active cards, and progression tracking. Supporting systems use specialized context objects for trading sessions, travel destinations with route information, and location exploration state. These context objects are passed between components to maintain state consistency without requiring shared mutable storage.
 
 ### Critical UI Principles
 

@@ -20,7 +20,6 @@ public static class PlayerActionParser
 
         PlayerAction action = new PlayerAction
         {
-            Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
             ActionType = actionType,  // Strongly typed enum

@@ -27,77 +27,17 @@ This section documents patterns, principles, and conventions that span multiple 
 - Parser uses categorical properties to find/create entities (EntityResolver.FindOrCreate)
 - NEVER store both ID and object reference (violates Single Source of Truth)
 
-**Correct Examples**:
-```csharp
-// CORRECT - Object reference ONLY, NO ID
-public class NPC {
-    // NO ID property
-    public Location Location { get; set; }  // Object reference
-}
+**Correct Pattern Structure**:
 
-public class Scene {
-    // NO Id property
-    public Situation CurrentSituation { get; set; }  // Object reference
-    public Location Location { get; set; }  // Object reference
-    public NPC Npc { get; set; }  // Object reference
-}
-
-public class Situation {
-    // NO Id property
-    public SituationTemplate Template { get; set; }  // Template reference (templates can have IDs)
-    public Location Location { get; set; }  // Object reference
-    public Scene ParentScene { get; set; }  // Object reference
-}
-```
+Domain entities store direct object references to related entities rather than ID strings. NPC entities have a Location property containing the actual Location object, not a location ID string. Scene entities reference their CurrentSituation object directly, along with direct references to their Location and NPC placement. Situation entities maintain references to their Template (templates are allowed to have IDs as they're immutable archetypes), along with direct object references to Location and the parent Scene. This creates a clean object graph where entities hold actual references to other entities, enabling navigation through the domain model without lookup operations.
 
 **Parser Pattern (EntityResolver.FindOrCreate)**:
-```csharp
-// Parser uses categorical properties to find/create
-public Location FindOrCreateLocation(PlacementFilter filter)
-{
-    // Query existing by categorical properties
-    Location existing = _gameWorld.Locations
-        .Where(loc => loc.Purpose == filter.Purpose)
-        .Where(loc => loc.Safety == filter.Safety)
-        .FirstOrDefault();
 
-    if (existing != null) return existing;  // Found - return object
-
-    // Not found - create from categorical properties
-    Location newLocation = new Location
-    {
-        Purpose = filter.Purpose,
-        Safety = filter.Safety,
-        LocationProperties = filter.Properties
-    };
-    _gameWorld.Locations.Add(newLocation);
-    return newLocation;  // Return object reference, NO ID
-}
-```
+The parser resolves entities using categorical properties through a FindOrCreate pattern. When resolving a Location, the method queries existing locations in GameWorld using filter criteria like Purpose and Safety properties. If a matching location exists (categorical properties align), the parser returns that existing object reference. If no match is found, the parser creates a new Location instance populated with categorical properties from the filter, adds it to GameWorld's Locations collection, and returns the newly created object reference. This pattern eliminates ID dependencies - the parser works entirely with categorical matching and direct object references, never generating or storing ID strings.
 
 **FORBIDDEN Patterns**:
-```csharp
-// ❌ WRONG - Both ID and Object (redundant storage)
-public class RouteOption {
-    public string OriginLocationId { get; set; }    // ❌ Violates HIGHLANDER
-    public Location OriginLocation { get; set; }    // ✓ Object reference correct
-}
 
-// ❌ WRONG - ID-only (requires lookup)
-public class SceneSpawnReward {
-    public string SceneTemplateId { get; set; }  // ❌ Use object reference instead
-}
-
-// ❌ WRONG - ID lists instead of objects
-public class Player {
-    public List<string> ActiveObligationIds { get; set; }  // ❌ Violates HIGHLANDER
-}
-
-// ✓ CORRECT - Object references
-public class Player {
-    public List<Obligation> ActiveObligations { get; set; }  // ✓ Object list
-}
-```
+Several patterns violate the HIGHLANDER principle and must be avoided. Storing both an ID string and an object reference creates redundancy - for example, RouteOption should not have both OriginLocationId and OriginLocation properties, as this duplicates the same information in two forms and can desynchronize. Storing ID-only properties without object references forces runtime lookups - SceneSpawnReward should reference the actual SceneTemplate object rather than storing just a template ID string. Maintaining lists of ID strings instead of object lists violates the pattern - Player should maintain an ActiveObligations collection of Obligation objects, not an ActiveObligationIds collection of string identifiers. The correct pattern uses object references exclusively: collections contain entity objects, properties reference entity objects, and no ID strings exist in the domain layer.
 
 **Why This Pattern**:
 - **Single Source of Truth**: Object IS the truth, no ID to get out of sync
@@ -181,13 +121,7 @@ public static List<ChoiceTemplate> GenerateChoices(
 - Stored in GameWorld.SceneTemplates
 - NEVER modified during gameplay
 
-**Example**:
-```csharp
-public class SceneTemplate {
-    public string Id { get; set; }
-    public List<SituationTemplate> SituationTemplates { get; set; }
-}
-```
+**Example**: Template entities serve as immutable blueprints containing an identifier property and a collection of embedded situation templates.
 
 #### Tier 2: Scenes/Situations (Spawn Time)
 

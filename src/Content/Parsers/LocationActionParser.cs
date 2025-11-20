@@ -20,7 +20,6 @@ public static class LocationActionParser
 
         LocationAction action = new LocationAction
         {
-            Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
             ActionType = actionType,  // Strongly typed enum
@@ -29,7 +28,6 @@ public static class LocationActionParser
             TimeRequired = dto.TimeRequired,
             Availability = ParseTimeBlocks(dto.Availability),
             Priority = dto.Priority,
-            ObligationId = dto.ObligationId,
             RequiredProperties = ParseLocationProperties(dto.RequiredProperties),
             OptionalProperties = ParseLocationProperties(dto.OptionalProperties),
             ExcludedProperties = ParseLocationProperties(dto.ExcludedProperties)

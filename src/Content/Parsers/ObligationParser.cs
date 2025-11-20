@@ -31,12 +31,10 @@ public class ObligationParser
             IntroAction = ParseIntroAction(dto.Intro), // Returns null if dto.Intro is null
             ColorCode = dto.ColorCode,
             ObligationType = ParseObligationType(dto.ObligationType), // Handles null with default
-            PatronNpcId = dto.PatronNpcId,
             DeadlineSegment = dto.DeadlineSegment,
             CompletionRewardCoins = dto.CompletionRewardCoins,
             CompletionRewardItems = dto.CompletionRewardItems, // DTO has inline init, trust it
             CompletionRewardXP = ParseXPRewards(dto.CompletionRewardXP), // Handles null internally
-            SpawnedObligationIds = dto.SpawnedObligationIds, // DTO has inline init, trust it
             PhaseDefinitions = dto.Phases.Select((p, index) => ParsePhaseDefinition(p, dto.Id)).ToList() // DTO has inline init, trust it
         };
     }

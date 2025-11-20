@@ -90,24 +90,8 @@ Progression systems require visibility model for content availability. Boolean f
 **All requirements stored as numeric thresholds enabling arithmetic comparison.** Resources modeled as integer properties on Player entity. Choices specify requirements as numeric values compared at runtime.
 
 **Data Model:**
-```csharp
-public class ChoiceTemplate {
-    public int StatThreshold { get; set; }      // Numeric requirement
-    public int CoinCost { get; set; }           // Numeric cost
-    public int StaminaCost { get; set; }        // Numeric cost
-}
 
-public class Player {
-    public int Rapport { get; set; }            // Numeric capability
-    public int Coins { get; set; }              // Numeric resource
-    public int Stamina { get; set; }            // Numeric resource
-}
-
-// Evaluation uses arithmetic
-bool isAffordable = player.Rapport >= choice.StatThreshold
-                 && player.Coins >= choice.CoinCost
-                 && player.Stamina >= choice.StaminaCost;
-```
+ChoiceTemplate entities store numeric thresholds for requirements: StatThreshold specifies the minimum player capability needed, while CoinCost and StaminaCost represent numeric resource requirements. The Player entity maintains corresponding numeric properties: Rapport tracks the player's capability level, while Coins and Stamina track available resources. Evaluation compares player values against choice requirements using arithmetic comparisons: checking whether player Rapport meets or exceeds the StatThreshold, whether player Coins can cover the CoinCost, and whether player Stamina is sufficient for the StaminaCost. All three conditions must be satisfied for a choice to be affordable.
 
 ### Consequences
 
@@ -182,25 +166,8 @@ The challenge: Provide rich tactical gameplay without hiding strategic costs.
 - **Two Entity Models**: Distinct models to maintain (strategic vs tactical)
 
 **Architecture Flow:**
-```
-STRATEGIC LAYER
-  Player sees Choice: "Negotiate diplomatically"
-  Costs visible: Stamina -2
-  Rewards visible: OnSuccess (room unlocked), OnFailure (pay extra 5 coins)
-  Player commits with full knowledge
-  ↓ [BRIDGE: ActionType.StartChallenge]
-TACTICAL LAYER
-  Challenge session created
-  SituationCards extracted (victory condition: Momentum ≥ 8)
-  Card-based gameplay (draw order hidden)
-  Player plays cards, builds Momentum
-  Threshold reached: Victory
-  Session destroyed (temporary)
-  ↓ [BRIDGE: Return outcome]
-STRATEGIC LAYER
-  OnSuccessReward applied (room unlocked)
-  Scene advances to next Situation
-```
+
+At the strategic layer, the player encounters a Choice with text like "Negotiate diplomatically" displaying all costs upfront (such as Stamina minus two) and all potential rewards visible (OnSuccess might unlock a room, while OnFailure might impose an extra five coin penalty). The player commits to the action with full knowledge of consequences. When ActionType indicates StartChallenge, the system crosses the bridge into the tactical layer. A Challenge session spawns with SituationCards extracted from the situation, establishing a victory condition such as accumulating Momentum to eight or higher. The card-based gameplay unfolds with draw order hidden from the player, who plays cards to build Momentum toward the threshold. Upon reaching victory threshold, the session is destroyed (temporary entity lifecycle). The outcome returns across the bridge back to the strategic layer, where OnSuccessReward applies (room becomes unlocked), and the Scene advances to the next Situation.
 
 ### Alternatives Considered
 
@@ -225,32 +192,12 @@ STRATEGIC LAYER
 ### Implementation Details
 
 **Bridge Enforcement:**
-```csharp
-// ChoiceTemplate routes execution
-switch (choice.ActionType) {
-  case Instant:
-    // Stay strategic: Apply rewards, advance situation
-    break;
-  case Navigate:
-    // Stay strategic: Move player, may advance situation
-    break;
-  case StartChallenge:
-    // Cross bridge: Store pending context, spawn tactical session
-    break;
-}
-```
+
+The ChoiceTemplate entity's ActionType property routes execution flow. When ActionType is Instant, the system stays in the strategic layer, applying rewards immediately and advancing the situation. When ActionType is Navigate, the system remains strategic, moving the player to a new location which may trigger situation advancement. When ActionType is StartChallenge, the system crosses the bridge: storing pending context and spawning a tactical challenge session.
 
 **Pending Context Pattern:**
-```csharp
-// Bridge crossing stores strategic context
-PendingChallengeContext {
-  ParentSceneId,
-  ParentSituationId,
-  OnSuccessReward,  // Applied if tactical victory
-  OnFailureReward   // Applied if tactical defeat
-}
-// Both outcomes advance progression (no soft-locks)
-```
+
+Bridge crossing requires storing strategic context in a PendingChallengeContext structure containing the ParentSceneId identifying which scene spawned the challenge, the ParentSituationId tracking the situation awaiting resolution, OnSuccessReward defining what applies if the player achieves tactical victory, and OnFailureReward defining what applies if the player experiences tactical defeat. Both success and failure outcomes advance progression, preventing soft-locks regardless of challenge result.
 
 ---
 
@@ -320,17 +267,7 @@ Hand-authoring every scene with exact numeric values (stat thresholds, coin cost
 
 ### Formula Example
 
-```
-Base archetype: StatThreshold = 5, CoinCost = 8
-
-Context: Friendly NPC (0.6×), Premium Quality (1.6×), Equal Power (1.0×)
-
-Scaled values:
-- StatThreshold: 5 × 0.6 × 1.0 = 3 (friendly = easier)
-- CoinCost: 8 × 1.6 = 13 (premium = more expensive)
-
-Same archetype, contextually appropriate difficulty.
-```
+The base archetype defines StatThreshold as five and CoinCost as eight. When applied in a context involving a Friendly NPC (multiplier 0.6), Premium Quality service (multiplier 1.6), and Equal Power dynamic (multiplier 1.0), the system scales these values during parsing. StatThreshold becomes three after multiplying five by 0.6 and 1.0, making the friendly NPC interaction easier to pass. CoinCost becomes thirteen after multiplying eight by 1.6, making the premium quality service more expensive. The same archetype produces contextually appropriate difficulty levels through categorical multipliers.
 
 ### Alternatives Considered
 
@@ -395,17 +332,8 @@ All initialization code MUST be idempotent:
 - Manage event subscriptions carefully (avoid double subscription)
 
 **Implementation Pattern:**
-```csharp
-public async Task StartGameAsync()
-{
-    if (_gameWorld.IsGameStarted)
-    {
-        return; // Already initialized, skip
-    }
-    // ... initialization code
-    _gameWorld.IsGameStarted = true;
-}
-```
+
+The StartGameAsync method implements idempotence protection by checking the GameWorld's IsGameStarted flag at the beginning of execution. If the flag indicates the game has already been initialized, the method returns immediately without executing initialization logic. If the flag indicates uninitialized state, the method proceeds with initialization code and sets IsGameStarted to true upon completion. This pattern ensures that regardless of how many times the method executes during the double-rendering lifecycle, initialization only occurs once.
 
 **Safe Patterns:**
 - All services as Singletons (persist across renders)
@@ -456,12 +384,8 @@ public async Task StartGameAsync()
 ### Testing Considerations
 
 **Expected Behavior:**
-```
-[GameFacade.StartGameAsync] Player initialized at Market Square   // First render
-[GameFacade.StartGameAsync] Game already started, skipping        // Second render
-```
 
-This is EXPECTED and shows idempotence protection working correctly.
+When debugging Blazor ServerPrerendered applications, log output will show the StartGameAsync method executing twice: first logging that the player initialized at Market Square during the initial server-side prerender, then logging that game start was skipped because it already started during the second interactive render after SignalR connection. This double-logging behavior is expected and demonstrates idempotence protection working correctly, preventing duplicate initialization.
 
 ---
 
@@ -736,43 +660,12 @@ This meta-decision IS the alignment framework for all other principles.
 ### Implementation Notes
 
 **Entity Pattern Example:**
-```csharp
-// CORRECT - NO ID, object references only
-public class NPC
-{
-    // NO ID property
-    public string Name { get; set; }
-    public Location Location { get; set; }  // Object reference
-    public Professions Profession { get; set; }  // Categorical property
-    public PersonalityType PersonalityType { get; set; }  // Categorical property
-}
 
-// Parser uses categorical properties to find/create
-Location location = EntityResolver.FindOrCreateLocation(new PlacementFilter
-{
-    Purpose = dto.Purpose,
-    Safety = dto.Safety,
-    LocationProperties = dto.Properties
-});
-npc.Location = location;  // Store object reference
-```
+The NPC entity should contain no ID property. Instead, it stores a Name string for identification, a Location object reference pointing to the entity's current position, and categorical properties like Profession and PersonalityType using enums. The parser uses categorical properties to find or create entities through the EntityResolver: constructing a PlacementFilter specifying Purpose, Safety, and LocationProperties from the DTO, then calling FindOrCreateLocation which either returns an existing matching location or creates a new one. The parser then stores the returned object reference directly in the NPC's Location property, establishing the relationship without any ID strings.
 
 **Procedural Route Generation Example:**
-```csharp
-// CORRECT - Routes generated from hex coordinates
-List<AxialCoordinates> hexPath = pathfinder.FindPath(
-    origin.HexPosition,
-    destination.HexPosition,
-    hexMap);
 
-RouteOption route = new RouteOption
-{
-    OriginLocation = origin,  // Object reference
-    DestinationLocation = destination,  // Object reference
-    HexPath = hexPath,  // Spatial path
-    DangerRating = hexPath.Sum(coord => hexMap.GetHex(coord).DangerLevel)
-};
-```
+Route generation operates on hex coordinates rather than predefined connections. The pathfinder's FindPath method accepts origin and destination HexPosition values along with the hex map, returning a list of AxialCoordinates representing the spatial path between the two points. The system constructs a RouteOption entity storing OriginLocation and DestinationLocation as object references to the actual location entities, storing the HexPath as the sequence of coordinates, and calculating DangerRating by summing the DangerLevel of each hex coordinate along the path. No route IDs exist; routes are identified by their origin and destination object references.
 
 ---
 
