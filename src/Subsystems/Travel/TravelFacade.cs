@@ -578,6 +578,7 @@ public class TravelFacade
 
     /// <summary>
     /// Get narrative text from current event if in Event segment
+    /// HIGHLANDER: Use CurrentEventNarrative property set by TravelManager, NO lookups
     /// </summary>
     public string GetCurrentEventNarrative()
     {
@@ -587,16 +588,9 @@ public class TravelFacade
             return null;
         }
 
-        // ADR-007: Check if we have CurrentEvent object (not ID)
-        // Use Collection.Id (object property) instead of deleted CollectionId
-        if (session.CurrentEvent != null &&
-            _gameWorld.AllPathCollections.Any(p => p.Collection.Id == session.CurrentEvent.Id))
-        {
-            PathCardCollectionDTO collection = _gameWorld.GetPathCollection(session.CurrentEvent.Id);
-            return collection.NarrativeText;
-        }
-
-        return null;
+        // TravelManager sets CurrentEventNarrative from TravelEventDTO.NarrativeText
+        // NO lookups needed - already populated at event selection time
+        return session.CurrentEventNarrative;
     }
 
     /// <summary>
@@ -630,16 +624,13 @@ public class TravelFacade
         }
         else if (segment.Type == SegmentType.FixedPath)
         {
-            // For FixedPath segments: use PathCollectionId
-            string collectionId = segment.PathCollectionId;
+            // HIGHLANDER: Use PathCollection object reference directly, NO lookup
+            PathCardCollectionDTO collection = segment.PathCollection;
 
-            // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
-            if (string.IsNullOrEmpty(collectionId) || !_gameWorld.AllPathCollections.Any(p => p.Collection.Id == collectionId))
+            if (collection == null)
             {
                 return null;
             }
-
-            PathCardCollectionDTO collection = _gameWorld.GetPathCollection(collectionId);
 
             // Look in embedded path cards
             return collection.PathCards?.FirstOrDefault(c => c.Id == cardId);

@@ -267,21 +267,18 @@ public class SituationCompletionHandler
                     {
                         RouteSegment segment = route.Segments[unlock.SegmentPosition];
 
-                        // Get PathCard collection for this segment
-                        if (!string.IsNullOrEmpty(segment.PathCollectionId))
+                        // HIGHLANDER: Use PathCollection object reference directly, NO lookup
+                        PathCardCollectionDTO collection = segment.PathCollection;
+                        if (collection != null)
                         {
-                            PathCardCollectionDTO collection = _gameWorld.GetPathCollection(segment.PathCollectionId);
-                            if (collection != null)
+                            // ARCHITECTURAL FIX: Find PathCard by object reference comparison
+                            // NOTE: This assumes PathCard has been properly resolved to the same object instance
+                            PathCardDTO pathCard = collection.PathCards.FirstOrDefault(p => p == unlock.PathDTO);
+                            if (pathCard != null)
                             {
-                                // ARCHITECTURAL FIX: Find PathCard by object reference comparison
-                                // NOTE: This assumes PathCard has been properly resolved to the same object instance
-                                PathCardDTO pathCard = collection.PathCards.FirstOrDefault(p => p == unlock.PathDTO);
-                                if (pathCard != null)
-                                {
-                                    // Reveal hidden PathCard by setting ExplorationThreshold to 0 (always visible)
-                                    int previousThreshold = pathCard.ExplorationThreshold;
-                                    pathCard.ExplorationThreshold = 0;
-                                }
+                                // Reveal hidden PathCard by setting ExplorationThreshold to 0 (always visible)
+                                int previousThreshold = pathCard.ExplorationThreshold;
+                                pathCard.ExplorationThreshold = 0;
                             }
                         }
                     }
