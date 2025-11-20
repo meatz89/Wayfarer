@@ -701,23 +701,6 @@ public class GameWorld
         route.ExplorationCubes = Math.Min(10, route.ExplorationCubes + amount);
     }
 
-    /// <summary>
-    /// Get MasteryCubes for a physical challenge deck (0-10 scale)
-    /// </summary>
-    public int GetMasteryCubes(string deckId)
-    {
-        return GetPlayer().MasteryCubes.GetMastery(deckId);
-    }
-
-    /// <summary>
-    /// Grant MasteryCubes for a physical challenge deck (max 10)
-    /// </summary>
-    public void GrantMasteryCubes(string deckId, int amount)
-    {
-        Player player = GetPlayer();
-        player.MasteryCubes.AddMastery(deckId, amount);
-    }
-
     // ============================================
     // SCENE-SITUATION ARCHITECTURE (Sir Brante Integration)
     // ============================================

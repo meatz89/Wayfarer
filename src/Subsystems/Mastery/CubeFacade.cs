@@ -141,47 +141,4 @@ public class CubeFacade
         return _gameWorld.GetRouteCubes(route) >= 10;
     }
 
-    // ============================================
-    // MASTERY CUBES (Physical Challenge Mastery)
-    // ============================================
-
-    /// <summary>
-    /// Get MasteryCubes for a physical challenge deck (0-10 scale)
-    /// </summary>
-    public int GetDeckCubes(string deckId)
-    {
-        return _gameWorld.GetMasteryCubes(deckId);
-    }
-
-    /// <summary>
-    /// Grant MasteryCubes to a physical challenge deck (max 10)
-    /// Reduces Physical Danger for that specific deck type only
-    /// </summary>
-    public void GrantDeckCubes(string deckId, int amount)
-    {
-        int before = _gameWorld.GetMasteryCubes(deckId);
-        _gameWorld.GrantMasteryCubes(deckId, amount);
-        int after = _gameWorld.GetMasteryCubes(deckId);
-
-        int actualGranted = after - before;
-        if (actualGranted > 0)
-        { }
-    }
-
-    /// <summary>
-    /// Calculate Physical Danger reduction based on MasteryCubes
-    /// Each cube reduces danger by 1 point
-    /// </summary>
-    public int GetDeckDangerReduction(string deckId)
-    {
-        return _gameWorld.GetMasteryCubes(deckId);
-    }
-
-    /// <summary>
-    /// Check if deck is mastered (10 cubes - maximum reduction)
-    /// </summary>
-    public bool IsDeckMastered(string deckId)
-    {
-        return _gameWorld.GetMasteryCubes(deckId) >= 10;
-    }
 }
