@@ -879,17 +879,6 @@ public class GameWorld
     // ============================================
 
     /// <summary>
-    /// Get event deck position
-    /// </summary>
-    public int GetEventDeckPosition(string deckId)
-    {
-        EventDeckPositionEntry entry = EventDeckPositions.FirstOrDefault(p => p.DeckId == deckId);
-        if (entry == null)
-            throw new InvalidOperationException($"No event deck position entry found for deck '{deckId}' - ensure deck exists before accessing position");
-        return entry.Position;
-    }
-
-    /// <summary>
     /// Set event deck position
     /// </summary>
     public void SetEventDeckPosition(string deckId, int position)
