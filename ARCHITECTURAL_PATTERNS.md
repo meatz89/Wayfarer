@@ -177,9 +177,8 @@ public enum ResourceType
 ```csharp
 public class InteractionOptionViewModel
 {
-    public string InteractionId { get; set; }
     public ConversationAction ActionType { get; set; } // Domain enum, not display text
-    public string NPCId { get; set; }
+    public NPC TargetNPC { get; set; } // Object reference, NOT NPCId string
 }
 
 public class ResourceDisplayViewModel
@@ -187,6 +186,8 @@ public class ResourceDisplayViewModel
     public ResourceType Type { get; set; } // Domain enum, not icon name
     public int Amount { get; set; }
 }
+
+// NOTE: ViewModels contain object references and domain enums, NEVER entity instance IDs
 ```
 
 **Layer 3: Frontend** (Presentation - All Display Logic)
@@ -304,14 +305,14 @@ return new NPCInteractionViewModel
 // Backend returns domain value, frontend generates presentation
 public class NPCInteractionViewModel
 {
-    public string NPCId { get; set; }
+    public NPC TargetNPC { get; set; } // Object reference, NOT NPCId string
     public ConnectionState RelationshipState { get; set; } // Domain enum only
     public int ConnectionTokens { get; set; }
 }
 
 return new NPCInteractionViewModel
 {
-    NPCId = npc.ID,
+    TargetNPC = npc, // Object reference
     RelationshipState = GetConnectionState(npc), // Domain logic
     ConnectionTokens = npc.GetTokenCount()
 };

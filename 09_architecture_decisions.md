@@ -596,26 +596,30 @@ This meta-decision IS the alignment framework for all other principles.
 > **For complete spatial hierarchy and location relationships**, see [03_context_and_scope.md](03_context_and_scope.md) and [05_building_block_view.md](05_building_block_view.md).
 
 ### Status
-**Accepted** - Fundamental architectural pattern (currently violated, requires refactoring)
+**Accepted** - Fundamental architectural pattern (ARCHITECTURAL MANDATE)
 
 ### Context
 
-**Current Implementation (WRONG):**
-- Domain entities store synthetic ID strings (`NPC.ID`, `RouteOption.OriginLocationId`)
-- JSON files contain ID cross-references (`"locationId": "common_room"`, `"venueId": "brass_bell_inn"`)
-- Parsers perform ID lookups to resolve references (`gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId)`)
-- Redundant storage of both IDs and object references (RouteOption comment: "HIGHLANDER Pattern A (BOTH ID + Object)")
-- Routes manually defined in JSON with origin/destination ID references
+**ENTITY INSTANCE IDs DO NOT EXIST IN THIS ARCHITECTURE.**
 
-**Problems with ID-Based Architecture:**
-1. **Serialization Leakage**: IDs are JSON parsing artifacts polluting domain entities
-2. **Redundancy**: Entities store both ID strings AND object references
-3. **Violations Enabled**: Composite IDs, ID parsing, GetHashCode misuse
-4. **Manual Route Definition**: Routes hardcoded in JSON instead of generated procedurally
+Domain entities (NPC, Location, Route, Scene, Situation) have **NO ID PROPERTIES**. This is architectural law, not a guideline.
 
-**Architectural Intent (from code comments):**
-- Location.cs line 15: *"HIGHLANDER: Location.HexPosition is source of truth, Hex.LocationId is derived lookup"*
-- NPCParser.cs line 107: *"HIGHLANDER: ID is parsing artifact"*
+**The Only Exception: Template IDs**
+
+Template IDs are acceptable (SceneTemplate.Id, SituationTemplate.Id, ArchetypeId) because templates are **immutable archetypes**, not mutable entity instances:
+- ✅ Template IDs: SceneTemplate.Id, SituationTemplate.Id, ArchetypeId (content definitions)
+- ❌ Entity instance IDs: Scene.Id, Situation.Id, NPC.Id, Location.Id, Route.Id (game state)
+
+**Why Entity Instance IDs Are Forbidden:**
+1. **Serialization Leakage**: IDs are JSON parsing artifacts that would pollute domain entities
+2. **Redundancy**: Storing both ID strings AND object references violates Single Source of Truth
+3. **Violations Enabled**: IDs enable composite ID generation, ID parsing, GetHashCode misuse
+4. **Breaks Procedural Generation**: Hardcoded entity IDs prevent templates from working in any procedural world
+
+**Architectural Mandate (code comments confirm intent):**
+- Location.cs: *"HIGHLANDER: Location.HexPosition is source of truth, Hex.LocationId is derived lookup"*
+- NPCParser.cs: *"HIGHLANDER: ID is parsing artifact"*
+- The architecture was DESIGNED without entity instance IDs from the beginning
 
 **System Context:**
 - Blazor Server in-process execution (no serialization between frontend/backend)
@@ -625,34 +629,52 @@ This meta-decision IS the alignment framework for all other principles.
 
 ### Decision
 
-**Eliminate synthetic IDs from domain entities. Use hex-based spatial positioning and object references for all relationships.**
+**ENTITY INSTANCE IDs DO NOT EXIST. Entity relationships use hex-based spatial positioning, categorical properties, and direct object references ONLY.**
 
-**Exception:** Template IDs are acceptable (SceneTemplate.Id, SituationTemplate.Id) because templates are immutable archetypes, not mutable entity instances. Templates are content definitions, not game state.
+**The Four-Layer Architecture:**
 
-**JSON Layer:**
-- Locations defined with hex coordinates (Q, R) indicating spatial position
-- NPCs defined with hex coordinates (where they spawn), NOT locationId cross-reference
-- Routes NOT defined in JSON - generated procedurally from hex grid
-- Hex grid defines terrain, danger levels, traversability at each coordinate
+**1. JSON Layer (Categorical Properties + Spatial Coordinates):**
+- Locations: Hex coordinates (Q, R) + categorical dimensions (Privacy, Safety, Activity, Purpose)
+- NPCs: `spawnLocation` filter with categorical properties (NOT `locationId`)
+- Exchange Cards: `providerFilter` with categorical properties (NOT `npcId`)
+- Conversation Trees: `participantFilter` with categorical properties (NOT `npcId`)
+- Observation Scenes: `locationFilter` with categorical properties (NOT `locationId`)
+- Routes: NOT in JSON - generated procedurally from hex grid
 
-**Parser Layer:**
-- Resolves spatial relationships via hex coordinate matching
-- Builds object graph using categorical properties (EntityResolver.FindOrCreate)
-- Creates object references based on categorical matching
-- Parser queries existing entities by categorical properties, creates new if no match
+**2. Parser Layer (EntityResolver.FindOrCreate):**
+- Resolves categorical filters to concrete entity objects
+- `FindOrCreateLocation(PlacementFilter)` → returns Location object
+- `FindOrCreateNPC(PlacementFilter)` → returns NPC object
+- Queries existing entities by categorical matching, creates new if no match
+- Returns object references immediately (NO ID storage)
 
-**Domain Layer:**
-- Entities have object references, NOT ID strings
-- NPC has `Location` object reference (no `ID`, `LocationId` properties)
-- RouteOption has `OriginLocation`, `DestinationLocation` objects (no ID strings)
-- Location.HexPosition (AxialCoordinates) is spatial source of truth
-- Player has `List<Obligation>` (not `List<string> ObligationIds`)
+**3. Domain Layer (Object References ONLY):**
+```csharp
+// ✅ CORRECT - NO ID properties
+public class NPC {
+    // NO Id property
+    public string Name { get; set; }
+    public Location Location { get; set; }  // Object reference
+    public Location WorkLocation { get; set; }  // Object reference
+}
 
-**Runtime:**
-- Routes generated procedurally via pathfinding: `Origin.HexPosition → Destination.HexPosition`
-- Travel system navigates hex grid terrain and danger levels
-- No hardcoded route definitions - all routes emerge from spatial data
-- Entity queries use categorical properties (profession, personality, location, tier)
+public class Scene {
+    // NO Id property
+    public Situation CurrentSituation { get; set; }  // Object reference
+    public Location Location { get; set; }  // Object reference
+    public NPC Npc { get; set; }  // Object reference
+}
+
+public class Player {
+    public List<Obligation> ActiveObligations { get; set; }  // Object list, NOT ID list
+}
+```
+
+**4. Runtime (Spatial + Categorical Queries):**
+- Route generation: Procedural via pathfinding `Origin.HexPosition → Destination.HexPosition`
+- Entity queries: LINQ over GameWorld collections using categorical properties
+- Scene matching: Categorical filters match ANY entity with required properties
+- NO hardcoded route definitions - all routes emerge from spatial data
 
 ### Consequences
 
@@ -664,38 +686,14 @@ This meta-decision IS the alignment framework for all other principles.
 - **Compile-Time Safety**: Object references catch errors at compile time vs runtime ID lookups
 
 **Negative:**
-- **Requires Refactoring**: Massive codebase change across JSON, DTOs, parsers, domain, services
-- **Migration Complexity**: Must update all 5 layers simultaneously (JSON → DTO → Parser → Entity → Services)
-- **Breaking Change**: Existing JSON files need restructuring (add Q,R coordinates, remove ID cross-references)
+- **Initial Learning Curve**: Developers must understand categorical matching vs ID lookups
+- **Different Mental Model**: Object-oriented relationships vs database-style foreign keys
+- **Refactoring Effort**: Existing code with ID patterns must be migrated
 
-**Technical Requirements:**
-- Add Q,R properties to LocationDTO, NPCDTO
-- Remove ID properties from all domain entities
-- Refactor parsers to use spatial resolution instead of ID lookups
-- Remove 04_connections.json (routes generated procedurally)
-- Update services to use object references instead of ID strings
-- Add unit tests for spatial resolution logic
-
-**Migration Strategy:**
-1. **Phase 1: Fix Immediate Violations** (Quick wins)
-   - NPC.cs line 148: Replace `ID.GetHashCode()` with dedicated `DeterministicSeed` property
-   - HexRouteGenerator.cs: Replace composite IDs with opaque GUIDs, add origin/destination object properties
-2. **Phase 2: JSON Restructuring** (Data layer)
-   - Add Q,R coordinates to all location JSON (source of truth for spatial position)
-   - Add Q,R coordinates to all NPC JSON (where they spawn)
-   - Remove locationId, venueId cross-references
-   - Delete 04_connections.json (routes generated procedurally)
-3. **Phase 3: Domain Entity Cleanup** (Model layer)
-   - Remove ID properties from NPC, RouteOption, Location
-   - Remove LocationId, OriginLocationId, DestinationLocationId redundant properties
-4. **Phase 4: Parser Refactoring** (Resolution layer)
-   - Spatial resolution: Match entities by hex coordinates
-   - Build object graph during parsing
-   - Eliminate ID lookup patterns
-5. **Phase 5: Service Layer Updates** (Application layer)
-   - Replace ID parameters with object parameters
-   - Remove `GetById` methods, use object references
-   - Update frontend to pass objects instead of ID strings
+**Related Patterns:**
+- EntityResolver.FindOrCreate: Categorical property matching
+- HIGHLANDER Principle: One representation per concept (object references ONLY)
+- Catalogue Pattern: Parse-time translation from categorical to concrete values
 
 ### Alternatives Considered
 

@@ -175,13 +175,14 @@ Each quality goal translates into concrete, testable scenarios. Scenarios follow
 - Multiple systems need to know player location (UI, SceneFacade, SpawnFacade)
 
 **Stimulus:**
-- GameFacade.NavigateToLocation(newLocationId)
+- GameFacade.NavigateToLocation(newLocation)  // Pass object, NOT ID
 
 **Response:**
-- GameWorld.Player.CurrentLocationId updated (ONLY place storing location)
+- GameWorld.Player.CurrentLocation updated (ONLY place storing location - object reference)
 - All systems query GameWorld for location, never cache independently
-- **Metric**: Zero properties named "CurrentLocationId" outside GameWorld.Player
-- **Validation**: Code search for "CurrentLocationId" returns only GameWorld.Player property
+- **Metric**: Zero properties named "CurrentLocationId" exist (use CurrentLocation object reference)
+- **Validation**: Code search confirms Player.CurrentLocation is object reference, NOT ID string
+- **NO ENTITY INSTANCE IDs**: Player.CurrentLocation is Location object, never string ID
 
 #### Scenario 2.2: Scene State Synchronization
 

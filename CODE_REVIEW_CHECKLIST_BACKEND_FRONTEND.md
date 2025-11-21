@@ -141,7 +141,7 @@ return new InteractionViewModel
 return new InteractionViewModel
 {
     ConversationType = conversationType, // Enum, not text
-    NPCId = npc.ID,
+    TargetNPC = npc, // Object reference, NOT NPCId
     IsAvailable = CanInteract(npc)
 };
 ```
@@ -421,7 +421,7 @@ public TravelStatusViewModel GetTravelStatus()
 // In LocationFacade
 var interaction = new InteractionOptionViewModel
 {
-    NPCId = npc.ID,
+    TargetNPC = npc, // Object reference, NOT NPCId
     DisplayText = conversationType switch  // VIOLATION - Hardcoded text
     {
         "friendly_chat" => "Friendly Chat",
@@ -444,7 +444,7 @@ var interaction = new InteractionOptionViewModel
 // In LocationFacade
 var interaction = new InteractionOptionViewModel
 {
-    NPCId = npc.ID,
+    TargetNPC = npc, // Object reference, NOT NPCId
     ConversationType = conversationType  // Domain enum, no display logic
 };
 

@@ -141,7 +141,7 @@ Check scene.CurrentSituation.InstantiationState
     ↓ if Deferred
 Iterate CurrentSituation.ChoiceTemplates:
   - Create Action from ChoiceTemplate
-  - Set Action.SituationId = CurrentSituation.Id
+  - Set Action.ParentSituation = CurrentSituation  // Object reference, NOT ID
   - Add to GameWorld.LocationActions (for location context)
     ↓
 Set InstantiationState = Instantiated
@@ -173,14 +173,14 @@ This scenario shows pure strategic layer flow with instant choices that never cr
 
 ```
 1. Player at market location
-   GameWorld.Player.CurrentLocationId = "market_square"
+   GameWorld.Player.CurrentLocation = marketLocation  // Object reference, NOT ID string
 
 2. Active Scene at location with current situation
    Scene.CurrentSituation = Buy Food Situation
    Situation.InstantiationState = Deferred
 
 3. UI queries for actions
-   SceneFacade.GetActionsAtLocation("market_square")
+   SceneFacade.GetActionsAtLocation(marketLocation)  // Pass object, NOT ID string
    → Creates actions from ChoiceTemplates
    → Situation.InstantiationState = Instantiated
 
@@ -503,7 +503,7 @@ SITUATION 4: CLEANUP
 ```
 
 **Auto-Activation Mechanics**:
-- **Context Matching**: RequiredLocationId/RequiredNpcId compared to player context
+- **Context Matching**: PlacementFilter (categorical properties) matched against player context (NO hardcoded entity IDs)
 - **Automatic Trigger**: No explicit player action needed when context matches
 - **Seamless Flow**: ContinueInScene enables instant progression within same context
 - **Manual Navigation**: ExitToWorld requires player to navigate when context changes

@@ -307,11 +307,13 @@ public Location GetLocationById(string id) { return location; }
 
 **CORRECT:**
 - ✅ Use enums for routing: `switch (action.ActionType)`
-- ✅ Use strongly-typed properties: `action.DestinationLocationId`
+- ✅ Use strongly-typed object references: `action.DestinationLocation` (object, NOT ID string)
 - ✅ Properties flow through entire data stack: JSON → DTO → Domain → ViewModel → Intent
 
-**IDs Acceptable For:** Uniqueness (dictionary keys), debugging/logging, simple passthrough
-**IDs NEVER For:** Routing decisions, conditional logic, data extraction
+**Entity Instance IDs DO NOT EXIST:**
+- ❌ FORBIDDEN: NPC.Id, Location.Id, Route.Id, Scene.Id, Situation.Id
+- ✅ ACCEPTABLE: SceneTemplate.Id, SituationTemplate.Id (immutable archetypes, not game state)
+- ✅ CORRECT: Object references (`NPC.Location`), categorical properties (`PlacementFilter`), spatial coordinates (`Location.HexPosition`)
 
 #### Generic Property Modification Antipattern
 

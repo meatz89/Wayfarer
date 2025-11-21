@@ -1484,14 +1484,14 @@ Validator throws InvalidOperationException if any check fails. System crashes ra
 
 ### Generation Budget System
 
-**Venue Capacity**: Each venue enforces capacity budget through maximum location property with default of twenty locations and capacity checking method comparing current location count against maximum. Budget is **derived** (counts existing LocationIds) not **tracked** (no separate counter). This enforces Catalogue Pattern: generated locations become indistinguishable from authored locations after parsing. Capacity applies to ALL locations equally.
+**Venue Capacity**: Each venue enforces capacity budget through maximum location property with default of twenty locations and capacity checking method comparing current location count against maximum. Budget is **derived** (counts existing Locations) not **tracked** (no separate counter). This enforces Catalogue Pattern: generated locations become indistinguishable from authored locations after parsing. Capacity applies to ALL locations equally.
 
 **Bidirectional Relationship Maintenance**:
-- `Venue.LocationIds` ↔ `Location.Venue` must stay synchronized
-- **Authored locations**: `VenueParser` copies `dto.locations` → `venue.LocationIds` from JSON
-- **All locations**: `GameWorld.AddOrUpdateLocation()` ensures `venue.LocationIds` contains location when added
+- `Venue.Locations` (collection of objects) ↔ `Location.Venue` (object reference) must stay synchronized
+- **Authored locations**: `VenueParser` copies location objects → `venue.Locations` from JSON
+- **All locations**: `GameWorld.AddOrUpdateLocation()` ensures `venue.Locations` contains location when added
 - **Thread-safe**: Capacity check and add operation locked on venue object to prevent race conditions
-- **CRITICAL**: Capacity budget depends on LocationIds.Count being accurate
+- **CRITICAL**: Capacity budget depends on Locations.Count being accurate (NO LocationIds collection)
 
 **Budget Exhaustion**: When venue reaches capacity, BuildLocationDTO throws InvalidOperationException (fail-fast). Generation fails before DTO creation. Content authors must ensure sufficient capacity or use different venues. Since locations persist forever, budget violations cannot be cleaned up - prevention is critical.
 
@@ -1510,7 +1510,7 @@ Validator throws InvalidOperationException if any check fails. System crashes ra
 - **Adjacent**: One of 6 neighbors of base location (cross-venue requires route)
 - **Distance/Random**: Future extensions for specific spatial patterns
 
-**Hex Synchronization**: Location.HexPosition is source of truth, Hex.LocationId is derived lookup. HexSynchronizationService maintains consistency.
+**Hex Synchronization**: Location.HexPosition is source of truth (spatial coordinates), Hex.LocationId is derived reverse index for pathfinding. This is the ONLY acceptable "ID" pattern - derived lookups where spatial data is source of truth.
 
 ### Integration with Archetype System
 
