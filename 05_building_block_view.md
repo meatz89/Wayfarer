@@ -66,47 +66,48 @@ GameWorld is the **single source of truth** for all game state. It contains stat
 
 ### State Collections
 
-```csharp
-// Core Entities
-public List<NPC> NPCs { get; set; }
-public List<Venue> Venues { get; set; }
-public List<LocationEntry> Locations { get; set; }
-private Player Player { get; set; }
+**Core Entities:**
+- NPCs list (all non-player characters)
+- Venues list (spatial hierarchy containers)
+- Locations list (specific places within venues)
+- Player singleton (single player instance)
 
-// Three Parallel Tactical Systems - Card Templates
-public List<SocialCard> SocialCards { get; set; }
-public List<MentalCard> MentalCards { get; set; }
-public List<PhysicalCard> PhysicalCards { get; set; }
+**Three Parallel Tactical Systems - Card Templates:**
+- SocialCards list (conversation tactical cards)
+- MentalCards list (investigation tactical cards)
+- PhysicalCards list (obstacle tactical cards)
 
-// Three Parallel Tactical Systems - Challenge Decks
-public List<SocialChallengeDeck> SocialChallengeDecks { get; }
-public List<MentalChallengeDeck> MentalChallengeDecks { get; }
-public List<PhysicalChallengeDeck> PhysicalChallengeDecks { get; }
+**Three Parallel Tactical Systems - Challenge Decks:**
+- SocialChallengeDecks list (conversation challenges)
+- MentalChallengeDecks list (investigation challenges)
+- PhysicalChallengeDecks list (obstacle challenges)
 
-// Strategic Layer - Scene System
-public List<SceneTemplate> SceneTemplates { get; set; }
-public List<Scene> Scenes { get; set; }
+**Strategic Layer - Scene System:**
+- SceneTemplates list (immutable archetypes)
+- Scenes list (mutable instances containing embedded Situations)
 
-// Atmospheric Action Layer (Persistent Gameplay Scaffolding)
-// STORES ONLY static atmospheric actions (Travel/Work/Rest/Movement)
-// Does NOT store ephemeral scene-based actions (passed by object reference, no storage)
-public List<LocationAction> LocationActions { get; set; }
+**Atmospheric Action Layer:**
+- LocationActions list (persistent gameplay scaffolding only)
+- Stores ONLY static atmospheric actions (Travel/Work/Rest/Movement)
+- Does NOT store ephemeral scene-based actions (passed by object reference)
 
-// Player Stats System
-public List<PlayerStatDefinition> PlayerStatDefinitions { get; set; }
-public StatProgression StatProgression { get; set; }
-```
+**Player Stats System:**
+- PlayerStatDefinitions list (stat metadata)
+- StatProgression singleton (progression tracking)
 
 ### State Operations
 
-```csharp
-GetPlayer() → Single player instance
-GetPlayerResourceState() → Current player resources
-GetLocation(string locationId) → Location by ID
-GetAvailableStrangers() → NPCs available at venue/time
-RefreshStrangersForTimeBlock() → Time-based NPC availability
-ApplyInitialPlayerConfiguration() → Apply starting conditions from JSON
-```
+**Player Access:**
+- GetPlayer: Returns single player instance
+- GetPlayerResourceState: Returns current player resources
+
+**Entity Queries:**
+- GetLocation: Retrieves location by ID
+- GetAvailableStrangers: Returns NPCs available at venue/time
+- RefreshStrangersForTimeBlock: Updates time-based NPC availability
+
+**Initialization:**
+- ApplyInitialPlayerConfiguration: Applies starting conditions from JSON
 
 ### Critical Principles
 
@@ -236,31 +237,24 @@ InvestigationCompleteModal.razor   → Investigation completion rewards
 
 ### Component Communication Pattern
 
-**Direct Parent-Child Communication**:
-```csharp
-// Child receives parent reference
-<CascadingValue Value="@this">
-  <LocationContent OnActionExecuted="RefreshUI" />
-</CascadingValue>
+**Direct Parent-Child Communication:**
+- Child components receive parent reference via CascadingValue
+- Children rendered inside parent's container element
+- Children call parent methods directly (no event bus)
+- Parent methods include: StartConversation, NavigateToQueue, HandleTravelRoute
+- OnActionExecuted callback triggers parent UI refresh
 
-// Child calls parent methods directly
-GameScreen.StartConversation(npcId, requestId)
-GameScreen.NavigateToQueue()
-GameScreen.HandleTravelRoute(routeId)
-```
+**Context Objects for Complex State:**
 
-**Context Objects for Complex State**:
-```csharp
-THREE PARALLEL TACTICAL SYSTEMS
-SocialChallengeContext   → Complete conversation state (Social challenge)
-MentalSession            → Investigation state (Mental challenge)
-PhysicalSession          → Obstacle state (Physical challenge)
+THREE PARALLEL TACTICAL SYSTEMS:
+- SocialChallengeContext: Complete conversation state (Social challenge)
+- MentalSession: Investigation state (Mental challenge)
+- PhysicalSession: Obstacle state (Physical challenge)
 
-SUPPORTING CONTEXTS
-ExchangeContext          → NPC trading session state
-TravelDestinationViewModel → Route and destination display state
-LocationScreenViewModel  → Location exploration state
-```
+SUPPORTING CONTEXTS:
+- ExchangeContext: NPC trading session state
+- TravelDestinationViewModel: Route and destination display state
+- LocationScreenViewModel: Location exploration state
 
 ### Critical UI Principles
 
