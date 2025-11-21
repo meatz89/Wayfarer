@@ -26,9 +26,9 @@ namespace Wayfarer.Pages.Components
             if (Context.CurrentNode == null) return;
 
             ConversationTreeResult result = GameFacade.SelectConversationResponse(
-                Context.Tree.Id,
-                Context.CurrentNode.Id,
-                response.Id);
+                Context.Tree,
+                Context.CurrentNode,
+                response);
 
             if (!result.Success)
             {
@@ -54,7 +54,7 @@ namespace Wayfarer.Pages.Components
             else if (result.NextNode != null)
             {
                 // Refresh context with new node
-                Context = GameFacade.CreateConversationTreeContext(Context.Tree.Id);
+                Context = GameFacade.CreateConversationTreeContext(Context.Tree);
                 StateHasChanged();
             }
         }

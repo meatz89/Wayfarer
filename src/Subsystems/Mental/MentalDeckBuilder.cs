@@ -65,8 +65,8 @@ public class MentalDeckBuilder
             instance.Context = new CardContext
             {
                 threshold = situationCard.threshold,
-                // HIGHLANDER: Situation has no Id property, use Name as natural key
-                RequestId = situation.Name
+                // HIGHLANDER: Store Situation object reference, not ID
+                Situation = situation
             };
 
             // Situation cards start unplayable until threshold met

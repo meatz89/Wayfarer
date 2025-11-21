@@ -44,56 +44,26 @@ The following type restrictions are **compiler-enforced architectural constraint
 #### ALLOWED Lambdas
 
 **1. LINQ Queries:**
-```csharp
-// ✅ ALLOWED
-var active = scenes.Where(s => s.State == SceneState.Active);
-var ids = situations.Select(s => s.Id);
-var first = npcs.FirstOrDefault(n => n.Id == targetId);
-```
+Lambda expressions used within LINQ query operations are permitted. This includes filtering collections based on predicate conditions, projecting collection elements to extract specific properties, and finding first matching elements based on criteria. These operations are declarative and enhance code readability.
 
 **2. Blazor Event Handlers (Frontend Only):**
-```csharp
-// ✅ ALLOWED
-<button @onclick="() => HandleClick(arg)">Click</button>
-```
+Inline lambda expressions in Blazor component markup for event handling are permitted. These are required by the Blazor framework for binding UI events to component methods with parameters.
 
 **3. Framework Configuration (Rare Exceptions):**
-```csharp
-// ✅ ALLOWED
-services.AddHttpClient<OllamaClient>(client => {
-    client.Timeout = TimeSpan.FromSeconds(5);
-});
-```
+Lambda expressions may be used for framework-level configuration where the framework API explicitly requires them. This includes configuring HTTP clients with timeout settings, middleware pipeline configuration, and other ASP.NET Core infrastructure setup where named methods would add unnecessary ceremony.
 
 #### FORBIDDEN Lambdas
 
 **1. Backend Event Handlers:**
-```csharp
-// ❌ FORBIDDEN
-AppDomain.CurrentDomain.ProcessExit += (s, e) => { Log.CloseAndFlush(); };
-
-// ✅ CORRECT - Named method
-AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
-```
+Lambda expressions must not be used for subscribing to backend events such as application lifecycle events or domain events. Instead, use named methods that can be referenced in stack traces and unit tests. Anonymous lambdas hide behavior and make debugging significantly harder.
 
 **2. Dependency Injection Registration:**
-```csharp
-// ❌ FORBIDDEN
-services.AddSingleton<GameWorld>(_ => GameWorldInitializer.CreateGameWorld());
-
-// ✅ CORRECT
-GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();
-builder.Services.AddSingleton(gameWorld);
-```
+Lambda factories must not be used when registering services in the dependency injection container. Instead, instantiate the object explicitly before registration. This makes initialization order clear, enables debugging the initialization logic directly, and avoids hiding construction logic inside DI configuration.
 
 **3. Backend Logic:**
-```csharp
-// ❌ FORBIDDEN
-Action<Scene> processScene = (s) => { /* logic */ };
+Lambda expressions must not be used to define reusable backend logic patterns such as action delegates or function callbacks. All backend business logic must be implemented as named methods within appropriate service or entity classes. This ensures proper stack traces, testability, and code navigation.
 
-// ✅ CORRECT - Named method
-private void ProcessScene(Scene scene) { /* logic */ }
-```
+
 
 **Rationale:** Backend lambdas are hard to debug (no stack trace entry), hard to test (anonymous), and hard to find (text search fails). Named methods solve all these problems.
 
@@ -171,29 +141,13 @@ The content loading system processes packages **atomically** - each package is f
 ### Entity Initialization Philosophy ("Let It Crash")
 
 **Required Pattern:**
-```csharp
-// ✅ CORRECT - Initialize inline
-public List<Situation> Situations { get; set; } = new List<Situation>();
-public string Title { get; set; } = "";
-```
+Entity properties must be initialized inline at declaration time. Collection properties should be initialized to empty collections. String properties should be initialized to empty strings. This establishes the contract that these properties will never be null.
 
 **Parser Rules:**
-```csharp
-// ✅ CORRECT - Assign directly
-entity.Situations = parsedSituations;
-
-// ❌ FORBIDDEN - No null-coalescing
-entity.Situations = parsedSituations ?? new List<Situation>();
-```
+Parser code must assign parsed values directly to entity properties without null-coalescing operators. If the parser has successfully parsed a value, assign it. If parsing failed, let the exception bubble up rather than masking the failure with a default value.
 
 **Game Logic Rules:**
-```csharp
-// ✅ CORRECT - Trust initialization
-var ids = scene.Situations.Select(s => s.Id);
-
-// ❌ FORBIDDEN - No defensive null checks
-var ids = scene.Situations?.Select(s => s.Id);
-```
+Game logic code must trust that entity properties are properly initialized and never use defensive null-conditional operators. Access properties directly. If a property is null when it should not be, this represents a bug in entity initialization that should fail immediately rather than propagate silently.
 
 **Rationale:**
 - Fails fast with clear stack traces (easier debugging)
@@ -204,14 +158,7 @@ var ids = scene.Situations?.Select(s => s.Id);
 ### No Backwards Compatibility
 
 **Break things when refactoring:**
-```csharp
-// ❌ FORBIDDEN - Keeping old method for compatibility
-[Obsolete]
-public Scene GetGoalById(string id) => GetSceneById(id);
-
-// ✅ CORRECT - Delete old method entirely
-public Scene GetSceneById(string id) { /* ... */ }
-```
+When renaming or refactoring methods, do not preserve the old method signature with an obsolete attribute or compatibility wrapper. Delete the old method entirely and update all call sites. This forces complete refactoring and prevents technical debt accumulation.
 
 **Rationale:** Active development phase. Clean breaks force complete refactoring. No technical debt accumulation.
 
@@ -220,46 +167,13 @@ public Scene GetSceneById(string id) { /* ... */ }
 **Core Principle:** JSON field names MUST match C# property names exactly. Parsers MUST parse all JSON content into strongly-typed objects. The JSON-to-C# boundary is the serialization point - NO raw JSON allowed beyond parsers.
 
 **Field Name Matching:**
-```csharp
-// ✅ CORRECT - JSON field matches C# property
-// JSON: { "currentSituationId": "situation_1" }
-public string CurrentSituationId { get; set; }
-
-// ❌ FORBIDDEN - JsonPropertyName attribute to rename
-[JsonPropertyName("current_situation_id")]
-public string CurrentSituationId { get; set; }
-```
+JSON field names must match C# property names exactly, including casing. If a JSON field is named "currentSituationId", the corresponding C# property must be named "CurrentSituationId" (following C# PascalCase convention). Using the JsonPropertyName attribute to map differently-named fields is forbidden. If the JSON field naming must change, rename the JSON field itself.
 
 **Parse All JSON:**
-```csharp
-// ✅ CORRECT - Parse to strongly-typed object
-public class LocationDTO {
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public HexPosition HexPosition { get; set; }
-}
-
-// ❌ FORBIDDEN - JsonElement passthrough
-public class LocationDTO {
-    public string Id { get; set; }
-    public JsonElement Properties { get; set; }  // Deferred parsing
-}
-```
+Data Transfer Object (DTO) classes must declare explicit strongly-typed properties for all JSON fields. DTOs must not contain JsonElement properties that defer parsing. The JSON deserializer should handle all structural parsing at the DTO boundary. Deferred parsing using JsonElement represents a failure to properly model the JSON structure.
 
 **Parser Responsibility:**
-```csharp
-// ✅ CORRECT - Parser extracts all data from JSON
-var location = new Location {
-    Id = dto.Id,
-    Name = dto.Name,
-    HexPosition = dto.HexPosition,  // Parsed by JSON deserializer
-};
-
-// ❌ FORBIDDEN - Domain entities with JsonElement
-public class Location {
-    public JsonElement RawData { get; set; }  // Runtime JSON parsing
-}
-```
+Parser code creates domain entities from DTOs by extracting all required data from DTO properties. Domain entities must never contain JsonElement properties or any reference to JSON infrastructure. Runtime JSON parsing within domain logic is forbidden. The parser is the single serialization boundary - JSON exists only up to this point, strongly-typed objects exist beyond it.
 
 **Rationale:**
 - **Single Serialization Point**: JSON parsed once at boundary, never in domain logic
@@ -285,14 +199,8 @@ public class Location {
 - Parameter types match parameter names
 - Property names describe actual data
 
-**Examples:**
-```csharp
-// ❌ FORBIDDEN - Name doesn't match return type
-public Location GetVenueById(string id) { return location; }
-
-// ✅ CORRECT - Name matches return type
-public Location GetLocationById(string id) { return location; }
-```
+**Example Violation:**
+A method named "GetVenueById" that returns a Location object is forbidden. The method name claims to return a Venue but actually returns a Location. This semantic dishonesty creates cognitive load and bugs. The method must be renamed to "GetLocationById" to match its actual return type.
 
 **Rationale:** Misleading names create cognitive load and bugs. Names must accurately reflect reality.
 
@@ -316,30 +224,10 @@ public Location GetLocationById(string id) { return location; }
 #### Generic Property Modification Antipattern
 
 **FORBIDDEN:**
-```csharp
-// ❌ FORBIDDEN - String-based property routing
-public class PropertyChange {
-    public string PropertyName { get; set; }  // "IsLocked"
-    public string NewValue { get; set; }       // "true"
-}
-
-if (change.PropertyName == "IsLocked") {
-    location.IsLocked = bool.Parse(change.NewValue);
-}
-```
+String-based property modification systems are forbidden. This pattern uses a PropertyChange class containing a string property name and a string new value, then performs runtime string matching to determine which property to modify. This requires parsing the value string at runtime and introduces silent failures when property names are mistyped.
 
 **CORRECT:**
-```csharp
-// ✅ CORRECT - Explicit strongly-typed properties
-public class SceneReward {
-    public List<string> LocationsToUnlock { get; set; } = new List<string>();
-    public List<string> LocationsToLock { get; set; } = new List<string>();
-}
-
-foreach (string locId in reward.LocationsToUnlock) {
-    location.IsLocked = false;  // Direct property access
-}
-```
+Use explicit strongly-typed properties for each modification type. Create a SceneReward class with properties like LocationsToUnlock and LocationsToLock, each holding a collection of identifiers. Iterate through the collection and modify the target property directly using normal property assignment. This provides compile-time safety and makes the modification intent explicit.
 
 **Rationale:** String matching is error-prone, slow, and violates YAGNI. Add explicit properties when needed.
 
@@ -361,34 +249,14 @@ foreach (string locId in reward.LocationsToUnlock) {
 ### Method Design Constraints
 
 **One Method, One Purpose:**
-```csharp
-// ❌ FORBIDDEN - Overload proliferation
-GetSceneById(string id)
-GetSceneByLocation(string locationId)
-GetSceneByIdAndLocation(string id, string locationId)
-
-// ✅ CORRECT - Separate methods with clear names
-GetSceneById(string id)
-GetScenesAtLocation(string locationId)
-```
+Avoid creating multiple overloaded methods with names like "GetSceneById", "GetSceneByLocation", and "GetSceneByIdAndLocation" that attempt to handle different query patterns. This overload proliferation obscures the actual purpose of each method. Instead, create separate methods with distinct names that clearly describe their purpose: one method to get a scene by identifier, a separate method to get all scenes at a specific location. Each method name should precisely describe its single responsibility.
 
 **Rationale:** Method name should clearly state what it does. No input-based branching.
 
 ### Code Quality Constraints
 
 **NO Exception Handling (unless explicitly requested):**
-```csharp
-// ❌ FORBIDDEN (unless requested)
-try {
-    var scene = GetSceneById(id);
-} catch (Exception ex) {
-    Log.Error(ex);
-    return null;
-}
-
-// ✅ CORRECT - Let exceptions bubble
-var scene = GetSceneById(id);  // Throws if not found
-```
+Do not wrap method calls in try-catch blocks that log errors and return null or default values. Let exceptions bubble up naturally. Exception handling hides failures and makes debugging harder by obscuring the root cause. If a scene lookup fails because the identifier doesn't exist, let the exception propagate immediately rather than catching it, logging it, and returning null.
 
 **NO Logging (unless explicitly requested):**
 - No Log.Info/Debug/Error unless debugging specific issues
@@ -399,14 +267,7 @@ var scene = GetSceneById(id);  // Throws if not found
 - Exception: Complex algorithms, non-obvious business rules (rare)
 
 **No Defaults Unless Strictly Necessary:**
-```csharp
-// ❌ FORBIDDEN - Default fallback
-return scene ?? new Scene();
-
-// ✅ CORRECT - Throw on missing
-if (scene == null) throw new InvalidOperationException($"Scene not found: {id}");
-return scene;
-```
+Do not use null-coalescing operators to provide default fallback values when data is missing. If a method returns null when it should return a valid object, this represents a bug that should fail immediately. Do not mask the failure by returning a new empty object. Instead, explicitly check for null and throw an exception with a clear error message describing what was not found.
 
 **Rationale:** Let it crash. Exceptions indicate bugs that should be fixed, not papered over. Defaults hide missing data problems.
 

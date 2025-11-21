@@ -6,9 +6,9 @@
 public class DependentLocationSpecDTO
 {
     /// <summary>
-    /// Template identifier used in marker references
-    /// Example: "private_room" becomes marker "generated:private_room"
-    /// Also used to construct actual ID: "{sceneId}_{templateId}"
+    /// Template identifier for this location specification
+    /// Used to construct location Name during package generation
+    /// Example: "private_room"
     /// </summary>
     public string TemplateId { get; set; }
 
@@ -62,7 +62,6 @@ public class DependentLocationSpecDTO
     /// <summary>
     /// Template ID of item that unlocks this location
     /// References another DependentItemSpec by TemplateId
-    /// Becomes marker reference: "generated:{UnlockItemTemplateId}"
     /// null = no item required (unlocked through choice reward)
     /// </summary>
     public string UnlockItemTemplateId { get; set; }

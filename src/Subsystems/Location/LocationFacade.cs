@@ -168,7 +168,7 @@ public class LocationFacade
             viewModel.AreasWithinLocation = _spotManager.GetAreasWithinVenue(venue, location, currentTime, _npcRepository);
 
             // Add routes to other locations
-            viewModel.Routes = GetRoutesFromLocation(venue);
+            viewModel.Routes = GetRoutesFromLocation(location);
         }
         return viewModel;
     }
@@ -248,7 +248,7 @@ public class LocationFacade
 
             result.Add(new NPCInteractionViewModel
             {
-                Id = npc.Name, // HIGHLANDER: Name is natural key
+                Npc = npc, // HIGHLANDER: Object reference, not ID
                 Name = npc.Name,
                 ConnectionStateName = connectionState.ToString(),
                 Description = GetNPCDescription(npc, connectionState),
@@ -302,8 +302,8 @@ public class LocationFacade
 
         List<ObservationViewModel> observations = new List<ObservationViewModel>();
 
-        string venueName = location.Venue.Name;
-        List<Observation> locationObservations = _observationSystem.GetObservationsForLocation(venueName, location.Name);
+        // HIGHLANDER: Pass Location object, not string names
+        List<Observation> locationObservations = _observationSystem.GetObservationsForLocation(location);
         if (locationObservations.Count > 0)
         {
             TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
@@ -322,7 +322,7 @@ public class LocationFacade
 
                 observations.Add(new ObservationViewModel
                 {
-                    Id = obs.Id,
+                    Observation = obs, // HIGHLANDER: Object reference, not ID
                     Text = obs.Text,
                     Relevance = BuildRelevanceString(obs),
                     IsObserved = false // ObservationManager eliminated
@@ -348,10 +348,10 @@ public class LocationFacade
         return "";
     }
 
-    private List<RouteOptionViewModel> GetRoutesFromLocation(Venue venue)
+    private List<RouteOptionViewModel> GetRoutesFromLocation(Location location)
     {
         List<RouteOptionViewModel> routes = new List<RouteOptionViewModel>();
-        IEnumerable<RouteOption> availableRoutes = _routeRepository.GetRoutesFromLocation(venue.Name);
+        IEnumerable<RouteOption> availableRoutes = _routeRepository.GetRoutesFromLocation(location);
 
         foreach (RouteOption route in availableRoutes)
         {
@@ -365,7 +365,7 @@ public class LocationFacade
 
             routes.Add(new RouteOptionViewModel
             {
-                RouteId = route.Name,
+                Route = route, // HIGHLANDER: Object reference, not ID
                 Destination = destination.Name,
                 TravelTime = $"{route.TravelTimeSegments} seg",
                 Detail = route.Description,
@@ -766,7 +766,7 @@ public class LocationFacade
 
             NpcWithSituationsViewModel viewModel = new NpcWithSituationsViewModel
             {
-                Id = npc.Name, // HIGHLANDER: Name is natural key
+                Npc = npc, // HIGHLANDER: Object reference, not ID
                 Name = npc.Name,
                 PersonalityType = npc.PersonalityType.ToString(),
                 ConnectionState = connectionState.ToString(),
@@ -817,12 +817,10 @@ public class LocationFacade
         List<string> pathLabels = new List<string>();
 
         // NOTE: No marker resolution here - this is UI display only, not actual requirement checking
-        // Actual requirement checking happens elsewhere with proper marker map context
-        Dictionary<string, string> emptyMarkerMap = new Dictionary<string, string>();
-
+        // HIGHLANDER: IsSatisfied signature changed to accept only player and gameWorld (markerMap removed)
         foreach (OrPath path in requirement.OrPaths)
         {
-            if (!path.IsSatisfied(player, _gameWorld, emptyMarkerMap))
+            if (!path.IsSatisfied(player, _gameWorld))
             {
                 // Use path label if available, otherwise generate from requirements
                 if (!string.IsNullOrEmpty(path.Label))
@@ -918,9 +916,9 @@ public class LocationFacade
         ambientSituations = ambientSituationsList.Select(g => BuildSituationCard(g, systemTypeStr, difficultyLabel)).ToList();
 
         // Build scene groups
-        foreach ((Scene scene, List<Situation> situations) in situationsByScene)
+        foreach ((Scene scene, List<Situation> sceneSituations) in situationsByScene)
         {
-            sceneGroups.Add(BuildSceneWithSituations(scene, situations, systemTypeStr, difficultyLabel));
+            sceneGroups.Add(BuildSceneWithSituations(scene, sceneSituations, systemTypeStr, difficultyLabel));
         }
 
         return new ChallengeBuildResult(ambientSituations, sceneGroups);
@@ -975,9 +973,9 @@ public class LocationFacade
         ambientSituations = ambientSituationsList.Select(g => BuildSituationCard(g, systemTypeStr, difficultyLabel)).ToList();
 
         // Build scene groups
-        foreach ((Scene scene, List<Situation> situations) in situationsByScene)
+        foreach ((Scene scene, List<Situation> sceneSituations) in situationsByScene)
         {
-            sceneGroups.Add(BuildSceneWithSituations(scene, situations, systemTypeStr, difficultyLabel));
+            sceneGroups.Add(BuildSceneWithSituations(scene, sceneSituations, systemTypeStr, difficultyLabel));
         }
 
         return new ChallengeBuildResult(ambientSituations, sceneGroups);

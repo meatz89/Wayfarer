@@ -33,10 +33,11 @@ public class AStoryContext
     public int LastCompletedSequence { get; set; }
 
     /// <summary>
-    /// Completed A-story scene IDs (for tracking progression history)
+    /// Completed A-story scenes (for tracking progression history)
+    /// HIGHLANDER: Store scene objects, not string IDs
     /// Used to prevent re-spawning and validate chain integrity
     /// </summary>
-    public List<string> CompletedASceneIds { get; set; } = new List<string>();
+    public List<Scene> CompletedScenes { get; set; } = new List<Scene>();
 
     /// <summary>
     /// Recent archetype IDs used (last 5 scenes)
@@ -46,11 +47,12 @@ public class AStoryContext
     public List<string> RecentArchetypeIds { get; set; } = new List<string>();
 
     /// <summary>
-    /// Recent region IDs visited (last 3 scenes)
+    /// Recent regions visited (last 3 scenes)
     /// Anti-repetition: Rotate through different regions
     /// Systematically explore world geography
+    /// HIGHLANDER: Store Region objects, not string IDs
     /// </summary>
-    public List<string> RecentRegionIds { get; set; } = new List<string>();
+    public List<Region> RecentRegions { get; set; } = new List<Region>();
 
     /// <summary>
     /// Recent NPC personality types encountered (last 3 scenes)
@@ -114,13 +116,14 @@ public class AStoryContext
     /// <summary>
     /// Update context after completing A-scene
     /// Advances sequence, tracks completion, updates anti-repetition windows
+    /// HIGHLANDER: Accept Scene and Region objects, not string IDs
     /// </summary>
-    public void RecordCompletion(string sceneId, string archetypeId, string regionId, PersonalityType? personalityType)
+    public void RecordCompletion(Scene scene, string archetypeId, Region region, PersonalityType? personalityType)
     {
         LastCompletedSequence = CurrentSequence;
         CurrentSequence++;
 
-        CompletedASceneIds.Add(sceneId);
+        CompletedScenes.Add(scene);
 
         // Update anti-repetition rolling windows
         RecentArchetypeIds.Add(archetypeId);
@@ -129,12 +132,13 @@ public class AStoryContext
             RecentArchetypeIds.RemoveAt(0); // Remove oldest
         }
 
-        if (!string.IsNullOrEmpty(regionId) && !RecentRegionIds.Contains(regionId))
+        // HIGHLANDER: Store Region object, not string ID
+        if (region != null && !RecentRegions.Contains(region))
         {
-            RecentRegionIds.Add(regionId);
-            if (RecentRegionIds.Count > 3)
+            RecentRegions.Add(region);
+            if (RecentRegions.Count > 3)
             {
-                RecentRegionIds.RemoveAt(0);
+                RecentRegions.RemoveAt(0);
             }
         }
 
@@ -160,10 +164,11 @@ public class AStoryContext
     /// <summary>
     /// Check if region is recent (used in last 3 scenes)
     /// Anti-repetition: Rotate through different regions
+    /// HIGHLANDER: Accepts Region object, not string ID
     /// </summary>
-    public bool IsRegionRecent(string regionId)
+    public bool IsRegionRecent(Region region)
     {
-        return RecentRegionIds.Contains(regionId);
+        return RecentRegions.Contains(region);
     }
 
     /// <summary>
@@ -184,9 +189,9 @@ public class AStoryContext
         {
             CurrentSequence = 11,
             LastCompletedSequence = 10,
-            CompletedASceneIds = new List<string>(),
+            CompletedScenes = new List<Scene>(),
             RecentArchetypeIds = new List<string>(),
-            RecentRegionIds = new List<string>(),
+            RecentRegions = new List<Region>(),
             RecentPersonalityTypes = new List<PersonalityType>(),
             UnlockedRegionIds = new List<string>(),
             EncounteredOrderMemberIds = new List<string>(),

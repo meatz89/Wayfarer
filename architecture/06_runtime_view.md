@@ -150,58 +150,11 @@ This scenario shows pure strategic layer flow with instant choices that never cr
 
 ### Scenario: Simple Purchase
 
-```
-1. Player at market location
-   GameWorld.Player.CurrentLocationId = "market_square"
+The player begins at a market location with the game world tracking their current position. An active scene exists at this location containing a current situation in deferred instantiation state. When the UI queries for available actions at the market, the scene facade creates action objects from choice templates and transitions the situation to instantiated state. The UI displays three choices with perfect information: purchasing bread for five coins as an instant success path, haggling for a discount as a challenge path, and walking away as a fallback option.
 
-2. Active Scene at location with current situation
-   Scene.CurrentSituation = Buy Food Situation
-   Situation.InstantiationState = Deferred
+When the player selects the instant purchase choice, the game facade executes the choice by first identifying it as an instant action type with instant success path designation. The system evaluates requirements by checking whether the player possesses at least five coins, confirming eligibility and proceeding with execution. Costs apply immediately by deducting five coins from the player's resources, with the game world persisting this state change. Rewards follow immediately by adding bread to the player's inventory and increasing hunger satisfaction by three points, again persisting to the game world.
 
-3. UI queries for actions
-   SceneFacade.GetActionsAtLocation("market_square")
-   → Creates actions from ChoiceTemplates
-   → Situation.InstantiationState = Instantiated
-
-4. UI displays choices with perfect information
-   Choice 1: "Buy bread (5 coins)" - Instant path
-   Choice 2: "Haggle for discount" - Challenge path
-   Choice 3: "Walk away" - Fallback path
-
-5. Player selects instant choice
-   GameFacade.ExecuteChoice(choiceId)
-   → ChoiceTemplate.ActionType = Instant
-   → ChoiceTemplate.PathType = InstantSuccess
-
-6. System evaluates requirements
-   Check: Player.Coins >= 5 ? YES
-   → Proceed with execution
-
-7. Apply costs immediately
-   Player.Coins -= 5
-   GameWorld persists state change
-
-8. Apply rewards immediately
-   Player.Inventory.Add("bread")
-   Player.Hunger += 3
-   GameWorld persists state change
-
-9. Mark situation complete
-   Situation.IsCompleted = true
-
-10. Evaluate scene transitions
-    Scene.AdvanceToNextSituation()
-    → Check SituationSpawnRules.Transitions
-    → No more situations: Return SceneRoutingDecision.SceneComplete
-
-11. Clean up actions
-    Delete actions from GameWorld.LocationActions
-    Scene removed from GameWorld.Scenes
-
-12. UI refreshes
-    LocationContent shows updated resources
-    Choice no longer displayed
-```
+The system marks the situation as completed and evaluates scene transitions by advancing to the next situation. The scene checks situation spawn rules and transition conditions, determining that no further situations exist and returning a scene complete routing decision. Cleanup occurs by deleting the action objects from the location's action collection and removing the completed scene from the game world's scene collection. Finally, the UI refreshes to display updated resource values, with the completed choice no longer appearing as an option.
 
 **Key Characteristics**:
 - **Perfect Information**: All costs/rewards visible before commitment
@@ -218,135 +171,29 @@ This scenario demonstrates crossing from strategic layer (perfect information) t
 
 ### Scenario: Negotiate with Challenge
 
-```
-STRATEGIC LAYER - CHOICE SELECTION
-──────────────────────────────────
+**Strategic Layer - Choice Selection**
 
-1. Player at inn location
-   Scene: "inn_lodging_friendly"
-   CurrentSituation: "negotiate_service" (active)
+The player arrives at an inn location with an active lodging scene containing a current negotiate service situation. The UI displays four choice options: paying fifteen coins as an instant success path, persuading the innkeeper using rapport stat as a gated instant success path requiring minimum stat level, negotiating diplomatically as a challenge path, and sleeping in the common room as a fallback path. The player selects the diplomatic negotiation challenge option.
 
-2. UI displays choices
-   Choice 1: "Pay 15 coins" - InstantSuccess path
-   Choice 2: "Persuade innkeeper (Rapport 5+)" - InstantSuccess path (stat-gated)
-   Choice 3: "Negotiate diplomatically" - Challenge path ← PLAYER SELECTS
-   Choice 4: "Sleep in common room" - Fallback path
+The selected choice template contains properties indicating it starts a challenge action of social type, references a specific negotiation card deck, defines success rewards that unlock a private room location, and specifies failure consequences including coin loss and a message about paying extra. The system evaluates entry requirements, finding none since challenge paths remain always accessible. Entry costs apply immediately by deducting two stamina points from the player's resources.
 
-3. Player selects Challenge choice
-   ChoiceTemplate properties:
-   - ActionType: StartChallenge
-   - PathType: Challenge
-   - ChallengeType: Social
-   - ChallengeId: "inn_negotiation_deck"
-   - OnSuccessReward: {LocationsToUnlock: ["generated:private_room"]}
-   - OnFailureReward: {Coins: -5, Message: "You pay extra for subpar room"}
+**Bridge Crossing**
 
-4. System evaluates requirements
-   Requirements: None (challenge path always accessible)
+The system stores pending challenge context containing references to the parent scene and situation, along with both success and failure reward templates for later application. It extracts tactical victory conditions from the current situation's card collection, finding a threshold of eight momentum points that when achieved grants coin and understanding rewards. The social facade creates a challenge session by loading the appropriate card deck and initializing session resources: three initiative points, zero momentum building toward the threshold, zero doubt as opposition resource, and measured cadence pacing. The game screen navigates to tactical UI displaying the character portrait, available cards, resource meters, and binary action options.
 
-5. Apply entry costs
-   Choice.ResourceCosts: {Stamina: -2}
-   Player.Stamina -= 2
+**Tactical Layer - Challenge Session**
 
-BRIDGE CROSSING
-───────────────
+The player engages in turn-based tactical play over multiple turns. First turn involves playing a friendly remark card that increases momentum by two points and raises opposition doubt by one. Second turn uses the speak action to build understanding and advance conversation state. Third turn plays an appeal to sympathy card adding three momentum points and reducing doubt by one. Fourth turn plays a diplomatic offer card adding four momentum points, exceeding the eight-point threshold.
 
-6. Store pending context
-   PendingChallengeContext:
-   - ParentSceneId: "inn_lodging_friendly"
-   - ParentSituationId: "negotiate_service"
-   - OnSuccessReward: template reference
-   - OnFailureReward: template reference
+Threshold achievement triggers situation card completion, applying rewards of ten coins and two understanding points. The challenge ends with success outcome and the temporary session entity is destroyed.
 
-7. Extract tactical victory conditions
-   CurrentSituation.SituationCards:
-   [
-     {
-       threshold: 8,
-       resourceType: "Momentum",
-       rewards: {Coins: +10, Understanding: +2}
-     }
-   ]
+**Bridge Return**
 
-8. Create challenge session
-   SocialFacade.StartConversation(npcId, challengeId)
-   → Load challenge deck: "inn_negotiation_deck"
-   → Initialize session resources:
-      - Initiative: 3
-      - Momentum: 0 (builds toward threshold)
-      - Doubt: 0 (opposition resource)
-      - Cadence: "Measured"
+Control returns to strategic layer as the game screen switches back to location content view, retrieving the stored pending challenge context. The system applies conditional rewards based on success outcome by unlocking the private room location, setting its locked property to false, and displaying a message about receiving the room key. Scene advancement proceeds to the next enter private room situation, comparing context requirements and determining that a different location is required, returning an exit to world routing decision instructing the player to navigate.
 
-9. Navigate to tactical UI
-   GameScreen.CurrentScreen = ConversationContent
-   UI displays: NPC portrait, cards, resources, binary actions
+**Strategic Layer - Continuation**
 
-TACTICAL LAYER - CHALLENGE SESSION
-──────────────────────────────────
-
-10. Player plays cards and performs actions
-    Turn 1: Play "Friendly Remark" card
-            → Momentum +2 (now 2/8)
-            → Doubt +1 (opposition rises)
-
-    Turn 2: Perform SPEAK action
-            → Build Understanding (+1)
-            → Advance conversation
-
-    Turn 3: Play "Appeal to Sympathy" card
-            → Momentum +3 (now 5/8)
-            → Doubt -1 (opposition reduces)
-
-    Turn 4: Play "Diplomatic Offer" card
-            → Momentum +4 (now 9/8) ← THRESHOLD EXCEEDED
-
-11. Threshold reached
-    SituationCard.IsAchieved = true
-    Apply SituationCard.Rewards:
-    - Coins +10
-    - Understanding +2
-
-12. Challenge ends with success
-    ChallengeOutcome: Success
-    Session destroyed (temporary entity)
-
-BRIDGE RETURN
-─────────────
-
-13. Return to strategic layer
-    GameScreen.CurrentScreen = LocationContent
-    Retrieve PendingChallengeContext
-
-14. Apply conditional rewards
-    ChallengeOutcome = Success
-    → Apply OnSuccessReward:
-       - LocationsToUnlock: ["generated:private_room"]
-       - Location.IsLocked = false
-       - Message: "Elena hands you the room key with a smile"
-
-15. Advance scene
-    Scene.AdvanceToNextSituation()
-    → Next situation: "enter_private_room"
-    → Context: RequiredLocationId = resolved room GUID
-    → SceneRoutingDecision: ExitToWorld (different location required)
-
-STRATEGIC LAYER - CONTINUATION
-──────────────────────────────
-
-16. Player navigates to unlocked room
-    Player.CurrentLocationId = resolved room GUID
-
-17. Next situation auto-activates
-    SceneFacade detects context match
-    → CurrentSituation: "enter_private_room"
-    → InstantiationState: Deferred → Instantiated
-    → Create actions from ChoiceTemplates
-
-18. UI displays new choices
-    Choice 1: "Rest until morning (8 hours)"
-    Choice 2: "Take short nap (2 hours)"
-    Choice 3: "Leave immediately"
-```
+The player manually navigates to the unlocked room, updating their current location reference. The next situation auto-activates as the scene facade detects matching context between required location and player location, transitioning instantiation state from deferred to instantiated and creating action objects from choice templates. The UI displays new choices for resting until morning over eight hours, taking a short two-hour nap, or leaving immediately.
 
 **Key Bridge Mechanics**:
 - **One-Way Flow**: Strategic spawns tactical, tactical returns outcome
@@ -364,122 +211,29 @@ This scenario demonstrates seamless multi-situation progression without artifici
 
 ### Scenario: Service Flow with Auto-Activation
 
-```
-INITIAL STATE
-─────────────
+**Initial State**
 
-Scene: "inn_lodging_negotiation"
-Situations:
-1. "negotiate_service" (RequiredLocationId: "inn_common_room")
-2. "enter_private_room" (RequiredLocationId: "generated:private_room")
-3. "rest_in_room" (RequiredLocationId: "generated:private_room")
-4. "depart_room" (RequiredLocationId: "generated:private_room")
+A lodging negotiation scene contains four sequential situations: negotiating service at the inn common room, entering the private room after unlocking, resting in the private room, and departing the private room. The player's current location references the inn common room and the scene's current situation is set to negotiate service.
 
-Player.CurrentLocationId = "inn_common_room"
-Scene.CurrentSituation = "negotiate_service"
+**Situation 1: Negotiation**
 
-SITUATION 1: NEGOTIATION
-────────────────────────
+The scene facade checks activation and finds matching context between the player's current location at the common room and the situation's required location, causing the situation to activate. Actions instantiate and display for player interaction. The player completes negotiation through instant success by paying coins, which applies rewards that unlock the private room location by setting its locked property to false. Scene advancement proceeds to the next enter private room situation, comparing contexts and finding the current common room differs from the required private room location, returning an exit to world routing decision. The player must manually navigate as the UI displays a message about receiving the room key and instructions to go to the private room.
 
-1. Context matches (player at inn_common_room)
-   SceneFacade.CheckActivation()
-   → Situation.RequiredLocationId = "inn_common_room"
-   → Player.CurrentLocationId = "inn_common_room"
-   → MATCH: Situation activates
+**Navigation Transition**
 
-2. Actions instantiated and displayed
+The player clicks a navigation action that calls the game facade to navigate to the resolved room identifier, updating the player's current location and persisting state to the game world. Location change automatically triggers an activation check that evaluates all active scenes against the new context.
 
-3. Player completes negotiation (instant success, pays coins)
-   → Rewards applied: LocationsToUnlock: ["generated:private_room"]
-   → Location.IsLocked = false
+**Situation 2: Auto-Activation**
 
-4. Scene advances
-   Scene.AdvanceToNextSituation()
-   → CurrentSituation = "enter_private_room"
-   → CompareContexts:
-      - Current: "inn_common_room"
-      - Required: "generated:private_room" (resolved GUID)
-      - DIFFERENT: Return SceneRoutingDecision.ExitToWorld
+Context now matches as the situation's required location equals the player's current location at the private room, causing the situation to auto-activate without requiring explicit player action. The scene facade immediately creates action objects from choice templates, transitioning instantiation state from deferred to instantiated. The UI updates automatically to display three choices: resting until morning for eight hours, taking a short two-hour nap, or examining the room first.
 
-5. Player must manually navigate
-   UI shows: "You received a room key. Go to your private room."
+**Situation 3: Seamless Cascade**
 
-NAVIGATION TRANSITION
-─────────────────────
+The player selects the examine room option, an instant action with no costs that provides a message reward describing the room and advances the scene to the next situation. Context comparison for the next rest in room situation finds the required location matches the current location at the same private room, returning a continue in scene routing decision. Immediate auto-activation occurs seamlessly without navigation requirements or continuation prompts—the next situation's actions appear immediately as the UI transitions to new choices. The previous examination choice disappears while rest choices for morning or short nap appear instantly in its place.
 
-6. Player clicks navigation action
-   GameFacade.NavigateToLocation(resolvedRoomId)
-   → Player.CurrentLocationId = resolvedRoomId
-   → GameWorld persists state
+**Situation 4: Cleanup**
 
-7. Location change triggers activation check
-   SceneFacade.CheckActivation() (called automatically)
-   → Active scenes checked against new context
-
-SITUATION 2: AUTO-ACTIVATION
-────────────────────────────
-
-8. Context now matches
-   → Situation.RequiredLocationId = resolvedRoomId
-   → Player.CurrentLocationId = resolvedRoomId
-   → MATCH: Situation auto-activates (no player action needed)
-
-9. Actions instantiated immediately
-   SceneFacade creates actions from ChoiceTemplates
-   → InstantiationState: Deferred → Instantiated
-
-10. UI updates automatically
-    LocationContent displays:
-    Choice 1: "Rest until morning (8 hours)"
-    Choice 2: "Take short nap (2 hours)"
-    Choice 3: "Examine room first"
-
-SITUATION 3: SEAMLESS CASCADE
-─────────────────────────────
-
-11. Player selects "Examine room first"
-    → Instant action, no costs
-    → Rewards: Message about room description
-    → Scene.AdvanceToNextSituation()
-
-12. Context comparison for next situation
-    → Next: "rest_in_room" (RequiredLocationId: same room)
-    → Current: same room
-    → MATCH: Return SceneRoutingDecision.ContinueInScene
-
-13. Immediate auto-activation (seamless cascade)
-    → NO navigation required
-    → NO "click to continue" button
-    → Next situation's actions appear immediately
-    → UI seamlessly transitions to new choices
-
-14. UI now displays rest choices
-    Choice 1: "Rest until morning (8 hours)"
-    Choice 2: "Take short nap (2 hours)"
-    → Previous examination choice disappeared
-    → New rest choices appeared instantly
-
-SITUATION 4: CLEANUP
-───────────────────
-
-15. Player rests until morning
-    → Time advances 8 hours
-    → Resources restored
-    → Scene.AdvanceToNextSituation()
-    → Next: "depart_room" (same location)
-    → ContinueInScene: Auto-activates
-
-16. Departure choices appear
-    Choice 1: "Leave carefully" (ItemsToRemove: [key], LocationsToLock: [room])
-    Choice 2: "Rush out" (same cleanup, Stamina cost)
-
-17. Player departs
-    → Key removed from inventory
-    → Room.IsLocked = true (no re-entry)
-    → Scene.AdvanceToNextSituation()
-    → No more situations: SceneComplete
-    → Scene removed from GameWorld
-```
+The player rests until morning, advancing time by eight hours and restoring resources, then the scene advances to the depart room situation at the same location which auto-activates via continue in scene routing. Departure choices appear offering careful departure that removes the key item and locks the room location, or rushing out with the same cleanup but additional stamina cost. The player departs, triggering key removal from inventory and setting the room's locked property to true preventing re-entry. Scene advancement finds no more situations, returning scene complete status and removing the scene from the game world's collection.
 
 **Auto-Activation Mechanics**:
 - **Context Matching**: RequiredLocationId/RequiredNpcId compared to player context
@@ -501,224 +255,45 @@ This scenario shows complete lifecycle of scene spawning with entity resolution 
 
 ### Scenario: Lodging Scene with Private Room
 
-```
-PHASE 1: SCENE SELECTION (System 1 - Decision Logic)
-─────────────────────────────────────────────────────
+**Phase 1: Scene Selection (System 1 - Decision Logic)**
 
-Player executes choice with SceneSpawnReward:
+The player executes a choice containing a scene spawn reward that references a secure lodging template without placement filter overrides, defaulting to the template's own filter. The scene facade checks eligibility by evaluating spawn conditions on the template, verifying the player possesses required tags like being in town and meets minimum day requirements, confirming eligibility and proceeding to the next system.
 
-SceneSpawnReward {
-  SceneTemplateId: "secure_lodging",
-  PlacementFilterOverride: null  // Use template's filter
-}
+**Phase 2: Scene Specification (System 2 - Data Structure)**
 
-SceneFacade.IsSceneEligible():
-  - Check SpawnConditions on template
-  - RequiredTags: ["in_town"] → Player has tag ✓
-  - MinDay: 1 → Player.CurrentDay = 3 ✓
-  - Eligible → Proceed to System 2
+The scene spawn reward structure contains only the template identifier with categorical properties, explicitly avoiding concrete entity identifiers, placement relation enumerations, or context binding specifications. The template itself defines all placement requirements through its placement filter specification.
 
-PHASE 2: SCENE SPECIFICATION (System 2 - Data Structure)
-─────────────────────────────────────────────────────────
+**Phase 3: Package Generation (System 3 - SceneInstantiator)**
 
-SceneSpawnReward structure (categorical only):
+The scene instantiator writes categorical filters to a data transfer object structure that includes a unique scene identifier and template reference. Location filtering specifies categorical properties like indoor, private, and safe along with tags for lodging and security, using a closest selection strategy. Character filtering defines personality types such as innkeeper or merchant with neutral demeanor, employing a least recently used selection strategy. Embedded situations contain identifiers with null location and character references awaiting resolution. No entity resolution occurs yet—the package contains only categorical filters ready for the resolver system.
 
-SceneSpawnReward {
-  SceneTemplateId: "secure_lodging",
-  // NO concrete entity IDs
-  // NO PlacementRelation enum
-  // NO ContextBinding
-  // Categorical properties ONLY
-}
+**Phase 4: Entity Resolution (System 4 - EntityResolver)**
 
-Template defines placement requirements via PlacementFilter.
+The package loader invokes the entity resolver with categorical filters to find or create required entities. Location resolution first queries existing entities in the game world's location collection, filtering by properties like indoor, private, and safe along with lodging tags. Finding an existing location returns that object for reuse. When no match exists, the system generates a new location with unique identifier and name, adds it to the game world, and returns the new object through eager creation.
 
-PHASE 3: PACKAGE GENERATION (System 3 - SceneInstantiator)
-───────────────────────────────────────────────────────────
+Character resolution follows the same pattern, querying existing characters by personality type and demeanor, returning existing objects when found or generating new ones when needed. Private room resolution queries for sublocations with the main location as parent, containing private properties and guest room tags, generating new sublocation entities when necessary.
 
-SceneInstantiator writes categorical filters to JSON:
+The resolver returns pre-resolved entity objects—the main location object, the character object, and the private room object—all ready for direct use by the scene parser.
 
-SceneDTO {
-  Id: "scene_guid_12345",
-  TemplateId: "secure_lodging",
+**Phase 5: Scene Instantiation (System 5 - SceneParser)**
 
-  // Categorical filters (NOT concrete IDs)
-  LocationFilter: {
-    LocationProperties: ["Indoor", "Private", "Safe"],
-    LocationTags: ["lodging", "secure"],
-    SelectionStrategy: "Closest"
-  },
+The scene parser receives pre-resolved objects and constructs a scene entity with direct object references rather than identifiers or enumerations. The scene contains location and character properties referencing actual objects. Embedded situations reference required locations and characters through direct object properties, establishing activation context without string lookups. The complete scene adds to the game world's collection.
 
-  NpcFilter: {
-    PersonalityTypes: ["Innkeeper", "Merchant"],
-    NpcDemeanor: "Neutral",
-    SelectionStrategy: "LeastRecentlyUsed"
-  },
+AI narrative generation occurs after resolution with entities already determined, receiving entity context containing concrete names. The AI generates complete narrative text like negotiating lodging with the specific character at the specific location, avoiding placeholders and markers entirely by using actual resolved entity names.
 
-  Situations: [
-    {
-      Id: "negotiate_lodging",
-      RequiredLocationId: null,  // Will reference resolved location
-      RequiredNpcId: null,       // Will reference resolved NPC
-      Choices: [...]
-    },
-    {
-      Id: "rest_in_room",
-      RequiredLocationId: null,  // Will reference resolved private room
-      RequiredNpcId: null,
-      Choices: [...]
-    }
-  ]
-}
+**Phase 6: Gameplay (Runtime - Situation Activation)**
 
-→ NO entity resolution yet
-→ NO concrete IDs written
-→ Package ready for System 4
+The player navigates to the main location, updating their current location object reference. The scene facade checks activation by comparing the situation's required location object against the player's current location object, finding equality and auto-activating the negotiation situation. The player sees choices for negotiating lodging with the character, including stat, money, challenge, and fallback options.
 
-PHASE 4: ENTITY RESOLUTION (System 4 - EntityResolver)
-───────────────────────────────────────────────────────
+Executing the negotiation choice applies rewards that unlock the private room by setting its locked property to false. The player navigates to the private room, updating their current location reference. Activation checking finds the new situation's required location matches the player's current location, auto-activating the rest situation. The player sees rest and sleep choices for the private room.
 
-PackageLoader calls EntityResolver with filters:
+**Phase 7: Persistence (Entity Lifecycle)**
 
-EntityResolver.FindOrCreateLocation(LocationFilter):
-  // STEP 1: Query existing entities
-  existing = GameWorld.Locations.Where(loc =>
-    loc.Properties.Contains("Indoor") &&
-    loc.Properties.Contains("Private") &&
-    loc.Properties.Contains("Safe") &&
-    loc.Tags.Contains("lodging")
-  ).FirstOrDefault();
-
-  if (existing != null)
-    return existing;  // Reuse "The Silver Hart Inn"
-
-  // STEP 2: Generate new entity if no match
-  generated = GenerateLocation(LocationFilter);
-  // Location { Id: "location_guid_456", Name: "The Golden Rest", Properties: [...] }
-  GameWorld.AddOrUpdateLocation(generated);
-  return generated;  // Eager creation
-
-EntityResolver.FindOrCreateNPC(NpcFilter):
-  // Same pattern: query existing, generate if needed
-  existing = GameWorld.NPCs.Where(npc =>
-    npc.PersonalityType == "Innkeeper" &&
-    npc.Demeanor == "Neutral"
-  ).FirstOrDefault();
-
-  return existing ?? GenerateNPC(NpcFilter);
-  // Returns: Elena (existing NPC object)
-
-EntityResolver.FindOrCreateLocation(PrivateRoomFilter):
-  // Scene needs private room sublocation
-  privateRoom = GameWorld.Locations.Where(loc =>
-    loc.ParentLocationId == mainLocation.Id &&
-    loc.Properties.Contains("Private") &&
-    loc.Tags.Contains("guest_room")
-  ).FirstOrDefault();
-
-  if (privateRoom == null) {
-    privateRoom = GeneratePrivateRoom(mainLocation);
-    // Location { Id: "location_guid_789", Name: "Guest Room", ParentLocationId: "location_guid_456" }
-    GameWorld.AddOrUpdateLocation(privateRoom);
-  }
-
-  return privateRoom;  // Object reference
-
-Result: Pre-resolved entity objects ready for System 5
-  - mainLocation = Location object (The Silver Hart Inn)
-  - innkeeper = NPC object (Elena)
-  - privateRoom = Location object (Guest Room)
-
-PHASE 5: SCENE INSTANTIATION (System 5 - SceneParser)
-──────────────────────────────────────────────────────
-
-SceneParser receives pre-resolved objects:
-
-Scene scene = new Scene {
-  Id: "scene_guid_12345",
-  TemplateId: "secure_lodging",
-
-  // Direct object references (NO IDs, NO enums)
-  Location: mainLocation,  // Object property
-  Npc: innkeeper,          // Object property
-
-  Situations: [
-    new Situation {
-      Id: "negotiate_lodging",
-      RequiredLocation: mainLocation,  // Direct object reference
-      RequiredNpc: innkeeper,          // Direct object reference
-      Choices: [...]
-    },
-    new Situation {
-      Id: "rest_in_room",
-      RequiredLocation: privateRoom,  // Direct object reference
-      RequiredNpc: null,
-      Choices: [...]
-    }
-  ]
-};
-
-GameWorld.AddScene(scene);
-
-AI NARRATIVE GENERATION (After Resolution):
-  - Entities already resolved: Elena (innkeeper), The Silver Hart Inn (location)
-  - AI receives entity context: { npc: "Elena", location: "The Silver Hart Inn", room: "Guest Room" }
-  - AI generates complete narrative: "Negotiate lodging with Elena at The Silver Hart Inn"
-  - NO placeholders, NO markers
-  - Complete text generated with concrete entity names
-
-PHASE 6: GAMEPLAY (Runtime - Situation Activation)
-───────────────────────────────────────────────────
-
-Player navigates to The Silver Hart Inn:
-  Player.CurrentLocation = mainLocation  // Object reference
-
-SceneFacade.CheckActivation():
-  Scene.CurrentSituation.RequiredLocation == mainLocation ✓
-  Player.CurrentLocation == mainLocation ✓
-  → Situation "negotiate_lodging" auto-activates
-
-Player sees:
-  - "Negotiate lodging with Elena"
-  - Four choices (stat/money/challenge/fallback)
-
-Player executes negotiation choice:
-  Choice.Reward.LocationsToUnlock: [privateRoom.Id]
-  → privateRoom.IsLocked = false
-
-Player navigates to Guest Room:
-  Player.CurrentLocation = privateRoom  // Object reference
-
-SceneFacade.CheckActivation():
-  Scene.CurrentSituation.RequiredLocation == privateRoom ✓
-  → Situation "rest_in_room" auto-activates
-
-Player sees:
-  - "Rest in your private room"
-  - Rest/sleep choices
-
-PHASE 7: PERSISTENCE (Entity Lifecycle)
-────────────────────────────────────────
-
-All entities persist in GameWorld:
-  - mainLocation (The Silver Hart Inn) persists forever
-  - innkeeper (Elena) persists forever
-  - privateRoom (Guest Room) persists forever
-  - Scene removed when completed, entities remain
-
-Future spawns:
-  - New scene needs innkeeper → FindOrCreate finds Elena → reuse
-  - New scene needs lodging → FindOrCreate finds Silver Hart Inn → reuse
-  - Entities accumulate in GameWorld over time
-  - No cleanup system (entities never deleted)
-```
+All resolved entities persist indefinitely in the game world collection. The main location, character, and private room remain available permanently while the scene itself is removed upon completion. Future scene spawns that require similar entities trigger the find-or-create pattern, reusing existing entities like the character or location when filters match. Entities accumulate in the game world over time with no cleanup system removing them.
 
 **Lifecycle Summary**:
-```
-Parse:   Declare → Create entities with GUIDs
-Spawn:   Resolve markers → Replace placeholders
-Runtime: Grant access → Use resources → Remove access
-```
+
+The entity lifecycle progresses through three stages. Parse-time declares entities and creates them with unique identifiers. Spawn-time resolves categorical markers and replaces placeholders with concrete objects. Runtime grants access through unlocking, permits resource usage, and revokes access through locking.
 
 **Key Principles**:
 - **Resources exist throughout**: Location persists in GameWorld
@@ -841,30 +416,9 @@ Runtime: Grant access → Use resources → Remove access
 
 **Complex Operations Use Dedicated Contexts**:
 
-```csharp
-// WRONG: Passing multiple parameters
-StartConversation(string npcId, string requestId, Player player,
-                  Location location, List<SocialCard> availableCards)
+Complex operations avoid passing multiple individual parameters by instead creating dedicated context objects that encapsulate all required data. Rather than methods accepting separate parameters for character identifier, request identifier, player object, location object, and available card collection, the system creates a single context object through a facade method. Context classes contain strongly-typed properties for all operation requirements: character information, location information, player resources, tactical session state, available card view models, and victory condition thresholds.
 
-// CORRECT: Single context parameter
-SocialChallengeContext context = await GameFacade.CreateConversationContext(npcId, requestId);
-
-// Context contains ALL data needed for operation
-public class SocialChallengeContext {
-    public NPCInfo NpcInfo { get; set; }           // NPC data
-    public LocationInfo LocationInfo { get; set; }  // Current location
-    public PlayerResources PlayerResources { get; set; } // Resource state
-    public ConversationSession Session { get; set; } // Tactical session
-    public List<SocialCardViewModel> AvailableCards { get; set; } // Playable cards
-    public List<SituationCard> VictoryConditions { get; set; } // Thresholds
-}
-
-// Context created atomically BEFORE navigation
-ConversationContext context = await GameFacade.CreateConversationContext(npcId, requestId);
-
-// Context passed as single parameter to child component
-<ConversationContent Context="@context" />
-```
+The facade creates contexts atomically before navigation occurs, gathering all necessary data in one operation. Child components receive the complete context as a single parameter rather than multiple individual values.
 
 **Why Context Objects**:
 - **Atomic Creation**: All data gathered in one operation

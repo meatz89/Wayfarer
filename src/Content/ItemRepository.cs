@@ -23,7 +23,8 @@
         {
             throw new InvalidOperationException("Items collection not initialized - data loading failed");
         }
-        return _gameWorld.Items.FirstOrDefault(i => i.Id == id);
+        // HIGHLANDER: Item.Id deleted, use Name as natural key
+        return _gameWorld.Items.FirstOrDefault(i => i.Name == id);
     }
 
     public List<Item> GetAllItems()

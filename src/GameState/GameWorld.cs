@@ -93,6 +93,10 @@ public class GameWorld
     // Initialization data - stored in GameWorld, not passed between phases
     public PlayerInitialConfig InitialPlayerConfig { get; set; }
 
+    // HIGHLANDER: Starting location as object reference (set by PackageLoader, used by GameFacade.StartGameAsync)
+    // Player.CurrentPosition initialized from StartingLocation.HexPosition at game start
+    public Location StartingLocation { get; set; }
+
     // Time initialization (applied to TimeModel after DI initialization)
     public int? InitialDay { get; set; }
     public TimeBlocks? InitialTimeBlock { get; set; }
@@ -224,10 +228,12 @@ public class GameWorld
     {
         if (route == null) return;
 
-        TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.RouteName == route.Name);
+        // HIGHLANDER: Compare Route objects directly, not route.Name strings
+        TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.Route == route);
         if (block == null)
         {
-            block = new TemporaryRouteBlock { RouteName = route.Name };
+            // HIGHLANDER: Store Route object reference, not RouteName string
+            block = new TemporaryRouteBlock { Route = route };
             TemporaryRouteBlocks.Add(block);
         }
         block.UnblockDay = currentDay + daysBlocked;
@@ -241,7 +247,8 @@ public class GameWorld
     {
         if (route == null) return false;
 
-        TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.RouteName == route.Name);
+        // HIGHLANDER: Compare Route objects directly, not route.Name strings
+        TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.Route == route);
         if (block != null)
         {
             if (currentDay >= block.UnblockDay)
@@ -390,7 +397,7 @@ public class GameWorld
     {
         if (InitialPlayerConfig != null)
         {
-            Player.ApplyInitialConfiguration(InitialPlayerConfig);
+            Player.ApplyInitialConfiguration(InitialPlayerConfig, this);
         }
     }
 
@@ -486,9 +493,9 @@ public class GameWorld
         Obligation obligation = Obligations.FirstOrDefault(i => i.Name == obligationName);
         if (obligation == null) return;
 
-        if (!Player.ActiveObligationIds.Contains(obligationName))
+        if (!Player.ActiveObligations.Contains(obligation))
         {
-            Player.ActiveObligationIds.Add(obligationName);
+            Player.ActiveObligations.Add(obligation);
         }
 
         if (obligation.ObligationType == ObligationObligationType.NPCCommissioned)
@@ -526,9 +533,9 @@ public class GameWorld
             ActivateObligation(spawnedObligation.Name, timeManager);
         }
 
-        if (Player.ActiveObligationIds.Contains(obligationName))
+        if (Player.ActiveObligations.Contains(obligation))
         {
-            Player.ActiveObligationIds.Remove(obligationName);
+            Player.ActiveObligations.Remove(obligation);
         }
 
         if (obligation.ObligationType == ObligationObligationType.NPCCommissioned &&
@@ -566,15 +573,13 @@ public class GameWorld
     {
         List<string> expiredObligations = new List<string>();
 
-        foreach (string obligationName in Player.ActiveObligationIds)
+        foreach (Obligation obligation in Player.ActiveObligations)
         {
-            Obligation obligation = Obligations.FirstOrDefault(i => i.Name == obligationName);
-            if (obligation != null &&
-                obligation.ObligationType == ObligationObligationType.NPCCommissioned &&
+            if (obligation.ObligationType == ObligationObligationType.NPCCommissioned &&
                 obligation.DeadlineSegment.HasValue &&
                 currentSegment >= obligation.DeadlineSegment.Value)
             {
-                expiredObligations.Add(obligationName);
+                expiredObligations.Add(obligation.Name);
             }
         }
 
@@ -600,9 +605,9 @@ public class GameWorld
             patron.StoryCubes = Math.Max(0, patron.StoryCubes - cubeReduction);
         }
 
-        if (Player.ActiveObligationIds.Contains(obligationName))
+        if (Player.ActiveObligations.Contains(obligation))
         {
-            Player.ActiveObligationIds.Remove(obligationName);
+            Player.ActiveObligations.Remove(obligation);
         }
 
         obligation.IsFailed = true;
@@ -613,16 +618,7 @@ public class GameWorld
     /// </summary>
     public List<Obligation> GetActiveObligations()
     {
-        List<Obligation> activeObligations = new List<Obligation>();
-        foreach (string obligationName in Player.ActiveObligationIds)
-        {
-            Obligation obligation = Obligations.FirstOrDefault(i => i.Name == obligationName);
-            if (obligation != null)
-            {
-                activeObligations.Add(obligation);
-            }
-        }
-        return activeObligations;
+        return Player.ActiveObligations;
     }
 
     // ============================================

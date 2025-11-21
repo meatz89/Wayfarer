@@ -84,8 +84,8 @@ public static class SituationParser
             NavigationPayload = ParseNavigationPayload(dto.NavigationPayload, gameWorld),
             CompoundRequirement = RequirementParser.ConvertDTOToCompoundRequirement(dto.CompoundRequirement),
             // ProjectedBondChanges/ProjectedScaleShifts/ProjectedStates DELETED - stored projection pattern
-            SuccessSpawns = SpawnRuleParser.ParseSpawnRules(dto.SuccessSpawns, dto.Name),
-            FailureSpawns = SpawnRuleParser.ParseSpawnRules(dto.FailureSpawns, dto.Name),
+            SuccessSpawns = SpawnRuleParser.ParseSpawnRules(dto.SuccessSpawns, dto.Name, gameWorld),
+            FailureSpawns = SpawnRuleParser.ParseSpawnRules(dto.FailureSpawns, dto.Name, gameWorld),
             Tier = dto.Tier,
             Repeatable = dto.Repeatable,
             GeneratedNarrative = dto.GeneratedNarrative,
@@ -215,6 +215,11 @@ public static class SituationParser
                 rewards.RouteSegmentUnlock.Route = gameWorld.Routes.FirstOrDefault(r => r.Name == dto.RouteSegmentUnlock.RouteId);
             }
 
+            // TECHNICAL DEBT: RouteSegment.Paths property doesn't exist - was PathCollection.PathCards (DTO)
+            // This entire block needs refactoring - RouteSegment should have parsed PathCard objects, not DTOs
+            // For now, leaving Path null until proper parsing implemented
+            // TODO: Fix RouteSegment to store List<PathCard> instead of PathCardCollectionDTO
+            /*
             if (!string.IsNullOrEmpty(dto.RouteSegmentUnlock.PathId) && rewards.RouteSegmentUnlock.Route != null)
             {
                 // PathCard is found within the route's segments
@@ -228,6 +233,7 @@ public static class SituationParser
                     }
                 }
             }
+            */
         }
 
         return rewards;

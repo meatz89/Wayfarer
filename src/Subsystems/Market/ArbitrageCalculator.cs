@@ -243,12 +243,8 @@ public class ArbitrageCalculator
 
         List<ArbitrageOpening> opportunities = new List<ArbitrageOpening>();
 
-        foreach (string itemId in player.Inventory.GetItemIds())
+        foreach (Item item in player.Inventory.GetAllItems())
         {
-            Item item = _itemRepository.GetItemById(itemId);
-            if (item == null)
-                throw new InvalidOperationException($"Item not found in repository: {itemId}");
-
             int currentSellPrice = _priceManager.GetSellPrice(item, currentLocation);
             List<Location> locations = _gameWorld.Locations;
 

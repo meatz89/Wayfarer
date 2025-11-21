@@ -46,18 +46,15 @@ public class PhysicalDeckBuilder
         }).ToList();
 
         // Add injury cards to deck (debuffs from past failures - Physical debt system)
-        foreach (string injuryCardId in player.InjuryCardIds)
+        // HIGHLANDER: InjuryCards stores PhysicalCard objects directly, not IDs
+        foreach (PhysicalCard injuryCard in player.InjuryCards)
         {
-            PhysicalCard injuryTemplate = null;
-            if (injuryTemplate != null)
+            CardInstance injuryInstance = new CardInstance(injuryCard)
             {
-                CardInstance injuryInstance = new CardInstance(injuryTemplate)
-                {
-                    InstanceId = Guid.NewGuid().ToString(),
-                    PhysicalCardTemplate = injuryTemplate
-                };
-                deck.Add(injuryInstance);
-            }
+                InstanceId = Guid.NewGuid().ToString(),
+                PhysicalCardTemplate = injuryCard
+            };
+            deck.Add(injuryInstance);
         }
 
         return new PhysicalDeckBuildResult(deck, startingHand);
@@ -81,8 +78,8 @@ public class PhysicalDeckBuilder
             instance.Context = new CardContext
             {
                 threshold = situationCard.threshold,
-                // HIGHLANDER: Situation has no Id property, use Name as natural key
-                RequestId = situation.Name
+                // HIGHLANDER: Store Situation object reference, not ID
+                Situation = situation
             };
 
             // Situation cards start unplayable until threshold met

@@ -185,16 +185,16 @@ public class ExchangeCard
     /// <summary>
     /// Checks if this exchange is currently available.
     /// Does not check if player can afford it, only availability.
+    /// HIGHLANDER: Accepts Venue object, not string VenueId
     /// </summary>
-    public bool IsAvailable(string currentVenueId, TimeBlocks currentTimeBlock)
+    public bool IsAvailable(Venue currentVenue, TimeBlocks currentTimeBlock)
     {
         // Check if already completed for single-use exchanges
         if (SingleUse && IsCompleted)
             return false;
 
-        // Check Venue requirement
-        if (!string.IsNullOrEmpty(RequiredVenueId) &&
-            currentVenueId != RequiredVenueId)
+        // Check Venue requirement (object comparison)
+        if (RequiredVenue != null && currentVenue != RequiredVenue)
             return false;
 
         // Check time block requirement

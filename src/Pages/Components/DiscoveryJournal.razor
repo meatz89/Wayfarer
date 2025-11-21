@@ -32,13 +32,13 @@
             {
                 @foreach (var activeInv in activeObligations)
                 {
-                    Obligation inv = GetObligationById(activeInv.ObligationId);
+                    Obligation inv = activeInv.Obligation;
                     if (inv != null)
                     {
                         <div class="obligation-card">
                             <div class="obligation-header-row">
                                 <div class="obligation-title">@inv.Name</div>
-                                <div class="obligation-progress-label">@GetObligationProgress(activeInv)/@GetObligationTotalSituations(activeInv.ObligationId) completed</div>
+                                <div class="obligation-progress-label">@GetObligationProgress(activeInv)/@GetObligationTotalSituations(inv) completed</div>
                             </div>
 
                             <div class="obligation-progress-bar">

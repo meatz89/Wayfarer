@@ -123,11 +123,18 @@ public class Player
     /// </summary>
     public List<RouteTraversalRecord> RouteTraversals { get; set; } = new List<RouteTraversalRecord>();
 
-    // NOTE: CollectedObservations DELETED - if observation tracking needed, store Observation objects
-    // Mental system should work with observation objects, not ID strings
+    /// <summary>
+    /// Observations collected by player during exploration
+    /// Mental system uses observation objects directly (HIGHLANDER: no IDs)
+    /// </summary>
+    public List<Observation> CollectedObservations { get; set; } = new List<Observation>();
 
-    // NOTE: InjuryCardIds DELETED - if injury tracking needed, store InjuryCard objects
-    // Physical system should work with card objects, not ID strings
+    /// <summary>
+    /// Active injury cards accumulated from Physical challenge failures
+    /// These cards are added to Physical challenge decks as permanent debuffs
+    /// Physical system uses card objects directly (HIGHLANDER: no IDs)
+    /// </summary>
+    public List<PhysicalCard> InjuryCards { get; set; } = new List<PhysicalCard>();
 
     // Reputation system - Physical success builds reputation affecting Social and Physical engagements
     public int Reputation { get; set; } = 0;
@@ -459,7 +466,7 @@ public class Player
     /// <summary>
     /// Apply initial player configuration from package starting conditions
     /// </summary>
-    public void ApplyInitialConfiguration(PlayerInitialConfig config)
+    public void ApplyInitialConfiguration(PlayerInitialConfig config, GameWorld gameWorld)
     {
         if (config == null) return;
 
@@ -491,9 +498,14 @@ public class Player
         {
             foreach (ResourceEntry entry in config.InitialItems)
             {
-                for (int i = 0; i < entry.Amount; i++)
+                // HIGHLANDER: Resolve string itemId to Item object from GameWorld.Items
+                Item item = gameWorld.Items.FirstOrDefault(i => i.Name == entry.ResourceType);
+                if (item != null)
                 {
-                    Inventory.AddItem(entry.ResourceType);
+                    for (int i = 0; i < entry.Amount; i++)
+                    {
+                        Inventory.Add(item);
+                    }
                 }
             }
         }
@@ -507,7 +519,7 @@ public class Player
     /// </summary>
     public int GetCurrentWeight(ItemRepository itemRepository)
     {
-        int inventoryWeight = Inventory.GetUsedWeight(itemRepository);
+        int inventoryWeight = Inventory.GetUsedWeight();
         return inventoryWeight;
     }
 

@@ -59,8 +59,9 @@ public class JsonNarrativeRepository
         }
 
         // First, try to find exact NPC matches
+        // HIGHLANDER: NPCData.Name is natural key (no NpcId property)
         List<NarrativeTemplate> npcMatches = templates
-            .Where(t => t.Conditions.NpcId == npcData.NpcId)
+            .Where(t => t.Conditions.NpcId == npcData.Name)
             .ToList();
 
         NarrativeTemplate bestMatch = FindBestMatchFromCandidates(npcMatches, state);

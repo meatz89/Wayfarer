@@ -166,9 +166,9 @@ public class SocialChallengeDeckBuilder
     private List<EquipmentCategory> GetPlayerEquipmentCategories(Player player)
     {
         List<EquipmentCategory> categories = new List<EquipmentCategory>();
-        foreach (string itemId in player.Inventory.GetAllItems())
+        foreach (Item item in player.Inventory.GetAllItems())
         {
-            Item item = _gameWorld.Items?.FirstOrDefault(i => i.Id == itemId);
+            // HIGHLANDER: GetAllItems() returns List<Item>, not List<string>
             if (item?.ProvidedEquipmentCategories != null)
             {
                 categories.AddRange(item.ProvidedEquipmentCategories);

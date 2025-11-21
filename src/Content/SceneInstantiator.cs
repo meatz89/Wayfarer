@@ -306,7 +306,6 @@ public class SceneInstantiator
         // Create Situation from template
         Situation situation = new Situation
         {
-            Id = situationId,
             Name = template.Name,  // Copy display name from template
             TemplateId = template.Id,
             Template = template,  // CRITICAL: Store template for lazy action instantiation
@@ -840,24 +839,23 @@ public class SceneInstantiator
     /// </summary>
     private Location SelectLeastRecentLocation(List<Location> candidates, Player player)
     {
-        // Create visit timestamp lookup dictionary for fast access
-        // ONE record per location (update-in-place pattern) - no GroupBy needed
-        Dictionary<string, LocationVisitRecord> visitLookup = player.LocationVisits
-            .ToDictionary(visit => visit.LocationId);
-
         // Find candidate with oldest visit (or never visited)
+        // Use LINQ queries over List<T>, NOT Dictionary (DOMAIN COLLECTION PRINCIPLE)
         Location leastRecentLocation = null;
         long oldestTimestamp = long.MaxValue;
 
         foreach (Location candidate in candidates)
         {
-            if (!visitLookup.ContainsKey(candidate.Name))
+            // LINQ query: Find visit record for this location
+            LocationVisitRecord record = player.LocationVisits
+                .FirstOrDefault(visit => visit.Location == candidate);
+
+            if (record == null)
             {
                 // Never visited this location - prioritize these
                 return candidate;
             }
 
-            LocationVisitRecord record = visitLookup[candidate.Name];
             long timestamp = CalculateTimestamp(record.LastVisitDay, record.LastVisitTimeBlock, record.LastVisitSegment);
 
             if (timestamp < oldestTimestamp)
@@ -1035,12 +1033,12 @@ public class SceneInstantiator
         }
 
         // Build LocationDTO
+        // HIGHLANDER: NO VenueId property in DTO - venue resolution happens via hex coordinates in parser
         LocationDTO dto = new LocationDTO
         {
             Id = locationId,
             Name = locationName,
             Description = locationDescription,
-            VenueId = venueId,
             Q = hexPosition.Value.Q,
             R = hexPosition.Value.R,
             Type = "Room", // Default type for generated locations
@@ -1128,7 +1126,7 @@ public class SceneInstantiator
                     DescriptionPattern = "A procedurally generated venue.",
                     Type = VenueType.Merchant,
                     Tier = context.CurrentLocation?.Tier ?? 1,
-                    District = context.CurrentLocation?.Venue?.District ?? "wilderness",
+                    District = context.CurrentLocation?.Venue?.District?.Name ?? "wilderness",
                     MaxLocations = 20,
                     HexAllocation = HexAllocationStrategy.ClusterOf7
                 };

@@ -122,8 +122,8 @@ namespace Wayfarer.Pages.Components
                 rewardTexts.Add($"+{rewards.Progress.Value} progress");
             if (rewards.Breakthrough.HasValue && rewards.Breakthrough.Value > 0)
                 rewardTexts.Add($"+{rewards.Breakthrough.Value} breakthrough");
-            if (!string.IsNullOrEmpty(rewards.Item))
-                rewardTexts.Add(rewards.Item);
+            if (rewards.Item != null)
+                rewardTexts.Add(rewards.Item.Name);
 
             return rewardTexts.Any() ? string.Join(", ", rewardTexts) : "Experience and insights";
         }

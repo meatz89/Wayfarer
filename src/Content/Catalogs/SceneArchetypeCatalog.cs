@@ -89,6 +89,10 @@ public static class SceneArchetypeCatalog
         string restSitId = $"{sceneId}_rest";
         string departSitId = $"{sceneId}_depart";
 
+        // Generate dependent resources for inn lodging (MUST be before reward creation)
+        DependentResourceCatalog.DependentResources resources =
+            DependentResourceCatalog.GenerateForActivity(ServiceActivityType.Lodging);
+
         // SITUATION 1: SECURE LODGING
         // Tutorial A1 (sequence 1): Manual identity formation choices
         // Standard/A2+ (sequence null/2+): Use service_negotiation archetype with universal scaling
@@ -163,11 +167,6 @@ public static class SceneArchetypeCatalog
                 negotiateArchetype,
                 negotiateSitId,
                 context);
-
-            // NOTE: Dependent item granting (room_key) cannot be handled at catalog time
-            // because the items don't exist until scene instantiation. The dependent item
-            // will be granted via DependentItemSpec.AddToInventoryOnCreation or through
-            // a separate choice-triggered item grant mechanism (to be designed).
         }
 
         SituationTemplate negotiateSituation = new SituationTemplate
@@ -338,23 +337,14 @@ public static class SceneArchetypeCatalog
 
         ChoiceReward earlyDepartureReward = new ChoiceReward
         {
-            ItemsToRemove = new List<string> { "generated:room_key" },
             Cunning = 1  // Early planning shows cunning
         };
 
         ChoiceReward socializeReward = new ChoiceReward
         {
-            ItemsToRemove = new List<string> { "generated:room_key" },
-            Rapport = 1,
-            BondChanges = new List<BondChange>
-            {
-                new BondChange
-                {
-                    NpcId = "SITUATION_NPC",
-                    Delta = 1,
-                    Reason = "Grateful for kind farewell"
-                }
-            }
+            Rapport = 1
+            // Bond changes with situation NPC not supported in catalog-generated templates
+            // (NPC not resolved until instantiation)
         };
 
         // A1 tutorial: ALL departure choices spawn A2
@@ -443,10 +433,6 @@ public static class SceneArchetypeCatalog
             }
         }
         };
-
-        // Generate dependent resources for inn lodging
-        DependentResourceCatalog.DependentResources resources =
-            DependentResourceCatalog.GenerateForActivity(ServiceActivityType.Lodging);
 
         return new SceneArchetypeDefinition
         {

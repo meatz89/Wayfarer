@@ -94,9 +94,13 @@ public class Situation
     /// </summary>
     public SpawnTracking Lifecycle { get; set; } = new SpawnTracking();
 
-    // NOTE: LastChoiceId DELETED - if choice tracking needed for transitions,
-    // store ChoiceTemplate object reference or use choice index
-    // Transitions should evaluate based on choice semantics, not ID matching
+    /// <summary>
+    /// ChoiceTemplate selected by player for transition evaluation
+    /// Used for OnChoice transitions that route based on specific choice selection
+    /// null = no choice made yet
+    /// HIGHLANDER: Object reference to ChoiceTemplate (not ID string)
+    /// </summary>
+    public ChoiceTemplate LastChoice { get; set; }
 
     /// <summary>
     /// Whether the last challenge attempt succeeded

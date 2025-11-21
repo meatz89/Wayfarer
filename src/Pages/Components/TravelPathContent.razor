@@ -59,7 +59,7 @@
                                         <div class="path-name">@card.Name</div>
                                         <div class="path-stamina">@card.StaminaCost</div>
                                     </div>
-                                    <div class="blocked-reason">@GetUnavailableReason(card.Id)</div>
+                                    <div class="blocked-reason">@GetUnavailableReason(card)</div>
                                 </div>
                             </div>
                         </div>
@@ -123,9 +123,9 @@
             <!-- Scene Display -->
             @{
                 var segment = GetCurrentRouteSegment();
-                if (segment != null && !string.IsNullOrEmpty(segment.MandatorySceneId))
+                if (segment != null && segment.MandatorySceneTemplate != null)
                 {
-                    var scene = GameWorld.Scenes.FirstOrDefault(s => s.Id == segment.MandatorySceneId);
+                    var scene = GameWorld.Scenes.FirstOrDefault(s => s.Template == segment.MandatorySceneTemplate);
                     if (scene != null)
                     {
                         <div class="scene-display">

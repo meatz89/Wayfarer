@@ -46,8 +46,8 @@ public static class SkeletonGenerator
             SkeletonSource = source,
 
             // Simple defaults (no hash-based selection)
-            PersonalityType = PersonalityType.NEUTRAL,  // Default personality
-            Profession = Professions.Laborer,  // Default profession
+            PersonalityType = PersonalityType.Neutral,  // Default personality
+            Profession = Professions.Commoner,  // Default profession
             Tier = 1,  // Default tier
 
             // Default relationship flow (NEUTRAL state at neutral position)
@@ -111,7 +111,7 @@ public static class SkeletonGenerator
             DomainTags = new List<string>(),
 
             // Simple default property
-            LocationProperties = new List<LocationPropertyType> { LocationPropertyType.Accessible }
+            LocationProperties = new List<LocationPropertyType> { LocationPropertyType.Public }
         };
 
         return location;
@@ -132,10 +132,10 @@ public static class SkeletonGenerator
             Description = "A simple trade of resources.",
             IsSkeleton = true,
             SkeletonSource = source,
-            NpcId = npcId,  // Will be replaced with NPC object reference
+            // HIGHLANDER: Npc object reference set during entity resolution, not at skeleton generation
 
             // Simple default exchange type
-            ExchangeType = ExchangeType.Buy,
+            ExchangeType = ExchangeType.Purchase,
 
             // Simple default cost
             Cost = new ExchangeCostStructure

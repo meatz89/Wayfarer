@@ -45,13 +45,15 @@ public class MeetingManager
     }
 
     /// <summary>
-    /// Get meeting obligation by ID.
+    /// Get meeting obligation by requester NPC name.
+    /// HIGHLANDER: Meeting has no .Id or .Name - query by Requester.Name instead
+    /// meetingId parameter is actually the requester NPC's name
     /// </summary>
     public MeetingObligation GetMeetingById(string meetingId)
     {
         Player player = _gameWorld.GetPlayer();
         return player.MeetingObligations
-            .FirstOrDefault(m => m.Id == meetingId);
+            .FirstOrDefault(m => m.Requester?.Name == meetingId);
     }
 
     /// <summary>

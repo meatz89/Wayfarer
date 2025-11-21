@@ -348,7 +348,8 @@ namespace Wayfarer.Pages.Components
             LastNarrative = "You listen attentively...";
 
             // For Request conversations, display the request text on LISTEN
-            if (Context?.ConversationType == "request" && !string.IsNullOrEmpty(Context.RequestText))
+            // HIGHLANDER: Check RequestText directly - no ConversationType property needed
+            if (!string.IsNullOrEmpty(Context?.RequestText))
             {
                 LastDialogue = Context.RequestText;
             }
@@ -664,8 +665,8 @@ namespace Wayfarer.Pages.Components
             if (situationCard?.SituationCardTemplate == null) return 0;
             if (DifficultyService == null || ItemRepository == null) return situationCard.SituationCardTemplate.threshold;
 
-            // Find parent Situation from GameWorld by searching for SituationCard ID
-            Situation parentSituation = FindParentSituation(situationCard.SituationCardTemplate.Id);
+            // Find parent Situation from GameWorld by searching for SituationCardTemplate object
+            Situation parentSituation = FindParentSituation(situationCard.SituationCardTemplate);
             if (parentSituation == null) return situationCard.SituationCardTemplate.threshold;
 
             // Get base difficulty from deck
@@ -684,13 +685,14 @@ namespace Wayfarer.Pages.Components
             return deck?.DangerThreshold ?? 10;
         }
 
-        private Situation FindParentSituation(string situationCardId)
+        private Situation FindParentSituation(SituationCard situationCard)
         {
             if (GameWorld?.Scenes == null) return null;
+            if (situationCard == null) return null;
 
             foreach (Situation situation in GameWorld.Scenes.SelectMany(s => s.Situations))
             {
-                if (situation.SituationCards != null && situation.SituationCards.Any(gc => gc.Id == situationCardId))
+                if (situation.SituationCards != null && situation.SituationCards.Any(gc => gc == situationCard))
                 {
                     return situation;
                 }

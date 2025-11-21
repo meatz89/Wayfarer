@@ -97,11 +97,9 @@ public class TokenEffectProcessor
         }
 
         // Apply equipment modifiers
-        foreach (string itemId in player.Inventory.GetAllItems())
+        foreach (Item item in player.Inventory.GetAllItems())
         {
-            if (string.IsNullOrEmpty(itemId)) continue;
-
-            Item item = _itemRepository.GetItemById(itemId);
+            // HIGHLANDER: GetAllItems() returns List<Item>, not List<string>
             if (item != null && item.TokenGenerationModifiers != null)
             {
                 foreach (KeyValuePair<ConnectionType, float> modifier in item.TokenGenerationModifiers)
@@ -129,11 +127,9 @@ public class TokenEffectProcessor
         // Status and Shadow might require special equipment
         Player player = _gameWorld.GetPlayer();
 
-        foreach (string itemId in player.Inventory.GetAllItems())
+        foreach (Item item in player.Inventory.GetAllItems())
         {
-            if (string.IsNullOrEmpty(itemId)) continue;
-
-            Item item = _itemRepository.GetItemById(itemId);
+            // HIGHLANDER: GetAllItems() returns List<Item>, not List<string>
             if (item != null && item.EnablesTokenGeneration != null)
             {
                 if (item.EnablesTokenGeneration.Contains(type))
@@ -176,11 +172,9 @@ public class TokenEffectProcessor
         float totalModifier = 1.0f;
 
         // Check all items in inventory for token modifiers
-        foreach (string itemId in player.Inventory.GetAllItems())
+        foreach (Item item in player.Inventory.GetAllItems())
         {
-            if (string.IsNullOrEmpty(itemId)) continue;
-
-            Item item = _itemRepository.GetItemById(itemId);
+            // HIGHLANDER: GetAllItems() returns List<Item>, not List<string>
             if (item != null && item.TokenGenerationModifiers != null &&
                 item.TokenGenerationModifiers.TryGetValue(tokenType, out float modifier))
             {

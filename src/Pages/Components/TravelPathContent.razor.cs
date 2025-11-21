@@ -378,7 +378,7 @@ namespace Wayfarer.Pages.Components
                 classes.Add("face-down");
             }
 
-            if (!CanPlayCard(card.Id))
+            if (!CanPlayCard(card))
             {
                 classes.Add("unavailable");
             }

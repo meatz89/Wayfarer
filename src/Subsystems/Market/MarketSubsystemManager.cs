@@ -297,7 +297,7 @@ public class MarketSubsystemManager
         if (player.Coins < buyPrice) return false;
 
         // Check inventory space
-        return player.Inventory.CanAddItem(item, _itemRepository);
+        return player.Inventory.CanAddItem(item);
     }
 
     /// <summary>
@@ -388,7 +388,7 @@ public class MarketSubsystemManager
             {
                 result.ErrorReason = $"Insufficient funds (need {buyPrice}, have {player.Coins})";
             }
-            else if (!player.Inventory.CanAddItem(item, _itemRepository))
+            else if (!player.Inventory.CanAddItem(item))
             {
                 result.ErrorReason = "No inventory space available";
             }
@@ -443,7 +443,8 @@ public class MarketSubsystemManager
 
         // Attempt sale
         bool success = false;
-        if (sellPrice > 0 && player.Inventory.HasItem(item.Name))
+        // HIGHLANDER: Inventory.Contains(Item) accepts object, not string name
+        if (sellPrice > 0 && player.Inventory.Contains(item))
         {
             player.Inventory.Remove(item);
             player.AddCoins(sellPrice);
@@ -520,11 +521,8 @@ public class MarketSubsystemManager
         if (currentLocation == null) return recommendations;
 
         // Recommend selling items that are more valuable here
-        foreach (string itemId in player.Inventory.GetItemIds())
+        foreach (Item item in player.Inventory.GetAllItems())
         {
-            Item item = _itemRepository.GetItemById(itemId);
-            if (item == null) continue;
-
             int sellPriceHere = GetItemPrice(currentLocation, item, false);
             if (sellPriceHere <= 0) continue;
 
@@ -569,7 +567,7 @@ public class MarketSubsystemManager
 
             foreach (Item item in availableItems)
             {
-                if (!player.Inventory.CanAddItem(item, _itemRepository)) continue;
+                if (!player.Inventory.CanAddItem(item)) continue;
                 if (player.Coins < item.BuyPrice) continue;
 
                 // Check profit potential
@@ -636,11 +634,8 @@ public class MarketSubsystemManager
             summary.AffordableItems = items.Count(i => i.BuyPrice <= player.Coins);
 
             // Count items profitable to sell
-            foreach (string itemId in player.Inventory.GetItemIds())
+            foreach (Item item in player.Inventory.GetAllItems())
             {
-                Item item = _itemRepository.GetItemById(itemId);
-                if (item == null) continue;
-
                 int sellPrice = GetItemPrice(location, item, false);
                 if (sellPrice > 0)
                 {

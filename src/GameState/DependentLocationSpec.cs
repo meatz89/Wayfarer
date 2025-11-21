@@ -6,9 +6,9 @@
 public class DependentLocationSpec
 {
     /// <summary>
-    /// Unique identifier for this resource specification within the scene
-    /// Used to reference this location in situation rewards and requirements
-    /// Converted to marker format: "generated:{TemplateId}" for reference resolution
+    /// Template identifier for this location specification
+    /// Used to tag situations targeting this location via LocationTags
+    /// Becomes location Name after package generation
     /// </summary>
     public string TemplateId { get; set; }
 

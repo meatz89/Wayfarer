@@ -30,7 +30,7 @@ public class HexRouteGenerator
             throw new ArgumentNullException(nameof(newLocation));
 
         if (!newLocation.HexPosition.HasValue)
-            throw new ArgumentException($"Location '{newLocation.Id}' has no HexPosition - cannot generate routes", nameof(newLocation));
+            throw new ArgumentException($"Location '{newLocation.Name}' has no HexPosition - cannot generate routes", nameof(newLocation));
 
         List<RouteOption> generatedRoutes = new List<RouteOption>();
 
@@ -246,8 +246,10 @@ public class HexRouteGenerator
                 // Spawn scene for this segment
                 Scene scene = SpawnActiveSceneForRoute(selectedTemplate, route, segment);
 
-                // Assign scene object reference to segment
-                segment.MandatoryScene = scene; // Object reference ONLY (no ID storage)
+                // NOTE: RouteSegment.MandatorySceneTemplate stores the TEMPLATE, not the instance
+                // Scene instances are stored in GameWorld.Scenes or TravelState
+                // The spawned scene is already added to GameWorld in SpawnActiveSceneForRoute
+                // No need to store instance reference on RouteSegment
             }
         }
     }
@@ -337,13 +339,13 @@ public class HexRouteGenerator
     {
         // Generate unique Scene ID using template and GUID (no route ID needed)
         // No .Substring() on GUID (forbidden operation per CLAUDE.md)
-        string sceneId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}_seg{segment.SegmentNumber}";
+        // HIGHLANDER: No .Id property on Scene - use DisplayName for identification
+        string sceneName = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}_seg{segment.SegmentNumber}";
 
         // Create Scene directly as Active (skip provisional step)
         // HIERARCHICAL PLACEMENT: Route set on Situation, not Scene
         Scene scene = new Scene
         {
-            Id = sceneId,
             TemplateId = template.Id,
             Template = template,
             State = SceneState.Active, // Active immediately, not provisional
@@ -375,13 +377,12 @@ public class HexRouteGenerator
     /// </summary>
     private Situation InstantiateSituation(SituationTemplate template, Scene parentScene, RouteOption route)
     {
-        // No .Substring() on GUID (forbidden operation per CLAUDE.md)
-        string situationId = $"situation_{template.Id}_{Guid.NewGuid().ToString("N")}";
+        // HIGHLANDER: No .Id property on Situation - use Name for identification
+        string situationName = $"situation_{template.Id}_{Guid.NewGuid().ToString("N")}";
 
         Situation situation = new Situation
         {
-            Id = situationId,
-            Name = template.Id, // Use template ID as name
+            Name = situationName,
             Description = template.NarrativeTemplate ?? "",
             InstantiationState = InstantiationState.Deferred, // Starts deferred, instantiates when player enters segment
             Template = template,
@@ -438,8 +439,8 @@ public class HexRouteGenerator
             {
                 SegmentNumber = segmentNumber,
                 Type = isEncounter ? SegmentType.Encounter : SegmentType.FixedPath,
-                PathCollectionId = null, // Self-sufficient: FixedPath uses NarrativeDescription only, no PathCards needed
-                MandatorySceneId = null, // Will be populated by scene spawning
+                // PathCollection: null (FixedPath uses NarrativeDescription only, no PathCards needed for procedural routes)
+                // MandatorySceneTemplate: null initially, populated by scene spawning logic
                 NarrativeDescription = GenerateSegmentDescription(dominantTerrain, segmentDanger)
             };
 

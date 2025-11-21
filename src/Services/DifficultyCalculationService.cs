@@ -105,15 +105,10 @@ public class DifficultyCalculationService
     {
         List<ItemCategory> categories = new List<ItemCategory>();
 
-        foreach (string itemId in player.Inventory.GetAllItems())
+        foreach (Item item in player.Inventory.GetAllItems())
         {
-            if (string.IsNullOrEmpty(itemId)) continue;
-
-            Item item = itemRepository.GetItemById(itemId);
-            if (item != null)
-            {
-                categories.AddRange(item.Categories);  // MECHANICAL PROPERTIES
-            }
+            if (item == null) continue;
+            categories.AddRange(item.Categories);  // MECHANICAL PROPERTIES
         }
 
         return categories.Distinct().ToList();

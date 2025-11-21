@@ -155,7 +155,7 @@ public class RouteOption
         }
 
         // Calculate realistic costs without efficiency modifiers
-        int staminaCost = CalculateLogicalStaminaCost(totalFocus, player.Inventory.GetAllItems().Count(i => i != null && i != string.Empty));
+        int staminaCost = CalculateLogicalStaminaCost(totalFocus, player.Inventory.GetAllItems().Count(i => i != null));
         int coinCost = BaseCoinCost;
 
         // Check if player has enough resources
@@ -295,7 +295,7 @@ public class RouteOption
     /// </summary>
     public int CalculateStaminaCost(int totalFocus, WeatherCondition weather, ItemRepository itemRepository, Player player)
     {
-        int itemCount = player.Inventory.GetAllItems().Count(i => i != null && i != string.Empty);
+        int itemCount = player.Inventory.GetAllItems().Count(i => i != null);
         int baseCost = CalculateLogicalStaminaCost(totalFocus, itemCount);
 
         // Apply weather modifications
@@ -351,13 +351,10 @@ public class RouteOption
     {
         List<ItemCategory> categories = new List<ItemCategory>();
 
-        foreach (string itemId in player.Inventory.GetAllItems())
+        foreach (Item item in player.Inventory.GetAllItems())
         {
-            if (!string.IsNullOrEmpty(itemId))
+            if (item != null)
             {
-                Item item = itemRepository.GetItemById(itemId);
-                if (item == null)
-                    throw new System.InvalidOperationException($"Item not found: {itemId}");
                 categories.AddRange(item.Categories);
             }
         }

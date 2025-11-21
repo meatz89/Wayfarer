@@ -27,8 +27,8 @@ public class NPCRepository
     /// </summary>
     private bool IsNPCVisible(NPC npc)
     {
-        // ADR-007: Use Name (natural key) instead of deleted ID property
-        return _visibilityService.IsNPCVisible(npc.Name);
+        // HIGHLANDER: Pass NPC object directly, not npc.Name string
+        return _visibilityService.IsNPCVisible(npc);
     }
 
     /// <summary>

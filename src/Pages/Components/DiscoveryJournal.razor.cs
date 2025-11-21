@@ -42,7 +42,7 @@ namespace Wayfarer.Pages.Components
 
         protected int GetFamiliarity(Location location)
         {
-            return GameWorld.GetPlayer().GetLocationFamiliarity(location.Name);
+            return GameWorld.GetPlayer().GetLocationFamiliarity(location);
         }
 
         protected double GetFamiliarityPercent(Location location, int max)
@@ -58,7 +58,10 @@ namespace Wayfarer.Pages.Components
 
         protected List<string> GetCollectedObservations()
         {
-            return GameWorld.GetPlayer().CollectedObservations;
+            // HIGHLANDER: CollectedObservations stores Observation objects, extract Text for display
+            return GameWorld.GetPlayer().CollectedObservations
+                .Select(obs => obs.Text)
+                .ToList();
         }
 
         protected int GetExploredRouteCount()

@@ -99,20 +99,21 @@ public class ChoiceReward
     public List<Achievement> Achievements { get; set; } = new List<Achievement>();
 
     /// <summary>
-    /// Items granted to player inventory
+    /// Items granted to player inventory (RUNTIME - resolved entities)
     /// Equipment, consumables, quest items
     /// Part of item lifecycle: GRANT phase
     /// HIGHLANDER: Object references only, no string IDs
+    /// Used at RUNTIME after scene instantiation
     /// </summary>
     public List<Item> Items { get; set; } = new List<Item>();
 
     /// <summary>
-    /// Items to remove from player inventory
+    /// Items to remove from player inventory (RUNTIME - resolved entities)
     /// Used for: Consuming keys, removing temporary access tokens, cleanup
     /// Part of item lifecycle: REMOVE phase
     /// Multi-Situation Scene Pattern: Situations can clean up items granted earlier in arc
-    /// Example: Depart situation removes room_key granted by negotiate situation
     /// HIGHLANDER: Object references only, no string IDs
+    /// Used at RUNTIME after scene instantiation
     /// </summary>
     public List<Item> ItemsToRemove { get; set; } = new List<Item>();
 

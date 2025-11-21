@@ -195,9 +195,9 @@ public class ExchangeFacade
         // Track exchange history in GameWorld
         ExchangeHistoryEntry historyEntry = new ExchangeHistoryEntry
         {
-            ExchangeId = exchangeId,
+            ExchangeId = exchange.Name,
             ExchangeName = exchange.Name,
-            NpcId = npcId,  // ✅ Strongly-typed property (no ID parsing)
+            NpcId = npc.Name,  // HIGHLANDER: Use Name as natural key (no separate ID)
             Timestamp = DateTime.Now,
             Day = _gameWorld.CurrentDay,
             TimeBlock = _gameWorld.CurrentTimeBlock,
@@ -239,7 +239,7 @@ public class ExchangeFacade
     public List<ExchangeHistoryEntry> GetExchangeHistory(NPC npc)
     {
         return _gameWorld.ExchangeHistory
-            .Where(h => h.Npc == npc)
+            .Where(h => h.NpcId == npc.Name)
             .ToList();
     }
 
@@ -308,15 +308,16 @@ public class ExchangeFacade
     public ExchangeRequirements GetExchangeRequirements(ExchangeCard exchange)
     {
         // Get first token requirement if exists
-        ConnectionType? firstTokenType = exchange.Cost.TokenRequirements.Keys.FirstOrDefault();
-        int minimumTokens = exchange.Cost.TokenRequirements.Values.FirstOrDefault();
+        TokenCount firstToken = exchange.Cost.TokenRequirements.FirstOrDefault();
+        ConnectionType? firstTokenType = firstToken?.Type;
+        int minimumTokens = firstToken?.Count ?? 0;
 
         return new ExchangeRequirements
         {
             MinimumTokens = minimumTokens,
             RequiredTokenType = firstTokenType,
             RequiredDomains = exchange.RequiredDomains,
-            ConsumedItems = exchange.Cost.ConsumedItemIds.ToList(),
+            ConsumedItems = exchange.Cost.ConsumedItems.Select(i => i.Name).ToList(),
             TimeRestrictions = exchange.AvailableTimeBlocks
         };
     }
@@ -405,14 +406,15 @@ public class ExchangeFacade
         }
 
         // Apply item costs (consume items from inventory)
-        foreach (string itemId in exchange.Cost.ConsumedItemIds)
+        // HIGHLANDER: Use Item objects directly, no string resolution needed
+        foreach (Item item in exchange.Cost.ConsumedItems)
         {
-            if (!player.Inventory.HasItem(itemId))
+            if (!player.Inventory.Contains(item))
             {
-                _messageSystem.AddSystemMessage($"Missing required item: {itemId}", SystemMessageTypes.Danger);
+                _messageSystem.AddSystemMessage($"Missing required item: {item.Name}", SystemMessageTypes.Danger);
                 return false;
             }
-            player.Inventory.RemoveItem(itemId);
+            player.Inventory.Remove(item);
         }
 
         return true;

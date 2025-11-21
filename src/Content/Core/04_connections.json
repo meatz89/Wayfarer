@@ -16,8 +16,8 @@
       {
         "id": "square_to_mill",
         "name": "Path to Old Mill",
-        "originSpotId": "square_center",
-        "destinationSpotId": "mill_courtyard",
+        "originSpotId": "Town Square Center",
+        "destinationSpotId": "Mill Courtyard",
         "description": "Follow the path from town square to the abandoned mill on the outskirts",
         "segments": [
           {

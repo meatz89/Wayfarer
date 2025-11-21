@@ -64,15 +64,7 @@
 
 ### Development Build
 
-```bash
-# Navigate to source directory
-cd src
-
-# Build application
-dotnet build
-
-# Output: ./bin/Debug/net8.0/
-```
+Navigate to the source directory and execute the build command using the dotnet CLI. The build produces compiled assemblies, runtime dependencies, static assets from the wwwroot directory, and configuration files in the debug output directory.
 
 **Build Output:**
 - Compiled assemblies (.dll)
@@ -82,48 +74,15 @@ dotnet build
 
 ### Running Application
 
-```bash
-# Navigate to source directory
-cd src
-
-# Run application (development mode)
-dotnet run
-
-# Application available at: http://localhost:5000
-```
-
-**Runtime Configuration:**
-- Port: 5000 (default, configurable via ASPNETCORE_URLS)
-- Environment: Development (uses appsettings.Development.json)
-- Hot Reload: Enabled (file changes trigger recompile)
+From the source directory, execute the run command to start the application in development mode. The application listens on port 5000 by default, which can be configured via the ASPNETCORE_URLS environment variable. Development environment uses the development-specific configuration file and enables hot reload functionality where file changes trigger automatic recompilation.
 
 ### Running Tests
 
-```bash
-# Navigate to source directory
-cd src
-
-# Run all tests
-dotnet test
-
-# Run specific test project
-dotnet test Tests/UnitTests
-```
+Execute the test command from the source directory to run all test projects. Specific test projects can be targeted by providing the path to the test project directory as an additional argument.
 
 ### Production Build
 
-```bash
-# Navigate to source directory
-cd src
-
-# Build for production (Release configuration)
-dotnet build --configuration Release
-
-# Publish self-contained deployment
-dotnet publish --configuration Release --output ./publish
-
-# Output: ./publish/ (ready to deploy)
-```
+Build the application in Release configuration for production deployment. The publish command creates a self-contained deployment package with all necessary dependencies in the specified output directory. This produces a directory ready for deployment to production servers.
 
 ---
 
@@ -336,9 +295,8 @@ Wayfarer/
 └──────────────────────────────┘
 
 ⚠️ CRITICAL: OnInitializedAsync()
-   executes TWICE. Must guard with:
-   if (_gameWorld.IsGameStarted)
-       return;
+   executes TWICE. Must guard with state
+   check returning early if game already started.
 ```
 
 ---

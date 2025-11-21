@@ -36,9 +36,9 @@
                     <div class="reward-item">+@Card.SituationCardTemplate.Rewards.Breakthrough Breakthrough</div>
                 }
                 @* Knowledge system eliminated - Understanding resource replaces Knowledge tokens *@
-                @if (!string.IsNullOrEmpty(Card.SituationCardTemplate.Rewards.Item))
+                @if (Card.SituationCardTemplate.Rewards.Item != null)
                 {
-                    <div class="reward-item">Item: @Card.SituationCardTemplate.Rewards.Item</div>
+                    <div class="reward-item">Item: @Card.SituationCardTemplate.Rewards.Item.Name</div>
                 }
                 @* Cube rewards (strongly typed) *@
                 @if (Card.SituationCardTemplate.Rewards.InvestigationCubes.HasValue && Card.SituationCardTemplate.Rewards.InvestigationCubes.Value > 0)
@@ -54,9 +54,9 @@
                     <div class="reward-item">+@Card.SituationCardTemplate.Rewards.ExplorationCubes Exploration Cubes</div>
                 }
                 @* Core Loop rewards *@
-                @if (!string.IsNullOrEmpty(Card.SituationCardTemplate.Rewards.EquipmentId))
+                @if (Card.SituationCardTemplate.Rewards.Item != null)
                 {
-                    <div class="reward-item">Equipment: @Card.SituationCardTemplate.Rewards.EquipmentId</div>
+                    <div class="reward-item">Equipment: @Card.SituationCardTemplate.Rewards.Item.Name</div>
                 }
                 @if (Card.SituationCardTemplate.Rewards.CreateObligationData != null)
                 {

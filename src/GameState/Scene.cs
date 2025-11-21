@@ -276,11 +276,11 @@ public class Scene
         // 3. Always (fallback)
 
         // Check OnChoice transitions first (most specific)
-        if (completedSituation.LastChoiceId != null)
+        if (completedSituation.LastChoice != null)
         {
             SituationTransition choiceTransition = candidateTransitions
                 .FirstOrDefault(t => t.Condition == TransitionCondition.OnChoice
-                                  && t.SpecificChoiceId == completedSituation.LastChoiceId);
+                                  && t.SpecificChoiceId == completedSituation.LastChoice.Id);
             if (choiceTransition != null)
                 return choiceTransition;
         }

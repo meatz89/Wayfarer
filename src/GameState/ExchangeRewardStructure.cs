@@ -11,14 +11,8 @@ public class ExchangeRewardStructure
     public List<ResourceAmount> Resources { get; set; } = new List<ResourceAmount>();
 
     /// <summary>
-    /// Items granted by this exchange (parse-time IDs).
-    /// Resolved to Items at parse time.
-    /// </summary>
-    public List<string> ItemIds { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Items granted by this exchange (runtime objects).
-    /// HIGHLANDER: Object references resolved from ItemIds at parse time.
+    /// Items granted by this exchange.
+    /// HIGHLANDER: Object references ONLY - stores Item objects, not string IDs
     /// </summary>
     public List<Item> Items { get; set; } = new List<Item>();
 
@@ -45,9 +39,9 @@ public class ExchangeRewardStructure
             parts.Add($"{resource.Amount} {resource.Type}");
         }
 
-        foreach (string item in ItemIds)
+        foreach (Item item in Items)
         {
-            parts.Add($"1x {item}");
+            parts.Add($"1x {item.Name}");
         }
 
         foreach (TokenCount token in Tokens)
@@ -67,7 +61,7 @@ public class ExchangeRewardStructure
     public bool HasRewards()
     {
         return (Resources != null && Resources.Count > 0) ||
-               (ItemIds != null && ItemIds.Count > 0) ||
+               (Items != null && Items.Count > 0) ||
                (Tokens != null && Tokens.Count > 0) ||
                (EffectIds != null && EffectIds.Count > 0);
     }

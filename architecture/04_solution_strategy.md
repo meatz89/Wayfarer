@@ -72,17 +72,7 @@ Strategic layer answers "Can I afford this?" Tactical layer answers "Can I execu
 
 ### Formula Example
 
-```
-Base archetype: StatThreshold = 5, CoinCost = 8
-
-Context: Friendly NPC (0.6x), Premium Quality (1.6x), Equal Power (1.0x)
-
-Scaled values:
-- StatThreshold: 5 × 0.6 × 1.0 = 3 (friendly = easier)
-- CoinCost: 8 × 1.6 = 13 (premium = more expensive)
-
-Same archetype, contextually appropriate difficulty.
-```
+Consider a base archetype defining a negotiation interaction with a baseline stat threshold of five and a baseline coin cost of eight. When this archetype is instantiated in a specific context with a friendly NPC (applying a 0.6 multiplier), premium quality services (applying a 1.6 multiplier), and equal power dynamic (applying a 1.0 multiplier), the system calculates scaled values. The stat threshold becomes three (five multiplied by 0.6 and 1.0), representing an easier interaction due to the friendly NPC. The coin cost becomes thirteen (eight multiplied by 1.6), representing higher prices for premium quality. The same archetype produces contextually appropriate difficulty based purely on categorical properties.
 
 ### Consequences
 
@@ -139,34 +129,7 @@ AI doesn't know "player is level 15, economy is 1000 coins/day, stat progression
 
 ### Complete Flow Example
 
-```
-PARSE TIME:
-JSON → SceneTemplate "lodge_001"
-     → Contains SituationTemplate "negotiate"
-     → Contains ChoiceTemplate "persuade"
-     → Stored in GameWorld.SceneTemplates
-
-SPAWN TIME (Day 5):
-Obligation triggers → Creates Scene instance from template
-                   → Scene.Situations populated
-                   → Scene.InstantiationState = Deferred
-                   → NO actions created yet
-                   → Stored in GameWorld.Scenes
-
-QUERY TIME (Player enters common room):
-Player at Location → SceneFacade checks active scenes
-                  → Scene.CurrentSituation context matches
-                  → Instantiate Action from ChoiceTemplate
-                  → Add to GameWorld.LocationActions
-                  → Scene.InstantiationState = Instantiated
-                  → UI renders action button
-
-EXECUTION:
-Player clicks action → GameFacade processes
-                    → Apply costs/rewards
-                    → Delete action (ephemeral)
-                    → Scene advances to next Situation
-```
+The three-tier timing model operates across four distinct phases. During parse time, JSON content is converted into an immutable SceneTemplate containing SituationTemplates and ChoiceTemplates, which are stored in the GameWorld's template collection. At spawn time (for example, on day five of game time), an obligation triggers and creates a Scene instance from the template. The scene's situations are populated from the template, but the instantiation state remains deferred - no actions are created yet. The scene is stored in the GameWorld's active scenes collection. At query time when the player enters a specific location, the SceneFacade checks for active scenes whose current situation matches the player's context. When a match is found, actions are instantiated from the situation's choice templates and added to the appropriate GameWorld action collection. The scene's instantiation state transitions to instantiated, and the UI renders action buttons for player interaction. During execution, when the player clicks an action, the GameFacade processes it by applying costs and rewards, deleting the ephemeral action, and advancing the scene to its next situation.
 
 ### Consequences
 
@@ -261,8 +224,8 @@ GameWorld (Zero Dependencies)
 ### Static Content Loading (No Dependency Injection for GameWorld)
 
 **Chosen:**
-- GameWorld initialized explicitly: `GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();`
-- Registered as singleton: `builder.Services.AddSingleton(gameWorld);`
+- GameWorld initialized explicitly by calling the initialization method and storing the result
+- The initialized instance is then registered as a singleton in the service container
 - Content loaded at startup from JSON packages
 
 **Rationale:**
@@ -271,14 +234,7 @@ GameWorld (Zero Dependencies)
 - Static content loading fits single-player model (no dynamic content sources)
 
 **Rejected Alternative:**
-```csharp
-// ❌ FORBIDDEN (lambda in DI registration)
-services.AddSingleton<GameWorld>(_ => GameWorldInitializer.CreateGameWorld());
-
-// ✅ CORRECT (explicit initialization)
-GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();
-builder.Services.AddSingleton(gameWorld);
-```
+Using a lambda function within service registration to lazily instantiate the GameWorld is forbidden. Instead, instantiate the GameWorld explicitly before the service registration call, storing it in a variable, then pass that variable to the singleton registration method. This makes the initialization order explicit and enables direct debugging of the initialization logic.
 
 ### Domain-Driven Design (No Abstraction Over-Engineering)
 

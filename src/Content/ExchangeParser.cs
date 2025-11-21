@@ -57,7 +57,7 @@ public static class ExchangeParser
                 }
             } : new List<ResourceAmount>(),
                 TokenRequirements = dto.TokenGate?.Count > 0 ? new List<TokenCount>() : new List<TokenCount>(),
-                ConsumedItemIds = new List<string>() // DEPRECATED: consumedItems never appears in JSON (0% frequency)
+                ConsumedItems = new List<Item>() // HIGHLANDER: Item objects resolved from names if needed
             },
 
             // Parse reward structure
@@ -84,8 +84,8 @@ public static class ExchangeParser
                 }
             } : new List<ResourceAmount>(),
 
-                // Handle item rewards (support both legacy single item and new multi-item)
-                ItemIds = MergeItemRewards(dto)
+                // HIGHLANDER: Resolve item name strings to Item objects
+                Items = ResolveItemRewards(dto, entityResolver)
             },
 
             // Default properties
@@ -110,21 +110,33 @@ public static class ExchangeParser
     }
 
     /// <summary>
-    /// Merge legacy single item reward (ReceiveItem) with new multi-item rewards (GrantedItems)
+    /// Resolve item name strings to Item objects
+    /// Supports both legacy single item reward (ReceiveItem) and new multi-item rewards (GrantedItems)
     /// </summary>
-    private static List<string> MergeItemRewards(ExchangeDTO dto)
+    private static List<Item> ResolveItemRewards(ExchangeDTO dto, EntityResolver entityResolver)
     {
-        List<string> items = new List<string>();
+        List<string> itemNames = new List<string>();
 
         // Support legacy single item field
         if (!string.IsNullOrEmpty(dto.ReceiveItem))
-            items.Add(dto.ReceiveItem);
+            itemNames.Add(dto.ReceiveItem);
 
         // Support new multi-item field
         if (dto.GrantedItems != null && dto.GrantedItems.Any())
-            items.AddRange(dto.GrantedItems);
+            itemNames.AddRange(dto.GrantedItems);
 
-        return items;
+        // HIGHLANDER: Resolve item names to Item objects
+        List<Item> resolvedItems = new List<Item>();
+        foreach (string itemName in itemNames)
+        {
+            Item item = entityResolver.FindItemByName(itemName);
+            if (item != null)
+            {
+                resolvedItems.Add(item);
+            }
+        }
+
+        return resolvedItems;
     }
 
     /// <summary>

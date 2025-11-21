@@ -67,9 +67,9 @@ public class TravelTimeCalculator
         actualTime = ApplyWeatherEffects(actualTime);
 
         // Apply route improvements (V2 Obligation System)
-        // Use route.Name directly - no string construction/parsing
+        // HIGHLANDER: Query by Route object reference, not deleted RouteId property
         List<RouteImprovement> improvements = _gameWorld.RouteImprovements
-            .Where(ri => ri.RouteId == route.Name)
+            .Where(ri => ri.Route == route)
             .ToList();
 
         if (improvements != null && improvements.Count > 0)

@@ -670,9 +670,9 @@ public class TravelFacade
     /// Resolve pending scene after player completes scene situations
     /// Called after scene intensity reaches 0
     /// </summary>
-    public bool ResolveScene(string sceneId)
+    public bool ResolveScene(Scene scene)
     {
-        return _travelManager.ResolveScene(sceneId);
+        return _travelManager.ResolveScene(scene);
     }
 
     // ========== CORE LOOP: PATH FILTERING ==========

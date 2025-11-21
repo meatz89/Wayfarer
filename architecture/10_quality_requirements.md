@@ -541,39 +541,12 @@ Each quality goal translates into concrete, testable scenarios. Scenarios follow
 - **Validation**: Code search for `Dictionary<string, NPC>` returns zero results
 
 **Anti-Pattern Example (REJECTED):**
-```csharp
-// WRONG - Premature optimization
-private Dictionary<string, NPC> _npcs;
 
-public NPC GetNPCById(string id)
-{
-    return _npcs[id]; // KeyNotFoundException if not found
-}
-
-public List<NPC> GetFriendlyNPCs()
-{
-    return _npcs.Values.Where(n => n.Demeanor == Demeanor.Friendly).ToList();
-    // Using Dictionary as List with extra steps
-}
-```
+The wrong approach uses a dictionary indexed by entity identifier. Looking up entities by identifier throws an exception if the key doesn't exist. Querying by other properties requires iterating over the dictionary's values collection and applying LINQ filters, essentially treating the dictionary as a list with extra complexity.
 
 **Correct Pattern (APPROVED):**
-```csharp
-// CORRECT - Domain-driven collection
-private List<NPC> _npcs;
 
-public NPC GetNPCById(string id)
-{
-    return _npcs.FirstOrDefault(n => n.Id == id);
-    // Null if not found, fail-fast at call site
-}
-
-public List<NPC> GetFriendlyNPCs()
-{
-    return _npcs.Where(n => n.Demeanor == Demeanor.Friendly).ToList();
-    // Uniform LINQ query pattern
-}
-```
+The correct approach uses a list to store entities directly. Looking up by identifier uses LINQ's FirstOrDefault method, which returns null if not found, allowing fail-fast behavior at the call site. All queries use uniform LINQ patterns regardless of the property being searched, creating consistent and readable code.
 
 **Performance Analysis:**
 - Dictionary lookup: ~0.0001ms (O(1) hash calculation)
@@ -604,16 +577,8 @@ public List<NPC> GetFriendlyNPCs()
 - **Validation**: Peer review requires zero clarification questions
 
 **Example (APPROVED):**
-```csharp
-public List<NPC> GetNPCsAtLocation(string locationId)
-{
-    return _npcs
-        .Where(n => n.CurrentLocation == locationId)
-        .OrderBy(n => n.Name)
-        .ToList();
-    // Reads: "NPCs where current location matches, ordered by name"
-}
-```
+
+A method to retrieve entities at a specific location uses a declarative LINQ pipeline. The query filters entities by matching the location property, orders results alphabetically by name, and materializes the result as a list. The code reads naturally as "entities where current location matches, ordered by name."
 
 #### Scenario 8.3: Debugging Session Efficiency
 
@@ -625,23 +590,15 @@ public List<NPC> GetNPCsAtLocation(string locationId)
 - Set breakpoint, inspect GameWorld state
 
 **Response:**
-- List debugger view shows immediate entity state:
-  ```
-  _npcs: List<NPC> (Count = 5)
-    [0]: {NPC: Elena, Location: common_room, Demeanor: Friendly}
-    [1]: {NPC: Marcus, Location: market_square, Demeanor: Neutral}
-  ```
-- Developer sees problem IMMEDIATELY (location mismatch visible)
-- No need to expand KeyValuePair structures
+- List debugger view displays immediate entity state showing the entity with its name, location identifier, and demeanor property directly visible in the debugger window
+- Developer identifies problems immediately because location mismatches are visible without expanding nested structures
+- No need to expand key-value pair structures
 - **Metric**: Average debug session time reduced by 30% vs Dictionary
 - **Validation**: Developer productivity tracking
 
 **Anti-Pattern (Dictionary):**
-```
-_npcs: Dictionary<string, NPC> (Count = 5)
-  [0]: {["npc_001", Wayfarer.GameState.NPC]}  // Must expand to see properties
-  [1]: {["npc_002", Wayfarer.GameState.NPC]}  // Extra clicks required
-```
+
+Dictionary debugger view shows key-value pairs where each entry displays only the key string and the type name. Developers must manually expand each KeyValuePair structure to inspect entity properties, requiring extra clicks and navigation to see the same information.
 
 ---
 

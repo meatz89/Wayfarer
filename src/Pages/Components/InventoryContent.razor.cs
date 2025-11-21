@@ -25,17 +25,17 @@ namespace Wayfarer.Pages.Components
             CurrentWeight = player.GetCurrentWeight(ItemRepository);
             MaxWeight = player.Inventory.GetCapacity();
 
-            // Get all item IDs from inventory
-            List<string> itemIds = player.Inventory.GetItemIds();
+            // Get all items from inventory and group by item
+            List<Item> items = player.Inventory.GetAllItems();
 
-            // Group items by ID and count
-            InventoryItems = itemIds
-                .Select(itemId => new InventoryItemGroup
+            // Group items by identity and count
+            InventoryItems = items
+                .GroupBy(item => item)
+                .Select(group => new InventoryItemGroup
                 {
-                    Item = ItemRepository.GetItemById(itemId),
-                    Count = player.Inventory.GetItemCount(itemId)
+                    Item = group.Key,
+                    Count = group.Count()
                 })
-                .Where(group => group.Item != null) // Filter out invalid items
                 .OrderBy(group => group.Item.Name)
                 .ToList();
         }

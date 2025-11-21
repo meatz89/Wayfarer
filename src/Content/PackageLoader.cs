@@ -300,6 +300,9 @@ public class PackageLoader
         if (startingLocation == null)
             throw new InvalidOperationException($"StartingSpotId '{conditions.StartingSpotId}' not found in parsed locations - player cannot spawn!");
 
+        // HIGHLANDER: Store starting location object reference in GameWorld
+        // GameFacade.StartGameAsync uses this to initialize Player.CurrentPosition
+        _gameWorld.StartingLocation = startingLocation;
 
         // Apply starting obligations
         if (conditions.StartingObligations != null)
@@ -317,13 +320,16 @@ public class PackageLoader
         {
             foreach (KeyValuePair<string, NPCTokenRelationship> kvp in conditions.StartingTokens)
             {
-                // Token relationships will be applied when NPCs are loaded
-                // Store for later application
-                NPCTokenEntry tokenEntry = _gameWorld.GetPlayer().GetNPCTokenEntry(kvp.Key);
-                tokenEntry.Trust = kvp.Value.Trust;
-                tokenEntry.Diplomacy = kvp.Value.Diplomacy;
-                tokenEntry.Status = kvp.Value.Status;
-                tokenEntry.Shadow = kvp.Value.Shadow;
+                // HIGHLANDER: Resolve NPC name to NPC object
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.Name == kvp.Key);
+                if (npc != null)
+                {
+                    NPCTokenEntry tokenEntry = _gameWorld.GetPlayer().GetNPCTokenEntry(npc);
+                    tokenEntry.Trust = kvp.Value.Trust;
+                    tokenEntry.Diplomacy = kvp.Value.Diplomacy;
+                    tokenEntry.Status = kvp.Value.Status;
+                    tokenEntry.Shadow = kvp.Value.Shadow;
+                }
             }
         }
 
@@ -606,7 +612,7 @@ public class PackageLoader
                 // Region uses Name as natural key (no Id property)
                 Name = dto.Name,
                 Description = dto.Description,
-                DistrictIds = dto.DistrictIds,
+                // Districts property resolved in second pass (LinkRegionDistrictReferences)
                 Tier = dto.Tier,
                 Government = dto.Government,
                 Culture = dto.Culture,
@@ -629,8 +635,7 @@ public class PackageLoader
                 // District uses Name as natural key (no Id property)
                 Name = dto.Name,
                 Description = dto.Description,
-                RegionId = dto.RegionId,
-                VenueIds = dto.VenueIds,
+                // Region and Venues properties resolved in second pass (LinkRegionDistrictReferences)
                 DistrictType = dto.DistrictType,
                 DangerLevel = dto.DangerLevel,
                 Characteristics = dto.Characteristics
@@ -815,7 +820,7 @@ public class PackageLoader
                 // UPDATE existing venue properties in-place (preserve object identity)
                 existing.Name = dto.Name;
                 existing.Description = dto.Description;
-                existing.District = dto.DistrictId;
+                // District object reference resolved in second pass (LinkRegionDistrictVenueReferences)
                 existing.Tier = dto.Tier;
 
                 // Parse LocationType to VenueType enum
@@ -1356,11 +1361,8 @@ public class PackageLoader
             }
         }
 
-        // Parse encounter deck IDs
-        if (dto.EncounterDeckIds != null)
-        {
-            route.EncounterDeckIds.AddRange(dto.EncounterDeckIds);
-        }
+        // NOTE: EncounterDeckIds DELETED from RouteOption domain entity per HIGHLANDER
+        // If encounter decks needed, store deck objects or query from templates
 
         // NOTE: Old inline scene parsing removed - NEW Scene-Situation architecture
         // Scenes now spawn via Situation spawn rewards (SceneSpawnReward) instead of inline definitions
@@ -1519,8 +1521,7 @@ public class PackageLoader
             reverseRoute.Segments.Add(reverseSegment);
         }
 
-        // Copy encounter deck IDs
-        reverseRoute.EncounterDeckIds.AddRange(forwardRoute.EncounterDeckIds);
+        // NOTE: EncounterDeckIds DELETED from RouteOption domain entity per HIGHLANDER
 
         // If the forward route has a route-level event pool, copy it to the reverse route
         // HIGHLANDER: Use RouteOption.Name (natural key) instead of deleted Id property

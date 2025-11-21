@@ -281,40 +281,11 @@ AI generates JSON with categorical properties providing relative descriptions. P
 
 **Example: Equipment Durability**
 
-```
-JSON (authored by AI or humans):
-{
-  "durability": "Fragile"  // Relative category, not absolute value
-}
-
-Parser translates using catalogue + game state:
-- Read player level and difficulty mode
-- Call catalogue: DurabilityCatalogue.GetScaledValues("Fragile", playerLevel)
-
-Catalogue returns scaled values:
-- Level 1 Fragile: 2 uses, 10 coins
-- Level 5 Fragile: 4 uses, 25 coins (scaled up for progression)
-- Level 10 Fragile: 6 uses, 40 coins (continues scaling)
-
-Critical principle: Fragile ALWAYS weaker than Sturdy, maintaining relative consistency regardless of scaling factors.
-```
+Content defines equipment with relative categorical durability descriptors rather than absolute numeric values. During parsing, the system reads current player progression level and difficulty settings, then consults the durability catalogue to translate the categorical descriptor into concrete values. The catalogue applies scaling formulas that increase use counts and costs proportionally with player level, ensuring that equipment remains appropriately challenging throughout the game. The critical principle maintains relative ordering where lower durability categories always remain weaker than higher durability categories regardless of absolute scaling factors.
 
 **Example: Card Effects**
 
-```
-JSON:
-{
-  "conversationalMove": "Remark",
-  "boundStat": "Rapport",
-  "depth": 2
-}
-
-Parser translates with scaling:
-- Call catalogue passing categorical properties + player level
-
-Early game (Level 1): Remark with Rapport at Depth 2 → +4 Understanding
-Late game (Level 5): Same categorical properties → +6 Understanding
-```
+Content defines tactical cards using categorical properties describing the conversational move type, bound character stat, and abstract depth level. During parsing, the system invokes the card effect catalogue with these categorical properties plus current player level. The catalogue calculates base effect values appropriate to the move type and depth, then applies progression scaling multipliers. This ensures identical categorical properties produce stronger effects at higher player levels while maintaining consistent relative power between different card types.
 
 **Why This Architecture Exists**:
 - **AI Content Generation**: AI describes entities relatively (Fragile rope, Cunning NPC) without needing absolute game values knowledge
@@ -349,24 +320,9 @@ If NO: Consider if truly design-time constant (rare - most values should scale)
 
 **Anti-Pattern: Hardcoded Absolute Values in JSON**
 
-```
-❌ WRONG: JSON with absolute numeric values
-{
-  "exhaustAfterUses": 2,
-  "repairCost": 10,
-  "understanding": 4,
-  "momentum": 2
-}
-// Breaks AI generation and prevents scaling
+Content that specifies absolute numeric values for mechanical properties breaks AI generation capabilities and prevents proper difficulty scaling. Values like specific use counts, fixed costs, or concrete effect magnitudes lock the content to a single progression level and prevent the system from adapting to player advancement.
 
-✅ CORRECT: JSON with categorical properties
-{
-  "durability": "Fragile",
-  "conversationalMove": "Remark",
-  "depth": 2
-}
-// Enables AI generation and automatic scaling
-```
+The correct pattern uses categorical descriptors that express relative concepts. Durability categories, move type classifications, and abstract depth levels enable both AI authoring and dynamic scaling. The parser and catalogue system translate these categories into appropriate absolute values based on runtime game state.
 
 ### Initialization Architecture
 

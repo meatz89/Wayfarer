@@ -69,8 +69,8 @@ public class ExchangeValidator
             return result;
         }
 
-        // Item requirements removed - PRINCIPLE 4: Items are resource costs (ConsumedItemIds), not boolean gates
-        // Affordability check below handles ConsumedItemIds as part of resource costs
+        // Item requirements removed - PRINCIPLE 4: Items are resource costs (ConsumedItems), not boolean gates
+        // Affordability check below handles ConsumedItems as part of resource costs
 
         // Check affordability
         if (!CanAffordExchange(exchange, playerResources, npcTokens))

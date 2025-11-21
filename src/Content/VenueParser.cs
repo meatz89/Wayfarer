@@ -27,7 +27,7 @@ public static class VenueParser
         Venue venue = new Venue(dto.Name)
         {
             Description = dto.Description,
-            District = dto.DistrictId,
+            // District object reference resolved in second pass by PackageLoader (LinkRegionDistrictVenueReferences)
             Tier = dto.Tier,
             Type = venueType  // ✅ Strongly-typed enum (replaces LocationTypeString)
         };

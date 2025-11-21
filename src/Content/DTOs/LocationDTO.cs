@@ -7,6 +7,7 @@ public class LocationDTO
 {
     public string Id { get; set; }
     public string Name { get; set; }
+    public string VenueId { get; set; }  // HIGHLANDER: References Venue by Name (natural key)
     public string Type { get; set; }
     public string Description { get; set; }
     public string InitialState { get; set; }

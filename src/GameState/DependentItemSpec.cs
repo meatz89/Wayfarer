@@ -6,9 +6,9 @@
 public class DependentItemSpec
 {
     /// <summary>
-    /// Unique identifier for this resource specification within the scene
-    /// Used to reference this item in situation rewards and requirements
-    /// Converted to marker format: "generated:{TemplateId}" for reference resolution
+    /// Template identifier for this item specification
+    /// Used to reference this item in ChoiceReward.DependentItemsToGrant/Remove collections
+    /// Becomes item Name after package generation
     /// </summary>
     public string TemplateId { get; set; }
 

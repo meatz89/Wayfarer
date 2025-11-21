@@ -68,10 +68,10 @@ public class SpawnConditionsEvaluator
         // Check RequiredItems
         if (conditions.RequiredItems != null && conditions.RequiredItems.Count > 0)
         {
-            List<string> itemIds = player.Inventory.GetItemIds();
+            List<Item> items = player.Inventory.GetAllItems();
             foreach (string itemId in conditions.RequiredItems)
             {
-                if (!itemIds.Contains(itemId))
+                if (!items.Any(item => item.Name == itemId))
                 {
                     return false; // Required item not possessed
                 }
@@ -85,8 +85,12 @@ public class SpawnConditionsEvaluator
         {
             foreach (KeyValuePair<string, int> kvp in conditions.LocationVisits)
             {
+                // Resolve location name to Location object
+                Location location = _gameWorld.Locations.FirstOrDefault(loc => loc.Name == kvp.Key);
+                if (location == null) continue; // Skip if location not found
+
                 // For now, use LocationFamiliarity as proxy (familiarity increases with visits)
-                int familiarityLevel = player.GetLocationFamiliarity(kvp.Key);
+                int familiarityLevel = player.GetLocationFamiliarity(location);
                 // Rough mapping: 0 visits = 0 familiarity, 3+ visits = 3 familiarity
                 if (familiarityLevel < Math.Min(kvp.Value, 3))
                 {

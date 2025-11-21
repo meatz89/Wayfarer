@@ -112,10 +112,11 @@ public class ExchangeOrchestrator
         }
 
         // Check for special exchange chains
-        if (!string.IsNullOrEmpty(exchange.UnlocksExchangeId))
+        // HIGHLANDER: UnlocksExchange is object reference, not ID string
+        if (exchange.UnlocksExchange != null)
         {
-            // HIGHLANDER: Pass NPC object directly, not npc.ID
-            UnlockExchange(npc, exchange.UnlocksExchangeId);
+            // HIGHLANDER: Pass NPC and ExchangeCard objects directly
+            UnlockExchange(npc, exchange.UnlocksExchange);
         }
 
         // Check for story triggers
@@ -152,11 +153,12 @@ public class ExchangeOrchestrator
 
     /// <summary>
     /// Unlock new exchange for NPC
-    /// HIGHLANDER: Accepts NPC object, not string ID
+    /// HIGHLANDER: Accepts NPC and ExchangeCard objects, not IDs
     /// </summary>
-    private void UnlockExchange(NPC npc, string exchangeId)
+    private void UnlockExchange(NPC npc, ExchangeCard exchange)
     {
         // This would integrate with ExchangeInventory to unlock new exchanges
+        // Passes ExchangeCard object directly for inventory tracking
     }
 
     private void TriggerStoryEvent(string eventId)

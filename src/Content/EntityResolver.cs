@@ -77,6 +77,18 @@ public class EntityResolver
         return newRoute;
     }
 
+    /// <summary>
+    /// Find existing Item by name
+    /// Returns null if item not found - Items are immutable content definitions, NOT generated
+    /// </summary>
+    public Item FindItemByName(string itemName)
+    {
+        if (string.IsNullOrEmpty(itemName))
+            return null;
+
+        return _gameWorld.Items.FirstOrDefault(i => i.Name == itemName);
+    }
+
     // ========== FIND EXISTING ENTITIES ==========
 
     private Location FindMatchingLocation(PlacementFilter filter)

@@ -349,12 +349,12 @@ public class PriceManager
         if (!current.IsAvailable) return -1;
 
         // Get market conditions
-        MarketStateTracker.MarketConditions conditions = _marketStateTracker.GetMarketConditions(location.Name);
+        MarketStateTracker.MarketConditions conditions = _marketStateTracker.GetMarketConditions(location);
 
         float trendModifier = 1.0f;
 
         // If item is trending, prices might increase
-        if (conditions.TrendingItems.Contains(item.Name))
+        if (conditions.TrendingItems.Contains(item))
         {
             trendModifier = 1.05f;
         }

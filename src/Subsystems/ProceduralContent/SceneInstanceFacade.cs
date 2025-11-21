@@ -87,9 +87,11 @@ public class SceneInstanceFacade
 
         // PHASE 2.4: Retrieve spawned scene from GameWorld
         // Scene was added to GameWorld by PackageLoader
+        // HIGHLANDER: Query by TemplateId, get last match (most recently added)
+        // Scenes collection ordered by insertion, LastOrDefault gets most recent
         Scene spawnedScene = _gameWorld.Scenes
-            .OrderByDescending(s => s.Id) // Most recently added
-            .FirstOrDefault(s => s.TemplateId == template.Id);
+            .Where(s => s.TemplateId == template.Id)
+            .LastOrDefault();
 
         if (spawnedScene == null)
         {
@@ -128,52 +130,39 @@ public class SceneInstanceFacade
             CreatedSegment = _timeManager.CurrentSegment
         };
 
-        // Set provenance and generate routes for locations
-        // ARCHITECTURAL FIX: Find locations by scene provenance (created with this scene)
-        // Locations are now created with SceneProvenance, no need for composite ID lookup
+        // Generate hex routes for dependent locations
+        // Provenance already set by DependentResourceOrchestrationService
+        // HIGHLANDER: Match by Provenance.Scene only (no Template properties)
         foreach (DependentLocationSpec locationSpec in template.DependentLocations)
         {
-            // Find location by template and provenance (locations created by this scene)
-            // ADR-007: Use object reference comparison
+            // Find location created by this scene
             Location location = _gameWorld.Locations
-                .FirstOrDefault(loc => loc.Provenance?.Scene == scene &&
-                                      loc.LocationTemplate?.Id == locationSpec.TemplateId);
+                .FirstOrDefault(loc => loc.Provenance?.Scene == scene);
 
-            if (location != null)
+            if (location != null && location.HexPosition.HasValue)
             {
-                location.Provenance = provenance;
-
-                if (location.HexPosition.HasValue)
+                List<RouteOption> routes = _hexRouteGenerator.GenerateRoutesForNewLocation(location);
+                foreach (RouteOption route in routes)
                 {
-                    List<RouteOption> routes = _hexRouteGenerator.GenerateRoutesForNewLocation(location);
-                    foreach (RouteOption route in routes)
-                    {
-                        _gameWorld.Routes.Add(route);
-                    }
-                    Console.WriteLine($"[SceneInstanceFacade] Generated {routes.Count} hex routes for location '{location.Name}'");
+                    _gameWorld.Routes.Add(route);
                 }
+                Console.WriteLine($"[SceneInstanceFacade] Generated {routes.Count} hex routes for location '{location.Name}'");
             }
         }
 
-        // Set provenance and add items to inventory (if specified in spec)
-        // ARCHITECTURAL FIX: Find items by scene provenance (created with this scene)
+        // Add items to inventory if AddToInventoryOnCreation=true
+        // Provenance already set by DependentResourceOrchestrationService
+        // HIGHLANDER: Match by Provenance.Scene only (no Template properties)
         foreach (DependentItemSpec itemSpec in template.DependentItems)
         {
-            // Find item by template and provenance (items created by this scene)
-            // ADR-007: Use object reference comparison
+            // Find item created by this scene
             Item item = _gameWorld.Items
-                .FirstOrDefault(i => i.Provenance?.Scene == scene &&
-                                    i.ItemTemplate?.Id == itemSpec.TemplateId);
+                .FirstOrDefault(i => i.Provenance?.Scene == scene);
 
-            if (item != null)
+            if (item != null && itemSpec.AddToInventoryOnCreation)
             {
-                item.Provenance = provenance;
-
-                if (itemSpec.AddToInventoryOnCreation)
-                {
-                    player.Inventory.AddItem(item);
-                    Console.WriteLine($"[SceneInstanceFacade] Added item '{item.Name}' to player inventory");
-                }
+                player.Inventory.Add(item);
+                Console.WriteLine($"[SceneInstanceFacade] Added item '{item.Name}' to player inventory");
             }
         }
     }

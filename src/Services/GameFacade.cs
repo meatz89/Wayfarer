@@ -203,9 +203,9 @@ public class GameFacade
     }
 
 
-    public List<NPC> GetNPCsAtLocation(Venue venue)
+    public List<NPC> GetNPCsAtLocation(Location location)
     {
-        return _locationFacade.GetNPCsAtLocation(venue.Name);
+        return _locationFacade.GetNPCsAtLocation(location);
     }
 
     public List<NPC> GetNPCsAtCurrentSpot()
@@ -268,7 +268,7 @@ public class GameFacade
 
         // 2. CALCULATE ACTUAL HUNGER COST
         // Base hunger cost from route plus any load penalties
-        int itemCount = player.Inventory.GetAllItems().Count(i => !string.IsNullOrEmpty(i));
+        int itemCount = player.Inventory.GetAllItems().Count;
         int hungerCost = route.BaseStaminaCost; // This is actually the hunger cost in the data
 
         // Add load penalties if carrying many items
@@ -311,7 +311,8 @@ public class GameFacade
             Success = true,
             TravelTimeSegments = travelTime,
             CoinCost = coinCost,
-            RouteId = route.Name,
+            Route = route,  // HIGHLANDER: Object reference, not ID
+            Destination = route.DestinationLocation,  // HIGHLANDER: Object reference, not ID
             TransportMethod = route.Method
         };
 
@@ -630,13 +631,13 @@ public class GameFacade
         PlayerResourceState playerResources = _gameWorld.GetPlayerResourceState();
 
         // Get player's tokens with this specific NPC
-        Dictionary<ConnectionType, int> npcTokens = _tokenFacade.GetTokensWithNPC(npc.Name);
+        Dictionary<ConnectionType, int> npcTokens = _tokenFacade.GetTokensWithNPC(npc);
 
         // Get relationship tier with this NPC
-        RelationshipTier relationshipTier = _tokenFacade.GetRelationshipTier(npc.Name);
+        RelationshipTier relationshipTier = _tokenFacade.GetRelationshipTier(npc);
 
         // Get available exchanges from ExchangeFacade - now orchestrating properly
-        List<ExchangeOption> availableExchanges = _exchangeFacade.GetAvailableExchanges(npc.Name, playerResources, npcTokens, relationshipTier);
+        List<ExchangeOption> availableExchanges = _exchangeFacade.GetAvailableExchanges(npc, playerResources, npcTokens, relationshipTier);
 
         if (!availableExchanges.Any())
         {
@@ -645,7 +646,8 @@ public class GameFacade
         }
 
         // Create exchange session through ExchangeFacade
-        ExchangeSession session = _exchangeFacade.CreateExchangeSession(npc.Name);
+        // HIGHLANDER: Pass NPC object, not string
+        ExchangeSession session = _exchangeFacade.CreateExchangeSession(npc);
         if (session == null)
         {
             _messageSystem.AddSystemMessage($"Could not create exchange session with {npc.Name}", SystemMessageTypes.Danger);
@@ -662,7 +664,8 @@ public class GameFacade
             CurrentTimeBlock = timeBlock,
             PlayerResources = playerResources,
             PlayerTokens = npcTokens,
-            PlayerInventory = GetPlayerInventoryAsDictionary(),
+            // HIGHLANDER: Access inventory through Player.Inventory, not redundant dictionary
+            Player = _gameWorld.GetPlayer(),
             // ADR-007: Use existing session object (already has Npc and Location)
             Session = session
         };
@@ -701,22 +704,22 @@ public class GameFacade
             return;
         }
 
-        // Initialize player at starting Venue from GameWorld initial conditions
+        // Initialize player at starting location from GameWorld initial conditions
         // HEX-FIRST ARCHITECTURE: Player position is hex coordinates
+        // HIGHLANDER: Use StartingLocation object reference set by PackageLoader
         Player player = _gameWorld.GetPlayer();
-        string startingSpotName = _gameWorld.InitialLocationName;
-        Console.WriteLine($"[StartGameAsync] Starting location name: {startingSpotName}");
-
-        Location? startingSpot = _gameWorld.Locations.FirstOrDefault(s => s.Name == startingSpotName);
+        Location startingSpot = _gameWorld.StartingLocation;
         if (startingSpot == null)
-            throw new InvalidOperationException($"Invalid InitialLocationName '{startingSpotName}' - no matching Location found in GameWorld.Locations");
+            throw new InvalidOperationException("GameWorld.StartingLocation not set - PackageLoader should have initialized this");
+
+        Console.WriteLine($"[StartGameAsync] Starting location name: {startingSpot.Name}");
 
         if (!startingSpot.HexPosition.HasValue)
-            throw new InvalidOperationException($"Starting location '{startingSpotName}' has no HexPosition - cannot initialize player position");
+            throw new InvalidOperationException($"Starting location '{startingSpot.Name}' has no HexPosition - cannot initialize player position");
 
         Console.WriteLine($"[StartGameAsync] Setting player position to hex ({startingSpot.HexPosition.Value.Q}, {startingSpot.HexPosition.Value.R})");
         player.CurrentPosition = startingSpot.HexPosition.Value;
-        Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Name == startingSpot.VenueName);
+        Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Name == startingSpot.Venue.Name);
 
         // Player resources already applied by PackageLoader.ApplyInitialPlayerConfiguration()
         // No need to re-apply here - HIGHLANDER PRINCIPLE: initialization happens ONCE
@@ -992,7 +995,7 @@ public class GameFacade
             return IntentResult.Failed();
         }
 
-        _locationFacade.InvestigateLocation(currentSpot.Name);
+        _locationFacade.InvestigateLocation(currentSpot);
         _messageSystem.AddSystemMessage("Investigated location, gaining familiarity", SystemMessageTypes.Info, MessageCategory.Discovery);
         return IntentResult.Executed(requiresRefresh: true);
     }
@@ -1164,28 +1167,6 @@ public class GameFacade
         }
     }
 
-    /// <summary>
-    /// Converts player inventory to Dictionary format for ExchangeContext
-    /// Key: ItemId, Value: Quantity
-    /// HIGHLANDER: Object references ONLY - work with Item objects
-    /// </summary>
-    private Dictionary<string, int> GetPlayerInventoryAsDictionary()
-    {
-        Player player = _gameWorld.GetPlayer();
-        Dictionary<string, int> inventoryDict = new Dictionary<string, int>();
-
-        List<Item> allItems = player.Inventory.GetAllItems();
-        List<Item> uniqueItems = allItems.Distinct().ToList();
-
-        foreach (Item item in uniqueItems)
-        {
-            int count = player.Inventory.Count(item);
-            // ADR-007: Use Name instead of deleted Id
-            inventoryDict[item.Name] = count;
-        }
-
-        return inventoryDict;
-    }
 
     /// <summary>
     /// Gets the district containing a location
@@ -1447,7 +1428,7 @@ public class GameFacade
     /// </summary>
     public ConversationTreeContext CreateConversationTreeContext(ConversationTree tree)
     {
-        return _conversationTreeFacade.CreateContext(tree.Id);
+        return _conversationTreeFacade.CreateContext(tree);
     }
 
     /// <summary>
@@ -1455,7 +1436,7 @@ public class GameFacade
     /// </summary>
     public ConversationTreeResult SelectConversationResponse(ConversationTree tree, DialogueNode node, DialogueResponse response)
     {
-        return _conversationTreeFacade.SelectResponse(tree.Id, node.Id, response.Id);
+        return _conversationTreeFacade.SelectResponse(tree, node, response);
     }
 
     // ========== OBSERVATION SCENE OPERATIONS ==========
@@ -1488,11 +1469,11 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Create context for emergency screen
+    /// Create context for emergency situation screen
     /// </summary>
     public EmergencyContext CreateEmergencyContext(EmergencySituation emergency)
     {
-        return _emergencyFacade.CreateContext(emergency.Id);
+        return _emergencyFacade.CreateContext(emergency);
     }
 
     /// <summary>
@@ -1500,15 +1481,15 @@ public class GameFacade
     /// </summary>
     public EmergencyResult SelectEmergencyResponse(EmergencySituation emergency, EmergencyResponse response)
     {
-        return _emergencyFacade.SelectResponse(emergency.Id, response.Id);
+        return _emergencyFacade.SelectResponse(emergency, response);
     }
 
     /// <summary>
-    /// Ignore an emergency situation
+    /// Ignore an emergency situation (accept consequences)
     /// </summary>
     public EmergencyResult IgnoreEmergency(EmergencySituation emergency)
     {
-        return _emergencyFacade.IgnoreEmergency(emergency.Id);
+        return _emergencyFacade.IgnoreEmergency(emergency);
     }
 
     // ========== LOCATION QUERY METHODS ==========

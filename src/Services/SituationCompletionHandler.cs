@@ -184,11 +184,11 @@ public class SituationCompletionHandler
                 player.AddCoins(rewards.Coins.Value);
             }
 
-            // EQUIPMENT - add to player inventory by Equipment object
-            // ARCHITECTURAL FIX: Add object reference, not ID string
-            if (rewards.Equipment != null)
+            // ITEM REWARD - add to player inventory by Item object
+            // HIGHLANDER: Add object reference, not ID string
+            if (rewards.Item != null)
             {
-                player.Inventory.AddItem(rewards.Equipment); // Object reference ONLY
+                player.Inventory.Add(rewards.Item); // Object reference ONLY
             }
 
             // OBLIGATION CUBES - grant to situation's placement Location (localized mastery)
@@ -197,7 +197,7 @@ public class SituationCompletionHandler
             {
                 if (situation.Location != null)
                 {
-                    _gameWorld.GrantLocationCubes(situation.Location.Name, rewards.InvestigationCubes.Value);
+                    _gameWorld.GrantLocationCubes(situation.Location, rewards.InvestigationCubes.Value);
                     string locationName = situation.Location.Name;
                 }
             }
@@ -208,7 +208,7 @@ public class SituationCompletionHandler
             {
                 if (situation.Npc != null)
                 {
-                    _gameWorld.GrantNPCCubes(situation.Npc.Name, rewards.StoryCubes.Value);
+                    _gameWorld.GrantNPCCubes(situation.Npc, rewards.StoryCubes.Value);
                     string npcName = situation.Npc.Name;
                 }
             }
@@ -219,7 +219,7 @@ public class SituationCompletionHandler
             {
                 if (situation.Route != null)
                 {
-                    _gameWorld.GrantRouteCubes(situation.Route.Name, rewards.ExplorationCubes.Value);
+                    _gameWorld.GrantRouteCubes(situation.Route, rewards.ExplorationCubes.Value);
                     string routeName = situation.Route.Name;
                 }
                 // Situation without route context - exploration cubes can't be granted
@@ -267,13 +267,14 @@ public class SituationCompletionHandler
                     {
                         RouteSegment segment = route.Segments[unlock.SegmentPosition];
 
-                        // HIGHLANDER: Use PathCollection object reference directly, NO lookup
+                        // HIGHLANDER: unlock.Path is PathCard object (domain entity)
+                        // PathCollection contains PathCardDTOs (parse-time data)
+                        // Match by Name to find the DTO to modify
                         PathCardCollectionDTO collection = segment.PathCollection;
-                        if (collection != null)
+                        if (collection != null && unlock.Path != null)
                         {
-                            // ARCHITECTURAL FIX: Find PathCard by object reference comparison
-                            // NOTE: This assumes PathCard has been properly resolved to the same object instance
-                            PathCardDTO pathCard = collection.PathCards.FirstOrDefault(p => p == unlock.PathDTO);
+                            // Find PathCardDTO by matching Name with domain PathCard
+                            PathCardDTO pathCard = collection.PathCards.FirstOrDefault(p => p.Name == unlock.Path.Name);
                             if (pathCard != null)
                             {
                                 // Reveal hidden PathCard by setting ExplorationThreshold to 0 (always visible)
@@ -302,12 +303,12 @@ public class SituationCompletionHandler
     private void CheckSimpleObligationCompletion(Situation completedSituation)
     {
         // Only check if situation is part of an obligation
-        if (string.IsNullOrEmpty(completedSituation.Obligation?.Id))
+        if (completedSituation.Obligation == null)
             return;
 
-        // Only check if obligation is in Player.ActiveObligationIds
+        // Only check if obligation is in Player.ActiveObligations
         Player player = _gameWorld.GetPlayer();
-        if (!player.ActiveObligationIds.Contains(completedSituation.Obligation?.Id))
+        if (!player.ActiveObligations.Contains(completedSituation.Obligation))
             return;
 
         // Find all situations for this obligation (cross-scene query)

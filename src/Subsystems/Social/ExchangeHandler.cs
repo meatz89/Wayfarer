@@ -21,7 +21,7 @@ public class ExchangeHandler
     /// <summary>
     /// Execute an exchange with an NPC
     /// </summary>
-    public bool ExecuteExchange(ExchangeCard exchange, NPC npc, Player player, PlayerResourceState playerResources)
+    public bool ExecuteExchange(ExchangeCard exchange, NPC npc, Player player, PlayerResourceState playerResources, GameWorld gameWorld)
     {
         if (exchange != null)
         { }
@@ -71,22 +71,22 @@ public class ExchangeHandler
 
     /// <summary>
     /// Get available exchanges for NPC at location
+    /// HIGHLANDER: Accepts Venue object, not string identifier
     /// </summary>
-    public List<ExchangeOption> GetAvailableExchanges(NPC npc, List<string> spotDomainTags, PlayerResourceState playerResources)
+    public List<ExchangeOption> GetAvailableExchanges(NPC npc, Venue currentVenue, PlayerResourceState playerResources)
     {
         List<ExchangeOption> exchanges = new List<ExchangeOption>();
 
         if (npc.ExchangeDeck == null || !npc.ExchangeDeck.Any())
             return exchanges;
 
-        // Get current Venue and time for availability check
-        string currentVenueId = spotDomainTags?.FirstOrDefault();
+        // Get current time for availability check
         TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
 
         foreach (ExchangeCard card in npc.ExchangeDeck)
         {
             // Check if exchange is available at this Venue and time
-            if (!card.IsAvailable(currentVenueId, currentTimeBlock))
+            if (!card.IsAvailable(currentVenue, currentTimeBlock))
                 continue;
 
             // Check token requirements (minimum tokens required to even see the exchange)
@@ -97,7 +97,7 @@ public class ExchangeHandler
 
             exchanges.Add(new ExchangeOption
             {
-                ExchangeId = card.Id,
+                ExchangeId = card.Name,  // HIGHLANDER: Use Name as natural key (no separate ID)
                 Name = card.Name ?? GetExchangeName(card),
                 Description = card.Description,
                 Cost = FormatCost(card.GetCostAsList()),
@@ -158,14 +158,15 @@ public class ExchangeHandler
         }
 
         // Apply item costs (consume items from inventory)
-        foreach (string itemId in exchange.Cost.ConsumedItemIds)
+        // HIGHLANDER: Use Item objects directly, no string resolution needed
+        foreach (Item item in exchange.Cost.ConsumedItems)
         {
-            if (!player.Inventory.HasItem(itemId))
+            if (!player.Inventory.Contains(item))
             {
-                _messageSystem.AddSystemMessage($"Missing required item: {itemId}", SystemMessageTypes.Danger);
+                _messageSystem.AddSystemMessage($"Missing required item: {item.Name}", SystemMessageTypes.Danger);
                 return false;
             }
-            player.Inventory.RemoveItem(itemId);
+            player.Inventory.Remove(item);
         }
 
         return true;
@@ -232,12 +233,12 @@ public class ExchangeHandler
         // HIGHLANDER: Pass NPC object directly, not npc.ID
         Dictionary<ConnectionType, int> npcTokens = _tokenManager.GetTokensWithNPC(npc);
 
-        foreach (KeyValuePair<ConnectionType, int> tokenReq in card.Cost.TokenRequirements)
+        foreach (TokenCount tokenReq in card.Cost.TokenRequirements)
         {
-            int currentTokens = npcTokens.ContainsKey(tokenReq.Key)
-                ? npcTokens[tokenReq.Key]
+            int currentTokens = npcTokens.ContainsKey(tokenReq.Type)
+                ? npcTokens[tokenReq.Type]
                 : 0;
-            if (currentTokens < tokenReq.Value)
+            if (currentTokens < tokenReq.Count)
                 return false;
         }
 

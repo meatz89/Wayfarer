@@ -95,15 +95,14 @@ public class EmergencyFacade
     /// <summary>
     /// Create context for an emergency screen
     /// </summary>
-    public EmergencyContext CreateContext(string emergencyId)
+    public EmergencyContext CreateContext(EmergencySituation emergency)
     {
-        EmergencySituation emergency = _gameWorld.EmergencySituations.FirstOrDefault(e => e.Id == emergencyId);
         if (emergency == null)
         {
             return new EmergencyContext
             {
                 IsValid = false,
-                ErrorMessage = $"Emergency situation '{emergencyId}' not found"
+                ErrorMessage = "Emergency situation not found"
             };
         }
 
@@ -153,9 +152,8 @@ public class EmergencyFacade
     /// <summary>
     /// Select a response to an emergency situation
     /// </summary>
-    public EmergencyResult SelectResponse(string emergencyId, string responseId)
+    public EmergencyResult SelectResponse(EmergencySituation emergency, EmergencyResponse response)
     {
-        EmergencySituation emergency = _gameWorld.EmergencySituations.FirstOrDefault(e => e.Id == emergencyId);
         if (emergency == null)
             return EmergencyResult.Failed("Emergency situation not found");
 
@@ -165,7 +163,6 @@ public class EmergencyFacade
         if (emergency.IsResolved)
             return EmergencyResult.Failed("Emergency has already been resolved");
 
-        EmergencyResponse response = emergency.Responses.FirstOrDefault(r => r.Id == responseId);
         if (response == null)
             return EmergencyResult.Failed("Response option not found");
 
@@ -214,9 +211,8 @@ public class EmergencyFacade
     /// <summary>
     /// Ignore the emergency (apply ignore outcome)
     /// </summary>
-    public EmergencyResult IgnoreEmergency(string emergencyId)
+    public EmergencyResult IgnoreEmergency(EmergencySituation emergency)
     {
-        EmergencySituation emergency = _gameWorld.EmergencySituations.FirstOrDefault(e => e.Id == emergencyId);
         if (emergency == null)
             return EmergencyResult.Failed("Emergency situation not found");
 

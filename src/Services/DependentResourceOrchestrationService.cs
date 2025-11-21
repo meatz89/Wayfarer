@@ -79,7 +79,7 @@ public class DependentResourceOrchestrationService
                     CreatedSegment = _timeManager.CurrentSegment
                 };
 
-                player.Inventory.AddItem(item);
+                player.Inventory.Add(item);
                 // ADR-007: No Id property (Name is natural key)
                 Console.WriteLine($"[DependentResources] Added item to inventory: {item.Name}");
             }

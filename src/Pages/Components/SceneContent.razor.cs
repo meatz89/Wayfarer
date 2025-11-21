@@ -40,7 +40,7 @@ public class SceneContentBase : ComponentBase
         Console.WriteLine($"[SceneContent.LoadChoices] ENTER - CurrentSituation null? {CurrentSituation == null}");
         if (CurrentSituation != null)
         {
-            Console.WriteLine($"[SceneContent.LoadChoices] CurrentSituation.Id = {CurrentSituation.Id}");
+            Console.WriteLine($"[SceneContent.LoadChoices] CurrentSituation.Name = {CurrentSituation.Name}");
             Console.WriteLine($"[SceneContent.LoadChoices] CurrentSituation.Template null? {CurrentSituation.Template == null}");
             if (CurrentSituation.Template != null)
             {
@@ -60,7 +60,7 @@ public class SceneContentBase : ComponentBase
 
         if (CurrentSituation.Template.ChoiceTemplates.Count == 0)
         {
-            Console.WriteLine($"[SceneContent.LoadChoices] ERROR - Situation '{CurrentSituation.Id}' has empty ChoiceTemplates (soft-lock risk)");
+            Console.WriteLine($"[SceneContent.LoadChoices] ERROR - Situation '{CurrentSituation.Name}' has empty ChoiceTemplates (soft-lock risk)");
             return;
         }
 
@@ -78,10 +78,8 @@ public class SceneContentBase : ComponentBase
             List<RequirementPathVM> requirementPaths = new List<RequirementPathVM>();
             if (choiceTemplate.RequirementFormula != null && choiceTemplate.RequirementFormula.OrPaths.Count > 0)
             {
-                // Marker resolution deleted - all entities reference by concrete IDs now
-                Dictionary<string, string> markerMap = new Dictionary<string, string>();
-                requirementsMet = choiceTemplate.RequirementFormula.IsAnySatisfied(player, GameWorld, markerMap);
-                requirementPaths = GetRequirementGaps(choiceTemplate.RequirementFormula, player, markerMap);
+                requirementsMet = choiceTemplate.RequirementFormula.IsAnySatisfied(player, GameWorld);
+                requirementPaths = GetRequirementGaps(choiceTemplate.RequirementFormula, player);
 
                 if (!requirementsMet && requirementPaths.Count > 0)
                 {
@@ -392,7 +390,7 @@ public class SceneContentBase : ComponentBase
             "PlayerStat" => FormatPlayerStatGap(req.Context, req.Threshold, player),
             "Resolve" => $"Resolve {req.Threshold}+ (now {player.Resolve})",
             "Coins" => $"Coins {req.Threshold}+ (now {player.Coins})",
-            "CompletedSituations" => $"{req.Threshold}+ Completed Situations (now {player.CompletedSituationIds.Count})",
+            "CompletedSituations" => $"{req.Threshold}+ Completed Situations (now {player.CompletedSituations.Count})",
             "Achievement" => req.Threshold > 0 ? $"Need Achievement: {req.Context}" : $"Must NOT have Achievement: {req.Context}",
             "State" => req.Threshold > 0 ? $"Need State: {req.Context}" : $"Must NOT have State: {req.Context}",
             "HasItem" => req.Threshold > 0 ? $"Need Item: {req.Context}" : $"Must NOT have Item: {req.Context}",
@@ -410,7 +408,7 @@ public class SceneContentBase : ComponentBase
         return FormatBondGap(npc, threshold, player);
     }
 
-    private List<RequirementPathVM> GetRequirementGaps(CompoundRequirement compoundReq, Player player, Dictionary<string, string> markerMap)
+    private List<RequirementPathVM> GetRequirementGaps(CompoundRequirement compoundReq, Player player)
     {
         List<RequirementPathVM> paths = new List<RequirementPathVM>();
 
@@ -428,7 +426,7 @@ public class SceneContentBase : ComponentBase
                 string formattedReq = FormatRequirementGap(req, player);
                 requirements.Add(formattedReq);
 
-                if (!req.IsSatisfied(player, GameWorld, markerMap))
+                if (!req.IsSatisfied(player, GameWorld))
                 {
                     missingRequirements.Add(formattedReq);
                     pathSatisfied = false;
@@ -495,8 +493,8 @@ public class SceneContentBase : ComponentBase
             // Note: TimeSegments handled by RewardApplicationService (time advancement)
         }
 
-        // TRANSITION TRACKING: Set LastChoiceId for OnChoice transitions
-        CurrentSituation.LastChoiceId = choiceTemplate.Id;
+        // TRANSITION TRACKING: Set LastChoice for OnChoice transitions
+        CurrentSituation.LastChoice = choiceTemplate;
 
         // ROUTE BY ACTION TYPE: StartChallenge vs Instant
         if (choiceTemplate.ActionType == ChoiceActionType.StartChallenge)
@@ -569,7 +567,7 @@ public class SceneContentBase : ComponentBase
         // ADVANCING PATH: Complete situation and advance scene
         // Scene entity owns state machine via Scene.AdvanceToNextSituation()
         // UI queries new current situation after completion
-        Console.WriteLine($"[SceneContent.HandleChoiceSelected] Completing situation '{CurrentSituation.Id}'");
+        Console.WriteLine($"[SceneContent.HandleChoiceSelected] Completing situation '{CurrentSituation.Name}'");
         await SituationCompletionHandler.CompleteSituation(CurrentSituation);
 
         // CONTEXT-AWARE ROUTING: Query routing decision from completed situation

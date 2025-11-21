@@ -258,7 +258,7 @@ public class MarketFacade
     public string GetInventoryStatus()
     {
         Player player = _gameWorld.GetPlayer();
-        int usedWeight = player.Inventory.GetUsedWeight(_itemRepository);
+        int usedWeight = player.Inventory.GetUsedWeight();
         return $"Inventory: {usedWeight} weight";
     }
 
@@ -269,7 +269,8 @@ public class MarketFacade
     public List<Item> GetPlayerTradeableItems()
     {
         Player player = _gameWorld.GetPlayer();
-        return player.Inventory.GetItems();
+        // HIGHLANDER: Inventory.GetAllItems() returns Item objects
+        return player.Inventory.GetAllItems();
     }
 
     // ========== MARKET INSIGHTS ==========
