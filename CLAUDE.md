@@ -220,7 +220,7 @@ When deleting/changing ANY property, update ALL FIVE layers:
 - JSON source → DTO class → Parser code → Entity class → Usage (services/UI)
 
 **SEMANTIC HONESTY:**
-Method names MUST match reality. `GetVenueById` returning `Location` is FORBIDDEN. Parameter types, return types, property names, method names must align.
+Method names MUST match reality. GetVenueById returning Location is FORBIDDEN. Parameter types, return types, property names, method names must align.
 
 **SINGLE GRANULARITY:**
 Track related concepts at ONE granularity level. If familiarity tracked per-Location, visits also per-Location. Never mix.
@@ -229,7 +229,7 @@ Track related concepts at ONE granularity level. If familiarity tracked per-Loca
 Before UI changes, ask: What is player DOING/THINKING/INTENDING? Visual novel = choices as cards, not buttons/menus. Actions appear where contextually appropriate.
 
 **SENTINEL VALUES OVER NULL:**
-Never use null for domain logic. Create explicit sentinels: `SpawnConditions.AlwaysEligible` with internal flag. Parser returns sentinel, evaluator checks flag, throw on actual null.
+Never use null for domain logic. Create explicit sentinels with internal flags. Parser returns sentinel, evaluator checks flag, throw on actual null.
 
 **PLAYABILITY OVER COMPILATION:**
 Game that compiles but is unplayable is WORSE than crash. Before marking complete:
@@ -277,161 +277,125 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 
 ---
 
-# HEX-BASED SPATIAL ARCHITECTURE PRINCIPLE
+# NO ENTITY INSTANCE IDs PRINCIPLE (ARCHITECTURAL MANDATE)
 
-**Principle:** Entity relationships are established through spatial positioning on hex grid and object references, NOT through ID cross-references. IDs do not exist in domain entities.
+## THE ABSOLUTE RULE
 
-**Exception:** Template IDs are acceptable (SceneTemplate.Id, SituationTemplate.Id) because templates are immutable archetypes, not mutable entity instances. Templates are content definitions, not game state.
+**ENTITY INSTANCE IDs DO NOT EXIST IN THIS ARCHITECTURE. PERIOD.**
 
-**Why:** This architecture separates spatial data (hex coordinates) from entity identity, enabling procedural content generation and eliminating redundant ID storage. Location.HexPosition is source of truth for spatial positioning. Routes are generated procedurally via pathfinding, not manually defined in JSON.
+Domain entities (NPC, Location, Route, Scene, Situation) have **NO ID PROPERTIES**. Entity relationships use **DIRECT OBJECT REFERENCES ONLY**. This is not a guideline. This is not negotiable. This is architectural law.
+
+## The Only Exception: Template IDs
+
+**Template IDs ARE acceptable** because templates are **immutable archetypes**, not mutable entity instances. Template properties like SceneTemplate.Id, SituationTemplate.Id, and ArchetypeId are acceptable because they reference immutable content definitions. Entity instance IDs like Scene.Id, Situation.Id, NPC.Id, Location.Id, and Route.Id are FORBIDDEN because they represent mutable game state.
+
+**Why the distinction:** Templates are content definitions (like classes in programming). Instances are game state (like objects). Templates don't change during gameplay. Instances do. IDs belong to immutable definitions, not mutable state.
+
+## Why Entity Instance IDs Are Forbidden
+
+**1. IDs Create Redundancy (Violates Single Source of Truth)**
+Storing both a LocationId string AND a Location object reference creates two representations of the same relationship. This leads to desync bugs. When they disagree, which is correct? You've created ambiguity.
+
+**2. IDs Pollute Domain with Database Thinking**
+Domain models game entities (NPC talks to Player), not database rows. Object references are natural and express domain relationships directly. ID lookups are SQL query patterns that mimic relational database thinking and don't belong in object-oriented domain code.
+
+**3. IDs Enable Architectural Violations**
+IDs enable composite ID generation where route IDs are constructed from origin and destination IDs. IDs enable ID parsing logic where code extracts data by splitting ID strings. IDs enable ID-based routing where switch statements dispatch on ID patterns. IDs enable hash code abuse where entity IDs are used as random seeds. All these violations become **impossible** when IDs don't exist.
+
+**4. IDs Break Procedural Content Generation**
+When templates reference specific entity IDs, they only work with those exact entities. When templates use categorical properties, they work with ANY matching entity in ANY procedurally-generated world. Hardcoded location IDs break when that location doesn't exist. Categorical filters based on properties work in infinite procedural worlds.
+
+## Correct Architecture: Spatial Positioning + Object References
 
 ## Spatial Scaffolding Pattern
 
 **JSON Layer - Hex Coordinates as Source of Truth:**
-- Locations defined with hex coordinates (Q, R) indicating spatial position
-- NPCs defined with hex coordinates (where they spawn in the world)
-- Routes NOT defined in JSON - generated procedurally from hex grid
-- Hex grid defines terrain, danger levels, and traversability
+Locations defined with hex coordinates Q and R indicating spatial position. NPCs defined with hex coordinates showing where they spawn. Routes NOT defined in JSON but generated procedurally from hex grid. Hex grid defines terrain, danger levels, and traversability.
 
 **Parser Layer - Spatial Resolution:**
-- Resolves entity relationships via hex coordinate matching
-- Creates object references during parsing based on spatial proximity
-- Builds object graph without requiring ID lookups
-- Parser uses categorical properties to find/create entities (EntityResolver.FindOrCreate pattern)
+Resolves entity relationships via hex coordinate matching. Creates object references during parsing based on spatial proximity. Builds object graph without requiring ID lookups. Parser uses categorical properties to find or create entities following the EntityResolver.FindOrCreate pattern.
 
 **Domain Layer - Object References Only:**
-- Entities have object references, NOT ID strings
-- NPC has `Location` object reference (not `LocationId` string)
-- RouteOption has `OriginLocation`, `DestinationLocation` objects (not ID strings)
-- Location.HexPosition (AxialCoordinates) is spatial source of truth
+Entities have object references, NOT ID strings. NPC has Location object reference (not LocationId string). RouteOption has OriginLocation and DestinationLocation objects (not ID strings). Location.HexPosition using AxialCoordinates is spatial source of truth.
 
 **Runtime - Procedural Generation:**
-- Routes generated via A* pathfinding: Origin.HexPosition → Destination.HexPosition
-- Travel system navigates hex grid terrain and danger levels
-- No hardcoded route definitions - all routes emerge from spatial data
+Routes generated via A* pathfinding from Origin.HexPosition to Destination.HexPosition. Travel system navigates hex grid terrain and danger levels. No hardcoded route definitions - all routes emerge from spatial data.
 
 ## Type-Safe Routing (Related Pattern)
 
 **Enum-based routing for action dispatch:**
-- ActionType enum as routing key (switch on enum, NOT ID parsing)
-- Strongly-typed properties for parameters (DestinationLocation object, not LocationId string)
-- Properties flow through entire stack with compiler verification
-- Direct object access (action.DestinationLocation.Name), NO string lookups
+ActionType enum serves as routing key - switch on enum, NOT ID parsing. Strongly-typed properties for parameters like DestinationLocation object, not LocationId string. Properties flow through entire stack with compiler verification. Direct object access for properties, NO string lookups.
 
 ## Why IDs Do Not Exist in Domain
 
 **IDs are NOT needed anywhere:**
-- NOT needed in DTOs - parsers use categorical properties to find/create entities
-- NOT needed in domain entities - entities use object references
-- NOT needed for debugging - Name and categorical properties provide context
-- Exception: Template IDs acceptable (immutable content definitions, not game state)
+NOT needed in DTOs - parsers use categorical properties to find/create entities. NOT needed in domain entities - entities use object references. NOT needed for debugging - Name and categorical properties provide context. Exception: Template IDs acceptable (immutable content definitions, not game state).
 
 **IDs create redundancy:**
-- Current WRONG pattern: RouteOption has OriginLocationId (string) + OriginLocation (object)
-- CORRECT pattern: RouteOption has only OriginLocation (object)
-- Storing both ID and object reference violates Single Source of Truth
+Storing both OriginLocationId string and OriginLocation object violates Single Source of Truth. Correct pattern has only OriginLocation object reference.
 
 **IDs pollute domain with database thinking:**
-- Domain models game entities (NPC, Location, Route), not database rows
-- Object references are natural domain relationships
-- ID lookups are SQL query patterns that don't belong in object-oriented domain
+Domain models game entities (NPC, Location, Route), not database rows. Object references are natural domain relationships. ID lookups are SQL query patterns that don't belong in object-oriented domain.
 
 **IDs enable violations:**
-- Composite ID generation: `routeId = $"route_{origin.Id}_{destination.Id}"` ❌
-- ID parsing for logic: `if (id.StartsWith("route_"))` ❌
-- Hash code misuse: `(day * ID.GetHashCode()) % count` ❌
-- GetHashCode misuse: `int seed = ID.GetHashCode()` ❌
-- Hash-based selection: `PersonalityType = types[hash % types.Length]` ❌
+Composite ID generation constructing route IDs from origin and destination IDs. ID parsing extracting data by splitting strings. Hash code misuse using entity ID GetHashCode as random seed. Hash-based selection choosing values based on ID hash modulo. All become impossible without IDs.
 
 ## Correct Patterns
 
 **Use object references for relationships:**
-```csharp
-// CORRECT - Direct object references, NO IDs
-public class NPC
-{
-    // NO ID property
-    public string Name { get; set; }
-    public Location Location { get; set; }  // Object reference
-}
-
-public class RouteOption
-{
-    // NO Id property
-    public Location OriginLocation { get; set; }  // Object reference
-    public Location DestinationLocation { get; set; }  // Object reference
-    public List<AxialCoordinates> HexPath { get; set; }  // Spatial path
-}
-```
+Domain entity classes have NO ID property. Properties are direct object references. NPC has Location object (not LocationId string). RouteOption has OriginLocation and DestinationLocation objects plus HexPath for spatial data.
 
 **Use hex coordinates for spatial positioning:**
-```csharp
-// CORRECT - Spatial positioning via hex coordinates, NO IDs
-public class Location
-{
-    // NO Id property
-    public string Name { get; set; }
-    public AxialCoordinates HexPosition { get; set; }  // Spatial source of truth
-}
-
-// Routes generated procedurally from spatial data
-List<AxialCoordinates> hexPath = pathfinder.FindPath(origin.HexPosition, destination.HexPosition);
-RouteOption route = new RouteOption
-{
-    OriginLocation = origin,  // Object reference
-    DestinationLocation = destination,  // Object reference
-    HexPath = hexPath
-};
-```
+Location has NO Id property, only Name and HexPosition for spatial truth. Routes generated procedurally from spatial data using pathfinding algorithms. Route creation uses object references with spatial paths.
 
 **Use enums for categorical routing:**
-```csharp
-// CORRECT - Enum-based action routing
-public enum ActionType
-{
-    Travel,
-    Conversation,
-    Investigation,
-    Rest
-}
-
-// Dispatcher switches on enum, not string parsing
-switch (action.Type)
-{
-    case ActionType.Travel:
-        HandleTravel(action.DestinationLocation);  // Object reference
-        break;
-    case ActionType.Conversation:
-        HandleConversation(action.TargetNPC);  // Object reference
-        break;
-}
-```
+ActionType enum defines action categories. Dispatcher switches on enum type, not string parsing. Handler methods receive object references as parameters.
 
 **Use categorical properties to find/create entities:**
-```csharp
-// CORRECT - EntityResolver.FindOrCreate pattern
-public Location FindOrCreateLocation(PlacementFilter filter)
-{
-    // Query existing by categorical properties
-    Location existing = _gameWorld.Locations
-        .Where(loc => loc.LocationProperties.Contains(filter.PropertyRequired))
-        .Where(loc => loc.Purpose == filter.Purpose)
-        .Where(loc => loc.Safety == filter.Safety)
-        .FirstOrDefault();
+EntityResolver.FindOrCreate pattern queries existing entities by categorical properties like LocationProperties, Purpose, and Safety. If found, returns existing object. If not found, creates new entity from categorical properties and returns object reference with NO ID.
 
-    if (existing != null) return existing;  // Found - return object
+## Comprehensive Forbidden Patterns
 
-    // Not found - create new from categorical properties
-    Location newLocation = new Location
-    {
-        Purpose = filter.Purpose,
-        Safety = filter.Safety,
-        LocationProperties = filter.Properties
-    };
-    _gameWorld.Locations.Add(newLocation);
-    return newLocation;  // Return object reference, NO ID
-}
-```
+### FORBIDDEN: ID Properties on Domain Entities
+Entity instance classes must have NO ID property anywhere. Entity has only domain properties like Name and object references. Storing ID strings alongside object references creates redundancy and violates architectural principles.
+
+### FORBIDDEN: ID Lookups in Parsers
+Parsers must NOT use ID lookup patterns with FirstOrDefault searching by ID property. Parsers must use EntityResolver with categorical properties for FindOrCreateLocation based on filters.
+
+### FORBIDDEN: Storing Both ID and Object Reference
+Classes must NOT have both ID string property and object reference property. This creates redundancy violating Single Source of Truth. When they disagree, which is correct? Ambiguity creates bugs. Only object reference needed - access properties directly without lookup.
+
+### FORBIDDEN: ID-Based Collections and Lookups
+Player state must NOT use lists of ID strings like ActiveObligationIds requiring later lookup by iterating and finding matching ID. Player state must use lists of direct object references enabling direct access without lookup.
+
+### FORBIDDEN: ID Encoding and Parsing
+Must NOT generate IDs by encoding data into strings or parse IDs by splitting strings to extract data. Instead store data as direct properties accessed without parsing.
+
+### FORBIDDEN: ID-Based Routing Logic
+Must NOT switch on ID strings for routing. Must switch on enum types with object references as parameters.
+
+## Why This Architecture Works
+
+**1. Procedural Content Generation**
+Templates use categorical filters, not hardcoded IDs. Same template works in infinite procedurally-generated worlds. PlacementFilter with properties finds ANY matching location. No brittleness from hardcoded entity references.
+
+**2. Single Source of Truth**
+One representation of each relationship (object reference). No desync between ID and object because only object exists. Compiler enforces correctness - null reference crashes immediately, wrong ID fails silently.
+
+**3. Domain Clarity**
+Code reads like domain expressing natural relationships. Not like database with query-style lookups. Object references match mental model of relationships.
+
+**4. Prevents Violations**
+Can't encode data in IDs when no IDs exist. Can't parse IDs for logic when no IDs exist. Can't route on ID strings when no IDs exist. Architecture makes bad patterns impossible.
+
+## Spatial Positioning via Hex Grid
+
+Locations positioned spatially on hex grid. Relationships derived from spatial proximity and categorical matching, NOT from ID cross-references.
+
+**Hex Grid Pattern:**
+Each Location has HexPosition with AxialCoordinates Q and R as source of truth. Hex grid cells have LocationId as **derived lookup** (reverse index for pathfinding). Hex.LocationId is computed FROM Location.HexPosition, not stored separately. HIGHLANDER principle: Location.HexPosition is source, Hex.LocationId is derived.
+
+This is the ONLY acceptable "ID" pattern: derived lookups for performance, where the source of truth is spatial coordinates, not IDs.
 
 ---
 
@@ -442,10 +406,7 @@ public Location FindOrCreateLocation(PlacementFilter filter)
 **Why:** String property names require runtime parsing and fail silently. Strongly-typed properties catch errors at compile time and make intent explicit. Generic "flexible" systems are YAGNI violations - add properties when actually needed, not hypothetically.
 
 **Correct pattern:**
-- Explicit strongly-typed properties: `LocationsToUnlock`, `LocationsToLock`
-- Direct property modification: `location.IsLocked = false` (no string matching)
-- Add new properties when needed: `LocationsToHide`, `LocationsToReveal`
-- Each property serves one purpose only
+Explicit strongly-typed properties like LocationsToUnlock and LocationsToLock. Direct property modification without string matching. Add new properties when needed like LocationsToHide and LocationsToReveal. Each property serves one purpose only.
 
 **Catalogues for entity generation, explicit properties for state modification.**
 
@@ -460,160 +421,66 @@ public Location FindOrCreateLocation(PlacementFilter filter)
 ## Policy
 
 **Domain code (GameState, Services, Subsystems, etc.):**
-- No namespace declarations
-- All classes globally available
-- Compiler enforces uniqueness
+No namespace declarations. All classes globally available. Compiler enforces uniqueness.
 
 **Blazor components (framework requirement):**
-- `namespace Wayfarer.Pages.Components;` allowed
-- Razor runtime requires namespaces
+Namespace declarations allowed like Wayfarer.Pages.Components because Razor runtime requires namespaces.
 
 **Test projects:**
-- `namespace Wayfarer.Tests;` allowed
-- Standard test project convention
+Namespace declarations allowed like Wayfarer.Tests following standard test project convention.
 
 ## Why Custom Namespaces Are Architecturally Harmful
 
 ### 1. Hiding Duplicate Classes
 
-**With custom namespaces (PROBLEM):**
-```csharp
-// File: GameState/MessageCategory.cs
-namespace Wayfarer.GameState;
-public enum MessageCategory { ... }
+Custom namespaces allow duplicate classes in different namespaces like Wayfarer.GameState.MessageCategory and Wayfarer.Models.MessageCategory. Compiler doesn't complain because both exist in different namespaces. Code becomes confusing - which MessageCategory is authoritative?
 
-// File: Models/MessageCategory.cs
-namespace Wayfarer.Models;
-public enum MessageCategory { ... } // DUPLICATE HIDDEN BY NAMESPACE!
-
-// Compiler doesn't complain - both exist in different namespaces
-// Code becomes confusing - which MessageCategory is authoritative?
-```
-
-**Without namespaces (SOLUTION):**
-```csharp
-// File: GameState/MessageCategory.cs
-public enum MessageCategory { ... }
-
-// File: Models/MessageCategory.cs
-public enum MessageCategory { ... } // COMPILER ERROR: Duplicate class!
-
-// Conflict exposed immediately - forces cleanup
-// Only ONE MessageCategory can exist
-```
+Without namespaces, duplicate class definitions trigger immediate compiler error exposing conflict and forcing cleanup. Only ONE implementation can exist.
 
 ### 2. Hiding Redundant Files
 
-Custom namespaces allow redundant implementations to coexist:
-- `Wayfarer.GameState.SystemMessage` vs `Wayfarer.Models.SystemMessage`
-- `Wayfarer.Services.TokenManager` vs `Wayfarer.Subsystems.Token.TokenManager`
-- Multiple competing implementations hidden by namespace separation
+Custom namespaces allow redundant implementations to coexist like Wayfarer.GameState.SystemMessage versus Wayfarer.Models.SystemMessage or Wayfarer.Services.TokenManager versus Wayfarer.Subsystems.Token.TokenManager. Multiple competing implementations hidden by namespace separation.
 
 **Global namespace forces ONE canonical implementation.**
 
 ### 3. False Sense of Organization
 
-**The lie:** "Namespaces organize code logically"
-**The truth:** Directory structure ALREADY organizes code
-
-```
-GameState/
-  NPC.cs              → public class NPC { ... }
-  Location.cs         → public class Location { ... }
-Services/
-  GameFacade.cs       → public class GameFacade { ... }
-Subsystems/
-  Token/
-    TokenManager.cs   → public class TokenManager { ... }
-```
+Namespaces claim to "organize code logically" but directory structure ALREADY organizes code. GameState directory contains NPC.cs and Location.cs. Services directory contains GameFacade.cs. Subsystems/Token directory contains TokenManager.cs.
 
 **Directory structure IS the organization.** Namespaces add nothing but complexity.
 
 ### 4. Namespace Declaration Overhead
 
-**Every file needs:**
-- Namespace declaration at top (boilerplate)
-- Using statements in consuming files (more boilerplate)
-- Mental overhead tracking which namespace each class lives in
+Every file needs namespace declaration at top (boilerplate). Using statements in consuming files (more boilerplate). Mental overhead tracking which namespace each class lives in.
 
 **Global namespace eliminates all overhead:**
-- No namespace declarations
-- No using statements (except framework/external libraries)
-- Class name uniqueness enforced automatically
+No namespace declarations. No using statements (except framework/external libraries). Class name uniqueness enforced automatically.
 
 ### 5. Implicit Usings Don't Help
 
-C# 10+ implicit usings only import FRAMEWORK namespaces:
-- `System.*`
-- `System.Collections.Generic.*`
-- `Microsoft.AspNetCore.*`
+C# 10+ implicit usings only import FRAMEWORK namespaces like System, System.Collections.Generic, and Microsoft.AspNetCore.
 
 **Custom namespaces STILL require explicit using statements.**
 
-With custom namespaces:
-```csharp
-using Wayfarer.GameState;        // Required
-using Wayfarer.Services;         // Required
-using Wayfarer.Subsystems.Token; // Required
+With custom namespaces, files need using Wayfarer.GameState, using Wayfarer.Services, using Wayfarer.Subsystems.Token all explicitly declared.
 
-public class SomeClass { ... }
-```
-
-Without namespaces:
-```csharp
-// No using statements needed - all domain classes globally available
-
-public class SomeClass { ... }
-```
+Without namespaces, no using statements needed - all domain classes globally available.
 
 ### 6. Refactoring Brittleness
 
-Moving a class between directories with namespaces:
-1. Change namespace declaration in file
-2. Update ALL using statements in ALL consuming files
-3. Fix build errors from missed using statements
-4. Search/replace namespace references in tests
+Moving a class between directories with namespaces requires changing namespace declaration in file, updating ALL using statements in ALL consuming files, fixing build errors from missed using statements, and search/replace namespace references in tests.
 
-Moving a class between directories WITHOUT namespaces:
-1. Move the file (done)
+Moving a class between directories WITHOUT namespaces: Move the file (done).
 
 **Global namespace = zero refactoring overhead.**
 
 ## Correct Pattern
 
 **Domain code (GameState, Services, Subsystems, etc.):**
-```csharp
-// File: GameState/MessageCategory.cs
-/// <summary>
-/// Semantic category of system messages
-/// </summary>
-public enum MessageCategory
-{
-    ResourceChange,
-    TimeProgression,
-    Discovery,
-    Achievement,
-    Danger
-}
-```
-
-**NO namespace declaration. Globally available.**
+Files have NO namespace declaration. Documentation summary comments describe purpose. Classes globally available everywhere.
 
 **Blazor components (EXCEPTION - namespaces allowed):**
-```csharp
-// File: Pages/Components/MessageDisplay.razor.cs
-using Microsoft.AspNetCore.Components;
-
-namespace Wayfarer.Pages.Components;
-
-public class MessageDisplayBase : ComponentBase
-{
-    // MessageCategory available without using statement (global namespace)
-    protected string GetIconForCategory(MessageCategory category) { ... }
-}
-```
-
-**Blazor components need namespaces for Razor runtime.**
+Blazor component files need namespace for Razor runtime. Can use global namespace classes without using statements.
 
 ## The Principle
 
@@ -624,44 +491,30 @@ This is an application, not a library. Global namespace is correct.
 
 **Gordon Ramsay Standard:**
 
-"You've wrapped EVERYTHING in namespaces to 'organize' the code? The DIRECTORY STRUCTURE is the organization! Now you've got THREE different `TokenManager` classes in different namespaces and nobody knows which one is canonical! RIP OUT the custom namespaces, let the compiler SCREAM about the duplicates, and DELETE the redundant garbage!"
+"You've wrapped EVERYTHING in namespaces to 'organize' the code? The DIRECTORY STRUCTURE is the organization! Now you've got THREE different TokenManager classes in different namespaces and nobody knows which one is canonical! RIP OUT the custom namespaces, let the compiler SCREAM about the duplicates, and DELETE the redundant garbage!"
 
 ---
 
 # DOMAIN COLLECTION PRINCIPLE
 
-**Principle:** Use `List<T>` with LINQ for all domain entity collections to optimize for maintainability and semantic clarity.
+**Principle:** Use List with generic type parameter for all domain entity collections to optimize for maintainability and semantic clarity.
 
-**Why:** This is a small-scale, single-player, turn-based game where performance optimization is premature. Dictionary/HashSet optimize for scale this game doesn't have, while introducing complexity, semantic dishonesty, and debugging friction. List<T> with LINQ provides readable domain queries, fail-fast errors, and architectural purity.
+**Why:** This is a small-scale, single-player, turn-based game where performance optimization is premature. Dictionary and HashSet optimize for scale this game doesn't have, while introducing complexity, semantic dishonesty, and debugging friction. List with LINQ provides readable domain queries, fail-fast errors, and architectural purity.
 
 ## THE GAME CONTEXT (WHY PERFORMANCE DOESN'T MATTER)
 
 **This game is NOT:**
-- ❌ A massively multiplayer online game with thousands of concurrent entities
-- ❌ A real-time simulation processing millions of events per second
-- ❌ A distributed system with network latency concerns
-- ❌ A high-frequency trading platform requiring microsecond response times
+A massively multiplayer online game with thousands of concurrent entities. A real-time simulation processing millions of events per second. A distributed system with network latency concerns. A high-frequency trading platform requiring microsecond response times.
 
 **This game IS:**
-- ✓ Synchronous (single-threaded execution, no concurrency)
-- ✓ Browser-based (JavaScript VM speed is irrelevant, browser render time dominates)
-- ✓ Single-player (one human making decisions at human speed: hundreds of milliseconds)
-- ✓ Minimal scale (collections contain 10-100 entities maximum, not thousands)
-- ✓ Turn-based narrative (player reads text, makes choice, reads result - seconds between actions)
+Synchronous (single-threaded execution, no concurrency). Browser-based (JavaScript VM speed is irrelevant, browser render time dominates). Single-player (one human making decisions at human speed: hundreds of milliseconds). Minimal scale (collections contain 10-100 entities maximum, not thousands). Turn-based narrative (player reads text, makes choice, reads result - seconds between actions).
 
 **The Performance Reality:**
-- Typical collections: 20 NPCs, 30 Locations, 50 Items, 10 Scenes
-- Linear scan of 100 items: **~0.001 milliseconds** (one microsecond)
-- Browser render time: **16+ milliseconds** (one frame at 60fps)
-- Human reaction time: **200+ milliseconds** (reading and decision-making)
-- Network latency: **50-200 milliseconds** (even on localhost)
+Typical collections: 20 NPCs, 30 Locations, 50 Items, 10 Scenes. Linear scan of 100 items takes approximately 0.001 milliseconds (one microsecond). Browser render time takes 16+ milliseconds (one frame at 60fps). Human reaction time takes 200+ milliseconds (reading and decision-making). Network latency takes 50-200 milliseconds (even on localhost).
 
 **THE PERFORMANCE BENEFIT OF DICTIONARY IS LITERALLY UNMEASURABLE IN THIS CONTEXT.**
 
-Using Dictionary/HashSet for "performance" is like using a forklift to carry a sandwich. It's technically faster, but:
-1. The improvement is completely undetectable by any measurement
-2. The complexity cost is very real and very harmful
-3. The maintainability burden compounds over time
+Using Dictionary or HashSet for "performance" is like using a forklift to carry a sandwich. It's technically faster, but the improvement is completely undetectable by any measurement, the complexity cost is very real and very harmful, and the maintainability burden compounds over time.
 
 ## Why Dictionary/HashSet Are Architecturally Wrong
 
@@ -669,231 +522,71 @@ Using Dictionary/HashSet for "performance" is like using a forklift to carry a s
 
 ### 1. Semantic Dishonesty (Domain Inversion)
 
-**Dictionary inverts the domain model:**
-```csharp
-// WRONG - Technical data structure leaking into domain
-public class GameWorld
-{
-    private Dictionary<string, NPC> _npcLookup;
-    private Dictionary<string, Location> _locationCache;
-    private HashSet<string> _visitedLocationIds;
-}
-```
+Dictionary inverts the domain model by organizing code around INDEXES and technical data structures leaking into domain, not ENTITIES. This is DATABASE THINKING, not DOMAIN THINKING. NPCs aren't "keyed by ID" - they ARE NPCs, and ID is just one property among many. Dictionary makes ID the primary organizing principle, which is semantically backwards.
 
-This is **DATABASE THINKING**, not **DOMAIN THINKING**. You're organizing code around INDEXES, not ENTITIES.
-
-**Problem:** NPCs aren't "keyed by ID" - they ARE NPCs, and ID is just one property among many. Dictionary makes ID the primary organizing principle, which is semantically backwards.
-
-**CORRECT - Domain collections:**
-```csharp
-public class GameWorld
-{
-    private List<NPC> _npcs;
-    private List<Location> _locations;
-    private List<VisitRecord> _visitHistory;
-}
-```
-
-This is **DOMAIN THINKING**. GameWorld contains ENTITIES (the things that exist in the game world).
+Correct pattern uses domain collections where GameWorld contains ENTITIES (the things that exist in the game world). This is DOMAIN THINKING.
 
 ### 2. Single Responsibility Violation
 
-**Dictionary does TWO things:**
-1. Stores entities (storage responsibility)
-2. Provides fast lookup by key (query optimization responsibility)
+Dictionary does TWO things: Stores entities (storage responsibility) and provides fast lookup by key (query optimization responsibility). In a game where fast lookup is unnecessary, you're adding complexity for zero benefit.
 
-In a game where (2) is unnecessary, you're adding complexity for zero benefit.
-
-**List does ONE thing:**
-1. Stores entities in order (storage responsibility only)
+List does ONE thing: Stores entities in order (storage responsibility only).
 
 **Lookup is a QUERY concern, not a STORAGE concern.** Separation of concerns suggests storage should be simple.
 
 ### 3. Fail-Slow vs Fail-Fast Philosophy
 
-**Dictionary behavior (FAIL-SLOW):**
-```csharp
-// Access pattern 1: Exception at wrong location
-var npc = _npcs[id]; // Throws KeyNotFoundException
-// Stack trace points HERE, but actual problem is "ID doesn't exist in collection"
+Dictionary behavior (FAIL-SLOW): Access pattern throws KeyNotFoundException where stack trace points to access location, but actual problem is ID doesn't exist in collection. TryGetValue pattern requires error handling at EVERY call site with potential for silent null propagation where crash happens LATER if TryGetValue failed.
 
-// Access pattern 2: Silent null propagation
-if (_npcs.TryGetValue(id, out var npc))
-{
-    npc.Name; // Works
-}
-else
-{
-    // Error handling required at EVERY call site
-    npc = null; // Or default
-}
-npc.Name; // May crash LATER if TryGetValue failed
-```
-
-**List behavior (FAIL-FAST):**
-```csharp
-var npc = _npcs.FirstOrDefault(n => n.Id == id); // Returns null if not found
-var name = npc.Name; // IMMEDIATELY throws NullReferenceException
-// Stack trace points EXACTLY to the problem: NPC doesn't exist
-// No silent propagation, no deferred errors
-```
+List behavior (FAIL-FAST): FirstOrDefault returns null if not found, then IMMEDIATELY throws NullReferenceException when accessing properties. Stack trace points EXACTLY to the problem: entity doesn't exist. No silent propagation, no deferred errors.
 
 **Why fail-fast is better:**
-- Errors happen at point of use, not at retrieval
-- Stack traces are clear and actionable
-- No need for defensive `TryGetValue` everywhere
-- Null-reference errors immediately reveal logic bugs
+Errors happen at point of use, not at retrieval. Stack traces are clear and actionable. No need for defensive TryGetValue everywhere. Null-reference errors immediately reveal logic bugs.
 
 ### 4. Query Expressiveness Asymmetry
 
-**Dictionary limitations:**
-```csharp
-// Can ONLY query by key efficiently
-var npc = _npcs[id]; // O(1) lookup
+Dictionary can ONLY query by key efficiently with O(1) lookup. ANY other query requires LINQ over Values anyway with O(n) scan for queries by profession, demeanor, or social standing. So you're using Dictionary as a List with extra steps, paying the complexity cost of Dictionary but still doing O(n) scans for 99% of queries.
 
-// ANY other query requires LINQ over .Values anyway
-var innkeeper = _npcs.Values.FirstOrDefault(n => n.Profession == "Innkeeper"); // O(n)
-var friendlyNpcs = _npcs.Values.Where(n => n.Demeanor == Demeanor.Friendly).ToList(); // O(n)
-var authorities = _npcs.Values.Where(n => n.SocialStanding == SocialStanding.Authority).ToList(); // O(n)
-
-// So you're using Dictionary as a List with extra steps!
-```
-
-**You're paying the complexity cost of Dictionary but still doing O(n) scans for 99% of queries.**
-
-**List uniformity:**
-```csharp
-// ALL queries are uniform and declarative
-var npc = _npcs.FirstOrDefault(n => n.Id == id); // O(n) - but n=20, so irrelevant
-var innkeeper = _npcs.FirstOrDefault(n => n.Profession == "Innkeeper"); // O(n)
-var friendlyNpcs = _npcs.Where(n => n.Demeanor == Demeanor.Friendly).ToList(); // O(n)
-var authorities = _npcs.Where(n => n.SocialStanding == SocialStanding.Authority).ToList(); // O(n)
-```
-
-**Every query looks the same. Every query reads like English. Every query is a domain question.**
+List uniformity means ALL queries are uniform and declarative. Every query looks the same. Every query reads like English. Every query is a domain question. Complexity is O(n) but with n=20 entities, this is completely irrelevant.
 
 ### 5. YAGNI Violation (You Aren't Gonna Need It)
 
-**Dictionary optimizes for a problem you DON'T HAVE:**
-- O(1) lookup vs O(n) scan sounds important
-- For n=1000+, it IS important
-- For n=20, it's COMPLETELY IRRELEVANT
+Dictionary optimizes for a problem you DON'T HAVE. O(1) lookup versus O(n) scan sounds important. For n=1000+, it IS important. For n=20, it's COMPLETELY IRRELEVANT.
 
 **Math:**
-- Dictionary lookup: ~0.0001ms (hash calculation + array access)
-- List scan of 20 items: ~0.001ms (20 equality checks)
-- Difference: **0.0009 milliseconds**
-- Browser render frame: **16 milliseconds**
-- Human perception threshold: **100+ milliseconds**
+Dictionary lookup approximately 0.0001ms (hash calculation + array access). List scan of 20 items approximately 0.001ms (20 equality checks). Difference is 0.0009 milliseconds. Browser render frame is 16 milliseconds. Human perception threshold is 100+ milliseconds.
 
 **You're optimizing something that takes 0.001ms in a system where humans react in 200ms. This is ABSURD.**
 
 ### 6. Debugging Visibility
 
-**Dictionary in debugger:**
-```
-_npcs: Dictionary<string, NPC> (Count = 5)
-  [0]: {["npc_001", Wayfarer.GameState.NPC]}
-  [1]: {["npc_002", Wayfarer.GameState.NPC]}
-  [2]: {["npc_003", Wayfarer.GameState.NPC]}
-```
+Dictionary in debugger shows KeyValuePair entries without immediate visibility of entity properties. Debugging requires extra clicks to expand each entry.
 
-Can't see entity properties without expanding each KeyValuePair. Debugging requires extra clicks.
-
-**List in debugger:**
-```
-_npcs: List<NPC> (Count = 5)
-  [0]: {NPC: Elena, Profession: Innkeeper, Demeanor: Friendly}
-  [1]: {NPC: Marcus, Profession: Guard, Demeanor: Neutral}
-  [2]: {NPC: Thalia, Profession: Merchant, Demeanor: Hostile}
-```
-
-Immediate visibility of entity state. Debug by LOOKING, not by EXPANDING.
+List in debugger shows immediate visibility of entity state like NPC name, profession, and demeanor. Debug by LOOKING, not by EXPANDING.
 
 ### 7. Testing Simplicity
 
-**Dictionary test setup (ID DUPLICATION):**
-```csharp
-var npcs = new Dictionary<string, NPC>
-{
-    ["npc_001"] = new NPC { Id = "npc_001", Name = "Elena" },
-    ["npc_002"] = new NPC { Id = "npc_002", Name = "Marcus" }
-    // ERROR-PRONE: ID appears TWICE (key + property)
-    // If they mismatch, silent bugs
-};
-```
+Dictionary test setup has ID DUPLICATION where ID appears TWICE (dictionary key + entity property). If they mismatch, silent bugs occur.
 
-**List test setup (NO DUPLICATION):**
-```csharp
-var npcs = new List<NPC>
-{
-    new NPC { Id = "npc_001", Name = "Elena" },
-    new NPC { Id = "npc_002", Name = "Marcus" }
-    // ID appears ONCE, no duplication risk
-};
-```
+List test setup has NO DUPLICATION where ID appears ONCE with no duplication risk.
 
 ### 8. Functional Thinking vs Imperative Thinking
 
-**List encourages declarative pipelines (FUNCTIONAL):**
-```csharp
-var result = _npcs
-    .Where(n => n.Location == currentLocation)
-    .OrderBy(n => n.Name)
-    .Select(n => new NPCViewModel { Name = n.Name })
-    .ToList();
-// Pipeline: Filter → Sort → Transform → Collect
-// Easy to read, easy to modify, easy to test
-```
+List encourages declarative pipelines (FUNCTIONAL) with filter, sort, transform, and collect operations. Pipeline is easy to read, easy to modify, easy to test.
 
-**Dictionary encourages imperative loops (PROCEDURAL):**
-```csharp
-var result = new List<NPCViewModel>();
-foreach (var kvp in _npcs)
-{
-    if (kvp.Value.Location == currentLocation)
-    {
-        result.Add(new NPCViewModel { Name = kvp.Value.Name });
-    }
-}
-result.Sort((a, b) => a.Name.CompareTo(b.Name));
-// More code, more mutable state, harder to reason about
-```
+Dictionary encourages imperative loops (PROCEDURAL) with more code, more mutable state, and harder reasoning.
 
 ### 9. Type Safety Erosion
 
-**Dictionary often leads to type erasure:**
-```csharp
-// Common anti-pattern: generic storage
-Dictionary<string, object> _entities; // Lost ALL type information
-// or
-Dictionary<string, IEntity> _entities; // Forcing abstraction for no reason
-```
+Dictionary often leads to type erasure with generic storage losing ALL type information or forcing abstraction for no reason.
 
-**List preserves concrete types:**
-```csharp
-List<NPC> _npcs;
-List<Location> _locations;
-List<Item> _items;
-// Each collection is STRONGLY TYPED to its domain entity
-// Compiler catches type errors at compile time
-```
+List preserves concrete types where each collection is STRONGLY TYPED to its domain entity. Compiler catches type errors at compile time.
 
 ### 10. Architectural Purity (Repository Pattern)
 
-**Dictionary pattern (TECHNICAL ABSTRACTION):**
-```csharp
-// Implies "fast lookup structure" - this is an implementation detail
-Dictionary<string, NPC> _npcs;
-var npc = _npcs[id]; // What if id doesn't exist? Runtime exception!
-```
+Dictionary pattern implies "fast lookup structure" - this is an implementation detail. Access by ID requires handling when ID doesn't exist with runtime exception.
 
-**List pattern (DOMAIN ABSTRACTION):**
-```csharp
-// Implies "collection of entities" - this is a domain concept
-List<NPC> _npcs;
-var npc = _npcs.FirstOrDefault(n => n.Id == id); // Domain query, safe
-```
+List pattern implies "collection of entities" - this is a domain concept. Domain queries are safe and express intent clearly.
 
 **The repository stores ENTITIES, not KEY-VALUE PAIRS.** GameWorld is a domain model, not a database schema.
 
@@ -903,16 +596,10 @@ var npc = _npcs.FirstOrDefault(n => n.Id == id); // Domain query, safe
 **This game doesn't SCALE.**
 **Therefore, optimization is PREMATURE and HARMFUL.**
 
-Using Dictionary for 20 NPCs is like:
-- Using a database index on a table with 10 rows
-- Using a CDN for a file served once per day
-- Using multithreading for a calculation that takes 1 microsecond
-- Using a distributed cache for data that fits in 1KB
+Using Dictionary for 20 NPCs is like using a database index on a table with 10 rows, using a CDN for a file served once per day, using multithreading for a calculation that takes 1 microsecond, or using a distributed cache for data that fits in 1KB.
 
 **It's TECHNICALLY faster, but:**
-1. The improvement is completely unmeasurable
-2. The complexity cost is very real
-3. The maintenance burden compounds over time
+The improvement is completely unmeasurable. The complexity cost is very real. The maintenance burden compounds over time.
 
 **Gordon Ramsay Standard:**
 
@@ -920,96 +607,37 @@ Using Dictionary for 20 NPCs is like:
 
 ## Correct Pattern
 
-**ALWAYS use `List<T>` for entity collections:**
+**ALWAYS use List with type parameter for entity collections:**
 
-```csharp
-// Domain entity collections (CORRECT)
-public class GameWorld
-{
-    private List<NPC> _npcs = new List<NPC>();
-    private List<Location> _locations = new List<Location>();
-    private List<Scene> _scenes = new List<Scene>();
-    private List<Route> _routes = new List<Route>();
-    private List<Item> _items = new List<Item>();
-}
-
-// Query patterns (declarative, readable, safe)
-public NPC GetNPCById(string id)
-{
-    return _npcs.FirstOrDefault(n => n.Id == id);
-    // Returns null if not found (fail-fast at call site)
-}
-
-public List<NPC> GetNPCsByLocation(string locationId)
-{
-    return _npcs.Where(n => n.CurrentLocation == locationId).ToList();
-    // Reads like English: "NPCs where location matches"
-}
-
-public List<NPC> GetFriendlyNPCs()
-{
-    return _npcs.Where(n => n.Demeanor == Demeanor.Friendly).ToList();
-    // Domain query, not technical lookup
-}
-```
+Domain entity collections use List for NPCs, Locations, Scenes, Routes, and Items. Query patterns are declarative, readable, and safe using FirstOrDefault returning null if not found (fail-fast at call site). LINQ queries read like English expressing domain questions.
 
 **LINQ queries are:**
-- Declarative (what, not how)
-- Readable (reads like English)
-- Composable (chain operations easily)
-- Testable (pure functions, no side effects)
-- Type-safe (compiler catches errors)
+Declarative (what, not how). Readable (reads like English). Composable (chain operations easily). Testable (pure functions, no side effects). Type-safe (compiler catches errors).
 
 ## Rare Exceptions (When Dictionary Is Acceptable)
 
 **Dictionary is acceptable ONLY for:**
 
-1. **Framework requirements (external APIs):**
-   ```csharp
-   // Blazor component parameters require Dictionary
-   var parameters = new Dictionary<string, object>
-   {
-       ["Value"] = someValue
-   };
-   ```
-
-2. **Configuration/settings (non-domain data):**
-   ```csharp
-   // Application configuration (not game entities)
-   Dictionary<string, string> appSettings = configuration.GetSection("Settings");
-   ```
-
-3. **Caching external API responses (if actually needed):**
-   ```csharp
-   // Cache for slow external API calls (Ollama, etc.)
-   // ONLY if profiling proves it's a bottleneck
-   Dictionary<string, OllamaResponse> _responseCache;
-   ```
+Framework requirements (external APIs) where Blazor component parameters require Dictionary structure. Configuration/settings (non-domain data) for application configuration not game entities. Caching external API responses (if actually needed) for slow external API calls ONLY if profiling proves it's a bottleneck.
 
 **Dictionary is NEVER acceptable for domain entities:**
-- GameWorld entity collections (NPCs, Locations, Scenes, Routes, Items)
-- Player state (inventory, stats, relationships)
-- Game session data (visited locations, completed scenes)
+GameWorld entity collections (NPCs, Locations, Scenes, Routes, Items). Player state (inventory, stats, relationships). Game session data (visited locations, completed scenes).
 
-**The test:** If it's a domain entity or game state, use `List<T>`. No exceptions.
+**The test:** If it's a domain entity or game state, use List. No exceptions.
 
 ## Summary
 
 **This game optimizes for MAINTAINABILITY, not PERFORMANCE.**
 
-Dictionary/HashSet are performance optimizations. In a game with:
-- 20 NPCs (not 20,000)
-- Single-threaded execution (not concurrent)
-- Human-speed interactions (not microsecond latency)
-- Browser-based rendering (not real-time simulation)
+Dictionary and HashSet are performance optimizations. In a game with 20 NPCs (not 20,000), single-threaded execution (not concurrent), human-speed interactions (not microsecond latency), and browser-based rendering (not real-time simulation):
 
 **Performance optimization is PREMATURE, HARMFUL, and FORBIDDEN.**
 
-Use `List<T>` with LINQ. Write readable, maintainable, domain-driven code. Let the code be CLEAR, not CLEVER.
+Use List with LINQ. Write readable, maintainable, domain-driven code. Let the code be CLEAR, not CLEVER.
 
 **"Premature optimization is the root of all evil." - Donald Knuth**
 
-In this codebase, Dictionary for domain entities IS premature optimization. Use List<T>.
+In this codebase, Dictionary for domain entities IS premature optimization. Use List.
 
 ---
 
@@ -1020,190 +648,86 @@ In this codebase, Dictionary for domain entities IS premature optimization. Use 
 ## POLICY
 
 **FORBIDDEN:**
-- ❌ Emojis for game content display (💰 coins, ❤️ health, 💪 strength, 🎯 skills, ⚔️ combat)
-- ❌ Emojis in code comments, documentation, commit messages
-- ❌ Unicode symbols for resource/stat display (★ ◆ ● ▲)
-- ❌ Text-based pseudo-graphics in UI
+Emojis for game content display representing coins, health, strength, skills, or combat. Emojis in code comments, documentation, commit messages. Unicode symbols for resource/stat display. Text-based pseudo-graphics in UI.
 
 **ALLOWED (Minimal Exceptions):**
-- ✓ Basic interface controls ONLY (✕ close buttons, ✓ checkmarks, → arrows)
-- Must be purely functional UI elements, NOT game content
-- Must not represent resources, stats, or player-facing entities
+Basic interface controls ONLY like close buttons, checkmarks, or arrows. Must be purely functional UI elements, NOT game content. Must not represent resources, stats, or player-facing entities.
 
 **REQUIRED:**
-- SVG icons from game-icons.net via Icon component
-- All resource/stat/entity icons must be vector graphics
-- Cohesive visual style (single icon library: Game Icons collection)
-- Attribution documented in THIRD-PARTY-LICENSES.md
+SVG icons from game-icons.net via Icon component. All resource/stat/entity icons must be vector graphics. Cohesive visual style (single icon library: Game Icons collection). Attribution documented in THIRD-PARTY-LICENSES.md.
 
 ## WHY PROPER ICONS MATTER
 
 **Professional quality standard:**
-- Vector graphics scale to any resolution (emoji quality degrades)
-- Consistent visual style creates polished game aesthetic
-- SVG allows dynamic color theming (emojis fixed appearance)
+Vector graphics scale to any resolution (emoji quality degrades). Consistent visual style creates polished game aesthetic. SVG allows dynamic color theming (emojis have fixed appearance).
 
 **Technical superiority:**
-- Scalability and resolution independence (vector vs raster)
-- Customizable via CSS (color, size, filters, animations)
-- Predictable rendering across all platforms and browsers
-- Accessibility support (ARIA labels, screen reader compatible)
+Scalability and resolution independence (vector vs raster). Customizable via CSS (color, size, filters, animations). Predictable rendering across all platforms and browsers. Accessibility support (ARIA labels, screen reader compatible).
 
 **Cross-platform reliability:**
-- Emojis render differently on Windows/Mac/Linux/Mobile
-- SVG displays identically everywhere
-- No font fallback issues or missing glyph problems
+Emojis render differently on Windows/Mac/Linux/Mobile. SVG displays identically everywhere. No font fallback issues or missing glyph problems.
 
 **Player experience:**
-- Icons convey game identity and theme
-- Professional presentation builds player trust
-- Consistent iconography aids learning and recognition
+Icons convey game identity and theme. Professional presentation builds player trust. Consistent iconography aids learning and recognition.
 
 ## FRONTEND USAGE (Icon Component)
 
 **Basic usage:**
-```razor
-<Icon Name="coins" />
-<Icon Name="hearts" />
-<Icon Name="brain" />
-```
+Icon component with Name parameter specifying icon filename without extension. Examples include coins, hearts, and brain icons.
 
 **With CSS class for styling:**
-```razor
-<Icon Name="coins" CssClass="resource-coin" />
-<Icon Name="target-arrows" CssClass="icon-neutral" />
-<Icon Name="sparkles" CssClass="icon-positive" />
-```
+Icon component with Name and CssClass parameters for semantic styling like resource-coin, icon-neutral, or icon-positive.
 
 **Component parameters:**
-- `Name` (required): Icon filename without .svg extension
-- `Size` (optional): Width/height, defaults to "16px"
-- `Color` (optional): SVG fill color, defaults to "currentColor"
-- `CssClass` (optional): Additional CSS classes for semantic styling
+Name (required): Icon filename without .svg extension. Size (optional): Width/height, defaults to "16px". Color (optional): SVG fill color, defaults to "currentColor". CssClass (optional): Additional CSS classes for semantic styling.
 
 **CSS classes for semantic colors:**
-- Five Stats: `stat-insight`, `stat-rapport`, `stat-authority`, `stat-diplomacy`, `stat-cunning`
-- Resources: `resource-coin`, `resource-health`, `resource-stamina`, `resource-focus`, `resource-hunger`
-- Generic: `icon-neutral`, `icon-positive`, `icon-negative`
+Five Stats: stat-insight, stat-rapport, stat-authority, stat-diplomacy, stat-cunning. Resources: resource-coin, resource-health, resource-stamina, resource-focus, resource-hunger. Generic: icon-neutral, icon-positive, icon-negative.
 
 **Performance:**
-- Icons cached after first load (ConcurrentDictionary, thread-safe)
-- No redundant HTTP requests for same icon
-- Inline SVG for styling flexibility
+Icons cached after first load (ConcurrentDictionary, thread-safe). No redundant HTTP requests for same icon. Inline SVG for styling flexibility.
 
 ## BACKEND PATTERNS (Token System - To Be Implemented)
 
 **Message token replacement pattern:**
-
-When backend generates player-facing messages containing icons, use token system for icon injection at render time.
-
-**Token format convention:**
-```csharp
-// Backend generates message with tokens
-_messageSystem.AddSystemMessage("{icon:coins} Spent {0} coins on {1}", amount, item);
-_messageSystem.AddSystemMessage("{icon:health-normal} Lost {0} health", damage);
-```
-
-**Frontend rendering (planned):**
-```csharp
-// Parse tokens and replace with Icon components
-private string RenderMessageWithIcons(string message)
-{
-    return Regex.Replace(message, @"\{icon:([a-z-]+)\}",
-        match => $"<Icon Name='{match.Groups[1].Value}' CssClass='inline-icon' />");
-}
-```
+When backend generates player-facing messages containing icons, use token system for icon injection at render time. Backend generates message with tokens in format {icon:iconname}. Frontend rendering parses tokens and replaces with Icon components using regex pattern matching and component generation.
 
 ## AVAILABLE ICONS
 
 **Current icon library (22 icons from Game Icons collection):**
 
-| Icon Name | Used For | Creator |
-|-----------|----------|---------|
-| alarm-clock | Time, urgency, scheduling | Delapouite |
-| backpack | Inventory, belongings, items | Delapouite |
-| biceps | Strength, physical power, stamina | Delapouite |
-| brain | Intelligence, insight, mental attributes | Lorc |
-| cancel | Failed actions, cancellation | sbed |
-| check-mark | Completed actions, confirmation | Delapouite |
-| coins | Currency, wealth, economy | Delapouite |
-| crown | Authority, leadership, achievements | Lorc |
-| cut-diamond | Rare resources, premium items, focus | Lorc |
-| drama-masks | Cunning, performance, social | Lorc |
-| hazard-sign | Warnings, requirements, danger | Lorc |
-| health-normal | Health, vitality, condition | sbed |
-| hearts | Rapport, affection, relationships | Skoll |
-| magnifying-glass | Search, investigation, discovery | Lorc |
-| meal | Food, hunger, sustenance | Delapouite |
-| open-book | Journal, knowledge, records | Lorc |
-| padlock | Locked actions, restrictions | Lorc |
-| round-star | Mastered, favorites, achievements | Delapouite |
-| scales | Balance, justice, fairness | Lorc |
-| shaking-hands | Diplomacy, agreements, cooperation | Delapouite |
-| sparkles | Magic, special effects, enhancement | Delapouite |
-| target-arrows | Skills, precision, goals, resolve | Lorc |
+Icons include alarm-clock for time and urgency by Delapouite, backpack for inventory by Delapouite, biceps for strength by Delapouite, brain for intelligence by Lorc, cancel for failed actions by sbed, check-mark for completed actions by Delapouite, coins for currency by Delapouite, crown for authority by Lorc, cut-diamond for rare resources by Lorc, drama-masks for cunning by Lorc, hazard-sign for warnings by Lorc, health-normal for health by sbed, hearts for rapport by Skoll, magnifying-glass for investigation by Lorc, meal for food by Delapouite, open-book for journal by Lorc, padlock for locked actions by Lorc, round-star for mastered achievements by Delapouite, scales for balance by Lorc, shaking-hands for diplomacy by Delapouite, sparkles for magic by Delapouite, and target-arrows for skills by Lorc.
 
 **Finding icons:**
-- Source: https://game-icons.net
-- Library: 4000+ high-quality SVG icons
-- License: CC BY 3.0 (free with attribution)
-- Style: Cohesive fantasy/game aesthetic
+Source: https://game-icons.net. Library: 4000+ high-quality SVG icons. License: CC BY 3.0 (free with attribution). Style: Cohesive fantasy/game aesthetic.
 
 ## ADDING NEW ICONS
 
 **Process (MANDATORY for all new icons):**
 
-1. **Search game-icons.net:**
-   - Use search to find appropriate icon
-   - Preview multiple options for best thematic fit
-   - Verify icon conveys intended meaning clearly
+Search game-icons.net using search to find appropriate icon, previewing multiple options for best thematic fit and verifying icon conveys intended meaning clearly.
 
-2. **Download white SVG version:**
-   - Select icon on game-icons.net
-   - Choose white icon (ffffff) on black background (000000)
-   - Download SVG file
+Download white SVG version by selecting icon on game-icons.net, choosing white icon (ffffff) on black background (000000), and downloading SVG file.
 
-3. **Save to icon directory:**
-   - Path: `src/wwwroot/game-icons/{icon-name}.svg`
-   - Use kebab-case naming (lowercase with hyphens)
-   - Keep original filename from game-icons.net when possible
+Save to icon directory at path src/wwwroot/game-icons/{icon-name}.svg using kebab-case naming (lowercase with hyphens) and keeping original filename from game-icons.net when possible.
 
-4. **Document attribution:**
-   - Update `src/wwwroot/game-icons/README.md`
-   - Add creator name to attribution list
-   - Update `THIRD-PARTY-LICENSES.md` with icon and creator
+Document attribution by updating src/wwwroot/game-icons/README.md, adding creator name to attribution list, and updating THIRD-PARTY-LICENSES.md with icon and creator.
 
-5. **Use via Icon component:**
-   ```razor
-   <Icon Name="{icon-name}" CssClass="appropriate-class" />
-   ```
+Use via Icon component with Name parameter set to icon-name and appropriate CssClass.
 
 **Verification:**
-- Icon displays correctly in browser
-- SVG styling applies (color, size work as expected)
-- No console errors when loading icon
-- Attribution documented properly
+Icon displays correctly in browser. SVG styling applies (color, size work as expected). No console errors when loading icon. Attribution documented properly.
 
 ## ENFORCEMENT
 
 **Code review checklist:**
-- ❌ REJECT: Any PR with emojis in game content (💰❤️💪🎯 etc.)
-- ❌ REJECT: Unicode symbols for resources/stats (★◆●▲)
-- ❌ REJECT: Emoji fallbacks in code ("💰" if icon fails to load)
-- ✓ APPROVE: Icon component usage with proper SVG icons
-- ✓ APPROVE: Minimal interface emojis (✕ ✓ →) for basic UI only
+REJECT: Any PR with emojis in game content or unicode symbols for resources/stats or emoji fallbacks in code. APPROVE: Icon component usage with proper SVG icons and minimal interface emojis for basic UI only.
 
 **Refactoring existing emoji usage:**
-- All existing emojis in game content are TECHNICAL DEBT
-- Replace systematically following the Icon System pattern
-- No new emoji usage ever (zero tolerance)
-- Document icon replacements in commit messages
+All existing emojis in game content are TECHNICAL DEBT. Replace systematically following the Icon System pattern. No new emoji usage ever (zero tolerance). Document icon replacements in commit messages.
 
 **Testing requirements:**
-- Verify all icons load in browser (no 404s)
-- Test icon appearance across light/dark themes
-- Ensure CSS classes apply colors correctly
-- Check accessibility (icons display with proper context)
+Verify all icons load in browser (no 404s). Test icon appearance across light/dark themes. Ensure CSS classes apply colors correctly. Check accessibility (icons display with proper context).
 
 **Gordon Ramsay standard:**
 "You're serving emojis in a PROFESSIONAL GAME? Those pixelated unicode turds look different on every bloody platform! Use proper SVG icons or GET OUT!"
@@ -1215,49 +739,27 @@ private string RenderMessageWithIcons(string message)
 # USER CODE PREFERENCES
 
 **Types:**
-- ONLY: `List<T>` where T is entity/enum, strongly-typed objects, int (never float)
-- FORBIDDEN: Dictionary, HashSet, var, object, func, lambda expressions
+ONLY: List with generic type parameter where type is entity/enum, strongly-typed objects, int (never float). FORBIDDEN: Dictionary, HashSet, var keyword, object type, func type, lambda expressions.
 
 **Lambdas:**
-- FORBIDDEN: Backend event handlers, Action<>, Func<>, DI registration lambdas
-- ALLOWED: LINQ queries (.Where, .Select, .FirstOrDefault, etc.)
-- ALLOWED: Frontend Blazor event handlers (@onclick, etc.)
-- ALLOWED: Framework configuration (HttpClient timeout, ASP.NET Core middleware)
-- Example violation: `services.AddSingleton<GameWorld>(_ => GameWorldInitializer.CreateGameWorld())`
-- Example correct: `GameWorld gameWorld = GameWorldInitializer.CreateGameWorld(); builder.Services.AddSingleton(gameWorld);`
-- Example violation: `AppDomain.CurrentDomain.ProcessExit += (s, e) => { Log.CloseAndFlush(); };`
-- Example correct: `AppDomain.CurrentDomain.ProcessExit += OnProcessExit;` with named method
-- Example allowed: `var route = routes.FirstOrDefault(r => r.Id == routeId);`
-- Example exception: `services.AddHttpClient<OllamaClient>(client => { client.Timeout = TimeSpan.FromSeconds(5); });`
+FORBIDDEN: Backend event handlers, Action generic delegates, Func generic delegates, DI registration lambdas. ALLOWED: LINQ queries (Where, Select, FirstOrDefault, etc.), Frontend Blazor event handlers (@onclick, etc.), Framework configuration (HttpClient timeout, ASP.NET Core middleware).
+
+Example violation: DI registration using lambda with underscore parameter. Example correct: Create instance explicitly then AddSingleton with instance. Example violation: Event handler using lambda with parameters. Example correct: Event handler using named method. Example allowed: LINQ FirstOrDefault with lambda predicate. Example exception: AddHttpClient with lambda for client configuration.
 
 **Tuples:**
-- FORBIDDEN everywhere in codebase
-- Use explicit classes or structs instead
+FORBIDDEN everywhere in codebase. Use explicit classes or structs instead.
 
 **Structure:**
-- Domain Services and Entities (no Helper/Utility classes)
-- No extension methods
-- One method, one purpose (no ByX/WithY/ForZ overloads)
-- No method proliferation or input-based branching
+Domain Services and Entities (no Helper/Utility classes). No extension methods. One method, one purpose (no ByX/WithY/ForZ overloads). No method proliferation or input-based branching.
 
 **Code Quality:**
-- No exception handling (unless requested)
-- No logging (unless requested)
-- Avoid comments
-- Never throw Exceptions
-- No defaults unless strictly necessary (let it fail)
-- No backwards compatibility
+No exception handling (unless requested). No logging (unless requested). Avoid comments. Never throw Exceptions. No defaults unless strictly necessary (let it fail). No backwards compatibility.
 
 **Formatting:**
-- Free flow text over bullet lists (where applicable)
-- Never label "Revised"/"Refined"
-- No regions
-- No inline styles
+Free flow text over bullet lists (where applicable). Never label "Revised"/"Refined". No regions. No inline styles.
 
 **Emojis and Icons:**
-- See ICON SYSTEM (NO EMOJIS) section above for complete policy
-- FORBIDDEN: Emojis in game content, code comments, documentation
-- REQUIRED: Icon component with SVG icons from game-icons.net
+See ICON SYSTEM (NO EMOJIS) section above for complete policy. FORBIDDEN: Emojis in game content, code comments, documentation. REQUIRED: Icon component with SVG icons from game-icons.net.
 
 ---
 
@@ -1270,24 +772,13 @@ The backend exists to model game logic and player state. The frontend exists to 
 ## PRINCIPLE STATEMENT
 
 Backend code MUST NEVER:
-- Decide how information is displayed (visual presentation)
-- Select display formats, colors, or styling (CSS classes)
-- Choose icon names or visual representations
-- Map domain concepts to presentation tokens
-- Generate display strings that contain presentation metadata
+Decide how information is displayed (visual presentation). Select display formats, colors, or styling (CSS classes). Choose icon names or visual representations. Map domain concepts to presentation tokens. Generate display strings that contain presentation metadata.
 
 Backend code MUST ONLY:
-- Model domain entities (Player, Location, Resource, etc.)
-- Calculate game state and validity (business logic)
-- Return domain semantics (enums, plain values, descriptions)
-- Expose game state for frontend consumption
+Model domain entities (Player, Location, Resource, etc.). Calculate game state and validity (business logic). Return domain semantics (enums, plain values, descriptions). Expose game state for frontend consumption.
 
 Frontend code MUST:
-- Transform domain state into visual presentation
-- Map domain enums/values to visual representations
-- Select colors, icons, and styling based on game state
-- Decide how player-facing information is organized
-- Apply all presentation logic after receiving backend data
+Transform domain state into visual presentation. Map domain enums/values to visual representations. Select colors, icons, and styling based on game state. Decide how player-facing information is organized. Apply all presentation logic after receiving backend data.
 
 ## WHY THIS MATTERS
 
@@ -1304,358 +795,92 @@ Frontend code MUST:
 ## VIOLATIONS (FORBIDDEN)
 
 **Violation: Backend setting CSS classes**
-```csharp
-// FORBIDDEN - Backend deciding presentation
-public class TravelStatusViewModel
-{
-    public string FocusClass { get; set; } // CSS class: "", "warning", "danger"
-}
-
-// FORBIDDEN - Backend setting the value
-return new TravelStatusViewModel
-{
-    FocusClass = weight > 50 ? "danger" : weight > 25 ? "warning" : ""
-};
-```
+ViewModel has CSS class property where backend sets value based on domain logic choosing between danger, warning, or empty string. This is backend deciding presentation.
 
 **Violation: Backend selecting icon names**
-```csharp
-// FORBIDDEN - Backend choosing display representation
-public class RouteTokenRequirementViewModel
-{
-    public string Icon { get; set; }
-}
-
-var requirement = new RouteTokenRequirementViewModel
-{
-    Icon = "coins", // Backend should never choose this
-};
-```
+ViewModel has Icon property where backend chooses icon name string. Backend should never choose display representation.
 
 **Violation: Backend mapping domain to display strings**
-```csharp
-// FORBIDDEN - Backend deciding how conversation types display
-string displayText = conversationType switch
-{
-    "friendly_chat" => "Friendly Chat",
-    "request" => "Request",
-    "delivery" => "Deliver Letter",
-    _ => "Talk"
-};
-```
+Backend code uses switch expression on domain values to generate friendly display text like "Friendly Chat" or "Request". This is backend deciding how conversation types display.
 
 **Violation: Backend generating display messages with presentation tokens**
-```csharp
-// FORBIDDEN - Backend embedding icon names in messages
-_messageSystem.AddSystemMessage("{icon:coins} Spent {0} coins on {1}", amount, item);
-
-// FORBIDDEN - Backend creating formatted display strings
-_messageSystem.AddSystemMessage($"Health: {health} | Focus: {focus} | Stamina: {stamina}");
-```
+Backend embeds icon names in message strings or creates formatted display strings with layout. This is backend creating presentation metadata.
 
 **Violation: Backend choosing description text for display**
-```csharp
-// FORBIDDEN - Backend generating "friendly" display descriptions
-public class NPCInteractionViewModel
-{
-    public string Description { get; set; }
-}
-
-var description = connectionState switch
-{
-    ConnectionState.Friendly => "This NPC likes you",
-    ConnectionState.Neutral => "This NPC is neutral to you",
-    ConnectionState.Hostile => "This NPC dislikes you",
-};
-```
+ViewModel has Description property where backend generates "friendly" display descriptions based on connection state. This is backend generating UI text.
 
 ## CORRECT PATTERNS (REQUIRED)
 
 **Pattern: Backend exposes domain enum, frontend decides presentation**
-```csharp
-// Backend: Domain enum
-public enum ConnectionState
-{
-    Neutral,
-    Friendly,
-    Hostile
-}
-
-// Backend: ViewModel with domain value, NOT presentation
-public class NPCInteractionViewModel
-{
-    public string NPCId { get; set; }
-    public ConnectionState RelationshipState { get; set; } // Domain, not presentation
-}
-
-// Frontend: Maps domain to presentation
-@switch(Model.RelationshipState)
-{
-    case ConnectionState.Friendly:
-        <span class="connection-friendly">
-            <Icon Name="hearts" CssClass="stat-rapport" />
-            This NPC likes you
-        </span>
-        break;
-    case ConnectionState.Neutral:
-        <span class="connection-neutral">
-            <Icon Name="scales" CssClass="icon-neutral" />
-            This NPC is neutral
-        </span>
-        break;
-    // ...
-}
-```
+Backend defines domain enum with values. Backend ViewModel contains domain enum value, NOT presentation strings or CSS classes. Frontend Razor component switches on domain enum to select CSS classes, icon names, and display text. Presentation decisions happen entirely in frontend.
 
 **Pattern: Backend provides values, frontend decides styling**
-```csharp
-// Backend: Pure domain data
-public class TravelStatusViewModel
-{
-    public int TotalWeight { get; set; }
-    public int MaxCapacity { get; set; }
-}
-
-// Frontend: Decides presentation based on values
-@{
-    double weightRatio = (double)Model.TotalWeight / Model.MaxCapacity;
-    string cssClass = weightRatio > 0.8 ? "danger" :
-                     weightRatio > 0.6 ? "warning" : "";
-}
-
-<div class="travel-capacity @cssClass">
-    <Icon Name="backpack" CssClass="resource-item" />
-    Weight: @Model.TotalWeight / @Model.MaxCapacity
-</div>
-```
+Backend ViewModel contains pure domain data like integer values without presentation hints. Frontend calculates ratios and determines CSS classes based on thresholds. Frontend combines domain data with Icon component and appropriate styling.
 
 **Pattern: Backend provides domain data, frontend generates display text**
-```csharp
-// Backend: Domain enum for action type
-public enum ConversationAction
-{
-    FriendlyChat,
-    ServiceRequest,
-    Delivery,
-    Negotiation
-}
-
-// Backend: ViewModel with enum, NOT display text
-public class InteractionOptionViewModel
-{
-    public ConversationAction ActionType { get; set; }
-}
-
-// Frontend: Generates display text based on enum
-private string GetActionDisplayText(ConversationAction action) => action switch
-{
-    ConversationAction.FriendlyChat => "Friendly Chat",
-    ConversationAction.ServiceRequest => "Request Service",
-    ConversationAction.Delivery => "Deliver Letter",
-    ConversationAction.Negotiation => "Make Amends",
-    _ => "Interact"
-};
-```
+Backend defines domain enum for action types. Backend ViewModel contains enum value, NOT display text string. Frontend helper method maps enum values to display text strings using switch expression.
 
 **Pattern: Backend provides raw state, frontend decides icon selection**
-```csharp
-// Backend: Domain enum for resource type
-public enum ResourceType
-{
-    Coins,
-    Stamina,
-    Health,
-    Focus
-}
-
-// Backend: ViewModel with resource type, NOT icon name
-public class ResourceDisplayViewModel
-{
-    public ResourceType Type { get; set; }
-    public int Amount { get; set; }
-}
-
-// Frontend: Maps resource type to icon
-private string GetResourceIconName(ResourceType type) => type switch
-{
-    ResourceType.Coins => "coins",
-    ResourceType.Stamina => "biceps",
-    ResourceType.Health => "health-normal",
-    ResourceType.Focus => "cut-diamond",
-    _ => "sparkles"
-};
-
-<Icon Name="@GetResourceIconName(Model.Type)" CssClass="@GetResourceClass(Model.Type)" />
-```
+Backend defines domain enum for resource types. Backend ViewModel contains resource type enum and amount, NOT icon name. Frontend helper method maps resource type to icon name. Frontend uses mapped icon name with Icon component.
 
 **Pattern: Backend provides reason codes, frontend generates messages**
-```csharp
-// Backend: Domain enum for restriction reason
-public enum ActionRestrictionReason
-{
-    InsufficientStamina,
-    InsufficientCoins,
-    RequiredItemMissing,
-    TimeBlockRestriction,
-    TutorialRestriction
-}
-
-// Backend: ViewModel with enum, NOT message text
-public class ActionAvailabilityViewModel
-{
-    public bool IsAvailable { get; set; }
-    public ActionRestrictionReason? RestrictionReason { get; set; }
-}
-
-// Frontend: Generates user-friendly message
-private string GetRestrictionMessage(ActionRestrictionReason reason) => reason switch
-{
-    ActionRestrictionReason.InsufficientStamina => "You're too tired for this action",
-    ActionRestrictionReason.InsufficientCoins => "You can't afford this",
-    ActionRestrictionReason.RequiredItemMissing => "You don't have the required item",
-    ActionRestrictionReason.TimeBlockRestriction => "This action isn't available now",
-    ActionRestrictionReason.TutorialRestriction => "This is blocked during the tutorial",
-    _ => "This action is unavailable"
-};
-```
+Backend defines domain enum for restriction reasons. Backend ViewModel contains availability boolean and optional restriction reason enum, NOT message text. Frontend helper method generates user-friendly messages from reason codes.
 
 ## ENFORCEMENT
 
 **Code review checklist - REJECT pull requests with:**
-- ❌ ViewModels containing CSS class properties (`CssClass`, `StyleClass`, etc.)
-- ❌ ViewModels containing icon name properties (`Icon`, `IconName`, etc.)
-- ❌ Backend code switching on display type: `switch (displayType) { case "icon": ... }`
-- ❌ Backend generating display strings for presentation: `"Friendly Chat"` hardcoded in service
-- ❌ Message tokens with presentation: `"{icon:coins}"` in backend messages
-- ❌ Display text generation in services: `nameof()` for display, `ToString()` with formatting
-- ❌ CSS class names flowing through domain services
-- ❌ Icon selection logic in backend facades
-- ❌ Display formatting logic in backend (spacing, punctuation for display)
+ViewModels containing CSS class properties (CssClass, StyleClass, etc.). ViewModels containing icon name properties (Icon, IconName, etc.). Backend code switching on display type. Backend generating display strings for presentation hardcoded in service. Message tokens with presentation in backend messages. Display text generation in services using nameof for display or ToString with formatting. CSS class names flowing through domain services. Icon selection logic in backend facades. Display formatting logic in backend (spacing, punctuation for display).
 
 **Code review checklist - APPROVE pull requests with:**
-- ✓ Domain enums flowing from backend to frontend
-- ✓ Plain values (int, string, bool) in ViewModels
-- ✓ Frontend helper methods mapping domain → presentation
-- ✓ CSS classes applied only in Razor components
-- ✓ Icon selection in frontend only
-- ✓ Display text generated in frontend helper methods
-- ✓ System messages containing ONLY domain data, no presentation
+Domain enums flowing from backend to frontend. Plain values (int, string, bool) in ViewModels. Frontend helper methods mapping domain to presentation. CSS classes applied only in Razor components. Icon selection in frontend only. Display text generated in frontend helper methods. System messages containing ONLY domain data, no presentation.
 
 **Verification command:**
-```bash
-# Find CSS class properties in ViewModels
-grep -r "CssClass\|StyleClass\|IconClass" src/ViewModels --include="*.cs"
-
-# Find backend setting icon names
-grep -r "Icon =" src/Services src/Subsystems --include="*.cs" | grep -v "Icon component"
-
-# Find backend display text hardcoding
-grep -r "\"Friendly Chat\"\|\"Request\"\|\"Deliver\"" src --include="*.cs" | grep -v "Frontend\|Razor"
-```
+Grep searches for CssClass, StyleClass, or IconClass in ViewModels directory. Grep searches for Icon assignment in Services and Subsystems directories excluding Icon component references. Grep searches for hardcoded display text strings in source excluding Frontend and Razor files.
 
 **Test requirements:**
-- Backend tests verify domain logic, NOT presentation
-- Test uses domain enums/values, never checks CSS classes or icon names
-- Frontend tests (if applicable) verify presentation mapping, NOT game logic
+Backend tests verify domain logic, NOT presentation. Test uses domain enums/values, never checks CSS classes or icon names. Frontend tests (if applicable) verify presentation mapping, NOT game logic.
 
 ---
 
 # WORKING PRINCIPLES
 
 **Refactoring Philosophy:**
-- Delete first, fix after (don't preserve broken patterns)
-- No compatibility layers or gradual migration (clean breaks)
-- Complete refactoring only (no half-measures)
-- HIGHLANDER: One concept, one implementation
-- Finish what you start (no TODO comments)
-- If you can't do it right, don't do it at all
-- NO SHORTCUTS: Never document violations as "acceptable"
-- Massive refactorings REQUIRED if they fix violations
-- Partner not sycophant: Do hard work, not easy path
+Delete first, fix after (don't preserve broken patterns). No compatibility layers or gradual migration (clean breaks). Complete refactoring only (no half-measures). HIGHLANDER: One concept, one implementation. Finish what you start (no TODO comments). If you can't do it right, don't do it at all. NO SHORTCUTS: Never document violations as "acceptable". Massive refactorings REQUIRED if they fix violations. Partner not sycophant: Do hard work, not easy path.
 
 **CONTRACT BOUNDARIES FIRST (Refactoring Order):**
 When refactoring across system boundaries, define contracts at boundaries BEFORE touching internal implementation.
 
 **The Five Phases (STRICT ORDER)**:
 
-1. **INPUT BOUNDARY** (JSON/External Data)
-   - Remove entity instance IDs from JSON files
-   - Replace with categorical properties
-   - Define PlacementFilter structure
-   - Example: ❌ `"npcId": "elena"` → ✅ `"npcFilter": { "profession": "Innkeeper", "demeanor": "Friendly" }`
+INPUT BOUNDARY (JSON/External Data): Remove entity instance IDs from JSON files. Replace with categorical properties. Define PlacementFilter structure.
 
-2. **PARSER TRANSFORMATION** (DTO → Domain)
-   - DTOs match JSON structure (categorical properties)
-   - Parsers use EntityResolver.FindOrCreate
-   - Output: Domain objects with object references
-   - NO ID lookups, NO string parameters
+PARSER TRANSFORMATION (DTO to Domain): DTOs match JSON structure (categorical properties). Parsers use EntityResolver.FindOrCreate. Output domain objects with object references. NO ID lookups, NO string parameters.
 
-3. **PUBLIC API** (GameWorld/Facade Interface)
-   - GameWorld exposes collections: `.Locations`, `.NPCs`, `.Scenes`
-   - Facades accept objects, not strings
-   - NO `GetById` methods, NO string parameter methods
-   - Query collections directly or use LINQ
+PUBLIC API (GameWorld/Facade Interface): GameWorld exposes collections for Locations, NPCs, Scenes. Facades accept objects, not strings. NO GetById methods, NO string parameter methods. Query collections directly or use LINQ.
 
-4. **OUTPUT BOUNDARY** (ViewModels/UI)
-   - ViewModels contain objects, not ID strings
-   - Event handlers receive objects, not strings
-   - Pass objects through entire chain
+OUTPUT BOUNDARY (ViewModels/UI): ViewModels contain objects, not ID strings. Event handlers receive objects, not strings. Pass objects through entire chain.
 
-5. **INTERNAL IMPLEMENTATION** (Falls into Place)
-   - Services implement against clear contracts
-   - Managers use object references
-   - No lookups needed (contracts provide objects)
+INTERNAL IMPLEMENTATION (Falls into Place): Services implement against clear contracts. Managers use object references. No lookups needed (contracts provide objects).
 
 **Why This Order**:
-- Input defines what data looks like (categorical properties)
-- Parser defines transformation (categorical → objects)
-- Public API defines access patterns (object queries)
-- Output defines presentation (objects → display)
-- Internal code adapts to boundaries (no choice, must use objects)
+Input defines what data looks like (categorical properties). Parser defines transformation (categorical to objects). Public API defines access patterns (object queries). Output defines presentation (objects to display). Internal code adapts to boundaries (no choice, must use objects).
 
-**Example Violation**: Changing services before fixing JSON = chaos (services don't know if data is IDs or properties)
-**Correct Pattern**: Fix JSON → Fix Parser → Fix API → Services adapt automatically
+**Example Violation**: Changing services before fixing JSON creates chaos (services don't know if data is IDs or properties). **Correct Pattern**: Fix JSON then Parser then API then Services adapt automatically.
 
 **Documentation Philosophy (META-PRINCIPLE):**
-- Document PRINCIPLES, never current broken state
-- FORBIDDEN: "Technical debt" sections legitimizing violations
-- FORBIDDEN: "TODO: Fix this later" in documentation
-- FORBIDDEN: "Current implementation violates X but will be fixed"
-- CORRECT: State the principle clearly, violations are just violations
-- If code violates principle: Fix it (massive refactoring if needed)
-- If you can't fix now: Don't document the violation at all
-- Documentation describes HOW THINGS SHOULD BE, not how they currently are wrong
+Document PRINCIPLES, never current broken state. FORBIDDEN: "Technical debt" sections legitimizing violations. FORBIDDEN: "TODO: Fix this later" in documentation. FORBIDDEN: "Current implementation violates X but will be fixed". CORRECT: State the principle clearly, violations are just violations. If code violates principle: Fix it (massive refactoring if needed). If you can't fix now: Don't document the violation at all. Documentation describes HOW THINGS SHOULD BE, not how they currently are wrong.
 
 **Process Discipline:**
-- Read documentation FIRST (achieve 100% certainty before acting)
-- Never invent mechanics (everything in docs or code)
-- 9/10 certainty threshold before making changes
-- Holistic impact analysis (what breaks if I change this?)
-- Dependency analysis before refactoring
-- Never assume - always verify via code search
+Read documentation FIRST (achieve 100% certainty before acting). Never invent mechanics (everything in docs or code). 9/10 certainty threshold before making changes. Holistic impact analysis (what breaks if I change this?). Dependency analysis before refactoring. Never assume - always verify via code search.
 
 **Technical Discipline:**
-- Async everywhere (always async/await, never .Wait() or .Result)
-- Propagate async to UI (if method calls async, it must be async)
-- JSON field names MUST match C# properties (no JsonPropertyName attribute)
-- Parsers must parse (no JsonElement passthrough)
-- Dumb UI (no game logic in components, backend determines availability)
+Async everywhere (always async/await, never .Wait() or .Result). Propagate async to UI (if method calls async, it must be async). JSON field names MUST match C# properties (no JsonPropertyName attribute). Parsers must parse (no JsonElement passthrough). Dumb UI (no game logic in components, backend determines availability).
 
 **Testing Requirements (MANDATORY):**
-- ALL logic changes require unit tests BEFORE committing
-- Test coverage mandatory for:
-  - Complex algorithms (shuffling, searching, sorting, path finding)
-  - Edge cases (empty collections, null values, boundary conditions)
-  - Business logic (capacity enforcement, validation rules, selection strategies)
-  - State mutations (entity updates, relationship maintenance)
-- FORBIDDEN: Committing untested logic changes
-- Verification command: `cd src && dotnet test`
-- If tests fail to compile or run: FIX TESTS FIRST, commit after
-- Test files must be included in same commit as implementation
+ALL logic changes require unit tests BEFORE committing. Test coverage mandatory for complex algorithms (shuffling, searching, sorting, path finding), edge cases (empty collections, null values, boundary conditions), business logic (capacity enforcement, validation rules, selection strategies), and state mutations (entity updates, relationship maintenance). FORBIDDEN: Committing untested logic changes. Verification command: cd src && dotnet test. If tests fail to compile or run: FIX TESTS FIRST, commit after. Test files must be included in same commit as implementation.
 
 **Build Commands:**
-- Build: `cd src && dotnet build`
-- Test: `cd src && dotnet test`
+Build: cd src && dotnet build. Test: cd src && dotnet test.
 
 ---
 

@@ -19,7 +19,17 @@ This section documents patterns, principles, and conventions that span multiple 
 
 **Core Principle**: "There can be only ONE." One concept gets one representation. Domain entities use object references ONLY. No IDs, no redundant storage, no duplicate paths.
 
-**Exception**: Templates can have IDs (SceneTemplate.Id, SituationTemplate.Id) because templates are immutable archetypes, not mutable entity instances. Templates are content definitions, not game state.
+**ENTITY INSTANCE IDs DO NOT EXIST. PERIOD.**
+
+Domain entities (NPC, Location, Route, Scene, Situation) have **NO ID PROPERTIES**. All entity relationships use **DIRECT OBJECT REFERENCES**. This is architectural law, not a guideline.
+
+**The Only Exception: Template IDs**
+
+Templates can have IDs (SceneTemplate.Id, SituationTemplate.Id, ArchetypeId) because templates are **immutable archetypes**, not mutable entity instances:
+- ✅ Template IDs acceptable: SceneTemplate.Id, SituationTemplate.Id, ArchetypeId
+- ❌ Entity instance IDs FORBIDDEN: Scene.Id, Situation.Id, NPC.Id, Location.Id, Route.Id
+
+**Why the distinction:** Templates are content definitions (like classes). Instances are game state (like objects). Templates don't change during gameplay. Instances do. IDs belong to immutable definitions, not mutable state.
 
 **Pattern**:
 - Domain entities have NO ID properties
@@ -27,17 +37,19 @@ This section documents patterns, principles, and conventions that span multiple 
 - Parser uses categorical properties to find/create entities (EntityResolver.FindOrCreate)
 - NEVER store both ID and object reference (violates Single Source of Truth)
 
-**Correct Pattern Structure**:
+**Correct Implementation**:
 
-Domain entities store direct object references to related entities rather than ID strings. NPC entities have a Location property containing the actual Location object, not a location ID string. Scene entities reference their CurrentSituation object directly, along with direct references to their Location and NPC placement. Situation entities maintain references to their Template (templates are allowed to have IDs as they're immutable archetypes), along with direct object references to Location and the parent Scene. This creates a clean object graph where entities hold actual references to other entities, enabling navigation through the domain model without lookup operations.
+Entity classes contain only object reference properties, never ID properties. NPC class has Location property holding direct reference to Location object, not LocationId string. Scene class contains direct Situation object reference via CurrentSituation property. All relationships modeled as direct object graph navigation without intermediate ID lookups.
 
 **Parser Pattern (EntityResolver.FindOrCreate)**:
 
-The parser resolves entities using categorical properties through a FindOrCreate pattern. When resolving a Location, the method queries existing locations in GameWorld using filter criteria like Purpose and Safety properties. If a matching location exists (categorical properties align), the parser returns that existing object reference. If no match is found, the parser creates a new Location instance populated with categorical properties from the filter, adds it to GameWorld's Locations collection, and returns the newly created object reference. This pattern eliminates ID dependencies - the parser works entirely with categorical matching and direct object references, never generating or storing ID strings.
+Parser receives categorical filters and queries existing entities by matching properties like Purpose, Safety, LocationProperties. If matching entity found, return existing object reference. If no match, create new entity from categorical properties, add to GameWorld collection, and return new object reference. No ID assignment or ID-based lookup occurs anywhere in resolution process.
 
 **FORBIDDEN Patterns**:
 
-Several patterns violate the HIGHLANDER principle and must be avoided. Storing both an ID string and an object reference creates redundancy - for example, RouteOption should not have both OriginLocationId and OriginLocation properties, as this duplicates the same information in two forms and can desynchronize. Storing ID-only properties without object references forces runtime lookups - SceneSpawnReward should reference the actual SceneTemplate object rather than storing just a template ID string. Maintaining lists of ID strings instead of object lists violates the pattern - Player should maintain an ActiveObligations collection of Obligation objects, not an ActiveObligationIds collection of string identifiers. The correct pattern uses object references exclusively: collections contain entity objects, properties reference entity objects, and no ID strings exist in the domain layer.
+Entity instance classes must never contain ID properties. NPC class with Id property or LocationId property violates architecture. RouteOption storing both OriginLocationId string and OriginLocation object creates redundancy violating HIGHLANDER. SceneSpawnReward with LocationId string for entity instance (not template) forbidden. Player class with ActiveObligationIds list of strings instead of ActiveObligations list of objects violates pattern.
+
+Correct pattern uses only object references: NPC contains Location object property, WorkLocation object property. Player contains ActiveObligations list of Obligation objects. No ID properties exist on entity instances at all.
 
 **Why This Pattern**:
 - **Single Source of Truth**: Object IS the truth, no ID to get out of sync
@@ -70,13 +82,13 @@ Several patterns violate the HIGHLANDER principle and must be avoided. Storing b
 
 #### Catalogue Generation Example
 
-Catalogues accept archetype definitions and generation context containing categorical properties. The method retrieves base numeric values from the archetype template, then applies scaling multipliers based on categorical context properties. For example, if the context indicates a friendly demeanor, the base threshold might be scaled by a 0.6 multiplier (making it easier). If the context indicates superior power dynamics, the base threshold might be scaled by a 1.4 multiplier (making it harder). These multipliers compound when multiple categorical properties apply. The method returns a collection of choice templates where all properties have been resolved to concrete integer values - stat thresholds, coin costs, and reward amounts are all deterministic numbers ready for runtime evaluation. No categorical properties remain in the output - translation happens once at parse-time, and the concrete results are stored permanently.
+Catalogue methods receive archetype template and generation context containing categorical properties like NpcDemeanor and PowerDynamic. Scale base threshold by multipliers derived from categorical enums: Friendly demeanor applies 0.6 multiplier, Superior power dynamic applies 1.4 multiplier. Return ChoiceTemplate with concrete StatThreshold and CoinCost integers ready for runtime evaluation. No further catalogue calls needed once template generated.
 
 #### FORBIDDEN Forever
 
 - ❌ Runtime catalogue calls (parse-time ONLY)
-- ❌ String matching: `if (action.Id == "secure_room")`
-- ❌ Dictionary lookups: `Cost["coins"]`, `Cost.ContainsKey("coins")`
+- ❌ String matching: checking action ID equals specific string literal
+- ❌ Dictionary lookups: accessing costs via string keys or ContainsKey checks
 - ❌ ID-based routing: Entity IDs are reference only, never control behavior
 
 ---
@@ -98,7 +110,7 @@ Catalogues accept archetype definitions and generation context containing catego
 - Stored in GameWorld.SceneTemplates
 - NEVER modified during gameplay
 
-**Structure**: Template entities serve as immutable blueprints containing an identifier property and a collection of embedded child templates. Each template stores base values and categorical properties used during instantiation. Templates are created once from JSON during game initialization and remain unchanged throughout gameplay. The template collection stores reusable patterns that can spawn multiple runtime instances without modifying the original template definitions.
+**Structure**: SceneTemplate class contains Id property and list of SituationTemplate objects representing embedded template hierarchy.
 
 #### Tier 2: Scenes/Situations (Spawn Time)
 
@@ -206,17 +218,23 @@ Player at Location → SceneFacade.GetActionsAtLocation()
 
 #### Philosophy
 
-**WRONG**: The anti-pattern checks for null data and silently creates a default object instance to allow execution to continue. This hides the underlying problem by papering over missing data with manufactured defaults that may have incorrect state, making it difficult to identify why data is absent.
+**WRONG**: Detecting null data and creating default fallback object silently hides missing data problem. Code continues executing with incorrect state, bugs manifest far from root cause.
 
-**CORRECT**: The proper pattern checks for null and immediately throws an exception with a descriptive message explaining what data was expected and where it should have come from. This fails fast at the point of detection, forcing immediate investigation and correction of the root cause rather than allowing silent degradation.
+**CORRECT**: Detecting null data and throwing InvalidOperationException with descriptive message indicating expected data source forces fixing root cause immediately. Crash reveals problem location in stack trace.
 
 #### Application Areas
 
-**1. Entity Initialization**: Entities initialize collection properties inline with empty collections as part of their declaration. Parsers trust this initialization exists and assign parsed data directly to the property without null-coalescing checks. If the parser receives null data, it assigns null and the code crashes. Runtime code similarly trusts initialization and accesses collection properties directly - querying count or iterating without defensive null checks. If initialization somehow failed, the code crashes immediately at the point of access with a clear null reference exception.
+**1. Entity Initialization**
 
-**2. Parse-Time Validation**: When querying for entities by identifier during parsing, the code searches the collection for a matching template. If the query returns null (no matching template found), the code immediately throws an exception with a message identifying which template identifier was being sought. This fails fast with precise error information rather than allowing null to propagate through the system.
+Collection properties initialized to empty list in property declaration. Parser assigns directly to property trusting initialization never null. Runtime queries collection count trusting initialization. If somehow null, crash immediately revealing initialization bug rather than hiding with null check.
 
-**3. Missing Data**: The forbidden pattern uses null-coalescing to return a default threshold value of 3 when the property is null, hiding the fact that required data is missing. The correct pattern explicitly checks whether the threshold is set (comparing to zero for integer properties) and throws an exception identifying which choice is missing its threshold value. This forces the content author to provide the required value rather than silently substituting defaults.
+**2. Parse-Time Validation**
+
+When searching GameWorld collections for referenced template, if FirstOrDefault returns null, throw InvalidDataException with template ID in message. Parse-time validation ensures all references resolve before gameplay starts. Runtime trusts parse-time validation completed successfully.
+
+**3. Missing Data**
+
+Forbidden pattern: returning nullable StatThreshold with null-coalescing operator defaulting to hardcoded value. Correct pattern: checking if StatThreshold equals zero (unset sentinel) and throwing InvalidOperationException with choice identifier in message. Forces content author to set required property rather than masking missing data.
 
 #### When NOT to Let It Crash
 
@@ -224,7 +242,7 @@ Player at Location → SceneFacade.GetActionsAtLocation()
 - **External API failures**: Retry logic appropriate
 - **Expected gameplay conditions**: Player not meeting requirements (show UI feedback, don't crash)
 
-**Example**: For expected gameplay states like insufficient resources, the code should return a validation result object rather than throwing exceptions. When checking whether the player can afford an action, if coins are below the cost, the method returns a validation result indicating the check failed with a user-friendly message. This is normal gameplay state, not an error condition - throwing an exception would be inappropriate.
+**Expected Gameplay State**: When player lacks required coins for purchase, return ValidationResult with IsValid false and user-friendly message. This represents normal gameplay state, not architectural error. Don't crash on expected player resource shortages.
 
 ---
 
@@ -234,11 +252,15 @@ Player at Location → SceneFacade.GetActionsAtLocation()
 
 #### Problem with Null
 
-Using null to represent default domain states creates ambiguity. A conditions property set to null could mean "always eligible", "never eligible", "not initialized", or "unspecified". This forces defensive null checks throughout the codebase. Every location checking eligibility must first verify the property isn't null before calling methods, creating repetitive defensive code. Forgetting a null check causes runtime exceptions. The meaning of null remains ambiguous - does absence of conditions mean permissive or restrictive?
+Storing SpawnConditions property as null creates ambiguity: does null mean always eligible or never eligible? Requires null checks scattered throughout codebase. Easy to forget null check before calling methods on conditions object.
+
+**Issues**: Ambiguous meaning, null checks everywhere, easy to forget checks
 
 #### Sentinel Solution
 
-Instead of null, create explicit sentinel objects with descriptive static factory methods. The entity class contains a private boolean flag indicating whether it represents the sentinel case. A static factory property returns a sentinel instance with the flag set. The eligibility evaluation method checks this internal flag first - if the sentinel is active, it returns the appropriate default behavior immediately without evaluating any conditions. Otherwise, it proceeds with actual condition logic. Entities initialize properties to the sentinel value rather than null. Usage code calls methods directly without null checks - the sentinel handles the default case internally. The sentinel value has explicit semantic meaning - "AlwaysEligible" clearly communicates intent compared to ambiguous null.
+SpawnConditions class contains private boolean flag _isAlwaysEligible. Static factory property AlwaysEligible returns new instance with flag set true. IsEligible method checks flag first, returning true immediately if always eligible flag set, otherwise evaluating actual conditions.
+
+Property initialization sets SpawnConditions property to SpawnConditions.AlwaysEligible sentinel by default. No null checks needed in calling code, just call IsEligible method directly knowing object always exists.
 
 #### Benefits
 
@@ -267,11 +289,15 @@ Instead of null, create explicit sentinel objects with descriptive static factor
 
 #### Traditional (Boolean Gate) - WRONG
 
-Traditional progression systems use boolean flags to gate content creation. When the player completes a quest, the completion flag triggers creation of the next quest. The subsequent content doesn't exist in the world until the unlock condition evaluates to true. This creates several problems: content remains completely hidden from the player until unlocked (no perfect information), progression feels like checklist completion rather than strategic choice, players cannot plan ahead because they don't know what's coming, and boolean flags create hard gates rather than resource arithmetic.
+Traditional approach checks boolean flag on player (CompletedQuest), then creates new quest content only after check passes. Content doesn't exist until boolean unlock triggered. Player cannot see what's locked or requirements to unlock.
+
+**Problems**: Hidden content, boolean gates, checklist completion, no strategic planning
 
 #### Requirement Inversion - CORRECT
 
-With requirement inversion, all content entities spawn into the world immediately at game start or early in gameplay. Subsequent content already exists in the game world's collection - it's not created dynamically when conditions are met. Spawn conditions are attached to each entity, filtering visibility and selectability rather than creation. When evaluating whether to show content to the player, the system queries the existing entity's eligibility conditions against current player state. The UI displays the entity with visual indicators showing whether it's currently accessible or locked, along with the exact requirements needed to unlock it. Players see future content and can plan resource allocation strategically.
+Phase 2 scene exists in GameWorld from game start. SpawnConditions property contains eligibility criteria. When querying for available scenes, check IsEligible with player state to filter visibility. UI displays scene with locked/unlocked visual indicator based on eligibility check.
+
+Player sees phase 2 exists, sees exact requirements (Understanding >= 5, CompletedScene("phase1")), and can plan resource allocation to meet requirements. Perfect information enables strategic decision-making.
 
 #### Benefits
 
@@ -308,9 +334,15 @@ With requirement inversion, all content entities spawn into the world immediatel
 - Each active scene spawns separate button with descriptive label
 - Represents available conversation topics or interaction contexts
 
-**Example Display Structure**:
+**Example**:
+```
+Elena at Common Room (physical presence shown)
+├─ Active Scene 1: "Secure Lodging" → Button: "Secure Lodging"
+└─ Active Scene 2: "Inn Trouble Brewing" → Button: "Discuss Inn Trouble"
 
-An NPC entity appears at a location (physical presence always shown). The first NPC has two active scenes simultaneously - one focused on securing lodging with its own button, and another focused on investigating trouble at the inn with a separate button. Each button is labeled descriptively based on its associated scene. A second NPC also appears at the same location (physical presence shown), but this NPC has no currently active scenes, so no interaction buttons appear beneath their listing. Physical presence and interactive opportunities are decoupled - NPCs are always visible when present, but interaction buttons only appear when narrative threads are active.
+Thomas at Common Room (physical presence shown)
+└─ No active scenes → No buttons
+```
 
 #### Scene Independence
 
@@ -330,7 +362,7 @@ Within single scene, situations flow sequentially without interruption:
 4. Player selects choice → Scene cascades to Situation 3
 5. Player selects choice → Scene completes, returns to location view
 
-Scene state machine manages CurrentSituationId and AdvanceToNextSituation() for seamless narrative flow.
+Scene state machine manages CurrentSituation (object reference) and AdvanceToNextSituation() for seamless narrative flow.
 
 #### Perfect Information Requirement
 
@@ -341,7 +373,11 @@ Players must see ALL available interaction options for strategic decisions. Hidi
 
 #### Multi-Scene Display Pattern
 
-The architecture transitioned from single-scene to multi-scene querying. Previously, queries used first-match operators to retrieve only one active scene per NPC, and viewmodels contained a single string property for the interaction label. This pattern assumed NPCs had at most one interactive opportunity at a time. The updated architecture queries for all active scenes matching the NPC and state criteria, returning a collection rather than a single result. Viewmodels now contain a list of scene descriptor objects rather than a single label string. Each descriptor in the list represents one available scene with its own button, label, and routing information. This structural change enables NPCs to serve as hubs for multiple concurrent narrative threads.
+Architecture shift from single-scene to multi-scene:
+
+**Before (Single Scene)**: Query used FirstOrDefault to return single active scene matching NPC. ViewModel contained single InteractionLabel property for button text.
+
+**After (Multi-Scene)**: Query uses Where to return all active scenes matching NPC as list. ViewModel contains AvailableScenes property holding list of NpcSceneViewModel descriptors.
 
 #### Label Derivation Hierarchy
 
@@ -355,7 +391,11 @@ Never hide functional scene because it lacks pretty label. Playability trumps ae
 
 #### Navigation Routing
 
-When players click scene interaction buttons, navigation must route to the specific scene represented by that button. The previous ambiguous pattern passed only the NPC identifier to the navigation handler. The navigation code then searched for any active scene at that NPC using filtering queries, retrieving the first match. This approach breaks when multiple scenes exist - it's ambiguous which scene the player intended to access. The correct explicit pattern passes both the NPC identifier and the scene identifier as a routing pair. The navigation handler receives both identifiers and uses the scene identifier for direct lookup, retrieving exactly the scene the player selected. This explicit routing eliminates ambiguity and ensures each button reliably accesses its associated scene regardless of how many concurrent scenes exist at the NPC.
+When player clicks scene button, navigation must route to SPECIFIC scene:
+
+**Before (Ambiguous)**: Button click passed only npcId. Navigation searched for any active scene at NPC using FirstOrDefault. Ambiguous when multiple scenes exist - which scene should load?
+
+**After (Explicit)**: Button click passes both npcId and sceneId as pair. Navigation uses sceneId for direct lookup via First, ensuring exact scene routing without ambiguity.
 
 #### Spawn Independence
 
@@ -370,7 +410,7 @@ This architectural pattern supports rich narrative branching where NPCs serve as
 
 #### Implementation Requirements
 
-1. **Query Pattern**: Use `.Where()` not `.FirstOrDefault()` when fetching NPC scenes
+1. **Query Pattern**: Use Where not FirstOrDefault when fetching NPC scenes
 2. **ViewModel Structure**: Support list of available scenes per NPC
 3. **UI Rendering**: Loop through available scenes, render one button per scene
 4. **Navigation**: Pass both npcId and sceneId for explicit routing
@@ -393,9 +433,7 @@ This architectural pattern supports rich narrative branching where NPCs serve as
 - Check eligibility when choice executed with ScenesToSpawn reward
 - Trigger System 2 if conditions met
 
-**Eligibility Checking Structure**:
-
-The eligibility method accepts a template containing spawn conditions and the player state object. It first evaluates required tags - if the spawn conditions specify required tags that aren't present in the player's tag collection, eligibility fails immediately. Next it evaluates temporal requirements - if the player's current day is less than the minimum day specified in spawn conditions, eligibility fails. If all conditions pass, the method returns success, signaling that the scene can proceed to the spawning process. This evaluation happens before any scene instantiation occurs, preventing creation of ineligible scenes.
+**Eligibility Check**: SceneFacade method receives SceneTemplate and Player. Checks if any required tags missing from player tag collection, returns false if missing. Checks if current day less than minimum day requirement, returns false if too early. Returns true if all conditions met, proceeding to spawning.
 
 #### System 2: Scene Specification (Data Structure)
 
@@ -403,9 +441,7 @@ The eligibility method accepts a template containing spawn conditions and the pl
 
 **Location**: SceneSpawnReward class, ChoiceReward property
 
-**Data Structure Properties**:
-
-The scene spawn reward entity contains only categorical requirements for spawning. It stores a template identifier string referencing which immutable template to instantiate. It may contain optional placement filter overrides that refine or replace the template's default placement criteria. The structure explicitly does NOT contain context binding concepts, placement relation enumerations, or specific placement identifiers. All placement needs are expressed via categorical filters - either inherited from the template or provided as overrides in the reward. This ensures the reward specification remains pure categorical data without concrete entity references.
+**Data Structure**: SceneSpawnReward class contains SceneTemplateId property (categorical template reference) and optional PlacementFilterOverride property for filter modifications. Contains NO ContextBinding, NO PlacementRelation enum, NO SpecificPlacementId. Categorical properties ONLY expressing spawn requirements.
 
 **Key Principle**: Scene rewards contain ONLY categorical requirements. NO concrete entity IDs. All placement needs expressed via categorical filters on template or override.
 
@@ -423,13 +459,11 @@ The scene spawn reward entity contains only categorical requirements for spawnin
 - Does NOT write concrete entity IDs to JSON
 - Output: SceneDTO package with categorical filters
 
-**Package Generation Flow**:
-
-The scene instantiator service receives a scene spawn reward containing a categorical template identifier. It retrieves the corresponding template from the game world's template collection. The method constructs a scene DTO object with a newly generated unique identifier and stores the template identifier for reference. It copies the placement filter from the template into the DTO structure - this includes location filters specifying categorical properties like location type and tags, NPC filters specifying demeanor and profession, and route filters specifying origin and destination criteria. All of these filters contain categorical properties expressed as enumerations and string tags, not concrete entity identifiers. The service generates child situation DTOs from the template's situation definitions. The completed package contains categorical specifications ready for entity resolution in the next system, with no concrete entity IDs written to the JSON structure.
+**Package Generation**: GenerateScenePackage method receives SceneSpawnReward, loads template from GameWorld by template ID. Creates SceneDTO with generated scene ID and template reference. Writes categorical filters from template directly to DTO LocationFilter, NpcFilter, RouteFilter properties without resolving to concrete entities. Generates embedded SituationDTOs from template situation collection. Returns SceneDTO package ready for System 4 resolution.
 
 **What This Does NOT Do**:
 - Does NOT resolve entities (no FindOrCreate calls)
-- Does NOT write concrete entity IDs ("elena", "common_room_inn")
+- Does NOT write concrete entity IDs (like "elena" or "common_room_inn")
 - Does NOT use PlacementRelation enum (deleted concept)
 - Does NOT use ContextBinding (deleted concept)
 
@@ -454,9 +488,9 @@ The scene instantiator service receives a scene spawn reward containing a catego
 - Generate new entities if no match (eager creation when needed)
 - Return concrete entity OBJECTS (not IDs)
 
-**Resolution Process Structure**:
+**Location Resolution**: FindOrCreateLocation method receives PlacementFilterDTO and GameWorld. Step 1 queries existing locations using Where to match filter properties. If existing match found, return existing object for reuse. Step 2 (if no match) generates new Location from filter categorical properties via GenerateLocation, adds to GameWorld, returns newly generated object. Result is Location object reference, never ID string.
 
-The entity resolver provides methods for each entity type that accept placement filters and the game world. Each method follows a two-step process. First, it queries existing entities in the game world's collections using categorical matching. The query filters entities based on whether their properties match the filter criteria - for locations, this might include matching location type, safety level, and tag requirements. If an existing entity matches all filter criteria, the method returns that entity object immediately, reusing content that already exists rather than generating duplicates. Second, if no existing entity matches, the method proceeds to generation. It invokes a generator method that creates a new entity instance populated with properties derived from the categorical filter criteria. The newly generated entity is added to the game world's appropriate collection, making it available for future reuse. The method returns the generated entity object. All resolution happens eagerly at this point - by the time System 5 executes, all entities are fully resolved and available as objects, never as string identifiers.
+NPC resolution follows identical pattern: query existing NPCs matching filter, return existing if found, otherwise generate and return new NPC object.
 
 **Key Principle**: Entities resolved from categorical properties, returned as objects (NOT IDs). System 5 receives pre-resolved objects.
 
@@ -476,9 +510,7 @@ The entity resolver provides methods for each entity type that accept placement 
 - NO PlacementType enum dispatch (deleted concept)
 - NO string ID lookups
 
-**Scene Construction Structure**:
-
-The scene parser method accepts a DTO containing scene metadata along with pre-resolved entity objects passed as parameters - these objects were already resolved by System 4. The method constructs a new scene entity, copying the unique identifier and template identifier from the DTO. It assigns the pre-resolved entity objects directly to the scene's properties - the location property receives the location object, the NPC property receives the NPC object, and the route property receives the route object. No identifier strings are stored, no enumeration-based dispatch occurs. The scene holds direct object references enabling immediate navigation through the object graph. The parser invokes child parsing methods to create the scene's embedded situations from the DTO's situation collection. The completed scene entity is returned with all references fully resolved and ready for gameplay, requiring no further lookup operations.
+**Scene Creation**: CreateScene method receives SceneDTO plus pre-resolved Location, NPC, and RouteOption objects from System 4. Creates Scene with ID and TemplateId from DTO. Assigns direct object references: Location property receives resolvedLocation parameter, Npc property receives resolvedNpc, Route property receives resolvedRoute. Parses embedded Situations from DTO. Returns complete Scene with all references resolved to objects.
 
 **What This Does NOT Do**:
 - Does NOT resolve entities (System 4 did that)
@@ -495,25 +527,15 @@ The scene parser method accepts a DTO containing scene metadata along with pre-r
 
 **Scenario**: Choice reward spawns "investigate_mill" scene
 
-**System 1 - Decision Flow**:
+**System 1 - Decision**: Choice executed with SceneSpawnReward containing template ID "investigate_mill" and null filter override. SceneFacade checks eligibility against player state. If eligible, proceeds to System 2.
 
-When a choice is executed, its reward contains a scene spawn reward specifying the template identifier for an investigation scene. The placement filter override is null, indicating the system should use the template's default filter. The facade checks template eligibility by evaluating spawn conditions against player state - required tags, minimum day, stat thresholds. If all conditions pass, the system proceeds to specification.
+**System 2 - Specification**: Reward data structure contains only SceneTemplateId "investigate_mill". No concrete IDs, no PlacementRelation enum, no ContextBinding. Categorical specification only.
 
-**System 2 - Specification Structure**:
+**System 3 - Package Generation**: SceneInstantiator writes SceneDTO to JSON. DTO contains generated scene GUID, template ID reference, and categorical filters from template. LocationFilter specifies LocationProperties array containing "Indoor" and "Private", plus LocationTags array containing "industrial" and "mill". No concrete location IDs written. NpcFilter and RouteFilter null for this scenario.
 
-The reward data structure contains only the categorical template identifier. It explicitly does NOT contain concrete entity IDs, placement relation enumerations, or context binding concepts. The specification is purely categorical - which template to spawn, with optional filter overrides.
+**System 4 - Entity Resolution**: EntityResolver reads LocationFilter from DTO. Calls FindOrCreateLocation which queries existing GameWorld locations matching Indoor property, Private property, and industrial/mill tags. Returns existing mill location if found, OR generates new mill location if no match. Result is Location object reference, not ID string.
 
-**System 3 - Package Generation Output**:
-
-The scene instantiator generates a DTO with a unique scene identifier and the template identifier. The DTO contains categorical filters read from the template - location filters specify indoor and private properties along with industrial and mill tags. NPC and route filters are null since this scene doesn't require those placement contexts. All filters contain categorical properties (enumerations, tags, property lists) rather than concrete entity identifiers.
-
-**System 4 - Entity Resolution Execution**:
-
-The entity resolver invokes the location resolution method with the location filter from the DTO. The method queries existing locations in the game world, filtering for entities that match the indoor and private properties and contain industrial and mill tags. If a matching mill location exists, it's returned immediately. If no match exists, a new mill location is generated with properties derived from the filter criteria and added to the game world. The result is a location object, not an identifier string.
-
-**System 5 - Scene Instantiation Result**:
-
-The scene parser receives the DTO along with the pre-resolved location object from System 4. It constructs a new scene entity and assigns the location object directly to the scene's location property. The scene now holds a direct object reference to the mill location, enabling immediate property access without lookup operations. The fully resolved scene is ready for gameplay.
+**System 5 - Scene Instantiation**: SceneParser receives DTO and pre-resolved Location object from System 4. Creates Scene with direct object property assignment: scene.Location equals millLocation object received as parameter. No ID lookups, no PlacementType dispatch, direct object reference only.
 
 **Result**: Scene created with categorical resolution → query/generate → direct object references. No PlacementRelation enum, no ContextBinding, no MarkerResolutionMap, no string ID lookups.
 
@@ -532,11 +554,11 @@ The scene parser receives the DTO along with the pre-resolved location object fr
 
 **Eager Resolution**: Entities resolved before scene construction, not lazily during scene usage.
 
-**Categorical Throughout**: Filters used from reward → package → resolution. No concrete IDs until System 4 resolution
+**Categorical Throughout**: Filters used from reward → package → resolution. No concrete IDs until System 4 resolution.
 
 ---
 
-### 8.2.6 Dynamic World Building (Lazy Materialization Pattern)
+### 8.2.9 Dynamic World Building (Lazy Materialization Pattern)
 
 **Core Principle**: World expands in response to narrative need, not pre-emptively. Locations and venues materialize when scenes spawn, validated for playability. **All generated locations persist forever** - no cleanup system exists.
 
@@ -633,9 +655,7 @@ Location Persists Forever (no cleanup)
 
 #### Example: Self-Contained Scene with Private Room
 
-**Template Specification Structure**:
-
-The scene archetype JSON specifies a service that includes location access as part of its rewards. The dependent locations collection defines what locations must be generated when this scene spawns. Each dependent location specification includes a template identifier indicating which location template to use for generation. The name pattern contains a token that will be replaced with context-specific values at generation time (such as the NPC's name). The venue source indicates the generated location should appear in the same venue as the base scene location. Hex placement specifies the generated location should be placed adjacent to the base location on the hex grid. The properties collection lists categorical attributes the location should have (sleeping space for rest mechanics, restful for bonuses, indoor and private for atmosphere). The locked state indicates the location begins locked and requires player actions to unlock, preventing immediate access to the generated resource.
+**Template Specification**: Scene archetype JSON defines dependentLocations array with object specifying templateId "private_room", namePattern substitution "{NPCName}'s Private Room", venueIdSource "SameAsBase", hexPlacement "Adjacent", properties array containing "sleepingSpace", "restful", "indoor", "private", and isLockedInitially true.
 
 **Generation (Scene Spawn)**:
 1. SceneInstantiator reads DependentLocationSpec
@@ -644,7 +664,7 @@ The scene archetype JSON specifies a service that includes location access as pa
 4. Finds adjacent hex to base location (venue cluster)
 5. Creates Package JSON with generated LocationDTO
 6. PackageLoader parses → Location entity created (indistinguishable from authored)
-7. Provenance stored: `SceneProvenance { SceneId = "scene_tutorial_001" }` (metadata)
+7. Provenance stored: SceneProvenance with SceneId "scene_tutorial_001" (metadata only)
 
 **Gameplay**:
 - Player negotiates with Elena → Receives room_key item
@@ -724,9 +744,9 @@ When principles conflict, resolve via three-tier priority:
 - ONE owner per entity type
 - Test: Can you name owner in one word?
 
-**Ownership Structure**:
+**Correct Ownership**: GameWorld owns Scenes collection, Scene owns Situations collection. Situation entities stored inline within Scene.Situations list. GameWorld does NOT have separate Situations collection avoiding desync between parallel collections.
 
-Correct ownership creates a clear hierarchy where GameWorld owns the scene collection, and each scene owns its embedded situations collection. This creates a single path from root to leaf. The problematic pattern creates parallel collections where GameWorld maintains both a scenes collection AND a separate situations collection. Parallel collections create desynchronization risk - adding a situation to one collection but forgetting to update the other causes inconsistent state.
+**Wrong Ownership**: GameWorld having both Scenes collection AND separate Situations collection creates desync risk. Situation could be modified in one collection without updating the other. Single owner (Scene.Situations) enforces truth.
 
 #### Principle 2: Strong Typing as Design Enforcement
 
@@ -738,9 +758,9 @@ Correct ownership creates a clear hierarchy where GameWorld owns the scene colle
 
 **Rationale**: Type restrictions enforce clear entity relationships, prevent ambiguity, force proper domain modeling.
 
-**Type System Application**:
+**Forbidden Types**: Dictionary with string keys mapping to integer costs requires runtime string parsing, fails silently on typos, lacks compile-time validation. Float/double for game values introduces rounding errors and precision ambiguity in discrete game mechanics.
 
-Dictionary types with string keys create runtime error vulnerability - accessing an incorrect key throws exceptions that the compiler cannot catch. Floating point types for game values introduce precision issues and fractional values when game mechanics are inherently discrete. The correct pattern uses explicit properties with descriptive names and integer types. A coin cost property clearly indicates its purpose through its name. A stat value property uses integer type because player stats are whole numbers. The compiler enforces correct usage at build time rather than discovering errors during gameplay.
+**Correct Types**: Explicit CoinCost property with int type provides compile-time checking, autocomplete support, clear semantic meaning. StatValue property as int represents discrete game mechanics without floating-point imprecision.
 
 #### Principle 3: Ownership vs Placement vs Reference
 
@@ -751,9 +771,11 @@ Dictionary types with string keys create runtime error vulnerability - accessing
 - **Placement**: Entity appears at location (lifecycle independent).
 - **Reference**: Entity A stores Entity B's ID (no lifecycle dependency).
 
-**Relationship Pattern Examples**:
+**Ownership Example**: Scene owns Situations collection. When Scene deleted from GameWorld, all Situation entities in Scene.Situations collection are destroyed. Lifecycle coupled: parent destruction cascades to children.
 
-Ownership relationships mean the parent controls child lifecycle. A scene entity owns its situations collection - if the scene is deleted, all its situations are deleted as well. The parent's destruction cascades to children. Placement relationships indicate where an entity appears contextually without lifecycle coupling. A scene has placement properties indicating it appears at a specific location using placement type and identifier properties. The location continues to exist independently - deleting the scene doesn't destroy the location, and deleting the location doesn't automatically destroy scenes placed there. Reference relationships indicate one entity refers to another for navigation without lifecycle implications. A choice entity references a destination location via an identifier property. The choice doesn't own or control the location - it simply needs to know which location to navigate to when selected.
+**Placement Example**: Scene has PlacementType Location and PlacementId "market_square". Scene lifecycle independent from Location lifecycle. Deleting market_square location doesn't destroy Scene, just invalidates placement requiring resolution. Location can be deleted without Scene deletion.
+
+**Reference Example**: Choice has DestinationLocationId referencing "inn_room" location. Choice doesn't own inn_room location, just references it for navigation. Choice deletion doesn't affect location. Location deletion doesn't affect choice (though choice becomes invalid requiring validation).
 
 #### Principle 4: Inter-Systemic Rules Over Boolean Gates
 
@@ -761,9 +783,9 @@ Ownership relationships mean the parent controls child lifecycle. A scene entity
 
 **Architectural Implication**: Use typed reward objects (SceneReward, ChoiceReward) with explicit properties instead of boolean flags. This enforces resource arithmetic and prevents hidden unlocks.
 
-**System Connection Patterns**:
+**Boolean Gate Antipattern**: Checking player CompletedTutorial boolean flag, then calling EnableAdvancedFeature method granting free unlock without resource cost. Player progresses via checklist completion, no trade-offs required.
 
-Boolean gate systems check flag properties to enable features. If a player has completed a tutorial flag set to true, the system enables advanced features without cost. This creates free binary unlocks based on completion state rather than resource investment. The correct pattern uses numeric resource properties for threshold comparisons. If the player's understanding stat has reached at least 5 points, features become accessible. This accessibility is based on accumulated resources rather than boolean flags. Players must invest in the resource to reach the threshold, creating meaningful cost and trade-offs rather than automatic unlocks.
+**Resource Arithmetic Pattern**: Checking player Understanding numeric stat against threshold 5. Feature accessible based on earned resource requiring investment trade-offs. Player decides whether to spend Understanding building this capability versus alternative uses.
 
 **For game design rationale and resource economy philosophy**, see [design/05_resource_economy.md](design/05_resource_economy.md).
 
@@ -771,9 +793,9 @@ Boolean gate systems check flag properties to enable features. If a player has c
 
 **Statement**: Systems connect via typed rewards applied at completion. One-time effect, not continuous state query.
 
-**Typed Reward Application**:
+**Typed Reward Structure**: SceneReward class contains strongly-typed properties: LocationsToUnlock list of location IDs, CoinsToGrant integer, UnderstandingToGrant integer. Each property represents explicit effect applied once at scene completion.
 
-Scene completion triggers a one-time reward application using a typed reward object. The reward class contains explicit properties for each type of benefit - a collection of location identifiers to unlock, an integer amount of coins to grant, and an integer amount of understanding to grant. The reward executor iterates through the unlock collection and sets each specified location's locked state to false. It increments the player's coin resource by the grant amount. It increments the player's understanding stat by the grant amount. This happens once when the scene completes, applying permanent state changes. The reward is not continuously evaluated - it's a one-time transformation of game state at the completion boundary.
+**One-Time Application**: When scene completes, reward executor iterates LocationsToUnlock list, setting location.IsLocked false for each ID. Adds CoinsToGrant to player.Coins. Adds UnderstandingToGrant to player.Understanding. Effects applied once, not recalculated continuously.
 
 #### Principle 6: Resource Scarcity Creates Impossible Choices
 
@@ -795,17 +817,17 @@ Scene completion triggers a one-time reward application using a typed reward obj
 
 **Test**: Describe purpose in one sentence without "and"/"or".
 
-**Entity Purpose Clarity**:
+**Correct Purpose**: Scene purpose: "Contains sequential situations progressing toward narrative goal." Situation purpose: "Presents 2-4 choices with visible costs/rewards." Each entity single clear responsibility.
 
-Correctly designed entities have single describable purposes. A scene entity contains a sequential collection of situations that progress toward a narrative goal - that's its complete responsibility. A situation entity presents multiple choices to the player with visible costs and rewards - that's its complete responsibility. Each description is clean and singular. Incorrectly designed entities mix multiple responsibilities. An entity that contains situations AND tracks reputation AND manages inventory violates single purpose. Such designs indicate the entity should be split into multiple specialized entities, each with clear singular responsibility.
+**Wrong Purpose**: Scene described as "Contains situations AND tracks player reputation AND manages inventory." Multiple purposes indicate wrong entity design. Reputation and inventory belong to separate systems, not Scene responsibility.
 
 #### Principle 8: Verisimilitude in Entity Relationships
 
 **Statement**: Relationships match conceptual model. If explanation feels backwards, design is wrong.
 
-**Relationship Direction Correctness**:
+**Natural Relationship**: Scenes appear at Locations. Conceptually, narrative scenes are placed contextually in physical locations. Relationship feels natural: Scene has Location placement.
 
-Natural relationships feel intuitive when described conceptually. Scenes appearing at locations matches how we think about narrative events - stories happen in places, places don't generate stories. The scene is placed contextually at the location. Backwards relationships feel wrong when explained. Locations owning scenes implies that locations create and destroy narrative events as part of their lifecycle. This doesn't match our mental model - a location is a place, not a story generator. When relationship direction feels awkward to explain, the design is inverted and should be corrected to match conceptual understanding.
+**Backwards Relationship**: Locations own Scenes collection. Conceptually wrong: Location doesn't create or destroy Scenes based on location lifecycle. Scene lifecycle independent from Location. Relationship feels backwards, indicates wrong design.
 
 #### Principle 9: Elegance Through Minimal Interconnection
 
@@ -813,9 +835,9 @@ Natural relationships feel intuitive when described conceptually. Scenes appeari
 
 **Test**: Can you draw system diagram with one arrow per connection? If spaghetti, refactor.
 
-**System Boundary Clarity**:
+**Explicit Boundary**: Scene completion triggers SceneReward application. LocationFacade.UnlockLocation method receives location ID from reward. One clear boundary: Scene → Reward → LocationFacade. Single arrow connection.
 
-Clean system connections flow in one direction across explicit boundaries. Scene completion triggers reward application, which invokes the location facade's unlock method. The flow is unidirectional with a clear boundary at the reward application point. Tangled connections create circular dependencies where systems reach back and forth. A scene checks the location facade, the location facade updates scene state, the scene notifies the UI, and the UI calls back into the location facade. These circular flows create unpredictable behavior and make the system difficult to reason about. Minimize connections and make each connection explicit and unidirectional.
+**Tangled Dependencies**: Scene checks LocationFacade state, LocationFacade updates Scene properties, Scene notifies UI observers, UI calls LocationFacade methods, LocationFacade queries Scene state. Circular dependencies, multiple arrows, spaghetti architecture requiring refactoring.
 
 #### Principle 10: Perfect Information with Hidden Complexity
 
@@ -825,9 +847,9 @@ Clean system connections flow in one direction across explicit boundaries. Scene
 
 **Test**: Can player decide WHETHER to attempt before entering? If no, violates principle.
 
-**Information Layer Separation**:
+**Strategic Layer Visibility**: Choice "Negotiate diplomatically" displays entry cost (Stamina -2), success outcome (Unlock private room), failure outcome (Pay extra 5 coins). All information visible before commitment. Player calculates affordability and risk before entering.
 
-The strategic layer displays all decision-relevant information before commitment. A negotiation choice shows its entry cost of 2 stamina, its success reward of unlocking a private room, and its failure consequence of paying 5 extra coins. Players can evaluate this complete information to decide whether attempting the negotiation is worthwhile given their current resources and goals. The tactical layer hides execution details until entry. Once the player commits to the challenge, they encounter a session where card draw order is randomized and exact challenge progression is unknown. This creates tension during execution while maintaining perfect information at the decision point.
+**Tactical Layer Hidden**: Challenge session card draw order unknown until play begins. Exact challenge flow hidden until player commits to attempt. Maintains tension while preserving strategic decision-making at entry point.
 
 **For player experience design rationale**, see [design/01_design_vision.md](design/01_design_vision.md).
 
@@ -841,9 +863,7 @@ The strategic layer displays all decision-relevant information before commitment
 3. Decompose categorical properties to multiple semantic properties
 4. Translate at parse-time (catalogues), use concrete at runtime
 
-**Entity Design Flow**:
-
-JSON content contains categorical properties expressing semantic characteristics - NPC demeanor and quality level as enumerations. At parse time, catalogues translate these categorical inputs into concrete numeric values using multipliers. A friendly demeanor might apply a 0.6 reduction multiplier to base stat thresholds, while premium quality might apply a 1.6 increase multiplier to costs. The multipliers combine to produce a concrete stat threshold integer. At runtime, the facade method checking requirements performs simple numeric comparisons. If the player's rapport stat is greater than or equal to the choice's stat threshold property, the requirement is satisfied. The facade doesn't know about demeanor or quality - it only knows the concrete threshold that resulted from parse-time translation.
+**Categorical to Concrete Translation**: JSON contains categorical npcDemeanor "Friendly" and quality "Premium". Parse-time catalogue translates to concrete StatThreshold: base value 5 multiplied by DemeanorMultiplier 0.6 (Friendly) multiplied by QualityMultiplier 1.6 (Premium) equals final threshold 4.8 rounded to 5. Runtime ChoiceFacade.EvaluateRequirements checks player.Rapport >= choice.StatThreshold using concrete integer comparison, no catalogue calls at runtime.
 
 #### Principle 12: Categorical Properties → Dynamic Scaling
 
@@ -851,9 +871,7 @@ JSON content contains categorical properties expressing semantic characteristics
 
 **Why**: Enables infinite AI-generated content without balance knowledge.
 
-**AI Content Generation Flow**:
-
-AI systems generate content descriptions using categorical properties without knowing global game balance. An AI might generate a scenario description specifying a friendly innkeeper at a premium establishment. The catalogue translation system applies multipliers to base values based on these categories. A base stat threshold of 5 is multiplied by 0.6 for friendly demeanor, producing a threshold of 3 (making the interaction easier). A base coin cost of 8 is multiplied by 1.6 for premium quality, producing a cost of 13 (making the service expensive). The result is contextually appropriate difficulty and cost without the AI needing to understand global balance numbers or player progression curves. The categorical-to-concrete translation handles balance automatically.
+**AI Generation Example**: AI generates NPC description "Friendly innkeeper at premium inn" without knowing global stat thresholds or economy balance. Catalogue receives categorical properties: demeanor Friendly, quality Premium. Translates to concrete values: StatThreshold 5 × 0.6 (Friendly multiplier) = 3 (easy interaction), CoinCost 8 × 1.6 (Premium multiplier) = 13 (expensive lodging). Result contextually appropriate without AI needing numeric knowledge.
 
 #### Principle 13: Playability Over Compilation
 
@@ -954,39 +972,33 @@ Usage: Player navigates to location_guid_12345
 - DI registration: Explicit initialization, not lambdas
 - Backend logic: Use named methods for debugging/testing
 
-**Lambda Restriction Application**:
+**Forbidden Lambda Example**: Services registration using AddSingleton with lambda function receiving underscore parameter and returning GameWorldInitializer.CreateGameWorld call. Lambda obscures initialization, hinders debugging, prevents testing initialization logic independently.
 
-The forbidden pattern uses a lambda expression in dependency injection registration. The service registration accepts a factory lambda that discards its parameter and invokes an initializer method, returning the result inline. This lambda hides the initialization logic and makes debugging harder. The correct pattern performs initialization explicitly in a named variable assignment. The game world is created by invoking the initializer directly and storing the result in a local variable. The registration then passes the already-constructed instance to the service collection. This makes initialization explicit, allows breakpoint debugging on the initialization line, and keeps the service registration simple.
+**Correct Named Initialization**: Call GameWorldInitializer.CreateGameWorld, store result in gameWorld variable. Call builder.Services.AddSingleton with gameWorld instance directly. Initialization explicit, debuggable, testable.
 
 ### 8.5.2 Antipatterns (Strictly Forbidden)
 
 #### ID Antipattern
 
 **FORBIDDEN**:
-- ❌ Encoding data in IDs: `Id = $"move_to_{destinationId}"`
-- ❌ Parsing IDs: `Id.StartsWith("move_")`, `Id.Split('_')`
-- ❌ ID-based routing: `if (action.Id == "secure_room")`
+- ❌ Encoding data in IDs: Creating composite ID by string interpolation combining action type prefix with destination ID
+- ❌ Parsing IDs: Checking if ID starts with specific prefix, splitting ID on underscore delimiter
+- ❌ ID-based routing: Switch statement dispatching on action ID string literal matching
 
 **CORRECT**:
-- ✅ ActionType enum for routing: `switch (action.ActionType)`
-- ✅ Strongly-typed properties: `action.DestinationLocationId`
+- ✅ ActionType enum for routing: Switch statement on action.ActionType enum value
+- ✅ Strongly-typed properties: action.DestinationLocationId explicit property
 - ✅ IDs for uniqueness only (dictionary keys, debugging)
 
 #### Generic Property Modification Antipattern
 
-**Forbidden Generic Property Pattern**:
+**FORBIDDEN Pattern**: PropertyChange class with PropertyName string ("IsLocked") and NewValue string ("true"). Conditional checks PropertyName equals "IsLocked", then parses NewValue to boolean and assigns to location.IsLocked. Runtime string matching, no compile-time validation, fails silently on typos.
 
-The anti-pattern uses string-based property routing where a change object contains property name and new value as strings. Runtime code compares the property name string against known property names and parses the string value into the appropriate type. This creates multiple problems: property names are magic strings that fail silently if misspelled, type conversion happens at runtime without compiler safety, adding new properties requires adding new string comparison branches, and the intent is obscured behind generic infrastructure.
-
-**Correct Explicit Property Pattern**:
-
-The proper pattern uses explicit strongly-typed properties for each type of modification. A scene reward has separate collections for locations to unlock and locations to lock. Reward execution iterates through each collection and directly modifies the appropriate boolean property on the target entity. The property access is direct without string matching, the operation is clear from reading the code, and the compiler verifies property names exist at build time. Adding new modification types means adding new explicit properties to the reward class rather than adding string comparison branches.
+**CORRECT Pattern**: SceneReward class with explicit strongly-typed properties: LocationsToUnlock list of strings, LocationsToLock list of strings. Reward executor iterates LocationsToUnlock list, setting location.IsLocked false directly via property access. Compile-time type checking, autocomplete support, clear semantics.
 
 ### 8.5.3 Code Quality Standards
 
-**NO Exception Handling** (unless explicitly requested):
-
-The forbidden pattern wraps operations in try-catch blocks that log errors and return null or default values. This hides problems by converting exceptions into silent nulls that propagate through the system. The error occurs far from where the exception is eventually noticed. The correct pattern lets exceptions bubble up the call stack naturally. If a scene lookup fails, the method throws immediately, creating a clear stack trace pointing to the exact operation that failed. This makes debugging straightforward - the exception indicates precisely what went wrong and where.
+**NO Exception Handling** (unless explicitly requested): Try-catch blocks wrapping logic, logging exceptions, returning null on error forbidden unless explicitly requested. Correct pattern: call GetSceneById, let exceptions bubble to caller revealing stack trace and failure location.
 
 **NO Logging** (unless explicitly requested):
 - No Log.Info/Debug/Error unless debugging specific issues
@@ -996,17 +1008,15 @@ The forbidden pattern wraps operations in try-catch blocks that log errors and r
 - Self-documenting code preferred
 - Exception: Complex algorithms, non-obvious business rules (rare)
 
-**No Defaults Unless Strictly Necessary**:
-
-The forbidden pattern uses null-coalescing operators to provide default values when entities are missing. If a scene lookup returns null, the method creates and returns a new empty scene. This hides data problems by providing fallback values that may have incorrect state. The correct pattern explicitly checks for null and throws a descriptive exception with context about what was expected. The error message includes the identifier that was searched for, making diagnosis immediate. The method only returns valid scenes that actually exist - never manufactured defaults.
+**No Defaults Unless Strictly Necessary**: Returning scene null-coalescing operator defaulting to new empty Scene masks missing data problem. Correct pattern: check scene equals null, throw InvalidOperationException with scene ID in message, return scene only if non-null. Forces fixing root cause rather than masking.
 
 ### 8.5.4 Semantic Honesty
 
 **Requirement**: Method names MUST match return types exactly. Parameter types match parameter names. Property names describe actual data.
 
-**Semantic Honesty Application**:
+**Semantic Mismatch**: Method named GetVenueById with Location return type creates confusion. Method name promises Venue, returns Location. Caller expects Venue entity, receives Location entity, requires mental translation.
 
-The dishonest pattern names a method GetVenueById but returns a Location type. This mismatch between name and return type creates confusion - callers expect a venue based on the name, but receive a location. Reading code becomes difficult because names lie about what actually happens. The honest pattern names the method GetLocationById and returns a Location type. The name accurately describes what the method does - it retrieves a location entity by identifier. Readers can trust that method names describe reality, making code comprehension straightforward.
+**Semantic Honesty**: Method named GetLocationById with Location return type matches name to return type exactly. Clear expectation, no mental translation required, compile-time verification.
 
 ### 8.5.5 Formatting Standards
 
@@ -1025,13 +1035,13 @@ The dishonest pattern names a method GetVenueById but returns a Location type. T
 
 **Core Principle**: Async methods propagate upward through the call stack. If a method calls async code, it MUST be async. Never block on async code with `.Wait()` or `.Result`.
 
-**Always Propagate Async:**
+**Async Propagation**: ProcessSceneAsync method declared as async Task, awaits repository.SaveSceneAsync call, awaits notificationService.NotifyAsync call. Async propagates to caller who must also await ProcessSceneAsync. No blocking calls.
 
-The correct pattern makes methods async when they call async operations. A scene processing method is declared as returning Task and uses the async keyword. It awaits repository save operations and notification service calls. The async pattern propagates up the call stack naturally. The forbidden pattern declares a synchronous void method but calls async operations, blocking on them with Wait or Result methods. This creates deadlock risk in ASP.NET contexts where the synchronization context expects async operations to complete without blocking threads.
+**Forbidden Blocking**: ProcessScene synchronous void method calls repository.SaveSceneAsync().Wait() blocking thread waiting for completion. Calls notificationService.NotifyAsync().Result blocking for result value. Creates deadlock risk in ASP.NET context, defeats async benefits.
 
-**Propagate to UI Layer:**
+**UI Async Propagation**: Blazor component HandleClickAsync method declared async Task. Awaits sceneService.ProcessSceneAsync call. Calls StateHasChanged to trigger rerender. Event handler async allowing UI thread to handle other work during async operation.
 
-The correct pattern makes Blazor component event handlers async when they call async services. The click handler is declared as returning Task with the async keyword. It awaits the scene service call, allowing the async operation to complete without blocking. After the async operation finishes, it triggers state change notification. The forbidden pattern declares a synchronous void event handler and blocks on async service calls using Wait. This violates the async propagation principle and can cause deadlocks or performance issues.
+**Forbidden UI Blocking**: Blazor component HandleClick synchronous void method calls sceneService.ProcessSceneAsync().Wait() blocking UI thread. Creates deadlock potential, freezes UI during operation, violates async pattern.
 
 **Rationale:**
 - **Avoid Deadlocks**: `.Wait()` and `.Result` can deadlock in ASP.NET context

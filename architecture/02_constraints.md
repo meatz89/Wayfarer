@@ -44,26 +44,32 @@ The following type restrictions are **compiler-enforced architectural constraint
 #### ALLOWED Lambdas
 
 **1. LINQ Queries:**
-Lambda expressions used within LINQ query operations are permitted. This includes filtering collections based on predicate conditions, projecting collection elements to extract specific properties, and finding first matching elements based on criteria. These operations are declarative and enhance code readability.
+- Declarative collection queries (Where, Select, FirstOrDefault)
+- Filtering entities by state or categorical properties
+- Transforming entity collections
 
 **2. Blazor Event Handlers (Frontend Only):**
-Inline lambda expressions in Blazor component markup for event handling are permitted. These are required by the Blazor framework for binding UI events to component methods with parameters.
+- Click event handlers passing arguments to component methods
+- UI-specific closures over component scope
 
 **3. Framework Configuration (Rare Exceptions):**
-Lambda expressions may be used for framework-level configuration where the framework API explicitly requires them. This includes configuring HTTP clients with timeout settings, middleware pipeline configuration, and other ASP.NET Core infrastructure setup where named methods would add unnecessary ceremony.
+- HTTP client timeout configuration
+- Framework service builder configuration
 
 #### FORBIDDEN Lambdas
 
 **1. Backend Event Handlers:**
-Lambda expressions must not be used for subscribing to backend events such as application lifecycle events or domain events. Instead, use named methods that can be referenced in stack traces and unit tests. Anonymous lambdas hide behavior and make debugging significantly harder.
+- Anonymous process exit handlers
+- Anonymous lifecycle event subscriptions
+- Must use named methods for debugging and testability
 
 **2. Dependency Injection Registration:**
-Lambda factories must not be used when registering services in the dependency injection container. Instead, instantiate the object explicitly before registration. This makes initialization order clear, enables debugging the initialization logic directly, and avoids hiding construction logic inside DI configuration.
+- Anonymous factory functions for service creation
+- Must create instance explicitly then register
 
 **3. Backend Logic:**
-Lambda expressions must not be used to define reusable backend logic patterns such as action delegates or function callbacks. All backend business logic must be implemented as named methods within appropriate service or entity classes. This ensures proper stack traces, testability, and code navigation.
-
-
+- Anonymous action delegates for business logic
+- Must use named methods for stack traces and searchability
 
 **Rationale:** Backend lambdas are hard to debug (no stack trace entry), hard to test (anonymous), and hard to find (text search fails). Named methods solve all these problems.
 
@@ -141,13 +147,19 @@ The content loading system processes packages **atomically** - each package is f
 ### Entity Initialization Philosophy ("Let It Crash")
 
 **Required Pattern:**
-Entity properties must be initialized inline at declaration time. Collection properties should be initialized to empty collections. String properties should be initialized to empty strings. This establishes the contract that these properties will never be null.
+- Initialize all entity properties inline at declaration
+- Empty collections initialized to empty List, strings to empty string
+- Never null for collections or required properties
 
 **Parser Rules:**
-Parser code must assign parsed values directly to entity properties without null-coalescing operators. If the parser has successfully parsed a value, assign it. If parsing failed, let the exception bubble up rather than masking the failure with a default value.
+- Assign parsed values directly to entity properties
+- NO null-coalescing operators
+- Trust entity initialization contract
 
 **Game Logic Rules:**
-Game logic code must trust that entity properties are properly initialized and never use defensive null-conditional operators. Access properties directly. If a property is null when it should not be, this represents a bug in entity initialization that should fail immediately rather than propagate silently.
+- Access properties directly without null checks
+- Trust initialization (no defensive ?. operators)
+- Let null references crash with clear stack traces
 
 **Rationale:**
 - Fails fast with clear stack traces (easier debugging)
@@ -158,7 +170,9 @@ Game logic code must trust that entity properties are properly initialized and n
 ### No Backwards Compatibility
 
 **Break things when refactoring:**
-When renaming or refactoring methods, do not preserve the old method signature with an obsolete attribute or compatibility wrapper. Delete the old method entirely and update all call sites. This forces complete refactoring and prevents technical debt accumulation.
+- Delete old methods entirely when renaming/refactoring
+- NO Obsolete attributes preserving old signatures
+- Force complete refactoring with compilation errors
 
 **Rationale:** Active development phase. Clean breaks force complete refactoring. No technical debt accumulation.
 
@@ -167,13 +181,19 @@ When renaming or refactoring methods, do not preserve the old method signature w
 **Core Principle:** JSON field names MUST match C# property names exactly. Parsers MUST parse all JSON content into strongly-typed objects. The JSON-to-C# boundary is the serialization point - NO raw JSON allowed beyond parsers.
 
 **Field Name Matching:**
-JSON field names must match C# property names exactly, including casing. If a JSON field is named "currentSituationId", the corresponding C# property must be named "CurrentSituationId" (following C# PascalCase convention). Using the JsonPropertyName attribute to map differently-named fields is forbidden. If the JSON field naming must change, rename the JSON field itself.
+- JSON field names match DTO property names exactly (case-sensitive)
+- NO JsonPropertyName attributes for field renaming
+- Template IDs acceptable in JSON and DTOs (immutable archetypes)
 
 **Parse All JSON:**
-Data Transfer Object (DTO) classes must declare explicit strongly-typed properties for all JSON fields. DTOs must not contain JsonElement properties that defer parsing. The JSON deserializer should handle all structural parsing at the DTO boundary. Deferred parsing using JsonElement represents a failure to properly model the JSON structure.
+- All JSON content parsed into DTO classes with explicit properties
+- NO JsonElement passthrough to domain layer
+- DTO structure documents JSON schema explicitly
 
 **Parser Responsibility:**
-Parser code creates domain entities from DTOs by extracting all required data from DTO properties. Domain entities must never contain JsonElement properties or any reference to JSON infrastructure. Runtime JSON parsing within domain logic is forbidden. The parser is the single serialization boundary - JSON exists only up to this point, strongly-typed objects exist beyond it.
+- Parsers extract all data from DTOs into domain entities
+- NO JsonElement properties in domain entities
+- Domain entities work with typed objects only
 
 **Rationale:**
 - **Single Serialization Point**: JSON parsed once at boundary, never in domain logic
@@ -199,8 +219,9 @@ Parser code creates domain entities from DTOs by extracting all required data fr
 - Parameter types match parameter names
 - Property names describe actual data
 
-**Example Violation:**
-A method named "GetVenueById" that returns a Location object is forbidden. The method name claims to return a Venue but actually returns a Location. This semantic dishonesty creates cognitive load and bugs. The method must be renamed to "GetLocationById" to match its actual return type.
+**Examples:**
+- FORBIDDEN: Method named GetVenueById returning Location object
+- CORRECT: Method named GetLocationById returning Location object
 
 **Rationale:** Misleading names create cognitive load and bugs. Names must accurately reflect reality.
 
@@ -209,25 +230,31 @@ A method named "GetVenueById" that returns a Location object is forbidden. The m
 #### ID Antipattern
 
 **FORBIDDEN:**
-- ❌ Encoding data in ID strings: `action.Id = $"move_to_{destinationId}"`
-- ❌ Parsing IDs to extract data: `action.Id.Substring()`, `action.Id.Split('_')`
-- ❌ Using IDs for routing logic: `if (action.Id == "secure_room")`
+- ❌ Encoding data in ID strings: action ID embedding destination location ID
+- ❌ Parsing IDs to extract data: substring operations, split operations
+- ❌ Using IDs for routing logic: string comparison for action dispatch
 
 **CORRECT:**
-- ✅ Use enums for routing: `switch (action.ActionType)`
-- ✅ Use strongly-typed properties: `action.DestinationLocationId`
+- ✅ Use enums for routing: switch on ActionType enum
+- ✅ Use strongly-typed object references: DestinationLocation object, NOT ID string
 - ✅ Properties flow through entire data stack: JSON → DTO → Domain → ViewModel → Intent
 
-**IDs Acceptable For:** Uniqueness (dictionary keys), debugging/logging, simple passthrough
-**IDs NEVER For:** Routing decisions, conditional logic, data extraction
+**Entity Instance IDs DO NOT EXIST:**
+- ❌ FORBIDDEN: NPC.Id, Location.Id, Route.Id, Scene.Id, Situation.Id
+- ✅ ACCEPTABLE: SceneTemplate.Id, SituationTemplate.Id (immutable archetypes, not game state)
+- ✅ CORRECT: Object references (`NPC.Location`), categorical properties (`PlacementFilter`), spatial coordinates (`Location.HexPosition`)
 
 #### Generic Property Modification Antipattern
 
 **FORBIDDEN:**
-String-based property modification systems are forbidden. This pattern uses a PropertyChange class containing a string property name and a string new value, then performs runtime string matching to determine which property to modify. This requires parsing the value string at runtime and introduces silent failures when property names are mistyped.
+- String-based property routing (PropertyName string matched at runtime)
+- String value parsing (NewValue string parsed to bool/int)
+- Runtime string matching for property assignment
 
 **CORRECT:**
-Use explicit strongly-typed properties for each modification type. Create a SceneReward class with properties like LocationsToUnlock and LocationsToLock, each holding a collection of identifiers. Iterate through the collection and modify the target property directly using normal property assignment. This provides compile-time safety and makes the modification intent explicit.
+- Explicit strongly-typed properties (LocationsToUnlock, LocationsToLock)
+- Direct property access on object references
+- Compiler-verified property assignment
 
 **Rationale:** String matching is error-prone, slow, and violates YAGNI. Add explicit properties when needed.
 
@@ -249,14 +276,18 @@ Use explicit strongly-typed properties for each modification type. Create a Scen
 ### Method Design Constraints
 
 **One Method, One Purpose:**
-Avoid creating multiple overloaded methods with names like "GetSceneById", "GetSceneByLocation", and "GetSceneByIdAndLocation" that attempt to handle different query patterns. This overload proliferation obscures the actual purpose of each method. Instead, create separate methods with distinct names that clearly describe their purpose: one method to get a scene by identifier, a separate method to get all scenes at a specific location. Each method name should precisely describe its single responsibility.
+- NO overload proliferation: GetSceneById, GetSceneByLocation, GetSceneByIdAndLocation
+- Separate methods with clear names: GetSceneById, GetScenesAtLocation
+- Method name clearly states what it does
 
 **Rationale:** Method name should clearly state what it does. No input-based branching.
 
 ### Code Quality Constraints
 
 **NO Exception Handling (unless explicitly requested):**
-Do not wrap method calls in try-catch blocks that log errors and return null or default values. Let exceptions bubble up naturally. Exception handling hides failures and makes debugging harder by obscuring the root cause. If a scene lookup fails because the identifier doesn't exist, let the exception propagate immediately rather than catching it, logging it, and returning null.
+- Don't catch exceptions unless debugging specific issues
+- Let exceptions bubble to surface bugs
+- Exceptions indicate bugs that should be fixed
 
 **NO Logging (unless explicitly requested):**
 - No Log.Info/Debug/Error unless debugging specific issues
@@ -267,7 +298,9 @@ Do not wrap method calls in try-catch blocks that log errors and return null or 
 - Exception: Complex algorithms, non-obvious business rules (rare)
 
 **No Defaults Unless Strictly Necessary:**
-Do not use null-coalescing operators to provide default fallback values when data is missing. If a method returns null when it should return a valid object, this represents a bug that should fail immediately. Do not mask the failure by returning a new empty object. Instead, explicitly check for null and throw an exception with a clear error message describing what was not found.
+- Don't return default instances when entity not found
+- Throw exception on missing data
+- Let it crash with clear error messages
 
 **Rationale:** Let it crash. Exceptions indicate bugs that should be fixed, not papered over. Defaults hide missing data problems.
 

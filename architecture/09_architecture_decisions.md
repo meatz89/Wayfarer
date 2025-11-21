@@ -90,8 +90,7 @@ Progression systems require visibility model for content availability. Boolean f
 **All requirements stored as numeric thresholds enabling arithmetic comparison.** Resources modeled as integer properties on Player entity. Choices specify requirements as numeric values compared at runtime.
 
 **Data Model:**
-
-ChoiceTemplate entities store numeric thresholds for requirements: StatThreshold specifies the minimum player capability needed, while CoinCost and StaminaCost represent numeric resource requirements. The Player entity maintains corresponding numeric properties: Rapport tracks the player's capability level, while Coins and Stamina track available resources. Evaluation compares player values against choice requirements using arithmetic comparisons: checking whether player Rapport meets or exceeds the StatThreshold, whether player Coins can cover the CoinCost, and whether player Stamina is sufficient for the StaminaCost. All three conditions must be satisfied for a choice to be affordable.
+Choice templates store requirements as integer threshold properties (StatThreshold, CoinCost, StaminaCost). Player entity stores capabilities and resources as integer properties (Rapport, Coins, Stamina). Evaluation compares player values against choice thresholds using arithmetic greater-than-or-equal-to operations to determine affordability.
 
 ### Consequences
 
@@ -167,7 +166,20 @@ The challenge: Provide rich tactical gameplay without hiding strategic costs.
 
 **Architecture Flow:**
 
-At the strategic layer, the player encounters a Choice with text like "Negotiate diplomatically" displaying all costs upfront (such as Stamina minus two) and all potential rewards visible (OnSuccess might unlock a room, while OnFailure might impose an extra five coin penalty). The player commits to the action with full knowledge of consequences. When ActionType indicates StartChallenge, the system crosses the bridge into the tactical layer. A Challenge session spawns with SituationCards extracted from the situation, establishing a victory condition such as accumulating Momentum to eight or higher. The card-based gameplay unfolds with draw order hidden from the player, who plays cards to build Momentum toward the threshold. Upon reaching victory threshold, the session is destroyed (temporary entity lifecycle). The outcome returns across the bridge back to the strategic layer, where OnSuccessReward applies (room becomes unlocked), and the Scene advances to the next Situation.
+**Strategic Layer Entry:**
+Player sees choice with visible costs and rewards. Costs shown before commitment (Stamina reduction). Rewards shown for both success and failure paths. Player commits with complete information.
+
+**Bridge Crossing (ActionType.StartChallenge):**
+System transitions from strategic to tactical layer. Challenge session created as temporary entity. Situation cards extracted with victory threshold.
+
+**Tactical Layer Execution:**
+Card-based gameplay with hidden draw order. Player plays cards to accumulate session resources (Momentum, Progress, Breakthrough). Victory determined by reaching threshold.
+
+**Bridge Return:**
+Session destroyed (temporary tactical state). Outcome returned to strategic layer.
+
+**Strategic Layer Resolution:**
+Success or failure reward applied to persistent game state. Scene advances to next situation, maintaining forward progression.
 
 ### Alternatives Considered
 
@@ -192,12 +204,10 @@ At the strategic layer, the player encounters a Choice with text like "Negotiate
 ### Implementation Details
 
 **Bridge Enforcement:**
-
-The ChoiceTemplate entity's ActionType property routes execution flow. When ActionType is Instant, the system stays in the strategic layer, applying rewards immediately and advancing the situation. When ActionType is Navigate, the system remains strategic, moving the player to a new location which may trigger situation advancement. When ActionType is StartChallenge, the system crosses the bridge: storing pending context and spawning a tactical challenge session.
+ChoiceTemplate.ActionType property routes execution via switch statement. Instant and Navigate actions remain in strategic layer, applying rewards and advancing situations directly. StartChallenge action crosses to tactical layer, storing pending context before spawning challenge session.
 
 **Pending Context Pattern:**
-
-Bridge crossing requires storing strategic context in a PendingChallengeContext structure containing the ParentSceneId identifying which scene spawned the challenge, the ParentSituationId tracking the situation awaiting resolution, OnSuccessReward defining what applies if the player achieves tactical victory, and OnFailureReward defining what applies if the player experiences tactical defeat. Both success and failure outcomes advance progression, preventing soft-locks regardless of challenge result.
+Bridge crossing stores strategic context in temporary structure containing parent scene reference, parent situation reference, success reward definition, and failure reward definition. Both outcomes advance progression ensuring no soft-locks. Context preserved while tactical layer executes, then applied based on challenge result.
 
 ---
 
@@ -267,7 +277,17 @@ Hand-authoring every scene with exact numeric values (stat thresholds, coin cost
 
 ### Formula Example
 
-The base archetype defines StatThreshold as five and CoinCost as eight. When applied in a context involving a Friendly NPC (multiplier 0.6), Premium Quality service (multiplier 1.6), and Equal Power dynamic (multiplier 1.0), the system scales these values during parsing. StatThreshold becomes three after multiplying five by 0.6 and 1.0, making the friendly NPC interaction easier to pass. CoinCost becomes thirteen after multiplying eight by 1.6, making the premium quality service more expensive. The same archetype produces contextually appropriate difficulty levels through categorical multipliers.
+```
+Base archetype: StatThreshold = 5, CoinCost = 8
+
+Context: Friendly NPC (0.6×), Premium Quality (1.6×), Equal Power (1.0×)
+
+Scaled values:
+- StatThreshold: 5 × 0.6 × 1.0 = 3 (friendly = easier)
+- CoinCost: 8 × 1.6 = 13 (premium = more expensive)
+
+Same archetype, contextually appropriate difficulty.
+```
 
 ### Alternatives Considered
 
@@ -332,8 +352,7 @@ All initialization code MUST be idempotent:
 - Manage event subscriptions carefully (avoid double subscription)
 
 **Implementation Pattern:**
-
-The StartGameAsync method implements idempotence protection by checking the GameWorld's IsGameStarted flag at the beginning of execution. If the flag indicates the game has already been initialized, the method returns immediately without executing initialization logic. If the flag indicates uninitialized state, the method proceeds with initialization code and sets IsGameStarted to true upon completion. This pattern ensures that regardless of how many times the method executes during the double-rendering lifecycle, initialization only occurs once.
+Initialization methods check guard flag before executing state mutations. If flag indicates already initialized, method returns immediately without changes. Otherwise, initialization proceeds and sets flag to prevent re-execution. This ensures safe repeated invocation during double-rendering lifecycle.
 
 **Safe Patterns:**
 - All services as Singletons (persist across renders)
@@ -384,8 +403,7 @@ The StartGameAsync method implements idempotence protection by checking the Game
 ### Testing Considerations
 
 **Expected Behavior:**
-
-When debugging Blazor ServerPrerendered applications, log output will show the StartGameAsync method executing twice: first logging that the player initialized at Market Square during the initial server-side prerender, then logging that game start was skipped because it already started during the second interactive render after SignalR connection. This double-logging behavior is expected and demonstrates idempotence protection working correctly, preventing duplicate initialization.
+During development, log messages may appear twice showing initialization and subsequent skip behavior. First render executes initialization fully, second render detects guard flag and skips re-execution. This double-logging is expected and demonstrates idempotence protection working correctly.
 
 ---
 
@@ -520,26 +538,30 @@ This meta-decision IS the alignment framework for all other principles.
 > **For complete spatial hierarchy and location relationships**, see [03_context_and_scope.md](03_context_and_scope.md) and [05_building_block_view.md](05_building_block_view.md).
 
 ### Status
-**Accepted** - Fundamental architectural pattern (currently violated, requires refactoring)
+**Accepted** - Fundamental architectural pattern (ARCHITECTURAL MANDATE)
 
 ### Context
 
-**Current Implementation (WRONG):**
-- Domain entities store synthetic ID strings (`NPC.ID`, `RouteOption.OriginLocationId`)
-- JSON files contain ID cross-references (`"locationId": "common_room"`, `"venueId": "brass_bell_inn"`)
-- Parsers perform ID lookups to resolve references (`gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId)`)
-- Redundant storage of both IDs and object references (RouteOption comment: "HIGHLANDER Pattern A (BOTH ID + Object)")
-- Routes manually defined in JSON with origin/destination ID references
+**ENTITY INSTANCE IDs DO NOT EXIST IN THIS ARCHITECTURE.**
 
-**Problems with ID-Based Architecture:**
-1. **Serialization Leakage**: IDs are JSON parsing artifacts polluting domain entities
-2. **Redundancy**: Entities store both ID strings AND object references
-3. **Violations Enabled**: Composite IDs, ID parsing, GetHashCode misuse
-4. **Manual Route Definition**: Routes hardcoded in JSON instead of generated procedurally
+Domain entities (NPC, Location, Route, Scene, Situation) have **NO ID PROPERTIES**. This is architectural law, not a guideline.
 
-**Architectural Intent (from code comments):**
-- Location.cs line 15: *"HIGHLANDER: Location.HexPosition is source of truth, Hex.LocationId is derived lookup"*
-- NPCParser.cs line 107: *"HIGHLANDER: ID is parsing artifact"*
+**The Only Exception: Template IDs**
+
+Template IDs are acceptable (SceneTemplate.Id, SituationTemplate.Id, ArchetypeId) because templates are **immutable archetypes**, not mutable entity instances:
+- ✅ Template IDs: SceneTemplate.Id, SituationTemplate.Id, ArchetypeId (content definitions)
+- ❌ Entity instance IDs: Scene.Id, Situation.Id, NPC.Id, Location.Id, Route.Id (game state)
+
+**Why Entity Instance IDs Are Forbidden:**
+1. **Serialization Leakage**: IDs are JSON parsing artifacts that would pollute domain entities
+2. **Redundancy**: Storing both ID strings AND object references violates Single Source of Truth
+3. **Violations Enabled**: IDs enable composite ID generation, ID parsing, GetHashCode misuse
+4. **Breaks Procedural Generation**: Hardcoded entity IDs prevent templates from working in any procedural world
+
+**Architectural Mandate (code comments confirm intent):**
+- Location.cs: *"HIGHLANDER: Location.HexPosition is source of truth, Hex.LocationId is derived lookup"*
+- NPCParser.cs: *"HIGHLANDER: ID is parsing artifact"*
+- The architecture was DESIGNED without entity instance IDs from the beginning
 
 **System Context:**
 - Blazor Server in-process execution (no serialization between frontend/backend)
@@ -549,34 +571,33 @@ This meta-decision IS the alignment framework for all other principles.
 
 ### Decision
 
-**Eliminate synthetic IDs from domain entities. Use hex-based spatial positioning and object references for all relationships.**
+**ENTITY INSTANCE IDs DO NOT EXIST. Entity relationships use hex-based spatial positioning, categorical properties, and direct object references ONLY.**
 
-**Exception:** Template IDs are acceptable (SceneTemplate.Id, SituationTemplate.Id) because templates are immutable archetypes, not mutable entity instances. Templates are content definitions, not game state.
+**The Four-Layer Architecture:**
 
-**JSON Layer:**
-- Locations defined with hex coordinates (Q, R) indicating spatial position
-- NPCs defined with hex coordinates (where they spawn), NOT locationId cross-reference
-- Routes NOT defined in JSON - generated procedurally from hex grid
-- Hex grid defines terrain, danger levels, traversability at each coordinate
+**1. JSON Layer (Categorical Properties + Spatial Coordinates):**
+- Locations: Hex coordinates (Q, R) + categorical dimensions (Privacy, Safety, Activity, Purpose)
+- NPCs: `spawnLocation` filter with categorical properties (NOT `locationId`)
+- Exchange Cards: `providerFilter` with categorical properties (NOT `npcId`)
+- Conversation Trees: `participantFilter` with categorical properties (NOT `npcId`)
+- Observation Scenes: `locationFilter` with categorical properties (NOT `locationId`)
+- Routes: NOT in JSON - generated procedurally from hex grid
 
-**Parser Layer:**
-- Resolves spatial relationships via hex coordinate matching
-- Builds object graph using categorical properties (EntityResolver.FindOrCreate)
-- Creates object references based on categorical matching
-- Parser queries existing entities by categorical properties, creates new if no match
+**2. Parser Layer (EntityResolver.FindOrCreate):**
+- Resolves categorical filters to concrete entity objects
+- `FindOrCreateLocation(PlacementFilter)` → returns Location object
+- `FindOrCreateNPC(PlacementFilter)` → returns NPC object
+- Queries existing entities by categorical matching, creates new if no match
+- Returns object references immediately (NO ID storage)
 
-**Domain Layer:**
-- Entities have object references, NOT ID strings
-- NPC has `Location` object reference (no `ID`, `LocationId` properties)
-- RouteOption has `OriginLocation`, `DestinationLocation` objects (no ID strings)
-- Location.HexPosition (AxialCoordinates) is spatial source of truth
-- Player has `List<Obligation>` (not `List<string> ObligationIds`)
+**3. Domain Layer (Object References ONLY):**
+Domain entities contain NO ID properties. NPC class stores direct object references to Location and WorkLocation. Scene class stores direct object references to CurrentSituation, Location, and NPC. Player class stores list of Obligation objects, never string IDs. All relationships expressed through direct object references enabling compile-time type checking and eliminating lookup overhead.
 
-**Runtime:**
-- Routes generated procedurally via pathfinding: `Origin.HexPosition → Destination.HexPosition`
-- Travel system navigates hex grid terrain and danger levels
-- No hardcoded route definitions - all routes emerge from spatial data
-- Entity queries use categorical properties (profession, personality, location, tier)
+**4. Runtime (Spatial + Categorical Queries):**
+- Route generation: Procedural via pathfinding `Origin.HexPosition → Destination.HexPosition`
+- Entity queries: LINQ over GameWorld collections using categorical properties
+- Scene matching: Categorical filters match ANY entity with required properties
+- NO hardcoded route definitions - all routes emerge from spatial data
 
 ### Consequences
 
@@ -588,38 +609,14 @@ This meta-decision IS the alignment framework for all other principles.
 - **Compile-Time Safety**: Object references catch errors at compile time vs runtime ID lookups
 
 **Negative:**
-- **Requires Refactoring**: Massive codebase change across JSON, DTOs, parsers, domain, services
-- **Migration Complexity**: Must update all 5 layers simultaneously (JSON → DTO → Parser → Entity → Services)
-- **Breaking Change**: Existing JSON files need restructuring (add Q,R coordinates, remove ID cross-references)
+- **Initial Learning Curve**: Developers must understand categorical matching vs ID lookups
+- **Different Mental Model**: Object-oriented relationships vs database-style foreign keys
+- **Refactoring Effort**: Existing code with ID patterns must be migrated
 
-**Technical Requirements:**
-- Add Q,R properties to LocationDTO, NPCDTO
-- Remove ID properties from all domain entities
-- Refactor parsers to use spatial resolution instead of ID lookups
-- Remove 04_connections.json (routes generated procedurally)
-- Update services to use object references instead of ID strings
-- Add unit tests for spatial resolution logic
-
-**Migration Strategy:**
-1. **Phase 1: Fix Immediate Violations** (Quick wins)
-   - NPC.cs line 148: Replace `ID.GetHashCode()` with dedicated `DeterministicSeed` property
-   - HexRouteGenerator.cs: Replace composite IDs with opaque GUIDs, add origin/destination object properties
-2. **Phase 2: JSON Restructuring** (Data layer)
-   - Add Q,R coordinates to all location JSON (source of truth for spatial position)
-   - Add Q,R coordinates to all NPC JSON (where they spawn)
-   - Remove locationId, venueId cross-references
-   - Delete 04_connections.json (routes generated procedurally)
-3. **Phase 3: Domain Entity Cleanup** (Model layer)
-   - Remove ID properties from NPC, RouteOption, Location
-   - Remove LocationId, OriginLocationId, DestinationLocationId redundant properties
-4. **Phase 4: Parser Refactoring** (Resolution layer)
-   - Spatial resolution: Match entities by hex coordinates
-   - Build object graph during parsing
-   - Eliminate ID lookup patterns
-5. **Phase 5: Service Layer Updates** (Application layer)
-   - Replace ID parameters with object parameters
-   - Remove `GetById` methods, use object references
-   - Update frontend to pass objects instead of ID strings
+**Related Patterns:**
+- EntityResolver.FindOrCreate: Categorical property matching
+- HIGHLANDER Principle: One representation per concept (object references ONLY)
+- Catalogue Pattern: Parse-time translation from categorical to concrete values
 
 ### Alternatives Considered
 
@@ -659,13 +656,11 @@ This meta-decision IS the alignment framework for all other principles.
 
 ### Implementation Notes
 
-**Entity Pattern Example:**
+**Entity Pattern:**
+NPC class contains NO ID property. Properties include Name (string), Location object reference, Profession enum (categorical), and PersonalityType enum (categorical). Parser creates PlacementFilter from DTO categorical properties, passes to EntityResolver.FindOrCreateLocation which returns Location object, then stores object reference directly on NPC entity.
 
-The NPC entity should contain no ID property. Instead, it stores a Name string for identification, a Location object reference pointing to the entity's current position, and categorical properties like Profession and PersonalityType using enums. The parser uses categorical properties to find or create entities through the EntityResolver: constructing a PlacementFilter specifying Purpose, Safety, and LocationProperties from the DTO, then calling FindOrCreateLocation which either returns an existing matching location or creates a new one. The parser then stores the returned object reference directly in the NPC's Location property, establishing the relationship without any ID strings.
-
-**Procedural Route Generation Example:**
-
-Route generation operates on hex coordinates rather than predefined connections. The pathfinder's FindPath method accepts origin and destination HexPosition values along with the hex map, returning a list of AxialCoordinates representing the spatial path between the two points. The system constructs a RouteOption entity storing OriginLocation and DestinationLocation as object references to the actual location entities, storing the HexPath as the sequence of coordinates, and calculating DangerRating by summing the DangerLevel of each hex coordinate along the path. No route IDs exist; routes are identified by their origin and destination object references.
+**Procedural Route Generation:**
+Pathfinder generates hex path from origin location's HexPosition to destination location's HexPosition, navigating hex map terrain. RouteOption constructed with direct object references to OriginLocation and DestinationLocation, spatial hex path as coordinate list, and DangerRating calculated by summing danger levels of all hexes in path. No hardcoded route IDs required.
 
 ---
 

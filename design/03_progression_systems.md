@@ -156,15 +156,7 @@ Every card in every system is bound to one of these five stats. This binding det
 **Dialogue Choice Availability:**
 Higher stats unlock additional dialogue choices in NPC scenes and route situations.
 
-Example:
-```
-Choice: "Spot the hidden contradiction in their story"
-Requires: Insight 3
-Your Insight: 2
-Status: DISABLED (shown greyed with requirement visible)
-```
-
-Player sees: "Requires Insight 3, you have 2" - exact gap of 1 point visible. Can plan to increase Insight before retrying.
+Example: A dialogue choice to spot hidden contradictions displays its Insight requirement of 3 while showing the player's current Insight of 2, making the exact gap of 1 point visible. The choice appears greyed out but remains visible with clear requirement information. The player can see exactly what they need to unlock this path and plan accordingly.
 
 **Challenge Difficulty:**
 Higher relevant stat makes challenges easier:
@@ -370,30 +362,7 @@ Players naturally specialize in 2-3 stats, neglect others. This creates:
 - Resource management is core challenge
 - Failure is possible but recoverable
 
-**Example Economic Cycle:**
-```
-Morning:
-  Accept delivery (30 coins reward)
-
-Travel Outbound:
-  6 route segments
-  Encounter costs: 8 energy, 12 hunger, 5 coins, 3 time segments
-  Arrive: Earn 30 coins
-
-Travel Return:
-  6 route segments (same costs roughly)
-  Encounter costs: 7 energy, 10 hunger, 4 coins, 3 time segments
-
-Evening:
-  Food: 10 coins (restore hunger)
-  Lodging: 15 coins (restore energy)
-
-Net Profit Calculation:
-  Earned: 30 coins
-  Spent on route: 9 coins
-  Spent on survival: 25 coins
-  Net: -4 coins (LOSS!)
-```
+**Example Economic Cycle:** A player accepts a delivery worth 30 coins in the morning. The outbound journey across six route segments consumes 8 energy, 12 hunger, 5 coins, and 3 time segments through various encounters. Upon arrival they earn the 30-coin reward. The return journey costs another 7 energy, 10 hunger, 4 coins, and 3 time segments. Evening survival needs require 10 coins for food and 15 coins for lodging. Final calculation shows earning 30 coins but spending 9 on routes and 25 on survival, resulting in a net loss of 4 coins. This intentional tight margin demonstrates the economic pressure design.
 
 **This is intentional.** Some deliveries result in losses. Player must:
 - Learn routes to optimize costs
@@ -634,53 +603,15 @@ Spend today's resources on NPC for future benefit (delayed gratification, long-t
 
 **Scene Completion Rewards Spawn New Scenes:**
 
-Example:
-```
-Scene: "Investigate the Mill - Phase 1"
-Completion Reward: SpawnedScenes = ["investigate_mill_phase_2"]
-
-Effect:
-  1. Phase 2 scene template exists in catalogue
-  2. CreateSceneFromTemplate("investigate_mill_phase_2")
-  3. New scene added to GameWorld.Scenes
-  4. Scene appears at location specified in template
-  5. Player sees new button at location
-
-Result: Phase 2 NOW EXISTS (didn't before)
-```
+Example: Investigating the Mill Phase 1 specifies Phase 2 as a spawned scene reward. Upon completion, the system creates Phase 2 from its template and adds it to the game world at the specified location. The new scene materializes as a visible action button at that location. Phase 2 now exists in the world where it didn't before - lazy materialization in response to player progress.
 
 **A-Story Progression Unlocks Regions:**
 
-Example:
-```
-A-Story Phase 5 Completion
-Reward: SpawnedLocations = ["eastern_region_hub"]
-
-Effect:
-  1. Eastern region template exists
-  2. CreateLocationsFromTemplate("eastern_region_*")
-  3. New locations added to GameWorld.Locations
-  4. New routes created connecting to existing world
-  5. Routes appear in travel screen
-
-Result: Eastern region NOW ACCESSIBLE (didn't exist before)
-```
+Example: Completing A-Story Phase 5 spawns the eastern region hub. The system creates locations from the region template, adds them to the game world, generates connecting routes to the existing world, and makes the routes visible in travel screens. The entire eastern region now exists and is accessible where it wasn't before - world expansion through progression.
 
 **NPC Bonds Unlock Special Scenes:**
 
-Example:
-```
-NPC Bond Level 4 Achieved
-Reward: SpawnedScenes = ["npc_personal_crisis"]
-
-Effect:
-  1. Personal crisis scene template exists
-  2. CreateSceneFromTemplate with NPC context
-  3. Scene added at NPC's location
-  4. Appears as special opportunity
-
-Result: Personal storyline NOW AVAILABLE (wasn't before)
-```
+Example: Reaching Bond Level 4 with an NPC spawns their personal crisis scene. The system creates the scene from its template with NPC-specific context and adds it at the NPC's current location as a special opportunity. The NPC's personal storyline now exists as playable content where it wasn't accessible before - relationship depth unlocking narrative content.
 
 ### Why Entity Spawning Is Superior
 

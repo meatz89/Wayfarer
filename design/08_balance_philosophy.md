@@ -1248,42 +1248,13 @@ AI generating infinite content CAN'T know these. Solution: Categorical propertie
 
 ### 8.8.2 Categorical Property Architecture
 
-**AI Writes Descriptive Properties**:
-```json
-{
-  "id": "elena_innkeeper",
-  "demeanor": "Friendly",
-  "serviceType": "Lodging",
-  "quality": "Standard",
-  "environmentQuality": "Standard"
-}
-```
+**AI Writes Descriptive Properties**: The AI describes entities using categorical properties like Friendly demeanor, Lodging service type, Standard quality, and Standard environment quality. No numbers appear in the authored content - only self-documenting, fiction-appropriate descriptors like "Friendly innkeeper at standard-quality inn."
 
-AI describes: "Friendly innkeeper at standard-quality inn." No numbers. Self-documenting. Fiction-appropriate.
-
-**Catalogues Translate to Balanced Numbers**:
-```
-service_negotiation archetype:
-  BaseStatThreshold = 5
-  BaseCoinCost = 8
-
-Context scaling:
-  NpcDemeanor.Friendly = 0.6× multiplier
-  Quality.Standard = 1.0× multiplier
-
-Result:
-  StatThreshold = 5 × 0.6 = 3 (easy to negotiate)
-  CoinCost = 8 × 1.0 = 8 (standard price)
-```
-
-Catalogue applies universal formula. Result: Contextually appropriate difficulty.
+**Catalogues Translate to Balanced Numbers**: The service negotiation archetype defines base stat threshold of 5 and base coin cost of 8. Context scaling applies the Friendly demeanor multiplier of 0.6 and Standard quality multiplier of 1.0, producing final stat threshold of 3 for easy negotiation and coin cost of 8 for standard pricing. The catalogue applies universal formulas resulting in contextually appropriate difficulty.
 
 ### 8.8.3 Dynamic Scaling via Universal Formulas
 
-**Formula Structure**:
-```
-FinalValue = BaseValue × PropertyMultiplier₁ × PropertyMultiplier₂ × ProgressionMultiplier
-```
+**Formula Structure**: The final value equals base value multiplied by property multiplier one, times property multiplier two, times progression multiplier. This multiplicative structure enables compound scaling from multiple categorical dimensions.
 
 **Base Value**: Archetype defines (service_negotiation: BaseStatThreshold = 5)
 **Property Multipliers**: Categorical properties scale (Friendly = 0.6×, Hostile = 1.4×)

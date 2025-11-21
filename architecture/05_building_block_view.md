@@ -66,15 +66,48 @@ GameWorld is the **single source of truth** for all game state. It contains stat
 
 ### State Collections
 
-GameWorld maintains collections for core game entities including character entities, venue entities, location entries, and a single player instance. For the three parallel tactical systems, it stores card template collections for each challenge type and challenge deck collections organizing cards by difficulty and context. The strategic layer is represented through scene template collections defining reusable scene archetypes and active scene instances currently in play.
+**Core Entities:**
+- NPCs list (all non-player characters)
+- Venues list (spatial hierarchy containers)
+- Locations list (specific places within venues)
+- Player singleton (single player instance)
 
-For persistent gameplay scaffolding, GameWorld stores static atmospheric actions that provide ongoing gameplay options like travel, work, rest, and movement between locations. These are distinct from ephemeral scene-based actions which are passed by object reference without requiring storage. The player stats system is represented through stat definition collections describing available character attributes and a stat progression structure tracking advancement.
+**Three Parallel Tactical Systems - Card Templates:**
+- SocialCards list (conversation tactical cards)
+- MentalCards list (investigation tactical cards)
+- PhysicalCards list (obstacle tactical cards)
 
-All collections use strongly-typed list containers holding domain entities with object references rather than ID lookups.
+**Three Parallel Tactical Systems - Challenge Decks:**
+- SocialChallengeDecks list (conversation challenges)
+- MentalChallengeDecks list (investigation challenges)
+- PhysicalChallengeDecks list (obstacle challenges)
+
+**Strategic Layer - Scene System:**
+- SceneTemplates list (immutable archetypes)
+- Scenes list (mutable instances containing embedded Situations)
+
+**Atmospheric Action Layer:**
+- LocationActions list (persistent gameplay scaffolding only)
+- Stores ONLY static atmospheric actions (Travel/Work/Rest/Movement)
+- Does NOT store ephemeral scene-based actions (passed by object reference)
+
+**Player Stats System:**
+- PlayerStatDefinitions list (stat metadata)
+- StatProgression singleton (progression tracking)
 
 ### State Operations
 
-GameWorld exposes methods for retrieving the single player instance, accessing current player resource states including health and stamina, and locating specific location entries through identifier lookup. For character management, it provides methods to retrieve available stranger characters based on current venue and time context, refresh stranger availability when time blocks transition, and apply initial player configuration from loaded content data at game start.
+**Player Access:**
+- GetPlayer: Returns single player instance
+- GetPlayerResourceState: Returns current player resources
+
+**Entity Queries:**
+- GetLocation: Retrieves location by ID
+- GetAvailableStrangers: Returns NPCs available at venue/time
+- RefreshStrangersForTimeBlock: Updates time-based NPC availability
+
+**Initialization:**
+- ApplyInitialPlayerConfiguration: Applies starting conditions from JSON
 
 ### Critical Principles
 
@@ -204,9 +237,24 @@ InvestigationCompleteModal.razor   → Investigation completion rewards
 
 ### Component Communication Pattern
 
-**Direct Parent-Child Communication**: Child components receive a reference to their parent screen through cascading values, enabling them to invoke parent methods directly for actions like navigation, initiating challenges, or executing game actions. The parent passes callback delegates to children for refresh notifications and state synchronization.
+**Direct Parent-Child Communication:**
+- Child components receive parent reference via CascadingValue
+- Children rendered inside parent's container element
+- Children call parent methods directly (no event bus)
+- Parent methods include: StartConversation, NavigateToQueue, HandleTravelRoute
+- OnActionExecuted callback triggers parent UI refresh
 
-**Context Objects for Complex State**: The three parallel tactical systems each maintain dedicated context objects that encapsulate complete challenge state including resources, active cards, and progression tracking. Supporting systems use specialized context objects for trading sessions, travel destinations with route information, and location exploration state. These context objects are passed between components to maintain state consistency without requiring shared mutable storage.
+**Context Objects for Complex State:**
+
+THREE PARALLEL TACTICAL SYSTEMS:
+- SocialChallengeContext: Complete conversation state (Social challenge)
+- MentalSession: Investigation state (Mental challenge)
+- PhysicalSession: Obstacle state (Physical challenge)
+
+SUPPORTING CONTEXTS:
+- ExchangeContext: NPC trading session state
+- TravelDestinationViewModel: Route and destination display state
+- LocationScreenViewModel: Location exploration state
 
 ### Critical UI Principles
 
@@ -281,11 +329,40 @@ AI generates JSON with categorical properties providing relative descriptions. P
 
 **Example: Equipment Durability**
 
-Content defines equipment with relative categorical durability descriptors rather than absolute numeric values. During parsing, the system reads current player progression level and difficulty settings, then consults the durability catalogue to translate the categorical descriptor into concrete values. The catalogue applies scaling formulas that increase use counts and costs proportionally with player level, ensuring that equipment remains appropriately challenging throughout the game. The critical principle maintains relative ordering where lower durability categories always remain weaker than higher durability categories regardless of absolute scaling factors.
+```
+JSON (authored by AI or humans):
+{
+  "durability": "Fragile"  // Relative category, not absolute value
+}
+
+Parser translates using catalogue + game state:
+- Read player level and difficulty mode
+- Call catalogue: DurabilityCatalogue.GetScaledValues("Fragile", playerLevel)
+
+Catalogue returns scaled values:
+- Level 1 Fragile: 2 uses, 10 coins
+- Level 5 Fragile: 4 uses, 25 coins (scaled up for progression)
+- Level 10 Fragile: 6 uses, 40 coins (continues scaling)
+
+Critical principle: Fragile ALWAYS weaker than Sturdy, maintaining relative consistency regardless of scaling factors.
+```
 
 **Example: Card Effects**
 
-Content defines tactical cards using categorical properties describing the conversational move type, bound character stat, and abstract depth level. During parsing, the system invokes the card effect catalogue with these categorical properties plus current player level. The catalogue calculates base effect values appropriate to the move type and depth, then applies progression scaling multipliers. This ensures identical categorical properties produce stronger effects at higher player levels while maintaining consistent relative power between different card types.
+```
+JSON:
+{
+  "conversationalMove": "Remark",
+  "boundStat": "Rapport",
+  "depth": 2
+}
+
+Parser translates with scaling:
+- Call catalogue passing categorical properties + player level
+
+Early game (Level 1): Remark with Rapport at Depth 2 → +4 Understanding
+Late game (Level 5): Same categorical properties → +6 Understanding
+```
 
 **Why This Architecture Exists**:
 - **AI Content Generation**: AI describes entities relatively (Fragile rope, Cunning NPC) without needing absolute game values knowledge
@@ -320,9 +397,24 @@ If NO: Consider if truly design-time constant (rare - most values should scale)
 
 **Anti-Pattern: Hardcoded Absolute Values in JSON**
 
-Content that specifies absolute numeric values for mechanical properties breaks AI generation capabilities and prevents proper difficulty scaling. Values like specific use counts, fixed costs, or concrete effect magnitudes lock the content to a single progression level and prevent the system from adapting to player advancement.
+```
+❌ WRONG: JSON with absolute numeric values
+{
+  "exhaustAfterUses": 2,
+  "repairCost": 10,
+  "understanding": 4,
+  "momentum": 2
+}
+// Breaks AI generation and prevents scaling
 
-The correct pattern uses categorical descriptors that express relative concepts. Durability categories, move type classifications, and abstract depth levels enable both AI authoring and dynamic scaling. The parser and catalogue system translate these categories into appropriate absolute values based on runtime game state.
+✅ CORRECT: JSON with categorical properties
+{
+  "durability": "Fragile",
+  "conversationalMove": "Remark",
+  "depth": 2
+}
+// Enables AI generation and automatic scaling
+```
 
 ### Initialization Architecture
 

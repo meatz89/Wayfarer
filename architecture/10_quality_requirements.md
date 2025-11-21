@@ -175,13 +175,14 @@ Each quality goal translates into concrete, testable scenarios. Scenarios follow
 - Multiple systems need to know player location (UI, SceneFacade, SpawnFacade)
 
 **Stimulus:**
-- GameFacade.NavigateToLocation(newLocationId)
+- GameFacade.NavigateToLocation(newLocation)  // Pass object, NOT ID
 
 **Response:**
-- GameWorld.Player.CurrentLocationId updated (ONLY place storing location)
+- GameWorld.Player.CurrentLocation updated (ONLY place storing location - object reference)
 - All systems query GameWorld for location, never cache independently
-- **Metric**: Zero properties named "CurrentLocationId" outside GameWorld.Player
-- **Validation**: Code search for "CurrentLocationId" returns only GameWorld.Player property
+- **Metric**: Zero properties named "CurrentLocationId" exist (use CurrentLocation object reference)
+- **Validation**: Code search confirms Player.CurrentLocation is object reference, NOT ID string
+- **NO ENTITY INSTANCE IDs**: Player.CurrentLocation is Location object, never string ID
 
 #### Scenario 2.2: Scene State Synchronization
 
@@ -540,13 +541,11 @@ Each quality goal translates into concrete, testable scenarios. Scenarios follow
 - **Metric**: Zero Dictionary/HashSet usage for domain entity storage
 - **Validation**: Code search for `Dictionary<string, NPC>` returns zero results
 
-**Anti-Pattern Example (REJECTED):**
-
-The wrong approach uses a dictionary indexed by entity identifier. Looking up entities by identifier throws an exception if the key doesn't exist. Querying by other properties requires iterating over the dictionary's values collection and applying LINQ filters, essentially treating the dictionary as a list with extra complexity.
+**Anti-Pattern (REJECTED):**
+Using Dictionary with string keys for NPC storage. GetNPCByName method throws KeyNotFoundException if not found instead of returning null. GetFriendlyNPCs must iterate Dictionary.Values with LINQ anyway, negating performance benefit. Dictionary used as List with extra complexity and no actual gain.
 
 **Correct Pattern (APPROVED):**
-
-The correct approach uses a list to store entities directly. Looking up by identifier uses LINQ's FirstOrDefault method, which returns null if not found, allowing fail-fast behavior at the call site. All queries use uniform LINQ patterns regardless of the property being searched, creating consistent and readable code.
+Using List for NPC storage. GetNPCByName uses LINQ FirstOrDefault returning null if not found, enabling fail-fast at call site. GetFriendlyNPCs uses uniform LINQ Where query pattern. All queries follow same declarative pattern with consistent error handling.
 
 **Performance Analysis:**
 - Dictionary lookup: ~0.0001ms (O(1) hash calculation)
@@ -577,8 +576,7 @@ The correct approach uses a list to store entities directly. Looking up by ident
 - **Validation**: Peer review requires zero clarification questions
 
 **Example (APPROVED):**
-
-A method to retrieve entities at a specific location uses a declarative LINQ pipeline. The query filters entities by matching the location property, orders results alphabetically by name, and materializes the result as a list. The code reads naturally as "entities where current location matches, ordered by name."
+Method queries NPC collection using declarative LINQ pipeline. Filter by current location match, order by name alphabetically, materialize to list. Query reads as English prose: "NPCs where current location matches, ordered by name". Intent immediately clear without mental translation.
 
 #### Scenario 8.3: Debugging Session Efficiency
 
@@ -590,15 +588,14 @@ A method to retrieve entities at a specific location uses a declarative LINQ pip
 - Set breakpoint, inspect GameWorld state
 
 **Response:**
-- List debugger view displays immediate entity state showing the entity with its name, location identifier, and demeanor property directly visible in the debugger window
-- Developer identifies problems immediately because location mismatches are visible without expanding nested structures
-- No need to expand key-value pair structures
+- List debugger view shows immediate entity state with all properties visible: collection count, then each item showing NPC name, current location, and demeanor without expansion
+- Developer sees problem IMMEDIATELY (location mismatch visible in top-level view)
+- No need to expand KeyValuePair structures
 - **Metric**: Average debug session time reduced by 30% vs Dictionary
 - **Validation**: Developer productivity tracking
 
 **Anti-Pattern (Dictionary):**
-
-Dictionary debugger view shows key-value pairs where each entry displays only the key string and the type name. Developers must manually expand each KeyValuePair structure to inspect entity properties, requiring extra clicks and navigation to see the same information.
+Dictionary debugger view shows KeyValuePair wrappers hiding entity properties. Each item displays only key string and type name. Developer must manually expand each KeyValuePair to see actual NPC properties, requiring extra clicks and reducing debugging efficiency.
 
 ---
 

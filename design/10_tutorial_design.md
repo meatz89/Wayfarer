@@ -282,30 +282,9 @@ Later content uses different categorical combinations:
 
 Choices with ActionType=Navigate and appropriate NavigationPayload can exit current context without marking situation complete. Scene.CurrentSituation remains unchanged. Next player interaction presents same situation again.
 
-**NavigationPayload Structure**:
-```
-{
-  "DestinationType": "ReturnToLocation",
-  "DestinationId": "{current_location_id}",
-  "AutoTrigger": null
-}
-```
+**NavigationPayload Structure**: The payload specifies destination type as returning to current location, identifies the current location, and sets no automatic triggering. This structure enables exiting without scene progression.
 
-**Choice Definition Pattern**:
-```
-{
-  "Id": "defer_engagement",
-  "ActionTextTemplate": "Not tonight",
-  "PathType": "Navigation",
-  "ActionType": "Navigate",
-  "NavigationPayload": {
-    "DestinationType": "ReturnToLocation",
-    "DestinationId": "{current_location_id}"
-  },
-  "RewardTemplate": {},  // Empty - no progression
-  "CostTemplate": {}     // Free navigation
-}
-```
+**Choice Definition Pattern**: The deferred engagement choice displays action text like "Not tonight", uses Navigation path and action types, includes navigation payload returning to current location, provides empty reward template indicating no scene progression, and has empty cost template making navigation free. This pattern enables player exit without commitment.
 
 **Execution Flow**:
 
@@ -329,52 +308,21 @@ A1 Situation 1 (Elena lodging negotiation):
 
 **Other Applications (Same Pattern)**:
 
-**1. NPC Interaction Postponement**:
-```
-Scene: "Magistrate Meeting"
-Choice: "I need to prepare more thoroughly"
-Result: Returns to location, scene active, can gather evidence first
-```
+**1. NPC Interaction Postponement**: In a Magistrate Meeting scene, choosing "I need to prepare more thoroughly" returns the player to the location with the scene remaining active, allowing evidence gathering before re-engagement.
 
-**2. Investigation Pause**:
-```
-Scene: "Mill Investigation"
-Choice: "Return to constable for guidance"
-Result: Exits investigation, can pursue other leads, return later
-```
+**2. Investigation Pause**: In a Mill Investigation scene, choosing "Return to constable for guidance" exits the investigation while keeping it active, enabling pursuit of other leads before returning to complete the investigation.
 
-**3. Challenge Avoidance**:
-```
-Scene: "Tense Confrontation"
-Choice: "Step back, reassess"
-Result: Exits scene, can rest/recover, re-engage when ready
-```
+**3. Challenge Avoidance**: In a Tense Confrontation scene, choosing "Step back, reassess" exits the scene while keeping it available, allowing rest and recovery before re-engagement when ready.
 
-**4. Multi-Visit Requirement**:
-```
-Scene: "Master Craftsman Training"
-Choice: "Practice and return tomorrow"
-Result: Exits for time passage, returns next day for progression
-```
+**4. Multi-Visit Requirement**: In a Master Craftsman Training scene, choosing "Practice and return tomorrow" exits for time passage, with the player returning the next day to continue progression through the training sequence.
 
 **Key Insight**: Deferred engagement not a special tutorial state machine. It's GENERAL navigation pattern: ActionType=Navigate + DestinationType=ReturnToLocation + Empty RewardTemplate = exit without progression. Tutorial uses it for "Not tonight," but pattern applicable anywhere player needs pause/return capability.
 
 **Contrast Failed Approaches**:
 
-**❌ Special Deferred State** (Over-engineering):
-```
-Scene.SituationLifecycleStatus.Deferred
-Scene.DeferredSituations list
-Special state machine tracking deferred scenes
-```
+**❌ Special Deferred State** (Over-engineering): Creating a Scene.SituationLifecycleStatus.Deferred enumeration value, maintaining a Scene.DeferredSituations collection, and building a special state machine to track deferred scenes would add unnecessary architectural complexity.
 
-**✅ Existing Navigation Pattern** (Architectural elegance):
-```
-NavigationPayload already exists
-DestinationType already supports ReturnToLocation
-Empty RewardTemplate already means "no progression"
-No new systems needed
-```
+**✅ Existing Navigation Pattern** (Architectural elegance): NavigationPayload already exists in the architecture, DestinationType already supports ReturnToLocation for location-based navigation, empty RewardTemplate already conveys "no progression" semantically, and no new systems are needed. The pattern emerges from existing architectural primitives.
 
 **Documentation Location**: NavigationPayload details in `05_building_block_view.md` Section 5.3, general navigation patterns in `08_crosscutting_concepts.md` Section 8.6.
 
