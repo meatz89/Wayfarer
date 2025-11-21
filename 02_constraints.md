@@ -44,56 +44,32 @@ The following type restrictions are **compiler-enforced architectural constraint
 #### ALLOWED Lambdas
 
 **1. LINQ Queries:**
-```csharp
-// ✅ ALLOWED
-var active = scenes.Where(s => s.State == SceneState.Active);
-var names = npcs.Select(n => n.Name);
-var first = npcs.FirstOrDefault(n => n.Name == targetName);
-```
+- Declarative collection queries (Where, Select, FirstOrDefault)
+- Filtering entities by state or categorical properties
+- Transforming entity collections
 
 **2. Blazor Event Handlers (Frontend Only):**
-```csharp
-// ✅ ALLOWED
-<button @onclick="() => HandleClick(arg)">Click</button>
-```
+- Click event handlers passing arguments to component methods
+- UI-specific closures over component scope
 
 **3. Framework Configuration (Rare Exceptions):**
-```csharp
-// ✅ ALLOWED
-services.AddHttpClient<OllamaClient>(client => {
-    client.Timeout = TimeSpan.FromSeconds(5);
-});
-```
+- HTTP client timeout configuration
+- Framework service builder configuration
 
 #### FORBIDDEN Lambdas
 
 **1. Backend Event Handlers:**
-```csharp
-// ❌ FORBIDDEN
-AppDomain.CurrentDomain.ProcessExit += (s, e) => { Log.CloseAndFlush(); };
-
-// ✅ CORRECT - Named method
-AppDomain.CurrentDomain.ProcessExit += OnProcessExit;
-```
+- Anonymous process exit handlers
+- Anonymous lifecycle event subscriptions
+- Must use named methods for debugging and testability
 
 **2. Dependency Injection Registration:**
-```csharp
-// ❌ FORBIDDEN
-services.AddSingleton<GameWorld>(_ => GameWorldInitializer.CreateGameWorld());
-
-// ✅ CORRECT
-GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();
-builder.Services.AddSingleton(gameWorld);
-```
+- Anonymous factory functions for service creation
+- Must create instance explicitly then register
 
 **3. Backend Logic:**
-```csharp
-// ❌ FORBIDDEN
-Action<Scene> processScene = (s) => { /* logic */ };
-
-// ✅ CORRECT - Named method
-private void ProcessScene(Scene scene) { /* logic */ }
-```
+- Anonymous action delegates for business logic
+- Must use named methods for stack traces and searchability
 
 **Rationale:** Backend lambdas are hard to debug (no stack trace entry), hard to test (anonymous), and hard to find (text search fails). Named methods solve all these problems.
 
@@ -171,29 +147,19 @@ The content loading system processes packages **atomically** - each package is f
 ### Entity Initialization Philosophy ("Let It Crash")
 
 **Required Pattern:**
-```csharp
-// ✅ CORRECT - Initialize inline
-public List<Situation> Situations { get; set; } = new List<Situation>();
-public string Title { get; set; } = "";
-```
+- Initialize all entity properties inline at declaration
+- Empty collections initialized to empty List, strings to empty string
+- Never null for collections or required properties
 
 **Parser Rules:**
-```csharp
-// ✅ CORRECT - Assign directly
-entity.Situations = parsedSituations;
-
-// ❌ FORBIDDEN - No null-coalescing
-entity.Situations = parsedSituations ?? new List<Situation>();
-```
+- Assign parsed values directly to entity properties
+- NO null-coalescing operators
+- Trust entity initialization contract
 
 **Game Logic Rules:**
-```csharp
-// ✅ CORRECT - Trust initialization
-var ids = scene.Situations.Select(s => s.Id);
-
-// ❌ FORBIDDEN - No defensive null checks
-var ids = scene.Situations?.Select(s => s.Id);
-```
+- Access properties directly without null checks
+- Trust initialization (no defensive ?. operators)
+- Let null references crash with clear stack traces
 
 **Rationale:**
 - Fails fast with clear stack traces (easier debugging)
@@ -204,14 +170,9 @@ var ids = scene.Situations?.Select(s => s.Id);
 ### No Backwards Compatibility
 
 **Break things when refactoring:**
-```csharp
-// ❌ FORBIDDEN - Keeping old method for compatibility
-[Obsolete]
-public Scene GetGoalById(string id) => GetSceneById(id);
-
-// ✅ CORRECT - Delete old method entirely
-public Scene GetSceneById(string id) { /* ... */ }
-```
+- Delete old methods entirely when renaming/refactoring
+- NO Obsolete attributes preserving old signatures
+- Force complete refactoring with compilation errors
 
 **Rationale:** Active development phase. Clean breaks force complete refactoring. No technical debt accumulation.
 
@@ -220,46 +181,19 @@ public Scene GetSceneById(string id) { /* ... */ }
 **Core Principle:** JSON field names MUST match C# property names exactly. Parsers MUST parse all JSON content into strongly-typed objects. The JSON-to-C# boundary is the serialization point - NO raw JSON allowed beyond parsers.
 
 **Field Name Matching:**
-```csharp
-// ✅ CORRECT - JSON field matches C# property
-// JSON: { "sceneTemplateId": "template_001" }
-public string SceneTemplateId { get; set; }  // Template ID acceptable
-
-// ❌ FORBIDDEN - JsonPropertyName attribute to rename
-[JsonPropertyName("scene_template_id")]
-public string SceneTemplateId { get; set; }
-```
+- JSON field names match DTO property names exactly (case-sensitive)
+- NO JsonPropertyName attributes for field renaming
+- Template IDs acceptable in JSON and DTOs (immutable archetypes)
 
 **Parse All JSON:**
-```csharp
-// ✅ CORRECT - Parse to strongly-typed object
-public class LocationDTO {
-    public string Id { get; set; }
-    public string Name { get; set; }
-    public HexPosition HexPosition { get; set; }
-}
-
-// ❌ FORBIDDEN - JsonElement passthrough
-public class LocationDTO {
-    public string Id { get; set; }
-    public JsonElement Properties { get; set; }  // Deferred parsing
-}
-```
+- All JSON content parsed into DTO classes with explicit properties
+- NO JsonElement passthrough to domain layer
+- DTO structure documents JSON schema explicitly
 
 **Parser Responsibility:**
-```csharp
-// ✅ CORRECT - Parser extracts all data from JSON
-var location = new Location {
-    Id = dto.Id,
-    Name = dto.Name,
-    HexPosition = dto.HexPosition,  // Parsed by JSON deserializer
-};
-
-// ❌ FORBIDDEN - Domain entities with JsonElement
-public class Location {
-    public JsonElement RawData { get; set; }  // Runtime JSON parsing
-}
-```
+- Parsers extract all data from DTOs into domain entities
+- NO JsonElement properties in domain entities
+- Domain entities work with typed objects only
 
 **Rationale:**
 - **Single Serialization Point**: JSON parsed once at boundary, never in domain logic
@@ -286,13 +220,8 @@ public class Location {
 - Property names describe actual data
 
 **Examples:**
-```csharp
-// ❌ FORBIDDEN - Name doesn't match return type
-public Location GetVenueById(string id) { return location; }
-
-// ✅ CORRECT - Name matches return type
-public Location GetLocationById(string id) { return location; }
-```
+- FORBIDDEN: Method named GetVenueById returning Location object
+- CORRECT: Method named GetLocationById returning Location object
 
 **Rationale:** Misleading names create cognitive load and bugs. Names must accurately reflect reality.
 
@@ -301,13 +230,13 @@ public Location GetLocationById(string id) { return location; }
 #### ID Antipattern
 
 **FORBIDDEN:**
-- ❌ Encoding data in ID strings: `action.Id = $"move_to_{destinationId}"`
-- ❌ Parsing IDs to extract data: `action.Id.Substring()`, `action.Id.Split('_')`
-- ❌ Using IDs for routing logic: `if (action.Id == "secure_room")`
+- ❌ Encoding data in ID strings: action ID embedding destination location ID
+- ❌ Parsing IDs to extract data: substring operations, split operations
+- ❌ Using IDs for routing logic: string comparison for action dispatch
 
 **CORRECT:**
-- ✅ Use enums for routing: `switch (action.ActionType)`
-- ✅ Use strongly-typed object references: `action.DestinationLocation` (object, NOT ID string)
+- ✅ Use enums for routing: switch on ActionType enum
+- ✅ Use strongly-typed object references: DestinationLocation object, NOT ID string
 - ✅ Properties flow through entire data stack: JSON → DTO → Domain → ViewModel → Intent
 
 **Entity Instance IDs DO NOT EXIST:**
@@ -318,30 +247,14 @@ public Location GetLocationById(string id) { return location; }
 #### Generic Property Modification Antipattern
 
 **FORBIDDEN:**
-```csharp
-// ❌ FORBIDDEN - String-based property routing
-public class PropertyChange {
-    public string PropertyName { get; set; }  // "IsLocked"
-    public string NewValue { get; set; }       // "true"
-}
-
-if (change.PropertyName == "IsLocked") {
-    location.IsLocked = bool.Parse(change.NewValue);
-}
-```
+- String-based property routing (PropertyName string matched at runtime)
+- String value parsing (NewValue string parsed to bool/int)
+- Runtime string matching for property assignment
 
 **CORRECT:**
-```csharp
-// ✅ CORRECT - Explicit strongly-typed properties
-public class SceneReward {
-    public List<Location> LocationsToUnlock { get; set; } = new List<Location>();
-    public List<Location> LocationsToLock { get; set; } = new List<Location>();
-}
-
-foreach (Location location in reward.LocationsToUnlock) {
-    location.IsLocked = false;  // Direct property access on object reference
-}
-```
+- Explicit strongly-typed properties (LocationsToUnlock, LocationsToLock)
+- Direct property access on object references
+- Compiler-verified property assignment
 
 **Rationale:** String matching is error-prone, slow, and violates YAGNI. Add explicit properties when needed.
 
@@ -363,34 +276,18 @@ foreach (Location location in reward.LocationsToUnlock) {
 ### Method Design Constraints
 
 **One Method, One Purpose:**
-```csharp
-// ❌ FORBIDDEN - Overload proliferation
-GetSceneById(string id)
-GetSceneByLocation(string locationId)
-GetSceneByIdAndLocation(string id, string locationId)
-
-// ✅ CORRECT - Separate methods with clear names
-GetSceneById(string id)
-GetScenesAtLocation(string locationId)
-```
+- NO overload proliferation: GetSceneById, GetSceneByLocation, GetSceneByIdAndLocation
+- Separate methods with clear names: GetSceneById, GetScenesAtLocation
+- Method name clearly states what it does
 
 **Rationale:** Method name should clearly state what it does. No input-based branching.
 
 ### Code Quality Constraints
 
 **NO Exception Handling (unless explicitly requested):**
-```csharp
-// ❌ FORBIDDEN (unless requested)
-try {
-    var scene = GetSceneById(id);
-} catch (Exception ex) {
-    Log.Error(ex);
-    return null;
-}
-
-// ✅ CORRECT - Let exceptions bubble
-var scene = GetSceneById(id);  // Throws if not found
-```
+- Don't catch exceptions unless debugging specific issues
+- Let exceptions bubble to surface bugs
+- Exceptions indicate bugs that should be fixed
 
 **NO Logging (unless explicitly requested):**
 - No Log.Info/Debug/Error unless debugging specific issues
@@ -401,14 +298,9 @@ var scene = GetSceneById(id);  // Throws if not found
 - Exception: Complex algorithms, non-obvious business rules (rare)
 
 **No Defaults Unless Strictly Necessary:**
-```csharp
-// ❌ FORBIDDEN - Default fallback
-return scene ?? new Scene();
-
-// ✅ CORRECT - Throw on missing
-if (scene == null) throw new InvalidOperationException($"Scene not found: {id}");
-return scene;
-```
+- Don't return default instances when entity not found
+- Throw exception on missing data
+- Let it crash with clear error messages
 
 **Rationale:** Let it crash. Exceptions indicate bugs that should be fixed, not papered over. Defaults hide missing data problems.
 

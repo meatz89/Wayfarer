@@ -271,14 +271,8 @@ GameWorld (Zero Dependencies)
 - Static content loading fits single-player model (no dynamic content sources)
 
 **Rejected Alternative:**
-```csharp
-// ❌ FORBIDDEN (lambda in DI registration)
-services.AddSingleton<GameWorld>(_ => GameWorldInitializer.CreateGameWorld());
-
-// ✅ CORRECT (explicit initialization)
-GameWorld gameWorld = GameWorldInitializer.CreateGameWorld();
-builder.Services.AddSingleton(gameWorld);
-```
+- FORBIDDEN: Lambda factory functions in DI registration
+- CORRECT: Explicit instance creation followed by singleton registration
 
 ### Domain-Driven Design (No Abstraction Over-Engineering)
 
