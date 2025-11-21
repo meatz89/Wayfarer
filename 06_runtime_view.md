@@ -274,8 +274,8 @@ BRIDGE CROSSING
 
 6. Store pending context
    PendingChallengeContext:
-   - ParentSceneId: "inn_lodging_friendly"
-   - ParentSituationId: "negotiate_service"
+   - ParentScene: scene object reference
+   - ParentSituation: situation object reference
    - OnSuccessReward: template reference
    - OnFailureReward: template reference
 
@@ -632,14 +632,14 @@ EntityResolver.FindOrCreateNPC(NpcFilter):
 EntityResolver.FindOrCreateLocation(PrivateRoomFilter):
   // Scene needs private room sublocation
   privateRoom = GameWorld.Locations.Where(loc =>
-    loc.ParentLocationId == mainLocation.Id &&
+    loc.ParentLocation == mainLocation &&
     loc.Properties.Contains("Private") &&
     loc.Tags.Contains("guest_room")
   ).FirstOrDefault();
 
   if (privateRoom == null) {
     privateRoom = GeneratePrivateRoom(mainLocation);
-    // Location { Id: "location_guid_789", Name: "Guest Room", ParentLocationId: "location_guid_456" }
+    // Location { Name: "Guest Room", ParentLocation: mainLocation }
     GameWorld.AddOrUpdateLocation(privateRoom);
   }
 

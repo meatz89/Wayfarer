@@ -222,8 +222,8 @@ public Scene GetSceneById(string id) { /* ... */ }
 **Field Name Matching:**
 ```csharp
 // ✅ CORRECT - JSON field matches C# property
-// JSON: { "currentSituationId": "situation_1" }
-public string CurrentSituationId { get; set; }
+// JSON: { "sceneTemplateId": "template_001" }
+public string SceneTemplateId { get; set; }  // Template ID acceptable
 
 // ❌ FORBIDDEN - JsonPropertyName attribute to rename
 [JsonPropertyName("current_situation_id")]
@@ -334,12 +334,12 @@ if (change.PropertyName == "IsLocked") {
 ```csharp
 // ✅ CORRECT - Explicit strongly-typed properties
 public class SceneReward {
-    public List<string> LocationsToUnlock { get; set; } = new List<string>();
-    public List<string> LocationsToLock { get; set; } = new List<string>();
+    public List<Location> LocationsToUnlock { get; set; } = new List<Location>();
+    public List<Location> LocationsToLock { get; set; } = new List<Location>();
 }
 
-foreach (string locId in reward.LocationsToUnlock) {
-    location.IsLocked = false;  // Direct property access
+foreach (Location location in reward.LocationsToUnlock) {
+    location.IsLocked = false;  // Direct property access on object reference
 }
 ```
 

@@ -546,9 +546,9 @@ Each quality goal translates into concrete, testable scenarios. Scenarios follow
 // WRONG - Premature optimization
 private Dictionary<string, NPC> _npcs;
 
-public NPC GetNPCById(string id)
+public NPC GetNPCByName(string name)
 {
-    return _npcs[id]; // KeyNotFoundException if not found
+    return _npcs[name]; // KeyNotFoundException if not found
 }
 
 public List<NPC> GetFriendlyNPCs()
@@ -563,9 +563,9 @@ public List<NPC> GetFriendlyNPCs()
 // CORRECT - Domain-driven collection
 private List<NPC> _npcs;
 
-public NPC GetNPCById(string id)
+public NPC GetNPCByName(string name)
 {
-    return _npcs.FirstOrDefault(n => n.Id == id);
+    return _npcs.FirstOrDefault(n => n.Name == name);
     // Null if not found, fail-fast at call site
 }
 
@@ -606,10 +606,10 @@ public List<NPC> GetFriendlyNPCs()
 
 **Example (APPROVED):**
 ```csharp
-public List<NPC> GetNPCsAtLocation(string locationId)
+public List<NPC> GetNPCsAtLocation(Location location)
 {
     return _npcs
-        .Where(n => n.CurrentLocation == locationId)
+        .Where(n => n.CurrentLocation == location)
         .OrderBy(n => n.Name)
         .ToList();
     // Reads: "NPCs where current location matches, ordered by name"
