@@ -248,12 +248,7 @@ Mental challenges represent pauseable investigations at locations. They reflect 
 - Build Progress toward solution
 - Increase Exposure (investigation leaves traces)
 
-**Example ACT Card:**
-```
-"Interview Witnesses" (ACT, Insight-bound)
-Cost: 3 Attention
-Effect: +2 Progress, +2 Leads, +1 Exposure
-```
+**Example ACT Card:** An Insight-bound Interview Witnesses card costs 3 Attention and generates 2 Progress toward solving the investigation, 2 Leads for future observation, and 1 Exposure representing the investigative footprint left behind.
 
 **OBSERVE: Follow Investigative Threads**
 - No cost (recovery action)
@@ -336,12 +331,7 @@ Physical challenges represent immediate tests of current capability. They reflec
 - Build prepared sequence of multiple locked Options
 - Exertion committed, waiting for ASSESS
 
-**Example EXECUTE Card:**
-```
-"Power Grip" (EXECUTE, Authority-bound)
-Cost: 3 Exertion
-Effect: Lock [+5 Breakthrough, +2 Danger]
-```
+**Example EXECUTE Card:** An Authority-bound Power Grip card costs 3 Exertion and locks effects of 5 Breakthrough toward victory and 2 Danger accumulation, waiting to trigger during the ASSESS phase.
 
 **ASSESS: Evaluate Situation and Trigger Combo**
 - No cost (resolution action)
@@ -427,13 +417,7 @@ Social challenges represent real-time interactions with entities that have agenc
 - Risk increasing Doubt if poorly chosen
 - Drives conversation forward
 
-**Example Statement Card:**
-```
-"Appeal to Authority" (SPEAK, Authority-bound)
-Cost: 5 Initiative
-Effect: +6 Momentum, +3 Doubt
-Requires: Authority ≥ 4
-```
+**Example Statement Card:** An Authority-bound Appeal to Authority card requires Authority 4 or higher, costs 5 Initiative, and generates 6 Momentum toward conversation victory but also increases Doubt by 3 as the NPC reacts to the directive approach.
 
 **LISTEN: Reset and Draw**
 - No cost (recovery action)
@@ -631,19 +615,9 @@ Cards balance cost against effect:
 **Low-Cost Cards**: Small effects, high efficiency, build resources slowly
 **High-Cost Cards**: Large effects, low efficiency, dramatic swings
 
-**Example Low-Cost Mental Card**:
-```
-"Careful Observation" (Insight)
-Cost: 1 Attention
-Effect: +1 Progress, +1 Lead
-```
+**Example Low-Cost Mental Card**: A Careful Observation card bound to Insight costs only 1 Attention and generates 1 Progress plus 1 Lead. This card offers high efficiency through small incremental gains.
 
-**Example High-Cost Mental Card**:
-```
-"Reconstruct Crime Scene" (Insight)
-Cost: 5 Attention
-Effect: +8 Progress, +4 Leads, +3 Exposure
-```
+**Example High-Cost Mental Card**: A Reconstruct Crime Scene card bound to Insight costs 5 Attention but generates 8 Progress, 4 Leads, and 3 Exposure. This card creates dramatic swings through powerful effects at substantial cost.
 
 High-cost cards are powerful but risky. Low-cost cards are safe but slow. Deck composition determines playstyle.
 
@@ -768,26 +742,9 @@ Session ends, OnSuccessReward applied (unlock private room at reduced cost).
 
 Challenges specify categorical difficulty, NOT absolute thresholds:
 
-**AI-Authoring**:
-```json
-{
-  "situationArchetype": "investigation_gathering",
-  "challengeType": "Mental",
-  "difficulty": "Moderate",
-  "npcDemeanor": "Friendly",
-  "environmentQuality": "Standard"
-}
-```
+**AI-Authoring**: The AI specifies categorical properties like investigation gathering archetype, Mental challenge type, Moderate difficulty, Friendly NPC demeanor, and Standard environment quality without defining numeric thresholds.
 
-**Catalogue Translation (Parse-Time)**:
-```
-Base Progress Threshold = 10 (archetype baseline)
-Difficulty Multiplier = 1.0 (Moderate)
-Demeanor Multiplier = 0.8 (Friendly = easier)
-Environment Multiplier = 1.0 (Standard)
-
-Final Threshold = 10 × 1.0 × 0.8 × 1.0 = 8
-```
+**Catalogue Translation (Parse-Time)**: The system takes the archetype baseline Progress threshold of 10, applies Moderate difficulty multiplier of 1.0, Friendly demeanor multiplier of 0.8 for easier challenges, and Standard environment multiplier of 1.0, calculating a final threshold of 8. The same archetype with Hostile NPC demeanor would produce threshold 14.
 
 **Result**: AI generates "Moderate investigation with Friendly NPC" without knowing exact Progress threshold. Catalogue translates categorically to 8 Progress required. Same archetype with Hostile NPC = 14 Progress required.
 

@@ -749,25 +749,9 @@ Procedural approach: Scene specifies categorical requirements (`"socialStandings
 
 Instead of defining 27 NPC archetypes or 81 location archetypes as monolithic enums, Wayfarer uses ORTHOGONAL DIMENSIONS that compose:
 
-**Anti-Pattern (Monolithic)**:
-```
-enum NPCArchetype {
-    CommonerNeutralIgnorant,    // All 27 combinations listed explicitly
-    CommonerNeutralInformed,
-    CommonerNeutralExpert,
-    // ... 24 more variants
-}
-```
+**Anti-Pattern (Monolithic)**: Defining all 27 NPC archetype combinations as separate enum values like CommonerNeutralIgnorant, CommonerNeutralInformed, and so forth creates rigid, non-composable classification requiring exhaustive enumeration.
 
-**Correct Pattern (Orthogonal)**:
-```
-enum NPCSocialStanding { Commoner, Notable, Authority }
-enum NPCStoryRole { Obstacle, Neutral, Facilitator }
-enum NPCKnowledgeLevel { Ignorant, Informed, Expert }
-
-// Combination: Notable + Obstacle + Informed = "Gatekeeper"
-// Combination: Commoner + Neutral + Ignorant = "Peasant"
-```
+**Correct Pattern (Orthogonal)**: Three small enums - NPCSocialStanding with Commoner/Notable/Authority, NPCStoryRole with Obstacle/Neutral/Facilitator, and NPCKnowledgeLevel with Ignorant/Informed/Expert - compose into 27 archetypes from just 9 enum values. Notable plus Obstacle plus Informed creates a Gatekeeper archetype, while Commoner plus Neutral plus Ignorant creates a Peasant archetype. Compositional power through orthogonal dimensions.
 
 **Benefits of Orthogonal Design**:
 - **Compositional Power**: 3 small enums (3 values each) = 27 archetypes from 9 total enum values
@@ -873,22 +857,9 @@ Dimensions compose to create narrative archetypes that emerge from intersection:
 
 PlacementFilterDTO uses categorical dimensions for entity matching:
 
-**Example: Morning Conversation Scene**
-```json
-{
-  "placementType": "NPC",
-  "storyRoles": ["Facilitator", "Neutral"],
-  "knowledgeLevels": ["Informed"],
-  "socialStandings": ["Notable", "Commoner"]
-}
-```
+**Example: Morning Conversation Scene**: The placement filter specifies NPC placement type, Story Roles of Facilitator or Neutral, Informed knowledge level, and Social Standings of Notable or Commoner.
 
-**Matching Logic** (EntityResolver):
-1. Query all NPCs in game world
-2. Filter where `StoryRole IN ["Facilitator", "Neutral"]`
-3. Filter where `KnowledgeLevel IN ["Informed"]`
-4. Filter where `SocialStanding IN ["Notable", "Commoner"]`
-5. Apply SelectionStrategy to choose ONE from matches (Closest, LeastRecent, Random)
+**Matching Logic** (EntityResolver): The system queries all NPCs in the game world, filters where Story Role matches Facilitator or Neutral, filters where Knowledge Level matches Informed, filters where Social Standing matches Notable or Commoner, then applies a selection strategy like Closest, LeastRecent, or Random to choose one matching entity.
 
 **Matches**:
 - Elena (Notable + Facilitator + Informed) = Helpful innkeeper who knows local events ✓
@@ -904,32 +875,11 @@ PlacementFilterDTO uses categorical dimensions for entity matching:
 
 Placement filters can specify dimensions at varying levels of precision:
 
-**Highly Specific** (1 match expected):
-```json
-{
-  "socialStandings": ["Authority"],
-  "storyRoles": ["Obstacle"],
-  "knowledgeLevels": ["Expert"]
-}
-```
-Result: Authority + Obstacle + Expert = High-ranking official who blocks access and knows deep domain knowledge. Very narrow match.
+**Highly Specific** (1 match expected): Filtering for Authority social standing, Obstacle story role, and Expert knowledge level produces Authority plus Obstacle plus Expert, yielding a high-ranking official who blocks access and possesses deep domain knowledge. This creates a very narrow match targeting specific archetypes.
 
-**Moderately Specific** (3-5 matches expected):
-```json
-{
-  "storyRoles": ["Facilitator"],
-  "knowledgeLevels": ["Informed"]
-}
-```
-Result: Any Facilitator who is Informed, regardless of social standing. Multiple valid matches.
+**Moderately Specific** (3-5 matches expected): Filtering for Facilitator story role and Informed knowledge level matches any Facilitator who is Informed regardless of social standing, producing multiple valid matches across the social hierarchy.
 
-**Loosely Specific** (10+ matches expected):
-```json
-{
-  "socialStandings": ["Commoner", "Notable"]
-}
-```
-Result: Any non-Authority NPC, regardless of story role or knowledge. Many matches, SelectionStrategy chooses variety.
+**Loosely Specific** (10+ matches expected): Filtering for Commoner or Notable social standings matches any non-Authority NPC regardless of story role or knowledge level. Many entities match, allowing the selection strategy to choose for variety.
 
 **Design Principle**: Tighter filters = more narrative specificity = fewer matches. Looser filters = more reusability = more matches. Content authors balance specificity vs reusability based on scene requirements.
 
@@ -975,48 +925,9 @@ Dimensions grounded in narrative patterns from fantasy literature, not arbitrary
 
 ### Usage Examples
 
-**Example 1: Procedural Quest Giver**
+**Example 1: Procedural Quest Giver**: The gather testimony scene template uses a placement filter seeking NPCs with Notable or Authority social standing, Facilitator story role, and Expert knowledge level. In city contexts this matches the Captain of Guard providing institutional authority. In village contexts the system generates a Village Elder offering local respect. In wilderness contexts a Hermit Sage materializes with wisdom authority. The same filter produces contextually appropriate quest givers across different environments through procedural resolution.
 
-Scene template: `gather_testimony` archetype
-```json
-{
-  "placementFilter": {
-    "placementType": "NPC",
-    "socialStandings": ["Notable", "Authority"],
-    "storyRoles": ["Facilitator"],
-    "knowledgeLevels": ["Expert"]
-  }
-}
-```
-
-Runtime resolution:
-- City context: Matches Captain of Guard (Authority + Facilitator + Expert) → Quest giver with institutional authority
-- Village context: Generates Village Elder (Notable + Facilitator + Expert) → Quest giver with local respect
-- Wilderness context: Generates Hermit Sage (Notable + Facilitator + Expert) → Quest giver with wisdom
-
-**Same filter, different contexts, appropriate quest givers materialized procedurally.**
-
-**Example 2: Procedural Safe House**
-
-Scene template: `hiding_scene` archetype
-```json
-{
-  "placementFilter": {
-    "placementType": "Location",
-    "privacyLevels": ["Private"],
-    "safetyLevels": ["Safe"],
-    "activityLevels": ["Quiet"],
-    "purposes": ["Dwelling"]
-  }
-}
-```
-
-Runtime resolution:
-- Urban context: Matches Secret Room in existing inn → Private, safe, quiet dwelling
-- Rural context: Generates Isolated Cottage → Private, safe, quiet dwelling
-- Wilderness context: Generates Hidden Cave → Private, safe, quiet dwelling
-
-**Same filter, different environments, appropriate hideouts materialized procedurally.**
+**Example 2: Procedural Safe House**: The hiding scene template uses a placement filter seeking Locations with Private privacy level, Safe safety level, Quiet activity level, and Dwelling purpose. In urban contexts this matches a Secret Room in an existing inn. In rural contexts the system generates an Isolated Cottage. In wilderness contexts a Hidden Cave materializes. The same filter produces contextually appropriate hideouts across different environments through procedural resolution.
 
 ### Technical Implementation Cross-Reference
 
@@ -1279,20 +1190,7 @@ SpawnConditions gate access without changing what happens when scene spawns. The
 
 ### Example 1: Tutorial Scene "Secure Lodging"
 
-**Template Specification**:
-```json
-{
-  "sceneArchetypeId": "service_with_location_access",
-  "baseNpcFilter": {
-    "placementType": "NPC",
-    "professions": ["Innkeeper"]
-  },
-  "baseLocationFilter": {
-    "placementType": "Location",
-    "locationProperties": ["Commercial", "Restful"]
-  }
-}
-```
+**Template Specification**: The scene uses the service with location access archetype, filters for NPCs with Innkeeper profession, and seeks locations with Commercial and Restful properties. This categorical specification enables matching appropriate entities without hardcoded identifiers.
 
 **Matched Entity Properties**:
 - Elena (matches Innkeeper profession): Personality=Innkeeper, Demeanor=Friendly
@@ -1320,20 +1218,7 @@ Choice 4: "Offer to help with work tomorrow" → Time cost, basic outcome, certa
 
 ### Example 2: Procedural Scene "Find Lodging"
 
-**Template Specification**:
-```json
-{
-  "sceneArchetypeId": "service_with_location_access",
-  "placementFilter": {
-    "npcPersonality": "Innkeeper",
-    "npcRegion": "CurrentRegion"
-  },
-  "targetLocationFilter": {
-    "settlement": "Urban",
-    "services": ["Lodging"]
-  }
-}
-```
+**Template Specification**: The scene uses the service with location access archetype, filters for NPCs with Innkeeper personality in the current region, and seeks urban settlement locations offering Lodging services. These categorical filters enable runtime matching against any appropriate entities.
 
 **Runtime Resolution**:
 

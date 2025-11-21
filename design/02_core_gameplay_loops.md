@@ -46,17 +46,7 @@ Wayfarer's gameplay operates on three distinct temporal scales, each serving dif
 
 ### Loop Structure
 
-```
-Encounter Presents
-    ↓
-Player Evaluates Options (2-4 choices with visible costs)
-    ↓
-Player Selects Choice
-    ↓
-Resources Change Immediately
-    ↓
-Progress Advances (next encounter OR destination reached)
-```
+The SHORT loop follows a consistent rhythm: player encounters a situation, evaluates available options with visible costs and requirements, makes an informed choice, sees immediate resource consequences, and progresses forward to either the next encounter or their destination. This creates a rapid decision-action-feedback cycle that builds tactical engagement.
 
 ### Example: Muddy Road Encounter
 
@@ -122,27 +112,7 @@ Challenges are optional gambles. Always alternative guaranteed choices exist. Pl
 
 ### Loop Structure
 
-```
-Wake at Location
-    ↓
-Review Current State (resources, time, available jobs)
-    ↓
-Accept Delivery Job (choose destination)
-    ↓
-Travel Route Segments (chain of SHORT loops)
-    ↓
-Reach Destination → Earn Coins
-    ↓
-Optional: Explore Destination
-    ↓
-Return Journey (same route, reverse direction)
-    ↓
-Arrive Back → Evening Phase
-    ↓
-Mandatory Survival Spending (food, lodging)
-    ↓
-Sleep → Advance Day
-```
+The MEDIUM loop structures a complete day cycle: wake at a location, review current resources and time available, choose a primary activity like accepting a delivery job, travel through route segments as chained SHORT loops, reach the destination and earn rewards, optionally explore the new location, journey back along the same route, return to handle evening survival needs like food and lodging, then sleep to advance the calendar. This creates natural play sessions with clear beginning and ending points.
 
 ### Morning Phase: Choose Primary Activity
 
@@ -282,21 +252,7 @@ Complete delivery cycle provides satisfying stopping point. Progress measurable 
 
 ### Loop Structure
 
-```
-Repeat Delivery Cycles
-    ↓
-Accumulate Small Profits
-    ↓
-Purchase Equipment Upgrades (permanent improvements)
-    ↓
-Develop NPC Bonds (unlock mechanical benefits)
-    ↓
-Access Harder Routes (better rewards)
-    ↓
-Discover New Locations (expand world)
-    ↓
-Build Identity Through Specialization
-```
+The LONG loop creates character progression over hours of play: repeated delivery cycles generate incremental profits, accumulated resources enable equipment purchases providing permanent improvements, invested time develops NPC relationships unlocking mechanical benefits, improved capabilities grant access to harder routes with better rewards, progression unlocks new locations expanding the world, and specialization choices build distinct character identity. This provides long-term motivation and emergent playstyle differentiation.
 
 ### Progression Vectors
 
@@ -560,22 +516,9 @@ Generated from location's **LocationType** property:
 
 ### Action Display Priority
 
-**When Scene Active:**
-```
-[Scene-Based Actions from Active Situation]
-------------------------
-[Atmospheric Actions]
-```
-Scene actions prominent, atmospheric actions below separator.
+**When Scene Active:** Scene-based actions appear prominently with atmospheric actions displayed below a visual separator. Story content takes priority while baseline navigation remains accessible.
 
-**When No Scene Active:**
-```
-[Location Name - Atmospheric Description]
-"The tavern is quiet this evening. Few patrons remain."
-
-[Atmospheric Actions]
-```
-Atmospheric actions are primary content. Location description sets mood but gameplay continues through persistent actions.
+**When No Scene Active:** The location name and atmospheric description set the mood, with atmospheric actions as the primary content. The location description provides narrative context while gameplay continues through persistent navigation and utility actions.
 
 ### Why Atmospheric Layer Matters
 
