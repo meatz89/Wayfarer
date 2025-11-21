@@ -221,27 +221,15 @@ This document traces the complete player experience through Wayfarer's infinite 
 
 ### The Problem
 
-`src/Content/Core/21_tutorial_scenes.json` (LEGACY FILE) uses ARCHITECTURALLY INCORRECT hardcoded ID format:
+`src/Content/Core/21_tutorial_scenes.json` uses ARCHITECTURALLY INCORRECT hardcoded ID format. The placementFilter property contains hardcoded npcId ("elena") instead of categorical dimensions.
 
-```json
-"placementFilter": {
-  "placementType": "NPC",
-  "npcId": "elena"  ← ARCHITECTURAL VIOLATION: Hardcoded entity ID
-}
-```
+**Current (Violation)**:
 
-CORRECT format (categorical filters):
+Placement filter specifies placementType: "NPC" with npcId: "elena". This directly references a specific NPC entity by ID.
 
-```json
-"baseLocationFilter": {
-  "placementType": "Location",
-  "locationProperties": ["Commercial", "Restful"]  ← Categorical, not hardcoded
-},
-"baseNpcFilter": {
-  "placementType": "NPC",
-  "professions": ["Innkeeper"]  ← Categorical, not hardcoded
-}
-```
+**Correct Format (Categorical)**:
+
+Placement filters use categorical dimensions: baseLocationFilter with locationProperties (["Commercial", "Restful"]) and baseNpcFilter with professions (["Innkeeper"]). No hardcoded IDs. EntityResolver finds any NPC matching "Innkeeper" profession and any location with "Commercial, Restful" properties.
 
 **Note:** File 22_a_story_tutorial.json already uses the correct categorical pattern.
 

@@ -56,30 +56,21 @@ These violations cannot be fixed with simple edits. They require fundamental arc
 **File:** `src/Content/Core/15_conversation_trees.json`
 **Lines:** 13, 96, 211, 296
 
-**Current Pattern (VIOLATION):**
-```json
-{
-  "id": "elena_welcome",
-  "npcId": "elena_innkeeper",  ← Hardcoded NPC binding
-  "nodes": [ /* dialogue tree */ ]
-}
-```
-
 **Problem:**
-- Conversation trees are CHARACTER-SPECIFIC authored dialogue
-- Current architecture: ConversationTree → NPC (hardcoded ID lookup)
-- Violates DDR-001: "Cannot reference specific entity IDs in preauthored content"
 
-**Required Fix:**
-- Reverse binding: NPC → ConversationTree (NPC entity owns list of tree IDs)
-- Update NPCDTO to include `conversationTreeIds: string[]`
-- Update NPC entity to include `ConversationTrees: List<ConversationTree>`
-- Rewrite ConversationTreeParser to resolve trees TO NPCs instead of FROM trees
-- Update all ConversationTreeFacade queries to find trees via NPC object
+Conversation trees reference specific NPCs via hardcoded npcId (elena_innkeeper, thomas_dockboss, etc.). This violates DDR-001: Cannot reference specific entity IDs in preauthored content. Trees are authored dialogue specific to characters, but the architecture enforces categorical matching across all content.
 
-**Impact:** MAJOR - Touches parser, DTO, entity model, facade, UI queries
+**Architectural Tension:**
 
-**Alternative:** Accept that authored character dialogue is inherently character-specific and exempt from categorical requirement (requires architecture decision)
+Conversation trees present a design conflict: They are CHARACTER-SPECIFIC authored content (dialogue trees are written for particular NPCs with particular personalities), yet the architectural mandate prohibits referencing specific entity instances. Two resolution paths exist:
+
+**Option A (Categorical)**: Reverse binding - NPC entities own ConversationTree lists. NPCDTO includes conversationTreeIds array. ConversationTreeParser resolves tree IDs to ConversationTree objects that are owned by the NPC, rather than having trees reference NPCs. Queries find trees via NPC objects, not ID lookups.
+
+**Option B (Exemption)**: Accept that authored character dialogue is inherently character-specific and exempt from categorical requirement. Document this as an architectural exception for authored narrative content.
+
+**Required Decision:**
+
+The architectural team must decide whether conversation trees should follow categorical filtering (Option A, major refactoring) or be exempted as character-specific narrative content (Option B, minimal code change).
 
 ---
 
@@ -88,33 +79,21 @@ These violations cannot be fixed with simple edits. They require fundamental arc
 **File:** `src/Content/Core/11_exchange_cards.json`
 **Lines:** 14, 22, 30, 38, 46, 54, 62 (all reference "merchant_general")
 
-**Current Pattern (VIOLATION):**
-```json
-{
-  "id": "buy_rope",
-  "npcId": "merchant_general",  ← Hardcoded merchant binding
-  "cost": { "coins": 25 },
-  "reward": { "itemId": "rope" }
-}
-```
-
 **Problem:**
-- Exchange cards are NPC-specific service offerings
-- All 7 exchange cards hardcode "merchant_general" as provider
-- Violates categorical matching requirement
 
-**Required Fix (Option A - Categorical):**
-- Add categorical NPC matching to exchange system
-- Filter: `professions: ["Merchant"], services: ["Equipment"]`
-- EntityResolver finds matching NPCs dynamically
-- Exchange cards spawn at ANY matching merchant
+All 7 exchange cards hardcode "merchant_general" as npcId, violating categorical matching requirements. Exchange cards are NPC-specific service offerings that should work with ANY NPC matching the card's categorical properties (profession: Merchant, service: Equipment, etc.), not just one specific "merchant_general" entity.
 
-**Required Fix (Option B - Reverse Binding):**
-- NPC entities own exchange card lists
-- NPCDTO includes `exchangeCardIds: string[]`
-- ExchangeParser resolves cards TO NPCs
+**Architectural Tension:**
 
-**Impact:** MAJOR - Either option requires parser rewrite, entity model changes, query pattern updates
+Exchange cards are authored content specific to NPCs (particular merchants offer particular items), yet the architecture prohibits hardcoded entity references. Two resolution options:
+
+**Option A (Categorical)**: Add categorical NPC matching to exchange system. ExchangeCardDTO includes providerFilter with categorical dimensions. ExchangeParser calls EntityResolver.FindOrCreateNPC(providerFilter), which returns any NPC matching the filter. Same exchange card (buy_rope) works with any merchant NPC.
+
+**Option B (Reverse Binding)**: NPC entities own exchange card lists. NPCDTO includes exchangeCardIds array. ExchangeParser loads trees that belong to each NPC. Queries find cards via NPC object references.
+
+**Required Decision:**
+
+The architectural team must decide whether exchange cards use categorical filtering (Option A, makes cards reusable across all merchants) or reverse binding (Option B, couples cards to specific NPCs but through object references instead of IDs).
 
 ---
 
@@ -123,25 +102,19 @@ These violations cannot be fixed with simple edits. They require fundamental arc
 **File:** `src/Content/Core/16_observation_scenes.json`
 **Lines:** 13, 72, 131, 186
 
-**Current Pattern (VIOLATION):**
-```json
-{
-  "id": "common_room_investigation",
-  "locationId": "common_room",  ← Hardcoded location binding
-  "observations": [ /* discovery content */ ]
-}
-```
-
 **Problem:**
-- Observation scenes are LOCATION-SPECIFIC authored investigation content
-- Current architecture hardcodes location IDs
 
-**Required Fix:**
-- Categorical location matching: `locationProperties: ["Commercial", "Social"]`
-- OR reverse binding: Location → ObservationScenes
-- Update ObservationParser and entity resolution
+Observation scenes hardcode locationId, binding investigation content to specific location entities. This violates categorical matching requirements. Observation scenes should work with ANY location matching the scene's categorical properties (location type, privacy level, activity level, etc.), not hardcoded specific locations.
 
-**Impact:** MODERATE - Parser rewrite, but simpler than conversation trees
+**Architectural Solutions:**
+
+**Option A (Categorical)**: ObservationSceneDTO includes locationFilter with categorical dimensions. ObservationSceneParser calls EntityResolver.FindOrCreateLocation(locationFilter). Same observation scene (common_room_investigation) works at ANY location matching "Commercial, Social, Restful" properties.
+
+**Option B (Reverse Binding)**: Location entities own observation scene lists. LocationDTO includes observationSceneIds array. Scenes are resolved TO locations, not FROM locations.
+
+**Required Decision:**
+
+Choose categorical filtering (Option A, makes scenes reusable everywhere) or reverse binding (Option B, couples scenes to locations through object references).
 
 ---
 
@@ -150,26 +123,19 @@ These violations cannot be fixed with simple edits. They require fundamental arc
 **File:** `src/Content/ExchangeParser.cs`
 **Lines:** 138, 164
 
-**Current Pattern (VIOLATION):**
-```csharp
-exchanges.Add(new ExchangeCard
-{
-    Id = $"{npc.ID}_food_purchase",  ← Encoding NPC ID into card ID
-    Name = "Buy Hunger",
-    // ...
-});
-```
-
 **Problem:**
-- Procedurally generated exchange cards encode NPC ID into card ID
-- Violates ID encoding prohibition (CLAUDE.md line 283)
+
+Procedurally generated exchange cards encode NPC ID into the card ID using string interpolation. This violates CLAUDE.md's ID encoding prohibition: "Never encode data in ID strings."
+
+**Violation Pattern:**
+
+Card IDs are generated as "{npc.ID}_food_purchase", embedding the NPC ID into the card ID. This creates a hidden coupling where the card ID contains NPC data, violating semantic honesty.
 
 **Required Fix:**
-- Use GUID-only IDs: `Id = Guid.NewGuid().ToString()`
-- Store NPC reference as object property, not encoded in ID
-- Add `NPC Npc { get; set; }` property to ExchangeCard
 
-**Impact:** LOW - Simple refactor, but must update all ID-based lookups
+Use GUID-only IDs without encoding. Store the NPC reference as an explicit object property (ExchangeCard.Npc). The relationship between card and NPC is expressed directly through object reference, not hidden in ID encoding.
+
+This is a code-only fix without architectural implications. Impact is LOW.
 
 ---
 
@@ -182,32 +148,23 @@ These may or may not be violations depending on architectural interpretation.
 **File:** `src/Content/Core/03_npcs.json`
 **Lines:** 18, 37, 39, 58
 
-**Current Pattern:**
-```json
-{
-  "id": "elena",
-  "name": "Elena",
-  "profession": "Innkeeper",
-  "venueId": "brass_bell_inn",     ← Hardcoded venue
-  "locationId": "common_room",     ← Hardcoded initial location
-  "workLocationId": "common_room", ← Hardcoded work location
-  "homeLocationId": "common_room"  ← Hardcoded home location
-}
-```
+**Question:** Is initial NPC placement in the authored starting world a violation of the "no hardcoded entity IDs" mandate?
 
-**Question:** Is initial NPC placement in authored world a violation?
+**The Tension:**
 
-**Arguments FOR violation:**
-- DDR-001 says "Cannot reference specific entity IDs in preauthored content"
-- NPCs should spawn categorically at matching venues/locations
+Authored NPCs (Elena, Thomas, Merchants) are positioned in the starting world with hardcoded venue and location references (elena placed at brass_bell_inn, common_room). The architectural mandate prohibits hardcoded entity IDs. However, NPCs are part of the authored starting world structure, not dynamically spawned content.
 
-**Arguments AGAINST violation:**
-- Authored NPCs (Elena, Thomas) are PART of the authored starting world
-- Initial world state requires positioning authored entities
-- This is STRUCTURAL WORLD DATA, not dynamic content spawning
-- Equivalent to defining "Elena is the innkeeper AT the Brass Bell Inn"
+**Arguments FOR Violation:**
 
-**Architectural Decision Needed:** Does "no hardcoded entity IDs" apply to initial world state definition, or only to content that spawns during gameplay?
+DDR-001 states "Cannot reference specific entity IDs in preauthored content." NPC initial placement uses hardcoded venue and location IDs, violating this mandate. Even structural world data should use categorical properties to enable world variation.
+
+**Arguments AGAINST Violation:**
+
+The authored starting world is structural definition equivalent to "Elena is the innkeeper at the Brass Bell Inn common room." This defines world topology, not dynamically spawned content. Initial placement is part of world configuration, not reusable template content. The constraint against entity IDs applies to content that should be reusable across different worlds, not to defining what the starting world looks like.
+
+**Architectural Decision Needed:**
+
+Does the "no hardcoded entity IDs" principle apply to initial world state configuration, or only to reusable procedural content templates?
 
 ---
 
@@ -216,26 +173,23 @@ These may or may not be violations depending on architectural interpretation.
 **File:** `src/Content/Core/02_hex_grid.json`
 **Lines:** 23, 31, 39, 307
 
-**Current Pattern:**
-```json
-{
-  "hexCoordinate": { "q": 0, "r": 0 },
-  "locationId": "square_center"  ← Maps hex to location
-}
-```
+**Question:** Is spatial topology mapping a violation of the "no hardcoded entity IDs" mandate?
 
-**Question:** Is spatial topology data a violation?
+**The Tension:**
 
-**Arguments FOR violation:**
-- Uses hardcoded location IDs
+Hex grid mapping defines world structure by assigning specific locations to hex coordinates. Each hex record contains locationId mapping that hex to a specific location entity. This uses hardcoded entity IDs, but it's defining spatial structure, not spawning dynamic content.
 
-**Arguments AGAINST violation:**
-- This is SPATIAL TOPOLOGY - defines world structure
-- Hex grid IS the authored world map
-- Equivalent to saying "square_center is located at coordinates 0,0"
-- Not dynamic content spawning, but world definition
+**Arguments FOR Violation:**
 
-**Architectural Decision Needed:** Does spatial topology data get exemption from categorical requirement?
+Hex grid uses hardcoded location IDs. The constraint applies to all uses of entity instance IDs, including spatial mapping.
+
+**Arguments AGAINST Violation:**
+
+This is spatial TOPOLOGY - the fundamental world map structure. Saying "square_center is at hex coordinates 0,0" is equivalent to defining world structure, not reusable procedural content. The hex grid IS the authored world definition. Spatial mapping is not "preauthored dynamic content," it's the world configuration itself.
+
+**Architectural Decision Needed:**
+
+Does the "no hardcoded entity IDs" principle exempt structural world definition (world topology map), or does it apply to all ID usage including spatial mapping?
 
 ---
 
@@ -244,22 +198,27 @@ These may or may not be violations depending on architectural interpretation.
 **File:** `src/GameState/DeliveryJob.cs`
 **Line:** 15
 
-**Current Pattern:**
-```csharp
-/// <summary>
-/// Unique identifier for this job.
-/// Format: "delivery_{originId}_to_{destinationId}"
-/// </summary>
-public string Id { get; set; } = "";
-```
+**Question:** Is documenting an ID encoding format a violation?
 
-**Question:** Is documenting an ID format a violation?
+**The Issue:**
 
-**Issue:** Documentation explicitly states hardcoded format that encodes location IDs
+Documentation in DeliveryJob.cs specifies: Format "delivery_{originId}_to_{destinationId}". This documents an encoding pattern, even though the code never parses the ID to extract data.
 
-**Related Code:** `src/Content/Catalogs/DeliveryJobCatalog.cs:85` creates IDs in this format
+**Tension:**
 
-**Decision Needed:** Is ID format documentation acceptable if IDs are never parsed for data extraction?
+CLAUDE.md forbids encoding data in ID strings. Documenting the encoding pattern seems to endorse the practice. However, if code never parses the ID (doesn't call .Split() or .Substring()), the encoded data is inaccessible.
+
+**Arguments FOR Violation:**
+
+Documentation explicitly describes encoding pattern, which contradicts the principle against ID encoding.
+
+**Arguments AGAINST Violation:**
+
+If code never parses the ID, the encoding is effectively unused. The ID is semantically opaque to the system, even if documentation describes what it contains.
+
+**Decision Needed:**
+
+Is documenting an ID encoding format itself a violation, or is the violation only in parsing/extracting that encoded data?
 
 ---
 
@@ -268,25 +227,23 @@ public string Id { get; set; } = "";
 **File:** `src/Content/Test/01_test_lodging.json`
 **Line:** 51
 
-**Current Pattern:**
-```json
-{
-  "id": "test_npc",
-  "LocationId": "test_inn_common"  ← Hardcoded test location
-}
-```
+**Question:** Should test data be exempted from the "no hardcoded entity IDs" constraint?
 
-**Question:** Do test files get exemptions for synthetic test data?
+**The Tension:**
 
-**Arguments FOR exemption:**
-- Test data is not production content
-- Tests need controlled, predictable scenarios
-- Hardcoded test IDs enable deterministic testing
+Test data uses hardcoded location IDs (test_npc references test_inn_common). Tests need deterministic, controlled scenarios with known entity relationships.
 
-**Arguments AGAINST exemption:**
-- Tests should follow same architectural patterns as production
-- Tests using hardcoded IDs don't validate categorical matching
-- Bad patterns in tests leak into production
+**Arguments FOR Test Exemption:**
+
+Test data is synthetic and not production content. Tests require predictable, stable relationships. Hardcoded test IDs enable deterministic testing without procedural variability. This is test infrastructure, not game content.
+
+**Arguments AGAINST Test Exemption:**
+
+Tests should follow the same architectural patterns as production code. Tests that use hardcoded IDs don't validate that categorical matching works. Bad patterns in tests become patterns developers copy into production. If tests can't be written with categorical properties, the architecture is incomplete.
+
+**Decision Needed:**
+
+Are test files exempt from the "no hardcoded entity IDs" constraint, or should all test data follow categorical filtering patterns?
 
 ---
 
@@ -302,21 +259,16 @@ These violations can be fixed with direct code/test changes without architectura
 **Line:** 1504
 
 **VIOLATION:**
-```csharp
-string[] idParts = forwardRoute.Id.Split("_to_");
-string reverseId = idParts.Length == 2
-    ? $"{idParts[1]}_to_{idParts[0]}"
-    : $"{destVenueId}_to_{originVenueId}";
-```
+
+Code parses Route.Id by calling .Split("_to_") to extract origin and destination information, then reconstructs a reverse route ID using the extracted parts. This directly violates CLAUDE.md line 284: "Parsing IDs to extract data: .Split(), .Substring() - FORBIDDEN."
 
 **Why CRITICAL:**
-- CLAUDE.md line 284 explicitly forbids: "Parsing IDs to extract data: `.Split()`, `.Substring()`"
-- This is the EXACT antipattern the architecture prohibits
+
+This is an explicit architectural violation. The pattern is forbidden specifically in CLAUDE.md as a prime example of ID encoding and parsing.
 
 **Fix:**
-- Store origin/destination as properties on Route
-- Construct reverse route from properties: `new Route { Origin = forward.Destination, Destination = forward.Origin }`
-- Use GUID-only IDs
+
+Store origin and destination as explicit properties on Route class. Construct reverse route from properties directly: `new Route { Origin = forward.Destination, Destination = forward.Origin }`. Use GUID-only IDs without embedding data.
 
 ---
 
@@ -326,24 +278,16 @@ string reverseId = idParts.Length == 2
 **Lines:** 759, 763, 767
 
 **VIOLATION:**
-```csharp
-if (archetype.Id == "service_negotiation")
-{
-    return GenerateServiceNegotiationChoices(archetype, situationTemplateId, context);
-}
-else if (archetype.Id == "service_execution_rest")
-{
-    return GenerateServiceExecutionRestChoices(situationTemplateId, context);
-}
-```
+
+Code switches on archetype.Id strings ("service_negotiation", "service_execution_rest") to route to different choice generation methods. This directly violates CLAUDE.md line 285: "String matching on IDs for routing - FORBIDDEN."
 
 **Why CRITICAL:**
-- CLAUDE.md line 285 explicitly forbids: "String matching on IDs for routing"
-- Should use enum-based routing, not ID strings
+
+This is an explicit architectural violation. String-based ID routing contradicts the principle that routing should use type-safe enums, not fragile string matching.
 
 **Fix:**
-- Add `ArchetypeType` enum property to `SituationArchetype`
-- Switch on `archetype.Type` instead of `archetype.Id`
+
+Add ArchetypeType enum property to SituationArchetype with values matching the different archetype categories. Switch statement matches on the enum property (archetype.Type) instead of string ID matching (archetype.Id). This is type-safe and compiler-checked.
 
 ---
 
@@ -353,21 +297,16 @@ else if (archetype.Id == "service_execution_rest")
 **Lines:** 65-66
 
 **VIOLATION:**
-```csharp
-string routeKey = $"{fromLocationId}_to_{toLocationId}";
-List<RouteImprovement> improvements = _gameWorld.RouteImprovements
-    .Where(ri => ri.RouteId == routeKey).ToList();
-```
+
+Code constructs route lookup key using location IDs: "{fromLocationId}_to_{toLocationId}". However, RouteImprovement.RouteId is populated using venue IDs (from DeliveryJobCatalog.cs:88 format: "{originVenueId}_to_{destinationVenueId}"). The WHERE clause compares location-based keys against venue-based RouteId values. They never match.
 
 **Why CRITICAL:**
-- Constructs key with LOCATION IDs
-- RouteImprovement.RouteId uses VENUE IDs (from DeliveryJobCatalog.cs:88)
-- WHERE clause NEVER matches → route improvements NEVER applied
-- **SILENT DATA LOSS BUG**
+
+This is a SILENT DATA LOSS BUG. Route improvements are loaded from GameWorld but the lookup key never matches any RouteImprovement, so improvements are silently never applied. Player never receives route improvement bonuses, but code fails silently instead of throwing an error.
 
 **Fix:**
-- Use route.Id directly for lookup
-- OR ensure consistent ID format
+
+Use consistent ID format for route keys. Either use route.Id directly for lookup, or ensure fromLocationId/toLocationId correspond to the same venue IDs used in RouteImprovement creation.
 
 ---
 
@@ -377,18 +316,16 @@ List<RouteImprovement> improvements = _gameWorld.RouteImprovements
 **Line:** 208
 
 **VIOLATION:**
-```csharp
-string venueId = source.Contains("location_")
-    ? source.Substring(source.IndexOf("location_") + 9).Split('_')[0]
-    : "unknown_location";
-```
+
+Code parses venueId from source string using .IndexOf(), .Substring(), and .Split() methods to extract data embedded in ID string. This directly violates CLAUDE.md line 284: "Parsing IDs to extract data: .Split(), .Substring() - FORBIDDEN."
 
 **Why CRITICAL:**
-- Uses `.Substring()`, `.IndexOf()`, `.Split()` - all explicitly forbidden
-- Fragile string parsing assumption
+
+Multiple forbidden string manipulation methods used to extract embedded data from ID. This violates the core principle against ID encoding/parsing.
 
 **Fix:**
-- Pass `venueId` as explicit parameter instead of parsing from source
+
+Pass venueId as explicit parameter to method, rather than parsing from source ID. The data (venueId) should be a direct method parameter, not hidden in an ID string.
 
 ---
 
@@ -424,21 +361,15 @@ All use forbidden `.Substring()` method to truncate GUIDs in ID encoding:
 
 ### 4.4 Test Violations (33 violations across 5 files)
 
-All tests query by hardcoded scene/situation IDs instead of semantic properties.
+All test violations follow the same pattern: Tests query scene/situation templates using hardcoded ID matches instead of semantic property queries.
 
-**Pattern (WRONG):**
-```csharp
-SceneTemplate a1 = gameWorld.SceneTemplates.First(st => st.Id == "a1_secure_lodging");
-SituationTemplate sit = a2.SituationTemplates.FirstOrDefault(s => s.Id.Contains("negotiate"));
-```
+**Pattern (WRONG)**:
 
-**Pattern (CORRECT):**
-```csharp
-SceneTemplate a1 = gameWorld.SceneTemplates.First(st =>
-    st.Category == StoryCategory.MainStory && st.MainStorySequence == 1);
-SituationTemplate sit = a2.SituationTemplates.FirstOrDefault(s =>
-    s.ChoiceTemplates.Any(c => RequiresNegotiation(c)));
-```
+Tests search for templates using ID string matching: `First(st => st.Id == "a1_secure_lodging")` or `FirstOrDefault(s => s.Id.Contains("negotiate"))`. These directly depend on specific ID values, breaking if IDs change.
+
+**Pattern (CORRECT)**:
+
+Tests search for templates using semantic properties: `First(st => st.Category == StoryCategory.MainStory && st.MainStorySequence == 1)` or `FirstOrDefault(s => s.ChoiceTemplates.Any(c => RequiresNegotiation(c)))`. These query by what the template is (its properties), not its ID.
 
 **Files with violations:**
 1. **AStoryPlayerExperienceTest.cs** - 4 violations

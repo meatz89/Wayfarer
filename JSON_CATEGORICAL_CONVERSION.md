@@ -86,97 +86,39 @@
 
 ### ExchangeCardDTO Conversion
 
-**Current Wrong Pattern**:
-```json
-{
-  "id": "buy_basic_supplies",
-  "npcId": "merchant_general",
-  "cardType": "Purchase",
-  "items": ["basic_supplies"]
-}
-```
+**Current Pattern (Violation)**:
 
-**Target Correct Pattern**:
-```json
-{
-  "id": "buy_basic_supplies",
-  "providerFilter": {
-    "placementType": "NPC",
-    "professions": ["Merchant"],
-    "purposes": ["Commerce"]
-  },
-  "cardType": "Purchase",
-  "items": ["basic_supplies"]
-}
-```
+Exchange cards use npcId property to reference specific merchant NPCs. Each card (buy_rope, buy_food) hardcodes one specific merchant.
 
-**EntityResolver Integration**:
-- ExchangeCard parser calls `entityResolver.FindOrCreateNPC(providerFilter)`
-- Returns NPC object reference (not ID string)
-- ExchangeCard.Provider property holds object reference
-- Same exchange card works with any merchant matching filter
+**Target Pattern (Correct)**:
+
+Exchange cards use providerFilter property containing categorical dimensions (placementType: "NPC", professions: ["Merchant"], purposes: ["Commerce"]). ExchangeCard parser calls EntityResolver.FindOrCreateNPC(providerFilter), which returns any NPC matching the filter. Same exchange card works with any merchant NPC in the game world.
+
+**Integration**: ExchangeCard.Provider stores the object reference returned by EntityResolver, not an ID string. The parser resolves categorical filter to concrete NPC object once during initialization.
 
 ### ConversationTreeDTO Conversion
 
-**Current Wrong Pattern**:
-```json
-{
-  "id": "elena_greeting",
-  "npcId": "elena_innkeeper",
-  "rootNodeId": "greeting_start"
-}
-```
+**Current Pattern (Violation)**:
 
-**Target Correct Pattern**:
-```json
-{
-  "id": "elena_greeting",
-  "participantFilter": {
-    "placementType": "NPC",
-    "professions": ["Innkeeper"],
-    "storyRoles": ["Obstacle"],
-    "socialStandings": ["Notable"]
-  },
-  "rootNodeId": "greeting_start"
-}
-```
+Conversation trees use npcId property to reference specific character NPCs. Each tree (elena_greeting, thomas_intro) hardcodes one specific NPC.
 
-**EntityResolver Integration**:
-- ConversationTree parser calls `entityResolver.FindOrCreateNPC(participantFilter)`
-- Returns NPC object reference
-- ConversationTree.Participant property holds object reference
-- Same conversation tree works with any innkeeper matching filter
+**Target Pattern (Correct)**:
+
+Conversation trees use participantFilter property containing categorical dimensions (placementType: "NPC", professions: ["Innkeeper"], storyRoles: ["Obstacle"], socialStandings: ["Notable"]). ConversationTree parser calls EntityResolver.FindOrCreateNPC(participantFilter). Same conversation tree works with any NPC matching the filter (not just Elena, but any innkeeper with Obstacle role).
+
+**Integration**: ConversationTree.Participant stores the object reference returned by EntityResolver, not an ID string.
 
 ### ObservationSceneDTO Conversion
 
-**Current Wrong Pattern**:
-```json
-{
-  "id": "observe_common_room",
-  "locationId": "common_room",
-  "observations": [...]
-}
-```
+**Current Pattern (Violation)**:
 
-**Target Correct Pattern**:
-```json
-{
-  "id": "observe_common_room",
-  "locationFilter": {
-    "placementType": "Location",
-    "privacyLevels": ["SemiPublic"],
-    "purposes": ["Dwelling"],
-    "activityLevels": ["Moderate"]
-  },
-  "observations": [...]
-}
-```
+Observation scenes use locationId property to reference specific location entities. Each scene (observe_common_room) hardcodes one specific location.
 
-**EntityResolver Integration**:
-- ObservationScene parser calls `entityResolver.FindOrCreateLocation(locationFilter)`
-- Returns Location object reference
-- ObservationScene.Location property holds object reference
-- Same observation scene works at any inn common room matching filter
+**Target Pattern (Correct)**:
+
+Observation scenes use locationFilter property containing categorical dimensions (placementType: "Location", privacyLevels: ["SemiPublic"], purposes: ["Dwelling"], activityLevels: ["Moderate"]). ObservationScene parser calls EntityResolver.FindOrCreateLocation(locationFilter). Same observation scene works at any location matching the filter (not just common_room, but any semi-public dwelling location).
+
+**Integration**: ObservationScene.Location stores the object reference returned by EntityResolver, not an ID string.
 
 ---
 

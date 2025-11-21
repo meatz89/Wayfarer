@@ -58,33 +58,17 @@
 2. **Phase 3B** - Subsystems (may depend on Services)
 3. **Phase 3C** - Delete methods (after all references eliminated)
 
-## Example Refactoring
+## Example Refactoring Pattern
 
-**BEFORE (WRONG):**
-```csharp
-// Service accepts string ID
-public void GrantToken(string npcId, ConnectionType tokenType)
-{
-    NPC npc = _npcRepository.GetById(npcId); // ID lookup
-    npc.Tokens.Add(tokenType);
-}
+**BEFORE (WRONG - String ID Lookup)**:
 
-// Caller passes ID
-service.GrantToken("elena_innkeeper", ConnectionType.Trust);
-```
+Services accept string NPC ID parameters. They call NPCRepository.GetById(npcId) to lookup the NPC object, then operate on it. Callers extract NPC names/IDs and pass strings to services.
 
-**AFTER (CORRECT):**
-```csharp
-// Service accepts NPC object
-public void GrantToken(NPC npc, ConnectionType tokenType)
-{
-    npc.Tokens.Add(tokenType); // Direct object access
-}
+**AFTER (CORRECT - Object Reference)**:
 
-// Caller passes object
-NPC elena = _gameWorld.NPCs.FirstOrDefault(n => n.Name == "Elena");
-service.GrantToken(elena, ConnectionType.Trust);
-```
+Services accept NPC object parameters directly. No lookup needed. Callers already have NPC objects (from GameWorld.NPCs or from UI context), so they pass the object directly. Service method signature changes from `GrantToken(string npcId, ...)` to `GrantToken(NPC npc, ...)`.
+
+**Key Change**: Data flows through the entire stack as objects, never as ID strings. Lookup happens once at boundary, then objects propagate.
 
 ## Dependencies
 
