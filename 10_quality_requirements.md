@@ -541,40 +541,11 @@ Each quality goal translates into concrete, testable scenarios. Scenarios follow
 - **Metric**: Zero Dictionary/HashSet usage for domain entity storage
 - **Validation**: Code search for `Dictionary<string, NPC>` returns zero results
 
-**Anti-Pattern Example (REJECTED):**
-```csharp
-// WRONG - Premature optimization
-private Dictionary<string, NPC> _npcs;
-
-public NPC GetNPCByName(string name)
-{
-    return _npcs[name]; // KeyNotFoundException if not found
-}
-
-public List<NPC> GetFriendlyNPCs()
-{
-    return _npcs.Values.Where(n => n.Demeanor == Demeanor.Friendly).ToList();
-    // Using Dictionary as List with extra steps
-}
-```
+**Anti-Pattern (REJECTED):**
+Using Dictionary with string keys for NPC storage. GetNPCByName method throws KeyNotFoundException if not found instead of returning null. GetFriendlyNPCs must iterate Dictionary.Values with LINQ anyway, negating performance benefit. Dictionary used as List with extra complexity and no actual gain.
 
 **Correct Pattern (APPROVED):**
-```csharp
-// CORRECT - Domain-driven collection
-private List<NPC> _npcs;
-
-public NPC GetNPCByName(string name)
-{
-    return _npcs.FirstOrDefault(n => n.Name == name);
-    // Null if not found, fail-fast at call site
-}
-
-public List<NPC> GetFriendlyNPCs()
-{
-    return _npcs.Where(n => n.Demeanor == Demeanor.Friendly).ToList();
-    // Uniform LINQ query pattern
-}
-```
+Using List for NPC storage. GetNPCByName uses LINQ FirstOrDefault returning null if not found, enabling fail-fast at call site. GetFriendlyNPCs uses uniform LINQ Where query pattern. All queries follow same declarative pattern with consistent error handling.
 
 **Performance Analysis:**
 - Dictionary lookup: ~0.0001ms (O(1) hash calculation)
@@ -605,16 +576,7 @@ public List<NPC> GetFriendlyNPCs()
 - **Validation**: Peer review requires zero clarification questions
 
 **Example (APPROVED):**
-```csharp
-public List<NPC> GetNPCsAtLocation(Location location)
-{
-    return _npcs
-        .Where(n => n.CurrentLocation == location)
-        .OrderBy(n => n.Name)
-        .ToList();
-    // Reads: "NPCs where current location matches, ordered by name"
-}
-```
+Method queries NPC collection using declarative LINQ pipeline. Filter by current location match, order by name alphabetically, materialize to list. Query reads as English prose: "NPCs where current location matches, ordered by name". Intent immediately clear without mental translation.
 
 #### Scenario 8.3: Debugging Session Efficiency
 
@@ -626,23 +588,14 @@ public List<NPC> GetNPCsAtLocation(Location location)
 - Set breakpoint, inspect GameWorld state
 
 **Response:**
-- List debugger view shows immediate entity state:
-  ```
-  _npcs: List<NPC> (Count = 5)
-    [0]: {NPC: Elena, Location: common_room, Demeanor: Friendly}
-    [1]: {NPC: Marcus, Location: market_square, Demeanor: Neutral}
-  ```
-- Developer sees problem IMMEDIATELY (location mismatch visible)
+- List debugger view shows immediate entity state with all properties visible: collection count, then each item showing NPC name, current location, and demeanor without expansion
+- Developer sees problem IMMEDIATELY (location mismatch visible in top-level view)
 - No need to expand KeyValuePair structures
 - **Metric**: Average debug session time reduced by 30% vs Dictionary
 - **Validation**: Developer productivity tracking
 
 **Anti-Pattern (Dictionary):**
-```
-_npcs: Dictionary<string, NPC> (Count = 5)
-  [0]: {["npc_001", Wayfarer.GameState.NPC]}  // Must expand to see properties
-  [1]: {["npc_002", Wayfarer.GameState.NPC]}  // Extra clicks required
-```
+Dictionary debugger view shows KeyValuePair wrappers hiding entity properties. Each item displays only key string and type name. Developer must manually expand each KeyValuePair to see actual NPC properties, requiring extra clicks and reducing debugging efficiency.
 
 ---
 

@@ -90,24 +90,7 @@ Progression systems require visibility model for content availability. Boolean f
 **All requirements stored as numeric thresholds enabling arithmetic comparison.** Resources modeled as integer properties on Player entity. Choices specify requirements as numeric values compared at runtime.
 
 **Data Model:**
-```csharp
-public class ChoiceTemplate {
-    public int StatThreshold { get; set; }      // Numeric requirement
-    public int CoinCost { get; set; }           // Numeric cost
-    public int StaminaCost { get; set; }        // Numeric cost
-}
-
-public class Player {
-    public int Rapport { get; set; }            // Numeric capability
-    public int Coins { get; set; }              // Numeric resource
-    public int Stamina { get; set; }            // Numeric resource
-}
-
-// Evaluation uses arithmetic
-bool isAffordable = player.Rapport >= choice.StatThreshold
-                 && player.Coins >= choice.CoinCost
-                 && player.Stamina >= choice.StaminaCost;
-```
+Choice templates store requirements as integer threshold properties (StatThreshold, CoinCost, StaminaCost). Player entity stores capabilities and resources as integer properties (Rapport, Coins, Stamina). Evaluation compares player values against choice thresholds using arithmetic greater-than-or-equal-to operations to determine affordability.
 
 ### Consequences
 
@@ -182,25 +165,21 @@ The challenge: Provide rich tactical gameplay without hiding strategic costs.
 - **Two Entity Models**: Distinct models to maintain (strategic vs tactical)
 
 **Architecture Flow:**
-```
-STRATEGIC LAYER
-  Player sees Choice: "Negotiate diplomatically"
-  Costs visible: Stamina -2
-  Rewards visible: OnSuccess (room unlocked), OnFailure (pay extra 5 coins)
-  Player commits with full knowledge
-  ↓ [BRIDGE: ActionType.StartChallenge]
-TACTICAL LAYER
-  Challenge session created
-  SituationCards extracted (victory condition: Momentum ≥ 8)
-  Card-based gameplay (draw order hidden)
-  Player plays cards, builds Momentum
-  Threshold reached: Victory
-  Session destroyed (temporary)
-  ↓ [BRIDGE: Return outcome]
-STRATEGIC LAYER
-  OnSuccessReward applied (room unlocked)
-  Scene advances to next Situation
-```
+
+**Strategic Layer Entry:**
+Player sees choice with visible costs and rewards. Costs shown before commitment (Stamina reduction). Rewards shown for both success and failure paths. Player commits with complete information.
+
+**Bridge Crossing (ActionType.StartChallenge):**
+System transitions from strategic to tactical layer. Challenge session created as temporary entity. Situation cards extracted with victory threshold.
+
+**Tactical Layer Execution:**
+Card-based gameplay with hidden draw order. Player plays cards to accumulate session resources (Momentum, Progress, Breakthrough). Victory determined by reaching threshold.
+
+**Bridge Return:**
+Session destroyed (temporary tactical state). Outcome returned to strategic layer.
+
+**Strategic Layer Resolution:**
+Success or failure reward applied to persistent game state. Scene advances to next situation, maintaining forward progression.
 
 ### Alternatives Considered
 
@@ -225,32 +204,10 @@ STRATEGIC LAYER
 ### Implementation Details
 
 **Bridge Enforcement:**
-```csharp
-// ChoiceTemplate routes execution
-switch (choice.ActionType) {
-  case Instant:
-    // Stay strategic: Apply rewards, advance situation
-    break;
-  case Navigate:
-    // Stay strategic: Move player, may advance situation
-    break;
-  case StartChallenge:
-    // Cross bridge: Store pending context, spawn tactical session
-    break;
-}
-```
+ChoiceTemplate.ActionType property routes execution via switch statement. Instant and Navigate actions remain in strategic layer, applying rewards and advancing situations directly. StartChallenge action crosses to tactical layer, storing pending context before spawning challenge session.
 
 **Pending Context Pattern:**
-```csharp
-// Bridge crossing stores strategic context
-PendingChallengeContext {
-  ParentScene,        // Object reference
-  ParentSituation,    // Object reference
-  OnSuccessReward,    // Applied if tactical victory
-  OnFailureReward     // Applied if tactical defeat
-}
-// Both outcomes advance progression (no soft-locks)
-```
+Bridge crossing stores strategic context in temporary structure containing parent scene reference, parent situation reference, success reward definition, and failure reward definition. Both outcomes advance progression ensuring no soft-locks. Context preserved while tactical layer executes, then applied based on challenge result.
 
 ---
 
@@ -395,17 +352,7 @@ All initialization code MUST be idempotent:
 - Manage event subscriptions carefully (avoid double subscription)
 
 **Implementation Pattern:**
-```csharp
-public async Task StartGameAsync()
-{
-    if (_gameWorld.IsGameStarted)
-    {
-        return; // Already initialized, skip
-    }
-    // ... initialization code
-    _gameWorld.IsGameStarted = true;
-}
-```
+Initialization methods check guard flag before executing state mutations. If flag indicates already initialized, method returns immediately without changes. Otherwise, initialization proceeds and sets flag to prevent re-execution. This ensures safe repeated invocation during double-rendering lifecycle.
 
 **Safe Patterns:**
 - All services as Singletons (persist across renders)
@@ -456,12 +403,7 @@ public async Task StartGameAsync()
 ### Testing Considerations
 
 **Expected Behavior:**
-```
-[GameFacade.StartGameAsync] Player initialized at Market Square   // First render
-[GameFacade.StartGameAsync] Game already started, skipping        // Second render
-```
-
-This is EXPECTED and shows idempotence protection working correctly.
+During development, log messages may appear twice showing initialization and subsequent skip behavior. First render executes initialization fully, second render detects guard flag and skips re-execution. This double-logging is expected and demonstrates idempotence protection working correctly.
 
 ---
 
@@ -649,26 +591,7 @@ Template IDs are acceptable (SceneTemplate.Id, SituationTemplate.Id, ArchetypeId
 - Returns object references immediately (NO ID storage)
 
 **3. Domain Layer (Object References ONLY):**
-```csharp
-// ✅ CORRECT - NO ID properties
-public class NPC {
-    // NO Id property
-    public string Name { get; set; }
-    public Location Location { get; set; }  // Object reference
-    public Location WorkLocation { get; set; }  // Object reference
-}
-
-public class Scene {
-    // NO Id property
-    public Situation CurrentSituation { get; set; }  // Object reference
-    public Location Location { get; set; }  // Object reference
-    public NPC Npc { get; set; }  // Object reference
-}
-
-public class Player {
-    public List<Obligation> ActiveObligations { get; set; }  // Object list, NOT ID list
-}
-```
+Domain entities contain NO ID properties. NPC class stores direct object references to Location and WorkLocation. Scene class stores direct object references to CurrentSituation, Location, and NPC. Player class stores list of Obligation objects, never string IDs. All relationships expressed through direct object references enabling compile-time type checking and eliminating lookup overhead.
 
 **4. Runtime (Spatial + Categorical Queries):**
 - Route generation: Procedural via pathfinding `Origin.HexPosition → Destination.HexPosition`
@@ -733,44 +656,11 @@ public class Player {
 
 ### Implementation Notes
 
-**Entity Pattern Example:**
-```csharp
-// CORRECT - NO ID, object references only
-public class NPC
-{
-    // NO ID property
-    public string Name { get; set; }
-    public Location Location { get; set; }  // Object reference
-    public Professions Profession { get; set; }  // Categorical property
-    public PersonalityType PersonalityType { get; set; }  // Categorical property
-}
+**Entity Pattern:**
+NPC class contains NO ID property. Properties include Name (string), Location object reference, Profession enum (categorical), and PersonalityType enum (categorical). Parser creates PlacementFilter from DTO categorical properties, passes to EntityResolver.FindOrCreateLocation which returns Location object, then stores object reference directly on NPC entity.
 
-// Parser uses categorical properties to find/create
-Location location = EntityResolver.FindOrCreateLocation(new PlacementFilter
-{
-    Purpose = dto.Purpose,
-    Safety = dto.Safety,
-    LocationProperties = dto.Properties
-});
-npc.Location = location;  // Store object reference
-```
-
-**Procedural Route Generation Example:**
-```csharp
-// CORRECT - Routes generated from hex coordinates
-List<AxialCoordinates> hexPath = pathfinder.FindPath(
-    origin.HexPosition,
-    destination.HexPosition,
-    hexMap);
-
-RouteOption route = new RouteOption
-{
-    OriginLocation = origin,  // Object reference
-    DestinationLocation = destination,  // Object reference
-    HexPath = hexPath,  // Spatial path
-    DangerRating = hexPath.Sum(coord => hexMap.GetHex(coord).DangerLevel)
-};
-```
+**Procedural Route Generation:**
+Pathfinder generates hex path from origin location's HexPosition to destination location's HexPosition, navigating hex map terrain. RouteOption constructed with direct object references to OriginLocation and DestinationLocation, spatial hex path as coordinate list, and DangerRating calculated by summing danger levels of all hexes in path. No hardcoded route IDs required.
 
 ---
 
