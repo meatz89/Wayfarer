@@ -21,7 +21,7 @@ This document provides canonical definitions for all specialized terms used acro
 **Type:** Entity
 **Owner:** GameWorld.Locations
 **Definition:** Specific place within a Venue where player can be, NPCs can be present, and Scenes can be placed. Atomic unit of spatial positioning.
-**Properties:** Name, VenueId (reference to parent Venue), HexCoordinates, IsVenueTravelHub (exactly one per Venue).
+**Properties:** Name, Venue (object reference to parent Venue), HexCoordinates, IsVenueTravelHub (exactly one per Venue).
 **Movement:** Players navigate between Locations within same Venue instantly. Travel to Locations in different Venues requires Route travel.
 **Historical Note:** Earlier architecture used "Spot" as synonym. Current codebase uses "Location" exclusively.
 **Example:** "Common Room" (specific location within The Rusty Tankard Inn).
@@ -29,9 +29,10 @@ This document provides canonical definitions for all specialized terms used acro
 ### Hex
 **Type:** Entity (procedural)
 **Owner:** GameWorld.WorldHexGrid.Hexes
-**Definition:** Grid cell in hex-based world map. Contains terrain type, danger level, and optional LocationId. Used for pathfinding and procedural generation.
+**Definition:** Grid cell in hex-based world map. Contains terrain type, danger level, and optional LocationId (derived lookup). Used for pathfinding and procedural generation.
 **Visibility:** Never directly visible to player. Backend scaffolding for Route generation.
-**Properties:** AxialCoordinates (Q, R), TerrainType enum, DangerLevel (0-10), LocationId (optional reference).
+**Properties:** AxialCoordinates (Q, R), TerrainType enum, DangerLevel (0-10), LocationId (derived lookup - computed FROM Location.HexPosition, NOT stored independently).
+**HIGHLANDER:** Location.HexPosition is source of truth (spatial coordinates). Hex.LocationId is derived reverse index for pathfinding performance. This is the ONLY acceptable "ID" pattern in the architecture - derived lookups where spatial coordinates are source of truth.
 
 ### Route
 **Type:** Entity
@@ -68,7 +69,7 @@ This document provides canonical definitions for all specialized terms used acro
 **Storage:** SceneTemplate.SituationTemplates
 **Definition:** Immutable template defining Situation structure. Contains ChoiceTemplates (2-4 choices per Sir Brante pattern) or ArchetypeId (for catalogue generation).
 **Archetype Pattern:** If ArchetypeId specified, SituationArchetypeCatalog.GetArchetype() generates 4 ChoiceTemplates at parse-time.
-**Key Properties:** Id, Type (Normal/Crisis), ArchetypeId (nullable string), ChoiceTemplates (embedded list), NarrativeTemplate, RequiredLocationId, RequiredNpcId.
+**Key Properties:** Id (Template ID - acceptable for immutable archetypes), Type (Normal/Crisis), ArchetypeId (nullable string - references immutable archetype catalog), ChoiceTemplates (embedded list), NarrativeTemplate, PlacementFilter (categorical properties for context matching - NOT hardcoded entity IDs).
 
 ### Situation
 **Type:** Runtime Entity (embedded in Scene)
@@ -77,7 +78,8 @@ This document provides canonical definitions for all specialized terms used acro
 **State Machine:**
 - **InstantiationState:** Deferred (actions not created) → Instantiated (actions created in GameWorld collections).
 - **LifecycleStatus:** Selectable (available to player) → Completed/Failed (finished).
-**Key Properties:** Id, Template (SituationTemplate reference), InstantiationState enum, LifecycleStatus enum, ParentScene (object reference), LastChoiceId, LastChallengeSucceeded (for conditional transitions).
+**Key Properties:** Template (SituationTemplate object reference), InstantiationState enum, LifecycleStatus enum, ParentScene (object reference), LastChoice (object reference), LastChallengeSucceeded (for conditional transitions).
+**NOTE:** Situation is a mutable entity instance and therefore has NO ID PROPERTY. All relationships use direct object references.
 **Three-Tier Timing:** Templates (parse-time) → Situations (spawn-time, deferred) → Actions (query-time).
 **Historical Note:** Do NOT confuse with "Encounter" (route-travel synonym) or "Challenge" (tactical subsystem).
 
@@ -190,7 +192,7 @@ This document provides canonical definitions for all specialized terms used acro
 - Entity relationships via object references: `NPC.Location` (object), `RouteOption.OriginLocation` (object).
 - Parsers use EntityResolver.FindOrCreate with categorical properties, return object references immediately.
 **Template Exception:** SceneTemplate.Id, SituationTemplate.Id acceptable (immutable content definitions, not game state).
-**FORBIDDEN:** Storing both object reference AND ID (`OriginLocationId` + `OriginLocation`), ID-only references requiring GetById lookups.
+**FORBIDDEN:** Storing both object reference AND ID (`OriginLocationId` + `OriginLocation`), ID-only references requiring GetById lookups, ANY entity instance ID properties on domain entities.
 
 ### Sentinel Values Over Null
 **Definition:** Never use null for domain logic. Create explicit sentinel objects with internal flags.
@@ -207,13 +209,15 @@ This document provides canonical definitions for all specialized terms used acro
 **Definition:** IDs do NOT exist on domain entities (except templates). Entities found by categorical properties, object references stored immediately.
 **FORBIDDEN:**
 - ID properties on domain entities: `NPC.ID`, `Location.Id`, `RouteOption.Id`
-- ID relationship properties: `NPC.WorkLocationId`, `Player.ActiveObligationIds`
+- ID relationship properties: `NPC.WorkLocationId` (use `NPC.WorkLocation` object reference), `Player.ActiveObligationIds` (use `Player.ActiveObligations` list of objects)
 - GetById methods and ID-based lookups
 - Encoding data in IDs: `Id = $"move_to_{destinationId}"`
 - Parsing IDs: `StartsWith("move_to_")`, `Substring()`, `Split()`
 - ID-based routing: `if (action.Id == "secure_room")`
 **CORRECT:**
 - Object references ONLY: `NPC.Location` (not `LocationId`), `Player.ActiveObligations` (not `ActiveObligationIds`)
+- Categorical properties in JSON/DTOs: `SpawnLocationFilter: { Properties: ["Public", "Safe"] }` (not `locationId: "market_square"`)
+- EntityResolver.FindOrCreate pattern: Parser uses categorical filters to find/create entities, returns object references
 - EntityResolver.FindOrCreate with categorical properties (Profession, PersonalityType, Purpose, Safety)
 - ActionType enum for routing (switch on enum, NOT ID)
 - Strongly-typed properties for all entity data

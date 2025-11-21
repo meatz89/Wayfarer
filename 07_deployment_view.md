@@ -64,15 +64,8 @@
 
 ### Development Build
 
-```bash
-# Navigate to source directory
-cd src
-
-# Build application
-dotnet build
-
-# Output: ./bin/Debug/net8.0/
-```
+**Build Process:**
+Navigate to source directory and execute dotnet build command. The build system compiles all assemblies targeting .NET 8 and outputs to the Debug configuration directory.
 
 **Build Output:**
 - Compiled assemblies (.dll)
@@ -82,15 +75,8 @@ dotnet build
 
 ### Running Application
 
-```bash
-# Navigate to source directory
-cd src
-
-# Run application (development mode)
-dotnet run
-
-# Application available at: http://localhost:5000
-```
+**Execution:**
+Navigate to source directory and execute dotnet run command. The application starts in development mode and becomes available on localhost port 5000.
 
 **Runtime Configuration:**
 - Port: 5000 (default, configurable via ASPNETCORE_URLS)
@@ -99,31 +85,13 @@ dotnet run
 
 ### Running Tests
 
-```bash
-# Navigate to source directory
-cd src
-
-# Run all tests
-dotnet test
-
-# Run specific test project
-dotnet test Tests/UnitTests
-```
+**Test Execution:**
+Navigate to source directory and execute dotnet test command. The test runner discovers and executes all test assemblies in the solution. Individual test projects can be targeted by providing the project path.
 
 ### Production Build
 
-```bash
-# Navigate to source directory
-cd src
-
-# Build for production (Release configuration)
-dotnet build --configuration Release
-
-# Publish self-contained deployment
-dotnet publish --configuration Release --output ./publish
-
-# Output: ./publish/ (ready to deploy)
-```
+**Production Process:**
+Build using Release configuration for optimized output. The publish command creates a self-contained deployment package ready for production hosting. Output directory contains all necessary assemblies and dependencies for deployment.
 
 ---
 

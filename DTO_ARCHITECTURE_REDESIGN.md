@@ -51,55 +51,26 @@ After string lookup elimination complete, THEN proceed with DTO layer redesign.
 ## 1. CORRECT DTO PATTERNS
 
 ### PlacementFilterDTO (Already Correct)
-```csharp
-// Entity matching via categorical properties
-public class PlacementFilterDTO
-{
-    // NPC categorical dimensions
-    public List<string> PersonalityTypes { get; set; }
-    public List<string> Professions { get; set; }
-    public List<string> SocialStandings { get; set; }
-    public List<string> StoryRoles { get; set; }
-    public List<string> KnowledgeLevels { get; set; }
 
-    // Location categorical dimensions
-    public List<string> LocationTypes { get; set; }
-    public List<string> LocationProperties { get; set; }
-    public List<string> PrivacyLevels { get; set; }
-    public List<string> SafetyLevels { get; set; }
-    public List<string> ActivityLevels { get; set; }
-    public List<string> Purposes { get; set; }
+PlacementFilterDTO enables entity matching via categorical properties rather than hardcoded IDs. The DTO contains lists of categorical dimensions for NPCs, Locations, and Routes.
 
-    // Route categorical dimensions
-    public List<string> TerrainTypes { get; set; }
-    public int? MinDifficulty { get; set; }
-    public int? MaxDifficulty { get; set; }
+**NPC Categorical Dimensions**: PersonalityTypes, Professions, SocialStandings, StoryRoles, KnowledgeLevels
 
-    // Selection strategy
-    public string SelectionStrategy { get; set; } // "Random", "Closest", "LeastRecent"
-}
-```
+**Location Categorical Dimensions**: LocationTypes, LocationProperties, PrivacyLevels, SafetyLevels, ActivityLevels, Purposes
+
+**Route Categorical Dimensions**: TerrainTypes, MinDifficulty, MaxDifficulty
+
+**Selection Strategy**: Specifies how to resolve when multiple matches exist (Random, Closest, LeastRecent).
 
 ### Entity Reference Pattern (Wrong vs Correct)
 
 **❌ WRONG - Entity Instance IDs**:
-```csharp
-public class NPCDTO
-{
-    public string Id { get; set; }
-    public string VenueId { get; set; }      // Instance ID - VIOLATION
-    public string LocationId { get; set; }    // Instance ID - VIOLATION
-}
-```
+
+NPCDTO using VenueId and LocationId properties to reference specific entity instances. This violates the architectural mandate prohibiting entity instance IDs and breaks procedural content generation.
 
 **✅ CORRECT - Categorical Placement**:
-```csharp
-public class NPCDTO
-{
-    public string Id { get; set; }            // Template ID only (immutable archetype)
-    public PlacementFilterDTO SpawnLocation { get; set; }  // Categorical properties
-}
-```
+
+NPCDTO containing an Id property for template identification (immutable archetype, acceptable) and a SpawnLocation property containing categorical properties. EntityResolver uses these categorical properties to find existing matching entities or generate new ones dynamically.
 
 ### Template ID Exception
 
@@ -118,53 +89,31 @@ public class NPCDTO
 
 ### EntityResolver.FindOrCreate Algorithm
 
-```csharp
-public Location FindOrCreateLocation(PlacementFilter filter)
-{
-    // 1. Query existing entities
-    List<Location> matches = _gameWorld.Locations
-        .Where(loc => LocationMatchesFilter(loc, filter))
-        .ToList();
+The EntityResolver implements the core algorithm for resolving categorical filters into concrete entities. The process follows three steps:
 
-    // 2. Apply selection strategy if multiple matches
-    if (matches.Count > 0)
-        return ApplySelectionStrategy(matches, filter.SelectionStrategy);
+1. **Query Existing Entities** - Search the GameWorld collections for entities matching the filter's categorical properties. Use LINQ to filter by specified dimensions.
 
-    // 3. No match - create from categorical properties
-    Location newLocation = CreateLocationFromCategories(filter);
-    _gameWorld.Locations.Add(newLocation);
-    return newLocation;
-}
-```
+2. **Apply Selection Strategy** - If multiple matches exist, apply the filter's selection strategy (Random selects arbitrarily, Closest uses spatial proximity, LeastRecent picks the least-recently-used entity).
+
+3. **Create or Return** - If matches exist, return selected entity. If no matches, create new entity from categorical properties, add to GameWorld, return.
 
 ### Matching Priority
 
-1. **Exact Match**: Entity has ALL specified categorical properties
-2. **Partial Match**: Entity has SOME properties (if filter allows loose matching)
-3. **Create**: No match found, generate new entity from filter properties
+Matching follows strict priority order:
+
+1. **Exact Match** - Entity has ALL specified categorical properties matching the filter
+2. **Partial Match** - Entity has SOME properties matching (only if filter allows loose matching)
+3. **Create** - No match found, generate new entity from filter properties and add to GameWorld
 
 ### Property-Based Search
 
-```csharp
-private bool LocationMatchesFilter(Location loc, PlacementFilter filter)
-{
-    // All specified properties must match (AND logic)
-    if (filter.LocationProperties != null && filter.LocationProperties.Count > 0)
-        if (!filter.LocationProperties.All(prop => loc.LocationProperties.Contains(prop)))
-            return false;
+Entity matching uses categorical property queries. All specified properties must match using AND logic. Each categorical dimension is evaluated independently:
 
-    if (filter.LocationTypes != null && filter.LocationTypes.Count > 0)
-        if (!filter.LocationTypes.Contains(loc.LocationType))
-            return false;
+**Location Dimensional Matching**: LocationProperties (all must match), LocationTypes (must match one of), PrivacyLevels (must match one of), SafetyLevels, ActivityLevels, Purposes.
 
-    // Orthogonal dimensions (must match ONE OF)
-    if (filter.PrivacyLevels != null && filter.PrivacyLevels.Count > 0)
-        if (!filter.PrivacyLevels.Contains(loc.Privacy))
-            return false;
+**NPC Dimensional Matching**: Professions (must match one of), PersonalityTypes, SocialStandings, StoryRoles, KnowledgeLevels.
 
-    return true;
-}
-```
+Matching logic is simple LINQ filters on List<T> properties, with no hardcoded IDs involved.
 
 ---
 
@@ -217,84 +166,30 @@ private bool LocationMatchesFilter(Location loc, PlacementFilter filter)
 
 ### Current Pattern (WRONG)
 
-```csharp
-// NPCParser.cs - LOOKUP PATTERN
-NPC npc = new NPC
-{
-    Id = dto.Id,
-    Location = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId),  // ❌ LOOKUP
-    Venue = gameWorld.Venues.FirstOrDefault(v => v.Id == dto.VenueId)            // ❌ LOOKUP
-};
-```
+Parsers accept DTOs with entity instance ID properties (LocationId, VenueId, NPCId) and use LINQ lookups to find corresponding entities. This creates a dependency on specific entity IDs existing, breaking procedural content generation.
 
 ### Target Pattern (CORRECT)
 
-```csharp
-// NPCParser.cs - RESOLUTION PATTERN
-Location spawnLocation = entityResolver.FindOrCreateLocation(dto.SpawnLocation);  // ✅ RESOLVE
-
-NPC npc = new NPC
-{
-    Id = dto.Id,
-    Location = spawnLocation,  // ✅ OBJECT REFERENCE (no lookup)
-    Venue = spawnLocation.Venue  // ✅ DERIVED FROM LOCATION
-};
-```
+Parsers accept DTOs with PlacementFilterDTO properties containing categorical dimensions. Parsers call EntityResolver.FindOrCreateLocation() or EntityResolver.FindOrCreateNPC() to resolve filters into object references. Entities are created from categorical properties if no match exists.
 
 ### EntityResolver Integration Points
 
-**All Parsers Need EntityResolver**:
-- NPCParser → resolve spawn locations
-- ObligationParser → resolve target locations/NPCs
-- ConversationTreeParser → resolve participants
-- ExchangeParser → resolve providers/locations
-- SceneTemplateParser → resolve placement filters for all scenes
+**All Parsers Require EntityResolver Injection**:
+- NPCParser resolves spawn locations from categorical filters
+- ObligationParser resolves target locations and target NPCs from filters
+- ConversationTreeParser resolves participants from categorical NPC filters
+- ExchangeParser resolves providers (NPCs) and locations from filters
+- SceneTemplateParser resolves placement filters for all situation placement
 
-**Inject via Constructor**:
-```csharp
-public NPCParser(GameWorld gameWorld, EntityResolver entityResolver)
-{
-    _gameWorld = gameWorld;
-    _entityResolver = entityResolver;
-}
-```
+Each parser is constructed with EntityResolver dependency. During parsing, any DTO property containing PlacementFilterDTO is resolved through EntityResolver.FindOrCreate, returning object references, not ID strings.
 
 ### Procedural Route Generation
 
-**Current (WRONG)**: RouteDTO contains origin/destination IDs
-```json
-{
-  "id": "route_001",
-  "originLocationId": "westmarch",
-  "destinationLocationId": "crossroads"
-}
-```
+**Current (WRONG)**: RouteDTO contains hardcoded originLocationId and destinationLocationId, binding the route to specific entity instances.
 
-**Target (CORRECT)**: Routes generated procedurally from hex grid
-```csharp
-// Route generation happens at GameWorld initialization
-foreach (Location origin in locations)
-{
-    foreach (Location destination in locations.Where(d => d != origin))
-    {
-        List<AxialCoordinates> hexPath = pathfinder.FindPath(
-            origin.HexPosition,
-            destination.HexPosition
-        );
+**Target (CORRECT)**: Routes are generated procedurally at GameWorld initialization from hex grid spatial data. For each pair of locations, A* pathfinding generates the hex path from origin HexPosition to destination HexPosition. Routes store OriginLocation and DestinationLocation as object references, not IDs.
 
-        RouteOption route = new RouteOption
-        {
-            OriginLocation = origin,
-            DestinationLocation = destination,
-            HexPath = hexPath
-        };
-
-        gameWorld.Routes.Add(route);
-    }
-}
-```
-
-**No RouteDTO needed** - routes are pure spatial data derived from hex grid.
+This eliminates RouteDTO entirely. Routes are runtime spatial data derived from Location hex coordinates, not authored content.
 
 ---
 
@@ -302,66 +197,21 @@ foreach (Location origin in locations)
 
 ### Location Placement
 
-```csharp
-public class Location
-{
-    public AxialCoordinates HexPosition { get; set; }  // Source of truth
-    public Venue Venue { get; set; }  // Spatial container
-}
-```
-
-**Hex coordinates are mandatory** - all locations must have spatial position.
+Each Location has an HexPosition property containing AxialCoordinates (Q, R values). This hex position is the source of truth for spatial positioning. Locations also reference their containing Venue. Hex coordinates are mandatory - all locations must have spatial position.
 
 ### Venue Definition
 
-```csharp
-public class Venue
-{
-    public AxialCoordinates CenterHex { get; set; }
-    public int Radius { get; set; }  // Hex distance from center
-}
-```
-
-**Venue = hex radius grouping around center point.**
-
-Locations within radius belong to venue:
-```csharp
-bool IsInVenue(Location loc, Venue venue)
-{
-    int distance = loc.HexPosition.DistanceTo(venue.CenterHex);
-    return distance <= venue.Radius;
-}
-```
+Venues are defined as a center hex coordinate with a radius value representing hex distance. A Venue represents a region of the hex grid. Locations within the radius distance from the venue's center hex belong to that venue. Venue membership is derived from hex distance calculation, not hardcoded location-to-venue assignments.
 
 ### Route Generation (Procedural)
 
-```csharp
-// A* pathfinding on hex grid
-public List<AxialCoordinates> FindPath(AxialCoordinates start, AxialCoordinates goal)
-{
-    // Standard A* with hex distance heuristic
-    // Returns list of hex coordinates from start to goal
-}
-```
+Routes are generated procedurally from hex spatial data, not authored in JSON. Route generation uses A* pathfinding on the hex grid. For each pair of locations, the pathfinder returns a list of AxialCoordinates from origin to destination. Routes store OriginLocation and DestinationLocation as object references, plus the HexPath list representing the spatial route through the hex grid.
 
-**Routes are generated, not authored** - hex grid is source of truth.
+**Routes are generated, not authored** - hex grid is the sole source of truth for spatial relationships.
 
 ### Distance Calculations
 
-```csharp
-public struct AxialCoordinates
-{
-    public int Q { get; set; }
-    public int R { get; set; }
-
-    public int DistanceTo(AxialCoordinates other)
-    {
-        return (Math.Abs(Q - other.Q) +
-                Math.Abs(Q + R - other.Q - other.R) +
-                Math.Abs(R - other.R)) / 2;
-    }
-}
-```
+Hex distance calculation uses the axial coordinate system. Given two AxialCoordinates with (Q, R) values, distance is calculated as: (absolute difference of Q values + absolute difference of combined Q+R values + absolute difference of R values) divided by 2. This provides accurate Manhattan-style distance in hexagonal grids.
 
 ---
 
@@ -400,26 +250,14 @@ public struct AxialCoordinates
 
 ## ARCHITECTURE VALIDATION
 
-**Test**: Can a scene template spawn in 3 different procedural worlds without modification?
+**Core Test**: Can a scene template spawn in three different procedurally-generated worlds without any modification to the template?
 
-**Before (BROKEN)**:
-```json
-{
-  "sceneId": "inn_scene",
-  "npcId": "elena_innkeeper",
-  "locationId": "rusty_tankard"
-}
-```
-❌ Fails - elena and rusty_tankard don't exist in world 2.
+**Before (BROKEN - Hardcoded IDs)**:
 
-**After (CORRECT)**:
-```json
-{
-  "sceneId": "inn_scene",
-  "npcFilter": { "professions": ["Innkeeper"], "storyRoles": ["Facilitator"] },
-  "locationFilter": { "locationTypes": ["Inn"], "purposes": ["Dwelling"] }
-}
-```
-✅ Works - EntityResolver finds existing innkeeper/inn OR creates new.
+Scene template contains references to specific entity IDs (elena_innkeeper, rusty_tankard). When template is instantiated in a second procedurally-generated world, those specific entities don't exist. EntityResolver.FindOrCreate searches for an entity with Id matching "elena_innkeeper", finds nothing, and either fails to spawn the scene or creates a broken entity. Result: Template is coupled to one specific world and cannot be reused.
 
-**This is DDR-006 (Categorical Scaling) - the ENTIRE architecture.**
+**After (CORRECT - Categorical Filtering)**:
+
+Scene template contains PlacementFilterDTO with categorical dimensions (professions: ["Innkeeper"], storyRoles: ["Facilitator"]). When template is instantiated in any world, EntityResolver.FindOrCreateNPC searches for NPCs matching the filter. In world 1, it finds Elena. In world 2, it finds a procedurally-generated Innkeeper NPC. In world 3, it creates a new Innkeeper if none exists. Same template works identically across infinite procedural worlds.
+
+**This is DDR-006 (Categorical Scaling) - the foundation of the entire architecture.**
