@@ -541,7 +541,7 @@ Within single scene, situations flow sequentially without interruption:
 4. Player selects choice → Scene cascades to Situation 3
 5. Player selects choice → Scene completes, returns to location view
 
-Scene state machine manages CurrentSituationId and AdvanceToNextSituation() for seamless narrative flow.
+Scene state machine manages CurrentSituation (object reference) and AdvanceToNextSituation() for seamless narrative flow.
 
 #### Perfect Information Requirement
 

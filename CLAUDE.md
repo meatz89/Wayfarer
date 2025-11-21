@@ -1172,15 +1172,15 @@ public class GameWorld
 }
 
 // Query patterns (declarative, readable, safe)
-public NPC GetNPCById(string id)
+public NPC GetNPCByName(string name)
 {
-    return _npcs.FirstOrDefault(n => n.Id == id);
+    return _npcs.FirstOrDefault(n => n.Name == name);
     // Returns null if not found (fail-fast at call site)
 }
 
-public List<NPC> GetNPCsByLocation(string locationId)
+public List<NPC> GetNPCsByLocation(Location location)
 {
-    return _npcs.Where(n => n.CurrentLocation == locationId).ToList();
+    return _npcs.Where(n => n.CurrentLocation == location).ToList();
     // Reads like English: "NPCs where location matches"
 }
 

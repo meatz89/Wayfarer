@@ -244,10 +244,10 @@ switch (choice.ActionType) {
 ```csharp
 // Bridge crossing stores strategic context
 PendingChallengeContext {
-  ParentSceneId,
-  ParentSituationId,
-  OnSuccessReward,  // Applied if tactical victory
-  OnFailureReward   // Applied if tactical defeat
+  ParentScene,        // Object reference
+  ParentSituation,    // Object reference
+  OnSuccessReward,    // Applied if tactical victory
+  OnFailureReward     // Applied if tactical defeat
 }
 // Both outcomes advance progression (no soft-locks)
 ```

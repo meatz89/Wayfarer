@@ -226,8 +226,8 @@ public Scene GetSceneById(string id) { /* ... */ }
 public string SceneTemplateId { get; set; }  // Template ID acceptable
 
 // ❌ FORBIDDEN - JsonPropertyName attribute to rename
-[JsonPropertyName("current_situation_id")]
-public string CurrentSituationId { get; set; }
+[JsonPropertyName("scene_template_id")]
+public string SceneTemplateId { get; set; }
 ```
 
 **Parse All JSON:**
