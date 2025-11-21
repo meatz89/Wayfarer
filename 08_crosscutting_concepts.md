@@ -467,7 +467,7 @@ if (player.CompletedQuest("phase1")) {
 
 ```csharp
 // ✅ CORRECT - Phase 2 exists from game start
-Scene phase2 = gameWorld.Scenes.First(s => s.Id == "phase2");
+Scene phase2 = gameWorld.Scenes.First(s => s.SceneName == "Phase 2: Market Investigation");
 
 // Spawn conditions filter visibility
 if (phase2.SpawnConditions.IsEligible(player)) {

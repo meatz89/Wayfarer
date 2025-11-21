@@ -47,8 +47,8 @@ The following type restrictions are **compiler-enforced architectural constraint
 ```csharp
 // ✅ ALLOWED
 var active = scenes.Where(s => s.State == SceneState.Active);
-var ids = situations.Select(s => s.Id);
-var first = npcs.FirstOrDefault(n => n.Id == targetId);
+var names = npcs.Select(n => n.Name);
+var first = npcs.FirstOrDefault(n => n.Name == targetName);
 ```
 
 **2. Blazor Event Handlers (Frontend Only):**

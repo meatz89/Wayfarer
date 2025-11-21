@@ -970,8 +970,8 @@ npc.Name; // May crash LATER if TryGetValue failed
 
 **List behavior (FAIL-FAST):**
 ```csharp
-var npc = _npcs.FirstOrDefault(n => n.Id == id); // Returns null if not found
-var name = npc.Name; // IMMEDIATELY throws NullReferenceException
+var npc = _npcs.FirstOrDefault(n => n.Name == name); // Returns null if not found
+var profession = npc.Profession; // IMMEDIATELY throws NullReferenceException
 // Stack trace points EXACTLY to the problem: NPC doesn't exist
 // No silent propagation, no deferred errors
 ```
@@ -1002,7 +1002,7 @@ var authorities = _npcs.Values.Where(n => n.SocialStanding == SocialStanding.Aut
 **List uniformity:**
 ```csharp
 // ALL queries are uniform and declarative
-var npc = _npcs.FirstOrDefault(n => n.Id == id); // O(n) - but n=20, so irrelevant
+var npc = _npcs.FirstOrDefault(n => n.Name == name); // O(n) - but n=20, so irrelevant
 var innkeeper = _npcs.FirstOrDefault(n => n.Profession == "Innkeeper"); // O(n)
 var friendlyNpcs = _npcs.Where(n => n.Demeanor == Demeanor.Friendly).ToList(); // O(n)
 var authorities = _npcs.Where(n => n.SocialStanding == SocialStanding.Authority).ToList(); // O(n)
@@ -1130,7 +1130,7 @@ var npc = _npcs[id]; // What if id doesn't exist? Runtime exception!
 ```csharp
 // Implies "collection of entities" - this is a domain concept
 List<NPC> _npcs;
-var npc = _npcs.FirstOrDefault(n => n.Id == id); // Domain query, safe
+var npc = _npcs.FirstOrDefault(n => n.Name == name); // Domain query, safe
 ```
 
 **The repository stores ENTITIES, not KEY-VALUE PAIRS.** GameWorld is a domain model, not a database schema.
