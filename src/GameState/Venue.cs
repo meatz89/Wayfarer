@@ -16,14 +16,17 @@
     public VenueType Type { get; set; } = VenueType.Wilderness;  // Strongly-typed venue category (replaces LocationTypeString)
     public int Tier { get; set; } = 1;
 
-    // SPATIAL: Center hex position for venue cluster
-    // Set during venue generation, used for placing first location
-    // Subsequent locations placed adjacent to existing locations (organic growth)
-    public AxialCoordinates? CenterHex { get; set; }
+    // SPATIAL HEX CLUSTER: Venue defines hex territory BEFORE locations placed
+    // CenterHex + HexAllocation strategy defines the venue's spatial boundaries
+    // All locations must have HexPosition within venue's allocated hex cluster
+    public AxialCoordinates CenterHex { get; set; }  // Required - defines venue spatial position
+    public HexAllocationStrategy HexAllocation { get; set; } = HexAllocationStrategy.ClusterOf7;
 
-    // UNIDIRECTIONAL RELATIONSHIP: Location → Venue (Location.VenueId references Venue.Id)
-    // Venue does NOT maintain list of its locations
-    // To find locations in a venue: query GameWorld.Locations.Where(loc => loc.VenueId == venueId)
+    // BIDIRECTIONAL RELATIONSHIP: Venue ↔ Locations
+    // Venue.LocationIds contains Location.Name values (natural keys, not IDs)
+    // Maintained by GameWorld.AddOrUpdateLocation() for capacity budget tracking
+    // To find location objects: GameWorld.Locations.Where(loc => loc.Venue == venue)
+    public List<string> LocationIds { get; set; } = new List<string>();
 
     // HEX-BASED TRAVEL SYSTEM: Venue is ONLY a wrapper for travel cost rules
     // Venue has NO spatial position - Locations are the spatial entities
@@ -46,6 +49,46 @@
     public Venue(string name)
     {
         Name = name;
+    }
+
+    /// <summary>
+    /// Get all hexes allocated to this venue's spatial cluster.
+    /// SPATIAL ARCHITECTURE: Venues claim hex territory BEFORE locations placed.
+    /// Locations must have HexPosition within this allocated set.
+    /// </summary>
+    public List<AxialCoordinates> GetAllocatedHexes()
+    {
+        List<AxialCoordinates> hexes = new List<AxialCoordinates>();
+
+        if (HexAllocation == HexAllocationStrategy.SingleHex)
+        {
+            hexes.Add(CenterHex);
+        }
+        else // ClusterOf7
+        {
+            hexes.Add(CenterHex);  // Center hex
+            hexes.AddRange(CenterHex.GetNeighbors());  // 6 neighboring hexes
+        }
+
+        return hexes;
+    }
+
+    /// <summary>
+    /// Check if a hex position is within this venue's allocated cluster.
+    /// Used by LocationParser to validate location hex positions.
+    /// </summary>
+    public bool ContainsHex(AxialCoordinates hex)
+    {
+        return GetAllocatedHexes().Contains(hex);
+    }
+
+    /// <summary>
+    /// Check if venue can accept more locations (capacity budget check).
+    /// CATALOGUE PATTERN: Capacity is DERIVED from LocationIds.Count, not stored separately.
+    /// </summary>
+    public bool CanAddLocation()
+    {
+        return LocationIds.Count < MaxLocations;
     }
 
 }

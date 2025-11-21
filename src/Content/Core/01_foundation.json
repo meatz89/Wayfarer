@@ -14,21 +14,27 @@
         "name": "The Brass Bell Inn",
         "description": "A warm inn where lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations.",
         "districtId": "town_center",
-        "tier": 1
+        "tier": 1,
+        "hexAllocation": "ClusterOf7",
+        "maxLocations": 20
       },
       {
         "id": "town_square",
         "name": "Town Square",
         "description": "The heart of the town, where traders gather and townsfolk meet. The Brass Bell Inn beckons from across the square.",
         "districtId": "town_center",
-        "tier": 1
+        "tier": 1,
+        "hexAllocation": "ClusterOf7",
+        "maxLocations": 20
       },
       {
         "id": "old_mill",
         "name": "The Old Mill",
         "description": "An abandoned mill on the outskirts of town. The waterwheel still turns slowly, creaking with age.",
         "districtId": "town_outskirts",
-        "tier": 1
+        "tier": 1,
+        "hexAllocation": "ClusterOf7",
+        "maxLocations": 20
       }
     ],
     "locations": [

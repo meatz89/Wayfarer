@@ -105,7 +105,12 @@
       "WebFetch(domain:)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:8100\" timeout 60 dotnet run:*)",
       "Bash(git commit:*)",
-      "Bash(Select-Object -First 100)"
+      "Bash(Select-Object -First 100)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6270\" timeout 15 dotnet run:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6270\" timeout 10 dotnet run:*)",
+      "Bash(dir:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6320\" timeout 15 dotnet run:*)",
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6320\" timeout 10 dotnet run:*)"
     ],
     "deny": [],
     "ask": []

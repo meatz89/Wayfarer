@@ -24,17 +24,20 @@ public class PackageLoader
     private readonly SceneGenerationFacade _sceneGenerationFacade;
     private readonly LocationPlayabilityValidator _locationValidator;
     private readonly HexSynchronizationService _hexSync;
+    private readonly LocationPlacementService _locationPlacementService;
 
     public PackageLoader(
         GameWorld gameWorld,
         SceneGenerationFacade sceneGenerationFacade,
         LocationPlayabilityValidator locationValidator,
-        HexSynchronizationService hexSync)
+        HexSynchronizationService hexSync,
+        LocationPlacementService locationPlacementService)
     {
         _gameWorld = gameWorld;
         _sceneGenerationFacade = sceneGenerationFacade;
         _locationValidator = locationValidator ?? throw new ArgumentNullException(nameof(locationValidator));
         _hexSync = hexSync ?? throw new ArgumentNullException(nameof(hexSync));
+        _locationPlacementService = locationPlacementService ?? throw new ArgumentNullException(nameof(locationPlacementService));
     }
 
     /// <summary>
@@ -76,8 +79,17 @@ public class PackageLoader
             LoadPackageContent(package, allowSkeletons: false);
         }
 
+        // HIGHLANDER: Procedural venue placement for ALL authored venues (single algorithm)
+        // Must happen BEFORE location placement because locations need venue.CenterHex
+        PlaceAllAuthoredVenues();
+
+        // HIGHLANDER: Procedural hex placement for ALL locations (single algorithm)
+        // Must happen AFTER venue placement and BEFORE hex sync because it sets Location.HexPosition
+        PlaceAllLocations();
+
         // HEX-BASED TRAVEL SYSTEM: Sync hex positions ONCE after all packages loaded
         // CRITICAL: Must happen after ALL packages because hex grid and locations may be in different packages
+        // CRITICAL: Must happen AFTER PlaceAllLocations because it syncs existing HexPositions
         SyncLocationHexPositions();
         EnsureHexGridCompleteness();
 
@@ -268,6 +280,18 @@ public class PackageLoader
 
         // Load with skeletons allowed for dynamic content
         LoadPackageContent(package, allowSkeletons: true);
+
+        // HIGHLANDER: Place any new venues added by this dynamic package
+        // Runtime-generated venues may need procedural placement
+        PlaceAllAuthoredVenues();
+
+        // HIGHLANDER: Place any new locations added by this dynamic package
+        // Scene-generated locations must have hex positions assigned
+        PlaceAllLocations();
+
+        // HEX SYNC: Sync newly placed locations to hex grid
+        SyncLocationHexPositions();
+        EnsureHexGridCompleteness();
 
         // Regenerate static location actions for dynamic packages
         // Dynamic packages may add locations that need intra-venue movement actions
@@ -1778,6 +1802,69 @@ public class PackageLoader
         {
             Console.WriteLine($"[PackageLoader] Loaded {sceneDtos.Count} Scene instances from this package");
         }
+    }
+
+    /// <summary>
+    /// HIGHLANDER: Procedural venue placement for ALL authored venues using deterministic algorithm.
+    /// Called ONCE after all packages loaded, BEFORE location placement.
+    /// Venues parsed WITHOUT centerHex, placement happens here using VenueGeneratorService.
+    /// </summary>
+    private void PlaceAllAuthoredVenues()
+    {
+        Console.WriteLine("[VenuePlacement] Starting procedural placement for all authored venues");
+
+        // Get all authored venues (non-skeleton, non-runtime) that need placement
+        List<Venue> venuesToPlace = _gameWorld.Venues
+            .Where(v => !v.IsSkeleton) // Skip skeleton venues (runtime-generated)
+            .OrderBy(v => v.Name) // Deterministic order
+            .ToList();
+
+        Console.WriteLine($"[VenuePlacement] Found {venuesToPlace.Count} authored venues to place");
+
+        // Use VenueGeneratorService to place venues deterministically
+        VenueGeneratorService venueGenerator = new VenueGeneratorService(_hexSync);
+        venueGenerator.PlaceAuthoredVenues(venuesToPlace, _gameWorld);
+
+        Console.WriteLine($"[VenuePlacement] Completed procedural placement for {venuesToPlace.Count} authored venues");
+    }
+
+    /// <summary>
+    /// HIGHLANDER: Procedural hex placement for ALL locations using single algorithm.
+    /// Replaces dual system (authored Q,R in JSON vs runtime procedural calculation).
+    /// Called AFTER all packages loaded, BEFORE hex sync.
+    /// </summary>
+    private void PlaceAllLocations()
+    {
+        Console.WriteLine("[LocationPlacement] Starting procedural hex placement for all locations");
+
+        // First pass: Assign venues to locations based on venueId (temporary - will be spatial later)
+        foreach (Location location in _gameWorld.Locations)
+        {
+            if (location.Venue == null)
+            {
+                // For now, locations still have venueId in JSON - we'll remove this in Phase 6
+                // This is temporary bridge code until spatial venue assignment implemented
+                Console.WriteLine($"[LocationPlacement] WARNING: Location '{location.Name}' has no venue assigned - skipping placement");
+            }
+        }
+
+        // Group locations by venue for procedural placement
+        var locationsByVenue = _gameWorld.Locations
+            .Where(loc => loc.Venue != null)
+            .GroupBy(loc => loc.Venue);
+
+        foreach (var group in locationsByVenue)
+        {
+            Venue venue = group.Key;
+            List<Location> locationsInVenue = group.OrderBy(l => l.Name).ToList(); // Deterministic order
+
+            Console.WriteLine($"[LocationPlacement] Placing {locationsInVenue.Count} locations in venue '{venue.Name}'");
+
+            // Place all locations in this venue procedurally
+            _locationPlacementService.PlaceLocationsInVenue(venue, locationsInVenue);
+        }
+
+        Console.WriteLine($"[LocationPlacement] Completed procedural placement for {_gameWorld.Locations.Count} locations");
     }
 
 }
