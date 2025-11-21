@@ -19,7 +19,17 @@ This section documents patterns, principles, and conventions that span multiple 
 
 **Core Principle**: "There can be only ONE." One concept gets one representation. Domain entities use object references ONLY. No IDs, no redundant storage, no duplicate paths.
 
-**Exception**: Templates can have IDs (SceneTemplate.Id, SituationTemplate.Id) because templates are immutable archetypes, not mutable entity instances. Templates are content definitions, not game state.
+**ENTITY INSTANCE IDs DO NOT EXIST. PERIOD.**
+
+Domain entities (NPC, Location, Route, Scene, Situation) have **NO ID PROPERTIES**. All entity relationships use **DIRECT OBJECT REFERENCES**. This is architectural law, not a guideline.
+
+**The Only Exception: Template IDs**
+
+Templates can have IDs (SceneTemplate.Id, SituationTemplate.Id, ArchetypeId) because templates are **immutable archetypes**, not mutable entity instances:
+- ✅ Template IDs acceptable: SceneTemplate.Id, SituationTemplate.Id, ArchetypeId
+- ❌ Entity instance IDs FORBIDDEN: Scene.Id, Situation.Id, NPC.Id, Location.Id, Route.Id
+
+**Why the distinction:** Templates are content definitions (like classes). Instances are game state (like objects). Templates don't change during gameplay. Instances do. IDs belong to immutable definitions, not mutable state.
 
 **Pattern**:
 - Domain entities have NO ID properties
@@ -77,6 +87,12 @@ public Location FindOrCreateLocation(PlacementFilter filter)
 
 **FORBIDDEN Patterns**:
 ```csharp
+// ❌ WRONG - Entity instance has ID property
+public class NPC {
+    public string Id { get; set; }  // ❌ FORBIDDEN - Entity instance IDs do not exist
+    public string LocationId { get; set; }  // ❌ FORBIDDEN - Use Location object reference
+}
+
 // ❌ WRONG - Both ID and Object (redundant storage)
 public class RouteOption {
     public string OriginLocationId { get; set; }    // ❌ Violates HIGHLANDER
@@ -85,12 +101,21 @@ public class RouteOption {
 
 // ❌ WRONG - ID-only (requires lookup)
 public class SceneSpawnReward {
-    public string SceneTemplateId { get; set; }  // ❌ Use object reference instead
+    public string SceneTemplateId { get; set; }  // ✓ Template IDs acceptable (immutable archetypes)
+    public string LocationId { get; set; }  // ❌ FORBIDDEN - Entity instance ID
 }
 
 // ❌ WRONG - ID lists instead of objects
 public class Player {
     public List<string> ActiveObligationIds { get; set; }  // ❌ Violates HIGHLANDER
+}
+
+// ✓ CORRECT - Object references ONLY
+public class NPC {
+    // NO ID property
+    public string Name { get; set; }
+    public Location Location { get; set; }  // ✓ Object reference
+    public Location WorkLocation { get; set; }  // ✓ Object reference
 }
 
 // ✓ CORRECT - Object references

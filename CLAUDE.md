@@ -277,13 +277,55 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 
 ---
 
-# HEX-BASED SPATIAL ARCHITECTURE PRINCIPLE
+# NO ENTITY INSTANCE IDs PRINCIPLE (ARCHITECTURAL MANDATE)
 
-**Principle:** Entity relationships are established through spatial positioning on hex grid and object references, NOT through ID cross-references. IDs do not exist in domain entities.
+## THE ABSOLUTE RULE
 
-**Exception:** Template IDs are acceptable (SceneTemplate.Id, SituationTemplate.Id) because templates are immutable archetypes, not mutable entity instances. Templates are content definitions, not game state.
+**ENTITY INSTANCE IDs DO NOT EXIST IN THIS ARCHITECTURE. PERIOD.**
 
-**Why:** This architecture separates spatial data (hex coordinates) from entity identity, enabling procedural content generation and eliminating redundant ID storage. Location.HexPosition is source of truth for spatial positioning. Routes are generated procedurally via pathfinding, not manually defined in JSON.
+Domain entities (NPC, Location, Route, Scene, Situation) have **NO ID PROPERTIES**. Entity relationships use **DIRECT OBJECT REFERENCES ONLY**. This is not a guideline. This is not negotiable. This is architectural law.
+
+## The Only Exception: Template IDs
+
+**Template IDs ARE acceptable** because templates are **immutable archetypes**, not mutable entity instances:
+- ✅ `SceneTemplate.Id` - Acceptable (immutable content definition)
+- ✅ `SituationTemplate.Id` - Acceptable (immutable content definition)
+- ✅ `ArchetypeId` - Acceptable (references immutable archetype catalog)
+- ❌ `Scene.Id` - FORBIDDEN (mutable entity instance)
+- ❌ `Situation.Id` - FORBIDDEN (mutable entity instance)
+- ❌ `NPC.Id` - FORBIDDEN (mutable entity instance)
+- ❌ `Location.Id` - FORBIDDEN (mutable entity instance)
+- ❌ `Route.Id` - FORBIDDEN (mutable entity instance)
+
+**Why the distinction:** Templates are *content definitions* (like classes in programming). Instances are *game state* (like objects). Templates don't change during gameplay. Instances do. IDs belong to immutable definitions, not mutable state.
+
+## Why Entity Instance IDs Are Forbidden
+
+**1. IDs Create Redundancy (Violates Single Source of Truth)**
+- WRONG: Entity has both `LocationId` string AND `Location` object
+- Storing two representations of same relationship creates desync bugs
+- Which is correct when they disagree? You've created ambiguity.
+
+**2. IDs Pollute Domain with Database Thinking**
+- Domain models game entities (NPC talks to Player), not database rows
+- Object references are natural: `npc.Location.Name`
+- ID lookups are SQL patterns: `locations.First(l => l.Id == npc.LocationId).Name`
+- Object-oriented domain shouldn't mimic relational database queries
+
+**3. IDs Enable Architectural Violations**
+- ID encoding: `routeId = $"route_{origin.Id}_{destination.Id}"` ❌
+- ID parsing: `if (id.StartsWith("route_"))` ❌
+- ID-based routing: `switch (action.Id)` ❌
+- Hash code abuse: `seed = entity.Id.GetHashCode()` ❌
+- All these violations become **impossible** when IDs don't exist
+
+**4. IDs Break Procedural Content Generation**
+- Template references specific entity ID → Template only works with THAT entity
+- Template uses categorical properties → Template works with ANY matching entity
+- `"locationId": "market_square"` breaks when market_square doesn't exist in procedural world
+- `"locationProperties": ["Public", "Commercial"]` works in ANY procedural world
+
+## Correct Architecture: Spatial Positioning + Object References
 
 ## Spatial Scaffolding Pattern
 
@@ -432,6 +474,202 @@ public Location FindOrCreateLocation(PlacementFilter filter)
     return newLocation;  // Return object reference, NO ID
 }
 ```
+
+## Comprehensive Forbidden Patterns
+
+### ❌ FORBIDDEN: ID Properties on Domain Entities
+
+```csharp
+// ❌ WRONG - Entity instance has ID property
+public class NPC
+{
+    public string Id { get; set; }  // FORBIDDEN
+    public string Name { get; set; }
+    public string LocationId { get; set; }  // FORBIDDEN
+}
+
+// ✅ CORRECT - Entity instance has NO ID property
+public class NPC
+{
+    // NO ID property anywhere
+    public string Name { get; set; }
+    public Location Location { get; set; }  // Object reference ONLY
+}
+```
+
+### ❌ FORBIDDEN: ID Lookups in Parsers
+
+```csharp
+// ❌ WRONG - Parser uses ID lookup
+public NPC ParseNPC(NPCDTO dto, GameWorld gameWorld)
+{
+    return new NPC
+    {
+        Name = dto.Name,
+        Location = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId)  // ID LOOKUP
+    };
+}
+
+// ✅ CORRECT - Parser uses EntityResolver with categorical properties
+public NPC ParseNPC(NPCDTO dto, GameWorld gameWorld, EntityResolver resolver)
+{
+    return new NPC
+    {
+        Name = dto.Name,
+        Location = resolver.FindOrCreateLocation(dto.SpawnLocationFilter)  // CATEGORICAL MATCHING
+    };
+}
+```
+
+### ❌ FORBIDDEN: Storing Both ID and Object Reference
+
+```csharp
+// ❌ WRONG - Redundant storage (violates Single Source of Truth)
+public class RouteOption
+{
+    public string OriginLocationId { get; set; }  // Redundant
+    public Location OriginLocation { get; set; }  // Redundant
+    // Which is correct if they disagree? Ambiguity = bugs
+}
+
+// ✅ CORRECT - Object reference ONLY (single source of truth)
+public class RouteOption
+{
+    public Location OriginLocation { get; set; }  // ONLY property needed
+    public Location DestinationLocation { get; set; }
+    // Access via: route.OriginLocation.Name (direct, no lookup)
+}
+```
+
+### ❌ FORBIDDEN: ID-Based Collections and Lookups
+
+```csharp
+// ❌ WRONG - ID-based collections
+public class Player
+{
+    public List<string> ActiveObligationIds { get; set; }  // FORBIDDEN
+}
+
+// Later requires lookup:
+foreach (string id in player.ActiveObligationIds)
+{
+    Obligation obligation = gameWorld.Obligations.First(o => o.Id == id);  // ID LOOKUP
+    // Process obligation...
+}
+
+// ✅ CORRECT - Object references in collections
+public class Player
+{
+    public List<Obligation> ActiveObligations { get; set; }  // Direct objects
+}
+
+// Direct access, NO lookup:
+foreach (Obligation obligation in player.ActiveObligations)
+{
+    // Process obligation directly, no lookup needed
+}
+```
+
+### ❌ FORBIDDEN: ID Encoding and Parsing
+
+```csharp
+// ❌ WRONG - Encoding data in ID strings
+public string GenerateRouteId(Location origin, Location destination)
+{
+    return $"route_{origin.Id}_{destination.Id}";  // ID ENCODING
+}
+
+// ❌ WRONG - Parsing IDs to extract data
+public (string originId, string destId) ParseRouteId(string routeId)
+{
+    string[] parts = routeId.Split('_');  // ID PARSING
+    return (parts[1], parts[2]);
+}
+
+// ✅ CORRECT - Store data as properties, use properties directly
+public class RouteOption
+{
+    public Location OriginLocation { get; set; }  // Direct property
+    public Location DestinationLocation { get; set; }  // Direct property
+    // Access via: route.OriginLocation (direct, no parsing)
+}
+```
+
+### ❌ FORBIDDEN: ID-Based Routing Logic
+
+```csharp
+// ❌ WRONG - Switching on ID strings
+public void ExecuteAction(Action action)
+{
+    switch (action.Id)
+    {
+        case "travel_to_market":  // ID-BASED ROUTING
+            HandleTravel();
+            break;
+        case "talk_to_elena":
+            HandleConversation();
+            break;
+    }
+}
+
+// ✅ CORRECT - Switching on enum types
+public enum ActionType
+{
+    Travel,
+    Conversation,
+    Investigation,
+    Rest
+}
+
+public void ExecuteAction(Action action)
+{
+    switch (action.Type)  // ENUM-BASED ROUTING
+    {
+        case ActionType.Travel:
+            HandleTravel(action.DestinationLocation);  // Object reference
+            break;
+        case ActionType.Conversation:
+            HandleConversation(action.TargetNPC);  // Object reference
+            break;
+    }
+}
+```
+
+## Why This Architecture Works
+
+**1. Procedural Content Generation**
+- Templates use categorical filters, not hardcoded IDs
+- Same template works in infinite procedurally-generated worlds
+- `PlacementFilter { Properties: ["Public", "Safe"] }` finds ANY matching location
+- No brittleness from hardcoded entity references
+
+**2. Single Source of Truth**
+- One representation of each relationship (object reference)
+- No desync between ID and object (because only object exists)
+- Compiler enforces correctness (null reference crashes immediately, wrong ID fails silently)
+
+**3. Domain Clarity**
+- Code reads like domain: `npc.Location.Name`
+- Not like database: `locations.First(l => l.Id == npc.LocationId).Name`
+- Object references match mental model of "NPC is AT location"
+
+**4. Prevents Violations**
+- Can't encode data in IDs (no IDs to encode)
+- Can't parse IDs for logic (no IDs to parse)
+- Can't route on ID strings (no IDs for routing)
+- Architecture makes bad patterns impossible
+
+## Spatial Positioning via Hex Grid
+
+Locations are positioned spatially on hex grid. Relationships derived from spatial proximity and categorical matching, NOT from ID cross-references.
+
+**Hex Grid Pattern:**
+- Each Location has `HexPosition` (AxialCoordinates Q, R) - source of truth
+- Hex grid cells have `LocationId` - **derived lookup** (reverse index for pathfinding)
+- `Hex.LocationId` is computed FROM `Location.HexPosition`, not stored separately
+- HIGHLANDER principle: `Location.HexPosition` is source, `Hex.LocationId` is derived
+
+This is the ONLY acceptable "ID" pattern: derived lookups for performance, where the source of truth is spatial coordinates, not IDs.
 
 ---
 
