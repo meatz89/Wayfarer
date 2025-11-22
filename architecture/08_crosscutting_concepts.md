@@ -606,7 +606,7 @@ Location Persists Forever (no cleanup)
 - `Venue.MaxLocations`: Total capacity budget (counts ALL locations: authored + generated)
 - `Venue.LocationIds`: Bidirectional relationship maintained by GameWorld.AddOrUpdateLocation
 - Budget derived (LocationIds.Count) not tracked (Catalogue Pattern compliance)
-- No locking needed: Blazor Server is single-threaded (07_deployment_view.md line 26)
+- No locking needed: Blazor Server is single-threaded (07_deployment_view.md § Server Resources: CPU)
 
 #### Design Decisions
 

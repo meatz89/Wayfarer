@@ -3,14 +3,15 @@
 /// Tracks player's progression through infinite A-story for intelligent generation decisions
 /// Used by ProceduralAStoryService to select appropriate archetypes and avoid repetition
 ///
-/// PROGRESSION MODEL:
-/// - A1-A10: Authored tutorial introducing mechanics and narrative foundation
-/// - A11+: Infinite procedural continuation deepening mystery without resolution
+/// PROGRESSION MODEL (FLEXIBLE):
+/// - Authored tutorial: A1-A3 (current), A1-A10 (design goal)
+/// - Procedural continuation: Starts after last authored scene (A4+ currently, A11+ at full tutorial)
+/// - Architecture works with ANY number of authored scenes
 ///
 /// TIER ESCALATION (GROUNDED, CHARACTER-DRIVEN):
-/// - A11-A30: Personal stakes (individual relationships, internal conflict, character growth)
-/// - A31-A50: Local stakes (community dynamics, village/town consequences)
-/// - A51+: Regional stakes (district/province scope, infinite at maximum grounding)
+/// - Sequence 1-30: Personal stakes (individual relationships, internal conflict, character growth)
+/// - Sequence 31-50: Local stakes (community dynamics, village/town consequences)
+/// - Sequence 51+: Regional stakes (district/province scope, infinite at maximum grounding)
 ///
 /// ANTI-REPETITION:
 /// Track recent archetypes, regions, NPC personality types to ensure variety
@@ -21,8 +22,9 @@
 public class AStoryContext
 {
     /// <summary>
-    /// Current A-story sequence number (11, 12, 13... infinity)
+    /// Current A-story sequence number (works from ANY sequence)
     /// Determines tier escalation and narrative scope
+    /// Example: 4, 5, 6... (if tutorial is A1-A3) or 11, 12, 13... (if tutorial is A1-A10)
     /// </summary>
     public int CurrentSequence { get; set; }
 
@@ -63,9 +65,9 @@ public class AStoryContext
 
     /// <summary>
     /// Current tier (calculated from sequence)
-    /// Tier 1: A11-A30 (personal stakes - relationships, internal conflict)
-    /// Tier 2: A31-A50 (local stakes - community, village/town)
-    /// Tier 3: A51+ (regional stakes - district/province, maximum scope)
+    /// Tier 1: Sequence 1-30 (personal stakes - relationships, internal conflict)
+    /// Tier 2: Sequence 31-50 (local stakes - community, village/town)
+    /// Tier 3: Sequence 51+ (regional stakes - district/province, maximum scope)
     /// </summary>
     public int CalculatedTier
     {
@@ -181,14 +183,16 @@ public class AStoryContext
     }
 
     /// <summary>
-    /// Create initial context for A11 generation (after A10 tutorial completion)
+    /// Create initial empty context for procedural generation
+    /// Called when player has no completed A-story scenes yet
+    /// Actual sequence number passed to GenerateNextATemplate(), not stored here
     /// </summary>
     public static AStoryContext InitializeForProceduralGeneration()
     {
         return new AStoryContext
         {
-            CurrentSequence = 11,
-            LastCompletedSequence = 10,
+            CurrentSequence = 0, // Placeholder - actual sequence passed to generation method
+            LastCompletedSequence = 0, // Placeholder - no completed scenes yet
             CompletedScenes = new List<Scene>(),
             RecentArchetypeIds = new List<string>(),
             RecentRegions = new List<Region>(),

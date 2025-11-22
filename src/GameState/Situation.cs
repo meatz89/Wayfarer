@@ -241,18 +241,21 @@ public class Situation
     /// <summary>
     /// Get placement Name from own entity references for specified placement type
     /// ARCHITECTURAL: Situation owns Location/NPC/Route (not Scene)
-    /// Returns null if placement entity doesn't exist
+    /// Returns null if placement entity doesn't exist (legitimate for optional placements)
     /// HIGHLANDER: Returns Name (natural key), not Id (runtime entities have NO Id properties)
     /// </summary>
     /// <param name="placementType">Type of placement to query (Location/NPC/Route)</param>
     /// <returns>Placement entity Name if reference exists, null otherwise</returns>
     public string GetPlacementId(PlacementType placementType)
     {
+        // ZERO NULL TOLERANCE NOTE: Null checks here are LEGITIMATE
+        // Situations can have optional placements (Location-only, NPC-optional, Route-optional)
+        // Method returns null to indicate "no placement of this type" which is valid domain state
         return placementType switch
         {
-            PlacementType.Location => Location?.Name,
-            PlacementType.NPC => Npc?.Name,
-            PlacementType.Route => Route?.Name,
+            PlacementType.Location => Location != null ? Location.Name : null,
+            PlacementType.NPC => Npc != null ? Npc.Name : null,
+            PlacementType.Route => Route != null ? Route.Name : null,
             _ => null
         };
     }

@@ -67,6 +67,67 @@ public static class AStorySceneArchetypeCatalog
     }
 
     /// <summary>
+    /// Get available archetypes for category (SINGLE SOURCE OF TRUTH for procedural generation)
+    /// Returns archetypes currently implemented in catalog for given category
+    /// Prevents drift between catalog and procedural selection lists
+    ///
+    /// CATEGORIES (4-part rotation):
+    /// - Investigation: seek_audience, investigate_location, gather_testimony
+    /// - Social: meet_order_member
+    /// - Confrontation: confront_antagonist
+    /// - Crisis: urgent_decision, moral_crossroads
+    ///
+    /// Note: Discovery archetypes (discover_artifact, uncover_conspiracy) not included in rotation
+    /// Can be added to rotation cycle when design requires them
+    /// </summary>
+    public static List<string> GetArchetypesForCategory(string category)
+    {
+        return category switch
+        {
+            "Investigation" => new List<string>
+            {
+                "investigate_location",
+                "gather_testimony",
+                "seek_audience"
+            },
+            "Social" => new List<string>
+            {
+                "meet_order_member"
+            },
+            "Confrontation" => new List<string>
+            {
+                "confront_antagonist"
+            },
+            "Crisis" => new List<string>
+            {
+                "urgent_decision",
+                "moral_crossroads"
+            },
+            _ => new List<string>() // Empty list for unknown category
+        };
+    }
+
+    /// <summary>
+    /// Get all available archetype IDs (for validation)
+    /// Returns flat list of all implemented archetypes
+    /// </summary>
+    public static List<string> GetAllAvailableArchetypes()
+    {
+        return new List<string>
+        {
+            "seek_audience",
+            "investigate_location",
+            "gather_testimony",
+            "confront_antagonist",
+            "meet_order_member",
+            "discover_artifact",
+            "uncover_conspiracy",
+            "urgent_decision",
+            "moral_crossroads"
+        };
+    }
+
+    /// <summary>
     /// SEEK_AUDIENCE archetype
     ///
     /// FICTIONAL CONTEXT: Player seeks audience with authority figure or important NPC
@@ -356,16 +417,10 @@ public static class AStorySceneArchetypeCatalog
     };
 
         // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        // A3 (authored tutorial) is terminal - no next scene spawn
-        // A11+ (procedural) uses standard enrichment with generic pattern
-        if (context.AStorySequence.HasValue && context.AStorySequence.Value == 3)
-        {
-            Console.WriteLine("[AStoryArchetype] A3 is final authored tutorial scene - no next scene spawn");
-        }
-        else
-        {
-            EnrichFinalSituationWithNextASceneSpawn(situations, context);
-        }
+        // Generic logic - works for ANY sequence (A1→A2, A2→A3, A3→A4, A10→A11, etc.)
+        // If next template exists (authored) → uses it
+        // If next template doesn't exist → RewardApplicationService generates procedurally
+        EnrichFinalSituationWithNextASceneSpawn(situations, context);
 
         return new SceneArchetypeDefinition
         {
@@ -461,16 +516,10 @@ public static class AStorySceneArchetypeCatalog
     };
 
         // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        // A2 (authored tutorial) uses custom enrichment to spawn specific A3
-        // A11+ (procedural) uses standard enrichment with generic pattern
-        if (context.AStorySequence.HasValue && context.AStorySequence.Value == 2)
-        {
-            EnrichFinalSituationWithCustomAScene(situations, "a3_departure");
-        }
-        else
-        {
-            EnrichFinalSituationWithNextASceneSpawn(situations, context);
-        }
+        // Generic logic - works for ANY sequence (A1→A2, A2→A3, A3→A4, A10→A11, etc.)
+        // If next template exists (authored) → uses it
+        // If next template doesn't exist → RewardApplicationService generates procedurally
+        EnrichFinalSituationWithNextASceneSpawn(situations, context);
 
         return new SceneArchetypeDefinition
         {
@@ -1223,6 +1272,13 @@ public static class AStorySceneArchetypeCatalog
     /// Called after generating situation templates, before returning definition
     /// Modifies final situation's choice templates in-place
     /// </summary>
+    /// <summary>
+    /// Enrich final situation in scene to spawn next A-story scene.
+    /// Generic logic - works for ANY sequence number.
+    /// If next template exists (authored) → uses it.
+    /// If next template doesn't exist → RewardApplicationService generates procedurally.
+    /// NO HARDCODED SPECIAL CASES.
+    /// </summary>
     private static void EnrichFinalSituationWithNextASceneSpawn(
         List<SituationTemplate> situations,
         GenerationContext context)
@@ -1240,7 +1296,7 @@ public static class AStorySceneArchetypeCatalog
         // Final situation = last situation in list
         SituationTemplate finalSituation = situations[situations.Count - 1];
 
-        // Next A-scene ID
+        // Next A-scene ID (generic - no special cases)
         string nextASceneId = $"a_story_{context.AStorySequence.Value + 1}";
 
         // Enrich ALL choices with SceneSpawnReward
@@ -1276,8 +1332,6 @@ public static class AStorySceneArchetypeCatalog
         // Replace final situation's choices with enriched versions
         finalSituation.ChoiceTemplates.Clear();
         finalSituation.ChoiceTemplates.AddRange(enrichedChoices);
-
-        Console.WriteLine($"[AStoryArchetype] Enriched final situation '{finalSituation.Id}' - ALL {enrichedChoices.Count} choices spawn next A-scene '{nextASceneId}'");
     }
 
     /// <summary>
@@ -1330,8 +1384,6 @@ public static class AStorySceneArchetypeCatalog
         // Replace final situation's choices with enriched versions
         finalSituation.ChoiceTemplates.Clear();
         finalSituation.ChoiceTemplates.AddRange(enrichedChoices);
-
-        Console.WriteLine($"[AStoryArchetype] Enriched final situation '{finalSituation.Id}' - ALL {enrichedChoices.Count} choices spawn authored A-scene '{nextSceneId}'");
     }
 
 }
