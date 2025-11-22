@@ -42,7 +42,7 @@ ASPNETCORE_URLS="http://localhost:5000" dotnet run
 5. Navigate browser to http://localhost:5000
 
 **Prerequisites:**
-- .NET 7.0+ SDK required
+- **.NET 8.0 SDK required** (verified: Wayfarer.csproj specifies `net8.0`)
 - Browser: Chrome, Firefox, or Edge (latest version)
 - Disk space: ~500MB for .NET SDK + game assets
 
@@ -244,7 +244,7 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 - **Archetype:** inn_lodging (cascading situations)
 - **Goal:** Learn choice system, resource costs, perfect information
 
-###Scene a2: "First Delivery"
+### Scene a2: "First Delivery"
 - **Where:** Town Square area (Commercial + Public properties)
 - **Who:** General Merchant
 - **Narrative:** "Morning arrives...seeking work...delivery contract awaits"
@@ -267,14 +267,15 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 
 ### Resource Display
 ```javascript
-// Verified selectors from GameScreen.razor (resource-bar contains resource-value elements)
-const health = await page.locator('.resource .resource-value').nth(0).textContent();
-const hunger = await page.locator('.resource .resource-value').nth(1).textContent();
-const focus = await page.locator('.resource .resource-value').nth(2).textContent();
-const coins = await page.locator('.resource .resource-value').nth(4).textContent();
+// Verified from ResourceBar.razor (line 4: .resource-item is container)
+// Structure: .resource-item > .resource-label + .resource-value + .resource-bar
+const health = await page.locator('.resource-item .resource-value').nth(0).textContent();
+const hunger = await page.locator('.resource-item .resource-value').nth(1).textContent();
+const focus = await page.locator('.resource-item .resource-value').nth(2).textContent();
+const coins = await page.locator('.resource-item .resource-value').nth(4).textContent();
 
-// Alternative: target by label
-const health = await page.locator('.resource:has(.resource-label:text("Health")) .resource-value').textContent();
+// Alternative: target by label (more resilient)
+const health = await page.locator('.resource-item:has(.resource-label:text("Health")) .resource-value').textContent();
 ```
 
 ### Time Display
@@ -535,6 +536,32 @@ Open browser: http://localhost:5000
 - Can you afford equipment after 12 deliveries?
 - Are you forced to choose between equipment OR NPC investment?
 - Does route learning provide measurable cumulative advantage?
+
+**How to Record Values from Game UI:**
+
+**Finding Earnings:**
+- Delivery payment shown in active delivery banner (`.active-job-payment` class)
+- Example: "Active Delivery: Deliver package to Old Mill - 20 coins"
+- Record the "20 coins" value in Earnings column
+
+**Finding Costs:**
+- Food cost: When purchasing food at inn/tavern, choice shows "Costs: -10 coins"
+- Lodging cost: When renting room, choice shows "Costs: -15 coins"
+- Other costs: Any emergency choices (healing, repairs) show costs in choice consequences
+- **CRITICAL:** Use browser dev tools (F12) to inspect `.choice-consequences` section for exact values
+
+**Finding Current Coin Balance:**
+- Resources bar at top shows current coins (`.resource-item:has(.resource-label:text("Coins")) .resource-value`)
+- Record this value in "Total Coins" column after each delivery cycle
+- Calculate Net Profit: `(Total Coins after) - (Total Coins before)`
+
+**Recommended Workflow:**
+1. Open spreadsheet in second window
+2. Note starting coins before accepting delivery
+3. Complete delivery, note payment amount
+4. Purchase food/lodging, note costs from choice consequences
+5. Record final coin balance
+6. Calculate net profit for this delivery
 
 **Economic Tracking Spreadsheet Template:**
 
