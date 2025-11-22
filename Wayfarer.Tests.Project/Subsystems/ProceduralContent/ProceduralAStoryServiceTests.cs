@@ -176,4 +176,33 @@ public class ProceduralAStoryServiceTests : IntegrationTestBase
         AStoryContext context3 = new AStoryContext { CurrentSequence = 75 };
         Assert.Equal(3, context3.CalculatedTier);
     }
+
+    [Fact]
+    public async Task SelectArchetype_AllArchetypesRecent_FallbackToAnyArchetype()
+    {
+        // EDGE CASE COVERAGE: Tests fallback when all candidate archetypes are recent
+        // Corresponds to SelectArchetype line 128-131
+
+        // Arrange
+        ProceduralAStoryService service = GetService<ProceduralAStoryService>();
+        AStoryContext context = AStoryContext.InitializeForProceduralGeneration();
+
+        // Mark all Investigation archetypes as recent (sequence 1 uses Investigation)
+        context.RecentArchetypeIds.Add("investigate_location");
+        context.RecentArchetypeIds.Add("gather_testimony");
+        context.RecentArchetypeIds.Add("seek_audience");
+
+        int sequence = 1; // Investigation category (cycle position 0)
+
+        // Act - Should fallback to ANY Investigation archetype (not filter by recent)
+        await service.GenerateNextATemplate(sequence, context);
+
+        // Assert - Template created successfully despite all archetypes being recent
+        GameWorld gameWorld = GetGameWorld();
+        SceneTemplate template = gameWorld.SceneTemplates
+            .FirstOrDefault(t => t.MainStorySequence == sequence);
+
+        Assert.NotNull(template);
+        Assert.Contains("investigate", template.SceneArchetypeId.ToLowerInvariant());
+    }
 }

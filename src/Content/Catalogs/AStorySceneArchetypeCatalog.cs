@@ -1332,8 +1332,6 @@ public static class AStorySceneArchetypeCatalog
         // Replace final situation's choices with enriched versions
         finalSituation.ChoiceTemplates.Clear();
         finalSituation.ChoiceTemplates.AddRange(enrichedChoices);
-
-        Console.WriteLine($"[AStoryArchetype] Enriched final situation '{finalSituation.Id}' - ALL {enrichedChoices.Count} choices spawn next A-scene '{nextASceneId}'");
     }
 
     /// <summary>
@@ -1386,8 +1384,6 @@ public static class AStorySceneArchetypeCatalog
         // Replace final situation's choices with enriched versions
         finalSituation.ChoiceTemplates.Clear();
         finalSituation.ChoiceTemplates.AddRange(enrichedChoices);
-
-        Console.WriteLine($"[AStoryArchetype] Enriched final situation '{finalSituation.Id}' - ALL {enrichedChoices.Count} choices spawn authored A-scene '{nextSceneId}'");
     }
 
 }

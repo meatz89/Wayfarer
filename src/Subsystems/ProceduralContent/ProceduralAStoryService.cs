@@ -54,35 +54,24 @@ public class ProceduralAStoryService
     /// </summary>
     public async Task<string> GenerateNextATemplate(int sequence, AStoryContext context)
     {
-        Console.WriteLine($"[ProceduralAStory] Generating A{sequence} template...");
-
         // 1. Select appropriate archetype
         string archetypeId = SelectArchetype(sequence, context);
-        Console.WriteLine($"[ProceduralAStory] Selected archetype: {archetypeId}");
 
         // 2. Calculate tier from sequence
         int tier = CalculateTier(sequence);
-        Console.WriteLine($"[ProceduralAStory] Calculated tier: {tier}");
 
         // 3. Build SceneTemplateDTO
         SceneTemplateDTO dto = BuildSceneTemplateDTO(sequence, archetypeId, tier, context);
-        Console.WriteLine($"[ProceduralAStory] Built DTO for scene: {dto.Id}");
 
         // 4. Serialize to JSON package
         string packageJson = SerializeTemplatePackage(dto);
         string packageId = $"a_story_{sequence}_template";
-        Console.WriteLine($"[ProceduralAStory] Serialized package: {packageId}");
 
         // 5. Write dynamic package file
         await _contentFacade.CreateDynamicPackageFile(packageJson, packageId);
-        Console.WriteLine($"[ProceduralAStory] Wrote dynamic package file");
 
         // 6. Load through HIGHLANDER pipeline (JSON → PackageLoader → Parser)
         await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
-        Console.WriteLine($"[ProceduralAStory] Loaded package through HIGHLANDER pipeline");
-
-        // Template now in GameWorld.SceneTemplates, ready for spawning
-        Console.WriteLine($"[ProceduralAStory] A{sequence} template generation complete: {dto.Id}");
 
         return dto.Id;
     }
@@ -211,7 +200,7 @@ public class ProceduralAStoryService
             PlacementType = "Location", // A-story happens at locations
 
             // Location filters (categorical)
-            RegionId = selectedRegion?.Id, // Specific region for tier-appropriate content (HIGHLANDER: use object.Id)
+            RegionId = selectedRegion?.Name, // Categorical identifier: Region.Name (NOT entity instance ID)
             Capabilities = SelectLocationCapabilities(tier),
             LocationTags = new List<string> { "story_significant" },
 
@@ -360,11 +349,13 @@ public class ProceduralAStoryService
         };
 
         // Serialize with pretty formatting for debugging
-        string json = System.Text.Json.JsonSerializer.Serialize(package, new System.Text.Json.JsonSerializerOptions
+        System.Text.Json.JsonSerializerOptions options = new System.Text.Json.JsonSerializerOptions
         {
             WriteIndented = true,
             PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
-        });
+        };
+
+        string json = System.Text.Json.JsonSerializer.Serialize(package, options);
 
         return json;
     }
