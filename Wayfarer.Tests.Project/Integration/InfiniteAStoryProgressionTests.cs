@@ -27,8 +27,8 @@ public class InfiniteAStoryProgressionTests : IntegrationTestBase
         GameWorld gameWorld = GetGameWorld();
         GameFacade gameFacade = GetGameFacade();
 
-        // Start game and advance through tutorial
-        await gameFacade.StartGameAsync("TestPlayer", Genders.Male, "Background", Professions.Courier);
+        // Start game
+        await gameFacade.StartGameAsync();
         Player player = gameWorld.GetPlayer();
 
         // Verify A1 exists (authored)

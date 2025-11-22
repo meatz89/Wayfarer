@@ -30,7 +30,7 @@ public class ProceduralAStoryServiceTests : IntegrationTestBase
 
         Assert.NotNull(template);
         Assert.Equal(sequence, template.MainStorySequence);
-        Assert.Equal("MainStory", template.Category);
+        Assert.Equal(StoryCategory.MainStory, template.Category);
     }
 
     [Fact]

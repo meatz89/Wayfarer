@@ -15,8 +15,8 @@ public class RewardApplicationServiceTests : IntegrationTestBase
         GameWorld gameWorld = GetGameWorld();
         GameFacade gameFacade = GetGameFacade();
 
-        // Start game and get to A3 completion
-        await gameFacade.StartGameAsync("TestPlayer", Genders.Male, "Background", Professions.Courier);
+        // Start game
+        await gameFacade.StartGameAsync();
         Player player = gameWorld.GetPlayer();
 
         // Create choice reward that spawns A4 (doesn't exist yet)
@@ -55,7 +55,7 @@ public class RewardApplicationServiceTests : IntegrationTestBase
         GameWorld gameWorld = GetGameWorld();
         GameFacade gameFacade = GetGameFacade();
 
-        await gameFacade.StartGameAsync("TestPlayer", Genders.Male, "Background", Professions.Courier);
+        await gameFacade.StartGameAsync();
 
         // A1 template exists (authored)
         ChoiceReward reward = new ChoiceReward
@@ -89,7 +89,7 @@ public class RewardApplicationServiceTests : IntegrationTestBase
         GameWorld gameWorld = GetGameWorld();
         GameFacade gameFacade = GetGameFacade();
 
-        await gameFacade.StartGameAsync("TestPlayer", Genders.Male, "Background", Professions.Courier);
+        await gameFacade.StartGameAsync();
 
         // A2 exists with custom ID "a2_morning" but mainStorySequence = 2
         // Spawning "a_story_2" should find it by sequence, not ID
