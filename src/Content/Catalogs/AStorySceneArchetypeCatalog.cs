@@ -356,11 +356,12 @@ public static class AStorySceneArchetypeCatalog
     };
 
         // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        // A3 (authored tutorial) is terminal - no next scene spawn
+        // A3 (authored tutorial) bridges to procedural by spawning a_story_11
         // A11+ (procedural) uses standard enrichment with generic pattern
         if (context.AStorySequence.HasValue && context.AStorySequence.Value == 3)
         {
-            Console.WriteLine("[AStoryArchetype] A3 is final authored tutorial scene - no next scene spawn");
+            // Bridge from tutorial to procedural: spawn a_story_11
+            EnrichFinalSituationWithCustomAScene(situations, "a_story_11");
         }
         else
         {
@@ -465,7 +466,7 @@ public static class AStorySceneArchetypeCatalog
         // A11+ (procedural) uses standard enrichment with generic pattern
         if (context.AStorySequence.HasValue && context.AStorySequence.Value == 2)
         {
-            EnrichFinalSituationWithCustomAScene(situations, "a3_departure");
+            EnrichFinalSituationWithCustomAScene(situations, "a3_route_travel");
         }
         else
         {

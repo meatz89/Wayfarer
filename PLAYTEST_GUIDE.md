@@ -405,21 +405,26 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 
 ---
 
-### 5. **Content Beyond Tutorial** ⚠️ LIKELY LIMITED
-**Design:** Full game with procedural A-story (infinite), multiple regions, dozens of scenes.
+### 5. **Infinite A-Story Procedural Generation** ✅ IMPLEMENTED
+**Design:** Infinite main storyline through procedural generation (Frieren model).
 
-**Current Reality:** May only have tutorial scenes (A1-A3) implemented.
-- A1: No stat gates (by design - identity building)
-- A2: First gates appear (aspirational)
-- A3: Optional gates (first validation)
-- **A4+: May not exist yet**
+**How It Works:**
+- A1-A3: Authored tutorial (teaches core systems, lighter stat gating by design)
+- **A11+: Infinite procedural scenes** generated at runtime
+  - Archetype rotation (investigation → social → confrontation → crisis)
+  - Anti-repetition (no archetype twice in 5 scenes)
+  - Tier escalation (Personal → Local → Regional → Cosmic)
+  - Categorical placement (locations/NPCs selected by properties, not IDs)
+
+**Transition:** A3 completion → spawns A11 (bridge to procedural) → A11 completion → spawns A12 → forever
 
 **What testers should verify:**
-- If stat gating feels weak after 2-3 hours, content beyond tutorial may not be implemented
-- Report as "limited content" not "stat gating broken"
-- Hour 4+ emotional arc requires post-tutorial content to test
+- A3 completes and spawns A11 (should appear seamlessly)
+- A11+ scenes feel like natural continuation (same quality, different content)
+- No repetition across consecutive A-scenes (different archetypes, different NPCs)
+- Can play for 4+ hours and A-story continues infinitely
 
-**If you complete A1-A2-A3 and see no new scenes:** This is an implementation gap, not a design failure. The tutorial is INTENTIONALLY light on stat gating (identity building phase).
+**Emotional Arc Testing:** Hour 4+ emotional arc (regret, specialization vulnerability) REQUIRES procedural content. If you complete A3 and don't see A11, report as CRITICAL BUG.
 
 ---
 

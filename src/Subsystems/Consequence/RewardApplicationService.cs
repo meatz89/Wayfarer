@@ -205,10 +205,10 @@ public class RewardApplicationService
             if (template == null)
             {
                 // On-demand template generation for procedural A-story
-                // Pattern: Template IDs like "a_story_sequence_4", "a_story_sequence_11", etc.
-                if (sceneSpawn.SceneTemplateId.StartsWith("a_story_sequence_"))
+                // Pattern: Template IDs like "a_story_11", "a_story_12", etc.
+                if (sceneSpawn.SceneTemplateId.StartsWith("a_story_"))
                 {
-                    string sequenceStr = sceneSpawn.SceneTemplateId.Replace("a_story_sequence_", "");
+                    string sequenceStr = sceneSpawn.SceneTemplateId.Replace("a_story_", "");
                     if (int.TryParse(sequenceStr, out int sequence))
                     {
                         Console.WriteLine($"[RewardApplicationService] A-story template '{sceneSpawn.SceneTemplateId}' not found - generating procedurally");
