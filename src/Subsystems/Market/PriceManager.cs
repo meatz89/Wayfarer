@@ -126,6 +126,26 @@ public class PriceManager
             pricing.AdjustedBuyPrice = minBuyPrice;
         }
 
+        // Check for price overrides (quest rewards, testing, special market conditions)
+        // Overrides bypass ALL calculations including spread enforcement
+        // HIGHLANDER: GameWorld.MarketPriceModifiers is single source of truth for overrides
+        // SENTINEL: Null override = use calculated price, explicit value = override to that price
+        MarketPriceModifier modifier = _gameWorld.MarketPriceModifiers
+            .FirstOrDefault(m => m.Item == item && m.Location == location);
+
+        if (modifier != null)
+        {
+            if (modifier.BuyPriceOverride.HasValue)
+            {
+                pricing.AdjustedBuyPrice = modifier.BuyPriceOverride.Value;
+            }
+
+            if (modifier.SellPriceOverride.HasValue)
+            {
+                pricing.AdjustedSellPrice = modifier.SellPriceOverride.Value;
+            }
+        }
+
         // Generate explanation
         pricing.PriceExplanation = GeneratePriceExplanation(pricing);
 

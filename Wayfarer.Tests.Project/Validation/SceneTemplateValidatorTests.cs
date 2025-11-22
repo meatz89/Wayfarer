@@ -1,6 +1,3 @@
-using Wayfarer.Content.Validation;
-using Wayfarer.GameState;
-using Wayfarer.GameState.Enums;
 using Xunit;
 
 namespace Wayfarer.Tests.Project.Validation;
@@ -40,7 +37,7 @@ public class SceneTemplateValidatorTests
     {
         var template = CreateValidTemplate();
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.True(result.IsValid);
         Assert.Empty(result.Errors);
@@ -49,10 +46,15 @@ public class SceneTemplateValidatorTests
     [Fact]
     public void Validate_MissingId_ReturnsError()
     {
-        var template = CreateValidTemplate();
-        template.Id = null;
+        var template = new SceneTemplate
+        {
+            Id = null,
+            Tier = 1,
+            SituationTemplates = CreateValidTemplate().SituationTemplates,
+            SpawnRules = CreateValidTemplate().SpawnRules
+        };
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "STRUCT_001");
@@ -61,10 +63,15 @@ public class SceneTemplateValidatorTests
     [Fact]
     public void Validate_NoSituations_ReturnsError()
     {
-        var template = CreateValidTemplate();
-        template.SituationTemplates = new List<SituationTemplate>();
+        var template = new SceneTemplate
+        {
+            Id = "test_scene",
+            Tier = 1,
+            SituationTemplates = new List<SituationTemplate>(),
+            SpawnRules = CreateValidTemplate().SpawnRules
+        };
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "STRUCT_002");
@@ -73,10 +80,19 @@ public class SceneTemplateValidatorTests
     [Fact]
     public void Validate_SituationMissingId_ReturnsError()
     {
-        var template = CreateValidTemplate();
-        template.SituationTemplates[0].Id = null;
+        var template = new SceneTemplate
+        {
+            Id = "test_scene",
+            Tier = 1,
+            SituationTemplates = new List<SituationTemplate>
+            {
+                new() { Id = null },
+                new() { Id = "sit2" }
+            },
+            SpawnRules = CreateValidTemplate().SpawnRules
+        };
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "STRUCT_003");
@@ -85,13 +101,26 @@ public class SceneTemplateValidatorTests
     [Fact]
     public void Validate_TooManyChoices_ReturnsError()
     {
-        var template = CreateValidTemplate();
-        template.SituationTemplates[0].ChoiceTemplates = new List<ChoiceTemplate>
+        var template = new SceneTemplate
         {
-            new(), new(), new(), new(), new()  // 5 choices
+            Id = "test_scene",
+            Tier = 1,
+            SituationTemplates = new List<SituationTemplate>
+            {
+                new()
+                {
+                    Id = "sit1",
+                    ChoiceTemplates = new List<ChoiceTemplate>
+                    {
+                        new(), new(), new(), new(), new()  // 5 choices
+                    }
+                },
+                new() { Id = "sit2" }
+            },
+            SpawnRules = CreateValidTemplate().SpawnRules
         };
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "STRUCT_004");
@@ -107,7 +136,7 @@ public class SceneTemplateValidatorTests
             DestinationSituationId = "sit2"
         });
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "DEP_001");
@@ -123,7 +152,7 @@ public class SceneTemplateValidatorTests
             DestinationSituationId = "invalid_destination"
         });
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "DEP_002");
@@ -135,7 +164,7 @@ public class SceneTemplateValidatorTests
         var template = CreateValidTemplate();
         template.SpawnRules.InitialSituationId = "invalid_initial";
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "DEP_003");
@@ -144,12 +173,32 @@ public class SceneTemplateValidatorTests
     [Fact]
     public void Validate_MultipleErrors_ReturnsAllErrors()
     {
-        var template = CreateValidTemplate();
-        template.Id = null;  // Error 1
-        template.SituationTemplates[0].Id = null;  // Error 2
-        template.SpawnRules.InitialSituationId = "invalid";  // Error 3
+        var template = new SceneTemplate
+        {
+            Id = null,
+            Tier = 1,
+            SituationTemplates = new List<SituationTemplate>
+            {
+                new() { Id = null },
+                new() { Id = "sit2" }
+            },
+            SpawnRules = new SituationSpawnRules
+            {
+                Pattern = SpawnPattern.Linear,
+                InitialSituationId = "invalid",
+                Transitions = new List<SituationTransition>
+                {
+                    new()
+                    {
+                        SourceSituationId = "sit1",
+                        DestinationSituationId = "sit2",
+                        Condition = TransitionCondition.Always
+                    }
+                }
+            }
+        };
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.True(result.Errors.Count >= 3);
