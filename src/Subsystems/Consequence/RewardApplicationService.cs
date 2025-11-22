@@ -198,20 +198,25 @@ public class RewardApplicationService
 
         foreach (SceneSpawnReward sceneSpawn in reward.ScenesToSpawn)
         {
-            // Get template (or generate on-demand if procedural A-story)
-            SceneTemplate template = _gameWorld.SceneTemplates
-                .FirstOrDefault(t => t.Id == sceneSpawn.SceneTemplateId);
+            // Lookup by sequence number (NOT by ID string) for A-story scenes
+            // This allows authored scenes to have ANY ID format (a1_secure_lodging, a2_morning, etc.)
+            // and procedural scenes to use pattern-based IDs (a_story_11, a_story_12, etc.)
+            SceneTemplate template = null;
 
-            if (template == null)
+            // Extract sequence number from ID pattern
+            if (sceneSpawn.SceneTemplateId.StartsWith("a_story_"))
             {
-                // On-demand template generation for procedural A-story
-                // Pattern: Template IDs like "a_story_11", "a_story_12", etc.
-                if (sceneSpawn.SceneTemplateId.StartsWith("a_story_"))
+                string sequenceStr = sceneSpawn.SceneTemplateId.Replace("a_story_", "");
+                if (int.TryParse(sequenceStr, out int sequence))
                 {
-                    string sequenceStr = sceneSpawn.SceneTemplateId.Replace("a_story_", "");
-                    if (int.TryParse(sequenceStr, out int sequence))
+                    // Find by mainStorySequence (works for both authored and procedural scenes)
+                    template = _gameWorld.SceneTemplates
+                        .FirstOrDefault(t => t.MainStorySequence.HasValue && t.MainStorySequence.Value == sequence);
+
+                    if (template == null)
                     {
-                        Console.WriteLine($"[RewardApplicationService] A-story template '{sceneSpawn.SceneTemplateId}' not found - generating procedurally");
+                        // Template doesn't exist - generate procedurally
+                        Console.WriteLine($"[RewardApplicationService] A-story sequence {sequence} not found - generating procedurally");
 
                         // Get or initialize A-story context
                         AStoryContext aStoryContext = _proceduralAStoryService.GetOrInitializeContext(player);
@@ -221,24 +226,32 @@ public class RewardApplicationService
 
                         Console.WriteLine($"[RewardApplicationService] Generated A-story template: {generatedTemplateId}");
 
-                        // Retrieve generated template
-                        template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == generatedTemplateId);
+                        // Retrieve generated template (by sequence, since ID might vary)
+                        template = _gameWorld.SceneTemplates
+                            .FirstOrDefault(t => t.MainStorySequence.HasValue && t.MainStorySequence.Value == sequence);
 
                         if (template == null)
                         {
-                            Console.WriteLine($"[RewardApplicationService] FATAL: Generated template '{generatedTemplateId}' not found in GameWorld after generation");
+                            Console.WriteLine($"[RewardApplicationService] FATAL: Generated template for sequence {sequence} not found in GameWorld after generation");
                             continue;
                         }
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[RewardApplicationService] Invalid A-story sequence number in template ID: '{sceneSpawn.SceneTemplateId}'");
-                        continue;
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"[RewardApplicationService] SceneTemplate '{sceneSpawn.SceneTemplateId}' not found (not an A-story pattern)");
+                    Console.WriteLine($"[RewardApplicationService] Invalid A-story sequence number in template ID: '{sceneSpawn.SceneTemplateId}'");
+                    continue;
+                }
+            }
+            else
+            {
+                // Non-A-story scene - lookup by ID as normal
+                template = _gameWorld.SceneTemplates
+                    .FirstOrDefault(t => t.Id == sceneSpawn.SceneTemplateId);
+
+                if (template == null)
+                {
+                    Console.WriteLine($"[RewardApplicationService] SceneTemplate '{sceneSpawn.SceneTemplateId}' not found");
                     continue;
                 }
             }

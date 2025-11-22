@@ -356,17 +356,10 @@ public static class AStorySceneArchetypeCatalog
     };
 
         // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        // A3 (authored tutorial) bridges to procedural by spawning a_story_11
-        // A11+ (procedural) uses standard enrichment with generic pattern
-        if (context.AStorySequence.HasValue && context.AStorySequence.Value == 3)
-        {
-            // Bridge from tutorial to procedural: spawn a_story_11
-            EnrichFinalSituationWithCustomAScene(situations, "a_story_11");
-        }
-        else
-        {
-            EnrichFinalSituationWithNextASceneSpawn(situations, context);
-        }
+        // Generic logic - works for ANY sequence (A1→A2, A2→A3, A3→A4, A10→A11, etc.)
+        // If next template exists (authored) → uses it
+        // If next template doesn't exist → RewardApplicationService generates procedurally
+        EnrichFinalSituationWithNextASceneSpawn(situations, context);
 
         return new SceneArchetypeDefinition
         {
@@ -462,16 +455,10 @@ public static class AStorySceneArchetypeCatalog
     };
 
         // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
-        // A2 (authored tutorial) uses custom enrichment to spawn specific A3
-        // A11+ (procedural) uses standard enrichment with generic pattern
-        if (context.AStorySequence.HasValue && context.AStorySequence.Value == 2)
-        {
-            EnrichFinalSituationWithCustomAScene(situations, "a3_route_travel");
-        }
-        else
-        {
-            EnrichFinalSituationWithNextASceneSpawn(situations, context);
-        }
+        // Generic logic - works for ANY sequence (A1→A2, A2→A3, A3→A4, A10→A11, etc.)
+        // If next template exists (authored) → uses it
+        // If next template doesn't exist → RewardApplicationService generates procedurally
+        EnrichFinalSituationWithNextASceneSpawn(situations, context);
 
         return new SceneArchetypeDefinition
         {
@@ -1224,6 +1211,13 @@ public static class AStorySceneArchetypeCatalog
     /// Called after generating situation templates, before returning definition
     /// Modifies final situation's choice templates in-place
     /// </summary>
+    /// <summary>
+    /// Enrich final situation in scene to spawn next A-story scene.
+    /// Generic logic - works for ANY sequence number.
+    /// If next template exists (authored) → uses it.
+    /// If next template doesn't exist → RewardApplicationService generates procedurally.
+    /// NO HARDCODED SPECIAL CASES.
+    /// </summary>
     private static void EnrichFinalSituationWithNextASceneSpawn(
         List<SituationTemplate> situations,
         GenerationContext context)
@@ -1241,7 +1235,7 @@ public static class AStorySceneArchetypeCatalog
         // Final situation = last situation in list
         SituationTemplate finalSituation = situations[situations.Count - 1];
 
-        // Next A-scene ID
+        // Next A-scene ID (generic - no special cases)
         string nextASceneId = $"a_story_{context.AStorySequence.Value + 1}";
 
         // Enrich ALL choices with SceneSpawnReward
