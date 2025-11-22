@@ -1,6 +1,3 @@
-using Wayfarer.Content.Validation;
-using Wayfarer.GameState;
-using Wayfarer.GameState.Enums;
 using Xunit;
 
 namespace Wayfarer.Tests.Project.Validation;
@@ -49,8 +46,13 @@ public class SceneTemplateValidatorTests
     [Fact]
     public void Validate_MissingId_ReturnsError()
     {
-        var template = CreateValidTemplate();
-        template.Id = null;
+        var template = new SceneTemplate
+        {
+            Id = null,
+            Tier = 1,
+            SituationTemplates = CreateValidTemplate().SituationTemplates,
+            SpawnRules = CreateValidTemplate().SpawnRules
+        };
 
         SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
@@ -61,8 +63,13 @@ public class SceneTemplateValidatorTests
     [Fact]
     public void Validate_NoSituations_ReturnsError()
     {
-        var template = CreateValidTemplate();
-        template.SituationTemplates = new List<SituationTemplate>();
+        var template = new SceneTemplate
+        {
+            Id = "test_scene",
+            Tier = 1,
+            SituationTemplates = new List<SituationTemplate>(),
+            SpawnRules = CreateValidTemplate().SpawnRules
+        };
 
         SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
@@ -73,8 +80,17 @@ public class SceneTemplateValidatorTests
     [Fact]
     public void Validate_SituationMissingId_ReturnsError()
     {
-        var template = CreateValidTemplate();
-        template.SituationTemplates[0].Id = null;
+        var template = new SceneTemplate
+        {
+            Id = "test_scene",
+            Tier = 1,
+            SituationTemplates = new List<SituationTemplate>
+            {
+                new() { Id = null },
+                new() { Id = "sit2" }
+            },
+            SpawnRules = CreateValidTemplate().SpawnRules
+        };
 
         SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
@@ -85,10 +101,23 @@ public class SceneTemplateValidatorTests
     [Fact]
     public void Validate_TooManyChoices_ReturnsError()
     {
-        var template = CreateValidTemplate();
-        template.SituationTemplates[0].ChoiceTemplates = new List<ChoiceTemplate>
+        var template = new SceneTemplate
         {
-            new(), new(), new(), new(), new()  // 5 choices
+            Id = "test_scene",
+            Tier = 1,
+            SituationTemplates = new List<SituationTemplate>
+            {
+                new()
+                {
+                    Id = "sit1",
+                    ChoiceTemplates = new List<ChoiceTemplate>
+                    {
+                        new(), new(), new(), new(), new()  // 5 choices
+                    }
+                },
+                new() { Id = "sit2" }
+            },
+            SpawnRules = CreateValidTemplate().SpawnRules
         };
 
         SceneValidationResult result = SceneTemplateValidator.Validate(template);
@@ -144,10 +173,30 @@ public class SceneTemplateValidatorTests
     [Fact]
     public void Validate_MultipleErrors_ReturnsAllErrors()
     {
-        var template = CreateValidTemplate();
-        template.Id = null;  // Error 1
-        template.SituationTemplates[0].Id = null;  // Error 2
-        template.SpawnRules.InitialSituationId = "invalid";  // Error 3
+        var template = new SceneTemplate
+        {
+            Id = null,
+            Tier = 1,
+            SituationTemplates = new List<SituationTemplate>
+            {
+                new() { Id = null },
+                new() { Id = "sit2" }
+            },
+            SpawnRules = new SituationSpawnRules
+            {
+                Pattern = SpawnPattern.Linear,
+                InitialSituationId = "invalid",
+                Transitions = new List<SituationTransition>
+                {
+                    new()
+                    {
+                        SourceSituationId = "sit1",
+                        DestinationSituationId = "sit2",
+                        Condition = TransitionCondition.Always
+                    }
+                }
+            }
+        };
 
         SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
