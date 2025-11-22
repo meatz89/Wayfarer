@@ -107,7 +107,7 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 
 **Genre:** Choice-picking narrative game like **The Life and Suffering of Sir Brante** with infinite journey structure like **Frieren: Beyond Journey's End**
 
-**Core Experience:** Strategic depth through impossible choices, not mechanical complexity. (design/01_design_vision.md:11)
+**Core Experience:** Strategic depth through impossible choices, not mechanical complexity. (design/01_design_vision.md § Core Experience Statement)
 
 **You are:** A traveler making difficult choices where your past decisions constrain current options. NOT a hero. You pick from available choices, invest in stats that unlock some paths while closing others, and live with cumulative consequences of specialization.
 
@@ -436,7 +436,7 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 
 ### Resource Display
 ```javascript
-// Verified from ResourceBar.razor (line 4: .resource-item is container)
+// Verified from ResourceBar.razor (.resource-item as container)
 // Structure: .resource-item > .resource-label + .resource-value + .resource-bar
 const health = await page.locator('.resource-item .resource-value').nth(0).textContent();
 const hunger = await page.locator('.resource-item .resource-value').nth(1).textContent();
@@ -535,7 +535,7 @@ expect(transform).not.toBe('none'); // Should lift up on hover
 **Expected:** Always forward progress, even if suboptimal.
 
 ### 2. Perfect Information Violation (MAJOR)
-**Why Critical:** Core pillar = "see all costs before committing" (design/01_design_vision.md:95)
+**Why Critical:** Core pillar = "see all costs before committing" (design/01_design_vision.md § Anti-Goals: Not a Power Fantasy)
 
 **Test:**
 - Every choice must show exact costs BEFORE selection
@@ -546,7 +546,7 @@ expect(transform).not.toBe('none'); // Should lift up on hover
 **Expected:** Can calculate multi-step strategies. Trust the numbers.
 
 ### 3. Stat Gating Doesn't Constrain (MAJOR)
-**Why Critical:** Stat requirements should block desired choices, creating tension (design/03_progression_systems.md:154-182)
+**Why Critical:** Stat requirements should block desired choices, creating tension (design/03_progression_systems.md § Stat Gating Effects)
 
 **Test:**
 - Do I see stat-gated choices I WANT but can't take?
@@ -562,7 +562,7 @@ expect(transform).not.toBe('none'); // Should lift up on hover
 - Never feel constrained by past stat investments (consequences not cumulative)
 
 ### 4. Scarcity Disappears (MAJOR)
-**Why Critical:** "No power fantasy" - resources must stay scarce (design/01_design_vision.md:93)
+**Why Critical:** "No power fantasy" - resources must stay scarce (design/01_design_vision.md § Anti-Goals: Not a Power Fantasy)
 
 **Test:**
 - Do costs still matter after 20 deliveries?
@@ -572,7 +572,7 @@ expect(transform).not.toBe('none'); // Should lift up on hover
 **Expected:** Economic pressure persists. Never trivial.
 
 ### 5. Strategic Constraints Don't Emerge (MAJOR)
-**Why Critical:** "Impossible choices" emerge from cumulative stat consequences over hours (design/01_design_vision.md:19)
+**Why Critical:** "Impossible choices" emerge from cumulative stat consequences over hours (design/01_design_vision.md § Core Experience Statement)
 
 **Test (STRATEGIC - requires 2-4 hour playthrough):**
 - After 2 hours of Insight investment: Are Social choices NOW blocked due to low Rapport?
@@ -589,7 +589,7 @@ expect(transform).not.toBe('none'); // Should lift up on hover
 **DON'T test:** Whether individual choices feel hard tactically (they often won't - and that's CORRECT for Sir Brante model).
 
 ### 6. Route Segments Don't Learn (MEDIUM)
-**Why Critical:** Route mastery = core skill progression (design/02_core_gameplay_loops.md:84)
+**Why Critical:** Route mastery = core skill progression (design/02_core_gameplay_loops.md § Segment Types: Fixed Environmental)
 
 **Test:**
 - First travel: Segments face-down (unknown)
@@ -602,8 +602,8 @@ expect(transform).not.toBe('none'); // Should lift up on hover
 **Why Critical:** a1_secure_lodging has `isStarter: true` - must appear (22_a_story_tutorial.json)
 
 **Verified Code Path:**
-1. GameFacade.StartGameAsync() called when game starts (Services/GameFacade.cs)
-2. Queries `_gameWorld.SceneTemplates.Where(t => t.IsStarter)` (GameFacade.cs:1600)
+1. GameFacade.StartGameAsync() called when game starts
+2. Queries `_gameWorld.SceneTemplates.Where(t => t.IsStarter)` to find tutorial scenes
 3. For each starter template, calls SceneInstantiator to create Scene instance
 4. Scene placed at location/NPC matching template's PlacementFilter
 5. Scene becomes active, choices appear in UI
