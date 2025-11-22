@@ -227,7 +227,9 @@ public class ProceduralAStoryService
 
         if (!allRegions.Any())
         {
-            return null; // No regions defined (fallback to any location)
+            throw new InvalidOperationException(
+                "Cannot select region: No regions defined in GameWorld. " +
+                "Procedural A-story generation requires at least one region.");
         }
 
         // Filter by tier-appropriate regions

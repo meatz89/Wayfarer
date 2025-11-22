@@ -239,11 +239,11 @@ public class RewardApplicationService
             }
 
             // Resolve placement context (ARCHITECTURAL CHANGE: Direct property access)
-            // ZERO NULL TOLERANCE: All references guaranteed non-null (architectural invariant)
-            // Scene spawning requires complete context: currentSituation and its Route/Location/NPC
-            RouteOption currentRoute = currentSituation!.Route!;
-            Location currentLocation = currentSituation!.Location!;
-            NPC currentNPC = currentSituation!.Npc!;
+            // Context properties are nullable - not all situations have Route/Location/NPC
+            // SceneSpawnContext documents these as nullable per domain model
+            RouteOption currentRoute = currentSituation!.Route;
+            Location currentLocation = currentSituation!.Location;
+            NPC currentNPC = currentSituation!.Npc;
 
             // Build spawn context
             SceneSpawnContext context = new SceneSpawnContext
