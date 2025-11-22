@@ -99,7 +99,4 @@ public class DialogueGenerationService
 
         return elements.Any() ? string.Join(" ", elements) : "focus:neutral activity:general";
     }
-
-    // DELETED: GenerateAtmosphereDescription(List<LocationPropertyType>) - dead code, never called
-    // Time-specific location properties eliminated in favor of static LocationCapability flags
 }

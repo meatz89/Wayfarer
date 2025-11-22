@@ -699,7 +699,7 @@ public class LocationFacade
     {
         List<LocationActionViewModel> actions = _actionManager.GetLocationActions(venue, spot);
         // Return non-travel location actions (rest, work, secure room, food, etc.)
-        // These are location-specific atmospheric actions generated from LocationPropertyTypes
+        // These are location-specific atmospheric actions generated from LocationCapability flags
         return actions.Where(a => a.ActionType != "travel").ToList();
     }
 

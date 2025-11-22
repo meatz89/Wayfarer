@@ -67,8 +67,7 @@ public class LocationBuilder
             DistanceHintForPlacement = _distanceHint,
             Safety = _safety,
             Privacy = _privacy,
-            Activity = _activity,
-            LocationProperties = new List<LocationPropertyType>()
+            Activity = _activity
         };
         return location;
     }
