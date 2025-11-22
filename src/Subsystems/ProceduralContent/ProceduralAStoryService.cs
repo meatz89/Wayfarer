@@ -33,35 +33,37 @@ public class ProceduralAStoryService
     private readonly PackageLoaderFacade _packageLoaderFacade;
 
     // Archetype categories for rotation
+    // Archetype categories for rotation (must match AStorySceneArchetypeCatalog)
+    // Investigation: seek_audience, investigate_location, gather_testimony
+    // Confrontation: confront_antagonist
+    // Social: meet_order_member
+    // Discovery: discover_artifact, uncover_conspiracy
+    // Crisis: urgent_decision, moral_crossroads
+
     private static readonly List<string> InvestigationArchetypes = new List<string>
 {
     "investigate_location",
     "gather_testimony",
-    "uncover_conspiracy",
-    "discover_artifact"
+    "seek_audience" // Gatekeeper pattern - fits investigation category
 };
 
     private static readonly List<string> SocialArchetypes = new List<string>
 {
-    "meet_order_member",
-    "gain_trust",
-    "social_infiltration"
+    "meet_order_member"
+    // Removed: gain_trust, social_infiltration (not implemented in catalog)
 };
 
     private static readonly List<string> ConfrontationArchetypes = new List<string>
 {
-    "seek_audience",
-    "confront_antagonist",
-    "challenge_authority",
-    "expose_corruption"
+    "confront_antagonist"
+    // Removed: challenge_authority, expose_corruption (not implemented in catalog)
 };
 
     private static readonly List<string> CrisisArchetypes = new List<string>
 {
     "urgent_decision",
-    "moral_crossroads",
-    "sacrifice_choice",
-    "reveal_truth"
+    "moral_crossroads"
+    // Removed: sacrifice_choice, reveal_truth (not implemented in catalog)
 };
 
     public ProceduralAStoryService(
@@ -219,7 +221,7 @@ public class ProceduralAStoryService
     private PlacementFilterDTO BuildPlacementFilter(int sequence, int tier, AStoryContext context)
     {
         // Select region based on tier and anti-repetition
-        string regionId = SelectRegion(tier, context);
+        Region selectedRegion = SelectRegion(tier, context);
 
         // Select NPC personality type for social archetypes
         List<string> personalityTypes = SelectPersonalityTypes(tier, context);
@@ -229,7 +231,7 @@ public class ProceduralAStoryService
             PlacementType = "Location", // A-story happens at locations
 
             // Location filters (categorical)
-            RegionId = regionId, // Specific region for tier-appropriate content
+            RegionId = selectedRegion?.Id, // Specific region for tier-appropriate content (HIGHLANDER: use object.Id)
             Capabilities = SelectLocationCapabilities(tier),
             LocationTags = new List<string> { "story_significant" },
 
@@ -246,8 +248,9 @@ public class ProceduralAStoryService
     /// <summary>
     /// Select region for A-story scene based on tier and anti-repetition
     /// Systematically rotates through available regions
+    /// Returns Region object (HIGHLANDER: object references, not IDs)
     /// </summary>
-    private string SelectRegion(int tier, AStoryContext context)
+    private Region SelectRegion(int tier, AStoryContext context)
     {
         // Get all regions in GameWorld
         List<Region> allRegions = _gameWorld.Regions;
@@ -281,9 +284,8 @@ public class ProceduralAStoryService
         // Select first available (deterministic)
         Region selectedRegion = availableRegions.First();
 
-        // HIGHLANDER: Return Region object, service will use it for filtering
-        // Method signature should return Region, not string
-        return selectedRegion.Name;
+        // Return Region object (HIGHLANDER: object references, not string IDs)
+        return selectedRegion;
     }
 
     /// <summary>
