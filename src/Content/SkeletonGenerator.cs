@@ -110,8 +110,13 @@ public static class SkeletonGenerator
             Difficulty = 1,  // Default difficulty
             DomainTags = new List<string>(),
 
-            // Simple default property
-            LocationProperties = new List<LocationPropertyType> { LocationPropertyType.Public }
+            // Simple default capability
+            Capabilities = LocationCapability.None,
+            // Orthogonal categorical dimensions
+            Privacy = LocationPrivacy.Public,
+            Safety = LocationSafety.Neutral,
+            Activity = LocationActivity.Moderate,
+            Purpose = LocationPurpose.Generic
         };
 
         return location;

@@ -165,9 +165,9 @@ public class LocationManager
     /// </summary>
     public Location GetTravelHubLocation(Venue venue)
     {
-        // Look for Locations with Crossroads property
+        // Look for Locations with Transit capability
         List<Location> Locations = GetLocationsForVenue(venue);
-        return Locations.FirstOrDefault(s => s.LocationProperties.Contains(LocationPropertyType.Crossroads));
+        return Locations.FirstOrDefault(s => s.Capabilities.HasFlag(LocationCapability.Transit));
     }
 
     /// <summary>
@@ -178,8 +178,8 @@ public class LocationManager
         if (location == null) return false;
 
         // ADR-007: Venue variable deleted (was unused, accessed deleted VenueId)
-        // Travel happens at any location with Crossroads property
-        return location.LocationProperties.Contains(LocationPropertyType.Crossroads);
+        // Travel happens at any location with Transit capability
+        return location.Capabilities.HasFlag(LocationCapability.Transit);
     }
 
     /// <summary>
@@ -291,9 +291,7 @@ public class LocationManager
         if (location == null) return "";
 
         LocationDescriptionGenerator descGenerator = new LocationDescriptionGenerator();
-        TimeBlocks currentTime = TimeBlocks.Morning; // Default for brief descriptions
-        List<LocationPropertyType> activeProperties = location.GetActiveProperties(currentTime);
-        return descGenerator.GenerateBriefDescription(activeProperties);
+        return descGenerator.GenerateBriefDescription(location.Capabilities);
     }
 
     /// <summary>
@@ -301,35 +299,37 @@ public class LocationManager
     /// </summary>
     public bool IsLocationTravelHub(Location location)
     {
-        // Travel happens at any location with Crossroads property
-        return location.LocationProperties.Contains(LocationPropertyType.Crossroads);
+        // Travel happens at any location with Crossroads capability
+        return location.Capabilities.HasFlag(LocationCapability.Crossroads);
     }
 
     /// <summary>
-    /// Get active properties for a location at a specific time.
+    /// DEPRECATED: Get active properties for a location (time-specific properties eliminated).
+    /// Returns capabilities as static flags (no time variation).
     /// </summary>
-    public List<LocationPropertyType> GetActiveLocationProperties(Location location, TimeBlocks timeBlock)
+    public LocationCapability GetActiveLocationProperties(Location location, TimeBlocks timeBlock)
     {
-        if (location == null) return new List<LocationPropertyType>();
-        return location.GetActiveProperties(timeBlock);
+        if (location == null) return LocationCapability.None;
+        return location.Capabilities;
     }
 
     /// <summary>
-    /// Check if a location has a specific property at a given time.
+    /// Check if a location has a specific capability (DELETED: time-specific check eliminated)
     /// </summary>
-    public bool LocationHasProperty(Location location, LocationPropertyType property, TimeBlocks timeBlock)
+    public bool LocationHasProperty(Location location, LocationCapability capability, TimeBlocks timeBlock)
     {
-        List<LocationPropertyType> activeProperties = GetActiveLocationProperties(location, timeBlock);
-        return activeProperties.Contains(property);
+        // DELETED: GetActiveLocationProperties - time-specific properties eliminated
+        // Capabilities are now static flags, not temporal states
+        return location.Capabilities.HasFlag(capability);
     }
 
     /// <summary>
-    /// Get all Locations with a specific property in a venue.
+    /// Get all Locations with a specific capability in a venue.
     /// </summary>
-    public List<Location> GetLocationsWithProperty(Venue venue, LocationPropertyType property, TimeBlocks timeBlock)
+    public List<Location> GetLocationsWithProperty(Venue venue, LocationCapability capability, TimeBlocks timeBlock)
     {
         List<Location> Locations = GetLocationsForVenue(venue);
-        return Locations.Where(s => LocationHasProperty(s, property, timeBlock)).ToList();
+        return Locations.Where(s => LocationHasProperty(s, capability, timeBlock)).ToList();
     }
 
     /// <summary>
@@ -363,10 +363,10 @@ public class LocationManager
     /// </summary>
     public Location GetDefaultEntranceLocation(Venue venue)
     {
-        // Look for Locations with Crossroads property
+        // Look for Locations with Transit capability
         List<Location> Locations = GetLocationsForVenue(venue);
-        Location crossroads = Locations.FirstOrDefault(s => s.LocationProperties.Contains(LocationPropertyType.Crossroads));
-        if (crossroads != null) return crossroads;
+        Location transitLocation = Locations.FirstOrDefault(s => s.Capabilities.HasFlag(LocationCapability.Transit));
+        if (transitLocation != null) return transitLocation;
 
         // Finally, just return the first available location
         return Locations.FirstOrDefault();

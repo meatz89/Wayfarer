@@ -33,7 +33,7 @@ public class GenerationContext
     public int PlayerHealth { get; set; }
 
     // Location Context
-    public List<LocationPropertyType> LocationProperties { get; set; } = new();
+    public LocationCapability LocationCapabilities { get; set; } = LocationCapability.None;
 
     // UNIVERSAL CATEGORICAL PROPERTIES (apply to ALL archetypes)
     public DangerLevel Danger { get; set; } = DangerLevel.Safe;
@@ -62,7 +62,7 @@ public class GenerationContext
             NpcName = "",
             PlayerCoins = 0,
             PlayerHealth = 100,
-            LocationProperties = new()
+            LocationCapabilities = LocationCapability.None
         };
     }
 
@@ -109,7 +109,7 @@ public class GenerationContext
             PlayerHealth = player?.Health ?? 100,
 
             // Location context
-            LocationProperties = location?.LocationProperties ?? new(),
+            LocationCapabilities = location?.Capabilities ?? LocationCapability.None,
 
             // UNIVERSAL CATEGORICAL PROPERTIES (auto-derived)
             Danger = DeriveDangerLevel(location, npc, player),
@@ -131,10 +131,10 @@ public class GenerationContext
     /// </summary>
     private static DangerLevel DeriveDangerLevel(Location location, NPC npc, Player player)
     {
-        // Check location properties for danger indicators (Guarded, Outdoor=wilderness, Checkpoint=authority)
-        if (location?.LocationProperties.Any(p =>
-            p == LocationPropertyType.Guarded ||
-            p == LocationPropertyType.Outdoor) ?? false)
+        // Check location capabilities for danger indicators (Guarded, Outdoor=wilderness)
+        if (location != null &&
+            (location.Capabilities.HasFlag(LocationCapability.Guarded) ||
+             location.Capabilities.HasFlag(LocationCapability.Outdoor)))
         {
             return DangerLevel.Risky;
         }
@@ -155,22 +155,16 @@ public class GenerationContext
     /// </summary>
     private static SocialStakes DeriveSocialStakes(Location location)
     {
-        if (location?.LocationProperties.Any(p =>
-            p == LocationPropertyType.Public ||
-            p == LocationPropertyType.Market) ?? false)
-        {
-            return SocialStakes.Public;
-        }
+        if (location == null) return SocialStakes.Witnessed;
 
-        if (location?.LocationProperties.Any(p =>
-            p == LocationPropertyType.Private ||
-            p == LocationPropertyType.Isolated ||
-            p == LocationPropertyType.Intimate) ?? false)
+        // Use categorical Privacy dimension (not capabilities)
+        return location.Privacy switch
         {
-            return SocialStakes.Private;
-        }
-
-        return SocialStakes.Witnessed;
+            LocationPrivacy.Public => SocialStakes.Public,
+            LocationPrivacy.Private => SocialStakes.Private,
+            LocationPrivacy.SemiPublic => SocialStakes.Witnessed,
+            _ => SocialStakes.Witnessed
+        };
     }
 
     /// <summary>
@@ -180,10 +174,10 @@ public class GenerationContext
     /// </summary>
     private static TimePressure DeriveTimePressure(Location location, Player player)
     {
-        // Check for crisis/emergency location properties (Guarded, Official = authority pressure)
-        if (location?.LocationProperties.Any(p =>
-            p == LocationPropertyType.Guarded ||
-            p == LocationPropertyType.Official) ?? false)
+        // Check for crisis/emergency location capabilities (Guarded, Official = authority pressure)
+        if (location != null &&
+            (location.Capabilities.HasFlag(LocationCapability.Guarded) ||
+             location.Capabilities.HasFlag(LocationCapability.Official)))
         {
             return TimePressure.Urgent;
         }
@@ -245,8 +239,7 @@ public class GenerationContext
         // All personalities can present moral ambiguity based on context
 
         // Holy locations = clear moral context
-        if (location?.LocationProperties.Any(p =>
-            p == LocationPropertyType.Temple) ?? false)
+        if (location != null && location.Capabilities.HasFlag(LocationCapability.Temple))
         {
             return MoralClarity.Clear;
         }
@@ -283,21 +276,18 @@ public class GenerationContext
     /// </summary>
     private static EnvironmentQuality DeriveEnvironmentQuality(Location location)
     {
-        if (location?.LocationProperties == null || location.LocationProperties.Count == 0)
+        if (location == null || location.Capabilities == LocationCapability.None)
             return EnvironmentQuality.Standard;
 
         // Premium environment (luxurious, opulent)
-        if (location.LocationProperties.Any(p =>
-            p == LocationPropertyType.Wealthy ||
-            p == LocationPropertyType.Prestigious))
+        if (location.Capabilities.HasFlag(LocationCapability.Wealthy) ||
+            location.Capabilities.HasFlag(LocationCapability.Prestigious))
         {
             return EnvironmentQuality.Premium;
         }
 
         // Standard environment (comfortable, restful)
-        if (location.LocationProperties.Any(p =>
-            p == LocationPropertyType.Restful ||
-            p == LocationPropertyType.Cozy))
+        if (location.Capabilities.HasFlag(LocationCapability.Restful))
         {
             return EnvironmentQuality.Standard;
         }

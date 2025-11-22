@@ -184,17 +184,17 @@ public class MarketSubsystemManager
             SupplyLevel = 1.0f
         };
 
-        // Location properties determine pricing (NOT Venue type)
+        // Location capabilities determine pricing (NOT Venue type)
         if (location != null)
         {
-            // Check Location properties to determine pricing
-            if (location.LocationProperties.Contains(LocationPropertyType.Market))
+            // Check Location capabilities to determine pricing
+            if (location.Capabilities.HasFlag(LocationCapability.Market))
             {
                 // Markets have higher prices (competitive commercial environment)
                 pricing.BuyPrice = item.BuyPrice + 1;
                 pricing.SellPrice = item.SellPrice + 1;
             }
-            else if (location.LocationProperties.Contains(LocationPropertyType.Tavern))
+            else if (location.Capabilities.HasFlag(LocationCapability.Tavern))
             {
                 // Taverns have lower prices (casual trade, not primary business)
                 pricing.BuyPrice = Math.Max(1, item.BuyPrice - 1);

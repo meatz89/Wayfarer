@@ -43,9 +43,9 @@ public class PlayerAction
     public PlayerActionType ActionType { get; set; }
 
     /// <summary>
-    /// Location properties required for this action to be available
-    /// Action only appears if location has ALL listed properties
-    /// Empty list = available everywhere (default)
+    /// Location capabilities required for this action to be available
+    /// Action only appears if location has ALL listed capabilities (bitwise AND check)
+    /// None = available everywhere (default)
     /// </summary>
-    public List<LocationPropertyType> RequiredLocationProperties { get; set; } = new List<LocationPropertyType>();
+    public LocationCapability RequiredLocationCapabilities { get; set; } = LocationCapability.None;
 }

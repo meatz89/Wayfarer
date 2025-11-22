@@ -155,9 +155,9 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             if (location != null)
             {
                 CurrentSpot = location.Name;
-                if (location.Properties != null && location.Properties.Any())
+                if (location.Capabilities != LocationCapability.None)
                 {
-                    CurrentSpot += $" • {string.Join(", ", location.Properties)}";
+                    CurrentSpot += $" • {location.Capabilities}";
                 }
             }
         }

@@ -12,16 +12,9 @@
         if (CurrentLocation == null)
             return "An undefined location.";
 
-        // Get active properties including time-specific ones
-        var activeProperties = new List<LocationPropertyType>(CurrentLocation.LocationProperties ?? new List<LocationPropertyType>());
-        if (CurrentLocation.TimeSpecificProperties?.Any(t => t.TimeBlock == CurrentTime) == true)
-        {
-            activeProperties.AddRange(CurrentLocation.TimeSpecificProperties.First(t => t.TimeBlock == CurrentTime).Properties);
-        }
-
-        // Generate description from categorical properties
+        // Generate description from categorical capabilities
         return _descriptionGenerator.GenerateDescription(
-            activeProperties,
+            CurrentLocation.Capabilities,
             CurrentTime,
             NPCsPresent?.Count ?? 0
         );
@@ -95,26 +88,20 @@
         if (CurrentLocation == null)
             return null;
 
-        var activeProperties = new List<LocationPropertyType>(CurrentLocation.LocationProperties ?? new List<LocationPropertyType>());
-        if (CurrentLocation.TimeSpecificProperties?.Any(t => t.TimeBlock == CurrentTime) == true)
-        {
-            activeProperties.AddRange(CurrentLocation.TimeSpecificProperties.First(t => t.TimeBlock == CurrentTime).Properties);
-        }
-
-        // Generate hints based on view properties
-        if (activeProperties.Contains(LocationPropertyType.ViewsMarket))
+        // Generate hints based on location capabilities
+        if (CurrentLocation.Capabilities.HasFlag(LocationCapability.Market))
             return "Diplomacy flows visibly. Merchant patterns emerge.";
 
-        if (activeProperties.Contains(LocationPropertyType.ViewsMainEntrance))
+        if (CurrentLocation.Capabilities.HasFlag(LocationCapability.ViewsMainEntrance))
             return "Guard rotations and arrivals draw your attention.";
 
-        if (activeProperties.Contains(LocationPropertyType.ViewsBackAlley))
+        if (CurrentLocation.Capabilities.HasFlag(LocationCapability.ViewsBackAlley))
             return "Discrete movements catch your eye.";
 
-        if (activeProperties.Contains(LocationPropertyType.ViewsTemple))
+        if (CurrentLocation.Capabilities.HasFlag(LocationCapability.Temple))
             return "Devotional patterns become apparent.";
 
-        if (activeProperties.Contains(LocationPropertyType.Crossroads))
+        if (CurrentLocation.Capabilities.HasFlag(LocationCapability.Transit))
             return "Multiple paths of activity intersect here.";
 
         return null;

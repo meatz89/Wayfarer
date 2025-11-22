@@ -46,55 +46,29 @@ public static class LocationParser
             location.CurrentTimeBlocks.Add(TimeBlocks.Evening);
         }
 
-        // Parse location properties from the new structure
-        if (dto.Properties != null)
-        {// Parse base properties (always active)
-            Console.WriteLine($"[LocationParser] Parsing properties for location '{dto.Id}'");
+        // Parse functional capabilities (what location CAN DO)
+        if (dto.Capabilities != null && dto.Capabilities.Count > 0)
+        {
+            Console.WriteLine($"[LocationParser] Parsing capabilities for location '{dto.Id}'");
+            Console.WriteLine($"[LocationParser] Capabilities: {string.Join(", ", dto.Capabilities)}");
 
-            if (dto.Properties.Base != null)
+            LocationCapability combinedCapabilities = LocationCapability.None;
+
+            foreach (string capabilityString in dto.Capabilities)
             {
-                Console.WriteLine($"[LocationParser] Base properties: {string.Join(", ", dto.Properties.Base)}");
-                foreach (string propString in dto.Properties.Base)
+                if (EnumParser.TryParse<LocationCapability>(capabilityString, out LocationCapability capability))
                 {
-                    if (EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
-                    {
-                        location.LocationProperties.Add(prop);
-                        Console.WriteLine($"[LocationParser] ✅ Parsed base property: {propString} → {prop}");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[LocationParser] ⚠️ WARNING: Failed to parse base property '{propString}' for location '{dto.Id}'");
-                    }
+                    combinedCapabilities |= capability;  // Bitwise OR to combine flags
+                    Console.WriteLine($"[LocationParser] ✅ Parsed capability: {capabilityString} → {capability}");
+                }
+                else
+                {
+                    Console.WriteLine($"[LocationParser] ⚠️ WARNING: Failed to parse capability '{capabilityString}' for location '{dto.Id}'");
                 }
             }
 
-            Console.WriteLine($"[LocationParser] Final LocationProperties for '{dto.Id}': {string.Join(", ", location.LocationProperties)}");
-
-            // Parse time-specific properties
-            Dictionary<TimeBlocks, List<LocationPropertyType>> timeProperties = new Dictionary<TimeBlocks, List<LocationPropertyType>>();
-
-            // Morning properties
-            ParseTimeProperties(dto.Properties.Morning, TimeBlocks.Morning, timeProperties);
-            // Midday properties
-            ParseTimeProperties(dto.Properties.Midday, TimeBlocks.Midday, timeProperties);
-            // Afternoon properties
-            ParseTimeProperties(dto.Properties.Afternoon, TimeBlocks.Afternoon, timeProperties);
-            // Evening properties
-            ParseTimeProperties(dto.Properties.Evening, TimeBlocks.Evening, timeProperties);
-            // Night and Dawn removed from 4-block system
-
-            // Assign to location
-            foreach (KeyValuePair<TimeBlocks, List<LocationPropertyType>> kvp in timeProperties)
-            {
-                if (kvp.Value.Count > 0)
-                {
-                    location.TimeSpecificProperties.Add(new TimeSpecificProperty
-                    {
-                        TimeBlock = kvp.Key,
-                        Properties = kvp.Value
-                    });
-                }
-            }
+            location.Capabilities = combinedCapabilities;
+            Console.WriteLine($"[LocationParser] Final Capabilities for '{dto.Id}': {location.Capabilities}");
         }
 
         // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
@@ -198,30 +172,6 @@ public static class LocationParser
         // NEW Scene-Situation architecture spawns Scenes via SceneTemplates (not embedded in location JSON)
 
         return location;
-    }
-
-    /// <summary>
-    /// Helper method to parse time-specific properties
-    /// </summary>
-    private static void ParseTimeProperties(List<string> propertyStrings, TimeBlocks timeBlock, Dictionary<TimeBlocks, List<LocationPropertyType>> timeProperties)
-    {
-        if (propertyStrings == null || propertyStrings.Count == 0)
-            return;
-
-        List<LocationPropertyType> properties = new List<LocationPropertyType>();
-        foreach (string propString in propertyStrings)
-        {
-            if (!string.IsNullOrEmpty(propString) &&
-                EnumParser.TryParse<LocationPropertyType>(propString, out LocationPropertyType prop))
-            {
-                properties.Add(prop);
-            }
-        }
-
-        if (properties.Count > 0)
-        {
-            timeProperties[timeBlock] = properties;
-        }
     }
 
     private static List<string> GetStringArrayFromProperty(JsonElement element, string propertyName)

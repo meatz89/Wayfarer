@@ -1,7 +1,7 @@
 /// <summary>
 /// Parser for LocationAction entities with strong typing and enum validation.
 /// Validates actionType against LocationActionType enum - throws on unknown types.
-/// Converts string-based JSON properties to strongly-typed LocationPropertyType enums.
+/// Converts string-based JSON properties to strongly-typed LocationCapability flags.
 /// </summary>
 public static class LocationActionParser
 {
@@ -28,9 +28,9 @@ public static class LocationActionParser
             TimeRequired = dto.TimeRequired,
             Availability = ParseTimeBlocks(dto.Availability),
             Priority = dto.Priority,
-            RequiredProperties = ParseLocationProperties(dto.RequiredProperties),
-            OptionalProperties = ParseLocationProperties(dto.OptionalProperties),
-            ExcludedProperties = ParseLocationProperties(dto.ExcludedProperties)
+            RequiredCapabilities = ParseLocationCapabilities(dto.RequiredProperties),
+            OptionalCapabilities = ParseLocationCapabilities(dto.OptionalProperties),
+            ExcludedCapabilities = ParseLocationCapabilities(dto.ExcludedProperties)
         };
 
         return action;
@@ -104,18 +104,18 @@ public static class LocationActionParser
             throw new InvalidDataException($"LocationAction '{dto.Id}' missing required field 'ActionType'");
     }
 
-    private static List<LocationPropertyType> ParseLocationProperties(List<string> propertyStrings)
+    private static LocationCapability ParseLocationCapabilities(List<string> propertyStrings)
     {
-        List<LocationPropertyType> result = new List<LocationPropertyType>();
+        LocationCapability result = LocationCapability.None;
 
         if (propertyStrings == null || propertyStrings.Count == 0)
             return result;
 
         foreach (string propStr in propertyStrings)
         {
-            if (Enum.TryParse<LocationPropertyType>(propStr, true, out LocationPropertyType propertyType))
+            if (Enum.TryParse<LocationCapability>(propStr, true, out LocationCapability capability))
             {
-                result.Add(propertyType);
+                result |= capability;  // Bitwise OR to combine flags
             }
             else
             {

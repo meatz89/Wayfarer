@@ -56,11 +56,10 @@ public class LocationNarrativeGenerator
         int npcsPresent)
     {
         LocationDescriptionGenerator descGenerator = new LocationDescriptionGenerator();
-        List<LocationPropertyType> activeProperties = location.GetActiveProperties(currentTime);
 
         // Debug log
         return descGenerator.GenerateDescription(
-            activeProperties,
+            location.Capabilities,
             currentTime,
             npcsPresent
         );
@@ -210,10 +209,8 @@ public class LocationNarrativeGenerator
     /// </summary>
     private string GetWeatherFlavor(string weather, Location location)
     {
-        // Assume we're outdoors unless location has warm/shaded properties (indicating shelter)
-        bool isIndoor = location != null &&
-                       (location.LocationProperties.Contains(LocationPropertyType.Warm) ||
-                        location.LocationProperties.Contains(LocationPropertyType.Shaded));
+        // Use Indoor capability to determine shelter
+        bool isIndoor = location != null && location.Capabilities.HasFlag(LocationCapability.Indoor);
 
         return weather switch
         {
@@ -234,11 +231,10 @@ public class LocationNarrativeGenerator
     {
         if (location != null)
         {
-            List<LocationPropertyType> properties = location.GetActiveProperties(_timeManager.GetCurrentTimeBlock());
-            if (properties.Contains(LocationPropertyType.ViewsMarket))
+            if (location.Capabilities.HasFlag(LocationCapability.Market))
                 return "The area has several interesting details worth observing.";
-            if (properties.Contains(LocationPropertyType.Commercial))
-                return "The bustling diplomacy provides many things to notice.";
+            if (location.Capabilities.HasFlag(LocationCapability.Commercial))
+                return "The bustling commerce provides many things to notice.";
         }
 
         return "There might be something worth observing here.";

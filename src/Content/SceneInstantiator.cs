@@ -400,11 +400,11 @@ public class SceneInstantiator
         // Collect ALL matching Locations
         List<Location> matchingLocations = _gameWorld.Locations.Where(loc =>
         {
-            // Check location properties (if specified)
-            if (filter.LocationProperties != null && filter.LocationProperties.Count > 0)
+            // Check location capabilities (if specified)
+            if (filter.RequiredCapabilities != LocationCapability.None)
             {
-                // Location must have ALL specified properties
-                if (!filter.LocationProperties.All(prop => loc.LocationProperties.Contains(prop)))
+                // Location must have ALL required capabilities (bitwise AND check)
+                if ((loc.Capabilities & filter.RequiredCapabilities) != filter.RequiredCapabilities)
                     return false;
             }
 
@@ -569,8 +569,8 @@ public class SceneInstantiator
             criteria.Add($"NPC Tags: [{string.Join(", ", filter.NpcTags)}]");
 
         // Location filters
-        if (filter.LocationProperties != null && filter.LocationProperties.Count > 0)
-            criteria.Add($"Location Properties: [{string.Join(", ", filter.LocationProperties)}]");
+        if (filter.RequiredCapabilities != LocationCapability.None)
+            criteria.Add($"Required Capabilities: {filter.RequiredCapabilities}");
         if (!string.IsNullOrEmpty(filter.DistrictId))
             criteria.Add($"District: {filter.DistrictId}");
         if (!string.IsNullOrEmpty(filter.RegionId))
@@ -611,7 +611,7 @@ public class SceneInstantiator
                 int locationCount = _gameWorld.Locations.Count;
                 List<string> locationSummaries = _gameWorld.Locations
                     .Take(10) // Show first 10
-                    .Select(loc => $"  - {loc.Name}: Properties={string.Join(",", loc.LocationProperties)}")
+                    .Select(loc => $"  - {loc.Name}: Capabilities={loc.Capabilities}")
                     .ToList();
                 if (locationCount > 10)
                     locationSummaries.Add($"  ... and {locationCount - 10} more locations");
@@ -1027,13 +1027,10 @@ public class SceneInstantiator
             DomainTags = new List<string> { $"{sceneId}_{spec.TemplateId}" }
         };
 
-        // Map properties
+        // Map capabilities (functional properties)
         if (spec.Properties != null && spec.Properties.Any())
         {
-            dto.Properties = new LocationPropertiesDTO
-            {
-                Base = spec.Properties
-            };
+            dto.Capabilities = spec.Properties;
         }
 
         return dto;
@@ -1145,7 +1142,7 @@ public class SceneInstantiator
             KnowledgeLevels = filter.KnowledgeLevels?.Select(k => k.ToString()).ToList(),
             // Location filters
             LocationTypes = filter.LocationTypes?.Select(t => t.ToString()).ToList(),
-            LocationProperties = filter.LocationProperties?.Select(p => p.ToString()).ToList(),
+            Capabilities = ConvertCapabilitiesToStringList(filter.RequiredCapabilities),
             IsPlayerAccessible = filter.IsPlayerAccessible,
             LocationTags = filter.LocationTags,
             DistrictId = filter.DistrictId,
@@ -1174,5 +1171,25 @@ public class SceneInstantiator
                 MaxValue = r.MaxValue
             }).ToList()
         };
+    }
+
+    /// <summary>
+    /// Convert LocationCapability flags enum to List of string names.
+    /// Extracts individual set flags from combined enum value.
+    /// </summary>
+    private static List<string> ConvertCapabilitiesToStringList(LocationCapability capabilities)
+    {
+        if (capabilities == LocationCapability.None)
+            return new List<string>();
+
+        List<string> result = new List<string>();
+        foreach (LocationCapability flag in Enum.GetValues(typeof(LocationCapability)))
+        {
+            if (flag != LocationCapability.None && capabilities.HasFlag(flag))
+            {
+                result.Add(flag.ToString());
+            }
+        }
+        return result;
     }
 }

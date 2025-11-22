@@ -185,7 +185,7 @@ public class SceneTemplateParser
             KnowledgeLevels = ParseKnowledgeLevels(dto.KnowledgeLevels, contextId),
             // Location filters
             LocationTypes = ParseLocationTypes(dto.LocationTypes, contextId),
-            LocationProperties = ParseLocationProperties(dto.LocationProperties, contextId),
+            RequiredCapabilities = ParseLocationCapabilities(dto.Capabilities, contextId),
             IsPlayerAccessible = dto.IsPlayerAccessible,
             LocationTags = dto.LocationTags,
             // Orthogonal categorical dimensions - Location
@@ -239,27 +239,27 @@ public class SceneTemplateParser
     }
 
     /// <summary>
-    /// Parse location property strings to enum list
+    /// Parse location capability strings to Flags enum
     /// </summary>
-    private static List<LocationPropertyType> ParseLocationProperties(List<string> propertyStrings, string contextId)
+    private static LocationCapability ParseLocationCapabilities(List<string> capabilityStrings, string contextId)
     {
-        if (propertyStrings == null || !propertyStrings.Any())
-            return new List<LocationPropertyType>();
+        if (capabilityStrings == null || !capabilityStrings.Any())
+            return LocationCapability.None;
 
-        List<LocationPropertyType> properties = new List<LocationPropertyType>();
-        foreach (string propertyString in propertyStrings)
+        LocationCapability capabilities = LocationCapability.None;
+        foreach (string capabilityString in capabilityStrings)
         {
-            if (Enum.TryParse<LocationPropertyType>(propertyString, true, out LocationPropertyType property))
+            if (Enum.TryParse<LocationCapability>(capabilityString, true, out LocationCapability capability))
             {
-                properties.Add(property);
+                capabilities |= capability; // Bitwise OR for Flags enum
             }
             else
             {
-                throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid LocationPropertyType: '{propertyString}'");
+                throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid LocationCapability: '{capabilityString}'");
             }
         }
 
-        return properties;
+        return capabilities;
     }
 
     /// <summary>

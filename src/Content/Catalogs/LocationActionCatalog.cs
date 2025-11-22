@@ -26,8 +26,8 @@ public static class LocationActionCatalog
     }
 
     /// <summary>
-    /// Generate actions based on location's LocationPropertyType enums.
-    /// Each property generates specific actions.
+    /// Generate actions based on location's capabilities.
+    /// Each capability generates specific actions.
     /// </summary>
     private static List<LocationAction> GeneratePropertyBasedActions(Location location)
     {
@@ -35,11 +35,10 @@ public static class LocationActionCatalog
 
         // DIAGNOSTIC LOGGING
         Console.WriteLine($"[LocationActionCatalog] Generating actions for location '{location.Name}'");
-        Console.WriteLine($"[LocationActionCatalog] Properties: {string.Join(", ", location.LocationProperties)}");
-        Console.WriteLine($"[LocationActionCatalog] Property count: {location.LocationProperties.Count}");
+        Console.WriteLine($"[LocationActionCatalog] Capabilities: {location.Capabilities}");
 
-        // Crossroads property → Travel action (opens route selection screen)
-        if (location.LocationProperties.Contains(LocationPropertyType.Crossroads))
+        // Crossroads capability → Travel action (opens route selection screen)
+        if (location.Capabilities.HasFlag(LocationCapability.Crossroads))
         {
             Console.WriteLine($"[LocationActionCatalog] ✅ Crossroads found - generating Travel action");
             actions.Add(new LocationAction
@@ -50,16 +49,16 @@ public static class LocationActionCatalog
                 ActionType = LocationActionType.Travel,
                 Costs = ActionCosts.None(),
                 Rewards = ActionRewards.None(),
-                RequiredProperties = new List<LocationPropertyType> { LocationPropertyType.Crossroads },
-                OptionalProperties = new List<LocationPropertyType>(),
-                ExcludedProperties = new List<LocationPropertyType>(),
+                RequiredCapabilities = LocationCapability.Crossroads,
+                OptionalCapabilities = LocationCapability.None,
+                ExcludedCapabilities = LocationCapability.None,
                 Availability = new List<TimeBlocks>(),  // Available at all times
                 Priority = 100  // High priority - always shown first
             });
         }
 
-        // Commercial property → Work action
-        if (location.LocationProperties.Contains(LocationPropertyType.Commercial))
+        // Commercial capability → Work action
+        if (location.Capabilities.HasFlag(LocationCapability.Commercial))
         {
             Console.WriteLine($"[LocationActionCatalog] ✅ Commercial found - generating Work action");
             actions.Add(new LocationAction
@@ -76,14 +75,14 @@ public static class LocationActionCatalog
                 {
                     CoinReward = 8
                 },
-                RequiredProperties = new List<LocationPropertyType> { LocationPropertyType.Commercial },
-                OptionalProperties = new List<LocationPropertyType>(),
-                ExcludedProperties = new List<LocationPropertyType>(),
+                RequiredCapabilities = LocationCapability.Commercial,
+                OptionalCapabilities = LocationCapability.None,
+                ExcludedCapabilities = LocationCapability.None,
                 Availability = new List<TimeBlocks> { TimeBlocks.Morning, TimeBlocks.Midday, TimeBlocks.Afternoon },
                 Priority = 150  // Match JSON priority
             });
 
-            // Commercial property → Job Board action (Core Loop Phase 3)
+            // Commercial capability → Job Board action (Core Loop Phase 3)
             Console.WriteLine($"[LocationActionCatalog] ✅ Commercial found - generating View Job Board action");
             actions.Add(new LocationAction
             {
@@ -93,16 +92,16 @@ public static class LocationActionCatalog
                 ActionType = LocationActionType.ViewJobBoard,
                 Costs = ActionCosts.None(),  // Viewing is free
                 Rewards = ActionRewards.None(),  // No direct reward (opens modal)
-                RequiredProperties = new List<LocationPropertyType> { LocationPropertyType.Commercial },
-                OptionalProperties = new List<LocationPropertyType>(),
-                ExcludedProperties = new List<LocationPropertyType>(),
+                RequiredCapabilities = LocationCapability.Commercial,
+                OptionalCapabilities = LocationCapability.None,
+                ExcludedCapabilities = LocationCapability.None,
                 Availability = new List<TimeBlocks>(),  // Available at all times (job board always accessible)
                 Priority = 140  // Just below Work action
             });
         }
 
-        // SleepingSpace property → Rest action
-        if (location.LocationProperties.Contains(LocationPropertyType.SleepingSpace))
+        // SleepingSpace capability → Rest action
+        if (location.Capabilities.HasFlag(LocationCapability.SleepingSpace))
         {
             Console.WriteLine($"[LocationActionCatalog] ✅ SleepingSpace found - generating Rest action");
             actions.Add(new LocationAction
@@ -120,9 +119,9 @@ public static class LocationActionCatalog
                     HealthRecovery = 1,
                     StaminaRecovery = 1
                 },
-                RequiredProperties = new List<LocationPropertyType> { LocationPropertyType.SleepingSpace },
-                OptionalProperties = new List<LocationPropertyType>(),
-                ExcludedProperties = new List<LocationPropertyType>(),
+                RequiredCapabilities = LocationCapability.SleepingSpace,
+                OptionalCapabilities = LocationCapability.None,
+                ExcludedCapabilities = LocationCapability.None,
                 Availability = new List<TimeBlocks> { TimeBlocks.Morning, TimeBlocks.Midday, TimeBlocks.Afternoon, TimeBlocks.Evening },
                 Priority = 130  // High priority - safe recovery
             });
@@ -173,9 +172,9 @@ public static class LocationActionCatalog
                 ActionType = LocationActionType.IntraVenueMove,  // Strongly typed: intra-venue movement (distinct from cross-venue Travel)
                 Costs = ActionCosts.None(),  // Intra-venue movement is FREE because hexes are adjacent
                 Rewards = ActionRewards.None(),
-                RequiredProperties = new List<LocationPropertyType>(),  // No property requirements (always available)
-                OptionalProperties = new List<LocationPropertyType>(),
-                ExcludedProperties = new List<LocationPropertyType>(),
+                RequiredCapabilities = LocationCapability.None,  // No capability requirements (always available)
+                OptionalCapabilities = LocationCapability.None,
+                ExcludedCapabilities = LocationCapability.None,
                 Availability = new List<TimeBlocks>(),  // Always available at all times
                 Priority = 90  // High priority, but below cross-venue Travel button
             });

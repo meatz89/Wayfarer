@@ -109,11 +109,11 @@ public class PlacementFilterDTO
     public List<string> LocationTypes { get; set; } = new List<string>();
 
     /// <summary>
-    /// Location properties to match
-    /// Example: ["Urban", "Dangerous", "Secluded"]
-    /// Maps to LocationPropertyType enum values
+    /// Location capabilities to match
+    /// Example: ["Crossroads", "Commercial", "Indoor"]
+    /// Maps to LocationCapability Flags enum values
     /// </summary>
-    public List<string> LocationProperties { get; set; } = new List<string>();
+    public List<string> Capabilities { get; set; } = new List<string>();
 
     /// <summary>
     /// Player accessibility requirement
