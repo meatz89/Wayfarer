@@ -40,7 +40,7 @@ public class SceneTemplateValidatorTests
     {
         var template = CreateValidTemplate();
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.True(result.IsValid);
         Assert.Empty(result.Errors);
@@ -52,7 +52,7 @@ public class SceneTemplateValidatorTests
         var template = CreateValidTemplate();
         template.Id = null;
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "STRUCT_001");
@@ -64,7 +64,7 @@ public class SceneTemplateValidatorTests
         var template = CreateValidTemplate();
         template.SituationTemplates = new List<SituationTemplate>();
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "STRUCT_002");
@@ -76,7 +76,7 @@ public class SceneTemplateValidatorTests
         var template = CreateValidTemplate();
         template.SituationTemplates[0].Id = null;
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "STRUCT_003");
@@ -91,7 +91,7 @@ public class SceneTemplateValidatorTests
             new(), new(), new(), new(), new()  // 5 choices
         };
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "STRUCT_004");
@@ -107,7 +107,7 @@ public class SceneTemplateValidatorTests
             DestinationSituationId = "sit2"
         });
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "DEP_001");
@@ -123,7 +123,7 @@ public class SceneTemplateValidatorTests
             DestinationSituationId = "invalid_destination"
         });
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "DEP_002");
@@ -135,7 +135,7 @@ public class SceneTemplateValidatorTests
         var template = CreateValidTemplate();
         template.SpawnRules.InitialSituationId = "invalid_initial";
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.Contains(result.Errors, e => e.Code == "DEP_003");
@@ -149,7 +149,7 @@ public class SceneTemplateValidatorTests
         template.SituationTemplates[0].Id = null;  // Error 2
         template.SpawnRules.InitialSituationId = "invalid";  // Error 3
 
-        ValidationResult result = SceneTemplateValidator.Validate(template);
+        SceneValidationResult result = SceneTemplateValidator.Validate(template);
 
         Assert.False(result.IsValid);
         Assert.True(result.Errors.Count >= 3);
