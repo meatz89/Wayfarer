@@ -57,46 +57,88 @@ info: Now listening on: http://localhost:5000
 
 ## What is Wayfarer?
 
+**Genre:** Choice-picking narrative game like **The Life and Suffering of Sir Brante** with infinite journey structure like **Frieren: Beyond Journey's End**
+
 **Core Experience:** Strategic depth through impossible choices, not mechanical complexity. (design/01_design_vision.md:11)
 
-**You are:** A courier managing scarce resources across dangerous routes. NOT a hero. You accept delivery jobs, navigate challenges, and barely afford survival. Profit margins are razor-thin.
+**You are:** A courier managing scarce resources across dangerous routes. NOT a hero. You accept delivery jobs, navigate challenges, and barely afford survival.
 
-**The Essential Feeling:**
-"I can afford A OR B, but not both. Both valid. Both have costs. Which cost will I accept?"
+**CRITICAL DISTINCTION - Two Layers:**
 
-**What Playtesters Should Understand:**
+### Tactical Layer (Individual Choices)
+**What it is:** Each individual choice-picking moment you encounter
 
-1. **Impossible Choices Are Intentional**
-   - No correct answer exists
-   - Multiple suboptimal paths by design
-   - Character emerges from what you sacrifice
-   - **Test:** Do choices feel genuinely difficult?
+**How it feels:**
+- Often has clear optimal path (not every choice is "hard")
+- Some choices are all positive (pure rewards)
+- Some choices are all negative (pick your poison)
+- **You will NOT soft-lock from one bad choice**
+- Perfect information lets you see exactly what you're getting
 
-2. **Economic Scarcity Is Core**
-   - Delivery earnings barely cover food + lodging
-   - Equipment upgrades require many successful runs
-   - Every coin spent somewhere = not spent elsewhere
-   - **Test:** Do margins feel tight but fair?
+**NOT tested:** "Is this individual choice difficult enough?"
 
-3. **No Power Fantasy**
-   - Resources stay scarce throughout
-   - Growth is incremental, not exponential
-   - You never become unstoppable
-   - **Test:** Does scarcity persist even after progression?
+### Strategic Layer (Cumulative Consequences)
+**What it is:** The pattern that emerges across 20+ choices over hours of play
 
-4. **Infinite Journey (Frieren Principle)**
-   - No ending, no "beating the game"
-   - A-story continues forever
-   - Success = quality of journey, not destination
-   - **Test:** Does it feel open-ended without pressure to rush?
+**How it feels:**
+- "I invested in Insight for 2 hours, NOW Social situations cost me dearly"
+- "I spent coins on equipment, NOW I can't afford the NPC relationship"
+- "I chose Route A ten times, NOW I'm specialized but vulnerable elsewhere"
+- **The Essential Feeling:** "I can afford A OR B, but not both" emerges from cumulative resource allocation
 
-5. **Contemplation Not Urgency**
-   - No ticking clocks forcing rushed decisions
-   - All costs visible before committing (perfect information)
-   - Can pause and calculate strategies
-   - **Test:** Can you thoughtfully evaluate every choice?
+**IS tested:** "Does resource scarcity emerge across hours? Do early choices constrain later options? Does specialization create distinct multi-hour experiences?"
 
-**Testing Lens:** Verify these design pillars manifest in actual play. If choices feel trivial, scarcity disappears, or rush pressure appears - design is failing.
+---
+
+## What Playtesters Should Understand
+
+### 1. Test HOLISTICALLY (Hours, Not Minutes)
+**Don't test:** Individual choice difficulty
+**Do test:** Does scarcity emerge after 15 deliveries? Does my build (chosen across 20 stat investments) create distinct experience?
+
+**Play for MINIMUM 2-4 hours** to see strategic patterns emerge.
+
+### 2. Economic Scarcity is CUMULATIVE
+**Don't test:** "This one delivery doesn't feel tight"
+**Do test:** "After 10 deliveries, am I operating at razor-thin margins? Do I have to choose between equipment OR NPC investment?"
+
+**Track coin balance over 20 deliveries** - trend matters, not individual transaction.
+
+### 3. Specialization is EMERGENT (Not Immediate)
+**Don't test:** "Insight stat doesn't immediately feel powerful"
+**Do test:** "After investing in Insight 10 times across 3 hours, do Mental challenges feel easier AND Social situations feel more expensive?"
+
+**Compare 3-hour Investigator playthrough vs 3-hour Diplomat playthrough** - distinct?
+
+### 4. Infinite Journey (Frieren Principle)
+**Don't test:** "Where's the ending?"
+**Do test:** "Does it feel open-ended? Can I explore for hours without pressure to 'finish'?"
+
+**No completion anxiety** - play at your own pace without fear of missing content.
+
+### 5. Contemplation Not Urgency
+**Don't test:** "Choices should be timed for pressure"
+**Do test:** "Can I pause, calculate, and strategize? Do I trust the numbers?"
+
+**Perfect information enables multi-step planning** - not artificial urgency.
+
+---
+
+## Testing Lens: STRATEGIC Not TACTICAL
+
+**WRONG approach (tactical testing):**
+- "Scene X doesn't create enough tension"
+- "This choice has an obvious answer"
+- "Individual encounter feels too easy"
+- Testing each decision point in isolation
+
+**RIGHT approach (strategic testing):**
+- "After 2 hours, do I feel resource pressure from cumulative choices?"
+- "Does Investigator build play differently than Diplomat after 3 hours?"
+- "Can I afford everything I want, or am I forced to prioritize over time?"
+- "Do choices made in hour 1 constrain options in hour 3?"
+
+**Play the game holistically as a STRATEGY game about long-term resource allocation, not a tactics game about individual hard decisions.**
 
 ---
 
@@ -264,15 +306,18 @@ await page.click('.modal-overlay');
 
 **Expected:** Economic pressure persists. Never trivial.
 
-### 5. Choices Feel Trivial (MAJOR)
-**Why Critical:** "Impossible choices" core experience (design/01_design_vision.md:19)
+### 5. Strategic Constraints Don't Emerge (MAJOR)
+**Why Critical:** "Impossible choices" emerge from cumulative consequences over hours, not individual decisions (design/01_design_vision.md:19)
 
-**Test:**
-- Do multiple paths feel genuinely valid?
-- Is there an obvious "correct" answer?
-- Do sacrifices feel meaningful?
+**Test (STRATEGIC - requires 2-4 hour playthrough):**
+- After 2 hours: Am I forced to choose between equipment OR NPC investment?
+- After 3 hours: Do early specialization choices constrain current options?
+- After 10 deliveries: Do I feel resource pressure forcing prioritization?
+- Across playthrough: Does "I can afford A OR B, not both" pattern emerge from cumulative allocation?
 
-**Expected:** "I can afford A OR B, but not both" should be constantly true.
+**Expected:** Strategic scarcity emerges over time through cumulative resource allocation.
+
+**DON'T test:** Whether individual choices feel hard (they often won't - and that's CORRECT for Sir Brante model).
 
 ### 6. Route Segments Don't Learn (MEDIUM)
 **Why Critical:** Route mastery = core skill progression (design/02_core_gameplay_loops.md:84)
@@ -374,6 +419,21 @@ await page.click('.modal-overlay');
 
 ## Testing Session Quick Start
 
+**CRITICAL: This is STRATEGIC testing requiring MINIMUM 2-4 hour playthroughs.**
+
+Individual choices/scenes tested in isolation = WRONG. You're testing cumulative patterns across time.
+
+**Mindset:**
+- Not: "Is this choice hard?"
+- But: "After 2 hours, do my choices create constraints?"
+
+**Time commitment:**
+- Minimum: 2 hours (to see economic patterns)
+- Recommended: 3-4 hours (to see build specialization)
+- Per persona: Run separate 3-hour sessions as Optimizer, Investigator, Diplomat
+
+---
+
 ### 1. Setup (5 min)
 ```bash
 cd /home/user/Wayfarer/src
@@ -405,14 +465,29 @@ Open browser: http://localhost:5000
 
 **Complete a1 → a2 → a3 tutorial sequence**
 
-### 4. Critical Path Test (20 min)
-**As Economic Optimizer:**
-1. Accept delivery contract (scene a2)
-2. Travel route (scene a3) - note which segments are fixed/event
-3. Complete delivery
-4. Calculate: earnings - (food + lodging) = profit?
-5. Repeat for 3 deliveries
-6. Verify profit margins tight but positive
+### 4. Strategic Economic Test (90-120 min)
+**As Economic Optimizer - Play for 2 HOURS minimum:**
+
+**Track across 15-20 deliveries:**
+- Coin balance trend (not individual profit)
+- Can you afford equipment after 12 deliveries?
+- Are you forced to choose between equipment OR NPC investment?
+- Does route learning provide measurable cumulative advantage?
+
+**Keep spreadsheet:**
+```
+Delivery | Earnings | Food | Lodging | Net | Total Coins | Notes
+1        | 20       | -10  | -15     | -5  | 45          | Learning route
+2        | 20       | -10  | -15     | -5  | 40          | Still learning
+3        | 22       | -10  | -15     | -3  | 37          | Optimizing
+...
+15       | 22       | -10  | -15     | -3  | 52          | Can almost afford equipment (60)
+```
+
+**Questions after 2 hours:**
+- Did scarcity emerge over time (not instantly)?
+- Am I forced to prioritize (equipment vs NPC vs savings)?
+- Do I feel strategic pressure from cumulative choices?
 
 ### 5. Perfect Information Audit (10 min)
 **Every single choice across all screens:**
@@ -439,20 +514,31 @@ for (let i = 0; i < choices; i++) {
 4. Confirm no unwinnable states
 5. Test recovery from near-zero resources
 
-### 7. Build Test (20 min each)
-**As Investigator:**
-- Prioritize Insight + Cunning
-- Find Mental challenge
-- Verify domination
-- Find Social situation
-- Verify struggle/costly workarounds
+### 7. Build Specialization Test (3-4 hours PER build)
+**CRITICAL: Run SEPARATE 3-hour playthroughs for each build to compare experiences.**
 
-**As Diplomat:**
-- Prioritize Rapport + Diplomacy
-- Find Social challenge
-- Verify domination
-- Find Mental situation
-- Verify struggle/costly workarounds
+**Session A - As Investigator (3 hours):**
+1. Invest in Insight + Cunning whenever stat increases available
+2. After 20+ stat investments across 3 hours:
+   - Do Mental challenges feel easier?
+   - Do Social situations force expensive/slow workarounds?
+   - Do I feel specialized (strong in one area, vulnerable in another)?
+3. Track: Which content accessible? Which content expensive?
+
+**Session B - As Diplomat (3 hours):**
+1. Invest in Rapport + Diplomacy whenever stat increases available
+2. After 20+ stat investments across 3 hours:
+   - Do Social challenges feel easier?
+   - Do Mental situations force expensive/slow workarounds?
+   - Do I feel specialized differently than Investigator?
+3. Track: Which content accessible? Which content expensive?
+
+**Compare after BOTH 3-hour sessions:**
+- Did builds create DISTINCT experiences?
+- Did specialization emerge gradually (not immediately)?
+- Did vulnerability in non-specialized areas become meaningful over time?
+
+**NOT a 20-minute test** - specialization is EMERGENT from cumulative stat allocation.
 
 ### 8. Report Critical Issues
 **BREAKING (stop testing):**
@@ -462,9 +548,9 @@ for (let i = 0; i < choices; i++) {
 
 **MAJOR (continue but note):**
 - Perfect information violations
-- Economic imbalance (too easy/hard)
-- Scarcity disappears
-- Choices feel trivial
+- Economic imbalance over 2 hours (too easy/hard)
+- Scarcity doesn't emerge across multiple playthroughs
+- Strategic constraints don't appear after cumulative choices
 
 **MEDIUM (note for later):**
 - Route learning doesn't work
@@ -475,13 +561,17 @@ for (let i = 0; i < choices; i++) {
 
 ## Success Criteria Summary
 
-✅ **Tutorial completes** (a1 → a2 → a3)
-✅ **No soft-locks** (always forward path)
+**REMEMBER: Test STRATEGICALLY across 2-4 hour playthroughs, not tactically per individual choice.**
+
+✅ **Tutorial completes** (a1 → a2 → a3 teaches core systems)
+✅ **No soft-locks** (always forward path, even with zero resources)
 ✅ **Perfect information** (all costs visible before commitment)
-✅ **Economic pressure exists** (3-7 coin profit per delivery, equipment requires 10-15 runs)
-✅ **Impossible choices** ("A OR B, not both" constantly true)
-✅ **Routes learn** (segments face-up on repeat, enables optimization)
-✅ **Builds differ** (Investigator ≠ Diplomat experience)
+✅ **Economic pressure EMERGES** (after 10-15 deliveries, forced to choose equipment OR NPC investment)
+✅ **Strategic constraints EMERGE** ("A OR B, not both" appears from cumulative allocation over 2+ hours)
+✅ **Routes learn** (segments face-up on repeat, enables optimization over time)
+✅ **Builds differ** (3-hour Investigator playthrough ≠ 3-hour Diplomat playthrough)
+
+**Timeframe matters:** These patterns emerge over HOURS, not individual encounters.
 
 ---
 
