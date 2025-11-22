@@ -203,6 +203,7 @@ public class Player
 
     public void AddKnownRoute(RouteOption route)
     {
+        // ZERO NULL TOLERANCE: route must never be null (architectural guarantee from caller)
         // HIGHLANDER: Use Location object for lookup, not string name
         Location origin = route.OriginLocation;
 
@@ -223,21 +224,21 @@ public class Player
     /// <summary>
     /// Get familiarity level for a route (0-5 scale)
     /// HIGHLANDER: Accept RouteOption object, not string ID
+    /// ZERO NULL TOLERANCE: route must never be null
     /// </summary>
     public int GetRouteFamiliarity(RouteOption route)
     {
-        if (route == null) return 0;
         FamiliarityEntry entry = RouteFamiliarity.FirstOrDefault(f => f.EntityId == route.Name);
-        return entry?.Level ?? 0;
+        return entry != null ? entry.Level : 0;
     }
 
     /// <summary>
     /// Set route familiarity to a specific value (max 5)
     /// HIGHLANDER: Accept RouteOption object, not string ID
+    /// ZERO NULL TOLERANCE: route must never be null
     /// </summary>
     public void SetRouteFamiliarity(RouteOption route, int level)
     {
-        if (route == null) return;
         FamiliarityEntry existing = RouteFamiliarity.FirstOrDefault(f => f.EntityId == route.Name);
         if (existing != null)
         {
@@ -252,10 +253,10 @@ public class Player
     /// <summary>
     /// Increase route familiarity after successful travel (max 5)
     /// HIGHLANDER: Accept RouteOption object, not string ID
+    /// ZERO NULL TOLERANCE: route must never be null
     /// </summary>
     public void IncreaseRouteFamiliarity(RouteOption route, int amount = 1)
     {
-        if (route == null) return;
         int current = GetRouteFamiliarity(route);
         SetRouteFamiliarity(route, Math.Min(5, current + amount));
     }
@@ -263,32 +264,31 @@ public class Player
     /// <summary>
     /// Check if route is mastered (familiarity = 5)
     /// HIGHLANDER: Accept RouteOption object, not string ID
+    /// ZERO NULL TOLERANCE: route must never be null
     /// </summary>
     public bool IsRouteMastered(RouteOption route)
     {
-        if (route == null) return false;
         return GetRouteFamiliarity(route) >= 5;
     }
 
     /// <summary>
     /// Get familiarity level for a Location (0-3 scale)
     /// HIGHLANDER: Accept Location object, not string ID
+    /// ZERO NULL TOLERANCE: location must never be null
     /// </summary>
     public int GetLocationFamiliarity(Location location)
     {
-        if (location == null) return 0;
         FamiliarityEntry entry = LocationFamiliarity.FirstOrDefault(f => f.EntityId == location.Name);
-        return entry?.Level ?? 0;
+        return entry != null ? entry.Level : 0;
     }
 
     /// <summary>
     /// Set Location familiarity to a specific value (max 3)
     /// HIGHLANDER: Accept Location object, not string ID
+    /// ZERO NULL TOLERANCE: location must never be null
     /// </summary>
     public void SetLocationFamiliarity(Location location, int value)
     {
-        if (location == null) return;
-
         int clampedValue = Math.Min(3, Math.Max(0, value));
         FamiliarityEntry existing = LocationFamiliarity.FirstOrDefault(f => f.EntityId == location.Name);
         if (existing != null)
@@ -308,22 +308,22 @@ public class Player
     /// <summary>
     /// Get token count for specific NPC and connection type
     /// HIGHLANDER: Accept NPC object, not string ID
+    /// ZERO NULL TOLERANCE: npc must never be null
     /// </summary>
     public int GetNPCTokenCount(NPC npc, ConnectionType type)
     {
-        if (npc == null) return 0;
         // HIGHLANDER: NPCTokenEntry.Npc is object reference, not string ID
         NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.Npc == npc);
-        return entry?.GetTokenCount(type) ?? 0;
+        return entry != null ? entry.GetTokenCount(type) : 0;
     }
 
     /// <summary>
     /// Set token count for specific NPC and connection type
     /// HIGHLANDER: Accept NPC object, not string ID
+    /// ZERO NULL TOLERANCE: npc must never be null
     /// </summary>
     public void SetNPCTokenCount(NPC npc, ConnectionType type, int count)
     {
-        if (npc == null) return;
         // HIGHLANDER: NPCTokenEntry.Npc is object reference, not string ID
         NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.Npc == npc);
         if (entry == null)
@@ -465,10 +465,10 @@ public class Player
 
     /// <summary>
     /// Apply initial player configuration from package starting conditions
+    /// ZERO NULL TOLERANCE: config must never be null (architectural guarantee from caller)
     /// </summary>
     public void ApplyInitialConfiguration(PlayerInitialConfig config, GameWorld gameWorld)
     {
-        if (config == null) return;
 
         // Progression
         if (config.Level.HasValue) Level = config.Level.Value;
@@ -494,18 +494,23 @@ public class Player
         }
 
         // Add initial items to inventory
+        // ZERO NULL TOLERANCE: InitialItems can be null/empty (optional configuration)
         if (config.InitialItems != null && config.InitialItems.Count > 0)
         {
             foreach (ResourceEntry entry in config.InitialItems)
             {
                 // HIGHLANDER: Resolve string itemId to Item object from GameWorld.Items
                 Item item = gameWorld.Items.FirstOrDefault(i => i.Name == entry.ResourceType);
-                if (item != null)
+                // FAIL-FAST: If item reference is invalid, this is data error
+                if (item == null)
                 {
-                    for (int i = 0; i < entry.Amount; i++)
-                    {
-                        Inventory.Add(item);
-                    }
+                    throw new InvalidOperationException(
+                        $"Initial item '{entry.ResourceType}' not found in GameWorld.Items - check package configuration");
+                }
+
+                for (int i = 0; i < entry.Amount; i++)
+                {
+                    Inventory.Add(item);
                 }
             }
         }

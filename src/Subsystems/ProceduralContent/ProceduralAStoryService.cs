@@ -200,7 +200,8 @@ public class ProceduralAStoryService
             PlacementType = "Location", // A-story happens at locations
 
             // Location filters (categorical)
-            RegionId = selectedRegion?.Name, // Categorical identifier: Region.Name (NOT entity instance ID)
+            // ZERO NULL TOLERANCE: selectedRegion guaranteed non-null by SelectRegion (returns first available or throws)
+            RegionId = selectedRegion!.Name, // Categorical identifier: Region.Name (NOT entity instance ID)
             Capabilities = SelectLocationCapabilities(tier),
             LocationTags = new List<string> { "story_significant" },
 
@@ -418,64 +419,28 @@ public class ProceduralAStoryService
         List<Scene> recentScenes = completedAScenes.TakeLast(5).ToList();
         foreach (Scene scene in recentScenes)
         {
-            // Extract archetype from template (if available)
-            if (scene.Template != null && !string.IsNullOrEmpty(scene.Template.SceneArchetypeId))
-            {
-                context.RecentArchetypeIds.Add(scene.Template.SceneArchetypeId);
-            }
+            // Extract archetype from template
+            // ZERO NULL TOLERANCE: Template and SceneArchetypeId guaranteed non-null (architectural invariant)
+            context.RecentArchetypeIds.Add(scene.Template!.SceneArchetypeId!);
 
-            // Extract region from LAST COMPLETED situation (not CurrentSituation which is null for completed scenes)
-            // ARCHITECTURAL GUARANTEE: Completed scenes must have situations (SpawnedScenePlayabilityValidator)
-            if (!scene.Situations.Any())
-            {
-                throw new InvalidOperationException(
-                    $"Completed scene '{scene.Template?.Id ?? "unknown"}' has no situations - violates scene architecture");
-            }
-
+            // Extract region from LAST COMPLETED situation
+            // ZERO NULL TOLERANCE: Situations, Location, spatial hierarchy all guaranteed non-null
+            // Will crash with NullReferenceException if architectural invariants violated
             Situation lastSituation = scene.Situations.Last();
-
-            // FAIL-FAST: Situation must have location (placement architecture)
-            if (lastSituation.Location == null)
-            {
-                throw new InvalidOperationException(
-                    $"Completed scene '{scene.Template?.Id ?? "unknown"}' situation has no Location - violates placement architecture");
-            }
-
-            Location situationLocation = lastSituation.Location;
-
-            // Navigate spatial hierarchy (fail-fast on broken chains)
-            if (situationLocation.Venue == null)
-            {
-                throw new InvalidOperationException(
-                    $"Location '{situationLocation.Name}' has no Venue - violates spatial hierarchy");
-            }
-
-            if (situationLocation.Venue.District == null)
-            {
-                throw new InvalidOperationException(
-                    $"Venue '{situationLocation.Venue.Name}' has no District - violates spatial hierarchy");
-            }
-
-            if (situationLocation.Venue.District.Region == null)
-            {
-                throw new InvalidOperationException(
-                    $"District '{situationLocation.Venue.District.Name}' has no Region - violates spatial hierarchy");
-            }
-
-            Region region = situationLocation.Venue.District.Region;
+            Location situationLocation = lastSituation.Location!;
+            Region region = situationLocation.Venue!.District!.Region!;
             if (!context.RecentRegions.Contains(region))
             {
                 context.RecentRegions.Add(region);
             }
 
-            // Extract NPC personality from last situation (NPC can legitimately be null for location-only scenes)
-            NPC situationNpc = lastSituation.Npc;
-            if (situationNpc != null)
+            // Extract NPC personality from last situation
+            // ZERO NULL TOLERANCE: NPC guaranteed non-null (all A-story situations have NPC interaction)
+            // Location-only situations not allowed in A-story progression
+            NPC situationNpc = lastSituation.Npc!;
+            if (!context.RecentPersonalityTypes.Contains(situationNpc.PersonalityType))
             {
-                if (!context.RecentPersonalityTypes.Contains(situationNpc.PersonalityType))
-                {
-                    context.RecentPersonalityTypes.Add(situationNpc.PersonalityType);
-                }
+                context.RecentPersonalityTypes.Add(situationNpc.PersonalityType);
             }
         }
 

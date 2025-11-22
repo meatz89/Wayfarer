@@ -202,7 +202,8 @@ public class Scene
         // HIGHLANDER: Scene has NO Id, Situation has NO Id - use TemplateId or Name
         Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' advancing from situation '{completedSituation.Name}'");
 
-        if (SpawnRules == null || SpawnRules.Transitions == null || SpawnRules.Transitions.Count == 0)
+        // ZERO NULL TOLERANCE: SpawnRules and Transitions guaranteed non-null by scene initialization
+        if (SpawnRules!.Transitions!.Count == 0)
         {
             // No transitions defined - scene complete after first situation
             Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' has no transitions - marking as complete");
@@ -214,29 +215,8 @@ public class Scene
         // Find transition from completed situation (evaluates conditions)
         SituationTransition transition = GetTransitionForCompletedSituation(completedSituation);
 
-        if (transition != null)
-        {
-            // Valid transition found - find next situation by TemplateId match
-            Situation nextSituation = Situations
-                .FirstOrDefault(s => s.TemplateId == transition.DestinationSituationId);
-
-            // Update CurrentSituationIndex
-            if (nextSituation != null)
-            {
-                CurrentSituationIndex = Situations.IndexOf(nextSituation);
-            }
-            else
-            {
-                CurrentSituationIndex = Situations.Count; // Not found = complete
-            }
-            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' advanced to situation '{(nextSituation != null ? nextSituation.Name : "NULL")}' (index {CurrentSituationIndex})");
-
-            // Compare contexts to determine routing
-            SceneRoutingDecision decision = CompareContexts(completedSituation, nextSituation);
-            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' routing decision: {decision}");
-            return decision;
-        }
-        else
+        // ZERO NULL TOLERANCE: Transition lookup returns valid transition or marks scene complete
+        if (transition == null)
         {
             // No valid transition - scene complete
             Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' has no valid transition - marking as complete");
@@ -244,6 +224,26 @@ public class Scene
             State = SceneState.Completed;
             return SceneRoutingDecision.SceneComplete;
         }
+
+        // Valid transition found - find next situation by TemplateId match
+        Situation nextSituation = Situations
+            .FirstOrDefault(s => s.TemplateId == transition.DestinationSituationId);
+
+        // FAIL-FAST: If transition references non-existent situation, this is data error
+        if (nextSituation == null)
+        {
+            throw new InvalidOperationException(
+                $"Scene '{TemplateId}' transition references destination '{transition.DestinationSituationId}' which does not exist in Situations collection");
+        }
+
+        // Update CurrentSituationIndex
+        CurrentSituationIndex = Situations.IndexOf(nextSituation);
+        Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' advanced to situation '{nextSituation.Name}' (index {CurrentSituationIndex})");
+
+        // Compare contexts to determine routing
+        SceneRoutingDecision decision = CompareContexts(completedSituation, nextSituation);
+        Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' routing decision: {decision}");
+        return decision;
     }
 
     /// <summary>
@@ -256,8 +256,8 @@ public class Scene
     /// <returns>Matching SituationTransition based on evaluated conditions, or null if no match</returns>
     public SituationTransition GetTransitionForCompletedSituation(Situation completedSituation)
     {
-        if (SpawnRules == null || SpawnRules.Transitions == null || completedSituation == null)
-            return null;
+        // ZERO NULL TOLERANCE: SpawnRules, Transitions, and completedSituation guaranteed non-null
+        // SpawnRules initialized during scene creation, completedSituation passed from caller
 
         // Find all transitions from this source situation
         // CRITICAL: Use TemplateId for matching (HIGHLANDER Pattern D)
@@ -276,6 +276,7 @@ public class Scene
         // 3. Always (fallback)
 
         // Check OnChoice transitions first (most specific)
+        // LastChoice can be null if situation completed without player choice (auto-advance)
         if (completedSituation.LastChoice != null)
         {
             SituationTransition choiceTransition = candidateTransitions
@@ -286,6 +287,7 @@ public class Scene
         }
 
         // Check OnSuccess/OnFailure transitions (challenge outcome)
+        // LastChallengeSucceeded can be null if no challenge was attempted
         if (completedSituation.LastChallengeSucceeded.HasValue)
         {
             TransitionCondition targetCondition = completedSituation.LastChallengeSucceeded.Value
@@ -328,7 +330,10 @@ public class Scene
     public bool ShouldResumeAtContext(Location location, NPC npc)
     {
         // HIGHLANDER: Scene has NO Id - use TemplateId for logging
-        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{TemplateId}' checking resumption at location '{location?.Name}', npc '{npc?.Name}'");
+        // ZERO NULL TOLERANCE: location/npc can be null (player at location with no NPC), format accordingly
+        string locationName = location != null ? location.Name : "nowhere";
+        string npcName = npc != null ? npc.Name : "no-one";
+        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{TemplateId}' checking resumption at location '{locationName}', npc '{npcName}'");
 
         if (State != SceneState.Active)
         {
@@ -342,17 +347,20 @@ public class Scene
             return false;
         }
 
+        // ZERO NULL TOLERANCE: CurrentSituation.Template guaranteed non-null for active situations
         if (CurrentSituation.Template == null)
         {
-            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{TemplateId}' rejected - CurrentSituation template is null");
-            return false;
+            throw new InvalidOperationException(
+                $"Scene '{TemplateId}' has CurrentSituation with null Template - violates active situation architecture");
         }
 
         // HIGHLANDER: Direct object comparison
         Location requiredLocation = CurrentSituation.Location;
         NPC requiredNpc = CurrentSituation.Npc;
 
-        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{TemplateId}' requires location '{requiredLocation?.Name}', npc '{requiredNpc?.Name}' | Player at '{location?.Name}', '{npc?.Name}'");
+        string reqLocationName = requiredLocation != null ? requiredLocation.Name : "any";
+        string reqNpcName = requiredNpc != null ? requiredNpc.Name : "any";
+        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{TemplateId}' requires location '{reqLocationName}', npc '{reqNpcName}' | Player at '{locationName}', '{npcName}'");
 
         // Check location match - object equality
         if (requiredLocation != location)
@@ -384,8 +392,13 @@ public class Scene
     /// <returns>Routing decision for UI</returns>
     private SceneRoutingDecision CompareContexts(Situation previousSituation, Situation nextSituation)
     {
-        if (previousSituation?.Template == null || nextSituation?.Template == null)
-            return SceneRoutingDecision.ExitToWorld;
+        // ZERO NULL TOLERANCE: Both situations guaranteed non-null by caller (AdvanceToNextSituation validates)
+        // Templates guaranteed non-null for spawned situations
+        if (previousSituation.Template == null || nextSituation.Template == null)
+        {
+            throw new InvalidOperationException(
+                $"Scene '{TemplateId}' comparing situations with null Templates - violates situation architecture");
+        }
 
         // HIGHLANDER: Direct object references
         Location prevLocation = previousSituation.Location;
@@ -394,8 +407,13 @@ public class Scene
         NPC prevNpc = previousSituation.Npc;
         NPC nextNpc = nextSituation.Npc;
 
-        Console.WriteLine($"[Scene.CompareContexts] Previous: location='{prevLocation?.Name}', npc='{prevNpc?.Name}'");
-        Console.WriteLine($"[Scene.CompareContexts] Next: location='{nextLocation?.Name}', npc='{nextNpc?.Name}'");
+        string prevLocName = prevLocation != null ? prevLocation.Name : "any";
+        string prevNpcName = prevNpc != null ? prevNpc.Name : "any";
+        string nextLocName = nextLocation != null ? nextLocation.Name : "any";
+        string nextNpcName = nextNpc != null ? nextNpc.Name : "any";
+
+        Console.WriteLine($"[Scene.CompareContexts] Previous: location='{prevLocName}', npc='{prevNpcName}'");
+        Console.WriteLine($"[Scene.CompareContexts] Next: location='{nextLocName}', npc='{nextNpcName}'");
 
         // Compare location context - object equality
         bool sameLocation = prevLocation == nextLocation;

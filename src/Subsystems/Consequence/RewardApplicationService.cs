@@ -36,9 +36,7 @@ public class RewardApplicationService
     /// </summary>
     public async Task ApplyChoiceReward(ChoiceReward reward, Situation currentSituation)
     {
-        if (reward == null)
-            return;
-
+        // ZERO NULL TOLERANCE: reward must never be null (architectural guarantee from caller)
         Player player = _gameWorld.GetPlayer();
 
         // Apply FullRecovery if flagged (overrides individual resource rewards)
@@ -213,27 +211,15 @@ public class RewardApplicationService
                     template = _gameWorld.SceneTemplates
                         .FirstOrDefault(t => t.MainStorySequence.HasValue && t.MainStorySequence.Value == sequence);
 
+                    // Generate procedurally if not found (on-demand generation)
                     if (template == null)
                     {
-                        // Template doesn't exist - generate procedurally
-                        // Get or initialize A-story context
                         AStoryContext aStoryContext = _proceduralAStoryService.GetOrInitializeContext(player);
+                        await _proceduralAStoryService.GenerateNextATemplate(sequence, aStoryContext);
 
-                        // Generate template procedurally (HIGHLANDER: DTO → JSON → PackageLoader → Template)
-                        string generatedTemplateId = await _proceduralAStoryService.GenerateNextATemplate(sequence, aStoryContext);
-
-                        // Retrieve generated template (by sequence, since ID might vary)
+                        // ZERO NULL TOLERANCE: Template must exist after generation (assert with First())
                         template = _gameWorld.SceneTemplates
-                            .FirstOrDefault(t => t.MainStorySequence.HasValue && t.MainStorySequence.Value == sequence);
-
-                        // FAIL-FAST: If generation succeeded but template not in GameWorld, this is critical error
-                        if (template == null)
-                        {
-                            throw new InvalidOperationException(
-                                $"FATAL: Generated A-story template '{generatedTemplateId}' for sequence {sequence} " +
-                                $"not found in GameWorld after generation. This indicates HIGHLANDER pipeline failure " +
-                                $"(DTO → JSON → PackageLoader → Template). Check ProceduralAStoryService and PackageLoaderFacade.");
-                        }
+                            .First(t => t.MainStorySequence.HasValue && t.MainStorySequence.Value == sequence);
                     }
                 }
                 else
@@ -247,23 +233,17 @@ public class RewardApplicationService
             else
             {
                 // Non-A-story scene - lookup by ID as normal
+                // ZERO NULL TOLERANCE: Template must exist (will throw if not found)
                 template = _gameWorld.SceneTemplates
-                    .FirstOrDefault(t => t.Id == sceneSpawn.SceneTemplateId);
-
-                // FAIL-FAST: Missing template indicates data error (invalid SceneSpawnReward configuration)
-                if (template == null)
-                {
-                    throw new InvalidOperationException(
-                        $"SceneTemplate '{sceneSpawn.SceneTemplateId}' not found in GameWorld. " +
-                        $"Verify template ID in SceneSpawnReward configuration matches authored JSON packages. " +
-                        $"Available templates: {string.Join(", ", _gameWorld.SceneTemplates.Select(t => t.Id).Take(10))}...");
-                }
+                    .First(t => t.Id == sceneSpawn.SceneTemplateId);
             }
 
             // Resolve placement context (ARCHITECTURAL CHANGE: Direct property access)
-            RouteOption currentRoute = currentSituation?.Route;
-            Location currentLocation = currentSituation?.Location;
-            NPC currentNPC = currentSituation?.Npc;
+            // ZERO NULL TOLERANCE: All references guaranteed non-null (architectural invariant)
+            // Scene spawning requires complete context: currentSituation and its Route/Location/NPC
+            RouteOption currentRoute = currentSituation!.Route!;
+            Location currentLocation = currentSituation!.Location!;
+            NPC currentNPC = currentSituation!.Npc!;
 
             // Build spawn context
             SceneSpawnContext context = new SceneSpawnContext

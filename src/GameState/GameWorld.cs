@@ -223,11 +223,10 @@ public class GameWorld
     /// <summary>
     /// Add a temporary route block that expires after specified days
     /// HIGHLANDER: Accepts RouteOption object, uses route.Name as natural key
+    /// ZERO NULL TOLERANCE: route must never be null
     /// </summary>
     public void AddTemporaryRouteBlock(RouteOption route, int daysBlocked, int currentDay)
     {
-        if (route == null) return;
-
         // HIGHLANDER: Compare Route objects directly, not route.Name strings
         TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.Route == route);
         if (block == null)
@@ -242,11 +241,10 @@ public class GameWorld
     /// <summary>
     /// Check if a route is temporarily blocked
     /// HIGHLANDER: Accepts RouteOption object, uses route.Name as natural key
+    /// ZERO NULL TOLERANCE: route must never be null
     /// </summary>
     public bool IsRouteBlocked(RouteOption route, int currentDay)
     {
-        if (route == null) return false;
-
         // HIGHLANDER: Compare Route objects directly, not route.Name strings
         TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.Route == route);
         if (block != null)
@@ -265,7 +263,9 @@ public class GameWorld
     public District GetDistrictForLocation(Venue venue)
     {
         // HIGHLANDER: Accept Venue object, return District object reference directly
-        if (venue == null || venue.District == null)
+        // ZERO NULL TOLERANCE: venue must never be null
+        // District can be null if venue not yet assigned (return null is legitimate)
+        if (venue.District == null)
             return null;
 
         return venue.District;
@@ -274,7 +274,9 @@ public class GameWorld
     // HIGHLANDER: Accept District object, use object reference (not string lookup)
     public Region GetRegionForDistrict(District district)
     {
-        if (district == null || district.Region == null)
+        // ZERO NULL TOLERANCE: district must never be null
+        // Region can be null if district not yet assigned (return null is legitimate)
+        if (district.Region == null)
             return null;
 
         return district.Region;
@@ -282,15 +284,21 @@ public class GameWorld
 
     public string GetFullLocationPath(string venueName)
     {
-        Venue? venue = Venues.FirstOrDefault(l => l.Name == venueName);
-        if (venue == null) return "";
+        Venue venue = Venues.FirstOrDefault(l => l.Name == venueName);
+        // FAIL-FAST: If venue name is invalid, this is data error
+        if (venue == null)
+        {
+            throw new InvalidOperationException($"Venue '{venueName}' not found in GameWorld");
+        }
 
         // HIGHLANDER: GetDistrictForLocation accepts Venue, not string - need to pass venue object
         District district = GetDistrictForLocation(venue);
+        // District can legitimately be null (venue not assigned to district yet)
         if (district == null) return venue.Name;
 
         // HIGHLANDER: Pass District object, not string
         Region region = GetRegionForDistrict(district);
+        // Region can legitimately be null (district not assigned to region yet)
         if (region == null) return $"{venue.Name}, {district.Name}";
 
         return $"{venue.Name}, {district.Name}, {region.Name}";
@@ -392,6 +400,7 @@ public class GameWorld
 
     /// <summary>
     /// Apply initial player configuration after package loading
+    /// ZERO NULL TOLERANCE NOTE: InitialPlayerConfig can be null (optional configuration)
     /// </summary>
     public void ApplyInitialPlayerConfiguration()
     {
