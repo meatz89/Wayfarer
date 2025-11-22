@@ -20,7 +20,7 @@ Everything here is verified against code or documentation. No assumptions.
 
 ## How to Run the Game
 
-**Technology:** ASP.NET Core Blazor Server (verified: Program.cs line 17)
+**Technology:** ASP.NET Core Blazor Server (verified: Program.cs contains `builder.Services.AddServerSideBlazor()`)
 
 **Build Command:**
 ```bash
@@ -35,16 +35,30 @@ ASPNETCORE_URLS="http://localhost:5000" dotnet run
 ```
 
 **What Happens on Startup:**
-1. GameWorld initialization via `GameWorldInitializer.CreateGameWorld()` (Program.cs:28)
+1. GameWorld initialization via `GameWorldInitializer.CreateGameWorld()` (verified: Program.cs contains `GameWorld gameWorld = GameWorldInitializer.CreateGameWorld()`)
 2. Content loading from JSON files in `Content/Core/` directory
 3. Serilog console logging starts
 4. Server listens on http://localhost:5000
 5. Navigate browser to http://localhost:5000
 
-**For Testing Environment Without .NET:**
-- Game requires .NET 7.0+ SDK to run
-- Alternative: Use Docker container or pre-built deployment
-- Playwright tests assume server already running on localhost:5000
+**Prerequisites:**
+- .NET 7.0+ SDK required
+- Browser: Chrome, Firefox, or Edge (latest version)
+- Disk space: ~500MB for .NET SDK + game assets
+
+**Automated vs Manual Testing:**
+- **Automated tests** (Wayfarer.Tests.Project/) verify structural guarantees:
+  - Tutorial spawning (TutorialInnLodgingIntegrationTest.cs)
+  - Soft-lock prevention (FallbackPathTests.cs)
+  - Economic structure (AStoryPlayerExperienceTest.cs)
+  - Run via: `cd Wayfarer.Tests.Project && dotnet test`
+
+- **Manual playtesting** (this guide) tests experiential qualities:
+  - Does scarcity FEEL emergent over 2 hours?
+  - Do builds create DISTINCT experiences?
+  - Is strategic pressure meaningful?
+
+**Run automated tests FIRST** to catch breaking issues, THEN manual playtest for experience validation.
 
 **Expected Console Output on Success:**
 ```
@@ -52,6 +66,40 @@ info: Content loading...
 info: GameWorld initialized
 info: Now listening on: http://localhost:5000
 ```
+
+**If Startup Fails:**
+
+**GameWorld initialization error:**
+```bash
+# Check Content/Core/ exists and contains JSON files
+ls -la src/Content/Core/*.json
+# Should show 19 files (01_foundation.json through 22_tutorial_challenges.json)
+
+# Run automated tests to isolate issue
+cd Wayfarer.Tests.Project && dotnet test --filter "Tutorial"
+```
+
+**Port conflict (Address already in use):**
+```bash
+# Use different port
+ASPNETCORE_URLS="http://localhost:6000" dotnet run
+```
+
+**Tutorial scene doesn't spawn:**
+- Automated test verifies this (run `dotnet test --filter "Tutorial_LoadsSceneTemplates"`)
+- Check browser console for JavaScript errors
+- Verify GameWorld.IsGameStarted = true in debugger
+- Check GameFacade.StartGameAsync() was called
+
+**Reset game state:**
+- Restart server (Ctrl+C, then rerun)
+- Clear browser localStorage: F12 → Application → Local Storage → Clear
+- Delete generated content: `rm -rf src/Content/Dynamic/*`
+
+**Report bugs:**
+- GitHub Issues: https://github.com/meatz89/Wayfarer/issues
+- Include: Console logs, browser console errors, steps to reproduce
+- Label: `playtest` for issues found during playtesting
 
 ---
 
@@ -219,39 +267,42 @@ info: Now listening on: http://localhost:5000
 
 ### Resource Display
 ```javascript
-// Resource values (line 29, 36, 43, 50, 57)
+// Verified selectors from GameScreen.razor (resource-bar contains resource-value elements)
 const health = await page.locator('.resource .resource-value').nth(0).textContent();
 const hunger = await page.locator('.resource .resource-value').nth(1).textContent();
 const focus = await page.locator('.resource .resource-value').nth(2).textContent();
 const coins = await page.locator('.resource .resource-value').nth(4).textContent();
+
+// Alternative: target by label
+const health = await page.locator('.resource:has(.resource-label:text("Health")) .resource-value').textContent();
 ```
 
 ### Time Display
 ```javascript
-// Day and time period (line 9, 11)
+// Verified: time-header contains day-display and period-name
 const day = await page.locator('.day-display').textContent();
 const period = await page.locator('.period-name').textContent();
 ```
 
 ### Active Delivery
 ```javascript
-// Check if delivery active (line 67)
+// Verified: active-job-banner appears when delivery active
 const hasActiveJob = await page.locator('.active-job-banner').isVisible();
 const payment = await page.locator('.active-job-payment').textContent();
 ```
 
 ### Navigation
 ```javascript
-// Fixed buttons (line 79, 80)
+// Verified: fixed-buttons-container has journal-btn and map-btn
 await page.click('.journal-btn');
 await page.click('.map-btn');
 ```
 
 ### Modals
 ```javascript
-// Modal overlay (line 86, 96)
+// Verified: modal-overlay wraps modal-content
 const modalOpen = await page.locator('.modal-overlay').isVisible();
-// Close modal - click overlay
+// Close modal - click overlay (stopPropagation on content)
 await page.click('.modal-overlay');
 ```
 
@@ -330,12 +381,23 @@ await page.click('.modal-overlay');
 **Expected:** Learning routes enables profitable optimization.
 
 ### 7. Tutorial Doesn't Spawn (BREAKING)
-**Why Critical:** a1_secure_lodging has `isStarter: true` - must appear (22_a_story_tutorial.json:22)
+**Why Critical:** a1_secure_lodging has `isStarter: true` - must appear (22_a_story_tutorial.json)
 
-**Test:**
+**Verified Code Path:**
+1. GameFacade.StartGameAsync() called when game starts (Services/GameFacade.cs)
+2. Queries `_gameWorld.SceneTemplates.Where(t => t.IsStarter)` (GameFacade.cs:1600)
+3. For each starter template, calls SceneInstantiator to create Scene instance
+4. Scene placed at location/NPC matching template's PlacementFilter
+5. Scene becomes active, choices appear in UI
+
+**Automated Test:** `TutorialInnLodgingIntegrationTest.Tutorial_LoadsSceneTemplates()` verifies IsStarter scenes exist
+
+**Manual Test:**
 - Game start → Scene a1 appears at Common Room with Elena
 - Can complete all three tutorial scenes (a1, a2, a3)
 - Each scene teaches intended system
+
+**If fails:** Run `dotnet test --filter "Tutorial_LoadsSceneTemplates"` to isolate issue
 
 **Expected:** Smooth onboarding, no confusion.
 
@@ -474,15 +536,35 @@ Open browser: http://localhost:5000
 - Are you forced to choose between equipment OR NPC investment?
 - Does route learning provide measurable cumulative advantage?
 
-**Keep spreadsheet:**
-```
-Delivery | Earnings | Food | Lodging | Net | Total Coins | Notes
-1        | 20       | -10  | -15     | -5  | 45          | Learning route
-2        | 20       | -10  | -15     | -5  | 40          | Still learning
-3        | 22       | -10  | -15     | -3  | 37          | Optimizing
-...
-15       | 22       | -10  | -15     | -3  | 52          | Can almost afford equipment (60)
-```
+**Economic Tracking Spreadsheet Template:**
+
+| Delivery | Earnings | Food Cost | Lodging Cost | Other Costs | Net Profit | Total Coins | Can Buy Equipment? | Notes |
+|----------|----------|-----------|--------------|-------------|------------|-------------|-------------------|-------|
+| 1        | 20       | -10       | -15          | 0           | -5         | 45          | No (need 60)      | Learning route segments |
+| 2        | 20       | -10       | -15          | 0           | -5         | 40          | No (need 60)      | Still face-down segments |
+| 3        | 22       | -10       | -15          | 0           | -3         | 37          | No (need 60)      | Route optimization starting |
+| 4        | 22       | -10       | -15          | -5          | -8         | 29          | No (need 60)      | Emergency cost (healing) |
+| 5-10     | ...      | ...       | ...          | ...         | ...        | ...         | ...               | ... |
+| 12       | 22       | -10       | -15          | 0           | -3         | 56          | No (need 60)      | Almost there |
+| 13       | 22       | -10       | -15          | 0           | -3         | 59          | No (need 60)      | One more delivery |
+| 14       | 22       | -10       | -15          | 0           | -3         | 62          | **YES**           | Can afford equipment! |
+
+**Success Thresholds:**
+- **Net Profit Average:** Should be between +3 to +7 coins per optimized delivery (tight margins)
+- **Equipment Affordability:** 60 coins should take 10-15 deliveries (not 5, not 30)
+- **Emergency Impact:** One bad delivery should NOT bankrupt (resilience test)
+- **Route Learning Benefit:** Deliveries 1-3 should be worse than deliveries 10-12 (measurable skill improvement)
+
+**Calculate:**
+- `Net Profit = Earnings - Food - Lodging - Other`
+- `Total Coins = Previous Total + Net Profit`
+- `Deliveries to Equipment = 60 / Average Net Profit` (should be 10-15)
+
+**Red Flags:**
+- Average net profit > 10 coins = too easy (violates scarcity design)
+- Average net profit < 0 coins = too punishing (unplayable)
+- Equipment affordable in < 8 deliveries = progression too fast
+- Equipment requires > 20 deliveries = progression too slow
 
 **Questions after 2 hours:**
 - Did scarcity emerge over time (not instantly)?
