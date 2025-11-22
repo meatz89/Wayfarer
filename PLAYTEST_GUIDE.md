@@ -409,22 +409,24 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 **Design:** Infinite main storyline through procedural generation (Frieren model).
 
 **How It Works:**
-- A1-A3: Authored tutorial (teaches core systems, lighter stat gating by design)
-- **A11+: Infinite procedural scenes** generated at runtime
+- **A1-A3: Authored tutorial** (teaches core systems, lighter stat gating by design)
+- **A4+: Infinite procedural scenes** generated at runtime
   - Archetype rotation (investigation → social → confrontation → crisis)
   - Anti-repetition (no archetype twice in 5 scenes)
-  - Tier escalation (Personal → Local → Regional → Cosmic)
+  - Tier escalation (sequence 1-30 Personal, 31-50 Local, 51+ Regional)
   - Categorical placement (locations/NPCs selected by properties, not IDs)
 
-**Transition:** A3 completion → spawns A11 (bridge to procedural) → A11 completion → spawns A12 → forever
+**Transition:** A3 completion → spawns A4 (procedurally generated) → A4 completion → spawns A5 → forever
 
 **What testers should verify:**
-- A3 completes and spawns A11 (should appear seamlessly)
-- A11+ scenes feel like natural continuation (same quality, different content)
+- **A3 completes and spawns A4** (should appear seamlessly - this is the FIRST procedural scene)
+- A4+ scenes feel like natural continuation (same quality, different content)
 - No repetition across consecutive A-scenes (different archetypes, different NPCs)
 - Can play for 4+ hours and A-story continues infinitely
 
-**Emotional Arc Testing:** Hour 4+ emotional arc (regret, specialization vulnerability) REQUIRES procedural content. If you complete A3 and don't see A11, report as CRITICAL BUG.
+**Emotional Arc Testing:** Hour 4+ emotional arc (regret, specialization vulnerability) REQUIRES procedural content. If you complete A3 and don't see A4, report as CRITICAL BUG.
+
+**Note:** Tutorial is currently A1-A3 (3 authored scenes). Design goal is A1-A10 (10 authored scenes), at which point procedural would start at A11. Architecture works with ANY number of authored scenes - if tutorial expands to A1-A10 later, no code changes needed.
 
 ---
 
