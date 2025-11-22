@@ -1,7 +1,7 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 
-[assembly: InternalsVisibleTo("Wayfarer.Tests.Project")]
+[assembly: InternalsVisibleTo("Wayfarer.Tests")]
 
 /// <summary>
 /// Domain Service for generating Scene instance DTOs and JSON packages from SceneTemplates

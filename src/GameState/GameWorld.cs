@@ -188,6 +188,13 @@ public class GameWorld
 
     // New properties
     public List<Item> Items { get; set; } = new List<Item>();
+
+    // Market price override system - enables testing and special market conditions
+    // Used for quest rewards, merchant relationships, government price controls, etc.
+    // HIGHLANDER: GameWorld owns all price modifiers, single source of truth
+    // SENTINEL: Null override = use calculated price, explicit value = use that price
+    public List<MarketPriceModifier> MarketPriceModifiers { get; set; } = new List<MarketPriceModifier>();
+
     public List<RouteOption> Routes { get; set; } = new List<RouteOption>();
 
     // Delivery Job System - Core game loop (Phase 3)
