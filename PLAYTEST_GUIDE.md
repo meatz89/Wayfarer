@@ -109,7 +109,7 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 
 **Core Experience:** Strategic depth through impossible choices, not mechanical complexity. (design/01_design_vision.md:11)
 
-**You are:** A courier managing scarce resources across dangerous routes. NOT a hero. You accept delivery jobs, navigate challenges, and barely afford survival.
+**You are:** A traveler making difficult choices where your past decisions constrain current options. NOT a hero. You pick from available choices, invest in stats that unlock some paths while closing others, and live with cumulative consequences of specialization.
 
 **CRITICAL DISTINCTION - Two Layers:**
 
@@ -132,7 +132,7 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 - "I invested in Insight for 2 hours, NOW Social situations cost me dearly"
 - "I spent coins on equipment, NOW I can't afford the NPC relationship"
 - "I chose Route A ten times, NOW I'm specialized but vulnerable elsewhere"
-- **The Essential Feeling:** "I can afford A OR B, but not both" emerges from cumulative resource allocation
+- **The Essential Feeling:** "I can access path A OR path B based on my stats, not both. My past stat investments created this constraint."
 
 **IS tested:** "Does resource scarcity emerge across hours? Do early choices constrain later options? Does specialization create distinct multi-hour experiences?"
 
@@ -146,11 +146,11 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 
 **Play for MINIMUM 2-4 hours** to see strategic patterns emerge.
 
-### 2. Economic Scarcity is CUMULATIVE
-**Don't test:** "This one delivery doesn't feel tight"
-**Do test:** "After 10 deliveries, am I operating at razor-thin margins? Do I have to choose between equipment OR NPC investment?"
+### 2. Stat Gating Creates Constraint
+**Don't test:** "This individual choice is easy"
+**Do test:** "After 2 hours, do I see choices I WANT but can't take due to stat requirements? Am I blocked from entire content areas due to specialization?"
 
-**Track coin balance over 20 deliveries** - trend matters, not individual transaction.
+**Past stat allocation creates CURRENT constraints** - specialization matters over hours.
 
 ### 3. Specialization is EMERGENT (Not Immediate)
 **Don't test:** "Insight stat doesn't immediately feel powerful"
@@ -337,16 +337,21 @@ await page.click('.modal-overlay');
 
 **Expected:** Can calculate multi-step strategies. Trust the numbers.
 
-### 3. Economic Imbalance (MAJOR)
-**Why Critical:** "Razor-thin profit margins" is intentional design (design/01_design_vision.md:17)
+### 3. Stat Gating Doesn't Constrain (MAJOR)
+**Why Critical:** Stat requirements should block desired choices, creating tension (design/03_progression_systems.md:154-182)
 
 **Test:**
-- Delivery earnings vs survival costs ratio
-- Can maintain positive coins over 10 deliveries?
-- Equipment affordable within reasonable time?
-- Margins feel tight but NOT punishing?
+- Do I see stat-gated choices I WANT but can't take?
+- After specializing for 2 hours, am I blocked from non-specialized content?
+- Do requirements show exact gap ("Need Insight 5, you have 3")?
+- Am I forced to invest in unwanted stats to unlock gated content?
 
-**Expected:** ~3-7 coins profit per optimized delivery. Equipment costs 60+ coins = 10-12 deliveries required.
+**Expected:** Specialization creates vulnerability. Investigator blocked from Social paths. Diplomat blocked from Mental paths. Requirements visible with exact gaps.
+
+**Red Flags:**
+- All choices available regardless of stats (gating not working)
+- Can't see what's required to unlock choices (perfect information broken)
+- Never feel constrained by past stat investments (consequences not cumulative)
 
 ### 4. Scarcity Disappears (MAJOR)
 **Why Critical:** "No power fantasy" - resources must stay scarce (design/01_design_vision.md:93)
@@ -359,17 +364,21 @@ await page.click('.modal-overlay');
 **Expected:** Economic pressure persists. Never trivial.
 
 ### 5. Strategic Constraints Don't Emerge (MAJOR)
-**Why Critical:** "Impossible choices" emerge from cumulative consequences over hours, not individual decisions (design/01_design_vision.md:19)
+**Why Critical:** "Impossible choices" emerge from cumulative stat consequences over hours (design/01_design_vision.md:19)
 
 **Test (STRATEGIC - requires 2-4 hour playthrough):**
-- After 2 hours: Am I forced to choose between equipment OR NPC investment?
-- After 3 hours: Do early specialization choices constrain current options?
-- After 10 deliveries: Do I feel resource pressure forcing prioritization?
-- Across playthrough: Does "I can afford A OR B, not both" pattern emerge from cumulative allocation?
+- After 2 hours of Insight investment: Are Social choices NOW blocked due to low Rapport?
+- After 3 hours: Do early stat allocations create CURRENT vulnerability?
+- Across playthrough: Do I see choices I WANT but can't afford (stat requirements)?
+- Do I feel forced to pick stat increases I don't want to unlock gated content?
 
-**Expected:** Strategic scarcity emerges over time through cumulative resource allocation.
+**Expected:** Stat specialization creates constraint. Past stat investment blocks current desired paths. "I can access A OR B based on my stats, not both" emerges.
 
-**DON'T test:** Whether individual choices feel hard (they often won't - and that's CORRECT for Sir Brante model).
+**Economic Pressure** (secondary to stat gating):
+- After 10 deliveries, can I afford occasional equipment? (Should be tight but possible)
+- Do coins create tension but NOT dominant constraint? (Stats primary, coins secondary)
+
+**DON'T test:** Whether individual choices feel hard tactically (they often won't - and that's CORRECT for Sir Brante model).
 
 ### 6. Route Segments Don't Learn (MEDIUM)
 **Why Critical:** Route mastery = core skill progression (design/02_core_gameplay_loops.md:84)
@@ -528,75 +537,52 @@ Open browser: http://localhost:5000
 
 **Complete a1 → a2 → a3 tutorial sequence**
 
-### 4. Strategic Economic Test (90-120 min)
-**As Economic Optimizer - Play for 2 HOURS minimum:**
+### 4. Core Experience Test: Stat Gating and Choice Consequences (2-3 hours)
 
-**Track across 15-20 deliveries:**
-- Coin balance trend (not individual profit)
-- Can you afford equipment after 12 deliveries?
-- Are you forced to choose between equipment OR NPC investment?
-- Does route learning provide measurable cumulative advantage?
+**THE PRIMARY EXPERIENCE TO TEST:**
 
-**How to Record Values from Game UI:**
+**NOT:**  "Can I calculate profit margins accurately?"
+**YES:** "I can't take the choice I WANT because my Rapport is too low"
 
-**Finding Earnings:**
-- Delivery payment shown in active delivery banner (`.active-job-payment` class)
-- Example: "Active Delivery: Deliver package to Old Mill - 20 coins"
-- Record the "20 coins" value in Earnings column
+**Play for 2-3 HOURS minimum to feel cumulative stat consequences.**
 
-**Finding Costs:**
-- Food cost: When purchasing food at inn/tavern, choice shows "Costs: -10 coins"
-- Lodging cost: When renting room, choice shows "Costs: -15 coins"
-- Other costs: Any emergency choices (healing, repairs) show costs in choice consequences
-- **CRITICAL:** Use browser dev tools (F12) to inspect `.choice-consequences` section for exact values
+**What to Track:**
 
-**Finding Current Coin Balance:**
-- Resources bar at top shows current coins (`.resource-item:has(.resource-label:text("Coins")) .resource-value`)
-- Record this value in "Total Coins" column after each delivery cycle
-- Calculate Net Profit: `(Total Coins after) - (Total Coins before)`
+**Stat Gating Moments** (write these down as they happen):
+- "I saw a choice I wanted but it was blocked - needed Insight 5, I have 3"
+- "I was forced to take the expensive coin path because I lack the stat-gated free path"
+- "This situation has 4 choices but only 2 are available to me"
+- "I picked a stat increase I didn't want just to unlock gated content I need"
 
-**Recommended Workflow:**
-1. Open spreadsheet in second window
-2. Note starting coins before accepting delivery
-3. Complete delivery, note payment amount
-4. Purchase food/lodging, note costs from choice consequences
-5. Record final coin balance
-6. Calculate net profit for this delivery
+**Cumulative Consequences** (after 2 hours):
+- "I invested in Insight for 2 hours, NOW Social situations block me constantly"
+- "My past stat choices created vulnerability I'm feeling NOW"
+- "I can access Mental content easily but Social content forces expensive workarounds"
 
-**Economic Tracking Spreadsheet Template:**
+**Questions after 2-3 hours:**
+1. **Do I see choices I want but can't afford (stat requirements)?**
+   - How often do I encounter stat-gated choices?
+   - Can I see WHAT I need to unlock them (exact stat gap visible)?
+   - Do I feel motivated to invest in stats to unlock paths?
 
-| Delivery | Earnings | Food Cost | Lodging Cost | Other Costs | Net Profit | Total Coins | Can Buy Equipment? | Notes |
-|----------|----------|-----------|--------------|-------------|------------|-------------|-------------------|-------|
-| 1        | 20       | -10       | -15          | 0           | -5         | 45          | No (need 60)      | Learning route segments |
-| 2        | 20       | -10       | -15          | 0           | -5         | 40          | No (need 60)      | Still face-down segments |
-| 3        | 22       | -10       | -15          | 0           | -3         | 37          | No (need 60)      | Route optimization starting |
-| 4        | 22       | -10       | -15          | -5          | -8         | 29          | No (need 60)      | Emergency cost (healing) |
-| 5-10     | ...      | ...       | ...          | ...         | ...        | ...         | ...               | ... |
-| 12       | 22       | -10       | -15          | 0           | -3         | 56          | No (need 60)      | Almost there |
-| 13       | 22       | -10       | -15          | 0           | -3         | 59          | No (need 60)      | One more delivery |
-| 14       | 22       | -10       | -15          | 0           | -3         | 62          | **YES**           | Can afford equipment! |
+2. **Do my past stat investments constrain current options?**
+   - After specializing in Investigator (Insight+Cunning), are Social paths blocked?
+   - Does specialization create FELT vulnerability in non-specialized areas?
+   - Do I regret past stat choices when facing current constraints?
 
-**Success Thresholds:**
-- **Net Profit Average:** Should be between +3 to +7 coins per optimized delivery (tight margins)
-- **Equipment Affordability:** 60 coins should take 10-15 deliveries (not 5, not 30)
-- **Emergency Impact:** One bad delivery should NOT bankrupt (resilience test)
-- **Route Learning Benefit:** Deliveries 1-3 should be worse than deliveries 10-12 (measurable skill improvement)
+3. **Am I forced to pick stat increases I don't want?**
+   - Do I ever choose "increase Rapport" even though I'd rather increase Insight?
+   - Why? (To unlock gated content, to recover from being locked out, etc.)
+   - Does this feel strategic or frustrating?
 
-**Calculate:**
-- `Net Profit = Earnings - Food - Lodging - Other`
-- `Total Coins = Previous Total + Net Profit`
-- `Deliveries to Equipment = 60 / Average Net Profit` (should be 10-15)
+4. **Do choices create strategic pressure through REQUIREMENTS not ECONOMICS?**
+   - Is the tension "I can't meet the stat requirement" or "I can't afford the coins"?
+   - Primary should be stat gating, economics should be secondary
 
-**Red Flags:**
-- Average net profit > 10 coins = too easy (violates scarcity design)
-- Average net profit < 0 coins = too punishing (unplayable)
-- Equipment affordable in < 8 deliveries = progression too fast
-- Equipment requires > 20 deliveries = progression too slow
-
-**Questions after 2 hours:**
-- Did scarcity emerge over time (not instantly)?
-- Am I forced to prioritize (equipment vs NPC vs savings)?
-- Do I feel strategic pressure from cumulative choices?
+**Simple Economic Check** (don't track spreadsheets):
+- After 10 deliveries, do you have enough coins for survival? (Yes = working)
+- Can you afford occasional equipment? (Should take ~10-15 deliveries = working)
+- Do you ever run completely out of coins? (Should be rare but recoverable = working)
 
 ### 5. Perfect Information Audit (10 min)
 **Every single choice across all screens:**
@@ -623,31 +609,46 @@ for (let i = 0; i < choices; i++) {
 4. Confirm no unwinnable states
 5. Test recovery from near-zero resources
 
-### 7. Build Specialization Test (3-4 hours PER build)
-**CRITICAL: Run SEPARATE 3-hour playthroughs for each build to compare experiences.**
+### 7. Build Specialization Test: Stat Gating Creates Distinct Experiences (3-4 hours PER build)
+**CRITICAL: Run SEPARATE 3-hour playthroughs for each build to compare stat gating patterns.**
 
 **Session A - As Investigator (3 hours):**
-1. Invest in Insight + Cunning whenever stat increases available
-2. After 20+ stat investments across 3 hours:
-   - Do Mental challenges feel easier?
-   - Do Social situations force expensive/slow workarounds?
-   - Do I feel specialized (strong in one area, vulnerable in another)?
-3. Track: Which content accessible? Which content expensive?
+1. **Stat investment:** Always pick Insight + Cunning increases when offered
+2. **After 2-3 hours of cumulative stat allocation:**
+
+   **Stat Gating Observations:**
+   - How many Mental choices are stat-gated to me? (Should be HIGH - I meet requirements)
+   - How many Social choices are stat-gated to me? (Should be HIGH - I DON'T meet requirements)
+   - Am I forced to use expensive coin paths in Social situations because I lack Rapport?
+   - Do I see choices I WANT but can't take due to low Rapport/Diplomacy?
+
+   **The Feeling:**
+   - Do I feel POWERFUL in Mental situations (many free stat-gated paths)?
+   - Do I feel BLOCKED in Social situations (desired choices locked)?
+   - Does my past Insight investment NOW constrain my Social options?
 
 **Session B - As Diplomat (3 hours):**
-1. Invest in Rapport + Diplomacy whenever stat increases available
-2. After 20+ stat investments across 3 hours:
-   - Do Social challenges feel easier?
-   - Do Mental situations force expensive/slow workarounds?
-   - Do I feel specialized differently than Investigator?
-3. Track: Which content accessible? Which content expensive?
+1. **Stat investment:** Always pick Rapport + Diplomacy increases when offered
+2. **After 2-3 hours of cumulative stat allocation:**
+
+   **Stat Gating Observations:**
+   - How many Social choices are stat-gated to me? (Should be HIGH - I meet requirements)
+   - How many Mental choices are stat-gated to me? (Should be HIGH - I DON'T meet requirements)
+   - Am I forced to use expensive coin paths in Mental situations because I lack Insight?
+   - Do I see choices I WANT but can't take due to low Insight/Cunning?
+
+   **The Feeling:**
+   - Do I feel POWERFUL in Social situations (many free stat-gated paths)?
+   - Do I feel BLOCKED in Mental situations (desired choices locked)?
+   - Does my past Rapport investment NOW constrain my Mental options?
 
 **Compare after BOTH 3-hour sessions:**
-- Did builds create DISTINCT experiences?
-- Did specialization emerge gradually (not immediately)?
-- Did vulnerability in non-specialized areas become meaningful over time?
+- **Stat gating pattern:** Did Investigator see different locked choices than Diplomat?
+- **Vulnerability:** Did specialization create DISTINCT constraints?
+- **Choice pressure:** Did I feel "forced to pick stat increases I don't want" in different situations?
+- **Experience:** Did the game FEEL different based on what I can/can't access?
 
-**NOT a 20-minute test** - specialization is EMERGENT from cumulative stat allocation.
+**Success = Different builds see different constraints through stat gating, not just different numbers.**
 
 ### 8. Report Critical Issues
 **BREAKING (stop testing):**
@@ -674,13 +675,19 @@ for (let i = 0; i < choices; i++) {
 
 ✅ **Tutorial completes** (a1 → a2 → a3 teaches core systems)
 ✅ **No soft-locks** (always forward path, even with zero resources)
-✅ **Perfect information** (all costs visible before commitment)
-✅ **Economic pressure EMERGES** (after 10-15 deliveries, forced to choose equipment OR NPC investment)
-✅ **Strategic constraints EMERGE** ("A OR B, not both" appears from cumulative allocation over 2+ hours)
-✅ **Routes learn** (segments face-up on repeat, enables optimization over time)
-✅ **Builds differ** (3-hour Investigator playthrough ≠ 3-hour Diplomat playthrough)
+✅ **Perfect information** (all costs AND stat requirements visible before commitment)
+✅ **Stat gating creates tension** (I see choices I WANT but can't take due to stat requirements)
+✅ **Past stats constrain current choices** (2 hours of Insight investment NOW blocks Social paths)
+✅ **Forced stat allocation** (picking stat increases I don't want to unlock gated content I need)
+✅ **Strategic constraints EMERGE** ("I can access A OR B based on my stats, not both")
+✅ **Builds differ through gating** (Investigator sees different blocked choices than Diplomat)
 
-**Timeframe matters:** These patterns emerge over HOURS, not individual encounters.
+**Economic pressure** (secondary):
+- Coins tight enough to matter but NOT dominant constraint
+- Equipment affordable ~10-15 deliveries
+- Can survive but feel resource pressure
+
+**Timeframe matters:** Stat consequences emerge over HOURS through cumulative allocation, not individual encounters.
 
 ---
 
