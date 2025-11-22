@@ -12,6 +12,7 @@
       {
         "id": "brass_bell_inn",
         "name": "The Brass Bell Inn",
+        "locationType": "Tavern",
         "description": "A warm inn where lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations.",
         "districtId": "town_center",
         "tier": 1,
@@ -21,6 +22,7 @@
       {
         "id": "town_square",
         "name": "Town Square",
+        "locationType": "Market",
         "description": "The heart of the town, where traders gather and townsfolk meet. The Brass Bell Inn beckons from across the square.",
         "districtId": "town_center",
         "tier": 1,
@@ -30,6 +32,7 @@
       {
         "id": "old_mill",
         "name": "The Old Mill",
+        "locationType": "Wilderness",
         "description": "An abandoned mill on the outskirts of town. The waterwheel still turns slowly, creaking with age.",
         "districtId": "town_outskirts",
         "tier": 1,
@@ -43,14 +46,10 @@
         "name": "Town Square Center",
         "distanceFromPlayer": "start",
         "description": "You've been walking since dawn. Your legs ache, your coin purse feels light, and the sun is setting. The warm glow of The Brass Bell Inn beckons from across the square.",
-        "properties": {
-          "base": [
-            "crossroads",
-            "public",
-            "busy",
-            "outdoor"
-          ]
-        },
+        "capabilities": [
+          "Crossroads",
+          "Outdoor"
+        ],
         "privacy": "Public",
         "safety": "Safe",
         "activity": "Busy",
@@ -62,16 +61,13 @@
         "name": "Common Room",
         "distanceFromPlayer": "start",
         "description": "Lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations. Elena, the innkeeper, wipes down tables while watching travelers settle in for the night.",
-        "properties": {
-          "base": [
-            "crossroads",
-            "commercial",
-            "public",
-            "busy",
-            "restful",
-            "indoor"
-          ]
-        },
+        "capabilities": [
+          "Crossroads",
+          "Commercial",
+          "Restful",
+          "Indoor",
+          "Social"
+        ],
         "privacy": "SemiPublic",
         "safety": "Safe",
         "activity": "Moderate",
@@ -83,14 +79,11 @@
         "name": "Fountain Plaza",
         "distanceFromPlayer": "near",
         "description": "The town fountain. Locals gather here to chat and trade news. A courier's board posts delivery opportunities.",
-        "properties": {
-          "base": [
-            "public",
-            "commercial",
-            "busy",
-            "outdoor"
-          ]
-        },
+        "capabilities": [
+          "Commercial",
+          "Outdoor",
+          "Gathering"
+        ],
         "privacy": "Public",
         "safety": "Safe",
         "activity": "Busy",
@@ -102,14 +95,10 @@
         "name": "Mill Courtyard",
         "distanceFromPlayer": "near",
         "description": "The courtyard outside the old mill. Overgrown paths lead to the mill entrance and surrounding areas.",
-        "properties": {
-          "base": [
-            "crossroads",
-            "public",
-            "quiet",
-            "outdoor"
-          ]
-        },
+        "capabilities": [
+          "Crossroads",
+          "Outdoor"
+        ],
         "privacy": "Public",
         "safety": "Neutral",
         "activity": "Quiet",

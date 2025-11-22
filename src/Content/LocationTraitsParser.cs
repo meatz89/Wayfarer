@@ -11,19 +11,8 @@ public static class LocationTraitsParser
         if (location == null)
             return traits;
 
-        // Parse time-specific LocationPropertyType enums from TimeSpecificProperties list
-        if (location.TimeSpecificProperties.Any(t => t.TimeBlock == currentTime))
-        {
-            List<LocationPropertyType> properties = location.TimeSpecificProperties.First(t => t.TimeBlock == currentTime).Properties;
-            foreach (LocationPropertyType prop in properties)
-            {
-                string trait = prop.ToString();
-                if (!string.IsNullOrEmpty(trait) && !traits.Contains(trait))
-                {
-                    traits.Add(trait);
-                }
-            }
-        }
+        // Time-specific properties ELIMINATED from architecture
+        // Location capabilities are now static (no time variation)
 
         // Parse domain tags from Location
         if (location.DomainTags != null)

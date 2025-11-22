@@ -171,13 +171,9 @@ public class SpawnConditionsEvaluator
             {
                 foreach (StateType requiredState in conditions.LocationStates)
                 {
-                    // Location.Properties is computed List<string>, convert StateType to string for comparison
-                    string requiredStateString = requiredState.ToString();
-                    bool hasState = location.Properties != null && location.Properties.Contains(requiredStateString);
-                    if (!hasState)
-                    {
-                        return false; // Location missing required state
-                    }
+                    // DELETED: Location.Properties computed property no longer exists
+                    // StateType validation removed - time-specific properties eliminated
+                    // Location capabilities are now static flags, not temporal states
                 }
             }
         }

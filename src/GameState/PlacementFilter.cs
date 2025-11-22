@@ -116,12 +116,12 @@ public class PlacementFilter
     public List<LocationTypes> LocationTypes { get; init; } = new List<LocationTypes>();
 
     /// <summary>
-    /// Required location properties for categorical selection
-    /// Example: [Secluded, Indoor, Private]
-    /// Location must have ALL specified properties to match
-    /// STRONGLY-TYPED enum, not strings
+    /// Required location capabilities for categorical selection
+    /// Example: [Crossroads, Commercial, Indoor]
+    /// Location must have ALL specified capabilities to match
+    /// STRONGLY-TYPED Flags enum, not strings
     /// </summary>
-    public List<LocationPropertyType> LocationProperties { get; init; } = new List<LocationPropertyType>();
+    public LocationCapability RequiredCapabilities { get; init; } = LocationCapability.None;
 
     /// <summary>
     /// Player accessibility requirement

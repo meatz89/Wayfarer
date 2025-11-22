@@ -180,11 +180,11 @@ public class PriceManager
     {
         float modifier = 1.0f;
 
-        // Location properties determine pricing (NOT Venue type)
-        // Check properties in priority order (most specific first)
+        // Location capabilities determine pricing (NOT Venue type)
+        // Check capabilities in priority order (most specific first)
 
         // Market locations - higher prices for most goods
-        if (location.LocationProperties.Contains(LocationPropertyType.Market))
+        if (location.Capabilities.HasFlag(LocationCapability.Market))
         {
             modifier = 1.1f;
             // But lower prices for common items (food/materials)
@@ -195,7 +195,7 @@ public class PriceManager
             }
         }
         // Tavern locations - lower general prices, higher food prices
-        else if (location.LocationProperties.Contains(LocationPropertyType.Tavern))
+        else if (location.Capabilities.HasFlag(LocationCapability.Tavern))
         {
             modifier = 0.9f;
             // Higher prices for food and drink
@@ -205,7 +205,7 @@ public class PriceManager
             }
         }
         // Commercial locations (workshops, etc.) - good prices for tools/materials
-        else if (location.LocationProperties.Contains(LocationPropertyType.Commercial))
+        else if (location.Capabilities.HasFlag(LocationCapability.Commercial))
         {
             // Good prices for materials and tools
             if (item.Categories.Contains(ItemCategory.Materials) ||
@@ -219,8 +219,8 @@ public class PriceManager
             }
         }
         // Wealthy/Prestigious locations - higher prices for trade goods
-        else if (location.LocationProperties.Contains(LocationPropertyType.Wealthy) ||
-                 location.LocationProperties.Contains(LocationPropertyType.Prestigious))
+        else if (location.Capabilities.HasFlag(LocationCapability.Wealthy) ||
+                 location.Capabilities.HasFlag(LocationCapability.Prestigious))
         {
             // Competitive prices for trade goods and valuables
             if (item.Categories.Contains(ItemCategory.Trade_Goods) ||
@@ -234,8 +234,8 @@ public class PriceManager
             }
         }
         // Water-adjacent locations - better prices for water-related items
-        else if (location.LocationProperties.Contains(LocationPropertyType.Water) ||
-                 location.LocationProperties.Contains(LocationPropertyType.River))
+        else if (location.Capabilities.HasFlag(LocationCapability.Water) ||
+                 location.Capabilities.HasFlag(LocationCapability.River))
         {
             // Good prices for water transport
             if (item.Categories.Contains(ItemCategory.Water_Transport))

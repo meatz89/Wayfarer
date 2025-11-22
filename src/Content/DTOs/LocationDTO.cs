@@ -27,9 +27,6 @@ public class LocationDTO
     public List<string> CurrentTimeBlocks { get; set; } = new List<string>();
     public List<string> DomainTags { get; set; } = new List<string>();
 
-    // The JSON has a "properties" object with time-based keys
-    public LocationPropertiesDTO Properties { get; set; } = new LocationPropertiesDTO();
-
     // Additional properties from JSON
     public bool CanInvestigate { get; set; }
     public bool CanWork { get; set; }
@@ -52,4 +49,12 @@ public class LocationDTO
     public string Safety { get; set; }
     public string Activity { get; set; }
     public string Purpose { get; set; }
+
+    /// <summary>
+    /// Functional capabilities - what location CAN DO (not what it IS).
+    /// String array from JSON parsed to LocationCapability Flags enum by LocationParser.
+    /// Examples: "Crossroads" (enables Travel), "Commercial" (enables Work), "Indoor" (weather shelter).
+    /// SEPARATED from categorical dimensions (Privacy/Safety/Activity/Purpose).
+    /// </summary>
+    public List<string> Capabilities { get; set; } = new List<string>();
 }

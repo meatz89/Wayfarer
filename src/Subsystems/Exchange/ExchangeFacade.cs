@@ -88,10 +88,15 @@ public class ExchangeFacade
             throw new InvalidOperationException("Player has no current location");
         }
 
-        // Convert SpotProperties to domain strings for validation
-        List<string> spotDomains = currentSpot.LocationProperties
-            .Select(p => p.ToString())
-            .ToList();
+        // Extract individual capability flags for domain validation
+        List<string> spotDomains = new List<string>();
+        foreach (LocationCapability capability in Enum.GetValues(typeof(LocationCapability)))
+        {
+            if (capability != LocationCapability.None && currentSpot.Capabilities.HasFlag(capability))
+            {
+                spotDomains.Add(capability.ToString());
+            }
+        }
 
         // Validate each exchange
         List<ExchangeOption> validExchanges = new List<ExchangeOption>();

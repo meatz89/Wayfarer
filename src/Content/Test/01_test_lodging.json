@@ -39,9 +39,12 @@
         "safety": "Safe",
         "activity": "Moderate",
         "purpose": "Dwelling",
-        "properties": {
-          "base": ["indoor", "social", "restful", "crossroads"]
-        },
+        "capabilities": [
+          "Indoor",
+          "Social",
+          "Restful",
+          "Crossroads"
+        ],
         "canInvestigate": false
       }
     ],

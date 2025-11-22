@@ -549,18 +549,21 @@ namespace Wayfarer.Pages.Components
 
         private string GetSpotTraits(Location location)
         {
-            if (location?.LocationProperties == null || !location.LocationProperties.Any())
+            if (location?.Capabilities == LocationCapability.None)
                 return "";
 
-            List<string> propertyDescriptions = new List<string>();
+            List<string> capabilityDescriptions = new List<string>();
 
-            foreach (LocationPropertyType property in location.LocationProperties)
+            // Extract individual flags from LocationCapability enum
+            foreach (LocationCapability capability in Enum.GetValues(typeof(LocationCapability)))
             {
-                string description = property.ToString();
-                propertyDescriptions.Add(description);
+                if (capability != LocationCapability.None && location.Capabilities.HasFlag(capability))
+                {
+                    capabilityDescriptions.Add(capability.ToString());
+                }
             }
 
-            return string.Join(", ", propertyDescriptions);
+            return string.Join(", ", capabilityDescriptions);
         }
 
         // =============================================

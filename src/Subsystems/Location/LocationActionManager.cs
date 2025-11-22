@@ -34,7 +34,7 @@ public class LocationActionManager
         List<LocationActionViewModel> dynamicActions = GetDynamicLocationActions(venue, location);
 
         // ActionGenerator DELETED - generated actions now come from SceneFacade at query time
-        // Property-based actions (from LocationPropertyType) remain here as legacy system
+        // Capability-based actions (from LocationCapability flags) filtered at query time
         // Scene-based actions (from ChoiceTemplates) created by SceneFacade when Situation activates
 
         return dynamicActions;
@@ -165,14 +165,10 @@ public class LocationActionManager
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
 
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        List<LocationPropertyType> activeProperties = location.GetActiveProperties(currentTime);
 
-        // Generate actions based on active properties
-        foreach (LocationPropertyType property in activeProperties)
-        {
-            List<LocationActionViewModel> propertyActions = GenerateActionsForProperty(property, location);
-            actions.AddRange(propertyActions);
-        }
+        // Generate actions based on capabilities (no time variation - capabilities are static)
+        List<LocationActionViewModel> capabilityActions = GenerateActionsForCapabilities(location.Capabilities, location);
+        actions.AddRange(capabilityActions);
 
         // Add NPC-specific actions
         List<LocationActionViewModel> npcActions = GenerateNPCActions(location, currentTime);
@@ -182,28 +178,26 @@ public class LocationActionManager
     }
 
     /// <summary>
-    /// Generate actions for a specific location property.
+    /// Generate actions for location capabilities.
     /// </summary>
-    private List<LocationActionViewModel> GenerateActionsForProperty(LocationPropertyType property, Location location)
+    private List<LocationActionViewModel> GenerateActionsForCapabilities(LocationCapability capabilities, Location location)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
 
-        switch (property)
+        // Check each relevant capability and generate corresponding actions
+        if (capabilities.HasFlag(LocationCapability.Commercial))
         {
-            case LocationPropertyType.Commercial:
-                actions.Add(new LocationActionViewModel
-                {
-                    ActionType = "work",
-                    Title = "Work for Coins",
-                    Detail = "Earn 8 coins",
-                    Cost = "Free!",
-                    IsAvailable = CanPerformWork()
-                });
-                break;
-
-                // Removed invalid property types - only Commercial exists
-                // Other actions should be NPC-based services
+            actions.Add(new LocationActionViewModel
+            {
+                ActionType = "work",
+                Title = "Work for Coins",
+                Detail = "Earn 8 coins",
+                Cost = "Free!",
+                IsAvailable = CanPerformWork()
+            });
         }
+
+        // Other actions are NPC-based services, not capability-based
 
         return actions;
     }
@@ -223,20 +217,6 @@ public class LocationActionManager
         return actions;
     }
     // Method removed - LocationActionsViewModel doesn't have ClosedServices property
-    // This functionality would need to be redesigned if needed
-
-    /// <summary>
-    /// Get a message for a closed service.
-    /// </summary>
-    private string GetClosedServiceMessage(LocationPropertyType property, TimeBlocks currentTime)
-    {
-        return property switch
-        {
-            LocationPropertyType.Commercial => "Market closed at this hour",
-            _ => throw new InvalidOperationException($"Unsupported property type: {property}")
-        };
-    }
-
     // Validation methods
 
     private bool CanPerformWork()

@@ -224,7 +224,7 @@ public class ProceduralAStoryService
 
             // Location filters (categorical)
             RegionId = regionId, // Specific region for tier-appropriate content
-            LocationProperties = SelectLocationProperties(tier),
+            Capabilities = SelectLocationCapabilities(tier),
             LocationTags = new List<string> { "story_significant" },
 
             // NPC filters (categorical)
@@ -316,30 +316,31 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Select location properties for categorical filtering
-    /// Tier-appropriate properties (higher tier = more complex locations)
+    /// Select location capabilities for categorical filtering
+    /// Tier-appropriate capabilities (higher tier = more complex locations)
+    /// Returns string list for PlacementFilterDTO (parser will convert to enum)
     /// </summary>
-    private List<string> SelectLocationProperties(int tier)
+    private List<string> SelectLocationCapabilities(int tier)
     {
-        List<string> properties = new List<string> { "indoor", "urban" };
+        List<string> capabilities = new List<string> { "Indoor", "Urban" };
 
-        // Add tier-appropriate properties
+        // Add tier-appropriate capabilities
         if (tier >= 2)
         {
-            properties.Add("commercial");
+            capabilities.Add("Commercial");
         }
 
         if (tier >= 3)
         {
-            properties.Add("political");
+            capabilities.Add("Official");
         }
 
         if (tier >= 4)
         {
-            properties.Add("mysterious");
+            capabilities.Add("Temple"); // Mysterious equivalent
         }
 
-        return properties;
+        return capabilities;
     }
 
     /// <summary>

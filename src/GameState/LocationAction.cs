@@ -32,22 +32,22 @@ public class LocationAction
     public string Description { get; set; }
 
     /// <summary>
-    /// Required location properties for this action to be available.
-    /// The location must have ALL of these properties for the action to appear.
+    /// Required location capabilities for this action to be available.
+    /// The location must have ALL of these capabilities for the action to appear (bitwise AND check).
     /// </summary>
-    public List<LocationPropertyType> RequiredProperties { get; set; } = new List<LocationPropertyType>();
+    public LocationCapability RequiredCapabilities { get; set; } = LocationCapability.None;
 
     /// <summary>
-    /// Optional location properties that enable this action.
-    /// The location must have AT LEAST ONE of these properties (if specified).
+    /// Optional location capabilities that enable this action.
+    /// The location must have AT LEAST ONE of these capabilities (if specified).
     /// </summary>
-    public List<LocationPropertyType> OptionalProperties { get; set; } = new List<LocationPropertyType>();
+    public LocationCapability OptionalCapabilities { get; set; } = LocationCapability.None;
 
     /// <summary>
-    /// Properties that prevent this action from appearing.
-    /// If the location has ANY of these properties, the action is unavailable.
+    /// Capabilities that prevent this action from appearing.
+    /// If the location has ANY of these capabilities, the action is unavailable.
     /// </summary>
-    public List<LocationPropertyType> ExcludedProperties { get; set; } = new List<LocationPropertyType>();
+    public LocationCapability ExcludedCapabilities { get; set; } = LocationCapability.None;
 
     /// <summary>
     /// Resource costs required to perform this action
@@ -132,7 +132,7 @@ public class LocationAction
     public List<ScenePreview> ScenePreviews { get; set; } = new List<ScenePreview>();
 
     /// <summary>
-    /// Check if this action matches a given location's properties
+    /// Check if this action matches a given location's capabilities
     /// </summary>
     public bool MatchesLocation(Location location, TimeBlocks currentTime)
     {
@@ -142,20 +142,17 @@ public class LocationAction
         if (SourceLocation != null && location != SourceLocation)
             return false; // Location-specific action at wrong location
 
-        // Get all active properties for the current time
-        List<LocationPropertyType> activeProperties = location.GetActiveProperties(currentTime);
+        // Check excluded capabilities first (fast rejection)
+        if (ExcludedCapabilities != LocationCapability.None && (location.Capabilities & ExcludedCapabilities) != 0)
+            return false; // Location has at least one excluded capability
 
-        // Check excluded properties first (fast rejection)
-        if (ExcludedProperties.Any() && activeProperties.Any(p => ExcludedProperties.Contains(p)))
-            return false;
+        // Check required capabilities (all must be present)
+        if (RequiredCapabilities != LocationCapability.None && (location.Capabilities & RequiredCapabilities) != RequiredCapabilities)
+            return false; // Location missing at least one required capability
 
-        // Check required properties (all must be present)
-        if (RequiredProperties.Any() && !RequiredProperties.All(p => activeProperties.Contains(p)))
-            return false;
-
-        // Check optional properties (at least one must be present if specified)
-        if (OptionalProperties.Any() && !OptionalProperties.Any(p => activeProperties.Contains(p)))
-            return false;
+        // Check optional capabilities (at least one must be present if specified)
+        if (OptionalCapabilities != LocationCapability.None && (location.Capabilities & OptionalCapabilities) == 0)
+            return false; // Location has none of the optional capabilities
 
         return true;
     }

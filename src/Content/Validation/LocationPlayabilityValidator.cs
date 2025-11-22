@@ -45,11 +45,11 @@ public class LocationPlayabilityValidator
             errors.Add($"Location '{location.Name}' has no venue - every location must belong to a venue");
         }
 
-        // 4. Required properties must be present
-        if (location.LocationProperties == null || !location.LocationProperties.Any())
+        // 4. Capabilities must be present
+        if (location.Capabilities == LocationCapability.None)
         {
             // ADR-007: Use Name instead of deleted Id
-            errors.Add($"Location '{location.Name}' has no properties - locations must have at least one property for action generation");
+            errors.Add($"Location '{location.Name}' has no capabilities - locations must have at least one capability for action generation");
         }
 
         // 5. IsLocked validation DELETED - new architecture uses query-based accessibility via GrantsLocationAccess

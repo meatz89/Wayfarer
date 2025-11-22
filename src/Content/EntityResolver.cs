@@ -106,11 +106,11 @@ public class EntityResolver
 
     private bool LocationMatchesFilter(Location loc, PlacementFilter filter)
     {
-        // Check location properties (if specified)
-        if (filter.LocationProperties != null && filter.LocationProperties.Count > 0)
+        // Check location capabilities (if specified)
+        if (filter.RequiredCapabilities != LocationCapability.None)
         {
-            // Location must have ALL specified properties
-            if (!filter.LocationProperties.All(prop => loc.LocationProperties.Contains(prop)))
+            // Location must have ALL specified capabilities (bitwise AND check)
+            if ((loc.Capabilities & filter.RequiredCapabilities) != filter.RequiredCapabilities)
                 return false;
         }
 
@@ -266,8 +266,12 @@ public class EntityResolver
             HexPosition = null,
 
             // Apply categorical properties
-            LocationProperties = filter.LocationProperties ?? new List<LocationPropertyType>(),
+            Capabilities = filter.RequiredCapabilities,
             LocationType = filter.LocationTypes?.FirstOrDefault() ?? LocationTypes.Generic,
+            Privacy = filter.PrivacyLevels?.FirstOrDefault() ?? LocationPrivacy.Public,
+            Safety = filter.SafetyLevels?.FirstOrDefault() ?? LocationSafety.Neutral,
+            Activity = filter.ActivityLevels?.FirstOrDefault() ?? LocationActivity.Moderate,
+            Purpose = filter.Purposes?.FirstOrDefault() ?? LocationPurpose.Generic,
             Tier = filter.MinTier ?? 1,
 
             // Initialize required properties

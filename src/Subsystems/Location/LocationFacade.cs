@@ -608,24 +608,17 @@ public class LocationFacade
     {
         List<string> traits = new List<string>();
 
-        if (spot.LocationProperties == null) return traits;
+        if (spot.Capabilities == LocationCapability.None) return traits;
 
-        foreach (LocationPropertyType prop in spot.LocationProperties)
+        // Extract individual flags from LocationCapability enum
+        foreach (LocationCapability capability in Enum.GetValues(typeof(LocationCapability)))
         {
-            string display = prop switch
+            if (capability != LocationCapability.None && spot.Capabilities.HasFlag(capability))
             {
-                LocationPropertyType.Private => "Private (+1 patience)",
-                LocationPropertyType.Public => "Public (-1 patience)",
-                LocationPropertyType.Discrete => "Discrete (+1 patience)",
-                LocationPropertyType.Exposed => "Exposed (-1 patience)",
-                LocationPropertyType.Crossroads => "Crossroads",
-                LocationPropertyType.Commercial => "Commercial",
-                LocationPropertyType.Quiet => "Quiet (+1 flow)",
-                LocationPropertyType.Loud => "Loud (-1 flow)",
-                LocationPropertyType.Warm => "Warm (+1 flow)",
-                _ => prop.ToString()
-            };
-            traits.Add(display);
+                // DELETED: Property-based display mapping - simplified to capability name
+                // Time-specific properties eliminated, capabilities are static
+                traits.Add(capability.ToString());
+            }
         }
 
         return traits;
@@ -652,15 +645,15 @@ public class LocationFacade
 
         foreach (PlayerAction action in sortedActions)
         {
-            // Filter: Check if location has ALL required properties for this action
-            if (action.RequiredLocationProperties.Count > 0)
+            // Filter: Check if location has ALL required capabilities for this action
+            if (action.RequiredLocationCapabilities != LocationCapability.None)
             {
-                bool hasAllRequiredProperties = action.RequiredLocationProperties
-                    .All(required => spot.LocationProperties.Contains(required));
+                // Check if spot has ALL required capabilities
+                bool hasAllRequiredCapabilities = (spot.Capabilities & action.RequiredLocationCapabilities) == action.RequiredLocationCapabilities;
 
-                if (!hasAllRequiredProperties)
+                if (!hasAllRequiredCapabilities)
                 {
-                    continue;  // Skip - location missing required properties
+                    continue;  // Skip - location missing required capabilities
                 }
             }
 
@@ -706,7 +699,7 @@ public class LocationFacade
     {
         List<LocationActionViewModel> actions = _actionManager.GetLocationActions(venue, spot);
         // Return non-travel location actions (rest, work, secure room, food, etc.)
-        // These are location-specific atmospheric actions generated from LocationPropertyTypes
+        // These are location-specific atmospheric actions generated from LocationCapability flags
         return actions.Where(a => a.ActionType != "travel").ToList();
     }
 

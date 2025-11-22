@@ -90,10 +90,8 @@ public class SceneFacade
                     ChoiceTemplate = choiceTemplate,
                     Situation = situation,
 
-                    // Legacy properties (empty - use ChoiceTemplate)
-                    RequiredProperties = new List<LocationPropertyType>(),
-                    OptionalProperties = new List<LocationPropertyType>(),
-                    ExcludedProperties = new List<LocationPropertyType>(),
+                    // DELETED: Legacy properties - LocationAction.RequiredProperties/OptionalProperties/ExcludedProperties removed
+                    // ChoiceTemplate holds all action metadata now
                     Costs = new ActionCosts(),
                     Rewards = new ActionRewards(),
                     TimeRequired = 0,

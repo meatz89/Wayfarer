@@ -175,25 +175,8 @@ public class SceneNarrativeService
 
         List<string> nameParts = new List<string>();
 
-        // Use properties to build descriptive name
-        if (filter.LocationProperties != null && filter.LocationProperties.Count > 0)
-        {
-            LocationPropertyType primaryProperty = filter.LocationProperties.First();
-
-            string prefix = primaryProperty switch
-            {
-                LocationPropertyType.Private => "Private",
-                LocationPropertyType.Secure => "Secure",
-                LocationPropertyType.Public => "Public",
-                LocationPropertyType.Commercial => "Trading",
-                LocationPropertyType.Exclusive => "Exclusive",
-                LocationPropertyType.Hidden => "Hidden",
-                _ => ""
-            };
-
-            if (!string.IsNullOrEmpty(prefix))
-                nameParts.Add(prefix);
-        }
+        // DELETED: Capability-based prefix generation
+        // Capabilities are flags enum, no ordered list - skip prefix generation
 
         // Add location type
         if (filter.LocationTypes != null && filter.LocationTypes.Count > 0)

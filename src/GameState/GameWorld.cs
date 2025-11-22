@@ -953,7 +953,7 @@ public class GameWorld
             // IsLocked DELETED - new architecture uses query-based accessibility via LocationAccessibilityService
             existing.HexPosition = location.HexPosition;
             existing.CurrentTimeBlocks = location.CurrentTimeBlocks;
-            existing.LocationProperties = location.LocationProperties;
+            existing.Capabilities = location.Capabilities;
             existing.DomainTags = location.DomainTags;
             existing.IsSkeleton = false; // Mark as no longer skeleton
             existing.Tier = location.Tier;

@@ -1029,10 +1029,10 @@ public class PackageLoader
                         $"route_{dto.Name}_origin"
                     );
 
-                    // Ensure skeleton has crossroads property for route connectivity
-                    if (!originSpot.LocationProperties.Contains(LocationPropertyType.Crossroads))
+                    // Ensure skeleton has Crossroads capability for route connectivity
+                    if (!originSpot.Capabilities.HasFlag(LocationCapability.Crossroads))
                     {
-                        originSpot.LocationProperties.Add(LocationPropertyType.Crossroads);
+                        originSpot.Capabilities |= LocationCapability.Crossroads;
                     }
 
                     _gameWorld.AddOrUpdateLocation(dto.OriginSpotId, originSpot);
@@ -1061,10 +1061,10 @@ public class PackageLoader
                         $"route_{dto.Name}_destination"
                     );
 
-                    // Ensure skeleton has crossroads property for route connectivity
-                    if (!destSpot.LocationProperties.Contains(LocationPropertyType.Crossroads))
+                    // Ensure skeleton has Crossroads capability for route connectivity
+                    if (!destSpot.Capabilities.HasFlag(LocationCapability.Crossroads))
                     {
-                        destSpot.LocationProperties.Add(LocationPropertyType.Crossroads);
+                        destSpot.Capabilities |= LocationCapability.Crossroads;
                     }
 
                     _gameWorld.AddOrUpdateLocation(dto.DestinationSpotId, destSpot);
@@ -1286,7 +1286,7 @@ public class PackageLoader
     // NOTE: LoadLocationActions and LoadPlayerActions methods REMOVED
     // Actions are NO LONGER loaded from JSON - they are GENERATED from catalogues at parse time
     // See GeneratePlayerActionsFromCatalogue() and GenerateLocationActionsFromCatalogue() above
-    // CATALOGUE PATTERN: Actions generated from categorical properties (LocationPropertyType enums), never from JSON
+    // CATALOGUE PATTERN: Actions generated from categorical properties (LocationCapability flags), never from JSON
 
     // Conversion methods that don't have dedicated parsers yet
 
@@ -1598,17 +1598,17 @@ public class PackageLoader
 
             List<Location> locations = locationGroup.Locations;
             List<Location> crossroadsSpots = locations
-                .Where(s => s.LocationProperties?.Contains(LocationPropertyType.Crossroads) == true)
+                .Where(s => s.Capabilities.HasFlag(LocationCapability.Crossroads))
                 .ToList();
 
             if (crossroadsSpots.Count == 0)
             {
-                throw new InvalidOperationException($"Venue '{venue.Name}' has no Locations with Crossroads property. Every Venue must have exactly one crossroads location for travel.");
+                throw new InvalidOperationException($"Venue '{venue.Name}' has no Locations with Crossroads capability. Every Venue must have exactly one crossroads location for travel.");
             }
             else if (crossroadsSpots.Count > 1)
             {
                 string spotsInfo = string.Join(", ", crossroadsSpots.Select(s => $"'{s.Name}'"));
-                throw new InvalidOperationException($"Venue '{venue.Name}' has {crossroadsSpots.Count} Locations with Crossroads property: {spotsInfo}. Only one crossroads location is allowed per location.");
+                throw new InvalidOperationException($"Venue '{venue.Name}' has {crossroadsSpots.Count} Locations with Crossroads capability: {spotsInfo}. Only one crossroads location is allowed per location.");
             }
         }
 
@@ -1634,19 +1634,19 @@ public class PackageLoader
                     $"crossroads_validation_{LocationId}"
                 );
 
-                // Ensure skeleton has crossroads property for route connectivity
-                if (!location.LocationProperties.Contains(LocationPropertyType.Crossroads))
+                // Ensure skeleton has Crossroads capability for route connectivity
+                if (!location.Capabilities.HasFlag(LocationCapability.Crossroads))
                 {
-                    location.LocationProperties.Add(LocationPropertyType.Crossroads);
+                    location.Capabilities |= LocationCapability.Crossroads;
                 }
 
                 _gameWorld.AddOrUpdateLocation(LocationId, location);
                 _gameWorld.AddSkeleton(LocationId, "Location");
             }
 
-            if (!location.LocationProperties?.Contains(LocationPropertyType.Crossroads) == true)
+            if (!location.Capabilities.HasFlag(LocationCapability.Crossroads))
             {
-                location.LocationProperties.Add(LocationPropertyType.Crossroads);
+                location.Capabilities |= LocationCapability.Crossroads;
             }
         }
     }

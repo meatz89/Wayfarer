@@ -39,8 +39,6 @@ public class Location
     public bool IsSkeleton { get; set; } = false;
     public string SkeletonSource { get; set; } // What created this skeleton
 
-    public List<TimeSpecificProperty> TimeSpecificProperties { get; set; } = new List<TimeSpecificProperty>();
-
     public List<TimeBlocks> CurrentTimeBlocks { get; set; } = new List<TimeBlocks>();
     public string InitialState { get; set; }
     // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
@@ -50,8 +48,13 @@ public class Location
 
     // NOTE: SceneIds removed - OLD equipment-based Scene system deleted
     // NEW Scene-Situation architecture: Query GameWorld.Scenes by PlacementType/PlacementId
-    public List<LocationPropertyType> LocationProperties { get; set; } = new List<LocationPropertyType>();
-    public List<string> Properties => LocationProperties.Select(p => p.ToString()).ToList();
+
+    /// <summary>
+    /// Functional capabilities - what this location CAN DO (not what it IS).
+    /// Uses Flags enum for efficient bitwise operations and combination checking.
+    /// Separated from categorical dimensions (Privacy/Safety/Activity/Purpose).
+    /// </summary>
+    public LocationCapability Capabilities { get; set; } = LocationCapability.None;
 
     public int FlowModifier { get; set; } = 0;
     public int Tier { get; set; } = 1;
@@ -110,82 +113,6 @@ public class Location
     public Location(string name)
     {
         Name = name;
-    }
-
-    /// <summary>
-    /// Get active properties for the current time, combining base and time-specific
-    /// </summary>
-    public List<LocationPropertyType> GetActiveProperties(TimeBlocks currentTime)
-    {
-        List<LocationPropertyType> activeProperties = new List<LocationPropertyType>(LocationProperties);
-
-        if (TimeSpecificProperties.Any(t => t.TimeBlock == currentTime))
-        {
-            activeProperties.AddRange(TimeSpecificProperties.First(t => t.TimeBlock == currentTime).Properties);
-        }
-
-        return activeProperties;
-    }
-
-    /// <summary>
-    /// Calculate the flow modifier for conversations at this location
-    /// Based on location properties and the NPC's personality
-    /// </summary>
-    public int CalculateFlowModifier(PersonalityType npcPersonality, TimeBlocks currentTime)
-    {
-        int modifier = FlowModifier; // Base modifier from location
-
-        // Get all active properties (base + time-specific)
-        List<LocationPropertyType> activeProperties = new List<LocationPropertyType>(LocationProperties);
-        if (TimeSpecificProperties.Any(t => t.TimeBlock == currentTime))
-        {
-            activeProperties.AddRange(TimeSpecificProperties.First(t => t.TimeBlock == currentTime).Properties);
-        }
-
-        // Apply property-based modifiers
-        foreach (LocationPropertyType property in activeProperties)
-        {
-            switch (property)
-            {
-                case LocationPropertyType.Private:
-                    modifier += 2;
-                    break;
-                case LocationPropertyType.Discrete:
-                    modifier += 1;
-                    break;
-                case LocationPropertyType.Exposed:
-                    modifier -= 1;
-                    break;
-                case LocationPropertyType.Quiet:
-                    if (npcPersonality == PersonalityType.DEVOTED || npcPersonality == PersonalityType.CUNNING)
-                        modifier += 1;
-                    break;
-                case LocationPropertyType.Loud:
-                    if (npcPersonality == PersonalityType.MERCANTILE)
-                        modifier += 1;
-                    else
-                        modifier -= 1;
-                    break;
-                case LocationPropertyType.NobleFavored:
-                    if (npcPersonality == PersonalityType.PROUD)
-                        modifier += 1;
-                    break;
-                case LocationPropertyType.CommonerHaunt:
-                    if (npcPersonality == PersonalityType.STEADFAST)
-                        modifier += 1;
-                    break;
-                case LocationPropertyType.MerchantHub:
-                    if (npcPersonality == PersonalityType.MERCANTILE)
-                        modifier += 1;
-                    break;
-                case LocationPropertyType.SacredGround:
-                    if (npcPersonality == PersonalityType.DEVOTED)
-                        modifier += 1;
-                    break;
-            }
-        }
-
-        return modifier;
     }
 
 }

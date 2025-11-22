@@ -51,10 +51,7 @@ public static class PlayerActionCatalog
                 Health = 2  // Sleeping outside damages health
             },
             Rewards = ActionRewards.None(),  // No recovery from sleeping outside
-            RequiredLocationProperties = new List<LocationPropertyType>
-            {
-                LocationPropertyType.Outdoor  // Requires open-air outdoor space
-            }
+            RequiredLocationCapabilities = LocationCapability.Outdoor  // Requires open-air outdoor space
         },
 
         // Look Around - Navigate to LookingAround view

@@ -99,37 +99,4 @@ public class DialogueGenerationService
 
         return elements.Any() ? string.Join(" ", elements) : "focus:neutral activity:general";
     }
-
-    /// <summary>
-    /// Generate atmosphere description from location properties
-    /// Returns categorical template, NOT English text
-    /// </summary>
-    public string GenerateAtmosphereDescription(
-        List<LocationPropertyType> properties,
-        TimeBlocks timeBlock,
-        int urgentObligations,
-        int npcsPresent)
-    {
-        List<string> elements = new List<string>();
-
-        // Add time element
-        elements.Add($"time:{timeBlock.ToString().ToLower()}");
-
-        // Add property-based elements
-        foreach (LocationPropertyType prop in properties)
-        {
-            elements.Add($"property:{prop.ToString().ToLower()}");
-        }
-
-        // Add urgency if present
-        if (urgentObligations > 0)
-        {
-            elements.Add($"urgency:obligations_{urgentObligations}");
-        }
-
-        // Add population
-        elements.Add($"population:{(npcsPresent == 0 ? "empty" : npcsPresent < 3 ? "sparse" : "busy")}");
-
-        return string.Join(" ", elements);
-    }
 }
