@@ -67,6 +67,67 @@ public static class AStorySceneArchetypeCatalog
     }
 
     /// <summary>
+    /// Get available archetypes for category (SINGLE SOURCE OF TRUTH for procedural generation)
+    /// Returns archetypes currently implemented in catalog for given category
+    /// Prevents drift between catalog and procedural selection lists
+    ///
+    /// CATEGORIES (4-part rotation):
+    /// - Investigation: seek_audience, investigate_location, gather_testimony
+    /// - Social: meet_order_member
+    /// - Confrontation: confront_antagonist
+    /// - Crisis: urgent_decision, moral_crossroads
+    ///
+    /// Note: Discovery archetypes (discover_artifact, uncover_conspiracy) not included in rotation
+    /// Can be added to rotation cycle when design requires them
+    /// </summary>
+    public static List<string> GetArchetypesForCategory(string category)
+    {
+        return category switch
+        {
+            "Investigation" => new List<string>
+            {
+                "investigate_location",
+                "gather_testimony",
+                "seek_audience"
+            },
+            "Social" => new List<string>
+            {
+                "meet_order_member"
+            },
+            "Confrontation" => new List<string>
+            {
+                "confront_antagonist"
+            },
+            "Crisis" => new List<string>
+            {
+                "urgent_decision",
+                "moral_crossroads"
+            },
+            _ => new List<string>() // Empty list for unknown category
+        };
+    }
+
+    /// <summary>
+    /// Get all available archetype IDs (for validation)
+    /// Returns flat list of all implemented archetypes
+    /// </summary>
+    public static List<string> GetAllAvailableArchetypes()
+    {
+        return new List<string>
+        {
+            "seek_audience",
+            "investigate_location",
+            "gather_testimony",
+            "confront_antagonist",
+            "meet_order_member",
+            "discover_artifact",
+            "uncover_conspiracy",
+            "urgent_decision",
+            "moral_crossroads"
+        };
+    }
+
+    /// <summary>
     /// SEEK_AUDIENCE archetype
     ///
     /// FICTIONAL CONTEXT: Player seeks audience with authority figure or important NPC

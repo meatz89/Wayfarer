@@ -33,38 +33,9 @@ public class ProceduralAStoryService
     private readonly PackageLoaderFacade _packageLoaderFacade;
 
     // Archetype categories for rotation
-    // Archetype categories for rotation (must match AStorySceneArchetypeCatalog)
-    // Investigation: seek_audience, investigate_location, gather_testimony
-    // Confrontation: confront_antagonist
-    // Social: meet_order_member
-    // Discovery: discover_artifact, uncover_conspiracy
-    // Crisis: urgent_decision, moral_crossroads
-
-    private static readonly List<string> InvestigationArchetypes = new List<string>
-{
-    "investigate_location",
-    "gather_testimony",
-    "seek_audience" // Gatekeeper pattern - fits investigation category
-};
-
-    private static readonly List<string> SocialArchetypes = new List<string>
-{
-    "meet_order_member"
-    // Removed: gain_trust, social_infiltration (not implemented in catalog)
-};
-
-    private static readonly List<string> ConfrontationArchetypes = new List<string>
-{
-    "confront_antagonist"
-    // Removed: challenge_authority, expose_corruption (not implemented in catalog)
-};
-
-    private static readonly List<string> CrisisArchetypes = new List<string>
-{
-    "urgent_decision",
-    "moral_crossroads"
-    // Removed: sacrifice_choice, reveal_truth (not implemented in catalog)
-};
+    // Archetype categories queried dynamically from catalog (HIGHLANDER - single source of truth)
+    // Prevents drift between catalog and procedural selection
+    // Categories retrieved at runtime via AStorySceneArchetypeCatalog.GetAvailableArchetypesByCategory()
 
     public ProceduralAStoryService(
         GameWorld gameWorld,
@@ -122,6 +93,11 @@ public class ProceduralAStoryService
     /// Anti-repetition: Avoid archetypes used in last 5 scenes
     /// Tier-appropriate: Match archetype complexity to tier
     /// Works from ANY sequence (flexible number of authored scenes)
+    ///
+    /// DYNAMIC CATALOG QUERY (HIGHLANDER - single source of truth):
+    /// Queries AStorySceneArchetypeCatalog.GetArchetypesForCategory() at runtime
+    /// Prevents drift between catalog implementation and procedural selection
+    /// When new archetypes added to catalog, automatically available for selection
     /// </summary>
     private string SelectArchetype(int sequence, AStoryContext context)
     {
@@ -130,14 +106,18 @@ public class ProceduralAStoryService
         // Sequence 1: Investigation (0), Sequence 2: Social (1), etc.
         int cyclePosition = (sequence - 1) % 4;
 
-        List<string> candidateArchetypes = cyclePosition switch
+        string categoryKey = cyclePosition switch
         {
-            0 => InvestigationArchetypes,
-            1 => SocialArchetypes,
-            2 => ConfrontationArchetypes,
-            3 => CrisisArchetypes,
-            _ => InvestigationArchetypes
+            0 => "Investigation",
+            1 => "Social",
+            2 => "Confrontation",
+            3 => "Crisis",
+            _ => "Investigation"
         };
+
+        // Query catalog for available archetypes (SINGLE SOURCE OF TRUTH)
+        List<string> candidateArchetypes =
+            AStorySceneArchetypeCatalog.GetArchetypesForCategory(categoryKey);
 
         // Filter out recent archetypes (anti-repetition)
         List<string> availableArchetypes = candidateArchetypes
@@ -358,23 +338,10 @@ public class ProceduralAStoryService
     /// </summary>
     private SpawnConditionsDTO BuildSpawnConditions(int sequence, AStoryContext context)
     {
-        SpawnConditionsDTO conditions = new SpawnConditionsDTO
-        {
-            CombinationLogic = "All",
-
-            // No spawn conditions - A-story progression managed by sequential spawning
-            // Each A-scene spawns the next via ScenesToSpawn reward in final situation
-            PlayerState = new PlayerStateConditionsDTO
-            {
-                MinStats = new Dictionary<string, int>(),
-                RequiredItems = new List<string>()
-            },
-
-            WorldState = null,
-            EntityState = null
-        };
-
-        return conditions;
+        // No spawn conditions - A-story progression managed by sequential spawning
+        // Each A-scene spawns the next via ScenesToSpawn reward in final situation
+        // Return null - procedural A-scenes spawn via reward system, not spawn conditions
+        return null;
     }
 
     /// <summary>
