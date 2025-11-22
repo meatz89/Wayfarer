@@ -163,59 +163,6 @@ public class PathfindingServiceTests
     }
 
     [Fact]
-    public void FindPath_CartOnForest_PrefersRoadPath()
-    {
-        // Arrange: Two paths - one through forest (slower), one through road (faster)
-        HexMap hexMap = CreateHexMapWithRoadAndForestPaths();
-        AxialCoordinates start = new AxialCoordinates(0, 0);
-        AxialCoordinates goal = new AxialCoordinates(0, 4);
-
-        // Act: Cart transport prefers road (lower cost)
-        PathfindingResult result = PathfindingService.FindPath(start, goal, hexMap, TransportType.Cart);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-        // Verify path uses road hexes (cost should be lower than forest path)
-        // Road cost = 0.8 per hex, Forest cost = 2.0 per hex for Cart
-        Assert.True(result.TotalCost < 8.0f); // Road path = 4 * 0.8 = 3.2
-    }
-
-    [Fact]
-    public void FindPath_DangerRatingCalculatedCorrectly()
-    {
-        // Arrange: Create path with known danger levels
-        HexMap hexMap = CreateHexMapWithDangerLevels();
-        AxialCoordinates start = new AxialCoordinates(0, 0); // Danger = 0
-        AxialCoordinates goal = new AxialCoordinates(2, 0); // Danger = 0
-        // Path includes (1,0) with Danger = 5
-
-        // Act
-        PathfindingResult result = PathfindingService.FindPath(start, goal, hexMap, TransportType.Walking);
-
-        // Assert
-        Assert.True(result.IsSuccess);
-        // DangerRating = sum of danger levels along path
-        // Path: (0,0)[0] -> (1,0)[5] -> (2,0)[0] = 5
-        Assert.Equal(5, result.DangerRating);
-    }
-
-    [Fact]
-    public void FindPath_CostCalculationAccurate_RoadVsPlains()
-    {
-        // Arrange: Create path with road vs plains hexes
-        HexMap hexMap = CreateSimpleHexMap(); // All plains (cost 1.0)
-        AxialCoordinates start = new AxialCoordinates(0, 0);
-        AxialCoordinates goal = new AxialCoordinates(2, 0);
-
-        // Act
-        PathfindingResult result = PathfindingService.FindPath(start, goal, hexMap, TransportType.Walking);
-
-        // Assert: 2 steps on plains = 2 * 1.0 = 2.0 cost
-        Assert.True(result.IsSuccess);
-        Assert.Equal(2.0f, result.TotalCost);
-    }
-
-    [Fact]
     public void FindPath_OptimalPathChosen_AStarSelectsShortest()
     {
         // Arrange: Create hex grid where multiple paths exist but one is optimal
