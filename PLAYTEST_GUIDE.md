@@ -138,37 +138,126 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 
 ---
 
-## What Playtesters Should Understand
+## The Emotional Arc: What You Should FEEL Over Time
 
-### 1. Test HOLISTICALLY (Hours, Not Minutes)
-**Don't test:** Individual choice difficulty
-**Do test:** Does scarcity emerge after 15 deliveries? Does my build (chosen across 20 stat investments) create distinct experience?
+**This is THE MOST IMPORTANT section.** We're testing an EXPERIENCE, not mechanics.
 
-**Play for MINIMUM 2-4 hours** to see strategic patterns emerge.
+### Hour 1 (Tutorial A1): "Who Do I Want to Be?"
+**The Feeling:** Aspiration and exploration without pressure
 
-### 2. Stat Gating Creates Constraint
-**Don't test:** "This individual choice is easy"
-**Do test:** "After 2 hours, do I see choices I WANT but can't take due to stat requirements? Am I blocked from entire content areas due to specialization?"
+**What happens:**
+- NO stat requirements exist yet (all stats start at 0)
+- Choices offer stat GRANTS: "Notice their weary expression, offer kind words" → +1 Rapport
+- You pick based on PERSONALITY: "Am I empathetic? Analytical? Commanding?"
+- Identity building through preference, not optimization
+- Comfortable margins, no constraints
 
-**Past stat allocation creates CURRENT constraints** - specialization matters over hours.
+**Sir Brante parallel:** Pure identity formation - capability building without validation pressure
 
-### 3. Specialization is EMERGENT (Not Immediate)
-**Don't test:** "Insight stat doesn't immediately feel powerful"
-**Do test:** "After investing in Insight 10 times across 3 hours, do Mental challenges feel easier AND Social situations feel more expensive?"
+**What to test:** Do I feel FREE to explore different identity paths without fear?
 
-**Compare 3-hour Investigator playthrough vs 3-hour Diplomat playthrough** - distinct?
+---
 
-### 4. Infinite Journey (Frieren Principle)
-**Don't test:** "Where's the ending?"
-**Do test:** "Does it feel open-ended? Can I explore for hours without pressure to 'finish'?"
+### Hour 2 (Tutorial A2-A3): "I'm Becoming Someone"
+**The Feeling:** First validation of chosen path, awareness of unchosen paths
 
-**No completion anxiety** - play at your own pace without fear of missing content.
+**What happens:**
+- FIRST stat gates appear - but as visible possibilities, not painful locks
+- Gap display shows: "Need Insight 5 (you have 3) - need 2 more"
+- Gates feel like FUTURE ASPIRATIONS: "That's what I could do if I keep growing this way"
+- You've gained 2-4 stat points from A1 choices, identity forming
+- Still 3+ viable paths available - gates don't block progression
 
-### 5. Contemplation Not Urgency
-**Don't test:** "Choices should be timed for pressure"
+**Sir Brante parallel:** "Seeing life you could have had" begins gently - locked paths are intriguing, not frustrating
+
+**What to test:**
+- Do I see locked choices and think "I want to work toward that"?
+- Does it feel aspirational, not punishing?
+
+**Regret emotion:** NOT YET - you haven't committed deeply enough
+
+---
+
+### Hour 3: "My Choices Define Me"
+**The Feeling:** Validation of specialization, awareness of vulnerability
+
+**What happens:**
+- You CAN take some stat-gated paths (Rapport 3-4, you've built this)
+- First REAL validation: "I unlocked this because of who I chose to become"
+- But other gates remain locked (Authority 5, Cunning 4)
+- Specialization consequences: "I focused on empathy, so commanding approaches are locked"
+- You notice your BUILD creating distinct experience
+
+**Sir Brante parallel:** Requirements feel like RECOGNITION ("you earned this") not GRIND
+
+**What to test:**
+- Do I feel POWERFUL in my specialized area?
+- Do I notice I'm weaker in non-specialized areas?
+- Does my identity feel distinct?
+
+**Regret emotion:** BEGINS SUBTLY - "If I'd chosen Authority in A1, I could take that path now"
+
+---
+
+### Hour 4+: "I See the Life I Could Have Had"
+**The Feeling:** Deep specialization creates power AND painful vulnerability. Visible regret.
+
+**What happens:**
+- Stat gates become FREQUENT (most situations have 2-3 gated paths)
+- Clear specialization (Insight 7, Cunning 5 OR Rapport 7, Diplomacy 5)
+- Vulnerability becomes PAINFUL: Low Authority (2) locks out entire conversation branches
+- **THE CORE FEELING:** "I see this Authority 6 path that would solve everything elegantly, but I CAN'T take it because I chose to be an Investigator"
+- Locked paths aren't mysteries - they're VISIBLE ALTERNATIVES representing rejected identities
+
+**Sir Brante parallel PEAKS:**
+- "I'm seeing the life I could have lived if I'd been a Commander instead"
+- You MOURN unchosen builds while EMBRACING chosen identity
+- This creates investment in future playthroughs and acceptance of trade-offs
+
+**What to test:**
+- Do I feel REGRET when I see locked paths I want?
+- Do I think "I wish I'd invested in Rapport earlier"?
+- Do I see EXACTLY what I'm missing (not mystery, but visible sacrifice)?
+- Does this regret make me MORE invested in my chosen identity?
+
+**Regret emotion:** FULLY EMERGED - you feel the weight of past choices
+
+---
+
+### The Sir Brante Model: "Seeing Life You Could Have Had"
+
+**How it works:**
+1. **Visible Requirements** - You see "Authority 5" even with Authority 2
+2. **Clear Gap** - "Need 3 more Authority"
+3. **Understanding Consequence** - You know EXACTLY what you're missing
+4. **Irreversible Specialization** - Can't easily recover after focusing Insight for 3 hours
+5. **Mourning Unchosen Paths** - "I see how a Commander would handle this, but I chose Investigator"
+
+**The emotional payoff:**
+- You ACCEPT your build through visible sacrifice
+- Locked paths create APPRECIATION for unlocked paths
+- Regret creates INVESTMENT in future playthroughs
+- Specialization feels MEANINGFUL because alternatives are visible but costly
+
+**Comparison baseline:** In Sir Brante, you see 3-4 paths per decision, 1-2 accessible to you, 1-2 blocked visibly. Wayfarer should feel similar: most situations show 3-4 choices, some stat-accessible (free), some stat-blocked (visible but can't take), one fallback (always available).
+
+---
+
+### What Playtesters Should Understand
+
+### 1. Test the FEELING, Not the Mechanics
+**Don't test:** "Are there enough stat-gated choices?"
+**Do test:** "Do I feel REGRET when I see blocked paths? Does my past haunt my present?"
+
+### 2. Play for MINIMUM 3-4 Hours
+**Why:** Emotional arc takes time. Regret emerges in Hour 4, not Hour 1.
+
+### 3. Sir Brante is the Reference
+**If you've played Sir Brante:** Does Wayfarer create similar "seeing life you could have had" feeling?
+**If you haven't:** Do you feel constraint from past choices? Do you mourn unchosen paths?
+
+### 4. Contemplation Not Urgency
 **Do test:** "Can I pause, calculate, and strategize? Do I trust the numbers?"
-
-**Perfect information enables multi-step planning** - not artificial urgency.
 
 ---
 
@@ -261,6 +350,79 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 
 ---
 
+## Known Implementation Gaps (Features Designed But Not Built)
+
+**CRITICAL:** These features are fully documented in design docs but NOT implemented in current build. Testers should NOT report these as bugs - they're planned future features.
+
+### 1. **Stat Reduction & Negative Consequences** ❌ NOT IMPLEMENTED
+**Design:** Choices can REDUCE stats or apply negative consequences. Crisis situations where all choices are damage control.
+- Example: "Force the issue" → +3 Authority, -1 Rapport (asymmetric trade)
+- Crisis: Every choice loses something (2 Health OR 15 coins OR 1 Rapport)
+
+**Current Reality:** All stat changes are POSITIVE ONLY. No choices reduce stats. No crisis situations exist.
+
+**What testers should verify:** Stats only increase, never decrease. Note this as expected limitation.
+
+---
+
+### 2. **Sweet Spots & Over-Specialization Penalties** ❌ NOT IMPLEMENTED
+**Design:** Authority 16+ triggers automatic negative consequences (domineering reputation, NPCs hostile, Social challenges start with increased Doubt).
+- Optimal range: Stats 4-6 comfortable, 7-8 specialized, 9+ diminishing returns
+- Over-specialization creates penalties, not just opportunity cost
+
+**Current Reality:** Stats have NO ceiling penalties. "More is always better" - no sweet spots enforced.
+
+**What testers should verify:** No penalties for high stats. Note that specialization creates ONLY opportunity cost (can't invest in other stats), not active penalties.
+
+---
+
+### 3. **NPC Access Gating** ❌ NOT IMPLEMENTED
+**Design:** Some NPCs require minimum stats to BEGIN interaction.
+- Cannot approach Merchant without Rapport 2
+- Cannot approach Guard Captain without Authority 2
+- Cannot approach Thief Contact without Cunning 3
+
+**Current Reality:** All NPCs accessible regardless of stats. Stat gates exist only at CHOICE level, not NPC level.
+
+**What testers should verify:** Can interact with all NPCs from game start. Stat gates appear in conversation CHOICES, not NPC ACCESS.
+
+---
+
+### 4. **Equipment Stat Bonuses** ❌ NOT IMPLEMENTED
+**Design:** Equipment provides temporary stat boosts as strategic alternative to grinding.
+- "+1 Insight Hat" costs 60-100 coins, grants temporary +1 Insight while owned
+- Strategic choice: Grind stats over hours OR buy equipment for coins
+- Bypass stat gates temporarily via economic investment
+
+**Current Reality:** Equipment provides context-specific difficulty reduction (IntensityReduction), NOT stat bonuses.
+- Example: Rope makes climbing easier but doesn't increase Authority stat
+- Example: Quality Clothing helps Authority/Persuasion contexts but doesn't grant +1 Authority
+
+**What testers should verify:**
+- Equipment helps with specific challenge types but doesn't change stat displays
+- Cannot bypass "Need Insight 5" gate by buying equipment
+- Only stat grinding (playing challenge cards) increases stats
+
+---
+
+### 5. **Content Beyond Tutorial** ⚠️ LIKELY LIMITED
+**Design:** Full game with procedural A-story (infinite), multiple regions, dozens of scenes.
+
+**Current Reality:** May only have tutorial scenes (A1-A3) implemented.
+- A1: No stat gates (by design - identity building)
+- A2: First gates appear (aspirational)
+- A3: Optional gates (first validation)
+- **A4+: May not exist yet**
+
+**What testers should verify:**
+- If stat gating feels weak after 2-3 hours, content beyond tutorial may not be implemented
+- Report as "limited content" not "stat gating broken"
+- Hour 4+ emotional arc requires post-tutorial content to test
+
+**If you complete A1-A2-A3 and see no new scenes:** This is an implementation gap, not a design failure. The tutorial is INTENTIONALLY light on stat gating (identity building phase).
+
+---
+
 ## How to Test Using Playwright
 
 **Verified Selectors** (from actual GameScreen.razor code):
@@ -307,7 +469,46 @@ const modalOpen = await page.locator('.modal-overlay').isVisible();
 await page.click('.modal-overlay');
 ```
 
-**Critical Test:** Verify perfect information - all costs must be visible BEFORE player commits to choice.
+### Stat-Gated Choices (CRITICAL FOR TESTING)
+```javascript
+// LOCKED choice (stat-gated or unaffordable)
+const lockedChoice = await page.locator('.scene-choice-card.locked');
+
+// Lock indicator section (red banner with padlock)
+const lockIndicator = await page.locator('.scene-locked-indicator');
+
+// "UNAVAILABLE" text
+const lockTitle = await page.locator('.lock-title');
+await expect(lockTitle).toHaveText('UNAVAILABLE');
+
+// Requirement gaps (shows exact missing stats)
+const requirementGaps = await page.locator('.requirement-gap');
+// Example text: "Need Insight 5 (you have 3)"
+
+// Verify locked choice has dashed border
+const borderStyle = await lockedChoice.evaluate(el =>
+  window.getComputedStyle(el).borderStyle
+);
+expect(borderStyle).toBe('dashed');
+
+// AVAILABLE choice (can be selected)
+const availableChoice = await page.locator('.scene-choice-card:not(.locked)');
+
+// Verify available choice has solid border and hover effect
+await availableChoice.hover();
+const transform = await availableChoice.evaluate(el =>
+  window.getComputedStyle(el).transform
+);
+expect(transform).not.toBe('none'); // Should lift up on hover
+```
+
+**Visual Indicators (No DevTools Needed):**
+- **Locked choice:** Dashed border, grayed background, 🔒 UNAVAILABLE banner (red), no hover effect
+- **Available choice:** Solid border, bright background, lifts up on hover
+- **Requirement text:** Red, indented, shows exact gap: "Need Insight 5 (you have 3)"
+- **Cursor:** Locked = circle-slash (not-allowed), Available = pointer (hand)
+
+**Critical Test:** Verify perfect information - all costs AND stat requirements visible BEFORE player commits to choice.
 
 ---
 
@@ -537,52 +738,104 @@ Open browser: http://localhost:5000
 
 **Complete a1 → a2 → a3 tutorial sequence**
 
-### 4. Core Experience Test: Stat Gating and Choice Consequences (2-3 hours)
+### 4. Core Experience Test: The Emotional Arc (3-4 hours MINIMUM)
 
 **THE PRIMARY EXPERIENCE TO TEST:**
 
-**NOT:**  "Can I calculate profit margins accurately?"
-**YES:** "I can't take the choice I WANT because my Rapport is too low"
+**NOT:** "Can I calculate profit margins accurately?"
+**NOT:** "Are there enough stat-gated choices?"
+**YES:** "Do I feel REGRET when I see the life I could have had?"
 
-**Play for 2-3 HOURS minimum to feel cumulative stat consequences.**
+**Play for 3-4 HOURS minimum to experience the full emotional arc.**
 
-**What to Track:**
+---
 
-**Stat Gating Moments** (write these down as they happen):
-- "I saw a choice I wanted but it was blocked - needed Insight 5, I have 3"
-- "I was forced to take the expensive coin path because I lack the stat-gated free path"
+### Hour-by-Hour Emotional Tracking
+
+**Hour 1 - Identity Building:**
+- [ ] Do I feel FREE to explore different stat paths without pressure?
+- [ ] Are choices based on PERSONALITY not optimization?
+- [ ] No stat gates yet (all grants, no requirements)?
+
+**Hour 2 - First Gates Appear:**
+- [ ] Do I see stat-gated choices that feel ASPIRATIONAL (not punishing)?
+- [ ] Can I see exact gap? ("Need Insight 5, you have 3")
+- [ ] Do locked paths make me think "I want to work toward that"?
+- [ ] Still have 3+ viable paths (gates don't block progression)?
+
+**Hour 3 - Validation & Constraint:**
+- [ ] Do I feel POWERFUL in my specialized area?
+- [ ] Do I notice I'm WEAKER in non-specialized areas?
+- [ ] First REGRET emotion: "If I'd chosen Authority in Hour 1, I could take that path now"
+- [ ] Does my identity feel DISTINCT from other builds?
+
+**Hour 4+ - "I See the Life I Could Have Had":**
+- [ ] Do I feel PAINFUL vulnerability in non-specialized areas?
+- [ ] Do I see Authority 6 paths and think "I WISH I could take that"?
+- [ ] Do I MOURN unchosen builds while EMBRACING chosen identity?
+- [ ] Does regret make me MORE invested (want to replay as different build)?
+
+---
+
+### The Regret Emotion Test (CRITICAL)
+
+**After 3-4 hours, ask yourself:**
+
+1. **Do I see the life I could have had?**
+   - Are locked paths VISIBLE (not mystery gates)?
+   - Do I know EXACTLY what I'm missing?
+   - Can I imagine how a different build would handle this?
+
+2. **Do I feel regret for unchosen paths?**
+   - "I wish I'd invested in Rapport earlier"
+   - "I see how a Commander would solve this elegantly, but I chose Investigator"
+   - Does this regret feel MEANINGFUL (not frustrating)?
+
+3. **Does regret create investment?**
+   - Do I want to replay as different build to access locked paths?
+   - Do I ACCEPT my build identity through visible sacrifice?
+   - Do locked paths make me APPRECIATE unlocked paths more?
+
+**If you answer NO to these:** Emotional arc is not working. Report as "regret emotion not emerging."
+
+---
+
+### Stat Gating Moments (Write These Down)
+
+**What to track throughout playthrough:**
+- "I saw a choice I WANTED but it was blocked - needed Insight 5, I have 3"
+- "I was forced to take expensive coin path because I lack stat-gated free path"
 - "This situation has 4 choices but only 2 are available to me"
-- "I picked a stat increase I didn't want just to unlock gated content I need"
+- "I picked a stat increase I didn't WANT just to unlock gated content I NEED"
+- "My past stat choices created THIS vulnerability I'm feeling NOW"
 
-**Cumulative Consequences** (after 2 hours):
-- "I invested in Insight for 2 hours, NOW Social situations block me constantly"
-- "My past stat choices created vulnerability I'm feeling NOW"
-- "I can access Mental content easily but Social content forces expensive workarounds"
+---
 
-**Questions after 2-3 hours:**
-1. **Do I see choices I want but can't afford (stat requirements)?**
-   - How often do I encounter stat-gated choices?
-   - Can I see WHAT I need to unlock them (exact stat gap visible)?
-   - Do I feel motivated to invest in stats to unlock paths?
+### Questions After 3-4 Hours
 
-2. **Do my past stat investments constrain current options?**
-   - After specializing in Investigator (Insight+Cunning), are Social paths blocked?
-   - Does specialization create FELT vulnerability in non-specialized areas?
-   - Do I regret past stat choices when facing current constraints?
+1. **Regret for path not taken:**
+   - Do I mourn unchosen builds?
+   - Do I see exactly what I'm missing?
+   - Does this make future playthroughs appealing?
 
-3. **Am I forced to pick stat increases I don't want?**
-   - Do I ever choose "increase Rapport" even though I'd rather increase Insight?
-   - Why? (To unlock gated content, to recover from being locked out, etc.)
-   - Does this feel strategic or frustrating?
+2. **Past choices constrain present:**
+   - After specializing Investigator (Insight+Cunning), are Social paths blocked?
+   - Does vulnerability HURT (not just "I notice it")?
+   - Do I regret past stat allocation when facing current gates?
 
-4. **Do choices create strategic pressure through REQUIREMENTS not ECONOMICS?**
-   - Is the tension "I can't meet the stat requirement" or "I can't afford the coins"?
-   - Primary should be stat gating, economics should be secondary
+3. **Forced stat allocation:**
+   - Do I ever choose stats I don't want to unlock gated content?
+   - Does this feel strategic or just frustrating?
 
-**Simple Economic Check** (don't track spreadsheets):
-- After 10 deliveries, do you have enough coins for survival? (Yes = working)
-- Can you afford occasional equipment? (Should take ~10-15 deliveries = working)
-- Do you ever run completely out of coins? (Should be rare but recoverable = working)
+4. **Sir Brante comparison:**
+   - Does it feel like Sir Brante's "impossible choices"?
+   - Do I see 3-4 paths, 1-2 accessible, 1-2 blocked visibly?
+   - Does specialization create identity, not just numbers?
+
+**Simple Economic Check** (secondary to emotional experience):
+- After 10 deliveries, can you survive? (Yes = working)
+- Can you afford equipment eventually? (Should take ~10-15 deliveries = working)
+- Coins create tension but NOT dominant constraint? (Stats primary = working)
 
 ### 5. Perfect Information Audit (10 min)
 **Every single choice across all screens:**
