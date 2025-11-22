@@ -62,10 +62,11 @@ public class NPCTokenEntry
 
 /// <summary>
 /// Helper class for route entries (replaces Dictionary<string, List<RouteOption>>)
+/// HIGHLANDER: Object reference, no string ID
 /// </summary>
 public class KnownRouteEntry
 {
-    public string OriginSpotId { get; set; }
+    public Location OriginLocation { get; set; }
     public List<RouteOption> Routes { get; set; } = new List<RouteOption>();
 }
 

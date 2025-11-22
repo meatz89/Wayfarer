@@ -40,15 +40,15 @@ namespace Wayfarer.Pages.Components
                 .ToList();
         }
 
-        protected int GetFamiliarity(string locationId)
+        protected int GetFamiliarity(Location location)
         {
-            return GameWorld.GetPlayer().GetLocationFamiliarity(locationId);
+            return GameWorld.GetPlayer().GetLocationFamiliarity(location);
         }
 
-        protected double GetFamiliarityPercent(string locationId, int max)
+        protected double GetFamiliarityPercent(Location location, int max)
         {
             if (max == 0) return 0;
-            return (double)GetFamiliarity(locationId) / max * 100.0;
+            return (double)GetFamiliarity(location) / max * 100.0;
         }
 
         protected int GetCollectedObservationCount()
@@ -58,7 +58,10 @@ namespace Wayfarer.Pages.Components
 
         protected List<string> GetCollectedObservations()
         {
-            return GameWorld.GetPlayer().CollectedObservations;
+            // HIGHLANDER: CollectedObservations stores Observation objects, extract Text for display
+            return GameWorld.GetPlayer().CollectedObservations
+                .Select(obs => obs.Text)
+                .ToList();
         }
 
         protected int GetExploredRouteCount()
@@ -77,10 +80,11 @@ namespace Wayfarer.Pages.Components
                 {
                     routes.Add(new RouteInfo
                     {
-                        Id = route.Name,
+                        Route = route,
                         OriginName = route.OriginLocation.Name,
                         DestinationName = route.DestinationLocation.Name,
-                        Familiarity = player.GetRouteFamiliarity(route.Name)
+                        // HIGHLANDER: Pass RouteOption object directly
+                        Familiarity = player.GetRouteFamiliarity(route)
                     });
                 }
             }
@@ -88,9 +92,10 @@ namespace Wayfarer.Pages.Components
             return routes.OrderBy(r => r.OriginName).ToList();
         }
 
-        protected int GetRouteFamiliarity(string routeId)
+        protected int GetRouteFamiliarity(RouteInfo routeInfo)
         {
-            return GameWorld.GetPlayer().GetRouteFamiliarity(routeId);
+            // HIGHLANDER: Pass RouteOption object directly to Player API
+            return GameWorld.GetPlayer().GetRouteFamiliarity(routeInfo.Route);
         }
 
         protected List<ActiveObligation> GetActiveObligations()
@@ -165,7 +170,7 @@ namespace Wayfarer.Pages.Components
 
     public class RouteInfo
     {
-        public string Id { get; set; }
+        public RouteOption Route { get; set; }
         public string OriginName { get; set; }
         public string DestinationName { get; set; }
         public int Familiarity { get; set; }

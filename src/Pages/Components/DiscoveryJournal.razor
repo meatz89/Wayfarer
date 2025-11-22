@@ -32,13 +32,13 @@
             {
                 @foreach (var activeInv in activeObligations)
                 {
-                    Obligation inv = GetObligationById(activeInv.ObligationId);
+                    Obligation inv = activeInv.Obligation;
                     if (inv != null)
                     {
                         <div class="obligation-card">
                             <div class="obligation-header-row">
                                 <div class="obligation-title">@inv.Name</div>
-                                <div class="obligation-progress-label">@GetObligationProgress(activeInv)/@GetObligationTotalSituations(activeInv.ObligationId) completed</div>
+                                <div class="obligation-progress-label">@GetObligationProgress(activeInv)/@GetObligationTotalSituations(inv) completed</div>
                             </div>
 
                             <div class="obligation-progress-bar">
@@ -167,12 +167,12 @@
                         <div class="location-entry">
                             <div class="location-name">@location.Name</div>
                             <div class="familiarity-bar">
-                                <span class="familiarity-label">Familiarity: @GetFamiliarity(location.Id)/3</span>
+                                <span class="familiarity-label">Familiarity: @GetFamiliarity(location)/3</span>
                                 <div class="progress-bar">
-                                    <div class="progress-fill" style="width: @GetFamiliarityPercent(location.Id, 3)%"></div>
+                                    <div class="progress-fill" style="width: @GetFamiliarityPercent(location, 3)%"></div>
                                 </div>
                             </div>
-                            @if (GetFamiliarity(location.Id) >= 3)
+                            @if (GetFamiliarity(location) >= 3)
                             {
                                 <span class="complete-badge">✓ Fully Explored</span>
                             }
@@ -203,8 +203,8 @@
                         <div class="route-entry">
                             <div class="route-path">@route.OriginName → @route.DestinationName</div>
                             <div class="route-familiarity">
-                                Familiarity: @GetRouteFamiliarity(route.Id)/5
-                                @if (GetRouteFamiliarity(route.Id) >= 5)
+                                Familiarity: @GetRouteFamiliarity(route)/5
+                                @if (GetRouteFamiliarity(route) >= 5)
                                 {
                                     <span class="mastered-badge"><Icon Name="round-star" CssClass="icon-positive" /> Mastered</span>
                                 }

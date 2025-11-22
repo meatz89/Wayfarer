@@ -68,10 +68,10 @@ public class SpawnConditionsEvaluator
         // Check RequiredItems
         if (conditions.RequiredItems != null && conditions.RequiredItems.Count > 0)
         {
-            List<string> itemIds = player.Inventory.GetItemIds();
+            List<Item> items = player.Inventory.GetAllItems();
             foreach (string itemId in conditions.RequiredItems)
             {
-                if (!itemIds.Contains(itemId))
+                if (!items.Any(item => item.Name == itemId))
                 {
                     return false; // Required item not possessed
                 }
@@ -85,8 +85,12 @@ public class SpawnConditionsEvaluator
         {
             foreach (KeyValuePair<string, int> kvp in conditions.LocationVisits)
             {
+                // Resolve location name to Location object
+                Location location = _gameWorld.Locations.FirstOrDefault(loc => loc.Name == kvp.Key);
+                if (location == null) continue; // Skip if location not found
+
                 // For now, use LocationFamiliarity as proxy (familiarity increases with visits)
-                int familiarityLevel = player.GetLocationFamiliarity(kvp.Key);
+                int familiarityLevel = player.GetLocationFamiliarity(location);
                 // Rough mapping: 0 visits = 0 familiarity, 3+ visits = 3 familiarity
                 if (familiarityLevel < Math.Min(kvp.Value, 3))
                 {
@@ -162,7 +166,7 @@ public class SpawnConditionsEvaluator
         // Check LocationStates (if placement is a Location)
         if (conditions.LocationStates != null && conditions.LocationStates.Count > 0 && !string.IsNullOrEmpty(placementId))
         {
-            Location location = _gameWorld.GetLocation(placementId);
+            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Name == placementId);
             if (location != null)
             {
                 foreach (StateType requiredState in conditions.LocationStates)
@@ -220,9 +224,17 @@ public class SpawnConditionsEvaluator
         {
             foreach (KeyValuePair<string, int> kvp in conditions.RouteTravelCount)
             {
+                // HIGHLANDER: Resolve route name to RouteOption object
+                RouteOption route = _gameWorld.Routes.FirstOrDefault(r => r.Name == kvp.Key);
+                if (route == null)
+                {
+                    return false; // Route not found
+                }
+
                 // NOTE: Player has RouteFamiliarity but not RouteTravelCount
                 // Use familiarity as proxy for travel count (familiarity correlates with travel frequency)
-                int routeFamiliarity = player.GetRouteFamiliarity(kvp.Key);
+                // HIGHLANDER: Pass RouteOption object to Player API
+                int routeFamiliarity = player.GetRouteFamiliarity(route);
                 // Rough mapping: 0 travels = 0 familiarity, 5+ travels = 5 familiarity
                 if (routeFamiliarity < Math.Min(kvp.Value, 5))
                 {

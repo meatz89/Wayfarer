@@ -39,7 +39,6 @@ public static class EmergencyParser
             Description = dto.Description ?? "",
             TriggerDay = dto.TriggerDay,
             TriggerSegment = dto.TriggerSegment,
-            TriggerLocationIds = dto.TriggerLocationIds ?? new List<string>(),
             ResponseWindowSegments = dto.ResponseWindowSegments,
             IsTriggered = dto.IsTriggered,
             IsResolved = dto.IsResolved,
@@ -49,14 +48,14 @@ public static class EmergencyParser
         // Parse response options
         foreach (EmergencyResponseDTO responseDto in dto.Responses)
         {
-            EmergencyResponse response = ParseResponse(responseDto, dto.Id);
+            EmergencyResponse response = ParseResponse(responseDto, dto.Id, gameWorld);
             emergency.Responses.Add(response);
         }
 
         // Parse ignore outcome if present
         if (dto.IgnoreOutcome != null)
         {
-            emergency.IgnoreOutcome = ParseOutcome(dto.IgnoreOutcome, dto.Id);
+            emergency.IgnoreOutcome = ParseOutcome(dto.IgnoreOutcome, dto.Id, gameWorld);
         }
         else
         {
@@ -74,7 +73,7 @@ public static class EmergencyParser
     /// <summary>
     /// Parse an emergency response option from DTO
     /// </summary>
-    private static EmergencyResponse ParseResponse(EmergencyResponseDTO dto, string emergencyId)
+    private static EmergencyResponse ParseResponse(EmergencyResponseDTO dto, string emergencyId, GameWorld gameWorld)
     {
         if (dto == null)
             throw new ArgumentNullException(nameof(dto));
@@ -112,7 +111,7 @@ public static class EmergencyParser
         // Parse outcome if present
         if (dto.Outcome != null)
         {
-            response.Outcome = ParseOutcome(dto.Outcome, emergencyId);
+            response.Outcome = ParseOutcome(dto.Outcome, emergencyId, gameWorld);
         }
         else
         {
@@ -126,7 +125,7 @@ public static class EmergencyParser
     /// <summary>
     /// Parse an emergency outcome from DTO
     /// </summary>
-    private static EmergencyOutcome ParseOutcome(EmergencyOutcomeDTO dto, string emergencyId)
+    private static EmergencyOutcome ParseOutcome(EmergencyOutcomeDTO dto, string emergencyId, GameWorld gameWorld)
     {
         if (dto == null)
             return new EmergencyOutcome();
@@ -134,14 +133,36 @@ public static class EmergencyParser
         EmergencyOutcome outcome = new EmergencyOutcome
         {
             RelationshipDelta = dto.RelationshipDelta,
-            NPCRelationshipDeltas = dto.NPCRelationshipDeltas ?? new Dictionary<string, int>(),
+            NPCRelationshipDeltas = ParseNPCRelationshipDeltas(dto.NPCRelationshipDeltas, gameWorld),
             GrantedKnowledge = dto.GrantedKnowledge ?? new List<string>(),
-            SpawnedSituationIds = dto.SpawnedSituationIds ?? new List<string>(),
-            GrantedItemIds = dto.GrantedItemIds ?? new List<string>(),
             CoinReward = dto.CoinReward,
             NarrativeResult = dto.NarrativeResult ?? ""
         };
 
         return outcome;
+    }
+
+    /// <summary>
+    /// Parse NPC relationship deltas from string dictionary to NPC object dictionary
+    /// </summary>
+    private static Dictionary<NPC, int> ParseNPCRelationshipDeltas(Dictionary<string, int> npcDeltas, GameWorld gameWorld)
+    {
+        if (npcDeltas == null || !npcDeltas.Any())
+            return new Dictionary<NPC, int>();
+
+        Dictionary<NPC, int> result = new Dictionary<NPC, int>();
+        foreach (KeyValuePair<string, int> entry in npcDeltas)
+        {
+            NPC npc = gameWorld.NPCs.FirstOrDefault(n => n.Name == entry.Key);
+            if (npc == null)
+            {
+                Console.WriteLine($"[EmergencyParser.ParseNPCRelationshipDeltas] WARNING: NPC '{entry.Key}' not found");
+                continue; // Skip invalid NPC
+            }
+
+            result[npc] = entry.Value; // Object reference key, not string
+        }
+
+        return result;
     }
 }

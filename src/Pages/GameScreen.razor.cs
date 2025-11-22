@@ -70,7 +70,6 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     protected ObservationContext CurrentObservationContext { get; set; }
     protected EmergencyContext CurrentEmergencyContext { get; set; }
     protected int PendingLetterCount { get; set; }
-    public string CurrentDeckViewerNpcId { get; set; } // For dev mode deck viewer
 
     protected override async Task OnInitializedAsync()
     {
@@ -382,7 +381,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         {
             IsValid = session != null,
             ErrorMessage = session == null ? "Failed to start Mental session" : string.Empty,
-            DeckId = deck?.Id,
+            // HIGHLANDER: DeckId property deleted - unused dead code (never read)
             Session = session,
             Venue = location?.Venue,
             LocationName = location?.Name ?? "Unknown"
@@ -424,14 +423,14 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task StartPhysicalSession(PhysicalChallengeDeck deck, Location location, Situation situation, Obligation obligation)
     {
-        PhysicalSession session = GameFacade.StartPhysicalSession(deck, location, situation, obligation);
+        PhysicalSession session = await GameFacade.StartPhysicalSession(deck, location, situation, obligation);
 
         // Create context parallel to Social pattern
         CurrentPhysicalContext = new PhysicalChallengeContext
         {
             IsValid = session != null,
             ErrorMessage = session == null ? "Failed to start Physical session" : string.Empty,
-            DeckId = deck?.Id,
+            // HIGHLANDER: DeckId property deleted - unused dead code (never read)
             Session = session,
             Venue = location?.Venue,
             LocationName = location?.Name ?? "Unknown"
@@ -453,7 +452,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task StartConversationTree(ConversationTree tree)
     {
-        CurrentConversationTreeContext = GameFacade.CreateConversationTreeContext(tree.Id);
+        CurrentConversationTreeContext = GameFacade.CreateConversationTreeContext(tree);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -485,7 +484,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task StartEmergency(EmergencySituation emergency)
     {
-        CurrentEmergencyContext = GameFacade.CreateEmergencyContext(emergency.Id);
+        CurrentEmergencyContext = GameFacade.CreateEmergencyContext(emergency);
 
         // Always refresh UI after GameFacade action
         await RefreshResourceDisplay();
@@ -971,13 +970,10 @@ public class ScreenContext
 /// <summary>
 /// Strongly typed state data for screen transitions
 /// NOTE: This is UI navigation state, not domain state
-/// Object references used where possible, IDs acceptable for serialization needs
+/// HIGHLANDER: Object references only
 /// </summary>
 public class ScreenStateData
 {
     public NPC Npc { get; set; } // Object reference for current NPC interaction
-    public string VenueId { get; set; } // May be needed for venue-based navigation
-    public string TravelDestination { get; set; } // May be needed for travel resumption
-    public string SelectedCardId { get; set; } // Card instance tracking
     public int? SelectedObligationIndex { get; set; } // Obligation selection tracking
 }

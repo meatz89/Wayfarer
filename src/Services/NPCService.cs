@@ -36,20 +36,6 @@ public class NPCService
 
         return timeBlockPlan;
     }
-    /// <summary>
-    /// Check if a specific NPC is available to interact with at the current time
-    /// </summary>
-    public bool IsNPCAvailable(string npcId)
-    {
-        NPC npc = _repository.GetById(npcId);
-        if (npc == null)
-        {
-            return false;
-        }
-
-        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
-        return npc.IsAvailable(currentTime);
-    }
 
     /// <summary>
     /// Get NPCs available for interaction at a specific Venue location

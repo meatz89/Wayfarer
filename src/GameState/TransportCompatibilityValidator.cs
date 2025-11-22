@@ -103,15 +103,11 @@ public class TransportCompatibilityValidator
     {
         List<ItemCategory> categories = new List<ItemCategory>();
 
-        foreach (string itemId in player.Inventory.GetAllItems())
+        foreach (Item item in player.Inventory.GetAllItems())
         {
-            if (itemId != null && itemId != string.Empty)
+            if (item != null)
             {
-                Item item = _itemRepository.GetItemById(itemId);
-                if (item != null)
-                {
-                    categories.AddRange(item.Categories);
-                }
+                categories.AddRange(item.Categories);
             }
         }
 
@@ -125,15 +121,11 @@ public class TransportCompatibilityValidator
     {
         List<Item> items = new List<Item>();
 
-        foreach (string itemId in player.Inventory.GetAllItems())
+        foreach (Item item in player.Inventory.GetAllItems())
         {
-            if (itemId != null && itemId != string.Empty)
+            if (item != null)
             {
-                Item item = _itemRepository.GetItemById(itemId);
-                if (item != null)
-                {
-                    items.Add(item);
-                }
+                items.Add(item);
             }
         }
 

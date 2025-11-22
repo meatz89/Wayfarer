@@ -81,11 +81,15 @@ public static class NPCParser
             // For now, store the values to be applied later
             foreach (KeyValuePair<string, int> kvp in dto.InitialTokens)
             {
-                npc.InitialTokenValues.Add(new InitialTokenValue
+                // Parse string token ID to ConnectionType enum
+                if (Enum.TryParse<ConnectionType>(kvp.Key, true, out ConnectionType tokenType))
                 {
-                    TokenId = kvp.Key,
-                    Value = kvp.Value
-                });
+                    npc.InitialTokenValues.Add(new InitialTokenValue
+                    {
+                        TokenType = tokenType,
+                        Value = kvp.Value
+                    });
+                }
             }
         }
 

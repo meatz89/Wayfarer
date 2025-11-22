@@ -16,14 +16,16 @@
     public VenueType Type { get; set; } = VenueType.Wilderness;  // Strongly-typed venue category (replaces LocationTypeString)
     public int Tier { get; set; } = 1;
 
-    // SPATIAL: Center hex position for venue cluster
-    // Set during venue generation, used for placing first location
-    // Subsequent locations placed adjacent to existing locations (organic growth)
-    public AxialCoordinates? CenterHex { get; set; }
+    // SPATIAL HEX CLUSTER: Venue defines hex territory BEFORE locations placed
+    // CenterHex + HexAllocation strategy defines the venue's spatial boundaries
+    // All locations must have HexPosition within venue's allocated hex cluster
+    public AxialCoordinates CenterHex { get; set; }  // Required - defines venue spatial position
+    public HexAllocationStrategy HexAllocation { get; set; } = HexAllocationStrategy.ClusterOf7;
 
-    // UNIDIRECTIONAL RELATIONSHIP: Location → Venue (Location.VenueId references Venue.Id)
-    // Venue does NOT maintain list of its locations
-    // To find locations in a venue: query GameWorld.Locations.Where(loc => loc.VenueId == venueId)
+    // UNIDIRECTIONAL RELATIONSHIP: Location → Venue (object reference)
+    // HIGHLANDER: Location.Venue is single source of truth, NO reverse cache
+    // To find locations in venue: GameWorld.Locations.Where(loc => loc.Venue == this)
+    // DELETED: LocationIds (legacy cache duplicating Location.Venue object references)
 
     // HEX-BASED TRAVEL SYSTEM: Venue is ONLY a wrapper for travel cost rules
     // Venue has NO spatial position - Locations are the spatial entities
@@ -38,7 +40,7 @@
     /// Small venues: 5-10 (intimate, constrained)
     /// Large venues: 50-100 (expansive, variety)
     /// Wilderness: int.MaxValue (unlimited)
-    /// To check budget: count locations with matching VenueId from GameWorld.Locations
+    /// To check budget: Query GameWorld.Locations.Count(loc => loc.Venue == this)
     /// </summary>
     public int MaxLocations { get; set; } = 20;
 
@@ -46,6 +48,48 @@
     public Venue(string name)
     {
         Name = name;
+    }
+
+    /// <summary>
+    /// Get all hexes allocated to this venue's spatial cluster.
+    /// SPATIAL ARCHITECTURE: Venues claim hex territory BEFORE locations placed.
+    /// Locations must have HexPosition within this allocated set.
+    /// </summary>
+    public List<AxialCoordinates> GetAllocatedHexes()
+    {
+        List<AxialCoordinates> hexes = new List<AxialCoordinates>();
+
+        if (HexAllocation == HexAllocationStrategy.SingleHex)
+        {
+            hexes.Add(CenterHex);
+        }
+        else // ClusterOf7
+        {
+            hexes.Add(CenterHex);  // Center hex
+            hexes.AddRange(CenterHex.GetNeighbors());  // 6 neighboring hexes
+        }
+
+        return hexes;
+    }
+
+    /// <summary>
+    /// Check if a hex position is within this venue's allocated cluster.
+    /// Used by LocationParser to validate location hex positions.
+    /// </summary>
+    public bool ContainsHex(AxialCoordinates hex)
+    {
+        return GetAllocatedHexes().Contains(hex);
+    }
+
+    /// <summary>
+    /// Check if venue can accept more locations (capacity budget check).
+    /// CATALOGUE PATTERN: Capacity is DERIVED from query, not cached.
+    /// Queries GameWorld.Locations to count locations with matching Venue reference.
+    /// </summary>
+    public bool CanAddLocation(GameWorld world)
+    {
+        int currentCount = world.Locations.Count(loc => loc.Venue == this);
+        return currentCount < MaxLocations;
     }
 
 }

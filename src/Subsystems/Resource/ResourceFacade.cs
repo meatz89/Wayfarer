@@ -241,17 +241,11 @@ public class ResourceFacade
         Inventory inventory = GetInventory();
         return new InventoryViewModel
         {
-            Items = inventory.GetItemIds().Select(itemId =>
+            Items = inventory.GetAllItems().Select(item =>
             {
-                Item item = _itemRepository.GetItemById(itemId);
-                if (item == null)
-                {
-                    throw new InvalidOperationException($"Item {itemId} not found in repository");
-                }
-
                 return new InventoryItemViewModel
                 {
-                    ItemId = itemId,
+                    Item = item, // HIGHLANDER: Object reference, not ID
                     Name = item.Name,
                     Description = item.Description,
                     Weight = item.InitiativeCost,
@@ -271,14 +265,8 @@ public class ResourceFacade
         Inventory inventory = GetInventory();
         int totalWeight = 0;
 
-        foreach (string itemId in inventory.GetItemIds())
+        foreach (Item item in inventory.GetAllItems())
         {
-            Item item = _itemRepository.GetItemById(itemId);
-            if (item == null)
-            {
-                throw new InvalidOperationException($"Item {itemId} not found in repository");
-            }
-
             totalWeight += item.InitiativeCost;
         }
 

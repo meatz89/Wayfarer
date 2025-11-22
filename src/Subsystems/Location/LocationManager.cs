@@ -59,14 +59,7 @@ public class LocationManager
             .ToList();
     }
 
-    /// <summary>
-    /// Get a specific location by its ID.
-    /// </summary>
-    public Location GetLocation(string LocationId)
-    {
-        // Get location directly from GameWorld's primary storage
-        return _gameWorld.GetLocation(LocationId);
-    }
+    // HIGHLANDER: GetLocation(string) DELETED - use _gameWorld.Locations LINQ queries
 
     /// <summary>
     /// Add a new venue to the world.
@@ -139,11 +132,12 @@ public class LocationManager
     }
 
     /// <summary>
-    /// Check if a Location exists by its ID.
+    /// Check if a Location exists by its Name.
+    /// HIGHLANDER: Query GameWorld.Locations directly, GetLocation method deleted
     /// </summary>
-    public bool LocationExists(string locationId)
+    public bool LocationExists(string locationName)
     {
-        return GetLocation(locationId) != null;
+        return _gameWorld.Locations.Any(loc => loc.Name == locationName);
     }
 
     /// <summary>
@@ -235,8 +229,9 @@ public class LocationManager
 
         if (location == null) return areas;
 
-        // Get all Locations in the same venue
-        List<Location> Locations = GetLocationsForVenue(location.Venue);
+        // Get all Locations in this venue
+        // HIGHLANDER: 'location' parameter is Venue object, pass directly (not location.Venue)
+        List<Location> Locations = GetLocationsForVenue(location);
 
         foreach (Location loc in Locations)
         {

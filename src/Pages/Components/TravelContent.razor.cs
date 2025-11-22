@@ -77,9 +77,10 @@ namespace Wayfarer.Pages.Components
             {
                 Route = r,  // Object reference
                 Name = r.Name,  // Store the actual route name from JSON
-                DestinationName = GetDestinationVenueName(r.DestinationLocation.Name),
-                DestinationSpotName = GetDestinationLocationName(r.DestinationLocation.Name),
-                District = GetDestinationDistrict(r.DestinationLocation.Name),
+                // HIGHLANDER: Pass Location object, not string
+                DestinationName = GetDestinationVenueName(r.DestinationLocation),
+                DestinationSpotName = GetDestinationLocationName(r.DestinationLocation),
+                District = GetDestinationDistrict(r.DestinationLocation),
                 TransportType = FormatTransportType(r.Method),
                 TravelTime = r.TravelTimeSegments,
                 Cost = r.BaseCoinCost,
@@ -90,40 +91,35 @@ namespace Wayfarer.Pages.Components
             }).ToList();
         }
 
-        private string GetDestinationVenueName(string destinationSpotId)
+        // HIGHLANDER: Accept Location object, not string
+        private string GetDestinationVenueName(Location location)
         {
-            // Get the Venue name for this destination Location
-            Location location = GameFacade.GetLocation(destinationSpotId);
-            // ADR-007: Use Venue object reference instead of deleted VenueId
-            Venue venue = location.Venue;
+            if (location == null)
+                throw new ArgumentNullException(nameof(location));
 
-            if (venue != null)
-            {
-                return venue.Name;
-            }
-            return "Unknown Venue";
+            Venue venue = location.Venue;
+            return venue != null ? venue.Name : "Unknown Venue";
         }
 
-        private string GetDestinationLocationName(string destinationSpotId)
+        // HIGHLANDER: Accept Location object, not string
+        private string GetDestinationLocationName(Location location)
         {
-            // Get the actual Venue location from GameWorld to find its name
-            Location location = GameFacade.GetLocation(destinationSpotId);
             if (location == null)
-            {
-                throw new InvalidOperationException($"Location spot not found: {destinationSpotId}");
-            }
+                throw new ArgumentNullException(nameof(location));
 
             return location.Name;
         }
 
-        private string GetDestinationDistrict(string destinationSpotId)
+        // HIGHLANDER: Accept Location object, not string
+        private string GetDestinationDistrict(Location location)
         {
-            // NO FALLBACKS - let it fail if data is missing
-            Location location = GameFacade.GetLocation(destinationSpotId);
-            // ADR-007: Use Venue object reference instead of deleted VenueId
+            if (location == null)
+                throw new ArgumentNullException(nameof(location));
+
             Venue venue = location.Venue;
-            District district = GameFacade.GetDistrictForLocation(venue.Name);
-            Region region = GameFacade.GetRegionForDistrict(district.Name);
+            // HIGHLANDER: Pass Venue object to GetDistrictForLocation, not string
+            District district = GameFacade.GetDistrictForLocation(venue);
+            Region region = GameFacade.GetRegionForDistrict(district);
 
             if (region != null)
             {
@@ -151,7 +147,7 @@ namespace Wayfarer.Pages.Components
 
             // Add load penalties
             Player player = GameFacade.GetPlayer();
-            int itemCount = player.Inventory.GetAllItems().Count(i => !string.IsNullOrEmpty(i));
+            int itemCount = player.Inventory.GetAllItems().Count;
             if (itemCount > 3) // Light load threshold
             {
                 hungerCost += (itemCount - 3);

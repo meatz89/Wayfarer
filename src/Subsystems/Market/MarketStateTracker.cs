@@ -26,11 +26,12 @@ public class MarketStateTracker
 
     /// <summary>
     /// Represents supply and demand metrics for an item at a location
+    /// HIGHLANDER: Object references, no string IDs
     /// </summary>
     public class MarketMetrics
     {
-        public string VenueId { get; set; }
-        public string ItemId { get; set; }
+        public Venue Venue { get; set; }
+        public Item Item { get; set; }
         public float SupplyLevel { get; set; } = 1.0f; // 0.5 = scarce, 1.0 = normal, 2.0 = abundant
         public float DemandLevel { get; set; } = 1.0f; // 0.5 = low demand, 1.0 = normal, 2.0 = high demand
         public int RecentPurchases { get; set; }
@@ -41,16 +42,17 @@ public class MarketStateTracker
 
     /// <summary>
     /// Record of a completed trade
+    /// HIGHLANDER: Object references, no string IDs
+    /// Single-player game: No Trader property needed (always THE player)
     /// </summary>
     public class TradeRecord
     {
         public DateTime Timestamp { get; set; }
-        public string VenueId { get; set; }
-        public string ItemId { get; set; }
+        public Venue Venue { get; set; }
+        public Item Item { get; set; }
         public TradeType Type { get; set; }
         public int Price { get; set; }
         public int Quantity { get; set; }
-        public string TraderId { get; set; }
     }
 
     public enum TradeType
@@ -61,16 +63,17 @@ public class MarketStateTracker
 
     /// <summary>
     /// Market conditions summary for a location
+    /// HIGHLANDER: Object references, no string IDs
     /// </summary>
     public class MarketConditions
     {
-        public string VenueId { get; set; }
+        public Venue Venue { get; set; }
         public int TotalItems { get; set; }
         public int ScarcityItems { get; set; } // Items with low supply
         public int AbundantItems { get; set; } // Items with high supply
         public int HighDemandItems { get; set; }
         public int LowDemandItems { get; set; }
-        public List<string> TrendingItems { get; set; } // Recently traded items
+        public List<Item> TrendingItems { get; set; } = new List<Item>(); // Recently traded items
         public float OverallSupplyIndex { get; set; } // Average supply level
         public float OverallDemandIndex { get; set; } // Average demand level
     }
@@ -78,33 +81,32 @@ public class MarketStateTracker
     // ========== SUPPLY & DEMAND TRACKING ==========
 
     /// <summary>
-    /// Get supply level for an item at a location
-    /// HIGHLANDER: Accept typed objects, extract names for internal storage
+    /// Get supply level for an item at a venue
+    /// HIGHLANDER: Accept typed objects, use object references
     /// </summary>
     public float GetSupplyLevel(Item item, Location location)
     {
-        // Extract names for internal storage keying (infrastructure boundary)
-        MarketMetrics metrics = GetOrCreateMetrics(location.Name, item.Name);
+        MarketMetrics metrics = GetOrCreateMetrics(location.Venue, item);
         return metrics.SupplyLevel;
     }
 
     /// <summary>
-    /// Get demand level for an item at a location
-    /// HIGHLANDER: Accept typed objects, extract names for internal storage
+    /// Get demand level for an item at a venue
+    /// HIGHLANDER: Accept typed objects, use object references
     /// </summary>
     public float GetDemandLevel(Item item, Location location)
     {
-        // Extract names for internal storage keying (infrastructure boundary)
-        MarketMetrics metrics = GetOrCreateMetrics(location.Name, item.Name);
+        MarketMetrics metrics = GetOrCreateMetrics(location.Venue, item);
         return metrics.DemandLevel;
     }
 
     /// <summary>
     /// Update supply level based on market activity
+    /// HIGHLANDER: Accept object references, no string parameters
     /// </summary>
-    private void UpdateSupplyLevel(string venueId, string itemId, TradeType tradeType)
+    private void UpdateSupplyLevel(Venue venue, Item item, TradeType tradeType)
     {
-        MarketMetrics metrics = GetOrCreateMetrics(venueId, itemId);
+        MarketMetrics metrics = GetOrCreateMetrics(venue, item);
 
         if (tradeType == TradeType.Purchase)
         {
@@ -120,10 +122,11 @@ public class MarketStateTracker
 
     /// <summary>
     /// Update demand level based on market activity
+    /// HIGHLANDER: Accept object references, no string parameters
     /// </summary>
-    private void UpdateDemandLevel(string venueId, string itemId, TradeType tradeType)
+    private void UpdateDemandLevel(Venue venue, Item item, TradeType tradeType)
     {
-        MarketMetrics metrics = GetOrCreateMetrics(venueId, itemId);
+        MarketMetrics metrics = GetOrCreateMetrics(venue, item);
 
         if (tradeType == TradeType.Purchase)
         {
@@ -141,30 +144,25 @@ public class MarketStateTracker
 
     /// <summary>
     /// Record a purchase transaction
-    /// HIGHLANDER: Accept typed Item and Location objects, extract names for internal storage
+    /// HIGHLANDER: Accept typed objects, pass objects throughout
     /// </summary>
     public void RecordPurchase(Item item, Location location, int price)
     {
-        // Extract names at infrastructure boundary for internal storage
-        string itemId = item.Name;
-        string venueId = location.Name;
-
         TradeRecord record = new TradeRecord
         {
             Timestamp = DateTime.Now,
-            VenueId = venueId,
-            ItemId = itemId,
+            Venue = location.Venue,
+            Item = item,
             Type = TradeType.Purchase,
             Price = price,
-            Quantity = 1,
-            TraderId = _gameWorld.GetPlayer().Name
+            Quantity = 1
         };
 
         AddTradeRecord(record);
-        UpdateSupplyLevel(venueId, itemId, TradeType.Purchase);
-        UpdateDemandLevel(venueId, itemId, TradeType.Purchase);
+        UpdateSupplyLevel(location.Venue, item, TradeType.Purchase);
+        UpdateDemandLevel(location.Venue, item, TradeType.Purchase);
 
-        MarketMetrics metrics = GetOrCreateMetrics(venueId, itemId);
+        MarketMetrics metrics = GetOrCreateMetrics(location.Venue, item);
         metrics.RecentPurchases++;
         metrics.LastTradeTime = DateTime.Now;
         UpdateAveragePrice(metrics, price);
@@ -172,30 +170,25 @@ public class MarketStateTracker
 
     /// <summary>
     /// Record a sale transaction
-    /// HIGHLANDER: Accept typed Item and Location objects, extract names for internal storage
+    /// HIGHLANDER: Accept typed objects, pass objects throughout
     /// </summary>
     public void RecordSale(Item item, Location location, int price)
     {
-        // Extract names at infrastructure boundary for internal storage
-        string itemId = item.Name;
-        string venueId = location.Name;
-
         TradeRecord record = new TradeRecord
         {
             Timestamp = DateTime.Now,
-            VenueId = venueId,
-            ItemId = itemId,
+            Venue = location.Venue,
+            Item = item,
             Type = TradeType.Sale,
             Price = price,
-            Quantity = 1,
-            TraderId = _gameWorld.GetPlayer().Name
+            Quantity = 1
         };
 
         AddTradeRecord(record);
-        UpdateSupplyLevel(venueId, itemId, TradeType.Sale);
-        UpdateDemandLevel(venueId, itemId, TradeType.Sale);
+        UpdateSupplyLevel(location.Venue, item, TradeType.Sale);
+        UpdateDemandLevel(location.Venue, item, TradeType.Sale);
 
-        MarketMetrics metrics = GetOrCreateMetrics(venueId, itemId);
+        MarketMetrics metrics = GetOrCreateMetrics(location.Venue, item);
         metrics.RecentSales++;
         metrics.LastTradeTime = DateTime.Now;
         UpdateAveragePrice(metrics, price);
@@ -234,25 +227,24 @@ public class MarketStateTracker
     // ========== MARKET ANALYSIS ==========
 
     /// <summary>
-    /// Get complete market conditions for a location
-    /// HIGHLANDER: Accept typed Location object, extract name for internal query
+    /// Get complete market conditions for a venue
+    /// HIGHLANDER: Accept typed objects, use object equality
     /// </summary>
     public MarketConditions GetMarketConditions(Location location)
     {
-        // Extract name at infrastructure boundary for internal query
-        string venueId = location.Name;
+        Venue venue = location.Venue;
 
         MarketConditions conditions = new MarketConditions
         {
-            VenueId = venueId,
-            TrendingItems = new List<string>()
+            Venue = venue,
+            TrendingItems = new List<Item>()
         };
 
-        List<MarketMetrics> locationMetrics = _marketMetrics
-            .Where(m => m.VenueId == venueId)
+        List<MarketMetrics> venueMetrics = _marketMetrics
+            .Where(m => m.Venue == venue)
             .ToList();
 
-        if (locationMetrics.Count == 0)
+        if (venueMetrics.Count == 0)
         {
             // Return default conditions if no data
             conditions.OverallSupplyIndex = 1.0f;
@@ -263,7 +255,7 @@ public class MarketStateTracker
         float totalSupply = 0;
         float totalDemand = 0;
 
-        foreach (MarketMetrics metrics in locationMetrics)
+        foreach (MarketMetrics metrics in venueMetrics)
         {
             conditions.TotalItems++;
             totalSupply += metrics.SupplyLevel;
@@ -277,7 +269,7 @@ public class MarketStateTracker
             // Items traded in last hour are trending
             if (metrics.LastTradeTime > DateTime.Now.AddHours(-1))
             {
-                conditions.TrendingItems.Add(metrics.ItemId);
+                conditions.TrendingItems.Add(metrics.Item);
             }
         }
 
@@ -296,34 +288,32 @@ public class MarketStateTracker
     }
 
     /// <summary>
-    /// Get items with best profit margins at a location
-    /// HIGHLANDER: Accept typed Location object, extract name for internal query
+    /// Get items with best profit margins at a venue
+    /// HIGHLANDER: Accept typed objects, return objects
     /// </summary>
-    public List<string> GetHighMarginItems(Location location, int topN = 5)
+    public List<Item> GetHighMarginItems(Location location, int topN = 5)
     {
-        // Extract name at infrastructure boundary for internal query
-        string venueId = location.Name;
+        Venue venue = location.Venue;
 
         return _marketMetrics
-            .Where(m => m.VenueId == venueId && m.DemandLevel > 1.2f && m.SupplyLevel < 0.8f)
+            .Where(m => m.Venue == venue && m.DemandLevel > 1.2f && m.SupplyLevel < 0.8f)
             .OrderByDescending(m => m.DemandLevel / m.SupplyLevel)
             .Take(topN)
-            .Select(m => m.ItemId)
+            .Select(m => m.Item)
             .ToList();
     }
 
     /// <summary>
-    /// Get items that are oversupplied at a location
-    /// HIGHLANDER: Accept typed Location object, extract name for internal query
+    /// Get items that are oversupplied at a venue
+    /// HIGHLANDER: Accept typed objects, return objects
     /// </summary>
-    public List<string> GetOversuppliedItems(Location location)
+    public List<Item> GetOversuppliedItems(Location location)
     {
-        // Extract name at infrastructure boundary for internal query
-        string venueId = location.Name;
+        Venue venue = location.Venue;
 
         return _marketMetrics
-            .Where(m => m.VenueId == venueId && m.SupplyLevel > 1.5f && m.DemandLevel < 1.0f)
-            .Select(m => m.ItemId)
+            .Where(m => m.Venue == venue && m.SupplyLevel > 1.5f && m.DemandLevel < 1.0f)
+            .Select(m => m.Item)
             .ToList();
     }
 
@@ -338,25 +328,22 @@ public class MarketStateTracker
     }
 
     /// <summary>
-    /// Get trade history for a specific location
-    /// HIGHLANDER: Accept typed Location object, extract name for internal query
+    /// Get trade history for a specific venue
+    /// HIGHLANDER: Accept typed objects, use object equality
     /// </summary>
     public List<TradeRecord> GetLocationTradeHistory(Location location)
     {
-        // Extract name at infrastructure boundary for internal query
-        string venueId = location.Name;
-        return _tradeHistory.Where(t => t.VenueId == venueId).ToList();
+        Venue venue = location.Venue;
+        return _tradeHistory.Where(t => t.Venue == venue).ToList();
     }
 
     /// <summary>
     /// Get trade history for a specific item
-    /// HIGHLANDER: Accept typed Item object, extract name for internal query
+    /// HIGHLANDER: Accept typed objects, use object equality
     /// </summary>
     public List<TradeRecord> GetItemTradeHistory(Item item)
     {
-        // Extract name at infrastructure boundary for internal query
-        string itemId = item.Name;
-        return _tradeHistory.Where(t => t.ItemId == itemId).ToList();
+        return _tradeHistory.Where(t => t.Item == item).ToList();
     }
 
     /// <summary>
@@ -371,50 +358,49 @@ public class MarketStateTracker
     }
 
     /// <summary>
-    /// Calculate trade volume for a location in a time period
-    /// HIGHLANDER: Accept typed Location object, extract name for internal query
+    /// Calculate trade volume for a venue in a time period
+    /// HIGHLANDER: Accept typed objects, use object equality
     /// </summary>
     public int GetTradeVolume(Location location, TimeSpan period)
     {
-        // Extract name at infrastructure boundary for internal query
-        string venueId = location.Name;
+        Venue venue = location.Venue;
 
         DateTime cutoff = DateTime.Now - period;
         return _tradeHistory
-            .Where(t => t.VenueId == venueId && t.Timestamp > cutoff)
+            .Where(t => t.Venue == venue && t.Timestamp > cutoff)
             .Sum(t => t.Quantity);
     }
 
     /// <summary>
-    /// Calculate total trade value for a location in a time period
-    /// HIGHLANDER: Accept typed Location object, extract name for internal query
+    /// Calculate total trade value for a venue in a time period
+    /// HIGHLANDER: Accept typed objects, use object equality
     /// </summary>
     public int GetTradeValue(Location location, TimeSpan period)
     {
-        // Extract name at infrastructure boundary for internal query
-        string venueId = location.Name;
+        Venue venue = location.Venue;
 
         DateTime cutoff = DateTime.Now - period;
         return _tradeHistory
-            .Where(t => t.VenueId == venueId && t.Timestamp > cutoff)
+            .Where(t => t.Venue == venue && t.Timestamp > cutoff)
             .Sum(t => t.Price * t.Quantity);
     }
 
     // ========== HELPER METHODS ==========
 
     /// <summary>
-    /// Get or create metrics for a location-item pair
+    /// Get or create metrics for a venue-item pair
+    /// HIGHLANDER: Object equality, no string comparisons
     /// </summary>
-    private MarketMetrics GetOrCreateMetrics(string venueId, string itemId)
+    private MarketMetrics GetOrCreateMetrics(Venue venue, Item item)
     {
-        MarketMetrics metrics = _marketMetrics.FirstOrDefault(m => m.VenueId == venueId && m.ItemId == itemId);
+        MarketMetrics metrics = _marketMetrics.FirstOrDefault(m => m.Venue == venue && m.Item == item);
 
         if (metrics == null)
         {
             metrics = new MarketMetrics
             {
-                VenueId = venueId,
-                ItemId = itemId
+                Venue = venue,
+                Item = item
             };
             _marketMetrics.Add(metrics);
         }

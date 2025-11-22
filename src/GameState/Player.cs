@@ -123,11 +123,18 @@ public class Player
     /// </summary>
     public List<RouteTraversalRecord> RouteTraversals { get; set; } = new List<RouteTraversalRecord>();
 
-    // NOTE: CollectedObservations DELETED - if observation tracking needed, store Observation objects
-    // Mental system should work with observation objects, not ID strings
+    /// <summary>
+    /// Observations collected by player during exploration
+    /// Mental system uses observation objects directly (HIGHLANDER: no IDs)
+    /// </summary>
+    public List<Observation> CollectedObservations { get; set; } = new List<Observation>();
 
-    // NOTE: InjuryCardIds DELETED - if injury tracking needed, store InjuryCard objects
-    // Physical system should work with card objects, not ID strings
+    /// <summary>
+    /// Active injury cards accumulated from Physical challenge failures
+    /// These cards are added to Physical challenge decks as permanent debuffs
+    /// Physical system uses card objects directly (HIGHLANDER: no IDs)
+    /// </summary>
+    public List<PhysicalCard> InjuryCards { get; set; } = new List<PhysicalCard>();
 
     // Reputation system - Physical success builds reputation affecting Social and Physical engagements
     public int Reputation { get; set; } = 0;
@@ -196,12 +203,13 @@ public class Player
 
     public void AddKnownRoute(RouteOption route)
     {
-        string originName = route.OriginLocation.Name;
+        // HIGHLANDER: Use Location object for lookup, not string name
+        Location origin = route.OriginLocation;
 
-        KnownRouteEntry routeEntry = KnownRoutes.FirstOrDefault(kr => kr.OriginSpotId == originName);
+        KnownRouteEntry routeEntry = KnownRoutes.FirstOrDefault(kr => kr.OriginLocation == origin);
         if (routeEntry == null)
         {
-            routeEntry = new KnownRouteEntry { OriginSpotId = originName };
+            routeEntry = new KnownRouteEntry { OriginLocation = origin };
             KnownRoutes.Add(routeEntry);
         }
 
@@ -214,44 +222,52 @@ public class Player
 
     /// <summary>
     /// Get familiarity level for a route (0-5 scale)
+    /// HIGHLANDER: Accept RouteOption object, not string ID
     /// </summary>
-    public int GetRouteFamiliarity(string routeId)
+    public int GetRouteFamiliarity(RouteOption route)
     {
-        FamiliarityEntry entry = RouteFamiliarity.FirstOrDefault(f => f.EntityId == routeId);
+        if (route == null) return 0;
+        FamiliarityEntry entry = RouteFamiliarity.FirstOrDefault(f => f.EntityId == route.Name);
         return entry?.Level ?? 0;
     }
 
     /// <summary>
     /// Set route familiarity to a specific value (max 5)
+    /// HIGHLANDER: Accept RouteOption object, not string ID
     /// </summary>
-    public void SetRouteFamiliarity(string routeId, int level)
+    public void SetRouteFamiliarity(RouteOption route, int level)
     {
-        FamiliarityEntry existing = RouteFamiliarity.FirstOrDefault(f => f.EntityId == routeId);
+        if (route == null) return;
+        FamiliarityEntry existing = RouteFamiliarity.FirstOrDefault(f => f.EntityId == route.Name);
         if (existing != null)
         {
             existing.Level = level;
         }
         else
         {
-            RouteFamiliarity.Add(new FamiliarityEntry { EntityId = routeId, Level = level });
+            RouteFamiliarity.Add(new FamiliarityEntry { EntityId = route.Name, Level = level });
         }
     }
 
     /// <summary>
     /// Increase route familiarity after successful travel (max 5)
+    /// HIGHLANDER: Accept RouteOption object, not string ID
     /// </summary>
-    public void IncreaseRouteFamiliarity(string routeId, int amount = 1)
+    public void IncreaseRouteFamiliarity(RouteOption route, int amount = 1)
     {
-        int current = GetRouteFamiliarity(routeId);
-        SetRouteFamiliarity(routeId, Math.Min(5, current + amount));
+        if (route == null) return;
+        int current = GetRouteFamiliarity(route);
+        SetRouteFamiliarity(route, Math.Min(5, current + amount));
     }
 
     /// <summary>
     /// Check if route is mastered (familiarity = 5)
+    /// HIGHLANDER: Accept RouteOption object, not string ID
     /// </summary>
-    public bool IsRouteMastered(string routeId)
+    public bool IsRouteMastered(RouteOption route)
     {
-        return GetRouteFamiliarity(routeId) >= 5;
+        if (route == null) return false;
+        return GetRouteFamiliarity(route) >= 5;
     }
 
     /// <summary>
@@ -291,22 +307,28 @@ public class Player
 
     /// <summary>
     /// Get token count for specific NPC and connection type
+    /// HIGHLANDER: Accept NPC object, not string ID
     /// </summary>
-    public int GetNPCTokenCount(string npcId, ConnectionType type)
+    public int GetNPCTokenCount(NPC npc, ConnectionType type)
     {
-        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.NpcId == npcId);
+        if (npc == null) return 0;
+        // HIGHLANDER: NPCTokenEntry.Npc is object reference, not string ID
+        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.Npc == npc);
         return entry?.GetTokenCount(type) ?? 0;
     }
 
     /// <summary>
     /// Set token count for specific NPC and connection type
+    /// HIGHLANDER: Accept NPC object, not string ID
     /// </summary>
-    public void SetNPCTokenCount(string npcId, ConnectionType type, int count)
+    public void SetNPCTokenCount(NPC npc, ConnectionType type, int count)
     {
-        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.NpcId == npcId);
+        if (npc == null) return;
+        // HIGHLANDER: NPCTokenEntry.Npc is object reference, not string ID
+        NPCTokenEntry entry = NPCTokens.FirstOrDefault(t => t.Npc == npc);
         if (entry == null)
         {
-            entry = new NPCTokenEntry { NpcId = npcId };
+            entry = new NPCTokenEntry { Npc = npc };
             NPCTokens.Add(entry);
         }
         entry.SetTokenCount(type, count);
@@ -444,7 +466,7 @@ public class Player
     /// <summary>
     /// Apply initial player configuration from package starting conditions
     /// </summary>
-    public void ApplyInitialConfiguration(PlayerInitialConfig config)
+    public void ApplyInitialConfiguration(PlayerInitialConfig config, GameWorld gameWorld)
     {
         if (config == null) return;
 
@@ -476,9 +498,14 @@ public class Player
         {
             foreach (ResourceEntry entry in config.InitialItems)
             {
-                for (int i = 0; i < entry.Amount; i++)
+                // HIGHLANDER: Resolve string itemId to Item object from GameWorld.Items
+                Item item = gameWorld.Items.FirstOrDefault(i => i.Name == entry.ResourceType);
+                if (item != null)
                 {
-                    Inventory.AddItem(entry.ResourceType);
+                    for (int i = 0; i < entry.Amount; i++)
+                    {
+                        Inventory.Add(item);
+                    }
                 }
             }
         }
@@ -492,7 +519,7 @@ public class Player
     /// </summary>
     public int GetCurrentWeight(ItemRepository itemRepository)
     {
-        int inventoryWeight = Inventory.GetUsedWeight(itemRepository);
+        int inventoryWeight = Inventory.GetUsedWeight();
         return inventoryWeight;
     }
 
@@ -539,40 +566,15 @@ public class Player
     }
 
     /// <summary>
-    /// Check if player possesses specific item
+    /// Check if player possesses specific item by name
     /// Used for: Item possession requirements, gated progression
     /// Part of item lifecycle pattern: required for situation activation
+    /// HIGHLANDER: Inventory.GetAllItems() returns List<Item>, not List<string>
     /// </summary>
-    public bool HasItem(string itemId)
+    public bool HasItem(string itemName)
     {
-        return Inventory.GetAllItems().Contains(itemId);
+        return Inventory.GetAllItems().Any(item => item.Name == itemName);
     }
 
-}
-
-public class NPCConnection
-{
-    private readonly Player _player;
-    private readonly string _npcId;
-    private readonly ConnectionType _tokenType;
-
-    public NPCConnection(Player player, string npcId, ConnectionType tokenType)
-    {
-        _player = player;
-        _npcId = npcId;
-        _tokenType = tokenType;
-    }
-
-    public int GetCurrentValue()
-    {
-        return _player.GetNPCTokenCount(_npcId, _tokenType);
-    }
-
-    public void AdjustValue(int amount)
-    {
-        int currentValue = _player.GetNPCTokenCount(_npcId, _tokenType);
-        int newValue = Math.Max(0, currentValue + amount);
-        _player.SetNPCTokenCount(_npcId, _tokenType, newValue);
-    }
 }
 

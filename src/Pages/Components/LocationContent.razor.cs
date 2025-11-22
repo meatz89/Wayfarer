@@ -396,7 +396,7 @@ public class LocationContentBase : ComponentBase
 
     protected async Task HandleStartConversationTree(ConversationTree tree)
     {
-        await GameScreen.StartConversationTree(tree.Id);
+        await GameScreen.StartConversationTree(tree);
     }
 
     protected async Task HandleStartObservationScene(ObservationScene scene)

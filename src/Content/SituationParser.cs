@@ -49,7 +49,6 @@ public static class SituationParser
 
         Situation situation = new Situation
         {
-            Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
             // Placement properties (System 5 output - pre-resolved from System 4)
@@ -57,7 +56,6 @@ public static class SituationParser
             Npc = resolvedNpc,
             Route = resolvedRoute,
             SystemType = systemType,
-            DeckId = dto.DeckId,
             IsIntroAction = dto.IsIntroAction,
             // IsAvailable and IsCompleted are computed properties from Status enum (no population needed)
             DeleteOnSuccess = dto.DeleteOnSuccess,
@@ -71,7 +69,6 @@ public static class SituationParser
             TransformDescription = dto.TransformDescription,
             // Scene-Situation Architecture additions (spawn/completion tracking)
             TemplateId = dto.TemplateId,
-            ParentSituationId = dto.ParentSituationId,
             Lifecycle = new SpawnTracking
             {
                 SpawnedDay = dto.SpawnedDay,
@@ -87,27 +84,43 @@ public static class SituationParser
             NavigationPayload = ParseNavigationPayload(dto.NavigationPayload, gameWorld),
             CompoundRequirement = RequirementParser.ConvertDTOToCompoundRequirement(dto.CompoundRequirement),
             // ProjectedBondChanges/ProjectedScaleShifts/ProjectedStates DELETED - stored projection pattern
-            SuccessSpawns = SpawnRuleParser.ParseSpawnRules(dto.SuccessSpawns, dto.Id),
-            FailureSpawns = SpawnRuleParser.ParseSpawnRules(dto.FailureSpawns, dto.Id),
+            SuccessSpawns = SpawnRuleParser.ParseSpawnRules(dto.SuccessSpawns, dto.Name, gameWorld),
+            FailureSpawns = SpawnRuleParser.ParseSpawnRules(dto.FailureSpawns, dto.Name, gameWorld),
             Tier = dto.Tier,
             Repeatable = dto.Repeatable,
             GeneratedNarrative = dto.GeneratedNarrative,
             NarrativeHints = ParseNarrativeHints(dto.NarrativeHints)
         };
 
-        // Resolve object references during parsing (HIGHLANDER: ID is parsing artifact, not entity property)
+        // Resolve object references during parsing (HIGHLANDER: Name is natural key)
         // Parser uses ID from DTO as lookup key, entity stores ONLY object reference
         // PLACEMENT: Location/Npc/Route assigned directly from pre-resolved entities (System 4 output)
 
         if (!string.IsNullOrEmpty(dto.ObligationId))
             situation.Obligation = gameWorld.Obligations.FirstOrDefault(i => i.Id == dto.ObligationId);
 
+        // Resolve Deck object reference from DeckId (parse-time translation)
+        if (!string.IsNullOrEmpty(dto.DeckId))
+        {
+            situation.Deck = gameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == dto.DeckId)
+                ?? (object)gameWorld.MentalChallengeDecks.FirstOrDefault(d => d.Id == dto.DeckId)
+                ?? gameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == dto.DeckId);
+        }
+
+        // Resolve ParentSituation from ParentSituationId - needs to search all situations in all scenes
+        if (!string.IsNullOrEmpty(dto.ParentSituationId))
+        {
+            situation.ParentSituation = gameWorld.Scenes
+                .SelectMany(s => s.Situations)
+                .FirstOrDefault(s => s.Template?.Id == dto.ParentSituationId);
+        }
+
         // Parse situation cards (victory conditions)
         if (dto.SituationCards != null && dto.SituationCards.Any())
         {
             foreach (SituationCardDTO situationCardDTO in dto.SituationCards)
             {
-                SituationCard situationCard = ParseSituationCard(situationCardDTO, dto.Id);
+                SituationCard situationCard = ParseSituationCard(situationCardDTO, dto.Name, gameWorld);
                 situation.SituationCards.Add(situationCard);
             }
         }
@@ -117,18 +130,17 @@ public static class SituationParser
     /// <summary>
     /// Parse a single situation card (victory condition)
     /// </summary>
-    private static SituationCard ParseSituationCard(SituationCardDTO dto, string situationId)
+    private static SituationCard ParseSituationCard(SituationCardDTO dto, string situationId, GameWorld gameWorld)
     {
-        if (string.IsNullOrEmpty(dto.Id))
-            throw new InvalidOperationException($"SituationCard in situation {situationId} missing required 'Id' field");
+        if (string.IsNullOrEmpty(dto.Name))
+            throw new InvalidOperationException($"SituationCard in situation {situationId} missing required 'Name' field");
 
         SituationCard situationCard = new SituationCard
         {
-            Id = dto.Id,
             Name = dto.Name,
             Description = dto.Description,
             threshold = dto.threshold,
-            Rewards = ParseSituationCardRewards(dto.Rewards),
+            Rewards = ParseSituationCardRewards(dto.Rewards, gameWorld),
             IsAchieved = false
         };
 
@@ -139,7 +151,7 @@ public static class SituationParser
     /// Parse situation card rewards
     /// Knowledge system eliminated - Understanding resource replaces Knowledge tokens
     /// </summary>
-    private static SituationCardRewards ParseSituationCardRewards(SituationCardRewardsDTO dto)
+    private static SituationCardRewards ParseSituationCardRewards(SituationCardRewardsDTO dto, GameWorld gameWorld)
     {
         if (dto == null)
             return new SituationCardRewards();
@@ -149,8 +161,6 @@ public static class SituationParser
             Coins = dto.Coins,
             Progress = dto.Progress,
             Breakthrough = dto.Breakthrough,
-            ObligationId = dto.ObligationId,
-            Item = dto.Item,
 
             // Cube rewards (strong typing)
             InvestigationCubes = dto.InvestigationCubes,
@@ -158,11 +168,9 @@ public static class SituationParser
             ExplorationCubes = dto.ExplorationCubes,
 
             // Core Loop reward types
-            EquipmentId = dto.EquipmentId,
             CreateObligationData = dto.CreateObligationData != null
                 ? new CreateObligationReward
                 {
-                    PatronNpcId = dto.CreateObligationData.PatronNpcId,
                     StoryCubesGranted = dto.CreateObligationData.StoryCubesGranted,
                     RewardCoins = dto.CreateObligationData.RewardCoins
                 }
@@ -170,14 +178,63 @@ public static class SituationParser
             RouteSegmentUnlock = dto.RouteSegmentUnlock != null
                 ? new RouteSegmentUnlock
                 {
-                    RouteId = dto.RouteSegmentUnlock.RouteId,
-                    SegmentPosition = dto.RouteSegmentUnlock.SegmentPosition,
-                    PathId = dto.RouteSegmentUnlock.PathId
+                    SegmentPosition = dto.RouteSegmentUnlock.SegmentPosition
                 }
                 : null
 
             // SceneReduction deleted - legacy Scene architecture removed
         };
+
+        // Resolve Obligation object from ObligationId (parse-time translation)
+        if (!string.IsNullOrEmpty(dto.ObligationId))
+        {
+            rewards.Obligation = gameWorld.Obligations.FirstOrDefault(o => o.Id == dto.ObligationId);
+        }
+
+        // Resolve Item object from Item name or EquipmentId (parse-time translation)
+        if (!string.IsNullOrEmpty(dto.Item))
+        {
+            rewards.Item = gameWorld.Items.FirstOrDefault(i => i.Name == dto.Item);
+        }
+        else if (!string.IsNullOrEmpty(dto.EquipmentId))
+        {
+            rewards.Item = gameWorld.Items.FirstOrDefault(i => i.Name == dto.EquipmentId);
+        }
+
+        // Resolve PatronNpc object for CreateObligationData (parse-time translation)
+        if (rewards.CreateObligationData != null && !string.IsNullOrEmpty(dto.CreateObligationData.PatronNpcId))
+        {
+            rewards.CreateObligationData.PatronNpc = gameWorld.NPCs.FirstOrDefault(n => n.Name == dto.CreateObligationData.PatronNpcId);
+        }
+
+        // Resolve Route and Path objects for RouteSegmentUnlock (parse-time translation)
+        if (rewards.RouteSegmentUnlock != null)
+        {
+            if (!string.IsNullOrEmpty(dto.RouteSegmentUnlock.RouteId))
+            {
+                rewards.RouteSegmentUnlock.Route = gameWorld.Routes.FirstOrDefault(r => r.Name == dto.RouteSegmentUnlock.RouteId);
+            }
+
+            // TECHNICAL DEBT: RouteSegment.Paths property doesn't exist - was PathCollection.PathCards (DTO)
+            // This entire block needs refactoring - RouteSegment should have parsed PathCard objects, not DTOs
+            // For now, leaving Path null until proper parsing implemented
+            // TODO: Fix RouteSegment to store List<PathCard> instead of PathCardCollectionDTO
+            /*
+            if (!string.IsNullOrEmpty(dto.RouteSegmentUnlock.PathId) && rewards.RouteSegmentUnlock.Route != null)
+            {
+                // PathCard is found within the route's segments
+                foreach (RouteSegment segment in rewards.RouteSegmentUnlock.Route.Segments)
+                {
+                    PathCard pathCard = segment.Paths.FirstOrDefault(p => p.Name == dto.RouteSegmentUnlock.PathId);
+                    if (pathCard != null)
+                    {
+                        rewards.RouteSegmentUnlock.Path = pathCard;
+                        break;
+                    }
+                }
+            }
+            */
+        }
 
         return rewards;
     }
@@ -363,7 +420,7 @@ public static class SituationParser
         List<BondChange> bondChanges = new List<BondChange>();
         foreach (BondChangeDTO dto in dtos)
         {
-            NPC npc = gameWorld.NPCs.FirstOrDefault(n => n.ID == dto.NpcId);
+            NPC npc = gameWorld.NPCs.FirstOrDefault(n => n.Name == dto.NpcId);
             if (npc == null)
             {
                 Console.WriteLine($"[SituationParser.ParseBondChanges] WARNING: NPC '{dto.NpcId}' not found for BondChange");

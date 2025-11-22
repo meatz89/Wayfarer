@@ -23,16 +23,13 @@ public static class StrangerParser
         }
 
         // Validate required fields
-        if (string.IsNullOrEmpty(dto.Id))
-            throw new InvalidDataException("StrangerNPC missing required field 'Id'");
         if (string.IsNullOrEmpty(dto.Name))
-            throw new InvalidDataException($"StrangerNPC '{dto.Id}' missing required field 'Name'");
+            throw new InvalidDataException($"StrangerNPC missing required field 'Name'");
         if (string.IsNullOrEmpty(dto.LocationId))
-            throw new InvalidDataException($"StrangerNPC '{dto.Id}' missing required field 'LocationId'");
+            throw new InvalidDataException($"StrangerNPC '{dto.Name}' missing required field 'LocationId'");
 
         NPC stranger = new NPC
         {
-            ID = dto.Id,
             Name = dto.Name,
             PersonalityType = personalityType,
             IsStranger = true,
@@ -43,10 +40,10 @@ public static class StrangerParser
             Description = $"Level {dto.Level} stranger"
         };
 
-        // Resolve location object reference during parsing (HIGHLANDER: ID is parsing artifact)
+        // Resolve location object reference during parsing (HIGHLANDER: Name is natural key)
         if (!string.IsNullOrEmpty(dto.LocationId))
         {
-            stranger.Location = gameWorld.Locations.FirstOrDefault(l => l.Id == dto.LocationId);
+            stranger.Location = gameWorld.Locations.FirstOrDefault(l => l.Name == dto.LocationId);
         }
 
         return stranger;

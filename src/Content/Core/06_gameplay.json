@@ -28,7 +28,7 @@
         { "resourceType": "rations", "amount": 3 }
       ]
     },
-    "startingSpotId": "common_room",
+    "startingSpotId": "Common Room",
     "startingDay": 1,
     "startingTimeBlock": "Evening",
     "startingSegment": 1

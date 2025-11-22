@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components;
 
 public static class ServiceConfiguration
 {
@@ -101,7 +102,7 @@ public static class ServiceConfiguration
         // HttpClient for Icon component (SVG loading from wwwroot)
         services.AddScoped<HttpClient>(sp =>
         {
-            var navigationManager = sp.GetRequiredService<NavigationManager>();
+            NavigationManager navigationManager = sp.GetRequiredService<NavigationManager>();
             return new HttpClient
             {
                 BaseAddress = new Uri(navigationManager.BaseUri)
@@ -145,6 +146,7 @@ public static class ServiceConfiguration
         // Dynamic Location Generation System (All locations persist within session)
         services.AddSingleton<HexSynchronizationService>(); // Hex/Location synchronization
         services.AddSingleton<VenueGeneratorService>(); // Procedural venue generation
+        services.AddSingleton<LocationPlacementService>(); // HIGHLANDER: Single procedural hex placement for ALL locations
         services.AddSingleton<LocationPlayabilityValidator>(); // Fail-fast playability validation (all locations)
 
         // Scene Generation and Instance Facades (clean boundaries for procedural content)

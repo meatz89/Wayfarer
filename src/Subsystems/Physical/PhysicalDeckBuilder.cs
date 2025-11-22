@@ -46,18 +46,15 @@ public class PhysicalDeckBuilder
         }).ToList();
 
         // Add injury cards to deck (debuffs from past failures - Physical debt system)
-        foreach (string injuryCardId in player.InjuryCardIds)
+        // HIGHLANDER: InjuryCards stores PhysicalCard objects directly, not IDs
+        foreach (PhysicalCard injuryCard in player.InjuryCards)
         {
-            PhysicalCard injuryTemplate = null;
-            if (injuryTemplate != null)
+            CardInstance injuryInstance = new CardInstance(injuryCard)
             {
-                CardInstance injuryInstance = new CardInstance(injuryTemplate)
-                {
-                    InstanceId = Guid.NewGuid().ToString(),
-                    PhysicalCardTemplate = injuryTemplate
-                };
-                deck.Add(injuryInstance);
-            }
+                InstanceId = Guid.NewGuid().ToString(),
+                PhysicalCardTemplate = injuryCard
+            };
+            deck.Add(injuryInstance);
         }
 
         return new PhysicalDeckBuildResult(deck, startingHand);
@@ -81,7 +78,8 @@ public class PhysicalDeckBuilder
             instance.Context = new CardContext
             {
                 threshold = situationCard.threshold,
-                RequestId = situation.Id
+                // HIGHLANDER: Store Situation object reference, not ID
+                Situation = situation
             };
 
             // Situation cards start unplayable until threshold met
@@ -96,9 +94,9 @@ public class PhysicalDeckBuilder
     private List<EquipmentCategory> GetPlayerEquipmentCategories(Player player)
     {
         List<EquipmentCategory> categories = new List<EquipmentCategory>();
-        foreach (string itemId in player.Inventory.GetAllItems())
+        // HIGHLANDER: Inventory.GetAllItems() returns Item objects, not IDs
+        foreach (Item item in player.Inventory.GetAllItems())
         {
-            Item item = _gameWorld.Items?.FirstOrDefault(i => i.Id == itemId);
             if (item?.ProvidedEquipmentCategories != null)
             {
                 categories.AddRange(item.ProvidedEquipmentCategories);

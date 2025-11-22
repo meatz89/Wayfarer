@@ -59,7 +59,7 @@
                                         <div class="path-name">@card.Name</div>
                                         <div class="path-stamina">@card.StaminaCost</div>
                                     </div>
-                                    <div class="blocked-reason">@GetUnavailableReason(card.Id)</div>
+                                    <div class="blocked-reason">@GetUnavailableReason(card)</div>
                                 </div>
                             </div>
                         </div>
@@ -123,9 +123,9 @@
             <!-- Scene Display -->
             @{
                 var segment = GetCurrentRouteSegment();
-                if (segment != null && !string.IsNullOrEmpty(segment.MandatorySceneId))
+                if (segment != null && segment.MandatorySceneTemplate != null)
                 {
-                    var scene = GameWorld.Scenes.FirstOrDefault(s => s.Id == segment.MandatorySceneId);
+                    var scene = GameWorld.Scenes.FirstOrDefault(s => s.Template == segment.MandatorySceneTemplate);
                     if (scene != null)
                     {
                         <div class="scene-display">
@@ -393,7 +393,7 @@
                     var card = pathCardData.Card;
                     var isAvailable = pathCardData.CanPlay;
                     <div class="response-card @(isAvailable ? "" : "unavailable") @(card.StaminaCost == 0 ? "free" : "")"
-                         @onclick="async () => { if (isAvailable) await SelectPathCard(card.Id); }">
+                         @onclick="async () => { if (isAvailable) await SelectPathCard(card); }">
                         <div class="response-header">
                             <div class="response-name">@card.Name</div>
                             @if (card.StaminaCost == 0)
@@ -526,12 +526,12 @@
                     {
                         var card = pathCardData.Card;
                         var isDiscovered = pathCardData.IsDiscovered;
-                        var isAvailable = pathCardData.CanPlay && !ShouldDisableCard(card.Id);
-                        var isBeingRevealed = IsCardBeingRevealed(card.Id);
+                        var isAvailable = pathCardData.CanPlay && !ShouldDisableCard(card);
+                        var isBeingRevealed = IsCardBeingRevealed(card);
 
-                        <div class="path-card @GetPathCardCssClass(isDiscovered, isAvailable) @(isBeingRevealed ? "revealed" : "") @(ShouldDisableCard(card.Id) ? "disabled-during-reveal" : "") @(IsReadyToComplete() ? "complete" : "")"
-                             data-unavailable-reason="@(!isAvailable ? GetUnavailableReason(card.Id) : "")"
-                             @onclick="async () => { if (!IsReadyToComplete()) await SelectPathCard(card.Id); }">
+                        <div class="path-card @GetPathCardCssClass(isDiscovered, isAvailable) @(isBeingRevealed ? "revealed" : "") @(ShouldDisableCard(card) ? "disabled-during-reveal" : "") @(IsReadyToComplete() ? "complete" : "")"
+                             data-unavailable-reason="@(!isAvailable ? GetUnavailableReason(card) : "")"
+                             @onclick="async () => { if (!IsReadyToComplete()) await SelectPathCard(card); }">
 
                             @if (isDiscovered)
                             {

@@ -79,7 +79,7 @@ public class DependentResourceOrchestrationService
                     CreatedSegment = _timeManager.CurrentSegment
                 };
 
-                player.Inventory.AddItem(item);
+                player.Inventory.Add(item);
                 // ADR-007: No Id property (Name is natural key)
                 Console.WriteLine($"[DependentResources] Added item to inventory: {item.Name}");
             }
@@ -87,7 +87,8 @@ public class DependentResourceOrchestrationService
 
         foreach (string locationId in dependentSpecs.CreatedLocationIds)
         {
-            Location createdLocation = _gameWorld.GetLocation(locationId);
+            // HIGHLANDER: LINQ query on already-created locations
+            Location createdLocation = _gameWorld.Locations.FirstOrDefault(l => l.Name == locationId);
             if (createdLocation != null)
             {
                 // Set provenance tracking

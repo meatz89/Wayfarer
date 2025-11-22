@@ -7,7 +7,7 @@ namespace Wayfarer.Pages.Components
         [Inject] protected GameFacade GameFacade { get; set; }
         [Inject] protected GameWorld GameWorld { get; set; }
 
-        [Parameter] public string VenueId { get; set; }
+        [Parameter] public Venue Venue { get; set; }
         [Parameter] public EventCallback OnActionExecuted { get; set; }
 
         [CascadingParameter] protected GameScreenBase GameScreen { get; set; }
@@ -26,18 +26,17 @@ namespace Wayfarer.Pages.Components
 
         protected void RefreshStrangers()
         {
-            if (string.IsNullOrEmpty(VenueId))
+            if (Venue == null)
             {
                 // Get current Venue if not specified
-                Venue currentVenue = GameFacade.GetCurrentLocation().Venue;
-                if (currentVenue == null)
+                Venue = GameFacade.GetCurrentLocation().Venue;
+                if (Venue == null)
                 {
                     throw new InvalidOperationException("Current location not found");
                 }
-                VenueId = currentVenue.Id;
             }
 
-            AvailableStrangers = GameFacade.GetAvailableStrangers(VenueId);
+            AvailableStrangers = GameFacade.GetAvailableStrangers(Venue);
         }
 
         protected bool CanAffordConversation(string requestId)
@@ -123,8 +122,8 @@ namespace Wayfarer.Pages.Components
                 rewardTexts.Add($"+{rewards.Progress.Value} progress");
             if (rewards.Breakthrough.HasValue && rewards.Breakthrough.Value > 0)
                 rewardTexts.Add($"+{rewards.Breakthrough.Value} breakthrough");
-            if (!string.IsNullOrEmpty(rewards.Item))
-                rewardTexts.Add(rewards.Item);
+            if (rewards.Item != null)
+                rewardTexts.Add(rewards.Item.Name);
 
             return rewardTexts.Any() ? string.Join(", ", rewardTexts) : "Experience and insights";
         }

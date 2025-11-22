@@ -115,6 +115,7 @@ public class SatchelInfo
 
 /// <summary>
 /// Meeting management result
+/// HIGHLANDER: Object reference, no string ID
 /// </summary>
 public class MeetingResult
 {
@@ -122,7 +123,7 @@ public class MeetingResult
     public string ErrorMessage { get; set; }
     public MeetingObligation AffectedMeeting { get; set; }
     public MeetingOperation Operation { get; set; }
-    public string NPCId { get; set; }
+    public NPC Npc { get; set; }
     public string NPCName { get; set; }
 }
 

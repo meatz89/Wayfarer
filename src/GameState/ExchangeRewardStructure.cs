@@ -12,9 +12,9 @@ public class ExchangeRewardStructure
 
     /// <summary>
     /// Items granted by this exchange.
-    /// These are item template IDs that will be instantiated.
+    /// HIGHLANDER: Object references ONLY - stores Item objects, not string IDs
     /// </summary>
-    public List<string> ItemIds { get; set; } = new List<string>();
+    public List<Item> Items { get; set; } = new List<Item>();
 
     /// <summary>
     /// Tokens granted by this exchange.
@@ -39,9 +39,9 @@ public class ExchangeRewardStructure
             parts.Add($"{resource.Amount} {resource.Type}");
         }
 
-        foreach (string item in ItemIds)
+        foreach (Item item in Items)
         {
-            parts.Add($"1x {item}");
+            parts.Add($"1x {item.Name}");
         }
 
         foreach (TokenCount token in Tokens)
@@ -61,7 +61,7 @@ public class ExchangeRewardStructure
     public bool HasRewards()
     {
         return (Resources != null && Resources.Count > 0) ||
-               (ItemIds != null && ItemIds.Count > 0) ||
+               (Items != null && Items.Count > 0) ||
                (Tokens != null && Tokens.Count > 0) ||
                (EffectIds != null && EffectIds.Count > 0);
     }

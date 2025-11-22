@@ -15,19 +15,18 @@ public static class ExchangeParser
 
         // VALIDATION: Name is REQUIRED field
         if (string.IsNullOrEmpty(dto.Name))
-            throw new InvalidOperationException($"Exchange '{dto.Id}' missing required field 'name'");
+            throw new InvalidOperationException($"Exchange '{dto.Name}' missing required field 'name'");
 
         // VALIDATION: ProviderFilter is REQUIRED field
         if (dto.ProviderFilter == null)
-            throw new InvalidOperationException($"Exchange '{dto.Id}' missing required 'providerFilter' field");
+            throw new InvalidOperationException($"Exchange '{dto.Name}' missing required 'providerFilter' field");
 
         // EntityResolver.FindOrCreate pattern - categorical entity resolution
-        PlacementFilter providerFilter = SceneTemplateParser.ParsePlacementFilter(dto.ProviderFilter, $"Exchange:{dto.Id}");
+        PlacementFilter providerFilter = SceneTemplateParser.ParsePlacementFilter(dto.ProviderFilter, $"Exchange:{dto.Name}");
         NPC npc = entityResolver.FindOrCreateNPC(providerFilter);
 
         ExchangeCard card = new ExchangeCard
         {
-            Id = dto.Id,
             Name = dto.Name,
             Description = GenerateDescription(dto),
             // HIGHLANDER: Object reference only (no ID string)
@@ -57,8 +56,8 @@ public static class ExchangeParser
                     Amount = dto.GiveAmount
                 }
             } : new List<ResourceAmount>(),
-                TokenRequirements = dto.TokenGate?.Count > 0 ? new Dictionary<ConnectionType, int>() : null,
-                ConsumedItemIds = new List<string>() // DEPRECATED: consumedItems never appears in JSON (0% frequency)
+                TokenRequirements = dto.TokenGate?.Count > 0 ? new List<TokenCount>() : new List<TokenCount>(),
+                ConsumedItems = new List<Item>() // HIGHLANDER: Item objects resolved from names if needed
             },
 
             // Parse reward structure
@@ -85,8 +84,8 @@ public static class ExchangeParser
                 }
             } : new List<ResourceAmount>(),
 
-                // Handle item rewards (support both legacy single item and new multi-item)
-                ItemIds = MergeItemRewards(dto)
+                // HIGHLANDER: Resolve item name strings to Item objects
+                Items = ResolveItemRewards(dto, entityResolver)
             },
 
             // Default properties
@@ -111,21 +110,33 @@ public static class ExchangeParser
     }
 
     /// <summary>
-    /// Merge legacy single item reward (ReceiveItem) with new multi-item rewards (GrantedItems)
+    /// Resolve item name strings to Item objects
+    /// Supports both legacy single item reward (ReceiveItem) and new multi-item rewards (GrantedItems)
     /// </summary>
-    private static List<string> MergeItemRewards(ExchangeDTO dto)
+    private static List<Item> ResolveItemRewards(ExchangeDTO dto, EntityResolver entityResolver)
     {
-        List<string> items = new List<string>();
+        List<string> itemNames = new List<string>();
 
         // Support legacy single item field
         if (!string.IsNullOrEmpty(dto.ReceiveItem))
-            items.Add(dto.ReceiveItem);
+            itemNames.Add(dto.ReceiveItem);
 
         // Support new multi-item field
         if (dto.GrantedItems != null && dto.GrantedItems.Any())
-            items.AddRange(dto.GrantedItems);
+            itemNames.AddRange(dto.GrantedItems);
 
-        return items;
+        // HIGHLANDER: Resolve item names to Item objects
+        List<Item> resolvedItems = new List<Item>();
+        foreach (string itemName in itemNames)
+        {
+            Item item = entityResolver.FindItemByName(itemName);
+            if (item != null)
+            {
+                resolvedItems.Add(item);
+            }
+        }
+
+        return resolvedItems;
     }
 
     /// <summary>
@@ -145,7 +156,6 @@ public static class ExchangeParser
             case Professions.Merchant:
                 exchanges.Add(new ExchangeCard
                 {
-                    Id = $"exchange_food_purchase_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
                     Name = "Buy Hunger",
                     Description = "Purchase provisions from the merchant",
                     // HIGHLANDER: Object reference only
@@ -172,7 +182,6 @@ public static class ExchangeParser
             case Professions.Innkeeper:
                 exchanges.Add(new ExchangeCard
                 {
-                    Id = $"exchange_rest_service_{Guid.NewGuid().ToString("N").Substring(0, 8)}",
                     Name = "Rest at Inn",
                     Description = "Pay for a comfortable rest",
                     // HIGHLANDER: Object reference only

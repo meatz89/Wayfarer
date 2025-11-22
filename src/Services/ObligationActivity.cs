@@ -108,7 +108,7 @@ public class ObligationActivity
         // Create intro result for quest acceptance modal
         _pendingIntroResult = new ObligationIntroResult
         {
-            ObligationId = obligation.Id,
+            Obligation = obligation,
             ObligationName = obligation.Name,
             IntroNarrative = obligation.IntroAction.IntroNarrative,
             IntroActionText = obligation.IntroAction.ActionText,
@@ -134,7 +134,7 @@ public class ObligationActivity
         // Create active obligation
         ActiveObligation activeObligation = new ActiveObligation
         {
-            ObligationId = obligation.Id
+            Obligation = obligation
         };
         _gameWorld.ObligationJournal.ActiveObligations.Add(activeObligation);
 
@@ -168,7 +168,7 @@ public class ObligationActivity
         }
 
         // Find completed phase definition using template ID
-        string situationTemplateId = situation.SituationTemplate?.Id;
+        string situationTemplateId = situation.Template?.Id;
         ObligationPhaseDefinition completedPhase = obligation.PhaseDefinitions
             .FirstOrDefault(p => p.Id == situationTemplateId);
 
@@ -211,7 +211,7 @@ public class ObligationActivity
         // Build result for UI modal
         ObligationProgressResult result = new ObligationProgressResult
         {
-            ObligationId = obligation.Id,
+            Obligation = obligation,  // HIGHLANDER: Object reference, not ID
             ObligationName = obligation.Name,
             CompletedSituationName = completedPhase.Name,
             OutcomeNarrative = completedPhase.OutcomeNarrative,
@@ -262,7 +262,7 @@ public class ObligationActivity
         // Build result for UI modal
         ObligationCompleteResult result = new ObligationCompleteResult
         {
-            ObligationId = obligation.Id,
+            Obligation = obligation,  // HIGHLANDER: Object reference, not ID
             ObligationName = obligation.Name,
             CompletionNarrative = obligation.CompletionNarrative,
             Rewards = new ObligationRewards
@@ -296,12 +296,13 @@ public class ObligationActivity
             player.Coins += obligation.CompletionRewardCoins;
         }
 
-        // Grant items (equipment) - add equipment IDs to player inventory
-        foreach (string itemId in obligation.CompletionRewardItems)
+        // Grant items (equipment) - add equipment objects to player inventory
+        foreach (Item item in obligation.CompletionRewardItems)
         {
-            player.Inventory.AddItem(itemId);
+            // HIGHLANDER: CompletionRewardItems already contains Item objects
+            player.Inventory.Add(item);
             _messageSystem.AddSystemMessage(
-                $"Received equipment: {itemId}",
+                $"Received equipment: {item.Name}",
                 SystemMessageTypes.Success);
         }
 
@@ -341,7 +342,7 @@ public class ObligationActivity
         // Create active obligation
         ActiveObligation activeObligation = new ActiveObligation
         {
-            ObligationId = obligation.Id
+            Obligation = obligation  // HIGHLANDER: Object reference, not ID
         };
         _gameWorld.ObligationJournal.ActiveObligations.Add(activeObligation);
 
@@ -378,7 +379,7 @@ public class ObligationActivity
         // Create discovery result for UI modal (narrative only)
         ObligationDiscoveryResult discoveryResult = new ObligationDiscoveryResult
         {
-            ObligationId = obligation.Id,
+            Obligation = obligation,  // HIGHLANDER: Object reference, not ID
             ObligationName = obligation.Name,
             IntroNarrative = obligation.IntroAction.IntroNarrative,
             IntroActionText = obligation.IntroAction.ActionText,
@@ -440,7 +441,7 @@ public class ObligationActivity
         // Create activation result for UI modal
         _pendingActivationResult = new ObligationActivationResult
         {
-            ObligationId = obligation.Id,
+            Obligation = obligation,  // HIGHLANDER: Object reference, not ID
             ObligationName = obligation.Name,
             IntroNarrative = obligation.IntroAction.IntroNarrative
         };

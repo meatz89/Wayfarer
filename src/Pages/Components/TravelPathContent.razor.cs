@@ -142,10 +142,13 @@ namespace Wayfarer.Pages.Components
 
         /// <summary>
         /// Get unavailable reason for path card
+        /// HIGHLANDER: Accept PathCardDTO object, not string ID
         /// </summary>
-        protected string GetUnavailableReason(string pathCardId)
+        protected string GetUnavailableReason(PathCardDTO card)
         {
-            PathCardAvailability availability = TravelFacade.GetPathCardAvailability(pathCardId);
+            if (card == null) return "";
+
+            PathCardAvailability availability = TravelFacade.GetPathCardAvailability(card);
             if (availability != null && !availability.CanPlay)
             {
                 if (string.IsNullOrEmpty(availability.Reason))
@@ -203,33 +206,25 @@ namespace Wayfarer.Pages.Components
 
         /// <summary>
         /// Handle path card selection - all cards now use reveal mechanic
+        /// HIGHLANDER: Accept PathCardDTO object, not string ID
         /// </summary>
-        protected async Task SelectPathCard(string pathCardId)
+        protected async Task SelectPathCard(PathCardDTO card)
         {
+            if (card == null)
+                throw new ArgumentNullException(nameof(card));
             if (TravelContext == null)
                 throw new InvalidOperationException("No active travel context");
             if (TravelContext.Session == null)
                 throw new InvalidOperationException("No active travel session");
 
-            // Check if player can afford the cardif (TravelContext.CurrentSegmentCards != null)
-            {
-                foreach (PathCardDTO c in TravelContext.CurrentSegmentCards)
-                { }
-            }
-
-            if (TravelContext.CurrentSegmentCards == null)
-                throw new InvalidOperationException("No segment cards available");
-            PathCardDTO card = TravelContext.CurrentSegmentCards.FirstOrDefault(c => c.Id == pathCardId);
-            if (card == null)
+            if (!TravelFacade.CanPlayPathCard(card))
             {
                 return;
             }
 
-            if (!TravelFacade.CanPlayPathCard(pathCardId))
-            {
-                return;
-            }// Call TravelManager - all cards now use reveal mechanic (no face-down checks)
-            bool success = TravelManager.SelectPathCard(pathCardId); if (success)
+            // Call TravelManager - all cards now use reveal mechanic (no face-down checks)
+            bool success = TravelManager.SelectPathCard(card);
+            if (success)
             {
                 // Refresh the context after card selection
                 await RefreshTravelContext();
@@ -360,10 +355,11 @@ namespace Wayfarer.Pages.Components
 
         /// <summary>
         /// Check if card can be played
+        /// HIGHLANDER: Accept PathCardDTO object, not string ID
         /// </summary>
-        protected bool CanPlayCard(string pathCardId)
+        protected bool CanPlayCard(PathCardDTO card)
         {
-            return TravelFacade.CanPlayPathCard(pathCardId);
+            return TravelFacade.CanPlayPathCard(card);
         }
 
         /// <summary>
@@ -382,7 +378,7 @@ namespace Wayfarer.Pages.Components
                 classes.Add("face-down");
             }
 
-            if (!CanPlayCard(card.Id))
+            if (!CanPlayCard(card))
             {
                 classes.Add("unavailable");
             }
@@ -560,19 +556,23 @@ namespace Wayfarer.Pages.Components
 
         /// <summary>
         /// Check if the specified card is the one being revealed
+        /// HIGHLANDER: Accept PathCardDTO object, not string ID
         /// </summary>
-        protected bool IsCardBeingRevealed(string pathCardId)
+        protected bool IsCardBeingRevealed(PathCardDTO card)
         {
-            return IsRevealingCard() && GetRevealedCardId() == pathCardId;
+            if (card == null) return false;
+            return IsRevealingCard() && GetRevealedCardId() == card.Id;
         }
 
         /// <summary>
         /// Check if other cards should be disabled during reveal state
+        /// HIGHLANDER: Accept PathCardDTO object, not string ID
         /// </summary>
-        protected bool ShouldDisableCard(string pathCardId)
+        protected bool ShouldDisableCard(PathCardDTO card)
         {
+            if (card == null) return false;
             // If we're revealing a card and this isn't the revealed card, disable it
-            return IsRevealingCard() && GetRevealedCardId() != pathCardId;
+            return IsRevealingCard() && GetRevealedCardId() != card.Id;
         }
 
         /// <summary>
@@ -720,8 +720,8 @@ namespace Wayfarer.Pages.Components
             if (string.IsNullOrEmpty(sceneId))
                 return new List<SituationPreviewData>();
 
-            // Query GameWorld.Scenes for scene with matching ID
-            Scene scene = GameWorld.Scenes.FirstOrDefault(s => s.Id == sceneId);
+            // Query GameWorld.Scenes for scene with matching TemplateId
+            Scene scene = GameWorld.Scenes.FirstOrDefault(s => s.TemplateId == sceneId);
             if (scene == null)
                 return new List<SituationPreviewData>();
 

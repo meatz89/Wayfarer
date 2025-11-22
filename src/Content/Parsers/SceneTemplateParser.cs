@@ -90,16 +90,17 @@ public class SceneTemplateParser
         // CATEGORICAL PARSING: No entity resolution at parse time
         // Concrete binding happens at instantiation time via SceneInstantiator
         // All scenes use categorical properties for procedural placement
-        string npcId = null;
-        string locationId = null;
+        // HIGHLANDER: Pass null objects, not null strings
+        NPC contextNPC = null;
+        Location contextLocation = null;
 
         Console.WriteLine($"[SceneGeneration] Categorical context: Tier={dto.Tier}, MainStorySequence={dto.MainStorySequence}");
 
         SceneArchetypeDefinition archetypeDefinition = _generationFacade.GenerateSceneFromArchetype(
             dto.SceneArchetypeId,
             dto.Tier,
-            npcId,
-            locationId,
+            contextNPC,
+            contextLocation,
             dto.MainStorySequence);
 
         List<SituationTemplate> situationTemplates = archetypeDefinition.SituationTemplates;
@@ -124,9 +125,9 @@ public class SceneTemplateParser
             SceneArchetypeId = dto.SceneArchetypeId,
             DisplayNameTemplate = dto.DisplayNameTemplate,
             // Hierarchical placement: Parse three separate base filters for CSS-style inheritance
-            BaseLocationFilter = ParsePlacementFilter(dto.BaseLocationFilter, dto.Id),
-            BaseNpcFilter = ParsePlacementFilter(dto.BaseNpcFilter, dto.Id),
-            BaseRouteFilter = ParsePlacementFilter(dto.BaseRouteFilter, dto.Id),
+            BaseLocationFilter = ParsePlacementFilter(dto.BaseLocationFilter, dto.Id, _gameWorld),
+            BaseNpcFilter = ParsePlacementFilter(dto.BaseNpcFilter, dto.Id, _gameWorld),
+            BaseRouteFilter = ParsePlacementFilter(dto.BaseRouteFilter, dto.Id, _gameWorld),
             SpawnConditions = SpawnConditionsParser.ParseSpawnConditions(dto.SpawnConditions),
             SituationTemplates = situationTemplates,
             SpawnRules = spawnRules,
@@ -150,7 +151,7 @@ public class SceneTemplateParser
     /// </summary>
     /// <param name="dto">PlacementFilter DTO from JSON</param>
     /// <param name="contextId">Context identifier for error messages (template ID or instance path)</param>
-    public static PlacementFilter ParsePlacementFilter(PlacementFilterDTO dto, string contextId)
+    public static PlacementFilter ParsePlacementFilter(PlacementFilterDTO dto, string contextId, GameWorld gameWorld = null)
     {
         if (dto == null)
             return null; // Optional - some SceneTemplates may not have filters
@@ -206,7 +207,7 @@ public class SceneTemplateParser
             // Player state filters
             RequiredStates = ParseStateTypes(dto.RequiredStates, contextId, "RequiredStates"),
             ForbiddenStates = ParseStateTypes(dto.ForbiddenStates, contextId, "ForbiddenStates"),
-            RequiredAchievements = dto.RequiredAchievements,
+            RequiredAchievements = ParseAchievements(dto.RequiredAchievements, contextId, gameWorld),
             ScaleRequirements = ParseScaleRequirements(dto.ScaleRequirements, contextId)
         };
 
@@ -574,6 +575,34 @@ public class SceneTemplateParser
     }
 
     /// <summary>
+    /// Parse achievement name strings to Achievement object list
+    /// Resolves achievement strings to Achievement objects at parse-time
+    /// </summary>
+    private static List<Achievement> ParseAchievements(List<string> achievementNames, string contextId, GameWorld gameWorld)
+    {
+        if (achievementNames == null || !achievementNames.Any())
+            return new List<Achievement>();
+
+        if (gameWorld == null)
+            return new List<Achievement>(); // Can't resolve without GameWorld
+
+        List<Achievement> achievements = new List<Achievement>();
+        foreach (string achievementName in achievementNames)
+        {
+            Achievement achievement = gameWorld.Achievements.FirstOrDefault(a => a.Name == achievementName);
+            if (achievement == null)
+            {
+                achievement = new Achievement { Name = achievementName };
+                gameWorld.Achievements.Add(achievement);
+            }
+
+            achievements.Add(achievement);
+        }
+
+        return achievements;
+    }
+
+    /// <summary>
     /// Parse embedded SituationTemplates
     /// </summary>
     private List<SituationTemplate> ParseSituationTemplates(List<SituationTemplateDTO> dtos, string contextId, SpawnPattern archetype)
@@ -629,9 +658,9 @@ public class SceneTemplateParser
             Priority = dto.Priority,
             GrantsLocationAccess = dto.GrantsLocationAccess,
             // Hierarchical placement override filters (CSS-style inheritance)
-            LocationFilter = ParsePlacementFilter(dto.LocationFilter, contextId),
-            NpcFilter = ParsePlacementFilter(dto.NpcFilter, contextId),
-            RouteFilter = ParsePlacementFilter(dto.RouteFilter, contextId),
+            LocationFilter = ParsePlacementFilter(dto.LocationFilter, contextId, _gameWorld),
+            NpcFilter = ParsePlacementFilter(dto.NpcFilter, contextId, _gameWorld),
+            RouteFilter = ParsePlacementFilter(dto.RouteFilter, contextId, _gameWorld),
             NarrativeHints = ParseNarrativeHints(dto.NarrativeHints)
         };
 
@@ -762,9 +791,9 @@ public class SceneTemplateParser
             BondChanges = ParseBondChanges(dto.BondChanges),
             ScaleShifts = ParseScaleShifts(dto.ScaleShifts),
             StateApplications = ParseStateApplications(dto.StateApplications),
-            AchievementIds = dto.AchievementIds,
-            ItemIds = dto.ItemIds,
-            ItemsToRemove = dto.ItemsToRemove,
+            Achievements = ParseAchievements(dto.AchievementIds),
+            Items = ParseItems(dto.ItemIds),
+            ItemsToRemove = ParseItemsToRemove(dto.ItemsToRemove),
             ScenesToSpawn = ParseSceneSpawnRewards(dto.ScenesToSpawn)
         };
     }
@@ -781,7 +810,7 @@ public class SceneTemplateParser
         List<BondChange> bondChanges = new List<BondChange>();
         foreach (BondChangeDTO dto in dtos)
         {
-            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.ID == dto.NpcId);
+            NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.Name == dto.NpcId);
             if (npc == null)
             {
                 Console.WriteLine($"[SceneTemplateParser.ParseBondChanges] WARNING: NPC '{dto.NpcId}' not found for BondChange");
@@ -874,6 +903,84 @@ public class SceneTemplateParser
         }
 
         return rewards;
+    }
+
+    /// <summary>
+    /// Parse Items from item ID strings
+    /// Resolves Item object references from string IDs at parse-time
+    /// HIGHLANDER: Returns object references, not IDs
+    /// </summary>
+    private List<Item> ParseItems(List<string> itemIds)
+    {
+        if (itemIds == null || !itemIds.Any())
+            return new List<Item>();
+
+        List<Item> items = new List<Item>();
+        foreach (string itemId in itemIds)
+        {
+            Item item = _gameWorld.Items.FirstOrDefault(i => i.Name == itemId);
+            if (item == null)
+            {
+                Console.WriteLine($"[SceneTemplateParser.ParseItems] WARNING: Item '{itemId}' not found");
+                continue; // Skip invalid item
+            }
+
+            items.Add(item); // Object reference, NO ID
+        }
+
+        return items;
+    }
+
+    /// <summary>
+    /// Parse Achievements from achievement ID strings
+    /// Resolves Achievement object references from string IDs at parse-time
+    /// HIGHLANDER: Returns object references, not IDs
+    /// </summary>
+    private List<Achievement> ParseAchievements(List<string> achievementIds)
+    {
+        if (achievementIds == null || !achievementIds.Any())
+            return new List<Achievement>();
+
+        List<Achievement> achievements = new List<Achievement>();
+        foreach (string achievementId in achievementIds)
+        {
+            Achievement achievement = _gameWorld.Achievements.FirstOrDefault(a => a.Name == achievementId);
+            if (achievement == null)
+            {
+                Console.WriteLine($"[SceneTemplateParser.ParseAchievements] WARNING: Achievement '{achievementId}' not found");
+                continue; // Skip invalid achievement
+            }
+
+            achievements.Add(achievement); // Object reference, NO ID
+        }
+
+        return achievements;
+    }
+
+    /// <summary>
+    /// Parse Items to Remove from item ID strings
+    /// Resolves Item object references from string IDs at parse-time
+    /// HIGHLANDER: Returns object references, not IDs
+    /// </summary>
+    private List<Item> ParseItemsToRemove(List<string> itemIds)
+    {
+        if (itemIds == null || !itemIds.Any())
+            return new List<Item>();
+
+        List<Item> items = new List<Item>();
+        foreach (string itemId in itemIds)
+        {
+            Item item = _gameWorld.Items.FirstOrDefault(i => i.Name == itemId);
+            if (item == null)
+            {
+                Console.WriteLine($"[SceneTemplateParser.ParseItemsToRemove] WARNING: Item '{itemId}' not found");
+                continue; // Skip invalid item
+            }
+
+            items.Add(item); // Object reference, NO ID
+        }
+
+        return items;
     }
 
     /// <summary>

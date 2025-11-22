@@ -20,9 +20,8 @@ public static class PlayerActionCatalog
         // Check Belongings - View inventory/equipment
         new PlayerAction
         {
-            Id = "check_belongings",  // Match JSON ID
             Name = "Check Belongings",
-            Description = "Review your current equipment and inventory",  // Match JSON description
+            Description = "Review your current equipment and inventory",
             ActionType = PlayerActionType.CheckBelongings,
             Costs = ActionCosts.None(),
             Rewards = ActionRewards.None()
@@ -31,9 +30,8 @@ public static class PlayerActionCatalog
         // Wait - Skip time segment
         new PlayerAction
         {
-            Id = "wait",  // Match JSON ID
             Name = "Wait",
-            Description = "Pass time without activity. Advances 1 time segment with no resource recovery. Hunger increases by +5 automatically.",  // Match JSON description
+            Description = "Pass time without activity. Advances 1 time segment with no resource recovery. Hunger increases by +5 automatically.",
             ActionType = PlayerActionType.Wait,
             Costs = new ActionCosts
             {
@@ -45,9 +43,8 @@ public static class PlayerActionCatalog
         // Sleep Outside - Emergency rest without shelter
         new PlayerAction
         {
-            Id = "sleep_outside",  // Match JSON ID
             Name = "Sleep Outside",
-            Description = "Sleep rough without shelter. Saves coins but costs 2 Health and provides no recovery. Cold, uncomfortable, risky.",  // Match JSON description
+            Description = "Sleep rough without shelter. Saves coins but costs 2 Health and provides no recovery. Cold, uncomfortable, risky.",
             ActionType = PlayerActionType.SleepOutside,
             Costs = new ActionCosts
             {
@@ -63,7 +60,6 @@ public static class PlayerActionCatalog
         // Look Around - Navigate to LookingAround view
         new PlayerAction
         {
-            Id = "look_around",
             Name = "Look Around",
             Description = "See who's here and what's happening - people, challenges, opportunities",
             ActionType = PlayerActionType.LookAround,

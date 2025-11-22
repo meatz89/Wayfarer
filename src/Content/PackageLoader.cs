@@ -24,17 +24,20 @@ public class PackageLoader
     private readonly SceneGenerationFacade _sceneGenerationFacade;
     private readonly LocationPlayabilityValidator _locationValidator;
     private readonly HexSynchronizationService _hexSync;
+    private readonly LocationPlacementService _locationPlacementService;
 
     public PackageLoader(
         GameWorld gameWorld,
         SceneGenerationFacade sceneGenerationFacade,
         LocationPlayabilityValidator locationValidator,
-        HexSynchronizationService hexSync)
+        HexSynchronizationService hexSync,
+        LocationPlacementService locationPlacementService)
     {
         _gameWorld = gameWorld;
         _sceneGenerationFacade = sceneGenerationFacade;
         _locationValidator = locationValidator ?? throw new ArgumentNullException(nameof(locationValidator));
         _hexSync = hexSync ?? throw new ArgumentNullException(nameof(hexSync));
+        _locationPlacementService = locationPlacementService ?? throw new ArgumentNullException(nameof(locationPlacementService));
     }
 
     /// <summary>
@@ -76,8 +79,21 @@ public class PackageLoader
             LoadPackageContent(package, allowSkeletons: false);
         }
 
+        // HIGHLANDER: Procedural venue placement for ALL authored venues (single algorithm)
+        // Must happen BEFORE location placement because locations need venue.CenterHex
+        PlaceAllAuthoredVenues();
+
+        // HIGHLANDER: Procedural hex placement for ALL locations (single algorithm)
+        // Must happen AFTER venue placement and BEFORE hex sync because it sets Location.HexPosition
+        PlaceAllLocations();
+
+        // PURE PROCEDURAL VALIDATION: Spatial venue assignment verification
+        // Validates that PlaceLocation() assigned venues correctly (hex within venue territory)
+        ValidateVenueAssignmentsSpatially();
+
         // HEX-BASED TRAVEL SYSTEM: Sync hex positions ONCE after all packages loaded
         // CRITICAL: Must happen after ALL packages because hex grid and locations may be in different packages
+        // CRITICAL: Must happen AFTER PlaceAllLocations because it syncs existing HexPositions
         SyncLocationHexPositions();
         EnsureHexGridCompleteness();
 
@@ -269,6 +285,21 @@ public class PackageLoader
         // Load with skeletons allowed for dynamic content
         LoadPackageContent(package, allowSkeletons: true);
 
+        // HIGHLANDER: Place any new venues added by this dynamic package
+        // Runtime-generated venues may need procedural placement
+        PlaceAllAuthoredVenues();
+
+        // HIGHLANDER: Place any new locations added by this dynamic package
+        // Scene-generated locations must have hex positions assigned
+        PlaceAllLocations();
+
+        // PURE PROCEDURAL VALIDATION: Verify spatial venue assignments
+        ValidateVenueAssignmentsSpatially();
+
+        // HEX SYNC: Sync newly placed locations to hex grid
+        SyncLocationHexPositions();
+        EnsureHexGridCompleteness();
+
         // Regenerate static location actions for dynamic packages
         // Dynamic packages may add locations that need intra-venue movement actions
         // Must regenerate for ALL locations because adjacency relationships may have changed
@@ -295,11 +326,14 @@ public class PackageLoader
             throw new InvalidOperationException("StartingSpotId is required in starting conditions - player has no spawn location!");
 
         // Validate starting location exists in parsed locations
-        // HIGHLANDER: Use GetLocation query method instead of LINQ with Id comparison
-        Location startingLocation = _gameWorld.GetLocation(conditions.StartingSpotId);
+        // HIGHLANDER: LINQ query on already-parsed locations
+        Location startingLocation = _gameWorld.Locations.FirstOrDefault(l => l.Name == conditions.StartingSpotId);
         if (startingLocation == null)
             throw new InvalidOperationException($"StartingSpotId '{conditions.StartingSpotId}' not found in parsed locations - player cannot spawn!");
 
+        // HIGHLANDER: Store starting location object reference in GameWorld
+        // GameFacade.StartGameAsync uses this to initialize Player.CurrentPosition
+        _gameWorld.StartingLocation = startingLocation;
 
         // Apply starting obligations
         if (conditions.StartingObligations != null)
@@ -307,7 +341,7 @@ public class PackageLoader
             foreach (StandingObligationDTO obligationDto in conditions.StartingObligations)
             {
                 // Convert DTO to domain model and add to player's standing obligations
-                StandingObligation obligation = StandingObligationParser.ConvertDTOToStandingObligation(obligationDto);
+                StandingObligation obligation = StandingObligationParser.ConvertDTOToStandingObligation(obligationDto, _gameWorld);
                 _gameWorld.GetPlayer().StandingObligations.Add(obligation);
             }
         }
@@ -317,13 +351,16 @@ public class PackageLoader
         {
             foreach (KeyValuePair<string, NPCTokenRelationship> kvp in conditions.StartingTokens)
             {
-                // Token relationships will be applied when NPCs are loaded
-                // Store for later application
-                NPCTokenEntry tokenEntry = _gameWorld.GetPlayer().GetNPCTokenEntry(kvp.Key);
-                tokenEntry.Trust = kvp.Value.Trust;
-                tokenEntry.Diplomacy = kvp.Value.Diplomacy;
-                tokenEntry.Status = kvp.Value.Status;
-                tokenEntry.Shadow = kvp.Value.Shadow;
+                // HIGHLANDER: Resolve NPC name to NPC object
+                NPC npc = _gameWorld.NPCs.FirstOrDefault(n => n.Name == kvp.Key);
+                if (npc != null)
+                {
+                    NPCTokenEntry tokenEntry = _gameWorld.GetPlayer().GetNPCTokenEntry(npc);
+                    tokenEntry.Trust = kvp.Value.Trust;
+                    tokenEntry.Diplomacy = kvp.Value.Diplomacy;
+                    tokenEntry.Status = kvp.Value.Status;
+                    tokenEntry.Shadow = kvp.Value.Shadow;
+                }
             }
         }
 
@@ -606,7 +643,7 @@ public class PackageLoader
                 // Region uses Name as natural key (no Id property)
                 Name = dto.Name,
                 Description = dto.Description,
-                DistrictIds = dto.DistrictIds,
+                // Districts property resolved in second pass (LinkRegionDistrictReferences)
                 Tier = dto.Tier,
                 Government = dto.Government,
                 Culture = dto.Culture,
@@ -629,8 +666,7 @@ public class PackageLoader
                 // District uses Name as natural key (no Id property)
                 Name = dto.Name,
                 Description = dto.Description,
-                RegionId = dto.RegionId,
-                VenueIds = dto.VenueIds,
+                // Region and Venues properties resolved in second pass (LinkRegionDistrictReferences)
                 DistrictType = dto.DistrictType,
                 DangerLevel = dto.DangerLevel,
                 Characteristics = dto.Characteristics
@@ -815,7 +851,7 @@ public class PackageLoader
                 // UPDATE existing venue properties in-place (preserve object identity)
                 existing.Name = dto.Name;
                 existing.Description = dto.Description;
-                existing.District = dto.DistrictId;
+                // District object reference resolved in second pass (LinkRegionDistrictVenueReferences)
                 existing.Tier = dto.Tier;
 
                 // Parse LocationType to VenueType enum
@@ -858,7 +894,8 @@ public class PackageLoader
         foreach (LocationDTO dto in spotDtos)
         {
             // Remove skeleton registry entry if location was skeleton (cleanup before update)
-            Location? existingSkeleton = _gameWorld.GetLocation(dto.Name);
+            // HIGHLANDER: LINQ query on already-parsed locations
+            Location? existingSkeleton = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.Name);
             if (existingSkeleton != null && existingSkeleton.IsSkeleton)
             {
                 SkeletonRegistryEntry? spotSkeletonEntry = _gameWorld.SkeletonRegistry.FirstOrDefault(x => x.SkeletonKey == dto.Name);
@@ -879,7 +916,8 @@ public class PackageLoader
             {
                 if (!_gameWorld.CanVenueAddMoreLocations(location.Venue))
                 {
-                    int currentCount = _gameWorld.GetLocationCountInVenue(location.Venue.Name);
+                    // HIGHLANDER: Pass Venue object, not string
+                    int currentCount = _gameWorld.GetLocationCountInVenue(location.Venue);
                     throw new InvalidOperationException(
                         $"Venue '{location.Venue.Name}' has reached capacity " +
                         $"({currentCount}/{location.Venue.MaxLocations} locations). " +
@@ -975,7 +1013,8 @@ public class PackageLoader
         foreach (RouteDTO dto in routeDtos)
         {
             // Check origin location
-            Location originSpot = _gameWorld.GetLocation(dto.OriginSpotId);
+            // HIGHLANDER: LINQ query on already-parsed locations
+            Location originSpot = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.OriginSpotId);
             if (originSpot == null)
             {
                 if (allowSkeletons)
@@ -1006,7 +1045,8 @@ public class PackageLoader
             }
 
             // Check destination location
-            Location destSpot = _gameWorld.GetLocation(dto.DestinationSpotId);
+            // HIGHLANDER: LINQ query on already-parsed locations
+            Location destSpot = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.DestinationSpotId);
             if (destSpot == null)
             {
                 if (allowSkeletons)
@@ -1054,17 +1094,6 @@ public class PackageLoader
             else
             { }
         }
-    }
-
-    private string GetVenueIdFromSpotId(string LocationId)
-    {
-        Location location = _gameWorld.GetLocation(LocationId);
-        if (location == null)
-            throw new InvalidDataException($"Location '{LocationId}' not found when attempting to get VenueId");
-        // ADR-007: Use Venue object reference instead of deleted VenueId
-        if (location.Venue == null)
-            throw new InvalidDataException($"Location '{LocationId}' has no Venue assigned");
-        return location.Venue.Name;
     }
 
     private void LoadDialogueTemplates(DialogueTemplates dialogueTemplates, bool allowSkeletons)
@@ -1249,7 +1278,7 @@ public class PackageLoader
 
         foreach (StandingObligationDTO dto in obligationDtos)
         {
-            StandingObligation obligation = StandingObligationParser.ConvertDTOToStandingObligation(dto);
+            StandingObligation obligation = StandingObligationParser.ConvertDTOToStandingObligation(dto, _gameWorld);
             _gameWorld.StandingObligationTemplates.Add(obligation);
         }
     }
@@ -1272,12 +1301,13 @@ public class PackageLoader
         if (string.IsNullOrEmpty(dto.Description))
             throw new InvalidDataException($"Route '{dto.Name}' missing required field 'Description'");
 
+        // HIGHLANDER: LINQ queries on already-parsed locations (originSpot and destSpot already resolved above)
         RouteOption route = new RouteOption
         {
             // RouteOption uses Name as natural key (no Id property)
             Name = dto.Name,
-            OriginLocation = _gameWorld.GetLocation(dto.OriginSpotId),
-            DestinationLocation = _gameWorld.GetLocation(dto.DestinationSpotId),
+            OriginLocation = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.OriginSpotId),
+            DestinationLocation = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.DestinationSpotId),
             Method = Enum.TryParse<TravelMethods>(dto.Method, out TravelMethods method) ? method : TravelMethods.Walking,
             BaseCoinCost = dto.BaseCoinCost,
             BaseStaminaCost = dto.BaseStaminaCost,
@@ -1320,38 +1350,40 @@ public class PackageLoader
                     NarrativeDescription = segmentDto.NarrativeDescription
                 };
 
-                // Set collection properties based on segment type using normalized properties
+                // HIGHLANDER: Resolve IDs to object references at parse-time
+                // NO string IDs stored in domain entities - only object references
                 if (segmentType == SegmentType.FixedPath)
                 {
-                    // FixedPath segments use pathCollectionId from JSON
-                    segment.PathCollectionId = segmentDto.PathCollectionId;
-                    if (!string.IsNullOrEmpty(segment.PathCollectionId))
-                    { }
+                    // Resolve PathCollectionId → PathCardCollectionDTO object
+                    if (!string.IsNullOrEmpty(segmentDto.PathCollectionId))
+                    {
+                        segment.PathCollection = _gameWorld.GetPathCollection(segmentDto.PathCollectionId);
+                    }
                 }
                 else if (segmentType == SegmentType.Event)
                 {
-                    // Event segments use eventCollectionId from JSON
-                    segment.EventCollectionId = segmentDto.EventCollectionId;
-                    if (!string.IsNullOrEmpty(segment.EventCollectionId))
-                    { }
+                    // Resolve EventCollectionId → PathCardCollectionDTO object
+                    if (!string.IsNullOrEmpty(segmentDto.EventCollectionId))
+                    {
+                        segment.EventCollection = _gameWorld.GetPathCollection(segmentDto.EventCollectionId);
+                    }
                 }
                 else if (segmentType == SegmentType.Encounter)
                 {
-                    // Encounter segments have mandatory scene that MUST be resolved
-                    segment.MandatorySceneId = segmentDto.MandatorySceneId;
-                    if (!string.IsNullOrEmpty(segment.MandatorySceneId))
-                    { }
+                    // Resolve MandatorySceneId → SceneTemplate object
+                    if (!string.IsNullOrEmpty(segmentDto.MandatorySceneId))
+                    {
+                        segment.MandatorySceneTemplate = _gameWorld.SceneTemplates
+                            .FirstOrDefault(t => t.Id == segmentDto.MandatorySceneId);
+                    }
                 }
 
                 route.Segments.Add(segment);
             }
         }
 
-        // Parse encounter deck IDs
-        if (dto.EncounterDeckIds != null)
-        {
-            route.EncounterDeckIds.AddRange(dto.EncounterDeckIds);
-        }
+        // NOTE: EncounterDeckIds DELETED from RouteOption domain entity per HIGHLANDER
+        // If encounter decks needed, store deck objects or query from templates
 
         // NOTE: Old inline scene parsing removed - NEW Scene-Situation architecture
         // Scenes now spawn via Situation spawn rewards (SceneSpawnReward) instead of inline definitions
@@ -1399,7 +1431,7 @@ public class PackageLoader
         {
             foreach (PathCardDTO pathCard in collection.PathCards)
             {
-                _gameWorld.SetPathCardDiscovered(pathCard.Name, pathCard.StartsRevealed);
+                _gameWorld.SetPathCardDiscovered(pathCard, pathCard.StartsRevealed);
             }
         }
 
@@ -1408,7 +1440,7 @@ public class PackageLoader
         {
             foreach (PathCardDTO eventCard in collection.EventCards)
             {
-                _gameWorld.SetPathCardDiscovered(eventCard.Name, eventCard.StartsRevealed);
+                _gameWorld.SetPathCardDiscovered(eventCard, eventCard.StartsRevealed);
             }
         }
 
@@ -1457,13 +1489,15 @@ public class PackageLoader
     /// </summary>
     private RouteOption GenerateReverseRoute(RouteOption forwardRoute)
     {
-        // Extract Venue IDs from the location names for naming
-        string originVenueId = GetVenueIdFromSpotId(forwardRoute.OriginLocation.Name);
-        string destVenueId = GetVenueIdFromSpotId(forwardRoute.DestinationLocation.Name);
+        // HIGHLANDER FIX: Use location.Name directly instead of location.Venue.Name
+        // Venues aren't assigned yet (happens in PlaceAllLocations which runs AFTER LoadRoutes)
+        // Use location names for route naming (clearer anyway - "Return to Town Square" not "Return to venue_123")
+        string originLocationName = forwardRoute.OriginLocation.Name;
+        string destLocationName = forwardRoute.DestinationLocation.Name;
 
         RouteOption reverseRoute = new RouteOption
         {
-            Name = $"Return to {GetLocationNameFromId(originVenueId)}",
+            Name = $"Return to {originLocationName}",
             // Swap origin and destination locations
             OriginLocation = forwardRoute.DestinationLocation,
             DestinationLocation = forwardRoute.OriginLocation,
@@ -1475,7 +1509,7 @@ public class PackageLoader
             TravelTimeSegments = forwardRoute.TravelTimeSegments,
             DepartureTime = forwardRoute.DepartureTime,
             MaxItemCapacity = forwardRoute.MaxItemCapacity,
-            Description = $"Return journey from {GetLocationNameFromId(destVenueId)} to {GetLocationNameFromId(originVenueId)}",
+            Description = $"Return journey from {destLocationName} to {originLocationName}",
             // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
             RouteType = forwardRoute.RouteType,
             HasPermitUnlock = forwardRoute.HasPermitUnlock,
@@ -1502,19 +1536,18 @@ public class PackageLoader
                 SegmentNumber = segmentNumber++,
                 Type = originalSegment.Type,
                 // Keep the same collections - they represent the same physical locations
-                PathCollectionId = originalSegment.PathCollectionId,
-                EventCollectionId = originalSegment.EventCollectionId,
-                MandatorySceneId = originalSegment.MandatorySceneId
+                PathCollection = originalSegment.PathCollection,
+                EventCollection = originalSegment.EventCollection,
+                MandatorySceneTemplate = originalSegment.MandatorySceneTemplate
             };
             reverseRoute.Segments.Add(reverseSegment);
         }
 
-        // Copy encounter deck IDs
-        reverseRoute.EncounterDeckIds.AddRange(forwardRoute.EncounterDeckIds);
+        // NOTE: EncounterDeckIds DELETED from RouteOption domain entity per HIGHLANDER
 
         // If the forward route has a route-level event pool, copy it to the reverse route
-        // ADR-007: Use Collection.Id (object property) instead of deleted CollectionId
-        PathCollectionEntry? forwardEntry = _gameWorld.AllEventCollections.FirstOrDefault(x => x.Collection.Id == forwardRoute.Id);
+        // HIGHLANDER: Use RouteOption.Name (natural key) instead of deleted Id property
+        PathCollectionEntry? forwardEntry = _gameWorld.AllEventCollections.FirstOrDefault(x => x.Collection.Id == forwardRoute.Name);
         if (forwardEntry != null)
         {
             PathCollectionEntry reverseEntry = new PathCollectionEntry
@@ -1525,18 +1558,6 @@ public class PackageLoader
         }
 
         return reverseRoute;
-    }
-
-    private string GetLocationNameFromId(string venueId)
-    {
-        // Helper to get friendly Venue name from ID for route naming
-        if (string.IsNullOrEmpty(venueId))
-            throw new InvalidDataException("GetLocationNameFromId called with null/empty venueId");
-
-        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Name == venueId);
-        if (venue == null)
-            return venueId.Replace("_", " ").Replace("-", " "); // Fallback to formatted ID if venue not found
-        return venue.Name;
     }
 
     private class VenueLocationGrouping
@@ -1603,7 +1624,8 @@ public class PackageLoader
 
         foreach (string LocationId in routeSpotIds)
         {
-            Location location = _gameWorld.GetLocation(LocationId);
+            // HIGHLANDER: LINQ query on already-parsed locations
+            Location location = _gameWorld.Locations.FirstOrDefault(l => l.Name == LocationId);
             if (location == null)
             {// Create skeleton location with crossroads property (required for routes)
                 location = SkeletonGenerator.GenerateSkeletonSpot(
@@ -1766,6 +1788,123 @@ public class PackageLoader
         {
             Console.WriteLine($"[PackageLoader] Loaded {sceneDtos.Count} Scene instances from this package");
         }
+    }
+
+    /// <summary>
+    /// HIGHLANDER: Procedural venue placement for ALL authored venues using deterministic algorithm.
+    /// Called ONCE after all packages loaded, BEFORE location placement.
+    /// Venues parsed WITHOUT centerHex, placement happens here using VenueGeneratorService.
+    /// </summary>
+    private void PlaceAllAuthoredVenues()
+    {
+        Console.WriteLine("[VenuePlacement] Starting procedural placement for all authored venues");
+
+        // Get all authored venues (non-skeleton, non-runtime) that need placement
+        List<Venue> venuesToPlace = _gameWorld.Venues
+            .Where(v => !v.IsSkeleton) // Skip skeleton venues (runtime-generated)
+            .OrderBy(v => v.Name) // Deterministic order
+            .ToList();
+
+        Console.WriteLine($"[VenuePlacement] Found {venuesToPlace.Count} authored venues to place");
+
+        // Use VenueGeneratorService to place venues deterministically
+        VenueGeneratorService venueGenerator = new VenueGeneratorService(_hexSync);
+        venueGenerator.PlaceAuthoredVenues(venuesToPlace, _gameWorld);
+
+        Console.WriteLine($"[VenuePlacement] Completed procedural placement for {venuesToPlace.Count} authored venues");
+    }
+
+    /// <summary>
+    /// PURE PROCEDURAL PLACEMENT: Place each location individually via categorical matching.
+    /// NO grouping by venue. Each location placed independently using:
+    /// - Categorical distance hint (distanceFromPlayer)
+    /// - Categorical properties (Purpose, Safety, Privacy, Activity)
+    /// - Player's current position
+    /// Algorithm selects venue, assigns hex, and assigns venue atomically.
+    /// HIGHLANDER: Single algorithm for ALL locations (authored + generated).
+    /// Called AFTER all packages loaded, BEFORE hex sync.
+    /// </summary>
+    private void PlaceAllLocations()
+    {
+        Console.WriteLine("[LocationPlacement] Starting PURE PROCEDURAL placement for all locations");
+
+        // Get player for distance calculations
+        Player player = _gameWorld.GetPlayer();
+        if (player == null)
+        {
+            throw new InvalidOperationException("Cannot place locations without Player - Player must be created before location placement");
+        }
+
+        // Iterate each location individually (deterministic order by name)
+        List<Location> locations = _gameWorld.Locations.OrderBy(l => l.Name).ToList();
+
+        foreach (Location location in locations)
+        {
+            // Get categorical distance hint (flows from JSON → DTO → Parser → here)
+            string distanceHint = location.DistanceHintForPlacement ?? "medium"; // Default if missing
+
+            Console.WriteLine($"[LocationPlacement] Processing location '{location.Name}' with distance hint '{distanceHint}'");
+
+            // Place location using pure procedural algorithm
+            // STUB in Phase 4, full 7-phase algorithm in Phase 6
+            _locationPlacementService.PlaceLocation(location, distanceHint, player);
+        }
+
+        Console.WriteLine($"[LocationPlacement] Completed PURE PROCEDURAL placement for {locations.Count} locations");
+
+        // SCAFFOLDING CLEANUP: Clear temporary placement hints (no longer needed after placement)
+        foreach (Location location in locations)
+        {
+            location.DistanceHintForPlacement = null;
+        }
+        Console.WriteLine("[LocationPlacement] Cleared temporary distance hints from all locations");
+    }
+
+    /// <summary>
+    /// PURE PROCEDURAL VALIDATION: Validates spatial venue assignments are correct.
+    /// PlaceLocation() assigns venue atomically with hex position (PRIMARY assignment).
+    /// This method VALIDATES that assignment (VERIFICATION only, not assignment).
+    /// Called AFTER PlaceAllLocations (locations have HexPosition + Venue), BEFORE hex sync.
+    /// Fail-fast: Throws exception if any location violates spatial constraints.
+    /// </summary>
+    private void ValidateVenueAssignmentsSpatially()
+    {
+        Console.WriteLine("[SpatialValidation] Starting spatial venue assignment validation");
+
+        int validated = 0;
+
+        foreach (Location location in _gameWorld.Locations)
+        {
+            // Validation 1: Location must have HexPosition after placement
+            if (!location.HexPosition.HasValue)
+            {
+                throw new InvalidOperationException(
+                    $"Location '{location.Name}' has no HexPosition after PlaceAllLocations(). " +
+                    $"All locations must have hex positions assigned by placement algorithm.");
+            }
+
+            // Validation 2: Location must have Venue after placement
+            if (location.Venue == null)
+            {
+                throw new InvalidOperationException(
+                    $"Location '{location.Name}' has no Venue after PlaceAllLocations(). " +
+                    $"PlaceLocation() should have assigned venue atomically with hex position.");
+            }
+
+            // Validation 3: Location's hex must be within assigned venue's territory
+            if (!location.Venue.ContainsHex(location.HexPosition.Value))
+            {
+                throw new InvalidOperationException(
+                    $"SPATIAL CONSTRAINT VIOLATION: Location '{location.Name}' at hex ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}) " +
+                    $"is assigned to venue '{location.Venue.Name}' but hex is OUTSIDE venue's allocated territory. " +
+                    $"Placement algorithm violated spatial constraints - venue.ContainsHex() returned false.");
+            }
+
+            Console.WriteLine($"[SpatialValidation] ✅ Location '{location.Name}' correctly assigned to venue '{location.Venue.Name}' at hex ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R})");
+            validated++;
+        }
+
+        Console.WriteLine($"[SpatialValidation] Spatial validation complete: {validated} locations verified");
     }
 
 }

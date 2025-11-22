@@ -167,10 +167,8 @@ public class ExchangeStructureTests
             }
         };
 
-        PlayerResourceState playerResources = new PlayerResourceState
-        {
-            Coins = 15
-        };
+        // HIGHLANDER: PlayerResourceState is immutable - use constructor, not property setters
+        PlayerResourceState playerResources = new PlayerResourceState(coins: 15);
 
         bool result = cost.CanAfford(playerResources);
 
@@ -188,10 +186,8 @@ public class ExchangeStructureTests
             }
         };
 
-        PlayerResourceState playerResources = new PlayerResourceState
-        {
-            Coins = 10
-        };
+        // HIGHLANDER: PlayerResourceState is immutable - use constructor, not property setters
+        PlayerResourceState playerResources = new PlayerResourceState(coins: 10);
 
         bool result = cost.CanAfford(playerResources);
 
@@ -204,7 +200,7 @@ public class ExchangeStructureTests
         ExchangeCostStructure cost = new ExchangeCostStructure
         {
             Resources = new List<ResourceAmount>(),
-            ConsumedItemIds = new List<string>()
+            ConsumedItems = new List<Item>()
         };
 
         string description = cost.GetDescription();
@@ -235,7 +231,7 @@ public class ExchangeStructureTests
         ExchangeRewardStructure reward = new ExchangeRewardStructure
         {
             Resources = new List<ResourceAmount>(),
-            ItemIds = new List<string>(),
+            Items = new List<Item>(),
             Tokens = new List<TokenCount>()
         };
 
@@ -284,7 +280,7 @@ public class ExchangeStructureTests
         ExchangeRewardStructure reward = new ExchangeRewardStructure
         {
             Resources = new List<ResourceAmount>(),
-            ItemIds = new List<string>(),
+            Items = new List<Item>(),
             Tokens = new List<TokenCount>(),
             EffectIds = new List<string>()
         };

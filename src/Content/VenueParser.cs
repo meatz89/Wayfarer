@@ -12,6 +12,22 @@ public static class VenueParser
         if (string.IsNullOrEmpty(dto.Name))
             throw new InvalidOperationException($"Venue {dto.Id} missing required 'Name' field");
 
+        // HIGHLANDER: centerHex NO LONGER REQUIRED in JSON - calculated procedurally by VenueGeneratorService
+        // Authored venues: Parsed WITHOUT centerHex, placed by VenueGeneratorService.PlaceAuthoredVenues()
+        // Runtime venues: Generated WITH centerHex by VenueGeneratorService.GenerateVenue()
+
+        // Parse hexAllocation strategy
+        HexAllocationStrategy hexAllocation = HexAllocationStrategy.ClusterOf7; // Default
+        if (!string.IsNullOrEmpty(dto.HexAllocation))
+        {
+            if (!Enum.TryParse<HexAllocationStrategy>(dto.HexAllocation, true, out hexAllocation))
+            {
+                throw new InvalidDataException(
+                    $"Venue '{dto.Name}' has invalid hexAllocation '{dto.HexAllocation}'. " +
+                    $"Valid values: {string.Join(", ", Enum.GetNames(typeof(HexAllocationStrategy)))}");
+            }
+        }
+
         // Parse LocationType string to VenueType enum (fail fast on invalid values)
         VenueType venueType = VenueType.Wilderness;  // Default
         if (!string.IsNullOrEmpty(dto.LocationType))
@@ -27,9 +43,13 @@ public static class VenueParser
         Venue venue = new Venue(dto.Name)
         {
             Description = dto.Description,
-            District = dto.DistrictId,
+            // District object reference resolved in second pass by PackageLoader (LinkRegionDistrictVenueReferences)
             Tier = dto.Tier,
-            Type = venueType  // ✅ Strongly-typed enum (replaces LocationTypeString)
+            Type = venueType,  // Strongly-typed enum (replaces LocationTypeString)
+            // SPATIAL PROPERTIES:
+            // CenterHex NOT set here - calculated procedurally by VenueGeneratorService.PlaceAuthoredVenues()
+            HexAllocation = hexAllocation,  // Strategy (ClusterOf7, SingleHex) defined in JSON
+            MaxLocations = dto.MaxLocations ?? 20  // Default capacity budget
         };
 
         return venue;

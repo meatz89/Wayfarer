@@ -306,7 +306,6 @@ public class SceneInstantiator
         // Create Situation from template
         Situation situation = new Situation
         {
-            Id = situationId,
             Name = template.Name,  // Copy display name from template
             TemplateId = template.Id,
             Template = template,  // CRITICAL: Store template for lazy action instantiation
@@ -784,8 +783,9 @@ public class SceneInstantiator
     {
         // Create interaction lookup dictionary for fast access
         // ONE record per NPC (update-in-place pattern) - no GroupBy needed
-        Dictionary<string, NPCInteractionRecord> interactionLookup = player.NPCInteractions
-            .ToDictionary(interaction => interaction.NPCId);
+        // HIGHLANDER: Use NPC object as key, not string ID
+        Dictionary<NPC, NPCInteractionRecord> interactionLookup = player.NPCInteractions
+            .ToDictionary(interaction => interaction.Npc);
 
         // Find candidate with oldest interaction (or never interacted)
         NPC leastRecentNPC = null;
@@ -793,13 +793,13 @@ public class SceneInstantiator
 
         foreach (NPC candidate in candidates)
         {
-            if (!interactionLookup.ContainsKey(candidate.Name))
+            if (!interactionLookup.ContainsKey(candidate))
             {
                 // Never interacted with this NPC - prioritize these
                 return candidate;
             }
 
-            NPCInteractionRecord record = interactionLookup[candidate.Name];
+            NPCInteractionRecord record = interactionLookup[candidate];
             long timestamp = CalculateTimestamp(record.LastInteractionDay, record.LastInteractionTimeBlock, record.LastInteractionSegment);
 
             if (timestamp < oldestTimestamp)
@@ -839,24 +839,23 @@ public class SceneInstantiator
     /// </summary>
     private Location SelectLeastRecentLocation(List<Location> candidates, Player player)
     {
-        // Create visit timestamp lookup dictionary for fast access
-        // ONE record per location (update-in-place pattern) - no GroupBy needed
-        Dictionary<string, LocationVisitRecord> visitLookup = player.LocationVisits
-            .ToDictionary(visit => visit.LocationId);
-
         // Find candidate with oldest visit (or never visited)
+        // Use LINQ queries over List<T>, NOT Dictionary (DOMAIN COLLECTION PRINCIPLE)
         Location leastRecentLocation = null;
         long oldestTimestamp = long.MaxValue;
 
         foreach (Location candidate in candidates)
         {
-            if (!visitLookup.ContainsKey(candidate.Name))
+            // LINQ query: Find visit record for this location
+            LocationVisitRecord record = player.LocationVisits
+                .FirstOrDefault(visit => visit.Location == candidate);
+
+            if (record == null)
             {
                 // Never visited this location - prioritize these
                 return candidate;
             }
 
-            LocationVisitRecord record = visitLookup[candidate.Name];
             long timestamp = CalculateTimestamp(record.LastVisitDay, record.LastVisitTimeBlock, record.LastVisitSegment);
 
             if (timestamp < oldestTimestamp)
@@ -997,7 +996,8 @@ public class SceneInstantiator
 
         if (!_gameWorld.CanVenueAddMoreLocations(venue))
         {
-            int currentCount = _gameWorld.GetLocationCountInVenue(venue.Name);
+            // HIGHLANDER: Pass Venue object, not string
+            int currentCount = _gameWorld.GetLocationCountInVenue(venue);
             throw new InvalidOperationException(
                 $"Venue '{venue.Name}' has reached capacity " +
                 $"({currentCount}/{venue.MaxLocations} locations). " +
@@ -1005,31 +1005,9 @@ public class SceneInstantiator
                 $"Increase MaxLocations or use different venue.");
         }
 
-        // Find hex placement (CRITICAL: ALL locations must have hex positions)
-        AxialCoordinates? hexPosition;
-
-        // SPATIAL CONSTRAINT: First location in venue vs. organic growth
-        int venueLocationCount = _gameWorld.GetLocationCountInVenue(venue.Name);
-        if (venueLocationCount == 0 && venue.CenterHex.HasValue)
-        {
-            // First location in newly generated venue: place at venue center
-            // This respects venue separation (center already validated by VenueGeneratorService)
-            hexPosition = venue.CenterHex.Value;
-            Console.WriteLine($"[DependentLocation] Placing FIRST location '{locationId}' at venue center ({hexPosition.Value.Q}, {hexPosition.Value.R})");
-        }
-        else
-        {
-            // Organic growth: place adjacent to existing location in venue
-            Location baseLocation = context.CurrentLocation;
-            if (baseLocation == null)
-                throw new InvalidOperationException($"Cannot place dependent location '{locationId}' - context.CurrentLocation is null and venue has existing locations");
-
-            hexPosition = FindAdjacentHex(baseLocation, spec.HexPlacement);
-            if (!hexPosition.HasValue)
-                throw new InvalidOperationException($"Failed to find hex position for dependent location '{locationId}' using strategy '{spec.HexPlacement}'");
-
-            Console.WriteLine($"[DependentLocation] Placed '{locationId}' at hex ({hexPosition.Value.Q}, {hexPosition.Value.R}) adjacent to base location '{baseLocation.Name}'");
-        }
+        // HIGHLANDER: NO hex placement logic here - ALL placement via LocationPlacementService
+        // SceneInstantiator creates LocationDTO with NO hex coordinates
+        // PackageLoader.PlaceAllLocations() handles placement for ALL locations (authored + generated)
 
         // Build LocationDTO
         LocationDTO dto = new LocationDTO
@@ -1037,9 +1015,7 @@ public class SceneInstantiator
             Id = locationId,
             Name = locationName,
             Description = locationDescription,
-            VenueId = venueId,
-            Q = hexPosition.Value.Q,
-            R = hexPosition.Value.R,
+            DistanceFromPlayer = "near", // Generated locations default to "near" - placement algorithm will select appropriate venue
             Type = "Room", // Default type for generated locations
             InitialState = spec.IsLockedInitially ? "Locked" : "Available",
             CanInvestigate = spec.CanInvestigate,
@@ -1125,7 +1101,7 @@ public class SceneInstantiator
                     DescriptionPattern = "A procedurally generated venue.",
                     Type = VenueType.Merchant,
                     Tier = context.CurrentLocation?.Tier ?? 1,
-                    District = context.CurrentLocation?.Venue?.District ?? "wilderness",
+                    District = context.CurrentLocation?.Venue?.District?.Name ?? "wilderness",
                     MaxLocations = 20,
                     HexAllocation = HexAllocationStrategy.ClusterOf7
                 };
@@ -1137,105 +1113,9 @@ public class SceneInstantiator
         }
     }
 
-    /// <summary>
-    /// Find adjacent hex position for new location
-    /// Implements HexPlacementStrategy.Adjacent and SameVenue logic (both find unoccupied adjacent hex)
-    /// INTERNAL: Exposed for unit testing venue separation during organic growth
-    /// </summary>
-    internal AxialCoordinates? FindAdjacentHex(Location baseLocation, HexPlacementStrategy strategy)
-    {
-        switch (strategy)
-        {
-            case HexPlacementStrategy.SameVenue:
-            case HexPlacementStrategy.Adjacent:
-                // Both strategies find unoccupied adjacent hex
-                // SameVenue = adjacent hex in SAME venue (intra-venue travel)
-                // Adjacent = adjacent hex (may be different venue if crossing venue boundary)
-                if (!baseLocation.HexPosition.HasValue)
-                    throw new InvalidOperationException($"Base location '{baseLocation.Name}' has no HexPosition - cannot find adjacent hex");
-
-                // Get neighbors from hex map
-                HexMap hexMap = _gameWorld.WorldHexGrid;
-                if (hexMap == null)
-                    throw new InvalidOperationException("GameWorld.WorldHexGrid is null - cannot find adjacent hex");
-
-                Hex baseHex = hexMap.GetHex(baseLocation.HexPosition.Value);
-                if (baseHex == null)
-                    throw new InvalidOperationException($"Base location hex position {baseLocation.HexPosition.Value} not found in HexMap");
-
-                List<Hex> neighbors = hexMap.GetNeighbors(baseHex);
-
-                // CRITICAL: Maintain venue separation during organic growth
-                // Find first unoccupied neighbor that doesn't violate venue separation
-                // ADR-007: Use Venue.Name instead of deleted VenueId
-                string baseVenueId = baseLocation.Venue.Name;
-
-                foreach (Hex neighborHex in neighbors)
-                {
-                    // Check if any location occupies this hex
-                    bool hexOccupied = _gameWorld.Locations.Any(loc => loc.HexPosition.HasValue &&
-                                                                       loc.HexPosition.Value.Equals(neighborHex.Coordinates));
-                    if (hexOccupied)
-                    {
-                        Console.WriteLine($"[VenueSeparation] Skipping hex ({neighborHex.Coordinates.Q}, {neighborHex.Coordinates.R}): Already occupied");
-                        continue; // Skip occupied hexes
-                    }
-
-                    // SPATIAL CONSTRAINT: Check that placing location here maintains venue separation
-                    // The new location's neighbors must not contain locations from OTHER venues
-                    bool violatesSeparation = IsAdjacentToOtherVenue(neighborHex.Coordinates, baseVenueId);
-                    if (violatesSeparation)
-                    {
-                        Console.WriteLine($"[VenueSeparation] Skipping hex ({neighborHex.Coordinates.Q}, {neighborHex.Coordinates.R}): Would violate venue separation (adjacent to other venue)");
-                        continue; // Skip hexes that would violate separation
-                    }
-
-                    Console.WriteLine($"[VenueSeparation] Selected hex ({neighborHex.Coordinates.Q}, {neighborHex.Coordinates.R}) for organic growth (maintains separation)");
-                    return neighborHex.Coordinates;
-                }
-
-                throw new InvalidOperationException(
-                    $"No unoccupied adjacent hexes found for location '{baseLocation.Name}' " +
-                    $"that maintain venue separation. Venue '{baseVenueId}' may have reached spatial density limit.");
-
-            case HexPlacementStrategy.Distance:
-            case HexPlacementStrategy.Random:
-                throw new NotImplementedException($"HexPlacementStrategy.{strategy} not yet implemented");
-
-            default:
-                throw new InvalidOperationException($"Unknown HexPlacementStrategy: {strategy}");
-        }
-    }
-
-    /// <summary>
-    /// Check if a hex coordinate is adjacent to any location from a venue other than the specified venue.
-    /// Used to enforce venue separation during organic growth.
-    /// </summary>
-    private bool IsAdjacentToOtherVenue(AxialCoordinates hexCoords, string currentVenueId)
-    {
-        AxialCoordinates[] neighbors = hexCoords.GetNeighbors();
-
-        foreach (AxialCoordinates neighborCoords in neighbors)
-        {
-            // Check if any location exists at this neighbor position
-            Location neighborLocation = _gameWorld.Locations.FirstOrDefault(loc =>
-                loc.HexPosition.HasValue &&
-                loc.HexPosition.Value.Equals(neighborCoords));
-
-            if (neighborLocation != null)
-            {
-                // If location exists and belongs to DIFFERENT venue, separation violated
-                // ADR-007: Use Venue.Name instead of deleted VenueId
-                if (neighborLocation.Venue != null &&
-                    neighborLocation.Venue.Name != currentVenueId)
-                {
-                    return true; // Adjacent to other venue
-                }
-            }
-        }
-
-        return false; // Not adjacent to other venues
-    }
+    // HIGHLANDER: FindAdjacentHex and IsAdjacentToOtherVenue methods DELETED
+    // These methods now live in LocationPlacementService (single implementation for ALL location placement)
+    // SceneInstantiator no longer performs ANY hex placement logic
 
     /// <summary>
     /// Convert PlacementFilter domain entity to PlacementFilterDTO for JSON serialization

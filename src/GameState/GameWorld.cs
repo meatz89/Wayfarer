@@ -93,6 +93,10 @@ public class GameWorld
     // Initialization data - stored in GameWorld, not passed between phases
     public PlayerInitialConfig InitialPlayerConfig { get; set; }
 
+    // HIGHLANDER: Starting location as object reference (set by PackageLoader, used by GameFacade.StartGameAsync)
+    // Player.CurrentPosition initialized from StartingLocation.HexPosition at game start
+    public Location StartingLocation { get; set; }
+
     // Time initialization (applied to TimeModel after DI initialization)
     public int? InitialDay { get; set; }
     public TimeBlocks? InitialTimeBlock { get; set; }
@@ -224,10 +228,12 @@ public class GameWorld
     {
         if (route == null) return;
 
-        TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.RouteName == route.Name);
+        // HIGHLANDER: Compare Route objects directly, not route.Name strings
+        TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.Route == route);
         if (block == null)
         {
-            block = new TemporaryRouteBlock { RouteName = route.Name };
+            // HIGHLANDER: Store Route object reference, not RouteName string
+            block = new TemporaryRouteBlock { Route = route };
             TemporaryRouteBlocks.Add(block);
         }
         block.UnblockDay = currentDay + daysBlocked;
@@ -241,7 +247,8 @@ public class GameWorld
     {
         if (route == null) return false;
 
-        TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.RouteName == route.Name);
+        // HIGHLANDER: Compare Route objects directly, not route.Name strings
+        TemporaryRouteBlock block = TemporaryRouteBlocks.FirstOrDefault(trb => trb.Route == route);
         if (block != null)
         {
             if (currentDay >= block.UnblockDay)
@@ -264,9 +271,9 @@ public class GameWorld
         return venue.District;
     }
 
-    public Region GetRegionForDistrict(string districtName)
+    // HIGHLANDER: Accept District object, use object reference (not string lookup)
+    public Region GetRegionForDistrict(District district)
     {
-        District district = Districts.FirstOrDefault(d => d.Name == districtName);
         if (district == null || district.Region == null)
             return null;
 
@@ -278,10 +285,12 @@ public class GameWorld
         Venue? venue = Venues.FirstOrDefault(l => l.Name == venueName);
         if (venue == null) return "";
 
-        District district = GetDistrictForLocation(venueName);
+        // HIGHLANDER: GetDistrictForLocation accepts Venue, not string - need to pass venue object
+        District district = GetDistrictForLocation(venue);
         if (district == null) return venue.Name;
 
-        Region region = GetRegionForDistrict(district.Name);
+        // HIGHLANDER: Pass District object, not string
+        Region region = GetRegionForDistrict(district);
         if (region == null) return $"{venue.Name}, {district.Name}";
 
         return $"{venue.Name}, {district.Name}, {region.Name}";
@@ -339,12 +348,7 @@ public class GameWorld
         return NPCs;
     }
 
-    /// Get a location by name from primary storage
-    /// </summary>
-    public Location GetLocation(string locationName)
-    {
-        return Locations.FirstOrDefault(l => l.Name == locationName);
-    }
+    // HIGHLANDER: GetLocation(string) DELETED - use Locations.FirstOrDefault(l => l.Name == name) directly
 
     /// <summary>
     /// Get player's current location via hex-first architecture
@@ -393,30 +397,22 @@ public class GameWorld
     {
         if (InitialPlayerConfig != null)
         {
-            Player.ApplyInitialConfiguration(InitialPlayerConfig);
+            Player.ApplyInitialConfiguration(InitialPlayerConfig, this);
         }
     }
 
-    /// <summary>
-    /// Add a stranger NPC to a specific location
-    /// </summary>
-    public void AddStrangerToLocation(string locationName, NPC stranger)
-    {
-        if (stranger == null) return;
-        stranger.Location = Locations.FirstOrDefault(l => l.Name == locationName);
-        stranger.IsStranger = true;
-        NPCs.Add(stranger);
-    }
+    // HIGHLANDER: AddStrangerToLocation(string) DELETED - no callers, violated object parameter principle
 
     /// <summary>
-    /// Get available strangers at a location for the current time block
+    /// Get available strangers at a venue for the current time block
+    /// HIGHLANDER: Accepts Venue object, uses object equality (not .Name comparison)
     /// </summary>
-    public List<NPC> GetAvailableStrangers(string locationName, TimeBlocks currentTimeBlock)
+    public List<NPC> GetAvailableStrangers(Venue venue, TimeBlocks currentTimeBlock)
     {
         List<NPC> availableStrangers = new List<NPC>();
         foreach (NPC npc in NPCs)
         {
-            if (npc.IsStranger && npc.Location?.Name == locationName && npc.IsAvailableAtTime(currentTimeBlock))
+            if (npc.IsStranger && npc.Location?.Venue == venue && npc.IsAvailableAtTime(currentTimeBlock))
             {
                 availableStrangers.Add(npc);
             }
@@ -497,9 +493,9 @@ public class GameWorld
         Obligation obligation = Obligations.FirstOrDefault(i => i.Name == obligationName);
         if (obligation == null) return;
 
-        if (!Player.ActiveObligationIds.Contains(obligationName))
+        if (!Player.ActiveObligations.Contains(obligation))
         {
-            Player.ActiveObligationIds.Add(obligationName);
+            Player.ActiveObligations.Add(obligation);
         }
 
         if (obligation.ObligationType == ObligationObligationType.NPCCommissioned)
@@ -537,9 +533,9 @@ public class GameWorld
             ActivateObligation(spawnedObligation.Name, timeManager);
         }
 
-        if (Player.ActiveObligationIds.Contains(obligationName))
+        if (Player.ActiveObligations.Contains(obligation))
         {
-            Player.ActiveObligationIds.Remove(obligationName);
+            Player.ActiveObligations.Remove(obligation);
         }
 
         if (obligation.ObligationType == ObligationObligationType.NPCCommissioned &&
@@ -567,15 +563,7 @@ public class GameWorld
             .ToList();
     }
 
-    /// <summary>
-    /// Get delivery job by origin and destination location names
-    /// </summary>
-    public DeliveryJob GetJobByLocations(string originLocationName, string destinationLocationName)
-    {
-        return AvailableDeliveryJobs.FirstOrDefault(j =>
-            j.OriginLocation.Name == originLocationName &&
-            j.DestinationLocation.Name == destinationLocationName);
-    }
+    // HIGHLANDER: GetJobByLocations(string, string) DELETED - no callers, violated object parameter principle
 
     /// <summary>
     /// Check for expired obligations by comparing current segment to deadline
@@ -585,15 +573,13 @@ public class GameWorld
     {
         List<string> expiredObligations = new List<string>();
 
-        foreach (string obligationName in Player.ActiveObligationIds)
+        foreach (Obligation obligation in Player.ActiveObligations)
         {
-            Obligation obligation = Obligations.FirstOrDefault(i => i.Name == obligationName);
-            if (obligation != null &&
-                obligation.ObligationType == ObligationObligationType.NPCCommissioned &&
+            if (obligation.ObligationType == ObligationObligationType.NPCCommissioned &&
                 obligation.DeadlineSegment.HasValue &&
                 currentSegment >= obligation.DeadlineSegment.Value)
             {
-                expiredObligations.Add(obligationName);
+                expiredObligations.Add(obligation.Name);
             }
         }
 
@@ -619,9 +605,9 @@ public class GameWorld
             patron.StoryCubes = Math.Max(0, patron.StoryCubes - cubeReduction);
         }
 
-        if (Player.ActiveObligationIds.Contains(obligationName))
+        if (Player.ActiveObligations.Contains(obligation))
         {
-            Player.ActiveObligationIds.Remove(obligationName);
+            Player.ActiveObligations.Remove(obligation);
         }
 
         obligation.IsFailed = true;
@@ -632,50 +618,7 @@ public class GameWorld
     /// </summary>
     public List<Obligation> GetActiveObligations()
     {
-        List<Obligation> activeObligations = new List<Obligation>();
-        foreach (string obligationName in Player.ActiveObligationIds)
-        {
-            Obligation obligation = Obligations.FirstOrDefault(i => i.Name == obligationName);
-            if (obligation != null)
-            {
-                activeObligations.Add(obligation);
-            }
-        }
-        return activeObligations;
-    }
-
-    // ============================================
-    // EQUIPMENT MANAGEMENT (Core Loop design)
-    // ============================================
-
-    /// <summary>
-    /// Purchase equipment and add to player inventory
-    /// </summary>
-    public bool PurchaseEquipment(string equipmentId, int cost)
-    {
-        if (Player.Coins < cost)
-        {
-            return false;
-        }
-
-        Player.ModifyCoins(-cost);
-        Player.Inventory.AddItem(equipmentId);
-        return true;
-    }
-
-    /// <summary>
-    /// Sell equipment from inventory
-    /// </summary>
-    public bool SellEquipment(string equipmentId, int sellPrice)
-    {
-        if (!Player.Inventory.HasItem(equipmentId))
-        {
-            return false;
-        }
-
-        Player.Inventory.RemoveItem(equipmentId);
-        Player.ModifyCoins(sellPrice);
-        return true;
+        return Player.ActiveObligations;
     }
 
     // ============================================
@@ -752,23 +695,6 @@ public class GameWorld
             throw new ArgumentNullException(nameof(route));
 
         route.ExplorationCubes = Math.Min(10, route.ExplorationCubes + amount);
-    }
-
-    /// <summary>
-    /// Get MasteryCubes for a physical challenge deck (0-10 scale)
-    /// </summary>
-    public int GetMasteryCubes(string deckId)
-    {
-        return GetPlayer().MasteryCubes.GetMastery(deckId);
-    }
-
-    /// <summary>
-    /// Grant MasteryCubes for a physical challenge deck (max 10)
-    /// </summary>
-    public void GrantMasteryCubes(string deckId, int amount)
-    {
-        Player player = GetPlayer();
-        player.MasteryCubes.AddMastery(deckId, amount);
     }
 
     // ============================================
@@ -949,17 +875,6 @@ public class GameWorld
     // ============================================
 
     /// <summary>
-    /// Get event deck position
-    /// </summary>
-    public int GetEventDeckPosition(string deckId)
-    {
-        EventDeckPositionEntry entry = EventDeckPositions.FirstOrDefault(p => p.DeckId == deckId);
-        if (entry == null)
-            throw new InvalidOperationException($"No event deck position entry found for deck '{deckId}' - ensure deck exists before accessing position");
-        return entry.Position;
-    }
-
-    /// <summary>
     /// Set event deck position
     /// </summary>
     public void SetEventDeckPosition(string deckId, int position)
@@ -981,28 +896,36 @@ public class GameWorld
 
     /// <summary>
     /// Check if path card is discovered
+    /// HIGHLANDER: Accept PathCardDTO object, extract Id internally for state tracking
     /// </summary>
-    public bool IsPathCardDiscovered(string cardId)
+    public bool IsPathCardDiscovered(PathCardDTO card)
     {
-        PathCardDiscoveryEntry entry = PathCardDiscoveries.FirstOrDefault(d => d.CardId == cardId);
+        if (card == null)
+            throw new ArgumentNullException(nameof(card));
+
+        PathCardDiscoveryEntry entry = PathCardDiscoveries.FirstOrDefault(d => d.CardId == card.Id);
         if (entry == null)
-            throw new InvalidOperationException($"No discovery entry found for card '{cardId}' - ensure card exists before checking discovery status");
+            throw new InvalidOperationException($"No discovery entry found for card '{card.Name}' - ensure card exists before checking discovery status");
         return entry.IsDiscovered;
     }
 
     /// <summary>
     /// Set path card discovery status
+    /// HIGHLANDER: Accept PathCardDTO object, extract Id internally for state tracking
     /// </summary>
-    public void SetPathCardDiscovered(string cardId, bool discovered)
+    public void SetPathCardDiscovered(PathCardDTO card, bool discovered)
     {
-        PathCardDiscoveryEntry existing = PathCardDiscoveries.FirstOrDefault(d => d.CardId == cardId);
+        if (card == null)
+            throw new ArgumentNullException(nameof(card));
+
+        PathCardDiscoveryEntry existing = PathCardDiscoveries.FirstOrDefault(d => d.CardId == card.Id);
         if (existing != null)
         {
             existing.IsDiscovered = discovered;
         }
         else
         {
-            PathCardDiscoveries.Add(new PathCardDiscoveryEntry { CardId = cardId, IsDiscovered = discovered });
+            PathCardDiscoveries.Add(new PathCardDiscoveryEntry { CardId = card.Id, IsDiscovered = discovered });
         }
     }
 
@@ -1025,7 +948,7 @@ public class GameWorld
 
             // Copy all properties from new location to existing (preserve object identity)
             existing.Name = location.Name;
-            existing.Venue = location.Venue;
+            existing.AssignVenue(location.Venue);
             existing.InitialState = location.InitialState;
             // IsLocked DELETED - new architecture uses query-based accessibility via LocationAccessibilityService
             existing.HexPosition = location.HexPosition;
@@ -1050,19 +973,20 @@ public class GameWorld
 
     /// <summary>
     /// Count how many locations are in the specified venue.
-    /// Queries Locations collection by Venue object reference.
+    /// HIGHLANDER: Accepts Venue object, uses object equality (not .Name comparison)
     /// </summary>
-    public int GetLocationCountInVenue(string venueName)
+    public int GetLocationCountInVenue(Venue venue)
     {
-        return Locations.Count(loc => loc.Venue != null && loc.Venue.Name == venueName);
+        return Locations.Count(loc => loc.Venue == venue);
     }
 
     /// <summary>
     /// Check if venue can accept more locations within its capacity budget.
+    /// HIGHLANDER: Passes Venue object directly (no string extraction)
     /// </summary>
     public bool CanVenueAddMoreLocations(Venue venue)
     {
-        int currentCount = GetLocationCountInVenue(venue.Name);
+        int currentCount = GetLocationCountInVenue(venue);
         return currentCount < venue.MaxLocations;
     }
 

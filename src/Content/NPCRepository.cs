@@ -27,8 +27,8 @@ public class NPCRepository
     /// </summary>
     private bool IsNPCVisible(NPC npc)
     {
-        // ADR-007: Use Name (natural key) instead of deleted ID property
-        return _visibilityService.IsNPCVisible(npc.Name);
+        // HIGHLANDER: Pass NPC object directly, not npc.Name string
+        return _visibilityService.IsNPCVisible(npc);
     }
 
     /// <summary>
@@ -39,35 +39,8 @@ public class NPCRepository
         return _visibilityService.FilterVisibleNPCs(npcs);
     }
 
-    public NPC GetById(string id)
-    {
-        List<NPC> characters = _gameWorld.GetCharacters();
-        if (characters == null)
-        {
-            throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
-        }
-
-        // ADR-007: NPC.ID deleted - use Name as natural key
-        NPC? npc = characters.FirstOrDefault(n => n.Name == id);
-        if (npc != null && !IsNPCVisible(npc))
-            return null;
-
-        return npc;
-    }
-
-    public NPC GetByName(string name)
-    {
-        List<NPC> characters = _gameWorld.GetCharacters();
-        if (characters == null)
-        {
-            throw new InvalidOperationException("NPCs collection not initialized - data loading failed");
-        }
-
-        NPC? npc = characters.FirstOrDefault(n => n.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
-        if (npc != null && !IsNPCVisible(npc))
-            return null;
-        return npc;
-    }
+    // HIGHLANDER: GetById and GetByName DELETED - violate object reference architecture
+    // Use object references throughout call chain instead of string lookup
 
     public List<NPC> GetAllNPCs()
     {

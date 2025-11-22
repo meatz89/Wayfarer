@@ -10,20 +10,23 @@ public enum SegmentType
 
 /// <summary>
 /// Represents a segment of a travel route containing path card collection reference
+/// HIGHLANDER: Object references ONLY - resolved at parse-time, no runtime lookups
 /// </summary>
 public class RouteSegment
 {
     public int SegmentNumber { get; set; }
     public SegmentType Type { get; set; } = SegmentType.FixedPath;  // Determines selection behavior
 
-    // For FixedPath segments
-    public string PathCollectionId { get; set; }  // References AllPathCollections
+    // For FixedPath segments - HIGHLANDER: Object reference, not PathCollectionId string
+    public PathCardCollectionDTO PathCollection { get; set; }
 
-    // For Event segments
-    public string EventCollectionId { get; set; }  // References AllEventCollections
+    // For Event segments - HIGHLANDER: Object reference, not EventCollectionId string
+    public PathCardCollectionDTO EventCollection { get; set; }
 
-    // For Encounter segments - mandatory scene that must be resolved
-    public string MandatorySceneId { get; set; }  // References Scene that player MUST engage
+    // For Encounter segments - mandatory scene template that must be spawned
+    // HIGHLANDER: Object reference to template, not MandatorySceneId string
+    // Runtime spawns Scene instance from this template
+    public SceneTemplate MandatorySceneTemplate { get; set; }
 
     // Narrative description of this segment location
     // Example: "Forest Approach" or "Creek Crossing"

@@ -21,8 +21,9 @@ public class ExchangeCostStructure
     /// Items that will be consumed (removed from inventory) by this exchange.
     /// PRINCIPLE 4: Items are resource costs, not boolean gates.
     /// If an exchange requires an item, it MUST consume it.
+    /// HIGHLANDER: Object references ONLY - stores Item objects, not string IDs
     /// </summary>
-    public List<string> ConsumedItemIds { get; set; } = new List<string>();
+    public List<Item> ConsumedItems { get; set; } = new List<Item>();
 
     /// <summary>
     /// Checks if a player can afford all costs for this exchange.
@@ -84,9 +85,9 @@ public class ExchangeCostStructure
             parts.Add($"{resource.Amount} {resource.Type}");
         }
 
-        foreach (string item in ConsumedItemIds)
+        foreach (Item item in ConsumedItems)
         {
-            parts.Add($"1x {item}");
+            parts.Add($"1x {item.Name}");
         }
 
         return parts.Count > 0 ? string.Join(", ", parts) : "Free";

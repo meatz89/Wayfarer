@@ -21,10 +21,10 @@ public class ExchangeContext
     public Dictionary<ConnectionType, int> PlayerTokens { get; set; } = new Dictionary<ConnectionType, int>();
 
     /// <summary>
-    /// Player's current inventory items.
-    /// Key: ItemId, Value: Quantity
+    /// The player object - contains inventory via Player.Inventory
+    /// HIGHLANDER: Access inventory through Player.Inventory, not redundant dictionary
     /// </summary>
-    public Dictionary<string, int> PlayerInventory { get; set; } = new Dictionary<string, int>();
+    public Player Player { get; set; }
 
     // ADR-007: NpcInfo DELETED - use NPC object reference directly
     /// <summary>
@@ -52,10 +52,10 @@ public class ExchangeContext
         if (Session == null)
             return new List<ExchangeCard>();
 
-        // ADR-007: Use Venue.Name instead of deleted VenueId
-        string venueId = Location?.Venue?.Name;
+        // HIGHLANDER: Pass Venue object directly
+        Venue venue = Location?.Venue;
         return Session.AvailableExchanges
-            .Where(e => e.ExchangeCard != null && e.ExchangeCard.IsAvailable(venueId, CurrentTimeBlock))
+            .Where(e => e.ExchangeCard != null && e.ExchangeCard.IsAvailable(venue, CurrentTimeBlock))
             .Select(e => e.ExchangeCard)
             .ToList();
     }
@@ -84,13 +84,16 @@ public class ExchangeContext
             return false;
 
         // Check token requirements
-        if (!exchange.Cost.MeetsTokenRequirements(PlayerTokens))
+        // Convert Dictionary<ConnectionType, int> to List<TokenCount>
+        List<TokenCount> tokenList = PlayerTokens.Select(kvp => new TokenCount { Type = kvp.Key, Count = kvp.Value }).ToList();
+        if (!exchange.Cost.MeetsTokenRequirements(tokenList))
             return false;
 
         // Check consumed item requirements (resource costs)
-        foreach (string itemId in exchange.Cost.ConsumedItemIds)
+        // HIGHLANDER: Use Player.Inventory directly, check Item objects
+        foreach (Item item in exchange.Cost.ConsumedItems)
         {
-            if (!PlayerInventory.ContainsKey(itemId) || PlayerInventory[itemId] <= 0)
+            if (Player?.Inventory == null || !Player.Inventory.Contains(item))
                 return false;
         }
 
@@ -137,7 +140,8 @@ public class ExchangeContext
 
         return new ExchangePreview
         {
-            ExchangeId = exchange.Id,
+            // HIGHLANDER: ExchangeCard has NO Id property, use Name as natural key
+            ExchangeId = exchange.Name,
             ExchangeName = exchange.Name,
             CanAfford = CanAfford(exchange),
             CostDescription = exchange.Cost.GetDescription(),

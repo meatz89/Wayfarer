@@ -96,9 +96,8 @@ public static class LocationTagObservations
     /// </summary>
     public static List<ObservationAction> GetObservationActions(IEnumerable<LocationTag> tags)
     {
-        // Use List with explicit deduplication instead of HashSet
+        // Use List with reference equality deduplication
         List<ObservationAction> actions = new List<ObservationAction>();
-        List<string> addedActionIds = new List<string>();
 
         foreach (LocationTag tag in tags)
         {
@@ -107,11 +106,10 @@ public static class LocationTagObservations
                 foreach (ObservationAction action in TagActions[tag])
                 {
                     // Binary availability: action is either in the list or not
-                    // Deduplicate by checking if action ID already exists
-                    if (!addedActionIds.Contains(action.Id))
+                    // HIGHLANDER: Deduplicate by object reference equality
+                    if (!actions.Contains(action))
                     {
                         actions.Add(action);
-                        addedActionIds.Add(action.Id);
                     }
                 }
             }
@@ -123,11 +121,11 @@ public static class LocationTagObservations
 
 /// <summary>
 /// Represents an observation action that costs attention
-/// ADR-007: NO Id property - Description is natural key
+/// HIGHLANDER: Uses default reference equality - instances are equal only if same object
 /// </summary>
-public class ObservationAction : IEquatable<ObservationAction>
+public class ObservationAction
 {
-    // HIGHLANDER: NO Id property - Description is natural key
+    // HIGHLANDER: NO Id property - object reference is identity
     public string Description { get; }
     public int AttentionCost { get; }
     public TierLevel RequiredTier { get; }
@@ -139,23 +137,8 @@ public class ObservationAction : IEquatable<ObservationAction>
         RequiredTier = requiredTier;
     }
 
-    public bool Equals(ObservationAction other)
-    {
-        if (other == null) return false;
-        // ADR-007: Natural key equality (Description, not Id)
-        return Description == other.Description;
-    }
-
-    public override bool Equals(object obj)
-    {
-        return Equals(obj as ObservationAction);
-    }
-
-    public override int GetHashCode()
-    {
-        // ADR-007: Hash natural key (Description), not synthetic Id
-        return Description?.GetHashCode() ?? 0;
-    }
+    // HIGHLANDER: No IEquatable implementation - uses default reference equality
+    // Two ObservationAction instances are equal only if they're the same object in memory
 }
 
 /// <summary>

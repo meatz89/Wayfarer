@@ -113,13 +113,14 @@ public class RewardApplicationService
 
         // Markers deleted in 5-system architecture - entity IDs are concrete, no resolution needed
 
-        // Apply item grants
+        // Apply item grants (runtime resolved items from JSON templates)
         foreach (Item item in reward.Items)
         {
-            player.Inventory.AddItem(item);
+            player.Inventory.Add(item);
         }
 
         // Apply item removals (Multi-Situation Scene Pattern: cleanup phase)
+        // Runtime resolved items (from JSON templates)
         foreach (Item item in reward.ItemsToRemove)
         {
             player.RemoveItem(item);

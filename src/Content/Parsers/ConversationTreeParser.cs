@@ -61,8 +61,7 @@ public static class ConversationTreeParser
             RequiredKnowledge = dto.RequiredKnowledge ?? new List<string>(),
             AvailableTimeBlocks = timeBlocks,
             IsRepeatable = dto.IsRepeatable,
-            IsCompleted = dto.IsCompleted,
-            StartingNodeId = dto.StartingNodeId
+            IsCompleted = dto.IsCompleted
         };
 
         // Parse dialogue nodes
@@ -72,12 +71,52 @@ public static class ConversationTreeParser
             tree.Nodes.Add(node);
         }
 
-        // Validate starting node exists
-        if (!tree.Nodes.Any(n => n.Id == tree.StartingNodeId))
+        // Resolve starting node from ID to object reference
+        if (string.IsNullOrEmpty(dto.StartingNodeId))
+        {
+            throw new InvalidOperationException($"ConversationTree '{dto.Id}' missing required 'StartingNodeId' field");
+        }
+
+        tree.StartingNode = tree.Nodes.FirstOrDefault(n => n.Id == dto.StartingNodeId);
+        if (tree.StartingNode == null)
         {
             throw new InvalidOperationException(
-                $"ConversationTree '{dto.Id}' has invalid StartingNodeId '{tree.StartingNodeId}'. " +
+                $"ConversationTree '{dto.Id}' has invalid StartingNodeId '{dto.StartingNodeId}'. " +
                 $"No node with that ID exists.");
+        }
+
+        // SECOND PASS: Resolve NextNode object references for all responses
+        // After all nodes created, link responses to target nodes
+        for (int nodeIdx = 0; nodeIdx < dto.Nodes.Count; nodeIdx++)
+        {
+            DialogueNodeDTO nodeDto = dto.Nodes[nodeIdx];
+            DialogueNode node = tree.Nodes[nodeIdx];
+
+            if (nodeDto.Responses != null)
+            {
+                for (int respIdx = 0; respIdx < nodeDto.Responses.Count; respIdx++)
+                {
+                    DialogueResponseDTO responseDto = nodeDto.Responses[respIdx];
+                    DialogueResponse response = node.Responses[respIdx];
+
+                    // Resolve NextNodeId → NextNode object reference
+                    if (!string.IsNullOrEmpty(responseDto.NextNodeId))
+                    {
+                        response.NextNode = tree.Nodes.FirstOrDefault(n => n.Id == responseDto.NextNodeId);
+                        if (response.NextNode == null)
+                        {
+                            throw new InvalidOperationException(
+                                $"DialogueResponse '{responseDto.Id}' in node '{nodeDto.Id}' has invalid NextNodeId '{responseDto.NextNodeId}'. " +
+                                $"No node with that ID exists in tree '{dto.Id}'.");
+                        }
+                    }
+                    // If NextNodeId is null/empty, NextNode remains null (conversation ends)
+
+                    // SpawnedSituations and SocialChallengeSituation resolution requires GameWorld context
+                    // These remain unresolved at parse-time, resolved at spawn-time via EntityResolver
+                    // or post-loading by PackageLoader with full GameWorld access
+                }
+            }
         }
 
         return tree;
@@ -168,12 +207,9 @@ public static class ConversationTreeParser
             TimeCost = timeCost,
             RequiredStat = requiredStat,
             RequiredStatLevel = dto.RequiredStatLevel,
-            NextNodeId = dto.NextNodeId,
             RelationshipDelta = dto.RelationshipDelta,
             GrantedKnowledge = dto.GrantedKnowledge ?? new List<string>(),
-            SpawnedSituationIds = dto.SpawnedSituationIds ?? new List<string>(),
-            EscalatesToSocialChallenge = dto.EscalatesToSocialChallenge,
-            SocialChallengeSituationId = dto.SocialChallengeSituationId
+            EscalatesToSocialChallenge = dto.EscalatesToSocialChallenge
         };
 
         return response;

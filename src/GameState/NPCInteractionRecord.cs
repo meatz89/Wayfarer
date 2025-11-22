@@ -4,13 +4,14 @@
 /// ONE record per NPC (update in place, not append-only)
 /// LeastRecent strategy queries: "Which NPC was interacted with LEAST recently?"
 /// Enables procedural content to prefer NPCs player hasn't interacted with recently
+/// HIGHLANDER: Object reference, not string ID
 /// </summary>
 public class NPCInteractionRecord
 {
     /// <summary>
-    /// NPC entity ID this record tracks
+    /// NPC entity this record tracks
     /// </summary>
-    public string NPCId { get; set; }
+    public NPC Npc { get; set; }
 
     /// <summary>
     /// Day of last interaction with this NPC

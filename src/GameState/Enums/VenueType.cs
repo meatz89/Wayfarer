@@ -46,5 +46,47 @@ public enum VenueType
     /// Wilderness, outdoor, or natural venues
     /// Default catch-all for non-urban venues
     /// </summary>
-    Wilderness
+    Wilderness,
+
+    /// <summary>
+    /// Fortress or defensive structure - military installation
+    /// Defense purpose locations, fortified positions
+    /// </summary>
+    Fortress,
+
+    /// <summary>
+    /// Guard station or barracks - law enforcement venue
+    /// Defense purpose locations, patrol headquarters
+    /// </summary>
+    Guard,
+
+    /// <summary>
+    /// Administrative building or bureaucratic office
+    /// Governance purpose locations, official records
+    /// </summary>
+    Administrative,
+
+    /// <summary>
+    /// Temple, shrine, or religious venue
+    /// Worship purpose locations, spiritual services
+    /// </summary>
+    Temple,
+
+    /// <summary>
+    /// Academy, school, or library - learning institution
+    /// Learning purpose locations, education and research
+    /// </summary>
+    Academy,
+
+    /// <summary>
+    /// Theater or performance hall - entertainment venue
+    /// Entertainment purpose locations, artistic performances
+    /// </summary>
+    Theater,
+
+    /// <summary>
+    /// Arena, stadium, or competition venue
+    /// Entertainment purpose locations, combat sports and games
+    /// </summary>
+    Arena
 }

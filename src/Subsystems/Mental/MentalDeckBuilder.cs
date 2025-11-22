@@ -65,7 +65,8 @@ public class MentalDeckBuilder
             instance.Context = new CardContext
             {
                 threshold = situationCard.threshold,
-                RequestId = situation.Id
+                // HIGHLANDER: Store Situation object reference, not ID
+                Situation = situation
             };
 
             // Situation cards start unplayable until threshold met
@@ -80,11 +81,11 @@ public class MentalDeckBuilder
     private List<EquipmentCategory> GetPlayerEquipmentCategories(Player player)
     {
         List<EquipmentCategory> categories = new List<EquipmentCategory>();
-        foreach (string itemId in player.Inventory.GetAllItems())
+        // HIGHLANDER: Inventory.GetAllItems() returns Item objects, not IDs
+        foreach (Item item in player.Inventory.GetAllItems())
         {
-            Item item = _gameWorld.Items.FirstOrDefault(i => i.Id == itemId);
             if (item == null)
-                throw new InvalidOperationException($"Item not found in GameWorld: {itemId}");
+                throw new InvalidOperationException("Null item found in inventory");
 
             categories.AddRange(item.ProvidedEquipmentCategories);
         }

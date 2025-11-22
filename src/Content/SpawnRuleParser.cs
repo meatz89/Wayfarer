@@ -7,7 +7,7 @@ public static class SpawnRuleParser
     /// <summary>
     /// Convert a SpawnRuleDTO to a SpawnRule domain model
     /// </summary>
-    public static SpawnRule ConvertDTOToSpawnRule(SpawnRuleDTO dto, string parentSituationId)
+    public static SpawnRule ConvertDTOToSpawnRule(SpawnRuleDTO dto, string parentSituationId, GameWorld gameWorld)
     {
         if (dto == null)
             return null;
@@ -21,7 +21,7 @@ public static class SpawnRuleParser
         {
             TemplateId = dto.TemplateId,
             RequirementOffsets = ParseRequirementOffsets(dto.RequirementOffsets),
-            Conditions = ParseSituationSpawnConditions(dto.Conditions)
+            Conditions = ParseSituationSpawnConditions(dto.Conditions, gameWorld)
         };
 
         return spawnRule;
@@ -47,24 +47,36 @@ public static class SpawnRuleParser
     /// <summary>
     /// Parse spawn conditions from DTO
     /// All conditions are optional (null/empty means always spawn)
+    /// Resolves achievement string to Achievement object at parse-time
     /// </summary>
-    private static SituationSpawnConditions ParseSituationSpawnConditions(ConditionsDTO dto)
+    private static SituationSpawnConditions ParseSituationSpawnConditions(ConditionsDTO dto, GameWorld gameWorld)
     {
         if (dto == null)
             return new SituationSpawnConditions();
+
+        Achievement achievement = null;
+        if (!string.IsNullOrEmpty(dto.RequiredAchievement))
+        {
+            achievement = gameWorld.Achievements.FirstOrDefault(a => a.Name == dto.RequiredAchievement);
+            if (achievement == null)
+            {
+                achievement = new Achievement { Name = dto.RequiredAchievement };
+                gameWorld.Achievements.Add(achievement);
+            }
+        }
 
         return new SituationSpawnConditions
         {
             MinResolve = dto.MinResolve,
             RequiredState = dto.RequiredState,
-            RequiredAchievement = dto.RequiredAchievement
+            RequiredAchievement = achievement
         };
     }
 
     /// <summary>
     /// Parse a list of spawn rules from DTOs
     /// </summary>
-    public static List<SpawnRule> ParseSpawnRules(List<SpawnRuleDTO> dtos, string parentSituationId)
+    public static List<SpawnRule> ParseSpawnRules(List<SpawnRuleDTO> dtos, string parentSituationId, GameWorld gameWorld)
     {
         if (dtos == null || !dtos.Any())
             return new List<SpawnRule>();
@@ -74,7 +86,7 @@ public static class SpawnRuleParser
         {
             try
             {
-                SpawnRule spawnRule = ConvertDTOToSpawnRule(dto, parentSituationId);
+                SpawnRule spawnRule = ConvertDTOToSpawnRule(dto, parentSituationId, gameWorld);
                 if (spawnRule != null)
                 {
                     spawnRules.Add(spawnRule);

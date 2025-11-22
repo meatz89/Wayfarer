@@ -14,27 +14,34 @@
         "name": "The Brass Bell Inn",
         "description": "A warm inn where lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations.",
         "districtId": "town_center",
-        "tier": 1
+        "tier": 1,
+        "hexAllocation": "ClusterOf7",
+        "maxLocations": 20
       },
       {
         "id": "town_square",
         "name": "Town Square",
         "description": "The heart of the town, where traders gather and townsfolk meet. The Brass Bell Inn beckons from across the square.",
         "districtId": "town_center",
-        "tier": 1
+        "tier": 1,
+        "hexAllocation": "ClusterOf7",
+        "maxLocations": 20
       },
       {
         "id": "old_mill",
         "name": "The Old Mill",
         "description": "An abandoned mill on the outskirts of town. The waterwheel still turns slowly, creaking with age.",
         "districtId": "town_outskirts",
-        "tier": 1
+        "tier": 1,
+        "hexAllocation": "ClusterOf7",
+        "maxLocations": 20
       }
     ],
     "locations": [
       {
         "id": "square_center",
         "name": "Town Square Center",
+        "distanceFromPlayer": "start",
         "description": "You've been walking since dawn. Your legs ache, your coin purse feels light, and the sun is setting. The warm glow of The Brass Bell Inn beckons from across the square.",
         "properties": {
           "base": [
@@ -53,6 +60,7 @@
       {
         "id": "common_room",
         "name": "Common Room",
+        "distanceFromPlayer": "start",
         "description": "Lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations. Elena, the innkeeper, wipes down tables while watching travelers settle in for the night.",
         "properties": {
           "base": [
@@ -73,6 +81,7 @@
       {
         "id": "fountain_plaza",
         "name": "Fountain Plaza",
+        "distanceFromPlayer": "near",
         "description": "The town fountain. Locals gather here to chat and trade news. A courier's board posts delivery opportunities.",
         "properties": {
           "base": [
@@ -91,6 +100,7 @@
       {
         "id": "mill_courtyard",
         "name": "Mill Courtyard",
+        "distanceFromPlayer": "near",
         "description": "The courtyard outside the old mill. Overgrown paths lead to the mill entrance and surrounding areas.",
         "properties": {
           "base": [

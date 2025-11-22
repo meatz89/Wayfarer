@@ -88,8 +88,8 @@ public class ConversationTreeFacade
             }
         }
 
-        // Get starting node
-        DialogueNode startingNode = tree.Nodes.FirstOrDefault(n => n.Id == tree.StartingNodeId);
+        // Get starting node (HIGHLANDER: Use object reference, not ID lookup)
+        DialogueNode startingNode = tree.StartingNode;
         if (startingNode == null)
         {
             return new ConversationTreeContext
@@ -199,27 +199,24 @@ public class ConversationTreeFacade
             }
         }
 
-        // Spawn situations
-        foreach (string situationId in response.SpawnedSituationIds)
+        // Spawn situations (HIGHLANDER: Use object references)
+        if (response.SpawnedSituations != null)
         {
-            // TODO: Implement situation spawning logic when situation system is in place
-            _messageSystem.AddSystemMessage($"New situation available: {situationId}", SystemMessageTypes.Info);
+            foreach (Situation situation in response.SpawnedSituations)
+            {
+                // TODO: Implement situation spawning logic when situation system is in place
+                _messageSystem.AddSystemMessage($"New situation available: {situation.Name}", SystemMessageTypes.Info);
+            }
         }
 
-        // Check for escalation to Social challenge
-        if (response.EscalatesToSocialChallenge)
+        // Check for escalation to Social challenge (HIGHLANDER: Use object reference)
+        if (response.EscalatesToSocialChallenge && response.SocialChallengeSituation != null)
         {
-            // TODO PHASE 5: DialogueResponse should have Situation object reference, not SocialChallengeSituationId string
-            // For now, need to look up situation by ID
-            Situation challengeSituation = _gameWorld.Scenes
-                .SelectMany(s => s.Situations)
-                .FirstOrDefault(sit => sit.Id == response.SocialChallengeSituationId);
-
-            return ConversationTreeResult.EscalateToChallenge(challengeSituation);
+            return ConversationTreeResult.EscalateToChallenge(response.SocialChallengeSituation);
         }
 
-        // Navigate to next node
-        if (string.IsNullOrEmpty(response.NextNodeId))
+        // Navigate to next node (HIGHLANDER: Use object reference, not ID lookup)
+        if (response.NextNode == null)
         {
             // Conversation ends
             if (!tree.IsRepeatable)
@@ -231,11 +228,7 @@ public class ConversationTreeFacade
         }
         else
         {
-            DialogueNode nextNode = tree.Nodes.FirstOrDefault(n => n.Id == response.NextNodeId);
-            if (nextNode == null)
-                return ConversationTreeResult.Failed($"Invalid next node: {response.NextNodeId}");
-
-            return ConversationTreeResult.Continue(nextNode);
+            return ConversationTreeResult.Continue(response.NextNode);
         }
     }
 

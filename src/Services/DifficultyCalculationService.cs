@@ -78,7 +78,8 @@ public class DifficultyCalculationService
                 // NPC relationship strength (0-15 per NPC)
                 // ARCHITECTURAL CHANGE: Direct property access (situation owns placement)
                 if (situation.Npc == null) return false;
-                int tokens = player.GetNPCTokenCount(situation.Npc.ID, ConnectionType.Trust);
+                // HIGHLANDER: Pass NPC object directly to Player API
+                int tokens = player.GetNPCTokenCount(situation.Npc, ConnectionType.Trust);
                 return tokens >= mod.Threshold;
 
             case ModifierType.HasItemCategory:
@@ -104,15 +105,10 @@ public class DifficultyCalculationService
     {
         List<ItemCategory> categories = new List<ItemCategory>();
 
-        foreach (string itemId in player.Inventory.GetAllItems())
+        foreach (Item item in player.Inventory.GetAllItems())
         {
-            if (string.IsNullOrEmpty(itemId)) continue;
-
-            Item item = itemRepository.GetItemById(itemId);
-            if (item != null)
-            {
-                categories.AddRange(item.Categories);  // MECHANICAL PROPERTIES
-            }
+            if (item == null) continue;
+            categories.AddRange(item.Categories);  // MECHANICAL PROPERTIES
         }
 
         return categories.Distinct().ToList();

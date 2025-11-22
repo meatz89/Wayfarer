@@ -161,13 +161,14 @@ public class LocationFacade
             viewModel.NPCsPresent = GetNPCsWithInteractions(location, currentTime, npcConversationOptions);
 
             // Add observations
-            viewModel.Observations = GetLocationObservations(location.Name);
+            // HIGHLANDER: Pass Location object, not string
+            viewModel.Observations = GetLocationObservations(location);
 
             // Add areas within location
             viewModel.AreasWithinLocation = _spotManager.GetAreasWithinVenue(venue, location, currentTime, _npcRepository);
 
             // Add routes to other locations
-            viewModel.Routes = GetRoutesFromLocation(venue);
+            viewModel.Routes = GetRoutesFromLocation(location);
         }
         return viewModel;
     }
@@ -247,7 +248,7 @@ public class LocationFacade
 
             result.Add(new NPCInteractionViewModel
             {
-                Id = npc.Name, // HIGHLANDER: Name is natural key
+                Npc = npc, // HIGHLANDER: Object reference, not ID
                 Name = npc.Name,
                 ConnectionStateName = connectionState.ToString(),
                 Description = GetNPCDescription(npc, connectionState),
@@ -268,7 +269,7 @@ public class LocationFacade
         // Generate interaction based on conversation type
         InteractionOptionViewModel interaction = new InteractionOptionViewModel
         {
-            ConversationTypeId = conversationType
+            ConversationType = conversationType
         };
 
         // Set display text based on type
@@ -293,17 +294,16 @@ public class LocationFacade
         return _narrativeRenderer.RenderTemplate(template);
     }
 
-    private List<ObservationViewModel> GetLocationObservations(string locationName)
+    // HIGHLANDER: Accept Location object, not string
+    private List<ObservationViewModel> GetLocationObservations(Location location)
     {
+        if (location == null)
+            throw new ArgumentNullException(nameof(location));
+
         List<ObservationViewModel> observations = new List<ObservationViewModel>();
 
-        // Get location to derive venue name if needed
-        Location location = _gameWorld.GetLocation(locationName);
-        if (location == null)
-            throw new InvalidOperationException($"Location not found: {locationName}");
-
-        string venueName = location.Venue.Name;
-        List<Observation> locationObservations = _observationSystem.GetObservationsForLocation(venueName, locationName);
+        // HIGHLANDER: Pass Location object, not string names
+        List<Observation> locationObservations = _observationSystem.GetObservationsForLocation(location);
         if (locationObservations.Count > 0)
         {
             TimeBlocks currentTimeBlock = _timeManager.GetCurrentTimeBlock();
@@ -322,7 +322,7 @@ public class LocationFacade
 
                 observations.Add(new ObservationViewModel
                 {
-                    Id = obs.Id,
+                    Observation = obs, // HIGHLANDER: Object reference, not ID
                     Text = obs.Text,
                     Relevance = BuildRelevanceString(obs),
                     IsObserved = false // ObservationManager eliminated
@@ -337,13 +337,8 @@ public class LocationFacade
     {
         if (obs.RelevantNPCs != null && obs.RelevantNPCs.Any())
         {
-            string npcs = string.Join(", ", obs.RelevantNPCs.Select(id =>
-            {
-                NPC npc = _npcRepository.GetById(id);
-                if (npc == null)
-                    throw new InvalidOperationException($"NPC not found: {id}");
-                return npc.Name;
-            }));
+            // HIGHLANDER: obs.RelevantNPCs is List<NPC>, directly access Name for display
+            string npcs = string.Join(", ", obs.RelevantNPCs.Select(npc => npc.Name));
 
             if (obs.CreatesState.HasValue)
                 return $"→ {npcs} ({obs.CreatesState.Value})";
@@ -353,10 +348,10 @@ public class LocationFacade
         return "";
     }
 
-    private List<RouteOptionViewModel> GetRoutesFromLocation(Venue venue)
+    private List<RouteOptionViewModel> GetRoutesFromLocation(Location location)
     {
         List<RouteOptionViewModel> routes = new List<RouteOptionViewModel>();
-        IEnumerable<RouteOption> availableRoutes = _routeRepository.GetRoutesFromLocation(venue.Name);
+        IEnumerable<RouteOption> availableRoutes = _routeRepository.GetRoutesFromLocation(location);
 
         foreach (RouteOption route in availableRoutes)
         {
@@ -370,7 +365,7 @@ public class LocationFacade
 
             routes.Add(new RouteOptionViewModel
             {
-                RouteId = route.Name,
+                Route = route, // HIGHLANDER: Object reference, not ID
                 Destination = destination.Name,
                 TravelTime = $"{route.TravelTimeSegments} seg",
                 Detail = route.Description,
@@ -771,7 +766,7 @@ public class LocationFacade
 
             NpcWithSituationsViewModel viewModel = new NpcWithSituationsViewModel
             {
-                Id = npc.Name, // HIGHLANDER: Name is natural key
+                Npc = npc, // HIGHLANDER: Object reference, not ID
                 Name = npc.Name,
                 PersonalityType = npc.PersonalityType.ToString(),
                 ConnectionState = connectionState.ToString(),
@@ -822,12 +817,10 @@ public class LocationFacade
         List<string> pathLabels = new List<string>();
 
         // NOTE: No marker resolution here - this is UI display only, not actual requirement checking
-        // Actual requirement checking happens elsewhere with proper marker map context
-        Dictionary<string, string> emptyMarkerMap = new Dictionary<string, string>();
-
+        // HIGHLANDER: IsSatisfied signature changed to accept only player and gameWorld (markerMap removed)
         foreach (OrPath path in requirement.OrPaths)
         {
-            if (!path.IsSatisfied(player, _gameWorld, emptyMarkerMap))
+            if (!path.IsSatisfied(player, _gameWorld))
             {
                 // Use path label if available, otherwise generate from requirements
                 if (!string.IsNullOrEmpty(path.Label))
@@ -923,9 +916,9 @@ public class LocationFacade
         ambientSituations = ambientSituationsList.Select(g => BuildSituationCard(g, systemTypeStr, difficultyLabel)).ToList();
 
         // Build scene groups
-        foreach ((Scene scene, List<Situation> situations) in situationsByScene)
+        foreach ((Scene scene, List<Situation> sceneSituations) in situationsByScene)
         {
-            sceneGroups.Add(BuildSceneWithSituations(scene, situations, systemTypeStr, difficultyLabel));
+            sceneGroups.Add(BuildSceneWithSituations(scene, sceneSituations, systemTypeStr, difficultyLabel));
         }
 
         return new ChallengeBuildResult(ambientSituations, sceneGroups);
@@ -980,9 +973,9 @@ public class LocationFacade
         ambientSituations = ambientSituationsList.Select(g => BuildSituationCard(g, systemTypeStr, difficultyLabel)).ToList();
 
         // Build scene groups
-        foreach ((Scene scene, List<Situation> situations) in situationsByScene)
+        foreach ((Scene scene, List<Situation> sceneSituations) in situationsByScene)
         {
-            sceneGroups.Add(BuildSceneWithSituations(scene, situations, systemTypeStr, difficultyLabel));
+            sceneGroups.Add(BuildSceneWithSituations(scene, sceneSituations, systemTypeStr, difficultyLabel));
         }
 
         return new ChallengeBuildResult(ambientSituations, sceneGroups);
@@ -1039,15 +1032,15 @@ public class LocationFacade
         switch (situation.SystemType)
         {
             case TacticalSystemType.Social:
-                SocialChallengeDeck socialDeck = _gameWorld.SocialChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
+                SocialChallengeDeck socialDeck = situation.Deck as SocialChallengeDeck;
                 return socialDeck?.DangerThreshold ?? 10;
 
             case TacticalSystemType.Mental:
-                MentalChallengeDeck mentalDeck = _gameWorld.MentalChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
+                MentalChallengeDeck mentalDeck = situation.Deck as MentalChallengeDeck;
                 return mentalDeck?.DangerThreshold ?? 10;
 
             case TacticalSystemType.Physical:
-                PhysicalChallengeDeck physicalDeck = _gameWorld.PhysicalChallengeDecks.FirstOrDefault(d => d.Id == situation.DeckId);
+                PhysicalChallengeDeck physicalDeck = situation.Deck as PhysicalChallengeDeck;
                 return physicalDeck?.DangerThreshold ?? 10;
 
             default:

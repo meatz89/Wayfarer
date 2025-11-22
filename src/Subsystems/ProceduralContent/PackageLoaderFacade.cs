@@ -41,12 +41,12 @@ public class PackageLoaderFacade
     /// Reads file, parses JSON, creates Location entity in GameWorld
     /// Returns created location ID
     /// </summary>
-    public string LoadDynamicLocation(string jsonFilePath)
+    public async Task<string> LoadDynamicLocation(string jsonFilePath)
     {
         string packageJson = File.ReadAllText(jsonFilePath);
         string packageId = Path.GetFileNameWithoutExtension(jsonFilePath);
 
-        _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
+        await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
 
         return packageId;
     }

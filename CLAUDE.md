@@ -309,17 +309,17 @@ When templates reference specific entity IDs, they only work with those exact en
 
 ## Spatial Scaffolding Pattern
 
-**JSON Layer - Hex Coordinates as Source of Truth:**
-Locations defined with hex coordinates Q and R indicating spatial position. NPCs defined with hex coordinates showing where they spawn. Routes NOT defined in JSON but generated procedurally from hex grid. Hex grid defines terrain, danger levels, and traversability.
+**JSON Layer - Categorical Properties as Source of Truth:**
+Locations defined ONLY by categorical semantic properties (Purpose, Safety, Privacy, Activity) and distance hints (distanceFromPlayer: "start", "near", "medium", "far", "distant"). NO hex coordinates Q, R in JSON. NO entity instance IDs (venueId, locationId) in JSON. ALL spatial positioning generated procedurally at runtime from categorical matching.
 
-**Parser Layer - Spatial Resolution:**
-Resolves entity relationships via hex coordinate matching. Creates object references during parsing based on spatial proximity. Builds object graph without requiring ID lookups. Parser uses categorical properties to find or create entities following the EntityResolver.FindOrCreate pattern.
+**Parser Layer - Categorical Resolution:**
+Parsers read categorical properties from JSON and create domain entities WITHOUT spatial positioning. Entities created with properties only (Purpose, Safety, etc.). Parser uses EntityResolver.FindOrCreate pattern with categorical filters. NO venue assignment, NO hex position assignment in parser. These are determined later procedurally.
 
 **Domain Layer - Object References Only:**
-Entities have object references, NOT ID strings. NPC has Location object reference (not LocationId string). RouteOption has OriginLocation and DestinationLocation objects (not ID strings). Location.HexPosition using AxialCoordinates is spatial source of truth.
+Entities have object references, NOT ID strings. NPC has Location object reference (not LocationId string). RouteOption has OriginLocation and DestinationLocation objects (not ID strings). Location.HexPosition using AxialCoordinates is spatial source of truth, assigned PROCEDURALLY not from JSON.
 
-**Runtime - Procedural Generation:**
-Routes generated via A* pathfinding from Origin.HexPosition to Destination.HexPosition. Travel system navigates hex grid terrain and danger levels. No hardcoded route definitions - all routes emerge from spatial data.
+**Runtime - Pure Procedural Generation:**
+Venues placed first with CenterHex via VenueGeneratorService. Locations placed second via categorical matching algorithm (Purpose → VenueType, distanceFromPlayer → radius range, capacity budget enforcement). Venue assigned via spatial containment after hex placement. Routes generated via A* pathfinding. ALL spatial relationships emerge from procedural algorithms, ZERO hardcoded data.
 
 ## Type-Safe Routing (Related Pattern)
 

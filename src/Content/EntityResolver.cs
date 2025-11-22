@@ -77,6 +77,18 @@ public class EntityResolver
         return newRoute;
     }
 
+    /// <summary>
+    /// Find existing Item by name
+    /// Returns null if item not found - Items are immutable content definitions, NOT generated
+    /// </summary>
+    public Item FindItemByName(string itemName)
+    {
+        if (string.IsNullOrEmpty(itemName))
+            return null;
+
+        return _gameWorld.Items.FirstOrDefault(i => i.Name == itemName);
+    }
+
     // ========== FIND EXISTING ENTITIES ==========
 
     private Location FindMatchingLocation(PlacementFilter filter)
@@ -274,7 +286,6 @@ public class EntityResolver
     {
         NPC newNPC = new NPC
         {
-            ID = $"generated_npc_{Guid.NewGuid()}",
             Name = GenerateNPCName(filter),
             IsSkeleton = false,
 
@@ -301,7 +312,6 @@ public class EntityResolver
     {
         RouteOption newRoute = new RouteOption
         {
-            Id = $"generated_route_{Guid.NewGuid()}",
             Name = GenerateRouteName(filter),
 
             // Apply categorical properties from filter

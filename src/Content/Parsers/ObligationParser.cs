@@ -31,12 +31,10 @@ public class ObligationParser
             IntroAction = ParseIntroAction(dto.Intro), // Returns null if dto.Intro is null
             ColorCode = dto.ColorCode,
             ObligationType = ParseObligationType(dto.ObligationType), // Handles null with default
-            PatronNpcId = dto.PatronNpcId,
             DeadlineSegment = dto.DeadlineSegment,
             CompletionRewardCoins = dto.CompletionRewardCoins,
-            CompletionRewardItems = dto.CompletionRewardItems, // DTO has inline init, trust it
+            CompletionRewardItems = ParseCompletionRewardItems(dto.CompletionRewardItems),
             CompletionRewardXP = ParseXPRewards(dto.CompletionRewardXP), // Handles null internally
-            SpawnedObligationIds = dto.SpawnedObligationIds, // DTO has inline init, trust it
             PhaseDefinitions = dto.Phases.Select((p, index) => ParsePhaseDefinition(p, dto.Id)).ToList() // DTO has inline init, trust it
         };
     }
@@ -131,7 +129,7 @@ public class ObligationParser
         Location location = null;
         if (!string.IsNullOrEmpty(dto.LocationId))
         {
-            location = _gameWorld.GetLocation(dto.LocationId);
+            location = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.LocationId);
             if (location == null)
                 throw new InvalidDataException($"ObligationIntroAction references unknown location: '{dto.LocationId}'");
         }
@@ -177,7 +175,7 @@ public class ObligationParser
         Location location = null;
         if (!string.IsNullOrEmpty(dto.LocationId))
         {
-            location = _gameWorld.GetLocation(dto.LocationId);
+            location = _gameWorld.Locations.FirstOrDefault(l => l.Name == dto.LocationId);
             if (location == null)
                 throw new InvalidDataException($"ObligationPrerequisites references unknown location: '{dto.LocationId}'");
         }
@@ -221,5 +219,26 @@ public class ObligationParser
         return Enum.TryParse<PlayerStatType>(statName, ignoreCase: true, out PlayerStatType statType)
             ? statType
             : PlayerStatType.None;
+    }
+
+    private List<Item> ParseCompletionRewardItems(List<string> itemNames)
+    {
+        if (itemNames == null || !itemNames.Any())
+            return new List<Item>();
+
+        List<Item> items = new List<Item>();
+        foreach (string itemName in itemNames)
+        {
+            Item item = _gameWorld.Items.FirstOrDefault(i => i.Name == itemName);
+            if (item == null)
+            {
+                Console.WriteLine($"[ObligationParser.ParseCompletionRewardItems] WARNING: Item '{itemName}' not found");
+                continue; // Skip invalid item
+            }
+
+            items.Add(item); // Object reference, NO ID
+        }
+
+        return items;
     }
 }

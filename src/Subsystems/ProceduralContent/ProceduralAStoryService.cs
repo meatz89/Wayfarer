@@ -262,8 +262,9 @@ public class ProceduralAStoryService
         }
 
         // Filter out recently used regions (anti-repetition)
+        // HIGHLANDER: Pass Region object to IsRegionRecent, not ID
         List<Region> availableRegions = tierAppropriateRegions
-            .Where(r => !context.IsRegionRecent(r.Id))
+            .Where(r => !context.IsRegionRecent(r))
             .ToList();
 
         if (!availableRegions.Any())
@@ -272,7 +273,11 @@ public class ProceduralAStoryService
         }
 
         // Select first available (deterministic)
-        return availableRegions.First().Id;
+        Region selectedRegion = availableRegions.First();
+
+        // HIGHLANDER: Return Region object, service will use it for filtering
+        // Method signature should return Region, not string
+        return selectedRegion.Name;
     }
 
     /// <summary>
@@ -370,12 +375,12 @@ public class ProceduralAStoryService
     private string SerializeTemplatePackage(SceneTemplateDTO dto)
     {
         // Create package wrapper (same format as authored JSON packages)
-        var package = new
+        ProceduralTemplatePackage package = new ProceduralTemplatePackage
         {
-            packageId = $"a_story_{dto.MainStorySequence}_template",
-            version = "1.0",
-            generatedAt = DateTime.UtcNow.ToString("o"),
-            sceneTemplates = new List<SceneTemplateDTO> { dto }
+            PackageId = $"a_story_{dto.MainStorySequence}_template",
+            Version = "1.0",
+            GeneratedAt = DateTime.UtcNow.ToString("o"),
+            SceneTemplates = new List<SceneTemplateDTO> { dto }
         };
 
         // Serialize with pretty formatting for debugging
@@ -431,9 +436,9 @@ public class ProceduralAStoryService
         {
             CurrentSequence = lastSequence + 1,
             LastCompletedSequence = lastSequence,
-            CompletedASceneIds = completedAScenes.Select(s => s.Id).ToList(),
+            CompletedScenes = completedAScenes.ToList(),  // HIGHLANDER: Store scene objects, not IDs
             RecentArchetypeIds = new List<string>(),
-            RecentRegionIds = new List<string>(),
+            RecentRegions = new List<Region>(),
             RecentPersonalityTypes = new List<PersonalityType>(),
             UnlockedRegionIds = new List<string>(),
             EncounteredOrderMemberIds = new List<string>(),
@@ -454,15 +459,14 @@ public class ProceduralAStoryService
 
             // Extract region from current situation's placement location
             // ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
+            // HIGHLANDER: Navigate spatial hierarchy to Region object
             Location situationLocation = scene.CurrentSituation?.Location;
-            // ADR-007: Use Venue.Name instead of deleted VenueId
-            if (situationLocation?.Venue != null)
+            if (situationLocation?.Venue?.District?.Region != null)
             {
-                // RegionId removed from Location - track by VenueId instead
-                string venueId = situationLocation.Venue.Name;
-                if (!context.RecentRegionIds.Contains(venueId))
+                Region region = situationLocation.Venue.District.Region;
+                if (!context.RecentRegions.Contains(region))
                 {
-                    context.RecentRegionIds.Add(venueId);
+                    context.RecentRegions.Add(region);
                 }
             }
 
@@ -480,4 +484,16 @@ public class ProceduralAStoryService
 
         return context;
     }
+}
+
+/// <summary>
+/// Strongly-typed package wrapper for procedurally-generated scene templates
+/// Replaces anonymous type - HIGHLANDER compliance
+/// </summary>
+public class ProceduralTemplatePackage
+{
+    public string PackageId { get; set; }
+    public string Version { get; set; }
+    public string GeneratedAt { get; set; }
+    public List<SceneTemplateDTO> SceneTemplates { get; set; }
 }

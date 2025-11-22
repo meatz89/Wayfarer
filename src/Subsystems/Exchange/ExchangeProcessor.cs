@@ -27,18 +27,21 @@ public class ExchangeProcessor
         {
             Costs = exchange.GetCostAsList(),
             Rewards = exchange.GetRewardAsList(),
-            ItemRewards = exchange.GetItemRewards(),
+            // HIGHLANDER: GetItemRewards returns List<Item>, convert to names for display
+            ItemRewards = exchange.GetItemRewards().Select(item => item.Name).ToList(),
             AdvancesTime = ShouldAdvanceTime(exchange),
             TimeAdvancementHours = CalculateTimeAdvancement(exchange),
             AffectsRelationship = exchange.AffectsRelationship,
             FlowModifier = exchange.FlowModifier,
             ConsumesPatience = exchange.ConsumesPatience,
             PatienceCost = exchange.PatienceCost,
-            UnlocksExchangeId = exchange.UnlocksExchangeId,
+            // HIGHLANDER: ExchangeCard has UnlocksExchange object, not UnlocksExchangeId string
+            UnlocksExchangeId = exchange.UnlocksExchange?.Name,
             TriggerEvent = exchange.TriggerEvent,
             // HIGHLANDER: Store NPC object, not npc.ID
             Npc = npc,
-            ExchangeId = exchange.Id,
+            // HIGHLANDER: ExchangeCard has NO Id property, use Name as natural key
+            ExchangeId = exchange.Name,
             IsUnique = exchange.SingleUse,
             ConnectionStateChange = exchange.ConnectionStateChange
         };

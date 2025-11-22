@@ -62,15 +62,20 @@ public class MentalFacade
         }
 
         // Get situation for costs and situation cards
+        // HIGHLANDER: Query by TemplateId (natural key), not deleted .Id property
+        // situationId parameter is actually the TemplateId
         Situation situation = _gameWorld.Scenes
             .SelectMany(s => s.Situations)
-            .FirstOrDefault(sit => sit.Id == situationId);
+            .FirstOrDefault(sit => sit.TemplateId == situationId);
         if (situation == null)
         {
             return null;
         }
 
         // Track obligation context
+        // HIGHLANDER: Find Obligation object by Id (template property), assign object to session
+        Obligation obligation = _gameWorld.GetPlayer().ActiveObligations
+            .FirstOrDefault(ob => ob.Id == obligationId);
 
         Player player = _gameWorld.GetPlayer();
         Location location = _gameWorld.GetPlayerCurrentLocation();
@@ -85,7 +90,7 @@ public class MentalFacade
 
         _gameWorld.CurrentMentalSession = new MentalSession
         {
-            ObligationId = engagement.Id,
+            Obligation = obligation, // HIGHLANDER: Store Obligation object, not string Id
             Location = location,
             CurrentAttention = 10,
             MaxAttention = 10,

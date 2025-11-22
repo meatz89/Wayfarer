@@ -6,9 +6,9 @@
 public class DependentItemSpecDTO
 {
     /// <summary>
-    /// Template identifier used in marker references
-    /// Example: "room_key" becomes marker "generated:room_key"
-    /// Also used to construct actual ID: "{sceneId}_{templateId}"
+    /// Template identifier for this item specification
+    /// Used to construct item Name during package generation
+    /// Example: "room_key"
     /// </summary>
     public string TemplateId { get; set; }
 
@@ -64,7 +64,6 @@ public class DependentItemSpecDTO
     /// <summary>
     /// Template ID of location where item spawns
     /// References DependentLocationSpec by TemplateId
-    /// Becomes marker reference: "generated:{SpawnLocationTemplateId}"
     /// null = add to inventory if AddToInventoryOnCreation true, else spawn at base location
     /// </summary>
     public string SpawnLocationTemplateId { get; set; }

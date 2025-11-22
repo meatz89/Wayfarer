@@ -199,12 +199,13 @@ public class Scene
     /// <returns>Routing decision for UI (ContinueInScene, ExitToWorld, or SceneComplete)</returns>
     public SceneRoutingDecision AdvanceToNextSituation(Situation completedSituation)
     {
-        Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' advancing from situation '{completedSituation.Id}'");
+        // HIGHLANDER: Scene has NO Id, Situation has NO Id - use TemplateId or Name
+        Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' advancing from situation '{completedSituation.Name}'");
 
         if (SpawnRules == null || SpawnRules.Transitions == null || SpawnRules.Transitions.Count == 0)
         {
             // No transitions defined - scene complete after first situation
-            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' has no transitions - marking as complete");
+            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' has no transitions - marking as complete");
             CurrentSituationIndex = Situations.Count; // Out of bounds = complete
             State = SceneState.Completed;
             return SceneRoutingDecision.SceneComplete;
@@ -228,17 +229,17 @@ public class Scene
             {
                 CurrentSituationIndex = Situations.Count; // Not found = complete
             }
-            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' advanced to situation '{(nextSituation != null ? nextSituation.Id : "NULL")}' (index {CurrentSituationIndex})");
+            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' advanced to situation '{(nextSituation != null ? nextSituation.Name : "NULL")}' (index {CurrentSituationIndex})");
 
             // Compare contexts to determine routing
             SceneRoutingDecision decision = CompareContexts(completedSituation, nextSituation);
-            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' routing decision: {decision}");
+            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' routing decision: {decision}");
             return decision;
         }
         else
         {
             // No valid transition - scene complete
-            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{Id}' has no valid transition - marking as complete");
+            Console.WriteLine($"[Scene.AdvanceToNextSituation] Scene '{TemplateId}' has no valid transition - marking as complete");
             CurrentSituationIndex = Situations.Count; // Out of bounds = complete
             State = SceneState.Completed;
             return SceneRoutingDecision.SceneComplete;
@@ -275,11 +276,11 @@ public class Scene
         // 3. Always (fallback)
 
         // Check OnChoice transitions first (most specific)
-        if (completedSituation.LastChoiceId != null)
+        if (completedSituation.LastChoice != null)
         {
             SituationTransition choiceTransition = candidateTransitions
                 .FirstOrDefault(t => t.Condition == TransitionCondition.OnChoice
-                                  && t.SpecificChoiceId == completedSituation.LastChoiceId);
+                                  && t.SpecificChoiceId == completedSituation.LastChoice.Id);
             if (choiceTransition != null)
                 return choiceTransition;
         }
@@ -326,23 +327,24 @@ public class Scene
     /// <returns>True if scene should resume at this context</returns>
     public bool ShouldResumeAtContext(Location location, NPC npc)
     {
-        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' checking resumption at location '{location?.Name}', npc '{npc?.Name}'");
+        // HIGHLANDER: Scene has NO Id - use TemplateId for logging
+        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{TemplateId}' checking resumption at location '{location?.Name}', npc '{npc?.Name}'");
 
         if (State != SceneState.Active)
         {
-            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - State is {State}, not Active");
+            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{TemplateId}' rejected - State is {State}, not Active");
             return false;
         }
 
         if (CurrentSituation == null)
         {
-            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - CurrentSituation is null");
+            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{TemplateId}' rejected - CurrentSituation is null");
             return false;
         }
 
         if (CurrentSituation.Template == null)
         {
-            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - CurrentSituation template is null");
+            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{TemplateId}' rejected - CurrentSituation template is null");
             return false;
         }
 
@@ -350,23 +352,23 @@ public class Scene
         Location requiredLocation = CurrentSituation.Location;
         NPC requiredNpc = CurrentSituation.Npc;
 
-        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' requires location '{requiredLocation?.Name}', npc '{requiredNpc?.Name}' | Player at '{location?.Name}', '{npc?.Name}'");
+        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{TemplateId}' requires location '{requiredLocation?.Name}', npc '{requiredNpc?.Name}' | Player at '{location?.Name}', '{npc?.Name}'");
 
         // Check location match - object equality
         if (requiredLocation != location)
         {
-            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - Location mismatch");
+            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{TemplateId}' rejected - Location mismatch");
             return false;
         }
 
         // Check NPC match - object equality (both null = match, both non-null = compare objects)
         if (requiredNpc != npc)
         {
-            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' rejected - NPC mismatch");
+            Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{TemplateId}' rejected - NPC mismatch");
             return false;
         }
 
-        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{Id}' RESUMED - All conditions met!");
+        Console.WriteLine($"[Scene.ShouldResumeAtContext] Scene '{TemplateId}' RESUMED - All conditions met!");
         return true;
     }
 

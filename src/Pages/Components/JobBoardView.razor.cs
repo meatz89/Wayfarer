@@ -12,7 +12,7 @@ namespace Wayfarer.Pages.Components
         [Inject] protected TimeManager TimeManager { get; set; }
 
         [Parameter] public Location CurrentLocation { get; set; }
-        [Parameter] public EventCallback<string> OnAcceptJob { get; set; }
+        [Parameter] public EventCallback<DeliveryJob> OnAcceptJob { get; set; }
         [Parameter] public EventCallback OnNavigateBack { get; set; }
 
         protected List<DeliveryJob> AvailableJobs { get; set; } = new();
@@ -29,7 +29,7 @@ namespace Wayfarer.Pages.Components
 
         protected async Task HandleAcceptJob(DeliveryJob job)
         {
-            await OnAcceptJob.InvokeAsync(job.Id);
+            await OnAcceptJob.InvokeAsync(job);
         }
 
         protected string GetDifficultyClass(DifficultyTier tier)

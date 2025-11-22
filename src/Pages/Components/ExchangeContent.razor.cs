@@ -68,7 +68,7 @@ namespace Wayfarer.Pages.Components
             if (Context.Location != null)
             {
                 string timeStr = GetTimeBlockDisplay(Context.CurrentTimeBlock);
-                return $"{timeStr} - {Context.Location.VenueName}";
+                return $"{timeStr} - {Context.Location.Venue.Name}";
             }
             return "Unknown Location";
         }
@@ -159,7 +159,7 @@ namespace Wayfarer.Pages.Components
             else if (Context.Location != null)
             {
                 // Location-based exchange
-                CurrentNarrative = $"You examine the available services at {Context.Location.VenueName}.";
+                CurrentNarrative = $"You examine the available services at {Context.Location.Venue.Name}.";
             }
             else
             {
@@ -286,7 +286,8 @@ namespace Wayfarer.Pages.Components
                 // Execute the exchange through the facade
                 // HIGHLANDER: Pass ExchangeCard object, not ID string
                 // ADR-007: Use Npc object (not NpcInfo.NpcId)
-                string npcId = Context.Npc != null ? Context.Npc.Name : "";
+                if (Context.Npc == null)
+                    throw new InvalidOperationException("NPC is required for exchange");
 
                 // Get required parameters
                 if (Context.PlayerResources == null)
@@ -296,7 +297,7 @@ namespace Wayfarer.Pages.Components
                 Dictionary<ConnectionType, int> npcTokens = Context.PlayerTokens ?? new Dictionary<ConnectionType, int>();
                 RelationshipTier relationshipTier = RelationshipTier.None; // Default for now
 
-                LastResult = await ExchangeFacade.ExecuteExchange(npcId, SelectedExchange, playerResources, npcTokens, relationshipTier);
+                LastResult = await ExchangeFacade.ExecuteExchange(Context.Npc, SelectedExchange, playerResources, npcTokens, relationshipTier);
 
                 if (LastResult == null)
                     throw new InvalidOperationException("Exchange execution returned null result");
@@ -311,7 +312,7 @@ namespace Wayfarer.Pages.Components
 
                     // Update context with new state
                     // ADR-007: Pass Npc object (not NpcInfo.NpcId)
-                    Context = await GameFacade.CreateExchangeContext(Context.Npc?.Name);
+                    Context = await GameFacade.CreateExchangeContext(Context.Npc);
                 }
                 else
                 {
@@ -428,15 +429,16 @@ namespace Wayfarer.Pages.Components
             }
 
             // Add token requirements
-            foreach (KeyValuePair<ConnectionType, int> token in exchange.Cost.TokenRequirements)
+            foreach (TokenCount token in exchange.Cost.TokenRequirements)
             {
-                parts.Add($"Requires {token.Value} {token.Key} tokens");
+                parts.Add($"Requires {token.Count} {token.Type} tokens");
             }
 
             // Add item requirements
-            foreach (string itemId in exchange.Cost.ConsumedItemIds)
+            // HIGHLANDER: Use Item objects, display item.Name
+            foreach (Item item in exchange.Cost.ConsumedItems)
             {
-                parts.Add($"Consumes {itemId}");
+                parts.Add($"Consumes {item.Name}");
             }
 
             return parts.Count > 0 ? string.Join(", ", parts) : "Free";
@@ -487,22 +489,23 @@ namespace Wayfarer.Pages.Components
             }
 
             // Check token requirements
-            foreach (KeyValuePair<ConnectionType, int> token in exchange.Cost.TokenRequirements)
+            foreach (TokenCount token in exchange.Cost.TokenRequirements)
             {
-                int playerTokens = Context.PlayerTokens.GetValueOrDefault(token.Key, 0);
-                if (playerTokens < token.Value)
+                int playerTokens = Context.PlayerTokens.GetValueOrDefault(token.Type, 0);
+                if (playerTokens < token.Count)
                 {
-                    int needed = token.Value - playerTokens;
-                    return $"Requires {token.Value} {token.Key} tokens - you have {playerTokens}";
+                    int needed = token.Count - playerTokens;
+                    return $"Requires {token.Count} {token.Type} tokens - you have {playerTokens}";
                 }
             }
 
             // Check consumed item costs (resource costs, not boolean gates)
-            foreach (string itemId in exchange.Cost.ConsumedItemIds)
+            // HIGHLANDER: Use Item objects, check Player.Inventory directly
+            foreach (Item item in exchange.Cost.ConsumedItems)
             {
-                if (!Context.PlayerInventory.ContainsKey(itemId) || Context.PlayerInventory[itemId] <= 0)
+                if (Context.Player?.Inventory == null || !Context.Player.Inventory.Contains(item))
                 {
-                    return $"Requires {itemId} (will be consumed)";
+                    return $"Requires {item.Name} (will be consumed)";
                 }
             }
 

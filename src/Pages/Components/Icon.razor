@@ -29,7 +29,7 @@
             return;
         }
 
-        if (_iconCache.TryGetValue(Name, out string cachedSvg))
+        if (_iconCache.TryGetValue(Name, out string? cachedSvg) && cachedSvg != null)
         {
             _svgContent = ApplyStyling(cachedSvg);
             return;

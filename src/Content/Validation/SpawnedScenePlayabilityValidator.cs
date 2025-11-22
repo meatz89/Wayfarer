@@ -191,8 +191,9 @@ public class SpawnedScenePlayabilityValidator
             // Validate Location placement if present
             if (situation.Location != null)
             {
-                Location location = _gameWorld.GetLocation(situation.Location.Name);
-                if (location == null)
+                // HIGHLANDER: Check if object is in collection using object equality
+                bool locationExists = _gameWorld.Locations.Contains(situation.Location);
+                if (!locationExists)
                 {
                     errors.Add($"Situation (template '{situation.TemplateId}') references Location '{situation.Location.Name}' which does not exist in GameWorld");
                 }

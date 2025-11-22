@@ -16,10 +16,11 @@ public class TokenMechanicsManager
     /// <summary>
     /// Get starting connection state based on token count
     /// Replaces the old threshold unlocking system
+    /// HIGHLANDER: Accepts NPC object, not string npcId
     /// </summary>
-    public ConnectionState GetStartingConnectionState(string npcId, ConnectionType tokenType)
+    public ConnectionState GetStartingConnectionState(NPC npc, ConnectionType tokenType)
     {
-        int tokens = GetTokenCount(tokenType, npcId);
+        int tokens = GetTokenCount(tokenType, npc);
         return tokens switch
         {
             0 => ConnectionState.DISCONNECTED,
@@ -259,7 +260,8 @@ public class TokenMechanicsManager
                 remaining -= toSpend;
 
                 // Add narrative feedback for each NPC
-                NPC npc = _npcRepository.GetById(npcEntry.NpcId);
+                // HIGHLANDER: Direct object reference from npcEntry.Npc, no GetById lookup
+                NPC npc = npcEntry.Npc;
                 if (npc != null && toSpend > 0)
                 {
                     _messageSystem.AddSystemMessage(
@@ -336,12 +338,10 @@ public class TokenMechanicsManager
         float totalModifier = 1.0f;
 
         // Check all items in inventory for token modifiers
-        foreach (string itemId in player.Inventory.GetAllItems())
+        foreach (Item item in player.Inventory.GetAllItems())
         {
-            if (string.IsNullOrEmpty(itemId)) continue;
-
-            Item item = _itemRepository.GetItemById(itemId);
-            if (item != null && item.TokenGenerationModifiers != null &&
+            if (item == null) continue;
+            if (item.TokenGenerationModifiers != null &&
                 item.TokenGenerationModifiers.TryGetValue(tokenType, out float modifier))
             {
                 // Multiply modifiers (e.g., 1.5 * 1.2 = 1.8 for +50% and +20%)

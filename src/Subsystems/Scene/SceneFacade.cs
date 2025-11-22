@@ -41,10 +41,11 @@ public class SceneFacade
     /// <returns>List of scenes that should resume at this context</returns>
     public List<Scene> GetResumableScenesAtContext(Location location, NPC npc)
     {
-        // PHASE 6D: Pass objects directly, no ID extraction
+        // HIGHLANDER: Pass Location and NPC objects directly, no .Id property access
+        // ShouldResumeAtContext accepts objects, not string IDs
         return _gameWorld.Scenes
             .Where(s => s.State == SceneState.Active &&
-                       s.ShouldResumeAtContext(location?.Id, npc?.ID))
+                       s.ShouldResumeAtContext(location, npc))
             .ToList();
     }
 
@@ -143,9 +144,7 @@ public class SceneFacade
             Situation situation = scene.CurrentSituation;
             if (situation == null) continue;
 
-            // Get NPC from situation (direct object reference)
-            NPC npc = situation.Npc;
-
+            // NPC already available from method parameter (situation.Npc == npc)
             // Create actions fresh from ChoiceTemplates (ephemeral, not stored)
             foreach (ChoiceTemplate choiceTemplate in situation.Template.ChoiceTemplates)
             {

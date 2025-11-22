@@ -61,12 +61,12 @@ public class PhysicalFacade
         return _gameWorld.CurrentPhysicalSession.Deck.LockedCards.ToList();
     }
 
-    public PhysicalSession StartSession(PhysicalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
+    public async Task<PhysicalSession> StartSession(PhysicalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
         Situation situation, Obligation obligation)
     {
         if (IsSessionActive())
         {
-            EndSession();
+            await EndSession();
         }
 
         // ADR-007: PendingPhysicalContext already set upstream (GameFacade/SceneContent)
@@ -168,7 +168,7 @@ public class PhysicalFacade
         if (_gameWorld.CurrentPhysicalSession.ShouldEnd())
         {
             ApplyDangerConsequences(player);
-            EndSession();
+            await EndSession();
             sessionEnded = true;
         }
 
@@ -204,16 +204,16 @@ public class PhysicalFacade
         if (card.CardType == CardTypes.Situation)
         {
             // ADR-007: Complete situation through SituationCompletionHandler (applies rewards: coins, StoryCubes, equipment)
-            // Use PendingPhysicalContext.Obligation.Situation (object reference), no ID lookup
+            // Use PendingPhysicalContext.Situation (object reference), no ID lookup
             // NO DEFENSIVE NULLS: Let it crash if context missing (reveals architectural problem)
-            Situation completedSituation = _gameWorld.PendingPhysicalContext!.Obligation!.Situation;
+            Situation completedSituation = _gameWorld.PendingPhysicalContext!.Situation;
             await _situationCompletionHandler.CompleteSituation(completedSituation);
 
             // SituationCards execute immediately (not locked for combo)
             // Move to PlayedCards for success detection (matches Mental pattern)
             _gameWorld.CurrentPhysicalSession.Deck.PlayCard(card);
             string narrative = _narrativeService.GenerateActionNarrative(card, _gameWorld.CurrentPhysicalSession);
-            EndSession();
+            await EndSession();
 
             return new PhysicalTurnResult
             {
@@ -298,9 +298,9 @@ public class PhysicalFacade
         player.Stamina -= staminaCost;
 
         // TRANSITION TRACKING: Find situation and call FailSituation for OnFailure transitions
-        // ADR-007: Use PendingPhysicalContext.Obligation.Situation (object reference), no ID lookup
+        // ADR-007: Use PendingPhysicalContext.Situation (object reference), no ID lookup
         // NO DEFENSIVE NULLS: Let it crash if context missing (reveals architectural problem)
-        Situation situation = _gameWorld.PendingPhysicalContext!.Obligation!.Situation;
+        Situation situation = _gameWorld.PendingPhysicalContext!.Situation;
         _situationCompletionHandler.FailSituation(situation);
 
         PhysicalOutcome outcome = new PhysicalOutcome
@@ -343,13 +343,13 @@ public class PhysicalFacade
         // NO DEFENSIVE NULLS: Let it crash if context missing (reveals architectural problem)
         if (!success)
         {
-            _situationCompletionHandler.FailSituation(_gameWorld.PendingPhysicalContext!.Obligation!.Situation);
+            _situationCompletionHandler.FailSituation(_gameWorld.PendingPhysicalContext!.Situation);
         }
 
         // Check for obligation progress if this was an obligation situation
         if (success)
         {
-            await CheckObligationProgress(_gameWorld.PendingPhysicalContext!.Obligation!.Situation, _gameWorld.PendingPhysicalContext!.Obligation);
+            await CheckObligationProgress(_gameWorld.PendingPhysicalContext!.Situation, _gameWorld.PendingPhysicalContext!.Obligation);
         }
 
         // Award Reputation on success (Reputation system)
@@ -456,7 +456,11 @@ public class PhysicalFacade
         // Only add injury card if health drops below 2 (critical state)
         if (player.Health < 2)
         {
-            player.InjuryCardIds.Add("injury_physical_moderate");
+            // TODO: Injury card system not fully implemented
+            // Need to: 1) Define injury PhysicalCard templates in JSON
+            //          2) Create card lookup/factory in GameWorld or card catalogue
+            //          3) Add PhysicalCard object to player.InjuryCards collection
+            // Example: player.InjuryCards.Add(lookupInjuryCard("injury_physical_moderate"));
         }
     }
 
@@ -469,7 +473,7 @@ public class PhysicalFacade
             return;
 
         // Check if this is an intro action (Discovered → Active transition)
-        if (situation.SituationTemplate?.Id == "notice_waterwheel")
+        if (situation.Template?.Id == "notice_waterwheel")
         {
             // This is intro completion - activate obligation
             // CompleteIntroAction spawns situations directly to ActiveSituations
