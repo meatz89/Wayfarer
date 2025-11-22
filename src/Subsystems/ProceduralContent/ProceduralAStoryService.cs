@@ -108,6 +108,15 @@ public class ProceduralAStoryService
         List<string> candidateArchetypes =
             AStorySceneArchetypeCatalog.GetArchetypesForCategory(categoryKey);
 
+        // FAIL-FAST: Validate catalog returned archetypes (prevents division by zero)
+        if (!candidateArchetypes.Any())
+        {
+            throw new InvalidOperationException(
+                $"Cannot select archetype: Catalog returned no archetypes for category '{categoryKey}'. " +
+                $"Sequence {sequence} maps to cycle position {cyclePosition}. " +
+                $"Check AStorySceneArchetypeCatalog.GetArchetypesForCategory implementation.");
+        }
+
         // Filter out recent archetypes (anti-repetition)
         List<string> availableArchetypes = candidateArchetypes
             .Where(a => !context.IsArchetypeRecent(a))

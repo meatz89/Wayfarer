@@ -205,4 +205,31 @@ public class ProceduralAStoryServiceTests : IntegrationTestBase
         Assert.NotNull(template);
         Assert.Contains("investigate", template.SceneArchetypeId.ToLowerInvariant());
     }
+
+    [Fact]
+    public void Catalog_AllValidCategories_ReturnNonEmptyArchetypes()
+    {
+        // CRITICAL: Prevents division by zero in SelectArchetype (line 125)
+        // If any category returns empty list, sequence % count will crash
+        // This test ensures catalog integrity for all four rotation categories
+
+        List<string> investigationArchetypes = AStorySceneArchetypeCatalog.GetArchetypesForCategory("Investigation");
+        List<string> socialArchetypes = AStorySceneArchetypeCatalog.GetArchetypesForCategory("Social");
+        List<string> confrontationArchetypes = AStorySceneArchetypeCatalog.GetArchetypesForCategory("Confrontation");
+        List<string> crisisArchetypes = AStorySceneArchetypeCatalog.GetArchetypesForCategory("Crisis");
+
+        Assert.NotEmpty(investigationArchetypes);
+        Assert.NotEmpty(socialArchetypes);
+        Assert.NotEmpty(confrontationArchetypes);
+        Assert.NotEmpty(crisisArchetypes);
+    }
+
+    [Fact]
+    public void Catalog_UnknownCategory_ReturnsEmptyList()
+    {
+        // Document catalog behavior for unknown categories
+        // SelectArchetype validates this case and throws clear error
+        List<string> unknownArchetypes = AStorySceneArchetypeCatalog.GetArchetypesForCategory("UnknownCategory");
+        Assert.Empty(unknownArchetypes);
+    }
 }
