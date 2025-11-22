@@ -119,9 +119,11 @@ public class ProceduralAStoryService
             availableArchetypes = candidateArchetypes;
         }
 
-        // Select first available (deterministic for given sequence)
-        // Could add randomization here, but deterministic ensures reproducibility
-        string selectedArchetype = availableArchetypes.First();
+        // Select archetype using sequence-based rotation within category (deterministic but varied)
+        // Modulo ensures we cycle through category archetypes instead of always picking first
+        // Example: Investigation has 3 archetypes - Seq1→arch0, Seq5→arch1, Seq9→arch2, Seq13→arch0
+        int selectionIndex = sequence % availableArchetypes.Count;
+        string selectedArchetype = availableArchetypes[selectionIndex];
 
         return selectedArchetype;
     }
@@ -229,7 +231,8 @@ public class ProceduralAStoryService
         {
             throw new InvalidOperationException(
                 "Cannot select region: No regions defined in GameWorld. " +
-                "Procedural A-story generation requires at least one region.");
+                "Procedural A-story generation requires at least one region. " +
+                "Check Content/Core/01_foundation.json for region definitions.");
         }
 
         // Filter by tier-appropriate regions
@@ -253,8 +256,10 @@ public class ProceduralAStoryService
             availableRegions = tierAppropriateRegions; // All recent, use any
         }
 
-        // Select first available (deterministic)
-        Region selectedRegion = availableRegions.First();
+        // Select region using sequence-based rotation (deterministic but varied)
+        // Modulo ensures we cycle through available regions: A4→region0, A5→region1, A6→region2, A7→region0...
+        int selectionIndex = context.CurrentSequence % availableRegions.Count;
+        Region selectedRegion = availableRegions[selectionIndex];
 
         // Return Region object (HIGHLANDER: object references, not string IDs)
         return selectedRegion;
@@ -421,25 +426,59 @@ public class ProceduralAStoryService
         List<Scene> recentScenes = completedAScenes.TakeLast(5).ToList();
         foreach (Scene scene in recentScenes)
         {
-            // Extract archetype from template
-            // ZERO NULL TOLERANCE: Template and SceneArchetypeId guaranteed non-null (architectural invariant)
-            context.RecentArchetypeIds.Add(scene.Template!.SceneArchetypeId!);
+            // Validate and extract archetype from template
+            if (scene.Template == null)
+            {
+                throw new InvalidOperationException(
+                    $"A-story scene (MainStorySequence={scene.MainStorySequence}) has null Template. " +
+                    $"All scenes must have valid Template reference.");
+            }
+            if (string.IsNullOrEmpty(scene.Template.SceneArchetypeId))
+            {
+                throw new InvalidOperationException(
+                    $"A-story scene template (MainStorySequence={scene.MainStorySequence}) has null or empty SceneArchetypeId. " +
+                    $"All A-story scenes must have archetype.");
+            }
+            context.RecentArchetypeIds.Add(scene.Template.SceneArchetypeId);
 
-            // Extract region from LAST COMPLETED situation
-            // ZERO NULL TOLERANCE: Situations, Location, spatial hierarchy all guaranteed non-null
-            // Will crash with NullReferenceException if architectural invariants violated
+            // Validate and extract region from LAST COMPLETED situation
+            if (!scene.Situations.Any())
+            {
+                throw new InvalidOperationException(
+                    $"A-story scene (MainStorySequence={scene.MainStorySequence}) has no situations. " +
+                    $"All A-story scenes must have at least one situation.");
+            }
             Situation lastSituation = scene.Situations.Last();
-            Location situationLocation = lastSituation.Location!;
-            Region region = situationLocation.Venue!.District!.Region!;
+            if (lastSituation.Location == null)
+            {
+                throw new InvalidOperationException(
+                    $"A-story situation '{lastSituation.Name}' has null Location. " +
+                    $"All A-story situations must have Location for context tracking.");
+            }
+            Location situationLocation = lastSituation.Location;
+            if (situationLocation.Venue == null || situationLocation.Venue.District == null || situationLocation.Venue.District.Region == null)
+            {
+                throw new InvalidOperationException(
+                    $"A-story location '{situationLocation.Name}' has incomplete spatial hierarchy. " +
+                    $"Venue={situationLocation.Venue?.Name ?? "null"}, " +
+                    $"District={situationLocation.Venue?.District?.Name ?? "null"}, " +
+                    $"Region={situationLocation.Venue?.District?.Region?.Name ?? "null"}. " +
+                    $"All A-story locations must have complete Venue→District→Region chain.");
+            }
+            Region region = situationLocation.Venue.District.Region;
             if (!context.RecentRegions.Contains(region))
             {
                 context.RecentRegions.Add(region);
             }
 
-            // Extract NPC personality from last situation
-            // ZERO NULL TOLERANCE: NPC guaranteed non-null (all A-story situations have NPC interaction)
-            // Location-only situations not allowed in A-story progression
-            NPC situationNpc = lastSituation.Npc!;
+            // Validate and extract NPC personality from last situation
+            if (lastSituation.Npc == null)
+            {
+                throw new InvalidOperationException(
+                    $"A-story situation '{lastSituation.Name}' has null NPC. " +
+                    $"All A-story situations require NPC interaction (location-only situations not allowed in A-story progression).");
+            }
+            NPC situationNpc = lastSituation.Npc;
             if (!context.RecentPersonalityTypes.Contains(situationNpc.PersonalityType))
             {
                 context.RecentPersonalityTypes.Add(situationNpc.PersonalityType);
