@@ -424,22 +424,52 @@ public class ProceduralAStoryService
                 context.RecentArchetypeIds.Add(scene.Template.SceneArchetypeId);
             }
 
-            // Extract region from current situation's placement location
-            // ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
-            // HIGHLANDER: Navigate spatial hierarchy to Region object
-            Location situationLocation = scene.CurrentSituation?.Location;
-            if (situationLocation?.Venue?.District?.Region != null)
+            // Extract region from LAST COMPLETED situation (not CurrentSituation which is null for completed scenes)
+            // ARCHITECTURAL GUARANTEE: Completed scenes must have situations (SpawnedScenePlayabilityValidator)
+            if (!scene.Situations.Any())
             {
-                Region region = situationLocation.Venue.District.Region;
-                if (!context.RecentRegions.Contains(region))
-                {
-                    context.RecentRegions.Add(region);
-                }
+                throw new InvalidOperationException(
+                    $"Completed scene '{scene.Template?.Id ?? "unknown"}' has no situations - violates scene architecture");
             }
 
-            // Extract NPC personality from current situation's placement
-            // For A-story scenes, typically Location-placed, but check anyway
-            NPC situationNpc = scene.CurrentSituation?.Npc;
+            Situation lastSituation = scene.Situations.Last();
+
+            // FAIL-FAST: Situation must have location (placement architecture)
+            if (lastSituation.Location == null)
+            {
+                throw new InvalidOperationException(
+                    $"Completed scene '{scene.Template?.Id ?? "unknown"}' situation has no Location - violates placement architecture");
+            }
+
+            Location situationLocation = lastSituation.Location;
+
+            // Navigate spatial hierarchy (fail-fast on broken chains)
+            if (situationLocation.Venue == null)
+            {
+                throw new InvalidOperationException(
+                    $"Location '{situationLocation.Name}' has no Venue - violates spatial hierarchy");
+            }
+
+            if (situationLocation.Venue.District == null)
+            {
+                throw new InvalidOperationException(
+                    $"Venue '{situationLocation.Venue.Name}' has no District - violates spatial hierarchy");
+            }
+
+            if (situationLocation.Venue.District.Region == null)
+            {
+                throw new InvalidOperationException(
+                    $"District '{situationLocation.Venue.District.Name}' has no Region - violates spatial hierarchy");
+            }
+
+            Region region = situationLocation.Venue.District.Region;
+            if (!context.RecentRegions.Contains(region))
+            {
+                context.RecentRegions.Add(region);
+            }
+
+            // Extract NPC personality from last situation (NPC can legitimately be null for location-only scenes)
+            NPC situationNpc = lastSituation.Npc;
             if (situationNpc != null)
             {
                 if (!context.RecentPersonalityTypes.Contains(situationNpc.PersonalityType))

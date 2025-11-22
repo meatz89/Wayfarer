@@ -216,31 +216,32 @@ public class RewardApplicationService
                     if (template == null)
                     {
                         // Template doesn't exist - generate procedurally
-                        Console.WriteLine($"[RewardApplicationService] A-story sequence {sequence} not found - generating procedurally");
-
                         // Get or initialize A-story context
                         AStoryContext aStoryContext = _proceduralAStoryService.GetOrInitializeContext(player);
 
                         // Generate template procedurally (HIGHLANDER: DTO → JSON → PackageLoader → Template)
                         string generatedTemplateId = await _proceduralAStoryService.GenerateNextATemplate(sequence, aStoryContext);
 
-                        Console.WriteLine($"[RewardApplicationService] Generated A-story template: {generatedTemplateId}");
-
                         // Retrieve generated template (by sequence, since ID might vary)
                         template = _gameWorld.SceneTemplates
                             .FirstOrDefault(t => t.MainStorySequence.HasValue && t.MainStorySequence.Value == sequence);
 
+                        // FAIL-FAST: If generation succeeded but template not in GameWorld, this is critical error
                         if (template == null)
                         {
-                            Console.WriteLine($"[RewardApplicationService] FATAL: Generated template for sequence {sequence} not found in GameWorld after generation");
-                            continue;
+                            throw new InvalidOperationException(
+                                $"FATAL: Generated A-story template '{generatedTemplateId}' for sequence {sequence} " +
+                                $"not found in GameWorld after generation. This indicates HIGHLANDER pipeline failure " +
+                                $"(DTO → JSON → PackageLoader → Template). Check ProceduralAStoryService and PackageLoaderFacade.");
                         }
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"[RewardApplicationService] Invalid A-story sequence number in template ID: '{sceneSpawn.SceneTemplateId}'");
-                    continue;
+                    throw new InvalidOperationException(
+                        $"Invalid A-story template ID format: '{sceneSpawn.SceneTemplateId}'. " +
+                        $"Expected format 'a_story_<number>' (e.g., 'a_story_4'). " +
+                        $"Check SceneSpawnReward configuration in choice rewards.");
                 }
             }
             else
@@ -249,10 +250,13 @@ public class RewardApplicationService
                 template = _gameWorld.SceneTemplates
                     .FirstOrDefault(t => t.Id == sceneSpawn.SceneTemplateId);
 
+                // FAIL-FAST: Missing template indicates data error (invalid SceneSpawnReward configuration)
                 if (template == null)
                 {
-                    Console.WriteLine($"[RewardApplicationService] SceneTemplate '{sceneSpawn.SceneTemplateId}' not found");
-                    continue;
+                    throw new InvalidOperationException(
+                        $"SceneTemplate '{sceneSpawn.SceneTemplateId}' not found in GameWorld. " +
+                        $"Verify template ID in SceneSpawnReward configuration matches authored JSON packages. " +
+                        $"Available templates: {string.Join(", ", _gameWorld.SceneTemplates.Select(t => t.Id).Take(10))}...");
                 }
             }
 
@@ -273,12 +277,6 @@ public class RewardApplicationService
 
             // HIGHLANDER FLOW: Spawn scene directly (JSON → PackageLoader → Parser)
             Scene scene = await _sceneInstanceFacade.SpawnScene(template, sceneSpawn, context);
-
-            if (scene != null)
-            {
-                // ADR-007: Use TemplateId for logging (no Id property)
-                Console.WriteLine($"[RewardApplicationService] Spawned scene '{scene.DisplayName}' ({scene.TemplateId})");
-            }
         }
 
         // NO CLEANUP NEEDED: Provisional scenes don't exist in HIGHLANDER flow

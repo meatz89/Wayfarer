@@ -28,16 +28,15 @@ public class RewardApplicationServiceTests : IntegrationTestBase
             }
         };
 
-        // Create mock situation for context
+        // Create mock situation for context (NO Name - entity identified by object reference)
         Situation mockSituation = new Situation
         {
-            Id = "test_situation",
             Type = SituationType.Normal
         };
 
         // Act - Apply reward (should trigger procedural generation)
         RewardApplicationService rewardService = GetService<RewardApplicationService>();
-        await rewardService.ApplyReward(reward, mockSituation);
+        await rewardService.ApplyChoiceReward(reward, mockSituation);
 
         // Assert - Template should be generated
         SceneTemplate generatedTemplate = gameWorld.SceneTemplates
@@ -46,7 +45,7 @@ public class RewardApplicationServiceTests : IntegrationTestBase
         Assert.NotNull(generatedTemplate);
         Assert.Equal("a_story_4", generatedTemplate.Id);
         Assert.Equal(4, generatedTemplate.MainStorySequence);
-        Assert.Equal("MainStory", generatedTemplate.Category);
+        Assert.Equal(StoryCategory.MainStory, generatedTemplate.Category);
     }
 
     [Fact]
@@ -69,7 +68,6 @@ public class RewardApplicationServiceTests : IntegrationTestBase
 
         Situation mockSituation = new Situation
         {
-            Id = "test_situation",
             Type = SituationType.Normal
         };
 
@@ -78,7 +76,7 @@ public class RewardApplicationServiceTests : IntegrationTestBase
 
         // Act
         RewardApplicationService rewardService = GetService<RewardApplicationService>();
-        await rewardService.ApplyReward(reward, mockSituation);
+        await rewardService.ApplyChoiceReward(reward, mockSituation);
 
         // Assert - No new template generated (used existing)
         Assert.Equal(initialTemplateCount, gameWorld.SceneTemplates.Count);
@@ -103,13 +101,13 @@ public class RewardApplicationServiceTests : IntegrationTestBase
             }
         };
 
-        Situation mockSituation = new Situation { Id = "test_situation", Type = SituationType.Normal };
+        Situation mockSituation = new Situation { Type = SituationType.Normal };
 
         int initialTemplateCount = gameWorld.SceneTemplates.Count;
 
         // Act
         RewardApplicationService rewardService = GetService<RewardApplicationService>();
-        await rewardService.ApplyReward(reward, mockSituation);
+        await rewardService.ApplyChoiceReward(reward, mockSituation);
 
         // Assert - Found existing A2 by sequence (didn't generate new one)
         Assert.Equal(initialTemplateCount, gameWorld.SceneTemplates.Count);

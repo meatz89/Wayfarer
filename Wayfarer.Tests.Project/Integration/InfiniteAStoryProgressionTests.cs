@@ -73,11 +73,10 @@ public class InfiniteAStoryProgressionTests : IntegrationTestBase
 
             Situation mockSituation = new Situation
             {
-                Id = "test_situation",
                 Type = SituationType.Normal
             };
 
-            await rewardService.ApplyReward(spawnA3Reward, mockSituation);
+            await rewardService.ApplyChoiceReward(spawnA3Reward, mockSituation);
 
             // Retrieve spawned A3
             a3Scene = gameWorld.Scenes
@@ -90,13 +89,15 @@ public class InfiniteAStoryProgressionTests : IntegrationTestBase
         Situation a3FinalSituation = a3Scene.Situations.LastOrDefault();
         Assert.NotNull(a3FinalSituation);
 
-        // Get any choice from final situation (all choices spawn A4)
-        Choice firstChoice = a3FinalSituation.Choices.FirstOrDefault();
-        Assert.NotNull(firstChoice);
+        // Get any choice template from final situation (all choices spawn A4)
+        ChoiceTemplate firstChoiceTemplate = a3FinalSituation.Template.ChoiceTemplates.FirstOrDefault();
+        Assert.NotNull(firstChoiceTemplate);
 
         // Complete choice (triggers scene spawn via reward)
-        ConversationFacade conversationFacade = GetService<ConversationFacade>();
-        await conversationFacade.SelectChoiceAsync(firstChoice);
+        RewardApplicationService rewardApplicationService = GetService<RewardApplicationService>();
+        SituationCompletionHandler completionHandler = GetService<SituationCompletionHandler>();
+        await rewardApplicationService.ApplyChoiceReward(firstChoiceTemplate.RewardTemplate, a3FinalSituation);
+        await completionHandler.CompleteSituation(a3FinalSituation);
 
         // Assert - Part 1: A4 should now exist (generated procedurally)
         SceneTemplate a4After = gameWorld.SceneTemplates
@@ -104,7 +105,7 @@ public class InfiniteAStoryProgressionTests : IntegrationTestBase
         Assert.NotNull(a4After);
         Assert.Equal(4, a4After.MainStorySequence);
         Assert.Equal("a_story_4", a4After.Id);
-        Assert.Equal("MainStory", a4After.Category);
+        Assert.Equal(StoryCategory.MainStory, a4After.Category);
 
         // Verify A4 archetype matches rotation (sequence 4 = position 3 = Crisis)
         Assert.Contains("crisis", a4After.SceneArchetypeId.ToLowerInvariant());
@@ -124,12 +125,13 @@ public class InfiniteAStoryProgressionTests : IntegrationTestBase
         Situation a4FinalSituation = a4Scene.Situations.LastOrDefault();
         Assert.NotNull(a4FinalSituation);
 
-        // Get any choice from A4 final situation
-        Choice a4Choice = a4FinalSituation.Choices.FirstOrDefault();
-        Assert.NotNull(a4Choice);
+        // Get any choice template from A4 final situation
+        ChoiceTemplate a4ChoiceTemplate = a4FinalSituation.Template.ChoiceTemplates.FirstOrDefault();
+        Assert.NotNull(a4ChoiceTemplate);
 
         // Complete A4 choice (should spawn A5)
-        await conversationFacade.SelectChoiceAsync(a4Choice);
+        await rewardApplicationService.ApplyChoiceReward(a4ChoiceTemplate.RewardTemplate, a4FinalSituation);
+        await completionHandler.CompleteSituation(a4FinalSituation);
 
         // Assert - Part 2: A5 should now exist (second procedural scene)
         SceneTemplate a5After = gameWorld.SceneTemplates
@@ -137,7 +139,7 @@ public class InfiniteAStoryProgressionTests : IntegrationTestBase
         Assert.NotNull(a5After);
         Assert.Equal(5, a5After.MainStorySequence);
         Assert.Equal("a_story_5", a5After.Id);
-        Assert.Equal("MainStory", a5After.Category);
+        Assert.Equal(StoryCategory.MainStory, a5After.Category);
 
         // Verify A5 archetype matches rotation (sequence 5 = position 0 = Investigation)
         Assert.Contains("investigate", a5After.SceneArchetypeId.ToLowerInvariant());
