@@ -1,6 +1,8 @@
 /// <summary>
 /// Service for generating procedural A-story scene templates
-/// Creates infinite main story progression (A11, A12, A13... infinity)
+/// Creates infinite main story progression after authored tutorial completes
+/// Works from ANY sequence - if tutorial is A1-A3, generates A4+
+/// If tutorial expands to A1-A10, generates A11+
 ///
 /// ARCHITECTURE PATTERN: Dynamic Template Package (HIGHLANDER-Compliant)
 /// 1. Select archetype based on sequence/tier/context
@@ -155,9 +157,10 @@ public class ProceduralAStoryService
 
     /// <summary>
     /// Calculate tier from sequence number (grounded character-driven escalation)
-    /// Tier 1: A11-A30 (personal stakes - relationships, internal conflict)
-    /// Tier 2: A31-A50 (local stakes - community, village/town)
-    /// Tier 3: A51+ (regional stakes - district/province, maximum scope)
+    /// Works from ANY sequence - tier thresholds are absolute
+    /// Tier 1: Sequence 1-30 (personal stakes - relationships, internal conflict)
+    /// Tier 2: Sequence 31-50 (local stakes - community, village/town)
+    /// Tier 3: Sequence 51+ (regional stakes - district/province, maximum scope)
     /// </summary>
     private int CalculateTier(int sequence)
     {
@@ -428,7 +431,7 @@ public class ProceduralAStoryService
 
         if (!completedAScenes.Any())
         {
-            // No A-story progression yet, initialize for A11
+            // No A-story progression yet, initialize empty context
             return AStoryContext.InitializeForProceduralGeneration();
         }
 
