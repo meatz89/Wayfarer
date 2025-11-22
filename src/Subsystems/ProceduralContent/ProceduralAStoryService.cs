@@ -1,6 +1,8 @@
 /// <summary>
 /// Service for generating procedural A-story scene templates
-/// Creates infinite main story progression (A11, A12, A13... infinity)
+/// Creates infinite main story progression after authored tutorial completes
+/// Works from ANY sequence - if tutorial is A1-A3, generates A4+
+/// If tutorial expands to A1-A10, generates A11+
 ///
 /// ARCHITECTURE PATTERN: Dynamic Template Package (HIGHLANDER-Compliant)
 /// 1. Select archetype based on sequence/tier/context
@@ -31,36 +33,9 @@ public class ProceduralAStoryService
     private readonly PackageLoaderFacade _packageLoaderFacade;
 
     // Archetype categories for rotation
-    private static readonly List<string> InvestigationArchetypes = new List<string>
-{
-    "investigate_location",
-    "gather_testimony",
-    "uncover_conspiracy",
-    "discover_artifact"
-};
-
-    private static readonly List<string> SocialArchetypes = new List<string>
-{
-    "meet_order_member",
-    "gain_trust",
-    "social_infiltration"
-};
-
-    private static readonly List<string> ConfrontationArchetypes = new List<string>
-{
-    "seek_audience",
-    "confront_antagonist",
-    "challenge_authority",
-    "expose_corruption"
-};
-
-    private static readonly List<string> CrisisArchetypes = new List<string>
-{
-    "urgent_decision",
-    "moral_crossroads",
-    "sacrifice_choice",
-    "reveal_truth"
-};
+    // Archetype categories queried dynamically from catalog (HIGHLANDER - single source of truth)
+    // Prevents drift between catalog and procedural selection
+    // Categories retrieved at runtime via AStorySceneArchetypeCatalog.GetAvailableArchetypesByCategory()
 
     public ProceduralAStoryService(
         GameWorld gameWorld,
@@ -79,35 +54,24 @@ public class ProceduralAStoryService
     /// </summary>
     public async Task<string> GenerateNextATemplate(int sequence, AStoryContext context)
     {
-        Console.WriteLine($"[ProceduralAStory] Generating A{sequence} template...");
-
         // 1. Select appropriate archetype
         string archetypeId = SelectArchetype(sequence, context);
-        Console.WriteLine($"[ProceduralAStory] Selected archetype: {archetypeId}");
 
         // 2. Calculate tier from sequence
         int tier = CalculateTier(sequence);
-        Console.WriteLine($"[ProceduralAStory] Calculated tier: {tier}");
 
         // 3. Build SceneTemplateDTO
         SceneTemplateDTO dto = BuildSceneTemplateDTO(sequence, archetypeId, tier, context);
-        Console.WriteLine($"[ProceduralAStory] Built DTO for scene: {dto.Id}");
 
         // 4. Serialize to JSON package
         string packageJson = SerializeTemplatePackage(dto);
         string packageId = $"a_story_{sequence}_template";
-        Console.WriteLine($"[ProceduralAStory] Serialized package: {packageId}");
 
         // 5. Write dynamic package file
         await _contentFacade.CreateDynamicPackageFile(packageJson, packageId);
-        Console.WriteLine($"[ProceduralAStory] Wrote dynamic package file");
 
         // 6. Load through HIGHLANDER pipeline (JSON → PackageLoader → Parser)
         await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
-        Console.WriteLine($"[ProceduralAStory] Loaded package through HIGHLANDER pipeline");
-
-        // Template now in GameWorld.SceneTemplates, ready for spawning
-        Console.WriteLine($"[ProceduralAStory] A{sequence} template generation complete: {dto.Id}");
 
         return dto.Id;
     }
@@ -117,20 +81,41 @@ public class ProceduralAStoryService
     /// Rotation strategy: investigation → social → confrontation → crisis (repeat)
     /// Anti-repetition: Avoid archetypes used in last 5 scenes
     /// Tier-appropriate: Match archetype complexity to tier
+    /// Works from ANY sequence (flexible number of authored scenes)
+    ///
+    /// DYNAMIC CATALOG QUERY (HIGHLANDER - single source of truth):
+    /// Queries AStorySceneArchetypeCatalog.GetArchetypesForCategory() at runtime
+    /// Prevents drift between catalog implementation and procedural selection
+    /// When new archetypes added to catalog, automatically available for selection
     /// </summary>
     private string SelectArchetype(int sequence, AStoryContext context)
     {
         // Determine archetype category by rotation cycle
-        int cyclePosition = (sequence - 11) % 4;
+        // Generic: works regardless of where procedural generation starts
+        // Sequence 1: Investigation (0), Sequence 2: Social (1), etc.
+        int cyclePosition = (sequence - 1) % 4;
 
-        List<string> candidateArchetypes = cyclePosition switch
+        string categoryKey = cyclePosition switch
         {
-            0 => InvestigationArchetypes,
-            1 => SocialArchetypes,
-            2 => ConfrontationArchetypes,
-            3 => CrisisArchetypes,
-            _ => InvestigationArchetypes
+            0 => "Investigation",
+            1 => "Social",
+            2 => "Confrontation",
+            3 => "Crisis",
+            _ => "Investigation"
         };
+
+        // Query catalog for available archetypes (SINGLE SOURCE OF TRUTH)
+        List<string> candidateArchetypes =
+            AStorySceneArchetypeCatalog.GetArchetypesForCategory(categoryKey);
+
+        // FAIL-FAST: Validate catalog returned archetypes (prevents division by zero)
+        if (!candidateArchetypes.Any())
+        {
+            throw new InvalidOperationException(
+                $"Cannot select archetype: Catalog returned no archetypes for category '{categoryKey}'. " +
+                $"Sequence {sequence} maps to cycle position {cyclePosition}. " +
+                $"Check AStorySceneArchetypeCatalog.GetArchetypesForCategory implementation.");
+        }
 
         // Filter out recent archetypes (anti-repetition)
         List<string> availableArchetypes = candidateArchetypes
@@ -143,18 +128,21 @@ public class ProceduralAStoryService
             availableArchetypes = candidateArchetypes;
         }
 
-        // Select first available (deterministic for given sequence)
-        // Could add randomization here, but deterministic ensures reproducibility
-        string selectedArchetype = availableArchetypes.First();
+        // Select archetype using sequence-based rotation within category (deterministic but varied)
+        // Modulo ensures we cycle through category archetypes instead of always picking first
+        // Example: Investigation has 3 archetypes - Seq1→arch0, Seq5→arch1, Seq9→arch2, Seq13→arch0
+        int selectionIndex = sequence % availableArchetypes.Count;
+        string selectedArchetype = availableArchetypes[selectionIndex];
 
         return selectedArchetype;
     }
 
     /// <summary>
     /// Calculate tier from sequence number (grounded character-driven escalation)
-    /// Tier 1: A11-A30 (personal stakes - relationships, internal conflict)
-    /// Tier 2: A31-A50 (local stakes - community, village/town)
-    /// Tier 3: A51+ (regional stakes - district/province, maximum scope)
+    /// Works from ANY sequence - tier thresholds are absolute
+    /// Tier 1: Sequence 1-30 (personal stakes - relationships, internal conflict)
+    /// Tier 2: Sequence 31-50 (local stakes - community, village/town)
+    /// Tier 3: Sequence 51+ (regional stakes - district/province, maximum scope)
     /// </summary>
     private int CalculateTier(int sequence)
     {
@@ -213,7 +201,7 @@ public class ProceduralAStoryService
     private PlacementFilterDTO BuildPlacementFilter(int sequence, int tier, AStoryContext context)
     {
         // Select region based on tier and anti-repetition
-        string regionId = SelectRegion(tier, context);
+        Region selectedRegion = SelectRegion(tier, context);
 
         // Select NPC personality type for social archetypes
         List<string> personalityTypes = SelectPersonalityTypes(tier, context);
@@ -223,7 +211,8 @@ public class ProceduralAStoryService
             PlacementType = "Location", // A-story happens at locations
 
             // Location filters (categorical)
-            RegionId = regionId, // Specific region for tier-appropriate content
+            // ZERO NULL TOLERANCE: selectedRegion guaranteed non-null by SelectRegion (returns first available or throws)
+            RegionId = selectedRegion!.Name, // Categorical identifier: Region.Name (NOT entity instance ID)
             Capabilities = SelectLocationCapabilities(tier),
             LocationTags = new List<string> { "story_significant" },
 
@@ -240,15 +229,19 @@ public class ProceduralAStoryService
     /// <summary>
     /// Select region for A-story scene based on tier and anti-repetition
     /// Systematically rotates through available regions
+    /// Returns Region object (HIGHLANDER: object references, not IDs)
     /// </summary>
-    private string SelectRegion(int tier, AStoryContext context)
+    private Region SelectRegion(int tier, AStoryContext context)
     {
         // Get all regions in GameWorld
         List<Region> allRegions = _gameWorld.Regions;
 
         if (!allRegions.Any())
         {
-            return null; // No regions defined (fallback to any location)
+            throw new InvalidOperationException(
+                "Cannot select region: No regions defined in GameWorld. " +
+                "Procedural A-story generation requires at least one region. " +
+                "Check Content/Core/01_foundation.json for region definitions.");
         }
 
         // Filter by tier-appropriate regions
@@ -272,12 +265,13 @@ public class ProceduralAStoryService
             availableRegions = tierAppropriateRegions; // All recent, use any
         }
 
-        // Select first available (deterministic)
-        Region selectedRegion = availableRegions.First();
+        // Select region using sequence-based rotation (deterministic but varied)
+        // Modulo ensures we cycle through available regions: A4→region0, A5→region1, A6→region2, A7→region0...
+        int selectionIndex = context.CurrentSequence % availableRegions.Count;
+        Region selectedRegion = availableRegions[selectionIndex];
 
-        // HIGHLANDER: Return Region object, service will use it for filtering
-        // Method signature should return Region, not string
-        return selectedRegion.Name;
+        // Return Region object (HIGHLANDER: object references, not string IDs)
+        return selectedRegion;
     }
 
     /// <summary>
@@ -350,23 +344,10 @@ public class ProceduralAStoryService
     /// </summary>
     private SpawnConditionsDTO BuildSpawnConditions(int sequence, AStoryContext context)
     {
-        SpawnConditionsDTO conditions = new SpawnConditionsDTO
-        {
-            CombinationLogic = "All",
-
-            // No spawn conditions - A-story progression managed by sequential spawning
-            // Each A-scene spawns the next via ScenesToSpawn reward in final situation
-            PlayerState = new PlayerStateConditionsDTO
-            {
-                MinStats = new Dictionary<string, int>(),
-                RequiredItems = new List<string>()
-            },
-
-            WorldState = null,
-            EntityState = null
-        };
-
-        return conditions;
+        // No spawn conditions - A-story progression managed by sequential spawning
+        // Each A-scene spawns the next via ScenesToSpawn reward in final situation
+        // Return null - procedural A-scenes spawn via reward system, not spawn conditions
+        return null;
     }
 
     /// <summary>
@@ -385,11 +366,13 @@ public class ProceduralAStoryService
         };
 
         // Serialize with pretty formatting for debugging
-        string json = System.Text.Json.JsonSerializer.Serialize(package, new System.Text.Json.JsonSerializerOptions
+        System.Text.Json.JsonSerializerOptions options = new System.Text.Json.JsonSerializerOptions
         {
             WriteIndented = true,
             PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
-        });
+        };
+
+        string json = System.Text.Json.JsonSerializer.Serialize(package, options);
 
         return json;
     }
@@ -425,7 +408,7 @@ public class ProceduralAStoryService
 
         if (!completedAScenes.Any())
         {
-            // No A-story progression yet, initialize for A11
+            // No A-story progression yet, initialize empty context
             return AStoryContext.InitializeForProceduralGeneration();
         }
 
@@ -452,34 +435,62 @@ public class ProceduralAStoryService
         List<Scene> recentScenes = completedAScenes.TakeLast(5).ToList();
         foreach (Scene scene in recentScenes)
         {
-            // Extract archetype from template (if available)
-            if (scene.Template != null && !string.IsNullOrEmpty(scene.Template.SceneArchetypeId))
+            // Validate and extract archetype from template
+            if (scene.Template == null)
             {
-                context.RecentArchetypeIds.Add(scene.Template.SceneArchetypeId);
+                throw new InvalidOperationException(
+                    $"A-story scene (MainStorySequence={scene.MainStorySequence}) has null Template. " +
+                    $"All scenes must have valid Template reference.");
+            }
+            if (string.IsNullOrEmpty(scene.Template.SceneArchetypeId))
+            {
+                throw new InvalidOperationException(
+                    $"A-story scene template (MainStorySequence={scene.MainStorySequence}) has null or empty SceneArchetypeId. " +
+                    $"All A-story scenes must have archetype.");
+            }
+            context.RecentArchetypeIds.Add(scene.Template.SceneArchetypeId);
+
+            // Validate and extract region from LAST COMPLETED situation
+            if (!scene.Situations.Any())
+            {
+                throw new InvalidOperationException(
+                    $"A-story scene (MainStorySequence={scene.MainStorySequence}) has no situations. " +
+                    $"All A-story scenes must have at least one situation.");
+            }
+            Situation lastSituation = scene.Situations.Last();
+            if (lastSituation.Location == null)
+            {
+                throw new InvalidOperationException(
+                    $"A-story situation '{lastSituation.Name}' has null Location. " +
+                    $"All A-story situations must have Location for context tracking.");
+            }
+            Location situationLocation = lastSituation.Location;
+            if (situationLocation.Venue == null || situationLocation.Venue.District == null || situationLocation.Venue.District.Region == null)
+            {
+                throw new InvalidOperationException(
+                    $"A-story location '{situationLocation.Name}' has incomplete spatial hierarchy. " +
+                    $"Venue={situationLocation.Venue?.Name ?? "null"}, " +
+                    $"District={situationLocation.Venue?.District?.Name ?? "null"}, " +
+                    $"Region={situationLocation.Venue?.District?.Region?.Name ?? "null"}. " +
+                    $"All A-story locations must have complete Venue→District→Region chain.");
+            }
+            Region region = situationLocation.Venue.District.Region;
+            if (!context.RecentRegions.Contains(region))
+            {
+                context.RecentRegions.Add(region);
             }
 
-            // Extract region from current situation's placement location
-            // ARCHITECTURAL CHANGE: Placement is per-situation (not per-scene)
-            // HIGHLANDER: Navigate spatial hierarchy to Region object
-            Location situationLocation = scene.CurrentSituation?.Location;
-            if (situationLocation?.Venue?.District?.Region != null)
+            // Validate and extract NPC personality from last situation
+            if (lastSituation.Npc == null)
             {
-                Region region = situationLocation.Venue.District.Region;
-                if (!context.RecentRegions.Contains(region))
-                {
-                    context.RecentRegions.Add(region);
-                }
+                throw new InvalidOperationException(
+                    $"A-story situation '{lastSituation.Name}' has null NPC. " +
+                    $"All A-story situations require NPC interaction (location-only situations not allowed in A-story progression).");
             }
-
-            // Extract NPC personality from current situation's placement
-            // For A-story scenes, typically Location-placed, but check anyway
-            NPC situationNpc = scene.CurrentSituation?.Npc;
-            if (situationNpc != null)
+            NPC situationNpc = lastSituation.Npc;
+            if (!context.RecentPersonalityTypes.Contains(situationNpc.PersonalityType))
             {
-                if (!context.RecentPersonalityTypes.Contains(situationNpc.PersonalityType))
-                {
-                    context.RecentPersonalityTypes.Add(situationNpc.PersonalityType);
-                }
+                context.RecentPersonalityTypes.Add(situationNpc.PersonalityType);
             }
         }
 
