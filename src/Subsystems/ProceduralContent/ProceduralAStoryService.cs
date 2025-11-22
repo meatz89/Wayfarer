@@ -117,11 +117,14 @@ public class ProceduralAStoryService
     /// Rotation strategy: investigation → social → confrontation → crisis (repeat)
     /// Anti-repetition: Avoid archetypes used in last 5 scenes
     /// Tier-appropriate: Match archetype complexity to tier
+    /// Works from ANY sequence (flexible number of authored scenes)
     /// </summary>
     private string SelectArchetype(int sequence, AStoryContext context)
     {
         // Determine archetype category by rotation cycle
-        int cyclePosition = (sequence - 11) % 4;
+        // Generic: works regardless of where procedural generation starts
+        // Sequence 1: Investigation (0), Sequence 2: Social (1), etc.
+        int cyclePosition = (sequence - 1) % 4;
 
         List<string> candidateArchetypes = cyclePosition switch
         {
