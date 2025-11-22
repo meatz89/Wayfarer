@@ -18,7 +18,7 @@
         "isStarter": true,
         "baseLocationFilter": {
           "placementType": "Location",
-          "locationProperties": ["Commercial", "Restful"]
+          "capabilities": ["Commercial", "Restful"]
         },
         "baseNpcFilter": {
           "placementType": "NPC",
@@ -34,7 +34,8 @@
         "isStarter": true,
         "baseLocationFilter": {
           "placementType": "Location",
-          "locationProperties": ["Public", "Outdoor"]
+          "privacyLevels": ["Public"],
+          "capabilities": ["Outdoor"]
         }
       }
     ]

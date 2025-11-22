@@ -500,7 +500,9 @@ public class Player
             foreach (ResourceEntry entry in config.InitialItems)
             {
                 // HIGHLANDER: Resolve string itemId to Item object from GameWorld.Items
-                Item item = gameWorld.Items.FirstOrDefault(i => i.Name == entry.ResourceType);
+                // Case-insensitive lookup for robustness against data inconsistencies
+                Item item = gameWorld.Items.FirstOrDefault(i =>
+                    string.Equals(i.Name, entry.ResourceType, StringComparison.OrdinalIgnoreCase));
                 // FAIL-FAST: If item reference is invalid, this is data error
                 if (item == null)
                 {
