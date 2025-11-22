@@ -1015,7 +1015,7 @@ public class SceneInstantiator
             Id = locationId,
             Name = locationName,
             Description = locationDescription,
-            VenueId = venue.Name, // Temporary venueId for assignment (will be spatial later)
+            DistanceFromPlayer = "near", // Generated locations default to "near" - placement algorithm will select appropriate venue
             Type = "Room", // Default type for generated locations
             InitialState = spec.IsLockedInitially ? "Locked" : "Available",
             CanInvestigate = spec.CanInvestigate,

@@ -61,12 +61,12 @@ public class PhysicalFacade
         return _gameWorld.CurrentPhysicalSession.Deck.LockedCards.ToList();
     }
 
-    public PhysicalSession StartSession(PhysicalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
+    public async Task<PhysicalSession> StartSession(PhysicalChallengeDeck engagement, List<CardInstance> deck, List<CardInstance> startingHand,
         Situation situation, Obligation obligation)
     {
         if (IsSessionActive())
         {
-            EndSession();
+            await EndSession();
         }
 
         // ADR-007: PendingPhysicalContext already set upstream (GameFacade/SceneContent)
@@ -168,7 +168,7 @@ public class PhysicalFacade
         if (_gameWorld.CurrentPhysicalSession.ShouldEnd())
         {
             ApplyDangerConsequences(player);
-            EndSession();
+            await EndSession();
             sessionEnded = true;
         }
 
@@ -213,7 +213,7 @@ public class PhysicalFacade
             // Move to PlayedCards for success detection (matches Mental pattern)
             _gameWorld.CurrentPhysicalSession.Deck.PlayCard(card);
             string narrative = _narrativeService.GenerateActionNarrative(card, _gameWorld.CurrentPhysicalSession);
-            EndSession();
+            await EndSession();
 
             return new PhysicalTurnResult
             {

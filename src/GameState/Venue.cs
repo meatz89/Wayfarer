@@ -22,11 +22,10 @@
     public AxialCoordinates CenterHex { get; set; }  // Required - defines venue spatial position
     public HexAllocationStrategy HexAllocation { get; set; } = HexAllocationStrategy.ClusterOf7;
 
-    // BIDIRECTIONAL RELATIONSHIP: Venue ↔ Locations
-    // Venue.LocationIds contains Location.Name values (natural keys, not IDs)
-    // Maintained by GameWorld.AddOrUpdateLocation() for capacity budget tracking
-    // To find location objects: GameWorld.Locations.Where(loc => loc.Venue == venue)
-    public List<string> LocationIds { get; set; } = new List<string>();
+    // UNIDIRECTIONAL RELATIONSHIP: Location → Venue (object reference)
+    // HIGHLANDER: Location.Venue is single source of truth, NO reverse cache
+    // To find locations in venue: GameWorld.Locations.Where(loc => loc.Venue == this)
+    // DELETED: LocationIds (legacy cache duplicating Location.Venue object references)
 
     // HEX-BASED TRAVEL SYSTEM: Venue is ONLY a wrapper for travel cost rules
     // Venue has NO spatial position - Locations are the spatial entities
@@ -41,7 +40,7 @@
     /// Small venues: 5-10 (intimate, constrained)
     /// Large venues: 50-100 (expansive, variety)
     /// Wilderness: int.MaxValue (unlimited)
-    /// To check budget: count locations with matching VenueId from GameWorld.Locations
+    /// To check budget: Query GameWorld.Locations.Count(loc => loc.Venue == this)
     /// </summary>
     public int MaxLocations { get; set; } = 20;
 
@@ -84,11 +83,13 @@
 
     /// <summary>
     /// Check if venue can accept more locations (capacity budget check).
-    /// CATALOGUE PATTERN: Capacity is DERIVED from LocationIds.Count, not stored separately.
+    /// CATALOGUE PATTERN: Capacity is DERIVED from query, not cached.
+    /// Queries GameWorld.Locations to count locations with matching Venue reference.
     /// </summary>
-    public bool CanAddLocation()
+    public bool CanAddLocation(GameWorld world)
     {
-        return LocationIds.Count < MaxLocations;
+        int currentCount = world.Locations.Count(loc => loc.Venue == this);
+        return currentCount < MaxLocations;
     }
 
 }

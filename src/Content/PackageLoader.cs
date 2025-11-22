@@ -87,6 +87,10 @@ public class PackageLoader
         // Must happen AFTER venue placement and BEFORE hex sync because it sets Location.HexPosition
         PlaceAllLocations();
 
+        // PURE PROCEDURAL VALIDATION: Spatial venue assignment verification
+        // Validates that PlaceLocation() assigned venues correctly (hex within venue territory)
+        ValidateVenueAssignmentsSpatially();
+
         // HEX-BASED TRAVEL SYSTEM: Sync hex positions ONCE after all packages loaded
         // CRITICAL: Must happen after ALL packages because hex grid and locations may be in different packages
         // CRITICAL: Must happen AFTER PlaceAllLocations because it syncs existing HexPositions
@@ -288,6 +292,9 @@ public class PackageLoader
         // HIGHLANDER: Place any new locations added by this dynamic package
         // Scene-generated locations must have hex positions assigned
         PlaceAllLocations();
+
+        // PURE PROCEDURAL VALIDATION: Verify spatial venue assignments
+        ValidateVenueAssignmentsSpatially();
 
         // HEX SYNC: Sync newly placed locations to hex grid
         SyncLocationHexPositions();
@@ -1089,16 +1096,6 @@ public class PackageLoader
         }
     }
 
-    // HIGHLANDER: Accept Location object instead of string LocationId
-    private string GetVenueIdFromSpot(Location location)
-    {
-        if (location == null)
-            throw new ArgumentNullException(nameof(location));
-        if (location.Venue == null)
-            throw new InvalidDataException($"Location '{location.Name}' has no Venue assigned");
-        return location.Venue.Name;
-    }
-
     private void LoadDialogueTemplates(DialogueTemplates dialogueTemplates, bool allowSkeletons)
     {
         if (dialogueTemplates == null) return; _gameWorld.DialogueTemplates = dialogueTemplates;
@@ -1492,14 +1489,15 @@ public class PackageLoader
     /// </summary>
     private RouteOption GenerateReverseRoute(RouteOption forwardRoute)
     {
-        // Extract Venue IDs from the location names for naming
-        // HIGHLANDER: Pass Location objects directly, not strings
-        string originVenueId = GetVenueIdFromSpot(forwardRoute.OriginLocation);
-        string destVenueId = GetVenueIdFromSpot(forwardRoute.DestinationLocation);
+        // HIGHLANDER FIX: Use location.Name directly instead of location.Venue.Name
+        // Venues aren't assigned yet (happens in PlaceAllLocations which runs AFTER LoadRoutes)
+        // Use location names for route naming (clearer anyway - "Return to Town Square" not "Return to venue_123")
+        string originLocationName = forwardRoute.OriginLocation.Name;
+        string destLocationName = forwardRoute.DestinationLocation.Name;
 
         RouteOption reverseRoute = new RouteOption
         {
-            Name = $"Return to {GetLocationNameFromId(originVenueId)}",
+            Name = $"Return to {originLocationName}",
             // Swap origin and destination locations
             OriginLocation = forwardRoute.DestinationLocation,
             DestinationLocation = forwardRoute.OriginLocation,
@@ -1511,7 +1509,7 @@ public class PackageLoader
             TravelTimeSegments = forwardRoute.TravelTimeSegments,
             DepartureTime = forwardRoute.DepartureTime,
             MaxItemCapacity = forwardRoute.MaxItemCapacity,
-            Description = $"Return journey from {GetLocationNameFromId(destVenueId)} to {GetLocationNameFromId(originVenueId)}",
+            Description = $"Return journey from {destLocationName} to {originLocationName}",
             // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
             RouteType = forwardRoute.RouteType,
             HasPermitUnlock = forwardRoute.HasPermitUnlock,
@@ -1560,18 +1558,6 @@ public class PackageLoader
         }
 
         return reverseRoute;
-    }
-
-    private string GetLocationNameFromId(string venueId)
-    {
-        // Helper to get friendly Venue name from ID for route naming
-        if (string.IsNullOrEmpty(venueId))
-            throw new InvalidDataException("GetLocationNameFromId called with null/empty venueId");
-
-        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Name == venueId);
-        if (venue == null)
-            return venueId.Replace("_", " ").Replace("-", " "); // Fallback to formatted ID if venue not found
-        return venue.Name;
     }
 
     private class VenueLocationGrouping
@@ -1829,42 +1815,96 @@ public class PackageLoader
     }
 
     /// <summary>
-    /// HIGHLANDER: Procedural hex placement for ALL locations using single algorithm.
-    /// Replaces dual system (authored Q,R in JSON vs runtime procedural calculation).
+    /// PURE PROCEDURAL PLACEMENT: Place each location individually via categorical matching.
+    /// NO grouping by venue. Each location placed independently using:
+    /// - Categorical distance hint (distanceFromPlayer)
+    /// - Categorical properties (Purpose, Safety, Privacy, Activity)
+    /// - Player's current position
+    /// Algorithm selects venue, assigns hex, and assigns venue atomically.
+    /// HIGHLANDER: Single algorithm for ALL locations (authored + generated).
     /// Called AFTER all packages loaded, BEFORE hex sync.
     /// </summary>
     private void PlaceAllLocations()
     {
-        Console.WriteLine("[LocationPlacement] Starting procedural hex placement for all locations");
+        Console.WriteLine("[LocationPlacement] Starting PURE PROCEDURAL placement for all locations");
 
-        // First pass: Assign venues to locations based on venueId (temporary - will be spatial later)
+        // Get player for distance calculations
+        Player player = _gameWorld.GetPlayer();
+        if (player == null)
+        {
+            throw new InvalidOperationException("Cannot place locations without Player - Player must be created before location placement");
+        }
+
+        // Iterate each location individually (deterministic order by name)
+        List<Location> locations = _gameWorld.Locations.OrderBy(l => l.Name).ToList();
+
+        foreach (Location location in locations)
+        {
+            // Get categorical distance hint (flows from JSON → DTO → Parser → here)
+            string distanceHint = location.DistanceHintForPlacement ?? "medium"; // Default if missing
+
+            Console.WriteLine($"[LocationPlacement] Processing location '{location.Name}' with distance hint '{distanceHint}'");
+
+            // Place location using pure procedural algorithm
+            // STUB in Phase 4, full 7-phase algorithm in Phase 6
+            _locationPlacementService.PlaceLocation(location, distanceHint, player);
+        }
+
+        Console.WriteLine($"[LocationPlacement] Completed PURE PROCEDURAL placement for {locations.Count} locations");
+
+        // SCAFFOLDING CLEANUP: Clear temporary placement hints (no longer needed after placement)
+        foreach (Location location in locations)
+        {
+            location.DistanceHintForPlacement = null;
+        }
+        Console.WriteLine("[LocationPlacement] Cleared temporary distance hints from all locations");
+    }
+
+    /// <summary>
+    /// PURE PROCEDURAL VALIDATION: Validates spatial venue assignments are correct.
+    /// PlaceLocation() assigns venue atomically with hex position (PRIMARY assignment).
+    /// This method VALIDATES that assignment (VERIFICATION only, not assignment).
+    /// Called AFTER PlaceAllLocations (locations have HexPosition + Venue), BEFORE hex sync.
+    /// Fail-fast: Throws exception if any location violates spatial constraints.
+    /// </summary>
+    private void ValidateVenueAssignmentsSpatially()
+    {
+        Console.WriteLine("[SpatialValidation] Starting spatial venue assignment validation");
+
+        int validated = 0;
+
         foreach (Location location in _gameWorld.Locations)
         {
+            // Validation 1: Location must have HexPosition after placement
+            if (!location.HexPosition.HasValue)
+            {
+                throw new InvalidOperationException(
+                    $"Location '{location.Name}' has no HexPosition after PlaceAllLocations(). " +
+                    $"All locations must have hex positions assigned by placement algorithm.");
+            }
+
+            // Validation 2: Location must have Venue after placement
             if (location.Venue == null)
             {
-                // For now, locations still have venueId in JSON - we'll remove this in Phase 6
-                // This is temporary bridge code until spatial venue assignment implemented
-                Console.WriteLine($"[LocationPlacement] WARNING: Location '{location.Name}' has no venue assigned - skipping placement");
+                throw new InvalidOperationException(
+                    $"Location '{location.Name}' has no Venue after PlaceAllLocations(). " +
+                    $"PlaceLocation() should have assigned venue atomically with hex position.");
             }
+
+            // Validation 3: Location's hex must be within assigned venue's territory
+            if (!location.Venue.ContainsHex(location.HexPosition.Value))
+            {
+                throw new InvalidOperationException(
+                    $"SPATIAL CONSTRAINT VIOLATION: Location '{location.Name}' at hex ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}) " +
+                    $"is assigned to venue '{location.Venue.Name}' but hex is OUTSIDE venue's allocated territory. " +
+                    $"Placement algorithm violated spatial constraints - venue.ContainsHex() returned false.");
+            }
+
+            Console.WriteLine($"[SpatialValidation] ✅ Location '{location.Name}' correctly assigned to venue '{location.Venue.Name}' at hex ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R})");
+            validated++;
         }
 
-        // Group locations by venue for procedural placement
-        var locationsByVenue = _gameWorld.Locations
-            .Where(loc => loc.Venue != null)
-            .GroupBy(loc => loc.Venue);
-
-        foreach (var group in locationsByVenue)
-        {
-            Venue venue = group.Key;
-            List<Location> locationsInVenue = group.OrderBy(l => l.Name).ToList(); // Deterministic order
-
-            Console.WriteLine($"[LocationPlacement] Placing {locationsInVenue.Count} locations in venue '{venue.Name}'");
-
-            // Place all locations in this venue procedurally
-            _locationPlacementService.PlaceLocationsInVenue(venue, locationsInVenue);
-        }
-
-        Console.WriteLine($"[LocationPlacement] Completed procedural placement for {_gameWorld.Locations.Count} locations");
+        Console.WriteLine($"[SpatialValidation] Spatial validation complete: {validated} locations verified");
     }
 
 }

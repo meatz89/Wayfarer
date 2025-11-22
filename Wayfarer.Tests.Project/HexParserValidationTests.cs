@@ -152,28 +152,9 @@ public class HexParserValidationTests
         Assert.Equal(3, result.Hexes.Count);
     }
 
-    [Fact]
-    public void ParseHexMap_DuplicateLocationIds_ThrowsException()
-    {
-        HexMapDTO dto = new HexMapDTO
-        {
-            width = 10,
-            height = 10,
-            originQ = 0,
-            originR = 0,
-            hexes = new List<HexDTO>
-            {
-                new HexDTO { q = 0, r = 0, terrain = "Plains", dangerLevel = 0, locationId = "village_01" },
-                new HexDTO { q = 1, r = 0, terrain = "Forest", dangerLevel = 1, locationId = "village_01" }
-            }
-        };
-
-        InvalidDataException ex = Assert.Throws<InvalidDataException>(() =>
-            HexParser.ParseHexMap(dto));
-
-        Assert.Contains("referenced by multiple hexes", ex.Message);
-        Assert.Contains("village_01", ex.Message);
-    }
+    // DELETED: ParseHexMap_DuplicateLocationIds_ThrowsException
+    // Test was validating duplicate LocationIds, but LocationIds no longer exist.
+    // Locations use object references now, not IDs. Hex->Location mapping is via HexPosition.
 
     [Fact]
     public void ParseHexMap_SameLocationIdNullWilderness_Success()

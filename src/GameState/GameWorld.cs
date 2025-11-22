@@ -948,7 +948,7 @@ public class GameWorld
 
             // Copy all properties from new location to existing (preserve object identity)
             existing.Name = location.Name;
-            existing.Venue = location.Venue;
+            existing.AssignVenue(location.Venue);
             existing.InitialState = location.InitialState;
             // IsLocked DELETED - new architecture uses query-based accessibility via LocationAccessibilityService
             existing.HexPosition = location.HexPosition;

@@ -548,7 +548,7 @@ public class GameFacade
     /// Start a new Physical tactical session with specified deck
     /// Strategic-Tactical Integration Point
     /// </summary>
-    public PhysicalSession StartPhysicalSession(PhysicalChallengeDeck challengeDeck, Location location, Situation situation, Obligation obligation)
+    public async Task<PhysicalSession> StartPhysicalSession(PhysicalChallengeDeck challengeDeck, Location location, Situation situation, Obligation obligation)
     {
         if (_physicalFacade.IsSessionActive())
             throw new InvalidOperationException("Physical session already active");
@@ -563,7 +563,7 @@ public class GameFacade
             .BuildDeckWithStartingHand(challengeDeck, player);
 
         // ADR-007: Pass Situation and Obligation objects (not IDs)
-        return _physicalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situation, obligation);
+        return await _physicalFacade.StartSession(challengeDeck, buildResult.Deck, buildResult.StartingHand, situation, obligation);
     }
 
     /// <summary>

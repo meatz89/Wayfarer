@@ -110,7 +110,14 @@
       "Bash(ASPNETCORE_URLS=\"http://localhost:6270\" timeout 10 dotnet run:*)",
       "Bash(dir:*)",
       "Bash(ASPNETCORE_URLS=\"http://localhost:6320\" timeout 15 dotnet run:*)",
-      "Bash(ASPNETCORE_URLS=\"http://localhost:6320\" timeout 10 dotnet run:*)"
+      "Bash(ASPNETCORE_URLS=\"http://localhost:6320\" timeout 10 dotnet run:*)",
+      "Bash(git push:*)",
+      "Bash(git fetch:*)",
+      "Bash(git merge:*)",
+      "Bash(git rm:*)",
+      "Bash(git ls-tree:*)",
+      "Bash(do git show origin/master:$file)",
+      "Bash(architecture/$file)"
     ],
     "deny": [],
     "ask": []

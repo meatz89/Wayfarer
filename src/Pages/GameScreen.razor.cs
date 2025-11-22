@@ -423,7 +423,7 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
 
     public async Task StartPhysicalSession(PhysicalChallengeDeck deck, Location location, Situation situation, Obligation obligation)
     {
-        PhysicalSession session = GameFacade.StartPhysicalSession(deck, location, situation, obligation);
+        PhysicalSession session = await GameFacade.StartPhysicalSession(deck, location, situation, obligation);
 
         // Create context parallel to Social pattern
         CurrentPhysicalContext = new PhysicalChallengeContext

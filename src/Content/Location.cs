@@ -2,8 +2,27 @@ public class Location
 {
     // HIGHLANDER: Name is natural key, NO Id property
     public string Name { get; set; }
-    // HIGHLANDER: Object reference ONLY, no VenueId
-    public Venue Venue { get; internal set; }
+    // HIGHLANDER: Object reference ONLY, no VenueId. Private setter enforces single assignment authority.
+    public Venue Venue { get; private set; }
+
+    /// <summary>
+    /// INTERNAL SETTER: Assign venue during procedural placement.
+    /// Called ONLY by LocationPlacementService.PlaceLocationsInVenue().
+    /// Private setter prevents backdoor assignments from other code.
+    /// </summary>
+    internal void AssignVenue(Venue venue)
+    {
+        Venue = venue;
+    }
+
+    /// <summary>
+    /// TEMPORARY: Categorical distance hint for pure procedural placement.
+    /// Valid values: "start", "near", "medium", "far", "distant".
+    /// Flows from JSON → DTO → Parser → PlaceLocation algorithm.
+    /// Set during parsing, consumed during placement, can be discarded after.
+    /// NOT persisted - purely for initialization phase.
+    /// </summary>
+    public string DistanceHintForPlacement { get; set; }
 
     // HEX-BASED TRAVEL SYSTEM: Location is THE primary spatial entity
     /// <summary>

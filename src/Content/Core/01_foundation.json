@@ -41,7 +41,7 @@
       {
         "id": "square_center",
         "name": "Town Square Center",
-        "venueId": "Town Square",
+        "distanceFromPlayer": "start",
         "description": "You've been walking since dawn. Your legs ache, your coin purse feels light, and the sun is setting. The warm glow of The Brass Bell Inn beckons from across the square.",
         "properties": {
           "base": [
@@ -60,7 +60,7 @@
       {
         "id": "common_room",
         "name": "Common Room",
-        "venueId": "The Brass Bell Inn",
+        "distanceFromPlayer": "start",
         "description": "Lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations. Elena, the innkeeper, wipes down tables while watching travelers settle in for the night.",
         "properties": {
           "base": [
@@ -81,7 +81,7 @@
       {
         "id": "fountain_plaza",
         "name": "Fountain Plaza",
-        "venueId": "Town Square",
+        "distanceFromPlayer": "near",
         "description": "The town fountain. Locals gather here to chat and trade news. A courier's board posts delivery opportunities.",
         "properties": {
           "base": [
@@ -100,7 +100,7 @@
       {
         "id": "mill_courtyard",
         "name": "Mill Courtyard",
-        "venueId": "The Old Mill",
+        "distanceFromPlayer": "near",
         "description": "The courtyard outside the old mill. Overgrown paths lead to the mill entrance and surrounding areas.",
         "properties": {
           "base": [

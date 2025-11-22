@@ -17,10 +17,12 @@ public class LocationDTO
     // Placement happens in post-parse initialization phase (PackageLoader.PlaceAllLocations)
 
     /// <summary>
-    /// TEMPORARY: Venue reference by name for backward compatibility.
-    /// TODO: Delete after spatial venue assignment implemented (venue determined by hex containment).
+    /// PURE PROCEDURAL PLACEMENT: Categorical distance hint for procedural hex positioning.
+    /// Valid values: "start" (0-1 hex), "near" (2-5), "medium" (6-12), "far" (13-25), "distant" (26-50).
+    /// Algorithm translates hint to radius range, filters venues by distance from player, assigns hex.
+    /// NO hardcoded coordinates. NO entity instance IDs. Pure categorical generation.
     /// </summary>
-    public string VenueId { get; set; }
+    public string DistanceFromPlayer { get; set; }
 
     public List<string> CurrentTimeBlocks { get; set; } = new List<string>();
     public List<string> DomainTags { get; set; } = new List<string>();

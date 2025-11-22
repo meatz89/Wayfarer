@@ -15,23 +15,14 @@ public static class LocationParser
             InitialState = dto.InitialState ?? "" // Optional - defaults to empty if missing
         };
 
-        // TEMPORARY: Venue assignment via venueId (will be replaced with spatial assignment)
-        // TODO: Replace with spatial containment after venue hex territories validated
-        if (!string.IsNullOrEmpty(dto.VenueId))
-        {
-            Venue venue = gameWorld.Venues.FirstOrDefault(v => v.Name == dto.VenueId);
-            if (venue != null)
-            {
-                location.Venue = venue;
-                Console.WriteLine($"[LocationParser] Assigned venue '{venue.Name}' to location '{dto.Name}'");
-            }
-            else
-            {
-                Console.WriteLine($"[LocationParser] ⚠️ WARNING: Venue '{dto.VenueId}' not found for location '{dto.Name}'");
-            }
-        }
+        // PURE PROCEDURAL PLACEMENT: Store categorical distance hint for placement phase
+        // Flows from JSON → DTO → Parser → LocationPlacementService.PlaceLocation()
+        // Default to "medium" if missing (content author forgot to specify)
+        location.DistanceHintForPlacement = dto.DistanceFromPlayer ?? "medium";
+        Console.WriteLine($"[LocationParser] Location '{dto.Name}' distance hint: '{location.DistanceHintForPlacement}'");
 
         // HIGHLANDER: NO hex position assignment here - happens in LocationPlacementService
+        // HIGHLANDER: NO venue assignment here - happens in LocationPlacementService.PlaceLocation() via categorical matching
         // Parser creates Location entity with NO hex coordinates
         // Spatial properties set in post-parse initialization phase (PackageLoader.PlaceAllLocations)
 
