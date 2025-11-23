@@ -1170,6 +1170,13 @@ public class GameFacade
             if (currentDay >= scene.ExpiresOnDay.Value)
             {
                 scene.State = SceneState.Expired;
+
+                // PROCEDURAL CONTENT TRACING: Update scene state to Expired
+                if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+                {
+                    _gameWorld.ProceduralTracer.UpdateSceneState(scene, SceneState.Expired, DateTime.UtcNow);
+                }
+
                 // Optional: System message for player feedback (uncomment if desired)
                 // _messageSystem.AddSystemMessage($"Opportunity expired: {scene.DisplayName}", SystemMessageTypes.Info);
             }

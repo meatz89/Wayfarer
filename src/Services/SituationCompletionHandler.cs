@@ -83,6 +83,12 @@ public class SituationCompletionHandler
 
             // Store routing decision on situation for UI to query
             situation.RoutingDecision = routingDecision;
+
+            // PROCEDURAL CONTENT TRACING: Update scene state if it transitioned to Completed
+            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+            {
+                _gameWorld.ProceduralTracer.UpdateSceneState(scene, scene.State, DateTime.UtcNow);
+            }
         }
     }
 
@@ -155,6 +161,12 @@ public class SituationCompletionHandler
 
             // Store routing decision on situation for UI to query
             situation.RoutingDecision = routingDecision;
+
+            // PROCEDURAL CONTENT TRACING: Update scene state if it transitioned to Completed
+            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+            {
+                _gameWorld.ProceduralTracer.UpdateSceneState(scene, scene.State, DateTime.UtcNow);
+            }
         }
 
         // Situations remain in ActiveSituations on failure regardless of DeleteOnSuccess
