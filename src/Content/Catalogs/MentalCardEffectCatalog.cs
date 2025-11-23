@@ -94,31 +94,6 @@ public static class MentalCardEffectCatalog
     }
 
     /// <summary>
-    /// Get base Progress from properties (used by resolver, not parser).
-    /// Temporary method for existing resolver compatibility.
-    /// </summary>
-    public static int GetProgressFromProperties(int depth, MentalCategory category)
-    {
-        // Simple calculation for now - use full calculation once parser updated
-        return depth switch
-        {
-            <= 2 => 2,
-            <= 4 => 5,
-            <= 6 => 9,
-            _ => 13
-        };
-    }
-
-    /// <summary>
-    /// Get base Exposure from properties (used by resolver, not parser).
-    /// Temporary method for existing resolver compatibility.
-    /// </summary>
-    public static int GetExposureFromProperties(int depth, Method method)
-    {
-        return CalculateExposure(method, depth);
-    }
-
-    /// <summary>
     /// Get Attention cost from depth (called by parser).
     /// </summary>
     public static int GetAttentionCostFromDepth(int depth)

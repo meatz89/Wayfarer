@@ -134,12 +134,11 @@ public class SceneInstantiator
     }
 
     /// <summary>
-    /// LEGACY WRAPPER: Generate complete scene package JSON from template
-    /// DEPRECATED: This method generates EVERYTHING at once (Scene + Situations + Dependent Resources)
-    /// NEW CODE should use CreateDeferredScene() + ActivateScene() two-phase pattern
-    /// Kept for backwards compatibility during migration
-    /// HIGHLANDER: Returns JSON string for ContentGenerationFacade to write, PackageLoaderFacade to load
-    /// NEVER creates entities directly - only DTOs and JSON
+    /// Generate complete scene package JSON from template.
+    /// Runtime content generation produces JSON packages for PackageLoader (same architecture as authored content).
+    /// Returns JSON string containing Scene + Situations + Dependent Resources.
+    /// HIGHLANDER: Returns JSON string for ContentGenerationFacade to write, PackageLoaderFacade to load.
+    /// NEVER creates entities directly - only DTOs and JSON.
     /// </summary>
     public string GenerateScenePackageJson(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {

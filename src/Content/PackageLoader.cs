@@ -850,9 +850,8 @@ public class PackageLoader
 
     private void LoadSituations(List<SituationDTO> situationDtos, bool allowSkeletons)
     {
-        // LEGACY CODE PATH - DEPRECATED
-        // Standalone situations no longer supported
-        // All situations are owned by Scenes and created by SceneInstantiator
+        // ARCHITECTURAL CONSTRAINT: Standalone situations not supported
+        // All situations must be owned by Scenes (created by SceneInstantiator)
         // If a package contains situations, they will be ignored
         if (situationDtos != null && situationDtos.Any())
         {

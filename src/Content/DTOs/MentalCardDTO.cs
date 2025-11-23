@@ -22,14 +22,6 @@ public class MentalCardDTO
     // Effects nested object (progress, exposure)
     public MentalCardRequirementsDTO Requirements { get; set; }
     public MentalCardEffectsDTO Effects { get; set; }
-
-    // DEPRECATED FIELDS REMOVED (0% frequency in JSON):
-    // - Type → hardcoded "Mental", never in JSON, deleted
-    // - AttentionCost → calculated by catalog, deleted (use catalog, not JSON!)
-    // - Discipline → always defaulted to "Research", never in JSON, deleted
-    // - ExertionLevel → always defaulted to "Light", never in JSON, deleted
-    // - MethodType → always defaulted to "Direct", never in JSON, deleted
-    // - Danger → entire object never in JSON, deleted
 }
 
 /// <summary>
@@ -39,12 +31,6 @@ public class MentalCardRequirementsDTO
 {
     // REQUIRED: Stats dictionary (always present, may be empty)
     public Dictionary<string, int> Stats { get; set; } = new Dictionary<string, int>();
-
-    // DEPRECATED FIELDS REMOVED (0% frequency):
-    // - EquipmentCategory → never in JSON, deleted
-    // - Discoveries → never in JSON, deleted
-    // - MinStamina → never in JSON (costs.stamina exists but always 0, vestigial), deleted
-    // - MinHealth → never in JSON (costs.health exists but always 0, vestigial), deleted
 }
 
 /// <summary>
@@ -55,9 +41,4 @@ public class MentalCardEffectsDTO
     // REQUIRED: Progress and Exposure (100% frequency)
     public int Progress { get; set; } = 0;
     public int Exposure { get; set; } = 0;
-
-    // DEPRECATED FIELDS REMOVED (0% frequency):
-    // - Discoveries → never in JSON, deleted
 }
-
-// DELETED: MentalCardDangerDTO - entire object never appears in JSON (0% frequency)
