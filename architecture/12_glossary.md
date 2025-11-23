@@ -55,10 +55,10 @@ This document provides canonical definitions for all specialized terms used acro
 ### Scene
 **Type:** Runtime Entity (mutable)
 **Owner:** GameWorld.Scenes
-**Definition:** Persistent narrative container spawned from SceneTemplate. Contains embedded Situations, tracks CurrentSituation, manages state machine (Provisional/Active/Completed/Expired).
+**Definition:** Persistent narrative container spawned from SceneTemplate. Contains embedded Situations, tracks CurrentSituation, manages state machine (Deferred/Active/Completed/Expired). Scenes spawn in two phases: deferred creation during initialization, active spawning when player enters location.
 **Lifecycle States:**
-- **Provisional:** Created for perfect information preview, Situations not yet instantiated. Can be finalized or discarded.
-- **Active:** Finalized and playable. Situations instantiated, CurrentSituation set.
+- **Deferred:** Scene and Situations created, dependent resources NOT spawned yet. Lightweight initialization without location/npc generation. Transitions to Active when player enters the scene's location.
+- **Active:** Scene fully activated with dependent resources spawned. Situations instantiated, CurrentSituation set, all locations placed via PlaceLocations() using package-round tracking.
 - **Completed:** All Situations finished. Scene persists but filtered from active queries.
 - **Expired:** ExpiresOnDay reached. Scene persists but filtered from queries.
 **Key Properties:** Id, TemplateId, PlacementType, PlacementId, Situations (embedded list), CurrentSituation (object reference), State (SceneState enum).
@@ -318,13 +318,15 @@ This document provides canonical definitions for all specialized terms used acro
 
 ## STATE MACHINE TERMINOLOGY
 
-### Provisional
-**Scene State:** Scene created for perfect information preview. Situations not instantiated. Player sees metadata (SituationCount, EstimatedDifficulty) without full content.
-**Transition:** Provisional → Active (when player selects provisional scene choice) OR Provisional → Deleted (when different choice selected).
-**Why:** Enables showing player "this choice spawns a 3-situation scene with Medium difficulty" before commitment.
+### Deferred (Scene State)
+**Scene State:** Scene and Situations created, dependent resources NOT spawned yet. Scene entity exists in GameWorld.Scenes with State=Deferred. Lightweight initialization phase separating scene creation from resource spawning.
+**Transition:** Deferred → Active (when player enters location where scene is placed, triggering LocationFacade.CheckAndActivateDeferredScenes()).
+**Why:** Two-phase spawning separates domain logic (scenes/situations) from content generation (locations/items). Prevents spawning dependent resources before player reaches scene location.
+**Phase 1 (Deferred):** SceneInstantiator.CreateDeferredScene() generates JSON for Scene + Situations ONLY. PackageLoader creates entities with State=Deferred. NO dependent locations created. NO PlaceLocations() called.
+**Phase 2 (Active):** LocationFacade activation generates dependent resource JSON. PackageLoader creates locations/items. PlaceLocations() receives explicit list of NEW locations from PackageLoadResult. Scene.State transitions to Active.
 
-### Active
-**Scene State:** Scene finalized and playable. Situations instantiated, CurrentSituation set.
+### Active (Scene State)
+**Scene State:** Scene fully activated with dependent resources spawned. Situations instantiated, CurrentSituation set, all locations placed.
 **Availability:** Player can engage with CurrentSituation at appropriate context (location/NPC).
 **Transition:** Active → Completed (all situations finished) OR Active → Expired (ExpiresOnDay reached).
 
@@ -336,11 +338,12 @@ This document provides canonical definitions for all specialized terms used acro
 **Scene State:** ExpiresOnDay reached before completion.
 **Cleanup:** Scene filtered from queries. Represents missed opportunity.
 
-### Deferred
+### Deferred (Situation InstantiationState)
 **Situation InstantiationState:** Situation exists but Actions not created. Template stored, waiting for query-time instantiation.
 **Transition:** Deferred → Instantiated (when player enters context and SceneFacade queries).
+**Note:** This is DIFFERENT from Scene Deferred state. Scene Deferred = dependent resources not spawned. Situation Deferred = action objects not created.
 
-### Instantiated
+### Instantiated (Situation InstantiationState)
 **Situation InstantiationState:** Actions created in GameWorld collections (LocationActions/NPCActions/PathCards). Player can execute choices.
 
 ### Selectable

@@ -1,25 +1,27 @@
 
 /// <summary>
 /// State of a Scene in its lifecycle
-/// Scenes transition: Provisional → Active → Completed/Expired
+/// Scenes transition: Deferred → Active → Completed/Expired
 /// </summary>
 public enum SceneState
 {
     /// <summary>
-    /// Scene is provisional (mechanical skeleton awaiting player Choice selection)
-    /// Created when Situation instantiated (for each Choice with SceneSpawnReward)
-    /// Has concrete placement but NO narrative content yet (placeholders unresolved)
-    /// PHASE 1.4: Stored in GameWorld.Scenes with State=Provisional (unified storage)
-    /// Purpose: Perfect information - player sees WHERE Scene spawns before selecting Choice
-    /// Transition: Finalized to Active when Choice selected, OR deleted if different Choice selected
+    /// Scene is deferred (created but not yet activated)
+    /// Scene entity and Situations exist, but dependent resources NOT spawned yet
+    /// Created when SceneTemplate spawns (startup for IsStarter, runtime for rewards)
+    /// NO dependent locations/items created yet (deferred until activation)
+    /// Stored in GameWorld.Scenes with State=Deferred
+    /// Purpose: Separate scene creation from resource spawning (two-phase initialization)
+    /// Transition: Activated when player enters location or queries scenes at context
     /// </summary>
-    Provisional,
+    Deferred,
 
     /// <summary>
     /// Scene is active and available for player interaction
-    /// Finalized from Provisional state with narrative content (placeholders resolved)
+    /// Dependent resources spawned (locations placed, items created)
     /// Current Situation can be engaged
-    /// PHASE 1.4: Stored in GameWorld.Scenes with State=Active (unified storage)
+    /// Stored in GameWorld.Scenes with State=Active
+    /// Transition: From Deferred when scene activated
     /// </summary>
     Active,
 

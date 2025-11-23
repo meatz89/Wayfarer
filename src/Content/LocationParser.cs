@@ -24,7 +24,7 @@ public static class LocationParser
         // HIGHLANDER: NO hex position assignment here - happens in LocationPlacementService
         // HIGHLANDER: NO venue assignment here - happens in LocationPlacementService.PlaceLocation() via categorical matching
         // Parser creates Location entity with NO hex coordinates
-        // Spatial properties set in post-parse initialization phase (PackageLoader.PlaceAllLocations)
+        // Spatial properties set in post-parse initialization phase (PackageLoader.PlaceLocations)
 
         // Parse time windows
         if (dto.CurrentTimeBlocks != null && dto.CurrentTimeBlocks.Count > 0)

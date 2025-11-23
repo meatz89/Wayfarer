@@ -14,7 +14,7 @@ public class LocationDTO
 
     // HIGHLANDER: NO Q,R coordinates in DTO - hex positions assigned procedurally by LocationPlacementService
     // All locations (authored + generated) placed using single procedural algorithm
-    // Placement happens in post-parse initialization phase (PackageLoader.PlaceAllLocations)
+    // Placement happens in post-parse initialization phase (PackageLoader.PlaceLocations)
 
     /// <summary>
     /// PURE PROCEDURAL PLACEMENT: Categorical distance hint for procedural hex positioning.

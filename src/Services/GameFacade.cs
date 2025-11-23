@@ -181,7 +181,7 @@ public class GameFacade
 
     public async Task<bool> MoveToSpot(Location location)
     {
-        bool success = _locationFacade.MoveToSpot(location);
+        bool success = await _locationFacade.MoveToSpot(location);
 
         // Movement to new Venue may unlock obligation discovery (ImmediateVisibility, EnvironmentalObservation triggers)
         if (success)
@@ -717,18 +717,17 @@ public class GameFacade
         if (!startingSpot.HexPosition.HasValue)
             throw new InvalidOperationException($"Starting location '{startingSpot.Name}' has no HexPosition - cannot initialize player position");
 
-        Console.WriteLine($"[StartGameAsync] Setting player position to hex ({startingSpot.HexPosition.Value.Q}, {startingSpot.HexPosition.Value.R})");
-        player.CurrentPosition = startingSpot.HexPosition.Value;
-        Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Name == startingSpot.Venue.Name);
+        // TWO-PHASE SPAWNING: Use MoveToSpot() instead of directly setting position
+        // This ensures CheckAndActivateDeferredScenes() is called when player enters initial location
+        Console.WriteLine($"[StartGameAsync] Moving player to starting location '{startingSpot.Name}' at hex ({startingSpot.HexPosition.Value.Q}, {startingSpot.HexPosition.Value.R})");
+        bool moveSuccess = await _locationFacade.MoveToSpot(startingSpot);
 
-        // ZERO NULL TOLERANCE: Verify hex grid is valid BEFORE marking game started
-        // This prevents silent UI crashes by failing LOUDLY during initialization
-        Location validationLocation = _gameWorld.GetPlayerCurrentLocation();
-        if (validationLocation == null)
+        if (!moveSuccess)
         {
-            throw new InvalidOperationException($"CRITICAL: Player starting position ({player.CurrentPosition.Q}, {player.CurrentPosition.R}) does not have a valid location in hex grid. Game cannot start.");
+            throw new InvalidOperationException($"CRITICAL: Failed to move player to starting location '{startingSpot.Name}'. Game cannot start.");
         }
-        Console.WriteLine($"[StartGameAsync] ✅ Validated player at '{validationLocation.Name}' - hex grid OK");
+
+        Console.WriteLine($"[StartGameAsync] ✅ Validated player at '{startingSpot.Name}' - hex grid OK");
 
         // Player resources already applied by PackageLoader.ApplyInitialPlayerConfiguration()
         // No need to re-apply here - HIGHLANDER PRINCIPLE: initialization happens ONCE
@@ -1597,9 +1596,49 @@ public class GameFacade
     }
 
     /// <summary>
+    /// TWO-PHASE SPAWNING - PHASE 1: Create deferred scene WITHOUT dependent resources
+    /// Generates JSON package with ONLY Scene + Situations (NO dependent locations/items)
+    /// Scene.State = Deferred (dependent resources not spawned yet)
+    /// HIGHLANDER FLOW: JSON → PackageLoader → SceneParser → Scene entity
+    /// </summary>
+    private async Task<Scene> CreateDeferredSceneWithDynamicContent(
+        SceneTemplate template,
+        SceneSpawnReward spawnReward,
+        SceneSpawnContext context)
+    {
+        // PHASE 1: Generate JSON package with ONLY Scene + Situations (empty lists for dependent resources)
+        string packageJson = _sceneInstanceFacade.CreateDeferredScenePackage(template, spawnReward, context);
+
+        if (packageJson == null)
+        {
+            // Scene not eligible (spawn conditions failed)
+            return null;
+        }
+
+        // Write to disk and load via PackageLoader
+        string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}_deferred";
+        await _contentGenerationFacade.CreateDynamicPackageFile(packageJson, packageId);
+        await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
+
+        // Retrieve spawned scene from GameWorld
+        Scene spawnedScene = _gameWorld.Scenes
+            .Where(s => s.TemplateId == template.Id && s.State == SceneState.Deferred)
+            .LastOrDefault();
+
+        if (spawnedScene == null)
+        {
+            throw new InvalidOperationException($"Deferred scene from template '{template.Id}' failed to load via PackageLoader");
+        }
+
+        return spawnedScene;
+    }
+
+    /// <summary>
     /// Spawn all starter scenes during game initialization
     /// HIGHLANDER: Called ONCE from StartGameAsync() after IsGameStarted = true
     /// Starter scenes provide initial gameplay content (tutorial, intro situations)
+    /// TWO-PHASE SPAWNING: Creates scenes as Deferred (no dependent resources spawned)
+    /// Activation happens when player enters location via LocationFacade
     /// </summary>
     public async Task SpawnStarterScenes()
     {
@@ -1627,13 +1666,18 @@ public class GameFacade
                 CurrentSituation = null
             };
 
-            Scene scene = await SpawnSceneWithDynamicContent(template, spawnReward, spawnContext);
+            // TWO-PHASE: Create deferred scene WITHOUT dependent resources
+            // Phase 1: Scene + Situations created with State=Deferred
+            // Phase 2: Activation (dependent resources) happens when player enters location
+            Scene scene = await CreateDeferredSceneWithDynamicContent(template, spawnReward, spawnContext);
 
             if (scene == null)
             {
                 Console.WriteLine($"[GameFacade] Starter scene '{template.Id}' failed to spawn - skipping");
                 continue;
             }
+
+            Console.WriteLine($"[GameFacade] Created deferred starter scene '{template.Id}' (State=Deferred, no dependent resources yet)");
         }
     }
 

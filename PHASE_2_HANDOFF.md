@@ -81,14 +81,56 @@ This requires a human player experiencing cumulative emotional impact over 3-4 h
 
 ---
 
-## Next Steps for Human Playtester
+## Phase 1.5: Bug Verification (REQUIRED BEFORE PHASE 2)
+
+**CRITICAL:** Before starting 3-4 hour emotional arc testing, verify that recent bug fixes work correctly through quick mechanical checks.
+
+### Why Bug Verification First
+
+Phase 1 (automated smoke tests) verified core mechanics work. However, THREE specific bug fixes from the previous session could not be fully verified due to Playwright/Blazor automation limitations. These bugs MUST be manually verified before spending 3-4 hours on emotional arc testing, or the playtest may encounter broken mechanics that invalidate the emotional experience.
+
+**Bug Fixes Requiring Verification:**
+1. **Time Advancement (Bug #1)** - Day counter must increment correctly when transitioning between days
+2. **A2 Scene Spawning (Bug #2)** - Tutorial flow requires A2 "Morning Delivery" scene to spawn after A1
+3. **Private Room Binding (Bug #3)** - Multi-situation scenes must correctly place later situations at scene-created locations
+
+### Quick Verification Protocol
+
+**Time Required:** 15-30 minutes total (5-10 minutes per bug)
+
+**Process:**
+1. Start fresh game (restart server for clean state)
+2. Follow step-by-step procedures in BUG_FIX_VALIDATION_REPORT.md (section: "Manual Human Testing PRIORITY")
+3. Verify each bug fix works as expected
+4. If ALL THREE pass → Proceed to Phase 2 emotional arc testing
+5. If ANY fail → Report failure, do NOT proceed to Phase 2
+
+**Location of Detailed Instructions:**
+See BUG_FIX_VALIDATION_REPORT.md lines 197-381 for comprehensive step-by-step manual testing procedures including:
+- Prerequisites for each test
+- Exact steps to reproduce expected behavior
+- Success criteria (what confirms bug is fixed)
+- Failure diagnostics (what to check if test fails)
+- Server log verification patterns
+
+**Why This Matters:**
+- Broken time advancement → Player can't progress through game, Phase 2 impossible
+- Missing A2 scene → Tutorial flow breaks, emotional arc never starts
+- Private room binding failure → Multi-situation mechanics broken, strategic depth untestable
+
+Phase 1.5 verification takes 15-30 minutes but ensures Phase 2's 3-4 hour investment isn't wasted on broken mechanics.
+
+---
+
+## Next Steps for Human Playtester (Phase 2: Emotional Arc)
 
 ### Prerequisites
-1. Read PLAYTEST_GUIDE.md completely (MANDATORY - contains critical mechanics)
-2. Read PLAYTEST_LEARNINGS.md for session findings
-3. Understand Sir Brante emotional model
-4. Commit 3-4 hours uninterrupted
-5. **CRITICAL:** Know how to open browser DevTools (F12 → Console tab)
+1. **Complete Phase 1.5 bug verification** (see section above - 15-30 minutes, MANDATORY)
+2. Read PLAYTEST_GUIDE.md completely (MANDATORY - contains critical mechanics)
+3. Read PLAYTEST_LEARNINGS.md for session findings
+4. Understand Sir Brante emotional model
+5. Commit 3-4 hours uninterrupted
+6. **CRITICAL:** Know how to open browser DevTools (F12 → Console tab)
 
 ### Execution
 1. Start server: `cd src && ASPNETCORE_URLS="http://localhost:8100" dotnet run --no-build`

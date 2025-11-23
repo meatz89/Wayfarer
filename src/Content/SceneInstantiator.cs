@@ -41,7 +41,103 @@ public class SceneInstantiator
     }
 
     /// <summary>
-    /// Generate complete scene package JSON from template
+    /// PHASE 1: Create deferred scene WITHOUT dependent resources
+    /// Generates JSON package with ONLY Scene + Situations (NO dependent locations/items)
+    /// Scene.State = "Deferred" (dependent resources not spawned yet)
+    /// HIGHLANDER: Returns JSON string for ContentGenerationFacade to write, PackageLoaderFacade to load
+    /// NEVER creates entities directly - only DTOs and JSON
+    /// </summary>
+    public string CreateDeferredScene(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
+    {
+        // Evaluate spawn conditions
+        bool isEligible = template.IsStarter || _spawnConditionsEvaluator.EvaluateAll(
+            template.SpawnConditions,
+            context.Player,
+            placementId: null
+        );
+
+        if (!isEligible)
+        {
+            Console.WriteLine($"[SceneInstantiator] Scene '{template.Id}' REJECTED by spawn conditions");
+            return null; // Scene not eligible - return null
+        }
+
+        // System 3: Generate Scene DTO with categorical specifications (NO resolution)
+        // CRITICAL: State = "Deferred" (not Active yet)
+        SceneDTO sceneDto = GenerateSceneDTO(template, spawnReward, context, isDeferredState: true);
+
+        // Generate Situation DTOs (entities reference by categories, no markers)
+        List<SituationDTO> situationDtos = GenerateSituationDTOs(template, sceneDto, context);
+        sceneDto.Situations = situationDtos;
+
+        // Build package with ONLY Scene + Situations (empty lists for dependent resources)
+        string packageJson = BuildScenePackage(sceneDto, new List<LocationDTO>(), new List<ItemDTO>());
+
+        Console.WriteLine($"[SceneInstantiator] Generated DEFERRED scene package '{sceneDto.Id}' with {situationDtos.Count} situations (State=Deferred, NO dependent resources)");
+
+        return packageJson;
+    }
+
+    /// <summary>
+    /// PHASE 2: Activate scene by spawning dependent resources for existing deferred scene
+    /// Generates JSON package with ONLY dependent locations + items (NO Scene/Situations)
+    /// Scene transitions: Deferred → Active
+    /// Input: Scene entity (already exists in GameWorld with State=Deferred)
+    /// Output: JSON package with dependent resources only
+    /// </summary>
+    public string ActivateScene(Scene scene, SceneSpawnContext context)
+    {
+        if (scene.State != SceneState.Deferred)
+        {
+            throw new InvalidOperationException(
+                $"Scene '{scene.TemplateId}' cannot be activated - State is {scene.State}, expected Deferred");
+        }
+
+        if (scene.Template == null)
+        {
+            throw new InvalidOperationException(
+                $"Scene '{scene.TemplateId}' cannot be activated - Template reference is null");
+        }
+
+        // Generate unique scene ID for dependent resource tagging
+        // CRITICAL: Use Scene.TemplateId NOT Scene.Id (Scene has no Id property per HIGHLANDER)
+        // Use a deterministic tag based on template + timestamp to bind dependent resources
+        string sceneTag = $"{scene.TemplateId}_{Guid.NewGuid().ToString("N")}";
+
+        // Generate dependent resource DTOs (if self-contained scene)
+        List<LocationDTO> dependentLocations = new List<LocationDTO>();
+        List<ItemDTO> dependentItems = new List<ItemDTO>();
+
+        if (scene.Template.DependentLocations.Any() || scene.Template.DependentItems.Any())
+        {
+            // Generate dependent location DTOs
+            foreach (DependentLocationSpec spec in scene.Template.DependentLocations)
+            {
+                LocationDTO locationDto = BuildLocationDTO(spec, sceneTag, context);
+                dependentLocations.Add(locationDto);
+            }
+
+            // Generate dependent item DTOs
+            foreach (DependentItemSpec spec in scene.Template.DependentItems)
+            {
+                ItemDTO itemDto = BuildItemDTO(spec, sceneTag, context, dependentLocations);
+                dependentItems.Add(itemDto);
+            }
+        }
+
+        // Build package with ONLY dependent resources (empty list for Scenes)
+        string packageJson = BuildScenePackage(null, dependentLocations, dependentItems);
+
+        Console.WriteLine($"[SceneInstantiator] Generated activation package for scene '{scene.TemplateId}' with {dependentLocations.Count} locations and {dependentItems.Count} items");
+
+        return packageJson;
+    }
+
+    /// <summary>
+    /// LEGACY WRAPPER: Generate complete scene package JSON from template
+    /// DEPRECATED: This method generates EVERYTHING at once (Scene + Situations + Dependent Resources)
+    /// NEW CODE should use CreateDeferredScene() + ActivateScene() two-phase pattern
+    /// Kept for backwards compatibility during migration
     /// HIGHLANDER: Returns JSON string for ContentGenerationFacade to write, PackageLoaderFacade to load
     /// NEVER creates entities directly - only DTOs and JSON
     /// </summary>
@@ -61,7 +157,7 @@ public class SceneInstantiator
         }
 
         // System 3: Generate Scene DTO with categorical specifications (NO resolution)
-        SceneDTO sceneDto = GenerateSceneDTO(template, spawnReward, context);
+        SceneDTO sceneDto = GenerateSceneDTO(template, spawnReward, context, isDeferredState: false);
 
         // Generate dependent resource DTOs (if self-contained scene)
         // Categories → FindOrGenerate → Concrete IDs stored directly
@@ -102,7 +198,7 @@ public class SceneInstantiator
     /// Does NOT resolve entities - writes PlacementFilterDTO to JSON
     /// EntityResolver (System 4) will FindOrCreate from these specifications
     /// </summary>
-    private SceneDTO GenerateSceneDTO(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
+    private SceneDTO GenerateSceneDTO(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context, bool isDeferredState)
     {
         // Generate unique Scene ID (pure identifier, TemplateId property tracks source template)
         string sceneId = Guid.NewGuid().ToString();
@@ -146,7 +242,7 @@ public class SceneInstantiator
             LocationFilter = ConvertPlacementFilterToDTO(template.BaseLocationFilter),
             NpcFilter = ConvertPlacementFilterToDTO(template.BaseNpcFilter),
             RouteFilter = ConvertPlacementFilterToDTO(template.BaseRouteFilter),
-            State = "Active", // NEW: Scenes spawn directly as Active (no provisional state)
+            State = isDeferredState ? "Deferred" : "Active", // TWO-PHASE: Deferred or Active based on caller
             ExpiresOnDay = expiresOnDay,
             Archetype = template.Archetype.ToString(),
             DisplayName = displayName,
@@ -258,21 +354,31 @@ public class SceneInstantiator
 
     /// <summary>
     /// Build complete package JSON with scene, situations, and dependent resources
+    /// TWO-PHASE SUPPORT: sceneDto can be null (Phase 2 activation with only dependent resources)
     /// </summary>
     private string BuildScenePackage(SceneDTO sceneDto, List<LocationDTO> dependentLocations, List<ItemDTO> dependentItems)
     {
+        // TWO-PHASE: For Phase 2 (activation), sceneDto is null and we only have dependent resources
+        string packageName = sceneDto != null
+            ? $"Scene {sceneDto.DisplayName}"
+            : "Scene Activation (Dependent Resources)";
+
+        List<SceneDTO> scenes = sceneDto != null
+            ? new List<SceneDTO> { sceneDto }
+            : new List<SceneDTO>(); // Empty list for Phase 2
+
         Package package = new Package
         {
             PackageId = $"scene_package_{Guid.NewGuid().ToString("N")}",
             Metadata = new PackageMetadata
             {
-                Name = $"Scene {sceneDto.DisplayName}",
+                Name = packageName,
                 Author = "Scene System",
                 Version = "1.0.0"
             },
             Content = new PackageContent
             {
-                Scenes = new List<SceneDTO> { sceneDto },
+                Scenes = scenes,
                 Locations = dependentLocations,
                 Items = dependentItems
             }
@@ -1007,7 +1113,7 @@ public class SceneInstantiator
 
         // HIGHLANDER: NO hex placement logic here - ALL placement via LocationPlacementService
         // SceneInstantiator creates LocationDTO with NO hex coordinates
-        // PackageLoader.PlaceAllLocations() handles placement for ALL locations (authored + generated)
+        // PackageLoader.PlaceLocations() handles placement for ALL locations (authored + generated)
 
         // Build LocationDTO
         LocationDTO dto = new LocationDTO

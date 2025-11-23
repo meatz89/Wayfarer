@@ -113,17 +113,17 @@ public class Scene
 
     /// <summary>
     /// Scene state in lifecycle
-    /// Provisional: Created eagerly for perfect information, not yet finalized
-    /// Active: Available for player interaction
+    /// Deferred: Created but not yet activated, dependent resources not spawned
+    /// Active: Available for player interaction, dependent resources spawned
     /// Completed: All relevant Situations finished
     /// </summary>
-    public SceneState State { get; set; } = SceneState.Active;
+    public SceneState State { get; set; } = SceneState.Deferred;
 
     /// <summary>
-    /// Source Situation that spawned this provisional Scene (for cleanup tracking)
-    /// Set during provisional Scene creation in SceneInstantiator
-    /// When action selected, all provisional Scenes from same Situation are deleted (except finalized ones)
-    /// null for finalized Scenes or manually-authored Scenes
+    /// Source Situation that spawned this deferred Scene (for cleanup tracking)
+    /// Set during deferred Scene creation in SceneInstantiator
+    /// When action selected, all deferred Scenes from same Situation are deleted (except activated ones)
+    /// null for activated Scenes or manually-authored Scenes
     /// HIGHLANDER: Object reference ONLY, no SourceSituationId
     /// </summary>
     public Situation SourceSituation { get; set; }

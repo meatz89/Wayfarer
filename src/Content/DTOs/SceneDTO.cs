@@ -49,7 +49,7 @@ public class SceneDTO
 
     /// <summary>
     /// Current lifecycle state
-    /// Values: "Provisional", "Active", "Completed", "Expired"
+    /// Values: "Deferred", "Active", "Completed", "Expired"
     /// </summary>
     public string State { get; set; }
 

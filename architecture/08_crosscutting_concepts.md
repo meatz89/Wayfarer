@@ -57,6 +57,55 @@ Correct pattern uses only object references: NPC contains Location object proper
 - **Domain Clarity**: Entities reference entities, not string lookups
 - **Procedural Generation**: Categorical properties enable FindOrCreate pattern
 
+#### Package-Round Entity Tracking (HIGHLANDER Extension)
+
+**Principle**: One entity exists in exactly one package. Initialize ONLY entities from THIS package load round.
+
+Package-round tracking enforces HIGHLANDER principle during package loading and entity initialization. Each package load round creates a PackageLoadResult structure tracking all entities added during that specific load operation. Spatial initialization methods receive explicit entity lists as parameters instead of querying GameWorld collections. This architectural pattern ensures each entity initializes exactly once during its originating package round, making duplicate processing impossible by construction.
+
+**Correct Pattern (Package-Round Tracking)**:
+```csharp
+// Loading returns result tracking THIS round's entities
+PackageLoadResult result = LoadPackageContent(package);
+
+// Spatial initialization receives ONLY new entities
+PlaceLocations(result.LocationsAdded); // Process explicit list
+PlaceVenues(result.VenuesAdded);       // Not GameWorld queries
+```
+
+**Forbidden Pattern (GameWorld Iteration)**:
+```csharp
+// FORBIDDEN: Queries all entities in GameWorld
+private void PlaceAllLocations()
+{
+    List<Location> allLocations = _gameWorld.Locations.ToList(); // ❌ ALL entities
+    List<Location> newLocations = allLocations.Where(l => l.HexPosition == null); // ❌ State check
+}
+
+// FORBIDDEN: Re-processes existing entities every package load
+LoadPackageContent(package);
+PlaceAllLocations(); // ❌ Iterates ALL locations including already-placed ones
+```
+
+**Why Package-Round Tracking**:
+- **Performance**: O(m) where m = new entities vs O(n) where n = total GameWorld size
+- **Architectural Purity**: No entity state checks (`HexPosition == null`) needed for deduplication
+- **HIGHLANDER Enforcement**: One entity initialized exactly once, violation impossible
+- **Explicit Data Flow**: Entities flow through parameters, not hidden queries
+- **Package Isolation**: Each round processes only its own entities, no cross-contamination
+
+**Two Loading Scenarios**:
+
+**Static Loading (Startup)**: Multiple packages loaded, results accumulated, spatial initialization called ONCE with aggregated entity lists. Pattern aggregates via SelectMany collecting all entities across packages, then passes complete lists to initialization methods. Performance is O(n) where n equals total entities across all packages, executing spatial initialization single time.
+
+**Dynamic Loading (Runtime)**: Single package loaded, result used directly, spatial initialization called IMMEDIATELY with current round's entity lists. Pattern passes result lists directly to initialization methods without accumulation. Performance is O(m) where m equals new entities from this package only, constant-time relative to existing GameWorld size.
+
+**Architectural Enforcement**:
+
+Methods cannot re-process existing entities because they never receive them as parameters. Spatial initialization signature requires explicit `List<Location>` parameter, making GameWorld queries impossible. PackageLoadResult contains only entities from current round, guaranteeing isolation. Entity state checks forbidden - if entity received as parameter, it's guaranteed uninitialized. This makes correct behavior the ONLY possible behavior.
+
+**Related**: See ADR-015 (Package-Round Entity Tracking) and Section 6.2 (Runtime View - Package-Round Tracking Pattern) for complete implementation details.
+
 ---
 
 ### 8.2.2 Catalogue Pattern (Parse-Time Translation)
@@ -1125,16 +1174,20 @@ When principles conflict, resolve via three-tier priority:
 
 **See**: ADR-001 in section 9 (Infinite A-Story), QS-001 in section 10
 
-### 8.4.3 Scene Lifecycle States
+### 8.4.3 Scene Lifecycle States (Two-Phase Spawning)
 
-**States**: Provisional → Active → Completed/Expired
+**States**: Deferred → Active → Completed/Expired
 
-- **Provisional**: Created but player hasn't finalized (preview with rollback)
-- **Active**: Player committed, scenes progresses through situations
+- **Deferred**: Scene and Situations created, dependent resources NOT spawned yet (lightweight initialization)
+- **Active**: Dependent resources spawned (locations placed, npcs created), scene fully playable
 - **Completed**: All situations finished, rewards applied
 - **Expired**: ExpirationDays reached, scene removed
 
-**Transitions**: Spawn → Finalize → Progress → Complete/Expire
+**Two-Phase Pattern**:
+- **Phase 1 (Deferred)**: SceneInstantiator.CreateDeferredScene() generates Scene + Situations. NO dependent locations. PackageLoader creates entities with State=Deferred.
+- **Phase 2 (Active)**: LocationFacade.CheckAndActivateDeferredScenes() triggers when player enters location. SceneInstantiator.ActivateScene() generates dependent resources. PlaceLocations() places new locations via package-round tracking. State transitions to Active.
+
+**Transitions**: CreateDeferred → Activate (player enters location) → Progress → Complete/Expire
 
 **See**: Section 6.2 for detailed flow
 

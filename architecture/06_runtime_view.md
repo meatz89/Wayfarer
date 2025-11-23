@@ -61,15 +61,118 @@ SceneTemplate stored in GameWorld.SceneTemplates
 
 Catalogues apply contextual multipliers to base archetype values during generation. A base archetype might define a stat threshold of five and a coin cost of eight. When applied to a friendly character context, the system reduces difficulty by applying a sixty percent multiplier, lowering the stat threshold to three. Quality levels affect cost multipliers, with standard quality maintaining baseline pricing at one-to-one. Power dynamics between characters also influence these multipliers. The result is mechanically identical situations that feel appropriately scaled to their narrative context—negotiating with a friendly character is measurably easier than with a hostile one.
 
-### Phase 3: Spawn-Time Template Instantiation
+### Package-Round Entity Tracking Pattern
 
-**When**: Scene spawns (during gameplay via triggers or procedural generation)
-**Who**: SceneInstantiator service
-**What**: Convert immutable template into mutable Scene instance
+**Core Principle**: Initialize ONLY entities from THIS package load round, never re-process existing entities.
+
+**Implementation Pattern**:
+
+Package loading returns explicit tracking structure containing entities added during this specific load operation. Each load round creates a PackageLoadResult object tracking venues, locations, characters, items, routes, and scenes added during that package's processing. Spatial initialization methods receive explicit entity lists as parameters instead of querying GameWorld collections. This ensures each entity initializes exactly once during its originating package round.
+
+```
+LoadPackageContent(package)
+    ↓
+Create PackageLoadResult
+    ↓
+Parse entities from JSON:
+  - Location parsed → add to GameWorld.Locations
+  - ALSO add to result.LocationsAdded (track THIS round)
+    ↓
+Return PackageLoadResult
+    ↓
+Spatial initialization:
+  PlaceLocations(result.LocationsAdded)
+  - Receives ONLY new locations
+  - NO GameWorld queries
+  - NO entity state checks
+```
+
+**Two Loading Scenarios**:
+
+**Static Loading (Game Startup)**:
+- Load multiple packages (00_base.json, 01_locations.json, etc.)
+- Accumulate PackageLoadResult from each package
+- Aggregate all results: `allLocations = results.SelectMany(r => r.LocationsAdded)`
+- Initialize spatial systems ONCE with aggregated lists
+- Performance: O(n) where n = total entities across all packages
+
+**Dynamic Loading (Runtime Scene Activation)**:
+- Load single package (deferred scene resources)
+- Get PackageLoadResult for this package only
+- Initialize spatial systems IMMEDIATELY with result lists
+- Performance: O(m) where m = new entities from this package only
+
+**Why Package-Round Tracking Matters**:
+
+Without package-round tracking, spatial initialization methods would iterate entire GameWorld collections, re-scanning all existing entities every time ANY package loads. With package-round tracking, methods receive only new entities from the current load operation. This provides constant-time package loading (independent of GameWorld size) and prevents duplicate processing through architectural enforcement rather than entity state checks.
+
+**Architectural Enforcement**:
+
+The pattern makes violations impossible by construction. Methods cannot re-process existing entities because they never receive them as parameters. No entity state checks needed (`HexPosition == null`) because only uninitialized entities flow through the pipeline. Package isolation guaranteed because each PackageLoadResult contains only its own entities. HIGHLANDER principle enforced: one entity initialized exactly once during its originating package round.
+
+**Related**: See ADR-015 for complete architectural decision rationale and alternatives considered.
+
+### Phase 3a: Deferred Scene Creation (Two-Phase Spawning)
+
+**When**: Scene spawns (game startup for IsStarter scenes, runtime for reward scenes)
+**Who**: SceneInstantiator.CreateDeferredScene()
+**What**: Create Scene + Situations WITHOUT dependent resources
 
 ```
 Template (immutable, reusable)
-    ↓ SceneInstantiator.SpawnFromTemplate()
+    ↓ SceneInstantiator.CreateDeferredScene()
+    ↓
+Generate SceneDTO:
+  - State = "Deferred"
+  - Situations embedded (with null Location/NPC references)
+  - NO dependent locations or items yet
+    ↓
+Write package JSON to disk (Dynamic folder)
+    ↓
+PackageLoader loads package:
+  - Creates Scene entity with State=Deferred
+  - Creates embedded Situation entities
+  - NO location placement yet
+  - NO item creation yet
+    ↓
+Scene stored in GameWorld.Scenes (State=Deferred)
+```
+
+**Why Two-Phase Spawning**:
+- Scene creation separate from resource spawning (lazy loading)
+- Startup scenes created as Deferred (lightweight initialization)
+- Dependent resources only spawn when player enters location
+- Prevents duplicate location placement (HIGHLANDER principle)
+- Clear separation: Domain entities early, content entities late
+
+**Phase 3a Result**:
+- Scene entity exists in GameWorld.Scenes
+- Situations exist as embedded entities
+- State = Deferred
+- NO dependent locations placed yet
+- NO dependent items created yet
+- Awaiting activation trigger
+
+### Phase 3b: Scene Activation (Resource Spawning)
+
+**When**: Player enters location containing deferred scene
+**Who**: LocationFacade.CheckAndActivateDeferredScenes()
+**What**: Spawn dependent resources and transition State to Active
+
+```
+Player navigates to Location
+    ↓
+LocationFacade.MoveToSpot() succeeds
+    ↓
+Check for deferred scenes at location:
+  Query GameWorld.Scenes where State=Deferred
+  Filter by CurrentSituation.Location == targetLocation
+    ↓ Found deferred scene(s)
+SceneInstantiator.ActivateScene(scene, context)
+    ↓
+Generate dependent resource DTOs:
+  - DependentLocationSpec → LocationDTO
+  - DependentItemSpec → ItemDTO
     ↓
 Marker Resolution:
   "generated:private_room" → "location_guid_12345"
@@ -84,22 +187,25 @@ Entity Placeholder Replacement:
   {npcName} → "Elena"
   {locationName} → "The Silver Hart Inn"
     ↓
-Scene instance (mutable, specific)
-  - InstantiationState = Deferred
-  - Actions NOT created yet
-  - Stored in GameWorld.Scenes
+Write resource package JSON to disk
+    ↓
+PackageLoader loads resources:
+  - Creates Location entities
+  - Places locations on hex grid
+  - Creates Item entities
+    ↓
+Scene.State = Active (State transition: Deferred → Active)
 ```
 
-**Why Deferred Action Creation**:
-- Creating actions during spawn wastes work if scene never displayed
-- Spawn happens during route travel (scene stored for later)
-- Display happens when scene becomes active at location
-- Actions only needed at display time
-- Deferral: Spawn lightweight, display heavier but only when required
+**Why Activation on Location Entry**:
+- HIGHLANDER: Single entry point for scene activation
+- Player "enters" location → scenes activate (narrative trigger)
+- Dependent resources spawn exactly once (no idempotence checks needed)
+- Clear lifecycle: Deferred → Active → Completed/Expired
 
 **Marker Resolution Purpose**:
 - Templates can't hardcode resource IDs (reusable, need unique resources per spawn)
-- Logical markers ("generated:private_room") resolved to concrete GUIDs at spawn
+- Logical markers ("generated:private_room") resolved to concrete GUIDs at activation
 - First spawn: marker → GUID-1, second spawn: marker → GUID-2
 - True instance isolation, no resource sharing between scene instances
 

@@ -179,11 +179,21 @@ public static class SceneParser
             // SituationParser sets TemplateId but not Template object
             if (!string.IsNullOrEmpty(situation.TemplateId))
             {
+                // DEBUG: Log what we're searching for and what's available
+                Console.WriteLine($"[SceneParser] Looking for SituationTemplate '{situationDto.TemplateId}' in SceneTemplate '{template.Id}'");
+                Console.WriteLine($"[SceneParser] Available SituationTemplates: {string.Join(", ", template.SituationTemplates.Select(t => $"'{t.Id}'"))}");
+
                 situation.Template = template.SituationTemplates.FirstOrDefault(t => t.Id == situationDto.TemplateId);
+
+                // FAIL-FAST: Throw immediately instead of continuing with null
+                // Violating "LET IT CRASH" and "PLAYABILITY OVER COMPILATION" is forbidden
                 if (situation.Template == null)
                 {
-                    Console.WriteLine($"[SceneParser] WARNING: Situation '{situation.Name}' references TemplateId '{situationDto.TemplateId}' " +
-                        $"but no such template found in SceneTemplate '{template.Id}'");
+                    throw new InvalidDataException(
+                        $"[SceneParser] CRITICAL: Situation '{situation.Name}' references TemplateId '{situationDto.TemplateId}' " +
+                        $"but no such template found in SceneTemplate '{template.Id}'. " +
+                        $"Available templates: {string.Join(", ", template.SituationTemplates.Select(t => $"'{t.Id}'"))}. " +
+                        $"This indicates Parser-JSON-Entity Triangle violation: JSON contains misaligned TemplateId.");
                 }
             }
 
