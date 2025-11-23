@@ -67,6 +67,42 @@ From PLAYTEST_GUIDE.md: "Test the FEELING, Not the Mechanics"
 
 ---
 
+### Phase 3: Holistic Playability Fixes ✅ COMPLETE
+**Duration:** ~30 minutes
+**Status:** All critical playability issues fixed
+
+**CRITICAL FIX: Stats Invisible in UI**
+- **Problem:** Stats existed in domain but were never displayed to player
+- **Impact:** Broke core design pillar - players couldn't see Insight/Rapport/Authority/Diplomacy/Cunning
+- **Root Cause:** PlayerStatsDisplay.razor component existed but was never integrated into GameScreen
+- **Solution:** Added stats display to GameScreen.razor resources-bar following existing pattern
+
+**Changes Implemented:**
+1. **GameScreen.razor.cs** - Added stat properties (Insight, Rapport, Authority, Diplomacy, Cunning)
+2. **GameScreen.razor.cs** - Updated RefreshResourceDisplay() to populate stat values from Player
+3. **GameScreen.razor** - Added stats-group section to resources-bar with all 5 stats
+4. **GameScreen.razor** - Used Icon component with stat-specific icons (brain, hearts, crown, shaking-hands, drama-masks)
+5. **SceneContent.razor** - Added scene category tags showing "[Tutorial]" for MainStory, "[Service]" for Service
+
+**Verification:**
+- ✅ Stats display correctly in header (all 5 stats visible)
+- ✅ Stats update correctly (Cunning 0→1 after "Seek advantageous deal" choice)
+- ✅ Resources update correctly (Coins 8→3 after 5 coin cost)
+- ✅ Category tag displays ("[Tutorial]" before "Secure Lodging")
+- ✅ Perfect information preserved (all costs visible upfront)
+
+**Files Modified:**
+- src/Pages/GameScreen.razor.cs (added stat properties, updated refresh logic)
+- src/Pages/GameScreen.razor (added stats-group display section)
+- src/Pages/Components/SceneContent.razor (added category tags to scene titles)
+
+**Commit:** 71c286f2 - "Fix critical playability issues: Add stats display and scene type tags"
+**Branch:** playtest-1 (pushed to origin)
+
+**Impact:** Core design pillar restored. Players can now see stats and make informed specialization decisions.
+
+---
+
 ## Files Created/Modified
 
 ### Documentation
@@ -79,6 +115,9 @@ From PLAYTEST_GUIDE.md: "Test the FEELING, Not the Mechanics"
 
 ### Code Changes
 - ✅ SceneArchetypeCatalog.cs:114,127,140,153 - Reduced costs from 10 → 5 coins
+- ✅ GameScreen.razor.cs - Added stat properties and refresh logic
+- ✅ GameScreen.razor - Added stats-group display section
+- ✅ SceneContent.razor - Added scene category tags
 
 ### Screenshots Captured
 - phase2_start_state.png
@@ -86,6 +125,9 @@ From PLAYTEST_GUIDE.md: "Test the FEELING, Not the Mechanics"
 - morning_reflection_stat_gating.png
 - softlock_all_choices_locked.png (demonstrates bug before fix)
 - restart_stat_choices_available.png (demonstrates fix working)
+- playability_fix_initial_state.png (stats display in header)
+- tutorial_scene_with_category_tag.png (category tag visible)
+- after_cunning_choice.png (stat update verification: Cunning 0→1)
 
 ---
 
@@ -142,14 +184,14 @@ From PLAYTEST_GUIDE.md: "Test the FEELING, Not the Mechanics"
 3. **Opportunity Cost Visible:** Player sees "the life they could have had"
 
 ### Design Issues Discovered
-1. **Tutorial Resource Trap:** First scene can drain coins needed for stat-building
-2. **No Stat Display:** Current UI doesn't show stat values prominently
-3. **Scene Ordering Ambiguity:** Two "Secure Lodging" scenes look identical, player doesn't know which has stats
+1. ✅ **Tutorial Resource Trap:** FIXED - Duplicate scene bug was root cause, resolved by disabling old tutorials
+2. ✅ **No Stat Display:** FIXED - Added stats display to GameScreen header (Phase 3)
+3. ✅ **Scene Ordering Ambiguity:** FIXED - Added category tags to differentiate scene types (Phase 3)
 
-### Recommendations (Preliminary)
-1. **Fix:** Tutorial should guide player to stat-building scene first, or make first scene free
-2. **Enhancement:** Add persistent stat display in UI header
-3. **Clarity:** Differentiate scene types visually (e.g., "Secure Lodging [Negotiation]" vs "Secure Lodging [Character Building]")
+### Fixes Implemented
+1. ✅ **Resource Trap:** Only one "Secure Lodging" scene spawns (A1 tutorial), resource management intentional
+2. ✅ **Stat Display:** Persistent stat display in UI header with icons and values
+3. ✅ **Scene Clarity:** Category tags differentiate scene types ("[Tutorial]", "[Service]")
 
 ---
 
@@ -172,7 +214,12 @@ From PLAYTEST_GUIDE.md: "Test the FEELING, Not the Mechanics"
 
 ---
 
-**Session Duration:** ~2.5 hours
-**Completion Status:** Phase 1 complete (AI automation), Phase 2 ready for human execution
+**Session Duration:** ~3 hours total
+**Completion Status:**
+- Phase 1: ✅ COMPLETE - Automated smoke tests (all 5 tests passed)
+- Phase 2: ⏸️ REQUIRES HUMAN - Emotional arc validation (3-4 hours)
+- Phase 3: ✅ COMPLETE - Holistic playability fixes (all critical issues resolved)
+
 **Ready for:** Human playtester to execute Phase 2 emotional arc validation (3-4 hours)
-**Commit Status:** Ready to commit all documentation and handoff materials
+**Commit Status:** All changes committed and pushed to origin/playtest-1
+**Latest Commit:** 71c286f2 - "Fix critical playability issues: Add stats display and scene type tags"
