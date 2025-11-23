@@ -15,7 +15,7 @@
         "sceneArchetypeId": "inn_lodging",
         "presentationMode": "Modal",
         "tier": 0,
-        "isStarter": true,
+        "isStarter": false,
         "baseLocationFilter": {
           "placementType": "Location",
           "capabilities": ["Commercial", "Restful"]
@@ -31,7 +31,7 @@
         "sceneArchetypeId": "consequence_reflection",
         "presentationMode": "Modal",
         "tier": 0,
-        "isStarter": true,
+        "isStarter": false,
         "baseLocationFilter": {
           "placementType": "Location",
           "privacyLevels": ["Public"],

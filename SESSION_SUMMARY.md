@@ -13,10 +13,18 @@
 4. ✅ Stat-Gated Visual Indicators - Clear "UNAVAILABLE" messages with requirements
 5. ✅ Soft-Lock Prevention - Verified after bug fix
 
-**Critical Bug Fixed:**
-- **Issue:** Tutorial soft-lock - all stat-building choices cost 5 coins but player had only 3
-- **Fix:** Changed choice costs from 10 → 5 in SceneArchetypeCatalog.cs:114,127,140,153
-- **Commit:** Pushed to origin/playtest-1
+**Critical Bugs Fixed:**
+1. **Tutorial Soft-Lock:**
+   - **Issue:** All stat-building choices cost 5 coins but player had only 3
+   - **Fix:** Changed choice costs from 10 → 5 in SceneArchetypeCatalog.cs:114,127,140,153
+   - **Commit:** Pushed to origin/playtest-1
+
+2. **Duplicate Scene Architecture Bug:**
+   - **Issue:** Two "Secure Lodging" scenes spawned at game start (old tutorial + new A-story)
+   - **Root Cause:** Both `tutorial_secure_lodging` and `a1_secure_lodging` marked as `isStarter: true`
+   - **Fix:** Changed `isStarter: true` to `false` for old tutorial scenes in 21_tutorial_scenes.json:18,34
+   - **Verification:** Server logs show "Found 1 starter templates" (down from 3), only one scene appears
+   - **Commit:** Ready to commit
 
 **Deliverable:** PHASE_1_TEST_REPORT.md
 
@@ -32,13 +40,13 @@
 - Build identity beginning: Investigator persona (Cunning + Insight focus)
 
 **Key Discoveries:**
-1. **Tutorial Scene Structure:** "Secure Lodging" appears twice:
-   - First: Payment scene (wastes coins, no stats)
-   - Second: Stat-building scene (4 stat choices, 5 coins each)
+1. **A-Story Tutorial Architecture:** Single "Secure Lodging" scene uses `mainStorySequence: 1` to trigger special stat-granting choices in SceneArchetypeCatalog
 
 2. **Resource Management Critical:** Must preserve starting 8 coins for stat-building scene
 
 3. **Stat Gating Observed:** "Morning Reflection" scene had choice locked behind Authority 4+ OR Insight 4+, demonstrating opportunity cost
+
+4. **Old Tutorial Disabled:** Fixed duplicate scene bug by setting `isStarter: false` for legacy tutorial scenes
 
 **Deliverables:**
 - PHASE_2_INVESTIGATOR_LOG.md (detailed playthrough log)

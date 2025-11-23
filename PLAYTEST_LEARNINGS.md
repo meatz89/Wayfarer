@@ -15,34 +15,38 @@
 
 **Current State:** Bug is PARTIALLY fixed - choices cost 5 (affordable), but resource management is CRITICAL. Player must NOT spend coins before reaching stat-building scene.
 
-### 2. Scene Structure Discovery
-**Finding:** "Secure Lodging" appears TWICE in tutorial:
-- First instance: Payment/negotiation scene (costs coins but gives NO stats)
-- Second instance: Stat-granting scene (4 choices for Rapport/Authority/Cunning/Diplomacy)
+### 2. Duplicate Scene Architecture Bug (FIXED)
+**Issue:** "Secure Lodging" appeared TWICE at game start due to both old tutorial and new A-story tutorial having `isStarter: true`.
 
-**Implication:** Player must know to SKIP or DECLINE first scene to preserve coins for second scene.
+**Root Cause:** Both `tutorial_secure_lodging` (21_tutorial_scenes.json) and `a1_secure_lodging` (22_a_story_tutorial.json) were marked as starter scenes, causing duplicate spawning.
+
+**Fix Applied:** Changed `isStarter: true` to `isStarter: false` for old tutorial scenes in 21_tutorial_scenes.json (lines 18, 34).
+
+**Verification:** Server logs now show "Found 1 starter templates" (down from 3). Only one "Secure Lodging" scene appears at game start.
+
+**Technical Details:** The A-story tutorial uses `mainStorySequence: 1` to trigger special stat-granting logic in SceneArchetypeCatalog.cs. Old tutorial scenes are now disabled to prevent conflicts.
 
 ---
 
 ## Gameplay Flow Discovery
 
-### Tutorial Scene Sequence
+### Tutorial Scene Sequence (After Architecture Fix)
 1. **Game Start** → Common Room (8 coins, 0 all stats)
-2. **Look Around** → Spawns 2x "Secure Lodging" scenes
-3. **First "Secure Lodging"** → Payment scene (DO NOT PAY - wastes coins)
-4. **Second "Secure Lodging"** → Stat-building scene (4 choices, all cost 5 coins each)
+2. **Look Around** → Spawns ONE "Secure Lodging" scene (A-story tutorial)
+3. **"Secure Lodging"** → Multi-situation scene with stat-building choices
 
 ### Stat-Building Scene Structure
-**Location:** Second "Secure Lodging" scene
-**Choices (all cost 5 coins):**
+**A-Story Tutorial:** The "Secure Lodging" scene uses `mainStorySequence: 1` to trigger special stat-granting choices.
+
+**Stat Choices (all cost 5 coins):**
 - Chat warmly → +1 Rapport
 - Assert your need → +1 Authority
 - Seek advantageous deal → +1 Cunning ⭐ (Investigator priority)
 - Negotiate a fair → +1 Diplomacy
 
 **Strategy for Investigator Build:**
-1. Preserve all 8 starting coins
-2. Go directly to second "Secure Lodging"
+1. Preserve starting coins for stat investment
+2. Click "Secure Lodging" when it appears
 3. Select "Seek advantageous deal" (+1 Cunning)
 4. Result: 3 coins remaining, Cunning = 1
 
@@ -155,18 +159,18 @@ new Promise(resolve => {
 1. Kill server + restart (see commands above)
 2. Navigate to http://localhost:8100
 3. Look Around
-4. Click SECOND "Secure Lodging"
+4. Click "Secure Lodging" (only one will appear)
 5. Select "Seek advantageous deal" (Cunning)
 6. Continue gameplay
 
 ### To Start Diplomat Build (Phase 3)
 1. Fresh server restart
 2. Look Around
-3. Click SECOND "Secure Lodging"
+3. Click "Secure Lodging" (only one will appear)
 4. Select "Chat warmly" (Rapport) instead
 5. Compare experience to Investigator
 
 ---
 
-**Last Updated:** 2025-11-23 09:42 UTC
-**Current Phase:** Phase 2 (Investigator Build) - 1 stat point acquired, continuing gameplay
+**Last Updated:** 2025-11-23 09:52 UTC
+**Current Phase:** Phase 2 (Investigator Build) - Architecture fix verified, ready for continued gameplay
