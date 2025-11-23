@@ -51,6 +51,13 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
     public int Focus { get; set; }
     public int MaxFocus { get; set; }
 
+    // Stats Display - Made public for child components to access for Perfect Information principle
+    public int Insight { get; set; }
+    public int Rapport { get; set; }
+    public int Authority { get; set; }
+    public int Diplomacy { get; set; }
+    public int Cunning { get; set; }
+
     // Time Display - Made public for child components to access for Perfect Information principle
     public string CurrentTime { get; set; }
     public string TimePeriod { get; set; }
@@ -130,6 +137,13 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
         Health = player.Health;
         Focus = player.Focus;
         MaxFocus = player.MaxFocus;
+
+        // Stats
+        Insight = player.Insight;
+        Rapport = player.Rapport;
+        Authority = player.Authority;
+        Diplomacy = player.Diplomacy;
+        Cunning = player.Cunning;
     }
 
     protected async Task RefreshTimeDisplay()
