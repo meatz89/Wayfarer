@@ -48,6 +48,7 @@
         "description": "You've been walking since dawn. Your legs ache, your coin purse feels light, and the sun is setting. The warm glow of The Brass Bell Inn beckons from across the square.",
         "capabilities": [
           "Crossroads",
+          "Commercial",
           "Outdoor"
         ],
         "privacy": "Public",

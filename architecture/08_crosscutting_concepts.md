@@ -672,6 +672,96 @@ Location Persists Forever (no cleanup)
 - Player rests → Resource restoration based on room properties
 - **Location persists forever** → Never deleted, becomes permanent world feature
 
+#### Scene-Specific Dependent Location Binding (LocationTags System)
+
+**Core Principle**: Situations must reference dependent locations created by their parent scene WITHOUT using entity instance IDs. LocationTags provides scene-specific binding through marker transformation.
+
+**The Problem**: Scene creates private room, Situation 2 needs to be placed AT that private room. Cannot use LocationId (violates HIGHLANDER - no entity instance IDs). Cannot use generic categorical filter (might match wrong location from different scene). Need scene-specific binding through object references.
+
+**Three-Phase Marker Transformation Pattern**:
+
+**Phase 1: Authoring (Marker Declaration)**
+- Situation template declares LocationTags with DEPENDENT_LOCATION marker prefix
+- Marker format specifies which dependent location to bind: DEPENDENT_LOCATION:private_room references dependent location with templateId private_room
+- Marker is placeholder resolved at scene instantiation time
+- Authoring uses generic markers, not scene-specific values
+
+**Phase 2: Scene Instantiation (Marker Transformation)**
+- SceneInstantiator transforms marker to scene-specific tag
+- Transformation adds unique scene identifier prefix: DEPENDENT_LOCATION:private_room becomes sceneId_private_room
+- Scene creates dependent location with matching DomainTags containing sceneId_private_room
+- Transformation binds situation to specific scene instance dependent location
+- Multiple scenes with same template create different bindings through unique scene identifiers
+
+**Phase 3: Entity Resolution (Tag Matching)**
+- EntityResolver.FindMatchingLocation receives PlacementFilter with transformed LocationTags
+- EntityResolver checks filter LocationTags against location DomainTags using ALL matching (location must have ALL specified tags)
+- Finds dependent location created by specific scene through scene-specific tag
+- Returns object reference to matched location
+- Situation receives bound location through categorical resolution without entity IDs
+
+**Why Tag-Based Not ID-Based**:
+- Respects HIGHLANDER (no entity instance IDs on domain objects)
+- Enables categorical resolution through EntityResolver standard pipeline
+- Scene-specific binding through transformation maintains architectural consistency
+- Object references flow through system without string ID lookups
+
+**Critical EntityResolver Responsibility**:
+EntityResolver.LocationMatchesFilter MUST check LocationTags against DomainTags. Missing this check breaks dependent location resolution entirely. Situations fail to find scene-created locations, causing resolution failures or incorrect generic location matching.
+
+**DomainTags vs LocationTags Distinction**:
+- Location.DomainTags: Tags assigned TO location (what tags does this location have)
+- PlacementFilter.LocationTags: Tags REQUIRED by filter (what tags must location have)
+- Matching uses ALL semantics: Location must possess ALL tags specified in filter
+- Analogy: DomainTags are labels ON object, LocationTags are requirements FOR object
+
+**Rationale**: Tag-based binding maintains architectural purity (no IDs), enables scene-specific resolution through transformation, respects categorical resolution pattern throughout system, preserves object reference flow without string lookups.
+
+---
+
+### 8.2.6 Location Accessibility (Query-Based Pattern)
+
+**Core Principle**: Location accessibility determined through runtime queries, not stored state. Situations grant access to their OWN location through presence, not through unlocking OTHER locations.
+
+**The Architectural Model**: Active situations make locations accessible by being placed AT those locations. Situation at Location X with GrantsLocationAccess true means Location X is accessible while that situation is active. This is query-based accessibility, not state mutation.
+
+**GrantsLocationAccess Pattern**:
+
+**Situation Placement Grants Access**:
+- SituationTemplate has GrantsLocationAccess property defaulting to true
+- Situation placed AT specific location through PlacementFilter resolution
+- LocationAccessibilityService queries active scenes and checks current situation
+- If current situation at target location has GrantsLocationAccess true, location is accessible
+- Accessibility determined by situation presence, not stored unlock state
+
+**Tutorial Example Flow**:
+- Scene creates dependent private room location through DependentLocationSpec
+- Situation 1 placed at Common Room (Elena location) through base scene filter
+- Situation 2 placed AT private room through LocationTags DEPENDENT_LOCATION:private_room marker
+- When Situation 2 becomes current, private room becomes accessible (Situation 2 is AT private room)
+- Situation 2 grants access to its OWN location, not unlocking from elsewhere
+
+**Why Situations Unlock Their Own Location**:
+- Architectural simplicity: Situation presence at location determines accessibility
+- Query-based pattern: No state mutation, accessibility derived from active situations
+- Object reference integrity: Situation has direct Location property, checks situation location equals target location
+- Avoids state synchronization: No unlock lists to maintain, no state clearing needed
+
+**InitialState Property (Vestigial)**:
+Location has InitialState property set to Locked for dependent locations but this property is NEVER CHECKED by any system. Property exists in domain model but has no behavioral impact. Actual accessibility determined entirely by GrantsLocationAccess query pattern. InitialState is vestigial remnant from deleted state-based unlocking architecture.
+
+**Why Query-Based Not State-Based**:
+- **No state mutation**: Accessibility derived from queries, never stored
+- **Situation-driven**: Active situations control accessibility through placement
+- **Temporal coupling**: Location accessible only while situation active
+- **HIGHLANDER compliance**: No duplicate accessibility state, single query determines truth
+- **Fail-fast validation**: LocationPlayabilityValidator catches inaccessible content at parse time
+
+**Critical LocationAccessibilityService Query**:
+Service queries all active scenes, finds current situations, checks if current situation located at target location AND has GrantsLocationAccess true. Returns boolean accessibility without consulting any stored state on Location entity. Query executes on every accessibility check, ensuring real-time accuracy based on active situations.
+
+**Rationale**: Query-based accessibility eliminates state synchronization complexity, respects HIGHLANDER pattern (single query source of truth), enables temporal accessibility (situation presence controls access), maintains architectural consistency with categorical resolution throughout system.
+
 #### Bootstrap Gradient
 
 **Early Game (Act 1)**: 95% authored, 5% generated

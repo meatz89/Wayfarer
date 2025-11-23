@@ -80,9 +80,10 @@ public class TimeFacade
         TimeBlocks result = _timeProgressionManager.AdvanceSegments(segments);
         int newSegment = _timeManager.TimeModel.CurrentState.TotalSegmentsElapsed;
 
-        // Check for deadline failures when crossing day boundary
+        // Synchronize GameWorld.CurrentDay with TimeManager (HIGHLANDER: single source of truth)
         if (_gameWorld.CurrentDay != _timeManager.TimeModel.CurrentState.CurrentDay)
         {
+            _gameWorld.CurrentDay = _timeManager.TimeModel.CurrentState.CurrentDay;
             CheckAndProcessDeadlineFailures(newSegment);
         }
 
