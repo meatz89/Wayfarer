@@ -1,0 +1,146 @@
+@* Scene Node - Recursive component for displaying scene spawn events *@
+
+<div class="trace-node trace-node-scene @GetCategoryClass() @(IsExpanded ? "trace-node-expanded" : "trace-node-collapsed") @(IsHighlighted ? "trace-node-highlighted" : "")"
+     @onclick="HandleClick"
+     @onclick:stopPropagation="true">
+
+    <div class="trace-node-header">
+        <span class="trace-badge trace-badge-scene">SCENE</span>
+        <span>@Node.DisplayName</span>
+        @if (Node.IsProcedurallyGenerated)
+        {
+            <span style="color: #ce9178; font-size: 11px;">(Procedural)</span>
+        }
+    </div>
+
+    <div class="trace-node-metadata">
+        <div>
+            <span class="trace-property">Category:</span>
+            <span class="trace-value">@Node.Category</span>
+            @if (Node.MainStorySequence.HasValue)
+            {
+                <span> | A@Node.MainStorySequence</span>
+            }
+            | <span class="trace-value">@Node.CurrentState</span>
+        </div>
+
+        <div>
+            <span class="trace-property">Spawned:</span>
+            <span class="trace-timestamp">Day @Node.GameDay, @Node.GameTimeBlock</span>
+            @if (Node.SpawnTrigger != SpawnTriggerType.Initial)
+            {
+                <span> via <span class="trace-value">@Node.SpawnTrigger</span></span>
+            }
+        </div>
+
+        @if (Node.PlacedLocation != null)
+        {
+            <div>
+                <span class="trace-property">Location:</span>
+                <span class="trace-value">@Node.PlacedLocation.Name</span>
+                (@Node.PlacedLocation.Privacy, @Node.PlacedLocation.Safety)
+            </div>
+        }
+
+        <div>
+            <span class="trace-property">Template:</span>
+            <span class="trace-value">@Node.SceneTemplateId</span>
+            | <span class="trace-count">@Node.SituationCount</span> situation(s)
+        </div>
+
+        @if (!string.IsNullOrEmpty(Node.ParentChoiceNodeId))
+        {
+            <div>
+                <span class="trace-property">↳ Spawned by choice:</span>
+                <span class="trace-link" @onclick="() => JumpToParent(Node.ParentChoiceNodeId)" @onclick:stopPropagation="true">
+                    [View Parent]
+                </span>
+            </div>
+        }
+
+        @if (Node.SpawnedSceneNodeIds != null && Node.SpawnedSceneNodeIds.Count > 0)
+        {
+            <div>
+                <span class="trace-property">↳ Spawned:</span>
+                <span class="trace-count">@Node.SpawnedSceneNodeIds.Count</span> scene(s)
+            </div>
+        }
+
+        @if (Node.ActivatedTimestamp.HasValue)
+        {
+            <div>
+                <span class="trace-property">Activated:</span>
+                <span class="trace-timestamp">Day @Node.ActivatedGameDay</span>
+            </div>
+        }
+
+        @if (Node.CompletedTimestamp.HasValue)
+        {
+            <div>
+                <span class="trace-property">Completed:</span>
+                <span class="trace-timestamp">Day @Node.CompletedGameDay</span>
+            </div>
+        }
+    </div>
+
+    @if (IsExpanded && Node.Situations != null && Node.Situations.Count > 0)
+    {
+        <div class="trace-node-children">
+            @foreach (SituationSpawnNode situation in Node.Situations)
+            {
+                <SituationNode Node="@situation"
+                               Tracer="@Tracer"
+                               OnNodeSelected="@OnNodeSelected"
+                               OnToggleExpand="@OnToggleExpand"
+                               IsExpanded="@IsChildExpanded(situation.NodeId)"
+                               IsHighlighted="@IsChildHighlighted(situation.NodeId)"
+                               ExpandedNodeIds="@ExpandedNodeIds"
+                               HighlightedNodeIds="@HighlightedNodeIds" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public SceneSpawnNode Node { get; set; }
+    [Parameter] public ProceduralContentTracer Tracer { get; set; }
+    [Parameter] public Action<string> OnNodeSelected { get; set; }
+    [Parameter] public Action<string> OnToggleExpand { get; set; }
+    [Parameter] public bool IsExpanded { get; set; }
+    [Parameter] public bool IsHighlighted { get; set; }
+    [Parameter] public HashSet<string> ExpandedNodeIds { get; set; }
+    [Parameter] public HashSet<string> HighlightedNodeIds { get; set; }
+
+    private void HandleClick()
+    {
+        OnToggleExpand?.Invoke(Node.NodeId);
+        OnNodeSelected?.Invoke(Node.NodeId);
+    }
+
+    private string GetCategoryClass()
+    {
+        return Node.Category switch
+        {
+            StoryCategory.MainStory => "scene-main-story",
+            StoryCategory.SideStory => "scene-side-story",
+            StoryCategory.Service => "scene-service",
+            _ => ""
+        };
+    }
+
+    private void JumpToParent(string parentNodeId)
+    {
+        OnNodeSelected?.Invoke(parentNodeId);
+        // TODO: Scroll to parent node
+    }
+
+    private bool IsChildExpanded(string childNodeId)
+    {
+        return ExpandedNodeIds?.Contains(childNodeId) ?? false;
+    }
+
+    private bool IsChildHighlighted(string childNodeId)
+    {
+        return HighlightedNodeIds?.Contains(childNodeId) ?? false;
+    }
+}

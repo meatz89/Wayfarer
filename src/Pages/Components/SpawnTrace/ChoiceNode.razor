@@ -1,0 +1,205 @@
+@* Choice Node - Leaf component for displaying choice execution events *@
+
+<div class="trace-node trace-node-choice @(IsHighlighted ? "trace-node-highlighted" : "")"
+     @onclick="HandleClick"
+     @onclick:stopPropagation="true">
+
+    <div class="trace-node-header">
+        <span class="trace-badge trace-badge-choice">CHOICE</span>
+        <span>@Node.ActionText</span>
+    </div>
+
+    <div class="trace-node-metadata">
+        <div>
+            <span class="trace-property">Type:</span>
+            <span class="trace-value">@Node.PathType</span>
+            | <span class="trace-value">@Node.ActionType</span>
+        </div>
+
+        <div>
+            <span class="trace-property">Executed:</span>
+            <span class="trace-timestamp">@Node.ExecutionTimestamp.ToString("HH:mm:ss")</span>
+        </div>
+
+        @if (Node.RequirementSnapshot != null && HasRequirements(Node.RequirementSnapshot))
+        {
+            <div>
+                <span class="trace-property">Requirements:</span>
+                <span class="trace-value">@FormatRequirements(Node.RequirementSnapshot)</span>
+                | Player met: @(Node.PlayerMetRequirements ? "YES" : "NO")
+            </div>
+        }
+
+        @if (Node.CostSnapshot != null && HasCost(Node.CostSnapshot))
+        {
+            <div>
+                <span class="trace-property">Cost:</span>
+                <span class="trace-value">@FormatCost(Node.CostSnapshot)</span>
+            </div>
+        }
+
+        @if (Node.ChallengeSucceeded.HasValue)
+        {
+            <div>
+                <span class="trace-property">Challenge:</span>
+                <span class="trace-value" style="@GetChallengeColor(Node.ChallengeSucceeded.Value)">
+                    @(Node.ChallengeSucceeded.Value ? "SUCCESS" : "FAILED")
+                </span>
+                @if (!string.IsNullOrEmpty(Node.ChallengeOutcome))
+                {
+                    <span> - @Node.ChallengeOutcome</span>
+                }
+            </div>
+        }
+
+        @if (Node.RewardSnapshot != null && HasRewards(Node.RewardSnapshot))
+        {
+            <div>
+                <span class="trace-property">Rewards:</span>
+                <span class="trace-value">@FormatRewards(Node.RewardSnapshot)</span>
+            </div>
+        }
+
+        @if (Node.OnSuccessRewardSnapshot != null && HasRewards(Node.OnSuccessRewardSnapshot))
+        {
+            <div>
+                <span class="trace-property">Success Rewards:</span>
+                <span class="trace-value">@FormatRewards(Node.OnSuccessRewardSnapshot)</span>
+            </div>
+        }
+
+        @if (Node.OnFailureRewardSnapshot != null && HasRewards(Node.OnFailureRewardSnapshot))
+        {
+            <div>
+                <span class="trace-property">Failure Rewards:</span>
+                <span class="trace-value">@FormatRewards(Node.OnFailureRewardSnapshot)</span>
+            </div>
+        }
+
+        @if (Node.SpawnedSceneNodeIds != null && Node.SpawnedSceneNodeIds.Count > 0)
+        {
+            <div>
+                <span class="trace-property">↳ Spawned:</span>
+                <span class="trace-count">@Node.SpawnedSceneNodeIds.Count</span> scene(s)
+            </div>
+        }
+
+        @if (Node.SpawnedSituationNodeIds != null && Node.SpawnedSituationNodeIds.Count > 0)
+        {
+            <div>
+                <span class="trace-property">↳ Spawned:</span>
+                <span class="trace-count">@Node.SpawnedSituationNodeIds.Count</span> situation(s)
+            </div>
+        }
+
+        @if (Node.DestinationLocation != null)
+        {
+            <div>
+                <span class="trace-property">Navigation:</span>
+                <span class="trace-value">→ @Node.DestinationLocation.Name</span>
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Node.ChoiceId))
+        {
+            <div>
+                <span class="trace-property">Template:</span>
+                <span class="trace-value">@Node.ChoiceId</span>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public ChoiceExecutionNode Node { get; set; }
+    [Parameter] public ProceduralContentTracer Tracer { get; set; }
+    [Parameter] public Action<string> OnNodeSelected { get; set; }
+    [Parameter] public bool IsHighlighted { get; set; }
+
+    private void HandleClick()
+    {
+        OnNodeSelected?.Invoke(Node.NodeId);
+    }
+
+    private bool HasRequirements(RequirementSnapshot req)
+    {
+        return req.RequiredRapport.HasValue ||
+               req.RequiredInsight.HasValue ||
+               req.RequiredAuthority.HasValue ||
+               req.RequiredDiplomacy.HasValue ||
+               req.RequiredCunning.HasValue ||
+               req.RequiredCoins.HasValue ||
+               (req.RequiredStates != null && req.RequiredStates.Count > 0);
+    }
+
+    private string FormatRequirements(RequirementSnapshot req)
+    {
+        List<string> parts = new List<string>();
+
+        if (req.RequiredRapport.HasValue) parts.Add($"Rapport {req.RequiredRapport}");
+        if (req.RequiredInsight.HasValue) parts.Add($"Insight {req.RequiredInsight}");
+        if (req.RequiredAuthority.HasValue) parts.Add($"Authority {req.RequiredAuthority}");
+        if (req.RequiredDiplomacy.HasValue) parts.Add($"Diplomacy {req.RequiredDiplomacy}");
+        if (req.RequiredCunning.HasValue) parts.Add($"Cunning {req.RequiredCunning}");
+        if (req.RequiredCoins.HasValue) parts.Add($"Coins {req.RequiredCoins}");
+
+        return parts.Count > 0 ? string.Join(", ", parts) : "None";
+    }
+
+    private bool HasCost(CostSnapshot cost)
+    {
+        return cost.CoinsSpent > 0 ||
+               cost.StaminaSpent > 0 ||
+               cost.FocusSpent > 0 ||
+               cost.HealthSpent > 0 ||
+               cost.ResolveSpent > 0;
+    }
+
+    private string FormatCost(CostSnapshot cost)
+    {
+        List<string> parts = new List<string>();
+
+        if (cost.CoinsSpent > 0) parts.Add($"{cost.CoinsSpent} coins");
+        if (cost.StaminaSpent > 0) parts.Add($"{cost.StaminaSpent} stamina");
+        if (cost.FocusSpent > 0) parts.Add($"{cost.FocusSpent} focus");
+        if (cost.HealthSpent > 0) parts.Add($"{cost.HealthSpent} health");
+        if (cost.ResolveSpent > 0) parts.Add($"{cost.ResolveSpent} resolve");
+
+        return parts.Count > 0 ? string.Join(", ", parts) : "Free";
+    }
+
+    private bool HasRewards(RewardSnapshot reward)
+    {
+        return reward.CoinsGained != 0 ||
+               reward.InsightGained != 0 ||
+               reward.RapportGained != 0 ||
+               reward.AuthorityGained != 0 ||
+               reward.DiplomacyGained != 0 ||
+               reward.CunningGained != 0 ||
+               (reward.BondChanges != null && reward.BondChanges.Count > 0);
+    }
+
+    private string FormatRewards(RewardSnapshot reward)
+    {
+        List<string> parts = new List<string>();
+
+        if (reward.CoinsGained != 0) parts.Add($"{reward.CoinsGained:+#;-#;0} coins");
+        if (reward.InsightGained != 0) parts.Add($"{reward.InsightGained:+#;-#;0} Insight");
+        if (reward.RapportGained != 0) parts.Add($"{reward.RapportGained:+#;-#;0} Rapport");
+        if (reward.AuthorityGained != 0) parts.Add($"{reward.AuthorityGained:+#;-#;0} Authority");
+        if (reward.DiplomacyGained != 0) parts.Add($"{reward.DiplomacyGained:+#;-#;0} Diplomacy");
+        if (reward.CunningGained != 0) parts.Add($"{reward.CunningGained:+#;-#;0} Cunning");
+
+        if (reward.BondChanges != null && reward.BondChanges.Count > 0)
+        {
+            parts.Add($"Bonds: {string.Join(", ", reward.BondChanges)}");
+        }
+
+        return parts.Count > 0 ? string.Join(", ", parts) : "None";
+    }
+
+    private string GetChallengeColor(bool succeeded)
+    {
+        return succeeded ? "color: #89d185;" : "color: #f14c4c;";
+    }
+}
