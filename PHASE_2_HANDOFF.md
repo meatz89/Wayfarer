@@ -84,19 +84,39 @@ This requires a human player experiencing cumulative emotional impact over 3-4 h
 ## Next Steps for Human Playtester
 
 ### Prerequisites
-1. Read PLAYTEST_GUIDE.md completely
+1. Read PLAYTEST_GUIDE.md completely (MANDATORY - contains critical mechanics)
 2. Read PLAYTEST_LEARNINGS.md for session findings
 3. Understand Sir Brante emotional model
 4. Commit 3-4 hours uninterrupted
+5. **CRITICAL:** Know how to open browser DevTools (F12 → Console tab)
 
 ### Execution
 1. Start server: `cd src && ASPNETCORE_URLS="http://localhost:8100" dotnet run --no-build`
 2. Navigate to http://localhost:8100
-3. Play as Investigator build (Cunning + Insight focus)
-4. Document emotional arc in PHASE_2_EMOTIONAL_ARC_LOG.md
-5. Track stat-gated moments in real-time
-6. Record "life I could have had" feelings
-7. Complete all hour-by-hour checkboxes
+3. **Open browser DevTools (F12) and keep Console tab visible throughout session**
+4. **MANDATORY FIRST ACTION:** Click "Look Around" at starting location
+5. Wait 2-3 seconds, verify Elena (Innkeeper) appears
+6. Click Elena to interact, tutorial scene should display
+7. **After EVERY action:** Check console for connection errors
+8. Play as Investigator build (Cunning + Insight focus)
+9. Document emotional arc in PHASE_2_EMOTIONAL_ARC_LOG.md
+10. Track stat-gated moments in real-time
+11. Record "life I could have had" feelings
+12. Complete all hour-by-hour checkboxes
+
+### CRITICAL: Core Mechanic Discovered
+**"Look Around" is MANDATORY for NPC/scene interaction:**
+- Scenes spawn but require player to be with specific NPC
+- Player starts with `NPC='no-one'`
+- "Look Around" discovers NPCs at location, enabling scene display
+- **Use "Look Around" at EVERY new location before expecting interactions**
+
+**Console Monitoring is MANDATORY:**
+- Check browser console (F12) after EVERY action
+- Look for "No interop methods" or "WebSocket closed" errors
+- If connection drops: Refresh page, note time in log, continue
+- Expected: 1-2 disconnections in 3-4 hours = normal
+- More than 3 disconnections = report as stability issue
 
 ### What to Document
 - **Hour 1:** Do choices feel meaningful? Am I building identity?

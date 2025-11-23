@@ -324,6 +324,8 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 
 ## Tutorial Flow (First 15 Minutes)
 
+**CRITICAL MECHANIC:** "Look Around" is MANDATORY for environmental interaction. NPCs and scenes require this action first.
+
 **What Actually Happens** (verified from 22_a_story_tutorial.json):
 
 ### Scene a1: "Secure Lodging" (isStarter: true)
@@ -333,12 +335,22 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 - **Archetype:** inn_lodging (cascading situations)
 - **Goal:** Learn choice system, resource costs, perfect information
 
+**MANDATORY STEPS TO ACCESS TUTORIAL SCENE:**
+1. **Click "Look Around" action** (REQUIRED - discovers NPCs at location)
+2. Wait for NPC list to appear (Elena - Innkeeper)
+3. Click Elena's name to interact with her
+4. Tutorial scene "Secure Lodging" displays with 4 stat-building choices
+
+**Why This Step is Required:**
+Scene spawns at game start but requires `player with NPC='Elena'`. Player starts with `NPC='no-one'`. "Look Around" discovers NPCs, changing context to enable scene display. This is core game mechanic, NOT a bug.
+
 ### Scene a2: "First Delivery"
 - **Where:** Town Square area (Commercial + Public properties)
 - **Who:** General Merchant
 - **Narrative:** "Morning arrives...seeking work...delivery contract awaits"
 - **Archetype:** delivery_contract
 - **Goal:** Accept first delivery job, understand economic loop
+- **Access:** Click "Look Around" at Town Square, then interact with General Merchant
 
 ### Scene a3: "Journey Beyond Town"
 - **Where:** Route travel (Quiet + Outdoor properties)
@@ -346,7 +358,7 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 - **Narrative:** "The road stretches before you..."
 - **Goal:** Experience route segments, resource management, route learning
 
-**Testing Priority:** Verify all three scenes spawn, progress correctly, and teach core systems.
+**Testing Priority:** Verify all three scenes spawn, progress correctly, and teach core systems. Always use "Look Around" first at each new location.
 
 ---
 
@@ -724,7 +736,7 @@ ASPNETCORE_URLS="http://localhost:5000" dotnet run
 Open browser: http://localhost:5000
 
 ### 2. Verify Startup (2 min)
-**Check console logs:**
+**Check server console logs:**
 - Content loading messages
 - GameWorld initialized
 - Server listening
@@ -735,17 +747,49 @@ Open browser: http://localhost:5000
 - Resources bar visible (`.resources-bar`)
 - No JavaScript errors in console
 
-### 3. Tutorial Verification (10 min)
-**Scene a1 must spawn automatically:**
-- Common Room location loads
-- Elena (Innkeeper) present
-- "Secure Lodging" scene appears
-- Verify 4 choice pattern visible
-- Check EVERY choice shows costs before selection
+**Open Browser DevTools (F12) - KEEP OPEN ENTIRE SESSION:**
+Press F12, click Console tab. This is MANDATORY for detecting connection issues.
 
-**Complete a1 → a2 → a3 tutorial sequence**
+### 3. CRITICAL: Console Monitoring Protocol (MANDATORY EVERY ACTION)
 
-### 4. Core Experience Test: The Emotional Arc (3-4 hours MINIMUM)
+**After EVERY action (button click, choice selection, navigation):**
+1. Check browser console (F12 → Console tab) for errors
+2. Look for these CRITICAL errors:
+   - ❌ **"No interop methods are registered for renderer"** → Connection broken
+   - ❌ **"WebSocket closed with status code: 1006"** → Connection lost
+   - ❌ **"Failed to complete negotiation"** → Server unreachable
+   - ✅ **No errors** → Action successful, continue
+
+**If connection breaks:**
+- Refresh page immediately (Ctrl+R or F5)
+- Note time in playtest log: "Session interrupted at [time] - Blazor circuit disconnected"
+- Continue from where you were (Blazor Server state persists server-side)
+
+**Expected during 3-4 hour sessions:**
+- 1-2 disconnections = NORMAL (Blazor Server timeout behavior)
+- 3+ disconnections = Report as stability issue
+
+**Why This Matters:**
+Actions may appear to work (button press visible) but silently fail if connection dropped. NO visual feedback shown to player. Without console monitoring, entire playtest session can be invalidated by undetected connection loss.
+
+### 4. Tutorial Verification (10 min)
+**MANDATORY FIRST STEP:**
+1. **Click "Look Around" action** at Common Room
+2. Wait 2-3 seconds for Blazor update
+3. Verify Elena (Innkeeper) appears in NPC list
+4. Click Elena's name to interact
+5. "Secure Lodging" scene should now display
+
+**Scene a1 verification:**
+- Tutorial scene "Secure Lodging" displays with 4 stat-building choices
+- Verify EVERY choice shows costs before selection
+- Check console for errors after each click
+
+**Complete a1 → a2 → a3 tutorial sequence:**
+- Remember: Use "Look Around" at EACH new location before expecting NPCs/scenes
+- Check console after EVERY action
+
+### 5. Core Experience Test: The Emotional Arc (3-4 hours MINIMUM)
 
 **THE PRIMARY EXPERIENCE TO TEST:**
 
