@@ -146,12 +146,20 @@ public class SituationCompletionHandler
         // This enables OnFailure transitions in scene state machine
         // NOTE: ChallengeContext.SituationId is DOMAIN VIOLATION - should be Situation object reference
         // Workaround: Check if any challenge context exists (only one challenge can be pending at a time)
+        bool? challengeSucceeded = null;
         if (_gameWorld.PendingMentalContext != null ||
             _gameWorld.PendingPhysicalContext != null ||
             _gameWorld.PendingSocialContext != null)
         {
             situation.LastChallengeSucceeded = false;
+            challengeSucceeded = false;
             Console.WriteLine($"[SituationCompletionHandler] Challenge failed for situation '{situation.Name}'");
+        }
+
+        // PROCEDURAL CONTENT TRACING: Mark situation as failed in trace
+        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+        {
+            _gameWorld.ProceduralTracer.MarkSituationCompleted(situation, challengeSucceeded);
         }
 
         // PHASE 3: Execute FailureSpawns - recursive situation spawning on failure

@@ -496,6 +496,20 @@ public class SceneContentBase : ComponentBase
         // TRANSITION TRACKING: Set LastChoice for OnChoice transitions
         CurrentSituation.LastChoice = choiceTemplate;
 
+        // PROCEDURAL CONTENT TRACING: Record choice execution for ALL paths (instant + challenge)
+        // UNIFIED ARCHITECTURE: Choice is a choice, whether instant or challenge
+        ChoiceExecutionNode choiceNode = null;
+        if (GameWorld.ProceduralTracer != null && GameWorld.ProceduralTracer.IsEnabled)
+        {
+            string situationNodeId = GameWorld.ProceduralTracer.GetNodeIdForSituation(CurrentSituation);
+            choiceNode = GameWorld.ProceduralTracer.RecordChoiceExecution(
+                choiceTemplate,
+                situationNodeId,
+                choiceTemplate.ActionTextTemplate,
+                playerMetRequirements: true // Reached this point only if requirements met
+            );
+        }
+
         // ROUTE BY ACTION TYPE: StartChallenge vs Instant
         if (choiceTemplate.ActionType == ChoiceActionType.StartChallenge)
         {
@@ -517,7 +531,8 @@ public class SceneContentBase : ComponentBase
                 {
                     Situation = CurrentSituation, // Object reference, NO ID
                     CompletionReward = choiceTemplate.OnSuccessReward,
-                    FailureReward = choiceTemplate.OnFailureReward
+                    FailureReward = choiceTemplate.OnFailureReward,
+                    ChoiceExecutionNodeId = choiceNode?.NodeId // Store for later use
                 };
             }
             else if (choiceTemplate.ChallengeType == TacticalSystemType.Mental)
@@ -526,7 +541,8 @@ public class SceneContentBase : ComponentBase
                 {
                     Situation = CurrentSituation, // Object reference, NO ID
                     CompletionReward = choiceTemplate.OnSuccessReward,
-                    FailureReward = choiceTemplate.OnFailureReward
+                    FailureReward = choiceTemplate.OnFailureReward,
+                    ChoiceExecutionNodeId = choiceNode?.NodeId // Store for later use
                 };
             }
             else if (choiceTemplate.ChallengeType == TacticalSystemType.Physical)
@@ -535,7 +551,8 @@ public class SceneContentBase : ComponentBase
                 {
                     Situation = CurrentSituation, // Object reference, NO ID
                     CompletionReward = choiceTemplate.OnSuccessReward,
-                    FailureReward = choiceTemplate.OnFailureReward
+                    FailureReward = choiceTemplate.OnFailureReward,
+                    ChoiceExecutionNodeId = choiceNode?.NodeId // Store for later use
                 };
             }
 
@@ -549,19 +566,9 @@ public class SceneContentBase : ComponentBase
         // INSTANT PATH: Apply rewards immediately
         if (choiceTemplate.RewardTemplate != null)
         {
-            // PROCEDURAL CONTENT TRACING: Record choice execution + push context
-            ChoiceExecutionNode choiceNode = null;
-            if (GameWorld.ProceduralTracer != null && GameWorld.ProceduralTracer.IsEnabled)
+            // PROCEDURAL CONTENT TRACING: Push context for instant reward application
+            if (GameWorld.ProceduralTracer != null && GameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
             {
-                string situationNodeId = GameWorld.ProceduralTracer.GetNodeIdForSituation(CurrentSituation);
-                choiceNode = GameWorld.ProceduralTracer.RecordChoiceExecution(
-                    choiceTemplate,
-                    situationNodeId,
-                    choiceTemplate.ActionTextTemplate,
-                    playerMetRequirements: true // Reached this point only if requirements met
-                );
-
-                // Push choice context so spawned scenes link to this choice
                 GameWorld.ProceduralTracer.PushChoiceContext(choiceNode.NodeId);
             }
 
@@ -572,7 +579,7 @@ public class SceneContentBase : ComponentBase
             finally
             {
                 // ALWAYS pop context (even on exception)
-                if (GameWorld.ProceduralTracer != null && GameWorld.ProceduralTracer.IsEnabled)
+                if (GameWorld.ProceduralTracer != null && GameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
                 {
                     GameWorld.ProceduralTracer.PopChoiceContext();
                 }

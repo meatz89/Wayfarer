@@ -37,6 +37,14 @@ public class MentalChallengeContext
     /// </summary>
     public ChoiceReward FailureReward { get; set; }
 
+    /// <summary>
+    /// PROCEDURAL CONTENT TRACING: NodeId of choice execution trace node
+    /// Set when challenge started from scene choice
+    /// Used to link spawned scenes to the choice that triggered the challenge
+    /// Enables choice→challenge→scene tracing relationship
+    /// </summary>
+    public string ChoiceExecutionNodeId { get; set; }
+
     public MentalChallengeContext()
     {
         IsValid = true;
