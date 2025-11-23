@@ -111,7 +111,7 @@ public static class SceneArchetypeCatalog
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Chat warmly with {NPCName}",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost { Coins = 10 },
+                CostTemplate = new ChoiceCost { Coins = 5 },
                 RewardTemplate = new ChoiceReward
                 {
                     Rapport = 1
@@ -124,7 +124,7 @@ public static class SceneArchetypeCatalog
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Assert your need for accommodation",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost { Coins = 10 },
+                CostTemplate = new ChoiceCost { Coins = 5 },
                 RewardTemplate = new ChoiceReward
                 {
                     Authority = 1
@@ -137,7 +137,7 @@ public static class SceneArchetypeCatalog
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Seek advantageous deal",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost { Coins = 10 },
+                CostTemplate = new ChoiceCost { Coins = 5 },
                 RewardTemplate = new ChoiceReward
                 {
                     Cunning = 1
@@ -150,7 +150,7 @@ public static class SceneArchetypeCatalog
                 PathType = ChoicePathType.InstantSuccess,
                 ActionTextTemplate = "Negotiate a fair arrangement",
                 RequirementFormula = new CompoundRequirement(),
-                CostTemplate = new ChoiceCost { Coins = 10 },
+                CostTemplate = new ChoiceCost { Coins = 5 },
                 RewardTemplate = new ChoiceReward
                 {
                     Diplomacy = 1

@@ -15,10 +15,10 @@
         "sceneArchetypeId": "inn_lodging",
         "presentationMode": "Modal",
         "tier": 0,
-        "isStarter": true,
+        "isStarter": false,
         "baseLocationFilter": {
           "placementType": "Location",
-          "locationProperties": ["Commercial", "Restful"]
+          "capabilities": ["Commercial", "Restful"]
         },
         "baseNpcFilter": {
           "placementType": "NPC",
@@ -31,10 +31,11 @@
         "sceneArchetypeId": "consequence_reflection",
         "presentationMode": "Modal",
         "tier": 0,
-        "isStarter": true,
+        "isStarter": false,
         "baseLocationFilter": {
           "placementType": "Location",
-          "locationProperties": ["Public", "Outdoor"]
+          "privacyLevels": ["Public"],
+          "capabilities": ["Outdoor"]
         }
       }
     ]

@@ -453,14 +453,21 @@ public class LocationFacade
     public LocationContentViewModel GetLocationContentViewModel()
     {
         Player player = _gameWorld.GetPlayer();
-        Venue venue = GetCurrentLocation().Venue;
         Location spot = GetCurrentLocation();
-        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
-        if (venue == null)
-            throw new InvalidOperationException("Current venue is null");
+        // ZERO NULL TOLERANCE: Fail-fast with clear diagnostic message
         if (spot == null)
-            throw new InvalidOperationException("Current location spot is null");
+        {
+            throw new InvalidOperationException("CRITICAL: GetCurrentLocation() returned null. This indicates hex grid initialization failure. Check GameFacade.StartGameAsync() validation.");
+        }
+
+        Venue venue = spot.Venue;
+        if (venue == null)
+        {
+            throw new InvalidOperationException($"CRITICAL: Location '{spot.Name}' has null Venue. This violates spatial scaffolding pattern where all locations must have venue assignment.");
+        }
+
+        TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
         ChallengeBuildResult mentalResult = BuildMentalChallenges(spot);
         List<SituationCardViewModel> ambientMental = mentalResult.AmbientSituations;
@@ -889,10 +896,19 @@ public class LocationFacade
             if (parentScene != null)
             {
                 // Find existing entry by object equality
-                (Scene Scene, List<Situation> Situations)? existing = situationsByScene.FirstOrDefault(entry => entry.Scene == parentScene);
-                if (existing.HasValue)
+                int existingIndex = -1;
+                for (int i = 0; i < situationsByScene.Count; i++)
                 {
-                    existing.Value.Situations.Add(situation);
+                    if (situationsByScene[i].Scene == parentScene)
+                    {
+                        existingIndex = i;
+                        break;
+                    }
+                }
+
+                if (existingIndex >= 0)
+                {
+                    situationsByScene[existingIndex].Situations.Add(situation);
                 }
                 else
                 {
@@ -946,10 +962,19 @@ public class LocationFacade
             if (parentScene != null)
             {
                 // Find existing entry by object equality
-                (Scene Scene, List<Situation> Situations)? existing = situationsByScene.FirstOrDefault(entry => entry.Scene == parentScene);
-                if (existing.HasValue)
+                int existingIndex = -1;
+                for (int i = 0; i < situationsByScene.Count; i++)
                 {
-                    existing.Value.Situations.Add(situation);
+                    if (situationsByScene[i].Scene == parentScene)
+                    {
+                        existingIndex = i;
+                        break;
+                    }
+                }
+
+                if (existingIndex >= 0)
+                {
+                    situationsByScene[existingIndex].Situations.Add(situation);
                 }
                 else
                 {

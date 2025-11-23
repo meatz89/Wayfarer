@@ -104,6 +104,11 @@ public class PackageLoader
         GenerateProceduralRoutes();
         GenerateDeliveryJobsFromCatalogue();
 
+        // PLAYER INITIALIZATION: Apply initial player configuration AFTER all content loaded
+        // CRITICAL: Player config references Items, which must be fully loaded first
+        // GAME STARTUP PHASE: This is game initialization, not package loading
+        _gameWorld.ApplyInitialPlayerConfiguration();
+
         // PLAYABILITY VALIDATION: Validate locations AFTER routes generated
         // CRITICAL: Reachability validation requires routes to exist
         ValidateAllLocations();
@@ -311,14 +316,15 @@ public class PackageLoader
 
     private void ApplyStartingConditions(PackageStartingConditions conditions)
     {
-        // Apply player initial config
+        // Apply player initial config - STORE CONFIG ONLY, apply after all packages loaded
         if (conditions.PlayerConfig != null)
         {
             // Parse DTO (categorical properties) → Domain Entity (concrete values)
             PlayerInitialConfig parsedConfig = PlayerInitialConfigParser.Parse(conditions.PlayerConfig);
             _gameWorld.InitialPlayerConfig = parsedConfig;
-            // Apply the initial configuration to the player immediately
-            _gameWorld.ApplyInitialPlayerConfiguration();
+            // NOTE: ApplyInitialPlayerConfiguration() moved to LoadStaticPackages()
+            // REASON: Player config references Items, which must be loaded first
+            // Player initialization is GAME STARTUP phase, not PACKAGE LOADING phase
         }
 
         // Set starting location - CRITICAL for playability

@@ -11,7 +11,17 @@
     <div class="scene-content">
         <!-- Scene Header -->
         <div class="scene-header">
-            <h2 class="scene-title">@Scene.DisplayName</h2>
+            <h2 class="scene-title">
+                @if (Scene.Category == StoryCategory.MainStory)
+                {
+                    <span class="scene-category-tag tutorial">[Tutorial]</span>
+                }
+                @if (Scene.Category == StoryCategory.Service)
+                {
+                    <span class="scene-category-tag service">[Service]</span>
+                }
+                @Scene.DisplayName
+            </h2>
         </div>
 
         <!-- Narrative Section -->

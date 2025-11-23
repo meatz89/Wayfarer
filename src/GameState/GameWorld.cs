@@ -370,13 +370,35 @@ public class GameWorld
     /// HEX-FIRST PATTERN: player.CurrentPosition → hex → Location object
     /// Returns null if player position has no location
     /// HIGHLANDER: Direct object access (not locationId lookup)
+    /// ZERO NULL TOLERANCE: Logs diagnostic information when null is returned
     /// </summary>
     public Location GetPlayerCurrentLocation()
     {
         Player player = GetPlayer();
-        Hex currentHex = WorldHexGrid.GetHex(player.CurrentPosition);
-        if (currentHex == null || currentHex.Location == null)
+        if (player == null)
+        {
+            Console.WriteLine("[GameWorld.GetPlayerCurrentLocation] ERROR: Player is null");
             return null;
+        }
+
+        if (WorldHexGrid == null)
+        {
+            Console.WriteLine("[GameWorld.GetPlayerCurrentLocation] ERROR: WorldHexGrid is null");
+            return null;
+        }
+
+        Hex currentHex = WorldHexGrid.GetHex(player.CurrentPosition);
+        if (currentHex == null)
+        {
+            Console.WriteLine($"[GameWorld.GetPlayerCurrentLocation] ERROR: No hex found at position ({player.CurrentPosition.Q}, {player.CurrentPosition.R})");
+            return null;
+        }
+
+        if (currentHex.Location == null)
+        {
+            Console.WriteLine($"[GameWorld.GetPlayerCurrentLocation] ERROR: Hex at ({player.CurrentPosition.Q}, {player.CurrentPosition.R}) has null Location");
+            return null;
+        }
 
         return currentHex.Location;
     }

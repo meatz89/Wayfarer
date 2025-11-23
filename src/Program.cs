@@ -14,7 +14,10 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(options);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
-builder.Services.AddServerSideBlazor();
+builder.Services.AddServerSideBlazor().AddCircuitOptions(options =>
+{
+    options.DetailedErrors = true;
+});
 
 IConfigurationRoot configuration = new ConfigurationBuilder()
 .AddJsonFile("appsettings.json")

@@ -721,6 +721,15 @@ public class GameFacade
         player.CurrentPosition = startingSpot.HexPosition.Value;
         Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Name == startingSpot.Venue.Name);
 
+        // ZERO NULL TOLERANCE: Verify hex grid is valid BEFORE marking game started
+        // This prevents silent UI crashes by failing LOUDLY during initialization
+        Location validationLocation = _gameWorld.GetPlayerCurrentLocation();
+        if (validationLocation == null)
+        {
+            throw new InvalidOperationException($"CRITICAL: Player starting position ({player.CurrentPosition.Q}, {player.CurrentPosition.R}) does not have a valid location in hex grid. Game cannot start.");
+        }
+        Console.WriteLine($"[StartGameAsync] ✅ Validated player at '{validationLocation.Name}' - hex grid OK");
+
         // Player resources already applied by PackageLoader.ApplyInitialPlayerConfiguration()
         // No need to re-apply here - HIGHLANDER PRINCIPLE: initialization happens ONCE
 

@@ -25,7 +25,7 @@
       "satchelCapacity": 10,
       "satchelWeight": 0,
       "initialItems": [
-        { "resourceType": "rations", "amount": 3 }
+        { "resourceType": "Rations", "amount": 3 }
       ]
     },
     "startingSpotId": "Common Room",
