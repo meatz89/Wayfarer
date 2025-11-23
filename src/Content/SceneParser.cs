@@ -234,7 +234,7 @@ public static class SceneParser
             {
                 gameWorld.ProceduralTracer.RecordSituationSpawn(
                     situation,
-                    sceneNode.NodeId,
+                    sceneNode,
                     SituationSpawnTriggerType.InitialScene
                 );
             }

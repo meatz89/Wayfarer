@@ -48,21 +48,21 @@
             | <span class="trace-count">@Node.SituationCount</span> situation(s)
         </div>
 
-        @if (!string.IsNullOrEmpty(Node.ParentChoiceNodeId))
+        @if (Node.ParentChoice != null)
         {
             <div>
                 <span class="trace-property">↳ Spawned by choice:</span>
-                <span class="trace-link" @onclick="() => JumpToParent(Node.ParentChoiceNodeId)" @onclick:stopPropagation="true">
+                <span class="trace-link" @onclick="() => JumpToParent(Node.ParentChoice)" @onclick:stopPropagation="true">
                     [View Parent]
                 </span>
             </div>
         }
 
-        @if (Node.SpawnedSceneNodeIds != null && Node.SpawnedSceneNodeIds.Count > 0)
+        @if (Node.SpawnedScenes != null && Node.SpawnedScenes.Count > 0)
         {
             <div>
                 <span class="trace-property">↳ Spawned:</span>
-                <span class="trace-count">@Node.SpawnedSceneNodeIds.Count</span> scene(s)
+                <span class="trace-count">@Node.SpawnedScenes.Count</span> scene(s)
             </div>
         }
 
@@ -92,10 +92,10 @@
                                Tracer="@Tracer"
                                OnNodeSelected="@OnNodeSelected"
                                OnToggleExpand="@OnToggleExpand"
-                               IsExpanded="@IsChildExpanded(situation.NodeId)"
-                               IsHighlighted="@IsChildHighlighted(situation.NodeId)"
-                               ExpandedNodeIds="@ExpandedNodeIds"
-                               HighlightedNodeIds="@HighlightedNodeIds" />
+                               IsExpanded="@IsChildExpanded(situation)"
+                               IsHighlighted="@IsChildHighlighted(situation)"
+                               ExpandedNodes="@ExpandedNodes"
+                               HighlightedNodes="@HighlightedNodes" />
             }
         </div>
     }
@@ -104,17 +104,17 @@
 @code {
     [Parameter] public SceneSpawnNode Node { get; set; }
     [Parameter] public ProceduralContentTracer Tracer { get; set; }
-    [Parameter] public Action<string> OnNodeSelected { get; set; }
-    [Parameter] public Action<string> OnToggleExpand { get; set; }
+    [Parameter] public Action<object> OnNodeSelected { get; set; }
+    [Parameter] public Action<object> OnToggleExpand { get; set; }
     [Parameter] public bool IsExpanded { get; set; }
     [Parameter] public bool IsHighlighted { get; set; }
-    [Parameter] public HashSet<string> ExpandedNodeIds { get; set; }
-    [Parameter] public HashSet<string> HighlightedNodeIds { get; set; }
+    [Parameter] public HashSet<object> ExpandedNodes { get; set; }
+    [Parameter] public HashSet<object> HighlightedNodes { get; set; }
 
     private void HandleClick()
     {
-        OnToggleExpand?.Invoke(Node.NodeId);
-        OnNodeSelected?.Invoke(Node.NodeId);
+        OnToggleExpand?.Invoke(Node);
+        OnNodeSelected?.Invoke(Node);
     }
 
     private string GetCategoryClass()
@@ -128,19 +128,19 @@
         };
     }
 
-    private void JumpToParent(string parentNodeId)
+    private void JumpToParent(object parentNode)
     {
-        OnNodeSelected?.Invoke(parentNodeId);
+        OnNodeSelected?.Invoke(parentNode);
         // TODO: Scroll to parent node
     }
 
-    private bool IsChildExpanded(string childNodeId)
+    private bool IsChildExpanded(object childNode)
     {
-        return ExpandedNodeIds?.Contains(childNodeId) ?? false;
+        return ExpandedNodes?.Contains(childNode) ?? false;
     }
 
-    private bool IsChildHighlighted(string childNodeId)
+    private bool IsChildHighlighted(object childNode)
     {
-        return HighlightedNodeIds?.Contains(childNodeId) ?? false;
+        return HighlightedNodes?.Contains(childNode) ?? false;
     }
 }

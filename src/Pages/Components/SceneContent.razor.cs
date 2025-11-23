@@ -501,10 +501,10 @@ public class SceneContentBase : ComponentBase
         ChoiceExecutionNode choiceNode = null;
         if (GameWorld.ProceduralTracer != null && GameWorld.ProceduralTracer.IsEnabled)
         {
-            string situationNodeId = GameWorld.ProceduralTracer.GetNodeIdForSituation(CurrentSituation);
+            SituationSpawnNode situationNode = GameWorld.ProceduralTracer.GetNodeForSituation(CurrentSituation);
             choiceNode = GameWorld.ProceduralTracer.RecordChoiceExecution(
                 choiceTemplate,
-                situationNodeId,
+                situationNode,
                 choiceTemplate.ActionTextTemplate,
                 playerMetRequirements: true // Reached this point only if requirements met
             );
@@ -532,7 +532,7 @@ public class SceneContentBase : ComponentBase
                     Situation = CurrentSituation, // Object reference, NO ID
                     CompletionReward = choiceTemplate.OnSuccessReward,
                     FailureReward = choiceTemplate.OnFailureReward,
-                    ChoiceExecutionNodeId = choiceNode?.NodeId // Store for later use
+                    ChoiceExecution = choiceNode // Store for later use
                 };
             }
             else if (choiceTemplate.ChallengeType == TacticalSystemType.Mental)
@@ -542,7 +542,7 @@ public class SceneContentBase : ComponentBase
                     Situation = CurrentSituation, // Object reference, NO ID
                     CompletionReward = choiceTemplate.OnSuccessReward,
                     FailureReward = choiceTemplate.OnFailureReward,
-                    ChoiceExecutionNodeId = choiceNode?.NodeId // Store for later use
+                    ChoiceExecution = choiceNode // Store for later use
                 };
             }
             else if (choiceTemplate.ChallengeType == TacticalSystemType.Physical)
@@ -552,7 +552,7 @@ public class SceneContentBase : ComponentBase
                     Situation = CurrentSituation, // Object reference, NO ID
                     CompletionReward = choiceTemplate.OnSuccessReward,
                     FailureReward = choiceTemplate.OnFailureReward,
-                    ChoiceExecutionNodeId = choiceNode?.NodeId // Store for later use
+                    ChoiceExecution = choiceNode // Store for later use
                 };
             }
 
@@ -569,7 +569,7 @@ public class SceneContentBase : ComponentBase
             // PROCEDURAL CONTENT TRACING: Push context for instant reward application
             if (GameWorld.ProceduralTracer != null && GameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
             {
-                GameWorld.ProceduralTracer.PushChoiceContext(choiceNode.NodeId);
+                GameWorld.ProceduralTracer.PushChoiceContext(choiceNode);
             }
 
             try

@@ -38,12 +38,13 @@ public class MentalChallengeContext
     public ChoiceReward FailureReward { get; set; }
 
     /// <summary>
-    /// PROCEDURAL CONTENT TRACING: NodeId of choice execution trace node
+    /// PROCEDURAL CONTENT TRACING: Choice execution trace node
     /// Set when challenge started from scene choice
     /// Used to link spawned scenes to the choice that triggered the challenge
     /// Enables choice→challenge→scene tracing relationship
+    /// HIGHLANDER: Direct object reference, no NodeId string
     /// </summary>
-    public string ChoiceExecutionNodeId { get; set; }
+    public ChoiceExecutionNode ChoiceExecution { get; set; }
 
     public MentalChallengeContext()
     {

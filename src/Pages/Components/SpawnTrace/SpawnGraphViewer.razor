@@ -65,10 +65,10 @@ else
                                Tracer="@Tracer"
                                OnNodeSelected="@SelectNode"
                                OnToggleExpand="@ToggleExpand"
-                               IsExpanded="@ExpandedNodeIds.Contains(rootScene.NodeId)"
-                               IsHighlighted="@HighlightedNodeIds.Contains(rootScene.NodeId)"
-                               ExpandedNodeIds="@ExpandedNodeIds"
-                               HighlightedNodeIds="@HighlightedNodeIds" />
+                               IsExpanded="@ExpandedNodes.Contains(rootScene)"
+                               IsHighlighted="@HighlightedNodes.Contains(rootScene)"
+                               ExpandedNodes="@ExpandedNodes"
+                               HighlightedNodes="@HighlightedNodes" />
                 }
             }
         </div>

@@ -2142,11 +2142,11 @@ public class GameFacade
     /// </summary>
     public async Task ProcessSocialChallengeOutcome()
     {
-        // PROCEDURAL CONTENT TRACING: Use stored ChoiceExecutionNodeId for context
-        string choiceNodeId = _gameWorld.PendingSocialContext?.ChoiceExecutionNodeId;
-        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && !string.IsNullOrEmpty(choiceNodeId))
+        // PROCEDURAL CONTENT TRACING: Use stored ChoiceExecution for context
+        ChoiceExecutionNode choiceNode = _gameWorld.PendingSocialContext?.ChoiceExecution;
+        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
         {
-            _gameWorld.ProceduralTracer.PushChoiceContext(choiceNodeId);
+            _gameWorld.ProceduralTracer.PushChoiceContext(choiceNode);
         }
 
         try
@@ -2171,7 +2171,7 @@ public class GameFacade
         finally
         {
             // ALWAYS pop context (even on exception)
-            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && !string.IsNullOrEmpty(choiceNodeId))
+            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
             {
                 _gameWorld.ProceduralTracer.PopChoiceContext();
             }
@@ -2185,11 +2185,11 @@ public class GameFacade
     /// </summary>
     public async Task ProcessMentalChallengeOutcome()
     {
-        // PROCEDURAL CONTENT TRACING: Use stored ChoiceExecutionNodeId for context
-        string choiceNodeId = _gameWorld.PendingMentalContext?.ChoiceExecutionNodeId;
-        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && !string.IsNullOrEmpty(choiceNodeId))
+        // PROCEDURAL CONTENT TRACING: Use stored ChoiceExecution for context
+        ChoiceExecutionNode choiceNode = _gameWorld.PendingMentalContext?.ChoiceExecution;
+        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
         {
-            _gameWorld.ProceduralTracer.PushChoiceContext(choiceNodeId);
+            _gameWorld.ProceduralTracer.PushChoiceContext(choiceNode);
         }
 
         try
@@ -2214,7 +2214,7 @@ public class GameFacade
         finally
         {
             // ALWAYS pop context (even on exception)
-            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && !string.IsNullOrEmpty(choiceNodeId))
+            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
             {
                 _gameWorld.ProceduralTracer.PopChoiceContext();
             }
@@ -2228,11 +2228,11 @@ public class GameFacade
     /// </summary>
     public async Task ProcessPhysicalChallengeOutcome()
     {
-        // PROCEDURAL CONTENT TRACING: Use stored ChoiceExecutionNodeId for context
-        string choiceNodeId = _gameWorld.PendingPhysicalContext?.ChoiceExecutionNodeId;
-        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && !string.IsNullOrEmpty(choiceNodeId))
+        // PROCEDURAL CONTENT TRACING: Use stored ChoiceExecution for context
+        ChoiceExecutionNode choiceNode = _gameWorld.PendingPhysicalContext?.ChoiceExecution;
+        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
         {
-            _gameWorld.ProceduralTracer.PushChoiceContext(choiceNodeId);
+            _gameWorld.ProceduralTracer.PushChoiceContext(choiceNode);
         }
 
         try
@@ -2257,7 +2257,7 @@ public class GameFacade
         finally
         {
             // ALWAYS pop context (even on exception)
-            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && !string.IsNullOrEmpty(choiceNodeId))
+            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
             {
                 _gameWorld.ProceduralTracer.PopChoiceContext();
             }

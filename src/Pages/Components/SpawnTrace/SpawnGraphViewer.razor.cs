@@ -13,9 +13,9 @@ public partial class SpawnGraphViewer : ComponentBase
     private string CategoryFilter { get; set; } = "";
     private int? MinDay { get; set; } = null;
     private int? MaxDay { get; set; } = null;
-    private string SelectedNodeId { get; set; }
-    private HashSet<string> ExpandedNodeIds { get; set; } = new HashSet<string>();
-    private HashSet<string> HighlightedNodeIds { get; set; } = new HashSet<string>();
+    private object SelectedNode { get; set; }
+    private HashSet<object> ExpandedNodes { get; set; } = new HashSet<object>();
+    private HashSet<object> HighlightedNodes { get; set; } = new HashSet<object>();
 
     protected override void OnParametersSet()
     {
@@ -71,42 +71,42 @@ public partial class SpawnGraphViewer : ComponentBase
         ApplyFilters();
     }
 
-    private void SelectNode(string nodeId)
+    private void SelectNode(object node)
     {
-        SelectedNodeId = nodeId;
+        SelectedNode = node;
         StateHasChanged();
     }
 
-    private void ToggleExpand(string nodeId)
+    private void ToggleExpand(object node)
     {
-        if (ExpandedNodeIds.Contains(nodeId))
+        if (ExpandedNodes.Contains(node))
         {
-            ExpandedNodeIds.Remove(nodeId);
+            ExpandedNodes.Remove(node);
         }
         else
         {
-            ExpandedNodeIds.Add(nodeId);
+            ExpandedNodes.Add(node);
         }
         StateHasChanged();
     }
 
     private void ExpandAll()
     {
-        ExpandedNodeIds.Clear();
+        ExpandedNodes.Clear();
         if (Tracer != null)
         {
             foreach (SceneSpawnNode node in Tracer.AllSceneNodes)
-                ExpandedNodeIds.Add(node.NodeId);
+                ExpandedNodes.Add(node);
 
             foreach (SituationSpawnNode node in Tracer.AllSituationNodes)
-                ExpandedNodeIds.Add(node.NodeId);
+                ExpandedNodes.Add(node);
         }
         StateHasChanged();
     }
 
     private void CollapseAll()
     {
-        ExpandedNodeIds.Clear();
+        ExpandedNodes.Clear();
         StateHasChanged();
     }
 }

@@ -130,7 +130,7 @@ public class SceneInstanceFacade
             {
                 _gameWorld.ProceduralTracer.RecordSituationSpawn(
                     situation,
-                    sceneNode.NodeId,
+                    sceneNode,
                     SituationSpawnTriggerType.InitialScene
                 );
             }

@@ -5,6 +5,7 @@ using System.Runtime.CompilerServices;
 /// Captures scene spawning, situation creation, and choice execution with parent-child relationships
 /// Enables debugging visualization of procedural generation
 /// SYNCHRONOUS: No async/await - all operations are immediate
+/// HIGHLANDER: Pure object references, NO NodeId strings
 /// </summary>
 public class ProceduralContentTracer
 {
@@ -16,17 +17,17 @@ public class ProceduralContentTracer
     public List<SceneSpawnNode> RootScenes { get; private set; } = new List<SceneSpawnNode>();
 
     /// <summary>
-    /// All scene nodes (flat index for lookup by NodeId)
+    /// All scene nodes (flat index for UI binding)
     /// </summary>
     public List<SceneSpawnNode> AllSceneNodes { get; private set; } = new List<SceneSpawnNode>();
 
     /// <summary>
-    /// All situation nodes (flat index for lookup by NodeId)
+    /// All situation nodes (flat index for UI binding)
     /// </summary>
     public List<SituationSpawnNode> AllSituationNodes { get; private set; } = new List<SituationSpawnNode>();
 
     /// <summary>
-    /// All choice execution nodes (flat index for lookup by NodeId)
+    /// All choice execution nodes (flat index for UI binding)
     /// </summary>
     public List<ChoiceExecutionNode> AllChoiceNodes { get; private set; } = new List<ChoiceExecutionNode>();
 
@@ -39,32 +40,34 @@ public class ProceduralContentTracer
     // ==================== ENTITY MAPPING (ConditionalWeakTable for state updates) ====================
 
     /// <summary>
-    /// Maps Scene entities to their NodeIds
+    /// Maps Scene entities to their trace nodes
     /// Uses weak references - allows GC to collect scenes
-    /// Enables state updates: when scene.State changes, find NodeId and update trace
+    /// Enables state updates: when scene.State changes, find node and update trace
     /// </summary>
-    private ConditionalWeakTable<Scene, string> sceneToNodeId = new ConditionalWeakTable<Scene, string>();
+    private ConditionalWeakTable<Scene, SceneSpawnNode> sceneToNode = new ConditionalWeakTable<Scene, SceneSpawnNode>();
 
     /// <summary>
-    /// Maps Situation entities to their NodeIds
+    /// Maps Situation entities to their trace nodes
     /// Uses weak references - allows GC
     /// </summary>
-    private ConditionalWeakTable<Situation, string> situationToNodeId = new ConditionalWeakTable<Situation, string>();
+    private ConditionalWeakTable<Situation, SituationSpawnNode> situationToNode = new ConditionalWeakTable<Situation, SituationSpawnNode>();
 
     // ==================== CONTEXT STACKS (non-invasive parent linking) ====================
 
     /// <summary>
-    /// Stack of current choice context NodeIds
+    /// Stack of current choice context nodes
     /// Enables automatic parent linking without changing method signatures
     /// Push before spawning, pop after spawning complete
+    /// HIGHLANDER: Direct object references, no NodeId strings
     /// </summary>
-    private Stack<string> choiceContextStack = new Stack<string>();
+    private Stack<ChoiceExecutionNode> choiceContextStack = new Stack<ChoiceExecutionNode>();
 
     /// <summary>
-    /// Stack of current situation context NodeIds
+    /// Stack of current situation context nodes
     /// Enables automatic parent linking for situation cascades
+    /// HIGHLANDER: Direct object references, no NodeId strings
     /// </summary>
-    private Stack<string> situationContextStack = new Stack<string>();
+    private Stack<SituationSpawnNode> situationContextStack = new Stack<SituationSpawnNode>();
 
     // ==================== RECORD METHODS ====================
 
@@ -83,19 +86,16 @@ public class ProceduralContentTracer
 
         try
         {
-            string nodeId = Guid.NewGuid().ToString();
-
             SceneSpawnNode node = new SceneSpawnNode
             {
-                NodeId = nodeId,
                 SceneTemplateId = sceneTemplateId,
                 DisplayName = scene.Template?.DisplayName ?? scene.TemplateId ?? "Unknown Scene",
                 SpawnTimestamp = DateTime.UtcNow,
                 GameDay = player.CurrentDay,
                 GameTimeBlock = player.CurrentTimeBlock,
                 SpawnTrigger = spawnTrigger,
-                ParentChoiceNodeId = GetCurrentChoiceContext(),
-                ParentSituationNodeId = GetCurrentSituationContext(),
+                ParentChoice = GetCurrentChoiceContext(),
+                ParentSituation = GetCurrentSituationContext(),
                 Category = scene.Category,
                 MainStorySequence = scene.MainStorySequence,
                 EstimatedDifficulty = scene.EstimatedDifficulty,
@@ -110,22 +110,24 @@ public class ProceduralContentTracer
             AllSceneNodes.Add(node);
 
             // Add to root if no parent
-            if (string.IsNullOrEmpty(node.ParentChoiceNodeId) && string.IsNullOrEmpty(node.ParentSituationNodeId))
+            if (node.ParentChoice == null && node.ParentSituation == null)
             {
                 RootScenes.Add(node);
             }
 
-            // Map entity to NodeId for later updates
-            sceneToNodeId.Add(scene, nodeId);
+            // Map entity to node for later updates
+            sceneToNode.Add(scene, node);
 
             // Link to parent choice (if exists)
-            if (!string.IsNullOrEmpty(node.ParentChoiceNodeId))
+            if (node.ParentChoice != null)
             {
-                ChoiceExecutionNode parentChoice = AllChoiceNodes.FirstOrDefault(c => c.NodeId == node.ParentChoiceNodeId);
-                if (parentChoice != null)
-                {
-                    parentChoice.SpawnedSceneNodeIds.Add(nodeId);
-                }
+                node.ParentChoice.SpawnedScenes.Add(node);
+            }
+
+            // Link to parent scene (if spawned from parent situation)
+            if (node.ParentSituation != null)
+            {
+                node.ParentScene = node.ParentSituation.ParentScene;
             }
 
             return node;
@@ -144,25 +146,22 @@ public class ProceduralContentTracer
     /// </summary>
     public SituationSpawnNode RecordSituationSpawn(
         Situation situation,
-        string parentSceneNodeId,
+        SceneSpawnNode parentScene,
         SituationSpawnTriggerType spawnTrigger)
     {
         if (!IsEnabled) return null;
 
         try
         {
-            string nodeId = Guid.NewGuid().ToString();
-
             SituationSpawnNode node = new SituationSpawnNode
             {
-                NodeId = nodeId,
                 SituationTemplateId = situation.TemplateId,
                 Name = situation.Name,
                 Description = situation.Description,
                 SpawnTimestamp = DateTime.UtcNow,
-                ParentSceneNodeId = parentSceneNodeId,
+                ParentScene = parentScene,
                 SpawnTrigger = spawnTrigger,
-                ParentSituationNodeId = GetCurrentSituationContext(),
+                ParentSituation = GetCurrentSituationContext(),
                 Type = situation.Type,
                 SystemType = situation.SystemType,
                 InteractionType = situation.InteractionType,
@@ -176,27 +175,19 @@ public class ProceduralContentTracer
             // Add to collections
             AllSituationNodes.Add(node);
 
-            // Map entity to NodeId
-            situationToNodeId.Add(situation, nodeId);
+            // Map entity to node
+            situationToNode.Add(situation, node);
 
             // Link to parent scene
-            if (!string.IsNullOrEmpty(parentSceneNodeId))
+            if (parentScene != null)
             {
-                SceneSpawnNode parentScene = AllSceneNodes.FirstOrDefault(s => s.NodeId == parentSceneNodeId);
-                if (parentScene != null)
-                {
-                    parentScene.Situations.Add(node);
-                }
+                parentScene.Situations.Add(node);
             }
 
             // Link to parent situation (if cascade)
-            if (!string.IsNullOrEmpty(node.ParentSituationNodeId))
+            if (node.ParentSituation != null)
             {
-                SituationSpawnNode parentSituation = AllSituationNodes.FirstOrDefault(s => s.NodeId == node.ParentSituationNodeId);
-                if (parentSituation != null)
-                {
-                    parentSituation.SpawnedSituationNodeIds.Add(nodeId);
-                }
+                node.ParentSituation.SpawnedSituations.Add(node);
             }
 
             return node;
@@ -214,7 +205,7 @@ public class ProceduralContentTracer
     /// </summary>
     public ChoiceExecutionNode RecordChoiceExecution(
         ChoiceTemplate choiceTemplate,
-        string parentSituationNodeId,
+        SituationSpawnNode parentSituation,
         string actionText,
         bool playerMetRequirements)
     {
@@ -222,15 +213,12 @@ public class ProceduralContentTracer
 
         try
         {
-            string nodeId = Guid.NewGuid().ToString();
-
             ChoiceExecutionNode node = new ChoiceExecutionNode
             {
-                NodeId = nodeId,
                 ChoiceId = choiceTemplate.Id,
                 ActionText = actionText,
                 ExecutionTimestamp = DateTime.UtcNow,
-                ParentSituationNodeId = parentSituationNodeId,
+                ParentSituation = parentSituation,
                 PathType = choiceTemplate.PathType,
                 ActionType = choiceTemplate.ActionType,
                 PlayerMetRequirements = playerMetRequirements,
@@ -255,13 +243,9 @@ public class ProceduralContentTracer
             AllChoiceNodes.Add(node);
 
             // Link to parent situation
-            if (!string.IsNullOrEmpty(parentSituationNodeId))
+            if (parentSituation != null)
             {
-                SituationSpawnNode parentSituation = AllSituationNodes.FirstOrDefault(s => s.NodeId == parentSituationNodeId);
-                if (parentSituation != null)
-                {
-                    parentSituation.Choices.Add(node);
-                }
+                parentSituation.Choices.Add(node);
             }
 
             return node;
@@ -285,25 +269,21 @@ public class ProceduralContentTracer
 
         try
         {
-            if (sceneToNodeId.TryGetValue(scene, out string nodeId))
+            if (sceneToNode.TryGetValue(scene, out SceneSpawnNode node))
             {
-                SceneSpawnNode node = AllSceneNodes.FirstOrDefault(n => n.NodeId == nodeId);
-                if (node != null)
-                {
-                    node.CurrentState = newState;
+                node.CurrentState = newState;
 
-                    if (newState == SceneState.Active && !node.ActivatedTimestamp.HasValue)
-                    {
-                        node.ActivatedTimestamp = timestamp;
-                    }
-                    else if (newState == SceneState.Completed && !node.CompletedTimestamp.HasValue)
-                    {
-                        node.CompletedTimestamp = timestamp;
-                    }
-                    else if (newState == SceneState.Expired && !node.ExpiredTimestamp.HasValue)
-                    {
-                        node.ExpiredTimestamp = timestamp;
-                    }
+                if (newState == SceneState.Active && !node.ActivatedTimestamp.HasValue)
+                {
+                    node.ActivatedTimestamp = timestamp;
+                }
+                else if (newState == SceneState.Completed && !node.CompletedTimestamp.HasValue)
+                {
+                    node.CompletedTimestamp = timestamp;
+                }
+                else if (newState == SceneState.Expired && !node.ExpiredTimestamp.HasValue)
+                {
+                    node.ExpiredTimestamp = timestamp;
                 }
             }
         }
@@ -322,15 +302,11 @@ public class ProceduralContentTracer
 
         try
         {
-            if (situationToNodeId.TryGetValue(situation, out string nodeId))
+            if (situationToNode.TryGetValue(situation, out SituationSpawnNode node))
             {
-                SituationSpawnNode node = AllSituationNodes.FirstOrDefault(n => n.NodeId == nodeId);
-                if (node != null)
-                {
-                    node.CompletedTimestamp = DateTime.UtcNow;
-                    node.LastChallengeSucceeded = challengeSucceeded;
-                    node.LifecycleStatus = LifecycleStatus.Completed;
-                }
+                node.CompletedTimestamp = DateTime.UtcNow;
+                node.LastChallengeSucceeded = challengeSucceeded;
+                node.LifecycleStatus = LifecycleStatus.Completed;
             }
         }
         catch (Exception ex)
@@ -341,10 +317,10 @@ public class ProceduralContentTracer
 
     // ==================== CONTEXT STACK METHODS ====================
 
-    public void PushChoiceContext(string choiceNodeId)
+    public void PushChoiceContext(ChoiceExecutionNode choiceNode)
     {
         if (!IsEnabled) return;
-        choiceContextStack.Push(choiceNodeId);
+        choiceContextStack.Push(choiceNode);
     }
 
     public void PopChoiceContext()
@@ -356,16 +332,16 @@ public class ProceduralContentTracer
         }
     }
 
-    public string GetCurrentChoiceContext()
+    public ChoiceExecutionNode GetCurrentChoiceContext()
     {
         if (!IsEnabled) return null;
         return choiceContextStack.Count > 0 ? choiceContextStack.Peek() : null;
     }
 
-    public void PushSituationContext(string situationNodeId)
+    public void PushSituationContext(SituationSpawnNode situationNode)
     {
         if (!IsEnabled) return;
-        situationContextStack.Push(situationNodeId);
+        situationContextStack.Push(situationNode);
     }
 
     public void PopSituationContext()
@@ -377,7 +353,7 @@ public class ProceduralContentTracer
         }
     }
 
-    public string GetCurrentSituationContext()
+    public SituationSpawnNode GetCurrentSituationContext()
     {
         if (!IsEnabled) return null;
         return situationContextStack.Count > 0 ? situationContextStack.Peek() : null;
@@ -386,23 +362,23 @@ public class ProceduralContentTracer
     // ==================== QUERY METHODS ====================
 
     /// <summary>
-    /// Get NodeId for scene entity (if exists in trace)
+    /// Get trace node for scene entity (if exists in trace)
     /// </summary>
-    public string GetNodeIdForScene(Scene scene)
+    public SceneSpawnNode GetNodeForScene(Scene scene)
     {
         if (!IsEnabled) return null;
-        sceneToNodeId.TryGetValue(scene, out string nodeId);
-        return nodeId;
+        sceneToNode.TryGetValue(scene, out SceneSpawnNode node);
+        return node;
     }
 
     /// <summary>
-    /// Get NodeId for situation entity (if exists in trace)
+    /// Get trace node for situation entity (if exists in trace)
     /// </summary>
-    public string GetNodeIdForSituation(Situation situation)
+    public SituationSpawnNode GetNodeForSituation(Situation situation)
     {
         if (!IsEnabled) return null;
-        situationToNodeId.TryGetValue(situation, out string nodeId);
-        return nodeId;
+        situationToNode.TryGetValue(situation, out SituationSpawnNode node);
+        return node;
     }
 
     /// <summary>
@@ -414,8 +390,8 @@ public class ProceduralContentTracer
         AllSceneNodes.Clear();
         AllSituationNodes.Clear();
         AllChoiceNodes.Clear();
-        sceneToNodeId = new ConditionalWeakTable<Scene, string>();
-        situationToNodeId = new ConditionalWeakTable<Situation, string>();
+        sceneToNode = new ConditionalWeakTable<Scene, SceneSpawnNode>();
+        situationToNode = new ConditionalWeakTable<Situation, SituationSpawnNode>();
         choiceContextStack.Clear();
         situationContextStack.Clear();
     }

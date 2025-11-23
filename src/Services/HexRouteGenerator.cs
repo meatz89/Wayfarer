@@ -382,7 +382,7 @@ public class HexRouteGenerator
             {
                 _gameWorld.ProceduralTracer.RecordSituationSpawn(
                     situation,
-                    sceneNode.NodeId,
+                    sceneNode,
                     SituationSpawnTriggerType.InitialScene
                 );
             }

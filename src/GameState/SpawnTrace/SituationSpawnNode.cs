@@ -7,11 +7,6 @@ public class SituationSpawnNode
     // ==================== CORE IDENTITY ====================
 
     /// <summary>
-    /// Unique identifier for this trace node (GUID)
-    /// </summary>
-    public string NodeId { get; set; }
-
-    /// <summary>
     /// Which SituationTemplate spawned this situation
     /// null for authored situations (non-template)
     /// </summary>
@@ -35,9 +30,10 @@ public class SituationSpawnNode
     // ==================== SPAWN CONTEXT ====================
 
     /// <summary>
-    /// NodeId of parent scene containing this situation
+    /// Parent scene containing this situation
+    /// HIGHLANDER: Direct object reference, no ID strings
     /// </summary>
-    public string ParentSceneNodeId { get; set; }
+    public SceneSpawnNode ParentScene { get; set; }
 
     /// <summary>
     /// What triggered this situation spawn
@@ -45,10 +41,11 @@ public class SituationSpawnNode
     public SituationSpawnTriggerType SpawnTrigger { get; set; }
 
     /// <summary>
-    /// NodeId of parent situation that spawned this situation (for cascades)
+    /// Parent situation that spawned this situation (for cascades)
     /// null if initial situation in scene
+    /// HIGHLANDER: Direct object reference, no ID strings
     /// </summary>
-    public string ParentSituationNodeId { get; set; }
+    public SituationSpawnNode ParentSituation { get; set; }
 
     // ==================== SITUATION PROPERTIES ====================
 
@@ -102,10 +99,11 @@ public class SituationSpawnNode
     public List<ChoiceExecutionNode> Choices { get; set; } = new List<ChoiceExecutionNode>();
 
     /// <summary>
-    /// NodeIds of situations spawned by choices in this situation (cascades)
+    /// Situations spawned by choices in this situation (cascades)
     /// Populated as choices execute and spawn new situations
+    /// HIGHLANDER: Direct object references, no ID strings
     /// </summary>
-    public List<string> SpawnedSituationNodeIds { get; set; } = new List<string>();
+    public List<SituationSpawnNode> SpawnedSituations { get; set; } = new List<SituationSpawnNode>();
 
     // ==================== LIFECYCLE ====================
 

@@ -62,11 +62,11 @@
             }
         </div>
 
-        @if (Node.SpawnedSituationNodeIds != null && Node.SpawnedSituationNodeIds.Count > 0)
+        @if (Node.SpawnedSituations != null && Node.SpawnedSituations.Count > 0)
         {
             <div>
                 <span class="trace-property">↳ Spawned:</span>
-                <span class="trace-count">@Node.SpawnedSituationNodeIds.Count</span> situation(s) (cascade)
+                <span class="trace-count">@Node.SpawnedSituations.Count</span> situation(s) (cascade)
             </div>
         }
 
@@ -99,7 +99,7 @@
                 <ChoiceNode Node="@choice"
                             Tracer="@Tracer"
                             OnNodeSelected="@OnNodeSelected"
-                            IsHighlighted="@(HighlightedNodeIds?.Contains(choice.NodeId) ?? false)" />
+                            IsHighlighted="@(HighlightedNodes?.Contains(choice) ?? false)" />
             }
         </div>
     }
@@ -108,16 +108,16 @@
 @code {
     [Parameter] public SituationSpawnNode Node { get; set; }
     [Parameter] public ProceduralContentTracer Tracer { get; set; }
-    [Parameter] public Action<string> OnNodeSelected { get; set; }
-    [Parameter] public Action<string> OnToggleExpand { get; set; }
+    [Parameter] public Action<object> OnNodeSelected { get; set; }
+    [Parameter] public Action<object> OnToggleExpand { get; set; }
     [Parameter] public bool IsExpanded { get; set; }
     [Parameter] public bool IsHighlighted { get; set; }
-    [Parameter] public HashSet<string> ExpandedNodeIds { get; set; }
-    [Parameter] public HashSet<string> HighlightedNodeIds { get; set; }
+    [Parameter] public HashSet<object> ExpandedNodes { get; set; }
+    [Parameter] public HashSet<object> HighlightedNodes { get; set; }
 
     private void HandleClick()
     {
-        OnToggleExpand?.Invoke(Node.NodeId);
-        OnNodeSelected?.Invoke(Node.NodeId);
+        OnToggleExpand?.Invoke(Node);
+        OnNodeSelected?.Invoke(Node);
     }
 }

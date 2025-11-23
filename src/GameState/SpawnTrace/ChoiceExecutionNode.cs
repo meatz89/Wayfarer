@@ -7,11 +7,6 @@ public class ChoiceExecutionNode
     // ==================== CORE IDENTITY ====================
 
     /// <summary>
-    /// Unique identifier for this trace node (GUID)
-    /// </summary>
-    public string NodeId { get; set; }
-
-    /// <summary>
     /// ChoiceTemplate ID that was executed
     /// </summary>
     public string ChoiceId { get; set; }
@@ -29,9 +24,10 @@ public class ChoiceExecutionNode
     // ==================== EXECUTION CONTEXT ====================
 
     /// <summary>
-    /// NodeId of situation this choice belongs to
+    /// Situation this choice belongs to
+    /// HIGHLANDER: Direct object reference, no ID strings
     /// </summary>
-    public string ParentSituationNodeId { get; set; }
+    public SituationSpawnNode ParentSituation { get; set; }
 
     /// <summary>
     /// Choice path type (InstantSuccess, Challenge, Fallback, etc.)
@@ -110,16 +106,18 @@ public class ChoiceExecutionNode
     // ==================== SPAWN CONSEQUENCES ====================
 
     /// <summary>
-    /// NodeIds of scenes spawned by this choice
+    /// Scenes spawned by this choice
     /// Populated as rewards are applied
+    /// HIGHLANDER: Direct object references, no ID strings
     /// </summary>
-    public List<string> SpawnedSceneNodeIds { get; set; } = new List<string>();
+    public List<SceneSpawnNode> SpawnedScenes { get; set; } = new List<SceneSpawnNode>();
 
     /// <summary>
-    /// NodeIds of situations spawned by this choice
+    /// Situations spawned by this choice
     /// Populated as rewards are applied
+    /// HIGHLANDER: Direct object references, no ID strings
     /// </summary>
-    public List<string> SpawnedSituationNodeIds { get; set; } = new List<string>();
+    public List<SituationSpawnNode> SpawnedSituations { get; set; } = new List<SituationSpawnNode>();
 
     // ==================== NAVIGATION (if applicable) ====================
 

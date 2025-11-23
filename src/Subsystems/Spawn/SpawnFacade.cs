@@ -79,14 +79,14 @@ public class SpawnFacade
                 // PROCEDURAL CONTENT TRACING: Record cascading situation spawn
                 if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
                 {
-                    string parentSceneNodeId = _gameWorld.ProceduralTracer.GetNodeIdForScene(parentSituation.ParentScene);
-                    if (parentSceneNodeId != null)
+                    SceneSpawnNode parentSceneNode = _gameWorld.ProceduralTracer.GetNodeForScene(parentSituation.ParentScene);
+                    if (parentSceneNode != null)
                     {
                         // Push parent situation context so cascading situation links to it
-                        string parentSituationNodeId = _gameWorld.ProceduralTracer.GetNodeIdForSituation(parentSituation);
-                        if (parentSituationNodeId != null)
+                        SituationSpawnNode parentSituationNode = _gameWorld.ProceduralTracer.GetNodeForSituation(parentSituation);
+                        if (parentSituationNode != null)
                         {
-                            _gameWorld.ProceduralTracer.PushSituationContext(parentSituationNodeId);
+                            _gameWorld.ProceduralTracer.PushSituationContext(parentSituationNode);
                         }
 
                         // Record situation spawn (auto-links to parent situation via context stack)
@@ -94,12 +94,12 @@ public class SpawnFacade
                         // Consider enhancing SpawnRule to track trigger type if needed
                         _gameWorld.ProceduralTracer.RecordSituationSpawn(
                             spawnedSituation,
-                            parentSceneNodeId,
+                            parentSceneNode,
                             SituationSpawnTriggerType.SuccessSpawn
                         );
 
                         // Pop context after recording
-                        if (parentSituationNodeId != null)
+                        if (parentSituationNode != null)
                         {
                             _gameWorld.ProceduralTracer.PopSituationContext();
                         }

@@ -7,13 +7,6 @@ public class SceneSpawnNode
     // ==================== CORE IDENTITY ====================
 
     /// <summary>
-    /// Unique identifier for this trace node (GUID)
-    /// NOT a domain entity ID - this is meta-data for tracing only
-    /// Stable reference across method calls and parent-child linking
-    /// </summary>
-    public string NodeId { get; set; }
-
-    /// <summary>
     /// Which SceneTemplate spawned this scene
     /// null for authored content (non-template scenes)
     /// </summary>
@@ -47,22 +40,25 @@ public class SceneSpawnNode
     public SpawnTriggerType SpawnTrigger { get; set; }
 
     /// <summary>
-    /// NodeId of parent scene (if spawned by another scene)
+    /// Parent scene (if spawned by another scene)
     /// null for root scenes
+    /// HIGHLANDER: Direct object reference, no ID strings
     /// </summary>
-    public string ParentSceneNodeId { get; set; }
+    public SceneSpawnNode ParentScene { get; set; }
 
     /// <summary>
-    /// NodeId of parent situation that spawned this scene
+    /// Parent situation that spawned this scene
     /// null if not spawned by situation
+    /// HIGHLANDER: Direct object reference, no ID strings
     /// </summary>
-    public string ParentSituationNodeId { get; set; }
+    public SituationSpawnNode ParentSituation { get; set; }
 
     /// <summary>
-    /// NodeId of choice that spawned this scene
+    /// Choice that spawned this scene
     /// null if not spawned by choice
+    /// HIGHLANDER: Direct object reference, no ID strings
     /// </summary>
-    public string ParentChoiceNodeId { get; set; }
+    public ChoiceExecutionNode ParentChoice { get; set; }
 
     // ==================== SCENE PROPERTIES ====================
 
@@ -124,10 +120,11 @@ public class SceneSpawnNode
     public List<SituationSpawnNode> Situations { get; set; } = new List<SituationSpawnNode>();
 
     /// <summary>
-    /// NodeIds of scenes spawned by choices within this scene
+    /// Scenes spawned by choices within this scene
     /// Populated as choices execute
+    /// HIGHLANDER: Direct object references, no ID strings
     /// </summary>
-    public List<string> SpawnedSceneNodeIds { get; set; } = new List<string>();
+    public List<SceneSpawnNode> SpawnedScenes { get; set; } = new List<SceneSpawnNode>();
 
     // ==================== LIFECYCLE ====================
 
