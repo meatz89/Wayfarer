@@ -50,16 +50,6 @@ public class LocationAction
     public LocationCapability ExcludedCapabilities { get; set; } = LocationCapability.None;
 
     /// <summary>
-    /// Resource costs required to perform this action
-    /// </summary>
-    public ActionCosts Costs { get; set; } = new ActionCosts();
-
-    /// <summary>
-    /// Resources rewarded for performing this action
-    /// </summary>
-    public ActionRewards Rewards { get; set; } = new ActionRewards();
-
-    /// <summary>
     /// Time required to complete this action in minutes
     /// </summary>
     public int TimeRequired { get; set; }
@@ -94,17 +84,11 @@ public class LocationAction
     /// ChoiceTemplate source (Sir Brante layer - Scene-Situation architecture)
     /// COMPOSITION not copy - access CompoundRequirement, ChoiceCost, ChoiceReward through this reference
     ///
-    /// null = Always-available action parsed directly from JSON (legacy pattern)
-    ///        Uses direct Costs/Rewards properties above
-    ///
-    /// non-null = Scene-spawned action generated from ChoiceTemplate at spawn time
-    ///            ChoiceTemplate provides:
-    ///            - RequirementFormula (CompoundRequirement with OR paths)
-    ///            - CostTemplate (ChoiceCost with Coins/Resolve/TimeSegments)
-    ///            - RewardTemplate (ChoiceReward with bonds/scales/states/scene spawns)
-    ///
-    /// Enables unified action execution: All actions check ChoiceTemplate if present,
-    /// fall back to direct properties if null (legacy coexistence pattern)
+    /// Scene-spawned actions generated from ChoiceTemplate at spawn time
+    /// ChoiceTemplate provides:
+    /// - RequirementFormula (CompoundRequirement with OR paths)
+    /// - CostTemplate (ChoiceCost with Coins/Resolve/TimeSegments)
+    /// - RewardTemplate (ChoiceReward with bonds/scales/states/scene spawns)
     /// </summary>
     public ChoiceTemplate ChoiceTemplate { get; set; }
 

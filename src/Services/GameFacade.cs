@@ -1736,10 +1736,6 @@ public class GameFacade
             {
                 await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
             }
-            else if (plan.LegacyRewards != null)
-            {
-                ApplyLegacyRewards(plan.LegacyRewards);
-            }
 
             // THREE-TIER TIMING MODEL: No cleanup needed (actions are ephemeral, not stored)
 
@@ -1847,10 +1843,6 @@ public class GameFacade
             {
                 await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
             }
-            else if (plan.LegacyRewards != null)
-            {
-                ApplyLegacyRewards(plan.LegacyRewards);
-            }
 
             // THREE-TIER TIMING MODEL: No cleanup needed (actions are ephemeral, not stored)
 
@@ -1933,11 +1925,6 @@ public class GameFacade
             if (plan.ChoiceReward != null)
             {
                 await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
-            }
-            else if (plan.IsLegacyAction)
-            {
-                // Apply legacy PathCard rewards (StaminaRestore, HealthEffect, CoinReward, etc.)
-                ApplyLegacyPathCardRewards(card);
             }
 
             // THREE-TIER TIMING MODEL: No cleanup needed (actions are ephemeral, not stored)
@@ -2073,57 +2060,6 @@ public class GameFacade
         }
     }
 
-    /// <summary>
-    /// Cleanup ephemeral actions for a Situation after execution
-    /// Actions are query-time instances created by SceneFacade, NOT persistent data
-    /// After action execution, delete all actions so they can be regenerated on next query
-    /// This is CRITICAL for three-tier timing model (Query-time instantiation)
-    /// </summary>
-    private void ApplyLegacyRewards(ActionRewards rewards)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        if (rewards.FullRecovery)
-        {
-            player.Health = player.MaxHealth;
-            player.Focus = player.MaxFocus;
-            player.Stamina = player.MaxStamina;
-            return;
-        }
-
-        if (rewards.CoinReward > 0)
-            player.Coins += rewards.CoinReward;
-
-        if (rewards.HealthRecovery > 0)
-            player.Health = Math.Min(player.MaxHealth, player.Health + rewards.HealthRecovery);
-
-        if (rewards.FocusRecovery > 0)
-            player.Focus = Math.Min(player.MaxFocus, player.Focus + rewards.FocusRecovery);
-
-        if (rewards.StaminaRecovery > 0)
-            player.Stamina = Math.Min(player.MaxStamina, player.Stamina + rewards.StaminaRecovery);
-    }
-
-    private void ApplyLegacyPathCardRewards(PathCard card)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        if (card.StaminaRestore > 0)
-            player.Stamina = Math.Min(player.MaxStamina, player.Stamina + card.StaminaRestore);
-
-        if (card.HealthEffect != 0)
-        {
-            if (card.HealthEffect > 0)
-                player.Health = Math.Min(player.MaxHealth, player.Health + card.HealthEffect);
-            else
-                player.Health = Math.Max(0, player.Health + card.HealthEffect); // Negative effect
-        }
-
-        if (card.CoinReward > 0)
-            player.Coins += card.CoinReward;
-
-        // TokenGains, RevealsPaths, etc. would be handled by PathCard-specific logic
-    }
     private IntentResult RouteToTacticalChallenge(ActionExecutionPlan plan)
     {
         // Store CompletionReward in appropriate PendingContext

@@ -41,104 +41,6 @@ public class PathCard
     /// </summary>
     public bool IsOneTime { get; set; } = false;
 
-    // ==================== REQUIREMENTS (LEGACY PATTERN) ====================
-
-    /// <summary>
-    /// Coin cost to use this path (must have coins to select)
-    /// </summary>
-    public int CoinRequirement { get; set; } = 0;
-
-    /// <summary>
-    /// Permit/license required to use this path
-    /// HIGHLANDER: Object reference ONLY, no PermitRequirement ID
-    /// null = no permit required
-    /// References permit in player inventory
-    /// </summary>
-    public Item PermitRequirement { get; set; }
-
-    /// <summary>
-    /// Stat requirements - minimum stat levels required to use this path
-    /// Dictionary key = stat name (e.g., "insight", "cunning")
-    /// Dictionary value = minimum level required
-    /// Player must meet ALL stat requirements
-    /// </summary>
-    public Dictionary<string, int> StatRequirements { get; set; } = new Dictionary<string, int>();
-
-    // ==================== COSTS (LEGACY PATTERN) ====================
-
-    /// <summary>
-    /// Stamina cost to use this path
-    /// Deducted from player's current stamina when path selected
-    /// </summary>
-    public int StaminaCost { get; set; }
-
-    /// <summary>
-    /// Time cost in segments (4 segments per time block)
-    /// Advances game time when path selected
-    /// </summary>
-    public int TravelTimeSegments { get; set; }
-
-    /// <summary>
-    /// Hunger increase from using this path
-    /// Positive value increases hunger (makes player hungrier)
-    /// Negative value decreases hunger (provides food)
-    /// </summary>
-    public int HungerEffect { get; set; } = 0;
-
-    // ==================== REWARDS (LEGACY PATTERN) ====================
-
-    /// <summary>
-    /// Stamina restored when using this path
-    /// Positive value for REST paths that restore stamina
-    /// Replaces StaminaCost for recovery actions
-    /// </summary>
-    public int StaminaRestore { get; set; } = 0;
-
-    /// <summary>
-    /// Health change from this path
-    /// Positive = healing, negative = damage
-    /// Example: Dangerous path might cost health, safe path might restore
-    /// </summary>
-    public int HealthEffect { get; set; } = 0;
-
-    /// <summary>
-    /// Coins gained from this path
-    /// Positive value = earn coins (found treasure, traded with travelers)
-    /// </summary>
-    public int CoinReward { get; set; } = 0;
-
-    /// <summary>
-    /// One-time reward for discovering/using this path
-    /// Strongly-typed reward object (coins, observation, etc.)
-    /// Set at parse-time from PathCardDTO.OneTimeReward string
-    /// </summary>
-    public PathReward Reward { get; set; } = PathReward.None;
-
-    /// <summary>
-    /// Token gains from using this path
-    /// Dictionary key = token type (e.g., "Diplomacy", "Status")
-    /// Dictionary value = amount gained
-    /// Progression system integration
-    /// </summary>
-    public Dictionary<string, int> TokenGains { get; set; } = new Dictionary<string, int>();
-
-    // ==================== PATH REVELATIONS ====================
-
-    /// <summary>
-    /// List of path card IDs revealed when this path is used
-    /// Discovery mechanic: Using one path unlocks knowledge of other paths
-    /// </summary>
-    public List<string> RevealsPaths { get; set; } = new List<string>();
-
-    // ==================== BEHAVIORAL FLAGS ====================
-
-    /// <summary>
-    /// Dead-end path that forces player to return
-    /// After selecting this path, must return to previous segment
-    /// Cannot continue forward on route
-    /// </summary>
-    public bool ForceReturn { get; set; } = false;
-
     /// <summary>
     /// Optional scene on this path
     /// HIGHLANDER: Object reference ONLY, no SceneId
@@ -153,17 +55,11 @@ public class PathCard
     /// ChoiceTemplate source (Sir Brante layer - Scene-Situation architecture)
     /// COMPOSITION not copy - access CompoundRequirement, ChoiceCost, ChoiceReward through this reference
     ///
-    /// null = Static path card parsed directly from route JSON (legacy pattern)
-    ///        Uses direct requirement/cost/reward properties above
-    ///
-    /// non-null = Scene-spawned path card generated from ChoiceTemplate at spawn time
-    ///            ChoiceTemplate provides:
-    ///            - RequirementFormula (CompoundRequirement with OR paths)
-    ///            - CostTemplate (ChoiceCost with Coins/Resolve/TimeSegments)
-    ///            - RewardTemplate (ChoiceReward with bonds/scales/states/scene spawns)
-    ///
-    /// Enables unified action execution: All path cards check ChoiceTemplate if present,
-    /// fall back to direct properties if null (legacy coexistence pattern)
+    /// Scene-spawned path cards generated from ChoiceTemplate at spawn time
+    /// ChoiceTemplate provides:
+    /// - RequirementFormula (CompoundRequirement with OR paths)
+    /// - CostTemplate (ChoiceCost with Coins/Resolve/TimeSegments)
+    /// - RewardTemplate (ChoiceReward with bonds/scales/states/scene spawns)
     /// </summary>
     public ChoiceTemplate ChoiceTemplate { get; set; }
 

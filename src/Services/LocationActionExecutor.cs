@@ -10,15 +10,12 @@ public class LocationActionExecutor
     /// </summary>
     public ActionExecutionPlan ValidateAndExtract(LocationAction action, Player player, GameWorld gameWorld)
     {
-        // UNIFIED ARCHITECTURE: ChoiceTemplate vs direct properties
-        if (action.ChoiceTemplate != null)
+        if (action.ChoiceTemplate == null)
         {
-            return ValidateChoiceTemplate(action.ChoiceTemplate, action.Name, player, gameWorld);
+            return ActionExecutionPlan.Invalid("LocationAction missing ChoiceTemplate");
         }
-        else
-        {
-            return ValidateLegacyAction(action, player);
-        }
+
+        return ValidateChoiceTemplate(action.ChoiceTemplate, action.Name, player, gameWorld);
     }
 
     private ActionExecutionPlan ValidateChoiceTemplate(ChoiceTemplate template, string actionName, Player player, GameWorld gameWorld)
@@ -84,27 +81,6 @@ public class LocationActionExecutor
         plan.ChallengeId = template.ChallengeId;
         plan.NavigationPayload = template.NavigationPayload;
         plan.ActionName = actionName;
-        plan.IsLegacyAction = false;
-
-        return plan;
-    }
-
-    private ActionExecutionPlan ValidateLegacyAction(LocationAction action, Player player)
-    {
-        // STEP 1: Validate strategic costs (legacy actions have no requirements)
-        if (player.Coins < action.Costs.Coins)
-        {
-            return ActionExecutionPlan.Invalid($"Not enough Coins (need {action.Costs.Coins}, have {player.Coins})");
-        }
-
-        // STEP 2: Build execution plan
-        ActionExecutionPlan plan = ActionExecutionPlan.Valid();
-        plan.CoinsCost = action.Costs.Coins;
-        plan.TimeSegments = action.TimeRequired;
-        plan.LegacyRewards = action.Rewards;
-        plan.ActionType = ChoiceActionType.Instant; // Legacy actions are always instant
-        plan.ActionName = action.Name;
-        plan.IsLegacyAction = true;
 
         return plan;
     }

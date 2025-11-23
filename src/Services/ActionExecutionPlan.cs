@@ -21,7 +21,6 @@ public class ActionExecutionPlan
 
     // Rewards to apply (GameFacade routes to appropriate facade)
     public ChoiceReward ChoiceReward { get; set; }
-    public ActionRewards LegacyRewards { get; set; }
 
     // Execution routing
     public ChoiceActionType ActionType { get; set; }
@@ -31,7 +30,6 @@ public class ActionExecutionPlan
 
     // Action metadata
     public string ActionName { get; set; }
-    public bool IsLegacyAction { get; set; }
 
     public static ActionExecutionPlan Invalid(string reason)
     {

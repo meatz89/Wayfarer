@@ -10,15 +10,12 @@ public class NPCActionExecutor
     /// </summary>
     public ActionExecutionPlan ValidateAndExtract(NPCAction action, Player player, GameWorld gameWorld)
     {
-        // UNIFIED ARCHITECTURE: ChoiceTemplate vs direct properties
-        if (action.ChoiceTemplate != null)
+        if (action.ChoiceTemplate == null)
         {
-            return ValidateChoiceTemplate(action.ChoiceTemplate, action.Name, player, gameWorld);
+            return ActionExecutionPlan.Invalid("NPCAction missing ChoiceTemplate");
         }
-        else
-        {
-            return ValidateLegacyAction(action);
-        }
+
+        return ValidateChoiceTemplate(action.ChoiceTemplate, action.Name, player, gameWorld);
     }
 
     private ActionExecutionPlan ValidateChoiceTemplate(ChoiceTemplate template, string actionName, Player player, GameWorld gameWorld)
@@ -84,19 +81,6 @@ public class NPCActionExecutor
         plan.ChallengeId = template.ChallengeId;
         plan.NavigationPayload = template.NavigationPayload;
         plan.ActionName = actionName;
-        plan.IsLegacyAction = false;
-
-        return plan;
-    }
-
-    private ActionExecutionPlan ValidateLegacyAction(NPCAction action)
-    {
-        // Legacy NPC actions have no costs or requirements (conversations are free)
-        ActionExecutionPlan plan = ActionExecutionPlan.Valid();
-        plan.ActionType = ChoiceActionType.StartChallenge; // Legacy NPC actions start conversations
-        plan.ChallengeType = TacticalSystemType.Social;
-        plan.ActionName = action.Name;
-        plan.IsLegacyAction = true;
 
         return plan;
     }

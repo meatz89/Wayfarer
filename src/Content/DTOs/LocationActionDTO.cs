@@ -36,16 +36,6 @@ public class LocationActionDTO
     public List<string> ExcludedProperties { get; set; } = new List<string>();
 
     /// <summary>
-    /// Resource costs required to perform this action
-    /// </summary>
-    public ActionCostsDTO Cost { get; set; } = new ActionCostsDTO();
-
-    /// <summary>
-    /// Resources rewarded for performing this action
-    /// </summary>
-    public ActionRewardsDTO Reward { get; set; } = new ActionRewardsDTO();
-
-    /// <summary>
     /// Time required to complete this action in segments
     /// </summary>
     public int TimeRequired { get; set; }

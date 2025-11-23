@@ -10,15 +10,12 @@ public class PathCardExecutor
     /// </summary>
     public ActionExecutionPlan ValidateAndExtract(PathCard card, Player player, GameWorld gameWorld)
     {
-        // UNIFIED ARCHITECTURE: ChoiceTemplate vs direct properties
-        if (card.ChoiceTemplate != null)
+        if (card.ChoiceTemplate == null)
         {
-            return ValidateChoiceTemplate(card.ChoiceTemplate, card.Name, player, gameWorld);
+            return ActionExecutionPlan.Invalid("PathCard missing ChoiceTemplate");
         }
-        else
-        {
-            return ValidateLegacyCard(card, player);
-        }
+
+        return ValidateChoiceTemplate(card.ChoiceTemplate, card.Name, player, gameWorld);
     }
 
     private ActionExecutionPlan ValidateChoiceTemplate(ChoiceTemplate template, string cardName, Player player, GameWorld gameWorld)
@@ -55,34 +52,6 @@ public class PathCardExecutor
         plan.ChallengeId = template.ChallengeId;
         plan.NavigationPayload = template.NavigationPayload;
         plan.ActionName = cardName;
-        plan.IsLegacyAction = false;
-
-        return plan;
-    }
-
-    private ActionExecutionPlan ValidateLegacyCard(PathCard card, Player player)
-    {
-        // STEP 1: Validate requirements
-        if (player.Coins < card.CoinRequirement)
-        {
-            return ActionExecutionPlan.Invalid($"Not enough Coins (need {card.CoinRequirement}, have {player.Coins})");
-        }
-
-        // STEP 2: Validate costs (stamina is consumed when path is used)
-        if (player.Stamina < card.StaminaCost)
-        {
-            return ActionExecutionPlan.Invalid($"Not enough Stamina (need {card.StaminaCost}, have {player.Stamina})");
-        }
-
-        // STEP 3: Build execution plan
-        // Legacy PathCards have direct reward properties (StaminaRestore, HealthEffect, CoinReward, etc.)
-        // GameFacade will apply these via TravelFacade or directly
-        ActionExecutionPlan plan = ActionExecutionPlan.Valid();
-        plan.CoinsCost = card.CoinRequirement;
-        plan.TimeSegments = card.TravelTimeSegments;
-        plan.ActionType = ChoiceActionType.Instant; // Legacy path cards apply effects instantly
-        plan.ActionName = card.Name;
-        plan.IsLegacyAction = true;
 
         return plan;
     }
