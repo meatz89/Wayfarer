@@ -334,46 +334,16 @@ public class ResourceFacade
     }
 
     /// <summary>
-    /// Consume an item and clear states based on item type
-    /// TODO: Requires Item entity to have ItemType property (Medical, Food, Remedy, Provisions)
+    /// Consume an item and clear states based on item type.
+    /// NOT IMPLEMENTED: Requires Item.ItemType property and inventory system.
+    /// Will be implemented in Phase 6 when item consumption mechanics are designed.
     /// </summary>
     public bool ConsumeItem(Item item)
     {
-        Player player = _gameWorld.GetPlayer();
-
-        // TODO: Verify item exists in inventory
-        // if (!player.Inventory.Contains(item)) return false;
-
-        // TODO: Determine ItemType from item
-        // This requires Item entity to have ItemType property
-        // For now, we can map ItemCategory to ItemType:
-        // - ItemCategory.Medicine → ItemType.Medical
-        // - ItemCategory.Hunger → ItemType.Food
-        // - etc.
-
-        // TODO: Remove item from inventory
-        // player.Inventory.Remove(item);
-
-        // TODO: Get projection of states to clear
-        // ItemType itemType = DetermineItemType(item);
-        // List<StateType> statesToClear = _stateClearingResolver.GetStatesToClearOnItemConsumption(itemType);
-
-        // TODO: Apply state clearing
-        // foreach (StateType stateType in statesToClear)
-        // {
-        //     _gameWorld.ClearState(stateType);
-        // }
-
-        // TODO Phase 6: Trigger cascade
-        // if (statesToClear.Any())
-        // {
-        //     await _spawnFacade.EvaluateDormantSituations();
-        // }
-
-        // TODO: Add system message
-        // _messageSystem.AddSystemMessage($"Consumed {item.Name}, cleared {statesToClear.Count} states", SystemMessageTypes.Success);
-
-        return false; // Stub - not yet implemented
+        throw new NotImplementedException(
+            "ConsumeItem() not yet implemented. " +
+            "Requires: (1) Item.ItemType property, (2) Inventory system, (3) Item-to-StateClearing mapping. " +
+            "Planned for Phase 6.");
     }
 
     /// <summary>
