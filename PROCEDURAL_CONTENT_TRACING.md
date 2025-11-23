@@ -1,0 +1,3172 @@
+# Procedural Content Tracing System
+
+## Executive Summary
+
+A **strongly-typed, synchronous, single-component system** that captures the complete spawn graph of procedurally generated content (scenes, situations, choices) with their properties, relationships, and context. Enables debugging visualization as an interactive node graph showing what spawned what, when, why, and with what properties.
+
+**Core Principle:** Capture spawn events at creation time, store relationships as direct object references, visualize as explorable tree/graph.
+
+---
+
+## Status
+🚧 HIGH-LEVEL DESIGN COMPLETE - READY FOR IMPLEMENTATION
+
+---
+
+## Goals (FROM USER REQUEST)
+
+✅ Track all procedurally generated scenes, situations, and choices
+✅ Record what spawned what (parent-child relationships)
+✅ Capture properties and context at spawn time
+✅ Record which entities (locations/NPCs/routes) were involved
+✅ Record which other scenes/situations were spawned as consequences
+✅ Enable debugging screen with node graph visualization
+✅ Strongly typed (explicit classes, no dictionaries)
+✅ Synchronous (no async complexity)
+✅ Single system/component (centralized tracking)
+
+---
+
+## Research Findings Summary
+
+### Current Procedural Generation Architecture
+
+**Five-System Flow:**
+1. **Scene Selection** - SpawnConditions evaluation
+2. **Scene Specification** - SceneSpawnReward with SceneTemplateId
+3. **Package Generator** - SceneInstantiator generates JSON with PlacementFilters
+4. **Entity Resolver** - EntityResolver.FindOrCreate resolves categorical filters
+5. **Scene Instantiation** - SceneParser creates domain Scene entity
+
+**Spawn Mechanisms:**
+- **Scene Spawning:** Via `ChoiceReward.ScenesToSpawn` (List of SceneSpawnReward)
+- **Situation Spawning:** Via `Situation.SuccessSpawns/FailureSpawns` (List of SpawnRule)
+- **Choice Execution:** RewardApplicationService.ApplyChoiceReward → FinalizeSceneSpawns
+
+**Entity Relationships:**
+- Direct object references (NO IDs per HIGHLANDER principle)
+- GameWorld.Scenes contains List<Scene>
+- Scene.Situations contains List<Situation>
+- Situation has Location/NPC/Route object references
+
+**Key Properties:**
+- Scene: TemplateId, Category, MainStorySequence, State, DisplayName, EstimatedDifficulty
+- Situation: Name, Type, SystemType, Location, NPC, Route, SuccessSpawns, FailureSpawns
+- ChoiceTemplate: ActionTextTemplate, PathType, RequirementFormula, CostTemplate, RewardTemplate
+
+### Existing Visualization Infrastructure
+
+**Available Patterns:**
+- **Hex Grid:** CSS-based with coordinate positioning (HexMapContent.razor)
+- **Debug Panel:** Collapsible fixed panel with sections (DebugPanel.razor)
+- **Card System:** Grid layouts for item display (SituationCard.razor, etc.)
+- **List Components:** Vertical item lists (StrangerList.razor)
+- **Section Pattern:** Stacked sections with headers
+
+**What's Missing:**
+- No tree/graph visualization components
+- No node-link diagram rendering
+- No interactive graph libraries (no D3, no Chart.js)
+- Conversation trees render linearly, not as diagrams
+
+**Implication:** Need to build graph visualization from scratch using CSS/SVG.
+
+---
+
+## PART 1: TRACE DATA STRUCTURE
+
+### Core Architecture Principle
+
+**Capture spawn events at creation time, NOT query domain entities later.**
+
+**Why:** Domain entities (Scene, Situation) don't have IDs. Object references are ephemeral (memory addresses change). Must capture relationship data at moment of spawning with stable identifiers.
+
+**Pattern:** Observer/Event pattern where spawning systems notify tracing system of creation events.
+
+### Trace Node Types
+
+**Three node types reflecting spawn hierarchy:**
+
+1. **SceneSpawnNode** - Tracks scene creation
+2. **SituationSpawnNode** - Tracks situation creation
+3. **ChoiceExecutionNode** - Tracks player choice execution
+
+**Hierarchy:** SceneSpawnNode → contains List<SituationSpawnNode> → contains List<ChoiceExecutionNode>
+
+### SceneSpawnNode (Root Level)
+
+**Purpose:** Capture everything about a procedurally spawned scene.
+
+**Properties:**
+
+```
+Core Identity:
+- NodeId : string (GUID for stable reference)
+- SceneTemplateId : string (which template spawned this)
+- DisplayName : string (scene name)
+- SpawnTimestamp : DateTime (when created)
+- GameDay : int (which day)
+- GameTimeBlock : TimeBlock (which time period)
+
+Spawn Context:
+- SpawnTrigger : SpawnTriggerType enum (ChoiceReward, SituationSuccess, SituationFailure, Tutorial)
+- ParentNodeId : string (NodeId of parent scene, null if root)
+- ParentSituationNodeId : string (NodeId of situation that spawned this)
+- ParentChoiceNodeId : string (NodeId of choice that spawned this)
+
+Scene Properties:
+- Category : StoryCategory (MainStory, SideStory, Service)
+- MainStorySequence : int? (A-story number if applicable)
+- EstimatedDifficulty : string
+- State : SceneState (Provisional, Active, Completed, Expired)
+- ProgressionMode : ProgressionMode (Breathe, Cascade)
+- SituationCount : int
+
+Placement Properties:
+- PlacedLocation : LocationSnapshot (location where scene became available)
+- PlacementFilter : PlacementFilterSnapshot (categorical requirements used)
+
+Children:
+- Situations : List<SituationSpawnNode> (embedded situations)
+- SpawnedScenes : List<string> (NodeIds of scenes spawned by this scene's choices)
+
+Lifecycle:
+- CompletedTimestamp : DateTime? (when scene completed)
+- CompletedGameDay : int?
+```
+
+**Design Decisions:**
+- Store SNAPSHOTS of properties (not object references - those don't serialize)
+- ParentNodeId for traversal (can walk up/down tree)
+- SpawnedScenes list for horizontal relationships (sibling scenes)
+- State tracks lifecycle (can see which scenes are still active vs completed)
+
+### SituationSpawnNode (Middle Level)
+
+**Purpose:** Capture situation-level spawning and execution details.
+
+**Properties:**
+
+```
+Core Identity:
+- NodeId : string (GUID)
+- SituationTemplateId : string (which template)
+- Name : string
+- Description : string
+- SpawnTimestamp : DateTime
+
+Spawn Context:
+- ParentSceneNodeId : string (which scene contains this)
+- SpawnTrigger : SituationSpawnTriggerType (InitialScene, SuccessSpawn, FailureSpawn)
+- ParentSituationNodeId : string? (if spawned by another situation)
+
+Situation Properties:
+- Type : SituationType (Normal, Crisis)
+- SystemType : TacticalSystemType (Social, Mental, Physical)
+- InteractionType : SituationInteractionType (Instant, Challenge, Navigation)
+
+Placement Properties:
+- Location : LocationSnapshot (where situation takes place)
+- NPC : NPCSnapshot? (which NPC if applicable)
+- Route : RouteSnapshot? (which route if applicable)
+- SegmentIndex : int? (for route situations)
+
+Children:
+- Choices : List<ChoiceExecutionNode> (choices player made)
+- SpawnedSituations : List<string> (NodeIds of child situations)
+
+Lifecycle:
+- LifecycleStatus : LifecycleStatus (Selectable, Completed, Failed)
+- CompletedTimestamp : DateTime?
+- LastChallengeSucceeded : bool?
+```
+
+**Design Decisions:**
+- LocationSnapshot instead of Location object (serialize properties needed for debugging)
+- NPCSnapshot captures name, demeanor, profession (enough to identify)
+- RouteSnapshot captures origin/destination names (not full objects)
+- Tracks both choices executed AND situations spawned (complete trace)
+
+### ChoiceExecutionNode (Leaf Level)
+
+**Purpose:** Capture player decisions and their consequences.
+
+**Properties:**
+
+```
+Core Identity:
+- NodeId : string (GUID)
+- ChoiceId : string (template ID)
+- ActionText : string (what player saw)
+- ExecutionTimestamp : DateTime
+
+Execution Context:
+- ParentSituationNodeId : string
+- PathType : ChoicePathType (InstantSuccess, Challenge, Fallback)
+- ActionType : ChoiceActionType (Instant, StartChallenge, Navigate)
+
+Requirements & Costs:
+- RequirementSnapshot : RequirementSnapshot (what was required)
+- CostSnapshot : CostSnapshot (what player paid)
+- PlayerMetRequirements : bool (did player qualify)
+
+Challenge Details (if applicable):
+- ChallengeId : string?
+- DeckId : string?
+- ChallengeSucceeded : bool?
+- ChallengeOutcome : string? (summary)
+
+Rewards:
+- RewardSnapshot : RewardSnapshot (base rewards)
+- OnSuccessRewardSnapshot : RewardSnapshot? (challenge success)
+- OnFailureRewardSnapshot : RewardSnapshot? (challenge failure)
+
+Spawn Consequences:
+- SpawnedSceneNodeIds : List<string> (scenes spawned by this choice)
+- SpawnedSituationNodeIds : List<string> (situations spawned)
+
+Navigation (if applicable):
+- DestinationLocation : LocationSnapshot?
+```
+
+**Design Decisions:**
+- Captures BOTH requirements and whether player met them (debug why choice was/wasn't available)
+- Challenge outcome tracked (success/failure affects spawns)
+- Spawn consequences in BOTH directions (choice knows what it spawned, spawned nodes know parent)
+- Reward snapshots show what player actually got
+
+### Snapshot Classes
+
+**Why Snapshots:** Domain entities use object references. Cannot store Scene/Location/NPC objects in trace (circular references, serialization issues, memory bloat). Instead capture PROPERTIES needed for debugging.
+
+**LocationSnapshot:**
+```
+- Name : string
+- HexPosition : AxialCoordinates (Q, R)
+- Purpose : LocationPurpose
+- Privacy : LocationPrivacy
+- Safety : LocationSafety
+- Activity : LocationActivity
+- Quality : Quality
+```
+
+**NPCSnapshot:**
+```
+- Name : string
+- Profession : string
+- Demeanor : NPCDemeanor
+- SocialStanding : NPCSocialStanding
+- StoryRole : NPCStoryRole
+```
+
+**RouteSnapshot:**
+```
+- OriginLocationName : string
+- DestinationLocationName : string
+- TerrainType : TerrainType
+- Distance : int
+```
+
+**PlacementFilterSnapshot:**
+```
+- PersonalityTypes : List<NPCDemeanor>
+- LocationCapabilities : List<LocationCapability>
+- LocationTags : List<string>
+- TerrainTypes : List<TerrainType>
+- SelectionStrategy : SelectionStrategy
+```
+
+**RequirementSnapshot:**
+```
+- RequiredRapport : int?
+- RequiredInsight : int?
+- RequiredAuthority : int?
+- RequiredDiplomacy : int?
+- RequiredCunning : int?
+- RequiredCoins : int?
+- RequiredStates : List<string>
+```
+
+**CostSnapshot:**
+```
+- CoinsSpent : int
+- StaminaSpent : int
+- FocusSpent : int
+- HealthSpent : int
+- ResolveSpent : int
+```
+
+**RewardSnapshot:**
+```
+- CoinsGained : int
+- ResolveGained : int
+- HealthGained : int
+- StaminaGained : int
+- FocusGained : int
+- StatGains : Dictionary<string, int> (stat name → amount)
+- BondChanges : List<string> (NPC name + delta summary)
+- ItemsGranted : List<string> (item names)
+- StatesApplied : List<string> (state names)
+```
+
+**Design Decisions:**
+- Snapshots are IMMUTABLE (set once at creation)
+- Contain ONLY what's needed for debugging (not complete entity state)
+- Primitive types and enums (easy serialization if needed later)
+- Human-readable (developer can understand without lookup)
+
+---
+
+## PART 2: TRACE COLLECTION SYSTEM
+
+### Single Central Component
+
+**Class:** `ProceduralContentTracer`
+
+**Location:** `/home/user/Wayfarer/src/Services/ProceduralContentTracer.cs`
+
+**Purpose:** Single authoritative system tracking all spawn events.
+
+**Responsibilities:**
+- Capture spawn events from spawning systems
+- Build trace node graph
+- Maintain root-level index
+- Provide query methods for visualization
+- Persist trace data (optional future: serialize to JSON for post-game analysis)
+
+**NOT Responsible For:**
+- Modifying game state
+- Validating spawns
+- Making spawn decisions
+- UI rendering (separate component handles visualization)
+
+### ProceduralContentTracer Class Structure
+
+```
+Properties:
+- RootScenes : List<SceneSpawnNode> (top-level scenes, no parent)
+- AllSceneNodes : List<SceneSpawnNode> (flat index for ID lookup)
+- AllSituationNodes : List<SituationSpawnNode> (flat index)
+- AllChoiceNodes : List<ChoiceExecutionNode> (flat index)
+- IsEnabled : bool (can disable for performance if needed)
+
+Methods:
+- RecordSceneSpawn(sceneData) : SceneSpawnNode
+- RecordSituationSpawn(situationData) : SituationSpawnNode
+- RecordChoiceExecution(choiceData) : ChoiceExecutionNode
+- GetNodeById(nodeId) : object (returns scene/situation/choice node)
+- GetRootScenes() : List<SceneSpawnNode>
+- GetChildrenOfScene(nodeId) : List<SceneSpawnNode>
+- GetSpawnChain(nodeId) : List<object> (walk up to root)
+- Clear() (reset for new game)
+```
+
+**Design Decisions:**
+- List collections (per codebase standards, not Dictionary)
+- LINQ queries for lookups (FirstOrDefault by NodeId)
+- Synchronous methods (no async complexity)
+- Optional enabling/disabling (production might disable, debug enables)
+
+### Integration Points (Where to Hook)
+
+**Three critical integration points where spawning happens:**
+
+#### 1. Scene Spawning Hook
+
+**Location:** `SceneInstanceFacade.SpawnScene()` method
+
+**Hook Point:** AFTER `PackageLoaderFacade.LoadDynamicPackage()` returns Scene entity
+
+**Capture:**
+```
+Scene domain entity → Extract properties → Create SceneSpawnNode
+- Read Scene.TemplateId, DisplayName, Category, etc.
+- Read SpawnContext (passed as parameter to SpawnScene)
+- Create snapshots for Location, PlacementFilter
+- Call Tracer.RecordSceneSpawn(sceneData)
+- Receive SceneSpawnNode with NodeId
+- Continue normal execution
+```
+
+**No Impact on Game Logic:** Tracer is observer only, doesn't modify Scene.
+
+#### 2. Situation Spawning Hook
+
+**Location:** `SpawnFacade.ExecuteSpawnRules()` method
+
+**Hook Point:** AFTER new Situation created and added to Scene.Situations
+
+**Capture:**
+```
+Situation domain entity → Extract properties → Create SituationSpawnNode
+- Read Situation.Name, Type, SystemType, etc.
+- Create LocationSnapshot from Situation.Location
+- Create NPCSnapshot from Situation.NPC (if applicable)
+- Call Tracer.RecordSituationSpawn(situationData)
+- Link to parent SceneSpawnNode
+```
+
+**Also Hook:** Initial situations created during scene parsing (not just cascaded spawns).
+
+#### 3. Choice Execution Hook
+
+**Location:** `RewardApplicationService.ApplyChoiceReward()` method
+
+**Hook Point:** BEFORE applying rewards (capture choice, AFTER execution capture spawns)
+
+**Capture:**
+```
+ChoiceTemplate + Situation context → Create ChoiceExecutionNode
+- Read ChoiceTemplate properties
+- Create RequirementSnapshot, CostSnapshot
+- Record player qualification status
+- Call Tracer.RecordChoiceExecution(choiceData)
+- AFTER FinalizeSceneSpawns: Link spawned scene NodeIds to ChoiceExecutionNode
+```
+
+**Two-Phase Recording:**
+1. Initial: Capture choice execution details
+2. Post-Spawn: Update with spawned scene/situation NodeIds
+
+### Linking Strategy
+
+**Bidirectional Links:**
+- Parent → Children (SceneSpawnNode.SpawnedScenes list)
+- Child → Parent (SceneSpawnNode.ParentNodeId)
+
+**Why Both Directions:**
+- Top-down traversal (explore all children)
+- Bottom-up traversal (trace choice back to root scene)
+- Visualization needs both (render tree, highlight path)
+
+**Link Establishment:**
+
+```
+When spawning scene S2 from choice C1 in situation T1 in scene S1:
+
+1. RecordChoiceExecution creates ChoiceExecutionNode
+   - ParentSituationNodeId = T1.NodeId
+
+2. RecordSceneSpawn creates SceneSpawnNode for S2
+   - ParentNodeId = S1.NodeId
+   - ParentSituationNodeId = T1.NodeId
+   - ParentChoiceNodeId = C1.NodeId
+
+3. Update backwards links:
+   - C1.SpawnedSceneNodeIds.Add(S2.NodeId)
+   - S1.SpawnedScenes.Add(S2.NodeId)
+
+Result: Can traverse S2 → C1 → T1 → S1 OR S1 → T1 → C1 → S2
+```
+
+### Snapshot Creation Helpers
+
+**Static helper class:** `SnapshotFactory`
+
+**Methods:**
+```
+- CreateLocationSnapshot(Location) : LocationSnapshot
+- CreateNPCSnapshot(NPC) : NPCSnapshot
+- CreateRouteSnapshot(RouteOption) : RouteSnapshot
+- CreatePlacementFilterSnapshot(PlacementFilter) : PlacementFilterSnapshot
+- CreateRequirementSnapshot(CompoundRequirement) : RequirementSnapshot
+- CreateCostSnapshot(ChoiceCost, executed) : CostSnapshot
+- CreateRewardSnapshot(ChoiceReward) : RewardSnapshot
+```
+
+**Purpose:** Centralize snapshot creation logic, ensure consistency.
+
+**Example:**
+```csharp
+LocationSnapshot CreateLocationSnapshot(Location location)
+{
+    return new LocationSnapshot
+    {
+        Name = location.Name,
+        HexPosition = location.HexPosition,
+        Purpose = location.Purpose,
+        Privacy = location.Privacy,
+        Safety = location.Safety,
+        Activity = location.Activity,
+        Quality = location.Quality
+    };
+}
+```
+
+---
+
+## PART 3: VISUALIZATION STRATEGY
+
+### Design Goals
+
+**Functional over beautiful:** Developer debugging tool, not player-facing content.
+
+**Key Requirements:**
+- Show spawn hierarchy clearly (tree structure)
+- Display node properties inline (no excessive clicking)
+- Navigate large trees (100+ nodes)
+- Identify patterns (repeated templates, cascading failures)
+- Trace individual spawn chains (highlight path from root to selected node)
+- Filter/search (find specific scenes, templates, locations)
+
+**NOT Requirements:**
+- Pixel-perfect layout
+- Animated transitions
+- Touch gestures
+- Mobile optimization
+- Accessibility (developer tool)
+
+### Visualization Approach: Vertical Tree Layout
+
+**Pattern:** CSS-based vertical tree with indentation hierarchy.
+
+**Why Vertical (not horizontal):**
+- Scales better for deep trees (scrolling down natural)
+- More readable text (horizontal names, not rotated)
+- Simpler CSS (no complex SVG path drawing)
+- Familiar pattern (file explorers, code outlines)
+
+**Layout Structure:**
+
+```
+Root Scene: A3 Journey to Merchant Quarter
+├─ Situation: Negotiate with Guard (choice: bribe) → spawned Scene A4
+│  ├─ Choice: Bribe Guard (8 coins) [EXECUTED]
+│  │  └─ Spawned: Scene A4 "Investigation Begins"
+│  └─ Choice: Persuade Guard (Rapport 5) [NOT CHOSEN]
+├─ Situation: Enter Marketplace
+│  └─ Choice: Navigate to Market Square [EXECUTED]
+
+Root Scene: A4 Investigation Begins
+├─ Situation: Question Witness (challenge: SUCCEEDED)
+│  ├─ Choice: Interrogate (challenge) [EXECUTED]
+│  │  ├─ Spawned: Situation "Follow-up Questions"
+│  │  └─ Challenge: SUCCESS (3/3 cards succeeded)
+│  └─ Spawned Situation: Follow-up Questions
+│     └─ Choice: Press for Details [EXECUTED]
+```
+
+**Visual Hierarchy:**
+- Level 0: Root scenes (bold, large, colored by category)
+- Level 1: Situations within scene (indented, medium size)
+- Level 2: Choices within situation (indented further, small)
+- Level 3: Spawned consequences (indented, gray, italics)
+
+### Node Card Design
+
+**Each node renders as a card with:**
+
+**SceneSpawnNode Card:**
+```
+┌─────────────────────────────────────────┐
+│ [SCENE] A3: Journey to Merchant Quarter │ ← Header with category badge
+│ Main Story #3 | Provisional             │ ← Metadata line
+│ Spawned: Day 2, Morning                 │ ← Timing
+│ Location: City Gates (Public, Safe)     │ ← Placement
+│ Template: journey_to_location           │ ← Template ID
+│ Difficulty: Moderate | 3 situations     │ ← Properties
+│ ↳ Spawned by: Choice "Accept Mission"  │ ← Parent link (clickable)
+│ ↳ Spawned: 1 scene (A4)                │ ← Child summary (expandable)
+└─────────────────────────────────────────┘
+```
+
+**SituationSpawnNode Card:**
+```
+┌─────────────────────────────────────────┐
+│ [SITUATION] Negotiate with Guard        │ ← Header
+│ Social Challenge | Crisis               │ ← Type metadata
+│ Location: Checkpoint Alpha (Hostile)    │ ← Context
+│ NPC: Guard Captain Marcus (Hostile)     │ ← NPC
+│ Completed: Day 2, Morning               │ ← Outcome
+│ ↳ 2 choices (1 executed)                │ ← Choice summary
+│ ↳ Spawned: 1 scene                      │ ← Spawn consequences
+└─────────────────────────────────────────┘
+```
+
+**ChoiceExecutionNode Card:**
+```
+┌─────────────────────────────────────────┐
+│ [CHOICE] Bribe Guard (8 coins)          │ ← Action text
+│ Money Path | EXECUTED                   │ ← Path type + status
+│ Cost: 8 coins (paid)                    │ ← Cost
+│ Requirements: None                       │ ← Requirements
+│ Rewards: +1 Authority, Access Granted   │ ← Rewards
+│ ↳ Spawned: Scene A4 "Investigation..."  │ ← Consequences
+└─────────────────────────────────────────┘
+```
+
+**Design Decisions:**
+- Compact (most info visible without expand)
+- Color-coded headers (scene type, situation type, choice outcome)
+- Clickable parent links (jump to parent node)
+- Expandable child sections (click to show/hide children)
+- Icons for node types (scene/situation/choice badges)
+
+### CSS Structure
+
+**Base Classes:**
+
+```css
+.trace-tree {
+  /* Container for entire tree */
+  padding: 20px;
+  font-family: monospace; /* developer tool aesthetic */
+  background: #1e1e1e; /* dark theme */
+  color: #d4d4d4;
+}
+
+.trace-node {
+  /* Base node card */
+  margin: 8px 0;
+  padding: 12px;
+  border-left: 3px solid #444;
+  background: #2d2d2d;
+  border-radius: 4px;
+}
+
+.trace-node-scene {
+  border-left-color: #4ec9b0; /* teal for scenes */
+  padding-left: 20px; /* root level */
+}
+
+.trace-node-situation {
+  border-left-color: #dcdcaa; /* yellow for situations */
+  padding-left: 40px; /* indented */
+}
+
+.trace-node-choice {
+  border-left-color: #569cd6; /* blue for choices */
+  padding-left: 60px; /* further indented */
+}
+
+.trace-node-expanded {
+  /* When node is expanded showing children */
+}
+
+.trace-node-collapsed {
+  /* When node is collapsed hiding children */
+  opacity: 0.7;
+}
+
+.trace-node-header {
+  font-weight: bold;
+  font-size: 14px;
+  margin-bottom: 6px;
+  cursor: pointer; /* clickable to expand/collapse */
+}
+
+.trace-node-metadata {
+  font-size: 12px;
+  color: #888;
+  line-height: 1.6;
+}
+
+.trace-node-children {
+  margin-top: 8px;
+  /* Recursive container for child nodes */
+}
+
+.trace-badge {
+  /* Node type badge (SCENE, SITUATION, CHOICE) */
+  display: inline-block;
+  padding: 2px 6px;
+  background: #444;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: bold;
+  margin-right: 8px;
+}
+
+.trace-link {
+  /* Clickable parent/child links */
+  color: #4fc1ff;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.trace-link:hover {
+  color: #6fc3ff;
+}
+```
+
+**Category Colors:**
+```css
+.scene-main-story { border-left-color: #f14c4c; } /* Red */
+.scene-side-story { border-left-color: #3794ff; } /* Blue */
+.scene-service { border-left-color: #89d185; } /* Green */
+
+.situation-completed { background: #1e3a1e; } /* Dark green tint */
+.situation-failed { background: #3a1e1e; } /* Dark red tint */
+.situation-active { background: #3a3a1e; } /* Dark yellow tint */
+
+.choice-executed { border-left-color: #89d185; } /* Green */
+.choice-not-chosen { border-left-color: #666; opacity: 0.5; } /* Gray */
+```
+
+**Highlighting:**
+```css
+.trace-node-highlighted {
+  /* When tracing path to selected node */
+  background: #3a3a00;
+  box-shadow: 0 0 8px #ffff00;
+}
+
+.trace-node-selected {
+  /* Currently selected node */
+  background: #003a3a;
+  box-shadow: 0 0 12px #00ffff;
+  border-left-width: 5px;
+}
+```
+
+### Component Structure
+
+**Main Component:** `SpawnGraphViewer.razor`
+
+**Location:** `/home/user/Wayfarer/src/Pages/Components/SpawnGraphViewer.razor`
+
+**Component Hierarchy:**
+
+```
+SpawnGraphViewer (top-level container)
+├─ Filter/Search Panel (top section)
+│  ├─ Search input (filter by name/template)
+│  ├─ Category filter (Main/Side/Service)
+│  ├─ Day range filter (show scenes from days X-Y)
+│  └─ Template filter (specific archetype)
+├─ Tree Container (scrollable main area)
+│  └─ SceneNode (recursive component)
+│     ├─ Scene card header (expandable)
+│     ├─ Scene metadata
+│     └─ Children (if expanded)
+│        └─ SituationNode (recursive component)
+│           ├─ Situation card header
+│           ├─ Situation metadata
+│           └─ Children (if expanded)
+│              └─ ChoiceNode (leaf component)
+│                 ├─ Choice card header
+│                 └─ Choice metadata
+└─ Detail Panel (right sidebar, optional)
+   └─ Selected node full details (when node clicked)
+```
+
+**Recursive Rendering:**
+
+Each node type renders itself + recursively renders children. Standard Blazor recursive component pattern.
+
+**Example (SceneNode.razor):**
+```razor
+<div class="trace-node trace-node-scene @GetCategoryClass() @(IsExpanded ? "trace-node-expanded" : "trace-node-collapsed")"
+     @onclick="ToggleExpand">
+
+    <div class="trace-node-header">
+        <span class="trace-badge">SCENE</span>
+        @Node.DisplayName
+    </div>
+
+    <div class="trace-node-metadata">
+        <div>@Node.Category | @Node.State</div>
+        <div>Spawned: Day @Node.GameDay, @Node.GameTimeBlock</div>
+        <div>Location: @Node.PlacedLocation.Name (@Node.PlacedLocation.Privacy, @Node.PlacedLocation.Safety)</div>
+        <div>Template: @Node.SceneTemplateId</div>
+
+        @if (Node.ParentNodeId != null)
+        {
+            <div>↳ Spawned by: <span class="trace-link" @onclick="() => JumpToParent()">@GetParentName()</span></div>
+        }
+
+        @if (Node.SpawnedScenes.Count > 0)
+        {
+            <div>↳ Spawned: @Node.SpawnedScenes.Count scene(s)</div>
+        }
+    </div>
+
+    @if (IsExpanded && Node.Situations.Count > 0)
+    {
+        <div class="trace-node-children">
+            @foreach (var situation in Node.Situations)
+            {
+                <SituationNode Node="@situation" Tracer="@Tracer" OnNodeSelected="@OnNodeSelected" />
+            }
+        </div>
+    }
+</div>
+```
+
+**Key Features:**
+- Click header to expand/collapse
+- Click parent link to jump to parent (scrolls into view, highlights)
+- Click child link to expand children
+- Recursive nesting preserves hierarchy
+
+### Interaction Patterns
+
+**1. Expand/Collapse:**
+- Click node header → toggle IsExpanded state
+- Renders/hides children section
+- Persists expand state during session (don't collapse on re-render)
+
+**2. Jump to Node:**
+- Click parent/child link → scroll to target node
+- Highlight target node (yellow glow for 2 seconds)
+- Auto-expand path to target if collapsed
+
+**3. Trace Path:**
+- Click "Trace to Root" button on node
+- Highlights all ancestors up to root scene
+- Dims non-highlighted nodes (opacity 0.3)
+- Shows spawn chain clearly
+
+**4. Filter/Search:**
+- Type in search box → filter nodes by name/template
+- Select category → show only Main Story scenes
+- Set day range → show only scenes from days 1-5
+- Filters stack (AND logic)
+- Maintains expand state for matching nodes
+
+**5. Detail Panel:**
+- Click node → select it
+- Detail panel shows FULL properties (all snapshots expanded)
+- Shows complete requirement/cost/reward breakdowns
+- Copy button to copy NodeId for logging
+
+### Data Flow
+
+**Component Parameters:**
+
+```csharp
+[Parameter] public ProceduralContentTracer Tracer { get; set; }
+[Parameter] public string InitialSelectedNodeId { get; set; } // Optional: jump to specific node on load
+```
+
+**Component State:**
+
+```csharp
+private List<SceneSpawnNode> FilteredRootScenes { get; set; } // After applying filters
+private string SearchText { get; set; } = "";
+private StoryCategory? CategoryFilter { get; set; } = null;
+private int? MinDay { get; set; } = null;
+private int? MaxDay { get; set; } = null;
+private string SelectedNodeId { get; set; } // Currently selected for detail panel
+private HashSet<string> ExpandedNodeIds { get; set; } = new(); // Track expanded state
+private HashSet<string> HighlightedNodeIds { get; set; } = new(); // For path tracing
+```
+
+**Render Logic:**
+
+```csharp
+protected override void OnParametersSet()
+{
+    // Apply filters to Tracer.RootScenes
+    FilteredRootScenes = Tracer.RootScenes
+        .Where(scene => MatchesFilters(scene))
+        .ToList();
+}
+
+private bool MatchesFilters(SceneSpawnNode scene)
+{
+    if (!string.IsNullOrEmpty(SearchText) && !scene.DisplayName.Contains(SearchText, StringComparison.OrdinalIgnoreCase))
+        return false;
+
+    if (CategoryFilter.HasValue && scene.Category != CategoryFilter.Value)
+        return false;
+
+    if (MinDay.HasValue && scene.GameDay < MinDay.Value)
+        return false;
+
+    if (MaxDay.HasValue && scene.GameDay > MaxDay.Value)
+        return false;
+
+    return true;
+}
+
+private void ToggleExpand(string nodeId)
+{
+    if (ExpandedNodeIds.Contains(nodeId))
+        ExpandedNodeIds.Remove(nodeId);
+    else
+        ExpandedNodeIds.Add(nodeId);
+
+    StateHasChanged();
+}
+
+private void SelectNode(string nodeId)
+{
+    SelectedNodeId = nodeId;
+    StateHasChanged();
+}
+
+private void TracePath(string nodeId)
+{
+    HighlightedNodeIds.Clear();
+
+    // Walk up parent chain
+    string currentId = nodeId;
+    while (currentId != null)
+    {
+        HighlightedNodeIds.Add(currentId);
+
+        // Get parent of current node (scene/situation/choice)
+        var node = Tracer.GetNodeById(currentId);
+        currentId = GetParentId(node);
+    }
+
+    StateHasChanged();
+}
+```
+
+### Performance Considerations
+
+**Potential Issue:** Large trees (500+ nodes) could slow rendering.
+
+**Optimizations:**
+
+**1. Virtualization (if needed):**
+- Only render visible nodes (viewport-based culling)
+- Use Blazor Virtualize component for root scene list
+- Lazy-load children on expand (already handled by expand/collapse)
+
+**2. Filtering:**
+- Filter at root level, hide non-matching subtrees entirely
+- Don't render filtered-out nodes (early return in MatchesFilters)
+
+**3. Memoization:**
+- Cache filter results (don't re-filter on every render)
+- Only recompute when SearchText/Filters change
+
+**4. Collapse All:**
+- Button to collapse all nodes (reset ExpandedNodeIds)
+- Start with all collapsed (opt-in expansion)
+
+**5. Pagination:**
+- Show 20 root scenes at a time
+- "Load More" button for additional scenes
+- Default: show only most recent scenes first
+
+**Implementation Priority:**
+1. Start simple (render all, no virtualization)
+2. Test with large dataset (100 scenes, 300 situations)
+3. Add optimizations if slow (likely not needed given Blazor performance)
+
+### Alternative View: Compact Timeline
+
+**Secondary visualization mode:** Timeline view showing scenes chronologically.
+
+**Layout:**
+```
+Day 1  Morning: [A1 Tutorial] [Service: Inn Check-in]
+       Afternoon: [A2 Meet Contact]
+       Evening: [Service: Evening Meal]
+
+Day 2  Morning: [A3 Journey] → spawned [A4 Investigation]
+       Afternoon: [A4 Investigation] → spawned [A5 Confrontation]
+```
+
+**Benefits:**
+- See progression over time
+- Identify pacing issues (too many scenes one day, none another)
+- Spot service scene clustering
+
+**Implementation:**
+- Group scenes by GameDay + GameTimeBlock
+- Render as horizontal cards in vertical timeline
+- Click scene → switch to tree view with that scene selected
+
+**Lower Priority:** Implement tree view first, timeline later if needed.
+
+---
+
+## PART 4: USER EXPERIENCE & WORKFLOW
+
+### Access Pattern
+
+**How developers access the trace viewer:**
+
+**Option 1: Debug Panel Integration (Recommended)**
+
+Add button to existing DebugPanel component:
+```
+[Debug Panel]
+├─ Player Stats controls
+├─ Resource controls
+├─ Quick Actions
+└─ [NEW] "View Spawn Graph" button → opens modal/page
+```
+
+**Why:** Existing debug infrastructure, familiar location, consistent UX.
+
+**Option 2: Standalone Debug Route**
+
+Create dedicated route `/debug/spawn-graph`:
+- Navigate via URL directly
+- Bookmark for quick access
+- Can open in separate tab/window
+
+**Why:** Doesn't clutter main UI, can view alongside game.
+
+**Recommended Hybrid:**
+- Add button to DebugPanel (primary access)
+- Also create `/debug/spawn-graph` route (secondary access)
+- Button opens route in modal overlay (can toggle to full-screen)
+
+### Typical Debugging Workflows
+
+**Workflow 1: "Why didn't this scene spawn?"**
+
+Developer expects scene to spawn from choice but it doesn't appear.
+
+**Steps:**
+1. Open Spawn Graph Viewer
+2. Find the scene with choice that should have spawned (search by scene name)
+3. Expand scene → situations → find choice
+4. Examine choice node:
+   - Check SpawnedSceneNodeIds list (empty = nothing spawned)
+   - Check RewardSnapshot → ScenesToSpawn (was spawn configured?)
+   - Check SpawnConditions in parent scene (were conditions met?)
+5. Trace to root to see full context
+6. Identify: Missing SpawnReward config OR failed SpawnConditions OR bug in spawning code
+
+**What visualization provides:**
+- Clear view of what choice actually spawned
+- Reward configuration visible inline
+- Spawn conditions captured at creation time
+- Can compare expected vs actual
+
+**Workflow 2: "Where did this scene come from?"**
+
+Player encounters unexpected scene, developer needs to trace origin.
+
+**Steps:**
+1. Open Spawn Graph Viewer
+2. Search for scene by name
+3. Click "Trace to Root" button
+4. Path highlights: Root scene → situation → choice → spawned scene → ...
+5. Examine each step in chain:
+   - What template spawned parent?
+   - What choice triggered spawn?
+   - What placement filters were used?
+   - When was it spawned (day/time)?
+6. Identify: Archetype generating unexpected spawns OR placement filter too broad OR cascading spawn chain unintended
+
+**What visualization provides:**
+- Complete spawn chain visible
+- Parent-child relationships clear
+- Placement context captured
+- Timeline of spawning events
+
+**Workflow 3: "Is this archetype working correctly?"**
+
+Developer modifies scene archetype, wants to verify behavior.
+
+**Steps:**
+1. Play game until archetype spawns (multiple instances)
+2. Open Spawn Graph Viewer
+3. Filter by template ID (e.g., "investigation_archetype")
+4. View all instances of that archetype
+5. Examine variations:
+   - Different NPCs/locations used (placement working?)
+   - Different choice outcomes (all paths functional?)
+   - Spawned consequences consistent (cascading working?)
+6. Spot patterns: Always spawns at same location = placement filter wrong, Never spawns follow-up = reward config missing, Always same NPC = selection strategy too narrow
+
+**What visualization provides:**
+- See all instances of archetype together
+- Compare placement across instances
+- Verify cascading behavior
+- Identify degenerate patterns
+
+**Workflow 4: "Is pacing balanced?"**
+
+Developer wants to verify scene distribution over time.
+
+**Steps:**
+1. Open Spawn Graph Viewer
+2. Switch to Timeline View (alternative visualization)
+3. Examine day-by-day distribution:
+   - Day 1: 5 scenes (good)
+   - Day 2: 12 scenes (too many? clustered in morning?)
+   - Day 3: 2 scenes (too few? content drought?)
+4. Identify: Service scenes clustering, A-story scenes too frequent, B/C content not spawning
+5. Adjust spawn rates / spacing logic
+
+**What visualization provides:**
+- Chronological view of all spawns
+- Pacing visible at glance
+- Category distribution clear
+- Time-of-day patterns visible
+
+**Workflow 5: "Why did choice requirements seem wrong?"**
+
+Player reports choice required wrong stat value.
+
+**Steps:**
+1. Open Spawn Graph Viewer
+2. Find scene with choice in question
+3. Expand to choice node
+4. Examine RequirementSnapshot:
+   - RequiredRapport: 8 (what was shown to player)
+   - Base formula from template (where did 8 come from?)
+5. Examine parent situation:
+   - NPC: Hostile Guard (Demeanor: Hostile)
+   - NPCSnapshot shows Hostile = 1.4× multiplier
+6. Trace formula: Base Rapport 6 × 1.4 = 8.4 → rounds to 8
+7. Identify: Working as designed OR base value wrong in archetype
+
+**What visualization provides:**
+- Actual requirement values captured
+- NPC properties visible (explain scaling)
+- Formula derivation traceable
+- Context for requirement calculation
+
+### UI State Management
+
+**Persistent State (Across Sessions):**
+
+Use browser localStorage to persist:
+- ExpandedNodeIds (remember what user expanded)
+- SelectedNodeId (remember what was selected)
+- Filter preferences (category, day range)
+- View mode (tree vs timeline)
+
+**Why:** Developer debugging same issue across multiple test runs wants to return to same state.
+
+**Session State (Reset on Page Reload):**
+- HighlightedNodeIds (traced paths)
+- ScrollPosition (can scroll to same node)
+
+**Reset Button:**
+- Clear all filters
+- Collapse all nodes
+- Deselect node
+- Clear highlights
+- Return to default state
+
+### Export/Logging Features
+
+**Export Trace Data (Future Enhancement):**
+
+Button to export entire trace as JSON file:
+```json
+{
+  "exportTimestamp": "2025-01-15T14:30:00Z",
+  "gameDay": 5,
+  "rootScenes": [
+    {
+      "nodeId": "guid-here",
+      "sceneTemplateId": "a3_journey",
+      "displayName": "Journey to Merchant Quarter",
+      "situations": [...],
+      "spawnedScenes": [...]
+    }
+  ]
+}
+```
+
+**Use Cases:**
+- Share trace with other developers
+- Archive trace for bug reports
+- Diff traces between game versions
+- Analyze patterns programmatically
+
+**Console Logging Hook:**
+
+Add console log when node clicked:
+```javascript
+console.log(`[SpawnTrace] Scene: ${node.DisplayName}, NodeId: ${node.NodeId}, Template: ${node.SceneTemplateId}`);
+```
+
+**Why:** Can copy NodeId for searching in code/logs.
+
+---
+
+## PART 5: IMPLEMENTATION ROADMAP
+
+### Phase 1: Core Data Structure (Highest Priority)
+
+**Deliverables:**
+1. Node classes (SceneSpawnNode, SituationSpawnNode, ChoiceExecutionNode)
+2. Snapshot classes (LocationSnapshot, NPCSnapshot, etc.)
+3. ProceduralContentTracer service class
+4. SnapshotFactory helper class
+
+**Verification:**
+- Nodes created successfully
+- Snapshots capture correct properties
+- Tracer maintains collections correctly
+- No performance impact on game
+
+**Estimated Complexity:** Medium
+- ~10 classes total
+- Straightforward property classes
+- No complex logic yet
+
+### Phase 2: Integration Hooks (Critical Path)
+
+**Deliverables:**
+1. Hook in SceneInstanceFacade.SpawnScene
+2. Hook in SpawnFacade.ExecuteSpawnRules
+3. Hook in RewardApplicationService.ApplyChoiceReward
+4. Hook in SceneParser for initial situations
+5. Bidirectional linking logic
+
+**Verification:**
+- Spawn events captured correctly
+- Parent-child links established
+- No missed spawn events
+- No impact on game logic flow
+
+**Estimated Complexity:** Medium-High
+- Must understand spawn flow completely
+- Must not break existing functionality
+- Requires careful testing
+
+### Phase 3: Basic Visualization (MVP)
+
+**Deliverables:**
+1. SpawnGraphViewer.razor component
+2. SceneNode.razor recursive component
+3. SituationNode.razor recursive component
+4. ChoiceNode.razor component
+5. Basic CSS styling
+6. Expand/collapse functionality
+
+**Verification:**
+- Tree renders correctly
+- Hierarchy visible
+- Can expand/collapse nodes
+- Properties displayed inline
+
+**Estimated Complexity:** Medium
+- Standard Blazor component patterns
+- CSS styling straightforward
+- Recursive rendering well-understood
+
+### Phase 4: Interactive Features (Enhancement)
+
+**Deliverables:**
+1. Search/filter panel
+2. Jump-to-node navigation
+3. Trace-to-root path highlighting
+4. Detail panel
+5. NodeId copy functionality
+
+**Verification:**
+- Search filters correctly
+- Jump scrolls to node
+- Path highlights correctly
+- Detail panel shows all properties
+
+**Estimated Complexity:** Low-Medium
+- Standard UI interaction patterns
+- StateHasChanged() management
+- Scrolling logic (element.scrollIntoView)
+
+### Phase 5: Polish & Optimization (Nice-to-Have)
+
+**Deliverables:**
+1. Timeline view (alternative visualization)
+2. Export to JSON
+3. Virtualization (if needed)
+4. Persistent state (localStorage)
+5. Console logging hooks
+
+**Verification:**
+- Timeline groups correctly
+- Export produces valid JSON
+- Performance acceptable with large datasets
+- State persists across refreshes
+
+**Estimated Complexity:** Low-Medium
+- Each feature independent
+- Can be added incrementally
+- Not blocking for core functionality
+
+### Testing Strategy
+
+**Unit Tests (If Applicable):**
+- SnapshotFactory methods return correct snapshots
+- ProceduralContentTracer manages collections correctly
+- Linking logic creates bidirectional references
+
+**Integration Tests:**
+- Spawn entire scene, verify trace captured
+- Execute choice with spawn reward, verify scene linked
+- Situation cascading spawn, verify parent-child relationship
+
+**Manual Testing:**
+- Play game for 5 days, open viewer, verify complete tree
+- Search for specific scene, verify found
+- Trace path to root, verify highlights correct
+- Filter by category, verify only matching scenes shown
+
+**Performance Testing:**
+- Generate 100 scenes with 300 situations, verify render performance
+- Measure memory usage of trace data (acceptable overhead?)
+- Profile Blazor render time for large tree
+
+### Rollout Strategy
+
+**Development Environment:**
+- Enable tracer by default (always capture spawns)
+- Viewer accessible via debug panel
+- Full features enabled
+
+**Production Environment (If Shipped):**
+- Disable tracer by default (set IsEnabled = false)
+- Viewer hidden (no debug panel in production)
+- Can enable via config file for bug reports
+
+**Why:** Tracing has small overhead (memory + CPU for snapshot creation). Acceptable in development, should be optional in production.
+
+### Maintenance Considerations
+
+**When Spawning Changes:**
+- Add new spawn mechanism → add integration hook
+- Modify spawn logic → update snapshots to capture new properties
+- Change entity properties → update snapshot classes
+
+**When Visualization Needs Change:**
+- Add new filter → extend filter panel
+- Change layout → modify CSS
+- Add export format → extend export logic
+
+**Documentation:**
+- Document hook locations in codebase
+- Document snapshot property meanings
+- Document filter logic
+- Document node ID generation scheme
+
+---
+
+## PART 6: TECHNICAL SPECIFICATIONS
+
+### Node ID Generation
+
+**Pattern:** GUID for stable, unique, collision-free identifiers.
+
+```csharp
+SceneSpawnNode node = new SceneSpawnNode
+{
+    NodeId = Guid.NewGuid().ToString(),
+    // ...
+};
+```
+
+**Why GUID:**
+- Guaranteed unique (no collision risk)
+- Can be generated independently (no central counter)
+- Immutable (doesn't change when game reloads)
+- Serializable (export to JSON works)
+- Copyable (developer can copy-paste into logs)
+
+**NOT Sequential IDs:**
+- Sequential IDs require central counter (state management complexity)
+- Sequential IDs break when game reloads (NodeId "5" might be different scene)
+- GUIDs solve both problems
+
+### Memory Management
+
+**Potential Concern:** Storing complete spawn history for long games.
+
+**Analysis:**
+- Typical 5-day game: ~50 scenes, ~150 situations, ~300 choices
+- Per node: ~500 bytes (properties + snapshots)
+- Total: ~250KB for complete trace
+
+**Acceptable:** 250KB is negligible for modern systems.
+
+**Mitigation (If Needed):**
+- Sliding window: Keep only last N days (purge old scenes)
+- On-demand loading: Serialize to disk, load on viewer open
+- Compression: GZip trace data if storing long-term
+
+**Recommendation:** Start without limits, add mitigation only if memory becomes issue.
+
+### Thread Safety
+
+**Concern:** Spawning happens synchronously on main thread. Tracer also synchronous. No concurrency.
+
+**Conclusion:** Thread safety NOT required. All operations on main thread.
+
+**If Async Later:**
+- Use ConcurrentBag for AllSceneNodes/AllSituationNodes/AllChoiceNodes
+- Lock on modifications to node collections
+- Immutable snapshots already thread-safe
+
+### Serialization Support
+
+**Current Requirement:** None. Trace lives in memory during game session.
+
+**Future Enhancement:** Export to JSON.
+
+**Serialization-Friendly Design:**
+- All node properties are primitives, enums, strings, lists (JSON-serializable)
+- No circular references (parent links use NodeId strings, not object references)
+- No delegates, no functions, no runtime types
+
+**Example JSON Output:**
+```json
+{
+  "nodeId": "abc-123-guid",
+  "sceneTemplateId": "investigation_archetype",
+  "displayName": "Question the Witness",
+  "category": "MainStory",
+  "gameDay": 2,
+  "placedLocation": {
+    "name": "Guard Barracks",
+    "purpose": "Civic",
+    "privacy": "Public"
+  },
+  "situations": [
+    {
+      "nodeId": "def-456-guid",
+      "name": "Interrogate Guard",
+      "location": {
+        "name": "Guard Barracks",
+        "purpose": "Civic"
+      }
+    }
+  ]
+}
+```
+
+**Standard System.Text.Json serialization works with no custom converters.**
+
+### Compatibility with HIGHLANDER Principle
+
+**Principle:** No entity instance IDs in domain entities.
+
+**Trace System Compliance:**
+- Trace nodes have NodeIds (ALLOWED - trace nodes are NOT domain entities)
+- Trace nodes reference domain entities via snapshots (no object references stored)
+- Snapshots capture properties only (name, enums, primitives)
+- No Scene.Id, Location.Id, NPC.Id stored anywhere
+
+**Why Compliant:**
+- Trace system is observational metadata, not domain model
+- NodeIds identify trace nodes (spawn events), not domain entities
+- Domain entities remain ID-free
+
+**Analogy:** Logging system can assign log entry IDs without violating HIGHLANDER. Trace system assigns spawn event IDs without violating HIGHLANDER.
+
+---
+
+## PART 7: DEBUGGING USE CASES (DETAILED EXAMPLES)
+
+### Use Case 1: Cascading Spawn Chain Investigation
+
+**Scenario:** Developer notices 5 scenes spawned in rapid succession, wants to understand chain.
+
+**Investigation:**
+1. Open Spawn Graph Viewer
+2. Filter to day where spawning occurred
+3. Observe tree structure:
+   ```
+   Scene A4: Investigation Begins
+   ├─ Situation: Question Witness
+   │  └─ Choice: Interrogate (challenge: SUCCESS)
+   │     └─ Spawned: Situation "Follow-up" (from SuccessSpawns)
+   │        └─ Choice: Press Further (challenge: SUCCESS)
+   │           └─ Spawned: Situation "Revelation" (from SuccessSpawns)
+   │              └─ Choice: Confront with Evidence (instant)
+   │                 └─ Spawned: Scene A5 "Showdown" (from ScenesToSpawn)
+   ```
+
+4. Examine each spawn:
+   - Follow-up spawned from SuccessSpawns (cascading within scene)
+   - Revelation spawned from SuccessSpawns (cascading again)
+   - Scene A5 spawned from ChoiceReward.ScenesToSpawn (scene-level spawn)
+
+5. Conclusion: Cascading success spawns created chain. Working as designed.
+
+**What visualization reveals:**
+- Spawn trigger type (success vs failure vs choice reward)
+- Depth of cascading (3 levels deep)
+- Endpoint of chain (final scene)
+
+### Use Case 2: Placement Filter Debugging
+
+**Scenario:** Scene always spawns at same location despite placement filter requesting variety.
+
+**Investigation:**
+1. Open Spawn Graph Viewer
+2. Search for scene template (e.g., "service_negotiation")
+3. Expand all instances (5 instances found)
+4. Examine PlacementFilterSnapshot for each:
+   ```
+   Instance 1: LocationTags: [Inn, Public], SelectionStrategy: Random
+   Instance 2: LocationTags: [Inn, Public], SelectionStrategy: Random
+   Instance 3: LocationTags: [Inn, Public], SelectionStrategy: Random
+   ```
+5. Examine PlacedLocation for each:
+   ```
+   Instance 1: Rusty Flagon Inn
+   Instance 2: Rusty Flagon Inn
+   Instance 3: Rusty Flagon Inn
+   ```
+
+6. Conclusion: Only one location matches filter (only one inn in world).
+
+**Fix:** Either broaden placement filter (allow Taverns too) OR ensure world generation creates multiple inns.
+
+**What visualization reveals:**
+- Placement filter configuration visible
+- Actual selected locations visible
+- Pattern of degenerate selection clear
+
+### Use Case 3: Requirement Scaling Verification
+
+**Scenario:** Player reports choice requirement "felt wrong", developer investigates formula.
+
+**Investigation:**
+1. Open Spawn Graph Viewer
+2. Find scene with reported choice
+3. Expand to ChoiceExecutionNode
+4. Examine RequirementSnapshot:
+   ```
+   RequiredRapport: 12
+   RequiredInsight: 0
+   RequiredAuthority: 0
+   ```
+5. Examine parent SituationSpawnNode:
+   ```
+   NPC: Merchant (Demeanor: Neutral, SocialStanding: Notable)
+   ```
+6. Calculate expected requirement:
+   - Base Rapport from archetype: 8
+   - Neutral demeanor: 1.0× multiplier (no change)
+   - Notable standing: 1.5× multiplier (higher threshold for influential NPCs)
+   - Expected: 8 × 1.5 = 12
+   - Actual: 12 ✓
+
+7. Conclusion: Formula working correctly. "Felt wrong" is subjective, but math checks out.
+
+**What visualization reveals:**
+- Actual requirement value player saw
+- NPC properties that affect scaling
+- Can manually verify formula
+- Can compare to similar situations to validate consistency
+
+### Use Case 4: Missing Spawn Investigation
+
+**Scenario:** Choice should spawn follow-up scene but doesn't appear.
+
+**Investigation:**
+1. Open Spawn Graph Viewer
+2. Find scene with choice
+3. Expand to ChoiceExecutionNode
+4. Examine SpawnedSceneNodeIds:
+   ```
+   SpawnedSceneNodeIds: [] (EMPTY - nothing spawned)
+   ```
+5. Examine RewardSnapshot:
+   ```
+   ScenesToSpawn: [
+     { SceneTemplateId: "follow_up_investigation", SpawnConditions: { RequiredTags: ["evidence_gathered"] } }
+   ]
+   ```
+6. Examine PlayerState at execution time (need additional logging):
+   ```
+   Player tags: ["witness_questioned", "guard_bribed"]
+   Missing: "evidence_gathered"
+   ```
+
+7. Conclusion: SpawnConditions failed (player didn't have required tag). Choice should have granted "evidence_gathered" tag but didn't.
+
+**Fix:** Add StateApplication to choice reward granting "evidence_gathered" tag.
+
+**What visualization reveals:**
+- Spawn was CONFIGURED (ScenesToSpawn not empty)
+- Spawn DIDN'T EXECUTE (SpawnedSceneNodeIds empty)
+- SpawnConditions visible (required tag shown)
+- Gap between expected and actual
+
+---
+
+## PART 8: ARCHITECTURAL ALIGNMENT
+
+### Compliance with Codebase Principles
+
+**✅ HIGHLANDER Principle:**
+- Trace nodes use NodeIds (allowed - not domain entities)
+- Domain entities remain ID-free
+- Snapshots use properties, not object references
+
+**✅ Domain Collection Principle:**
+- List<SceneSpawnNode> collections (not Dictionary)
+- LINQ queries for lookups (FirstOrDefault by NodeId)
+- Explicit strongly-typed classes
+
+**✅ Global Namespace Principle:**
+- All trace classes in global namespace
+- No custom namespaces (except Blazor components if required)
+
+**✅ Explicit Property Principle:**
+- Strongly-typed snapshot properties
+- No string-based dynamic properties
+- Explicit classes for each snapshot type
+
+**✅ Synchronous Architecture:**
+- All methods synchronous (no async/await)
+- Hooks execute on main thread
+- No concurrency concerns
+
+**✅ Single Source of Truth:**
+- ProceduralContentTracer is authoritative
+- All hooks record to single tracer instance
+- No distributed trace storage
+
+**✅ Strongly Typed:**
+- Explicit node classes (not generic nodes)
+- Enum properties (not string flags)
+- Compile-time type safety
+
+### Integration with Existing Systems
+
+**Dependency Injection:**
+```csharp
+// Startup.cs or equivalent
+services.AddSingleton<ProceduralContentTracer>();
+```
+
+**Why Singleton:** One trace per game session, shared across all facades/services.
+
+**Facade/Service Usage:**
+```csharp
+class SceneInstanceFacade
+{
+    private readonly ProceduralContentTracer tracer;
+
+    public SceneInstanceFacade(ProceduralContentTracer tracer, /* other dependencies */)
+    {
+        this.tracer = tracer;
+    }
+
+    public Scene SpawnScene(/* parameters */)
+    {
+        // Existing spawn logic
+        Scene scene = PackageLoaderFacade.LoadDynamicPackage(/* ... */);
+
+        // NEW: Record spawn
+        if (tracer.IsEnabled)
+        {
+            SceneSpawnNode node = tracer.RecordSceneSpawn(new SceneSpawnData
+            {
+                Scene = scene,
+                SpawnContext = context,
+                ParentChoiceNodeId = parentChoiceId
+            });
+        }
+
+        return scene;
+    }
+}
+```
+
+**Zero Impact When Disabled:**
+- Check `IsEnabled` before recording
+- If disabled, tracer does nothing (no performance cost)
+- Existing game logic unchanged
+
+---
+
+## CONCLUSION
+
+This procedural content tracing system provides **comprehensive debugging visibility** into the spawn graph of scenes, situations, and choices in Wayfarer's procedurally-generated content system.
+
+**What It Achieves:**
+
+1. **Complete Spawn History** - Every scene, situation, and choice captured
+2. **Relationship Tracking** - Parent-child links in both directions
+3. **Property Snapshots** - Full context captured at spawn time
+4. **Interactive Visualization** - Tree view with expand/collapse navigation
+5. **Developer-Friendly** - Search, filter, trace, and export capabilities
+6. **Architectural Compliance** - Follows all codebase principles strictly
+7. **Zero Impact** - Optional system, no effect on game logic when disabled
+8. **Extensible** - Easy to add properties, filters, views as needs evolve
+
+**Implementation Priority:**
+
+- **Phase 1:** Data structure (foundational, no visibility yet)
+- **Phase 2:** Integration hooks (capture spawns, still no visibility)
+- **Phase 3:** Basic visualization (MVP - functional debugging)
+- **Phase 4:** Interactive features (enhanced usability)
+- **Phase 5:** Polish (nice-to-have, not blocking)
+
+**Next Steps:**
+
+1. Review this design document for completeness
+2. Validate integration points are correct (verify spawn flow in codebase)
+3. Begin Phase 1 implementation (node classes, tracer service)
+4. Test Phase 1 in isolation (unit tests, no UI yet)
+5. Proceed to Phase 2 (hooks), verify spawns captured
+6. Build Phase 3 (visualization), validate against real gameplay
+7. Iterate on Phase 4-5 as time permits
+
+This design is **ready for full implementation** with clear architectural decisions, detailed specifications, and comprehensive examples.
+
+---
+
+## APPENDIX: File Structure
+
+**Domain/Services Layer:**
+```
+/src/Services/
+├─ ProceduralContentTracer.cs
+├─ SnapshotFactory.cs
+/src/GameState/SpawnTrace/
+├─ SceneSpawnNode.cs
+├─ SituationSpawnNode.cs
+├─ ChoiceExecutionNode.cs
+├─ LocationSnapshot.cs
+├─ NPCSnapshot.cs
+├─ RouteSnapshot.cs
+├─ PlacementFilterSnapshot.cs
+├─ RequirementSnapshot.cs
+├─ CostSnapshot.cs
+├─ RewardSnapshot.cs
+├─ SpawnTriggerType.cs (enum)
+├─ SituationSpawnTriggerType.cs (enum)
+```
+
+**Frontend/Components Layer:**
+```
+/src/Pages/Components/SpawnTrace/
+├─ SpawnGraphViewer.razor
+├─ SpawnGraphViewer.razor.cs
+├─ SceneNode.razor
+├─ SceneNode.razor.cs
+├─ SituationNode.razor
+├─ SituationNode.razor.cs
+├─ ChoiceNode.razor
+├─ ChoiceNode.razor.cs
+/src/wwwroot/css/
+├─ spawn-trace.css
+```
+
+**Total Files:** ~20 files (10 backend classes, 8 Razor components, 1 CSS, 1 enum file)
+
+---
+
+## PART 9: CRITICAL DESIGN REFINEMENTS (After Deep Architecture Review)
+
+### Refinement 1: Linking Domain Entities to Trace Nodes
+
+**Problem Identified:** Domain entities (Scene, Situation) don't have ID properties per HIGHLANDER principle. How do we update trace nodes when entity state changes if we can't store NodeId on the entity?
+
+**Original Thinking (INCOMPLETE):**
+Proposed UpdateSceneState(nodeId, ...) but didn't explain how caller gets the nodeId.
+
+**Correct Solution:** Use ConditionalWeakTable for bidirectional mapping without polluting domain entities.
+
+**Implementation:**
+```csharp
+class ProceduralContentTracer
+{
+    private ConditionalWeakTable<Scene, string> sceneToNodeId = new();
+    private ConditionalWeakTable<Situation, string> situationToNodeId = new();
+
+    SceneSpawnNode RecordSceneSpawn(Scene scene, ...)
+    {
+        SceneSpawnNode node = new SceneSpawnNode { NodeId = Guid.NewGuid().ToString() };
+        AllSceneNodes.Add(node);
+
+        // Store bidirectional mapping WITHOUT modifying Scene
+        sceneToNodeId.Add(scene, node.NodeId);
+
+        return node;
+    }
+
+    void UpdateSceneState(Scene scene, SceneState newState, DateTime timestamp)
+    {
+        if (!sceneToNodeId.TryGetValue(scene, out string nodeId)) return;
+
+        SceneSpawnNode node = AllSceneNodes.FirstOrDefault(n => n.NodeId == nodeId);
+        if (node == null) return;
+
+        node.CurrentState = newState;
+        if (newState == SceneState.Completed)
+        {
+            node.CompletedTimestamp = timestamp;
+        }
+    }
+}
+```
+
+**Hook Location:**
+```csharp
+// In Scene.TransitionToState() or wherever state changes
+scene.State = SceneState.Active;
+
+if (tracer.IsEnabled)
+{
+    tracer.UpdateSceneState(scene, SceneState.Active, DateTime.Now);
+}
+```
+
+**Why This Works:**
+- ConditionalWeakTable doesn't prevent GC (weak reference)
+- No pollution of domain entities
+- Type-safe (compiler enforces Scene → string mapping)
+- Transparent to existing code (Scene class unchanged)
+
+### Refinement 2: Understanding Action vs ChoiceTemplate
+
+**Problem Identified:** Misunderstanding of choice execution architecture.
+
+**What I Thought:**
+"Choices" are executed and we track them.
+
+**What's Actually True (from research):**
+- **ChoiceTemplate**: Persistent template stored in SituationTemplate
+- **Action**: Ephemeral UI entity created at query-time from ChoiceTemplate
+- **Situation.LastChoice**: Property storing which ChoiceTemplate was executed
+
+**Correct Recording Pattern:**
+```csharp
+// In RewardApplicationService.ApplyChoiceReward
+public void ApplyChoiceReward(ChoiceTemplate choice, Situation situation, ...)
+{
+    // Execute the choice
+    /* ... apply costs, rewards ... */
+
+    // Store on situation (domain entity tracks last choice)
+    situation.LastChoice = choice;
+
+    // Record in tracer
+    if (tracer.IsEnabled)
+    {
+        ChoiceExecutionNode choiceNode = tracer.RecordChoiceExecution(new ChoiceExecutionData
+        {
+            ChoiceTemplate = choice,              // From parameter
+            Situation = situation,                // Context
+            ParentSituationNodeId = tracer.GetNodeId(situation),  // Lookup via ConditionalWeakTable
+            ActionText = choice.ActionTextTemplate,
+            Requirements = choice.RequirementFormula,
+            Costs = choice.CostTemplate,
+            Rewards = choice.RewardTemplate
+        });
+
+        // Store for later linking to spawned scenes
+        tracer.SetCurrentChoiceContext(choiceNode.NodeId);
+    }
+
+    // Spawn scenes
+    FinalizeSceneSpawns(reward.ScenesToSpawn);
+
+    if (tracer.IsEnabled)
+    {
+        tracer.ClearCurrentChoiceContext();
+    }
+}
+```
+
+**Key Insight:** We're tracking ChoiceTemplate execution, not Action object execution. Actions are UI-only ephemera.
+
+### Refinement 3: Context Threading for Parent Links
+
+**Problem Identified:** How to pass parent NodeId through deep spawn chain without modifying all method signatures?
+
+**Original Proposal (TOO INVASIVE):**
+Add `parentChoiceNodeId` parameter to every spawn method.
+
+**Better Solution:** Internal context stack in tracer.
+
+**Implementation:**
+```csharp
+class ProceduralContentTracer
+{
+    private Stack<string> choiceContextStack = new();
+    private Stack<string> situationContextStack = new();
+
+    // Push choice context before spawning
+    void PushChoiceContext(string choiceNodeId)
+    {
+        choiceContextStack.Push(choiceNodeId);
+    }
+
+    // Pop when done
+    void PopChoiceContext()
+    {
+        if (choiceContextStack.Count > 0)
+            choiceContextStack.Pop();
+    }
+
+    // Get current context (null if empty)
+    string GetCurrentChoiceContext()
+    {
+        return choiceContextStack.Count > 0 ? choiceContextStack.Peek() : null;
+    }
+
+    // Same for situation context
+    void PushSituationContext(string situationNodeId) { ... }
+    void PopSituationContext() { ... }
+    string GetCurrentSituationContext() { ... }
+}
+```
+
+**Usage:**
+```csharp
+// In RewardApplicationService
+ChoiceExecutionNode choiceNode = tracer.RecordChoiceExecution(...);
+tracer.PushChoiceContext(choiceNode.NodeId);
+
+foreach (var sceneSpawn in reward.ScenesToSpawn)
+{
+    sceneInstanceFacade.SpawnScene(...);  // NO parameter changes needed!
+}
+
+tracer.PopChoiceContext();
+
+// In SceneInstanceFacade.SpawnScene
+Scene scene = /* ... spawn ... */;
+
+if (tracer.IsEnabled)
+{
+    SceneSpawnNode node = tracer.RecordSceneSpawn(new SceneSpawnData
+    {
+        Scene = scene,
+        ParentChoiceNodeId = tracer.GetCurrentChoiceContext(),  // Automatically available!
+        ParentSituationNodeId = tracer.GetCurrentSituationContext()
+    });
+}
+```
+
+**Why This Works:**
+- No method signature changes (non-invasive)
+- Stack handles nested spawns (situation spawning situation)
+- Type-safe (tracer manages context internally)
+- Clear push/pop semantics
+
+### Refinement 4: PlacementFilter Capture Strategy
+
+**Problem Identified:** PlacementFilter used for entity resolution happens deep in SceneInstantiator, but we need it in trace node.
+
+**What I Missed:**
+PlacementFilter is generated by SceneInstantiator from scene template, then passed to EntityResolver. By the time we have the Scene entity, filter is already consumed.
+
+**Where Filter Exists:**
+1. SceneTemplate.BaseLocationFilter (template-level default)
+2. SituationTemplate.PlacementFilter (situation-level override)
+3. SceneInstantiator generates PlacementFilterDTO from these
+4. EntityResolver.FindOrCreate uses filter, returns concrete entity
+5. SceneParser creates Scene with resolved entities
+
+**Capture Point:**
+Hook in SceneInstantiator BEFORE calling EntityResolver, capture generated PlacementFilterDTO.
+
+**Implementation:**
+```csharp
+// In SceneInstantiator.GenerateScenePackageJson
+PlacementFilterDTO locationFilter = /* ... generate ... */;
+PlacementFilterDTO npcFilter = /* ... generate ... */;
+
+// Store in context for tracer to access
+if (tracer.IsEnabled)
+{
+    tracer.StorePlacementContext(new PlacementContext
+    {
+        LocationFilter = locationFilter,
+        NpcFilter = npcFilter,
+        SceneTemplateId = templateId
+    });
+}
+
+// Continue with entity resolution
+/* ... EntityResolver.FindOrCreate ... */
+
+// Later in SceneInstanceFacade, after scene created
+if (tracer.IsEnabled)
+{
+    PlacementContext context = tracer.GetPlacementContext();
+    SceneSpawnNode node = tracer.RecordSceneSpawn(new SceneSpawnData
+    {
+        Scene = scene,
+        PlacementFilterUsed = SnapshotFactory.CreatePlacementFilterSnapshot(context.LocationFilter)
+    });
+    tracer.ClearPlacementContext();
+}
+```
+
+**Alternative (Simpler for MVP):**
+Skip PlacementFilter snapshot entirely. Only record which entities were SELECTED (Location, NPC names). Placement filter is internal implementation detail that might not be critical for debugging spawn chains.
+
+**Recommendation:** Start without PlacementFilter snapshot (Phase 1), add if needed later (Phase 4).
+
+### Refinement 5: Initial Situation Recording Timing
+
+**Problem Identified:** Situations created in two contexts (parse-time vs runtime), need different hooks.
+
+**What I Got Right:**
+Identified two spawn contexts: InitialScene vs SuccessSpawn/FailureSpawn.
+
+**What I Missed:**
+Parse-time situations don't exist until AFTER SceneParser completes. Can't record them during parsing.
+
+**Correct Hook Timing:**
+
+**Hook 1: SceneParser.ParseScene (AFTER scene fully constructed)**
+```csharp
+// In SceneParser.ParseScene
+Scene scene = new Scene
+{
+    Situations = CreateSituationsFromTemplates(...)  // All initial situations
+};
+
+// ONLY NOW can we record
+if (tracer.IsEnabled)
+{
+    // First record scene
+    SceneSpawnNode sceneNode = tracer.RecordSceneSpawn(scene, ...);
+
+    // Then record ALL initial situations
+    foreach (var situation in scene.Situations)
+    {
+        SituationSpawnNode sitNode = tracer.RecordSituationSpawn(new SituationSpawnData
+        {
+            Situation = situation,
+            ParentSceneNodeId = sceneNode.NodeId,
+            SpawnTrigger = SituationSpawnTriggerType.InitialScene
+        });
+
+        sceneNode.Situations.Add(sitNode);  // Link in trace
+    }
+}
+
+return scene;
+```
+
+**Hook 2: SpawnFacade.ExecuteSpawnRules (Runtime cascading)**
+```csharp
+// After creating cascaded situation
+Situation childSituation = /* ... */;
+parentScene.Situations.Add(childSituation);
+
+if (tracer.IsEnabled)
+{
+    tracer.PushSituationContext(parentSituationNodeId);  // Context for cascades
+
+    SituationSpawnNode childNode = tracer.RecordSituationSpawn(new SituationSpawnData
+    {
+        Situation = childSituation,
+        ParentSceneNodeId = tracer.GetNodeId(parentScene),
+        ParentSituationNodeId = tracer.GetCurrentSituationContext(),
+        SpawnTrigger = SituationSpawnTriggerType.SuccessSpawn
+    });
+
+    // Link to parent situation
+    SituationSpawnNode parentNode = tracer.GetNodeById(parentSituationNodeId);
+    parentNode.SpawnedSituations.Add(childNode.NodeId);
+
+    tracer.PopSituationContext();
+}
+```
+
+**Key Difference:**
+- Initial: Record in batch after scene parsing completes
+- Cascading: Record individually as each situation spawns at runtime
+
+### Refinement 6: Two-Phase Choice Recording (Corrected)
+
+**Problem Identified:** Spawned scenes don't exist when choice is recorded, but we need to link them.
+
+**Original Thinking (INCOMPLETE):**
+"Record choice, then update with spawned NodeIds."
+
+**Correct Pattern:**
+```csharp
+// PHASE 1: Record choice execution (BEFORE rewards applied)
+ChoiceExecutionNode choiceNode = tracer.RecordChoiceExecution(new ChoiceExecutionData
+{
+    ChoiceTemplate = choice,
+    Situation = situation,
+    PlayerMetRequirements = player.MeetsRequirements(choice.RequirementFormula),
+    SpawnedSceneNodeIds = new List<string>(),  // Empty initially
+    SpawnedSituationNodeIds = new List<string>()
+});
+
+// Store context
+tracer.PushChoiceContext(choiceNode.NodeId);
+
+// Apply rewards (THIS spawns scenes)
+ApplyResourceChanges(...);
+ApplyStatChanges(...);
+FinalizeSceneSpawns(reward.ScenesToSpawn);  // Scenes spawn HERE
+ExecuteSituationSpawns(reward.SuccessSpawns);  // Situations spawn HERE
+
+// PHASE 2: Tracer automatically updated via context
+// When SceneInstanceFacade.SpawnScene calls tracer.RecordSceneSpawn:
+//   1. RecordSceneSpawn gets current choice context
+//   2. Links scene to choice automatically
+//   3. Updates choice node's SpawnedSceneNodeIds list
+
+tracer.PopChoiceContext();
+```
+
+**Internal Tracer Logic:**
+```csharp
+SceneSpawnNode RecordSceneSpawn(Scene scene, ...)
+{
+    SceneSpawnNode node = /* ... create node ... */;
+
+    // AUTO-LINK to current choice context
+    string choiceNodeId = GetCurrentChoiceContext();
+    if (choiceNodeId != null)
+    {
+        node.ParentChoiceNodeId = choiceNodeId;
+
+        // Update choice node's spawn list
+        ChoiceExecutionNode choiceNode = AllChoiceNodes.FirstOrDefault(c => c.NodeId == choiceNodeId);
+        if (choiceNode != null)
+        {
+            choiceNode.SpawnedSceneNodeIds.Add(node.NodeId);
+        }
+    }
+
+    return node;
+}
+```
+
+**Why This Works:**
+- Single-phase from caller perspective (just push/pop context)
+- Bidirectional links established automatically
+- No need to manually update choice node after spawning
+
+### Refinement 7: Authored vs Procedural Distinction
+
+**Problem Identified:** Tutorial scenes (A1-A3) loaded differently than procedural scenes (A4+).
+
+**What I Missed:**
+Need to distinguish these in trace for debugging "where did procedural content start?"
+
+**Solution:**
+Add property: `SceneSpawnNode.IsProcedurallyGenerated : bool`
+
+**Detection:**
+```csharp
+// In PackageLoader.LoadPackageFromFile (authored content)
+Scene scene = SceneParser.ParseScene(dto);
+
+if (tracer.IsEnabled)
+{
+    tracer.RecordSceneSpawn(new SceneSpawnData
+    {
+        Scene = scene,
+        IsProcedurallyGenerated = false,  // Static JSON file
+        SpawnTrigger = SpawnTriggerType.Initial
+    });
+}
+
+// In SceneInstanceFacade.SpawnScene (procedural content)
+Scene scene = /* ... generate via SceneInstantiator ... */;
+
+if (tracer.IsEnabled)
+{
+    tracer.RecordSceneSpawn(new SceneSpawnData
+    {
+        Scene = scene,
+        IsProcedurallyGenerated = true,  // Runtime generated
+        SpawnTrigger = SpawnTriggerType.ChoiceReward
+    });
+}
+```
+
+**Visualization Impact:**
+- Different badge colors (purple for authored, teal for procedural)
+- Filter: "Show only procedural" / "Show only authored"
+- Clear visual transition point in timeline view
+
+### Refinement 8: Scene State Tracking (Simplified)
+
+**Original Thinking:**
+Track every state transition with timestamps.
+
+**Simplified Approach (MVP):**
+Only track critical lifecycle events:
+- Spawn time (always captured)
+- Completion time (if scene completes)
+- Whether scene was ever activated (optional)
+
+**Rationale:**
+State transitions happen frequently (Provisional → Active happens when scene selected). Tracking every transition adds complexity. For debugging spawn chains, knowing spawn time and completion time is sufficient.
+
+**Implementation:**
+```csharp
+// SceneSpawnNode properties
+DateTime SpawnTimestamp;           // Always captured
+DateTime? CompletedTimestamp;      // Set when scene completes
+SceneState CurrentState;           // Can query anytime, not historical
+
+// Hook at completion
+void CompleteScene(Scene scene)
+{
+    scene.State = SceneState.Completed;
+
+    if (tracer.IsEnabled)
+    {
+        tracer.MarkSceneCompleted(scene, DateTime.Now);
+    }
+}
+
+// Tracer method
+void MarkSceneCompleted(Scene scene, DateTime timestamp)
+{
+    if (!sceneToNodeId.TryGetValue(scene, out string nodeId)) return;
+
+    SceneSpawnNode node = AllSceneNodes.FirstOrDefault(n => n.NodeId == nodeId);
+    if (node != null)
+    {
+        node.CompletedTimestamp = timestamp;
+        node.CurrentState = SceneState.Completed;
+    }
+}
+```
+
+**Phase 5 Enhancement:**
+Add full state history tracking if needed for advanced debugging.
+
+## PART 9: DEEP DIVE - EDGE CASES & CHALLENGES
+
+### Edge Case 1: Authored vs Procedural Content Distinction
+
+**Challenge:** Tutorial scenes (A1-A3) are pre-authored and loaded at game start. Procedural scenes (A4+) spawn dynamically. How to distinguish in trace?
+
+**Solution:**
+
+Add property to SceneSpawnNode:
+```csharp
+- IsProcedurallyGenerated : bool
+```
+
+**Detection Logic:**
+- Authored scenes: Loaded via PackageLoader from static JSON files → `IsProcedurallyGenerated = false`
+- Procedural scenes: Generated via SceneInstantiator → `IsProcedurallyGenerated = true`
+
+**Visualization Impact:**
+- Badge color: Authored scenes get different badge color (e.g., purple vs teal)
+- Filter option: "Show only procedural" or "Show only authored"
+- Timeline view: Clear visual break between tutorial and generated content
+
+**Recording Pattern:**
+```csharp
+// In PackageLoader (for authored content)
+if (tracer.IsEnabled)
+{
+    tracer.RecordSceneSpawn(new SceneSpawnData
+    {
+        Scene = scene,
+        IsProcedurallyGenerated = false,
+        SpawnTrigger = SpawnTriggerType.Tutorial // or Initial
+    });
+}
+
+// In SceneInstanceFacade (for procedural content)
+if (tracer.IsEnabled)
+{
+    tracer.RecordSceneSpawn(new SceneSpawnData
+    {
+        Scene = scene,
+        IsProcedurallyGenerated = true,
+        SpawnTrigger = SpawnTriggerType.ChoiceReward
+    });
+}
+```
+
+### Edge Case 2: Initial Scene Loading (Game Start)
+
+**Challenge:** Very first scenes aren't spawned by player choices—they're loaded when game initializes. How to represent in tree?
+
+**Solution:**
+
+Use `SpawnTrigger` enum with distinct values:
+```csharp
+enum SpawnTriggerType
+{
+    Initial,           // Game start, no parent
+    Tutorial,          // Authored tutorial progression
+    ChoiceReward,      // Spawned by choice reward
+    SituationSuccess,  // Spawned by situation success
+    SituationFailure,  // Spawned by situation failure
+    DayTransition      // Spawned during day/time advancement
+}
+```
+
+**Parent Relationship:**
+- Initial/Tutorial scenes: `ParentNodeId = null` (root nodes)
+- Choice-spawned scenes: `ParentNodeId` points to spawning scene
+
+**Visualization:**
+- Root nodes displayed at top of tree
+- No "Spawned by" link for Initial/Tutorial triggers
+- Badge shows trigger type clearly
+
+### Edge Case 3: Scene State Transitions
+
+**Challenge:** Scene goes through lifecycle: Provisional → Active → Completed. Should we track these transitions, not just spawn?
+
+**Design Decision:** YES, track completion separately.
+
+**Add to SceneSpawnNode:**
+```csharp
+- ActivatedTimestamp : DateTime?     // When player selected scene
+- ActivatedGameDay : int?
+- CompletedTimestamp : DateTime?     // When scene finished
+- CompletedGameDay : int?
+- ExpiredTimestamp : DateTime?       // If scene expired without completion
+- CurrentState : SceneState          // Updated as state changes
+```
+
+**Implementation:**
+
+Add method to ProceduralContentTracer:
+```csharp
+void UpdateSceneState(string nodeId, SceneState newState, DateTime timestamp, int gameDay)
+{
+    SceneSpawnNode node = AllSceneNodes.FirstOrDefault(n => n.NodeId == nodeId);
+    if (node == null) return;
+
+    node.CurrentState = newState;
+
+    if (newState == SceneState.Active)
+    {
+        node.ActivatedTimestamp = timestamp;
+        node.ActivatedGameDay = gameDay;
+    }
+    else if (newState == SceneState.Completed)
+    {
+        node.CompletedTimestamp = timestamp;
+        node.CompletedGameDay = gameDay;
+    }
+    else if (newState == SceneState.Expired)
+    {
+        node.ExpiredTimestamp = timestamp;
+    }
+}
+```
+
+**Hook Location:**
+- Scene.TransitionToState() method (if exists) or wherever scene state changes
+
+**Debugging Value:**
+- See how long scenes stayed provisional before activation
+- Identify scenes that expired (content player never saw)
+- Measure scene completion time (pacing analysis)
+
+### Edge Case 4: Failed Spawn Attempts
+
+**Challenge:** SpawnConditions evaluate to false, scene doesn't spawn. Should we record the attempt?
+
+**Design Decision:** YES, optionally record failed spawn attempts for debugging.
+
+**Add to ProceduralContentTracer:**
+```csharp
+List<FailedSpawnAttempt> FailedSpawnAttempts { get; set; }
+
+class FailedSpawnAttempt
+{
+    string AttemptId;                           // GUID
+    DateTime AttemptTimestamp;
+    int GameDay;
+    TimeBlock GameTimeBlock;
+
+    string SceneTemplateId;                     // What tried to spawn
+    string ParentChoiceNodeId;                  // Which choice tried to spawn it
+
+    SpawnConditions RequiredConditions;         // What was required
+    List<string> FailureReasons;                // Why it failed (missing tags, stat thresholds, etc.)
+
+    PlayerStateSnapshot PlayerStateAtAttempt;   // What player had at time
+}
+```
+
+**Recording Pattern:**
+```csharp
+// In SceneInstanceFacade.SpawnScene, before SpawnConditions check
+if (!SpawnConditionsEvaluator.Evaluate(spawnReward.SpawnConditions, player))
+{
+    if (tracer.IsEnabled)
+    {
+        tracer.RecordFailedSpawnAttempt(new FailedSpawnAttemptData
+        {
+            SceneTemplateId = spawnReward.SceneTemplateId,
+            RequiredConditions = spawnReward.SpawnConditions,
+            FailureReasons = SpawnConditionsEvaluator.GetFailureReasons(...),
+            PlayerStateAtAttempt = SnapshotFactory.CreatePlayerStateSnapshot(player)
+        });
+    }
+    return; // Don't spawn
+}
+```
+
+**Debugging Value:**
+- "Why didn't this scene spawn?" → Check FailedSpawnAttempts list
+- See what conditions player was missing
+- Identify progression blockers (scenes that never spawn due to bad conditions)
+
+**Visualization:**
+- Optional separate panel showing failed attempts
+- Link from choice node: "Attempted to spawn 1 scene (failed)" (expandable)
+- Shows what WOULD have spawned if conditions were met
+
+### Edge Case 5: Game Save/Load
+
+**Challenge:** Player saves game, reloads later. Does trace persist? Should it?
+
+**Design Decision:** Trace is DEBUG DATA, not game state. Do NOT persist by default.
+
+**Rationale:**
+- Trace is for developer debugging, not player features
+- Memory overhead acceptable during session, not worth save file bloat
+- Each play session generates fresh trace
+
+**Implementation:**
+- Tracer is singleton, lives in memory only
+- When game reloads, tracer.Clear() called
+- New trace starts from reload point forward
+
+**Exception: Optional Export**
+- Developer can export trace to JSON before saving game
+- Can manually load/compare traces across sessions
+- Useful for reproducing bugs across sessions
+
+**Alternative (Future):** Serialize trace to separate debug file
+- Game saves to `save.json`
+- Trace saves to `save_trace.json` (optional, developer-only)
+- Load both on game reload (if trace file exists)
+
+### Edge Case 6: Parallel Scene Availability
+
+**Challenge:** Multiple scenes can be Provisional simultaneously. How to visualize?
+
+**Answer:** Tree structure handles this naturally.
+
+**Example:**
+```
+Root Scene A3
+├─ Situation 1
+│  └─ Choice: Accept Mission
+│     ├─ Spawned: Scene A4 (Main Story)
+│     └─ Spawned: Scene S1 (Side Story)
+└─ Situation 2
+   └─ Choice: Decline Mission
+      └─ Spawned: Scene A4_alt (Alternative Main Story)
+```
+
+Both A4 and S1 spawn from same choice, both Provisional.
+
+**Visualization:**
+- Both shown as children of choice node
+- Both have State badge (Provisional/Active/Completed)
+- Color coding shows which is active (if any)
+- Timeline view shows both as parallel options
+
+**Debugging Value:**
+- See all scenes spawned by single choice
+- Understand branching paths
+- Identify content player didn't see (other Provisional scenes)
+
+### Edge Case 7: Passing Parent Context Through Spawn Chain
+
+**Challenge:** When spawning scene, how does SceneInstanceFacade know the parent choice NodeId to link?
+
+**Solution: Thread Parent Context Through Call Stack**
+
+**Pattern:**
+
+```csharp
+// In RewardApplicationService.ApplyChoiceReward
+ChoiceExecutionNode choiceNode = tracer.RecordChoiceExecution(...);
+
+foreach (var sceneSpawn in reward.ScenesToSpawn)
+{
+    // CRITICAL: Pass choice NodeId as parameter
+    Scene spawnedScene = sceneInstanceFacade.SpawnScene(
+        sceneSpawn.SceneTemplateId,
+        parentChoiceNodeId: choiceNode.NodeId  // NEW PARAMETER
+    );
+}
+
+// In SceneInstanceFacade.SpawnScene
+public Scene SpawnScene(string templateId, string parentChoiceNodeId = null)
+{
+    Scene scene = /* ... spawn logic ... */;
+
+    if (tracer.IsEnabled)
+    {
+        SceneSpawnNode sceneNode = tracer.RecordSceneSpawn(new SceneSpawnData
+        {
+            Scene = scene,
+            ParentChoiceNodeId = parentChoiceNodeId  // Link established
+        });
+    }
+
+    return scene;
+}
+```
+
+**Key Insight:** Spawn methods must accept parent NodeId as parameter, threading context through call stack.
+
+**Alternate Pattern (Less Invasive):**
+Store parent context in tracer itself:
+```csharp
+tracer.SetCurrentChoiceContext(choiceNode.NodeId);
+sceneInstanceFacade.SpawnScene(...); // Tracer reads context from internal state
+tracer.ClearCurrentChoiceContext();
+```
+
+**Trade-off:** Internal state pattern is less explicit but doesn't require changing all method signatures.
+
+### Edge Case 8: Situation Spawn Timing (Parse vs Runtime)
+
+**Challenge:** Situations spawn in two contexts:
+1. **Parse-time:** Initial situations created when scene parsed
+2. **Runtime:** Cascading situations spawned via SuccessSpawns/FailureSpawns
+
+How to distinguish and link correctly?
+
+**Solution: Hook Both Locations**
+
+**Hook 1: SceneParser (Initial Situations)**
+```csharp
+// In SceneParser.ParseScene, after creating Scene with Situations
+Scene scene = new Scene
+{
+    Situations = parsedSituations  // List of Situation entities
+};
+
+if (tracer.IsEnabled)
+{
+    SceneSpawnNode sceneNode = tracer.RecordSceneSpawn(...);
+
+    // Record each initial situation
+    foreach (var situation in scene.Situations)
+    {
+        SituationSpawnNode sitNode = tracer.RecordSituationSpawn(new SituationSpawnData
+        {
+            Situation = situation,
+            ParentSceneNodeId = sceneNode.NodeId,
+            SpawnTrigger = SituationSpawnTriggerType.InitialScene,
+            ParentSituationNodeId = null  // No parent situation (initial)
+        });
+
+        sceneNode.Situations.Add(sitNode);  // Link to parent
+    }
+}
+```
+
+**Hook 2: SpawnFacade (Cascading Situations)**
+```csharp
+// In SpawnFacade.ExecuteSpawnRules
+foreach (var spawnRule in successSpawns)
+{
+    Situation newSituation = /* ... create from template ... */;
+    parentScene.Situations.Add(newSituation);
+
+    if (tracer.IsEnabled)
+    {
+        SituationSpawnNode sitNode = tracer.RecordSituationSpawn(new SituationSpawnData
+        {
+            Situation = newSituation,
+            ParentSceneNodeId = sceneNodeId,
+            SpawnTrigger = SituationSpawnTriggerType.SuccessSpawn,
+            ParentSituationNodeId = parentSituationNodeId  // Links to parent
+        });
+
+        // Update parent situation's spawned children list
+        parentSituationNode.SpawnedSituations.Add(sitNode.NodeId);
+    }
+}
+```
+
+**Key Difference:**
+- Initial: `ParentSituationNodeId = null`, `SpawnTrigger = InitialScene`
+- Cascading: `ParentSituationNodeId` set, `SpawnTrigger = SuccessSpawn/FailureSpawn`
+
+### Edge Case 9: Two-Phase Choice Recording
+
+**Challenge:** Choice execution happens BEFORE spawns, but we need to link choice to spawned scenes. Spawns happen AFTER reward application.
+
+**Solution: Record in Two Phases**
+
+**Phase 1: Record Choice Execution (Before Rewards)**
+```csharp
+// In RewardApplicationService.ApplyChoiceReward, at START
+ChoiceExecutionNode choiceNode = tracer.RecordChoiceExecution(new ChoiceExecutionData
+{
+    ChoiceTemplate = choice,
+    Situation = currentSituation,
+    PlayerMetRequirements = /* check */,
+    // Spawns NOT YET KNOWN (leave empty lists)
+    SpawnedSceneNodeIds = new List<string>(),
+    SpawnedSituationNodeIds = new List<string>()
+});
+
+// Store NodeId for later
+string choiceNodeId = choiceNode.NodeId;
+```
+
+**Phase 2: Link Spawned Scenes (After Spawns Complete)**
+```csharp
+// After FinalizeSceneSpawns completes
+foreach (var sceneSpawn in reward.ScenesToSpawn)
+{
+    Scene spawnedScene = sceneInstanceFacade.SpawnScene(
+        sceneSpawn.SceneTemplateId,
+        parentChoiceNodeId: choiceNodeId
+    );
+
+    // SceneInstanceFacade returns Scene, but we need NodeId
+    // Solution: RecordSceneSpawn returns SceneSpawnNode with NodeId
+
+    if (tracer.IsEnabled)
+    {
+        SceneSpawnNode sceneNode = tracer.GetMostRecentSceneNode(); // Or return from SpawnScene
+        choiceNode.SpawnedSceneNodeIds.Add(sceneNode.NodeId);  // Update choice node
+    }
+}
+```
+
+**Challenge:** How does RewardApplicationService get the NodeId of spawned scene?
+
+**Solution A:** SceneInstanceFacade returns NodeId alongside Scene:
+```csharp
+(Scene scene, string nodeId) SpawnScene(...)
+{
+    Scene scene = /* ... */;
+    string nodeId = tracer.IsEnabled ? tracer.RecordSceneSpawn(...).NodeId : null;
+    return (scene, nodeId);
+}
+```
+
+**Solution B:** Tracer maintains "current spawn context" internally:
+```csharp
+tracer.BeginSpawnContext(choiceNodeId);
+sceneInstanceFacade.SpawnScene(...); // Internally records and links
+tracer.EndSpawnContext(); // Automatically updates choice node
+```
+
+**Recommended:** Solution B (less invasive to existing signatures).
+
+---
+
+## PART 10: ADVANCED FEATURES & FUTURE ENHANCEMENTS
+
+### Feature 1: Player State Snapshots
+
+**Motivation:** Debug "why was this choice unavailable?" requires knowing player's stats/resources at execution time.
+
+**Add to ChoiceExecutionNode:**
+```csharp
+- PlayerStateSnapshot : PlayerStateSnapshot
+```
+
+**PlayerStateSnapshot Class:**
+```csharp
+class PlayerStateSnapshot
+{
+    // Five Stats
+    int Insight;
+    int Rapport;
+    int Authority;
+    int Diplomacy;
+    int Cunning;
+
+    // Resources
+    int Coins;
+    int Health;
+    int Stamina;
+    int Focus;
+    int Resolve;
+
+    // States
+    List<string> ActiveStates;  // State names
+    List<string> PlayerTags;    // Tag names
+
+    // Progression
+    int TotalXP;
+    int CurrentDay;
+    TimeBlock CurrentTimeBlock;
+}
+```
+
+**Debugging Value:**
+- "Why couldn't I select this choice?" → Compare RequirementSnapshot vs PlayerStateSnapshot
+- "How did my stats change over time?" → Compare snapshots across multiple choices
+- "When did I gain this tag?" → Search for state changes
+
+**Memory Impact:**
+- ~200 bytes per choice execution
+- 300 choices × 200 bytes = 60KB additional (acceptable)
+
+### Feature 2: Alternate Path Visualization
+
+**Motivation:** "What if I had chosen differently?" Show branches not taken.
+
+**Implementation:**
+
+Record ALL choices available in situation, not just executed one:
+```csharp
+SituationSpawnNode.AvailableChoices : List<ChoiceSnapshot>
+
+class ChoiceSnapshot
+{
+    string ChoiceId;
+    string ActionText;
+    bool WasExecuted;           // false for not-chosen paths
+    bool WasAvailable;          // false if player didn't meet requirements
+    RequirementSnapshot Requirements;
+    CostSnapshot Cost;
+}
+```
+
+**Visualization:**
+- Executed choice: Solid border, bright color
+- Not-chosen but available: Dashed border, dimmed color
+- Not available (requirements not met): Grayed out, strike-through
+
+**Debugging Value:**
+- See all paths player could have taken
+- Identify choices player never saw (requirements not met)
+- Verify choice availability logic
+
+### Feature 3: Diff View (Compare Game Sessions)
+
+**Motivation:** "Did my archetype changes affect spawning?" Compare two playthroughs.
+
+**Implementation:**
+- Export trace from Session A (before changes)
+- Export trace from Session B (after changes)
+- Load both in viewer, side-by-side comparison
+
+**Diff Display:**
+```
+Session A               | Session B
+=======================|=======================
+Scene A4: Investigation | Scene A4: Investigation
+├─ NPC: Guard Marcus   | ├─ NPC: Merchant Elena    [DIFFERENT]
+├─ Location: Barracks  | ├─ Location: Marketplace  [DIFFERENT]
+└─ Spawned: A5         | └─ Spawned: A5, S1        [DIFFERENT - extra spawn]
+```
+
+**Highlighting:**
+- Green: Only in Session B (new content)
+- Red: Only in Session A (removed content)
+- Yellow: Different (same scene but different properties)
+
+**Debugging Value:**
+- Verify archetype changes produce expected variations
+- Identify regressions (content that stopped spawning)
+- Validate balance changes (costs/rewards different)
+
+### Feature 4: Search by Property
+
+**Motivation:** "Find all scenes using Hostile NPCs" or "Find all scenes at Inns"
+
+**Advanced Search Panel:**
+```
+Search Criteria:
+- NPC Demeanor: [Hostile]
+- Location Purpose: [Inn, Tavern]
+- Scene Category: [Main Story]
+- Game Day Range: 1-5
+- Template ID contains: "investigation"
+
+[Search] [Clear]
+```
+
+**Results:**
+- Highlights all matching nodes in tree
+- Collapses non-matching subtrees
+- Summary: "Found 7 scenes matching criteria"
+
+**Implementation:**
+- LINQ queries across AllSceneNodes
+- Filter by nested properties (Node.NPC.Demeanor, Node.PlacedLocation.Purpose)
+- Performance: Fine for <1000 nodes, add indexing if needed
+
+### Feature 5: Statistical Summary Panel
+
+**Motivation:** High-level metrics for balancing analysis.
+
+**Summary Panel:**
+```
+SPAWN STATISTICS
+================
+Total Scenes: 47
+├─ Main Story: 12 (25%)
+├─ Side Story: 23 (49%)
+└─ Service: 12 (26%)
+
+Procedural vs Authored:
+├─ Procedural: 44 (94%)
+└─ Authored: 3 (6%)
+
+By Day:
+Day 1: 8 scenes
+Day 2: 12 scenes
+Day 3: 15 scenes
+Day 4: 9 scenes
+Day 5: 3 scenes
+
+Most Used Templates:
+1. inn_lodging (8 instances)
+2. investigation_archetype (5 instances)
+3. service_transaction (4 instances)
+
+Most Used Locations:
+1. Rusty Flagon Inn (12 scenes)
+2. Market Square (8 scenes)
+3. Guard Barracks (5 scenes)
+
+Most Used NPCs:
+1. Innkeeper Marta (6 scenes)
+2. Guard Captain (4 scenes)
+3. Merchant Elena (3 scenes)
+```
+
+**Debugging Value:**
+- Identify content overuse (same template/location/NPC too frequently)
+- Verify scene distribution (pacing balance)
+- Spot degenerate patterns (one location dominating)
+
+### Feature 6: Export Formats
+
+**JSON Export (Already Specified):**
+- Complete trace data
+- Human-readable structure
+- Import/export for sharing
+
+**CSV Export (Additional):**
+- Flattened view for spreadsheet analysis
+- Columns: NodeId, Type, DisplayName, Category, Day, TimeBlock, Template, Location, NPC, etc.
+- One row per node
+- Useful for pivot tables, charts
+
+**Graphviz DOT Export:**
+- Generate .dot file for graph visualization
+- Use external tools (Graphviz) for layout
+- Nodes colored by category
+- Edges show spawn relationships
+
+**Example DOT:**
+```dot
+digraph spawns {
+  A3 [label="A3: Journey" color=red];
+  S1 [label="Situation 1" color=yellow];
+  C1 [label="Choice: Bribe" color=blue];
+  A4 [label="A4: Investigation" color=red];
+
+  A3 -> S1;
+  S1 -> C1;
+  C1 -> A4;
+}
+```
+
+Generate PNG: `dot -Tpng trace.dot -o trace.png`
+
+---
+
+## PART 11: IMPLEMENTATION CHECKLIST
+
+### Phase 1: Core Data Structure ✓
+
+- [ ] Create node classes
+  - [ ] SceneSpawnNode with all properties
+  - [ ] SituationSpawnNode with all properties
+  - [ ] ChoiceExecutionNode with all properties
+- [ ] Create snapshot classes
+  - [ ] LocationSnapshot
+  - [ ] NPCSnapshot
+  - [ ] RouteSnapshot
+  - [ ] PlacementFilterSnapshot
+  - [ ] RequirementSnapshot
+  - [ ] CostSnapshot
+  - [ ] RewardSnapshot
+  - [ ] PlayerStateSnapshot (optional Phase 4)
+- [ ] Create enum types
+  - [ ] SpawnTriggerType
+  - [ ] SituationSpawnTriggerType
+- [ ] Create ProceduralContentTracer service
+  - [ ] Properties (RootScenes, AllSceneNodes, etc.)
+  - [ ] RecordSceneSpawn method
+  - [ ] RecordSituationSpawn method
+  - [ ] RecordChoiceExecution method
+  - [ ] GetNodeById method
+  - [ ] GetSpawnChain method
+  - [ ] UpdateSceneState method (for lifecycle tracking)
+  - [ ] RecordFailedSpawnAttempt method (optional)
+- [ ] Create SnapshotFactory helper
+  - [ ] CreateLocationSnapshot
+  - [ ] CreateNPCSnapshot
+  - [ ] CreateRouteSnapshot
+  - [ ] CreatePlacementFilterSnapshot
+  - [ ] CreateRequirementSnapshot
+  - [ ] CreateCostSnapshot
+  - [ ] CreateRewardSnapshot
+  - [ ] CreatePlayerStateSnapshot (optional)
+- [ ] Register in DI container
+  - [ ] AddSingleton<ProceduralContentTracer>()
+
+### Phase 2: Integration Hooks ✓
+
+- [ ] Hook initial scene loading
+  - [ ] Identify PackageLoader or game initialization point
+  - [ ] Record authored scenes with IsProcedurallyGenerated=false
+  - [ ] Set SpawnTrigger=Initial or Tutorial
+- [ ] Hook scene spawning
+  - [ ] Modify SceneInstanceFacade.SpawnScene
+  - [ ] Add parentChoiceNodeId parameter (or use context)
+  - [ ] Record scene spawn with IsProcedurallyGenerated=true
+  - [ ] Link to parent choice
+- [ ] Hook situation spawning (initial)
+  - [ ] Modify SceneParser.ParseScene
+  - [ ] Record initial situations after scene creation
+  - [ ] Link situations to parent scene node
+- [ ] Hook situation spawning (cascading)
+  - [ ] Modify SpawnFacade.ExecuteSpawnRules
+  - [ ] Record cascading situations
+  - [ ] Link to parent situation and scene
+- [ ] Hook choice execution
+  - [ ] Modify RewardApplicationService.ApplyChoiceReward
+  - [ ] Phase 1: Record choice execution before rewards
+  - [ ] Phase 2: Link spawned scenes after FinalizeSceneSpawns
+  - [ ] Capture player state snapshot (optional)
+- [ ] Hook scene state transitions
+  - [ ] Find Scene state change location
+  - [ ] Call tracer.UpdateSceneState() on transitions
+- [ ] Implement context threading
+  - [ ] Add parentNodeId parameters OR
+  - [ ] Use tracer internal context (BeginSpawnContext/EndSpawnContext)
+
+### Phase 3: Basic Visualization ✓
+
+- [ ] Create component files
+  - [ ] SpawnGraphViewer.razor
+  - [ ] SpawnGraphViewer.razor.cs
+  - [ ] SceneNode.razor
+  - [ ] SceneNode.razor.cs
+  - [ ] SituationNode.razor
+  - [ ] SituationNode.razor.cs
+  - [ ] ChoiceNode.razor
+  - [ ] ChoiceNode.razor.cs
+- [ ] Create CSS file
+  - [ ] /wwwroot/css/spawn-trace.css
+  - [ ] Base classes (.trace-tree, .trace-node, etc.)
+  - [ ] Node type classes (.trace-node-scene, etc.)
+  - [ ] Category colors (.scene-main-story, etc.)
+  - [ ] State highlighting (.trace-node-highlighted, etc.)
+- [ ] Implement SpawnGraphViewer
+  - [ ] Receive ProceduralContentTracer parameter
+  - [ ] Render filter/search panel (minimal for MVP)
+  - [ ] Render tree container
+  - [ ] Iterate RootScenes, render SceneNode for each
+- [ ] Implement SceneNode (recursive)
+  - [ ] Render node card with properties
+  - [ ] Expand/collapse state management
+  - [ ] Render children (situations) when expanded
+  - [ ] Category class binding
+- [ ] Implement SituationNode (recursive)
+  - [ ] Render node card with properties
+  - [ ] Expand/collapse state management
+  - [ ] Render children (choices) when expanded
+- [ ] Implement ChoiceNode (leaf)
+  - [ ] Render node card with properties
+  - [ ] Show spawn consequences
+- [ ] Add to debug panel
+  - [ ] Add "View Spawn Graph" button to DebugPanel.razor
+  - [ ] Open SpawnGraphViewer in modal or route
+- [ ] Test rendering
+  - [ ] Play game, spawn some scenes
+  - [ ] Open viewer, verify tree renders
+  - [ ] Expand/collapse works
+  - [ ] Properties display correctly
+
+### Phase 4: Interactive Features ✓
+
+- [ ] Implement search/filter panel
+  - [ ] Search by name input
+  - [ ] Category filter dropdown
+  - [ ] Day range sliders
+  - [ ] Template ID filter
+  - [ ] Apply filters to RootScenes
+- [ ] Implement jump-to-node
+  - [ ] Click parent link scrolls to parent
+  - [ ] element.scrollIntoView() logic
+  - [ ] Highlight target node temporarily
+- [ ] Implement trace-to-root
+  - [ ] "Trace Path" button on nodes
+  - [ ] Walk parent chain, collect NodeIds
+  - [ ] Highlight all ancestors
+  - [ ] Dim non-highlighted nodes
+- [ ] Implement detail panel
+  - [ ] Right sidebar shows selected node
+  - [ ] Full property expansion
+  - [ ] Copy NodeId button
+- [ ] State persistence
+  - [ ] Save ExpandedNodeIds to localStorage
+  - [ ] Save SelectedNodeId to localStorage
+  - [ ] Restore on component load
+
+### Phase 5: Polish & Optimization ✓
+
+- [ ] Timeline view
+  - [ ] Group scenes by Day + TimeBlock
+  - [ ] Render horizontal cards in timeline
+  - [ ] Click scene switches to tree view
+- [ ] Export to JSON
+  - [ ] Button to serialize trace
+  - [ ] Download as .json file
+  - [ ] Test import (manual verification)
+- [ ] Statistical summary
+  - [ ] Panel showing counts, percentages
+  - [ ] Most-used templates/locations/NPCs
+  - [ ] Day distribution chart
+- [ ] Performance optimization (if needed)
+  - [ ] Virtualization for long lists
+  - [ ] Memoization for filter results
+  - [ ] Collapse all button
+- [ ] Console logging
+  - [ ] Log NodeId on node click
+  - [ ] Helpful for correlating with game logs
+
+---
+
+## PART 12: VALIDATION & TESTING PLAN
+
+### Unit Test Cases
+
+**SnapshotFactory Tests:**
+```csharp
+[Test]
+void CreateLocationSnapshot_CapturesAllProperties()
+{
+    Location loc = new Location { Name = "Inn", Purpose = LocationPurpose.Dwelling, ... };
+    LocationSnapshot snap = SnapshotFactory.CreateLocationSnapshot(loc);
+
+    Assert.Equal("Inn", snap.Name);
+    Assert.Equal(LocationPurpose.Dwelling, snap.Purpose);
+    // ... all properties
+}
+```
+
+**ProceduralContentTracer Tests:**
+```csharp
+[Test]
+void RecordSceneSpawn_AddsToAllSceneNodes()
+{
+    ProceduralContentTracer tracer = new ProceduralContentTracer { IsEnabled = true };
+    SceneSpawnNode node = tracer.RecordSceneSpawn(/* ... */);
+
+    Assert.Contains(node, tracer.AllSceneNodes);
+}
+
+[Test]
+void GetSpawnChain_ReturnsCompleteChain()
+{
+    // Setup: Scene S1 spawns S2 spawns S3
+    // Act: GetSpawnChain(S3)
+    // Assert: Returns [S3, S2, S1]
+}
+```
+
+### Integration Test Cases
+
+**End-to-End Spawn Test:**
+```csharp
+[Test]
+void SceneSpawn_CreatesCompleteTrace()
+{
+    // Arrange: Initialize game with tracer enabled
+    // Act: Execute choice that spawns scene
+    // Assert:
+    //   - ChoiceExecutionNode exists
+    //   - SceneSpawnNode exists
+    //   - SceneSpawnNode.ParentChoiceNodeId links to ChoiceExecutionNode
+    //   - ChoiceExecutionNode.SpawnedSceneNodeIds contains SceneSpawnNode
+}
+```
+
+**Cascading Situation Test:**
+```csharp
+[Test]
+void SituationCascade_CreatesLinkedTrace()
+{
+    // Arrange: Situation with SuccessSpawns configured
+    // Act: Complete situation successfully
+    // Assert:
+    //   - Parent SituationSpawnNode exists
+    //   - Child SituationSpawnNode exists
+    //   - Child.ParentSituationNodeId links to parent
+    //   - Parent.SpawnedSituations contains child NodeId
+}
+```
+
+### Manual Testing Scenarios
+
+**Scenario 1: Fresh Game Playthrough**
+1. Start new game with tracer enabled
+2. Complete tutorial (A1-A3)
+3. Play through 5 days of procedural content
+4. Open spawn graph viewer
+5. Verify:
+   - All tutorial scenes present (3 root nodes, IsProcedurallyGenerated=false)
+   - All procedural scenes present (correct count)
+   - Tree structure correct (scenes link to spawning choices)
+   - No orphaned nodes (all nodes have valid parent or are roots)
+
+**Scenario 2: Search & Filter**
+1. Open viewer with populated trace
+2. Search for "investigation"
+3. Verify only matching scenes shown
+4. Clear search
+5. Filter by MainStory category
+6. Verify only main story scenes shown
+7. Set day range 2-3
+8. Verify only scenes from days 2-3 shown
+
+**Scenario 3: Navigation**
+1. Find deep nested choice node
+2. Click "Trace to Root"
+3. Verify:
+   - Path highlights correctly
+   - All ancestors visible
+   - Non-path nodes dimmed
+4. Click parent link
+5. Verify:
+   - Scrolls to parent
+   - Parent highlights briefly
+
+**Scenario 4: State Transitions**
+1. Spawn provisional scene
+2. Open viewer, verify scene shows State=Provisional
+3. Activate scene in game
+4. Refresh viewer, verify scene shows State=Active
+5. Complete scene
+6. Refresh viewer, verify scene shows State=Completed, CompletedTimestamp populated
+
+### Performance Benchmarks
+
+**Memory Usage:**
+```
+Test: 100 scenes, 300 situations, 600 choices
+Expected memory: ~300KB
+Acceptable threshold: <1MB
+```
+
+**Render Time:**
+```
+Test: Render tree with 100 scenes expanded
+Expected time: <500ms initial render
+Acceptable threshold: <1s
+```
+
+**Search Performance:**
+```
+Test: Search 1000 nodes by text
+Expected time: <100ms
+Acceptable threshold: <500ms
+```
+
+---
+
+END OF DESIGN DOCUMENT
