@@ -395,10 +395,6 @@ public class GameFacade
         return result;
     }
 
-    // ========== DEPRECATED - ACTION EXECUTION REPLACED BY INTENT SYSTEM ==========
-    // Old ExecutePlayerAction and ExecuteLocationAction methods deleted.
-    // All actions now execute through ProcessIntent() for unified handling.
-
     // ========== CONVERSATION OPERATIONS ==========
 
     public SocialFacade GetConversationFacade()

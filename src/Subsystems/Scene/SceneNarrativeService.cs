@@ -175,7 +175,6 @@ public class SceneNarrativeService
 
         List<string> nameParts = new List<string>();
 
-        // DELETED: Capability-based prefix generation
         // Capabilities are flags enum, no ordered list - skip prefix generation
 
         // Add location type

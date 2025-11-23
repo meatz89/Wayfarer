@@ -260,7 +260,6 @@ namespace Wayfarer.Pages.Components
                         activeCards); if (narrative != null && !string.IsNullOrWhiteSpace(narrative.NPCDialogue))
                     {
                         ApplyNarrativeOutput(narrative);
-                        // REMOVED: StateHasChanged() - prevents card DOM recreation
                         return narrative;
                     }
                 }
@@ -268,7 +267,6 @@ namespace Wayfarer.Pages.Components
             finally
             {
                 IsGeneratingNarrative = false;
-                // REMOVED: StateHasChanged() - prevents card DOM recreation
             }
 
             return null;
@@ -337,7 +335,6 @@ namespace Wayfarer.Pages.Components
                     { }
                 }
 
-                // REMOVED: StateHasChanged() - cards not in DOM yet during narrative generation
             }
             else
             { }

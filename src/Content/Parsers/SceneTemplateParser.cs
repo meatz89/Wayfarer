@@ -1123,7 +1123,7 @@ public class SceneTemplateParser
         {
             Id = $"{situationTemplateId}_stat",
             ActionTextTemplate = GenerateStatGatedActionText(archetype),
-            RequirementFormula = CreateStatRequirement(archetype),
+            RequirementFormula = SituationArchetypeCatalog.CreateStatRequirement(archetype, archetype.StatThreshold),
             CostTemplate = new ChoiceCost(), // Free
             RewardTemplate = new ChoiceReward(), // Will be defined in JSON or instantiated at spawn time
             ActionType = ChoiceActionType.Instant
@@ -1181,52 +1181,6 @@ public class SceneTemplateParser
         return choices;
     }
 
-    /// <summary>
-    /// Create compound requirement with OR logic for primary/secondary stat
-    /// </summary>
-    private CompoundRequirement CreateStatRequirement(SituationArchetype archetype)
-    {
-        CompoundRequirement requirement = new CompoundRequirement();
-
-        // Path 1: Primary stat meets threshold
-        OrPath primaryPath = new OrPath
-        {
-            Label = $"{archetype.PrimaryStat} {archetype.StatThreshold}+",
-            NumericRequirements = new List<NumericRequirement>
-        {
-            new NumericRequirement
-            {
-                Type = "PlayerStat",
-                Context = archetype.PrimaryStat.ToString(),
-                Threshold = archetype.StatThreshold,
-                Label = $"{archetype.PrimaryStat} {archetype.StatThreshold}+"
-            }
-        }
-        };
-        requirement.OrPaths.Add(primaryPath);
-
-        // Path 2: Secondary stat meets threshold (only if different from primary)
-        if (archetype.SecondaryStat != archetype.PrimaryStat)
-        {
-            OrPath secondaryPath = new OrPath
-            {
-                Label = $"{archetype.SecondaryStat} {archetype.StatThreshold}+",
-                NumericRequirements = new List<NumericRequirement>
-            {
-                new NumericRequirement
-                {
-                    Type = "PlayerStat",
-                    Context = archetype.SecondaryStat.ToString(),
-                    Threshold = archetype.StatThreshold,
-                    Label = $"{archetype.SecondaryStat} {archetype.StatThreshold}+"
-                }
-            }
-            };
-            requirement.OrPaths.Add(secondaryPath);
-        }
-
-        return requirement;
-    }
 
     /// <summary>
     /// Generate action text template for stat-gated choice

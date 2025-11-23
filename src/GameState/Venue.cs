@@ -25,7 +25,6 @@
     // UNIDIRECTIONAL RELATIONSHIP: Location → Venue (object reference)
     // HIGHLANDER: Location.Venue is single source of truth, NO reverse cache
     // To find locations in venue: GameWorld.Locations.Where(loc => loc.Venue == this)
-    // DELETED: LocationIds (legacy cache duplicating Location.Venue object references)
 
     // HEX-BASED TRAVEL SYSTEM: Venue is ONLY a wrapper for travel cost rules
     // Venue has NO spatial position - Locations are the spatial entities

@@ -49,7 +49,6 @@ public class GameWorld
     public List<SocialCard> PlayerObservationCards { get; set; } = new List<SocialCard>();
     // Exchange definitions loaded from JSON for lookup
     public List<ExchangeDTO> ExchangeDefinitions { get; set; } = new List<ExchangeDTO>();
-    // Mental cards for obligation system - REMOVED: Situations now owned by Scene
     public List<SocialCard> SocialCards { get; set; } = new List<SocialCard>();
     public List<MentalCard> MentalCards { get; set; } = new List<MentalCard>();
     // Physical cards for physical challenge system

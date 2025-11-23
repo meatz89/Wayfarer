@@ -171,7 +171,6 @@ public class SpawnConditionsEvaluator
             {
                 foreach (StateType requiredState in conditions.LocationStates)
                 {
-                    // DELETED: Location.Properties computed property no longer exists
                     // StateType validation removed - time-specific properties eliminated
                     // Location capabilities are now static flags, not temporal states
                 }

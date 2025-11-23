@@ -29,14 +29,8 @@ public class SocialCard
     // Formula-based effect system (replaces old explicit effect properties)
     public CardEffectFormula EffectFormula { get; init; }
 
-    // DELETED: ALL legacy effect properties
-    // EffectInitiative, EffectMomentum, EffectDoubt, EffectDrawCards, EffectMomentumMultiplier, ScalingFormula
-    // ALL effects now use EffectFormula system only
-
     // Card properties
     public ConnectionType TokenType { get; init; }
-
-    // DELETED: MinimumTokensRequired (0% frequency in JSON - deprecated field)
     public ConnectionType? RequiredTokenType { get; init; }
 
     // Personality targeting - which NPCs can use this card
@@ -63,13 +57,8 @@ public class SocialCard
     // Special traits that modify card behavior
     public IReadOnlyList<CardTrait> Traits { get; init; } = new List<CardTrait>();
 
-    // DELETED: MomentumScaling, DoubtScaling - replaced by EffectFormula
-
     // Token requirements for signature cards
     public IReadOnlyDictionary<string, int> TokenRequirements { get; init; } = new Dictionary<string, int>();
-
-    // DELETED: NpcSpecific (0% frequency in JSON - deprecated field)
-    // DELETED: SecretsGranted (0% frequency in JSON - deprecated field - Knowledge system eliminated)
 
     // Get effective Initiative cost considering alternative costs
     public int GetEffectiveInitiativeCost(SocialSession session)

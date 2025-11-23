@@ -566,7 +566,6 @@ public class LocationFacade
             TravelActions = GetTravelActions(venue, spot),
             LocationSpecificActions = GetLocationSpecificActions(venue, spot),
             PlayerActions = GetPlayerActions(spot),
-            // REMOVED: HasSpots (intra-venue movement now data-driven from LocationActionCatalog)
             NPCsWithSituations = BuildNPCsWithSituations(spot, currentTime),
             AmbientMentalSituations = ambientMental,
             MentalScenes = mentalScenes,
@@ -701,7 +700,6 @@ public class LocationFacade
         {
             if (capability != LocationCapability.None && spot.Capabilities.HasFlag(capability))
             {
-                // DELETED: Property-based display mapping - simplified to capability name
                 // Time-specific properties eliminated, capabilities are static
                 traits.Add(capability.ToString());
             }

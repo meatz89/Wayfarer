@@ -317,7 +317,6 @@ public class JsonNarrativeProvider : INarrativeProvider
             return $"{baseNarrative} with bold conviction";
         }
 
-        // DELETED: Difficulty check - use Initiative cost instead
         if (card.InitiativeCost >= 5)
         {
             return $"{baseNarrative}, risking their reaction";

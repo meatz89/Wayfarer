@@ -59,9 +59,6 @@ public class Location
     public int FlowModifier { get; set; } = 0;
     public int Tier { get; set; } = 1;
 
-    // DELETED: Legacy time properties (use TimeSpecificProperties dictionary instead)
-    // MorningProperties, AfternoonProperties, EveningProperties, NightProperties
-
     public int TravelTimeSegments { get; set; }
     public string TravelDescription { get; set; }
     public int Difficulty { get; set; }

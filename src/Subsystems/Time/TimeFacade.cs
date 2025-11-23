@@ -333,6 +333,4 @@ public class TimeFacade
 
         return report;
     }
-
-    // ========== LEGACY COMPATIBILITY METHODS ==========
 }

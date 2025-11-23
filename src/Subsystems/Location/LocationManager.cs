@@ -318,7 +318,6 @@ public class LocationManager
     /// </summary>
     public bool LocationHasProperty(Location location, LocationCapability capability, TimeBlocks timeBlock)
     {
-        // DELETED: GetActiveLocationProperties - time-specific properties eliminated
         // Capabilities are now static flags, not temporal states
         return location.Capabilities.HasFlag(capability);
     }

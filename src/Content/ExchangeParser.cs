@@ -102,8 +102,8 @@ public static class ExchangeParser
     /// </summary>
     private static string GenerateDescription(ExchangeDTO dto)
     {
-        string receiveText = !string.IsNullOrEmpty(dto.ReceiveItem)
-            ? dto.ReceiveItem
+        string receiveText = dto.GrantedItems != null && dto.GrantedItems.Any()
+            ? string.Join(", ", dto.GrantedItems)
             : $"{dto.ReceiveAmount} {dto.ReceiveCurrency ?? "coins"}"; // Optional - defaults to "coins" if missing
 
         return $"Trade {dto.GiveAmount} {dto.GiveCurrency ?? "coins"} for {receiveText}"; // Optional - defaults to "coins" if missing
@@ -111,17 +111,12 @@ public static class ExchangeParser
 
     /// <summary>
     /// Resolve item name strings to Item objects
-    /// Supports both legacy single item reward (ReceiveItem) and new multi-item rewards (GrantedItems)
     /// </summary>
     private static List<Item> ResolveItemRewards(ExchangeDTO dto, EntityResolver entityResolver)
     {
         List<string> itemNames = new List<string>();
 
-        // Support legacy single item field
-        if (!string.IsNullOrEmpty(dto.ReceiveItem))
-            itemNames.Add(dto.ReceiveItem);
-
-        // Support new multi-item field
+        // Resolve granted items
         if (dto.GrantedItems != null && dto.GrantedItems.Any())
             itemNames.AddRange(dto.GrantedItems);
 

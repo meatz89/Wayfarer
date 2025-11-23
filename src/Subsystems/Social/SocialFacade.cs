@@ -211,7 +211,6 @@ public class SocialFacade
         // 1. Apply Cadence Effects
         ProcessCadenceEffectsOnListen(_gameWorld.CurrentSocialSession);
 
-        // DELETED: Doubt Tax system - not in specification
 
         // 3. Handle Card Persistence
         ProcessCardPersistence(_gameWorld.CurrentSocialSession);

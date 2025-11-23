@@ -33,9 +33,7 @@ public static class SkeletonGenerator
     /// </summary>
     public static NPC GenerateSkeletonNPC(string id, string source)
     {
-        // VIOLATION REMOVED: No more id.GetHashCode() - use simple defaults instead
         // Skeletons are fallback for broken JSON references (should not exist with hex architecture)
-
         NPC npc = new NPC
         {
             // NPC no longer has ID property (HIGHLANDER pattern - Name is natural key)
@@ -67,8 +65,6 @@ public static class SkeletonGenerator
     /// </summary>
     public static Venue GenerateSkeletonVenue(string id, string source)
     {
-        // VIOLATION REMOVED: No more id.GetHashCode() - use simple defaults instead
-
         // ADR-007: Constructor uses Name only (no Id parameter)
         Venue venue = new Venue($"{id} - {GenericLocationNames[0]} (missing content)")
         {
@@ -89,8 +85,6 @@ public static class SkeletonGenerator
     /// </summary>
     public static Location GenerateSkeletonSpot(string id, string venueId, string source)
     {
-        // VIOLATION REMOVED: No more id.GetHashCode() - use simple defaults instead
-
         // ADR-007: Constructor uses Name only (no Id parameter)
         Location location = new Location($"{id} - {GenericSpotNames[0]} (missing content)")
         {
@@ -128,8 +122,6 @@ public static class SkeletonGenerator
     /// </summary>
     public static ExchangeCard GenerateSkeletonExchangeCard(string id, string npcId, string source)
     {
-        // VIOLATION REMOVED: No more id.GetHashCode() - use simple defaults instead
-
         ExchangeCard card = new ExchangeCard
         {
             // ExchangeCard uses object references, no ID property

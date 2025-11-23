@@ -416,7 +416,6 @@ public class SocialNarrativeService
             return NarrativeCategoryType.Atmosphere;
         }
 
-        // DELETED: Difficulty-based risk assessment
         // Risk now assessed through card depth and Initiative cost
 
         // Card persistence-based categories

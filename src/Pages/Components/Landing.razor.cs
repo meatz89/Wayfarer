@@ -8,9 +8,6 @@ namespace Wayfarer.Pages.Components
     /// </summary>
     public class LandingBase : ComponentBase
     {
-        // REMOVED: HasNPCs (Look Around always visible now)
-        // REMOVED: HasLocationChallenges (consolidated into Look Around)
-        // REMOVED: HasSpots (intra-venue movement now data-driven from LocationActionCatalog)
         [Parameter] public string CurrentLocationName { get; set; }
         [Parameter] public List<LocationActionViewModel> TravelActions { get; set; } = new();
         [Parameter] public List<LocationActionViewModel> LocationSpecificActions { get; set; } = new();
