@@ -704,6 +704,13 @@ public class GameFacade
             return;
         }
 
+        // PROCEDURAL CONTENT TRACING: Clear trace data for new game
+        if (_gameWorld.ProceduralTracer != null)
+        {
+            _gameWorld.ProceduralTracer.Clear();
+            Console.WriteLine("[StartGameAsync] Procedural content trace cleared");
+        }
+
         // Initialize player at starting location from GameWorld initial conditions
         // HEX-FIRST ARCHITECTURE: Player position is hex coordinates
         // HIGHLANDER: Use StartingLocation object reference set by PackageLoader

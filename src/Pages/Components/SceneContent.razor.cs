@@ -549,7 +549,34 @@ public class SceneContentBase : ComponentBase
         // INSTANT PATH: Apply rewards immediately
         if (choiceTemplate.RewardTemplate != null)
         {
-            await RewardApplicationService.ApplyChoiceReward(choiceTemplate.RewardTemplate, CurrentSituation);
+            // PROCEDURAL CONTENT TRACING: Record choice execution + push context
+            ChoiceExecutionNode choiceNode = null;
+            if (GameWorld.ProceduralTracer != null && GameWorld.ProceduralTracer.IsEnabled)
+            {
+                string situationNodeId = GameWorld.ProceduralTracer.GetNodeIdForSituation(CurrentSituation);
+                choiceNode = GameWorld.ProceduralTracer.RecordChoiceExecution(
+                    choiceTemplate,
+                    situationNodeId,
+                    choiceTemplate.ActionTextTemplate,
+                    playerMetRequirements: true // Reached this point only if requirements met
+                );
+
+                // Push choice context so spawned scenes link to this choice
+                GameWorld.ProceduralTracer.PushChoiceContext(choiceNode.NodeId);
+            }
+
+            try
+            {
+                await RewardApplicationService.ApplyChoiceReward(choiceTemplate.RewardTemplate, CurrentSituation);
+            }
+            finally
+            {
+                // ALWAYS pop context (even on exception)
+                if (GameWorld.ProceduralTracer != null && GameWorld.ProceduralTracer.IsEnabled)
+                {
+                    GameWorld.ProceduralTracer.PopChoiceContext();
+                }
+            }
         }
 
         // FALLBACK PATH: Non-advancing choice (situation stays active and repeatable)

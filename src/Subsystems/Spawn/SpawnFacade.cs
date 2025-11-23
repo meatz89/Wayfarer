@@ -75,6 +75,36 @@ public class SpawnFacade
                 spawnedSituation.ParentScene = parentSituation.ParentScene;
                 parentSituation.ParentScene.Situations.Add(spawnedSituation);
                 Console.WriteLine($"[SpawnFacade] Spawned situation '{spawnedSituation.Name}' added to scene");
+
+                // PROCEDURAL CONTENT TRACING: Record cascading situation spawn
+                if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+                {
+                    string parentSceneNodeId = _gameWorld.ProceduralTracer.GetNodeIdForScene(parentSituation.ParentScene);
+                    if (parentSceneNodeId != null)
+                    {
+                        // Push parent situation context so cascading situation links to it
+                        string parentSituationNodeId = _gameWorld.ProceduralTracer.GetNodeIdForSituation(parentSituation);
+                        if (parentSituationNodeId != null)
+                        {
+                            _gameWorld.ProceduralTracer.PushSituationContext(parentSituationNodeId);
+                        }
+
+                        // Record situation spawn (auto-links to parent situation via context stack)
+                        // Note: SpawnRule doesn't differentiate Success/Failure, so we use SuccessSpawn
+                        // Consider enhancing SpawnRule to track trigger type if needed
+                        _gameWorld.ProceduralTracer.RecordSituationSpawn(
+                            spawnedSituation,
+                            parentSceneNodeId,
+                            SituationSpawnTriggerType.SuccessSpawn
+                        );
+
+                        // Pop context after recording
+                        if (parentSituationNodeId != null)
+                        {
+                            _gameWorld.ProceduralTracer.PopSituationContext();
+                        }
+                    }
+                }
             }
             else
             {
