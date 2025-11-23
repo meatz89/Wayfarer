@@ -134,6 +134,50 @@ public class SceneInstantiator
     }
 
     /// <summary>
+    /// PHASE 2.5: Resolve entity references from filters AFTER dependent resources created
+    /// THREE-TIER TIMING: Filters stored at parse (Tier 1), resolved here at activation (Tier 2)
+    /// Called by LocationFacade.CheckAndActivateDeferredScenes() after PackageLoader completes
+    /// Input: Scene with Situations containing PlacementFilters but NULL entity references
+    /// Output: Scene with Situations containing resolved Location/Npc/Route object references
+    /// </summary>
+    /// <param name="scene">Scene with situations containing filters but null entity references</param>
+    /// <param name="context">Spawn context with player and location for categorical matching</param>
+    public void ResolveSceneEntityReferences(Scene scene, SceneSpawnContext context)
+    {
+        Console.WriteLine($"[SceneInstantiator] Resolving entity references for scene '{scene.DisplayName}' with {scene.Situations.Count} situations");
+
+        // Create EntityResolver for categorical matching
+        EntityResolver entityResolver = new EntityResolver(_gameWorld, context.Player, _narrativeService);
+
+        // For each situation, resolve entities from stored filters
+        foreach (Situation situation in scene.Situations)
+        {
+            // Resolve Location from LocationFilter
+            if (situation.LocationFilter != null && situation.Location == null)
+            {
+                situation.Location = entityResolver.FindOrCreateLocation(situation.LocationFilter);
+                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved Location '{situation.Location?.Name ?? "NULL"}' for situation '{situation.Name}'");
+            }
+
+            // Resolve NPC from NpcFilter
+            if (situation.NpcFilter != null && situation.Npc == null)
+            {
+                situation.Npc = entityResolver.FindOrCreateNPC(situation.NpcFilter);
+                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved NPC '{situation.Npc?.Name ?? "NULL"}' for situation '{situation.Name}'");
+            }
+
+            // Resolve Route from RouteFilter
+            if (situation.RouteFilter != null && situation.Route == null)
+            {
+                situation.Route = entityResolver.FindOrCreateRoute(situation.RouteFilter);
+                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved Route '{situation.Route?.Name ?? "NULL"}' for situation '{situation.Name}'");
+            }
+        }
+
+        Console.WriteLine($"[SceneInstantiator] ✅ Entity resolution complete for scene '{scene.DisplayName}'");
+    }
+
+    /// <summary>
     /// Generate complete scene package JSON from template.
     /// Runtime content generation produces JSON packages for PackageLoader (same architecture as authored content).
     /// Returns JSON string containing Scene + Situations + Dependent Resources.
@@ -392,10 +436,10 @@ public class SceneInstantiator
         return JsonSerializer.Serialize(package, jsonOptions);
     }
 
-    // ResolvePlacement method DELETED - placement resolution now happens in System 4 (EntityResolver)
-    // during package loading, not during DTO generation (System 3)
-    // OLD: SceneInstantiator resolves placement → stores concrete ID in DTO
-    // NEW: SceneInstantiator writes categorical specs → EntityResolver FindOrCreate → PackageLoader sets object references
+    // ResolvePlacement method DELETED - placement resolution moved to THREE-TIER TIMING MODEL
+    // Tier 1 (Parse): SceneParser stores PlacementFilters, entities NULL
+    // Tier 2 (Activation): SceneInstantiator.ResolveSceneEntityReferences() calls EntityResolver AFTER PackageLoader
+    // Tier 3 (Query): Actions instantiated with resolved entities
 
     /// <summary>
     /// Instantiate Situation from SituationTemplate

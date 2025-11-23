@@ -122,15 +122,16 @@ public static class SceneParser
         // =====================================================
         // EMBEDDED SITUATIONS PARSING (Composition Pattern)
         // =====================================================
-        // Scene OWNS Situations - parse embedded situations with per-situation entity resolution
+        // Scene OWNS Situations - parse filters (NO entity resolution at parse time)
+        // THREE-TIER TIMING: Filters stored here (Tier 1), entities resolved at activation (Tier 2)
         // CSS-STYLE INHERITANCE: Situation filters override scene base filters
         foreach (SituationDTO situationDto in dto.Situations)
         {
-            // System 4: Resolve entities with hierarchical placement inheritance
+            // Parse PlacementFilters with hierarchical inheritance
             // Pattern: effectiveFilter = situationFilter ?? sceneBaseFilter
-            Location resolvedLocation = null;
-            NPC resolvedNpc = null;
-            RouteOption resolvedRoute = null;
+            PlacementFilter locationFilter = null;
+            PlacementFilter npcFilter = null;
+            PlacementFilter routeFilter = null;
             int segmentIndex = 0; // Route segment placement for geographic specificity
 
             // CSS-style fallback for location: situation override ?? scene base
@@ -138,8 +139,7 @@ public static class SceneParser
             if (effectiveLocationFilter != null)
             {
                 string locationContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/Location";
-                PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(effectiveLocationFilter, locationContext);
-                resolvedLocation = entityResolver.FindOrCreateLocation(locationFilter);
+                locationFilter = SceneTemplateParser.ParsePlacementFilter(effectiveLocationFilter, locationContext);
             }
 
             // CSS-style fallback for NPC: situation override ?? scene base
@@ -147,8 +147,7 @@ public static class SceneParser
             if (effectiveNpcFilter != null)
             {
                 string npcContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/NPC";
-                PlacementFilter npcFilter = SceneTemplateParser.ParsePlacementFilter(effectiveNpcFilter, npcContext);
-                resolvedNpc = entityResolver.FindOrCreateNPC(npcFilter);
+                npcFilter = SceneTemplateParser.ParsePlacementFilter(effectiveNpcFilter, npcContext);
             }
 
             // CSS-style fallback for route: situation override ?? scene base
@@ -156,18 +155,19 @@ public static class SceneParser
             if (effectiveRouteFilter != null)
             {
                 string routeContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/Route";
-                PlacementFilter routeFilter = SceneTemplateParser.ParsePlacementFilter(effectiveRouteFilter, routeContext);
-                resolvedRoute = entityResolver.FindOrCreateRoute(routeFilter);
+                routeFilter = SceneTemplateParser.ParsePlacementFilter(effectiveRouteFilter, routeContext);
                 segmentIndex = routeFilter.SegmentIndex; // Capture segment placement from filter
             }
 
-            // System 5: Situation Instantiation with pre-resolved objects
+            // System 5: Situation Instantiation with NULL entity references (deferred resolution)
             Situation situation = SituationParser.ConvertDTOToSituation(
                 situationDto,
-                gameWorld,
-                resolvedLocation,
-                resolvedNpc,
-                resolvedRoute);
+                gameWorld);
+
+            // Store PlacementFilters for activation-time resolution (THREE-TIER TIMING)
+            situation.LocationFilter = locationFilter;
+            situation.NpcFilter = npcFilter;
+            situation.RouteFilter = routeFilter;
 
             // CRITICAL: Set composition relationship (Situation → ParentScene)
             situation.ParentScene = scene;

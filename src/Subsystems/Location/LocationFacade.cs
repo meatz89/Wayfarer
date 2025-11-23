@@ -461,6 +461,10 @@ public class LocationFacade
                 Console.WriteLine($"[LocationFacade] Loaded dependent resources for scene '{scene.DisplayName}'");
             }
 
+            // PHASE 2.5: Resolve entity references now that dependent resources exist in GameWorld
+            _sceneInstantiator.ResolveSceneEntityReferences(scene, activationContext);
+            Console.WriteLine($"[LocationFacade] ✅ Resolved entity references for scene '{scene.DisplayName}'");
+
             // Transition scene state: Deferred → Active
             scene.State = SceneState.Active;
             Console.WriteLine($"[LocationFacade] Scene '{scene.DisplayName}' activated successfully (State: Deferred → Active)");

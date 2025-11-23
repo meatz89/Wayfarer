@@ -2,21 +2,18 @@
 /// <summary>
 /// Parser for converting SituationDTO to Situation domain model
 /// ARCHITECTURAL NOTE: Situations have their own placement (not inherited from Scene)
-/// Receives pre-resolved entities from EntityResolver (System 4)
+/// THREE-TIER TIMING: Creates situations with NULL entity references, resolved at activation
 /// </summary>
 public static class SituationParser
 {
     /// <summary>
     /// Convert a SituationDTO to a Situation domain model (System 5: Situation Instantiation)
-    /// Receives pre-resolved entity objects from EntityResolver (System 4)
-    /// Assigns placement directly to Situation properties
+    /// THREE-TIER TIMING: Entity references NULL at parse time, resolved at activation time
+    /// PlacementFilters stored by caller, entities assigned later by ResolveSceneEntityReferences()
     /// </summary>
     public static Situation ConvertDTOToSituation(
         SituationDTO dto,
-        GameWorld gameWorld,
-        Location resolvedLocation,
-        NPC resolvedNpc,
-        RouteOption resolvedRoute)
+        GameWorld gameWorld)
     {
         if (string.IsNullOrEmpty(dto.Id))
             throw new InvalidOperationException("Situation DTO missing required 'Id' field");
@@ -51,10 +48,10 @@ public static class SituationParser
         {
             Name = dto.Name,
             Description = dto.Description,
-            // Placement properties (System 5 output - pre-resolved from System 4)
-            Location = resolvedLocation,
-            Npc = resolvedNpc,
-            Route = resolvedRoute,
+            // THREE-TIER TIMING: Entity references NULL at parse time, resolved at activation
+            Location = null,  // Will be resolved by ResolveSceneEntityReferences() at activation
+            Npc = null,       // Will be resolved by ResolveSceneEntityReferences() at activation
+            Route = null,     // Will be resolved by ResolveSceneEntityReferences() at activation
             SystemType = systemType,
             IsIntroAction = dto.IsIntroAction,
             // IsAvailable and IsCompleted are computed properties from Status enum (no population needed)
@@ -94,7 +91,6 @@ public static class SituationParser
 
         // Resolve object references during parsing (HIGHLANDER: Name is natural key)
         // Parser uses ID from DTO as lookup key, entity stores ONLY object reference
-        // PLACEMENT: Location/Npc/Route assigned directly from pre-resolved entities (System 4 output)
 
         if (!string.IsNullOrEmpty(dto.ObligationId))
             situation.Obligation = gameWorld.Obligations.FirstOrDefault(i => i.Id == dto.ObligationId);
@@ -215,25 +211,9 @@ public static class SituationParser
                 rewards.RouteSegmentUnlock.Route = gameWorld.Routes.FirstOrDefault(r => r.Name == dto.RouteSegmentUnlock.RouteId);
             }
 
-            // TECHNICAL DEBT: RouteSegment.Paths property doesn't exist - was PathCollection.PathCards (DTO)
-            // This entire block needs refactoring - RouteSegment should have parsed PathCard objects, not DTOs
-            // For now, leaving Path null until proper parsing implemented
-            // TODO: Fix RouteSegment to store List<PathCard> instead of PathCardCollectionDTO
-            /*
-            if (!string.IsNullOrEmpty(dto.RouteSegmentUnlock.PathId) && rewards.RouteSegmentUnlock.Route != null)
-            {
-                // PathCard is found within the route's segments
-                foreach (RouteSegment segment in rewards.RouteSegmentUnlock.Route.Segments)
-                {
-                    PathCard pathCard = segment.Paths.FirstOrDefault(p => p.Name == dto.RouteSegmentUnlock.PathId);
-                    if (pathCard != null)
-                    {
-                        rewards.RouteSegmentUnlock.Path = pathCard;
-                        break;
-                    }
-                }
-            }
-            */
+            // RouteSegmentUnlock.Path resolution: Deleted commented code
+            // If Path property is needed, implement the full vertical slice: DTO → Parser → Entity → Usage
+            // No TODO markers, no half-measures - either do it fully or delete it
         }
 
         return rewards;
