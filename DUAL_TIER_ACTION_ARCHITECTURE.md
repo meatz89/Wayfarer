@@ -1,7 +1,20 @@
 # DUAL-TIER ACTION ARCHITECTURE (CRITICAL: READ THIS)
 
-**DATE:** 2025-01-23
+**DATE:** 2025-01-23 (Updated 2025-11-23 with Fallback Scene concept)
 **PURPOSE:** Document the TWO-TIER action system to prevent architectural misunderstandings
+
+---
+
+## FALLBACK SCENE ARCHITECTURE (Conceptual Model)
+
+**Think of atmospheric actions as a "FALLBACK SCENE"** - when no active scene exists at a location/NPC, the player sees atmospheric actions as the default baseline. This unifies the mental model:
+
+- **Active Scene** → Scene-based actions from Situations (dynamic narrative)
+- **Fallback Scene** → Atmospheric actions (always-present baseline: Travel, Work, Rest)
+
+Both are "scenes" conceptually, but with different implementation patterns (direct properties vs ChoiceTemplate). The overlay pattern means GameFacade returns EITHER active scene actions OR fallback scene actions, never both.
+
+This keeps scene logic consistent while maintaining separate data patterns for performance/simplicity reasons.
 
 ---
 
@@ -246,6 +259,52 @@ LocationActionCatalog.cs: error CS0117: "LocationAction" enthält keine Definiti
 This is NOT "legacy code to update" - this is **ATMOSPHERIC SYSTEM BROKEN**.
 
 LocationActionCatalog is the HEART of the atmospheric layer. Breaking it breaks soft-lock prevention.
+
+---
+
+## EXECUTOR ARCHITECTURE (SRP-Compliant Refactoring - 2025-11-23)
+
+**The executor layer was refactored to fix SRP and HIGHLANDER violations.**
+
+### Previous Architecture (WRONG - SRP Violation)
+
+**LocationActionExecutor** handled BOTH atmospheric AND scene-based patterns:
+- Pattern discrimination inside executor (if/else on ChoiceTemplate)
+- Single class with two responsibilities (validation of two different patterns)
+
+**NPCActionExecutor** and **PathCardExecutor** both contained duplicate ChoiceTemplate validation logic (HIGHLANDER violation).
+
+### Current Architecture (CORRECT - SRP Compliant)
+
+**Two specialized executors, each with one responsibility:**
+
+1. **LocationActionExecutor** - Validates ONLY atmospheric (fallback scene) actions
+   - Input: LocationAction with null ChoiceTemplate OR PathCard with null ChoiceTemplate
+   - Validates: Direct Costs/Rewards properties
+   - Method: `ValidateAndExtract(LocationAction, Player)` and `ValidateAtmosphericPathCard(PathCard, Player)`
+   - NO ChoiceTemplate logic
+
+2. **SituationChoiceExecutor** - Validates ALL ChoiceTemplate-based actions (HIGHLANDER)
+   - Input: ChoiceTemplate from any source (LocationAction, NPCAction, PathCard)
+   - Validates: RequirementFormula, CostTemplate, RewardTemplate
+   - Method: `ValidateAndExtract(ChoiceTemplate, actionName, Player, GameWorld)`
+   - Single source of truth for ChoiceTemplate validation
+
+**Pattern routing happens in GameFacade:**
+- GameFacade checks `action.ChoiceTemplate != null` to determine pattern
+- Calls appropriate executor based on pattern (discrimination moved from executor to caller)
+- Executors are pattern-specific (no internal discrimination)
+
+**NPCActionExecutor and PathCardExecutor DELETED:**
+- All NPC actions are scene-based → use SituationChoiceExecutor directly
+- PathCards follow dual-pattern → route to LocationActionExecutor or SituationChoiceExecutor based on ChoiceTemplate
+
+### Benefits of Refactoring
+
+- **SRP Compliance**: Each executor has exactly one responsibility
+- **HIGHLANDER Compliance**: ChoiceTemplate validation exists in exactly ONE place
+- **Reduced Code Duplication**: ValidateChoiceTemplate logic unified (was duplicated 3 times)
+- **Clear Separation**: Atmospheric vs scene-based is enforced by class structure, not if/else
 
 ---
 

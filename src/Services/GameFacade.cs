@@ -27,8 +27,7 @@ public class GameFacade
     private readonly EmergencyFacade _emergencyFacade;
     private readonly SituationFacade _situationFacade;
     private readonly LocationActionExecutor _locationActionExecutor;
-    private readonly NPCActionExecutor _npcActionExecutor;
-    private readonly PathCardExecutor _pathCardExecutor;
+    private readonly SituationChoiceExecutor _situationChoiceExecutor;
     private readonly ConsequenceFacade _consequenceFacade;
     private readonly RewardApplicationService _rewardApplicationService;
     private readonly SpawnFacade _spawnFacade;
@@ -62,8 +61,7 @@ public class GameFacade
         EmergencyFacade emergencyFacade,
         SituationFacade situationFacade,
         LocationActionExecutor locationActionExecutor,
-        NPCActionExecutor npcActionExecutor,
-        PathCardExecutor pathCardExecutor,
+        SituationChoiceExecutor situationChoiceExecutor,
         ConsequenceFacade consequenceFacade,
         RewardApplicationService rewardApplicationService,
         SpawnConditionsEvaluator spawnConditionsEvaluator,
@@ -97,8 +95,7 @@ public class GameFacade
         _emergencyFacade = emergencyFacade ?? throw new ArgumentNullException(nameof(emergencyFacade));
         _situationFacade = situationFacade ?? throw new ArgumentNullException(nameof(situationFacade));
         _locationActionExecutor = locationActionExecutor ?? throw new ArgumentNullException(nameof(locationActionExecutor));
-        _npcActionExecutor = npcActionExecutor ?? throw new ArgumentNullException(nameof(npcActionExecutor));
-        _pathCardExecutor = pathCardExecutor ?? throw new ArgumentNullException(nameof(pathCardExecutor));
+        _situationChoiceExecutor = situationChoiceExecutor ?? throw new ArgumentNullException(nameof(situationChoiceExecutor));
         _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
         _spawnFacade = spawnFacade ?? throw new ArgumentNullException(nameof(spawnFacade));
@@ -1682,20 +1679,33 @@ public class GameFacade
     /// <summary>
     /// Execute LocationAction through unified action architecture
     /// HIGHLANDER PATTERN: All location actions flow through this method
+    /// FALLBACK SCENE ARCHITECTURE: Supports both atmospheric (fallback) and scene-based actions
     /// </summary>
     public async Task<IntentResult> ExecuteLocationAction(LocationAction action)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Verify Situation exists (get from action.Situation object reference)
-        Situation situation = action.Situation;
-        if (situation == null)
-            return IntentResult.Failed();
+        // PATTERN DISCRIMINATION: Determine if scene-based or atmospheric (fallback scene)
+        bool isSceneBased = action.ChoiceTemplate != null;
+        Situation situation = action.Situation;  // null for atmospheric actions
 
         // THREE-TIER TIMING MODEL: Action passed directly (ephemeral object, no lookup)
 
         // STEP 1: Validate and extract execution plan
-        ActionExecutionPlan plan = _locationActionExecutor.ValidateAndExtract(action, player, _gameWorld);
+        ActionExecutionPlan plan;
+        if (isSceneBased)
+        {
+            // SCENE-BASED ACTION: Use SituationChoiceExecutor
+            if (situation == null)
+                return IntentResult.Failed();
+
+            plan = _situationChoiceExecutor.ValidateAndExtract(action.ChoiceTemplate, action.Name, player, _gameWorld);
+        }
+        else
+        {
+            // ATMOSPHERIC ACTION (FALLBACK SCENE): Use LocationActionExecutor
+            plan = _locationActionExecutor.ValidateAndExtract(action, player);
+        }
 
         if (!plan.IsValid)
         {
@@ -1731,9 +1741,25 @@ public class GameFacade
         // STEP 3: Route based on ActionType
         if (plan.ActionType == ChoiceActionType.Instant)
         {
-            // Apply rewards
-            if (plan.ChoiceReward != null)
+            // Apply rewards (scene-based ChoiceReward OR atmospheric DirectRewards)
+            if (plan.IsAtmosphericAction && plan.DirectRewards != null)
             {
+                // ATMOSPHERIC ACTION (FALLBACK SCENE): Apply direct rewards
+                if (plan.DirectRewards.CoinReward > 0)
+                    player.Coins += plan.DirectRewards.CoinReward;
+
+                if (plan.DirectRewards.HealthRecovery > 0)
+                    player.Health = Math.Min(player.MaxHealth, player.Health + plan.DirectRewards.HealthRecovery);
+
+                if (plan.DirectRewards.StaminaRecovery > 0)
+                    player.Stamina = Math.Min(player.MaxStamina, player.Stamina + plan.DirectRewards.StaminaRecovery);
+
+                if (plan.DirectRewards.FocusRecovery > 0)
+                    player.Focus = Math.Min(player.MaxFocus, player.Focus + plan.DirectRewards.FocusRecovery);
+            }
+            else if (plan.ChoiceReward != null)
+            {
+                // SCENE-BASED ACTION: Apply complex ChoiceReward
                 await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
             }
 
@@ -1781,14 +1807,19 @@ public class GameFacade
     /// <summary>
     /// Execute NPCAction through unified action architecture
     /// HIGHLANDER PATTERN: All NPC actions flow through this method
+    /// ALL NPC actions are scene-based (no atmospheric NPC actions exist)
     /// </summary>
     public async Task<IntentResult> ExecuteNPCAction(NPCAction action)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Verify Situation exists (get from action.Situation object reference)
+        // Verify Situation exists (ALL NPC actions require Situation)
         Situation situation = action.Situation;
         if (situation == null)
+            return IntentResult.Failed();
+
+        // Verify ChoiceTemplate exists (ALL NPC actions are scene-based)
+        if (action.ChoiceTemplate == null)
             return IntentResult.Failed();
 
         // THREE-TIER TIMING MODEL: Action passed directly (ephemeral object, no lookup)
@@ -1801,8 +1832,8 @@ public class GameFacade
             RecordNPCInteraction(situation.Npc);
         }
 
-        // STEP 1: Validate and extract execution plan
-        ActionExecutionPlan plan = _npcActionExecutor.ValidateAndExtract(action, player, _gameWorld);
+        // STEP 1: Validate and extract execution plan (all NPC actions use SituationChoiceExecutor)
+        ActionExecutionPlan plan = _situationChoiceExecutor.ValidateAndExtract(action.ChoiceTemplate, action.Name, player, _gameWorld);
 
         if (!plan.IsValid)
         {
@@ -1888,20 +1919,33 @@ public class GameFacade
     /// <summary>
     /// Execute PathCard through unified action architecture
     /// HIGHLANDER PATTERN: All path cards flow through this method
+    /// FALLBACK SCENE ARCHITECTURE: Supports both atmospheric (fallback) and scene-based path cards
     /// </summary>
     public async Task<IntentResult> ExecutePathCard(PathCard card)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Verify Situation exists (get from card.Situation object reference)
-        Situation situation = card.Situation;
-        if (situation == null)
-            return IntentResult.Failed();
+        // PATTERN DISCRIMINATION: Determine if scene-based or atmospheric (fallback scene)
+        bool isSceneBased = card.ChoiceTemplate != null;
+        Situation situation = card.Situation;  // null for atmospheric PathCards
 
         // THREE-TIER TIMING MODEL: PathCard passed directly (ephemeral object, no lookup)
 
         // STEP 1: Validate and extract execution plan
-        ActionExecutionPlan plan = _pathCardExecutor.ValidateAndExtract(card, player, _gameWorld);
+        ActionExecutionPlan plan;
+        if (isSceneBased)
+        {
+            // SCENE-BASED PATHCARD: Use SituationChoiceExecutor
+            if (situation == null)
+                return IntentResult.Failed();
+
+            plan = _situationChoiceExecutor.ValidateAndExtract(card.ChoiceTemplate, card.Name, player, _gameWorld);
+        }
+        else
+        {
+            // ATMOSPHERIC PATHCARD (FALLBACK SCENE): Use LocationActionExecutor
+            plan = _locationActionExecutor.ValidateAtmosphericPathCard(card, player);
+        }
 
         if (!plan.IsValid)
         {
@@ -1921,9 +1965,31 @@ public class GameFacade
         // STEP 3: Route based on ActionType
         if (plan.ActionType == ChoiceActionType.Instant)
         {
-            // Apply rewards
-            if (plan.ChoiceReward != null)
+            // Apply rewards (scene-based ChoiceReward OR atmospheric PathCard rewards)
+            if (plan.IsAtmosphericAction)
             {
+                // ATMOSPHERIC PATHCARD (FALLBACK SCENE): Apply PathCard-specific rewards
+                if (card.CoinReward > 0)
+                    player.Coins += card.CoinReward;
+
+                if (card.StaminaRestore > 0)
+                    player.Stamina = Math.Min(player.MaxStamina, player.Stamina + card.StaminaRestore);
+
+                if (card.HealthEffect > 0)
+                    player.Health = Math.Min(player.MaxHealth, player.Health + card.HealthEffect);
+                else if (card.HealthEffect < 0)
+                    player.Health = Math.Max(0, player.Health + card.HealthEffect);  // Damage
+
+                // Apply token gains
+                foreach (var tokenGain in card.TokenGains)
+                {
+                    // Token system integration (future implementation)
+                    // For now, tokens not implemented
+                }
+            }
+            else if (plan.ChoiceReward != null)
+            {
+                // SCENE-BASED PATHCARD: Apply complex ChoiceReward
                 await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
             }
 

@@ -1,86 +1,103 @@
 /// <summary>
-/// LocationActionExecutor - PURE validator/extractor for LocationActions
+/// LocationActionExecutor - Validator for ATMOSPHERIC (fallback scene) LocationActions
 /// NO FACADE DEPENDENCIES - Returns ActionExecutionPlan for GameFacade to execute
+/// FALLBACK SCENE ARCHITECTURE: Validates default/baseline actions (Travel, Work, Rest)
+/// Scene-based actions validated by SituationChoiceExecutor (HIGHLANDER)
 /// </summary>
 public class LocationActionExecutor
 {
     /// <summary>
-    /// Validate LocationAction and extract execution plan
+    /// Validate atmospheric LocationAction and extract execution plan
+    /// FALLBACK SCENE: These are permanent actions that prevent soft-locks
+    /// Examples: Travel, Work, Rest, IntraVenueMove
     /// GameFacade applies the plan via facades
     /// </summary>
-    public ActionExecutionPlan ValidateAndExtract(LocationAction action, Player player, GameWorld gameWorld)
+    public ActionExecutionPlan ValidateAndExtract(LocationAction action, Player player)
     {
-        if (action.ChoiceTemplate == null)
+        // STEP 1: Validate costs (atmospheric actions have no requirements, only costs)
+        if (player.Coins < action.Costs.Coins)
         {
-            return ActionExecutionPlan.Invalid("LocationAction missing ChoiceTemplate");
+            return ActionExecutionPlan.Invalid($"Not enough Coins (need {action.Costs.Coins}, have {player.Coins})");
         }
 
-        return ValidateChoiceTemplate(action.ChoiceTemplate, action.Name, player, gameWorld);
+        if (player.Stamina < action.Costs.Stamina)
+        {
+            return ActionExecutionPlan.Invalid($"Not enough Stamina (need {action.Costs.Stamina}, have {player.Stamina})");
+        }
+
+        if (player.Focus < action.Costs.Focus)
+        {
+            return ActionExecutionPlan.Invalid($"Not enough Focus (need {action.Costs.Focus}, have {player.Focus})");
+        }
+
+        if (player.Health < action.Costs.Health)
+        {
+            return ActionExecutionPlan.Invalid($"Not enough Health (need {action.Costs.Health}, have {player.Health})");
+        }
+
+        // STEP 2: Build execution plan
+        ActionExecutionPlan plan = ActionExecutionPlan.Valid();
+        plan.CoinsCost = action.Costs.Coins;
+        plan.StaminaCost = action.Costs.Stamina;
+        plan.FocusCost = action.Costs.Focus;
+        plan.HealthCost = action.Costs.Health;
+        plan.TimeSegments = action.TimeRequired;
+        plan.DirectRewards = action.Rewards;  // Atmospheric rewards
+        plan.ActionType = ChoiceActionType.Instant;  // Atmospheric actions are always instant
+        plan.ActionName = action.Name;
+        plan.IsAtmosphericAction = true;  // Atmospheric pattern (fallback scene)
+
+        return plan;
     }
 
-    private ActionExecutionPlan ValidateChoiceTemplate(ChoiceTemplate template, string actionName, Player player, GameWorld gameWorld)
+    /// <summary>
+    /// Validate ATMOSPHERIC PathCard (route card with direct costs/rewards)
+    /// FALLBACK SCENE: Static route path cards defined in route JSON files
+    /// PathCards follow same dual-pattern as LocationActions
+    /// </summary>
+    public ActionExecutionPlan ValidateAtmosphericPathCard(PathCard card, Player player)
     {
-        // STEP 1: Validate CompoundRequirements
-        if (template.RequirementFormula != null && template.RequirementFormula.OrPaths.Count > 0)
+        // STEP 1: Validate costs (atmospheric PathCards have no requirements, only costs)
+        if (player.Coins < card.CoinRequirement)
         {
-            bool requirementsMet = template.RequirementFormula.IsAnySatisfied(player, gameWorld);
-            if (!requirementsMet)
-            {
-                return ActionExecutionPlan.Invalid("Requirements not met");
-            }
+            return ActionExecutionPlan.Invalid($"Not enough Coins (need {card.CoinRequirement}, have {player.Coins})");
         }
 
-        // STEP 2: Validate strategic costs
-        if (player.Resolve < template.CostTemplate.Resolve)
+        if (player.Stamina < card.StaminaCost)
         {
-            return ActionExecutionPlan.Invalid($"Not enough Resolve (need {template.CostTemplate.Resolve}, have {player.Resolve})");
+            return ActionExecutionPlan.Invalid($"Not enough Stamina (need {card.StaminaCost}, have {player.Stamina})");
         }
 
-        if (player.Coins < template.CostTemplate.Coins)
+        // STEP 2: Validate permit requirement
+        if (card.PermitRequirement != null && !player.Inventory.Contains(card.PermitRequirement))
         {
-            return ActionExecutionPlan.Invalid($"Not enough Coins (need {template.CostTemplate.Coins}, have {player.Coins})");
+            return ActionExecutionPlan.Invalid($"Missing required permit: {card.PermitRequirement.Name}");
         }
 
-        // Tutorial resource validation
-        if (template.CostTemplate.Health > 0 && player.Health < template.CostTemplate.Health)
-        {
-            return ActionExecutionPlan.Invalid($"Not enough Health (need {template.CostTemplate.Health}, have {player.Health})");
-        }
+        // STEP 3: Validate stat requirements
+        // TODO: Implement stat validation (Player uses individual properties not dictionary)
+        // foreach (var statReq in card.StatRequirements)
+        // {
+        //     int playerStatValue = GetPlayerStat(player, statReq.Key);
+        //     if (playerStatValue < statReq.Value)
+        //     {
+        //         return ActionExecutionPlan.Invalid($"Not enough {statReq.Key} (need {statReq.Value}, have {playerStatValue})");
+        //     }
+        // }
 
-        if (template.CostTemplate.Stamina > 0 && player.Stamina < template.CostTemplate.Stamina)
-        {
-            return ActionExecutionPlan.Invalid($"Not enough Stamina (need {template.CostTemplate.Stamina}, have {player.Stamina})");
-        }
-
-        if (template.CostTemplate.Focus > 0 && player.Focus < template.CostTemplate.Focus)
-        {
-            return ActionExecutionPlan.Invalid($"Not enough Focus (need {template.CostTemplate.Focus}, have {player.Focus})");
-        }
-
-        // Hunger validation: Check if adding hunger would exceed max (100)
-        if (template.CostTemplate.Hunger > 0 && player.Hunger + template.CostTemplate.Hunger > player.MaxHunger)
-        {
-            return ActionExecutionPlan.Invalid($"Too hungry to continue (current {player.Hunger}, action adds {template.CostTemplate.Hunger}, max {player.MaxHunger})");
-        }
-
-        // STEP 3: Build execution plan
+        // STEP 4: Build execution plan
         ActionExecutionPlan plan = ActionExecutionPlan.Valid();
-        plan.ResolveCoins = template.CostTemplate.Resolve;
-        plan.CoinsCost = template.CostTemplate.Coins;
-        plan.TimeSegments = template.CostTemplate.TimeSegments;
+        plan.CoinsCost = card.CoinRequirement;
+        plan.StaminaCost = card.StaminaCost;
+        plan.TimeSegments = card.TravelTimeSegments;
+        plan.HungerCost = card.HungerEffect;  // PathCards can increase hunger
 
-        // Tutorial resource costs
-        plan.HealthCost = template.CostTemplate.Health;
-        plan.StaminaCost = template.CostTemplate.Stamina;
-        plan.FocusCost = template.CostTemplate.Focus;
-        plan.HungerCost = template.CostTemplate.Hunger;
-
-        plan.ChoiceReward = template.RewardTemplate;
-        plan.ActionType = template.ActionType;
-        plan.ChallengeType = template.ChallengeType;
-        plan.ChallengeId = template.ChallengeId;
-        plan.NavigationPayload = template.NavigationPayload;
-        plan.ActionName = actionName;
+        // PathCard rewards (CoinReward, StaminaRestore, HealthEffect, etc.)
+        // Note: PathCard uses individual reward properties, not ActionRewards object
+        // GameFacade handles these specifically for PathCard execution
+        plan.ActionType = ChoiceActionType.Instant;  // Atmospheric path cards execute instantly
+        plan.ActionName = card.Name;
+        plan.IsAtmosphericAction = true;  // Atmospheric pattern (fallback scene)
 
         return plan;
     }

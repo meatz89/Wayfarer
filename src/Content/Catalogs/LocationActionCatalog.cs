@@ -38,6 +38,7 @@ public static class LocationActionCatalog
         Console.WriteLine($"[LocationActionCatalog] Capabilities: {location.Capabilities}");
 
         // Crossroads capability → Travel action (opens route selection screen)
+        // ATMOSPHERIC ACTION (FALLBACK SCENE): No ChoiceTemplate, free action (no costs/rewards)
         if (location.Capabilities.HasFlag(LocationCapability.Crossroads))
         {
             Console.WriteLine($"[LocationActionCatalog] ✅ Crossroads found - generating Travel action");
@@ -47,7 +48,9 @@ public static class LocationActionCatalog
                 Name = "Travel to Another Location",
                 Description = "Select a route to travel to another location",
                 ActionType = LocationActionType.Travel,
-                ChoiceTemplate = CreateFreeActionTemplate(LocationActionType.Travel),
+                Costs = new ActionCosts(),  // Free action (no costs)
+                Rewards = new ActionRewards(),  // No rewards (opens travel screen)
+                TimeRequired = 0,  // No time cost for initiating travel
                 RequiredCapabilities = LocationCapability.Crossroads,
                 OptionalCapabilities = LocationCapability.None,
                 ExcludedCapabilities = LocationCapability.None,

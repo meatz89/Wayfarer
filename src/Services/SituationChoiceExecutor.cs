@@ -1,24 +1,16 @@
 /// <summary>
-/// NPCActionExecutor - PURE validator/extractor for NPCActions
-/// NO FACADE DEPENDENCIES - Returns ActionExecutionPlan for GameFacade to execute
+/// SituationChoiceExecutor - UNIFIED validator for ALL ChoiceTemplate-based actions
+/// Handles scene-based actions from Situations (LocationAction, NPCAction, PathCard with ChoiceTemplate)
+/// HIGHLANDER: Single source of truth for ChoiceTemplate validation logic
+/// FALLBACK SCENE ARCHITECTURE: Validates "active scene" actions (atmospheric = fallback scene, separate validator)
 /// </summary>
-public class NPCActionExecutor
+public class SituationChoiceExecutor
 {
     /// <summary>
-    /// Validate NPCAction and extract execution plan
-    /// GameFacade applies the plan via facades
+    /// Validate ChoiceTemplate and extract execution plan for scene-based actions
+    /// Used by: LocationAction (scene-based), NPCAction (all), PathCard (scene-based)
     /// </summary>
-    public ActionExecutionPlan ValidateAndExtract(NPCAction action, Player player, GameWorld gameWorld)
-    {
-        if (action.ChoiceTemplate == null)
-        {
-            return ActionExecutionPlan.Invalid("NPCAction missing ChoiceTemplate");
-        }
-
-        return ValidateChoiceTemplate(action.ChoiceTemplate, action.Name, player, gameWorld);
-    }
-
-    private ActionExecutionPlan ValidateChoiceTemplate(ChoiceTemplate template, string actionName, Player player, GameWorld gameWorld)
+    public ActionExecutionPlan ValidateAndExtract(ChoiceTemplate template, string actionName, Player player, GameWorld gameWorld)
     {
         // STEP 1: Validate CompoundRequirements
         if (template.RequirementFormula != null && template.RequirementFormula.OrPaths.Count > 0)
@@ -81,6 +73,7 @@ public class NPCActionExecutor
         plan.ChallengeId = template.ChallengeId;
         plan.NavigationPayload = template.NavigationPayload;
         plan.ActionName = actionName;
+        plan.IsAtmosphericAction = false;  // Scene-based action (not fallback scene)
 
         return plan;
     }
