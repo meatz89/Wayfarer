@@ -125,6 +125,11 @@ public class GameWorld
     public MentalSession CurrentMentalSession { get; set; }
     public PhysicalSession CurrentPhysicalSession { get; set; }
 
+    // PROCEDURAL CONTENT TRACING SYSTEM - Debugging tool for tracking spawn graph
+    // Captures scene spawning, situation creation, choice execution
+    // Null-safe: Check IsEnabled before using
+    public ProceduralContentTracer ProceduralTracer { get; set; }
+
     // ADR-007: Session context IDs DELETED - MentalChallengeContext/PhysicalChallengeContext hold objects
     // Session contexts already contain SituationCard and Obligation object references
     // No need for redundant ID storage in GameWorld

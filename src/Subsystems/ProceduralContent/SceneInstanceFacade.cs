@@ -112,6 +112,30 @@ public class SceneInstanceFacade
 
         Console.WriteLine($"[SceneInstanceFacade] Spawned scene '{spawnedScene.TemplateId}' via HIGHLANDER flow - playability validated");
 
+        // PROCEDURAL CONTENT TRACING: Record runtime scene spawn
+        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+        {
+            // Spawn trigger determined by caller context (ChoiceReward most common)
+            // Auto-links to parent choice via context stack if available
+            SceneSpawnNode sceneNode = _gameWorld.ProceduralTracer.RecordSceneSpawn(
+                spawnedScene,
+                spawnedScene.TemplateId,
+                true, // isProcedurallyGenerated = true (runtime spawned via instantiation)
+                SpawnTriggerType.ChoiceReward, // Most common trigger for runtime spawns
+                context.Player
+            );
+
+            // Record all embedded situations as children of this scene
+            foreach (Situation situation in spawnedScene.Situations)
+            {
+                _gameWorld.ProceduralTracer.RecordSituationSpawn(
+                    situation,
+                    sceneNode,
+                    SituationSpawnTriggerType.InitialScene
+                );
+            }
+        }
+
         return spawnedScene;
     }
 

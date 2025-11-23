@@ -1,0 +1,353 @@
+/* Procedural Content Tracing - Tree Visualization Styles */
+
+.spawn-graph-viewer {
+    background: #1e1e1e;
+    color: #d4d4d4;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    padding: 20px;
+    border-radius: 4px;
+}
+
+/* Filter Panel */
+.filter-panel {
+    background: #2d2d2d;
+    padding: 16px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    align-items: center;
+    border: 1px solid #444;
+}
+
+.filter-panel label {
+    color: #888;
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.filter-panel input,
+.filter-panel select {
+    padding: 6px 12px;
+    background: #1e1e1e;
+    color: #d4d4d4;
+    border: 1px solid #444;
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 13px;
+}
+
+.filter-panel input:focus,
+.filter-panel select:focus {
+    outline: none;
+    border-color: #3794ff;
+}
+
+.filter-panel input[type="text"] {
+    min-width: 200px;
+}
+
+.filter-panel input[type="number"] {
+    width: 80px;
+}
+
+.filter-panel button {
+    padding: 6px 16px;
+    background: #3794ff;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.filter-panel button:hover {
+    background: #5aa4ff;
+}
+
+.filter-panel button:active {
+    background: #2a7de0;
+}
+
+/* Tree Container */
+.trace-tree {
+    background: #252525;
+    padding: 20px;
+    border-radius: 4px;
+    font-size: 13px;
+    line-height: 1.6;
+    min-height: 400px;
+}
+
+.trace-tree > p {
+    color: #888;
+    text-align: center;
+    margin-top: 100px;
+}
+
+/* Trace Nodes */
+.trace-node {
+    margin: 8px 0;
+    padding: 12px 16px;
+    border-left: 4px solid #444;
+    background: #2d2d2d;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+}
+
+.trace-node:hover {
+    background: #3a3a3a;
+}
+
+/* Node Types - Scene */
+.trace-node-scene {
+    border-left-color: #4ec9b0;
+    margin-left: 0;
+}
+
+/* Node Types - Situation */
+.trace-node-situation {
+    border-left-color: #dcdcaa;
+    margin-left: 30px;
+}
+
+/* Node Types - Choice */
+.trace-node-choice {
+    border-left-color: #569cd6;
+    margin-left: 60px;
+}
+
+/* Node Header */
+.trace-node-header {
+    font-weight: bold;
+    font-size: 14px;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.trace-node-header::before {
+    content: '▶';
+    display: inline-block;
+    font-size: 10px;
+    transition: transform 0.2s;
+    color: #888;
+}
+
+.trace-node-expanded > .trace-node-header::before {
+    transform: rotate(90deg);
+}
+
+.trace-node-collapsed > .trace-node-header::before {
+    transform: rotate(0deg);
+}
+
+/* Badge */
+.trace-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: #444;
+    border-radius: 3px;
+    font-size: 10px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+
+.trace-badge-scene {
+    background: #4ec9b0;
+    color: #1e1e1e;
+}
+
+.trace-badge-situation {
+    background: #dcdcaa;
+    color: #1e1e1e;
+}
+
+.trace-badge-choice {
+    background: #569cd6;
+    color: #1e1e1e;
+}
+
+/* Node Metadata */
+.trace-node-metadata {
+    font-size: 12px;
+    color: #888;
+    line-height: 1.8;
+    margin-top: 6px;
+}
+
+.trace-node-metadata > div {
+    margin: 2px 0;
+}
+
+.trace-node-metadata .trace-property {
+    color: #9cdcfe;
+}
+
+.trace-node-metadata .trace-value {
+    color: #ce9178;
+}
+
+/* Story Categories */
+.scene-main-story {
+    border-left-color: #f14c4c !important;
+}
+
+.scene-side-story {
+    border-left-color: #3794ff !important;
+}
+
+.scene-service {
+    border-left-color: #89d185 !important;
+}
+
+/* Node States */
+.trace-node-highlighted {
+    background: #3a3a00 !important;
+    box-shadow: 0 0 12px rgba(255, 255, 0, 0.4);
+}
+
+.trace-node-selected {
+    background: #2d3748 !important;
+    box-shadow: 0 0 8px rgba(55, 148, 255, 0.4);
+}
+
+/* Collapse/Expand */
+.trace-node-collapsed > .trace-node-children {
+    display: none;
+}
+
+.trace-node-expanded > .trace-node-children {
+    display: block;
+}
+
+.trace-node-children {
+    margin-top: 8px;
+}
+
+/* Links */
+.trace-link {
+    color: #4fc1ff;
+    cursor: pointer;
+    text-decoration: underline;
+    font-style: italic;
+}
+
+.trace-link:hover {
+    color: #7fdbff;
+}
+
+/* Timestamps */
+.trace-timestamp {
+    color: #6a9955;
+    font-family: 'Consolas', monospace;
+    font-size: 11px;
+}
+
+/* Counts and Stats */
+.trace-count {
+    color: #b5cea8;
+    font-weight: 600;
+}
+
+/* Empty State */
+.trace-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #666;
+}
+
+.trace-empty p {
+    margin: 10px 0;
+}
+
+/* Detail Panel */
+.detail-panel {
+    position: fixed;
+    right: 20px;
+    top: 20px;
+    width: 400px;
+    max-height: 80vh;
+    background: #2d2d2d;
+    border: 1px solid #444;
+    border-radius: 4px;
+    padding: 20px;
+    overflow-y: auto;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.detail-panel h3 {
+    margin-top: 0;
+    color: #4ec9b0;
+    font-size: 16px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+}
+
+.detail-panel button {
+    margin-top: 10px;
+    padding: 6px 12px;
+    background: #3794ff;
+    color: white;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.detail-panel button:hover {
+    background: #5aa4ff;
+}
+
+/* Scrollbar */
+.trace-tree::-webkit-scrollbar,
+.detail-panel::-webkit-scrollbar {
+    width: 10px;
+}
+
+.trace-tree::-webkit-scrollbar-track,
+.detail-panel::-webkit-scrollbar-track {
+    background: #1e1e1e;
+}
+
+.trace-tree::-webkit-scrollbar-thumb,
+.detail-panel::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 5px;
+}
+
+.trace-tree::-webkit-scrollbar-thumb:hover,
+.detail-panel::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .filter-panel {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-panel input,
+    .filter-panel select,
+    .filter-panel button {
+        width: 100%;
+    }
+
+    .detail-panel {
+        position: relative;
+        right: auto;
+        top: auto;
+        width: 100%;
+        margin-top: 20px;
+    }
+}

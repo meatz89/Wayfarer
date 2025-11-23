@@ -60,16 +60,35 @@
                     <button class="debug-btn" @onclick="TeleportToElena">Go to Elena</button>
                 </div>
             </div>
+
+            <!-- Spawn Trace Viewer -->
+            <div class="debug-section">
+                <h4 @onclick="ToggleSpawnTrace" style="cursor: pointer;">
+                    Procedural Content Trace
+                    <span style="font-size: 11px; color: #888;">(@(showSpawnTrace ? "Hide" : "Show"))</span>
+                </h4>
+                @if (showSpawnTrace)
+                {
+                    <SpawnGraphViewer Tracer="@GameFacade.GameWorld.ProceduralTracer" />
+                }
+            </div>
         </div>
     }
 </div>
 
 @code {
     private bool IsExpanded = false;
+    private bool showSpawnTrace = false;
 
     private void TogglePanel()
     {
         IsExpanded = !IsExpanded;
+    }
+
+    private void ToggleSpawnTrace()
+    {
+        showSpawnTrace = !showSpawnTrace;
+        StateHasChanged();
     }
 
     private void SetStatLevel(PlayerStatType statType, int level)

@@ -41,12 +41,20 @@ public class SituationCompletionHandler
         // This enables OnSuccess/OnFailure transitions in scene state machine
         // NOTE: ChallengeContext.SituationId is DOMAIN VIOLATION - should be Situation object reference
         // Workaround: Check if any challenge context exists (only one challenge can be pending at a time)
+        bool? challengeSucceeded = null;
         if (_gameWorld.PendingMentalContext != null ||
             _gameWorld.PendingPhysicalContext != null ||
             _gameWorld.PendingSocialContext != null)
         {
             situation.LastChallengeSucceeded = true;
+            challengeSucceeded = true;
             Console.WriteLine($"[SituationCompletionHandler] Challenge succeeded for situation '{situation.Name}'");
+        }
+
+        // PROCEDURAL CONTENT TRACING: Mark situation completed in trace
+        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+        {
+            _gameWorld.ProceduralTracer.MarkSituationCompleted(situation, challengeSucceeded);
         }
 
         // ProjectedConsequences DELETED - stored projection pattern violates architecture
@@ -83,6 +91,12 @@ public class SituationCompletionHandler
 
             // Store routing decision on situation for UI to query
             situation.RoutingDecision = routingDecision;
+
+            // PROCEDURAL CONTENT TRACING: Update scene state if it transitioned to Completed
+            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+            {
+                _gameWorld.ProceduralTracer.UpdateSceneState(scene, scene.State, DateTime.UtcNow);
+            }
         }
     }
 
@@ -132,12 +146,20 @@ public class SituationCompletionHandler
         // This enables OnFailure transitions in scene state machine
         // NOTE: ChallengeContext.SituationId is DOMAIN VIOLATION - should be Situation object reference
         // Workaround: Check if any challenge context exists (only one challenge can be pending at a time)
+        bool? challengeSucceeded = null;
         if (_gameWorld.PendingMentalContext != null ||
             _gameWorld.PendingPhysicalContext != null ||
             _gameWorld.PendingSocialContext != null)
         {
             situation.LastChallengeSucceeded = false;
+            challengeSucceeded = false;
             Console.WriteLine($"[SituationCompletionHandler] Challenge failed for situation '{situation.Name}'");
+        }
+
+        // PROCEDURAL CONTENT TRACING: Mark situation as failed in trace
+        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+        {
+            _gameWorld.ProceduralTracer.MarkSituationCompleted(situation, challengeSucceeded);
         }
 
         // PHASE 3: Execute FailureSpawns - recursive situation spawning on failure
@@ -155,6 +177,12 @@ public class SituationCompletionHandler
 
             // Store routing decision on situation for UI to query
             situation.RoutingDecision = routingDecision;
+
+            // PROCEDURAL CONTENT TRACING: Update scene state if it transitioned to Completed
+            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+            {
+                _gameWorld.ProceduralTracer.UpdateSceneState(scene, scene.State, DateTime.UtcNow);
+            }
         }
 
         // Situations remain in ActiveSituations on failure regardless of DeleteOnSuccess

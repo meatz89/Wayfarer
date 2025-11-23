@@ -215,6 +215,31 @@ public static class SceneParser
         // SituationCount is computed from collection
         scene.SituationCount = scene.Situations.Count;
 
+        // =====================================================
+        // PROCEDURAL CONTENT TRACING: Record authored scene spawn
+        // =====================================================
+        if (gameWorld.ProceduralTracer != null && gameWorld.ProceduralTracer.IsEnabled)
+        {
+            Player player = gameWorld.GetPlayer();
+            SceneSpawnNode sceneNode = gameWorld.ProceduralTracer.RecordSceneSpawn(
+                scene,
+                scene.TemplateId,
+                false, // isProcedurallyGenerated = false (authored content from JSON)
+                SpawnTriggerType.Initial,
+                player
+            );
+
+            // Record all embedded situations as children of this scene
+            foreach (Situation situation in scene.Situations)
+            {
+                gameWorld.ProceduralTracer.RecordSituationSpawn(
+                    situation,
+                    sceneNode,
+                    SituationSpawnTriggerType.InitialScene
+                );
+            }
+        }
+
         return scene;
     }
 
