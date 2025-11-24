@@ -421,23 +421,30 @@ public class LocationFacade
     /// Transitions Scene.State: Deferred → Active
     /// HIERARCHICAL PLACEMENT: Checks Scene.CurrentSituation.Location (situation owns placement)
     /// </summary>
+    /// <summary>
+    /// TWO-PHASE SPAWNING - PHASE 2: Check for deferred scenes with location activation triggers
+    /// Evaluates LocationActivationFilter using categorical matching (BEFORE entity resolution)
+    /// Triggers dependent resource spawning and entity resolution
+    /// Transitions Scene.State: Deferred → Active
+    /// </summary>
     private async Task CheckAndActivateDeferredScenes(Location location)
     {
-        // Find all deferred scenes where CurrentSituation is placed at this location
-        // HIERARCHICAL PLACEMENT: Situation owns placement (Location, NPC, Route)
+        Player player = _gameWorld.GetPlayer();
+
+        // Find all deferred scenes with location activation filters matching this location
+        // CRITICAL: Check LocationActivationFilter (activation trigger), NOT CurrentSituation.Location (not yet resolved)
         List<Scene> deferredScenes = _gameWorld.Scenes
             .Where(s => s.State == SceneState.Deferred)
-            .Where(s => s.CurrentSituation != null && s.CurrentSituation.Location == location)
+            .Where(s => s.LocationActivationFilter != null &&
+                       LocationMatchesActivationFilter(location, s.LocationActivationFilter, player))
             .ToList();
 
         if (deferredScenes.Count == 0)
-            return; // No deferred scenes at this location
-
-        Player player = _gameWorld.GetPlayer();
+            return; // No deferred scenes triggered by this location
 
         foreach (Scene scene in deferredScenes)
         {
-            Console.WriteLine($"[LocationFacade] Activating deferred scene '{scene.DisplayName}' at location '{location.Name}'");
+            Console.WriteLine($"[LocationFacade] Activating deferred scene '{scene.DisplayName}' triggered by location '{location.Name}'");
 
             // Construct activation context
             SceneSpawnContext activationContext = new SceneSpawnContext
@@ -469,6 +476,39 @@ public class LocationFacade
             scene.State = SceneState.Active;
             Console.WriteLine($"[LocationFacade] Scene '{scene.DisplayName}' activated successfully (State: Deferred → Active)");
         }
+    }
+
+    /// <summary>
+    /// Check if location matches activation filter using categorical properties
+    /// Does NOT resolve entities - pure categorical matching
+    /// </summary>
+    private bool LocationMatchesActivationFilter(Location location, PlacementFilter filter, Player player)
+    {
+        // Check location capabilities (if specified)
+        if (filter.RequiredCapabilities != LocationCapability.None)
+        {
+            if ((location.Capabilities & filter.RequiredCapabilities) != filter.RequiredCapabilities)
+                return false;
+        }
+
+        // Check district (if specified)
+        if (!string.IsNullOrEmpty(filter.DistrictId))
+        {
+            if (location.Venue == null || location.Venue.District == null ||
+                location.Venue.District.Name != filter.DistrictId)
+                return false;
+        }
+
+        // Check location tags (if specified)
+        if (filter.LocationTags != null && filter.LocationTags.Count > 0)
+        {
+            if (!filter.LocationTags.All(tag => location.DomainTags.Contains(tag)))
+                return false;
+        }
+
+        // TODO: Add player state filters if needed (copy from SceneInstantiator.CheckPlayerStateFilters)
+
+        return true; // All checks passed
     }
 
     /// <summary>

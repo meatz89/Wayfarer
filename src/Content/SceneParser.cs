@@ -120,42 +120,65 @@ public static class SceneParser
         }
 
         // =====================================================
+        // ACTIVATION FILTERS PARSING (TRIGGER CONDITIONS)
+        // =====================================================
+        // Parse activation filters that determine WHEN scene activates (Deferred → Active)
+        // Separate from situation placement filters (which determine WHERE situations happen)
+        // Evaluated BEFORE entity resolution using categorical matching only
+        PlacementFilter locationActivationFilter = null;
+        PlacementFilter npcActivationFilter = null;
+
+        if (dto.LocationActivationFilter != null)
+        {
+            string locationActivationContext = $"Scene:{dto.DisplayName}/LocationActivation";
+            locationActivationFilter = SceneTemplateParser.ParsePlacementFilter(
+                dto.LocationActivationFilter, locationActivationContext);
+        }
+
+        if (dto.NpcActivationFilter != null)
+        {
+            string npcActivationContext = $"Scene:{dto.DisplayName}/NpcActivation";
+            npcActivationFilter = SceneTemplateParser.ParsePlacementFilter(
+                dto.NpcActivationFilter, npcActivationContext);
+        }
+
+        // Store activation filters on Scene (not resolved, just stored for activation check)
+        scene.LocationActivationFilter = locationActivationFilter;
+        scene.NpcActivationFilter = npcActivationFilter;
+
+        // =====================================================
         // EMBEDDED SITUATIONS PARSING (Composition Pattern)
         // =====================================================
         // Scene OWNS Situations - parse filters (NO entity resolution at parse time)
         // THREE-TIER TIMING: Filters stored here (Tier 1), entities resolved at activation (Tier 2)
-        // CSS-STYLE INHERITANCE: Situation filters override scene base filters
+        // Each situation MUST specify explicit categorical filters - NO inheritance, NO fallback
         foreach (SituationDTO situationDto in dto.Situations)
         {
-            // Parse PlacementFilters with hierarchical inheritance
-            // Pattern: effectiveFilter = situationFilter ?? sceneBaseFilter
+            // Parse PlacementFilters (explicit per-situation)
             PlacementFilter locationFilter = null;
             PlacementFilter npcFilter = null;
             PlacementFilter routeFilter = null;
             int segmentIndex = 0; // Route segment placement for geographic specificity
 
-            // CSS-style fallback for location: situation override ?? scene base
-            PlacementFilterDTO effectiveLocationFilter = situationDto.LocationFilter ?? dto.LocationFilter;
-            if (effectiveLocationFilter != null)
+            // Parse location filter (MUST be explicit on situation)
+            if (situationDto.LocationFilter != null)
             {
                 string locationContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/Location";
-                locationFilter = SceneTemplateParser.ParsePlacementFilter(effectiveLocationFilter, locationContext);
+                locationFilter = SceneTemplateParser.ParsePlacementFilter(situationDto.LocationFilter, locationContext);
             }
 
-            // CSS-style fallback for NPC: situation override ?? scene base
-            PlacementFilterDTO effectiveNpcFilter = situationDto.NpcFilter ?? dto.NpcFilter;
-            if (effectiveNpcFilter != null)
+            // Parse NPC filter (MUST be explicit on situation)
+            if (situationDto.NpcFilter != null)
             {
                 string npcContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/NPC";
-                npcFilter = SceneTemplateParser.ParsePlacementFilter(effectiveNpcFilter, npcContext);
+                npcFilter = SceneTemplateParser.ParsePlacementFilter(situationDto.NpcFilter, npcContext);
             }
 
-            // CSS-style fallback for route: situation override ?? scene base
-            PlacementFilterDTO effectiveRouteFilter = situationDto.RouteFilter ?? dto.RouteFilter;
-            if (effectiveRouteFilter != null)
+            // Parse route filter (MUST be explicit on situation)
+            if (situationDto.RouteFilter != null)
             {
                 string routeContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/Route";
-                routeFilter = SceneTemplateParser.ParsePlacementFilter(effectiveRouteFilter, routeContext);
+                routeFilter = SceneTemplateParser.ParsePlacementFilter(situationDto.RouteFilter, routeContext);
                 segmentIndex = routeFilter.SegmentIndex; // Capture segment placement from filter
             }
 

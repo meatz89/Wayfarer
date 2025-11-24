@@ -211,9 +211,43 @@ public static class SituationParser
                 rewards.RouteSegmentUnlock.Route = gameWorld.Routes.FirstOrDefault(r => r.Name == dto.RouteSegmentUnlock.RouteId);
             }
 
-            // RouteSegmentUnlock.Path resolution: Deleted commented code
-            // If Path property is needed, implement the full vertical slice: DTO → Parser → Entity → Usage
-            // No TODO markers, no half-measures - either do it fully or delete it
+            // Resolve Path object from PathId (parse-time translation)
+            // Creates minimal PathCard domain entity for name-based lookup in SituationCompletionHandler
+            if (!string.IsNullOrEmpty(dto.RouteSegmentUnlock.PathId) && rewards.RouteSegmentUnlock.Route != null)
+            {
+                RouteOption route = rewards.RouteSegmentUnlock.Route;
+                int segmentPos = rewards.RouteSegmentUnlock.SegmentPosition;
+
+                // Validate segment position within route
+                if (segmentPos >= 0 && segmentPos < route.Segments.Count)
+                {
+                    RouteSegment segment = route.Segments[segmentPos];
+
+                    // Find PathCardDTO in segment's PathCollection
+                    if (segment.PathCollection != null)
+                    {
+                        PathCardDTO pathCardDto = segment.PathCollection.PathCards.FirstOrDefault(p => p.Name == dto.RouteSegmentUnlock.PathId);
+                        if (pathCardDto != null)
+                        {
+                            // Create minimal PathCard domain entity for SituationCompletionHandler lookup
+                            // SituationCompletionHandler matches by Name to find the DTO and set IsHidden = false
+                            rewards.RouteSegmentUnlock.Path = new PathCard
+                            {
+                                Name = pathCardDto.Name,
+                                NarrativeText = pathCardDto.NarrativeText
+                            };
+                        }
+                        else
+                        {
+                            Console.WriteLine($"[SituationParser.ParseSituationCardRewards] WARNING: PathId '{dto.RouteSegmentUnlock.PathId}' not found in segment {segmentPos} of route '{route.Name}'");
+                        }
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"[SituationParser.ParseSituationCardRewards] WARNING: SegmentPosition {segmentPos} out of range for route '{route.Name}' (has {route.Segments.Count} segments)");
+                }
+            }
         }
 
         return rewards;

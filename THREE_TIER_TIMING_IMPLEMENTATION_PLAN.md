@@ -341,50 +341,6 @@ Result:
 
 ---
 
-## VERIFICATION CRITERIA
-
-### Build Verification
-- [ ] `dotnet build` compiles with zero errors
-- [ ] No warnings about missing entity references
-- [ ] SituationParser signature change doesn't break other code
-
-### Runtime Verification
-- [ ] Game starts without crash
-- [ ] Console shows: `[SceneParser] Scene loaded with PlacementFilters, entities NULL`
-- [ ] Player arrives at Inn location
-- [ ] Console shows: `[LocationFacade] Activating deferred scene 'Secure Lodging'`
-- [ ] Console shows: `[SceneInstantiator] Resolving entity references for scene 'Secure Lodging'`
-- [ ] Console shows: `[SceneInstantiator] ✅ Resolved Location 'Elena's Lodging Room' for situation 'Negotiate for Room'`
-- [ ] Console shows: `[LocationFacade] ✅ Resolved entity references for scene 'Secure Lodging'`
-- [ ] A2 spawns in Common Room (NPC conversation options appear)
-- [ ] Clicking A2 opens situation with choices
-- [ ] Completing A2 progresses tutorial
-
-### Architecture Verification
-- [ ] SceneParser NEVER calls EntityResolver
-- [ ] Entity resolution happens ONLY in ResolveSceneEntityReferences()
-- [ ] PlacementFilters stored at parse time
-- [ ] Entity objects assigned at activation time
-- [ ] Three-Tier Timing Model fully respected
-
----
-
-## ROLLBACK STRATEGY
-
-If implementation fails:
-1. Git stash all changes
-2. Identify which component caused failure
-3. Fix component in isolation
-4. Re-test incrementally
-
-Critical files for backup:
-- `src/Content/SceneParser.cs`
-- `src/Content/SituationParser.cs`
-- `src/Services/SceneInstantiator.cs`
-- `src/Subsystems/Location/LocationFacade.cs`
-
----
-
 ## SUCCESS METRICS
 
 **✅ Complete Success:**

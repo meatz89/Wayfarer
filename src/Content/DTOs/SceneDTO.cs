@@ -18,34 +18,30 @@ public class SceneDTO
     /// </summary>
     public string TemplateId { get; set; }
 
-    // ==================== HIERARCHICAL PLACEMENT (BASE FILTERS) ====================
-    // CSS-style inheritance: SceneDTO provides BASE filters for all situations
-    // SituationDTO can have overrides that take precedence
-    // Resolution in SceneParser: effectiveFilter = situationFilter ?? sceneBaseFilter
+    // ==================== ACTIVATION FILTERS (WHEN SCENE ACTIVATES) ====================
+    // Determines the trigger condition for scene activation (Deferred → Active)
+    // Copied from SceneTemplate activation filters at spawn time
+    // Separate from situation placement filters (each situation has explicit categorical properties)
 
     /// <summary>
-    /// Base location filter for all situations in this scene
-    /// Copied from SceneTemplate.BaseLocationFilter at spawn time
-    /// Applied to situations unless overridden by SituationDTO.LocationFilter
-    /// null = no base location (each situation specifies its own)
+    /// Location activation filter - determines WHEN scene activates
+    /// Scene activates when player enters location matching these categorical properties
+    /// null = no location-based activation trigger (use NPC or other trigger)
+    /// Example: Activate when player enters any location with Purpose=Dwelling, Privacy=SemiPublic
+    /// Separate from Situation.LocationFilter which determines WHERE situation happens (always explicit per-situation)
+    /// Copied from SceneTemplate.LocationActivationFilter at spawn time
     /// </summary>
-    public PlacementFilterDTO LocationFilter { get; set; }
+    public PlacementFilterDTO LocationActivationFilter { get; set; }
 
     /// <summary>
-    /// Base NPC filter for all situations in this scene
-    /// Copied from SceneTemplate.BaseNpcFilter at spawn time
-    /// Applied to situations unless overridden by SituationDTO.NpcFilter
-    /// null = no base NPC (each situation specifies its own)
+    /// NPC activation filter - determines WHEN scene activates
+    /// Scene activates when player talks to NPC matching these categorical properties
+    /// null = no NPC-based activation trigger (use Location or other trigger)
+    /// Example: Activate when player talks to any NPC with PersonalityType=Innkeeper
+    /// Separate from Situation.NpcFilter which determines WHO situation involves (always explicit per-situation)
+    /// Copied from SceneTemplate.NpcActivationFilter at spawn time
     /// </summary>
-    public PlacementFilterDTO NpcFilter { get; set; }
-
-    /// <summary>
-    /// Base route filter for all situations in this scene
-    /// Copied from SceneTemplate.BaseRouteFilter at spawn time
-    /// Applied to situations unless overridden by SituationDTO.RouteFilter
-    /// null = no base route (each situation specifies its own)
-    /// </summary>
-    public PlacementFilterDTO RouteFilter { get; set; }
+    public PlacementFilterDTO NpcActivationFilter { get; set; }
 
     /// <summary>
     /// Current lifecycle state

@@ -710,9 +710,14 @@ public class GameFacade
         if (!startingSpot.HexPosition.HasValue)
             throw new InvalidOperationException($"Starting location '{startingSpot.Name}' has no HexPosition - cannot initialize player position");
 
-        // TWO-PHASE SPAWNING: Use MoveToSpot() instead of directly setting position
-        // This ensures CheckAndActivateDeferredScenes() is called when player enters initial location
+        // THREE-TIER TIMING: Use MoveToSpot() to trigger CheckAndActivateDeferredScenes()
+        // MoveToSpot() calls LocationFacade.CheckAndActivateDeferredScenes() which:
+        //   1. Activates DEFERRED scenes at the player's new location
+        //   2. Generates dependent resources (locations, NPCs, items)
+        //   3. Calls ResolveSceneEntityReferences() to assign entities to situations
+        // This ensures A1 scene is activated and Elena shows the "Secure Lodging" conversation option
         Console.WriteLine($"[StartGameAsync] Moving player to starting location '{startingSpot.Name}' at hex ({startingSpot.HexPosition.Value.Q}, {startingSpot.HexPosition.Value.R})");
+
         bool moveSuccess = await _locationFacade.MoveToSpot(startingSpot);
 
         if (!moveSuccess)
@@ -720,7 +725,7 @@ public class GameFacade
             throw new InvalidOperationException($"CRITICAL: Failed to move player to starting location '{startingSpot.Name}'. Game cannot start.");
         }
 
-        Console.WriteLine($"[StartGameAsync] ✅ Validated player at '{startingSpot.Name}' - hex grid OK");
+        Console.WriteLine($"[StartGameAsync] ✅ Validated player at '{startingSpot.Name}' - scene activation complete");
 
         // Player resources already applied by PackageLoader.ApplyInitialPlayerConfiguration()
         // No need to re-apply here - HIGHLANDER PRINCIPLE: initialization happens ONCE

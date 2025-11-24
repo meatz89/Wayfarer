@@ -38,6 +38,31 @@ public class Scene
     // Scene is narrative container with no specific placement
     // Each Situation has Location/Npc/Route properties
 
+    // ==================== ACTIVATION FILTERS (TRIGGER CONDITIONS) ====================
+    // Determines WHEN scene activates (Deferred → Active transition)
+    // Evaluated BEFORE entity resolution using categorical matching only
+    // Separate from situation placement filters (evaluated AFTER activation)
+
+    /// <summary>
+    /// Location activation filter - categorical properties that trigger scene activation
+    /// CheckAndActivateDeferredScenes evaluates this filter against player's current location
+    /// null = no location-based activation (use NPC or other trigger)
+    /// Evaluated before entity resolution (categorical matching: Privacy, Safety, Activity, Purpose)
+    /// Separate from Situation.LocationFilter which determines WHERE situation happens (always explicit per-situation)
+    /// Copied from SceneTemplate.LocationActivationFilter at spawn time
+    /// </summary>
+    public PlacementFilter LocationActivationFilter { get; set; }
+
+    /// <summary>
+    /// NPC activation filter - categorical properties that trigger scene activation
+    /// CheckAndActivateDeferredScenesForNPC evaluates this filter against NPCs at player's location
+    /// null = no NPC-based activation (use Location or other trigger)
+    /// Evaluated before entity resolution (categorical matching: PersonalityType, BondStrength, etc.)
+    /// Separate from Situation.NpcFilter which determines WHO situation involves (always explicit per-situation)
+    /// Copied from SceneTemplate.NpcActivationFilter at spawn time
+    /// </summary>
+    public PlacementFilter NpcActivationFilter { get; set; }
+
     // ==================== PRESENTATION PROPERTIES ====================
 
     /// <summary>
