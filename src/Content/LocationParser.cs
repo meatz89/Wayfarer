@@ -171,6 +171,26 @@ public static class LocationParser
         // ObservationScene (Mental) and TravelScene (Physical) are separate valid systems
         // NEW Scene-Situation architecture spawns Scenes via SceneTemplates (not embedded in location JSON)
 
+        // Parse ProximityConstraint (scaffolding metadata for dependent location placement)
+        if (dto.ProximityConstraint != null)
+        {
+            if (!Enum.TryParse<PlacementProximity>(dto.ProximityConstraint.Proximity, ignoreCase: true, out PlacementProximity proximity))
+            {
+                throw new InvalidOperationException(
+                    $"Invalid PlacementProximity value '{dto.ProximityConstraint.Proximity}' for location '{dto.Name}'. " +
+                    $"Valid values: {string.Join(", ", Enum.GetNames(typeof(PlacementProximity)))}"
+                );
+            }
+
+            location.ProximityConstraintForPlacement = new ProximityConstraint
+            {
+                Proximity = proximity,
+                ReferenceLocationKey = dto.ProximityConstraint.ReferenceLocation
+            };
+
+            Console.WriteLine($"[LocationParser] Location '{dto.Name}' proximity constraint: {proximity} relative to '{location.ProximityConstraintForPlacement.ReferenceLocationKey}'");
+        }
+
         return location;
     }
 

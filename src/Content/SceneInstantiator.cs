@@ -1201,6 +1201,14 @@ public class SceneInstantiator
             dto.Capabilities = spec.Properties;
         }
 
+        // SPATIAL CONSTRAINT: All dependent locations spawn in SameVenue as activation location
+        // Ensures verisimilitude ("your room at this inn" spawns at this inn, not different venue)
+        dto.ProximityConstraint = new ProximityConstraintDTO
+        {
+            Proximity = "SameVenue",
+            ReferenceLocation = "current"
+        };
+
         return dto;
     }
 

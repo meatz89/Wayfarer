@@ -24,6 +24,14 @@ public class Location
     /// </summary>
     public string DistanceHintForPlacement { get; set; }
 
+    /// <summary>
+    /// SCAFFOLDING PROPERTY: Temporary spatial placement constraint for dependent locations.
+    /// Set by parser when ProximityConstraintDTO is present, used by LocationPlacementService, then cleared.
+    /// Defines WHERE location spawns relative to reference location (SameVenue, AdjacentLocation, etc.).
+    /// NOT persisted in game state - purely procedural generation metadata.
+    /// </summary>
+    public ProximityConstraint? ProximityConstraintForPlacement { get; set; }
+
     // HEX-BASED TRAVEL SYSTEM: Location is THE primary spatial entity
     /// <summary>
     /// Hex grid position of this location (nullable only during initialization - ALL locations MUST have positions after parsing)
