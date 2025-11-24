@@ -20,11 +20,11 @@
         "progressionMode": "Cascade",
         "tier": 0,
         "isStarter": true,
-        "baseLocationFilter": {
+        "locationActivationFilter": {
           "placementType": "Location",
           "capabilities": ["Commercial", "Restful"]
         },
-        "baseNpcFilter": {
+        "npcActivationFilter": {
           "placementType": "NPC",
           "professions": ["Innkeeper"]
         },
@@ -43,12 +43,12 @@
         "presentationMode": "Modal",
         "progressionMode": "Cascade",
         "tier": 0,
-        "baseLocationFilter": {
+        "locationActivationFilter": {
           "placementType": "Location",
           "privacyLevels": ["Public"],
           "capabilities": ["Commercial"]
         },
-        "baseNpcFilter": {
+        "npcActivationFilter": {
           "placementType": "NPC",
           "professions": ["Merchant"]
         },
@@ -65,15 +65,12 @@
         "presentationMode": "Modal",
         "progressionMode": "Cascade",
         "tier": 0,
-        "baseRouteFilter": {
-          "placementType": "Route"
-        },
-        "baseLocationFilter": {
+        "locationActivationFilter": {
           "placementType": "Location",
           "activityLevels": ["Quiet"],
           "capabilities": ["Outdoor"]
         },
-        "baseNpcFilter": {
+        "npcActivationFilter": {
           "placementType": "NPC",
           "professions": ["Merchant"]
         },

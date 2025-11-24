@@ -118,6 +118,26 @@ public class SceneTemplateParser
             Console.WriteLine($"[SceneArchetypeGeneration] Archetype generated {dependentLocations.Count} dependent locations and {dependentItems.Count} dependent items");
         }
 
+        PlacementFilter locationActivationFilter = ParsePlacementFilter(dto.LocationActivationFilter, dto.Id, _gameWorld);
+        PlacementFilter npcActivationFilter = ParsePlacementFilter(dto.NpcActivationFilter, dto.Id, _gameWorld);
+
+        // FAIL-FAST VALIDATION: Detect silent JSON deserialization failures
+        // If JSON field names don't match DTO properties (e.g. 'baseLocationFilter' vs 'locationActivationFilter'),
+        // System.Text.Json silently leaves properties as null instead of throwing exceptions
+        // For MainStory scenes (critical path content), require at least one activation filter
+        // This catches JSON structure mismatches at parse time instead of runtime
+        if (category == StoryCategory.MainStory)
+        {
+            if (locationActivationFilter == null && npcActivationFilter == null)
+            {
+                throw new InvalidOperationException(
+                    $"SceneTemplate '{dto.Id}' is MainStory but has NO activation filters. " +
+                    $"This indicates JSON field name mismatch. " +
+                    $"Verify JSON uses correct field names: 'locationActivationFilter' (not 'baseLocationFilter') and 'npcActivationFilter' (not 'baseNpcFilter'). " +
+                    $"MainStory scenes require at least one activation filter to determine when they activate.");
+            }
+        }
+
         SceneTemplate template = new SceneTemplate
         {
             Id = dto.Id,
@@ -126,8 +146,8 @@ public class SceneTemplateParser
             DisplayNameTemplate = dto.DisplayNameTemplate,
             // Activation filters: Parse triggers for scene activation (Deferred → Active)
             // Separate from situation placement filters (each situation has explicit filters)
-            LocationActivationFilter = ParsePlacementFilter(dto.LocationActivationFilter, dto.Id, _gameWorld),
-            NpcActivationFilter = ParsePlacementFilter(dto.NpcActivationFilter, dto.Id, _gameWorld),
+            LocationActivationFilter = locationActivationFilter,
+            NpcActivationFilter = npcActivationFilter,
             SpawnConditions = SpawnConditionsParser.ParseSpawnConditions(dto.SpawnConditions),
             SituationTemplates = situationTemplates,
             SpawnRules = spawnRules,

@@ -721,8 +721,32 @@ public class GameFacade
         if (!startingSpot.HexPosition.HasValue)
             throw new InvalidOperationException($"Starting location '{startingSpot.Name}' has no HexPosition - cannot initialize player position");
 
-        // THREE-TIER TIMING: Use MoveToSpot() to trigger CheckAndActivateDeferredScenes()
-        // MoveToSpot() calls LocationFacade.CheckAndActivateDeferredScenes() which:
+        // ========== GAME INITIALIZATION FLOW ==========
+        // Holistic initialization order ensures systems are ready before content spawns,
+        // content exists before player moves, and game is marked started only after everything is complete.
+
+        // PHASE 1: Initialize game systems
+        // Player resources already applied by PackageLoader.ApplyInitialPlayerConfiguration()
+        // No need to re-apply here - HIGHLANDER PRINCIPLE: initialization happens ONCE
+
+        // Initialize time state from GameWorld initial conditions
+        if (_gameWorld.InitialTimeBlock.HasValue && _gameWorld.InitialSegment.HasValue)
+        {
+            _timeFacade.SetInitialTimeState(
+                _gameWorld.InitialDay ?? 1,
+                _gameWorld.InitialTimeBlock.Value,
+                _gameWorld.InitialSegment.Value);
+        }
+
+        // Initialize exchange inventories
+        _exchangeFacade.InitializeNPCExchanges();
+
+        // PHASE 2: Spawn starter scenes (creates DEFERRED scenes in GameWorld.Scenes)
+        // Must happen BEFORE player movement so CheckAndActivateDeferredScenes has scenes to activate
+        await SpawnStarterScenes();
+
+        // PHASE 3: Move player to starting location (triggers CheckAndActivateDeferredScenes)
+        // THREE-TIER TIMING: MoveToSpot() calls LocationFacade.CheckAndActivateDeferredScenes() which:
         //   1. Activates DEFERRED scenes at the player's new location
         //   2. Generates dependent resources (locations, NPCs, items)
         //   3. Calls ResolveSceneEntityReferences() to assign entities to situations
@@ -738,23 +762,8 @@ public class GameFacade
 
         Console.WriteLine($"[StartGameAsync] ✅ Validated player at '{startingSpot.Name}' - scene activation complete");
 
-        // Player resources already applied by PackageLoader.ApplyInitialPlayerConfiguration()
-        // No need to re-apply here - HIGHLANDER PRINCIPLE: initialization happens ONCE
-
-        // Initialize time state from GameWorld initial conditions
-        if (_gameWorld.InitialTimeBlock.HasValue && _gameWorld.InitialSegment.HasValue)
-        {
-            _timeFacade.SetInitialTimeState(
-                _gameWorld.InitialDay ?? 1,
-                _gameWorld.InitialTimeBlock.Value,
-                _gameWorld.InitialSegment.Value);
-        }// Initialize exchange inventories
-        _exchangeFacade.InitializeNPCExchanges();// Mark game as started
+        // PHASE 4: Mark game as started (LAST - game is now fully initialized and ready)
         _gameWorld.IsGameStarted = true;
-
-        // Spawn starter scenes (tutorial content, initial situations)
-        await SpawnStarterScenes();
-
         _messageSystem.AddSystemMessage("Game started", SystemMessageTypes.Success);
     }
 
