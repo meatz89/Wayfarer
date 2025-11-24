@@ -399,8 +399,19 @@ public class GameFacade
         return _conversationFacade;
     }
 
+    /// <summary>
+    /// Create conversation context with cross-facade orchestration
+    /// ORCHESTRATION: Checks for NPC-triggered scene activation BEFORE starting conversation
+    /// </summary>
     public async Task<SocialChallengeContext> CreateConversationContext(NPC npc, Situation situation)
     {
+        Player player = _gameWorld.GetPlayer();
+
+        // THREE-TIER TIMING: Check for deferred scenes that should activate when player talks to this NPC
+        // Parallel to location-based activation when player arrives at location
+        await _locationFacade.CheckAndActivateDeferredScenesForNPC(npc, player);
+
+        // Then create conversation context
         return await _conversationFacade.CreateConversationContext(npc, situation);
     }
 

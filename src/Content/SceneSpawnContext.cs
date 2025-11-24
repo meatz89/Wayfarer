@@ -21,6 +21,13 @@ public class SceneSpawnContext
     public Location CurrentLocation { get; set; }
 
     /// <summary>
+    /// Venue where activation occurred - used for venue-scoped entity resolution
+    /// EntityResolver searches ONLY within this venue when resolving situation entities
+    /// Ensures situations resolve to entities within the same physical venue (no teleportation)
+    /// </summary>
+    public Venue CurrentVenue { get; set; }
+
+    /// <summary>
     /// NPC involved in current Situation (nullable)
     /// Used for SameNPC placement and NPC-based filters
     /// </summary>

@@ -445,6 +445,7 @@ public class LocationFacade
             {
                 Player = player,
                 CurrentLocation = location,
+                CurrentVenue = location.Venue,
                 CurrentNPC = null,
                 CurrentRoute = null,
                 CurrentSituation = null
@@ -506,6 +507,111 @@ public class LocationFacade
             if (!filter.Purposes.Contains(location.Purpose))
                 return false;
         }
+
+        return true; // All categorical checks passed
+    }
+
+    /// <summary>
+    /// Check for deferred scenes that should activate when player interacts with specific NPC
+    /// Parallel to CheckAndActivateDeferredScenes but triggered by NPC interaction (conversation start)
+    /// Uses NpcActivationFilter with categorical NPC properties (Profession, SocialStanding, etc.)
+    /// </summary>
+    public async Task CheckAndActivateDeferredScenesForNPC(NPC npc, Player player)
+    {
+        List<Scene> deferredScenes = _gameWorld.Scenes
+            .Where(s => s.State == SceneState.Deferred && s.NpcActivationFilter != null)
+            .ToList();
+
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
+
+        foreach (Scene scene in deferredScenes)
+        {
+            if (NPCMatchesActivationFilter(npc, scene.NpcActivationFilter, player))
+            {
+                Console.WriteLine($"[LocationFacade] Activating deferred scene '{scene.DisplayName}' triggered by NPC '{npc.Name}'");
+
+                // Construct activation context
+                SceneSpawnContext activationContext = new SceneSpawnContext
+                {
+                    Player = player,
+                    CurrentLocation = currentLocation,
+                    CurrentVenue = currentLocation?.Venue,
+                    CurrentNPC = npc,
+                    CurrentRoute = null,
+                    CurrentSituation = null
+                };
+
+                // PHASE 2: Generate and load dependent resources
+                string resourceJson = _sceneInstantiator.ActivateScene(scene, activationContext);
+
+                if (!string.IsNullOrEmpty(resourceJson))
+                {
+                    string packagePath = $"scene_activation_{scene.TemplateId}_{Guid.NewGuid().ToString("N")}";
+                    await _contentGenerationFacade.CreateDynamicPackageFile(resourceJson, packagePath);
+                    await _packageLoaderFacade.LoadDynamicPackage(resourceJson, packagePath);
+
+                    Console.WriteLine($"[LocationFacade] Loaded dependent resources for scene '{scene.DisplayName}'");
+                }
+
+                // PHASE 2.5: Resolve entity references now that dependent resources exist in GameWorld
+                _sceneInstantiator.ResolveSceneEntityReferences(scene, activationContext);
+                Console.WriteLine($"[LocationFacade] ✅ Resolved entity references for scene '{scene.DisplayName}'");
+
+                // Transition scene state: Deferred → Active
+                scene.State = SceneState.Active;
+                Console.WriteLine($"[LocationFacade] Scene '{scene.DisplayName}' activated successfully (State: Deferred → Active)");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Check if NPC matches activation filter using categorical properties
+    /// Uses intentionally named enum properties: Profession, SocialStanding, StoryRole, KnowledgeLevel
+    /// Does NOT resolve entities - pure categorical matching (BEFORE entity resolution)
+    /// </summary>
+    private bool NPCMatchesActivationFilter(NPC npc, PlacementFilter filter, Player player)
+    {
+        // Check Profession (if specified)
+        if (filter.Professions != null && filter.Professions.Count > 0)
+        {
+            if (!filter.Professions.Contains(npc.Profession))
+                return false;
+        }
+
+        // Check SocialStanding (if specified)
+        if (filter.SocialStandings != null && filter.SocialStandings.Count > 0)
+        {
+            if (!filter.SocialStandings.Contains(npc.SocialStanding))
+                return false;
+        }
+
+        // Check StoryRole (if specified)
+        if (filter.StoryRoles != null && filter.StoryRoles.Count > 0)
+        {
+            if (!filter.StoryRoles.Contains(npc.StoryRole))
+                return false;
+        }
+
+        // Check KnowledgeLevel (if specified)
+        if (filter.KnowledgeLevels != null && filter.KnowledgeLevels.Count > 0)
+        {
+            if (!filter.KnowledgeLevels.Contains(npc.KnowledgeLevel))
+                return false;
+        }
+
+        // Check PersonalityTypes (if specified)
+        if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
+        {
+            if (!filter.PersonalityTypes.Contains(npc.PersonalityType))
+                return false;
+        }
+
+        // Check MinTier/MaxTier (if specified)
+        if (filter.MinTier.HasValue && npc.Tier < filter.MinTier.Value)
+            return false;
+
+        if (filter.MaxTier.HasValue && npc.Tier > filter.MaxTier.Value)
+            return false;
 
         return true; // All categorical checks passed
     }

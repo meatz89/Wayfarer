@@ -137,40 +137,64 @@ public class SceneInstantiator
     /// PHASE 2.5: Resolve entity references from filters AFTER dependent resources created
     /// THREE-TIER TIMING: Filters stored at parse (Tier 1), resolved here at activation (Tier 2)
     /// Called by LocationFacade.CheckAndActivateDeferredScenes() after PackageLoader completes
+    ///
+    /// VENUE-SCOPED CATEGORICAL RESOLUTION:
+    /// - ALL situations MUST have explicit filter properties (null filter = BUG)
+    /// - EntityResolver searches ONLY within CurrentVenue (no cross-venue teleportation)
+    /// - Categorical properties (Profession, Purpose, Privacy, etc.) determine matches
+    /// - Creates dependent entities if not found within venue
+    ///
+    /// Scene template parameterizes archetype filters for context:
+    /// - Archetype provides structure (e.g., inn_lodging: 3 situations)
+    /// - Template provides filter values (e.g., Profession=Innkeeper, Purpose=Commerce)
+    /// - Same archetype reused with different filter parameters in different contexts
+    ///
     /// Input: Scene with Situations containing PlacementFilters but NULL entity references
     /// Output: Scene with Situations containing resolved Location/Npc/Route object references
     /// </summary>
     /// <param name="scene">Scene with situations containing filters but null entity references</param>
-    /// <param name="context">Spawn context with player and location for categorical matching</param>
+    /// <param name="context">Spawn context with CurrentVenue for venue-scoped resolution</param>
     public void ResolveSceneEntityReferences(Scene scene, SceneSpawnContext context)
     {
-        Console.WriteLine($"[SceneInstantiator] Resolving entity references for scene '{scene.DisplayName}' with {scene.Situations.Count} situations");
+        Console.WriteLine($"[SceneInstantiator] Resolving entity references for scene '{scene.DisplayName}' within venue '{context.CurrentVenue?.Name ?? "NO VENUE"}' with {scene.Situations.Count} situations");
 
-        // Create EntityResolver for categorical matching
-        EntityResolver entityResolver = new EntityResolver(_gameWorld, context.Player, _narrativeService);
+        // Create EntityResolver for venue-scoped categorical matching
+        EntityResolver entityResolver = new EntityResolver(_gameWorld, context.Player, _narrativeService, context.CurrentVenue);
 
-        // For each situation, resolve entities from stored filters
+        // For each situation, resolve entities from explicit filters (null filter = BUG)
         foreach (Situation situation in scene.Situations)
         {
-            // Resolve Location from LocationFilter
-            if (situation.LocationFilter != null && situation.Location == null)
+            // LOCATION RESOLUTION - filter must be explicit
+            if (situation.LocationFilter != null)
             {
                 situation.Location = entityResolver.FindOrCreateLocation(situation.LocationFilter);
-                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved Location '{situation.Location?.Name ?? "NULL"}' for situation '{situation.Name}'");
+                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved Location '{situation.Location?.Name ?? "NULL"}' for situation '{situation.Name}' via categorical filter");
+            }
+            else if (situation.Location == null)
+            {
+                Console.WriteLine($"[SceneInstantiator]   ⚠️ WARNING: Situation '{situation.Name}' has null LocationFilter - THIS IS A BUG");
             }
 
-            // Resolve NPC from NpcFilter
-            if (situation.NpcFilter != null && situation.Npc == null)
+            // NPC RESOLUTION - filter must be explicit
+            if (situation.NpcFilter != null)
             {
                 situation.Npc = entityResolver.FindOrCreateNPC(situation.NpcFilter);
-                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved NPC '{situation.Npc?.Name ?? "NULL"}' for situation '{situation.Name}'");
+                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved NPC '{situation.Npc?.Name ?? "NULL"}' for situation '{situation.Name}' via categorical filter");
+            }
+            else if (situation.Npc == null)
+            {
+                Console.WriteLine($"[SceneInstantiator]   ℹ️ Situation '{situation.Name}' has null NpcFilter (solo situation - no NPC needed)");
             }
 
-            // Resolve Route from RouteFilter
-            if (situation.RouteFilter != null && situation.Route == null)
+            // ROUTE RESOLUTION - filter must be explicit
+            if (situation.RouteFilter != null)
             {
                 situation.Route = entityResolver.FindOrCreateRoute(situation.RouteFilter);
-                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved Route '{situation.Route?.Name ?? "NULL"}' for situation '{situation.Name}'");
+                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved Route '{situation.Route?.Name ?? "NULL"}' for situation '{situation.Name}' via categorical filter");
+            }
+            else if (situation.Route == null)
+            {
+                Console.WriteLine($"[SceneInstantiator]   ℹ️ Situation '{situation.Name}' has null RouteFilter (not route-based)");
             }
         }
 
