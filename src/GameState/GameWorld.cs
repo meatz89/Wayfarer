@@ -281,7 +281,6 @@ public class GameWorld
     public Region GetRegionForDistrict(District district)
     {
         // ZERO NULL TOLERANCE: district must never be null
-        // Region can be null if district not yet assigned (return null is legitimate)
         if (district.Region == null)
             return null;
 

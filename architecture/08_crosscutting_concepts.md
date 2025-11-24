@@ -953,6 +953,146 @@ Service queries all active scenes, finds current situations, checks if current s
 
 ---
 
+### 8.2.10 Venue-Scoped Categorical Resolution
+
+**Core Principle**: Entity resolution during scene activation searches ONLY within the venue where the scene spawns, preventing cross-venue teleportation while maintaining categorical flexibility.
+
+#### The Spatial Consistency Problem
+
+Scenes activate when player enters a location (Deferred → Active transition). During activation, EntityResolver resolves categorical filters to concrete entities (NPCs, Locations) that situations will reference. Without spatial scoping, resolution could match entities from ANY venue in GameWorld, causing narrative inconsistency.
+
+**Example Problem**: Scene spawns at "The Brass Bell Inn" (Tavern venue). Situation filter requires Innkeeper profession NPC. Without venue scoping, EntityResolver might match "Marcus" from "The Silver Hart" inn across town, teleporting Marcus to player's current venue for the scene.
+
+**Fiction Break**: Player is at Brass Bell Inn, talks to Elena (local innkeeper), but scene references Marcus from different inn. Marcus cannot be in two venues simultaneously. Spatial consistency violated.
+
+#### Venue-Scoped Resolution Pattern
+
+**Dual-Mode Search**:
+- **Global Mode** (CurrentVenue = null): Searches all entities in GameWorld.Locations/GameWorld.NPCs (used during static content loading)
+- **Venue-Scoped Mode** (CurrentVenue provided): Searches ONLY entities where entity.Venue == CurrentVenue (used during scene activation)
+
+**Implementation**:
+EntityResolver receives optional CurrentVenue parameter passed through SceneSpawnContext. When CurrentVenue is null, resolution searches globally across all venues. When CurrentVenue is provided, resolution filters to entities located within that specific venue only.
+
+**Activation Flow**:
+```
+Player enters Location "Common Room"
+    ↓
+LocationFacade.CheckAndActivateDeferredScenes(targetLocation)
+    ↓
+Create SceneSpawnContext:
+  - CurrentVenue = targetLocation.Venue ("The Brass Bell Inn")
+    ↓
+SceneInstantiator.ResolveSceneEntityReferences(scene, context)
+    ↓
+For each Situation with NpcFilter:
+  EntityResolver.FindOrCreateNPC(filter, context.CurrentVenue)
+    ↓
+Query: GameWorld.NPCs
+  .Where(npc => npc.Venue == CurrentVenue)
+  .Where(npc => NpcMatchesFilter(npc, filter))
+    ↓
+Returns: Elena (from Brass Bell Inn venue ONLY)
+    ↓
+Situation.Npc = Elena (object reference, venue-consistent)
+```
+
+**Context Structures**:
+SceneSpawnContext class contains CurrentVenue property holding Venue object reference passed to all resolution methods. When CheckAndActivateDeferredScenes triggers, context populated with targetLocation.Venue before entity resolution begins. EntityResolver methods receive context parameter and extract CurrentVenue for spatial filtering.
+
+**Resolution Logging**:
+Console logs distinguish resolution modes for debugging. Global mode logs "Found X matching NPCs (global search, no venue constraint)". Venue-scoped mode logs "Found X matching NPCs within venue 'The Brass Bell Inn'". Logging visibility critical for verifying spatial consistency during scene activation.
+
+#### Why Venue Scoping Matters
+
+**Spatial Consistency**: Scenes reference NPCs and locations physically present in same venue, maintaining fictional coherence. No NPC teleportation across venues.
+
+**Narrative Coherence**: Player at Brass Bell Inn interacts with Brass Bell Inn NPCs only. Situation dialogue references local context accurately.
+
+**Procedural Content**: Same scene template works in ANY venue by matching entities procedurally. "inn_lodging" template activates at ANY tavern venue, resolving to that venue's specific innkeeper and rooms.
+
+**Fail-Fast on Missing Entities**: If scene requires Innkeeper but venue has none, resolution returns no matches. Scene activation fails explicitly rather than silently teleporting NPC from elsewhere. Forces content authoring to ensure venues have required entity types.
+
+#### Global vs Venue-Scoped Usage
+
+**Global Resolution (CurrentVenue = null)**:
+- Parse-time static content loading (NPCs placed in authored JSON locations)
+- Initial world setup before gameplay begins
+- Content validation and entity initialization
+- Used by PackageLoader during game startup
+
+**Venue-Scoped Resolution (CurrentVenue provided)**:
+- Runtime scene activation (Deferred → Active transition)
+- Dynamic dependent resource spawning within scenes
+- Situation entity binding during activation
+- Used by LocationFacade.CheckAndActivateDeferredScenes
+
+**Critical Distinction**: Static content uses global resolution because entities authored with explicit venue assignments. Dynamic content uses venue-scoped resolution because scene activation location determines spatial context.
+
+#### Architecture Integration
+
+**HIGHLANDER Compliance**: One resolution pattern (FindOrCreate), two modes (global/venue-scoped), single CurrentVenue parameter controls behavior. No duplicate resolution logic.
+
+**Catalogue Pattern Integration**: Categorical filters (profession, demeanor, properties) work identically in both modes. Venue scoping adds spatial filter layer on top of categorical matching.
+
+**Two-Phase Spawning**: Phase 1 (Deferred creation) has NO venue context yet (scene not placed). Phase 2 (Activation) has venue context from player location, enabling venue-scoped resolution.
+
+**Fail-Fast Validation**: Missing entity resolution fails explicitly during activation. Stack trace points to exact filter that couldn't resolve. No silent fallbacks or default entities.
+
+#### Example: Inn Lodging Tutorial Scene
+
+**Scenario**: Player starts at "Common Room" in "The Brass Bell Inn" venue. Scene "a1_secure_lodging" spawns as Deferred at game start.
+
+**Phase 1 - Deferred Spawning** (Startup):
+```
+SceneInstantiator.CreateDeferredScene("a1_secure_lodging")
+  - Creates Scene entity (State = Deferred)
+  - Creates 3 Situations with null NPC/Location references
+  - NO entity resolution yet (no venue context)
+  - Scene stored in GameWorld.Scenes awaiting activation
+```
+
+**Phase 2 - Activation** (Player Movement):
+```
+Player clicks "Look Around" at Common Room
+LocationFacade.MoveToSpot(commonRoom)
+  ↓
+CheckAndActivateDeferredScenes(commonRoom)
+  ↓
+Create context with CurrentVenue = commonRoom.Venue
+  ("The Brass Bell Inn")
+  ↓
+SceneInstantiator.ResolveSceneEntityReferences(scene, context)
+  ↓
+Situation 1 NpcFilter: { Profession: Innkeeper }
+  ↓
+EntityResolver.FindOrCreateNPC(filter, "The Brass Bell Inn")
+  ↓
+Query: NPCs WHERE Venue == "The Brass Bell Inn"
+              AND Profession == Innkeeper
+  ↓
+Found: Elena (Brass Bell Inn innkeeper)
+  ↓
+Situation.Npc = Elena (venue-consistent binding)
+```
+
+**Result**: Situation references Elena specifically because she's the innkeeper AT the venue where player currently is. If player were at different tavern, resolution would bind that venue's innkeeper instead.
+
+#### Code References
+
+**Implementation Locations**:
+- EntityResolver.FindOrCreateLocation() - src/Content/EntityResolver.cs:101-127 (venue-scoped location search)
+- EntityResolver.FindOrCreateNPC() - src/Content/EntityResolver.cs:146-172 (venue-scoped NPC search)
+- SceneSpawnContext class - src/Content/DTOs/SceneSpawnContext.cs (CurrentVenue property)
+- LocationFacade.CheckAndActivateDeferredScenes() - src/Subsystems/Location/LocationFacade.cs:130-190 (activation trigger with venue context)
+
+**Related Patterns**:
+- See 8.2.8 (5-System Scene Spawning Architecture) for complete entity resolution flow
+- See 8.2.9 (Dynamic World Building) for categorical matching principles
+- See 8.4.3 (Scene Lifecycle States) for Deferred → Active transition details
+
+---
+
 ## 8.3 Design Principles
 
 ### 8.3.1 Principle Priority Hierarchy
