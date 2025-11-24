@@ -261,6 +261,24 @@ This document provides canonical definitions for all specialized terms used acro
 **Properties:** LocationProperties (Indoor, Private, Safe), LocationTags (lodging, secure), NpcPersonalityTypes (Innkeeper, Merchant), SelectionStrategy (Closest, LeastRecentlyUsed).
 **Key Principle:** NO concrete entity IDs. All requirements expressed categorically. Enables procedural content generation without hardcoded references.
 
+### PlacementProximity
+**Type:** Enum
+**Location:** src/GameState/Enums/PlacementProximity.cs
+**Definition:** Categorical spatial relationships defining placement constraints relative to reference location. Used by ProximityConstraint to constrain WHERE dependent locations spawn during procedural generation.
+**Values:** Anywhere (no spatial constraint), SameLocation (exact same hex as reference), AdjacentLocation (hex-adjacent to reference), SameVenue (within same 7-hex venue cluster), SameDistrict (within same district boundary), SameRegion (within same regional boundary).
+**Usage:** SceneInstantiator generates ProximityConstraint with proximity type, LocationPlacementService applies constraint during placement.
+**Related:** See ProximityConstraint, Scaffolding Pattern (8.2.11).
+
+### ProximityConstraint
+**Type:** Domain Class (Scaffolding)
+**Location:** src/GameState/ProximityConstraint.cs
+**Definition:** Categorical spatial constraint for placing dependent locations relative to reference location. Scaffolding property: stored temporarily during parsing, used during placement, then cleared. NOT persisted in game state.
+**Properties:** Proximity (PlacementProximity enum), ReferenceLocationKey (string resolving to reference location, typically "current" for player.CurrentLocation).
+**Data Flow:** SceneInstantiator generates ProximityConstraintDTO → LocationParser converts to ProximityConstraint → LocationPlacementService applies constraint → PackageLoader clears scaffolding property.
+**Purpose:** Ensures dependent locations maintain spatial coherence with activation context. Example: "Your room at this inn" spawns at THIS inn (SameVenue constraint), not different venue.
+**Distinction:** PlacementFilter determines WHAT to spawn (categorical entity properties), ProximityConstraint determines WHERE to spawn (spatial relationship to reference).
+**Related:** See PlacementProximity, Scaffolding Pattern (8.2.11).
+
 ---
 
 ## OVERLOADED TERMS (DISAMBIGUATE)

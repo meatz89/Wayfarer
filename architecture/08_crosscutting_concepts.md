@@ -1093,6 +1093,146 @@ Situation.Npc = Elena (venue-consistent binding)
 
 ---
 
+### 8.2.11 Scaffolding Pattern (Temporary Placement Metadata)
+
+**Core Principle**: Temporary metadata stored during parsing, used during placement, then cleared. NOT persisted in game state.
+
+#### What Is Scaffolding
+
+Scaffolding properties are temporary metadata attached to domain entities during parsing to guide procedural generation. After their purpose is served (placement, generation, initialization), scaffolding properties are cleared before gameplay begins.
+
+**Characteristics**:
+- Set by parser when JSON contains generation directives
+- Used by services during procedural placement/generation
+- Cleared by PackageLoader after use
+- Never persisted in save files
+- Purely procedural generation metadata
+
+#### Current Scaffolding Properties
+
+**Location.DistanceHintForPlacement** (string):
+- Source: LocationDTO.distanceFromPlayer JSON property
+- Values: "start", "near", "medium", "far", "distant"
+- Usage: LocationPlacementService translates to hex radius range
+- Cleared: PackageLoader.PlaceLocations() after placement complete
+
+**Location.ProximityConstraintForPlacement** (ProximityConstraint):
+- Source: LocationDTO.proximityConstraint JSON property
+- Usage: LocationPlacementService applies spatial constraint relative to reference location
+- Cleared: PackageLoader.PlaceLocations() after placement complete
+- Purpose: Ensures dependent locations spawn in correct spatial relationship
+
+#### ProximityConstraint System
+
+**Purpose**: Constrain WHERE dependent locations spawn relative to reference location (activation context).
+
+**PlacementProximity Enum Values**:
+- **Anywhere**: No spatial constraint (standard categorical placement)
+- **SameLocation**: Co-located at exact same hex as reference
+- **AdjacentLocation**: Hex-adjacent to reference (distance = 1)
+- **SameVenue**: Within same 7-hex venue cluster as reference
+- **SameDistrict**: Within same district boundary as reference
+- **SameRegion**: Within same regional boundary as reference
+
+**ProximityConstraint Class**:
+```csharp
+public class ProximityConstraint
+{
+    public PlacementProximity Proximity { get; set; } = PlacementProximity.Anywhere;
+    public string ReferenceLocationKey { get; set; } = "current";
+}
+```
+
+**Reference Location Resolution**:
+- "current" key resolves to player.CurrentLocation
+- Extensible for future keys ("origin", "destination", etc.)
+- Fail-fast: throws if key unknown or reference location invalid
+
+#### Data Flow
+
+**Phase 1: Scene Activation**
+- SceneInstantiator generates dependent LocationDTO with ProximityConstraintDTO
+- DTO specifies proximity type ("SameVenue") and reference key ("current")
+- JSON package contains categorical spatial constraint
+
+**Phase 2: Parsing**
+- LocationParser converts ProximityConstraintDTO to ProximityConstraint domain object
+- Parser validates proximity enum value (fail-fast on invalid)
+- Stores ProximityConstraint on Location.ProximityConstraintForPlacement property
+
+**Phase 3: Placement**
+- LocationPlacementService checks ProximityConstraint BEFORE standard categorical placement
+- If ProximityConstraint exists, resolve reference location from key
+- Apply proximity constraint (SameVenue, AdjacentLocation, etc.)
+- ProximityConstraint takes ABSOLUTE PRIORITY over standard placement
+
+**Phase 4: Cleanup**
+- PackageLoader clears ProximityConstraintForPlacement after placement complete
+- Property set to null, no longer needed
+- Never persisted in game state
+
+#### Placement Priority
+
+LocationPlacementService applies placement logic in priority order:
+1. **ProximityConstraint** (if present) - Categorical spatial constraint relative to reference
+2. **Standard Categorical Placement** (if no constraint) - Purpose → VenueType matching with distance hint
+
+ProximityConstraint takes absolute priority when present. This ensures dependent locations maintain spatial coherence with activation context.
+
+#### Example: Dependent Private Room
+
+**Scenario**: Scene "Secure Lodging" spawns Private Room as dependent location
+
+**JSON Generation** (SceneInstantiator):
+```json
+{
+  "name": "Elena's Private Room",
+  "proximityConstraint": {
+    "proximity": "SameVenue",
+    "referenceLocation": "current"
+  }
+}
+```
+
+**Parsing** (LocationParser):
+- Creates Location entity
+- Sets ProximityConstraintForPlacement with Proximity=SameVenue, ReferenceLocationKey="current"
+
+**Placement** (LocationPlacementService):
+- Resolves "current" to player.CurrentLocation (The Brass Bell Inn, Common Room)
+- Gets venue from reference location (The Brass Bell Inn)
+- Places Private Room in SameVenue as reference
+- Ensures verisimilitude: "your room at this inn" spawns at THIS inn, not different venue
+
+**Cleanup** (PackageLoader):
+- After placement, clears ProximityConstraintForPlacement = null
+- Property never persisted, only used during procedural generation
+
+#### Architectural Benefits
+
+**Verisimilitude**: "Your room at this inn" spawns at THIS inn through SameVenue constraint, maintaining narrative coherence.
+
+**Scaffolding Pattern Compliance**: Placement metadata never persists in game state, only used during procedural generation.
+
+**Flexibility**: Reference location resolution extensible to support various keys ("current", "origin", "destination").
+
+**Fail-Fast**: Invalid proximity or missing reference location throws immediately, preventing silent bugs.
+
+**Categorical Throughout**: ProximityConstraint works alongside PlacementFilter system - filter determines WHAT to spawn, constraint determines WHERE to spawn.
+
+#### Implementation Locations
+
+- PlacementProximity enum: src/GameState/Enums/PlacementProximity.cs
+- ProximityConstraint class: src/GameState/ProximityConstraint.cs
+- Location scaffolding property: src/Content/Location.cs:ProximityConstraintForPlacement
+- LocationDTO support: src/Content/DTOs/LocationDTO.cs:ProximityConstraintDTO
+- Parser conversion: src/Content/LocationParser.cs:ConvertDTOToLocation
+- SceneInstantiator generation: src/Content/SceneInstantiator.cs:BuildLocationDTO
+- Placement application: src/Services/LocationPlacementService.cs:PlaceLocationWithProximityConstraint
+- Scaffolding cleanup: src/Content/PackageLoader.cs:PlaceLocations
+
+---
+
 ## 8.3 Design Principles
 
 ### 8.3.1 Principle Priority Hierarchy

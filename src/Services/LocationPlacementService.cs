@@ -31,17 +31,30 @@ public class LocationPlacementService
         if (player == null)
             throw new ArgumentNullException(nameof(player));
 
-        Console.WriteLine($"[LocationPlacement] === PHASE 1: Distance Translation ===");
+        Console.WriteLine($"[LocationPlacement] === UNIFIED PLACEMENT ALGORITHM ===");
         Console.WriteLine($"[LocationPlacement] Placing location '{location.Name}' (Purpose: {location.Purpose}) with distance hint '{distanceHint}'");
+
+        if (location.ProximityConstraintForPlacement != null)
+        {
+            Console.WriteLine($"[LocationPlacement] ProximityConstraint: {location.ProximityConstraintForPlacement.Proximity} relative to '{location.ProximityConstraintForPlacement.ReferenceLocationKey}'");
+        }
+
+        // PHASE 0: Determine venue search space (ALL venues OR constraint-filtered)
+        Console.WriteLine($"[LocationPlacement] === PHASE 0: Venue Search Space Determination ===");
+        List<Venue> venueSearchSpace = DetermineVenueSearchSpace(location, player);
+        Console.WriteLine($"[LocationPlacement] Venue search space: {venueSearchSpace.Count} venues");
+
+        // PHASE 1: Categorical distance translation
+        Console.WriteLine($"[LocationPlacement] === PHASE 1: Distance Translation ===");
 
         // PHASE 1: Categorical distance translation
         DistanceRange distanceRange = TranslateDistanceHint(distanceHint);
         Console.WriteLine($"[LocationPlacement] Distance range: {distanceRange.MinRadius}-{distanceRange.MaxRadius} hexes from player at ({player.CurrentPosition.Q}, {player.CurrentPosition.R})");
 
-        // PHASE 2: Venue matching via categorical properties
+        // PHASE 2: Venue matching via categorical properties (WITHIN search space)
         Console.WriteLine($"[LocationPlacement] === PHASE 2: Venue Matching ===");
-        List<Venue> matchingVenues = FindMatchingVenues(location);
-        Console.WriteLine($"[LocationPlacement] Found {matchingVenues.Count} venues matching Purpose={location.Purpose}");
+        List<Venue> matchingVenues = FindMatchingVenues(location, venueSearchSpace);
+        Console.WriteLine($"[LocationPlacement] Found {matchingVenues.Count} venues matching Purpose={location.Purpose} within search space");
 
         if (matchingVenues.Count == 0)
         {
@@ -91,10 +104,58 @@ public class LocationPlacementService
         Console.WriteLine($"[LocationPlacement] Selected venue: '{selectedVenue.Name}' (Type: {selectedVenue.Type}, Locations: {selectedVenueCount}/{selectedVenue.MaxLocations})");
 
         // PHASE 7: Hex assignment within venue (atomic venue + hex assignment)
+        // Hex-level constraints (SameLocation, AdjacentLocation) handled inside PlaceLocationsInVenue
         Console.WriteLine($"[LocationPlacement] === PHASE 7: Hex Assignment ===");
-        PlaceLocationsInVenue(selectedVenue, new List<Location> { location });
+        PlaceLocationsInVenue(selectedVenue, new List<Location> { location }, player);
 
         Console.WriteLine($"[LocationPlacement] SUCCESS: Placed '{location.Name}' at ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}) in venue '{selectedVenue.Name}'");
+    }
+
+    /// <summary>
+    /// PHASE 0: Determine venue search space based on ProximityConstraint.
+    /// ProximityConstraint filters venues BEFORE Purpose matching.
+    /// This is the HIGHLANDER integration: constraint is a filter, not a separate algorithm.
+    /// </summary>
+    private List<Venue> DetermineVenueSearchSpace(Location location, Player player)
+    {
+        ProximityConstraint constraint = location.ProximityConstraintForPlacement;
+
+        // No constraint: search ALL venues (standard categorical placement)
+        if (constraint == null || constraint.Proximity == PlacementProximity.Anywhere)
+        {
+            Console.WriteLine($"[LocationPlacement] No proximity constraint - searching all {_gameWorld.Venues.Count} venues");
+            return _gameWorld.Venues.ToList();
+        }
+
+        // Resolve reference location from constraint key
+        Location referenceLocation = ResolveReferenceLocation(constraint.ReferenceLocationKey, player, location.Name);
+        Console.WriteLine($"[LocationPlacement] Reference location: '{referenceLocation.Name}' at venue '{referenceLocation.Venue?.Name}'");
+
+        // Filter venues based on proximity type
+        List<Venue> searchSpace = constraint.Proximity switch
+        {
+            PlacementProximity.SameVenue => new List<Venue> { referenceLocation.Venue },
+
+            PlacementProximity.SameDistrict => _gameWorld.Venues
+                .Where(v => v.District == referenceLocation.Venue?.District)
+                .ToList(),
+
+            PlacementProximity.SameRegion => _gameWorld.Venues
+                .Where(v => v.District?.Region == referenceLocation.Venue?.District?.Region)
+                .ToList(),
+
+            // SameLocation and AdjacentLocation are hex-level constraints
+            // They don't filter venues, they filter hexes (handled in Phase 7)
+            // For now, return the reference venue as search space
+            PlacementProximity.SameLocation => new List<Venue> { referenceLocation.Venue },
+            PlacementProximity.AdjacentLocation => new List<Venue> { referenceLocation.Venue },
+
+            _ => throw new InvalidOperationException(
+                $"Unknown PlacementProximity value '{constraint.Proximity}' for location '{location.Name}'")
+        };
+
+        Console.WriteLine($"[LocationPlacement] Proximity '{constraint.Proximity}' narrowed search space to {searchSpace.Count} venues");
+        return searchSpace;
     }
 
     /// <summary>
@@ -118,17 +179,18 @@ public class LocationPlacementService
 
     /// <summary>
     /// PHASE 2: Find all venues matching location's Purpose via compatibility table.
+    /// HIGHLANDER INTEGRATION: Searches WITHIN venueSearchSpace (filtered by ProximityConstraint).
     /// Uses VenuePurposeCompatibility static lookup for semantic bridge.
     /// Many-to-many mapping: One purpose → Multiple venue types.
     /// Example: Commerce purpose matches Market, Merchant, Workshop venues.
     /// </summary>
-    private List<Venue> FindMatchingVenues(Location location)
+    private List<Venue> FindMatchingVenues(Location location, List<Venue> venueSearchSpace)
     {
         // Get compatible venue types from lookup table
         List<VenueType> compatibleTypes = VenuePurposeCompatibility.GetCompatibleTypes(location.Purpose);
 
-        // Filter venues by compatibility
-        List<Venue> matching = _gameWorld.Venues
+        // Filter venues by compatibility WITHIN search space (not all venues)
+        List<Venue> matching = venueSearchSpace
             .Where(venue => compatibleTypes.Contains(venue.Type))
             .ToList();
 
@@ -232,7 +294,7 @@ public class LocationPlacementService
     /// Subsequent locations: Adjacent to previous location
     /// Validates venue capacity, hex availability, venue separation.
     /// </summary>
-    public void PlaceLocationsInVenue(Venue venue, List<Location> locations)
+    public void PlaceLocationsInVenue(Venue venue, List<Location> locations, Player player = null)
     {
         if (venue == null)
             throw new ArgumentNullException(nameof(venue));
@@ -253,26 +315,63 @@ public class LocationPlacementService
 
         foreach (Location location in locations)
         {
-            if (previousLocation == null)
-            {
-                // First location: Place at venue center
-                location.HexPosition = venue.CenterHex;
-                Console.WriteLine($"[LocationPlacement] Placed '{location.Name}' at venue center ({venue.CenterHex.Q}, {venue.CenterHex.R})");
-            }
-            else
-            {
-                // Subsequent locations: Find adjacent hex
-                AxialCoordinates? adjacentHex = FindAdjacentHex(previousLocation, venue);
+            // HIGHLANDER INTEGRATION: Check hex-level constraints (SameLocation, AdjacentLocation)
+            ProximityConstraint constraint = location.ProximityConstraintForPlacement;
+            bool hexConstraintApplied = false;
 
-                if (!adjacentHex.HasValue)
+            if (constraint != null && player != null)
+            {
+                if (constraint.Proximity == PlacementProximity.SameLocation)
                 {
-                    throw new InvalidOperationException(
-                        $"Could not find adjacent hex for location '{location.Name}' in venue '{venue.Name}'. " +
-                        $"Venue may have reached spatial density limit.");
+                    // Place at EXACT same hex as reference location
+                    Location referenceLocation = ResolveReferenceLocation(constraint.ReferenceLocationKey, player, location.Name);
+                    location.HexPosition = referenceLocation.HexPosition.Value;
+                    Console.WriteLine($"[LocationPlacement] Placed '{location.Name}' at SameLocation ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}) as '{referenceLocation.Name}'");
+                    hexConstraintApplied = true;
                 }
+                else if (constraint.Proximity == PlacementProximity.AdjacentLocation)
+                {
+                    // Place at hex ADJACENT to reference location
+                    Location referenceLocation = ResolveReferenceLocation(constraint.ReferenceLocationKey, player, location.Name);
+                    AxialCoordinates? adjacentHex = FindAdjacentHex(referenceLocation, venue);
 
-                location.HexPosition = adjacentHex.Value;
-                Console.WriteLine($"[LocationPlacement] Placed '{location.Name}' at ({adjacentHex.Value.Q}, {adjacentHex.Value.R}) adjacent to '{previousLocation.Name}'");
+                    if (!adjacentHex.HasValue)
+                    {
+                        throw new InvalidOperationException(
+                            $"Cannot place location '{location.Name}' AdjacentTo '{referenceLocation.Name}': " +
+                            $"No available adjacent hexes. Venue '{venue.Name}' may have reached spatial density limit.");
+                    }
+
+                    location.HexPosition = adjacentHex.Value;
+                    Console.WriteLine($"[LocationPlacement] Placed '{location.Name}' at ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}) adjacent to '{referenceLocation.Name}'");
+                    hexConstraintApplied = true;
+                }
+            }
+
+            // Standard hex assignment (if no hex-level constraint applied)
+            if (!hexConstraintApplied)
+            {
+                if (previousLocation == null)
+                {
+                    // First location: Place at venue center
+                    location.HexPosition = venue.CenterHex;
+                    Console.WriteLine($"[LocationPlacement] Placed '{location.Name}' at venue center ({venue.CenterHex.Q}, {venue.CenterHex.R})");
+                }
+                else
+                {
+                    // Subsequent locations: Find adjacent hex
+                    AxialCoordinates? adjacentHex = FindAdjacentHex(previousLocation, venue);
+
+                    if (!adjacentHex.HasValue)
+                    {
+                        throw new InvalidOperationException(
+                            $"Could not find adjacent hex for location '{location.Name}' in venue '{venue.Name}'. " +
+                            $"Venue may have reached spatial density limit.");
+                    }
+
+                    location.HexPosition = adjacentHex.Value;
+                    Console.WriteLine($"[LocationPlacement] Placed '{location.Name}' at ({adjacentHex.Value.Q}, {adjacentHex.Value.R}) adjacent to '{previousLocation.Name}'");
+                }
             }
 
             // ATOMIC ASSIGNMENT: Set venue simultaneously with hex position
@@ -361,5 +460,31 @@ public class LocationPlacementService
         }
 
         return false; // No adjacent venues found
+    }
+
+    /// <summary>
+    /// Resolve reference location key to actual Location object.
+    /// FAIL-FAST: Throws exception if key is unknown or reference location invalid.
+    /// </summary>
+    private Location ResolveReferenceLocation(string key, Player player, string locationName)
+    {
+        if (key == "current")
+        {
+            Location current = _gameWorld.GetPlayerCurrentLocation();
+
+            if (current == null)
+            {
+                throw new InvalidOperationException(
+                    $"Cannot resolve reference location key 'current' for location '{locationName}': " +
+                    $"Player current location is null. Ensure player has valid current position before placing dependent locations.");
+            }
+
+            return current;
+        }
+
+        // Unknown reference location key
+        throw new InvalidOperationException(
+            $"Unknown reference location key '{key}' for location '{locationName}'. " +
+            $"Valid keys: 'current'. Add new key resolution logic or fix JSON data.");
     }
 }

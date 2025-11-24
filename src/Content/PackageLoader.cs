@@ -1932,19 +1932,17 @@ public class PackageLoader
 
             // Place location using pure procedural algorithm
             _locationPlacementService.PlaceLocation(location, distanceHint, player);
-
-            // Log venue assignment for debugging intra-venue movement actions
-            Console.WriteLine($"[PlaceLocation] '{location.Name}' assigned to venue '{location.Venue?.Name ?? "NULL"}' at hex {location.HexPosition?.ToString() ?? "NULL"}");
         }
 
         Console.WriteLine($"[LocationPlacement] Completed PURE PROCEDURAL placement for {orderedLocations.Count} locations");
 
-        // SCAFFOLDING CLEANUP: Clear temporary placement hints (no longer needed after placement)
+        // SCAFFOLDING CLEANUP: Clear temporary placement metadata (no longer needed after placement)
         foreach (Location location in orderedLocations)
         {
             location.DistanceHintForPlacement = null;
+            location.ProximityConstraintForPlacement = null;
         }
-        Console.WriteLine("[LocationPlacement] Cleared temporary distance hints from all locations");
+        Console.WriteLine("[LocationPlacement] Cleared temporary placement metadata (distance hints + proximity constraints) from all locations");
     }
 
     /// <summary>

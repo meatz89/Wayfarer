@@ -148,11 +148,7 @@ public static class LocationActionCatalog
             return actions;
         }
 
-        // LOG: Source location details for debugging intra-venue movement
-        Console.WriteLine($"[IntraVenueMovement] Source: '{location.Name}' (Venue: '{location.Venue?.Name ?? "NULL"}', Hex: {location.HexPosition})");
-
         // Find ADJACENT locations in the same venue (7-hex cluster pattern)
-        // LOG: Evaluate each potential candidate to trace filter logic
         List<Location> adjacentSameVenueLocations = new List<Location>();
         foreach (Location candidate in allLocations)
         {
@@ -161,9 +157,6 @@ public static class LocationActionCatalog
             bool venueMatch = candidate.Venue == location.Venue;
             bool hasHex = candidate.HexPosition.HasValue;
             bool adjacent = hasHex && AreHexesAdjacent(location.HexPosition.Value, candidate.HexPosition.Value);
-            int distance = hasHex ? CalculateHexDistance(location.HexPosition.Value, candidate.HexPosition.Value) : -1;
-
-            Console.WriteLine($"  Candidate: '{candidate.Name}' (Venue: '{candidate.Venue?.Name ?? "NULL"}', VenueMatch: {venueMatch}, Hex: {candidate.HexPosition?.ToString() ?? "NULL"}, Adjacent: {adjacent}, Distance: {distance})");
 
             // Apply filter: same venue AND has hex AND adjacent
             if (venueMatch && hasHex && adjacent)
@@ -194,8 +187,6 @@ public static class LocationActionCatalog
                 Availability = new List<TimeBlocks>(),  // Always available at all times
                 Priority = 90  // High priority, but below cross-venue Travel button
             });
-
-            Console.WriteLine($"[IntraVenueMovement] ✅ Generated action: 'Move to {destination.Name}' from '{location.Name}'");
         }
 
         return actions;
