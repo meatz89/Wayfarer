@@ -16,11 +16,12 @@
         "presentationMode": "Modal",
         "tier": 0,
         "isStarter": false,
-        "baseLocationFilter": {
+        "locationActivationFilter": {
           "placementType": "Location",
-          "capabilities": ["Commercial", "Restful"]
+          "purposes": ["Commerce"],
+          "safetyLevels": ["Safe"]
         },
-        "baseNpcFilter": {
+        "npcActivationFilter": {
           "placementType": "NPC",
           "professions": ["Innkeeper"]
         }
@@ -32,10 +33,10 @@
         "presentationMode": "Modal",
         "tier": 0,
         "isStarter": false,
-        "baseLocationFilter": {
+        "locationActivationFilter": {
           "placementType": "Location",
           "privacyLevels": ["Public"],
-          "capabilities": ["Outdoor"]
+          "activityLevels": ["Moderate"]
         }
       }
     ]

@@ -176,7 +176,7 @@ public class ProceduralAStoryService
             Archetype = "Linear", // A-story scenes are linear progression
             DisplayNameTemplate = $"The Path Deepens (A{sequence})", // AI will generate better title
             SceneArchetypeId = archetypeId, // Routes to AStorySceneArchetypeCatalog
-            BaseLocationFilter = placementFilter, // HIERARCHICAL PLACEMENT: Use BaseLocationFilter for scene-level base
+            LocationActivationFilter = placementFilter, // A-story activates when player enters matching location
             SpawnConditions = spawnConditions,
             Tier = tier,
             Category = "MainStory",

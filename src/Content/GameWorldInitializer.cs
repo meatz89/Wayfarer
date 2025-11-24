@@ -80,11 +80,9 @@ public static class GameWorldInitializer
         Console.WriteLine($"[Init] Found {starterTemplates.Count} starter templates (will be spawned by GameFacade.StartGameAsync)");
         foreach (SceneTemplate t in starterTemplates)
         {
-            // HIERARCHICAL PLACEMENT: Scenes have BaseLocationFilter/BaseNpcFilter/BaseRouteFilter (not single PlacementFilter)
-            string baseFilterType = t.BaseLocationFilter != null ? "Location" :
-                                   t.BaseNpcFilter != null ? "NPC" :
-                                   t.BaseRouteFilter != null ? "Route" : "None";
-            Console.WriteLine($"  - {t.Id} (BaseFilter: {baseFilterType})");
+            string activationTrigger = t.LocationActivationFilter != null ? "Location" :
+                                      t.NpcActivationFilter != null ? "NPC" : "None";
+            Console.WriteLine($"  - {t.Id} (Activation: {activationTrigger})");
         }
     }
 

@@ -416,12 +416,6 @@ public class LocationFacade
     }
 
     /// <summary>
-    /// TWO-PHASE SPAWNING - PHASE 2: Check for deferred scenes at location and activate them
-    /// Triggers dependent resource spawning (locations, items)
-    /// Transitions Scene.State: Deferred → Active
-    /// HIERARCHICAL PLACEMENT: Checks Scene.CurrentSituation.Location (situation owns placement)
-    /// </summary>
-    /// <summary>
     /// TWO-PHASE SPAWNING - PHASE 2: Check for deferred scenes with location activation triggers
     /// Evaluates LocationActivationFilter using categorical matching (BEFORE entity resolution)
     /// Triggers dependent resource spawning and entity resolution
@@ -480,35 +474,40 @@ public class LocationFacade
 
     /// <summary>
     /// Check if location matches activation filter using categorical properties
-    /// Does NOT resolve entities - pure categorical matching
+    /// Uses intentionally named enum properties: Privacy, Safety, Activity, Purpose
+    /// Does NOT resolve entities - pure categorical matching (BEFORE entity resolution)
     /// </summary>
     private bool LocationMatchesActivationFilter(Location location, PlacementFilter filter, Player player)
     {
-        // Check location capabilities (if specified)
-        if (filter.RequiredCapabilities != LocationCapability.None)
+        // Check Privacy (if specified)
+        if (filter.PrivacyLevels != null && filter.PrivacyLevels.Count > 0)
         {
-            if ((location.Capabilities & filter.RequiredCapabilities) != filter.RequiredCapabilities)
+            if (!filter.PrivacyLevels.Contains(location.Privacy))
                 return false;
         }
 
-        // Check district (if specified)
-        if (!string.IsNullOrEmpty(filter.DistrictId))
+        // Check Safety (if specified)
+        if (filter.SafetyLevels != null && filter.SafetyLevels.Count > 0)
         {
-            if (location.Venue == null || location.Venue.District == null ||
-                location.Venue.District.Name != filter.DistrictId)
+            if (!filter.SafetyLevels.Contains(location.Safety))
                 return false;
         }
 
-        // Check location tags (if specified)
-        if (filter.LocationTags != null && filter.LocationTags.Count > 0)
+        // Check Activity (if specified)
+        if (filter.ActivityLevels != null && filter.ActivityLevels.Count > 0)
         {
-            if (!filter.LocationTags.All(tag => location.DomainTags.Contains(tag)))
+            if (!filter.ActivityLevels.Contains(location.Activity))
                 return false;
         }
 
-        // TODO: Add player state filters if needed (copy from SceneInstantiator.CheckPlayerStateFilters)
+        // Check Purpose (if specified)
+        if (filter.Purposes != null && filter.Purposes.Count > 0)
+        {
+            if (!filter.Purposes.Contains(location.Purpose))
+                return false;
+        }
 
-        return true; // All checks passed
+        return true; // All categorical checks passed
     }
 
     /// <summary>

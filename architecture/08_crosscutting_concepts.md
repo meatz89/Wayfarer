@@ -1174,20 +1174,28 @@ When principles conflict, resolve via three-tier priority:
 
 **See**: ADR-001 in section 9 (Infinite A-Story), QS-001 in section 10
 
-### 8.4.3 Scene Lifecycle States (Two-Phase Spawning)
+### 8.4.3 Scene Lifecycle States (Two-Phase Spawning with Activation Filters)
 
 **States**: Deferred → Active → Completed/Expired
 
-- **Deferred**: Scene and Situations created, dependent resources NOT spawned yet (lightweight initialization)
-- **Active**: Dependent resources spawned (locations placed, npcs created), scene fully playable
+- **Deferred**: Scene and Situations created, dependent resources NOT spawned yet, entity references null (lightweight initialization)
+- **Active**: Activation triggered, dependent resources spawned, entity references resolved, scene fully playable
 - **Completed**: All situations finished, rewards applied
 - **Expired**: ExpirationDays reached, scene removed
 
 **Two-Phase Pattern**:
-- **Phase 1 (Deferred)**: SceneInstantiator.CreateDeferredScene() generates Scene + Situations. NO dependent locations. PackageLoader creates entities with State=Deferred.
-- **Phase 2 (Active)**: LocationFacade.CheckAndActivateDeferredScenes() triggers when player enters location. SceneInstantiator.ActivateScene() generates dependent resources. PlaceLocations() places new locations via package-round tracking. State transitions to Active.
+- **Phase 1 (Spawn Deferred)**: SceneInstantiator.CreateDeferredScene() generates Scene + Situations with NO dependent resources. Scene contains LocationActivationFilter/NpcActivationFilter (categorical trigger conditions). PackageLoader creates entities with State=Deferred.
+- **Phase 2 (Activate)**: LocationFacade.CheckAndActivateDeferredScenes() matches player's current location against Scene.LocationActivationFilter using categorical properties (Privacy, Safety, Activity, Purpose). When match found, SceneInstantiator.ActivateScene() generates dependent resources, resolves entity references, transitions State to Active.
 
-**Transitions**: CreateDeferred → Activate (player enters location) → Progress → Complete/Expire
+**Key Architectural Pattern - Activation vs Placement**:
+- **Scene.LocationActivationFilter/NpcActivationFilter**: Determines WHEN scene activates (Deferred → Active transition). Evaluated BEFORE entity resolution using categorical matching. Checked repeatedly until activation occurs.
+- **Situation.LocationFilter/NpcFilter/RouteFilter**: Determines WHERE/WHO situation happens. Resolved ONCE during activation using EntityResolver. Each situation MUST have explicit filters (NO inheritance, NO fallback).
+
+**NO CSS-Style Inheritance**: Each Situation MUST specify explicit LocationFilter/NpcFilter in its template. No fallback to scene-level base filters. No inheritance pattern. Explicit filters required per situation.
+
+**Categorical Enum Matching**: Activation filters use intentionally named enum properties (Privacy, Safety, Activity, Purpose), NOT generic tags or capabilities. Strong typing, compile-time verification, semantic clarity.
+
+**Transitions**: CreateDeferred → WaitForTrigger → Activate (player context matches filter) → Progress → Complete/Expire
 
 **See**: Section 6.2 for detailed flow
 

@@ -48,20 +48,22 @@ This document provides canonical definitions for all specialized terms used acro
 ### SceneTemplate
 **Type:** Template (immutable)
 **Owner:** GameWorld.SceneTemplates
-**Definition:** Immutable archetype defining Scene structure. Contains embedded SituationTemplates, PlacementFilter (categorical entity selection), SpawnConditions (player/world/entity state requirements).
+**Definition:** Immutable archetype defining Scene structure. Contains embedded SituationTemplates, LocationActivationFilter/NpcActivationFilter (categorical triggers for Deferred → Active transition), SpawnConditions (player/world/entity state requirements).
 **Lifecycle:** Loaded at parse-time from JSON. Never modified at runtime. Spawns Scene instances via SceneInstantiator.
-**Key Properties:** Id, Archetype (SpawnPattern enum), PlacementFilter, SpawnConditions, SituationTemplates (embedded list), Tier (0-4), ExpirationDays.
+**Key Properties:** Id, Archetype (SpawnPattern enum), LocationActivationFilter (WHEN scene activates - categorical matching with Privacy/Safety/Activity/Purpose enums), NpcActivationFilter (NPC-triggered activation), SpawnConditions, SituationTemplates (embedded list with explicit filters per situation), Tier (0-4), ExpirationDays.
+**Activation vs Placement:** LocationActivationFilter determines WHEN scene activates (checked repeatedly until trigger). Each SituationTemplate has explicit LocationFilter/NpcFilter determining WHERE/WHO (resolved once during activation). NO CSS-style inheritance, NO base filters.
 
 ### Scene
 **Type:** Runtime Entity (mutable)
 **Owner:** GameWorld.Scenes
-**Definition:** Persistent narrative container spawned from SceneTemplate. Contains embedded Situations, tracks CurrentSituation, manages state machine (Deferred/Active/Completed/Expired). Scenes spawn in two phases: deferred creation during initialization, active spawning when player enters location.
+**Definition:** Persistent narrative container spawned from SceneTemplate. Contains LocationActivationFilter/NpcActivationFilter (copied from template at spawn), embedded Situations (with explicit placement filters), tracks CurrentSituation, manages state machine (Deferred/Active/Completed/Expired). Two-phase spawning: Phase 1 creates deferred scene, Phase 2 activates when player context matches activation filter.
 **Lifecycle States:**
-- **Deferred:** Scene and Situations created, dependent resources NOT spawned yet. Lightweight initialization without location/npc generation. Transitions to Active when player enters the scene's location.
-- **Active:** Scene fully activated with dependent resources spawned. Situations instantiated, CurrentSituation set, all locations placed via PlaceLocations() using package-round tracking.
+- **Deferred:** Scene and Situations created with activation filters, dependent resources NOT spawned yet, entity references null. LocationFacade checks LocationActivationFilter repeatedly until player context matches (categorical enum matching: Privacy, Safety, Activity, Purpose).
+- **Active:** Activation triggered, dependent resources spawned, entity references resolved via EntityResolver, scene fully playable. Situations have explicit LocationFilter/NpcFilter resolved once during activation.
 - **Completed:** All Situations finished. Scene persists but filtered from active queries.
 - **Expired:** ExpiresOnDay reached. Scene persists but filtered from queries.
-**Key Properties:** Id, TemplateId, PlacementType, PlacementId, Situations (embedded list), CurrentSituation (object reference), State (SceneState enum).
+**Key Properties:** LocationActivationFilter (WHEN scene activates), NpcActivationFilter (NPC-triggered activation), Situations (embedded list with explicit placement filters), CurrentSituation (object reference), State (SceneState enum).
+**Activation Architecture:** NO CSS-style inheritance, NO base filters. Each Situation MUST specify explicit LocationFilter/NpcFilter in its template. Activation filters (scene-level) separate from placement filters (situation-level).
 **Historical Note:** Replaces Goal/Obstacle architecture. Earlier docs may reference "Goals" - these are Scenes in current architecture.
 
 ### SituationTemplate

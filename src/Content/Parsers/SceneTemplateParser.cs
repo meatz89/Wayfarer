@@ -124,10 +124,10 @@ public class SceneTemplateParser
             Archetype = archetype,
             SceneArchetypeId = dto.SceneArchetypeId,
             DisplayNameTemplate = dto.DisplayNameTemplate,
-            // Hierarchical placement: Parse three separate base filters for CSS-style inheritance
-            BaseLocationFilter = ParsePlacementFilter(dto.BaseLocationFilter, dto.Id, _gameWorld),
-            BaseNpcFilter = ParsePlacementFilter(dto.BaseNpcFilter, dto.Id, _gameWorld),
-            BaseRouteFilter = ParsePlacementFilter(dto.BaseRouteFilter, dto.Id, _gameWorld),
+            // Activation filters: Parse triggers for scene activation (Deferred → Active)
+            // Separate from situation placement filters (each situation has explicit filters)
+            LocationActivationFilter = ParsePlacementFilter(dto.LocationActivationFilter, dto.Id, _gameWorld),
+            NpcActivationFilter = ParsePlacementFilter(dto.NpcActivationFilter, dto.Id, _gameWorld),
             SpawnConditions = SpawnConditionsParser.ParseSpawnConditions(dto.SpawnConditions),
             SituationTemplates = situationTemplates,
             SpawnRules = spawnRules,

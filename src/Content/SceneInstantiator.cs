@@ -274,17 +274,16 @@ public class SceneInstantiator
         }
 
         // System 3: Write categorical specifications (NOT concrete IDs)
-        // Hierarchical placement: Convert three separate base filters from template
-        // These will serve as CSS-style base filters for all situations in the scene
+        // Copy activation filters from template to scene instance
+        // These determine WHEN scene activates (Deferred → Active transition)
 
         SceneDTO dto = new SceneDTO
         {
             Id = sceneId,
             TemplateId = template.Id,
-            // Hierarchical placement base filters (CSS-style inheritance)
-            LocationFilter = ConvertPlacementFilterToDTO(template.BaseLocationFilter),
-            NpcFilter = ConvertPlacementFilterToDTO(template.BaseNpcFilter),
-            RouteFilter = ConvertPlacementFilterToDTO(template.BaseRouteFilter),
+            // Activation filters: Copied from template, determine activation trigger
+            LocationActivationFilter = ConvertPlacementFilterToDTO(template.LocationActivationFilter),
+            NpcActivationFilter = ConvertPlacementFilterToDTO(template.NpcActivationFilter),
             State = isDeferredState ? "Deferred" : "Active", // TWO-PHASE: Deferred or Active based on caller
             ExpiresOnDay = expiresOnDay,
             Archetype = template.Archetype.ToString(),
@@ -332,15 +331,11 @@ public class SceneInstantiator
                 .FirstOrDefault(c => c.PathType == ChoicePathType.Challenge)
                 ?.DeckId ?? string.Empty;
 
-            // CSS-style hierarchical placement inheritance
-            // Pattern: effectiveFilter = situationFilter ?? sceneBaseFilter
-            // Situation template filters override scene base filters
-            PlacementFilterDTO effectiveLocationFilter = ConvertPlacementFilterToDTO(sitTemplate.LocationFilter)
-                ?? sceneDto.LocationFilter;
-            PlacementFilterDTO effectiveNpcFilter = ConvertPlacementFilterToDTO(sitTemplate.NpcFilter)
-                ?? sceneDto.NpcFilter;
-            PlacementFilterDTO effectiveRouteFilter = ConvertPlacementFilterToDTO(sitTemplate.RouteFilter)
-                ?? sceneDto.RouteFilter;
+            // Explicit placement filters (NO CSS-style inheritance)
+            // Each situation MUST specify explicit filters in its template
+            PlacementFilterDTO effectiveLocationFilter = ConvertPlacementFilterToDTO(sitTemplate.LocationFilter);
+            PlacementFilterDTO effectiveNpcFilter = ConvertPlacementFilterToDTO(sitTemplate.NpcFilter);
+            PlacementFilterDTO effectiveRouteFilter = ConvertPlacementFilterToDTO(sitTemplate.RouteFilter);
 
             // Replace DEPENDENT_LOCATION markers with scene-specific tags
             // Marker format: "DEPENDENT_LOCATION:private_room" → "{sceneId}_private_room"
