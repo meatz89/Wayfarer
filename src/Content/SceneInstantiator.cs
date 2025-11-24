@@ -1211,7 +1211,6 @@ public class SceneInstantiator
             Description = locationDescription,
             DistanceFromPlayer = "near", // Generated locations default to "near" - placement algorithm will select appropriate venue
             Type = "Room", // Default type for generated locations
-            InitialState = spec.IsLockedInitially ? "Locked" : "Available",
             CanInvestigate = spec.CanInvestigate,
             CanWork = false, // Generated locations don't support work by default,
             WorkType = "",
@@ -1225,9 +1224,8 @@ public class SceneInstantiator
             Activity = spec.Activity,
             Purpose = spec.Purpose,
             // FAIL-FAST: ALL gameplay properties REQUIRED (no defaults allowed)
-            LocationType = "Room", // Generated locations are typically rooms
+            LocationType = "Inn", // Generated locations are typically indoor private spaces
             ObligationProfile = "Research", // Default profile for generated locations
-            CurrentTimeBlocks = new List<string> { "Morning", "Midday", "Afternoon", "Evening" }, // Available all day
             IsStartingLocation = false // Generated locations are never starting locations
         };
 

@@ -12,7 +12,6 @@ public class LocationDTO
     public string Name { get; set; }
     public string Type { get; set; }
     public string Description { get; set; }
-    public string InitialState { get; set; }
 
     // HIGHLANDER: NO Q,R coordinates in DTO - hex positions assigned procedurally by LocationPlacementService
     // All locations (authored + generated) placed using single procedural algorithm
@@ -26,7 +25,6 @@ public class LocationDTO
     /// </summary>
     public string DistanceFromPlayer { get; set; }
 
-    public List<string> CurrentTimeBlocks { get; set; } = new List<string>();
     public List<string> DomainTags { get; set; } = new List<string>();
 
     // Additional properties from JSON

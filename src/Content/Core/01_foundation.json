@@ -91,7 +91,10 @@
         "safety": "Safe",
         "activity": "Busy",
         "purpose": "Commerce",
-        "canInvestigate": false
+        "canInvestigate": false,
+        "locationType": "Crossroads",
+        "obligationProfile": "Research",
+        "isStartingLocation": false
       },
       {
         "id": "common_room",
@@ -109,7 +112,10 @@
         "safety": "Safe",
         "activity": "Moderate",
         "purpose": "Dwelling",
-        "canInvestigate": false
+        "canInvestigate": false,
+        "locationType": "Tavern",
+        "obligationProfile": "Research",
+        "isStartingLocation": true
       },
       {
         "id": "fountain_plaza",
@@ -125,7 +131,10 @@
         "safety": "Safe",
         "activity": "Busy",
         "purpose": "Commerce",
-        "canInvestigate": false
+        "canInvestigate": false,
+        "locationType": "Market",
+        "obligationProfile": "Research",
+        "isStartingLocation": false
       },
       {
         "id": "mill_courtyard",
@@ -140,7 +149,10 @@
         "safety": "Neutral",
         "activity": "Quiet",
         "purpose": "Transit",
-        "canInvestigate": false
+        "canInvestigate": false,
+        "locationType": "Wilderness",
+        "obligationProfile": "Research",
+        "isStartingLocation": false
       }
     ]
   }

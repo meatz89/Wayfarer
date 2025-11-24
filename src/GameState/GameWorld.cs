@@ -973,10 +973,7 @@ public class GameWorld
             // Copy all properties from new location to existing (preserve object identity)
             existing.Name = location.Name;
             existing.AssignVenue(location.Venue);
-            existing.InitialState = location.InitialState;
-            // IsLocked DELETED - new architecture uses query-based accessibility via LocationAccessibilityService
             existing.HexPosition = location.HexPosition;
-            existing.CurrentTimeBlocks = location.CurrentTimeBlocks;
             existing.Capabilities = location.Capabilities;
             existing.DomainTags = location.DomainTags;
             existing.IsSkeleton = false; // Mark as no longer skeleton
@@ -988,9 +985,6 @@ public class GameWorld
             // New location - add to collection
             Locations.Add(location);
         }
-
-        // Relationship is unidirectional: Location → Venue via Location.Venue object reference
-        // No bidirectional tracking needed
     }
 
     // ========== VENUE CAPACITY HELPERS ==========

@@ -47,15 +47,6 @@ public class Location
     public bool IsSkeleton { get; set; }
     public string SkeletonSource { get; set; } // What created this skeleton
 
-    public List<TimeBlocks> CurrentTimeBlocks { get; set; } = new List<TimeBlocks>();
-    public string InitialState { get; set; }
-    // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
-
-    // NOTE: ActiveSituationIds DELETED - situations embedded in scenes
-    // Query GameWorld.Scenes.SelectMany(s => s.Situations).Where(sit => sit.Location == this)
-
-    // NOTE: SceneIds removed - OLD equipment-based Scene system deleted
-    // NEW Scene-Situation architecture: Query GameWorld.Scenes by PlacementType/PlacementId
 
     /// <summary>
     /// Functional capabilities - what this location CAN DO (not what it IS).

@@ -10,49 +10,17 @@ public static class LocationParser
     public static Location ConvertDTOToLocation(LocationDTO dto, GameWorld gameWorld)
     {
         // ADR-007: Constructor uses Name only (no Id parameter)
-        Location location = new Location(dto.Name)
-        {
-            // FAIL-FAST: InitialState required, no defaults
-            InitialState = string.IsNullOrEmpty(dto.InitialState)
-                ? throw new InvalidOperationException($"Location '{dto.Name}' missing required InitialState property. Must be explicitly set (e.g., 'Available', 'Locked', etc.)")
-                : dto.InitialState
-        };
+        Location location = new Location(dto.Name);
 
         // PURE PROCEDURAL PLACEMENT: Store categorical distance hint for placement phase
         // Flows from JSON → DTO → Parser → LocationPlacementService.PlaceLocation()
-        // FAIL-FAST: DistanceFromPlayer required, no defaults
-        if (string.IsNullOrEmpty(dto.DistanceFromPlayer))
-        {
-            throw new InvalidOperationException(
-                $"Location '{dto.Name}' missing required DistanceFromPlayer property. " +
-                $"Must be explicitly set. Valid values: 'start', 'near', 'medium', 'far', 'distant'.");
-        }
-        location.DistanceHintForPlacement = dto.DistanceFromPlayer;
+        location.DistanceHintForPlacement = dto.DistanceFromPlayer ?? "near";
         Console.WriteLine($"[LocationParser] Location '{dto.Name}' distance hint: '{location.DistanceHintForPlacement}'");
 
         // HIGHLANDER: NO hex position assignment here - happens in LocationPlacementService
         // HIGHLANDER: NO venue assignment here - happens in LocationPlacementService.PlaceLocation() via categorical matching
         // Parser creates Location entity with NO hex coordinates
         // Spatial properties set in post-parse initialization phase (PackageLoader.PlaceLocations)
-
-        // Parse time windows - FAIL-FAST: CurrentTimeBlocks required, no defaults
-        if (dto.CurrentTimeBlocks == null || dto.CurrentTimeBlocks.Count == 0)
-        {
-            throw new InvalidOperationException(
-                $"Location '{dto.Name}' missing required CurrentTimeBlocks property. " +
-                $"Must explicitly specify time blocks. Valid values: {string.Join(", ", Enum.GetNames(typeof(TimeBlocks)))}");
-        }
-
-        foreach (string windowString in dto.CurrentTimeBlocks)
-        {
-            if (!EnumParser.TryParse<TimeBlocks>(windowString, out TimeBlocks window))
-            {
-                throw new InvalidOperationException(
-                    $"Invalid TimeBlock value '{windowString}' for location '{dto.Name}'. " +
-                    $"Valid values: {string.Join(", ", Enum.GetNames(typeof(TimeBlocks)))}");
-            }
-            location.CurrentTimeBlocks.Add(window);
-        }
 
         // Parse functional capabilities (what location CAN DO)
         // EXPLICIT INITIALIZATION: Capabilities.None if no capabilities specified
