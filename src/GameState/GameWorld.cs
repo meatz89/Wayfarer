@@ -268,12 +268,7 @@ public class GameWorld
     // Hierarchy lookup methods
     public District GetDistrictForLocation(Venue venue)
     {
-        // HIGHLANDER: Accept Venue object, return District object reference directly
         // ZERO NULL TOLERANCE: venue must never be null
-        // District can be null if venue not yet assigned (return null is legitimate)
-        if (venue.District == null)
-            return null;
-
         return venue.District;
     }
 
@@ -281,9 +276,6 @@ public class GameWorld
     public Region GetRegionForDistrict(District district)
     {
         // ZERO NULL TOLERANCE: district must never be null
-        if (district.Region == null)
-            return null;
-
         return district.Region;
     }
 
@@ -298,13 +290,9 @@ public class GameWorld
 
         // HIGHLANDER: GetDistrictForLocation accepts Venue, not string - need to pass venue object
         District district = GetDistrictForLocation(venue);
-        // District can legitimately be null (venue not assigned to district yet)
-        if (district == null) return venue.Name;
 
         // HIGHLANDER: Pass District object, not string
         Region region = GetRegionForDistrict(district);
-        // Region can legitimately be null (district not assigned to region yet)
-        if (region == null) return $"{venue.Name}, {district.Name}";
 
         return $"{venue.Name}, {district.Name}, {region.Name}";
     }

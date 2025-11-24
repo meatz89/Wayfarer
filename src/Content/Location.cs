@@ -43,8 +43,8 @@ public class Location
     /// </summary>
     public AxialCoordinates? HexPosition { get; set; }
 
-    // Skeleton tracking
-    public bool IsSkeleton { get; set; } = false;
+    // Skeleton tracking - NO DEFAULTS: explicit assignment required
+    public bool IsSkeleton { get; set; }
     public string SkeletonSource { get; set; } // What created this skeleton
 
     public List<TimeBlocks> CurrentTimeBlocks { get; set; } = new List<TimeBlocks>();
@@ -61,11 +61,13 @@ public class Location
     /// Functional capabilities - what this location CAN DO (not what it IS).
     /// Uses Flags enum for efficient bitwise operations and combination checking.
     /// Separated from categorical dimensions (Privacy/Safety/Activity/Purpose).
+    /// NO DEFAULTS: Capabilities.None must be explicitly set if location has no capabilities
     /// </summary>
-    public LocationCapability Capabilities { get; set; } = LocationCapability.None;
+    public LocationCapability Capabilities { get; set; }
 
-    public int FlowModifier { get; set; } = 0;
-    public int Tier { get; set; } = 1;
+    // NO DEFAULTS: All numeric properties must be explicitly set
+    public int FlowModifier { get; set; }
+    public int Tier { get; set; }
 
     public int TravelTimeSegments { get; set; }
     public string TravelDescription { get; set; }
@@ -81,29 +83,32 @@ public class Location
     public List<Item> MarketItems { get; internal set; }
     public List<RestOption> RestOptions { get; internal set; }
 
-    public int Familiarity { get; set; } = 0;
-    public int MaxFamiliarity { get; set; } = 3;
-    public int HighestObservationCompleted { get; set; } = 0;
+    // NO DEFAULTS: All progression/mastery properties must be explicitly initialized
+    public int Familiarity { get; set; }
+    public int MaxFamiliarity { get; set; }
+    public int HighestObservationCompleted { get; set; }
     // ObservationRewards system eliminated - replaced by transparent resource competition
     public List<WorkAction> AvailableWork { get; set; } = new List<WorkAction>();
 
     // Localized mastery - InvestigationCubes reduce Mental Exposure at THIS location only
     // 0-10 scale: 0 cubes = full exposure, 10 cubes = mastery (no exposure)
-    public int InvestigationCubes { get; set; } = 0;
+    // NO DEFAULTS: explicit initialization required
+    public int InvestigationCubes { get; set; }
 
-    // Gameplay properties moved from Location
-    public ObligationDiscipline ObligationProfile { get; set; } = ObligationDiscipline.Research;
+    // Gameplay properties - NO DEFAULTS: must be explicitly set by parser
+    public ObligationDiscipline ObligationProfile { get; set; }
     public List<string> DomainTags { get; set; } = new List<string>(); // DEPRECATED: Used only for DEPENDENT_LOCATION marker system
-    public LocationTypes LocationType { get; set; } = LocationTypes.Crossroads;
-    public bool IsStartingLocation { get; set; } = false;
+    public LocationTypes LocationType { get; set; }
+    public bool IsStartingLocation { get; set; }
 
     // Orthogonal Categorical Dimensions (Entity Resolution)
     // These dimensions compose to create location archetypes
     // Example: SemiPublic + Safe + Moderate + Dwelling = Inn common room
-    public LocationPrivacy Privacy { get; set; } = LocationPrivacy.Public;
-    public LocationSafety Safety { get; set; } = LocationSafety.Neutral;
-    public LocationActivity Activity { get; set; } = LocationActivity.Moderate;
-    public LocationPurpose Purpose { get; set; } = LocationPurpose.Transit;
+    // NO DEFAULTS: All categorical dimensions MUST be explicitly set by parser or throw exception
+    public LocationPrivacy Privacy { get; set; }
+    public LocationSafety Safety { get; set; }
+    public LocationActivity Activity { get; set; }
+    public LocationPurpose Purpose { get; set; }
 
     /// <summary>
     /// Provenance tracking: which scene created this location (if any)

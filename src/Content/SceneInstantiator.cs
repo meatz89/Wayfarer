@@ -1192,7 +1192,18 @@ public class SceneInstantiator
             WorkPay = 0,
             // Scene-specific tag for dependent location binding
             // Enables situations to reference this location via PlacementFilter.LocationTags
-            DomainTags = new List<string> { $"{sceneId}_{spec.TemplateId}" }
+            DomainTags = new List<string> { $"{sceneId}_{spec.TemplateId}" },
+            // FAIL-FAST: ALL categorical dimensions REQUIRED (no defaults allowed)
+            // Dependent locations default to Private + Safe + Quiet + Dwelling (typical room archetype)
+            Privacy = "Private",
+            Safety = "Safe",
+            Activity = "Quiet",
+            Purpose = "Dwelling",
+            // FAIL-FAST: ALL gameplay properties REQUIRED (no defaults allowed)
+            LocationType = "Room", // Generated locations are typically rooms
+            ObligationProfile = "Research", // Default profile for generated locations
+            CurrentTimeBlocks = new List<string> { "Morning", "Midday", "Afternoon", "Evening" }, // Available all day
+            IsStartingLocation = false // Generated locations are never starting locations
         };
 
         // Map capabilities (functional properties)

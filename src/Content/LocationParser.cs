@@ -12,13 +12,22 @@ public static class LocationParser
         // ADR-007: Constructor uses Name only (no Id parameter)
         Location location = new Location(dto.Name)
         {
-            InitialState = dto.InitialState ?? "" // Optional - defaults to empty if missing
+            // FAIL-FAST: InitialState required, no defaults
+            InitialState = string.IsNullOrEmpty(dto.InitialState)
+                ? throw new InvalidOperationException($"Location '{dto.Name}' missing required InitialState property. Must be explicitly set (e.g., 'Available', 'Locked', etc.)")
+                : dto.InitialState
         };
 
         // PURE PROCEDURAL PLACEMENT: Store categorical distance hint for placement phase
         // Flows from JSON → DTO → Parser → LocationPlacementService.PlaceLocation()
-        // Default to "medium" if missing (content author forgot to specify)
-        location.DistanceHintForPlacement = dto.DistanceFromPlayer ?? "medium";
+        // FAIL-FAST: DistanceFromPlayer required, no defaults
+        if (string.IsNullOrEmpty(dto.DistanceFromPlayer))
+        {
+            throw new InvalidOperationException(
+                $"Location '{dto.Name}' missing required DistanceFromPlayer property. " +
+                $"Must be explicitly set. Valid values: 'start', 'near', 'medium', 'far', 'distant'.");
+        }
+        location.DistanceHintForPlacement = dto.DistanceFromPlayer;
         Console.WriteLine($"[LocationParser] Location '{dto.Name}' distance hint: '{location.DistanceHintForPlacement}'");
 
         // HIGHLANDER: NO hex position assignment here - happens in LocationPlacementService
@@ -26,27 +35,27 @@ public static class LocationParser
         // Parser creates Location entity with NO hex coordinates
         // Spatial properties set in post-parse initialization phase (PackageLoader.PlaceLocations)
 
-        // Parse time windows
-        if (dto.CurrentTimeBlocks != null && dto.CurrentTimeBlocks.Count > 0)
+        // Parse time windows - FAIL-FAST: CurrentTimeBlocks required, no defaults
+        if (dto.CurrentTimeBlocks == null || dto.CurrentTimeBlocks.Count == 0)
         {
-            foreach (string windowString in dto.CurrentTimeBlocks)
-            {
-                if (EnumParser.TryParse<TimeBlocks>(windowString, out TimeBlocks window))
-                {
-                    location.CurrentTimeBlocks.Add(window);
-                }
-            }
+            throw new InvalidOperationException(
+                $"Location '{dto.Name}' missing required CurrentTimeBlocks property. " +
+                $"Must explicitly specify time blocks. Valid values: {string.Join(", ", Enum.GetNames(typeof(TimeBlocks)))}");
         }
-        else
+
+        foreach (string windowString in dto.CurrentTimeBlocks)
         {
-            // Add all time windows as default
-            location.CurrentTimeBlocks.Add(TimeBlocks.Morning);
-            location.CurrentTimeBlocks.Add(TimeBlocks.Midday);
-            location.CurrentTimeBlocks.Add(TimeBlocks.Afternoon);
-            location.CurrentTimeBlocks.Add(TimeBlocks.Evening);
+            if (!EnumParser.TryParse<TimeBlocks>(windowString, out TimeBlocks window))
+            {
+                throw new InvalidOperationException(
+                    $"Invalid TimeBlock value '{windowString}' for location '{dto.Name}'. " +
+                    $"Valid values: {string.Join(", ", Enum.GetNames(typeof(TimeBlocks)))}");
+            }
+            location.CurrentTimeBlocks.Add(window);
         }
 
         // Parse functional capabilities (what location CAN DO)
+        // EXPLICIT INITIALIZATION: Capabilities.None if no capabilities specified
         if (dto.Capabilities != null && dto.Capabilities.Count > 0)
         {
             Console.WriteLine($"[LocationParser] Parsing capabilities for location '{dto.Id}'");
@@ -70,47 +79,124 @@ public static class LocationParser
             location.Capabilities = combinedCapabilities;
             Console.WriteLine($"[LocationParser] Final Capabilities for '{dto.Id}': {location.Capabilities}");
         }
+        else
+        {
+            // EXPLICIT: No capabilities = Capabilities.None (must be set explicitly)
+            location.Capabilities = LocationCapability.None;
+        }
+
+        // EXPLICIT INITIALIZATION: Skeleton tracking (false for authored locations)
+        location.IsSkeleton = false;
+
+        // EXPLICIT INITIALIZATION: Progression/mastery properties (0 for new locations)
+        location.Familiarity = 0;
+        location.MaxFamiliarity = 3; // Standard maximum
+        location.HighestObservationCompleted = 0;
+        location.InvestigationCubes = 0;
+
+        // EXPLICIT INITIALIZATION: Flow modifier (0 = neutral, can be positive/negative)
+        location.FlowModifier = 0;
+
+        // EXPLICIT INITIALIZATION: Tier (MUST come from placement algorithm or be set to 1)
+        // TODO: Tier should be determined by LocationPlacementService based on venue tier
+        location.Tier = 1;
 
         // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
-        // Parse gameplay properties moved from Location
-        location.DomainTags = dto.DomainTags ?? new List<string>(); // Optional - defaults to empty list if missing
+        // Parse gameplay properties - FAIL-FAST: all required, no silent failures
+        // DomainTags: Collection fallback acceptable (empty list = no tags)
+        location.DomainTags = dto.DomainTags ?? new List<string>();
 
-        if (!string.IsNullOrEmpty(dto.LocationType) && Enum.TryParse(dto.LocationType, out LocationTypes locationType))
+        // LocationType: REQUIRED, no defaults
+        if (string.IsNullOrEmpty(dto.LocationType))
         {
-            location.LocationType = locationType;
+            throw new InvalidOperationException(
+                $"Location '{dto.Name}' missing required LocationType property. " +
+                $"Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationTypes)))}");
         }
+        if (!Enum.TryParse(dto.LocationType, out LocationTypes locationType))
+        {
+            throw new InvalidOperationException(
+                $"Invalid LocationType value '{dto.LocationType}' for location '{dto.Name}'. " +
+                $"Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationTypes)))}");
+        }
+        location.LocationType = locationType;
 
+        // IsStartingLocation: explicit boolean required (dto must have value)
         location.IsStartingLocation = dto.IsStartingLocation;
 
-        if (!string.IsNullOrEmpty(dto.ObligationProfile))
+        // ObligationProfile: REQUIRED, no defaults
+        if (string.IsNullOrEmpty(dto.ObligationProfile))
         {
-            if (System.Enum.TryParse<ObligationDiscipline>(dto.ObligationProfile, out ObligationDiscipline obligationProfile))
-            {
-                location.ObligationProfile = obligationProfile;
-            }
+            throw new InvalidOperationException(
+                $"Location '{dto.Name}' missing required ObligationProfile property. " +
+                $"Valid values: {string.Join(", ", Enum.GetNames(typeof(ObligationDiscipline)))}");
         }
+        if (!Enum.TryParse<ObligationDiscipline>(dto.ObligationProfile, out ObligationDiscipline obligationProfile))
+        {
+            throw new InvalidOperationException(
+                $"Invalid ObligationProfile value '{dto.ObligationProfile}' for location '{dto.Name}'. " +
+                $"Valid values: {string.Join(", ", Enum.GetNames(typeof(ObligationDiscipline)))}");
+        }
+        location.ObligationProfile = obligationProfile;
 
         // Parse orthogonal categorical dimensions for entity resolution
-        if (!string.IsNullOrEmpty(dto.Privacy) && Enum.TryParse(dto.Privacy, out LocationPrivacy privacy))
+        // FAIL-FAST: All categorical dimensions REQUIRED, no defaults, no silent failures
+        if (string.IsNullOrEmpty(dto.Privacy))
         {
-            location.Privacy = privacy;
+            throw new InvalidOperationException(
+                $"Location '{dto.Name}' missing required Privacy property. " +
+                $"Every location MUST have explicit Privacy. Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationPrivacy)))}");
         }
+        if (!Enum.TryParse(dto.Privacy, out LocationPrivacy privacy))
+        {
+            throw new InvalidOperationException(
+                $"Invalid Privacy value '{dto.Privacy}' for location '{dto.Name}'. " +
+                $"Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationPrivacy)))}");
+        }
+        location.Privacy = privacy;
 
-        if (!string.IsNullOrEmpty(dto.Safety) && Enum.TryParse(dto.Safety, out LocationSafety safety))
+        if (string.IsNullOrEmpty(dto.Safety))
         {
-            location.Safety = safety;
+            throw new InvalidOperationException(
+                $"Location '{dto.Name}' missing required Safety property. " +
+                $"Every location MUST have explicit Safety. Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationSafety)))}");
         }
+        if (!Enum.TryParse(dto.Safety, out LocationSafety safety))
+        {
+            throw new InvalidOperationException(
+                $"Invalid Safety value '{dto.Safety}' for location '{dto.Name}'. " +
+                $"Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationSafety)))}");
+        }
+        location.Safety = safety;
 
-        if (!string.IsNullOrEmpty(dto.Activity) && Enum.TryParse(dto.Activity, out LocationActivity activity))
+        if (string.IsNullOrEmpty(dto.Activity))
         {
-            location.Activity = activity;
+            throw new InvalidOperationException(
+                $"Location '{dto.Name}' missing required Activity property. " +
+                $"Every location MUST have explicit Activity. Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationActivity)))}");
         }
+        if (!Enum.TryParse(dto.Activity, out LocationActivity activity))
+        {
+            throw new InvalidOperationException(
+                $"Invalid Activity value '{dto.Activity}' for location '{dto.Name}'. " +
+                $"Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationActivity)))}");
+        }
+        location.Activity = activity;
 
-        if (!string.IsNullOrEmpty(dto.Purpose) && Enum.TryParse(dto.Purpose, out LocationPurpose purpose))
+        if (string.IsNullOrEmpty(dto.Purpose))
         {
-            location.Purpose = purpose;
+            throw new InvalidOperationException(
+                $"Location '{dto.Name}' missing required Purpose property. " +
+                $"Every location MUST have explicit Purpose. Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationPurpose)))}");
         }
+        if (!Enum.TryParse(dto.Purpose, out LocationPurpose purpose))
+        {
+            throw new InvalidOperationException(
+                $"Invalid Purpose value '{dto.Purpose}' for location '{dto.Name}'. " +
+                $"Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationPurpose)))}");
+        }
+        location.Purpose = purpose;
 
         // Parse available professions by time
         if (dto.AvailableProfessionsByTime != null)
