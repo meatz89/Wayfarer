@@ -452,6 +452,9 @@ public class LocationFacade
             };
 
             // PHASE 2: Generate and load dependent resources
+            Console.WriteLine($"[SceneActivation] Starting activation for scene '{scene.DisplayName}' (Template: {scene.TemplateId})");
+            int locationCountBefore = _gameWorld.Locations.Count;
+
             string resourceJson = _sceneInstantiator.ActivateScene(scene, activationContext);
 
             if (!string.IsNullOrEmpty(resourceJson))
@@ -460,7 +463,13 @@ public class LocationFacade
                 await _contentGenerationFacade.CreateDynamicPackageFile(resourceJson, packagePath);
                 await _packageLoaderFacade.LoadDynamicPackage(resourceJson, packagePath);
 
-                Console.WriteLine($"[LocationFacade] Loaded dependent resources for scene '{scene.DisplayName}'");
+                int locationCountAfter = _gameWorld.Locations.Count;
+                int locationsAdded = locationCountAfter - locationCountBefore;
+                Console.WriteLine($"[SceneActivation] Loaded dependent resources for scene '{scene.DisplayName}' ({locationsAdded} locations added, total: {locationCountAfter})");
+            }
+            else
+            {
+                Console.WriteLine($"[SceneActivation] No dependent resources to load for scene '{scene.DisplayName}'");
             }
 
             // PHASE 2.5: Resolve entity references now that dependent resources exist in GameWorld

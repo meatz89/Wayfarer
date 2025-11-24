@@ -148,15 +148,29 @@ public static class LocationActionCatalog
             return actions;
         }
 
+        // LOG: Source location details for debugging intra-venue movement
+        Console.WriteLine($"[IntraVenueMovement] Source: '{location.Name}' (Venue: '{location.Venue?.Name ?? "NULL"}', Hex: {location.HexPosition})");
+
         // Find ADJACENT locations in the same venue (7-hex cluster pattern)
-        List<Location> adjacentSameVenueLocations = allLocations
-            .Where(l =>
-                // ADR-007: Use Venue object reference instead of deleted VenueId
-                l.Venue == location.Venue &&  // Same venue (7-hex cluster)
-                l != location &&  // Different location (object reference comparison)
-                l.HexPosition.HasValue &&  // Destination must have hex position
-                AreHexesAdjacent(location.HexPosition.Value, l.HexPosition.Value))  // Must be adjacent hexes
-            .ToList();
+        // LOG: Evaluate each potential candidate to trace filter logic
+        List<Location> adjacentSameVenueLocations = new List<Location>();
+        foreach (Location candidate in allLocations)
+        {
+            if (candidate == location) continue; // Skip self
+
+            bool venueMatch = candidate.Venue == location.Venue;
+            bool hasHex = candidate.HexPosition.HasValue;
+            bool adjacent = hasHex && AreHexesAdjacent(location.HexPosition.Value, candidate.HexPosition.Value);
+            int distance = hasHex ? CalculateHexDistance(location.HexPosition.Value, candidate.HexPosition.Value) : -1;
+
+            Console.WriteLine($"  Candidate: '{candidate.Name}' (Venue: '{candidate.Venue?.Name ?? "NULL"}', VenueMatch: {venueMatch}, Hex: {candidate.HexPosition?.ToString() ?? "NULL"}, Adjacent: {adjacent}, Distance: {distance})");
+
+            // Apply filter: same venue AND has hex AND adjacent
+            if (venueMatch && hasHex && adjacent)
+            {
+                adjacentSameVenueLocations.Add(candidate);
+            }
+        }
 
         // Only generate if there are adjacent locations in same venue
         if (!adjacentSameVenueLocations.Any())
@@ -180,6 +194,8 @@ public static class LocationActionCatalog
                 Availability = new List<TimeBlocks>(),  // Always available at all times
                 Priority = 90  // High priority, but below cross-venue Travel button
             });
+
+            Console.WriteLine($"[IntraVenueMovement] ✅ Generated action: 'Move to {destination.Name}' from '{location.Name}'");
         }
 
         return actions;
@@ -199,5 +215,17 @@ public static class LocationActionCatalog
         return (dq == 1 && dr == 0) ||  // Horizontal neighbors
                (dq == 0 && dr == 1) ||  // Vertical neighbors
                (dq == 1 && dr == 1);    // Diagonal neighbors
+    }
+
+    /// <summary>
+    /// Calculate hex distance in axial coordinates for debugging.
+    /// Manhattan distance in axial hex grid.
+    /// </summary>
+    private static int CalculateHexDistance(AxialCoordinates hex1, AxialCoordinates hex2)
+    {
+        int dq = Math.Abs(hex1.Q - hex2.Q);
+        int dr = Math.Abs(hex1.R - hex2.R);
+        int ds = Math.Abs((hex1.Q + hex1.R) - (hex2.Q + hex2.R));
+        return Math.Max(Math.Max(dq, dr), ds);
     }
 }

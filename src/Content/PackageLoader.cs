@@ -1932,6 +1932,9 @@ public class PackageLoader
 
             // Place location using pure procedural algorithm
             _locationPlacementService.PlaceLocation(location, distanceHint, player);
+
+            // Log venue assignment for debugging intra-venue movement actions
+            Console.WriteLine($"[PlaceLocation] '{location.Name}' assigned to venue '{location.Venue?.Name ?? "NULL"}' at hex {location.HexPosition?.ToString() ?? "NULL"}");
         }
 
         Console.WriteLine($"[LocationPlacement] Completed PURE PROCEDURAL placement for {orderedLocations.Count} locations");
