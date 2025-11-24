@@ -68,7 +68,12 @@ public static class DependentResourceCatalog
             Properties = new List<string> { "sleepingSpace", "restful", "indoor", "private" },
             IsLockedInitially = true,
             UnlockItemTemplateId = "room_key",
-            CanInvestigate = false
+            CanInvestigate = false,
+            // FAIL-FAST: ALL categorical dimensions REQUIRED (no defaults)
+            Privacy = "Private",      // Private room for lodging
+            Safety = "Safe",          // Inn rooms are safe spaces
+            Activity = "Quiet",       // Bedroom environment
+            Purpose = "Dwelling"      // Sleeping/resting space
         };
 
         DependentItemSpec itemSpec = new DependentItemSpec
@@ -103,7 +108,12 @@ public static class DependentResourceCatalog
             Properties = new List<string> { "restful", "indoor", "private", "water" },
             IsLockedInitially = true,
             UnlockItemTemplateId = "bath_token",
-            CanInvestigate = false
+            CanInvestigate = false,
+            // FAIL-FAST: ALL categorical dimensions REQUIRED (no defaults)
+            Privacy = "Private",      // Private bathing area
+            Safety = "Safe",          // Safe environment
+            Activity = "Quiet",       // Restful activity
+            Purpose = "Dwelling"      // Personal care space
         };
 
         DependentItemSpec itemSpec = new DependentItemSpec
@@ -138,7 +148,12 @@ public static class DependentResourceCatalog
             Properties = new List<string> { "outdoor", "private" },
             IsLockedInitially = true,
             UnlockItemTemplateId = "training_pass",
-            CanInvestigate = false
+            CanInvestigate = false,
+            // FAIL-FAST: ALL categorical dimensions REQUIRED (no defaults)
+            Privacy = "Private",      // Private training facility
+            Safety = "Neutral",       // Training has inherent risk
+            Activity = "Busy",        // Physical training activity
+            Purpose = "Work"          // Training/education purpose
         };
 
         DependentItemSpec itemSpec = new DependentItemSpec
@@ -173,7 +188,12 @@ public static class DependentResourceCatalog
             Properties = new List<string> { "restful", "indoor", "private", "quiet" },
             IsLockedInitially = true,
             UnlockItemTemplateId = "treatment_receipt",
-            CanInvestigate = false
+            CanInvestigate = false,
+            // FAIL-FAST: ALL categorical dimensions REQUIRED (no defaults)
+            Privacy = "Private",      // Private medical room
+            Safety = "Safe",          // Healing environment
+            Activity = "Quiet",       // Restful recovery
+            Purpose = "Dwelling"      // Personal care/recovery space
         };
 
         DependentItemSpec itemSpec = new DependentItemSpec
@@ -208,7 +228,12 @@ public static class DependentResourceCatalog
             Properties = new List<string> { "indoor", "private" },
             IsLockedInitially = true,
             UnlockItemTemplateId = "workshop_permit",
-            CanInvestigate = false
+            CanInvestigate = false,
+            // FAIL-FAST: ALL categorical dimensions REQUIRED (no defaults)
+            Privacy = "Private",      // Private workspace
+            Safety = "Neutral",       // Tools/hazards present
+            Activity = "Busy",        // Active crafting work
+            Purpose = "Work"          // Manufacturing/crafting purpose
         };
 
         DependentItemSpec itemSpec = new DependentItemSpec
@@ -243,7 +268,12 @@ public static class DependentResourceCatalog
             Properties = new List<string> { "indoor", "private", "quiet", "restful" },
             IsLockedInitially = true,
             UnlockItemTemplateId = "library_pass",
-            CanInvestigate = false
+            CanInvestigate = false,
+            // FAIL-FAST: ALL categorical dimensions REQUIRED (no defaults)
+            Privacy = "Private",      // Private study space
+            Safety = "Safe",          // Safe reading environment
+            Activity = "Quiet",       // Quiet intellectual work
+            Purpose = "Education"     // Learning/study purpose
         };
 
         DependentItemSpec itemSpec = new DependentItemSpec

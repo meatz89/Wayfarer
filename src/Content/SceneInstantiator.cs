@@ -1177,6 +1177,32 @@ public class SceneInstantiator
         // SceneInstantiator creates LocationDTO with NO hex coordinates
         // PackageLoader.PlaceLocations() handles placement for ALL locations (authored + generated)
 
+        // FAIL-FAST VALIDATION: ALL categorical dimensions REQUIRED from spec
+        if (string.IsNullOrEmpty(spec.Privacy))
+        {
+            throw new InvalidOperationException(
+                $"DependentLocationSpec '{spec.TemplateId}' missing required Privacy property. " +
+                $"Every location MUST have explicit Privacy. Valid values: Public, SemiPublic, Private, Restricted");
+        }
+        if (string.IsNullOrEmpty(spec.Safety))
+        {
+            throw new InvalidOperationException(
+                $"DependentLocationSpec '{spec.TemplateId}' missing required Safety property. " +
+                $"Every location MUST have explicit Safety. Valid values: Dangerous, Unsafe, Neutral, Safe, Secure");
+        }
+        if (string.IsNullOrEmpty(spec.Activity))
+        {
+            throw new InvalidOperationException(
+                $"DependentLocationSpec '{spec.TemplateId}' missing required Activity property. " +
+                $"Every location MUST have explicit Activity. Valid values: Quiet, Moderate, Busy, Crowded");
+        }
+        if (string.IsNullOrEmpty(spec.Purpose))
+        {
+            throw new InvalidOperationException(
+                $"DependentLocationSpec '{spec.TemplateId}' missing required Purpose property. " +
+                $"Every location MUST have explicit Purpose. Valid values: Transit, Dwelling, Commerce, Work, Government, Education, Entertainment, Religion, Defense, Storage, Agriculture, Manufacturing");
+        }
+
         // Build LocationDTO
         LocationDTO dto = new LocationDTO
         {
@@ -1193,12 +1219,11 @@ public class SceneInstantiator
             // Scene-specific tag for dependent location binding
             // Enables situations to reference this location via PlacementFilter.LocationTags
             DomainTags = new List<string> { $"{sceneId}_{spec.TemplateId}" },
-            // FAIL-FAST: ALL categorical dimensions REQUIRED (no defaults allowed)
-            // Dependent locations default to Private + Safe + Quiet + Dwelling (typical room archetype)
-            Privacy = "Private",
-            Safety = "Safe",
-            Activity = "Quiet",
-            Purpose = "Dwelling",
+            // FAIL-FAST: Read ALL categorical dimensions from spec (NO defaults)
+            Privacy = spec.Privacy,
+            Safety = spec.Safety,
+            Activity = spec.Activity,
+            Purpose = spec.Purpose,
             // FAIL-FAST: ALL gameplay properties REQUIRED (no defaults allowed)
             LocationType = "Room", // Generated locations are typically rooms
             ObligationProfile = "Research", // Default profile for generated locations
