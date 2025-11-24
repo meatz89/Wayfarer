@@ -163,13 +163,20 @@ public class PackageLoader
         LoadListenDrawCounts(package.Content.ListenDrawCounts);
         LoadStates(package.Content.States, allowSkeletons); // Scene-Situation: State definitions
         LoadAchievements(package.Content.Achievements, allowSkeletons); // Scene-Situation: Achievement definitions
-        LoadRegions(package.Content.Regions, allowSkeletons);
-        LoadDistricts(package.Content.Districts, allowSkeletons);
+
+        // Spatial hierarchy: Load in dependency order with immediate ID→object resolution
+        // Build lookup: DTO Id → created Region object
+        Dictionary<string, Region> regionLookup = LoadRegions(package.Content.Regions, allowSkeletons);
+        // Load Districts, resolving regionId → Region object immediately
+        Dictionary<string, District> districtLookup = LoadDistricts(package.Content.Districts, regionLookup, allowSkeletons);
+
         LoadItems(package.Content.Items, result, allowSkeletons);
 
         // 2. Venues and Locations (may reference regions/districts and hex grid)
-        LoadLocations(package.Content.Venues, result, allowSkeletons);
+        // Load Venues, resolving districtId → District object immediately
+        LoadLocations(package.Content.Venues, districtLookup, result, allowSkeletons);
         LoadLocations(package.Content.Locations, result, allowSkeletons);
+
         // NOTE: HexSync, HexGridCompleteness, and Validation moved to LoadStaticPackages
         // These must run AFTER all packages loaded (hex grid might be in different package than locations)
 
@@ -656,9 +663,10 @@ public class PackageLoader
         }
     }
 
-    private void LoadRegions(List<RegionDTO> regionDtos, bool allowSkeletons)
+    private Dictionary<string, Region> LoadRegions(List<RegionDTO> regionDtos, bool allowSkeletons)
     {
-        if (regionDtos == null) return;
+        Dictionary<string, Region> lookup = new Dictionary<string, Region>();
+        if (regionDtos == null) return lookup;
 
         foreach (RegionDTO dto in regionDtos)
         {
@@ -667,7 +675,7 @@ public class PackageLoader
                 // Region uses Name as natural key (no Id property)
                 Name = dto.Name,
                 Description = dto.Description,
-                // Districts property resolved in second pass (LinkRegionDistrictReferences)
+                // Districts added later when LoadDistricts processes district → region links
                 Tier = dto.Tier,
                 Government = dto.Government,
                 Culture = dto.Culture,
@@ -676,27 +684,48 @@ public class PackageLoader
                 MajorImports = dto.MajorImports
             };
             _gameWorld.Regions.Add(region);
+            lookup[dto.Id] = region;  // Store DTO Id → Entity mapping
         }
+
+        return lookup;
     }
 
-    private void LoadDistricts(List<DistrictDTO> districtDtos, bool allowSkeletons)
+    private Dictionary<string, District> LoadDistricts(List<DistrictDTO> districtDtos, Dictionary<string, Region> regionLookup, bool allowSkeletons)
     {
-        if (districtDtos == null) return;
+        Dictionary<string, District> lookup = new Dictionary<string, District>();
+        if (districtDtos == null) return lookup;
 
         foreach (DistrictDTO dto in districtDtos)
         {
+            // Resolve Region reference immediately using lookup
+            Region? region = null;
+            if (!string.IsNullOrEmpty(dto.RegionId))
+            {
+                region = regionLookup.GetValueOrDefault(dto.RegionId);
+            }
+
             District district = new District
             {
                 // District uses Name as natural key (no Id property)
                 Name = dto.Name,
                 Description = dto.Description,
-                // Region and Venues properties resolved in second pass (LinkRegionDistrictReferences)
+                Region = region,  // Object reference resolved immediately
+                // Venues added later when LoadLocations processes venue → district links
                 DistrictType = dto.DistrictType,
                 DangerLevel = dto.DangerLevel,
                 Characteristics = dto.Characteristics
             };
             _gameWorld.Districts.Add(district);
+            lookup[dto.Id] = district;  // Store DTO Id → Entity mapping
+
+            // Bidirectional link: Add district to region's collection
+            if (region != null && !region.Districts.Contains(district))
+            {
+                region.Districts.Add(district);
+            }
         }
+
+        return lookup;
     }
 
     private void LoadSocialCards(List<SocialCardDTO> cardDtos, PackageLoadResult result, bool allowSkeletons)
@@ -865,12 +894,19 @@ public class PackageLoader
     // - Scene templates live in GameWorld.SceneTemplates
     // - Scene instances live in GameWorld.Scenes (spawned dynamically)
 
-    private void LoadLocations(List<VenueDTO> venueDtos, PackageLoadResult result, bool allowSkeletons)
+    private void LoadLocations(List<VenueDTO> venueDtos, Dictionary<string, District> districtLookup, PackageLoadResult result, bool allowSkeletons)
     {
         if (venueDtos == null) return;
 
         foreach (VenueDTO dto in venueDtos)
         {
+            // Resolve District reference immediately using lookup
+            District? district = null;
+            if (!string.IsNullOrEmpty(dto.DistrictId))
+            {
+                district = districtLookup.GetValueOrDefault(dto.DistrictId);
+            }
+
             // Check if this venue was previously a skeleton - UPDATE IN-PLACE (never remove)
             Venue? existing = _gameWorld.Venues
                 .FirstOrDefault(v => v.Name == dto.Name);
@@ -880,7 +916,7 @@ public class PackageLoader
                 // UPDATE existing venue properties in-place (preserve object identity)
                 existing.Name = dto.Name;
                 existing.Description = dto.Description;
-                // District object reference resolved in second pass (LinkRegionDistrictVenueReferences)
+                existing.District = district;  // Object reference resolved immediately
                 existing.Tier = dto.Tier;
 
                 // Parse LocationType to VenueType enum
@@ -909,13 +945,26 @@ public class PackageLoader
 
                 // Track updated venue (skeleton replacement counts as "added" for THIS round)
                 result.VenuesAdded.Add(existing);
+
+                // Bidirectional link: Add venue to district's collection
+                if (district != null && !district.Venues.Contains(existing))
+                {
+                    district.Venues.Add(existing);
+                }
             }
             else
             {
                 // New venue - add to collection AND track in result
                 Venue venue = VenueParser.ConvertDTOToVenue(dto);
+                venue.District = district;  // Set district reference immediately
                 _gameWorld.Venues.Add(venue);
                 result.VenuesAdded.Add(venue);
+
+                // Bidirectional link: Add venue to district's collection
+                if (district != null && !district.Venues.Contains(venue))
+                {
+                    district.Venues.Add(venue);
+                }
             }
         }
     }
