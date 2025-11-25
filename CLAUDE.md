@@ -113,7 +113,7 @@ You MUST achieve 100% CERTAINTY about ALL concepts necessary to accomplish the g
 This codebase maintains comprehensive documentation organized into two parallel systems by separation of concerns. Both systems are required for complete understanding.
 
 **Technical Architecture Documentation:**
-Organized by HOW the system is built. Contains implementation patterns, component structure, runtime behavior, technical decisions, constraints, and quality requirements. Found in root directory as numbered markdown files following arc42 template structure.
+Organized by HOW the system is built. Contains implementation patterns, component structure, runtime behavior, technical decisions, constraints, and quality requirements. Found in `architecture/` subdirectory as numbered markdown files following arc42 template structure.
 
 **Game Design Documentation:**
 Organized by WHAT the game is and WHY design creates strategic depth. Contains player experience goals, gameplay mechanics, progression systems, resource economy, narrative structure, content generation, balance philosophy, and design decisions. Found in dedicated design directory as numbered markdown files.
@@ -129,11 +129,11 @@ Both required together for correct implementation.
 
 **Minimal information to begin:**
 
-**Technical Architecture Documentation (Root Directory):**
-- Location: Root directory
+**Technical Architecture Documentation (architecture/ Subdirectory):**
+- Location: `architecture/` subdirectory
 - Files: Numbered markdown files (01-12) following arc42 template
-- Examples: `05_building_block_view.md`, `08_crosscutting_concepts.md`, `12_glossary.md`
-- Start here: `12_glossary.md` (technical terms) or `01_introduction_and_goals.md` (overview)
+- Examples: `architecture/05_building_block_view.md`, `architecture/08_crosscutting_concepts.md`, `architecture/12_glossary.md`
+- Start here: `architecture/12_glossary.md` (technical terms) or `architecture/01_introduction_and_goals.md` (overview)
 
 **Game Design Documentation (design/ Subdirectory):**
 - Location: `design/` subdirectory
@@ -347,9 +347,9 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 # ARCHITECTURE AND DESIGN REFERENCE
 
 **For complete system architecture details:**
-- Read `05_building_block_view.md` - Component structure, ownership hierarchy, entity relationships
-- Read `03_context_and_scope.md` - System boundaries, gameplay loops, spatial hierarchy
-- Read `12_glossary.md` - Technical entity definitions
+- Read `architecture/05_building_block_view.md` - Component structure, ownership hierarchy, entity relationships
+- Read `architecture/03_context_and_scope.md` - System boundaries, gameplay loops, spatial hierarchy
+- Read `architecture/12_glossary.md` - Technical entity definitions
 
 **For complete game design principles:**
 - Read `design/01_design_vision.md` - Core philosophy, design principles
@@ -368,12 +368,12 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 # TECHNICAL PATTERNS REFERENCE
 
 **For complete technical pattern details:**
-- Read `08_crosscutting_concepts.md` - HIGHLANDER, Catalogue Pattern, Entity Initialization, Parse-time translation
-- Read `09_architecture_decisions.md` - ADRs explaining why patterns were chosen
-- Read `ARCHITECTURAL_PATTERNS.md` - Detailed pattern catalog
+- Read `architecture/08_crosscutting_concepts.md` - HIGHLANDER, Catalogue Pattern, Entity Initialization, Parse-time translation
+- Read `architecture/09_architecture_decisions.md` - ADRs explaining why patterns were chosen
+- Read `architecture/ARCHITECTURAL_PATTERNS.md` - Detailed pattern catalog
 
 **For complete coding standards:**
-- Read `CODING_STANDARDS.md` - Type system, naming conventions, code quality rules
+- See USER CODE PREFERENCES section in this document (CLAUDE.md)
 
 ---
 

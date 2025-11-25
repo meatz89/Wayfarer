@@ -1,6 +1,6 @@
 # Arc42 Section 1: Introduction and Goals
 
-> **Note**: For comprehensive game design philosophy, player experience goals, and design rationale, see [design/01_design_vision.md](design/01_design_vision.md). This document focuses on technical requirements and system quality goals.
+> **Note**: For comprehensive game design philosophy, player experience goals, and design rationale, see [design/01_design_vision.md](../design/01_design_vision.md). This document focuses on technical requirements and system quality goals.
 
 ## 1.1 Requirements Overview
 
@@ -18,13 +18,13 @@ The core gameplay follows a resource-constrained progression model where players
 
 The game is structured around **nested loops** creating strategic tension at three timescales: immediate encounters (10-30s), delivery cycles (5-15m), and long-term progression (hours). These loops force resource trade-offs at different granularities, creating layered strategic depth.
 
-**For detailed gameplay loop documentation**, see [design/02_core_gameplay_loops.md](design/02_core_gameplay_loops.md).
+**For detailed gameplay loop documentation**, see [design/02_core_gameplay_loops.md](../design/02_core_gameplay_loops.md).
 
 ### Infinite Journey Design
 
 The main storyline (A-story) is **infinite and procedurally-generated**, providing structure and progression without resolution. The journey itself is the point, not reaching any specific destination. Player chooses WHEN to pursue A-story content, not IF.
 
-**For narrative design philosophy and infinite A-story rationale**, see [design/06_narrative_design.md](design/06_narrative_design.md).
+**For narrative design philosophy and infinite A-story rationale**, see [design/06_narrative_design.md](../design/06_narrative_design.md).
 
 ### Perfect Information Principle
 
@@ -72,7 +72,7 @@ The following quality goals are prioritized in three tiers, defining the archite
 
 **Rationale:** Strategic depth emerges from shared resource competition, never through linear unlocks. "I can afford to do A OR B, but not both. Both paths are valid. Both have genuine costs. Which cost will I accept?"
 
-**See also:** [design/05_resource_economy.md](design/05_resource_economy.md) for resource economy philosophy, [design/08_balance_philosophy.md](design/08_balance_philosophy.md) for balance principles.
+**See also:** [design/05_resource_economy.md](../design/05_resource_economy.md) for resource economy philosophy, [design/08_balance_philosophy.md](../design/08_balance_philosophy.md) for balance principles.
 
 **4. Perfect Information (Strategic Layer)**
 - All costs, requirements, rewards visible before selection
@@ -108,7 +108,7 @@ The following quality goals are prioritized in three tiers, defining the archite
 
 **Rationale:** This is a synchronous, browser-based, single-player, turn-based narrative game with minimal scale (20 NPCs, 30 Locations max). Performance optimization provides **literally zero measurable benefit** (List scan: 0.001ms, browser render: 16ms, human reaction: 200ms+) while imposing **significant maintainability cost**. Dictionary for 20 entities is premature optimization. Code should be CLEAR, not CLEVER.
 
-**See also:** [10_quality_requirements.md Section 10.1.1](10_quality_requirements.md) for game context analysis, [CLAUDE.md Dictionary/HashSet Antipattern](CLAUDE.md) for detailed enforcement.
+**See also:** [10_quality_requirements.md Section 10.1.1](10_quality_requirements.md) for game context analysis, [CLAUDE.md Dictionary/HashSet Antipattern](../CLAUDE.md) for detailed enforcement.
 
 **8. Clarity Over Cleverness**
 - Code reads like prose expressing domain intent directly
@@ -166,7 +166,7 @@ The following quality goals are prioritized in three tiers, defining the archite
 4. **Clarity** (Important) - Code reads like prose, expresses intent directly
 5. **Performance** (NOT REQUIRED) - Explicitly deprioritized at n=20 entity scale
 
-**See also:** [10_quality_requirements.md Section 10.1.1](10_quality_requirements.md) for non-functional quality requirements and game context, [CLAUDE.md](CLAUDE.md) for coding standards and enforcement.
+**See also:** [10_quality_requirements.md Section 10.1.1](10_quality_requirements.md) for non-functional quality requirements and game context, [CLAUDE.md](../CLAUDE.md) for coding standards and enforcement.
 
 ### Content Authors (Game Designers)
 
@@ -184,7 +184,7 @@ The following quality goals are prioritized in three tiers, defining the archite
 - Are mechanical patterns reusable across different narratives?
 - Will validation catch broken references at load time?
 
-**See also:** [design/07_content_generation.md](design/07_content_generation.md) for archetype system, [design/09_design_patterns.md](design/09_design_patterns.md) for reusable patterns, [design/10_tutorial_design.md](design/10_tutorial_design.md) for tutorial content design.
+**See also:** [design/07_content_generation.md](../design/07_content_generation.md) for archetype system, [design/09_design_patterns.md](../design/09_design_patterns.md) for reusable patterns, [design/10_tutorial_design.md](../design/10_tutorial_design.md) for tutorial content design.
 
 ### AI Assistants (Development Support Stakeholders)
 
@@ -209,7 +209,7 @@ The following quality goals are prioritized in three tiers, defining the archite
 **Critical Understanding:**
 This game optimizes for **MAINTAINABILITY, not PERFORMANCE**. Performance optimization provides zero measurable benefit (browser render 16ms, human reaction 200ms+ dominate timing). Dictionary/HashSet are **premature optimization** for n=20 entities. Use List<T> with LINQ queries. Code should be **CLEAR, not CLEVER**.
 
-**See also:** [CLAUDE.md](CLAUDE.md) for mandatory documentation protocol and Dictionary/HashSet antipattern, [10_quality_requirements.md](10_quality_requirements.md) for quality scenarios.
+**See also:** [CLAUDE.md](../CLAUDE.md) for mandatory documentation protocol and Dictionary/HashSet antipattern, [10_quality_requirements.md](10_quality_requirements.md) for quality scenarios.
 
 ### Future Maintainers (Long-Term Stakeholders)
 

@@ -277,7 +277,7 @@ Each quality goal translates into concrete, testable scenarios. Scenarios follow
 
 ### QS-004: Strategic Depth Through Impossible Choices (TIER 2)
 
-> **For game design philosophy of impossible choices and resource economy**, see [design/05_resource_economy.md](design/05_resource_economy.md).
+> **For game design philosophy of impossible choices and resource economy**, see [design/05_resource_economy.md](../design/05_resource_economy.md).
 
 **Quality Goal**: System enforces resource scarcity requiring strategic prioritization. Player cannot pursue all available options simultaneously.
 

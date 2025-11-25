@@ -20,20 +20,19 @@ Wayfarer uses a dual documentation structure separating technical architecture f
 
 ### Technical Architecture (Arc42 Template)
 
-Located in root directory as numbered markdown files (01-12):
+Located in `architecture/` subdirectory as numbered markdown files (01-12):
 
-- **[01_introduction_and_goals.md](01_introduction_and_goals.md)** - System overview, quality goals, stakeholders
-- **[02_constraints.md](02_constraints.md)** - Technical, organizational, and convention constraints
-- **[03_context_and_scope.md](03_context_and_scope.md)** - System boundaries and gameplay loops
-- **[04_solution_strategy.md](04_solution_strategy.md)** - Core architectural decisions and patterns
-- **[05_building_block_view.md](05_building_block_view.md)** - Component structure and entity relationships
-- **[06_runtime_view.md](06_runtime_view.md)** - Dynamic behavior and execution flows
-- **[07_deployment_view.md](07_deployment_view.md)** - Deployment architecture and infrastructure
-- **[08_crosscutting_concepts.md](08_crosscutting_concepts.md)** - Patterns spanning multiple components
-- **[09_architecture_decisions.md](09_architecture_decisions.md)** - ADRs documenting key decisions
-- **[10_quality_requirements.md](10_quality_requirements.md)** - Quality scenarios and criteria
-- **[11_risks_and_technical_debt.md](11_risks_and_technical_debt.md)** - Known risks and technical debt
-- **[12_glossary.md](12_glossary.md)** - Technical term definitions
+- **[architecture/01_introduction_and_goals.md](architecture/01_introduction_and_goals.md)** - System overview, quality goals, stakeholders
+- **[architecture/02_constraints.md](architecture/02_constraints.md)** - Technical, organizational, and convention constraints
+- **[architecture/03_context_and_scope.md](architecture/03_context_and_scope.md)** - System boundaries and gameplay loops
+- **[architecture/04_solution_strategy.md](architecture/04_solution_strategy.md)** - Core architectural decisions and patterns
+- **[architecture/05_building_block_view.md](architecture/05_building_block_view.md)** - Component structure and entity relationships
+- **[architecture/06_runtime_view.md](architecture/06_runtime_view.md)** - Dynamic behavior and execution flows
+- **[architecture/07_deployment_view.md](architecture/07_deployment_view.md)** - Deployment architecture and infrastructure
+- **[architecture/08_crosscutting_concepts.md](architecture/08_crosscutting_concepts.md)** - Patterns spanning multiple components
+- **[architecture/09_architecture_decisions.md](architecture/09_architecture_decisions.md)** - ADRs documenting key decisions
+- **[architecture/10_quality_requirements.md](architecture/10_quality_requirements.md)** - Quality scenarios and criteria
+- **[architecture/12_glossary.md](architecture/12_glossary.md)** - Technical term definitions
 
 **Start here for development:** Read 01, 03, 05, 08, and 12 for foundational understanding.
 
@@ -59,8 +58,9 @@ Located in `design/` subdirectory as parallel numbered files (01-12):
 ### Additional Documentation
 
 - **[CLAUDE.md](CLAUDE.md)** - Constitutional process philosophy for AI agents working on codebase
-- **[IMPLEMENTATION_STATUS.md](IMPLEMENTATION_STATUS.md)** - Living status matrix tracking feature implementation
 - **[design/README.md](design/README.md)** - Game design documentation structure guide
+- **[architecture/ARCHITECTURAL_PATTERNS.md](architecture/ARCHITECTURAL_PATTERNS.md)** - Detailed pattern catalog
+- **[architecture/ARCHITECTURAL_PRINCIPLES.md](architecture/ARCHITECTURAL_PRINCIPLES.md)** - Core architectural principles
 
 ### Documentation Philosophy
 
@@ -113,12 +113,10 @@ Wayfarer/
 │   ├── Parsers/             # JSON parsing and catalogues
 │   ├── Components/          # Blazor UI components
 │   └── wwwroot/             # CSS, assets
-├── Content/
-│   └── Core/                # JSON content packages
-├── design/                  # Game design documentation (12 files)
-├── 01-12.md                 # Arc42 technical documentation (12 files)
+├── tests/                   # Test projects
+├── architecture/            # Arc42 technical documentation (01-12)
+├── design/                  # Game design documentation (01-13)
 ├── CLAUDE.md                # Constitutional process philosophy
-├── IMPLEMENTATION_STATUS.md # Feature implementation matrix
 └── README.md                # This file
 ```
 
@@ -145,22 +143,22 @@ Templates (parse-time) → Scenes/Situations (spawn-time) → Actions (query-tim
 ### Requirement Inversion
 Content exists from game start, requirements filter visibility. Perfect information enabled architecturally.
 
-See 08_crosscutting_concepts.md for complete pattern catalog.
+See architecture/08_crosscutting_concepts.md for complete pattern catalog.
 
 ## Contributing
 
 **Required reading before contributing:**
-1. **01_introduction_and_goals.md** - Understand system purpose and quality goals
-2. **03_context_and_scope.md** - Understand system boundaries
-3. **05_building_block_view.md** - Understand component structure
-4. **08_crosscutting_concepts.md** - Understand architectural patterns
-5. **12_glossary.md** - Learn technical terminology
+1. **architecture/01_introduction_and_goals.md** - Understand system purpose and quality goals
+2. **architecture/03_context_and_scope.md** - Understand system boundaries
+3. **architecture/05_building_block_view.md** - Understand component structure
+4. **architecture/08_crosscutting_concepts.md** - Understand architectural patterns
+5. **architecture/12_glossary.md** - Learn technical terminology
 6. **design/01_design_vision.md** - Understand design philosophy
 7. **design/12_design_glossary.md** - Learn game design terminology
 8. **CLAUDE.md** - Understand development process and mandatory protocols
 
 **Coding Standards:**
-- Follow 02_constraints.md strictly (type restrictions, lambda rules, Blazor patterns)
+- Follow architecture/02_constraints.md strictly (type restrictions, lambda rules, Blazor patterns)
 - Use HIGHLANDER pattern (one concept, one representation)
 - Propagate async throughout call stack
 - Semantic honesty (method names match return types)

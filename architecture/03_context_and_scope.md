@@ -16,7 +16,7 @@ Wayfarer is a **single-player low-fantasy tactical RPG** providing resource mana
 
 The core gameplay consists of nested loops (short/medium/long) creating strategic tension through resource competition. Immediate encounters chain into delivery cycles, which accumulate into long-term progression. This structure forces trade-offs at multiple timescales, creating layered strategic depth.
 
-**For detailed gameplay loop documentation**, see [design/02_core_gameplay_loops.md](design/02_core_gameplay_loops.md).
+**For detailed gameplay loop documentation**, see [design/02_core_gameplay_loops.md](../design/02_core_gameplay_loops.md).
 
 ### User Base
 

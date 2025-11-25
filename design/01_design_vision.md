@@ -388,10 +388,10 @@ When design goals conflict, use this priority to resolve:
 
 ### Technical Architecture (arc42)
 
-- **[arc42/01_introduction_and_goals.md](../01_introduction_and_goals.md)** - Technical stakeholders, quality goals implementation
-- **[arc42/04_solution_strategy.md](../04_solution_strategy.md)** - Fundamental solution decisions
-- **[arc42/05_building_block_view.md](../05_building_block_view.md)** - Technical system decomposition
-- **[arc42/08_concepts.md](../08_concepts.md)** - Cross-cutting architectural concepts
+- **[arc42/01_introduction_and_goals.md](../architecture/01_introduction_and_goals.md)** - Technical stakeholders, quality goals implementation
+- **[arc42/04_solution_strategy.md](../architecture/04_solution_strategy.md)** - Fundamental solution decisions
+- **[arc42/05_building_block_view.md](../architecture/05_building_block_view.md)** - Technical system decomposition
+- **[arc42/08_crosscutting_concepts.md](../architecture/08_crosscutting_concepts.md)** - Cross-cutting architectural concepts
 
 ### Core Philosophy
 

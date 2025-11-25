@@ -1317,7 +1317,7 @@ When principles conflict, resolve via three-tier priority:
 
 **Resource Arithmetic Pattern**: Checking player Understanding numeric stat against threshold 5. Feature accessible based on earned resource requiring investment trade-offs. Player decides whether to spend Understanding building this capability versus alternative uses.
 
-**For game design rationale and resource economy philosophy**, see [design/05_resource_economy.md](design/05_resource_economy.md).
+**For game design rationale and resource economy philosophy**, see [design/05_resource_economy.md](../design/05_resource_economy.md).
 
 #### Principle 5: Typed Rewards as System Boundaries
 
@@ -1339,7 +1339,7 @@ When principles conflict, resolve via three-tier priority:
 
 **Test**: Can player pursue all options without trade-offs? If yes, add scarcity.
 
-**For resource economy design philosophy and impossible choices**, see [design/05_resource_economy.md](design/05_resource_economy.md).
+**For resource economy design philosophy and impossible choices**, see [design/05_resource_economy.md](../design/05_resource_economy.md).
 
 #### Principle 7: One Purpose Per Entity
 
@@ -1381,7 +1381,7 @@ When principles conflict, resolve via three-tier priority:
 
 **Tactical Layer Hidden**: Challenge session card draw order unknown until play begins. Exact challenge flow hidden until player commits to attempt. Maintains tension while preserving strategic decision-making at entry point.
 
-**For player experience design rationale**, see [design/01_design_vision.md](design/01_design_vision.md).
+**For player experience design rationale**, see [design/01_design_vision.md](../design/01_design_vision.md).
 
 #### Principle 11: Execution Context Entity Design
 
@@ -1418,7 +1418,7 @@ When principles conflict, resolve via three-tier priority:
 
 ## 8.4 Domain Concepts
 
-> **Note**: For game design patterns, content archetypes, and player-facing design concepts, see [design/09_design_patterns.md](design/09_design_patterns.md). This section covers technical domain concepts only.
+> **Note**: For game design patterns, content archetypes, and player-facing design concepts, see [design/09_design_patterns.md](../design/09_design_patterns.md). This section covers technical domain concepts only.
 
 ### 8.4.1 Two-Layer Architecture
 

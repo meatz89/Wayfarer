@@ -8,7 +8,7 @@ This section documents major architectural decisions (ADRs) that shape the Wayfa
 
 ## ADR-001: Infinite A-Story Without Resolution (Frieren Principle)
 
-> **For game design rationale and player experience philosophy**, see [design/11_design_decisions.md](design/11_design_decisions.md) DDR-001 (Infinite A-Story).
+> **For game design rationale and player experience philosophy**, see [design/11_design_decisions.md](../design/11_design_decisions.md) DDR-001 (Infinite A-Story).
 
 ### Status
 **Accepted** - Core architectural pattern
@@ -76,7 +76,7 @@ The system requires indefinite content generation supporting ongoing play withou
 
 ## ADR-002: Resource Arithmetic Over Boolean Gates (Requirement Inversion)
 
-> **For complete resource economy design and impossible choices philosophy**, see [design/05_resource_economy.md](design/05_resource_economy.md) and [design/11_design_decisions.md](design/11_design_decisions.md) DDR-004 (Tight Economy).
+> **For complete resource economy design and impossible choices philosophy**, see [design/05_resource_economy.md](../design/05_resource_economy.md) and [design/11_design_decisions.md](../design/11_design_decisions.md) DDR-004 (Tight Economy).
 
 ### Status
 **Accepted** - Fundamental data model pattern
@@ -109,7 +109,7 @@ Choice templates store requirements as integer threshold properties (StatThresho
 
 ## ADR-003: Two-Layer Architecture (Strategic vs Tactical)
 
-> **For player experience rationale and design philosophy**, see [design/11_design_decisions.md](design/11_design_decisions.md) DDR-005 (Two-Layer Separation).
+> **For player experience rationale and design philosophy**, see [design/11_design_decisions.md](../design/11_design_decisions.md) DDR-005 (Two-Layer Separation).
 
 ### Status
 **Accepted** - Core architectural separation
@@ -213,7 +213,7 @@ Bridge crossing stores strategic context in temporary structure containing paren
 
 ## ADR-004: Parse-Time Translation via Catalogues (No Runtime String Matching)
 
-> **For archetype system design and content generation patterns**, see [design/07_content_generation.md](design/07_content_generation.md).
+> **For archetype system design and content generation patterns**, see [design/07_content_generation.md](../design/07_content_generation.md).
 
 ### Status
 **Accepted** - Core content pipeline architecture
