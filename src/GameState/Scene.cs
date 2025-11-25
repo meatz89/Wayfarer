@@ -54,13 +54,23 @@ public class Scene
     public PlacementFilter LocationActivationFilter { get; set; }
 
     /// <summary>
-    /// NPC activation filter - categorical properties that trigger scene activation
+    /// LEGACY: NPC activation filter - TARGET ARCHITECTURE uses LOCATION-ONLY activation
+    ///
+    /// CURRENT (LEGACY) BEHAVIOR:
     /// CheckAndActivateDeferredScenesForNPC evaluates this filter against NPCs at player's location
-    /// null = no NPC-based activation (use Location or other trigger)
-    /// Evaluated before entity resolution (categorical matching: PersonalityType, BondStrength, etc.)
-    /// Separate from Situation.NpcFilter which determines WHO situation involves (always explicit per-situation)
     /// Copied from SceneTemplate.NpcActivationFilter at spawn time
+    ///
+    /// TARGET ARCHITECTURE:
+    /// Scenes activate via LOCATION ONLY (player enters location matching LocationActivationFilter)
+    /// NPCs are for DISPLAY CONTEXT, not activation triggers:
+    /// - At activation: Dependent NPCs are FindOrCreate'd from categorical properties
+    /// - NPCs get assigned to situations via object reference
+    /// - Choices display when player talks to situation's NPC (display context)
+    ///
+    /// MIGRATION: Remove NpcActivationFilter property from Scene
+    /// Use LocationActivationFilter for activation, Situation.Npc for display context
     /// </summary>
+    [Obsolete("LEGACY: Target architecture uses location-only activation. NPCs are for display context, not activation triggers.")]
     public PlacementFilter NpcActivationFilter { get; set; }
 
     // ==================== PRESENTATION PROPERTIES ====================

@@ -50,11 +50,16 @@ public class SceneInstantiator
     public string CreateDeferredScene(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
         // Evaluate spawn conditions
+        // LEGACY: IsStarter check - TARGET ARCHITECTURE uses package-based loading where all scenes
+        // load as Deferred and activate via LocationActivationFilter only
+        // TODO: Remove IsStarter check when migrating to package-based loading
+        #pragma warning disable CS0618 // Suppress obsolete warning for legacy code
         bool isEligible = template.IsStarter || _spawnConditionsEvaluator.EvaluateAll(
             template.SpawnConditions,
             context.Player,
             placementId: null
         );
+        #pragma warning restore CS0618
 
         if (!isEligible)
         {
@@ -211,11 +216,16 @@ public class SceneInstantiator
     public string GenerateScenePackageJson(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
         // Evaluate spawn conditions (same as old CreateProvisionalScene)
+        // LEGACY: IsStarter check - TARGET ARCHITECTURE uses package-based loading where all scenes
+        // load as Deferred and activate via LocationActivationFilter only
+        // TODO: Remove IsStarter check when migrating to package-based loading
+        #pragma warning disable CS0618 // Suppress obsolete warning for legacy code
         bool isEligible = template.IsStarter || _spawnConditionsEvaluator.EvaluateAll(
             template.SpawnConditions,
             context.Player,
             placementId: null
         );
+        #pragma warning restore CS0618
 
         if (!isEligible)
         {

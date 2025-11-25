@@ -54,13 +54,23 @@ public class SceneTemplate
     public PlacementFilter LocationActivationFilter { get; init; }
 
     /// <summary>
-    /// NPC activation filter - categorical properties that trigger scene activation
+    /// LEGACY: NPC activation filter - TARGET ARCHITECTURE uses LOCATION-ONLY activation
+    ///
+    /// CURRENT (LEGACY) BEHAVIOR:
     /// Scene activates when player talks to NPC matching these categorical properties
-    /// null = no NPC-based activation (use Location or other trigger)
-    /// Evaluated before entity resolution (categorical matching: PersonalityType, BondStrength, etc.)
-    /// Separate from Situation.NpcFilter which determines WHO situation involves (always explicit per-situation)
     /// Copied to Scene.NpcActivationFilter at spawn time
+    ///
+    /// TARGET ARCHITECTURE:
+    /// Scenes activate via LOCATION ONLY (player enters location matching LocationActivationFilter)
+    /// NPCs are for DISPLAY CONTEXT, not activation triggers:
+    /// - At activation: Dependent NPCs are FindOrCreate'd from categorical properties
+    /// - NPCs get assigned to situations via object reference
+    /// - Choices display when player talks to situation's NPC (display context)
+    ///
+    /// MIGRATION: Remove NpcActivationFilter from templates
+    /// Use LocationActivationFilter for activation, NpcFilter on situations for display context
     /// </summary>
+    [Obsolete("LEGACY: Target architecture uses location-only activation. NPCs are for display context, not activation triggers.")]
     public PlacementFilter NpcActivationFilter { get; init; }
 
     /// <summary>
@@ -100,11 +110,21 @@ public class SceneTemplate
     public int? ExpirationDays { get; init; }
 
     /// <summary>
-    /// Starter content flag
+    /// LEGACY: Starter content flag - TARGET ARCHITECTURE uses package-based loading instead
+    ///
+    /// CURRENT (LEGACY) BEHAVIOR:
     /// true = Spawn this Scene during initial game setup
     /// false = Spawn via triggers (Choice rewards, Obligation phases, events)
-    /// GameWorld.SpawnInitialScenes() processes all IsStarter templates
+    ///
+    /// TARGET ARCHITECTURE:
+    /// ALL scenes load as Deferred when JSON package is loaded (game init or runtime dynamic loading)
+    /// Scene activation happens via LOCATION ONLY (player enters location matching LocationActivationFilter)
+    /// IsStarter becomes unnecessary - scenes are simply included in content packages
+    ///
+    /// MIGRATION: Remove IsStarter checks from SceneInstantiator eligibility logic
+    /// Replace with package-based content loading that creates Deferred scenes
     /// </summary>
+    [Obsolete("LEGACY: Target architecture uses package-based loading. Scenes activate via LocationActivationFilter only.")]
     public bool IsStarter { get; init; } = false;
 
     /// <summary>

@@ -409,15 +409,22 @@ public class GameFacade
 
     /// <summary>
     /// Create conversation context with cross-facade orchestration
-    /// ORCHESTRATION: Checks for NPC-triggered scene activation BEFORE starting conversation
+    ///
+    /// LEGACY NOTE: Contains call to CheckAndActivateDeferredScenesForNPC (marked obsolete)
+    /// TARGET ARCHITECTURE: Scenes should activate via LOCATION ONLY when player enters location
+    /// NPCs are for display context (choices display when talking to situation's NPC), not activation
+    /// MIGRATION: Remove the CheckAndActivateDeferredScenesForNPC call when migrating to location-only activation
     /// </summary>
     public async Task<SocialChallengeContext> CreateConversationContext(NPC npc, Situation situation)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // THREE-TIER TIMING: Check for deferred scenes that should activate when player talks to this NPC
-        // Parallel to location-based activation when player arrives at location
+        // LEGACY: NPC-based scene activation - TARGET ARCHITECTURE uses location-only activation
+        // This call should be removed when migrating to the target architecture
+        // Scene activation should only happen in CheckAndActivateDeferredScenes (location-based)
+        #pragma warning disable CS0618 // Suppress obsolete warning for legacy code
         await _locationFacade.CheckAndActivateDeferredScenesForNPC(npc, player);
+        #pragma warning restore CS0618
 
         // Then create conversation context
         return await _conversationFacade.CreateConversationContext(npc, situation);

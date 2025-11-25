@@ -521,10 +521,24 @@ public class LocationFacade
     }
 
     /// <summary>
+    /// LEGACY: NPC-based scene activation - TARGET ARCHITECTURE uses LOCATION-ONLY activation
+    ///
+    /// CURRENT (LEGACY) BEHAVIOR:
     /// Check for deferred scenes that should activate when player interacts with specific NPC
     /// Parallel to CheckAndActivateDeferredScenes but triggered by NPC interaction (conversation start)
     /// Uses NpcActivationFilter with categorical NPC properties (Profession, SocialStanding, etc.)
+    ///
+    /// TARGET ARCHITECTURE:
+    /// Scenes activate via LOCATION ONLY (CheckAndActivateDeferredScenes when player enters location)
+    /// NPCs are for DISPLAY CONTEXT, not activation triggers:
+    /// - At activation: Dependent NPCs are FindOrCreate'd from categorical properties
+    /// - NPCs get assigned to situations via object reference
+    /// - Choices display when player talks to situation's NPC (display context)
+    ///
+    /// MIGRATION: Remove this method and its callers (GameFacade.CreateConversationContext)
+    /// Scene activation should only happen in CheckAndActivateDeferredScenes via LocationActivationFilter
     /// </summary>
+    [Obsolete("LEGACY: Target architecture uses location-only activation. Remove this method and update callers.")]
     public async Task CheckAndActivateDeferredScenesForNPC(NPC npc, Player player)
     {
         List<Scene> deferredScenes = _gameWorld.Scenes
@@ -574,10 +588,20 @@ public class LocationFacade
     }
 
     /// <summary>
+    /// LEGACY: NPC activation filter matching - TARGET ARCHITECTURE uses LOCATION-ONLY activation
+    ///
+    /// CURRENT (LEGACY) BEHAVIOR:
     /// Check if NPC matches activation filter using categorical properties
     /// Uses intentionally named enum properties: Profession, SocialStanding, StoryRole, KnowledgeLevel
     /// Does NOT resolve entities - pure categorical matching (BEFORE entity resolution)
+    ///
+    /// TARGET ARCHITECTURE:
+    /// This method is only used by CheckAndActivateDeferredScenesForNPC (also LEGACY)
+    /// Scenes should activate via LOCATION ONLY, not NPC interaction
+    ///
+    /// MIGRATION: Remove this method when CheckAndActivateDeferredScenesForNPC is removed
     /// </summary>
+    [Obsolete("LEGACY: Only used by CheckAndActivateDeferredScenesForNPC which is also legacy.")]
     private bool NPCMatchesActivationFilter(NPC npc, PlacementFilter filter, Player player)
     {
         // Check Profession (if specified)
