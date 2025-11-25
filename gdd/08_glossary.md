@@ -91,10 +91,41 @@ Major side content. 3-8 scenes per storyline. Optional, player-initiated, substa
 Minor side content. 1-2 scenes. World flavor, quick opportunities, organic encounters.
 
 ### Categorical Property
-Entity attribute that scales archetype costs/rewards. Examples: NPCDemeanor, Quality, PowerDynamic. Enables contextual difficulty without explicit level gates.
+Strongly-typed entity attribute with intentional domain meaning. Two types exist:
+- **Identity Dimensions** (what entity IS): Privacy, Safety, Activity, Purpose for locations; Profession, Personality for NPCs
+- **Capabilities** (what entity CAN DO): Crossroads enables Travel; Commercial enables Work; SleepingSpace enables Rest
+
+All categorical properties are enums with specific game effects—never generic strings.
 
 ### Frieren Principle
 Design philosophy: The game never ends. The journey is the point, not arrival. Success measured by journey quality, not reaching destination.
+
+---
+
+## Location Properties
+
+Locations have two types of categorical properties that determine scene activation and gameplay.
+
+### Identity Dimensions (What Location IS)
+
+| Dimension | Values | Game Effect |
+|-----------|--------|-------------|
+| **Privacy** | Public, SemiPublic, Private | Witness presence, social stakes |
+| **Safety** | Dangerous, Neutral, Safe | Threat level, guard presence |
+| **Activity** | Quiet, Moderate, Busy | Population density, NPC availability |
+| **Purpose** | Transit, Dwelling, Commerce, Civic, etc. | Primary functional role |
+
+### Capabilities (What Location CAN DO)
+
+| Capability | Enables |
+|------------|---------|
+| **Crossroads** | Travel action (route selection) |
+| **Commercial** | Work action (earn coins) |
+| **SleepingSpace** | Rest action (restore health/stamina) |
+| **Restful** | Enhanced restoration quality |
+| **Market** | Trading with pricing modifiers |
+
+Scene activation uses these properties for categorical matching—scenes activate at locations matching their filter criteria.
 
 ---
 

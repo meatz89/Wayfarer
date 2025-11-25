@@ -95,6 +95,14 @@ Key file: `src/Services/GameFacade.cs:706-783`
 
 **CRITICAL**: `IsStarter=true` only determines which templates spawn at game start as Deferred. The actual ACTIVATION happens via categorical property matching.
 
+### 14.4.2 Strongly-Typed Categorical Properties
+
+**All categorical properties are strongly-typed enums with specific domain meaning.** JSON strings are parsed to enums at startup with fail-fast validation—invalid values throw immediately.
+
+**Two Distinct Concepts:**
+- **Identity Dimensions** (what location IS): Privacy, Safety, Activity, Purpose — list matching (any-of)
+- **Capabilities** (what location CAN DO): Crossroads, Commercial, SleepingSpace — flags enum (all-of)
+
 **LocationActivationFilter** (from SceneTemplate JSON):
 ```json
 {
@@ -106,7 +114,22 @@ Key file: `src/Services/GameFacade.cs:706-783`
 }
 ```
 
-### 14.4.2 Activation Check Flow
+**Property Type Mapping:**
+| JSON Field | Enum Type | Values | Matching Rule |
+|------------|-----------|--------|---------------|
+| `capabilities` | `LocationCapability` (Flags) | Commercial, Restful, Crossroads, SleepingSpace, Indoor, Outdoor, Market, etc. | Location must have ALL |
+| `privacyLevels` | `LocationPrivacy` | Public, SemiPublic, Private | Location must have ONE OF |
+| `safetyLevels` | `LocationSafety` | Dangerous, Neutral, Safe | Location must have ONE OF |
+| `activityLevels` | `LocationActivity` | Quiet, Moderate, Busy | Location must have ONE OF |
+| `purposes` | `LocationPurpose` | Transit, Dwelling, Commerce, Civic, Defense, Governance, Worship, Learning, Entertainment, Generic | Location must have ONE OF |
+
+**Game Mechanic Effects:**
+- `Commercial` → Enables Work action (earn coins)
+- `SleepingSpace` → Enables Rest action (restore health/stamina)
+- `Crossroads` → Enables Travel action (route selection)
+- `Restful` → Enhanced restoration quality
+
+### 14.4.3 Activation Check Flow
 
 When player moves to a location (`LocationFacade.MoveToSpot`):
 
@@ -136,14 +159,15 @@ private async Task CheckAndActivateDeferredScenes(Location location)
 }
 ```
 
-### 14.4.3 Categorical Matching Logic
+### 14.4.4 Categorical Matching Logic
 
 ```csharp
 // src/Subsystems/Location/LocationFacade.cs:490-521
 private bool LocationMatchesActivationFilter(Location location, PlacementFilter filter, Player player)
 {
     // Each categorical dimension checked independently
-    // Empty list = don't filter, Non-empty = must match ONE OF values
+    // Empty list = don't filter, Non-empty = must match ONE OF values (identity dimensions)
+    // Capabilities use flags enum with bitwise AND (all-of matching)
 
     if (filter.PrivacyLevels != null && filter.PrivacyLevels.Count > 0)
         if (!filter.PrivacyLevels.Contains(location.Privacy))
@@ -165,7 +189,7 @@ private bool LocationMatchesActivationFilter(Location location, PlacementFilter 
 }
 ```
 
-### 14.4.4 NPC Activation (Parallel Path)
+### 14.4.5 NPC Activation (Parallel Path)
 
 Scenes can also activate when player interacts with matching NPC:
 
@@ -539,11 +563,28 @@ JSON --> PackageLoader --> Parser --> Entity
 
 Dynamic scenes generate JSON at runtime, written to Content/Dynamic/, loaded via PackageLoader. NO direct entity creation allowed.
 
-### 14.12.2 Categorical Over ID-Based
+### 14.12.2 Strongly-Typed Categorical Properties
 
-Scenes use categorical filters, not hardcoded IDs:
-- **Correct**: `capabilities: ["Commercial", "Restful"]`
-- **Forbidden**: `locationId: "common_room"`
+Scenes use categorical filters with strongly-typed enums, not hardcoded IDs or generic strings.
+
+**Two Property Types:**
+- **Identity Dimensions** (what entity IS): `LocationPrivacy`, `LocationSafety`, `LocationActivity`, `LocationPurpose`
+- **Capabilities** (what entity CAN DO): `LocationCapability` flags enum
+
+**Correct:**
+```json
+{
+  "capabilities": ["Commercial", "Restful"],
+  "privacyLevels": ["SemiPublic"],
+  "purposes": ["Commerce", "Dwelling"]
+}
+```
+
+**Forbidden:**
+- `locationId: "common_room"` — hardcoded IDs
+- Generic strings with no enum backing
+
+All JSON strings are parsed to enums at startup. Invalid values fail immediately (fail-fast validation).
 
 This enables procedural generation and hex-map independence.
 
@@ -588,6 +629,10 @@ Entity resolution searches ONLY within the activation venue to prevent teleporta
 }
 ```
 
+**Categorical Property Types:**
+- `capabilities` → `LocationCapability` flags: `Commercial` (enables Work), `Restful` (enhanced rest)
+- `professions` → `Professions` enum: `Innkeeper` (occupational role)
+
 **NOTE**: `isStarter` is LEGACY. All scenes should work via categorical trigger only.
 
 **Archetype Generation**: `SceneArchetypeCatalog.GenerateInnLodging()` creates:
@@ -616,6 +661,11 @@ Entity resolution searches ONLY within the activation venue to prevent teleporta
 }
 ```
 
+**Categorical Property Types:**
+- `privacyLevels` → `LocationPrivacy` enum: `Public` (many witnesses, high social stakes)
+- `capabilities` → `LocationCapability` flags: `Commercial` (enables Work action)
+- `professions` → `Professions` enum: `Merchant` (occupational role)
+
 ### 14.13.3 A3: Route Travel
 
 ```json
@@ -630,9 +680,19 @@ Entity resolution searches ONLY within the activation venue to prevent teleporta
 }
 ```
 
+**Categorical Property Types:**
+- `activityLevels` → `LocationActivity` enum: `Quiet` (isolated, few people)
+- `capabilities` → `LocationCapability` flags: `Outdoor` (exposed to weather)
+
 ## 14.14 Summary
 
-The tutorial system uses categorical triggers for scene activation. When player enters a location:
+The tutorial system uses **strongly-typed categorical triggers** for scene activation. All categorical properties are enums with specific domain meaning—never generic strings.
+
+**Two Property Types:**
+- **Identity Dimensions** (what location IS): `LocationPrivacy`, `LocationSafety`, `LocationActivity`, `LocationPurpose`
+- **Capabilities** (what location CAN DO): `LocationCapability` flags enum enabling game mechanics
+
+**Activation Flow:**
 
 1. `LocationFacade.CheckAndActivateDeferredScenes()` finds all Deferred scenes
 2. Compares location's categorical properties against each scene's `LocationActivationFilter`
@@ -646,3 +706,4 @@ The tutorial system uses categorical triggers for scene activation. When player 
 - Resolution: `SceneInstantiator.cs:156-201`
 - Actions: `SceneFacade.cs:119-166`
 - Chaining: `RewardApplicationService.cs:201-271`
+- Enum definitions: `src/GameState/LocationPrivacy.cs`, `LocationCapability.cs`, etc.

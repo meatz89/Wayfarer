@@ -11,7 +11,7 @@ Domain and technical terms used throughout this documentation.
 | **A-Story** | The infinite, procedurally-generated main storyline providing structure without resolution |
 | **Atmospheric Action** | Persistent gameplay scaffolding (Travel, Work, Rest) that prevents soft-locks; always available |
 | **Bridge** | The ActionType mechanism crossing from strategic to tactical layer via StartChallenge |
-| **Categorical Property** | Descriptive enum (Friendly, Premium, Hostile) translated to concrete values at parse-time |
+| **Categorical Property** | Strongly-typed enum describing entity identity or capability; parsed from JSON strings with fail-fast validation |
 | **Challenge** | Tactical card-based gameplay session (Social, Mental, or Physical) |
 | **Choice** | Player-facing option within a Situation; has costs, requirements, and rewards |
 | **Connection State** | NPC relationship level (Disconnected → Guarded → Neutral → Receptive → Trusting) |
@@ -46,7 +46,7 @@ Domain and technical terms used throughout this documentation.
 | **Object Reference** | Direct entity relationship (not ID string); e.g., `NPC.Location` |
 | **Parse-Time Translation** | One-time categorical → concrete conversion at startup |
 | **Pattern Discrimination** | Runtime check (`ChoiceTemplate == null`) determining which action tier applies |
-| **PlacementFilter** | Categorical criteria for entity resolution (Purpose, Safety, Demeanor) |
+| **PlacementFilter** | Strongly-typed filter for entity resolution; combines identity dimensions (Privacy, Safety, Activity, Purpose) and capabilities |
 | **Query-Time** | Third timing tier; actions created when player enters context |
 | **Scene-Based Action** | Ephemeral action from ChoiceTemplate; exists only when scene active |
 | **Spawn-Time** | Second timing tier; scenes/situations created when triggered |
@@ -86,6 +86,25 @@ Domain and technical terms used throughout this documentation.
 | **Progress** | Builder resource in Mental challenges |
 | **Breakthrough** | Builder resource in Physical challenges |
 | **Threshold** | Victory condition value; reaching it completes SituationCard |
+
+---
+
+## Categorical Property Terms
+
+| Term | Definition |
+|------|------------|
+| **Identity Dimension** | Categorical property describing what an entity IS (atmosphere, context); uses List matching (any-of) |
+| **Capability** | Categorical property describing what an entity CAN DO (game mechanics); uses Flags enum (all-of) |
+| **LocationPrivacy** | Identity dimension: Public, SemiPublic, Private — determines witness presence and social stakes |
+| **LocationSafety** | Identity dimension: Dangerous, Neutral, Safe — determines physical threat level |
+| **LocationActivity** | Identity dimension: Quiet, Moderate, Busy — determines population density |
+| **LocationPurpose** | Identity dimension: Transit, Dwelling, Commerce, Civic, Defense, Governance, Worship, Learning, Entertainment, Generic |
+| **LocationCapability** | Flags enum: Crossroads, Commercial, SleepingSpace, Restful, Indoor, Outdoor, Market, etc. — enables game mechanics |
+| **Professions** | NPC identity dimension: Innkeeper, Merchant, Guard, Scholar, etc. — occupational role |
+| **PersonalityType** | NPC identity dimension: behavioral archetype affecting dialogue and costs |
+| **NPCSocialStanding** | NPC identity dimension: influence tier (Notable, Authority) |
+| **NPCStoryRole** | NPC identity dimension: narrative function (Obstacle, Facilitator) |
+| **Orthogonal Dimension** | Independent categorical axis; multiple dimensions compose without interdependence |
 
 ---
 

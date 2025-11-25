@@ -258,6 +258,89 @@ flowchart TB
 
 ---
 
+## 8.10 Categorical Property Architecture
+
+**Every categorical property is strongly-typed with intentional domain meaning.**
+
+Entities are selected via categorical filters, not generic strings. All categorical properties map to strongly-typed enums with specific game effects.
+
+### Two Distinct Concepts for Entity Selection
+
+**Identity Dimensions (What the entity IS):**
+- Describe atmosphere, context, and character
+- Multiple orthogonal dimensions compose to create archetypes
+- Empty list = don't filter (any value matches)
+- Non-empty list = entity must have ONE OF the specified values
+
+**Capabilities (What the entity CAN DO):**
+- Enable specific game mechanics
+- Flags enum with bitwise operations
+- Entity must have ALL specified capabilities to match
+
+### Location Categorical Dimensions
+
+| Dimension | Enum | Values | Domain Meaning |
+|-----------|------|--------|----------------|
+| **Privacy** | `LocationPrivacy` | Public, SemiPublic, Private | Social exposure and witness presence |
+| **Safety** | `LocationSafety` | Dangerous, Neutral, Safe | Physical threat level |
+| **Activity** | `LocationActivity` | Quiet, Moderate, Busy | Population density |
+| **Purpose** | `LocationPurpose` | Transit, Dwelling, Commerce, Civic, Defense, Governance, Worship, Learning, Entertainment, Generic | Primary functional role |
+
+### Location Capabilities (Flags Enum)
+
+| Capability | Game Mechanic Effect |
+|------------|---------------------|
+| `Crossroads` | Enables Travel action (route selection UI) |
+| `Commercial` | Enables Work action (earn coins) |
+| `SleepingSpace` | Enables Rest action (restore health/stamina) |
+| `Restful` | Enhanced restoration quality |
+| `Indoor`/`Outdoor` | Environmental context (weather affects gameplay) |
+| `Market` | Pricing modifier (1.1x) |
+| `LodgingProvider` | Accommodation services available |
+
+### NPC Categorical Dimensions
+
+| Dimension | Enum | Purpose |
+|-----------|------|---------|
+| **Professions** | `Professions` | Occupational role (Innkeeper, Merchant, Guard) |
+| **PersonalityTypes** | `PersonalityType` | Behavioral archetype (Innocent, Cunning, Authoritative) |
+| **SocialStandings** | `NPCSocialStanding` | Influence tier (Notable, Authority) |
+| **StoryRoles** | `NPCStoryRole` | Narrative function (Obstacle, Facilitator) |
+| **KnowledgeLevels** | `NPCKnowledgeLevel` | Information access (Informed, Expert) |
+
+### Parser Validation (Fail-Fast)
+
+All categorical strings are validated at parse-time:
+
+```csharp
+if (Enum.TryParse<LocationCapability>(capabilityString, true, out LocationCapability capability))
+    capabilities |= capability;
+else
+    throw new InvalidDataException($"Invalid LocationCapability: '{capabilityString}'");
+```
+
+**Consequences:**
+- Invalid enum values fail immediately at startup, not runtime
+- No generic strings pass through unvalidated
+- Content authors must use exact enum value names
+- Typos and invalid values are impossible to deploy
+
+### JSON to Entity Mapping
+
+| JSON Field | DTO Property | Entity Property | Type |
+|------------|--------------|-----------------|------|
+| `privacyLevels` | `List<string>` | `List<LocationPrivacy>` | Parsed enum list |
+| `capabilities` | `List<string>` | `LocationCapability` | Parsed flags enum |
+| `professions` | `List<string>` | `List<Professions>` | Parsed enum list |
+
+**Key Files:**
+- `src/GameState/LocationPrivacy.cs` — Privacy enum with XML doc
+- `src/GameState/LocationCapability.cs` — Capabilities flags enum
+- `src/GameState/PlacementFilter.cs` — Filter entity with all dimensions
+- `src/Content/Parsers/SceneTemplateParser.cs:264-499` — Enum parsing with validation
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement
