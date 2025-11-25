@@ -26,1016 +26,251 @@
 | `gdd/04_systems.md` | Stats, resources, economy overview | Working on game mechanics |
 | `design/BASELINE_ECONOMY.md` | Authoritative numeric values | Balance, costs, rewards work |
 
-## Deep Reference (Exhaustive Detail)
+## Deep Reference
 
-| Location | Content | When |
-|----------|---------|------|
-| `design/` subdirectory | 15,000 lines of detailed mechanics, archetypes, balance methodology | Need specific formulas, edge cases, or comprehensive rules |
-| `arc42/` subdirectory | Complete arc42 technical documentation | Need deployment, runtime, or quality requirement details |
+| Location | Content |
+|----------|---------|
+| `design/` subdirectory | 15,000 lines of detailed mechanics, archetypes, balance methodology |
+| `arc42/` subdirectory | Complete arc42 technical documentation |
 
 ## Reading Order by Task Type
 
-**"I need to implement a feature"** → Glossaries → `arc42/08` → `arc42/05` → `gdd/01` → `gdd/03`
+**Implement a feature** → Glossaries → `arc42/08` → `arc42/05` → `gdd/01` → `gdd/03`
 
-**"I need to understand game balance"** → Glossaries → `gdd/01` → `gdd/06` → `design/BASELINE_ECONOMY.md` → `design/08_balance_philosophy.md`
+**Understand balance** → Glossaries → `gdd/01` → `gdd/06` → `design/BASELINE_ECONOMY.md`
 
-**"I need to understand an entity"** → Glossaries → `arc42/05` → `arc42/08` → Search codebase
+**Understand an entity** → Glossaries → `arc42/05` → `arc42/08` → Search codebase
 
-**"I need to understand a design decision"** → Glossaries → `gdd/07` → `arc42/09` → `gdd/01`
-
----
-
-# RULE #0: NO HALF MEASURES - ABSOLUTE PRINCIPLE
-
-## THE IRON LAW: COMPLETE WORK ONLY
-
-**FORBIDDEN FOREVER - ZERO TOLERANCE:**
-
-You are NEVER ALLOWED to suggest or execute:
-- ❌ "Quick wins" or "easy wins" - Taking shortcuts because something is hard
-- ❌ Partial implementations - "Let's do part of it now and finish later"
-- ❌ Compatibility layers - "Let's add a shim for now and refactor later"
-- ❌ Deferring work - "Let's come back to this later" or "Let's pivot to something easier"
-- ❌ Half measures - Stopping at 80% complete because "good enough"
-- ❌ TODO comments in code - If you can't do it right now, don't start
-- ❌ Temporary solutions - There is no such thing as temporary, only permanent technical debt
-- ❌ "We can improve this later" - NO. Do it RIGHT the first time.
-
-**MANDATORY FOREVER - ALWAYS REQUIRED:**
-
-You MUST ALWAYS:
-- ✅ **DO IT NOW** - Complete the task fully before moving on, no matter how hard
-- ✅ **DO IT HOLISTICALLY** - Understand the complete system, not just the piece you're touching
-- ✅ **DO IT COMPLETELY** - Finish what you start, 100% done, no loose ends
-- ✅ **TAKE THE HARD BUT CORRECT WAY** - Never choose easy over correct
-- ✅ **USE AGENTS TO PLAN** - Before starting, use agents to validate 100% holistic completion is possible
-- ✅ **USE AGENTS TO VERIFY** - After planning, use agents to verify the approach is complete and correct
-- ✅ **FINISH BEFORE SUGGESTING ALTERNATIVES** - If you hit a blocker, solve it, don't pivot
-
-**Why This Matters:**
-
-Half measures accumulate into unmaintainable chaos. "Quick wins" create technical debt. Partial implementations mean the feature doesn't actually work. Compatibility layers mean the old broken code never gets deleted. Deferring work means it never gets done.
-
-**The only acceptable quality standard: COMPLETE AND CORRECT.**
-
-If a task is too large, break it into complete vertical slices. Each slice must be 100% done: JSON → DTO → Parser → Entity → Service → UI → Tests → Documentation. Never do "all the JSON changes" then move on - do ONE complete feature end-to-end, then the next.
-
-**When You're Tempted to Suggest an Alternative:**
-
-STOP. Ask yourself:
-1. Am I suggesting this because it's EASIER, not BETTER?
-2. Am I avoiding the hard work?
-3. Will this leave the system in a better state, or just different?
-4. Is this actually solving the problem, or deferring it?
-
-If the answer to ANY of these is wrong, DO NOT SUGGEST IT. Go back and solve the actual problem.
-
-**Gordon Ramsay Standard:**
-
-"You want to PIVOT to something easier? You want a QUICK WIN? NO! You started this task, you FINISH this task! I don't care if it's hard! I don't care if it takes time! You do it RIGHT or you don't do it at ALL! No half-assed, half-finished GARBAGE in this codebase!"
-
-**Partner, Not Sycophant:**
-
-Your job is to do HARD WORK, not make the user feel good by suggesting easy alternatives. The user values COMPLETE, CORRECT solutions over speed or convenience. Be a partner who does the difficult work properly, not a sycophant who suggests shortcuts to avoid effort.
+**Understand a decision** → Glossaries → `gdd/07` → `arc42/09` → `gdd/01`
 
 ---
 
-# CRITICAL ARCHITECTURE: DUAL-TIER ACTION SYSTEM (READ FIRST)
+# RULE #0: NO HALF MEASURES
 
-**⚠️ MANDATORY READING BEFORE ANY ACTION-RELATED WORK ⚠️**
+**FORBIDDEN:**
+- "Quick wins" or partial implementations
+- Compatibility layers or temporary solutions
+- Deferring work ("let's come back to this later")
+- TODO comments in code
+- Stopping at 80% because "good enough"
 
-**READ THIS FILE IMMEDIATELY:** `DUAL_TIER_ACTION_ARCHITECTURE.md`
+**MANDATORY:**
+- Complete the task fully before moving on
+- Understand the complete system holistically
+- Take the hard but correct path
+- Use agents to plan and verify before implementing
+- If blocked, solve it - don't pivot to something easier
 
-## THE CRITICAL MISTAKE (2025-01-23)
-
-Claude attempted to "clean up legacy code" by deleting ActionCosts/ActionRewards properties from LocationAction and PathCard, breaking the atmospheric action layer that prevents soft-locks.
-
-**THE TRUTH:** LocationAction is a UNION TYPE supporting TWO intentional patterns:
-
-1. **Atmospheric Actions** (ChoiceTemplate == null)
-   - Parse-time permanent scaffolding (Travel, Work, Rest, Movement)
-   - Use **direct properties**: ActionCosts Costs, ActionRewards Rewards
-   - Generated by LocationActionCatalog, stored in GameWorld
-   - CRITICAL for preventing dead ends and soft-locks
-
-2. **Scene-Based Actions** (ChoiceTemplate != null)
-   - Query-time ephemeral narrative content
-   - Use **ChoiceTemplate**: CostTemplate/RewardTemplate/RequirementFormula
-   - Generated from ChoiceTemplate when Situation active
-   - Layered on top of atmospheric baseline
-
-**BOTH patterns are CORRECT and INTENTIONAL architecture.**
-
-## FORBIDDEN ASSUMPTIONS
-
-❌ "I see ChoiceTemplate property, so ALL actions should use it"
-❌ "ActionCosts/ActionRewards look redundant, delete them"
-❌ "ValidateLegacyAction methods are legacy code to remove"
-❌ "Scene-Situation architecture replaced the old system"
-
-## REQUIRED VERIFICATION (Before Deleting ANY Property)
-
-✅ Read DUAL_TIER_ACTION_ARCHITECTURE.md completely
-✅ Search LocationActionCatalog - does it use this property?
-✅ Check arc42/12_glossary.md for Action definitions
-✅ Verify pattern discrimination logic in executors
-✅ Confirm deletion doesn't break atmospheric scaffolding
-
-**IF IN DOUBT, SPAWN lead-architect AND game-dev-validator AGENTS FIRST.**
+**Vertical Slices:** If task is large, break into complete slices. Each slice: JSON → DTO → Parser → Entity → Service → UI → Tests. Never do "all JSON changes" then move on.
 
 ---
 
-# MANDATORY DOCUMENTATION PROTOCOL (RULE #1)
+# CRITICAL: DUAL-TIER ACTION SYSTEM
 
-## THE ABSOLUTE RULE: READ BEFORE ACTING
+**READ FIRST:** `DUAL_TIER_ACTION_ARCHITECTURE.md`
 
-**BEFORE EVERY REQUEST, ANSWER, PLAN, OR IMPLEMENTATION:**
+LocationAction is a **UNION TYPE** supporting TWO intentional patterns:
 
-You MUST achieve 100% CERTAINTY about ALL concepts necessary to accomplish the goal. If there is even the SLIGHTEST SLIVER OF DOUBT or ASSUMPTION about any concept, term, architecture, design pattern, game mechanic, entity relationship, or system interaction, you MUST IMMEDIATELY STOP and READ THE APPROPRIATE DOCUMENTATION.
+| Pattern | Discriminator | Source | Properties |
+|---------|---------------|--------|------------|
+| **Atmospheric** | `ChoiceTemplate == null` | LocationActionCatalog (parse-time) | Direct `Costs`, `Rewards` |
+| **Scene-Based** | `ChoiceTemplate != null` | SceneFacade (query-time) | `ChoiceTemplate.CostTemplate/RewardTemplate` |
 
-**This is NOT optional. This is NOT negotiable. This is MANDATORY.**
+**BOTH patterns are CORRECT.** Atmospheric actions prevent soft-locks. Scene-based actions provide narrative.
 
-## COMPREHENSIVE DOCUMENTATION EXISTS
+**FORBIDDEN ASSUMPTIONS:**
+- "ActionCosts/ActionRewards look redundant, delete them"
+- "Scene-Situation architecture replaced the old system"
+- "ValidateLegacyAction methods are legacy code to remove"
 
-This codebase maintains comprehensive documentation organized into two parallel systems by separation of concerns. Both systems are required for complete understanding.
+**Before deleting ANY action property:** Search LocationActionCatalog, check arc42/08 §8.8, verify pattern discrimination in executors.
 
-**Technical Architecture Documentation:**
-Organized by HOW the system is built. Contains implementation patterns, component structure, runtime behavior, technical decisions, constraints, and quality requirements. Found in `arc42/` subdirectory as numbered markdown files following arc42 template structure.
+---
 
-**Game Design Documentation:**
-Organized by WHAT the game is and WHY design creates strategic depth. Primary GDD in `gdd/` subdirectory (vision, pillars, core concepts ~1,200 lines). Detailed reference documentation in `design/` subdirectory (~15,000 lines for exhaustive mechanics, archetypes, balance methodology).
+# MANDATORY: READ DOCS FIRST
 
-**The Separation Principle:**
-- Technical docs without design docs = You know HOW but not WHY (implements wrong behavior)
-- Design docs without technical docs = You know WHY but not HOW (writes bad code)
-- Neither = You're guessing (ABSOLUTELY FORBIDDEN)
+You MUST achieve **100% CERTAINTY** before acting. If ANY doubt exists about a concept, term, architecture, or mechanic - STOP and READ DOCUMENTATION.
 
-Both required together for correct implementation.
-
-## DOCUMENTATION STRUCTURE (BOOTSTRAP)
-
-**Minimal information to begin:**
-
-**Technical Architecture Documentation (arc42/ Subdirectory):**
-- Location: `arc42/` subdirectory
-- Files: Numbered markdown files (01-12) following arc42 template
-- Examples: `arc42/05_building_block_view.md`, `arc42/08_crosscutting_concepts.md`, `arc42/12_glossary.md`
-- Start here: `arc42/12_glossary.md` (technical terms) or `arc42/01_introduction_and_goals.md` (overview)
-
-**Game Design Documentation (gdd/ and design/ Subdirectories):**
-- Primary GDD: `gdd/` subdirectory (~1,200 lines, vision-focused)
-- Reference docs: `design/` subdirectory (~15,000 lines, exhaustive detail)
-- Examples: `gdd/01_vision.md` (design pillars), `design/08_balance_philosophy.md` (detailed methodology)
-- Start here: `gdd/00_one_pager.md` (elevator pitch) or `gdd/README.md` (navigation guide)
-
-**Discovery Pattern:**
-1. Start with glossaries to learn terminology
-2. Follow cross-references between documents
-3. Search documentation with Grep for specific concepts
-4. Verify current implementation by searching codebase
-
-Everything else about structure, content, and organization is IN the documentation itself.
-
-## SOURCE OF TRUTH HIERARCHY
-
-**When seeking certainty, consult authorities in this order:**
-
+**Source of Truth Hierarchy:**
 1. **Code** - Ultimate ground truth (what actually runs)
-2. **Documentation** - Authoritative explanation (what it means, why it exists)
-3. **CLAUDE.md** - Process philosophy (how to work, how to think)
+2. **Documentation** - Authoritative explanation (what it means)
+3. **CLAUDE.md** - Process philosophy (how to work)
 
-**Resolution rules:**
-- Documentation conflicts with code → Code wins (documentation may lag implementation)
-- CLAUDE.md conflicts with documentation → Documentation wins (facts trump process)
-- CLAUDE.md provides methodology, documentation provides facts, code provides truth
-
-## 100% CERTAINTY REQUIREMENT (NO ASSUMPTIONS)
-
-**Achieving certainty methodology:**
-
-1. **Identify uncertainty:** What concepts do I not fully understand?
-2. **Determine concern:** Is this about WHAT/WHY (game design) or HOW/WHERE (technical)?
-3. **Read appropriate documentation:** Design docs for player-facing concepts, technical docs for implementation
-4. **Cross-reference:** Trace concept through both doc sets for holistic view
-5. **Verify in code:** Search codebase to confirm documentation matches reality
-6. **Iterate:** If still uncertain, read MORE documentation (never assume)
+**Resolution:** Code wins over docs. Docs win over CLAUDE.md.
 
 **Uncertainty indicators (READ DOCS NOW):**
-- Don't know what term means
-- Don't know why decision was made
-- Don't know where code lives
-- Don't know how systems interact
-- Don't know what entity contains
-- Don't know what player experiences
-- Any phrase starting with "probably", "I think", "seems like", "might be"
+- "I think this might be..."
+- "Based on similar systems..."
+- "This seems like it should..."
+- "Probably this entity has..."
 
-**FORBIDDEN FOREVER:**
-- ❌ "I think this might be how it works" → NO. READ THE DOCS.
-- ❌ "Based on similar systems..." → NO. VERIFY IN DOCS.
-- ❌ "This seems like it should..." → NO. CHECK THE DOCS.
-- ❌ "Probably this entity has..." → NO. SEARCH AND READ.
-
-**You are NOT allowed to assume. You are NOT allowed to guess. You MUST KNOW.**
-
-## HOLISTIC UNDERSTANDING REQUIREMENT
-
-**Single system understanding is incomplete:**
-
-Technical documentation alone:
-- Explains implementation details
-- Shows code organization
-- Documents technical patterns
-- MISSING: Design intent, player experience goals, why mechanics create depth
-
-Game design documentation alone:
-- Explains player experience
-- Shows design philosophy
-- Documents strategic depth rationale
-- MISSING: Implementation location, technical patterns, how to code it
-
-**Both systems required together:**
-- Design docs explain WHAT should exist and WHY it matters
-- Technical docs explain HOW it's implemented and WHERE it lives
-- Cross-references connect the two for navigation
-- Verification via codebase search confirms alignment
-
-**Working process:**
-1. Read design docs → Understand player-facing intent
-2. Read technical docs → Understand implementation approach
-3. Search code → Verify current reality
-4. Cross-reference → Ensure holistic comprehension
-5. ONLY THEN → Plan or implement
-
-## DOCUMENTATION DISCOVERY
-
-**How to find what to read:**
-
-Documentation is self-organizing and cross-referenced. When uncertain about a concept:
-
-1. **Start with glossaries:** Both doc sets have comprehensive glossaries of terms
-2. **Follow cross-references:** Documentation links between related concepts
-3. **Use README files:** Documentation directories contain structure guides
-4. **Search documentation:** Grep for concept name across all docs
-5. **Read index/introduction:** First file typically provides navigation map
-
-Documentation locations, filenames, and structure details are IN the documentation itself. CLAUDE.md only establishes the PRINCIPLE that you must read them and HOW to achieve certainty.
-
-## QUICK START BY CONCEPT CATEGORY
-
-**When uncertain about a concept, start with these doc types:**
-
-**Game Entities (what they are):**
-- Start: Both glossaries (technical + design) for definitions
-- Then: Building block view (arc42) for structure, Design docs for purpose
-- Verify: Search codebase for actual class definitions
-
-**Game Mechanics (how they work for players):**
-- Start: Design glossaries and core gameplay loops
-- Then: Specific design section (challenges, economy, progression, etc.)
-- Verify: Search for mechanic implementation in services/facades
-
-**Technical Patterns (how code is organized):**
-- Start: Crosscutting concepts (arc42) or pattern catalog
-- Then: Architecture decisions for rationale
-- Verify: Search for pattern usage across codebase
-
-**Balance/Numbers (costs, rewards, difficulty):**
-- Start: Balance philosophy and resource economy (design docs)
-- Then: Specific mechanic section for formulas
-- Verify: Search JSON files for actual values in use
-
-**Data Flow (how systems connect):**
-- Start: Building block view and runtime view (arc42)
-- Then: Core gameplay loops (design) for player perspective
-- Verify: Trace through code from UI to domain to data
-
-**Content Generation (archetypes, AI, procedural):**
-- Start: Content generation section (design docs)
-- Then: Catalogue pattern (technical) for implementation
-- Verify: Search parsers and catalogues in codebase
-
-**The pattern:** Glossary → Detailed section → Verify in code. Every time.
-
-**This protocol is NOT negotiable. Follow it for EVERY task, no matter how small.**
-
-## HANDLING INSUFFICIENT DOCUMENTATION
-
-**When documentation doesn't fully answer your question:**
-
-1. **Exhaust documentation first:**
-   - Read ALL cross-referenced sections (don't stop at first mention)
-   - Search docs for related concepts (Grep across all markdown files)
-   - Check DDRs/ADRs for historical context and alternatives considered
-
-2. **Verify against code (code is ground truth):**
-   - Search codebase for actual implementation
-   - Read complete source files (not just snippets)
-   - Look for patterns in similar existing features
-
-3. **If still ambiguous:**
-   - Document WHAT you know (from docs + code)
-   - Document WHAT is uncertain (specific questions)
-   - Document WHAT you've already read (show thoroughness)
-   - Ask user for clarification with context
-
-4. **NEVER:**
-   - Guess based on "similar systems"
-   - Assume "it probably works like X"
-   - Implement without certainty because "good enough"
-
-**Documentation conflicts:**
-- Docs conflict with each other → Code is ground truth
-- Example conflicts with rule → Rule is ground truth, example may be outdated
-- Multiple examples show different patterns → Ask which is canonical
-
-**The principle:** Uncertainty is acceptable. Guessing is not. Ask informed questions.
+**You are NOT allowed to assume. You MUST KNOW.**
 
 ---
 
 # CRITICAL INVESTIGATION PROTOCOL
 
 **BEFORE ANY WORK:**
-1. **READ DOCUMENTATION FIRST** (see MANDATORY DOCUMENTATION PROTOCOL above)
+1. Read documentation first (see Required Reading above)
 2. Search codebase exhaustively (Glob/Grep for ALL references)
-3. Read COMPLETE files (no partial reads unless truly massive)
-4. Understand architecture (GameWorld, screens, CSS, domain entities, services, data flow)
-5. Verify ALL assumptions (search before claiming exists/doesn't exist)
-6. Map dependencies (what breaks if I change this?)
+3. Read COMPLETE files (no partial reads)
+4. Map dependencies (what breaks if I change this?)
+5. Verify ALL assumptions via code search
 
-**HOLISTIC DELETION (Parser-JSON-Entity Triangle):**
-When deleting/changing ANY property, update ALL FIVE layers:
-- JSON source → DTO class → Parser code → Entity class → Usage (services/UI)
+**HOLISTIC DELETION:** When changing ANY property, update ALL layers:
+JSON → DTO → Parser → Entity → Service/UI
 
-**SEMANTIC HONESTY:**
-Method names MUST match reality. GetVenueById returning Location is FORBIDDEN. Parameter types, return types, property names, method names must align.
+**SEMANTIC HONESTY:** Method names MUST match reality. `GetVenueById` returning `Location` is FORBIDDEN.
 
-**SINGLE GRANULARITY:**
-Track related concepts at ONE granularity level. If familiarity tracked per-Location, visits also per-Location. Never mix.
-
-**PLAYER MENTAL STATE:**
-Before UI changes, ask: What is player DOING/THINKING/INTENDING? Visual novel = choices as cards, not buttons/menus. Actions appear where contextually appropriate.
-
-**SENTINEL VALUES OVER NULL:**
-Never use null for domain logic. Create explicit sentinels with internal flags. Parser returns sentinel, evaluator checks flag, throw on actual null.
-
-**PLAYABILITY OVER COMPILATION:**
-Game that compiles but is unplayable is WORSE than crash. Before marking complete:
-1. Can player REACH this from game start? (trace exact path)
+**PLAYABILITY OVER COMPILATION:** Before marking complete:
+1. Can player REACH this from game start?
 2. Are ALL actions VISIBLE and EXECUTABLE?
 3. Forward progress from every state?
 
-Test in browser, verify EVERY link works. Inaccessible content is worthless.
-
-**NEVER DELETE REQUIRED FEATURES:**
-If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete only if genuinely wrong design or dead code.
-
 ---
 
-# ARCHITECTURE AND DESIGN REFERENCE
+# NO ENTITY INSTANCE IDs
 
-**For complete system architecture details:**
-- Read `arc42/05_building_block_view.md` - Component structure, ownership hierarchy, entity relationships
-- Read `arc42/03_context_and_scope.md` - System boundaries, gameplay loops, spatial hierarchy
-- Read `arc42/12_glossary.md` - Technical entity definitions
+**THE RULE:** Domain entities have **NO ID PROPERTIES**. Use **DIRECT OBJECT REFERENCES ONLY**.
 
-**For game design principles (start with GDD, then reference docs for detail):**
-- Read `gdd/01_vision.md` - Design pillars, core experience, anti-goals
-- Read `gdd/03_core_loop.md` - Strategic/tactical layer flow
-- Read `gdd/08_glossary.md` - Essential game design terms
-- For exhaustive detail: `design/` subdirectory (08_balance_philosophy.md, 07_content_generation.md, etc.)
+**Exception:** Template IDs are acceptable (SceneTemplate.Id, SituationTemplate.Id) because templates are immutable archetypes, not game state.
 
-**Quick architectural reminders (details in docs):**
-- GameWorld is single source of truth (owns all entities)
-- Situations EMBEDDED in Scenes (no separate collection)
-- Ownership vs Placement vs Reference (different lifecycle patterns)
-- Use glossaries and search codebase to verify current implementation
+**Why:** IDs create redundancy (storing both LocationId and Location violates Single Source of Truth). IDs enable violations (composite ID generation, ID parsing, hash code abuse). IDs break procedural generation (hardcoded references vs categorical filters).
 
----
+**Correct Patterns:**
+- Object references for relationships: `NPC.Location` not `NPC.LocationId`
+- Categorical properties for queries: `EntityResolver.FindOrCreate` with filters
+- Enums for routing: Switch on `ActionType` enum, not ID strings
 
-# TECHNICAL PATTERNS REFERENCE
+**FORBIDDEN:**
+- ID properties on domain entities
+- Storing both ID string and object reference
+- ID-based lookups in parsers
+- ID encoding/parsing for logic
 
-**For complete technical pattern details:**
-- Read `arc42/08_crosscutting_concepts.md` - HIGHLANDER, Catalogue Pattern, Entity Initialization, Parse-time translation
-- Read `arc42/09_architecture_decisions.md` - ADRs explaining why patterns were chosen
-
-**For complete coding standards:**
-- See USER CODE PREFERENCES section in this document (CLAUDE.md)
-
----
-
-# NO ENTITY INSTANCE IDs PRINCIPLE (ARCHITECTURAL MANDATE)
-
-## THE ABSOLUTE RULE
-
-**ENTITY INSTANCE IDs DO NOT EXIST IN THIS ARCHITECTURE. PERIOD.**
-
-Domain entities (NPC, Location, Route, Scene, Situation) have **NO ID PROPERTIES**. Entity relationships use **DIRECT OBJECT REFERENCES ONLY**. This is not a guideline. This is not negotiable. This is architectural law.
-
-## The Only Exception: Template IDs
-
-**Template IDs ARE acceptable** because templates are **immutable archetypes**, not mutable entity instances. Template properties like SceneTemplate.Id, SituationTemplate.Id, and ArchetypeId are acceptable because they reference immutable content definitions. Entity instance IDs like Scene.Id, Situation.Id, NPC.Id, Location.Id, and Route.Id are FORBIDDEN because they represent mutable game state.
-
-**Why the distinction:** Templates are content definitions (like classes in programming). Instances are game state (like objects). Templates don't change during gameplay. Instances do. IDs belong to immutable definitions, not mutable state.
-
-## Why Entity Instance IDs Are Forbidden
-
-**1. IDs Create Redundancy (Violates Single Source of Truth)**
-Storing both a LocationId string AND a Location object reference creates two representations of the same relationship. This leads to desync bugs. When they disagree, which is correct? You've created ambiguity.
-
-**2. IDs Pollute Domain with Database Thinking**
-Domain models game entities (NPC talks to Player), not database rows. Object references are natural and express domain relationships directly. ID lookups are SQL query patterns that mimic relational database thinking and don't belong in object-oriented domain code.
-
-**3. IDs Enable Architectural Violations**
-IDs enable composite ID generation where route IDs are constructed from origin and destination IDs. IDs enable ID parsing logic where code extracts data by splitting ID strings. IDs enable ID-based routing where switch statements dispatch on ID patterns. IDs enable hash code abuse where entity IDs are used as random seeds. All these violations become **impossible** when IDs don't exist.
-
-**4. IDs Break Procedural Content Generation**
-When templates reference specific entity IDs, they only work with those exact entities. When templates use categorical properties, they work with ANY matching entity in ANY procedurally-generated world. Hardcoded location IDs break when that location doesn't exist. Categorical filters based on properties work in infinite procedural worlds.
-
-## Correct Architecture: Spatial Positioning + Object References
-
-## Spatial Scaffolding Pattern
-
-**JSON Layer - Categorical Properties as Source of Truth:**
-Locations defined ONLY by categorical semantic properties (Purpose, Safety, Privacy, Activity) and distance hints (distanceFromPlayer: "start", "near", "medium", "far", "distant"). NO hex coordinates Q, R in JSON. NO entity instance IDs (venueId, locationId) in JSON. ALL spatial positioning generated procedurally at runtime from categorical matching.
-
-**Parser Layer - Categorical Resolution:**
-Parsers read categorical properties from JSON and create domain entities WITHOUT spatial positioning. Entities created with properties only (Purpose, Safety, etc.). Parser uses EntityResolver.FindOrCreate pattern with categorical filters. NO venue assignment, NO hex position assignment in parser. These are determined later procedurally.
-
-**Domain Layer - Object References Only:**
-Entities have object references, NOT ID strings. NPC has Location object reference (not LocationId string). RouteOption has OriginLocation and DestinationLocation objects (not ID strings). Location.HexPosition using AxialCoordinates is spatial source of truth, assigned PROCEDURALLY not from JSON.
-
-**Runtime - Pure Procedural Generation:**
-Venues placed first with CenterHex via VenueGeneratorService. Locations placed second via categorical matching algorithm (Purpose → VenueType, distanceFromPlayer → radius range, capacity budget enforcement). Venue assigned via spatial containment after hex placement. Routes generated via A* pathfinding. ALL spatial relationships emerge from procedural algorithms, ZERO hardcoded data.
-
-## Type-Safe Routing (Related Pattern)
-
-**Enum-based routing for action dispatch:**
-ActionType enum serves as routing key - switch on enum, NOT ID parsing. Strongly-typed properties for parameters like DestinationLocation object, not LocationId string. Properties flow through entire stack with compiler verification. Direct object access for properties, NO string lookups.
-
-## Why IDs Do Not Exist in Domain
-
-**IDs are NOT needed anywhere:**
-NOT needed in DTOs - parsers use categorical properties to find/create entities. NOT needed in domain entities - entities use object references. NOT needed for debugging - Name and categorical properties provide context. Exception: Template IDs acceptable (immutable content definitions, not game state).
-
-**IDs create redundancy:**
-Storing both OriginLocationId string and OriginLocation object violates Single Source of Truth. Correct pattern has only OriginLocation object reference.
-
-**IDs pollute domain with database thinking:**
-Domain models game entities (NPC, Location, Route), not database rows. Object references are natural domain relationships. ID lookups are SQL query patterns that don't belong in object-oriented domain.
-
-**IDs enable violations:**
-Composite ID generation constructing route IDs from origin and destination IDs. ID parsing extracting data by splitting strings. Hash code misuse using entity ID GetHashCode as random seed. Hash-based selection choosing values based on ID hash modulo. All become impossible without IDs.
-
-## Correct Patterns
-
-**Use object references for relationships:**
-Domain entity classes have NO ID property. Properties are direct object references. NPC has Location object (not LocationId string). RouteOption has OriginLocation and DestinationLocation objects plus HexPath for spatial data.
-
-**Use hex coordinates for spatial positioning:**
-Location has NO Id property, only Name and HexPosition for spatial truth. Routes generated procedurally from spatial data using pathfinding algorithms. Route creation uses object references with spatial paths.
-
-**Use enums for categorical routing:**
-ActionType enum defines action categories. Dispatcher switches on enum type, not string parsing. Handler methods receive object references as parameters.
-
-**Use categorical properties to find/create entities:**
-EntityResolver.FindOrCreate pattern queries existing entities by categorical properties like LocationProperties, Purpose, and Safety. If found, returns existing object. If not found, creates new entity from categorical properties and returns object reference with NO ID.
-
-## Comprehensive Forbidden Patterns
-
-### FORBIDDEN: ID Properties on Domain Entities
-Entity instance classes must have NO ID property anywhere. Entity has only domain properties like Name and object references. Storing ID strings alongside object references creates redundancy and violates architectural principles.
-
-### FORBIDDEN: ID Lookups in Parsers
-Parsers must NOT use ID lookup patterns with FirstOrDefault searching by ID property. Parsers must use EntityResolver with categorical properties for FindOrCreateLocation based on filters.
-
-### FORBIDDEN: Storing Both ID and Object Reference
-Classes must NOT have both ID string property and object reference property. This creates redundancy violating Single Source of Truth. When they disagree, which is correct? Ambiguity creates bugs. Only object reference needed - access properties directly without lookup.
-
-### FORBIDDEN: ID-Based Collections and Lookups
-Player state must NOT use lists of ID strings like ActiveObligationIds requiring later lookup by iterating and finding matching ID. Player state must use lists of direct object references enabling direct access without lookup.
-
-### FORBIDDEN: ID Encoding and Parsing
-Must NOT generate IDs by encoding data into strings or parse IDs by splitting strings to extract data. Instead store data as direct properties accessed without parsing.
-
-### FORBIDDEN: ID-Based Routing Logic
-Must NOT switch on ID strings for routing. Must switch on enum types with object references as parameters.
-
-## Why This Architecture Works
-
-**1. Procedural Content Generation**
-Templates use categorical filters, not hardcoded IDs. Same template works in infinite procedurally-generated worlds. PlacementFilter with properties finds ANY matching location. No brittleness from hardcoded entity references.
-
-**2. Single Source of Truth**
-One representation of each relationship (object reference). No desync between ID and object because only object exists. Compiler enforces correctness - null reference crashes immediately, wrong ID fails silently.
-
-**3. Domain Clarity**
-Code reads like domain expressing natural relationships. Not like database with query-style lookups. Object references match mental model of relationships.
-
-**4. Prevents Violations**
-Can't encode data in IDs when no IDs exist. Can't parse IDs for logic when no IDs exist. Can't route on ID strings when no IDs exist. Architecture makes bad patterns impossible.
-
-## Spatial Positioning via Hex Grid
-
-Locations positioned spatially on hex grid. Relationships derived from spatial proximity and categorical matching, NOT from ID cross-references.
-
-**Hex Grid Pattern:**
-Each Location has HexPosition with AxialCoordinates Q and R as source of truth. Hex grid cells have LocationId as **derived lookup** (reverse index for pathfinding). Hex.LocationId is computed FROM Location.HexPosition, not stored separately. HIGHLANDER principle: Location.HexPosition is source, Hex.LocationId is derived.
-
-This is the ONLY acceptable "ID" pattern: derived lookups for performance, where the source of truth is spatial coordinates, not IDs.
+**Details:** See `arc42/08_crosscutting_concepts.md` §8.3
 
 ---
 
 # EXPLICIT PROPERTY PRINCIPLE
 
-**Principle:** Use explicit strongly-typed properties for state modifications. Never route property changes through string-based generic systems.
+Use explicit strongly-typed properties for state modifications. Never route changes through string-based generic systems.
 
-**Why:** String property names require runtime parsing and fail silently. Strongly-typed properties catch errors at compile time and make intent explicit. Generic "flexible" systems are YAGNI violations - add properties when actually needed, not hypothetically.
+**Why:** String property names fail silently at runtime. Strongly-typed properties catch errors at compile time.
 
-**Correct pattern:**
-Explicit strongly-typed properties like LocationsToUnlock and LocationsToLock. Direct property modification without string matching. Add new properties when needed like LocationsToHide and LocationsToReveal. Each property serves one purpose only.
-
-**Catalogues for entity generation, explicit properties for state modification.**
+**Correct:** `LocationsToUnlock`, `LocationsToLock` as explicit properties.
+**Forbidden:** Generic `ModifyProperty(string name, object value)` patterns.
 
 ---
 
 # GLOBAL NAMESPACE PRINCIPLE
 
-**Principle:** Use global namespace for all domain code to expose conflicts immediately and eliminate organizational overhead.
+**Policy:** No namespace declarations for domain code. Global namespace exposes conflicts immediately.
 
-**Why:** Custom namespaces hide duplicate classes and redundant implementations by allowing them to coexist in different namespaces. Directory structure already provides organization. Global namespace forces the compiler to detect conflicts, eliminates boilerplate, and reduces refactoring friction.
+| Code Type | Namespace |
+|-----------|-----------|
+| Domain (GameState, Services, Subsystems) | None (global) |
+| Blazor components | `Wayfarer.Pages.Components` (framework requirement) |
+| Tests | `Wayfarer.Tests` (convention) |
 
-## Policy
-
-**Domain code (GameState, Services, Subsystems, etc.):**
-No namespace declarations. All classes globally available. Compiler enforces uniqueness.
-
-**Blazor components (framework requirement):**
-Namespace declarations allowed like Wayfarer.Pages.Components because Razor runtime requires namespaces.
-
-**Test projects:**
-Namespace declarations allowed like Wayfarer.Tests following standard test project convention.
-
-## Why Custom Namespaces Are Architecturally Harmful
-
-### 1. Hiding Duplicate Classes
-
-Custom namespaces allow duplicate classes in different namespaces like Wayfarer.GameState.MessageCategory and Wayfarer.Models.MessageCategory. Compiler doesn't complain because both exist in different namespaces. Code becomes confusing - which MessageCategory is authoritative?
-
-Without namespaces, duplicate class definitions trigger immediate compiler error exposing conflict and forcing cleanup. Only ONE implementation can exist.
-
-### 2. Hiding Redundant Files
-
-Custom namespaces allow redundant implementations to coexist like Wayfarer.GameState.SystemMessage versus Wayfarer.Models.SystemMessage or Wayfarer.Services.TokenManager versus Wayfarer.Subsystems.Token.TokenManager. Multiple competing implementations hidden by namespace separation.
-
-**Global namespace forces ONE canonical implementation.**
-
-### 3. False Sense of Organization
-
-Namespaces claim to "organize code logically" but directory structure ALREADY organizes code. GameState directory contains NPC.cs and Location.cs. Services directory contains GameFacade.cs. Subsystems/Token directory contains TokenManager.cs.
-
-**Directory structure IS the organization.** Namespaces add nothing but complexity.
-
-### 4. Namespace Declaration Overhead
-
-Every file needs namespace declaration at top (boilerplate). Using statements in consuming files (more boilerplate). Mental overhead tracking which namespace each class lives in.
-
-**Global namespace eliminates all overhead:**
-No namespace declarations. No using statements (except framework/external libraries). Class name uniqueness enforced automatically.
-
-### 5. Implicit Usings Don't Help
-
-C# 10+ implicit usings only import FRAMEWORK namespaces like System, System.Collections.Generic, and Microsoft.AspNetCore.
-
-**Custom namespaces STILL require explicit using statements.**
-
-With custom namespaces, files need using Wayfarer.GameState, using Wayfarer.Services, using Wayfarer.Subsystems.Token all explicitly declared.
-
-Without namespaces, no using statements needed - all domain classes globally available.
-
-### 6. Refactoring Brittleness
-
-Moving a class between directories with namespaces requires changing namespace declaration in file, updating ALL using statements in ALL consuming files, fixing build errors from missed using statements, and search/replace namespace references in tests.
-
-Moving a class between directories WITHOUT namespaces: Move the file (done).
-
-**Global namespace = zero refactoring overhead.**
-
-## Correct Pattern
-
-**Domain code (GameState, Services, Subsystems, etc.):**
-Files have NO namespace declaration. Documentation summary comments describe purpose. Classes globally available everywhere.
-
-**Blazor components (EXCEPTION - namespaces allowed):**
-Blazor component files need namespace for Razor runtime. Can use global namespace classes without using statements.
-
-## The Principle
-
-**Namespaces for LIBRARIES (external consumption).**
-**NO namespaces for APPLICATIONS (internal code).**
-
-This is an application, not a library. Global namespace is correct.
-
-**Gordon Ramsay Standard:**
-
-"You've wrapped EVERYTHING in namespaces to 'organize' the code? The DIRECTORY STRUCTURE is the organization! Now you've got THREE different TokenManager classes in different namespaces and nobody knows which one is canonical! RIP OUT the custom namespaces, let the compiler SCREAM about the duplicates, and DELETE the redundant garbage!"
+**Why:** Custom namespaces hide duplicate classes. Directory structure already organizes code. Global namespace forces compiler to detect conflicts.
 
 ---
 
 # DOMAIN COLLECTION PRINCIPLE
 
-**Principle:** Use List with generic type parameter for all domain entity collections to optimize for maintainability and semantic clarity.
+**Rule:** Use `List<T>` for all domain entity collections. Never Dictionary or HashSet.
 
-**Why:** This is a small-scale, single-player, turn-based game where performance optimization is premature. Dictionary and HashSet optimize for scale this game doesn't have, while introducing complexity, semantic dishonesty, and debugging friction. List with LINQ provides readable domain queries, fail-fast errors, and architectural purity.
+**Why:** Game has ~20 NPCs, ~30 Locations. Dictionary O(1) vs List O(n) saves 0.0009ms. Browser render takes 16ms. Human reaction takes 200ms. **Performance optimization is unmeasurable and premature.**
 
-## THE GAME CONTEXT (WHY PERFORMANCE DOESN'T MATTER)
+**Correct:** `List<NPC>`, `List<Location>` with LINQ queries.
+**Forbidden:** `Dictionary<string, NPC>`, `HashSet<Location>`.
 
-**This game is NOT:**
-A massively multiplayer online game with thousands of concurrent entities. A real-time simulation processing millions of events per second. A distributed system with network latency concerns. A high-frequency trading platform requiring microsecond response times.
-
-**This game IS:**
-Synchronous (single-threaded execution, no concurrency). Browser-based (JavaScript VM speed is irrelevant, browser render time dominates). Single-player (one human making decisions at human speed: hundreds of milliseconds). Minimal scale (collections contain 10-100 entities maximum, not thousands). Turn-based narrative (player reads text, makes choice, reads result - seconds between actions).
-
-**The Performance Reality:**
-Typical collections: 20 NPCs, 30 Locations, 50 Items, 10 Scenes. Linear scan of 100 items takes approximately 0.001 milliseconds (one microsecond). Browser render time takes 16+ milliseconds (one frame at 60fps). Human reaction time takes 200+ milliseconds (reading and decision-making). Network latency takes 50-200 milliseconds (even on localhost).
-
-**THE PERFORMANCE BENEFIT OF DICTIONARY IS LITERALLY UNMEASURABLE IN THIS CONTEXT.**
-
-Using Dictionary or HashSet for "performance" is like using a forklift to carry a sandwich. It's technically faster, but the improvement is completely undetectable by any measurement, the complexity cost is very real and very harmful, and the maintainability burden compounds over time.
-
-## Why Dictionary/HashSet Are Architecturally Wrong
-
-**Dictionary/HashSet optimize for SCALE. This game doesn't SCALE. Therefore, optimization is PREMATURE.**
-
-### 1. Semantic Dishonesty (Domain Inversion)
-
-Dictionary inverts the domain model by organizing code around INDEXES and technical data structures leaking into domain, not ENTITIES. This is DATABASE THINKING, not DOMAIN THINKING. NPCs aren't "keyed by ID" - they ARE NPCs, and ID is just one property among many. Dictionary makes ID the primary organizing principle, which is semantically backwards.
-
-Correct pattern uses domain collections where GameWorld contains ENTITIES (the things that exist in the game world). This is DOMAIN THINKING.
-
-### 2. Single Responsibility Violation
-
-Dictionary does TWO things: Stores entities (storage responsibility) and provides fast lookup by key (query optimization responsibility). In a game where fast lookup is unnecessary, you're adding complexity for zero benefit.
-
-List does ONE thing: Stores entities in order (storage responsibility only).
-
-**Lookup is a QUERY concern, not a STORAGE concern.** Separation of concerns suggests storage should be simple.
-
-### 3. Fail-Slow vs Fail-Fast Philosophy
-
-Dictionary behavior (FAIL-SLOW): Access pattern throws KeyNotFoundException where stack trace points to access location, but actual problem is ID doesn't exist in collection. TryGetValue pattern requires error handling at EVERY call site with potential for silent null propagation where crash happens LATER if TryGetValue failed.
-
-List behavior (FAIL-FAST): FirstOrDefault returns null if not found, then IMMEDIATELY throws NullReferenceException when accessing properties. Stack trace points EXACTLY to the problem: entity doesn't exist. No silent propagation, no deferred errors.
-
-**Why fail-fast is better:**
-Errors happen at point of use, not at retrieval. Stack traces are clear and actionable. No need for defensive TryGetValue everywhere. Null-reference errors immediately reveal logic bugs.
-
-### 4. Query Expressiveness Asymmetry
-
-Dictionary can ONLY query by key efficiently with O(1) lookup. ANY other query requires LINQ over Values anyway with O(n) scan for queries by profession, demeanor, or social standing. So you're using Dictionary as a List with extra steps, paying the complexity cost of Dictionary but still doing O(n) scans for 99% of queries.
-
-List uniformity means ALL queries are uniform and declarative. Every query looks the same. Every query reads like English. Every query is a domain question. Complexity is O(n) but with n=20 entities, this is completely irrelevant.
-
-### 5. YAGNI Violation (You Aren't Gonna Need It)
-
-Dictionary optimizes for a problem you DON'T HAVE. O(1) lookup versus O(n) scan sounds important. For n=1000+, it IS important. For n=20, it's COMPLETELY IRRELEVANT.
-
-**Math:**
-Dictionary lookup approximately 0.0001ms (hash calculation + array access). List scan of 20 items approximately 0.001ms (20 equality checks). Difference is 0.0009 milliseconds. Browser render frame is 16 milliseconds. Human perception threshold is 100+ milliseconds.
-
-**You're optimizing something that takes 0.001ms in a system where humans react in 200ms. This is ABSURD.**
-
-### 6. Debugging Visibility
-
-Dictionary in debugger shows KeyValuePair entries without immediate visibility of entity properties. Debugging requires extra clicks to expand each entry.
-
-List in debugger shows immediate visibility of entity state like NPC name, profession, and demeanor. Debug by LOOKING, not by EXPANDING.
-
-### 7. Testing Simplicity
-
-Dictionary test setup has ID DUPLICATION where ID appears TWICE (dictionary key + entity property). If they mismatch, silent bugs occur.
-
-List test setup has NO DUPLICATION where ID appears ONCE with no duplication risk.
-
-### 8. Functional Thinking vs Imperative Thinking
-
-List encourages declarative pipelines (FUNCTIONAL) with filter, sort, transform, and collect operations. Pipeline is easy to read, easy to modify, easy to test.
-
-Dictionary encourages imperative loops (PROCEDURAL) with more code, more mutable state, and harder reasoning.
-
-### 9. Type Safety Erosion
-
-Dictionary often leads to type erasure with generic storage losing ALL type information or forcing abstraction for no reason.
-
-List preserves concrete types where each collection is STRONGLY TYPED to its domain entity. Compiler catches type errors at compile time.
-
-### 10. Architectural Purity (Repository Pattern)
-
-Dictionary pattern implies "fast lookup structure" - this is an implementation detail. Access by ID requires handling when ID doesn't exist with runtime exception.
-
-List pattern implies "collection of entities" - this is a domain concept. Domain queries are safe and express intent clearly.
-
-**The repository stores ENTITIES, not KEY-VALUE PAIRS.** GameWorld is a domain model, not a database schema.
-
-## The Root Principle
-
-**Dictionary/HashSet optimize for SCALE.**
-**This game doesn't SCALE.**
-**Therefore, optimization is PREMATURE and HARMFUL.**
-
-Using Dictionary for 20 NPCs is like using a database index on a table with 10 rows, using a CDN for a file served once per day, using multithreading for a calculation that takes 1 microsecond, or using a distributed cache for data that fits in 1KB.
-
-**It's TECHNICALLY faster, but:**
-The improvement is completely unmeasurable. The complexity cost is very real. The maintenance burden compounds over time.
-
-**Gordon Ramsay Standard:**
-
-"You're using a DICTIONARY for 20 NPCS? That's like using a FORKLIFT to carry a SANDWICH! O(1) lookup? For TWENTY ENTITIES? The performance gain is ONE MICROSECOND! Your browser takes SIXTEEN MILLISECONDS to render a FRAME! You've added complexity for LITERALLY ZERO BENEFIT! This is OVER-ENGINEERED NONSENSE!"
-
-## Correct Pattern
-
-**ALWAYS use List with type parameter for entity collections:**
-
-Domain entity collections use List for NPCs, Locations, Scenes, Routes, and Items. Query patterns are declarative, readable, and safe using FirstOrDefault returning null if not found (fail-fast at call site). LINQ queries read like English expressing domain questions.
-
-**LINQ queries are:**
-Declarative (what, not how). Readable (reads like English). Composable (chain operations easily). Testable (pure functions, no side effects). Type-safe (compiler catches errors).
-
-## Rare Exceptions (When Dictionary Is Acceptable)
-
-**Dictionary is acceptable ONLY for:**
-
-Framework requirements (external APIs) where Blazor component parameters require Dictionary structure. Configuration/settings (non-domain data) for application configuration not game entities. Caching external API responses (if actually needed) for slow external API calls ONLY if profiling proves it's a bottleneck.
-
-**Dictionary is NEVER acceptable for domain entities:**
-GameWorld entity collections (NPCs, Locations, Scenes, Routes, Items). Player state (inventory, stats, relationships). Game session data (visited locations, completed scenes).
-
-**The test:** If it's a domain entity or game state, use List. No exceptions.
-
-## Summary
-
-**This game optimizes for MAINTAINABILITY, not PERFORMANCE.**
-
-Dictionary and HashSet are performance optimizations. In a game with 20 NPCs (not 20,000), single-threaded execution (not concurrent), human-speed interactions (not microsecond latency), and browser-based rendering (not real-time simulation):
-
-**Performance optimization is PREMATURE, HARMFUL, and FORBIDDEN.**
-
-Use List with LINQ. Write readable, maintainable, domain-driven code. Let the code be CLEAR, not CLEVER.
-
-**"Premature optimization is the root of all evil." - Donald Knuth**
-
-In this codebase, Dictionary for domain entities IS premature optimization. Use List.
+**Exception:** Dictionary acceptable only for framework requirements (Blazor parameters) or external API caching.
 
 ---
 
 # ICON SYSTEM (NO EMOJIS)
 
-**CRITICAL PATTERN: Professional scalable graphics required for all visual content.**
+**Policy:**
+- **FORBIDDEN:** Emojis for game content, code comments, documentation
+- **REQUIRED:** SVG icons from game-icons.net via `<Icon>` component
 
-## POLICY
+**Usage:**
+```razor
+<Icon Name="coins" CssClass="resource-coin" />
+<Icon Name="brain" CssClass="stat-insight" />
+```
 
-**FORBIDDEN:**
-Emojis for game content display representing coins, health, strength, skills, or combat. Emojis in code comments, documentation, commit messages. Unicode symbols for resource/stat display. Text-based pseudo-graphics in UI.
+**Parameters:** Name (required), Size (default "16px"), Color (default "currentColor"), CssClass (optional)
 
-**ALLOWED (Minimal Exceptions):**
-Basic interface controls ONLY like close buttons, checkmarks, or arrows. Must be purely functional UI elements, NOT game content. Must not represent resources, stats, or player-facing entities.
+**CSS Classes:** Stats: `stat-insight`, `stat-rapport`, `stat-authority`, `stat-diplomacy`, `stat-cunning`. Resources: `resource-coin`, `resource-health`, `resource-stamina`.
 
-**REQUIRED:**
-SVG icons from game-icons.net via Icon component. All resource/stat/entity icons must be vector graphics. Cohesive visual style (single icon library: Game Icons collection). Attribution documented in THIRD-PARTY-LICENSES.md.
-
-## WHY PROPER ICONS MATTER
-
-**Professional quality standard:**
-Vector graphics scale to any resolution (emoji quality degrades). Consistent visual style creates polished game aesthetic. SVG allows dynamic color theming (emojis have fixed appearance).
-
-**Technical superiority:**
-Scalability and resolution independence (vector vs raster). Customizable via CSS (color, size, filters, animations). Predictable rendering across all platforms and browsers. Accessibility support (ARIA labels, screen reader compatible).
-
-**Cross-platform reliability:**
-Emojis render differently on Windows/Mac/Linux/Mobile. SVG displays identically everywhere. No font fallback issues or missing glyph problems.
-
-**Player experience:**
-Icons convey game identity and theme. Professional presentation builds player trust. Consistent iconography aids learning and recognition.
-
-## FRONTEND USAGE (Icon Component)
-
-**Basic usage:**
-Icon component with Name parameter specifying icon filename without extension. Examples include coins, hearts, and brain icons.
-
-**With CSS class for styling:**
-Icon component with Name and CssClass parameters for semantic styling like resource-coin, icon-neutral, or icon-positive.
-
-**Component parameters:**
-Name (required): Icon filename without .svg extension. Size (optional): Width/height, defaults to "16px". Color (optional): SVG fill color, defaults to "currentColor". CssClass (optional): Additional CSS classes for semantic styling.
-
-**CSS classes for semantic colors:**
-Five Stats: stat-insight, stat-rapport, stat-authority, stat-diplomacy, stat-cunning. Resources: resource-coin, resource-health, resource-stamina, resource-focus, resource-hunger. Generic: icon-neutral, icon-positive, icon-negative.
-
-**Performance:**
-Icons cached after first load (ConcurrentDictionary, thread-safe). No redundant HTTP requests for same icon. Inline SVG for styling flexibility.
-
-## BACKEND PATTERNS (Token System - To Be Implemented)
-
-**Message token replacement pattern:**
-When backend generates player-facing messages containing icons, use token system for icon injection at render time. Backend generates message with tokens in format {icon:iconname}. Frontend rendering parses tokens and replaces with Icon components using regex pattern matching and component generation.
-
-## AVAILABLE ICONS
-
-**Current icon library (22 icons from Game Icons collection):**
-
-Icons include alarm-clock for time and urgency by Delapouite, backpack for inventory by Delapouite, biceps for strength by Delapouite, brain for intelligence by Lorc, cancel for failed actions by sbed, check-mark for completed actions by Delapouite, coins for currency by Delapouite, crown for authority by Lorc, cut-diamond for rare resources by Lorc, drama-masks for cunning by Lorc, hazard-sign for warnings by Lorc, health-normal for health by sbed, hearts for rapport by Skoll, magnifying-glass for investigation by Lorc, meal for food by Delapouite, open-book for journal by Lorc, padlock for locked actions by Lorc, round-star for mastered achievements by Delapouite, scales for balance by Lorc, shaking-hands for diplomacy by Delapouite, sparkles for magic by Delapouite, and target-arrows for skills by Lorc.
-
-**Finding icons:**
-Source: https://game-icons.net. Library: 4000+ high-quality SVG icons. License: CC BY 3.0 (free with attribution). Style: Cohesive fantasy/game aesthetic.
-
-## ADDING NEW ICONS
-
-**Process (MANDATORY for all new icons):**
-
-Search game-icons.net using search to find appropriate icon, previewing multiple options for best thematic fit and verifying icon conveys intended meaning clearly.
-
-Download white SVG version by selecting icon on game-icons.net, choosing white icon (ffffff) on black background (000000), and downloading SVG file.
-
-Save to icon directory at path src/wwwroot/game-icons/{icon-name}.svg using kebab-case naming (lowercase with hyphens) and keeping original filename from game-icons.net when possible.
-
-Document attribution by updating src/wwwroot/game-icons/README.md, adding creator name to attribution list, and updating THIRD-PARTY-LICENSES.md with icon and creator.
-
-Use via Icon component with Name parameter set to icon-name and appropriate CssClass.
-
-**Verification:**
-Icon displays correctly in browser. SVG styling applies (color, size work as expected). No console errors when loading icon. Attribution documented properly.
-
-## ENFORCEMENT
-
-**Code review checklist:**
-REJECT: Any PR with emojis in game content or unicode symbols for resources/stats or emoji fallbacks in code. APPROVE: Icon component usage with proper SVG icons and minimal interface emojis for basic UI only.
-
-**Refactoring existing emoji usage:**
-All existing emojis in game content are TECHNICAL DEBT. Replace systematically following the Icon System pattern. No new emoji usage ever (zero tolerance). Document icon replacements in commit messages.
-
-**Testing requirements:**
-Verify all icons load in browser (no 404s). Test icon appearance across light/dark themes. Ensure CSS classes apply colors correctly. Check accessibility (icons display with proper context).
-
-**Gordon Ramsay standard:**
-"You're serving emojis in a PROFESSIONAL GAME? Those pixelated unicode turds look different on every bloody platform! Use proper SVG icons or GET OUT!"
-
-**This pattern is MANDATORY. No exceptions. No "temporary" emoji usage. No "I'll fix it later."**
+**Adding icons:** Download white SVG from game-icons.net → Save to `src/wwwroot/game-icons/` → Update attribution in `THIRD-PARTY-LICENSES.md`
 
 ---
 
 # USER CODE PREFERENCES
 
 **Types:**
-ONLY: List with generic type parameter where type is entity/enum, strongly-typed objects, int (never float). FORBIDDEN: Dictionary, HashSet, var keyword, object type, func type, lambda expressions.
+- ONLY: `List<T>`, strongly-typed objects, `int` (never float)
+- FORBIDDEN: `Dictionary`, `HashSet`, `var`, `object`, `Func`, `Action`, tuples
 
 **Lambdas:**
-FORBIDDEN: Backend event handlers, Action generic delegates, Func generic delegates, DI registration lambdas. ALLOWED: LINQ queries (Where, Select, FirstOrDefault, etc.), Frontend Blazor event handlers (@onclick, etc.), Framework configuration (HttpClient timeout, ASP.NET Core middleware).
-
-Example violation: DI registration using lambda with underscore parameter. Example correct: Create instance explicitly then AddSingleton with instance. Example violation: Event handler using lambda with parameters. Example correct: Event handler using named method. Example allowed: LINQ FirstOrDefault with lambda predicate. Example exception: AddHttpClient with lambda for client configuration.
-
-**Tuples:**
-FORBIDDEN everywhere in codebase. Use explicit classes or structs instead.
+- FORBIDDEN: Backend event handlers, DI registration lambdas
+- ALLOWED: LINQ queries, Blazor event handlers, framework configuration
 
 **Structure:**
-Domain Services and Entities (no Helper/Utility classes). No extension methods. One method, one purpose (no ByX/WithY/ForZ overloads). No method proliferation or input-based branching.
+- Domain Services and Entities only (no Helper/Utility classes)
+- No extension methods
+- One method, one purpose
 
 **Code Quality:**
-No exception handling (unless requested). No logging (unless requested). Avoid comments. Never throw Exceptions. No defaults unless strictly necessary (let it fail). No backwards compatibility.
-
-**Formatting:**
-Free flow text over bullet lists (where applicable). Never label "Revised"/"Refined". No regions. No inline styles.
-
-**Emojis and Icons:**
-See ICON SYSTEM (NO EMOJIS) section above for complete policy. FORBIDDEN: Emojis in game content, code comments, documentation. REQUIRED: Icon component with SVG icons from game-icons.net.
+- No exception handling (unless requested)
+- No logging (unless requested)
+- No comments (code should be self-documenting)
+- No backwards compatibility layers
 
 ---
 
-# BACKEND/FRONTEND SEPARATION PRINCIPLE
+# BACKEND/FRONTEND SEPARATION
 
-**CORE PRINCIPLE: Backend returns domain semantics (WHAT), Frontend decides presentation (HOW).**
+**Principle:** Backend returns domain semantics (WHAT). Frontend decides presentation (HOW).
 
-The backend exists to model game logic and player state. The frontend exists to display that state. These concerns must be completely separated.
+**Backend provides:** Domain enums, plain values, state validity
+**Frontend decides:** CSS classes, icons, display text, formatting
 
-## PRINCIPLE STATEMENT
+**FORBIDDEN in Backend:**
+- CssClass properties in ViewModels
+- IconName properties in ViewModels
+- Display string generation in services
 
-Backend code MUST NEVER:
-Decide how information is displayed (visual presentation). Select display formats, colors, or styling (CSS classes). Choose icon names or visual representations. Map domain concepts to presentation tokens. Generate display strings that contain presentation metadata.
-
-Backend code MUST ONLY:
-Model domain entities (Player, Location, Resource, etc.). Calculate game state and validity (business logic). Return domain semantics (enums, plain values, descriptions). Expose game state for frontend consumption.
-
-Frontend code MUST:
-Transform domain state into visual presentation. Map domain enums/values to visual representations. Select colors, icons, and styling based on game state. Decide how player-facing information is organized. Apply all presentation logic after receiving backend data.
-
-## WHY THIS MATTERS
-
-**Architectural clarity:** Separating concerns makes the codebase understandable. Backend = game rules. Frontend = game presentation.
-
-**Testing independence:** Business logic tested without UI concerns. UI tested independently of game logic. No cross-layer dependencies.
-
-**Maintainability:** Changing how something looks never touches game logic. Changing game mechanics never requires UI updates (only data flow).
-
-**Designer autonomy:** Game designers modify presentation without touching code. Content creators can edit display strings independently.
-
-**Code organization:** Clear responsibility boundaries prevent "magic strings" and presentation logic creeping into domain services.
-
-## VIOLATIONS (FORBIDDEN)
-
-**Violation: Backend setting CSS classes**
-ViewModel has CSS class property where backend sets value based on domain logic choosing between danger, warning, or empty string. This is backend deciding presentation.
-
-**Violation: Backend selecting icon names**
-ViewModel has Icon property where backend chooses icon name string. Backend should never choose display representation.
-
-**Violation: Backend mapping domain to display strings**
-Backend code uses switch expression on domain values to generate friendly display text like "Friendly Chat" or "Request". This is backend deciding how conversation types display.
-
-**Violation: Backend generating display messages with presentation tokens**
-Backend embeds icon names in message strings or creates formatted display strings with layout. This is backend creating presentation metadata.
-
-**Violation: Backend choosing description text for display**
-ViewModel has Description property where backend generates "friendly" display descriptions based on connection state. This is backend generating UI text.
-
-## CORRECT PATTERNS (REQUIRED)
-
-**Pattern: Backend exposes domain enum, frontend decides presentation**
-Backend defines domain enum with values. Backend ViewModel contains domain enum value, NOT presentation strings or CSS classes. Frontend Razor component switches on domain enum to select CSS classes, icon names, and display text. Presentation decisions happen entirely in frontend.
-
-**Pattern: Backend provides values, frontend decides styling**
-Backend ViewModel contains pure domain data like integer values without presentation hints. Frontend calculates ratios and determines CSS classes based on thresholds. Frontend combines domain data with Icon component and appropriate styling.
-
-**Pattern: Backend provides domain data, frontend generates display text**
-Backend defines domain enum for action types. Backend ViewModel contains enum value, NOT display text string. Frontend helper method maps enum values to display text strings using switch expression.
-
-**Pattern: Backend provides raw state, frontend decides icon selection**
-Backend defines domain enum for resource types. Backend ViewModel contains resource type enum and amount, NOT icon name. Frontend helper method maps resource type to icon name. Frontend uses mapped icon name with Icon component.
-
-**Pattern: Backend provides reason codes, frontend generates messages**
-Backend defines domain enum for restriction reasons. Backend ViewModel contains availability boolean and optional restriction reason enum, NOT message text. Frontend helper method generates user-friendly messages from reason codes.
-
-## ENFORCEMENT
-
-**Code review checklist - REJECT pull requests with:**
-ViewModels containing CSS class properties (CssClass, StyleClass, etc.). ViewModels containing icon name properties (Icon, IconName, etc.). Backend code switching on display type. Backend generating display strings for presentation hardcoded in service. Message tokens with presentation in backend messages. Display text generation in services using nameof for display or ToString with formatting. CSS class names flowing through domain services. Icon selection logic in backend facades. Display formatting logic in backend (spacing, punctuation for display).
-
-**Code review checklist - APPROVE pull requests with:**
-Domain enums flowing from backend to frontend. Plain values (int, string, bool) in ViewModels. Frontend helper methods mapping domain to presentation. CSS classes applied only in Razor components. Icon selection in frontend only. Display text generated in frontend helper methods. System messages containing ONLY domain data, no presentation.
-
-**Verification command:**
-Grep searches for CssClass, StyleClass, or IconClass in ViewModels directory. Grep searches for Icon assignment in Services and Subsystems directories excluding Icon component references. Grep searches for hardcoded display text strings in source excluding Frontend and Razor files.
-
-**Test requirements:**
-Backend tests verify domain logic, NOT presentation. Test uses domain enums/values, never checks CSS classes or icon names. Frontend tests (if applicable) verify presentation mapping, NOT game logic.
+**Details:** See `arc42/08_crosscutting_concepts.md` §8.6
 
 ---
 
 # WORKING PRINCIPLES
 
-**Refactoring Philosophy:**
-Delete first, fix after (don't preserve broken patterns). No compatibility layers or gradual migration (clean breaks). Complete refactoring only (no half-measures). HIGHLANDER: One concept, one implementation. Finish what you start (no TODO comments). If you can't do it right, don't do it at all. NO SHORTCUTS: Never document violations as "acceptable". Massive refactorings REQUIRED if they fix violations. Partner not sycophant: Do hard work, not easy path.
+**Refactoring:**
+- Delete first, fix after (don't preserve broken patterns)
+- No compatibility layers (clean breaks only)
+- HIGHLANDER: One concept, one implementation
+- Finish what you start (no TODO comments)
 
-**CONTRACT BOUNDARIES FIRST (Refactoring Order):**
-When refactoring across system boundaries, define contracts at boundaries BEFORE touching internal implementation.
-
-**The Five Phases (STRICT ORDER)**:
-
-INPUT BOUNDARY (JSON/External Data): Remove entity instance IDs from JSON files. Replace with categorical properties. Define PlacementFilter structure.
-
-PARSER TRANSFORMATION (DTO to Domain): DTOs match JSON structure (categorical properties). Parsers use EntityResolver.FindOrCreate. Output domain objects with object references. NO ID lookups, NO string parameters.
-
-PUBLIC API (GameWorld/Facade Interface): GameWorld exposes collections for Locations, NPCs, Scenes. Facades accept objects, not strings. NO GetById methods, NO string parameter methods. Query collections directly or use LINQ.
-
-OUTPUT BOUNDARY (ViewModels/UI): ViewModels contain objects, not ID strings. Event handlers receive objects, not strings. Pass objects through entire chain.
-
-INTERNAL IMPLEMENTATION (Falls into Place): Services implement against clear contracts. Managers use object references. No lookups needed (contracts provide objects).
-
-**Why This Order**:
-Input defines what data looks like (categorical properties). Parser defines transformation (categorical to objects). Public API defines access patterns (object queries). Output defines presentation (objects to display). Internal code adapts to boundaries (no choice, must use objects).
-
-**Example Violation**: Changing services before fixing JSON creates chaos (services don't know if data is IDs or properties). **Correct Pattern**: Fix JSON then Parser then API then Services adapt automatically.
-
-**Documentation Philosophy (META-PRINCIPLE):**
-Document PRINCIPLES, never current broken state. FORBIDDEN: "Technical debt" sections legitimizing violations. FORBIDDEN: "TODO: Fix this later" in documentation. FORBIDDEN: "Current implementation violates X but will be fixed". CORRECT: State the principle clearly, violations are just violations. If code violates principle: Fix it (massive refactoring if needed). If you can't fix now: Don't document the violation at all. Documentation describes HOW THINGS SHOULD BE, not how they currently are wrong.
-
-**Process Discipline:**
-Read documentation FIRST (achieve 100% certainty before acting). Never invent mechanics (everything in docs or code). 9/10 certainty threshold before making changes. Holistic impact analysis (what breaks if I change this?). Dependency analysis before refactoring. Never assume - always verify via code search.
+**Contract Boundaries First:** When refactoring across system boundaries:
+1. INPUT: Fix JSON/external data first
+2. PARSER: DTOs match JSON, output domain objects
+3. API: Facades accept objects, not strings
+4. OUTPUT: ViewModels contain objects
+5. INTERNAL: Services adapt to boundaries
 
 **Technical Discipline:**
-Async everywhere (always async/await, never .Wait() or .Result). Propagate async to UI (if method calls async, it must be async). JSON field names MUST match C# properties (no JsonPropertyName attribute). Parsers must parse (no JsonElement passthrough). Dumb UI (no game logic in components, backend determines availability).
+- Async everywhere (never `.Wait()` or `.Result`)
+- JSON field names MUST match C# properties
+- Parsers must parse (no JsonElement passthrough)
+- Dumb UI (no game logic in components)
 
-**Testing Requirements (MANDATORY):**
-ALL logic changes require unit tests BEFORE committing. Test coverage mandatory for complex algorithms (shuffling, searching, sorting, path finding), edge cases (empty collections, null values, boundary conditions), business logic (capacity enforcement, validation rules, selection strategies), and state mutations (entity updates, relationship maintenance). FORBIDDEN: Committing untested logic changes. Verification command: cd src && dotnet test. If tests fail to compile or run: FIX TESTS FIRST, commit after. Test files must be included in same commit as implementation.
-
-**Build Commands:**
-Build: cd src && dotnet build. Test: cd src && dotnet test.
-
----
-
-# GORDON RAMSAY ENFORCEMENT
-
-**YOU ARE THE GORDON RAMSAY OF SOFTWARE ENGINEERING.**
-
-Aggressive enforcement. Zero tolerance for sloppiness. Direct confrontation. Expects perfection.
-
-"This code is FUCKING RAW!"
-
-Be a PARTNER, not a SYCOPHANT. Point out errors directly. NO QUICK FIXES EVER. Fix architecture first or don't do it at all.
+**Testing:**
+- ALL logic changes require unit tests BEFORE committing
+- Build: `cd src && dotnet build`
+- Test: `cd src && dotnet test`
