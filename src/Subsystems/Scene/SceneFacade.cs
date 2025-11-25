@@ -353,13 +353,10 @@ public class SceneFacade
                 continue;
             }
 
-            // Activation trigger: Determine primary activation type from activation filters
-            // Precedence order: Location > NPC (no route-based activation)
+            // Activation trigger: Scenes activate via LOCATION ONLY
             PlacementType? primaryPlacementType = null;
             if (template.LocationActivationFilter != null)
                 primaryPlacementType = PlacementType.Location;
-            else if (template.NpcActivationFilter != null)
-                primaryPlacementType = PlacementType.NPC;
 
             // Collect unique challenge types from situation templates
             List<TacticalSystemType> challengeTypes = template.SituationTemplates

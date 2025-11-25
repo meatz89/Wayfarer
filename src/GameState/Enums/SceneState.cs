@@ -8,11 +8,11 @@ public enum SceneState
     /// <summary>
     /// Scene is deferred (created but not yet activated)
     /// Scene entity and Situations exist, but dependent resources NOT spawned yet
-    /// Created when SceneTemplate spawns (startup for IsStarter, runtime for rewards)
+    /// Created when SceneTemplate spawns (from JSON package loading at game init or runtime)
     /// NO dependent locations/items created yet (deferred until activation)
     /// Stored in GameWorld.Scenes with State=Deferred
     /// Purpose: Separate scene creation from resource spawning (two-phase initialization)
-    /// Transition: Activated when player enters location or queries scenes at context
+    /// Transition: Activated when player enters location matching LocationActivationFilter
     /// </summary>
     Deferred,
 

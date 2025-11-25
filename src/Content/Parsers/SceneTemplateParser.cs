@@ -119,22 +119,21 @@ public class SceneTemplateParser
         }
 
         PlacementFilter locationActivationFilter = ParsePlacementFilter(dto.LocationActivationFilter, dto.Id, _gameWorld);
-        PlacementFilter npcActivationFilter = ParsePlacementFilter(dto.NpcActivationFilter, dto.Id, _gameWorld);
 
         // FAIL-FAST VALIDATION: Detect silent JSON deserialization failures
         // If JSON field names don't match DTO properties (e.g. 'baseLocationFilter' vs 'locationActivationFilter'),
         // System.Text.Json silently leaves properties as null instead of throwing exceptions
-        // For MainStory scenes (critical path content), require at least one activation filter
+        // For MainStory scenes (critical path content), require LocationActivationFilter
         // This catches JSON structure mismatches at parse time instead of runtime
         if (category == StoryCategory.MainStory)
         {
-            if (locationActivationFilter == null && npcActivationFilter == null)
+            if (locationActivationFilter == null)
             {
                 throw new InvalidOperationException(
-                    $"SceneTemplate '{dto.Id}' is MainStory but has NO activation filters. " +
+                    $"SceneTemplate '{dto.Id}' is MainStory but has NO LocationActivationFilter. " +
                     $"This indicates JSON field name mismatch. " +
-                    $"Verify JSON uses correct field names: 'locationActivationFilter' (not 'baseLocationFilter') and 'npcActivationFilter' (not 'baseNpcFilter'). " +
-                    $"MainStory scenes require at least one activation filter to determine when they activate.");
+                    $"Verify JSON uses correct field name: 'locationActivationFilter' (not 'baseLocationFilter'). " +
+                    $"MainStory scenes require LocationActivationFilter to determine when they activate.");
             }
         }
 
@@ -144,15 +143,14 @@ public class SceneTemplateParser
             Archetype = archetype,
             SceneArchetypeId = dto.SceneArchetypeId,
             DisplayNameTemplate = dto.DisplayNameTemplate,
-            // Activation filters: Parse triggers for scene activation (Deferred → Active)
+            // Activation filter: Parse trigger for scene activation (Deferred → Active)
+            // Scenes activate via LOCATION ONLY (player enters location matching filter)
             // Separate from situation placement filters (each situation has explicit filters)
             LocationActivationFilter = locationActivationFilter,
-            NpcActivationFilter = npcActivationFilter,
             SpawnConditions = SpawnConditionsParser.ParseSpawnConditions(dto.SpawnConditions),
             SituationTemplates = situationTemplates,
             SpawnRules = spawnRules,
             ExpirationDays = dto.ExpirationDays,
-            IsStarter = dto.IsStarter,
             IntroNarrativeTemplate = dto.IntroNarrativeTemplate,
             Tier = dto.Tier,
             Category = category,

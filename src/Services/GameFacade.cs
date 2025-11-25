@@ -409,24 +409,11 @@ public class GameFacade
 
     /// <summary>
     /// Create conversation context with cross-facade orchestration
-    ///
-    /// LEGACY NOTE: Contains call to CheckAndActivateDeferredScenesForNPC (marked obsolete)
-    /// TARGET ARCHITECTURE: Scenes should activate via LOCATION ONLY when player enters location
-    /// NPCs are for display context (choices display when talking to situation's NPC), not activation
-    /// MIGRATION: Remove the CheckAndActivateDeferredScenesForNPC call when migrating to location-only activation
+    /// Note: Scene activation happens via LOCATION (CheckAndActivateDeferredScenes when player enters)
+    /// NPCs are for display context only - choices display when player talks to situation's NPC
     /// </summary>
     public async Task<SocialChallengeContext> CreateConversationContext(NPC npc, Situation situation)
     {
-        Player player = _gameWorld.GetPlayer();
-
-        // LEGACY: NPC-based scene activation - TARGET ARCHITECTURE uses location-only activation
-        // This call should be removed when migrating to the target architecture
-        // Scene activation should only happen in CheckAndActivateDeferredScenes (location-based)
-        #pragma warning disable CS0618 // Suppress obsolete warning for legacy code
-        await _locationFacade.CheckAndActivateDeferredScenesForNPC(npc, player);
-        #pragma warning restore CS0618
-
-        // Then create conversation context
         return await _conversationFacade.CreateConversationContext(npc, situation);
     }
 
@@ -1681,9 +1668,9 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Spawn all starter scenes during game initialization
+    /// Spawn initial scenes during game initialization
     /// HIGHLANDER: Called ONCE from StartGameAsync() after IsGameStarted = true
-    /// Starter scenes provide initial gameplay content (tutorial, intro situations)
+    /// Spawns MainStory scenes with LocationActivationFilter as deferred content
     /// TWO-PHASE SPAWNING: Creates scenes as Deferred (no dependent resources spawned)
     /// Activation happens when player enters location via LocationFacade
     /// </summary>
@@ -1691,13 +1678,15 @@ public class GameFacade
     {
         Player player = _gameWorld.GetPlayer();
 
-        List<SceneTemplate> starterTemplates = _gameWorld.SceneTemplates
-            .Where(t => t.IsStarter)
+        // Spawn all MainStory scenes with LocationActivationFilter as deferred
+        // They will activate when player enters a matching location
+        List<SceneTemplate> initialTemplates = _gameWorld.SceneTemplates
+            .Where(t => t.Category == StoryCategory.MainStory && t.LocationActivationFilter != null)
             .ToList();
 
-        foreach (SceneTemplate template in starterTemplates)
+        foreach (SceneTemplate template in initialTemplates)
         {
-            // 5-SYSTEM ARCHITECTURE: Starter scenes use template's PlacementFilter (no override)
+            // 5-SYSTEM ARCHITECTURE: Initial scenes use template's PlacementFilter (no override)
             // EntityResolver will FindOrCreate entities from categorical specifications
             SceneSpawnReward spawnReward = new SceneSpawnReward
             {
@@ -1720,11 +1709,11 @@ public class GameFacade
 
             if (scene == null)
             {
-                Console.WriteLine($"[GameFacade] Starter scene '{template.Id}' failed to spawn - skipping");
+                Console.WriteLine($"[GameFacade] Initial scene '{template.Id}' failed to spawn - skipping");
                 continue;
             }
 
-            Console.WriteLine($"[GameFacade] Created deferred starter scene '{template.Id}' (State=Deferred, no dependent resources yet)");
+            Console.WriteLine($"[GameFacade] Created deferred initial scene '{template.Id}' (State=Deferred, no dependent resources yet)");
         }
     }
 

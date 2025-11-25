@@ -135,16 +135,9 @@ public static class SceneParser
                 dto.LocationActivationFilter, locationActivationContext);
         }
 
-        if (dto.NpcActivationFilter != null)
-        {
-            string npcActivationContext = $"Scene:{dto.DisplayName}/NpcActivation";
-            npcActivationFilter = SceneTemplateParser.ParsePlacementFilter(
-                dto.NpcActivationFilter, npcActivationContext);
-        }
-
-        // Store activation filters on Scene (not resolved, just stored for activation check)
+        // Store activation filter on Scene (not resolved, just stored for activation check)
+        // Scenes activate via LOCATION ONLY (player enters location matching filter)
         scene.LocationActivationFilter = locationActivationFilter;
-        scene.NpcActivationFilter = npcActivationFilter;
 
         // =====================================================
         // EMBEDDED SITUATIONS PARSING (Composition Pattern)

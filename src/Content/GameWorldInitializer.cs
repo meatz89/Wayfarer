@@ -74,15 +74,15 @@ public static class GameWorldInitializer
         SceneInstanceFacade sceneInstanceFacade =
             new SceneInstanceFacade(instantiator, contentGenerationFacade, packageLoaderFacade, hexRouteGenerator, timeManager, gameWorld, playabilityValidator);
 
-        // Find all starter templates (for verification logging)
-        List<SceneTemplate> starterTemplates = gameWorld.SceneTemplates.Where(t => t.IsStarter).ToList();
+        // Log scene templates with LocationActivationFilter (location-only activation)
+        List<SceneTemplate> activatableTemplates = gameWorld.SceneTemplates
+            .Where(t => t.LocationActivationFilter != null)
+            .ToList();
 
-        Console.WriteLine($"[Init] Found {starterTemplates.Count} starter templates (will be spawned by GameFacade.StartGameAsync)");
-        foreach (SceneTemplate t in starterTemplates)
+        Console.WriteLine($"[Init] Found {activatableTemplates.Count} scene templates with LocationActivationFilter");
+        foreach (SceneTemplate t in activatableTemplates)
         {
-            string activationTrigger = t.LocationActivationFilter != null ? "Location" :
-                                      t.NpcActivationFilter != null ? "NPC" : "None";
-            Console.WriteLine($"  - {t.Id} (Activation: {activationTrigger})");
+            Console.WriteLine($"  - {t.Id} (Location activation)");
         }
     }
 

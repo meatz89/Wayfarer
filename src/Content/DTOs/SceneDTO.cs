@@ -34,16 +34,6 @@ public class SceneDTO
     public PlacementFilterDTO LocationActivationFilter { get; set; }
 
     /// <summary>
-    /// NPC activation filter - determines WHEN scene activates
-    /// Scene activates when player talks to NPC matching these categorical properties
-    /// null = no NPC-based activation trigger (use Location or other trigger)
-    /// Example: Activate when player talks to any NPC with PersonalityType=Innkeeper
-    /// Separate from Situation.NpcFilter which determines WHO situation involves (always explicit per-situation)
-    /// Copied from SceneTemplate.NpcActivationFilter at spawn time
-    /// </summary>
-    public PlacementFilterDTO NpcActivationFilter { get; set; }
-
-    /// <summary>
     /// Current lifecycle state
     /// Values: "Deferred", "Active", "Completed", "Expired"
     /// </summary>

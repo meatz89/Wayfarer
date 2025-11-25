@@ -183,7 +183,6 @@ public class ProceduralAStoryService
             MainStorySequence = sequence,
             PresentationMode = "Modal", // A-story takes over screen (Sir Brante pattern)
             ProgressionMode = "Cascade", // Situations flow with momentum
-            IsStarter = false,
             ExpirationDays = null, // A-story never expires
             IntroNarrativeTemplate = null, // AI generates from hints
             DependentLocations = null, // Catalogue generates if needed

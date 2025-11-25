@@ -50,16 +50,12 @@ public class SceneInstantiator
     public string CreateDeferredScene(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
         // Evaluate spawn conditions
-        // LEGACY: IsStarter check - TARGET ARCHITECTURE uses package-based loading where all scenes
-        // load as Deferred and activate via LocationActivationFilter only
-        // TODO: Remove IsStarter check when migrating to package-based loading
-        #pragma warning disable CS0618 // Suppress obsolete warning for legacy code
-        bool isEligible = template.IsStarter || _spawnConditionsEvaluator.EvaluateAll(
+        // Scenes load as Deferred, activate via LocationActivationFilter when player enters matching location
+        bool isEligible = _spawnConditionsEvaluator.EvaluateAll(
             template.SpawnConditions,
             context.Player,
             placementId: null
         );
-        #pragma warning restore CS0618
 
         if (!isEligible)
         {
@@ -215,17 +211,13 @@ public class SceneInstantiator
     /// </summary>
     public string GenerateScenePackageJson(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
-        // Evaluate spawn conditions (same as old CreateProvisionalScene)
-        // LEGACY: IsStarter check - TARGET ARCHITECTURE uses package-based loading where all scenes
-        // load as Deferred and activate via LocationActivationFilter only
-        // TODO: Remove IsStarter check when migrating to package-based loading
-        #pragma warning disable CS0618 // Suppress obsolete warning for legacy code
-        bool isEligible = template.IsStarter || _spawnConditionsEvaluator.EvaluateAll(
+        // Evaluate spawn conditions
+        // Scenes load as Deferred, activate via LocationActivationFilter when player enters matching location
+        bool isEligible = _spawnConditionsEvaluator.EvaluateAll(
             template.SpawnConditions,
             context.Player,
             placementId: null
         );
-        #pragma warning restore CS0618
 
         if (!isEligible)
         {
@@ -308,16 +300,16 @@ public class SceneInstantiator
         }
 
         // System 3: Write categorical specifications (NOT concrete IDs)
-        // Copy activation filters from template to scene instance
-        // These determine WHEN scene activates (Deferred → Active transition)
+        // Copy activation filter from template to scene instance
+        // Scenes activate via LOCATION ONLY (player enters location matching filter)
 
         SceneDTO dto = new SceneDTO
         {
             Id = sceneId,
             TemplateId = template.Id,
-            // Activation filters: Copied from template, determine activation trigger
+            // Activation filter: Copied from template, determines activation trigger
+            // Scenes activate via LOCATION ONLY when player enters matching location
             LocationActivationFilter = ConvertPlacementFilterToDTO(template.LocationActivationFilter),
-            NpcActivationFilter = ConvertPlacementFilterToDTO(template.NpcActivationFilter),
             State = isDeferredState ? "Deferred" : "Active", // TWO-PHASE: Deferred or Active based on caller
             ExpiresOnDay = expiresOnDay,
             Archetype = template.Archetype.ToString(),
