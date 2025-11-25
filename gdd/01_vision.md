@@ -115,7 +115,58 @@ The game never punishes you for not engaging with content. NPCs don't die becaus
 
 ---
 
-## 1.5 Emotional Aesthetic Goals
+## 1.5 Foundational Principle: Requirement Inversion
+
+**Traditional RPGs:** "You need Level 5 to enter this area" (boolean gate)
+**Wayfarer:** "You can enter anytime, but without Insight 4, it costs 20 extra coins" (resource arithmetic)
+
+### Why This Matters
+
+Boolean gates create hard stops. Players hit walls. Content is locked behind arbitrary thresholds. This contradicts our "No Soft-Locks" principle.
+
+Resource arithmetic creates soft pressure. Players can ALWAYS progress—the question is COST. High-stat players pay less. Low-stat players pay more. Everyone moves forward.
+
+### How It Manifests
+
+- **Stat requirements affect COST, not ACCESS**
+- **Four-choice archetype ensures fallback path always exists**
+- **Challenge difficulty scales rewards AND costs**
+- **Content exists from game start; requirements filter optimal paths, not availability**
+
+This is WHY Wayfarer feels different from traditional RPGs. Progression is continuous, not gated.
+
+---
+
+## 1.6 Design Principle Tier Hierarchy
+
+When design principles conflict, resolve by tier priority:
+
+### TIER 1: Non-Negotiable (Never Compromise)
+1. **No Soft-Locks** — Player can ALWAYS make forward progress
+2. **Single Source of Truth** — One owner per entity type (HIGHLANDER)
+
+### TIER 2: Core Experience (Compromise Only for Tier 1)
+3. **Playability Over Compilation** — Inaccessible content is worse than crashes
+4. **Perfect Information** — All costs visible before selection
+5. **Resource Scarcity Creates Challenge** — Not stat checks
+
+### TIER 3: Architectural Quality (Compromise for Tier 1 or 2)
+6. **Elegance** — Simple solutions over complex ones
+7. **Verisimilitude** — Systems mirror real-world dynamics
+
+### Conflict Resolution Example
+
+*"Should this choice require Insight 6 to see?"*
+
+- TIER 3 (Verisimilitude): Yes, experts notice things others miss
+- TIER 2 (Perfect Information): No, hidden options frustrate planning
+- TIER 1 (No Soft-Locks): Choice must exist regardless
+
+**Resolution:** Choice is VISIBLE to everyone. Insight 6 provides FREE path; others pay resource cost. Verisimilitude via cost scaling, not visibility.
+
+---
+
+## 1.7 Emotional Aesthetic Goals
 
 **Primary: Contemplation Through Constraint**
 Choices are not timed. You can pause, consider, calculate. Pressure comes from scarcity, not urgency.
@@ -132,4 +183,5 @@ Success is measured by journey quality, not arrival. The game teaches letting go
 
 - **Core Loops**: See [03_core_loop.md](03_core_loop.md) for how pillars manifest in gameplay
 - **Balance**: See [06_balance.md](06_balance.md) for how scarcity creates depth
+- **Psychological Laws**: See [design/13_player_experience_emergence_laws.md](../design/13_player_experience_emergence_laws.md) for player psychology
 - **Detailed Design**: See [design/01_design_vision.md](../design/01_design_vision.md) for exhaustive treatment

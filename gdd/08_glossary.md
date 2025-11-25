@@ -33,6 +33,9 @@ Core design principle. Every decision forces trade-offs between multiple valid a
 ### Perfect Information
 Design principle. All costs, requirements, and rewards visible before selection. Strategic layer has no hidden gotchas.
 
+### Requirement Inversion
+Foundational principle: stat requirements affect COST, not ACCESS. Unlike traditional RPGs with boolean gates ("Level 5 required"), Wayfarer uses resource arithmetic—everyone can progress, but high-stat players pay less. This ensures no soft-locks while rewarding specialization.
+
 ### Scene-Situation-Choice Flow
 Narrative structure. Scene (container) → Situation (decision point) → Choice (four paths). All content follows this hierarchy.
 

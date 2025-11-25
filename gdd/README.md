@@ -73,5 +73,5 @@ For detailed reference material, see [design/](../design/) subdirectory.
 |----------------|-------------------------|
 | Scene-Situation-Choice | [arc42/05_building_block_view.md](../arc42/05_building_block_view.md) |
 | Atmospheric Action Layer | [arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md) §8.8 |
-| Categorical Property Scaling | [arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md) §8.6 |
+| Categorical Property Scaling | [arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md) §8.2-8.3 |
 | Entity Ownership | [arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md) §8.9 |
