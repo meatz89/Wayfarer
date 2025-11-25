@@ -13,8 +13,14 @@ This document explains the complete technical implementation of the scene system
 ALL content flows through a single path - no exceptions:
 
 ```
-JSON --> Parser --> Entity
+JSON --> DTO --> Parser --> Entity
 ```
+
+**Layer Responsibilities:**
+- **JSON**: Content authored in files or generated dynamically
+- **DTO**: Data Transfer Objects (Package, LocationDTO, SceneTemplateDTO) - JSON deserialized to typed objects
+- **Parser**: Converts DTOs to domain entities, resolves references, validates
+- **Entity**: Domain objects stored in GameWorld
 
 - **Authored content**: Written in `Content/Core/*.json`
 - **Dynamic content**: Generated to `Content/Dynamic/*.json` at runtime
@@ -28,11 +34,15 @@ Key files:
 
 | Tier | When | What's Created | Example |
 |------|------|----------------|---------|
-| **Parse-Time** (Tier 1) | Package loading | Templates with categorical filters | SceneTemplate, SituationTemplate, ChoiceTemplate |
+| **Parse-Time** (Tier 1) | Package loading | Templates and atmospheric actions | SceneTemplate, ChoiceTemplate, LocationAction (atmospheric) |
 | **Spawn-Time** (Tier 2) | Scene activation | Instances with resolved entity references | Scene, Situation with Location/NPC objects |
-| **Query-Time** (Tier 3) | UI request | Ephemeral actions (never stored) | LocationAction, NPCAction (fresh on every query) |
+| **Query-Time** (Tier 3) | UI request | Ephemeral scene-based actions | LocationAction/NPCAction from ChoiceTemplates (fresh on every query) |
 
-Key insight: **Actions are NEVER stored**. They're rebuilt fresh from ChoiceTemplates every time the UI queries.
+**DUAL-TIER ACTION ARCHITECTURE (see arc42/08 §8.8):**
+- **Atmospheric actions ARE stored** in `GameWorld.LocationActions` (permanent, parse-time from LocationActionCatalog)
+- **Scene-based actions are ephemeral** (rebuilt fresh from ChoiceTemplates every query)
+
+This is intentional: atmospheric actions (Travel, Work, Rest, Move) prevent soft-locks by always being available, while scene-based actions layer dynamic narrative content on top.
 
 ## 14.3 Complete Game Initialization Flow
 
@@ -558,8 +568,11 @@ Check in order:
 
 All content flows through the same path:
 ```
-JSON --> PackageLoader --> Parser --> Entity
+JSON --> DTO --> Parser --> Entity
 ```
+
+- **DTO Layer**: JSON deserializes to typed DTOs (Package, LocationDTO, SceneTemplateDTO)
+- **Parser Layer**: Converts DTOs to domain entities, resolves references, validates enums
 
 Dynamic scenes generate JSON at runtime, written to Content/Dynamic/, loaded via PackageLoader. NO direct entity creation allowed.
 
