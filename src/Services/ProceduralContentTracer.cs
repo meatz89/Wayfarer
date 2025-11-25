@@ -80,7 +80,8 @@ public class ProceduralContentTracer
         string sceneTemplateId,
         bool isProcedurallyGenerated,
         SpawnTriggerType spawnTrigger,
-        Player player)
+        int currentDay,
+        TimeBlocks currentTimeBlock)
     {
         if (!IsEnabled) return null;
 
@@ -89,10 +90,10 @@ public class ProceduralContentTracer
             SceneSpawnNode node = new SceneSpawnNode
             {
                 SceneTemplateId = sceneTemplateId,
-                DisplayName = scene.Template?.DisplayName ?? scene.TemplateId ?? "Unknown Scene",
+                DisplayName = scene.Template?.DisplayNameTemplate ?? scene.TemplateId ?? "Unknown Scene",
                 SpawnTimestamp = DateTime.UtcNow,
-                GameDay = player.CurrentDay,
-                GameTimeBlock = player.CurrentTimeBlock,
+                GameDay = currentDay,
+                GameTimeBlock = currentTimeBlock,
                 SpawnTrigger = spawnTrigger,
                 ParentChoice = GetCurrentChoiceContext(),
                 ParentSituation = GetCurrentSituationContext(),

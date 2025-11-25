@@ -253,13 +253,13 @@ public static class SceneParser
         // =====================================================
         if (gameWorld.ProceduralTracer != null && gameWorld.ProceduralTracer.IsEnabled)
         {
-            Player player = gameWorld.GetPlayer();
             SceneSpawnNode sceneNode = gameWorld.ProceduralTracer.RecordSceneSpawn(
                 scene,
                 scene.TemplateId,
                 false, // isProcedurallyGenerated = false (authored content from JSON)
                 SpawnTriggerType.Initial,
-                player
+                gameWorld.CurrentDay,
+                gameWorld.CurrentTimeBlock
             );
 
             // Record all embedded situations as children of this scene

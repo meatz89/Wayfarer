@@ -1,7 +1,7 @@
 /// <summary>
 /// Describes what triggered a situation spawn event
 /// </summary>
-enum SituationSpawnTriggerType
+public enum SituationSpawnTriggerType
 {
     /// <summary>Initial situation in scene (parse-time)</summary>
     InitialScene,

@@ -135,7 +135,8 @@ public class SceneInstanceFacade
                 spawnedScene.TemplateId,
                 true, // isProcedurallyGenerated = true (runtime spawned via instantiation)
                 SpawnTriggerType.ChoiceReward, // Most common trigger for runtime spawns
-                context.Player
+                _gameWorld.CurrentDay,
+                _gameWorld.CurrentTimeBlock
             );
 
             // Record all embedded situations as children of this scene

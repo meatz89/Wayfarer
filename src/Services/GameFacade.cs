@@ -9,6 +9,14 @@ public class GameFacade
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
+
+    // ==================== PUBLIC ACCESSORS ====================
+
+    /// <summary>
+    /// Direct access to GameWorld for debugging/testing
+    /// Used by DebugPanel to access game state
+    /// </summary>
+    public GameWorld GameWorld => _gameWorld;
     private readonly SocialFacade _conversationFacade;
     private readonly LocationFacade _locationFacade;
     private readonly ResourceFacade _resourceFacade;

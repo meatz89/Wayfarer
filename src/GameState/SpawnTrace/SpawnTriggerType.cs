@@ -1,7 +1,7 @@
 /// <summary>
 /// Describes what triggered a scene spawn event
 /// </summary>
-enum SpawnTriggerType
+public enum SpawnTriggerType
 {
     /// <summary>Game start, no parent (authored content)</summary>
     Initial,

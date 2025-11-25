@@ -376,13 +376,13 @@ public class HexRouteGenerator
         // PROCEDURAL CONTENT TRACING: Record travel scene spawn
         if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
         {
-            Player player = _gameWorld.GetPlayer();
             SceneSpawnNode sceneNode = _gameWorld.ProceduralTracer.RecordSceneSpawn(
                 scene,
                 scene.TemplateId,
                 false, // isProcedurallyGenerated = false (authored template, but travel-triggered)
                 SpawnTriggerType.DayTransition, // Travel scenes spawn during route travel
-                player
+                _gameWorld.CurrentDay,
+                _gameWorld.CurrentTimeBlock
             );
 
             // Record all embedded situations as children of this scene
