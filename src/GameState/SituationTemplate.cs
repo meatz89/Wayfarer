@@ -63,21 +63,6 @@ public class SituationTemplate
     /// </summary>
     public int Priority { get; init; } = 0;
 
-    /// <summary>
-    /// Whether this situation grants location access while active (for DEPENDENT locations only)
-    ///
-    /// DUAL-MODEL ACCESSIBILITY:
-    /// - Authored locations (Provenance == null): Always accessible regardless of this property
-    /// - Dependent locations (Provenance != null): Accessible when this property is true
-    ///
-    /// true = Dependent location accessible when this situation is current (default)
-    /// false = Dependent location NOT accessible even when situation is current (rare)
-    ///
-    /// Used by: LocationAccessibilityService.CheckSceneGrantsAccess for dependent location access
-    /// Pattern: Active situation at dependent Location X grants access to Location X
-    /// </summary>
-    public bool GrantsLocationAccess { get; init; } = true;
-
     // ==================== HIERARCHICAL PLACEMENT (OVERRIDE FILTERS) ====================
     // CSS-style inheritance: SituationTemplate can OVERRIDE SceneTemplate base filters
     // Resolution: effectiveFilter = situationFilter ?? sceneBaseFilter

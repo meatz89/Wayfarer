@@ -168,8 +168,8 @@ public static class AStorySceneArchetypeCatalog
         {
             ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
 
-            // NEW ARCHITECTURE: Location accessibility controlled by situation GrantsLocationAccess property
-            // No need for reward-based unlock - situation at meeting_chamber grants access via template property
+            // NEW ARCHITECTURE: Dual-model accessibility - situation presence at dependent location grants access
+            // No need for reward-based unlock - when situation advances to meeting_chamber, access is automatic
 
             enrichedNegotiateChoices.Add(new ChoiceTemplate
             {

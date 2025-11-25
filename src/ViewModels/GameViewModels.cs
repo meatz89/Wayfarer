@@ -372,7 +372,7 @@ public class ActionCardViewModel
     // Progression unlocks (transparent before selection)
     public List<string> AchievementsGranted { get; set; } = new();
     public List<string> ItemsGranted { get; set; } = new();
-    // LocationsUnlocked DELETED - new architecture uses query-based accessibility via GrantsLocationAccess
+    // LocationsUnlocked DELETED - new architecture uses dual-model accessibility (situation presence grants access)
     public List<string> ScenesUnlocked { get; set; } = new();
 
     // Detailed requirement gaps (replaces vague LockReason)

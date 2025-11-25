@@ -50,31 +50,18 @@ public class LocationAccessibilityService
     }
 
     /// <summary>
-    /// Check if any active scene's current situation grants access to this dependent location
-    /// Used only for dependent locations (scene-created resources)
+    /// Check if any active scene's current situation is at this dependent location
+    ///
+    /// SIMPLIFIED LOGIC: If a situation exists at a dependent location, the player
+    /// MUST be able to access it to engage with the situation. No property needed -
+    /// situation presence implies access (otherwise it would be a soft-lock).
     /// </summary>
     private bool CheckSceneGrantsAccess(Location location)
     {
         return _gameWorld.Scenes
             .Where(scene => scene.State == SceneState.Active)
             .Where(scene => scene.CurrentSituationIndex >= 0 && scene.CurrentSituationIndex < scene.Situations.Count)
-            .Any(scene =>
-            {
-                Situation currentSituation = scene.CurrentSituation;
-
-                if (currentSituation == null)
-                    return false;
-
-                // Check if situation grants access (default is true)
-                if (currentSituation.Template?.GrantsLocationAccess != true)
-                    return false;
-
-                // Check if situation is at target location
-                if (currentSituation.Location == location)
-                    return true;
-
-                return false;
-            });
+            .Any(scene => scene.CurrentSituation?.Location == location);
     }
 
     /// <summary>

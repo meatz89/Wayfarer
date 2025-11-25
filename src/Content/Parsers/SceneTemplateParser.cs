@@ -674,7 +674,6 @@ public class SceneTemplateParser
             NarrativeTemplate = dto.NarrativeTemplate,
             ChoiceTemplates = choiceTemplates,
             Priority = dto.Priority,
-            GrantsLocationAccess = dto.GrantsLocationAccess,
             // Hierarchical placement override filters (CSS-style inheritance)
             LocationFilter = ParsePlacementFilter(dto.LocationFilter, contextId, _gameWorld),
             NpcFilter = ParsePlacementFilter(dto.NpcFilter, contextId, _gameWorld),

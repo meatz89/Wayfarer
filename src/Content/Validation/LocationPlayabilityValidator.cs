@@ -52,8 +52,8 @@ public class LocationPlayabilityValidator
             errors.Add($"Location '{location.Name}' has no capabilities - locations must have at least one capability for action generation");
         }
 
-        // 5. IsLocked validation DELETED - new architecture uses query-based accessibility via GrantsLocationAccess
-        // Locations accessible when active situation grants access, not via flag modification
+        // 5. IsLocked validation DELETED - new architecture uses dual-model accessibility
+        // Authored locations always accessible; dependent locations accessible when situation is at location
 
         // If any errors, throw with complete error list
         if (errors.Any())
@@ -91,7 +91,7 @@ public class LocationPlayabilityValidator
         return routeExists;
     }
 
-    // CheckUnlockMechanism DELETED - new architecture uses query-based accessibility
-    // Locations accessible when active situation grants access via GrantsLocationAccess property
+    // CheckUnlockMechanism DELETED - new architecture uses dual-model accessibility
+    // Authored locations always accessible; dependent locations accessible when situation is at location
     // No flag-based lock/unlock mechanism exists anymore
 }
