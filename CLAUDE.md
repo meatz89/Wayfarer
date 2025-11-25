@@ -1,3 +1,50 @@
+# REQUIRED READING - START HERE
+
+**Before ANY task, achieve 100% certainty. Read documentation first, never assume.**
+
+## Essential Documents (Always Read)
+
+| Document | Purpose | When |
+|----------|---------|------|
+| `arc42/12_glossary.md` | Technical terminology | Any task - understand the vocabulary |
+| `gdd/08_glossary.md` | Game design terminology | Any task - understand game concepts |
+| `gdd/01_vision.md` | Design pillars, Requirement Inversion, Tier Hierarchy | Any task - understand WHY things exist |
+
+## Implementation Documents (Read Before Coding)
+
+| Document | Purpose | When |
+|----------|---------|------|
+| `arc42/08_crosscutting_concepts.md` | HIGHLANDER, Catalogue Pattern, Three-Tier Timing, Dual-Tier Actions, Backend/Frontend Separation | Any implementation work |
+| `arc42/05_building_block_view.md` | Component structure, ownership hierarchy, entity relationships | Understanding where code lives |
+| `arc42/09_architecture_decisions.md` | ADRs explaining WHY patterns were chosen | Understanding architectural rationale |
+
+## Design Documents (Read for Game Logic)
+
+| Document | Purpose | When |
+|----------|---------|------|
+| `gdd/03_core_loop.md` | Strategic/tactical layer flow | Understanding gameplay structure |
+| `gdd/04_systems.md` | Stats, resources, economy overview | Working on game mechanics |
+| `design/BASELINE_ECONOMY.md` | Authoritative numeric values | Balance, costs, rewards work |
+
+## Deep Reference (Exhaustive Detail)
+
+| Location | Content | When |
+|----------|---------|------|
+| `design/` subdirectory | 15,000 lines of detailed mechanics, archetypes, balance methodology | Need specific formulas, edge cases, or comprehensive rules |
+| `arc42/` subdirectory | Complete arc42 technical documentation | Need deployment, runtime, or quality requirement details |
+
+## Reading Order by Task Type
+
+**"I need to implement a feature"** → Glossaries → `arc42/08` → `arc42/05` → `gdd/01` → `gdd/03`
+
+**"I need to understand game balance"** → Glossaries → `gdd/01` → `gdd/06` → `design/BASELINE_ECONOMY.md` → `design/08_balance_philosophy.md`
+
+**"I need to understand an entity"** → Glossaries → `arc42/05` → `arc42/08` → Search codebase
+
+**"I need to understand a design decision"** → Glossaries → `gdd/07` → `arc42/09` → `gdd/01`
+
+---
+
 # RULE #0: NO HALF MEASURES - ABSOLUTE PRINCIPLE
 
 ## THE IRON LAW: COMPLETE WORK ONLY
