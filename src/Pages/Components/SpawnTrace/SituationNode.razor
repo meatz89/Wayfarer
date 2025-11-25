@@ -1,0 +1,123 @@
+@* Situation Node - Recursive component for displaying situation spawn events *@
+
+<div class="trace-node trace-node-situation @(IsExpanded ? "trace-node-expanded" : "trace-node-collapsed") @(IsHighlighted ? "trace-node-highlighted" : "")"
+     @onclick="HandleClick"
+     @onclick:stopPropagation="true">
+
+    <div class="trace-node-header">
+        <span class="trace-badge trace-badge-situation">SITUATION</span>
+        <span>@Node.Name</span>
+    </div>
+
+    <div class="trace-node-metadata">
+        <div>
+            <span class="trace-property">Type:</span>
+            <span class="trace-value">@Node.SystemType</span>
+            | <span class="trace-value">@Node.Type</span>
+            | <span class="trace-value">@Node.InteractionType</span>
+        </div>
+
+        <div>
+            <span class="trace-property">Spawned:</span>
+            <span class="trace-timestamp">@Node.SpawnTimestamp.ToString("HH:mm:ss")</span>
+            via <span class="trace-value">@Node.SpawnTrigger</span>
+        </div>
+
+        @if (Node.Location != null)
+        {
+            <div>
+                <span class="trace-property">Location:</span>
+                <span class="trace-value">@Node.Location.Name</span>
+                (@Node.Location.Safety)
+            </div>
+        }
+
+        @if (Node.NPC != null)
+        {
+            <div>
+                <span class="trace-property">NPC:</span>
+                <span class="trace-value">@Node.NPC.Name</span>
+                (@Node.NPC.PersonalityType)
+            </div>
+        }
+
+        @if (Node.Route != null)
+        {
+            <div>
+                <span class="trace-property">Route:</span>
+                <span class="trace-value">@Node.Route.OriginLocationName → @Node.Route.DestinationLocationName</span>
+                @if (Node.SegmentIndex.HasValue)
+                {
+                    <span> [Segment @Node.SegmentIndex]</span>
+                }
+            </div>
+        }
+
+        <div>
+            <span class="trace-property">Choices:</span>
+            <span class="trace-count">@(Node.Choices?.Count ?? 0)</span> total
+            @if (Node.Choices != null && Node.Choices.Any())
+            {
+                <span> (@Node.Choices.Count executed)</span>
+            }
+        </div>
+
+        @if (Node.SpawnedSituations != null && Node.SpawnedSituations.Count > 0)
+        {
+            <div>
+                <span class="trace-property">↳ Spawned:</span>
+                <span class="trace-count">@Node.SpawnedSituations.Count</span> situation(s) (cascade)
+            </div>
+        }
+
+        @if (!string.IsNullOrEmpty(Node.SituationTemplateId))
+        {
+            <div>
+                <span class="trace-property">Template:</span>
+                <span class="trace-value">@Node.SituationTemplateId</span>
+            </div>
+        }
+
+        @if (Node.CompletedTimestamp.HasValue)
+        {
+            <div>
+                <span class="trace-property">Status:</span>
+                <span class="trace-value">@Node.LifecycleStatus</span>
+                @if (Node.LastChallengeSucceeded.HasValue)
+                {
+                    <span> | Challenge: @(Node.LastChallengeSucceeded.Value ? "SUCCESS" : "FAILED")</span>
+                }
+            </div>
+        }
+    </div>
+
+    @if (IsExpanded && Node.Choices != null && Node.Choices.Count > 0)
+    {
+        <div class="trace-node-children">
+            @foreach (ChoiceExecutionNode choice in Node.Choices)
+            {
+                <ChoiceNode Node="@choice"
+                            Tracer="@Tracer"
+                            OnNodeSelected="@OnNodeSelected"
+                            IsHighlighted="@(HighlightedNodes?.Contains(choice) ?? false)" />
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public SituationSpawnNode Node { get; set; }
+    [Parameter] public ProceduralContentTracer Tracer { get; set; }
+    [Parameter] public Action<object> OnNodeSelected { get; set; }
+    [Parameter] public Action<object> OnToggleExpand { get; set; }
+    [Parameter] public bool IsExpanded { get; set; }
+    [Parameter] public bool IsHighlighted { get; set; }
+    [Parameter] public HashSet<object> ExpandedNodes { get; set; }
+    [Parameter] public HashSet<object> HighlightedNodes { get; set; }
+
+    private void HandleClick()
+    {
+        OnToggleExpand?.Invoke(Node);
+        OnNodeSelected?.Invoke(Node);
+    }
+}

@@ -46,6 +46,10 @@ builder.Host.UseSerilog();
 
 WebApplication app = builder.Build();
 
+// Inject ProceduralContentTracer into GameWorld after services are built
+ProceduralContentTracer tracer = app.Services.GetRequiredService<ProceduralContentTracer>();
+gameWorld.ProceduralTracer = tracer;
+
 // Test Ollama connection on startup
 try
 {

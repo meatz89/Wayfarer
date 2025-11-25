@@ -33,6 +33,14 @@ public class RewardApplicationService
 
     /// <summary>
     /// Apply all components of a ChoiceReward
+    ///
+    /// PROCEDURAL CONTENT TRACING NOTE:
+    /// Choice execution recording should happen in the CALLER before invoking this method:
+    ///   1. choiceNode = tracer.RecordChoiceExecution(choiceTemplate, situationNodeId, actionText, metRequirements)
+    ///   2. tracer.PushChoiceContext(choiceNode.NodeId)
+    ///   3. await ApplyChoiceReward(reward, situation)  // Scenes spawned here auto-link to choice
+    ///   4. tracer.PopChoiceContext()
+    /// This ensures spawned scenes link correctly to the choice that triggered them.
     /// </summary>
     public async Task ApplyChoiceReward(ChoiceReward reward, Situation currentSituation)
     {

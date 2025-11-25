@@ -708,6 +708,13 @@ public class GameFacade
             return;
         }
 
+        // PROCEDURAL CONTENT TRACING: Clear trace data for new game
+        if (_gameWorld.ProceduralTracer != null)
+        {
+            _gameWorld.ProceduralTracer.Clear();
+            Console.WriteLine("[StartGameAsync] Procedural content trace cleared");
+        }
+
         // Initialize player at starting location from GameWorld initial conditions
         // HEX-FIRST ARCHITECTURE: Player position is hex coordinates
         // HIGHLANDER: Use StartingLocation object reference set by PackageLoader
@@ -1187,6 +1194,13 @@ public class GameFacade
             if (currentDay >= scene.ExpiresOnDay.Value)
             {
                 scene.State = SceneState.Expired;
+
+                // PROCEDURAL CONTENT TRACING: Update scene state to Expired
+                if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+                {
+                    _gameWorld.ProceduralTracer.UpdateSceneState(scene, SceneState.Expired, DateTime.UtcNow);
+                }
+
                 // Optional: System message for player feedback (uncomment if desired)
                 // _messageSystem.AddSystemMessage($"Opportunity expired: {scene.DisplayName}", SystemMessageTypes.Info);
             }
@@ -2195,23 +2209,41 @@ public class GameFacade
     /// </summary>
     public async Task ProcessSocialChallengeOutcome()
     {
-        if (_gameWorld.LastSocialOutcome?.Success == true &&
-            _gameWorld.PendingSocialContext?.CompletionReward != null)
+        // PROCEDURAL CONTENT TRACING: Use stored ChoiceExecution for context
+        ChoiceExecutionNode choiceNode = _gameWorld.PendingSocialContext?.ChoiceExecution;
+        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
         {
-            Situation currentSituation = _gameWorld.PendingSocialContext.Situation;
-            await _rewardApplicationService.ApplyChoiceReward(
-                _gameWorld.PendingSocialContext.CompletionReward,
-                currentSituation);
+            _gameWorld.ProceduralTracer.PushChoiceContext(choiceNode);
         }
-        else if (_gameWorld.LastSocialOutcome?.Success == false &&
-                 _gameWorld.PendingSocialContext?.FailureReward != null)
+
+        try
         {
-            Situation currentSituation = _gameWorld.PendingSocialContext.Situation;
-            await _rewardApplicationService.ApplyChoiceReward(
-                _gameWorld.PendingSocialContext.FailureReward,
-                currentSituation);
+            if (_gameWorld.LastSocialOutcome?.Success == true &&
+                _gameWorld.PendingSocialContext?.CompletionReward != null)
+            {
+                Situation currentSituation = _gameWorld.PendingSocialContext.Situation;
+                await _rewardApplicationService.ApplyChoiceReward(
+                    _gameWorld.PendingSocialContext.CompletionReward,
+                    currentSituation);
+            }
+            else if (_gameWorld.LastSocialOutcome?.Success == false &&
+                     _gameWorld.PendingSocialContext?.FailureReward != null)
+            {
+                Situation currentSituation = _gameWorld.PendingSocialContext.Situation;
+                await _rewardApplicationService.ApplyChoiceReward(
+                    _gameWorld.PendingSocialContext.FailureReward,
+                    currentSituation);
+            }
         }
-        _gameWorld.PendingSocialContext = null;
+        finally
+        {
+            // ALWAYS pop context (even on exception)
+            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
+            {
+                _gameWorld.ProceduralTracer.PopChoiceContext();
+            }
+            _gameWorld.PendingSocialContext = null;
+        }
     }
 
     /// <summary>
@@ -2220,23 +2252,41 @@ public class GameFacade
     /// </summary>
     public async Task ProcessMentalChallengeOutcome()
     {
-        if (_gameWorld.LastMentalOutcome?.Success == true &&
-            _gameWorld.PendingMentalContext?.CompletionReward != null)
+        // PROCEDURAL CONTENT TRACING: Use stored ChoiceExecution for context
+        ChoiceExecutionNode choiceNode = _gameWorld.PendingMentalContext?.ChoiceExecution;
+        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
         {
-            Situation currentSituation = _gameWorld.PendingMentalContext.Situation;
-            await _rewardApplicationService.ApplyChoiceReward(
-                _gameWorld.PendingMentalContext.CompletionReward,
-                currentSituation);
+            _gameWorld.ProceduralTracer.PushChoiceContext(choiceNode);
         }
-        else if (_gameWorld.LastMentalOutcome?.Success == false &&
-                 _gameWorld.PendingMentalContext?.FailureReward != null)
+
+        try
         {
-            Situation currentSituation = _gameWorld.PendingMentalContext.Situation;
-            await _rewardApplicationService.ApplyChoiceReward(
-                _gameWorld.PendingMentalContext.FailureReward,
-                currentSituation);
+            if (_gameWorld.LastMentalOutcome?.Success == true &&
+                _gameWorld.PendingMentalContext?.CompletionReward != null)
+            {
+                Situation currentSituation = _gameWorld.PendingMentalContext.Situation;
+                await _rewardApplicationService.ApplyChoiceReward(
+                    _gameWorld.PendingMentalContext.CompletionReward,
+                    currentSituation);
+            }
+            else if (_gameWorld.LastMentalOutcome?.Success == false &&
+                     _gameWorld.PendingMentalContext?.FailureReward != null)
+            {
+                Situation currentSituation = _gameWorld.PendingMentalContext.Situation;
+                await _rewardApplicationService.ApplyChoiceReward(
+                    _gameWorld.PendingMentalContext.FailureReward,
+                    currentSituation);
+            }
         }
-        _gameWorld.PendingMentalContext = null;
+        finally
+        {
+            // ALWAYS pop context (even on exception)
+            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
+            {
+                _gameWorld.ProceduralTracer.PopChoiceContext();
+            }
+            _gameWorld.PendingMentalContext = null;
+        }
     }
 
     /// <summary>
@@ -2245,23 +2295,41 @@ public class GameFacade
     /// </summary>
     public async Task ProcessPhysicalChallengeOutcome()
     {
-        if (_gameWorld.LastPhysicalOutcome?.Success == true &&
-            _gameWorld.PendingPhysicalContext?.CompletionReward != null)
+        // PROCEDURAL CONTENT TRACING: Use stored ChoiceExecution for context
+        ChoiceExecutionNode choiceNode = _gameWorld.PendingPhysicalContext?.ChoiceExecution;
+        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
         {
-            Situation currentSituation = _gameWorld.PendingPhysicalContext.Situation;
-            await _rewardApplicationService.ApplyChoiceReward(
-                _gameWorld.PendingPhysicalContext.CompletionReward,
-                currentSituation);
+            _gameWorld.ProceduralTracer.PushChoiceContext(choiceNode);
         }
-        else if (_gameWorld.LastPhysicalOutcome?.Success == false &&
-                 _gameWorld.PendingPhysicalContext?.FailureReward != null)
+
+        try
         {
-            Situation currentSituation = _gameWorld.PendingPhysicalContext.Situation;
-            await _rewardApplicationService.ApplyChoiceReward(
-                _gameWorld.PendingPhysicalContext.FailureReward,
-                currentSituation);
+            if (_gameWorld.LastPhysicalOutcome?.Success == true &&
+                _gameWorld.PendingPhysicalContext?.CompletionReward != null)
+            {
+                Situation currentSituation = _gameWorld.PendingPhysicalContext.Situation;
+                await _rewardApplicationService.ApplyChoiceReward(
+                    _gameWorld.PendingPhysicalContext.CompletionReward,
+                    currentSituation);
+            }
+            else if (_gameWorld.LastPhysicalOutcome?.Success == false &&
+                     _gameWorld.PendingPhysicalContext?.FailureReward != null)
+            {
+                Situation currentSituation = _gameWorld.PendingPhysicalContext.Situation;
+                await _rewardApplicationService.ApplyChoiceReward(
+                    _gameWorld.PendingPhysicalContext.FailureReward,
+                    currentSituation);
+            }
         }
-        _gameWorld.PendingPhysicalContext = null;
+        finally
+        {
+            // ALWAYS pop context (even on exception)
+            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled && choiceNode != null)
+            {
+                _gameWorld.ProceduralTracer.PopChoiceContext();
+            }
+            _gameWorld.PendingPhysicalContext = null;
+        }
     }
 
     private IntentResult ApplyNavigationPayload(NavigationPayload payload)

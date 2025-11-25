@@ -1,0 +1,76 @@
+@* Procedural Content Tracing - Main Viewer Component *@
+
+@if (Tracer == null || !Tracer.IsEnabled)
+{
+    <div class="spawn-graph-viewer">
+        <div class="trace-empty">
+            <p>Procedural content tracing is disabled.</p>
+            <p>Enable tracing to see scene spawn graph.</p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="spawn-graph-viewer">
+        <div class="filter-panel">
+            <input type="text"
+                   @bind="SearchText"
+                   @bind:event="oninput"
+                   placeholder="Search scenes..." />
+
+            <select @bind="CategoryFilter">
+                <option value="">All Categories</option>
+                <option value="MainStory">Main Story</option>
+                <option value="SideStory">Side Story</option>
+                <option value="Service">Service</option>
+            </select>
+
+            <label>Day:</label>
+            <input type="number"
+                   @bind="MinDay"
+                   placeholder="Min" />
+            <input type="number"
+                   @bind="MaxDay"
+                   placeholder="Max" />
+
+            <button @onclick="ApplyFilters">Apply</button>
+            <button @onclick="ClearFilters">Clear</button>
+            <button @onclick="ExpandAll">Expand All</button>
+            <button @onclick="CollapseAll">Collapse All</button>
+        </div>
+
+        <div class="trace-tree">
+            @if (FilteredRootScenes == null || FilteredRootScenes.Count == 0)
+            {
+                <div class="trace-empty">
+                    <p>No scenes to display.</p>
+                    <p>Scenes will appear here as they spawn during gameplay.</p>
+                    <p>Total scenes tracked: @(Tracer?.AllSceneNodes?.Count ?? 0)</p>
+                </div>
+            }
+            else
+            {
+                <div>
+                    <p style="color: #888; margin-bottom: 16px;">
+                        Showing @FilteredRootScenes.Count root scene(s) |
+                        Total: @Tracer.AllSceneNodes.Count scenes,
+                        @Tracer.AllSituationNodes.Count situations,
+                        @Tracer.AllChoiceNodes.Count choices
+                    </p>
+                </div>
+
+                @foreach (SceneSpawnNode rootScene in FilteredRootScenes)
+                {
+                    <SceneNode Node="@rootScene"
+                               Tracer="@Tracer"
+                               OnNodeSelected="@SelectNode"
+                               OnToggleExpand="@ToggleExpand"
+                               IsExpanded="@ExpandedNodes.Contains(rootScene)"
+                               IsHighlighted="@HighlightedNodes.Contains(rootScene)"
+                               ExpandedNodes="@ExpandedNodes"
+                               HighlightedNodes="@HighlightedNodes" />
+                }
+            }
+        </div>
+    </div>
+}

@@ -39,6 +39,15 @@ public class SocialChallengeContext
     /// </summary>
     public ChoiceReward FailureReward { get; set; }
 
+    /// <summary>
+    /// PROCEDURAL CONTENT TRACING: Choice execution trace node
+    /// Set when challenge started from scene choice
+    /// Used to link spawned scenes to the choice that triggered the challenge
+    /// Enables choice→challenge→scene tracing relationship
+    /// HIGHLANDER: Direct object reference, no NodeId string
+    /// </summary>
+    public ChoiceExecutionNode ChoiceExecution { get; set; }
+
     public SocialChallengeContext()
     {
         ObservationCards = new List<CardInstance>();

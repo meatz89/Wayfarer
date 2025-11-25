@@ -51,6 +51,9 @@ public static class ServiceConfiguration
         services.AddSingleton<MentalFacade>();
         services.AddSingleton<PhysicalFacade>();
 
+        // Procedural Content Tracing System (debugging tool)
+        services.AddSingleton<ProceduralContentTracer>();
+
         // Scene-Situation Architecture
         services.AddSingleton<ConsequenceFacade>();
         services.AddSingleton<SituationFacade>();

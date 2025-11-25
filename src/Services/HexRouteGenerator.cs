@@ -373,6 +373,29 @@ public class HexRouteGenerator
         // Set CurrentSituationIndex to first situation (index 0)
         scene.CurrentSituationIndex = 0;
 
+        // PROCEDURAL CONTENT TRACING: Record travel scene spawn
+        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+        {
+            Player player = _gameWorld.GetPlayer();
+            SceneSpawnNode sceneNode = _gameWorld.ProceduralTracer.RecordSceneSpawn(
+                scene,
+                scene.TemplateId,
+                false, // isProcedurallyGenerated = false (authored template, but travel-triggered)
+                SpawnTriggerType.DayTransition, // Travel scenes spawn during route travel
+                player
+            );
+
+            // Record all embedded situations as children of this scene
+            foreach (Situation situation in scene.Situations)
+            {
+                _gameWorld.ProceduralTracer.RecordSituationSpawn(
+                    situation,
+                    sceneNode,
+                    SituationSpawnTriggerType.InitialScene
+                );
+            }
+        }
+
         // Add to GameWorld.Scenes (permanent storage)
         _gameWorld.Scenes.Add(scene);
 
