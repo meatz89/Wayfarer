@@ -59,6 +59,91 @@ Key files:
 
 This is intentional: atmospheric actions (Travel, Work, Rest, Move) prevent soft-locks by always being available, while scene-based actions layer dynamic narrative content on top.
 
+### 14.2.3 Scene Lifecycle and Ownership
+
+**Full Scene State Machine:**
+```
+Deferred → Active → Completed
+              ↓
+           Expired
+```
+
+| State | Meaning | Dependent Resources | Player Interaction |
+|-------|---------|--------------------|--------------------|
+| **Deferred** | Created but not activated | NOT spawned yet | None |
+| **Active** | Available for interaction | Spawned and resolved | CurrentSituation accessible |
+| **Completed** | All situations finished | Exist (cleanup later) | None |
+| **Expired** | Time limit reached | Exist (cleanup later) | Opportunity missed |
+
+**Scene Owns Situations (Composition):**
+- Scene contains `List<Situation>` directly (like Car owns Wheels)
+- Deleting Scene deletes its Situations (no orphans)
+- `CurrentSituationIndex` tracks progression (0-based)
+- `CurrentSituation` is computed property from index
+
+**Multi-Location Scenes:**
+Scenes can span multiple locations via per-situation placement:
+```
+Scene: "Inn Service" (3 situations)
+├── Situation 1: "Negotiate" → Location: Common Room, NPC: Innkeeper
+├── Situation 2: "Rest" → Location: Private Room, NPC: null
+└── Situation 3: "Depart" → Location: Exit, NPC: null
+```
+
+**Activation Filter vs Situation Placement:**
+| Concept | When Evaluated | Purpose |
+|---------|----------------|---------|
+| **LocationActivationFilter** (Scene) | Player enters location | Triggers Deferred → Active |
+| **Situation.Location** (Situation) | Scene already Active | Determines WHERE choice appears |
+
+### 14.2.4 Strategic vs Tactical Layers
+
+**Two distinct gameplay layers with different information rules:**
+
+| Layer | Flow | Information | Decision |
+|-------|------|-------------|----------|
+| **Strategic** | Scene → Situation → Choice | Perfect (all costs visible) | WHETHER to attempt |
+| **Tactical** | Challenge → Card Play → Result | Hidden complexity (draw order) | HOW to succeed |
+
+**The Bridge (ActionType.StartChallenge):**
+- Instant actions stay in Strategic layer (apply costs immediately)
+- Challenge actions cross to Tactical layer (Mental/Physical/Social card game)
+- Strategic choice remains meaningful—bad plan leads to tactical struggle
+
+**Presentation and Progression Modes:**
+
+| Mode | Type | Behavior |
+|------|------|----------|
+| **Atmospheric** | Presentation | Scene appears as menu option (default) |
+| **Modal** | Presentation | Scene takes over full screen on location entry |
+| **Breathe** | Progression | Return to menu after each situation (default) |
+| **Cascade** | Progression | Continue to next situation immediately |
+
+### 14.2.5 Situation Routing (SpawnRules)
+
+Scenes define how situations flow via `SituationSpawnRules`:
+
+| Pattern | Description | Use Case |
+|---------|-------------|----------|
+| **Linear** | Advance to next index sequentially | Tutorial, simple progression |
+| **Conditional** | Branch on `OnSuccess`/`OnFailure` based on challenge result | Skill check consequences |
+| **HubAndSpoke** | Return to central situation after each branch | Investigation, hub location |
+| **Branching** | Multiple paths based on choice selection | Narrative branches |
+| **Converging** | Multiple paths merge to single conclusion | Drama convergence |
+
+### 14.2.6 Related Systems (Not Covered in Detail)
+
+**Obligation System** (Quest/Mission tracking):
+- Obligations spawn situations when prerequisites are met
+- Types: NPCCommissioned (deadline, patron) vs SelfDiscovered (open-ended)
+- Tracked in `GameWorld.Obligations` and `ObligationJournal`
+- See `src/GameState/Obligation.cs` for details
+
+**Challenge System** (Tactical layer):
+- Three parallel systems: Social (Momentum), Mental (Progress), Physical (Breakthrough)
+- Card-based resolution with deck building
+- See `gdd/04_systems.md` and tactical facades
+
 ## 14.3 Complete Game Initialization Flow
 
 ### 14.3.1 Startup Sequence
