@@ -4,7 +4,22 @@
 
 This document explains the complete technical implementation of the scene system for playtesters and debuggers who need to understand WHY scenes activate, HOW entities get created, and WHERE to look when something breaks.
 
+**Code Snippets Note:** Code examples in this document are PARAPHRASED for clarity. Actual line numbers and exact code may differ. Use file:line references to locate actual implementation.
+
 **NOTE**: `IsStarter` is LEGACY and should be removed. The target architecture: ALL scenes load as Deferred at game initialization, then activate via categorical trigger when player enters matching location.
+
+### 14.1.1 Core Game Design Principles (Essential Context)
+
+These principles govern HOW the scene/choice system works:
+
+| Principle | What It Means | Impact on Implementation |
+|-----------|---------------|-------------------------|
+| **Requirement Inversion** | Stats affect COST, not ACCESS. No boolean gates. | Choices use cost scaling, not level requirements. Everyone can attempt anything. |
+| **Four-Choice Archetype** | Standard situation structure | Every A-story situation offers: stat-gated (free for specialists), resource (costs coins), challenge (skill test), fallback (always available) |
+| **Perfect Information** | All costs/rewards visible | UI must display complete cost/reward before player commits |
+| **Impossible Choices** | No optimal path exists | Multiple suboptimal paths, not one "correct" answer |
+
+**See:** `gdd/01_vision.md` for full design philosophy, `gdd/08_glossary.md` for term definitions.
 
 ## 14.2 Complete System Architecture
 
@@ -118,22 +133,37 @@ Key file: `src/Services/GameFacade.cs:706-783`
 {
   "locationActivationFilter": {
     "placementType": "Location",
-    "capabilities": ["Commercial", "Restful"],
-    "privacyLevels": ["Public"]
+    "privacyLevels": ["Public"],
+    "purposes": ["Commerce"]
   }
 }
 ```
 
-**Property Type Mapping:**
-| JSON Field | Enum Type | Values | Matching Rule |
-|------------|-----------|--------|---------------|
-| `capabilities` | `LocationCapability` (Flags) | Commercial, Restful, Crossroads, SleepingSpace, Indoor, Outdoor, Market, etc. | Location must have ALL |
-| `privacyLevels` | `LocationPrivacy` | Public, SemiPublic, Private | Location must have ONE OF |
-| `safetyLevels` | `LocationSafety` | Dangerous, Neutral, Safe | Location must have ONE OF |
-| `activityLevels` | `LocationActivity` | Quiet, Moderate, Busy | Location must have ONE OF |
-| `purposes` | `LocationPurpose` | Transit, Dwelling, Commerce, Civic, Defense, Governance, Worship, Learning, Entertainment, Generic | Location must have ONE OF |
+**IMPORTANT: Two Different Matching Contexts**
 
-**Game Mechanic Effects:**
+Categorical matching happens at TWO different times with DIFFERENT properties checked:
+
+| Context | When | Method | Properties Checked |
+|---------|------|--------|-------------------|
+| **Activation Trigger** | Player enters location | `LocationFacade.LocationMatchesActivationFilter` | Identity dimensions ONLY (Privacy, Safety, Activity, Purpose) |
+| **Entity Resolution** | Scene spawns entities | `EntityResolver.LocationMatchesFilter` | ALL including Capabilities, LocationTypes, Accessibility |
+
+**Activation Filter Properties (identity dimensions):**
+| JSON Field | Enum Type | Matching Rule |
+|------------|-----------|---------------|
+| `privacyLevels` | `LocationPrivacy` | Location must have ONE OF |
+| `safetyLevels` | `LocationSafety` | Location must have ONE OF |
+| `activityLevels` | `LocationActivity` | Location must have ONE OF |
+| `purposes` | `LocationPurpose` | Location must have ONE OF |
+
+**Entity Resolution Properties (includes capabilities):**
+| JSON Field | Enum Type | Matching Rule |
+|------------|-----------|---------------|
+| `capabilities` | `LocationCapability` (Flags) | Location must have ALL (bitwise AND) |
+| `locationTypes` | `LocationTypes` | Location must have ONE OF |
+| All activation properties above | — | Same matching rules |
+
+**Game Mechanic Effects (Capabilities - checked at entity resolution):**
 - `Commercial` → Enables Work action (earn coins)
 - `SleepingSpace` → Enables Rest action (restore health/stamina)
 - `Crossroads` → Enables Travel action (route selection)
