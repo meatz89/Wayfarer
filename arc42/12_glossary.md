@@ -33,20 +33,26 @@ Domain and technical terms used throughout this documentation.
 | Term | Definition |
 |------|------------|
 | **Catalogue** | Static class translating categorical properties to concrete values at parse-time |
+| **ChoiceTemplate** | Template defining choice costs, rewards, and requirements; used by scene-based actions |
 | **DTO** | Data Transfer Object; intermediate structure between JSON and domain entity |
+| **Dual-Tier Actions** | Union type pattern: LocationAction supports atmospheric (direct properties) OR scene-based (ChoiceTemplate) |
 | **EntityResolver** | Pattern for find-or-create queries using categorical filters |
 | **Facade** | Stateless service encapsulating business logic for one domain area |
 | **GameWorld** | Single source of truth; state container with zero external dependencies |
 | **HIGHLANDER** | "There can be only one" — single canonical storage for each piece of state |
 | **Hex Position** | AxialCoordinates (Q, R) defining spatial location on hex grid |
 | **InstantiationState** | Scene/Situation lifecycle: Deferred → Instantiated |
+| **LocationActionCatalog** | Generator creating atmospheric actions for all locations at parse-time |
 | **Object Reference** | Direct entity relationship (not ID string); e.g., `NPC.Location` |
 | **Parse-Time Translation** | One-time categorical → concrete conversion at startup |
+| **Pattern Discrimination** | Runtime check (`ChoiceTemplate == null`) determining which action tier applies |
 | **PlacementFilter** | Categorical criteria for entity resolution (Purpose, Safety, Demeanor) |
 | **Query-Time** | Third timing tier; actions created when player enters context |
+| **Scene-Based Action** | Ephemeral action from ChoiceTemplate; exists only when scene active |
 | **Spawn-Time** | Second timing tier; scenes/situations created when triggered |
 | **Template** | Immutable archetype (SceneTemplate, ChoiceTemplate); first timing tier |
 | **Template ID** | Identifier for immutable archetypes; allowed (unlike entity instance IDs) |
+| **Union Type** | Entity supporting multiple patterns via discriminator property (e.g., LocationAction) |
 
 ---
 
@@ -54,10 +60,14 @@ Domain and technical terms used throughout this documentation.
 
 | Term | Definition |
 |------|------------|
+| **Blackbox** | Building block described only by inputs/outputs; internal structure hidden |
 | **Clean Architecture** | Dependencies flow inward: UI → Facades → GameWorld |
 | **Fail-Fast** | Errors surface immediately at point of failure; no defensive hiding |
 | **Idempotent** | Safe to execute multiple times; required for Blazor double-render |
 | **Layer Separation** | Strategic (perfect info) vs Tactical (hidden complexity) |
+| **Ownership** | Entity contains another; deleting owner deletes owned (Scene → Situation) |
+| **Placement** | Entity placed at location; location doesn't own entity (Scene at Location) |
+| **Reference** | Entity refers to another; neither owns the other (NPC → Location) |
 | **Single Source of Truth** | Each state has exactly one canonical storage location |
 | **Stateless Service** | Facade containing logic but no state; operates on GameWorld |
 | **Three-Tier Timing** | Templates (parse) → Instances (spawn) → Actions (query) |

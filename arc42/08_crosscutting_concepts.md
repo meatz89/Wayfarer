@@ -155,6 +155,109 @@ if (!_initialized)
 
 ---
 
+## 8.8 Dual-Tier Action Architecture (CRITICAL)
+
+**LocationAction is a UNION TYPE supporting two intentional patterns via pattern discrimination.**
+
+This architecture prevents soft-locks by ensuring atmospheric actions always exist as a baseline, while scene-based actions layer dynamic narrative content on top.
+
+```mermaid
+flowchart TB
+    subgraph "Action Resolution"
+        Check{ChoiceTemplate<br/>== null?}
+        Atmospheric["Atmospheric Action<br/>(Tier 1)"]
+        SceneBased["Scene-Based Action<br/>(Tier 2)"]
+    end
+
+    subgraph "Atmospheric (Permanent)"
+        LC[LocationActionCatalog]
+        DirectProps["Direct Properties<br/>Costs, Rewards"]
+        GW1[(GameWorld.LocationActions)]
+    end
+
+    subgraph "Scene-Based (Ephemeral)"
+        SF[SceneFacade]
+        Template["ChoiceTemplate<br/>CostTemplate, RewardTemplate"]
+        Query["Query-time creation"]
+    end
+
+    Check -->|Yes| Atmospheric
+    Check -->|No| SceneBased
+    Atmospheric --> DirectProps
+    LC --> GW1
+    SceneBased --> Template
+    SF --> Query
+```
+
+| Tier | Pattern | Source | Storage | Properties Used |
+|------|---------|--------|---------|-----------------|
+| **Tier 1: Atmospheric** | ChoiceTemplate == null | LocationActionCatalog at parse-time | GameWorld.LocationActions (permanent) | `Costs`, `Rewards` directly |
+| **Tier 2: Scene-Based** | ChoiceTemplate != null | SceneFacade at query-time | Not stored (ephemeral) | `ChoiceTemplate.CostTemplate`, `RewardTemplate` |
+
+**Why Both Patterns Exist:**
+
+*Atmospheric actions are simple and permanent:*
+- Work always costs time, always gives coins
+- Rest always recovers health/stamina
+- Travel always opens route selection
+- ChoiceTemplate would be overkill for constants
+
+*Scene-based actions are complex and dynamic:*
+- Costs vary by context (NPC personality, location tier)
+- Requirements use OR paths (need stat X OR stat Y)
+- Rewards spawn scenes, modify relationships
+- Direct properties would be insufficient
+
+**Pattern Discrimination:**
+```csharp
+if (action.ChoiceTemplate == null)
+{
+    // Atmospheric: use action.Costs, action.Rewards
+    return ValidateAtmosphericAction(action, player);
+}
+else
+{
+    // Scene-based: use action.ChoiceTemplate
+    return ValidateChoiceTemplate(action.ChoiceTemplate, player);
+}
+```
+
+**Critical Warning:** Do NOT delete `Costs`/`Rewards` properties from LocationAction. They are REQUIRED for atmospheric actions. This is not legacy code—both patterns are intentional architecture.
+
+---
+
+## 8.9 Entity Ownership Hierarchy
+
+Entities follow strict ownership patterns determining lifecycle and responsibility.
+
+```mermaid
+flowchart TB
+    subgraph "Ownership (Embedded)"
+        Scene --> Situation
+        Situation --> ChoiceRef["ChoiceTemplate (ref)"]
+    end
+
+    subgraph "Placement (Location-based)"
+        Location -.->|placed at| Scene
+        Location -.->|present at| NPC
+    end
+
+    subgraph "Reference (Lookup)"
+        NPC -.->|works at| WorkLoc[Location]
+        NPC -.->|lives at| HomeLoc[Location]
+    end
+```
+
+| Relationship | Type | Meaning |
+|--------------|------|---------|
+| Scene → Situation | **Ownership** | Scene OWNS situations; deleting scene deletes situations |
+| Scene → Location | **Placement** | Scene placed AT location; location doesn't own scene |
+| NPC → Location | **Reference** | NPC references location; neither owns the other |
+
+**Key Principle:** Situations are EMBEDDED in Scenes (no separate collection). This prevents orphaned situations and simplifies scene lifecycle.
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement

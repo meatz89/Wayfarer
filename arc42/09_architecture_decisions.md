@@ -175,6 +175,63 @@ Three-tier lazy instantiation:
 
 ---
 
+## ADR-009: Dual-Tier Action Architecture
+
+**Status:** Accepted
+
+**Context:**
+Players need guaranteed forward progress (no soft-locks) regardless of narrative state. Scene-based actions are ephemeral—they exist only when a scene is active. If all actions were scene-based, players could reach locations with no active scenes and have nothing to do.
+
+Additionally, atmospheric actions (Work, Rest, Travel) are simple constants that don't benefit from the ChoiceTemplate system's complexity. Using ChoiceTemplate for "Work costs 1 time segment, gives 8 coins" adds indirection without value.
+
+**Decision:**
+LocationAction is a union type with two patterns discriminated by `ChoiceTemplate == null`:
+- **Atmospheric (Tier 1):** Permanent scaffolding from LocationActionCatalog; uses direct `Costs`/`Rewards` properties
+- **Scene-Based (Tier 2):** Ephemeral narrative from SceneFacade; uses `ChoiceTemplate` reference
+
+**Consequences:**
+- Atmospheric actions always available (soft-lock prevention)
+- Scene-based actions layer on top (narrative depth)
+- Pattern discrimination required in executors
+- Cannot accidentally delete "legacy" properties—both patterns intentional
+- LocationActionCatalog is critical infrastructure
+
+**Alternatives Rejected:**
+- ChoiceTemplate for everything: Overkill for constants, adds complexity
+- Direct properties for everything: Cannot express dynamic formulas and OR requirements
+- Separate entity types: Would require parallel collections and duplicate validation logic
+
+**Historical Note:** This ADR documents architecture after a near-miss where Costs/Rewards properties were almost deleted as "legacy code." Both patterns are intentional and critical.
+
+---
+
+## ADR-010: Entity Resolution via Categorical Filters
+
+**Status:** Accepted
+
+**Context:**
+Procedural content generation requires finding or creating entities matching characteristics ("a Friendly innkeeper at a Premium inn"). ID-based references would require hardcoding specific entities that may not exist in generated worlds.
+
+**Decision:**
+EntityResolver pattern with PlacementFilter for categorical queries:
+- Filters specify categorical requirements (Purpose, Safety, Demeanor)
+- Resolver searches existing entities matching filter
+- If found, returns existing entity (find)
+- If not found, creates new entity from filter (create)
+
+**Consequences:**
+- Content templates work with any procedurally generated world
+- No hardcoded entity references in templates
+- Requires well-defined categorical properties on all entities
+- Find-or-create semantics may create unexpected entities if filter too loose
+
+**Alternatives Rejected:**
+- ID-based references: Breaks procedural generation
+- Always-create: Would create duplicate entities unnecessarily
+- Manual resolution: Error-prone, doesn't scale
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — High-level strategy these decisions implement
