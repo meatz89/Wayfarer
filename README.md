@@ -36,24 +36,31 @@ Located in `arc42/` subdirectory as numbered markdown files (01-12):
 
 **Start here for development:** Read 01, 03, 05, 08, and 12 for foundational understanding.
 
-### Game Design Documentation
+### Game Design Document (GDD)
 
-Located in `design/` subdirectory as parallel numbered files (01-12):
+Primary GDD in `gdd/` subdirectory (~1,200 lines, vision-focused):
 
-- **[design/01_design_vision.md](design/01_design_vision.md)** - Core philosophy and design principles
-- **[design/02_core_gameplay_loops.md](design/02_core_gameplay_loops.md)** - Three-tier loop structure (SHORT/MEDIUM/LONG)
-- **[design/03_progression_systems.md](design/03_progression_systems.md)** - Stats, NPC bonds, resource layers
-- **[design/04_challenge_mechanics.md](design/04_challenge_mechanics.md)** - Tactical systems (Mental/Physical/Social)
-- **[design/05_resource_economy.md](design/05_resource_economy.md)** - Resource competition and trade-offs
-- **[design/06_narrative_design.md](design/06_narrative_design.md)** - Infinite A-story architecture and integration
-- **[design/07_content_generation.md](design/07_content_generation.md)** - Archetype systems and procedural generation
-- **[design/08_balance_philosophy.md](design/08_balance_philosophy.md)** - Balance principles and tuning
-- **[design/09_design_patterns.md](design/09_design_patterns.md)** - Game design patterns and anti-patterns
-- **[design/10_tutorial_design.md](design/10_tutorial_design.md)** - Tutorial philosophy and mechanics teaching
-- **[design/11_design_decisions.md](design/11_design_decisions.md)** - DDRs documenting design choices
-- **[design/12_design_glossary.md](design/12_design_glossary.md)** - Game design term definitions
+- **[gdd/00_one_pager.md](gdd/00_one_pager.md)** - Elevator pitch, design pillars, audience
+- **[gdd/01_vision.md](gdd/01_vision.md)** - Core experience, anti-goals, pillars explained
+- **[gdd/02_world.md](gdd/02_world.md)** - Setting, tone, spatial hierarchy
+- **[gdd/03_core_loop.md](gdd/03_core_loop.md)** - SHORT/MEDIUM/LONG loops, session structure
+- **[gdd/04_systems.md](gdd/04_systems.md)** - Resources, stats, challenges overview
+- **[gdd/05_content.md](gdd/05_content.md)** - A/B/C stories, archetypes, four-choice
+- **[gdd/06_balance.md](gdd/06_balance.md)** - Balance principles, difficulty scaling
+- **[gdd/07_design_decisions.md](gdd/07_design_decisions.md)** - Key DDRs with rationale
+- **[gdd/08_glossary.md](gdd/08_glossary.md)** - Essential term definitions
 
-**Start here for design understanding:** Read design/01, design/02, design/06, and design/12.
+**Start here for design understanding:** Read 00, 01, and 03 for foundational philosophy.
+
+### Game Design Reference Documentation
+
+Detailed reference in `design/` subdirectory (~15,000 lines, exhaustive detail):
+
+- **[design/07_content_generation.md](design/07_content_generation.md)** - 21 archetypes, categorical scaling
+- **[design/08_balance_philosophy.md](design/08_balance_philosophy.md)** - Complete balance methodology
+- **[design/12_design_glossary.md](design/12_design_glossary.md)** - 67 term definitions
+
+**Use reference docs for:** Detailed mechanics, archetype catalog, balance tuning.
 
 ### Additional Documentation
 
@@ -115,8 +122,9 @@ Wayfarer/
 │   └── wwwroot/             # CSS, assets
 ├── tests/                   # Test projects
 ├── arc42/                   # Arc42 technical documentation (01-12)
+├── gdd/                     # Game Design Document (~1,200 lines)
+├── design/                  # Game design reference documentation (~15,000 lines)
 ├── architecture/            # Additional architecture documentation
-├── design/                  # Game design documentation (01-13)
 ├── CLAUDE.md                # Constitutional process philosophy
 └── README.md                # This file
 ```
@@ -128,7 +136,7 @@ Wayfarer/
 3. **Playability Over Compilation:** Inaccessible content is worse than crashes
 4. **Perfect Information (Strategic Layer):** All costs, requirements, rewards visible before selection
 
-See design/01_design_vision.md section 1.9 for complete three-tier principle hierarchy.
+See [gdd/01_vision.md](gdd/01_vision.md) for design pillars and philosophy.
 
 ## Architectural Highlights
 
@@ -154,8 +162,8 @@ See arc42/08_crosscutting_concepts.md for complete pattern catalog.
 3. **arc42/05_building_block_view.md** - Understand component structure
 4. **arc42/08_crosscutting_concepts.md** - Understand architectural patterns
 5. **arc42/12_glossary.md** - Learn technical terminology
-6. **design/01_design_vision.md** - Understand design philosophy
-7. **design/12_design_glossary.md** - Learn game design terminology
+6. **gdd/01_vision.md** - Understand design pillars and philosophy
+7. **gdd/08_glossary.md** - Learn game design terminology
 8. **CLAUDE.md** - Understand development process and mandatory protocols
 
 **Coding Standards:**

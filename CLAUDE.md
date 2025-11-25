@@ -116,7 +116,7 @@ This codebase maintains comprehensive documentation organized into two parallel 
 Organized by HOW the system is built. Contains implementation patterns, component structure, runtime behavior, technical decisions, constraints, and quality requirements. Found in `arc42/` subdirectory as numbered markdown files following arc42 template structure.
 
 **Game Design Documentation:**
-Organized by WHAT the game is and WHY design creates strategic depth. Contains player experience goals, gameplay mechanics, progression systems, resource economy, narrative structure, content generation, balance philosophy, and design decisions. Found in dedicated design directory as numbered markdown files.
+Organized by WHAT the game is and WHY design creates strategic depth. Primary GDD in `gdd/` subdirectory (vision, pillars, core concepts ~1,200 lines). Detailed reference documentation in `design/` subdirectory (~15,000 lines for exhaustive mechanics, archetypes, balance methodology).
 
 **The Separation Principle:**
 - Technical docs without design docs = You know HOW but not WHY (implements wrong behavior)
@@ -135,11 +135,11 @@ Both required together for correct implementation.
 - Examples: `arc42/05_building_block_view.md`, `arc42/08_crosscutting_concepts.md`, `arc42/12_glossary.md`
 - Start here: `arc42/12_glossary.md` (technical terms) or `arc42/01_introduction_and_goals.md` (overview)
 
-**Game Design Documentation (design/ Subdirectory):**
-- Location: `design/` subdirectory
-- Files: Numbered markdown files (01-12) parallel to arc42
-- Examples: `design/07_content_generation.md`, `design/09_design_patterns.md`, `design/12_design_glossary.md`
-- Start here: `design/12_design_glossary.md` (game terms) or `design/README.md` (structure guide)
+**Game Design Documentation (gdd/ and design/ Subdirectories):**
+- Primary GDD: `gdd/` subdirectory (~1,200 lines, vision-focused)
+- Reference docs: `design/` subdirectory (~15,000 lines, exhaustive detail)
+- Examples: `gdd/01_vision.md` (design pillars), `design/08_balance_philosophy.md` (detailed methodology)
+- Start here: `gdd/00_one_pager.md` (elevator pitch) or `gdd/README.md` (navigation guide)
 
 **Discovery Pattern:**
 1. Start with glossaries to learn terminology
@@ -351,11 +351,11 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 - Read `arc42/03_context_and_scope.md` - System boundaries, gameplay loops, spatial hierarchy
 - Read `arc42/12_glossary.md` - Technical entity definitions
 
-**For complete game design principles:**
-- Read `design/01_design_vision.md` - Core philosophy, design principles
-- Read `design/02_core_gameplay_loops.md` - Strategic/tactical layer flow
-- Read `design/09_design_patterns.md` - Design patterns and anti-patterns
-- Read `design/12_design_glossary.md` - Game design term definitions
+**For game design principles (start with GDD, then reference docs for detail):**
+- Read `gdd/01_vision.md` - Design pillars, core experience, anti-goals
+- Read `gdd/03_core_loop.md` - Strategic/tactical layer flow
+- Read `gdd/08_glossary.md` - Essential game design terms
+- For exhaustive detail: `design/` subdirectory (08_balance_philosophy.md, 07_content_generation.md, etc.)
 
 **Quick architectural reminders (details in docs):**
 - GameWorld is single source of truth (owns all entities)
