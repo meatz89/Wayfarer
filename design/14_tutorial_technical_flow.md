@@ -6,16 +6,21 @@ This document explains the complete technical implementation of the scene system
 
 **Code Snippets Note:** Code examples in this document are PARAPHRASED for clarity. Actual line numbers and exact code may differ. Use file:line references to locate actual implementation.
 
-### 14.1.1 Two-Phase Scene Spawning (SPAWNING vs ACTIVATION)
+### 14.1.1 Scene Lifecycle: Loading → Activation → Display
 
-**CRITICAL DISTINCTION:** Scene spawning and activation are TWO SEPARATE MECHANISMS:
+**Scenes go through THREE phases:**
 
-| Phase | Mechanism | When | What Happens |
-|-------|-----------|------|--------------|
-| **SPAWNING** | `IsStarter=true` or `ScenesToSpawn` reward | Game start or choice execution | Scene created as **Deferred** in GameWorld.Scenes |
-| **ACTIVATION** | Categorical trigger (location/NPC filter match) | Player enters matching context | Scene transitions **Deferred → Active**, resources spawned |
+| Phase | When | What Happens |
+|-------|------|--------------|
+| **LOADING** | JSON package parsed (static or dynamic) | Scene created as **Deferred** in GameWorld.Scenes. Situations exist but entity references unresolved. |
+| **ACTIVATION** | Player enters location matching `LocationActivationFilter` | Dependent resources (locations, NPCs) CREATED from categorical properties. Entity references resolved. Scene → **Active**. Situation 1 becomes current. |
+| **DISPLAY** | Player at situation's location OR talks to situation's NPC | Choices from current situation displayed to player. |
 
-**IsStarter determines SPAWNING, not activation.** Templates with `IsStarter=true` spawn as Deferred at game start via `GameFacade.SpawnStarterScenes()`. The categorical triggers then activate them when player enters matching location.
+**CRITICAL: `IsStarter` is LEGACY.** The target architecture has ALL scenes loaded as Deferred when their JSON package is loaded (static at game init, dynamic at runtime). The `IsStarter` flag exists in current code but should be removed—scenes should activate purely via categorical location matching.
+
+**Scenes activate via LOCATION ONLY.** When player enters a location, `CheckAndActivateDeferredScenes()` evaluates each Deferred scene's `LocationActivationFilter` against the location's categorical properties.
+
+**Situations display via their assigned context.** After activation, each situation has resolved `Location` and/or `Npc` references. Choices appear when player is at that location or talks to that NPC.
 
 ### 14.1.2 Core Game Design Principles (Essential Context)
 
@@ -84,12 +89,16 @@ Deferred → Active → Completed
 | **Completed** | All situations finished | Exist (cleanup later) | None |
 | **Expired** | Time limit reached | Exist (cleanup later) | Opportunity missed |
 
-**Dependent Resources:**
-Templates can declare resources that must be spawned when scene activates:
-- `template.DependentLocations` — Locations to generate (e.g., hidden room discovered during scene)
+**Dependent Resources (FindOrCreate Pattern):**
+Templates can declare resources needed when scene activates:
+- `template.DependentLocations` — Locations to find/create (e.g., private room for lodging scene)
 - `template.DependentItems` — Items to create (e.g., evidence found during investigation)
 
-These are generated AFTER Deferred scene exists, BEFORE entity resolution. See `DependentResourceCatalog.cs`.
+At activation time, EntityResolver searches the defined area near the player:
+- If suitable entity EXISTS → MATCHED and assigned to situation
+- If NO match found → CREATED from categorical properties and added to GameWorld
+
+This enables procedural content reuse—the same categorical filter may match different entities in different playthroughs.
 
 **Scene Owns Situations (Composition):**
 - Scene contains `List<Situation>` directly (like Car owns Wheels)
@@ -215,8 +224,8 @@ GameFacade.StartGameAsync()
     TimeFacade.SetInitialTimeState()
     ExchangeFacade.InitializeNPCExchanges()
 
-  PHASE 2: SpawnStarterScenes() - Creates DEFERRED scenes
-    For each template with IsStarter=true:
+  PHASE 2: SpawnStarterScenes() - Creates DEFERRED scenes (LEGACY)
+    For each template with IsStarter=true: // LEGACY: Should be package-based loading
       CreateDeferredSceneWithDynamicContent()
         SceneInstantiator.CreateDeferredScene()
           Generate JSON with State="Deferred"
@@ -241,7 +250,9 @@ Key file: `src/Services/GameFacade.cs:706-783`
 
 ### 14.4.1 How Deferred Scenes Activate
 
-**Reminder:** `IsStarter=true` determines SPAWNING (see §14.1.1). This section covers ACTIVATION (Deferred → Active transition) via categorical property matching.
+**Scenes activate via LOCATION ONLY.** When player enters a location, `CheckAndActivateDeferredScenes()` evaluates each Deferred scene's `LocationActivationFilter` against the location's identity dimensions (Privacy, Safety, Activity, Purpose).
+
+**See §14.1.1** for the complete Loading → Activation → Display lifecycle.
 
 ### 14.4.2 Strongly-Typed Categorical Properties
 
@@ -352,32 +363,33 @@ private bool LocationMatchesActivationFilter(Location location, PlacementFilter 
 }
 ```
 
-### 14.4.5 NPC Activation (Parallel Path)
+### 14.4.5 Situation NPCs and Choice Display
 
-Scenes can activate via NPC interaction instead of (or in addition to) location entry:
+**Scenes activate via LOCATION ONLY.** NPCs do NOT trigger scene activation.
 
-**Trigger:** Player opens conversation with NPC (UI calls `CheckAndActivateDeferredScenesForNPC`)
+**NPCs are FOUND or CREATED at activation time (FindOrCreate pattern):**
+When a scene activates, the EntityResolver searches for existing NPCs near the player that match the situation's `NpcFilter` categorical properties. If a suitable NPC exists, it's MATCHED. If not, a new NPC is CREATED from the categorical properties. Either way, the result is assigned to `Situation.Npc`.
 
-**Filter:** `Scene.NpcActivationFilter` checked against NPC's categorical properties:
-| JSON Field | Enum Type | Matching Rule |
-|------------|-----------|---------------|
-| `professions` | `Professions` | NPC must have ONE OF |
-| `socialStandings` | `NPCSocialStanding` | NPC must have ONE OF |
-| `storyRoles` | `NPCStoryRole` | NPC must have ONE OF |
-| `knowledgeLevels` | `NPCKnowledgeLevel` | NPC must have ONE OF |
-| `personalityTypes` | `PersonalityType` | NPC must have ONE OF |
+**Same pattern applies to Locations:** Dependent locations are either matched from existing nearby locations or created from categorical properties.
 
-**Example:** A-story scene "a1_secure_lodging" has:
-```json
-{
-  "npcActivationFilter": {
-    "professions": ["Innkeeper"]
-  }
-}
-```
-→ Scene activates when player talks to ANY NPC with Innkeeper profession.
+**NPC categorical properties (used for entity resolution, NOT activation):**
+| JSON Field | Enum Type | Purpose |
+|------------|-----------|---------|
+| `professions` | `Professions` | Find/create NPC with this occupation |
+| `socialStandings` | `NPCSocialStanding` | Find/create NPC with this influence |
+| `personalityTypes` | `PersonalityType` | Find/create NPC with this archetype |
 
-Key file: `src/Subsystems/Location/LocationFacade.cs:528-574`
+**Choices display when player talks to situation's NPC:**
+After activation, if `Situation.Npc` is set, choices appear when player opens conversation with that specific NPC. This is DISPLAY context, not activation trigger.
+
+**Example flow:**
+1. Scene "a1_secure_lodging" loads as Deferred
+2. Player enters Common Room (matches LocationActivationFilter)
+3. Scene activates → NPC "Elena" created/found via `npcFilter: {professions: ["Innkeeper"]}`
+4. `Situation.Npc = Elena` assigned
+5. Player talks to Elena → situation choices displayed
+
+**NOTE:** `NpcActivationFilter` exists in current code but is LEGACY. Target architecture uses location-only activation.
 
 ## 14.5 Entity Resolution Flow (Venue-Scoped)
 
