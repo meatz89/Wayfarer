@@ -13,20 +13,18 @@ public class DependentItemSpec
     public string TemplateId { get; set; }
 
     /// <summary>
-    /// Pattern for generating item name with placeholder replacement
-    /// Placeholders replaced at scene finalization by PlaceholderReplacer
-    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
-    /// Example: "Room Key", "{NPCName}'s Private Key", "{LocationName} Access Pass"
+    /// Generic, descriptive name for generated item
+    /// Used as-is without AI generation until narrative system implemented
+    /// Example: "Room Key", "Bath Token", "Training Pass"
     /// </summary>
-    public string NamePattern { get; set; }
+    public string Name { get; set; }
 
     /// <summary>
-    /// Pattern for generating item description with placeholder replacement
-    /// Placeholders replaced at scene finalization by PlaceholderReplacer
-    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
-    /// Example: "A key that unlocks {NPCName}'s private quarters."
+    /// Generic, descriptive description for generated item
+    /// Used as-is without AI generation until narrative system implemented
+    /// Example: "A key that unlocks access to a private room."
     /// </summary>
-    public string DescriptionPattern { get; set; }
+    public string Description { get; set; }
 
     /// <summary>
     /// Item categories that define what this item can be used for

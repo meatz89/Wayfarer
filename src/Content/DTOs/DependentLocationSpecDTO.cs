@@ -13,18 +13,18 @@ public class DependentLocationSpecDTO
     public string TemplateId { get; set; }
 
     /// <summary>
-    /// Name pattern with placeholders replaced by PlaceholderReplacer at finalization
-    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
-    /// Example: "{NPCName}'s Private Room"
+    /// Generic, descriptive name for generated location
+    /// Used as-is without AI generation until narrative system implemented
+    /// Example: "Private Room", "Bath Chamber", "Training Grounds"
     /// </summary>
-    public string NamePattern { get; set; }
+    public string Name { get; set; }
 
     /// <summary>
-    /// Description pattern with placeholders replaced by PlaceholderReplacer at finalization
-    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
-    /// Example: "A private room where {NPCName} provides lodging services."
+    /// Generic, descriptive description for generated location
+    /// Used as-is without AI generation until narrative system implemented
+    /// Example: "A private room for lodging.", "A private bathing chamber."
     /// </summary>
-    public string DescriptionPattern { get; set; }
+    public string Description { get; set; }
 
     /// <summary>
     /// Venue ID determination strategy

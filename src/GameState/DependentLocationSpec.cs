@@ -13,20 +13,18 @@ public class DependentLocationSpec
     public string TemplateId { get; set; }
 
     /// <summary>
-    /// Pattern for generating location name with placeholder replacement
-    /// Placeholders replaced at scene finalization by PlaceholderReplacer
-    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
-    /// Example: "{NPCName}'s Private Room", "Upper Floor of {LocationName}"
+    /// Location name (generic, descriptive)
+    /// Example: "Private Room", "Bath Chamber", "Training Grounds"
+    /// When AI narrative added, it will regenerate with full context
     /// </summary>
-    public string NamePattern { get; set; }
+    public string Name { get; set; }
 
     /// <summary>
-    /// Pattern for generating location description with placeholder replacement
-    /// Placeholders replaced at scene finalization by PlaceholderReplacer
-    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
-    /// Example: "A quiet room reserved for {NPCName}'s guests."
+    /// Location description (generic, descriptive)
+    /// Example: "A private room for lodging."
+    /// When AI narrative added, it will regenerate with full context
     /// </summary>
-    public string DescriptionPattern { get; set; }
+    public string Description { get; set; }
 
     /// <summary>
     /// How to determine venue ID for generated location

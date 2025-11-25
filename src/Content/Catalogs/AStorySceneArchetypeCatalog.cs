@@ -247,8 +247,8 @@ public static class AStorySceneArchetypeCatalog
         DependentLocationSpec meetingChamber = new DependentLocationSpec
         {
             TemplateId = "meeting_chamber",
-            NamePattern = "{NPCName}'s Chamber",
-            DescriptionPattern = "A formal meeting space where important discussions take place.",
+            Name = "Meeting Chamber",
+            Description = "A formal meeting space where important discussions take place.",
             VenueIdSource = VenueIdSource.SameAsBase,
             HexPlacement = HexPlacementStrategy.SameVenue,
             Properties = new List<string> { "indoor", "private", "formal" },
@@ -399,8 +399,8 @@ public static class AStorySceneArchetypeCatalog
         DependentItemSpec evidence = new DependentItemSpec
         {
             TemplateId = "evidence",
-            NamePattern = "Evidence Fragment",
-            DescriptionPattern = "A clue you discovered during your investigation.",
+            Name = "Evidence Fragment",
+            Description = "A clue you discovered during your investigation.",
             Categories = new List<ItemCategory> { ItemCategory.Documents },
             Weight = 1,
             BuyPrice = 0,
@@ -845,8 +845,8 @@ public static class AStorySceneArchetypeCatalog
         DependentItemSpec artifact = new DependentItemSpec
         {
             TemplateId = "order_artifact",
-            NamePattern = "Order Artifact",
-            DescriptionPattern = "An ancient artifact once belonging to the scattered Order.",
+            Name = "Order Artifact",
+            Description = "An ancient artifact once belonging to the scattered Order.",
             Categories = new List<ItemCategory> { ItemCategory.Valuables },  // Use Valuables instead of removed Treasure
             Weight = 3,
             BuyPrice = 0,

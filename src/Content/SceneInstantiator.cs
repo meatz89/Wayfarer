@@ -16,7 +16,7 @@ using System.Text.Json;
 /// 4. Dependent resources: Generates LocationDTO/ItemDTO specs for self-contained scenes
 ///
 /// AI GENERATION INTEGRATION: SceneNarrativeService generates narratives during DTO generation
-/// Placeholders replaced before serialization to JSON
+/// Generic text used until AI narrative system implemented
 /// </summary>
 public class SceneInstantiator
 {
@@ -1142,16 +1142,16 @@ public class SceneInstantiator
 
     /// <summary>
     /// Build LocationDTO from DependentLocationSpec
-    /// Replaces tokens, determines venue, finds hex placement
+    /// Uses generic names, determines venue, delegates hex placement
     /// </summary>
     private LocationDTO BuildLocationDTO(DependentLocationSpec spec, string sceneId, SceneSpawnContext context)
     {
         // Generate unique ID
         string locationId = $"{spec.TemplateId}_{Guid.NewGuid().ToString("N")}";
 
-        // Use patterns directly (AI generates complete text with entity context)
-        string locationName = spec.NamePattern;
-        string locationDescription = spec.DescriptionPattern;
+        // Use names directly (AI narrative will regenerate all text when implemented)
+        string locationName = spec.Name;
+        string locationDescription = spec.Description;
 
         // Determine venue ID
         string venueId = DetermineVenueId(spec.VenueIdSource, context);
@@ -1248,16 +1248,16 @@ public class SceneInstantiator
 
     /// <summary>
     /// Build ItemDTO from DependentItemSpec
-    /// Replaces tokens, maps categories, handles inventory placement
+    /// Uses generic names, maps categories, handles inventory placement
     /// </summary>
     private ItemDTO BuildItemDTO(DependentItemSpec spec, string sceneId, SceneSpawnContext context, List<LocationDTO> createdLocations)
     {
         // Generate unique ID
         string itemId = $"{spec.TemplateId}_{Guid.NewGuid().ToString("N")}";
 
-        // Use patterns directly (AI generates complete text with entity context)
-        string itemName = spec.NamePattern;
-        string itemDescription = spec.DescriptionPattern;
+        // Use names directly (AI narrative will regenerate all text when implemented)
+        string itemName = spec.Name;
+        string itemDescription = spec.Description;
 
         // Build ItemDTO
         ItemDTO dto = new ItemDTO
