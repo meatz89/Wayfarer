@@ -30,6 +30,7 @@ This directory contains **detailed reference documentation** for Wayfarer's game
 | [11_design_decisions.md](11_design_decisions.md) | Complete DDR catalog | 1,427 |
 | [12_design_glossary.md](12_design_glossary.md) | 67 term definitions | 1,325 |
 | [13_player_experience_emergence_laws.md](13_player_experience_emergence_laws.md) | Psychological design laws | 793 |
+| [14_tutorial_technical_flow.md](14_tutorial_technical_flow.md) | Technical flow for playtesters/debuggers | 350 |
 
 ---
 
@@ -47,6 +48,7 @@ This directory contains **detailed reference documentation** for Wayfarer's game
 **Understanding Systems:**
 - [05_resource_economy.md](05_resource_economy.md) — Resource competition details
 - [04_challenge_mechanics.md](04_challenge_mechanics.md) — Card mechanics
+- [14_tutorial_technical_flow.md](14_tutorial_technical_flow.md) — Scene activation debugging
 
 **Term Definitions:**
 - [12_design_glossary.md](12_design_glossary.md) — All 67 design terms
