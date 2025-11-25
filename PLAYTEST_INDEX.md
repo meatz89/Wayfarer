@@ -1,139 +1,42 @@
 # Playtest Documentation Index
 
-**Branch:** playtest-1
-**Status:** Phase 1 & 3 complete, Phase 2 requires human execution
-**Last Updated:** 2025-11-23
+**Status:** Active playtest documentation
+**Last Updated:** 2025-11-25
 
 ---
 
-## Quick Start
+## Active Documentation
 
-**New to this playtest session?** Start here:
-1. Read [SESSION_SUMMARY.md](SESSION_SUMMARY.md) - Overview of all work completed
-2. Read [PLAYTEST_LEARNINGS.md](PLAYTEST_LEARNINGS.md) - Quick start guide and findings
-3. Read [WHATS_MISSING_ANALYSIS.md](WHATS_MISSING_ANALYSIS.md) - Gap analysis and what remains
+### Playtest Guides
+- **[PLAYTEST_GUIDE.md](PLAYTEST_GUIDE.md)** - Complete playtest methodology and protocol
+- **[PLAYTEST_LEARNINGS.md](PLAYTEST_LEARNINGS.md)** - Session learnings and findings
 
-**Continuing Phase 2?** Go to:
-- [PHASE_2_HANDOFF.md](PHASE_2_HANDOFF.md) - Human playtester handoff instructions
+### Key Principles Tested
 
----
-
-## Documentation by Phase
-
-### Phase 1: Automated Smoke Tests ✅ COMPLETE
-**Purpose:** Verify game mechanics function correctly
-**Duration:** ~15 minutes
-**Files:**
-- **[PHASE_1_TEST_REPORT.md](PHASE_1_TEST_REPORT.md)** - Complete test results (all 5 tests passed)
-
-**Key Findings:**
-- All mechanical systems working correctly
-- 2 critical bugs fixed (tutorial soft-lock, duplicate scene architecture)
-- Perfect information principle upheld
-- Stat gating displays clearly
+1. **Impossible Choices** - Every decision forces sacrifice between valid alternatives
+2. **Perfect Information** - All costs visible before selection (no hidden gotchas)
+3. **Build Identity Through Constraint** - Specialization creates different viable paths
+4. **Stat Gating via Cost (Not Access)** - High stats pay less, low stats pay more
 
 ---
 
-### Phase 2: Emotional Arc Validation ⏸️ REQUIRES HUMAN
-**Purpose:** Test subjective emotional experience over 3-4 hours
-**Duration:** 3-4 hours continuous human gameplay
-**Files:**
-- **[PHASE_2_HANDOFF.md](PHASE_2_HANDOFF.md)** - START HERE for human execution
-- **[PHASE_2_EMOTIONAL_ARC_LOG.md](PHASE_2_EMOTIONAL_ARC_LOG.md)** - Template for documenting emotional experience
-- **[PHASE_2_INVESTIGATOR_LOG.md](PHASE_2_INVESTIGATOR_LOG.md)** - Initial gameplay documentation
+## Playtest Protocol Summary
+
+### Phase 1: Automated Smoke Tests
+Verify game mechanics function correctly through automated testing.
+
+### Phase 2: Emotional Arc Validation
+Test subjective emotional experience over 3-4 hours of human gameplay.
 
 **Why Human Required:**
 AI can test mechanics, but cannot experience:
 - Regret for unchosen paths (subjective emotion)
 - Build identity formation (cumulative feeling over hours)
 - "Life you could have had" emotion (Sir Brante model)
-- Meaningful vulnerability from specialization (strategic feeling)
+- Meaningful vulnerability from specialization
 
-**Prerequisites:**
-1. Read PLAYTEST_GUIDE.md completely
-2. Understand Sir Brante emotional model
-3. Commit 3-4 hours uninterrupted
-4. Follow hour-by-hour documentation checkpoints
-
----
-
-### Phase 3: Holistic Playability Fixes ✅ COMPLETE
-**Purpose:** Fix all critical UX issues discovered in Phase 1
-**Duration:** ~45 minutes
-**Files:**
-- Documented in [SESSION_SUMMARY.md](SESSION_SUMMARY.md) Phase 3 section
-- Gap analysis in [WHATS_MISSING_ANALYSIS.md](WHATS_MISSING_ANALYSIS.md)
-
-**Critical Fixes Implemented:**
-1. ✅ **Stats Display** - Added to GameScreen header (stats were invisible)
-2. ✅ **Scene Category Tags** - Added type badges ([Tutorial], [Service])
-3. ✅ **CSS Polish** - Visual separation and professional styling
-
-**Impact:** All discovered playability issues resolved. Game ready for human testing.
-
----
-
-## Key Documentation Files
-
-### Session Overview
-- **[SESSION_SUMMARY.md](SESSION_SUMMARY.md)** - Complete session summary, work completed, findings
-- **[PLAYTEST_LEARNINGS.md](PLAYTEST_LEARNINGS.md)** - Session learnings and quick start guide
-- **[WHATS_MISSING_ANALYSIS.md](WHATS_MISSING_ANALYSIS.md)** - Holistic gap analysis after Phase 3
-
-### Test Reports
-- **[PHASE_1_TEST_REPORT.md](PHASE_1_TEST_REPORT.md)** - Automated smoke test results
-- **[PHASE_2_EMOTIONAL_ARC_LOG.md](PHASE_2_EMOTIONAL_ARC_LOG.md)** - Emotional arc template (empty, requires human)
-- **[PHASE_2_INVESTIGATOR_LOG.md](PHASE_2_INVESTIGATOR_LOG.md)** - Initial Investigator build documentation
-
-### Handoff Materials
-- **[PHASE_2_HANDOFF.md](PHASE_2_HANDOFF.md)** - Human playtester handoff documentation
-
----
-
-## Current Status Summary
-
-### Completed Work ✅
-- **Phase 1:** All 5 automated tests passed
-- **Phase 3:** All critical playability issues fixed
-- **Bugs Fixed:**
-  - Tutorial soft-lock (costs adjusted)
-  - Duplicate scene architecture (old tutorials disabled)
-  - Stats invisible in UI (stats display added)
-  - Scene type ambiguity (category tags added)
-
-### Ready for Execution ⏸️
-- **Phase 2:** Emotional arc validation (requires 3-4 hours human gameplay)
-
-### Optional Enhancements (Low Priority)
-- Documentation further iteration
-- Icon color theming
-- Responsive layout testing
-- Additional CSS polish
-
----
-
-## Reading Order by Goal
-
-### Goal: "I want to run Phase 2 emotional testing"
-1. Read [PHASE_2_HANDOFF.md](PHASE_2_HANDOFF.md) - Complete handoff instructions
-2. Read [PLAYTEST_LEARNINGS.md](PLAYTEST_LEARNINGS.md) - Session findings and setup
-3. Read [PLAYTEST_GUIDE.md](PLAYTEST_GUIDE.md) - Original playtest design (if not already familiar)
-4. Use [PHASE_2_EMOTIONAL_ARC_LOG.md](PHASE_2_EMOTIONAL_ARC_LOG.md) - Document your experience
-
-### Goal: "I want to understand what was done this session"
-1. Read [SESSION_SUMMARY.md](SESSION_SUMMARY.md) - Complete overview
-2. Read [PHASE_1_TEST_REPORT.md](PHASE_1_TEST_REPORT.md) - Test results
-3. Read [WHATS_MISSING_ANALYSIS.md](WHATS_MISSING_ANALYSIS.md) - What remains
-
-### Goal: "I want to continue development"
-1. Read [SESSION_SUMMARY.md](SESSION_SUMMARY.md) - Current state
-2. Read [WHATS_MISSING_ANALYSIS.md](WHATS_MISSING_ANALYSIS.md) - Identified gaps
-3. Review git commits on playtest-1 branch
-
-### Goal: "I want to understand design decisions"
-1. Read [PLAYTEST_LEARNINGS.md](PLAYTEST_LEARNINGS.md) - Discoveries and findings
-2. Read [WHATS_MISSING_ANALYSIS.md](WHATS_MISSING_ANALYSIS.md) - Architectural analysis
-3. Read [PLAYTEST_GUIDE.md](PLAYTEST_GUIDE.md) - Original design intent
+### Phase 3: Holistic Playability Fixes
+Fix critical UX issues discovered during playtesting.
 
 ---
 
@@ -167,25 +70,12 @@ cd src && dotnet test
 
 ---
 
-## Commit History
+## Related Documentation
 
-**Latest Commits (playtest-1 branch):**
-- **0a3f0a49** - Add CSS styling polish for stats display and scene category tags
-- **705f3176** - Update SESSION_SUMMARY.md: Document Phase 3 playability fixes
-- **71c286f2** - Fix critical playability issues: Add stats display and scene type tags
-- **b30dc161** - Fix critical tutorial soft-lock bug in Secure Lodging scene
+- **[gdd/01_vision.md](gdd/01_vision.md)** - Design pillars and philosophy
+- **[gdd/03_core_loop.md](gdd/03_core_loop.md)** - Gameplay loops being tested
+- **[arc42/10_quality_requirements.md](arc42/10_quality_requirements.md)** - Quality goals
 
 ---
 
-## Next Steps
-
-**Immediate:** Execute Phase 2 emotional arc validation (human playtester, 3-4 hours)
-
-**After Phase 2:**
-- Phase 3: Diplomat build comparison (2-3 hours)
-- Generate PLAYTEST_COMPLETE_REPORT.md (final deliverable)
-- Answer: Does stat specialization create meaningfully different experiences?
-
----
-
-**For questions or issues, refer to [SESSION_SUMMARY.md](SESSION_SUMMARY.md) Technical Notes section or git commit history.**
+**Note:** Session-specific artifacts (test reports, emotional arc logs) are created and archived per playtest session.

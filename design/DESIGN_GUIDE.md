@@ -1263,8 +1263,8 @@ Create comparison matrix:
 - **[13_player_experience_emergence_laws.md](13_player_experience_emergence_laws.md)** - Law 1 (Identity Before Validation) justifies A1-A3 zero requirements
 
 ### Technical Implementation
-- **[arc42/08_crosscutting_concepts.md](../08_crosscutting_concepts.md)** - Catalogue pattern, entity initialization, parse-time translation
-- **[arc42/12_glossary.md](../12_glossary.md)** - Technical definitions (PathType, ChallengeType, NPCDemeanor, Quality)
+- **[arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md)** - Catalogue pattern, entity initialization, parse-time translation
+- **[arc42/12_glossary.md](../arc42/12_glossary.md)** - Technical definitions (PathType, ChallengeType, NPCDemeanor, Quality)
 
 ### Content Generation
 - **[07_content_generation.md](07_content_generation.md)** - 21 situation archetypes, categorical property usage, AI authoring workflow
