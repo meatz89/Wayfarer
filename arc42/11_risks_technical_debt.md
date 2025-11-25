@@ -42,7 +42,7 @@ Categorical translation (Friendly × Premium = concrete values) works for expect
 Core facades have unit tests. Missing: integration tests for full choice-to-reward flows, content validation tests for all JSON packages, UI component tests.
 
 **Documentation Drift:**
-Multiple architecture documents exist (DUAL_TIER_ACTION_ARCHITECTURE.md, PLACEMENT_FILTER_IMPLEMENTATION.md, etc.) alongside arc42. Risk of contradictory information if maintained separately.
+DUAL_TIER_ACTION_ARCHITECTURE.md exists alongside arc42 (referenced in CLAUDE.md as mandatory reading). Risk of contradictory information if not kept synchronized with arc42/08_crosscutting_concepts.md §8.8.
 
 ---
 

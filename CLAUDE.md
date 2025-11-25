@@ -370,7 +370,6 @@ If feature needed but unimplemented, IMPLEMENT it (full vertical slice). Delete 
 **For complete technical pattern details:**
 - Read `arc42/08_crosscutting_concepts.md` - HIGHLANDER, Catalogue Pattern, Entity Initialization, Parse-time translation
 - Read `arc42/09_architecture_decisions.md` - ADRs explaining why patterns were chosen
-- Read `architecture/ARCHITECTURAL_PATTERNS.md` - Detailed pattern catalog
 
 **For complete coding standards:**
 - See USER CODE PREFERENCES section in this document (CLAUDE.md)

@@ -232,6 +232,35 @@ EntityResolver pattern with PlacementFilter for categorical queries:
 
 ---
 
+## ADR-011: Package-Round Entity Tracking
+
+**Status:** Accepted
+
+**Context:**
+Previous spatial initialization implementation violated the package-round principle by processing ALL entities in GameWorld whenever ANY package loaded. Methods like `PlaceAllLocations()` scanned entire collections and used entity state checks (`HexPosition == null`) to filter already-processed entities. This caused O(n×p) performance (where p = package count) and masked architectural violations.
+
+**Decision:**
+Implement explicit package-round entity tracking via `PackageLoadResult` structure. Spatial initialization methods accept explicit entity lists instead of querying GameWorld collections.
+
+- As entities are parsed, track them in `PackageLoadResult.LocationsAdded`, etc.
+- Spatial methods receive `List<Location>` parameters, not queries
+- No GameWorld collection scanning during initialization
+- No entity state checks for deduplication
+
+**Consequences:**
+- O(n) total processing instead of O(n×p)
+- Explicit data flow (entities flow through parameters, not queries)
+- Package-round principle enforced by architecture (impossible to violate)
+- Spatial methods are intentionally non-idempotent (fail-fast on double-call)
+- Slightly more verbose (explicit parameters vs implicit queries)
+
+**Alternatives Rejected:**
+- Entity state checks: Hides architectural problem with tactical fix
+- PackageId on entities: Pollutes domain with loading metadata
+- Separate "new entity" collection: Violates Single Source of Truth
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — High-level strategy these decisions implement

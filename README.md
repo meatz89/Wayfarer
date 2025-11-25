@@ -66,8 +66,6 @@ Detailed reference in `design/` subdirectory (~15,000 lines, exhaustive detail):
 
 - **[CLAUDE.md](CLAUDE.md)** - Constitutional process philosophy for AI agents working on codebase
 - **[design/README.md](design/README.md)** - Game design documentation structure guide
-- **[architecture/ARCHITECTURAL_PATTERNS.md](architecture/ARCHITECTURAL_PATTERNS.md)** - Detailed pattern catalog
-- **[architecture/ARCHITECTURAL_PRINCIPLES.md](architecture/ARCHITECTURAL_PRINCIPLES.md)** - Core architectural principles
 
 ### Documentation Philosophy
 
@@ -124,7 +122,6 @@ Wayfarer/
 ├── arc42/                   # Arc42 technical documentation (01-12)
 ├── gdd/                     # Game Design Document (~1,200 lines)
 ├── design/                  # Game design reference documentation (~15,000 lines)
-├── architecture/            # Additional architecture documentation
 ├── CLAUDE.md                # Constitutional process philosophy
 └── README.md                # This file
 ```
