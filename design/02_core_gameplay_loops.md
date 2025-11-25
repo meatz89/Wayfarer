@@ -544,9 +544,9 @@ Generated from location's **LocationType** property:
 
 ### Technical Architecture (arc42)
 
-- **[arc42/05_building_block_view.md](../architecture/05_building_block_view.md)** - Technical implementation of loop systems
-- **[arc42/06_runtime_view.md](../architecture/06_runtime_view.md)** - Action flow, choice execution, state transitions
-- **[arc42/08_crosscutting_concepts.md](../architecture/08_crosscutting_concepts.md)** - Session management, state persistence
+- **[arc42/05_building_block_view.md](../arc42/05_building_block_view.md)** - Technical implementation of loop systems
+- **[arc42/06_runtime_view.md](../arc42/06_runtime_view.md)** - Action flow, choice execution, state transitions
+- **[arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md)** - Session management, state persistence
 
 ### Core Philosophy
 

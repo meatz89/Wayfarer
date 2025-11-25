@@ -151,7 +151,7 @@ This document is comprehensive (2,150+ lines). Use these reading paths to naviga
 3. Section 8.8.4 "Relative Consistency Across Progression" - Proportional scaling guarantees
 
 **Cross-reference:**
-- [arc42/08_crosscutting_concepts.md](../architecture/08_crosscutting_concepts.md) Section "Catalogue Pattern" - Technical implementation
+- [arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md) Section "Catalogue Pattern" - Technical implementation
 - [BASELINE_ECONOMY.md](BASELINE_ECONOMY.md) Section "Categorical Property Multipliers" - Exact multiplier values
 
 ---

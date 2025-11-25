@@ -239,7 +239,7 @@ Before removing ANY property from LocationAction or PathCard:
 1. ✅ Search codebase for ALL usages (Grep exhaustively)
 2. ✅ Check LocationActionCatalog - does it use this property?
 3. ✅ Check PathCard generation - does route system use this?
-4. ✅ Read architecture/12_glossary.md entries for Action types
+4. ✅ Read arc42/12_glossary.md entries for Action types
 5. ✅ Read design/12_design_glossary.md for Atmospheric Action Layer
 6. ✅ Verify pattern discrimination logic in executors
 7. ✅ Confirm property is truly unused in BOTH patterns

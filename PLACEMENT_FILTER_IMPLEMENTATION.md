@@ -535,7 +535,7 @@ foreach (Location location in orderedLocations)
 
 ### Phase 9: Update Architecture Documentation
 
-#### File: `architecture/08_crosscutting_concepts.md`
+#### File: `arc42/08_crosscutting_concepts.md`
 
 Add new section under "Crosscutting Concepts":
 
@@ -612,7 +612,7 @@ Result: Private Room spawns within The Brass Bell Inn venue (same as Common Room
 **Fail-Fast**: Invalid proximity or missing reference location throws immediately, preventing silent bugs
 ```
 
-#### File: `architecture/12_glossary.md`
+#### File: `arc42/12_glossary.md`
 
 Add new entries:
 

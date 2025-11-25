@@ -928,9 +928,9 @@ Weaknesses:
 
 ### Technical Architecture (arc42)
 
-- **[arc42/05_building_block_view.md](../architecture/05_building_block_view.md)** - Player entity, stat tracking, resource management
-- **[arc42/08_crosscutting_concepts.md](../architecture/08_crosscutting_concepts.md)** - Progression persistence, save system
-- **[arc42/09_architecture_decisions.md](../architecture/09_architecture_decisions.md)** - Why entity spawning over boolean gates
+- **[arc42/05_building_block_view.md](../arc42/05_building_block_view.md)** - Player entity, stat tracking, resource management
+- **[arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md)** - Progression persistence, save system
+- **[arc42/09_architecture_decisions.md](../arc42/09_architecture_decisions.md)** - Why entity spawning over boolean gates
 
 ### Core Philosophy
 

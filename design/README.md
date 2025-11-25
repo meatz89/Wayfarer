@@ -28,7 +28,7 @@ This directory contains comprehensive game design documentation for Wayfarer, or
 - HOW systems create player experiences
 - Player-facing language, no implementation details
 
-**Arc42 Technical Docs (architecture/ Subdirectory)**:
+**Arc42 Technical Docs (arc42/ Subdirectory)**:
 - HOW the system is built
 - WHY technical decisions were made
 - HOW components interact

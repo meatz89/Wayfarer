@@ -20,19 +20,19 @@ Wayfarer uses a dual documentation structure separating technical architecture f
 
 ### Technical Architecture (Arc42 Template)
 
-Located in `architecture/` subdirectory as numbered markdown files (01-12):
+Located in `arc42/` subdirectory as numbered markdown files (01-12):
 
-- **[architecture/01_introduction_and_goals.md](architecture/01_introduction_and_goals.md)** - System overview, quality goals, stakeholders
-- **[architecture/02_constraints.md](architecture/02_constraints.md)** - Technical, organizational, and convention constraints
-- **[architecture/03_context_and_scope.md](architecture/03_context_and_scope.md)** - System boundaries and gameplay loops
-- **[architecture/04_solution_strategy.md](architecture/04_solution_strategy.md)** - Core architectural decisions and patterns
-- **[architecture/05_building_block_view.md](architecture/05_building_block_view.md)** - Component structure and entity relationships
-- **[architecture/06_runtime_view.md](architecture/06_runtime_view.md)** - Dynamic behavior and execution flows
-- **[architecture/07_deployment_view.md](architecture/07_deployment_view.md)** - Deployment architecture and infrastructure
-- **[architecture/08_crosscutting_concepts.md](architecture/08_crosscutting_concepts.md)** - Patterns spanning multiple components
-- **[architecture/09_architecture_decisions.md](architecture/09_architecture_decisions.md)** - ADRs documenting key decisions
-- **[architecture/10_quality_requirements.md](architecture/10_quality_requirements.md)** - Quality scenarios and criteria
-- **[architecture/12_glossary.md](architecture/12_glossary.md)** - Technical term definitions
+- **[arc42/01_introduction_and_goals.md](arc42/01_introduction_and_goals.md)** - System overview, quality goals, stakeholders
+- **[arc42/02_constraints.md](arc42/02_constraints.md)** - Technical, organizational, and convention constraints
+- **[arc42/03_context_and_scope.md](arc42/03_context_and_scope.md)** - System boundaries and gameplay loops
+- **[arc42/04_solution_strategy.md](arc42/04_solution_strategy.md)** - Core architectural decisions and patterns
+- **[arc42/05_building_block_view.md](arc42/05_building_block_view.md)** - Component structure and entity relationships
+- **[arc42/06_runtime_view.md](arc42/06_runtime_view.md)** - Dynamic behavior and execution flows
+- **[arc42/07_deployment_view.md](arc42/07_deployment_view.md)** - Deployment architecture and infrastructure
+- **[arc42/08_crosscutting_concepts.md](arc42/08_crosscutting_concepts.md)** - Patterns spanning multiple components
+- **[arc42/09_architecture_decisions.md](arc42/09_architecture_decisions.md)** - ADRs documenting key decisions
+- **[arc42/10_quality_requirements.md](arc42/10_quality_requirements.md)** - Quality scenarios and criteria
+- **[arc42/12_glossary.md](arc42/12_glossary.md)** - Technical term definitions
 
 **Start here for development:** Read 01, 03, 05, 08, and 12 for foundational understanding.
 
@@ -114,7 +114,8 @@ Wayfarer/
 │   ├── Components/          # Blazor UI components
 │   └── wwwroot/             # CSS, assets
 ├── tests/                   # Test projects
-├── architecture/            # Arc42 technical documentation (01-12)
+├── arc42/                   # Arc42 technical documentation (01-12)
+├── architecture/            # Additional architecture documentation
 ├── design/                  # Game design documentation (01-13)
 ├── CLAUDE.md                # Constitutional process philosophy
 └── README.md                # This file
@@ -143,22 +144,22 @@ Templates (parse-time) → Scenes/Situations (spawn-time) → Actions (query-tim
 ### Requirement Inversion
 Content exists from game start, requirements filter visibility. Perfect information enabled architecturally.
 
-See architecture/08_crosscutting_concepts.md for complete pattern catalog.
+See arc42/08_crosscutting_concepts.md for complete pattern catalog.
 
 ## Contributing
 
 **Required reading before contributing:**
-1. **architecture/01_introduction_and_goals.md** - Understand system purpose and quality goals
-2. **architecture/03_context_and_scope.md** - Understand system boundaries
-3. **architecture/05_building_block_view.md** - Understand component structure
-4. **architecture/08_crosscutting_concepts.md** - Understand architectural patterns
-5. **architecture/12_glossary.md** - Learn technical terminology
+1. **arc42/01_introduction_and_goals.md** - Understand system purpose and quality goals
+2. **arc42/03_context_and_scope.md** - Understand system boundaries
+3. **arc42/05_building_block_view.md** - Understand component structure
+4. **arc42/08_crosscutting_concepts.md** - Understand architectural patterns
+5. **arc42/12_glossary.md** - Learn technical terminology
 6. **design/01_design_vision.md** - Understand design philosophy
 7. **design/12_design_glossary.md** - Learn game design terminology
 8. **CLAUDE.md** - Understand development process and mandatory protocols
 
 **Coding Standards:**
-- Follow architecture/02_constraints.md strictly (type restrictions, lambda rules, Blazor patterns)
+- Follow arc42/02_constraints.md strictly (type restrictions, lambda rules, Blazor patterns)
 - Use HIGHLANDER pattern (one concept, one representation)
 - Propagate async throughout call stack
 - Semantic honesty (method names match return types)

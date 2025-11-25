@@ -8,7 +8,7 @@
 
 ## ARCHITECTURAL GROUND TRUTH
 
-From `architecture/08_crosscutting_concepts.md` § 8.2.4:
+From `arc42/08_crosscutting_concepts.md` § 8.4:
 
 **Tier 1 (Parse Time):**
 - Templates created from JSON
