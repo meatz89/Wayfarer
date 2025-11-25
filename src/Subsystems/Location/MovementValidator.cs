@@ -78,9 +78,6 @@ public class MovementValidator
             return result;
         }
 
-        // AccessRequirement system eliminated - PRINCIPLE 4: All locations always accessible
-        // Economic affordability determines practical access (coins required for travel/entry)
-
         // Check if movement is possible based on location properties
         if (!CanMoveFromSpot(currentSpot))
         {
@@ -89,7 +86,9 @@ public class MovementValidator
             return result;
         }
 
-        // Check if target location is accessible at current time
+        // DUAL-MODEL ACCESSIBILITY (per TIER 1 No Soft-Locks principle):
+        // - Authored locations: Always accessible (cost varies, access doesn't)
+        // - Dependent locations: Require scene progression to unlock
         if (!IsSpotAccessible(targetSpot))
         {
             result.IsValid = false;
@@ -115,15 +114,17 @@ public class MovementValidator
 
     /// <summary>
     /// Check if a location is accessible at the current time
-    /// NEW ARCHITECTURE: Query-based accessibility via LocationAccessibilityService
-    /// Pure query pattern - location accessible if active situation grants access
+    ///
+    /// DUAL-MODEL ACCESSIBILITY via LocationAccessibilityService:
+    /// - Authored locations (Provenance == null): Always accessible (No Soft-Locks)
+    /// - Dependent locations (Provenance != null): Accessible when scene grants access
+    ///
+    /// Pure query pattern - no state modification.
     /// </summary>
     public bool IsSpotAccessible(Location location)
     {
         if (location == null) return false;
 
-        // NEW ARCHITECTURE: Query-based accessibility
-        // Location accessible if active situation grants access
         return _accessibilityService.IsLocationAccessible(location);
     }
 

@@ -64,13 +64,17 @@ public class SituationTemplate
     public int Priority { get; init; } = 0;
 
     /// <summary>
-    /// Whether this situation grants location access while active
-    /// Query-based accessibility: LocationAccessibilityService checks active scenes for this property
-    /// true = Location accessible while this situation is current situation in active scene (default)
-    /// false = Situation does not grant access (rare, for special cases)
-    /// PARSE-TIME DATA: Immutable template property defining situation behavior
-    /// Used by: LocationAccessibilityService.IsLocationAccessible for query-based accessibility
-    /// Pattern: Active situation at Location X grants access to Location X
+    /// Whether this situation grants location access while active (for DEPENDENT locations only)
+    ///
+    /// DUAL-MODEL ACCESSIBILITY:
+    /// - Authored locations (Provenance == null): Always accessible regardless of this property
+    /// - Dependent locations (Provenance != null): Accessible when this property is true
+    ///
+    /// true = Dependent location accessible when this situation is current (default)
+    /// false = Dependent location NOT accessible even when situation is current (rare)
+    ///
+    /// Used by: LocationAccessibilityService.CheckSceneGrantsAccess for dependent location access
+    /// Pattern: Active situation at dependent Location X grants access to Location X
     /// </summary>
     public bool GrantsLocationAccess { get; init; } = true;
 
