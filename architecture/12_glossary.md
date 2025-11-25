@@ -48,20 +48,22 @@ This document provides canonical definitions for all specialized terms used acro
 ### SceneTemplate
 **Type:** Template (immutable)
 **Owner:** GameWorld.SceneTemplates
-**Definition:** Immutable archetype defining Scene structure. Contains embedded SituationTemplates, PlacementFilter (categorical entity selection), SpawnConditions (player/world/entity state requirements).
+**Definition:** Immutable archetype defining Scene structure. Contains embedded SituationTemplates, LocationActivationFilter/NpcActivationFilter (categorical triggers for Deferred → Active transition), SpawnConditions (player/world/entity state requirements).
 **Lifecycle:** Loaded at parse-time from JSON. Never modified at runtime. Spawns Scene instances via SceneInstantiator.
-**Key Properties:** Id, Archetype (SpawnPattern enum), PlacementFilter, SpawnConditions, SituationTemplates (embedded list), Tier (0-4), ExpirationDays.
+**Key Properties:** Id, Archetype (SpawnPattern enum), LocationActivationFilter (WHEN scene activates - categorical matching with Privacy/Safety/Activity/Purpose enums), NpcActivationFilter (NPC-triggered activation), SpawnConditions, SituationTemplates (embedded list with explicit filters per situation), Tier (0-4), ExpirationDays.
+**Activation vs Placement:** LocationActivationFilter determines WHEN scene activates (checked repeatedly until trigger). Each SituationTemplate has explicit LocationFilter/NpcFilter determining WHERE/WHO (resolved once during activation). NO CSS-style inheritance, NO base filters.
 
 ### Scene
 **Type:** Runtime Entity (mutable)
 **Owner:** GameWorld.Scenes
-**Definition:** Persistent narrative container spawned from SceneTemplate. Contains embedded Situations, tracks CurrentSituation, manages state machine (Provisional/Active/Completed/Expired).
+**Definition:** Persistent narrative container spawned from SceneTemplate. Contains LocationActivationFilter/NpcActivationFilter (copied from template at spawn), embedded Situations (with explicit placement filters), tracks CurrentSituation, manages state machine (Deferred/Active/Completed/Expired). Two-phase spawning: Phase 1 creates deferred scene, Phase 2 activates when player context matches activation filter.
 **Lifecycle States:**
-- **Provisional:** Created for perfect information preview, Situations not yet instantiated. Can be finalized or discarded.
-- **Active:** Finalized and playable. Situations instantiated, CurrentSituation set.
+- **Deferred:** Scene and Situations created with activation filters, dependent resources NOT spawned yet, entity references null. LocationFacade checks LocationActivationFilter repeatedly until player context matches (categorical enum matching: Privacy, Safety, Activity, Purpose).
+- **Active:** Activation triggered, dependent resources spawned, entity references resolved via EntityResolver, scene fully playable. Situations have explicit LocationFilter/NpcFilter resolved once during activation.
 - **Completed:** All Situations finished. Scene persists but filtered from active queries.
 - **Expired:** ExpiresOnDay reached. Scene persists but filtered from queries.
-**Key Properties:** Id, TemplateId, PlacementType, PlacementId, Situations (embedded list), CurrentSituation (object reference), State (SceneState enum).
+**Key Properties:** LocationActivationFilter (WHEN scene activates), NpcActivationFilter (NPC-triggered activation), Situations (embedded list with explicit placement filters), CurrentSituation (object reference), State (SceneState enum).
+**Activation Architecture:** NO CSS-style inheritance, NO base filters. Each Situation MUST specify explicit LocationFilter/NpcFilter in its template. Activation filters (scene-level) separate from placement filters (situation-level).
 **Historical Note:** Replaces Goal/Obstacle architecture. Earlier docs may reference "Goals" - these are Scenes in current architecture.
 
 ### SituationTemplate
@@ -259,6 +261,24 @@ This document provides canonical definitions for all specialized terms used acro
 **Properties:** LocationProperties (Indoor, Private, Safe), LocationTags (lodging, secure), NpcPersonalityTypes (Innkeeper, Merchant), SelectionStrategy (Closest, LeastRecentlyUsed).
 **Key Principle:** NO concrete entity IDs. All requirements expressed categorically. Enables procedural content generation without hardcoded references.
 
+### PlacementProximity
+**Type:** Enum
+**Location:** src/GameState/Enums/PlacementProximity.cs
+**Definition:** Categorical spatial relationships defining placement constraints relative to reference location. Used by ProximityConstraint to constrain WHERE dependent locations spawn during procedural generation.
+**Values:** Anywhere (no spatial constraint), SameLocation (exact same hex as reference), AdjacentLocation (hex-adjacent to reference), SameVenue (within same 7-hex venue cluster), SameDistrict (within same district boundary), SameRegion (within same regional boundary).
+**Usage:** SceneInstantiator generates ProximityConstraint with proximity type, LocationPlacementService applies constraint during placement.
+**Related:** See ProximityConstraint, Scaffolding Pattern (8.2.11).
+
+### ProximityConstraint
+**Type:** Domain Class (Scaffolding)
+**Location:** src/GameState/ProximityConstraint.cs
+**Definition:** Categorical spatial constraint for placing dependent locations relative to reference location. Scaffolding property: stored temporarily during parsing, used during placement, then cleared. NOT persisted in game state.
+**Properties:** Proximity (PlacementProximity enum), ReferenceLocationKey (string resolving to reference location, typically "current" for player.CurrentLocation).
+**Data Flow:** SceneInstantiator generates ProximityConstraintDTO → LocationParser converts to ProximityConstraint → LocationPlacementService applies constraint → PackageLoader clears scaffolding property.
+**Purpose:** Ensures dependent locations maintain spatial coherence with activation context. Example: "Your room at this inn" spawns at THIS inn (SameVenue constraint), not different venue.
+**Distinction:** PlacementFilter determines WHAT to spawn (categorical entity properties), ProximityConstraint determines WHERE to spawn (spatial relationship to reference).
+**Related:** See PlacementProximity, Scaffolding Pattern (8.2.11).
+
 ---
 
 ## OVERLOADED TERMS (DISAMBIGUATE)
@@ -318,13 +338,15 @@ This document provides canonical definitions for all specialized terms used acro
 
 ## STATE MACHINE TERMINOLOGY
 
-### Provisional
-**Scene State:** Scene created for perfect information preview. Situations not instantiated. Player sees metadata (SituationCount, EstimatedDifficulty) without full content.
-**Transition:** Provisional → Active (when player selects provisional scene choice) OR Provisional → Deleted (when different choice selected).
-**Why:** Enables showing player "this choice spawns a 3-situation scene with Medium difficulty" before commitment.
+### Deferred (Scene State)
+**Scene State:** Scene and Situations created, dependent resources NOT spawned yet. Scene entity exists in GameWorld.Scenes with State=Deferred. Lightweight initialization phase separating scene creation from resource spawning.
+**Transition:** Deferred → Active (when player enters location where scene is placed, triggering LocationFacade.CheckAndActivateDeferredScenes()).
+**Why:** Two-phase spawning separates domain logic (scenes/situations) from content generation (locations/items). Prevents spawning dependent resources before player reaches scene location.
+**Phase 1 (Deferred):** SceneInstantiator.CreateDeferredScene() generates JSON for Scene + Situations ONLY. PackageLoader creates entities with State=Deferred. NO dependent locations created. NO PlaceLocations() called.
+**Phase 2 (Active):** LocationFacade activation generates dependent resource JSON. PackageLoader creates locations/items. PlaceLocations() receives explicit list of NEW locations from PackageLoadResult. Scene.State transitions to Active.
 
-### Active
-**Scene State:** Scene finalized and playable. Situations instantiated, CurrentSituation set.
+### Active (Scene State)
+**Scene State:** Scene fully activated with dependent resources spawned. Situations instantiated, CurrentSituation set, all locations placed.
 **Availability:** Player can engage with CurrentSituation at appropriate context (location/NPC).
 **Transition:** Active → Completed (all situations finished) OR Active → Expired (ExpiresOnDay reached).
 
@@ -336,11 +358,12 @@ This document provides canonical definitions for all specialized terms used acro
 **Scene State:** ExpiresOnDay reached before completion.
 **Cleanup:** Scene filtered from queries. Represents missed opportunity.
 
-### Deferred
+### Deferred (Situation InstantiationState)
 **Situation InstantiationState:** Situation exists but Actions not created. Template stored, waiting for query-time instantiation.
 **Transition:** Deferred → Instantiated (when player enters context and SceneFacade queries).
+**Note:** This is DIFFERENT from Scene Deferred state. Scene Deferred = dependent resources not spawned. Situation Deferred = action objects not created.
 
-### Instantiated
+### Instantiated (Situation InstantiationState)
 **Situation InstantiationState:** Actions created in GameWorld collections (LocationActions/NPCActions/PathCards). Player can execute choices.
 
 ### Selectable

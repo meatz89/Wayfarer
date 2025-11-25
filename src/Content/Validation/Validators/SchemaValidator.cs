@@ -23,8 +23,7 @@ public class SchemaValidator : IContentValidator
             {
                 IsArray = true,
                 RequiredFields = new[] { "id", "name", "venueId", "type" },
-                OptionalFields = new[] { "description", "initialState", "domainTags",
-                                       "CurrentTimeBlocks", "accessRequirement" }
+                OptionalFields = new[] { "description", "domainTags", "accessRequirement" }
             },
             ["letter_templates.json"] = new FileSchema
             {

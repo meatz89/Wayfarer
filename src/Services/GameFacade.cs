@@ -9,6 +9,14 @@ public class GameFacade
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
+
+    // ==================== PUBLIC ACCESSORS ====================
+
+    /// <summary>
+    /// Direct access to GameWorld for debugging/testing
+    /// Used by DebugPanel to access game state
+    /// </summary>
+    public GameWorld GameWorld => _gameWorld;
     private readonly SocialFacade _conversationFacade;
     private readonly LocationFacade _locationFacade;
     private readonly ResourceFacade _resourceFacade;
@@ -27,8 +35,7 @@ public class GameFacade
     private readonly EmergencyFacade _emergencyFacade;
     private readonly SituationFacade _situationFacade;
     private readonly LocationActionExecutor _locationActionExecutor;
-    private readonly NPCActionExecutor _npcActionExecutor;
-    private readonly PathCardExecutor _pathCardExecutor;
+    private readonly SituationChoiceExecutor _situationChoiceExecutor;
     private readonly ConsequenceFacade _consequenceFacade;
     private readonly RewardApplicationService _rewardApplicationService;
     private readonly SpawnFacade _spawnFacade;
@@ -62,8 +69,7 @@ public class GameFacade
         EmergencyFacade emergencyFacade,
         SituationFacade situationFacade,
         LocationActionExecutor locationActionExecutor,
-        NPCActionExecutor npcActionExecutor,
-        PathCardExecutor pathCardExecutor,
+        SituationChoiceExecutor situationChoiceExecutor,
         ConsequenceFacade consequenceFacade,
         RewardApplicationService rewardApplicationService,
         SpawnConditionsEvaluator spawnConditionsEvaluator,
@@ -97,8 +103,7 @@ public class GameFacade
         _emergencyFacade = emergencyFacade ?? throw new ArgumentNullException(nameof(emergencyFacade));
         _situationFacade = situationFacade ?? throw new ArgumentNullException(nameof(situationFacade));
         _locationActionExecutor = locationActionExecutor ?? throw new ArgumentNullException(nameof(locationActionExecutor));
-        _npcActionExecutor = npcActionExecutor ?? throw new ArgumentNullException(nameof(npcActionExecutor));
-        _pathCardExecutor = pathCardExecutor ?? throw new ArgumentNullException(nameof(pathCardExecutor));
+        _situationChoiceExecutor = situationChoiceExecutor ?? throw new ArgumentNullException(nameof(situationChoiceExecutor));
         _consequenceFacade = consequenceFacade ?? throw new ArgumentNullException(nameof(consequenceFacade));
         _rewardApplicationService = rewardApplicationService ?? throw new ArgumentNullException(nameof(rewardApplicationService));
         _spawnFacade = spawnFacade ?? throw new ArgumentNullException(nameof(spawnFacade));
@@ -181,7 +186,7 @@ public class GameFacade
 
     public async Task<bool> MoveToSpot(Location location)
     {
-        bool success = _locationFacade.MoveToSpot(location);
+        bool success = await _locationFacade.MoveToSpot(location);
 
         // Movement to new Venue may unlock obligation discovery (ImmediateVisibility, EnvironmentalObservation triggers)
         if (success)
@@ -395,10 +400,6 @@ public class GameFacade
         return result;
     }
 
-    // ========== DEPRECATED - ACTION EXECUTION REPLACED BY INTENT SYSTEM ==========
-    // Old ExecutePlayerAction and ExecuteLocationAction methods deleted.
-    // All actions now execute through ProcessIntent() for unified handling.
-
     // ========== CONVERSATION OPERATIONS ==========
 
     public SocialFacade GetConversationFacade()
@@ -406,8 +407,19 @@ public class GameFacade
         return _conversationFacade;
     }
 
+    /// <summary>
+    /// Create conversation context with cross-facade orchestration
+    /// ORCHESTRATION: Checks for NPC-triggered scene activation BEFORE starting conversation
+    /// </summary>
     public async Task<SocialChallengeContext> CreateConversationContext(NPC npc, Situation situation)
     {
+        Player player = _gameWorld.GetPlayer();
+
+        // THREE-TIER TIMING: Check for deferred scenes that should activate when player talks to this NPC
+        // Parallel to location-based activation when player arrives at location
+        await _locationFacade.CheckAndActivateDeferredScenesForNPC(npc, player);
+
+        // Then create conversation context
         return await _conversationFacade.CreateConversationContext(npc, situation);
     }
 
@@ -724,19 +736,11 @@ public class GameFacade
         if (!startingSpot.HexPosition.HasValue)
             throw new InvalidOperationException($"Starting location '{startingSpot.Name}' has no HexPosition - cannot initialize player position");
 
-        Console.WriteLine($"[StartGameAsync] Setting player position to hex ({startingSpot.HexPosition.Value.Q}, {startingSpot.HexPosition.Value.R})");
-        player.CurrentPosition = startingSpot.HexPosition.Value;
-        Venue? startingLocation = _gameWorld.Venues.FirstOrDefault(l => l.Name == startingSpot.Venue.Name);
+        // ========== GAME INITIALIZATION FLOW ==========
+        // Holistic initialization order ensures systems are ready before content spawns,
+        // content exists before player moves, and game is marked started only after everything is complete.
 
-        // ZERO NULL TOLERANCE: Verify hex grid is valid BEFORE marking game started
-        // This prevents silent UI crashes by failing LOUDLY during initialization
-        Location validationLocation = _gameWorld.GetPlayerCurrentLocation();
-        if (validationLocation == null)
-        {
-            throw new InvalidOperationException($"CRITICAL: Player starting position ({player.CurrentPosition.Q}, {player.CurrentPosition.R}) does not have a valid location in hex grid. Game cannot start.");
-        }
-        Console.WriteLine($"[StartGameAsync] ✅ Validated player at '{validationLocation.Name}' - hex grid OK");
-
+        // PHASE 1: Initialize game systems
         // Player resources already applied by PackageLoader.ApplyInitialPlayerConfiguration()
         // No need to re-apply here - HIGHLANDER PRINCIPLE: initialization happens ONCE
 
@@ -747,13 +751,34 @@ public class GameFacade
                 _gameWorld.InitialDay ?? 1,
                 _gameWorld.InitialTimeBlock.Value,
                 _gameWorld.InitialSegment.Value);
-        }// Initialize exchange inventories
-        _exchangeFacade.InitializeNPCExchanges();// Mark game as started
-        _gameWorld.IsGameStarted = true;
+        }
 
-        // Spawn starter scenes (tutorial content, initial situations)
+        // Initialize exchange inventories
+        _exchangeFacade.InitializeNPCExchanges();
+
+        // PHASE 2: Spawn starter scenes (creates DEFERRED scenes in GameWorld.Scenes)
+        // Must happen BEFORE player movement so CheckAndActivateDeferredScenes has scenes to activate
         await SpawnStarterScenes();
 
+        // PHASE 3: Move player to starting location (triggers CheckAndActivateDeferredScenes)
+        // THREE-TIER TIMING: MoveToSpot() calls LocationFacade.CheckAndActivateDeferredScenes() which:
+        //   1. Activates DEFERRED scenes at the player's new location
+        //   2. Generates dependent resources (locations, NPCs, items)
+        //   3. Calls ResolveSceneEntityReferences() to assign entities to situations
+        // This ensures A1 scene is activated and Elena shows the "Secure Lodging" conversation option
+        Console.WriteLine($"[StartGameAsync] Moving player to starting location '{startingSpot.Name}' at hex ({startingSpot.HexPosition.Value.Q}, {startingSpot.HexPosition.Value.R})");
+
+        bool moveSuccess = await _locationFacade.MoveToSpot(startingSpot);
+
+        if (!moveSuccess)
+        {
+            throw new InvalidOperationException($"CRITICAL: Failed to move player to starting location '{startingSpot.Name}'. Game cannot start.");
+        }
+
+        Console.WriteLine($"[StartGameAsync] ✅ Validated player at '{startingSpot.Name}' - scene activation complete");
+
+        // PHASE 4: Mark game as started (LAST - game is now fully initialized and ready)
+        _gameWorld.IsGameStarted = true;
         _messageSystem.AddSystemMessage("Game started", SystemMessageTypes.Success);
     }
 
@@ -1611,9 +1636,49 @@ public class GameFacade
     }
 
     /// <summary>
+    /// TWO-PHASE SPAWNING - PHASE 1: Create deferred scene WITHOUT dependent resources
+    /// Generates JSON package with ONLY Scene + Situations (NO dependent locations/items)
+    /// Scene.State = Deferred (dependent resources not spawned yet)
+    /// HIGHLANDER FLOW: JSON → PackageLoader → SceneParser → Scene entity
+    /// </summary>
+    private async Task<Scene> CreateDeferredSceneWithDynamicContent(
+        SceneTemplate template,
+        SceneSpawnReward spawnReward,
+        SceneSpawnContext context)
+    {
+        // PHASE 1: Generate JSON package with ONLY Scene + Situations (empty lists for dependent resources)
+        string packageJson = _sceneInstanceFacade.CreateDeferredScenePackage(template, spawnReward, context);
+
+        if (packageJson == null)
+        {
+            // Scene not eligible (spawn conditions failed)
+            return null;
+        }
+
+        // Write to disk and load via PackageLoader
+        string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}_deferred";
+        await _contentGenerationFacade.CreateDynamicPackageFile(packageJson, packageId);
+        await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
+
+        // Retrieve spawned scene from GameWorld
+        Scene spawnedScene = _gameWorld.Scenes
+            .Where(s => s.TemplateId == template.Id && s.State == SceneState.Deferred)
+            .LastOrDefault();
+
+        if (spawnedScene == null)
+        {
+            throw new InvalidOperationException($"Deferred scene from template '{template.Id}' failed to load via PackageLoader");
+        }
+
+        return spawnedScene;
+    }
+
+    /// <summary>
     /// Spawn all starter scenes during game initialization
     /// HIGHLANDER: Called ONCE from StartGameAsync() after IsGameStarted = true
     /// Starter scenes provide initial gameplay content (tutorial, intro situations)
+    /// TWO-PHASE SPAWNING: Creates scenes as Deferred (no dependent resources spawned)
+    /// Activation happens when player enters location via LocationFacade
     /// </summary>
     public async Task SpawnStarterScenes()
     {
@@ -1641,13 +1706,18 @@ public class GameFacade
                 CurrentSituation = null
             };
 
-            Scene scene = await SpawnSceneWithDynamicContent(template, spawnReward, spawnContext);
+            // TWO-PHASE: Create deferred scene WITHOUT dependent resources
+            // Phase 1: Scene + Situations created with State=Deferred
+            // Phase 2: Activation (dependent resources) happens when player enters location
+            Scene scene = await CreateDeferredSceneWithDynamicContent(template, spawnReward, spawnContext);
 
             if (scene == null)
             {
                 Console.WriteLine($"[GameFacade] Starter scene '{template.Id}' failed to spawn - skipping");
                 continue;
             }
+
+            Console.WriteLine($"[GameFacade] Created deferred starter scene '{template.Id}' (State=Deferred, no dependent resources yet)");
         }
     }
 
@@ -1656,20 +1726,33 @@ public class GameFacade
     /// <summary>
     /// Execute LocationAction through unified action architecture
     /// HIGHLANDER PATTERN: All location actions flow through this method
+    /// FALLBACK SCENE ARCHITECTURE: Supports both atmospheric (fallback) and scene-based actions
     /// </summary>
     public async Task<IntentResult> ExecuteLocationAction(LocationAction action)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Verify Situation exists (get from action.Situation object reference)
-        Situation situation = action.Situation;
-        if (situation == null)
-            return IntentResult.Failed();
+        // PATTERN DISCRIMINATION: Determine if scene-based or atmospheric (fallback scene)
+        bool isSceneBased = action.ChoiceTemplate != null;
+        Situation situation = action.Situation;  // null for atmospheric actions
 
         // THREE-TIER TIMING MODEL: Action passed directly (ephemeral object, no lookup)
 
         // STEP 1: Validate and extract execution plan
-        ActionExecutionPlan plan = _locationActionExecutor.ValidateAndExtract(action, player, _gameWorld);
+        ActionExecutionPlan plan;
+        if (isSceneBased)
+        {
+            // SCENE-BASED ACTION: Use SituationChoiceExecutor
+            if (situation == null)
+                return IntentResult.Failed();
+
+            plan = _situationChoiceExecutor.ValidateAndExtract(action.ChoiceTemplate, action.Name, player, _gameWorld);
+        }
+        else
+        {
+            // ATMOSPHERIC ACTION (FALLBACK SCENE): Use LocationActionExecutor
+            plan = _locationActionExecutor.ValidateAndExtract(action, player);
+        }
 
         if (!plan.IsValid)
         {
@@ -1705,14 +1788,26 @@ public class GameFacade
         // STEP 3: Route based on ActionType
         if (plan.ActionType == ChoiceActionType.Instant)
         {
-            // Apply rewards
-            if (plan.ChoiceReward != null)
+            // Apply rewards (scene-based ChoiceReward OR atmospheric DirectRewards)
+            if (plan.IsAtmosphericAction && plan.DirectRewards != null)
             {
-                await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
+                // ATMOSPHERIC ACTION (FALLBACK SCENE): Apply direct rewards
+                if (plan.DirectRewards.CoinReward > 0)
+                    player.Coins += plan.DirectRewards.CoinReward;
+
+                if (plan.DirectRewards.HealthRecovery > 0)
+                    player.Health = Math.Min(player.MaxHealth, player.Health + plan.DirectRewards.HealthRecovery);
+
+                if (plan.DirectRewards.StaminaRecovery > 0)
+                    player.Stamina = Math.Min(player.MaxStamina, player.Stamina + plan.DirectRewards.StaminaRecovery);
+
+                if (plan.DirectRewards.FocusRecovery > 0)
+                    player.Focus = Math.Min(player.MaxFocus, player.Focus + plan.DirectRewards.FocusRecovery);
             }
-            else if (plan.LegacyRewards != null)
+            else if (plan.ChoiceReward != null)
             {
-                ApplyLegacyRewards(plan.LegacyRewards);
+                // SCENE-BASED ACTION: Apply complex ChoiceReward
+                await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
             }
 
             // THREE-TIER TIMING MODEL: No cleanup needed (actions are ephemeral, not stored)
@@ -1759,14 +1854,19 @@ public class GameFacade
     /// <summary>
     /// Execute NPCAction through unified action architecture
     /// HIGHLANDER PATTERN: All NPC actions flow through this method
+    /// ALL NPC actions are scene-based (no atmospheric NPC actions exist)
     /// </summary>
     public async Task<IntentResult> ExecuteNPCAction(NPCAction action)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Verify Situation exists (get from action.Situation object reference)
+        // Verify Situation exists (ALL NPC actions require Situation)
         Situation situation = action.Situation;
         if (situation == null)
+            return IntentResult.Failed();
+
+        // Verify ChoiceTemplate exists (ALL NPC actions are scene-based)
+        if (action.ChoiceTemplate == null)
             return IntentResult.Failed();
 
         // THREE-TIER TIMING MODEL: Action passed directly (ephemeral object, no lookup)
@@ -1779,8 +1879,8 @@ public class GameFacade
             RecordNPCInteraction(situation.Npc);
         }
 
-        // STEP 1: Validate and extract execution plan
-        ActionExecutionPlan plan = _npcActionExecutor.ValidateAndExtract(action, player, _gameWorld);
+        // STEP 1: Validate and extract execution plan (all NPC actions use SituationChoiceExecutor)
+        ActionExecutionPlan plan = _situationChoiceExecutor.ValidateAndExtract(action.ChoiceTemplate, action.Name, player, _gameWorld);
 
         if (!plan.IsValid)
         {
@@ -1820,10 +1920,6 @@ public class GameFacade
             if (plan.ChoiceReward != null)
             {
                 await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
-            }
-            else if (plan.LegacyRewards != null)
-            {
-                ApplyLegacyRewards(plan.LegacyRewards);
             }
 
             // THREE-TIER TIMING MODEL: No cleanup needed (actions are ephemeral, not stored)
@@ -1870,20 +1966,33 @@ public class GameFacade
     /// <summary>
     /// Execute PathCard through unified action architecture
     /// HIGHLANDER PATTERN: All path cards flow through this method
+    /// FALLBACK SCENE ARCHITECTURE: Supports both atmospheric (fallback) and scene-based path cards
     /// </summary>
     public async Task<IntentResult> ExecutePathCard(PathCard card)
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Verify Situation exists (get from card.Situation object reference)
-        Situation situation = card.Situation;
-        if (situation == null)
-            return IntentResult.Failed();
+        // PATTERN DISCRIMINATION: Determine if scene-based or atmospheric (fallback scene)
+        bool isSceneBased = card.ChoiceTemplate != null;
+        Situation situation = card.Situation;  // null for atmospheric PathCards
 
         // THREE-TIER TIMING MODEL: PathCard passed directly (ephemeral object, no lookup)
 
         // STEP 1: Validate and extract execution plan
-        ActionExecutionPlan plan = _pathCardExecutor.ValidateAndExtract(card, player, _gameWorld);
+        ActionExecutionPlan plan;
+        if (isSceneBased)
+        {
+            // SCENE-BASED PATHCARD: Use SituationChoiceExecutor
+            if (situation == null)
+                return IntentResult.Failed();
+
+            plan = _situationChoiceExecutor.ValidateAndExtract(card.ChoiceTemplate, card.Name, player, _gameWorld);
+        }
+        else
+        {
+            // ATMOSPHERIC PATHCARD (FALLBACK SCENE): Use LocationActionExecutor
+            plan = _locationActionExecutor.ValidateAtmosphericPathCard(card, player);
+        }
 
         if (!plan.IsValid)
         {
@@ -1903,15 +2012,32 @@ public class GameFacade
         // STEP 3: Route based on ActionType
         if (plan.ActionType == ChoiceActionType.Instant)
         {
-            // Apply rewards
-            if (plan.ChoiceReward != null)
+            // Apply rewards (scene-based ChoiceReward OR atmospheric PathCard rewards)
+            if (plan.IsAtmosphericAction)
             {
-                await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
+                // ATMOSPHERIC PATHCARD (FALLBACK SCENE): Apply PathCard-specific rewards
+                if (card.CoinReward > 0)
+                    player.Coins += card.CoinReward;
+
+                if (card.StaminaRestore > 0)
+                    player.Stamina = Math.Min(player.MaxStamina, player.Stamina + card.StaminaRestore);
+
+                if (card.HealthEffect > 0)
+                    player.Health = Math.Min(player.MaxHealth, player.Health + card.HealthEffect);
+                else if (card.HealthEffect < 0)
+                    player.Health = Math.Max(0, player.Health + card.HealthEffect);  // Damage
+
+                // Apply token gains
+                foreach (var tokenGain in card.TokenGains)
+                {
+                    // Token system integration (future implementation)
+                    // For now, tokens not implemented
+                }
             }
-            else if (plan.IsLegacyAction)
+            else if (plan.ChoiceReward != null)
             {
-                // Apply legacy PathCard rewards (StaminaRestore, HealthEffect, CoinReward, etc.)
-                ApplyLegacyPathCardRewards(card);
+                // SCENE-BASED PATHCARD: Apply complex ChoiceReward
+                await _rewardApplicationService.ApplyChoiceReward(plan.ChoiceReward, situation);
             }
 
             // THREE-TIER TIMING MODEL: No cleanup needed (actions are ephemeral, not stored)
@@ -2047,57 +2173,6 @@ public class GameFacade
         }
     }
 
-    /// <summary>
-    /// Cleanup ephemeral actions for a Situation after execution
-    /// Actions are query-time instances created by SceneFacade, NOT persistent data
-    /// After action execution, delete all actions so they can be regenerated on next query
-    /// This is CRITICAL for three-tier timing model (Query-time instantiation)
-    /// </summary>
-    private void ApplyLegacyRewards(ActionRewards rewards)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        if (rewards.FullRecovery)
-        {
-            player.Health = player.MaxHealth;
-            player.Focus = player.MaxFocus;
-            player.Stamina = player.MaxStamina;
-            return;
-        }
-
-        if (rewards.CoinReward > 0)
-            player.Coins += rewards.CoinReward;
-
-        if (rewards.HealthRecovery > 0)
-            player.Health = Math.Min(player.MaxHealth, player.Health + rewards.HealthRecovery);
-
-        if (rewards.FocusRecovery > 0)
-            player.Focus = Math.Min(player.MaxFocus, player.Focus + rewards.FocusRecovery);
-
-        if (rewards.StaminaRecovery > 0)
-            player.Stamina = Math.Min(player.MaxStamina, player.Stamina + rewards.StaminaRecovery);
-    }
-
-    private void ApplyLegacyPathCardRewards(PathCard card)
-    {
-        Player player = _gameWorld.GetPlayer();
-
-        if (card.StaminaRestore > 0)
-            player.Stamina = Math.Min(player.MaxStamina, player.Stamina + card.StaminaRestore);
-
-        if (card.HealthEffect != 0)
-        {
-            if (card.HealthEffect > 0)
-                player.Health = Math.Min(player.MaxHealth, player.Health + card.HealthEffect);
-            else
-                player.Health = Math.Max(0, player.Health + card.HealthEffect); // Negative effect
-        }
-
-        if (card.CoinReward > 0)
-            player.Coins += card.CoinReward;
-
-        // TokenGains, RevealsPaths, etc. would be handled by PathCard-specific logic
-    }
     private IntentResult RouteToTacticalChallenge(ActionExecutionPlan plan)
     {
         // Store CompletionReward in appropriate PendingContext

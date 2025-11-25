@@ -41,15 +41,16 @@ public class PathCard
     /// </summary>
     public bool IsOneTime { get; set; } = false;
 
-    // ==================== REQUIREMENTS (LEGACY PATTERN) ====================
+    // ==================== ATMOSPHERIC PATTERN (Direct Properties) ====================
 
     /// <summary>
-    /// Coin cost to use this path (must have coins to select)
+    /// Coin cost to use this path (ATMOSPHERIC PATTERN - must have coins to select)
+    /// Used when ChoiceTemplate is null (static route path cards)
     /// </summary>
     public int CoinRequirement { get; set; } = 0;
 
     /// <summary>
-    /// Permit/license required to use this path
+    /// Permit/license required to use this path (ATMOSPHERIC PATTERN)
     /// HIGHLANDER: Object reference ONLY, no PermitRequirement ID
     /// null = no permit required
     /// References permit in player inventory
@@ -57,83 +58,75 @@ public class PathCard
     public Item PermitRequirement { get; set; }
 
     /// <summary>
-    /// Stat requirements - minimum stat levels required to use this path
+    /// Stat requirements - minimum stat levels required to use this path (ATMOSPHERIC PATTERN)
     /// Dictionary key = stat name (e.g., "insight", "cunning")
     /// Dictionary value = minimum level required
     /// Player must meet ALL stat requirements
     /// </summary>
     public Dictionary<string, int> StatRequirements { get; set; } = new Dictionary<string, int>();
 
-    // ==================== COSTS (LEGACY PATTERN) ====================
-
     /// <summary>
-    /// Stamina cost to use this path
+    /// Stamina cost to use this path (ATMOSPHERIC PATTERN)
     /// Deducted from player's current stamina when path selected
     /// </summary>
     public int StaminaCost { get; set; }
 
     /// <summary>
-    /// Time cost in segments (4 segments per time block)
+    /// Time cost in segments (ATMOSPHERIC PATTERN - 4 segments per time block)
     /// Advances game time when path selected
     /// </summary>
     public int TravelTimeSegments { get; set; }
 
     /// <summary>
-    /// Hunger increase from using this path
+    /// Hunger increase from using this path (ATMOSPHERIC PATTERN)
     /// Positive value increases hunger (makes player hungrier)
     /// Negative value decreases hunger (provides food)
     /// </summary>
     public int HungerEffect { get; set; } = 0;
 
-    // ==================== REWARDS (LEGACY PATTERN) ====================
-
     /// <summary>
-    /// Stamina restored when using this path
+    /// Stamina restored when using this path (ATMOSPHERIC PATTERN)
     /// Positive value for REST paths that restore stamina
     /// Replaces StaminaCost for recovery actions
     /// </summary>
     public int StaminaRestore { get; set; } = 0;
 
     /// <summary>
-    /// Health change from this path
+    /// Health change from this path (ATMOSPHERIC PATTERN)
     /// Positive = healing, negative = damage
     /// Example: Dangerous path might cost health, safe path might restore
     /// </summary>
     public int HealthEffect { get; set; } = 0;
 
     /// <summary>
-    /// Coins gained from this path
+    /// Coins gained from this path (ATMOSPHERIC PATTERN)
     /// Positive value = earn coins (found treasure, traded with travelers)
     /// </summary>
     public int CoinReward { get; set; } = 0;
 
     /// <summary>
-    /// One-time reward for discovering/using this path
+    /// One-time reward for discovering/using this path (ATMOSPHERIC PATTERN)
     /// Strongly-typed reward object (coins, observation, etc.)
     /// Set at parse-time from PathCardDTO.OneTimeReward string
     /// </summary>
     public PathReward Reward { get; set; } = PathReward.None;
 
     /// <summary>
-    /// Token gains from using this path
+    /// Token gains from using this path (ATMOSPHERIC PATTERN)
     /// Dictionary key = token type (e.g., "Diplomacy", "Status")
     /// Dictionary value = amount gained
     /// Progression system integration
     /// </summary>
     public Dictionary<string, int> TokenGains { get; set; } = new Dictionary<string, int>();
 
-    // ==================== PATH REVELATIONS ====================
-
     /// <summary>
-    /// List of path card IDs revealed when this path is used
+    /// List of path card IDs revealed when this path is used (ATMOSPHERIC PATTERN)
     /// Discovery mechanic: Using one path unlocks knowledge of other paths
     /// </summary>
     public List<string> RevealsPaths { get; set; } = new List<string>();
 
-    // ==================== BEHAVIORAL FLAGS ====================
-
     /// <summary>
-    /// Dead-end path that forces player to return
+    /// Dead-end path that forces player to return (ATMOSPHERIC PATTERN)
     /// After selecting this path, must return to previous segment
     /// Cannot continue forward on route
     /// </summary>
@@ -150,20 +143,20 @@ public class PathCard
     // ==================== SIR BRANTE LAYER (UNIFIED ACTION ARCHITECTURE) ====================
 
     /// <summary>
-    /// ChoiceTemplate source (Sir Brante layer - Scene-Situation architecture)
+    /// ChoiceTemplate source (SCENE-BASED PATTERN - Scene-Situation architecture)
     /// COMPOSITION not copy - access CompoundRequirement, ChoiceCost, ChoiceReward through this reference
     ///
-    /// null = Static path card parsed directly from route JSON (legacy pattern)
-    ///        Uses direct requirement/cost/reward properties above
+    /// PATTERN DISCRIMINATION:
+    /// - IF ChoiceTemplate != null → SCENE-BASED path card (use template costs/rewards)
+    /// - IF ChoiceTemplate == null → ATMOSPHERIC path card (use direct properties above)
     ///
-    /// non-null = Scene-spawned path card generated from ChoiceTemplate at spawn time
-    ///            ChoiceTemplate provides:
-    ///            - RequirementFormula (CompoundRequirement with OR paths)
-    ///            - CostTemplate (ChoiceCost with Coins/Resolve/TimeSegments)
-    ///            - RewardTemplate (ChoiceReward with bonds/scales/states/scene spawns)
+    /// Scene-spawned path cards generated from ChoiceTemplate at spawn time.
+    /// ChoiceTemplate provides:
+    /// - RequirementFormula (CompoundRequirement with OR paths)
+    /// - CostTemplate (ChoiceCost with Coins/Resolve/TimeSegments)
+    /// - RewardTemplate (ChoiceReward with bonds/scales/states/scene spawns)
     ///
-    /// Enables unified action execution: All path cards check ChoiceTemplate if present,
-    /// fall back to direct properties if null (legacy coexistence pattern)
+    /// See DUAL_TIER_ACTION_ARCHITECTURE.md for complete explanation.
     /// </summary>
     public ChoiceTemplate ChoiceTemplate { get; set; }
 

@@ -888,7 +888,7 @@ public static class SituationArchetypeCatalog
     /// Create stat requirement with scaled threshold.
     /// Threshold parameter allows universal property scaling.
     /// </summary>
-    private static CompoundRequirement CreateStatRequirement(SituationArchetype archetype, int scaledThreshold)
+    public static CompoundRequirement CreateStatRequirement(SituationArchetype archetype, int scaledThreshold)
     {
         CompoundRequirement requirement = new CompoundRequirement();
 
@@ -928,14 +928,6 @@ public static class SituationArchetypeCatalog
         }
 
         return requirement;
-    }
-
-    /// <summary>
-    /// Overload for backwards compatibility - uses base archetype threshold.
-    /// </summary>
-    private static CompoundRequirement CreateStatRequirement(SituationArchetype archetype)
-    {
-        return CreateStatRequirement(archetype, archetype.StatThreshold);
     }
 
     private static string GenerateStatGatedActionText(SituationArchetype archetype)

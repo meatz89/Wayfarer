@@ -130,30 +130,57 @@ public class Situation
     // Markers deleted - entities reference actual objects, not string IDs
 
     /// <summary>
+    /// PlacementFilter for deferred location resolution (THREE-TIER TIMING MODEL)
+    /// Stored during parse time (Tier 1), resolved to Location at activation time (Tier 2)
+    /// null = no location filter (situation has no location requirement)
+    /// ARCHITECTURAL: Filters stored at parse time, entities resolved at activation time
+    /// </summary>
+    public PlacementFilter LocationFilter { get; set; }
+
+    /// <summary>
     /// Location where this situation activates
     /// Each situation can require different location from other situations in same scene
     /// Used for context matching: player must be at this location for situation to activate
-    /// null = situation has no location requirement (activates anywhere)
+    /// null = situation has no location requirement (activates anywhere) OR not yet resolved (State=Deferred)
     /// ARCHITECTURAL: Situation owns context, Scene is just container
     /// HIGHLANDER: Object reference only, not string ID
+    /// THREE-TIER TIMING: NULL during Deferred, resolved from LocationFilter during activation
     /// </summary>
     public Location Location { get; set; }
+
+    /// <summary>
+    /// PlacementFilter for deferred NPC resolution (THREE-TIER TIMING MODEL)
+    /// Stored during parse time (Tier 1), resolved to NPC at activation time (Tier 2)
+    /// null = no NPC filter (situation has no NPC requirement)
+    /// ARCHITECTURAL: Filters stored at parse time, entities resolved at activation time
+    /// </summary>
+    public PlacementFilter NpcFilter { get; set; }
 
     /// <summary>
     /// NPC associated with this situation (interaction partner)
     /// Each situation can require different NPC from other situations in same scene
     /// Used for context matching: player must be with this NPC for situation to activate
-    /// null = situation has no NPC requirement (location-only situation) or uses Template.RequiredNpcId
+    /// null = situation has no NPC requirement (location-only situation) OR not yet resolved (State=Deferred)
     /// ARCHITECTURAL: Situation owns context, Scene is just container
+    /// THREE-TIER TIMING: NULL during Deferred, resolved from NpcFilter during activation
     /// </summary>
     public NPC Npc { get; set; }
+
+    /// <summary>
+    /// PlacementFilter for deferred route resolution (THREE-TIER TIMING MODEL)
+    /// Stored during parse time (Tier 1), resolved to RouteOption at activation time (Tier 2)
+    /// null = no route filter (situation has no route requirement)
+    /// ARCHITECTURAL: Filters stored at parse time, entities resolved at activation time
+    /// </summary>
+    public PlacementFilter RouteFilter { get; set; }
 
     /// <summary>
     /// Route associated with this situation (travel context)
     /// Each situation can require different route from other situations in same scene
     /// Used for context matching in route-specific situations
-    /// null = situation has no route requirement or uses Template.RequiredRouteId
+    /// null = situation has no route requirement OR not yet resolved (State=Deferred)
     /// ARCHITECTURAL: Situation owns context, Scene is just container
+    /// THREE-TIER TIMING: NULL during Deferred, resolved from RouteFilter during activation
     /// </summary>
     public RouteOption Route { get; set; }
 

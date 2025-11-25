@@ -23,8 +23,6 @@ public static class LocationActionParser
             Name = dto.Name,
             Description = dto.Description,
             ActionType = actionType,  // Strongly typed enum
-            Costs = ParseCosts(dto.Cost),
-            Rewards = ParseRewards(dto.Reward),
             TimeRequired = dto.TimeRequired,
             Availability = ParseTimeBlocks(dto.Availability),
             Priority = dto.Priority,
@@ -58,35 +56,6 @@ public static class LocationActionParser
         }
 
         return result;
-    }
-
-    private static ActionCosts ParseCosts(ActionCostsDTO dto)
-    {
-        if (dto == null)
-            return ActionCosts.None();
-
-        return new ActionCosts
-        {
-            Coins = dto.Coins,
-            Focus = dto.Focus,
-            Stamina = dto.Stamina,
-            Health = dto.Health
-        };
-    }
-
-    private static ActionRewards ParseRewards(ActionRewardsDTO dto)
-    {
-        if (dto == null)
-            return ActionRewards.None();
-
-        return new ActionRewards
-        {
-            CoinReward = dto.Coins,
-            HealthRecovery = dto.Health,
-            FocusRecovery = dto.Focus,
-            StaminaRecovery = dto.Stamina,
-            FullRecovery = dto.FullRecovery
-        };
     }
 
     private static void ValidateRequiredFields(LocationActionDTO dto)

@@ -201,16 +201,18 @@ public class HexRouteGenerator
     }
 
     /// <summary>
-    /// Spawn scenes for all Encounter-type segments on the route
-    /// Filters SceneTemplates by PlacementType=Route, terrain, and danger
-    /// Creates Active scenes directly (not provisional - routes are permanent)
+    /// TODO: Route encounter spawning needs architectural redesign
     /// </summary>
     private void SpawnEncounterScenes(RouteOption route)
     {
+        // DISABLED
+        return;
+
+        /*
         if (route.Segments == null || route.Segments.Count == 0)
             return;
 
-        // Get all SceneTemplates with Route placement (hierarchical placement model)
+        // DELETED: BaseRouteFilter no longer exists
         List<SceneTemplate> routeTemplates = _gameWorld.SceneTemplates
             .Where(template => template.BaseRouteFilter != null)
             .ToList();
@@ -252,16 +254,21 @@ public class HexRouteGenerator
                 // No need to store instance reference on RouteSegment
             }
         }
+        */
     }
 
     /// <summary>
-    /// Filter SceneTemplates by terrain and danger using PlacementFilter
+    /// TODO: Disabled - needs architectural redesign
     /// </summary>
     private List<SceneTemplate> FilterSceneTemplatesByTerrainAndDanger(
         List<SceneTemplate> templates,
         TerrainType segmentTerrain,
         int segmentDanger)
     {
+        // DISABLED
+        return new List<SceneTemplate>();
+
+        /*
         List<SceneTemplate> matching = new List<SceneTemplate>();
 
         foreach (SceneTemplate template in templates)
@@ -288,6 +295,7 @@ public class HexRouteGenerator
         }
 
         return matching;
+        */
     }
 
     /// <summary>
@@ -368,13 +376,13 @@ public class HexRouteGenerator
         // PROCEDURAL CONTENT TRACING: Record travel scene spawn
         if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
         {
-            Player player = _gameWorld.GetPlayer();
             SceneSpawnNode sceneNode = _gameWorld.ProceduralTracer.RecordSceneSpawn(
                 scene,
                 scene.TemplateId,
                 false, // isProcedurallyGenerated = false (authored template, but travel-triggered)
                 SpawnTriggerType.DayTransition, // Travel scenes spawn during route travel
-                player
+                _gameWorld.CurrentDay,
+                _gameWorld.CurrentTimeBlock
             );
 
             // Record all embedded situations as children of this scene

@@ -38,6 +38,7 @@ public static class LocationActionCatalog
         Console.WriteLine($"[LocationActionCatalog] Capabilities: {location.Capabilities}");
 
         // Crossroads capability → Travel action (opens route selection screen)
+        // ATMOSPHERIC ACTION (FALLBACK SCENE): No ChoiceTemplate, free action (no costs/rewards)
         if (location.Capabilities.HasFlag(LocationCapability.Crossroads))
         {
             Console.WriteLine($"[LocationActionCatalog] ✅ Crossroads found - generating Travel action");
@@ -47,8 +48,9 @@ public static class LocationActionCatalog
                 Name = "Travel to Another Location",
                 Description = "Select a route to travel to another location",
                 ActionType = LocationActionType.Travel,
-                Costs = ActionCosts.None(),
-                Rewards = ActionRewards.None(),
+                Costs = new ActionCosts(),  // Free action (no costs)
+                Rewards = new ActionRewards(),  // No rewards (opens travel screen)
+                TimeRequired = 0,  // No time cost for initiating travel
                 RequiredCapabilities = LocationCapability.Crossroads,
                 OptionalCapabilities = LocationCapability.None,
                 ExcludedCapabilities = LocationCapability.None,
@@ -147,14 +149,21 @@ public static class LocationActionCatalog
         }
 
         // Find ADJACENT locations in the same venue (7-hex cluster pattern)
-        List<Location> adjacentSameVenueLocations = allLocations
-            .Where(l =>
-                // ADR-007: Use Venue object reference instead of deleted VenueId
-                l.Venue == location.Venue &&  // Same venue (7-hex cluster)
-                l != location &&  // Different location (object reference comparison)
-                l.HexPosition.HasValue &&  // Destination must have hex position
-                AreHexesAdjacent(location.HexPosition.Value, l.HexPosition.Value))  // Must be adjacent hexes
-            .ToList();
+        List<Location> adjacentSameVenueLocations = new List<Location>();
+        foreach (Location candidate in allLocations)
+        {
+            if (candidate == location) continue; // Skip self
+
+            bool venueMatch = candidate.Venue == location.Venue;
+            bool hasHex = candidate.HexPosition.HasValue;
+            bool adjacent = hasHex && AreHexesAdjacent(location.HexPosition.Value, candidate.HexPosition.Value);
+
+            // Apply filter: same venue AND has hex AND adjacent
+            if (venueMatch && hasHex && adjacent)
+            {
+                adjacentSameVenueLocations.Add(candidate);
+            }
+        }
 
         // Only generate if there are adjacent locations in same venue
         if (!adjacentSameVenueLocations.Any())
@@ -197,5 +206,17 @@ public static class LocationActionCatalog
         return (dq == 1 && dr == 0) ||  // Horizontal neighbors
                (dq == 0 && dr == 1) ||  // Vertical neighbors
                (dq == 1 && dr == 1);    // Diagonal neighbors
+    }
+
+    /// <summary>
+    /// Calculate hex distance in axial coordinates for debugging.
+    /// Manhattan distance in axial hex grid.
+    /// </summary>
+    private static int CalculateHexDistance(AxialCoordinates hex1, AxialCoordinates hex2)
+    {
+        int dq = Math.Abs(hex1.Q - hex2.Q);
+        int dr = Math.Abs(hex1.R - hex2.R);
+        int ds = Math.Abs((hex1.Q + hex1.R) - (hex2.Q + hex2.R));
+        return Math.Max(Math.Max(dq, dr), ds);
     }
 }

@@ -43,7 +43,7 @@ public class ExchangeOrchestrator
             Npc = npc,
             Location = npc.Location, // Capture location where exchange happening
             AvailableExchanges = availableExchanges,
-            StartTime = DateTime.Now,
+            StartedAt = DateTime.Now,
             IsActive = true
         };
 

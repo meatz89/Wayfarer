@@ -38,6 +38,31 @@ public class Scene
     // Scene is narrative container with no specific placement
     // Each Situation has Location/Npc/Route properties
 
+    // ==================== ACTIVATION FILTERS (TRIGGER CONDITIONS) ====================
+    // Determines WHEN scene activates (Deferred → Active transition)
+    // Evaluated BEFORE entity resolution using categorical matching only
+    // Separate from situation placement filters (evaluated AFTER activation)
+
+    /// <summary>
+    /// Location activation filter - categorical properties that trigger scene activation
+    /// CheckAndActivateDeferredScenes evaluates this filter against player's current location
+    /// null = no location-based activation (use NPC or other trigger)
+    /// Evaluated before entity resolution (categorical matching: Privacy, Safety, Activity, Purpose)
+    /// Separate from Situation.LocationFilter which determines WHERE situation happens (always explicit per-situation)
+    /// Copied from SceneTemplate.LocationActivationFilter at spawn time
+    /// </summary>
+    public PlacementFilter LocationActivationFilter { get; set; }
+
+    /// <summary>
+    /// NPC activation filter - categorical properties that trigger scene activation
+    /// CheckAndActivateDeferredScenesForNPC evaluates this filter against NPCs at player's location
+    /// null = no NPC-based activation (use Location or other trigger)
+    /// Evaluated before entity resolution (categorical matching: PersonalityType, BondStrength, etc.)
+    /// Separate from Situation.NpcFilter which determines WHO situation involves (always explicit per-situation)
+    /// Copied from SceneTemplate.NpcActivationFilter at spawn time
+    /// </summary>
+    public PlacementFilter NpcActivationFilter { get; set; }
+
     // ==================== PRESENTATION PROPERTIES ====================
 
     /// <summary>
@@ -113,17 +138,17 @@ public class Scene
 
     /// <summary>
     /// Scene state in lifecycle
-    /// Provisional: Created eagerly for perfect information, not yet finalized
-    /// Active: Available for player interaction
+    /// Deferred: Created but not yet activated, dependent resources not spawned
+    /// Active: Available for player interaction, dependent resources spawned
     /// Completed: All relevant Situations finished
     /// </summary>
-    public SceneState State { get; set; } = SceneState.Active;
+    public SceneState State { get; set; } = SceneState.Deferred;
 
     /// <summary>
-    /// Source Situation that spawned this provisional Scene (for cleanup tracking)
-    /// Set during provisional Scene creation in SceneInstantiator
-    /// When action selected, all provisional Scenes from same Situation are deleted (except finalized ones)
-    /// null for finalized Scenes or manually-authored Scenes
+    /// Source Situation that spawned this deferred Scene (for cleanup tracking)
+    /// Set during deferred Scene creation in SceneInstantiator
+    /// When action selected, all deferred Scenes from same Situation are deleted (except activated ones)
+    /// null for activated Scenes or manually-authored Scenes
     /// HIGHLANDER: Object reference ONLY, no SourceSituationId
     /// </summary>
     public Situation SourceSituation { get; set; }

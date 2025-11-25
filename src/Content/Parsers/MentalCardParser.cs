@@ -20,9 +20,11 @@ public class MentalCardParser
         Method method = ParseMethod(dto.Method, dto.Id);
         MentalCategory category = ParseCategory(dto.ClueType, dto.Id);  // FIXED: Use ClueType from JSON
         PlayerStatType boundStat = ParseStat(dto.BoundStat, dto.Id);
+        ObligationDiscipline discipline = ObligationDiscipline.Research;  // Fixed value until JSON needs variation
 
-        // AttentionCost ALWAYS calculated from catalog (no JSON override)
-        int attentionCost = MentalCardEffectCatalog.GetAttentionCostFromDepth(dto.Depth);
+        // Calculate ALL base effects from categorical properties via catalog (single call)
+        MentalBaseEffects baseEffects = MentalCardEffectCatalog.GetBaseEffectsFromProperties(
+            discipline, category, method, boundStat, dto.Depth);
 
         // Parse stat requirements
         Dictionary<PlayerStatType, int> statThresholds = new Dictionary<PlayerStatType, int>();
@@ -43,12 +45,12 @@ public class MentalCardParser
             Description = dto.Description,
             Depth = dto.Depth,
             BoundStat = boundStat,
-            AttentionCost = attentionCost,
+            AttentionCost = baseEffects.BaseAttentionCost,
             Method = method,
             Category = category,
 
             // Universal properties - catalog provides defaults (not JSON)
-            Discipline = ObligationDiscipline.Research,  // Fixed value until JSON needs variation
+            Discipline = discipline,
             ExertionLevel = ExertionLevel.Light,  // Fixed value until JSON needs variation
             MethodType = MethodType.Direct,  // Fixed value until JSON needs variation
 
@@ -56,9 +58,9 @@ public class MentalCardParser
             CoinCost = MentalCardEffectCatalog.GetCoinCost(category, dto.Depth),
             XPReward = MentalCardEffectCatalog.GetXPReward(dto.Depth),
 
-            // BASE EFFECTS CALCULATED AT PARSE TIME (no runtime catalogue calls!)
-            BaseProgress = MentalCardEffectCatalog.GetProgressFromProperties(dto.Depth, category),
-            BaseExposure = MentalCardEffectCatalog.GetExposureFromProperties(dto.Depth, method),
+            // BASE EFFECTS FROM CATALOG (includes category modifiers)
+            BaseProgress = baseEffects.BaseProgress,
+            BaseExposure = baseEffects.BaseExposure,
 
             // Requirements
             EquipmentCategory = EquipmentCategory.None,  // Fixed value until JSON needs variation

@@ -128,7 +128,7 @@ public class ExchangeFacade
                         IsValid = validation.IsValid,
                         IsVisible = validation.IsVisible,
                         ValidationMessage = validation.ValidationMessage,
-                        RequirementDetails = string.Join(", ", validation.MissingRequirements)
+                        MissingRequirements = validation.MissingRequirements
                     }
                 });
             }

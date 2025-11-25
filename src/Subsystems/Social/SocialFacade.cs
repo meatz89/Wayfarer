@@ -211,7 +211,6 @@ public class SocialFacade
         // 1. Apply Cadence Effects
         ProcessCadenceEffectsOnListen(_gameWorld.CurrentSocialSession);
 
-        // DELETED: Doubt Tax system - not in specification
 
         // 3. Handle Card Persistence
         ProcessCardPersistence(_gameWorld.CurrentSocialSession);
@@ -427,6 +426,7 @@ public class SocialFacade
 
     /// <summary>
     /// Create a conversation context for UI - returns typed context
+    /// NOTE: NPC-triggered scene activation is orchestrated by GameFacade BEFORE calling this method
     /// </summary>
     public async Task<SocialChallengeContext> CreateConversationContext(NPC npc, Situation situation)
     {

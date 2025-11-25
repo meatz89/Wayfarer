@@ -29,9 +29,4 @@ public class SocialCardDTO
     public string ConnectionType { get; set; } // Token type (Trust/Diplomacy/Status/Shadow) - defaults to Trust
     public CardEffectsDTO Effects { get; set; } // Legacy effects structure - returns None if null
     public Dictionary<string, int> TokenRequirement { get; set; } // Signature card requirements - empty dict if null
-
-    // DEPRECATED FIELDS REMOVED (0% frequency in JSON, truly unused):
-    // - MinimumTokensRequired → parser used ?? 0 to hide bugs, deleted
-    // - NpcSpecific → parsed but never meaningfully used, deleted
-    // - SecretsGranted → parser used ?? new List() to hide bugs, deleted
 }

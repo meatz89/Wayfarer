@@ -43,6 +43,7 @@ public class PackageLoader
     /// <summary>
     /// Load static packages in alphabetical/numerical order
     /// Used at game startup for deterministic content loading
+    /// PACKAGE-ROUND TRACKING: Accumulates results from all packages, initializes spatial systems ONCE
     /// </summary>
     public void LoadStaticPackages(List<string> packageFilePaths)
     {
@@ -50,6 +51,9 @@ public class PackageLoader
         List<string> sortedPackages = packageFilePaths
             .OrderBy(f => Path.GetFileName(f))
             .ToList();
+
+        // Accumulate results from all packages
+        List<PackageLoadResult> allResults = new List<PackageLoadResult>();
 
         // Load each package sequentially
         foreach (string packagePath in sortedPackages)
@@ -69,23 +73,32 @@ public class PackageLoader
             if (package.PackageId != null && _loadedPackageIds.Contains(package.PackageId))
             {
                 continue;
-            }// Track as loaded
+            }
+
+            // Track as loaded
             if (package.PackageId != null)
             {
                 _loadedPackageIds.Add(package.PackageId);
             }
 
-            // Load with no skeletons allowed for static content
-            LoadPackageContent(package, allowSkeletons: false);
+            // Load with no skeletons allowed for static content, accumulate result
+            PackageLoadResult result = LoadPackageContent(package, allowSkeletons: false);
+            allResults.Add(result);
         }
+
+        // Aggregate all entities across all packages
+        List<Venue> allVenues = allResults.SelectMany(r => r.VenuesAdded).ToList();
+        List<Location> allLocations = allResults.SelectMany(r => r.LocationsAdded).ToList();
+
+        Console.WriteLine($"[PackageLoader] Aggregated {allVenues.Count} venues and {allLocations.Count} locations from {allResults.Count} packages");
 
         // HIGHLANDER: Procedural venue placement for ALL authored venues (single algorithm)
         // Must happen BEFORE location placement because locations need venue.CenterHex
-        PlaceAllAuthoredVenues();
+        PlaceVenues(allVenues);
 
         // HIGHLANDER: Procedural hex placement for ALL locations (single algorithm)
         // Must happen AFTER venue placement and BEFORE hex sync because it sets Location.HexPosition
-        PlaceAllLocations();
+        PlaceLocations(allLocations);
 
         // PURE PROCEDURAL VALIDATION: Spatial venue assignment verification
         // Validates that PlaceLocation() assigned venues correctly (hex within venue territory)
@@ -93,7 +106,7 @@ public class PackageLoader
 
         // HEX-BASED TRAVEL SYSTEM: Sync hex positions ONCE after all packages loaded
         // CRITICAL: Must happen after ALL packages because hex grid and locations may be in different packages
-        // CRITICAL: Must happen AFTER PlaceAllLocations because it syncs existing HexPositions
+        // CRITICAL: Must happen AFTER PlaceLocations because it syncs existing HexPositions
         SyncLocationHexPositions();
         EnsureHexGridCompleteness();
 
@@ -121,9 +134,13 @@ public class PackageLoader
 
     /// <summary>
     /// Load package content with optional skeleton support
+    /// Returns PackageLoadResult tracking all entities added during THIS package load round
     /// </summary>
-    private void LoadPackageContent(Package package, bool allowSkeletons)
+    private PackageLoadResult LoadPackageContent(Package package, bool allowSkeletons)
     {
+        // Create result to track entities from THIS round
+        PackageLoadResult result = new PackageLoadResult { PackageId = package.PackageId ?? "unknown" };
+
         // Set current package ID for error reporting
         if (string.IsNullOrEmpty(package.PackageId))
             throw new InvalidDataException("Package missing required field 'PackageId'");
@@ -136,7 +153,7 @@ public class PackageLoader
             _isFirstPackage = false;
         }
 
-        if (package.Content == null) return;
+        if (package.Content == null) return result;
 
         // Load in strict dependency order
         // 1. Foundation entities (no dependencies)
@@ -146,13 +163,20 @@ public class PackageLoader
         LoadListenDrawCounts(package.Content.ListenDrawCounts);
         LoadStates(package.Content.States, allowSkeletons); // Scene-Situation: State definitions
         LoadAchievements(package.Content.Achievements, allowSkeletons); // Scene-Situation: Achievement definitions
-        LoadRegions(package.Content.Regions, allowSkeletons);
-        LoadDistricts(package.Content.Districts, allowSkeletons);
-        LoadItems(package.Content.Items, allowSkeletons);
+
+        // Spatial hierarchy: Load in dependency order with immediate ID→object resolution
+        // Build lookup: DTO Id → created Region object
+        Dictionary<string, Region> regionLookup = LoadRegions(package.Content.Regions, allowSkeletons);
+        // Load Districts, resolving regionId → Region object immediately
+        Dictionary<string, District> districtLookup = LoadDistricts(package.Content.Districts, regionLookup, allowSkeletons);
+
+        LoadItems(package.Content.Items, result, allowSkeletons);
 
         // 2. Venues and Locations (may reference regions/districts and hex grid)
-        LoadLocations(package.Content.Venues, allowSkeletons);
-        LoadLocations(package.Content.Locations, allowSkeletons);
+        // Load Venues, resolving districtId → District object immediately
+        LoadLocations(package.Content.Venues, districtLookup, result, allowSkeletons);
+        LoadLocations(package.Content.Locations, result, allowSkeletons);
+
         // NOTE: HexSync, HexGridCompleteness, and Validation moved to LoadStaticPackages
         // These must run AFTER all packages loaded (hex grid might be in different package than locations)
 
@@ -160,20 +184,20 @@ public class PackageLoader
         // CATALOGUE PATTERN: Generate actions from categorical properties (PARSE TIME ONLY)
 
         // 3. Cards (foundation for NPCs and conversations)
-        LoadSocialCards(package.Content.SocialCards, allowSkeletons);
-        LoadMentalCards(package.Content.MentalCards, allowSkeletons);
-        LoadPhysicalCards(package.Content.PhysicalCards, allowSkeletons);
+        LoadSocialCards(package.Content.SocialCards, result, allowSkeletons);
+        LoadMentalCards(package.Content.MentalCards, result, allowSkeletons);
+        LoadPhysicalCards(package.Content.PhysicalCards, result, allowSkeletons);
 
         // THREE PARALLEL TACTICAL CHALLENGE SYSTEMS - Decks only, no Types
-        LoadSocialChallengeDecks(package.Content.SocialChallengeDecks, allowSkeletons);
-        LoadMentalChallengeDecks(package.Content.MentalChallengeDecks, allowSkeletons);
-        LoadPhysicalChallengeDecks(package.Content.PhysicalChallengeDecks, allowSkeletons);
+        LoadSocialChallengeDecks(package.Content.SocialChallengeDecks, result, allowSkeletons);
+        LoadMentalChallengeDecks(package.Content.MentalChallengeDecks, result, allowSkeletons);
+        LoadPhysicalChallengeDecks(package.Content.PhysicalChallengeDecks, result, allowSkeletons);
 
         // 3.5 Obligation Templates (strategic multi-phase activities)
         LoadObligations(package.Content.Obligations, allowSkeletons);
         LoadSituations(package.Content.Situations, allowSkeletons);
-        LoadSceneTemplates(package.Content.SceneTemplates, allowSkeletons); // NEW: Scene-Situation architecture templates
-        LoadScenes(package.Content.Scenes, allowSkeletons); // NEW: Scene runtime instances (dynamically spawned)
+        LoadSceneTemplates(package.Content.SceneTemplates, result, allowSkeletons); // NEW: Scene-Situation architecture templates
+        LoadScenes(package.Content.Scenes, result, allowSkeletons); // NEW: Scene runtime instances (dynamically spawned)
 
         // 3.6 Screen Expansion Systems (conversation trees, observation scenes, emergencies)
         LoadConversationTrees(package.Content.ConversationTrees, allowSkeletons);
@@ -181,11 +205,11 @@ public class PackageLoader
         LoadEmergencySituations(package.Content.EmergencySituations, allowSkeletons);
 
         // 4. NPCs (reference locations, Locations, and cards)
-        LoadNPCs(package.Content.Npcs, allowSkeletons);
+        LoadNPCs(package.Content.Npcs, result, allowSkeletons);
         LoadStrangers(package.Content.Strangers, allowSkeletons);
 
         // 5. Routes (reference Locations which now have VenueId set)
-        LoadRoutes(package.Content.Routes, allowSkeletons);
+        LoadRoutes(package.Content.Routes, result, allowSkeletons);
         // NOTE: Route generation and job generation moved to LoadStaticPackages() - runs ONCE after all packages loaded
 
         // 6. Relationship entities (depend on NPCs and cards)
@@ -205,8 +229,7 @@ public class PackageLoader
         LoadTravelEvents(package.Content.TravelEvents, eventCardLookup, allowSkeletons);
         LoadEventCollections(package.Content.PathCardCollections, pathCardLookup, eventCardLookup, allowSkeletons);
 
-        // 9. V2 Obligation and Travel Systems
-        LoadTravelScenes(package.Content.TravelScenes, allowSkeletons);
+        return result;
     }
 
     /// <summary>
@@ -287,16 +310,18 @@ public class PackageLoader
         // Track as loaded
         _loadedPackageIds.Add(package.PackageId);
 
-        // Load with skeletons allowed for dynamic content
-        LoadPackageContent(package, allowSkeletons: true);
+        // Load with skeletons allowed for dynamic content, get result
+        PackageLoadResult result = LoadPackageContent(package, allowSkeletons: true);
+
+        Console.WriteLine($"[PackageLoader] Dynamic package loaded: {result.VenuesAdded.Count} venues, {result.LocationsAdded.Count} locations, {result.ScenesAdded.Count} scenes");
 
         // HIGHLANDER: Place any new venues added by this dynamic package
         // Runtime-generated venues may need procedural placement
-        PlaceAllAuthoredVenues();
+        PlaceVenues(result.VenuesAdded);
 
         // HIGHLANDER: Place any new locations added by this dynamic package
         // Scene-generated locations must have hex positions assigned
-        PlaceAllLocations();
+        PlaceLocations(result.LocationsAdded);
 
         // PURE PROCEDURAL VALIDATION: Verify spatial venue assignments
         ValidateVenueAssignmentsSpatially();
@@ -638,9 +663,10 @@ public class PackageLoader
         }
     }
 
-    private void LoadRegions(List<RegionDTO> regionDtos, bool allowSkeletons)
+    private Dictionary<string, Region> LoadRegions(List<RegionDTO> regionDtos, bool allowSkeletons)
     {
-        if (regionDtos == null) return;
+        Dictionary<string, Region> lookup = new Dictionary<string, Region>();
+        if (regionDtos == null) return lookup;
 
         foreach (RegionDTO dto in regionDtos)
         {
@@ -649,7 +675,7 @@ public class PackageLoader
                 // Region uses Name as natural key (no Id property)
                 Name = dto.Name,
                 Description = dto.Description,
-                // Districts property resolved in second pass (LinkRegionDistrictReferences)
+                // Districts added later when LoadDistricts processes district → region links
                 Tier = dto.Tier,
                 Government = dto.Government,
                 Culture = dto.Culture,
@@ -658,30 +684,51 @@ public class PackageLoader
                 MajorImports = dto.MajorImports
             };
             _gameWorld.Regions.Add(region);
+            lookup[dto.Id] = region;  // Store DTO Id → Entity mapping
         }
+
+        return lookup;
     }
 
-    private void LoadDistricts(List<DistrictDTO> districtDtos, bool allowSkeletons)
+    private Dictionary<string, District> LoadDistricts(List<DistrictDTO> districtDtos, Dictionary<string, Region> regionLookup, bool allowSkeletons)
     {
-        if (districtDtos == null) return;
+        Dictionary<string, District> lookup = new Dictionary<string, District>();
+        if (districtDtos == null) return lookup;
 
         foreach (DistrictDTO dto in districtDtos)
         {
+            // Resolve Region reference immediately using lookup
+            Region? region = null;
+            if (!string.IsNullOrEmpty(dto.RegionId))
+            {
+                region = regionLookup.GetValueOrDefault(dto.RegionId);
+            }
+
             District district = new District
             {
                 // District uses Name as natural key (no Id property)
                 Name = dto.Name,
                 Description = dto.Description,
-                // Region and Venues properties resolved in second pass (LinkRegionDistrictReferences)
+                Region = region,  // Object reference resolved immediately
+                // Venues added later when LoadLocations processes venue → district links
                 DistrictType = dto.DistrictType,
                 DangerLevel = dto.DangerLevel,
                 Characteristics = dto.Characteristics
             };
             _gameWorld.Districts.Add(district);
+            lookup[dto.Id] = district;  // Store DTO Id → Entity mapping
+
+            // Bidirectional link: Add district to region's collection
+            if (region != null && !region.Districts.Contains(district))
+            {
+                region.Districts.Add(district);
+            }
         }
+
+        return lookup;
     }
 
-    private void LoadSocialCards(List<SocialCardDTO> cardDtos, bool allowSkeletons)
+    private void LoadSocialCards(List<SocialCardDTO> cardDtos, PackageLoadResult result, bool allowSkeletons)
     {
         if (cardDtos == null) return;
 
@@ -692,6 +739,7 @@ public class PackageLoader
                 // Use static method from ConversationCardParser
                 SocialCard card = SocialCardParser.ParseCard(dto);
                 _gameWorld.SocialCards.Add(card);
+                result.SocialCardsAdded.Add(card);
             }
             catch (Exception ex)
             {
@@ -707,7 +755,7 @@ public class PackageLoader
         SocialCardParser.ValidateFoundationCardRules(allCards);
     }
 
-    private void LoadMentalCards(List<MentalCardDTO> mentalCards, bool allowSkeletons)
+    private void LoadMentalCards(List<MentalCardDTO> mentalCards, PackageLoadResult result, bool allowSkeletons)
     {
         if (mentalCards == null) return;
 
@@ -716,10 +764,11 @@ public class PackageLoader
         {
             MentalCard card = parser.ParseCard(dto);
             _gameWorld.MentalCards.Add(card);
+            result.MentalCardsAdded.Add(card);
         }
     }
 
-    private void LoadPhysicalCards(List<PhysicalCardDTO> physicalCards, bool allowSkeletons)
+    private void LoadPhysicalCards(List<PhysicalCardDTO> physicalCards, PackageLoadResult result, bool allowSkeletons)
     {
         if (physicalCards == null) return;
 
@@ -728,10 +777,11 @@ public class PackageLoader
         {
             PhysicalCard card = parser.ParseCard(dto);
             _gameWorld.PhysicalCards.Add(card);
+            result.PhysicalCardsAdded.Add(card);
         }
     }
 
-    private void LoadSocialChallengeDecks(List<SocialChallengeDeckDTO> decks, bool allowSkeletons)
+    private void LoadSocialChallengeDecks(List<SocialChallengeDeckDTO> decks, PackageLoadResult result, bool allowSkeletons)
     {
         if (decks == null) return;
 
@@ -757,10 +807,11 @@ public class PackageLoader
             }
 
             _gameWorld.SocialChallengeDecks.Add(deck);
+            result.SocialChallengeDecksAdded.Add(deck);
         }
     }
 
-    private void LoadMentalChallengeDecks(List<MentalChallengeDeckDTO> decks, bool allowSkeletons)
+    private void LoadMentalChallengeDecks(List<MentalChallengeDeckDTO> decks, PackageLoadResult result, bool allowSkeletons)
     {
         if (decks == null) return;
 
@@ -783,10 +834,11 @@ public class PackageLoader
             }
 
             _gameWorld.MentalChallengeDecks.Add(deck);
+            result.MentalChallengeDecksAdded.Add(deck);
         }
     }
 
-    private void LoadPhysicalChallengeDecks(List<PhysicalChallengeDeckDTO> decks, bool allowSkeletons)
+    private void LoadPhysicalChallengeDecks(List<PhysicalChallengeDeckDTO> decks, PackageLoadResult result, bool allowSkeletons)
     {
         if (decks == null) return;
 
@@ -809,6 +861,7 @@ public class PackageLoader
             }
 
             _gameWorld.PhysicalChallengeDecks.Add(deck);
+            result.PhysicalChallengeDecksAdded.Add(deck);
         }
     }
 
@@ -826,9 +879,8 @@ public class PackageLoader
 
     private void LoadSituations(List<SituationDTO> situationDtos, bool allowSkeletons)
     {
-        // LEGACY CODE PATH - DEPRECATED
-        // Standalone situations no longer supported
-        // All situations are owned by Scenes and created by SceneInstantiator
+        // ARCHITECTURAL CONSTRAINT: Standalone situations not supported
+        // All situations must be owned by Scenes (created by SceneInstantiator)
         // If a package contains situations, they will be ignored
         if (situationDtos != null && situationDtos.Any())
         {
@@ -842,12 +894,19 @@ public class PackageLoader
     // - Scene templates live in GameWorld.SceneTemplates
     // - Scene instances live in GameWorld.Scenes (spawned dynamically)
 
-    private void LoadLocations(List<VenueDTO> venueDtos, bool allowSkeletons)
+    private void LoadLocations(List<VenueDTO> venueDtos, Dictionary<string, District> districtLookup, PackageLoadResult result, bool allowSkeletons)
     {
         if (venueDtos == null) return;
 
         foreach (VenueDTO dto in venueDtos)
         {
+            // Resolve District reference immediately using lookup
+            District? district = null;
+            if (!string.IsNullOrEmpty(dto.DistrictId))
+            {
+                district = districtLookup.GetValueOrDefault(dto.DistrictId);
+            }
+
             // Check if this venue was previously a skeleton - UPDATE IN-PLACE (never remove)
             Venue? existing = _gameWorld.Venues
                 .FirstOrDefault(v => v.Name == dto.Name);
@@ -857,7 +916,7 @@ public class PackageLoader
                 // UPDATE existing venue properties in-place (preserve object identity)
                 existing.Name = dto.Name;
                 existing.Description = dto.Description;
-                // District object reference resolved in second pass (LinkRegionDistrictVenueReferences)
+                existing.District = district;  // Object reference resolved immediately
                 existing.Tier = dto.Tier;
 
                 // Parse LocationType to VenueType enum
@@ -883,17 +942,34 @@ public class PackageLoader
                 {
                     _gameWorld.SkeletonRegistry.Remove(skeletonEntry);
                 }
+
+                // Track updated venue (skeleton replacement counts as "added" for THIS round)
+                result.VenuesAdded.Add(existing);
+
+                // Bidirectional link: Add venue to district's collection
+                if (district != null && !district.Venues.Contains(existing))
+                {
+                    district.Venues.Add(existing);
+                }
             }
             else
             {
-                // New venue - add to collection
+                // New venue - add to collection AND track in result
                 Venue venue = VenueParser.ConvertDTOToVenue(dto);
+                venue.District = district;  // Set district reference immediately
                 _gameWorld.Venues.Add(venue);
+                result.VenuesAdded.Add(venue);
+
+                // Bidirectional link: Add venue to district's collection
+                if (district != null && !district.Venues.Contains(venue))
+                {
+                    district.Venues.Add(venue);
+                }
             }
         }
     }
 
-    private void LoadLocations(List<LocationDTO> spotDtos, bool allowSkeletons)
+    private void LoadLocations(List<LocationDTO> spotDtos, PackageLoadResult result, bool allowSkeletons)
     {
         if (spotDtos == null) return;
 
@@ -940,6 +1016,9 @@ public class PackageLoader
 
                 // AddOrUpdateLocation handles skeleton replacement via in-place property updates
                 _gameWorld.AddOrUpdateLocation(location.Name, location);
+
+                // Track location in result (both new and updated)
+                result.LocationsAdded.Add(location);
             }
             else
             {
@@ -947,11 +1026,14 @@ public class PackageLoader
                 // Skip validation - happens after hex sync
                 _hexSync.SyncLocationToHex(location, _gameWorld);
                 _gameWorld.AddOrUpdateLocation(location.Name, location);
+
+                // Track location in result
+                result.LocationsAdded.Add(location);
             }
         }
     }
 
-    private void LoadNPCs(List<NPCDTO> npcDtos, bool allowSkeletons)
+    private void LoadNPCs(List<NPCDTO> npcDtos, PackageLoadResult result, bool allowSkeletons)
     {
         if (npcDtos == null) return;
 
@@ -998,17 +1080,21 @@ public class PackageLoader
                 {
                     _gameWorld.SkeletonRegistry.Remove(skeletonEntry);
                 }
+
+                // Track updated NPC (skeleton replacement counts as "added" for THIS round)
+                result.NPCsAdded.Add(existing);
             }
             else
             {
-                // New NPC - add to collection
+                // New NPC - add to collection AND track in result
                 NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld, entityResolver);
                 _gameWorld.NPCs.Add(npc);
+                result.NPCsAdded.Add(npc);
             }
         }
     }
 
-    private void LoadRoutes(List<RouteDTO> routeDtos, bool allowSkeletons)
+    private void LoadRoutes(List<RouteDTO> routeDtos, PackageLoadResult result, bool allowSkeletons)
     {
         if (routeDtos == null)
         {
@@ -1091,14 +1177,16 @@ public class PackageLoader
         {
             // Create the forward route from JSON
             RouteOption forwardRoute = ConvertRouteDTOToModel(dto);
-            _gameWorld.Routes.Add(forwardRoute);// Automatically generate the reverse route if CreateBidirectional is true
+            _gameWorld.Routes.Add(forwardRoute);
+            result.RoutesAdded.Add(forwardRoute);
+
+            // Automatically generate the reverse route if CreateBidirectional is true
             if (dto.CreateBidirectional)
             {
                 RouteOption reverseRoute = GenerateReverseRoute(forwardRoute);
                 _gameWorld.Routes.Add(reverseRoute);
+                result.RoutesAdded.Add(reverseRoute);
             }
-            else
-            { }
         }
     }
 
@@ -1247,27 +1335,20 @@ public class PackageLoader
                             npcExchangeCards.Add(exchangeCard);
                         }
                     }
-                    else
-                    { }
                 }
             }
             else if (npc.PersonalityType == PersonalityType.MERCANTILE)
             {
                 // Create default exchanges for mercantile NPCs without specific exchanges
                 npcExchangeCards = ExchangeParser.CreateDefaultExchangesForNPC(npc);
-                if (npcExchangeCards.Count > 0)
-                { }
             }
 
             // Initialize exchange deck
             npc.InitializeExchangeDeck(npcExchangeCards);
-
-            if (npcExchangeCards.Count > 0)
-            { }
         }
     }
 
-    private void LoadItems(List<ItemDTO> itemDtos, bool allowSkeletons)
+    private void LoadItems(List<ItemDTO> itemDtos, PackageLoadResult result, bool allowSkeletons)
     {
         if (itemDtos == null) return;
 
@@ -1275,6 +1356,7 @@ public class PackageLoader
         {
             Item item = ItemParser.ConvertDTOToItem(dto);
             _gameWorld.Items.Add(item);
+            result.ItemsAdded.Add(item);
         }
     }
 
@@ -1496,7 +1578,7 @@ public class PackageLoader
     private RouteOption GenerateReverseRoute(RouteOption forwardRoute)
     {
         // HIGHLANDER FIX: Use location.Name directly instead of location.Venue.Name
-        // Venues aren't assigned yet (happens in PlaceAllLocations which runs AFTER LoadRoutes)
+        // Venues aren't assigned yet (happens in PlaceLocations which runs AFTER LoadRoutes)
         // Use location names for route naming (clearer anyway - "Return to Town Square" not "Return to venue_123")
         string originLocationName = forwardRoute.OriginLocation.Name;
         string destLocationName = forwardRoute.DestinationLocation.Name;
@@ -1657,20 +1739,6 @@ public class PackageLoader
         }
     }
 
-    private void LoadTravelScenes(List<TravelSceneDTO> sceneDtos, bool allowSkeletons)
-    {
-        if (sceneDtos == null) return;
-
-        // STUBBED OUT: TravelScene parsing removed (legacy Scene architecture deleted)
-        // TravelScene functionality moved to Phase 5 (Scene initialization pipeline)
-        // TravelSceneParser parser = new TravelSceneParser();
-        // foreach (TravelSceneDTO dto in sceneDtos)
-        // {
-        //     TravelScene scene = parser.ParseTravelScene(dto);
-        //     _gameWorld.TravelScenes.Add(scene);
-        // }
-    }
-
     private void LoadConversationTrees(List<ConversationTreeDTO> conversationTrees, bool allowSkeletons)
     {
         if (conversationTrees == null) return;
@@ -1748,7 +1816,7 @@ public class PackageLoader
     /// Load SceneTemplate definitions - immutable archetypes for procedural narrative spawning
     /// Scene-Situation Architecture (Sir Brante integration)
     /// </summary>
-    private void LoadSceneTemplates(List<SceneTemplateDTO> sceneTemplateDtos, bool allowSkeletons)
+    private void LoadSceneTemplates(List<SceneTemplateDTO> sceneTemplateDtos, PackageLoadResult result, bool allowSkeletons)
     {
         if (sceneTemplateDtos == null) return;
 
@@ -1757,6 +1825,7 @@ public class PackageLoader
         {
             SceneTemplate template = parser.ParseSceneTemplate(dto);
             _gameWorld.SceneTemplates.Add(template);
+            result.SceneTemplatesAdded.Add(template);
         }
 
         // Only log when templates were actually loaded from this package (reduce log noise)
@@ -1771,7 +1840,7 @@ public class PackageLoader
     /// HIGHLANDER: JSON → PackageLoader → Parser → Entity (single instantiation path)
     /// Scenes are NEVER in static packages - only in dynamic packages generated at spawn time
     /// </summary>
-    private void LoadScenes(List<SceneDTO> sceneDtos, bool allowSkeletons)
+    private void LoadScenes(List<SceneDTO> sceneDtos, PackageLoadResult result, bool allowSkeletons)
     {
         if (sceneDtos == null) return;
 
@@ -1787,6 +1856,7 @@ public class PackageLoader
             // Scene has no placement properties - situations do
             Scene scene = SceneParser.ConvertDTOToScene(dto, _gameWorld, entityResolver);
             _gameWorld.Scenes.Add(scene);
+            result.ScenesAdded.Add(scene);
         }
 
         // Only log when scenes were actually loaded from this package
@@ -1801,17 +1871,23 @@ public class PackageLoader
     /// Called ONCE after all packages loaded, BEFORE location placement.
     /// Venues parsed WITHOUT centerHex, placement happens here using VenueGeneratorService.
     /// </summary>
-    private void PlaceAllAuthoredVenues()
+    private void PlaceVenues(List<Venue> venues)
     {
-        Console.WriteLine("[VenuePlacement] Starting procedural placement for all authored venues");
+        if (venues.Count == 0)
+        {
+            Console.WriteLine("[VenuePlacement] No venues to place (empty list provided)");
+            return;
+        }
 
-        // Get all authored venues (non-skeleton, non-runtime) that need placement
-        List<Venue> venuesToPlace = _gameWorld.Venues
+        Console.WriteLine($"[VenuePlacement] Starting procedural placement for {venues.Count} venues");
+
+        // Filter to authored venues only (non-skeleton, non-runtime)
+        List<Venue> venuesToPlace = venues
             .Where(v => !v.IsSkeleton) // Skip skeleton venues (runtime-generated)
             .OrderBy(v => v.Name) // Deterministic order
             .ToList();
 
-        Console.WriteLine($"[VenuePlacement] Found {venuesToPlace.Count} authored venues to place");
+        Console.WriteLine($"[VenuePlacement] Found {venuesToPlace.Count} authored venues to place (skipping {venues.Count - venuesToPlace.Count} skeleton venues)");
 
         // Use VenueGeneratorService to place venues deterministically
         VenueGeneratorService venueGenerator = new VenueGeneratorService(_hexSync);
@@ -1822,17 +1898,20 @@ public class PackageLoader
 
     /// <summary>
     /// PURE PROCEDURAL PLACEMENT: Place each location individually via categorical matching.
-    /// NO grouping by venue. Each location placed independently using:
-    /// - Categorical distance hint (distanceFromPlayer)
-    /// - Categorical properties (Purpose, Safety, Privacy, Activity)
-    /// - Player's current position
+    /// Receives explicit list of locations from current package load round.
+    /// NO GameWorld queries - processes ONLY locations from THIS round.
     /// Algorithm selects venue, assigns hex, and assigns venue atomically.
     /// HIGHLANDER: Single algorithm for ALL locations (authored + generated).
-    /// Called AFTER all packages loaded, BEFORE hex sync.
     /// </summary>
-    private void PlaceAllLocations()
+    private void PlaceLocations(List<Location> locations)
     {
-        Console.WriteLine("[LocationPlacement] Starting PURE PROCEDURAL placement for all locations");
+        if (locations.Count == 0)
+        {
+            Console.WriteLine("[LocationPlacement] No locations to place (empty list provided)");
+            return;
+        }
+
+        Console.WriteLine($"[LocationPlacement] Starting PURE PROCEDURAL placement for {locations.Count} locations");
 
         // Get player for distance calculations
         Player player = _gameWorld.GetPlayer();
@@ -1841,10 +1920,10 @@ public class PackageLoader
             throw new InvalidOperationException("Cannot place locations without Player - Player must be created before location placement");
         }
 
-        // Iterate each location individually (deterministic order by name)
-        List<Location> locations = _gameWorld.Locations.OrderBy(l => l.Name).ToList();
+        // Deterministic order by name
+        List<Location> orderedLocations = locations.OrderBy(l => l.Name).ToList();
 
-        foreach (Location location in locations)
+        foreach (Location location in orderedLocations)
         {
             // Get categorical distance hint (flows from JSON → DTO → Parser → here)
             string distanceHint = location.DistanceHintForPlacement ?? "medium"; // Default if missing
@@ -1852,25 +1931,25 @@ public class PackageLoader
             Console.WriteLine($"[LocationPlacement] Processing location '{location.Name}' with distance hint '{distanceHint}'");
 
             // Place location using pure procedural algorithm
-            // STUB in Phase 4, full 7-phase algorithm in Phase 6
             _locationPlacementService.PlaceLocation(location, distanceHint, player);
         }
 
-        Console.WriteLine($"[LocationPlacement] Completed PURE PROCEDURAL placement for {locations.Count} locations");
+        Console.WriteLine($"[LocationPlacement] Completed PURE PROCEDURAL placement for {orderedLocations.Count} locations");
 
-        // SCAFFOLDING CLEANUP: Clear temporary placement hints (no longer needed after placement)
-        foreach (Location location in locations)
+        // SCAFFOLDING CLEANUP: Clear temporary placement metadata (no longer needed after placement)
+        foreach (Location location in orderedLocations)
         {
             location.DistanceHintForPlacement = null;
+            location.ProximityConstraintForPlacement = null;
         }
-        Console.WriteLine("[LocationPlacement] Cleared temporary distance hints from all locations");
+        Console.WriteLine("[LocationPlacement] Cleared temporary placement metadata (distance hints + proximity constraints) from all locations");
     }
 
     /// <summary>
     /// PURE PROCEDURAL VALIDATION: Validates spatial venue assignments are correct.
     /// PlaceLocation() assigns venue atomically with hex position (PRIMARY assignment).
     /// This method VALIDATES that assignment (VERIFICATION only, not assignment).
-    /// Called AFTER PlaceAllLocations (locations have HexPosition + Venue), BEFORE hex sync.
+    /// Called AFTER PlaceLocations (locations have HexPosition + Venue), BEFORE hex sync.
     /// Fail-fast: Throws exception if any location violates spatial constraints.
     /// </summary>
     private void ValidateVenueAssignmentsSpatially()
@@ -1885,7 +1964,7 @@ public class PackageLoader
             if (!location.HexPosition.HasValue)
             {
                 throw new InvalidOperationException(
-                    $"Location '{location.Name}' has no HexPosition after PlaceAllLocations(). " +
+                    $"Location '{location.Name}' has no HexPosition after PlaceLocations(). " +
                     $"All locations must have hex positions assigned by placement algorithm.");
             }
 
@@ -1893,7 +1972,7 @@ public class PackageLoader
             if (location.Venue == null)
             {
                 throw new InvalidOperationException(
-                    $"Location '{location.Name}' has no Venue after PlaceAllLocations(). " +
+                    $"Location '{location.Name}' has no Venue after PlaceLocations(). " +
                     $"PlaceLocation() should have assigned venue atomically with hex position.");
             }
 

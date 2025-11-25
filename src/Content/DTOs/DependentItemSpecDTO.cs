@@ -13,18 +13,18 @@ public class DependentItemSpecDTO
     public string TemplateId { get; set; }
 
     /// <summary>
-    /// Name pattern with placeholders replaced by PlaceholderReplacer at finalization
-    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
-    /// Example: "Room Key"
+    /// Generic, descriptive name for generated item
+    /// Used as-is without AI generation until narrative system implemented
+    /// Example: "Room Key", "Bath Token", "Training Pass"
     /// </summary>
-    public string NamePattern { get; set; }
+    public string Name { get; set; }
 
     /// <summary>
-    /// Description pattern with placeholders replaced by PlaceholderReplacer at finalization
-    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
-    /// Example: "A key that unlocks access to {NPCName}'s private lodging room."
+    /// Generic, descriptive description for generated item
+    /// Used as-is without AI generation until narrative system implemented
+    /// Example: "A key that unlocks access to a private room."
     /// </summary>
-    public string DescriptionPattern { get; set; }
+    public string Description { get; set; }
 
     /// <summary>
     /// Item categories for classification

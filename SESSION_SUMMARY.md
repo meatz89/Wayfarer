@@ -341,14 +341,71 @@ Failed to complete negotiation with the server
 
 ---
 
-**Session Duration:** ~4 hours total (3 hours previous + 1 hour extended verification)
+### Phase 6: Extended A-Story Procedural Generation Testing ⚠️ CRITICAL ARCHITECTURAL DISCOVERY
+**Duration:** ~30 minutes
+**Status:** A1 verified, A2/A3/A4 blocked by missing procedural NPC generation
+
+**VERIFICATION RESULTS:**
+
+**✅ A1 "Secure Lodging" Scene - FULLY VERIFIED:**
+- Scene spawns correctly with `alwaysEligible: true`
+- "Look Around" mechanic confirmed mandatory (discovers Elena NPC)
+- Perfect information validated: All 4 choices show costs before selection
+  - "Chat warmly" → -5 Coins, +1 Rapport
+  - "Assert need" → -5 Coins, +1 Authority
+  - "Seek advantageous deal" → -5 Coins, +1 Cunning (selected)
+  - "Negotiate fairly" → -5 Coins, +1 Diplomacy
+- State updates verified: Coins 8→3, Cunning 0→1
+- Scene completes and returns to location
+
+**❌ A2 "Morning" Scene - NOT SPAWNING (BLOCKED):**
+
+**Root Cause Analysis:**
+```json
+"baseNpcFilter": {
+  "placementType": "NPC",
+  "professions": ["Merchant"]
+},
+"spawnConditions": {}
+```
+
+**Problem:** A2 requires NPC with profession="Merchant". No Merchant NPCs exist at starting location (Common Room). Available NPCs:
+- Elena: profession unknown (MERCANTILE demeanor ≠ Merchant profession)
+- Thomas: Warehouse foreman (not Merchant)
+
+**Server Logs Confirm:** A2 parsed (`mainStorySequence: 2`) but **never spawned** (no spawn event logged). Scene requires categorical NPC matching that current world state doesn't satisfy.
+
+**❌ A3 "Route Travel" / A4 Procedural - CANNOT TEST:**
+Cannot verify A3→A4 procedural transition without accessing A2 first. A-story appears to require **sequential progression through categorical scene spawning**, not automatic linear progression.
+
+**ARCHITECTURAL DISCOVERY:**
+
+**A-Story Is NOT Simple Linear Sequence:**
+- A1: Spawns with `alwaysEligible` (always available)
+- A2: Requires categorical NPC matching (procedural world must generate matching NPCs)
+- A3+: Unknown spawning conditions (blocked by A2)
+
+**Implication:** A-story tutorial relies on **procedural content generation** creating appropriate NPCs/locations for each scene's filters. This is sophisticated design but means linear A1→A2→A3→A4 testing requires:
+1. Procedural NPC generation system working correctly
+2. Merchant NPCs spawning in accessible locations
+3. Player exploration to discover appropriate contexts
+
+**Status:** A1 verified working. A2+ testing blocked pending procedural NPC generation implementation or manual content setup.
+
+---
+
+**Session Duration:** ~5 hours total (3 hours Phase 1-4 + 1 hour Phase 5 + 1 hour Phase 6)
 **Completion Status:**
 - Phase 1: ✅ COMPLETE - Automated smoke tests (all 5 tests passed)
 - Phase 2: ⏸️ REQUIRES HUMAN - Emotional arc validation (3-4 hours)
 - Phase 3: ✅ COMPLETE - Holistic playability fixes (all critical issues resolved)
 - Phase 4: ✅ COMPLETE - Visual polish and documentation
 - Phase 5: ⚠️ CRITICAL MECHANICS DISCOVERED - Documentation updated
+- Phase 6: ⚠️ A-STORY ARCHITECTURAL DISCOVERY - A1 verified, A2+ blocked
 
-**Ready for:** Human playtester to execute Phase 2 with updated procedures
-**Commit Status:** Updates pending commit
+**Ready for:**
+1. Human playtester to execute Phase 2 (emotional arc testing)
+2. Development work on procedural NPC generation for A2+ testing
+
+**Commit Status:** Phase 5+6 documentation updates pending commit
 **Latest Previous Commit:** 1f21ab28 - "Add PLAYTEST_INDEX.md: Central navigation hub"

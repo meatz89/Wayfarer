@@ -90,7 +90,6 @@ public class SceneFacade
                     ChoiceTemplate = choiceTemplate,
                     Situation = situation,
 
-                    // DELETED: Legacy properties - LocationAction.RequiredProperties/OptionalProperties/ExcludedProperties removed
                     // ChoiceTemplate holds all action metadata now
                     Costs = new ActionCosts(),
                     Rewards = new ActionRewards(),
@@ -354,15 +353,13 @@ public class SceneFacade
                 continue;
             }
 
-            // Hierarchical placement: Determine primary placement type from base filters
-            // Precedence order: Location > NPC > Route (most specific to least specific)
+            // Activation trigger: Determine primary activation type from activation filters
+            // Precedence order: Location > NPC (no route-based activation)
             PlacementType? primaryPlacementType = null;
-            if (template.BaseLocationFilter != null)
+            if (template.LocationActivationFilter != null)
                 primaryPlacementType = PlacementType.Location;
-            else if (template.BaseNpcFilter != null)
+            else if (template.NpcActivationFilter != null)
                 primaryPlacementType = PlacementType.NPC;
-            else if (template.BaseRouteFilter != null)
-                primaryPlacementType = PlacementType.Route;
 
             // Collect unique challenge types from situation templates
             List<TacticalSystemType> challengeTypes = template.SituationTemplates

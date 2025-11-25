@@ -77,28 +77,6 @@ public class LocationValidator : IContentValidator
             }
         }
 
-        // Type field removed - no longer needed
-
-        // Validate CurrentTimeBlocks array (capital C to match JSON)
-        if (location.TryGetProperty("CurrentTimeBlocks", out JsonElement timeBlocks) &&
-            timeBlocks.ValueKind == JsonValueKind.Array)
-        {
-            foreach (JsonElement timeBlock in timeBlocks.EnumerateArray())
-            {
-                if (timeBlock.ValueKind == JsonValueKind.String)
-                {
-                    string? timeStr = timeBlock.GetString();
-                    if (!string.IsNullOrEmpty(timeStr) &&
-                        !EnumParser.TryParse<TimeBlocks>(timeStr, out _))
-                    {
-                        errors.Add(new ValidationError(
-                            $"{fileName}:{LocationId}",
-                            $"Invalid time block: '{timeStr}'",
-                            ValidationSeverity.Warning));
-                    }
-                }
-            }
-        }
 
         // Validate domainTags array
         if (location.TryGetProperty("domainTags", out JsonElement domainTags) &&

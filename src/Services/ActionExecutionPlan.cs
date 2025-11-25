@@ -20,8 +20,8 @@ public class ActionExecutionPlan
     public int HungerCost { get; set; }  // Positive value increases hunger (exertion)
 
     // Rewards to apply (GameFacade routes to appropriate facade)
-    public ChoiceReward ChoiceReward { get; set; }
-    public ActionRewards LegacyRewards { get; set; }
+    public ChoiceReward ChoiceReward { get; set; }  // Scene-based actions
+    public ActionRewards DirectRewards { get; set; }  // Atmospheric actions
 
     // Execution routing
     public ChoiceActionType ActionType { get; set; }
@@ -31,7 +31,7 @@ public class ActionExecutionPlan
 
     // Action metadata
     public string ActionName { get; set; }
-    public bool IsLegacyAction { get; set; }
+    public bool IsAtmosphericAction { get; set; }  // Pattern discrimination flag
 
     public static ActionExecutionPlan Invalid(string reason)
     {

@@ -274,17 +274,4 @@ public class ExchangeValidationResult
     public bool CanAfford { get; set; }
     public string ValidationMessage { get; set; }
     public List<string> MissingRequirements { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Backward compatibility alias for MissingRequirements.
-    /// </summary>
-    public string RequirementDetails
-    {
-        get
-        {
-            return string.Join(", ", MissingRequirements);
-        }
-
-        set { }
-    }
 }

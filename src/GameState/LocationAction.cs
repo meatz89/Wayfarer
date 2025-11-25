@@ -50,12 +50,14 @@ public class LocationAction
     public LocationCapability ExcludedCapabilities { get; set; } = LocationCapability.None;
 
     /// <summary>
-    /// Resource costs required to perform this action
+    /// Resource costs required to perform this action (ATMOSPHERIC PATTERN)
+    /// Used when ChoiceTemplate is null (catalog-generated atmospheric actions)
     /// </summary>
     public ActionCosts Costs { get; set; } = new ActionCosts();
 
     /// <summary>
-    /// Resources rewarded for performing this action
+    /// Resources rewarded for performing this action (ATMOSPHERIC PATTERN)
+    /// Used when ChoiceTemplate is null (catalog-generated atmospheric actions)
     /// </summary>
     public ActionRewards Rewards { get; set; } = new ActionRewards();
 
@@ -91,20 +93,20 @@ public class LocationAction
     public Obligation Obligation { get; set; }
 
     /// <summary>
-    /// ChoiceTemplate source (Sir Brante layer - Scene-Situation architecture)
+    /// ChoiceTemplate source (SCENE-BASED PATTERN - Scene-Situation architecture)
     /// COMPOSITION not copy - access CompoundRequirement, ChoiceCost, ChoiceReward through this reference
     ///
-    /// null = Always-available action parsed directly from JSON (legacy pattern)
-    ///        Uses direct Costs/Rewards properties above
+    /// PATTERN DISCRIMINATION:
+    /// - IF ChoiceTemplate != null → SCENE-BASED action (use template costs/rewards)
+    /// - IF ChoiceTemplate == null → ATMOSPHERIC action (use direct Costs/Rewards properties)
     ///
-    /// non-null = Scene-spawned action generated from ChoiceTemplate at spawn time
-    ///            ChoiceTemplate provides:
-    ///            - RequirementFormula (CompoundRequirement with OR paths)
-    ///            - CostTemplate (ChoiceCost with Coins/Resolve/TimeSegments)
-    ///            - RewardTemplate (ChoiceReward with bonds/scales/states/scene spawns)
+    /// Scene-spawned actions generated from ChoiceTemplate at spawn time.
+    /// ChoiceTemplate provides:
+    /// - RequirementFormula (CompoundRequirement with OR paths)
+    /// - CostTemplate (ChoiceCost with Coins/Resolve/TimeSegments)
+    /// - RewardTemplate (ChoiceReward with bonds/scales/states/scene spawns)
     ///
-    /// Enables unified action execution: All actions check ChoiceTemplate if present,
-    /// fall back to direct properties if null (legacy coexistence pattern)
+    /// See DUAL_TIER_ACTION_ARCHITECTURE.md for complete explanation.
     /// </summary>
     public ChoiceTemplate ChoiceTemplate { get; set; }
 

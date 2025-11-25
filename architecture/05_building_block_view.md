@@ -292,6 +292,46 @@ Startup → GameWorldInitializer.CreateGameWorld()
        → Domain Objects → GameWorld Population
 ```
 
+### PackageLoadResult (Entity Tracking Structure)
+
+**Location**: `src/Content/PackageLoadResult.cs`
+
+**Purpose**: Track entities added during a single package load round to enforce package-round isolation principle.
+
+**Structure**: Class containing List properties for all entity types (Venues, Locations, NPCs, Items, Routes, Scenes, Cards, etc.). Each load round creates PackageLoadResult tracking ONLY entities from that specific package. Spatial initialization methods receive explicit entity lists from result instead of querying GameWorld collections.
+
+**Usage Scenarios**:
+
+**Static Loading (Startup):**
+```
+List<PackageLoadResult> allResults = new List<PackageLoadResult>();
+foreach (package in packages)
+{
+    allResults.Add(LoadPackageContent(package));
+}
+var allLocations = allResults.SelectMany(r => r.LocationsAdded).ToList();
+PlaceLocations(allLocations); // Initialize ONCE with all new locations
+```
+
+**Dynamic Loading (Runtime):**
+```
+PackageLoadResult result = LoadPackageContent(package);
+PlaceLocations(result.LocationsAdded); // Initialize IMMEDIATELY with new locations
+```
+
+**Key Properties**:
+- `List<Venue> VenuesAdded` - Venues from this package only
+- `List<Location> LocationsAdded` - Locations from this package only
+- `List<NPC> NPCsAdded` - NPCs from this package only
+- `List<Item> ItemsAdded` - Items from this package only
+- `List<RouteOption> RoutesAdded` - Routes from this package only
+- `List<Scene> ScenesAdded` - Scenes from this package only
+- ~20 total entity type lists
+
+**Architectural Enforcement**: Methods receiving explicit lists cannot re-process existing entities because they never receive them as parameters. Package isolation guaranteed by construction. No entity state checks needed - if entity in result, it's guaranteed uninitialized. HIGHLANDER principle enforced: one entity initialized exactly once during its originating package round.
+
+**Related**: See ADR-015 (Package-Round Entity Tracking) and Section 8.2.1 (HIGHLANDER - Package-Round Extension) for complete architectural rationale.
+
 ### Static Parser Layer
 
 **Parser Responsibilities**:

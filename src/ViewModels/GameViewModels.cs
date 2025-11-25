@@ -188,7 +188,6 @@ public class LocationContentViewModel
     public List<LocationActionViewModel> TravelActions { get; set; } = new();
     public List<LocationActionViewModel> LocationSpecificActions { get; set; } = new();
     public List<LocationActionViewModel> PlayerActions { get; set; } = new();
-    // REMOVED: HasSpots (intra-venue movement now data-driven from LocationActionCatalog)
 
     // LookingAround view data (NPCs with their social situations PRE-GROUPED)
     public List<NpcWithSituationsViewModel> NPCsWithSituations { get; set; } = new();

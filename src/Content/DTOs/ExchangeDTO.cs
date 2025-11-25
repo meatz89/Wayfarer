@@ -11,7 +11,6 @@ public class ExchangeDTO
     public int GiveAmount { get; set; }
     public string ReceiveCurrency { get; set; }
     public int ReceiveAmount { get; set; }
-    public string ReceiveItem { get; set; } // For specific item rewards (legacy single item)
     public Dictionary<string, int> TokenGate { get; set; }
 
     // Item costs and rewards (PRINCIPLE 4: Items as resource costs, not boolean gates)

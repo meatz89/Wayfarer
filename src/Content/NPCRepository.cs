@@ -12,12 +12,6 @@ public class NPCRepository
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _debugLogger = debugLogger; // Optional - can be null during initialization, used for debugging
         _visibilityService = visibilityService ?? throw new ArgumentNullException(nameof(visibilityService));
-
-        if (_gameWorld.GetCharacters() == null)
-        { }
-
-        if (!_gameWorld.GetCharacters().Any())
-        { }
     }
 
     #region Read Methods
@@ -83,12 +77,6 @@ public class NPCRepository
         }
         List<NPC> professionNpcs = npcs.Where(n => n.Profession == profession).ToList();
         return FilterByVisibility(professionNpcs);
-    }
-    public List<NPC> GetNPCsForLocationAndTimeDeprecated(Location location, TimeBlocks currentTime)
-    {
-        // DEPRECATED: Use GetNPCsForLocationAndTime instead
-        // This method is kept temporarily for compatibility
-        return GetNPCsForLocationAndTime(location, currentTime);
     }
 
     /// <summary>

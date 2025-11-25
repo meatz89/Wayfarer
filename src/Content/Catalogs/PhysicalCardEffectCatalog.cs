@@ -94,31 +94,6 @@ public static class PhysicalCardEffectCatalog
     }
 
     /// <summary>
-    /// Get base Progress from properties (used by resolver, not parser).
-    /// Temporary method for existing resolver compatibility.
-    /// </summary>
-    public static int GetProgressFromProperties(int depth, PhysicalCategory category)
-    {
-        // Simple calculation for now - use full calculation once parser updated
-        return depth switch
-        {
-            <= 2 => 2,
-            <= 4 => 5,
-            <= 6 => 9,
-            _ => 13
-        };
-    }
-
-    /// <summary>
-    /// Get base Danger from properties (used by resolver, not parser).
-    /// Temporary method for existing resolver compatibility.
-    /// </summary>
-    public static int GetDangerFromProperties(int depth, Approach approach)
-    {
-        return CalculateDanger(approach, depth);
-    }
-
-    /// <summary>
     /// Get Exertion cost from depth (called by parser).
     /// </summary>
     public static int GetExertionCostFromDepth(int depth)

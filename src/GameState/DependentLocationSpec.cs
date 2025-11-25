@@ -13,20 +13,18 @@ public class DependentLocationSpec
     public string TemplateId { get; set; }
 
     /// <summary>
-    /// Pattern for generating location name with placeholder replacement
-    /// Placeholders replaced at scene finalization by PlaceholderReplacer
-    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
-    /// Example: "{NPCName}'s Private Room", "Upper Floor of {LocationName}"
+    /// Location name (generic, descriptive)
+    /// Example: "Private Room", "Bath Chamber", "Training Grounds"
+    /// When AI narrative added, it will regenerate with full context
     /// </summary>
-    public string NamePattern { get; set; }
+    public string Name { get; set; }
 
     /// <summary>
-    /// Pattern for generating location description with placeholder replacement
-    /// Placeholders replaced at scene finalization by PlaceholderReplacer
-    /// Supported: {NPCName}, {LocationName}, {PlayerName}, {RouteName}
-    /// Example: "A quiet room reserved for {NPCName}'s guests."
+    /// Location description (generic, descriptive)
+    /// Example: "A private room for lodging."
+    /// When AI narrative added, it will regenerate with full context
     /// </summary>
-    public string DescriptionPattern { get; set; }
+    public string Description { get; set; }
 
     /// <summary>
     /// How to determine venue ID for generated location
@@ -67,6 +65,35 @@ public class DependentLocationSpec
     /// Defaults to false for generated private locations
     /// </summary>
     public bool CanInvestigate { get; set; } = false;
+
+    /// <summary>
+    /// REQUIRED categorical dimension: Privacy level of location
+    /// Valid values: "Public", "SemiPublic", "Private", "Restricted"
+    /// FAIL-FAST: Must be explicitly set, no defaults
+    /// </summary>
+    public string Privacy { get; set; }
+
+    /// <summary>
+    /// REQUIRED categorical dimension: Safety level of location
+    /// Valid values: "Dangerous", "Unsafe", "Neutral", "Safe", "Secure"
+    /// FAIL-FAST: Must be explicitly set, no defaults
+    /// </summary>
+    public string Safety { get; set; }
+
+    /// <summary>
+    /// REQUIRED categorical dimension: Activity level of location
+    /// Valid values: "Quiet", "Moderate", "Busy", "Crowded"
+    /// FAIL-FAST: Must be explicitly set, no defaults
+    /// </summary>
+    public string Activity { get; set; }
+
+    /// <summary>
+    /// REQUIRED categorical dimension: Purpose of location
+    /// Valid values: "Transit", "Dwelling", "Commerce", "Work", "Government", etc.
+    /// FAIL-FAST: Must be explicitly set, no defaults
+    /// Used by LocationPlacementService for venue matching
+    /// </summary>
+    public string Purpose { get; set; }
 }
 
 /// <summary>

@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Components;
 
+namespace Wayfarer.Pages.Components.SpawnTrace;
+
 /// <summary>
 /// Main viewer component for procedural content tracing
 /// Displays spawn graph as interactive tree with filtering

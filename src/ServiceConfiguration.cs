@@ -61,10 +61,11 @@ public static class ServiceConfiguration
         services.AddSingleton<SpawnFacade>();
         services.AddSingleton<RewardApplicationService>();
 
-        // Unified Action Architecture - Three Parallel Executors
+        // Unified Action Architecture - Executors (FALLBACK SCENE ARCHITECTURE)
+        // LocationActionExecutor: Validates atmospheric (fallback scene) actions
+        // SituationChoiceExecutor: Validates ALL ChoiceTemplate-based actions (HIGHLANDER)
         services.AddSingleton<LocationActionExecutor>();
-        services.AddSingleton<NPCActionExecutor>();
-        services.AddSingleton<PathCardExecutor>();
+        services.AddSingleton<SituationChoiceExecutor>();
 
         // Player exertion calculator for dynamic cost modifiers (required by Mental/Physical effect resolvers)
         services.AddSingleton<PlayerExertionCalculator>();

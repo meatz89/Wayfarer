@@ -120,54 +120,77 @@ public static class SceneParser
         }
 
         // =====================================================
+        // ACTIVATION FILTERS PARSING (TRIGGER CONDITIONS)
+        // =====================================================
+        // Parse activation filters that determine WHEN scene activates (Deferred → Active)
+        // Separate from situation placement filters (which determine WHERE situations happen)
+        // Evaluated BEFORE entity resolution using categorical matching only
+        PlacementFilter locationActivationFilter = null;
+        PlacementFilter npcActivationFilter = null;
+
+        if (dto.LocationActivationFilter != null)
+        {
+            string locationActivationContext = $"Scene:{dto.DisplayName}/LocationActivation";
+            locationActivationFilter = SceneTemplateParser.ParsePlacementFilter(
+                dto.LocationActivationFilter, locationActivationContext);
+        }
+
+        if (dto.NpcActivationFilter != null)
+        {
+            string npcActivationContext = $"Scene:{dto.DisplayName}/NpcActivation";
+            npcActivationFilter = SceneTemplateParser.ParsePlacementFilter(
+                dto.NpcActivationFilter, npcActivationContext);
+        }
+
+        // Store activation filters on Scene (not resolved, just stored for activation check)
+        scene.LocationActivationFilter = locationActivationFilter;
+        scene.NpcActivationFilter = npcActivationFilter;
+
+        // =====================================================
         // EMBEDDED SITUATIONS PARSING (Composition Pattern)
         // =====================================================
-        // Scene OWNS Situations - parse embedded situations with per-situation entity resolution
-        // CSS-STYLE INHERITANCE: Situation filters override scene base filters
+        // Scene OWNS Situations - parse filters (NO entity resolution at parse time)
+        // THREE-TIER TIMING: Filters stored here (Tier 1), entities resolved at activation (Tier 2)
+        // Each situation MUST specify explicit categorical filters - NO inheritance, NO fallback
         foreach (SituationDTO situationDto in dto.Situations)
         {
-            // System 4: Resolve entities with hierarchical placement inheritance
-            // Pattern: effectiveFilter = situationFilter ?? sceneBaseFilter
-            Location resolvedLocation = null;
-            NPC resolvedNpc = null;
-            RouteOption resolvedRoute = null;
+            // Parse PlacementFilters (explicit per-situation)
+            PlacementFilter locationFilter = null;
+            PlacementFilter npcFilter = null;
+            PlacementFilter routeFilter = null;
             int segmentIndex = 0; // Route segment placement for geographic specificity
 
-            // CSS-style fallback for location: situation override ?? scene base
-            PlacementFilterDTO effectiveLocationFilter = situationDto.LocationFilter ?? dto.LocationFilter;
-            if (effectiveLocationFilter != null)
+            // Parse location filter (MUST be explicit on situation)
+            if (situationDto.LocationFilter != null)
             {
                 string locationContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/Location";
-                PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(effectiveLocationFilter, locationContext);
-                resolvedLocation = entityResolver.FindOrCreateLocation(locationFilter);
+                locationFilter = SceneTemplateParser.ParsePlacementFilter(situationDto.LocationFilter, locationContext);
             }
 
-            // CSS-style fallback for NPC: situation override ?? scene base
-            PlacementFilterDTO effectiveNpcFilter = situationDto.NpcFilter ?? dto.NpcFilter;
-            if (effectiveNpcFilter != null)
+            // Parse NPC filter (MUST be explicit on situation)
+            if (situationDto.NpcFilter != null)
             {
                 string npcContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/NPC";
-                PlacementFilter npcFilter = SceneTemplateParser.ParsePlacementFilter(effectiveNpcFilter, npcContext);
-                resolvedNpc = entityResolver.FindOrCreateNPC(npcFilter);
+                npcFilter = SceneTemplateParser.ParsePlacementFilter(situationDto.NpcFilter, npcContext);
             }
 
-            // CSS-style fallback for route: situation override ?? scene base
-            PlacementFilterDTO effectiveRouteFilter = situationDto.RouteFilter ?? dto.RouteFilter;
-            if (effectiveRouteFilter != null)
+            // Parse route filter (MUST be explicit on situation)
+            if (situationDto.RouteFilter != null)
             {
                 string routeContext = $"Scene:{dto.DisplayName}/Situation:{situationDto.Name}/Route";
-                PlacementFilter routeFilter = SceneTemplateParser.ParsePlacementFilter(effectiveRouteFilter, routeContext);
-                resolvedRoute = entityResolver.FindOrCreateRoute(routeFilter);
+                routeFilter = SceneTemplateParser.ParsePlacementFilter(situationDto.RouteFilter, routeContext);
                 segmentIndex = routeFilter.SegmentIndex; // Capture segment placement from filter
             }
 
-            // System 5: Situation Instantiation with pre-resolved objects
+            // System 5: Situation Instantiation with NULL entity references (deferred resolution)
             Situation situation = SituationParser.ConvertDTOToSituation(
                 situationDto,
-                gameWorld,
-                resolvedLocation,
-                resolvedNpc,
-                resolvedRoute);
+                gameWorld);
+
+            // Store PlacementFilters for activation-time resolution (THREE-TIER TIMING)
+            situation.LocationFilter = locationFilter;
+            situation.NpcFilter = npcFilter;
+            situation.RouteFilter = routeFilter;
 
             // CRITICAL: Set composition relationship (Situation → ParentScene)
             situation.ParentScene = scene;
@@ -179,11 +202,21 @@ public static class SceneParser
             // SituationParser sets TemplateId but not Template object
             if (!string.IsNullOrEmpty(situation.TemplateId))
             {
+                // DEBUG: Log what we're searching for and what's available
+                Console.WriteLine($"[SceneParser] Looking for SituationTemplate '{situationDto.TemplateId}' in SceneTemplate '{template.Id}'");
+                Console.WriteLine($"[SceneParser] Available SituationTemplates: {string.Join(", ", template.SituationTemplates.Select(t => $"'{t.Id}'"))}");
+
                 situation.Template = template.SituationTemplates.FirstOrDefault(t => t.Id == situationDto.TemplateId);
+
+                // FAIL-FAST: Throw immediately instead of continuing with null
+                // Violating "LET IT CRASH" and "PLAYABILITY OVER COMPILATION" is forbidden
                 if (situation.Template == null)
                 {
-                    Console.WriteLine($"[SceneParser] WARNING: Situation '{situation.Name}' references TemplateId '{situationDto.TemplateId}' " +
-                        $"but no such template found in SceneTemplate '{template.Id}'");
+                    throw new InvalidDataException(
+                        $"[SceneParser] CRITICAL: Situation '{situation.Name}' references TemplateId '{situationDto.TemplateId}' " +
+                        $"but no such template found in SceneTemplate '{template.Id}'. " +
+                        $"Available templates: {string.Join(", ", template.SituationTemplates.Select(t => $"'{t.Id}'"))}. " +
+                        $"This indicates Parser-JSON-Entity Triangle violation: JSON contains misaligned TemplateId.");
                 }
             }
 
@@ -220,13 +253,13 @@ public static class SceneParser
         // =====================================================
         if (gameWorld.ProceduralTracer != null && gameWorld.ProceduralTracer.IsEnabled)
         {
-            Player player = gameWorld.GetPlayer();
             SceneSpawnNode sceneNode = gameWorld.ProceduralTracer.RecordSceneSpawn(
                 scene,
                 scene.TemplateId,
                 false, // isProcedurallyGenerated = false (authored content from JSON)
                 SpawnTriggerType.Initial,
-                player
+                gameWorld.CurrentDay,
+                gameWorld.CurrentTimeBlock
             );
 
             // Record all embedded situations as children of this scene

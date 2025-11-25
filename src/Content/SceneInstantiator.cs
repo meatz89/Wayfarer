@@ -16,7 +16,7 @@ using System.Text.Json;
 /// 4. Dependent resources: Generates LocationDTO/ItemDTO specs for self-contained scenes
 ///
 /// AI GENERATION INTEGRATION: SceneNarrativeService generates narratives during DTO generation
-/// Placeholders replaced before serialization to JSON
+/// Generic text used until AI narrative system implemented
 /// </summary>
 public class SceneInstantiator
 {
@@ -41,9 +41,172 @@ public class SceneInstantiator
     }
 
     /// <summary>
-    /// Generate complete scene package JSON from template
+    /// PHASE 1: Create deferred scene WITHOUT dependent resources
+    /// Generates JSON package with ONLY Scene + Situations (NO dependent locations/items)
+    /// Scene.State = "Deferred" (dependent resources not spawned yet)
     /// HIGHLANDER: Returns JSON string for ContentGenerationFacade to write, PackageLoaderFacade to load
     /// NEVER creates entities directly - only DTOs and JSON
+    /// </summary>
+    public string CreateDeferredScene(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
+    {
+        // Evaluate spawn conditions
+        bool isEligible = template.IsStarter || _spawnConditionsEvaluator.EvaluateAll(
+            template.SpawnConditions,
+            context.Player,
+            placementId: null
+        );
+
+        if (!isEligible)
+        {
+            Console.WriteLine($"[SceneInstantiator] Scene '{template.Id}' REJECTED by spawn conditions");
+            return null; // Scene not eligible - return null
+        }
+
+        // System 3: Generate Scene DTO with categorical specifications (NO resolution)
+        // CRITICAL: State = "Deferred" (not Active yet)
+        SceneDTO sceneDto = GenerateSceneDTO(template, spawnReward, context, isDeferredState: true);
+
+        // Generate Situation DTOs (entities reference by categories, no markers)
+        List<SituationDTO> situationDtos = GenerateSituationDTOs(template, sceneDto, context);
+        sceneDto.Situations = situationDtos;
+
+        // Build package with ONLY Scene + Situations (empty lists for dependent resources)
+        string packageJson = BuildScenePackage(sceneDto, new List<LocationDTO>(), new List<ItemDTO>());
+
+        Console.WriteLine($"[SceneInstantiator] Generated DEFERRED scene package '{sceneDto.Id}' with {situationDtos.Count} situations (State=Deferred, NO dependent resources)");
+
+        return packageJson;
+    }
+
+    /// <summary>
+    /// PHASE 2: Activate scene by spawning dependent resources for existing deferred scene
+    /// Generates JSON package with ONLY dependent locations + items (NO Scene/Situations)
+    /// Scene transitions: Deferred → Active
+    /// Input: Scene entity (already exists in GameWorld with State=Deferred)
+    /// Output: JSON package with dependent resources only
+    /// </summary>
+    public string ActivateScene(Scene scene, SceneSpawnContext context)
+    {
+        if (scene.State != SceneState.Deferred)
+        {
+            throw new InvalidOperationException(
+                $"Scene '{scene.TemplateId}' cannot be activated - State is {scene.State}, expected Deferred");
+        }
+
+        if (scene.Template == null)
+        {
+            throw new InvalidOperationException(
+                $"Scene '{scene.TemplateId}' cannot be activated - Template reference is null");
+        }
+
+        // Generate unique scene ID for dependent resource tagging
+        // CRITICAL: Use Scene.TemplateId NOT Scene.Id (Scene has no Id property per HIGHLANDER)
+        // Use a deterministic tag based on template + timestamp to bind dependent resources
+        string sceneTag = $"{scene.TemplateId}_{Guid.NewGuid().ToString("N")}";
+
+        // Generate dependent resource DTOs (if self-contained scene)
+        List<LocationDTO> dependentLocations = new List<LocationDTO>();
+        List<ItemDTO> dependentItems = new List<ItemDTO>();
+
+        if (scene.Template.DependentLocations.Any() || scene.Template.DependentItems.Any())
+        {
+            // Generate dependent location DTOs
+            foreach (DependentLocationSpec spec in scene.Template.DependentLocations)
+            {
+                LocationDTO locationDto = BuildLocationDTO(spec, sceneTag, context);
+                dependentLocations.Add(locationDto);
+            }
+
+            // Generate dependent item DTOs
+            foreach (DependentItemSpec spec in scene.Template.DependentItems)
+            {
+                ItemDTO itemDto = BuildItemDTO(spec, sceneTag, context, dependentLocations);
+                dependentItems.Add(itemDto);
+            }
+        }
+
+        // Build package with ONLY dependent resources (empty list for Scenes)
+        string packageJson = BuildScenePackage(null, dependentLocations, dependentItems);
+
+        Console.WriteLine($"[SceneInstantiator] Generated activation package for scene '{scene.TemplateId}' with {dependentLocations.Count} locations and {dependentItems.Count} items");
+
+        return packageJson;
+    }
+
+    /// <summary>
+    /// PHASE 2.5: Resolve entity references from filters AFTER dependent resources created
+    /// THREE-TIER TIMING: Filters stored at parse (Tier 1), resolved here at activation (Tier 2)
+    /// Called by LocationFacade.CheckAndActivateDeferredScenes() after PackageLoader completes
+    ///
+    /// VENUE-SCOPED CATEGORICAL RESOLUTION:
+    /// - ALL situations MUST have explicit filter properties (null filter = BUG)
+    /// - EntityResolver searches ONLY within CurrentVenue (no cross-venue teleportation)
+    /// - Categorical properties (Profession, Purpose, Privacy, etc.) determine matches
+    /// - Creates dependent entities if not found within venue
+    ///
+    /// Scene template parameterizes archetype filters for context:
+    /// - Archetype provides structure (e.g., inn_lodging: 3 situations)
+    /// - Template provides filter values (e.g., Profession=Innkeeper, Purpose=Commerce)
+    /// - Same archetype reused with different filter parameters in different contexts
+    ///
+    /// Input: Scene with Situations containing PlacementFilters but NULL entity references
+    /// Output: Scene with Situations containing resolved Location/Npc/Route object references
+    /// </summary>
+    /// <param name="scene">Scene with situations containing filters but null entity references</param>
+    /// <param name="context">Spawn context with CurrentVenue for venue-scoped resolution</param>
+    public void ResolveSceneEntityReferences(Scene scene, SceneSpawnContext context)
+    {
+        Console.WriteLine($"[SceneInstantiator] Resolving entity references for scene '{scene.DisplayName}' within venue '{context.CurrentVenue?.Name ?? "NO VENUE"}' with {scene.Situations.Count} situations");
+
+        // Create EntityResolver for venue-scoped categorical matching
+        EntityResolver entityResolver = new EntityResolver(_gameWorld, context.Player, _narrativeService, context.CurrentVenue);
+
+        // For each situation, resolve entities from explicit filters (null filter = BUG)
+        foreach (Situation situation in scene.Situations)
+        {
+            // LOCATION RESOLUTION - filter must be explicit
+            if (situation.LocationFilter != null)
+            {
+                situation.Location = entityResolver.FindOrCreateLocation(situation.LocationFilter);
+                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved Location '{situation.Location?.Name ?? "NULL"}' for situation '{situation.Name}' via categorical filter");
+            }
+            else if (situation.Location == null)
+            {
+                Console.WriteLine($"[SceneInstantiator]   ⚠️ WARNING: Situation '{situation.Name}' has null LocationFilter - THIS IS A BUG");
+            }
+
+            // NPC RESOLUTION - filter must be explicit
+            if (situation.NpcFilter != null)
+            {
+                situation.Npc = entityResolver.FindOrCreateNPC(situation.NpcFilter);
+                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved NPC '{situation.Npc?.Name ?? "NULL"}' for situation '{situation.Name}' via categorical filter");
+            }
+            else if (situation.Npc == null)
+            {
+                Console.WriteLine($"[SceneInstantiator]   ℹ️ Situation '{situation.Name}' has null NpcFilter (solo situation - no NPC needed)");
+            }
+
+            // ROUTE RESOLUTION - filter must be explicit
+            if (situation.RouteFilter != null)
+            {
+                situation.Route = entityResolver.FindOrCreateRoute(situation.RouteFilter);
+                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved Route '{situation.Route?.Name ?? "NULL"}' for situation '{situation.Name}' via categorical filter");
+            }
+            else if (situation.Route == null)
+            {
+                Console.WriteLine($"[SceneInstantiator]   ℹ️ Situation '{situation.Name}' has null RouteFilter (not route-based)");
+            }
+        }
+
+        Console.WriteLine($"[SceneInstantiator] ✅ Entity resolution complete for scene '{scene.DisplayName}'");
+    }
+
+    /// <summary>
+    /// Generate complete scene package JSON from template.
+    /// Runtime content generation produces JSON packages for PackageLoader (same architecture as authored content).
+    /// Returns JSON string containing Scene + Situations + Dependent Resources.
+    /// HIGHLANDER: Returns JSON string for ContentGenerationFacade to write, PackageLoaderFacade to load.
+    /// NEVER creates entities directly - only DTOs and JSON.
     /// </summary>
     public string GenerateScenePackageJson(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
@@ -61,7 +224,7 @@ public class SceneInstantiator
         }
 
         // System 3: Generate Scene DTO with categorical specifications (NO resolution)
-        SceneDTO sceneDto = GenerateSceneDTO(template, spawnReward, context);
+        SceneDTO sceneDto = GenerateSceneDTO(template, spawnReward, context, isDeferredState: false);
 
         // Generate dependent resource DTOs (if self-contained scene)
         // Categories → FindOrGenerate → Concrete IDs stored directly
@@ -102,7 +265,7 @@ public class SceneInstantiator
     /// Does NOT resolve entities - writes PlacementFilterDTO to JSON
     /// EntityResolver (System 4) will FindOrCreate from these specifications
     /// </summary>
-    private SceneDTO GenerateSceneDTO(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
+    private SceneDTO GenerateSceneDTO(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context, bool isDeferredState)
     {
         // Generate unique Scene ID (pure identifier, TemplateId property tracks source template)
         string sceneId = Guid.NewGuid().ToString();
@@ -135,18 +298,17 @@ public class SceneInstantiator
         }
 
         // System 3: Write categorical specifications (NOT concrete IDs)
-        // Hierarchical placement: Convert three separate base filters from template
-        // These will serve as CSS-style base filters for all situations in the scene
+        // Copy activation filters from template to scene instance
+        // These determine WHEN scene activates (Deferred → Active transition)
 
         SceneDTO dto = new SceneDTO
         {
             Id = sceneId,
             TemplateId = template.Id,
-            // Hierarchical placement base filters (CSS-style inheritance)
-            LocationFilter = ConvertPlacementFilterToDTO(template.BaseLocationFilter),
-            NpcFilter = ConvertPlacementFilterToDTO(template.BaseNpcFilter),
-            RouteFilter = ConvertPlacementFilterToDTO(template.BaseRouteFilter),
-            State = "Active", // NEW: Scenes spawn directly as Active (no provisional state)
+            // Activation filters: Copied from template, determine activation trigger
+            LocationActivationFilter = ConvertPlacementFilterToDTO(template.LocationActivationFilter),
+            NpcActivationFilter = ConvertPlacementFilterToDTO(template.NpcActivationFilter),
+            State = isDeferredState ? "Deferred" : "Active", // TWO-PHASE: Deferred or Active based on caller
             ExpiresOnDay = expiresOnDay,
             Archetype = template.Archetype.ToString(),
             DisplayName = displayName,
@@ -193,15 +355,11 @@ public class SceneInstantiator
                 .FirstOrDefault(c => c.PathType == ChoicePathType.Challenge)
                 ?.DeckId ?? string.Empty;
 
-            // CSS-style hierarchical placement inheritance
-            // Pattern: effectiveFilter = situationFilter ?? sceneBaseFilter
-            // Situation template filters override scene base filters
-            PlacementFilterDTO effectiveLocationFilter = ConvertPlacementFilterToDTO(sitTemplate.LocationFilter)
-                ?? sceneDto.LocationFilter;
-            PlacementFilterDTO effectiveNpcFilter = ConvertPlacementFilterToDTO(sitTemplate.NpcFilter)
-                ?? sceneDto.NpcFilter;
-            PlacementFilterDTO effectiveRouteFilter = ConvertPlacementFilterToDTO(sitTemplate.RouteFilter)
-                ?? sceneDto.RouteFilter;
+            // Explicit placement filters (NO CSS-style inheritance)
+            // Each situation MUST specify explicit filters in its template
+            PlacementFilterDTO effectiveLocationFilter = ConvertPlacementFilterToDTO(sitTemplate.LocationFilter);
+            PlacementFilterDTO effectiveNpcFilter = ConvertPlacementFilterToDTO(sitTemplate.NpcFilter);
+            PlacementFilterDTO effectiveRouteFilter = ConvertPlacementFilterToDTO(sitTemplate.RouteFilter);
 
             // Replace DEPENDENT_LOCATION markers with scene-specific tags
             // Marker format: "DEPENDENT_LOCATION:private_room" → "{sceneId}_private_room"
@@ -258,21 +416,31 @@ public class SceneInstantiator
 
     /// <summary>
     /// Build complete package JSON with scene, situations, and dependent resources
+    /// TWO-PHASE SUPPORT: sceneDto can be null (Phase 2 activation with only dependent resources)
     /// </summary>
     private string BuildScenePackage(SceneDTO sceneDto, List<LocationDTO> dependentLocations, List<ItemDTO> dependentItems)
     {
+        // TWO-PHASE: For Phase 2 (activation), sceneDto is null and we only have dependent resources
+        string packageName = sceneDto != null
+            ? $"Scene {sceneDto.DisplayName}"
+            : "Scene Activation (Dependent Resources)";
+
+        List<SceneDTO> scenes = sceneDto != null
+            ? new List<SceneDTO> { sceneDto }
+            : new List<SceneDTO>(); // Empty list for Phase 2
+
         Package package = new Package
         {
             PackageId = $"scene_package_{Guid.NewGuid().ToString("N")}",
             Metadata = new PackageMetadata
             {
-                Name = $"Scene {sceneDto.DisplayName}",
+                Name = packageName,
                 Author = "Scene System",
                 Version = "1.0.0"
             },
             Content = new PackageContent
             {
-                Scenes = new List<SceneDTO> { sceneDto },
+                Scenes = scenes,
                 Locations = dependentLocations,
                 Items = dependentItems
             }
@@ -287,10 +455,10 @@ public class SceneInstantiator
         return JsonSerializer.Serialize(package, jsonOptions);
     }
 
-    // ResolvePlacement method DELETED - placement resolution now happens in System 4 (EntityResolver)
-    // during package loading, not during DTO generation (System 3)
-    // OLD: SceneInstantiator resolves placement → stores concrete ID in DTO
-    // NEW: SceneInstantiator writes categorical specs → EntityResolver FindOrCreate → PackageLoader sets object references
+    // ResolvePlacement method DELETED - placement resolution moved to THREE-TIER TIMING MODEL
+    // Tier 1 (Parse): SceneParser stores PlacementFilters, entities NULL
+    // Tier 2 (Activation): SceneInstantiator.ResolveSceneEntityReferences() calls EntityResolver AFTER PackageLoader
+    // Tier 3 (Query): Actions instantiated with resolved entities
 
     /// <summary>
     /// Instantiate Situation from SituationTemplate
@@ -974,16 +1142,16 @@ public class SceneInstantiator
 
     /// <summary>
     /// Build LocationDTO from DependentLocationSpec
-    /// Replaces tokens, determines venue, finds hex placement
+    /// Uses generic names, determines venue, delegates hex placement
     /// </summary>
     private LocationDTO BuildLocationDTO(DependentLocationSpec spec, string sceneId, SceneSpawnContext context)
     {
         // Generate unique ID
         string locationId = $"{spec.TemplateId}_{Guid.NewGuid().ToString("N")}";
 
-        // Use patterns directly (AI generates complete text with entity context)
-        string locationName = spec.NamePattern;
-        string locationDescription = spec.DescriptionPattern;
+        // Use names directly (AI narrative will regenerate all text when implemented)
+        string locationName = spec.Name;
+        string locationDescription = spec.Description;
 
         // Determine venue ID
         string venueId = DetermineVenueId(spec.VenueIdSource, context);
@@ -1007,7 +1175,33 @@ public class SceneInstantiator
 
         // HIGHLANDER: NO hex placement logic here - ALL placement via LocationPlacementService
         // SceneInstantiator creates LocationDTO with NO hex coordinates
-        // PackageLoader.PlaceAllLocations() handles placement for ALL locations (authored + generated)
+        // PackageLoader.PlaceLocations() handles placement for ALL locations (authored + generated)
+
+        // FAIL-FAST VALIDATION: ALL categorical dimensions REQUIRED from spec
+        if (string.IsNullOrEmpty(spec.Privacy))
+        {
+            throw new InvalidOperationException(
+                $"DependentLocationSpec '{spec.TemplateId}' missing required Privacy property. " +
+                $"Every location MUST have explicit Privacy. Valid values: Public, SemiPublic, Private, Restricted");
+        }
+        if (string.IsNullOrEmpty(spec.Safety))
+        {
+            throw new InvalidOperationException(
+                $"DependentLocationSpec '{spec.TemplateId}' missing required Safety property. " +
+                $"Every location MUST have explicit Safety. Valid values: Dangerous, Unsafe, Neutral, Safe, Secure");
+        }
+        if (string.IsNullOrEmpty(spec.Activity))
+        {
+            throw new InvalidOperationException(
+                $"DependentLocationSpec '{spec.TemplateId}' missing required Activity property. " +
+                $"Every location MUST have explicit Activity. Valid values: Quiet, Moderate, Busy, Crowded");
+        }
+        if (string.IsNullOrEmpty(spec.Purpose))
+        {
+            throw new InvalidOperationException(
+                $"DependentLocationSpec '{spec.TemplateId}' missing required Purpose property. " +
+                $"Every location MUST have explicit Purpose. Valid values: Transit, Dwelling, Commerce, Work, Government, Education, Entertainment, Religion, Defense, Storage, Agriculture, Manufacturing");
+        }
 
         // Build LocationDTO
         LocationDTO dto = new LocationDTO
@@ -1017,14 +1211,22 @@ public class SceneInstantiator
             Description = locationDescription,
             DistanceFromPlayer = "near", // Generated locations default to "near" - placement algorithm will select appropriate venue
             Type = "Room", // Default type for generated locations
-            InitialState = spec.IsLockedInitially ? "Locked" : "Available",
             CanInvestigate = spec.CanInvestigate,
             CanWork = false, // Generated locations don't support work by default,
             WorkType = "",
             WorkPay = 0,
             // Scene-specific tag for dependent location binding
             // Enables situations to reference this location via PlacementFilter.LocationTags
-            DomainTags = new List<string> { $"{sceneId}_{spec.TemplateId}" }
+            DomainTags = new List<string> { $"{sceneId}_{spec.TemplateId}" },
+            // FAIL-FAST: Read ALL categorical dimensions from spec (NO defaults)
+            Privacy = spec.Privacy,
+            Safety = spec.Safety,
+            Activity = spec.Activity,
+            Purpose = spec.Purpose,
+            // FAIL-FAST: ALL gameplay properties REQUIRED (no defaults allowed)
+            LocationType = "Inn", // Generated locations are typically indoor private spaces
+            ObligationProfile = "Research", // Default profile for generated locations
+            IsStartingLocation = false // Generated locations are never starting locations
         };
 
         // Map capabilities (functional properties)
@@ -1033,21 +1235,29 @@ public class SceneInstantiator
             dto.Capabilities = spec.Properties;
         }
 
+        // SPATIAL CONSTRAINT: All dependent locations spawn in SameVenue as activation location
+        // Ensures verisimilitude ("your room at this inn" spawns at this inn, not different venue)
+        dto.ProximityConstraint = new ProximityConstraintDTO
+        {
+            Proximity = "SameVenue",
+            ReferenceLocation = "current"
+        };
+
         return dto;
     }
 
     /// <summary>
     /// Build ItemDTO from DependentItemSpec
-    /// Replaces tokens, maps categories, handles inventory placement
+    /// Uses generic names, maps categories, handles inventory placement
     /// </summary>
     private ItemDTO BuildItemDTO(DependentItemSpec spec, string sceneId, SceneSpawnContext context, List<LocationDTO> createdLocations)
     {
         // Generate unique ID
         string itemId = $"{spec.TemplateId}_{Guid.NewGuid().ToString("N")}";
 
-        // Use patterns directly (AI generates complete text with entity context)
-        string itemName = spec.NamePattern;
-        string itemDescription = spec.DescriptionPattern;
+        // Use names directly (AI narrative will regenerate all text when implemented)
+        string itemName = spec.Name;
+        string itemDescription = spec.Description;
 
         // Build ItemDTO
         ItemDTO dto = new ItemDTO

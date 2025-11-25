@@ -3,18 +3,25 @@
 /// Finds existing entities OR creates new ones from categorical specifications
 /// Receives PlacementFilterDTO from JSON, returns concrete entity objects
 /// Separates entity resolution from scene instantiation (5-system architecture)
+///
+/// VENUE-SCOPED RESOLUTION:
+/// - Searches ONLY within the specified venue (no cross-venue teleportation)
+/// - Ensures all situation entities exist within the same physical location group
+/// - Creates dependent entities within the same venue if not found
 /// </summary>
 public class EntityResolver
 {
     private readonly GameWorld _gameWorld;
     private readonly Player _player;
     private readonly SceneNarrativeService _narrativeService;
+    private readonly Venue? _currentVenue;
 
-    public EntityResolver(GameWorld gameWorld, Player player, SceneNarrativeService narrativeService)
+    public EntityResolver(GameWorld gameWorld, Player player, SceneNarrativeService narrativeService, Venue? currentVenue = null)
     {
         _gameWorld = gameWorld;
         _player = player;
         _narrativeService = narrativeService;
+        _currentVenue = currentVenue;
     }
 
     /// <summary>
@@ -93,9 +100,24 @@ public class EntityResolver
 
     private Location FindMatchingLocation(PlacementFilter filter)
     {
-        List<Location> matchingLocations = _gameWorld.Locations
-            .Where(loc => LocationMatchesFilter(loc, filter))
-            .ToList();
+        // VENUE-SCOPED SEARCH: When currentVenue provided, search only within that venue
+        // GLOBAL SEARCH: When currentVenue is null (parse-time), search all locations
+        List<Location> matchingLocations;
+
+        if (_currentVenue != null)
+        {
+            matchingLocations = _gameWorld.Locations
+                .Where(loc => loc.Venue == _currentVenue && LocationMatchesFilter(loc, filter))
+                .ToList();
+            Console.WriteLine($"[EntityResolver] Found {matchingLocations.Count} matching locations within venue '{_currentVenue.Name}'");
+        }
+        else
+        {
+            matchingLocations = _gameWorld.Locations
+                .Where(loc => LocationMatchesFilter(loc, filter))
+                .ToList();
+            Console.WriteLine($"[EntityResolver] Found {matchingLocations.Count} matching locations (global search, no venue constraint)");
+        }
 
         // Apply selection strategy if multiple matches
         if (matchingLocations.Count == 0)
@@ -157,14 +179,38 @@ public class EntityResolver
                 return false;
         }
 
+        // Check location tags (DEPENDENT_LOCATION marker system)
+        // Location must have ALL specified tags in its DomainTags collection
+        // Used for scene-specific dependent location binding
+        if (filter.LocationTags != null && filter.LocationTags.Count > 0)
+        {
+            if (!filter.LocationTags.All(tag => loc.DomainTags.Contains(tag)))
+                return false;
+        }
+
         return true;
     }
 
     private NPC FindMatchingNPC(PlacementFilter filter)
     {
-        List<NPC> matchingNPCs = _gameWorld.NPCs
-            .Where(npc => NPCMatchesFilter(npc, filter))
-            .ToList();
+        // VENUE-SCOPED SEARCH: When currentVenue provided, search only NPCs within that venue
+        // GLOBAL SEARCH: When currentVenue is null (parse-time), search all NPCs
+        List<NPC> matchingNPCs;
+
+        if (_currentVenue != null)
+        {
+            matchingNPCs = _gameWorld.NPCs
+                .Where(npc => npc.Location?.Venue == _currentVenue && NPCMatchesFilter(npc, filter))
+                .ToList();
+            Console.WriteLine($"[EntityResolver] Found {matchingNPCs.Count} matching NPCs within venue '{_currentVenue.Name}'");
+        }
+        else
+        {
+            matchingNPCs = _gameWorld.NPCs
+                .Where(npc => NPCMatchesFilter(npc, filter))
+                .ToList();
+            Console.WriteLine($"[EntityResolver] Found {matchingNPCs.Count} matching NPCs (global search, no venue constraint)");
+        }
 
         // Apply selection strategy if multiple matches
         if (matchingNPCs.Count == 0)

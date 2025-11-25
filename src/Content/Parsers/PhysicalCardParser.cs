@@ -20,13 +20,15 @@ public class PhysicalCardParser
         Approach approach = ParseApproach(dto.Approach, dto.Id);
         PhysicalCategory category = ParseCategory(dto.TechniqueType, dto.Id);  // FIXED: Use TechniqueType from JSON
         PlayerStatType boundStat = ParseStat(dto.BoundStat, dto.Id);
-
-        // ExertionCost ALWAYS calculated from catalog (no JSON override)
-        int exertionCost = PhysicalCardEffectCatalog.GetExertionCostFromDepth(dto.Depth);
+        PhysicalDiscipline discipline = PhysicalDiscipline.Combat;  // Fixed value until JSON needs variation
 
         // Fixed values for universal properties (catalog provides these, not JSON)
         RiskLevel riskLevel = RiskLevel.Cautious;  // Fixed until JSON needs variation
         ExertionLevel exertionLevel = ExertionLevel.Light;  // Fixed until JSON needs variation
+
+        // Calculate ALL base effects from categorical properties via catalog (single call)
+        PhysicalBaseEffects baseEffects = PhysicalCardEffectCatalog.GetBaseEffectsFromProperties(
+            discipline, category, approach, boundStat, dto.Depth);
 
         // Parse stat requirements
         Dictionary<PlayerStatType, int> statThresholds = new Dictionary<PlayerStatType, int>();
@@ -47,12 +49,12 @@ public class PhysicalCardParser
             Description = dto.Description,
             Depth = dto.Depth,
             BoundStat = boundStat,
-            ExertionCost = exertionCost,
+            ExertionCost = baseEffects.BaseExertionCost,
             Approach = approach,
             Category = category,
 
             // Universal properties - catalog provides defaults (not JSON)
-            Discipline = PhysicalDiscipline.Combat,  // Fixed value until JSON needs variation
+            Discipline = discipline,
             RiskLevel = riskLevel,
             ExertionLevel = exertionLevel,
             MethodType = MethodType.Direct,  // Fixed value until JSON needs variation
@@ -63,9 +65,9 @@ public class PhysicalCardParser
             CoinCost = PhysicalCardEffectCatalog.GetCoinCost(category, dto.Depth),
             XPReward = PhysicalCardEffectCatalog.GetXPReward(dto.Depth),
 
-            // BASE EFFECTS CALCULATED AT PARSE TIME (no runtime catalogue calls!)
-            BaseBreakthrough = PhysicalCardEffectCatalog.GetProgressFromProperties(dto.Depth, category),
-            BaseDanger = PhysicalCardEffectCatalog.GetDangerFromProperties(dto.Depth, approach),
+            // BASE EFFECTS FROM CATALOG (includes category modifiers)
+            BaseBreakthrough = baseEffects.BaseBreakthrough,
+            BaseDanger = baseEffects.BaseDanger,
 
             // Requirements
             EquipmentCategory = EquipmentCategory.None,  // Fixed value until JSON needs variation

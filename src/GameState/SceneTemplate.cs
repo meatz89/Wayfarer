@@ -38,40 +38,30 @@ public class SceneTemplate
     /// </summary>
     public string DisplayNameTemplate { get; init; }
 
-    // ==================== HIERARCHICAL PLACEMENT (BASE FILTERS) ====================
-    // CSS-style inheritance: SceneTemplate provides BASE filters for all situations
-    // SituationTemplate can OVERRIDE selectively per-situation
-    // Resolution: effectiveFilter = situationFilter ?? sceneBaseFilter
+    // ==================== ACTIVATION FILTERS (TRIGGER CONDITIONS) ====================
+    // Determines WHEN scene activates (Deferred → Active transition)
+    // Separate from situation placement filters (which determine WHERE situations happen)
+    // Copied to Scene instance at spawn time, evaluated BEFORE entity resolution
 
     /// <summary>
-    /// Base location filter for all situations in this scene
-    /// CSS-STYLE INHERITANCE: Situations inherit this base filter unless they specify their own override
-    /// Resolution: effectiveFilter = SituationTemplate.LocationFilter ?? BaseLocationFilter
-    /// null = no base location (situations must specify their own)
-    /// Enables multi-location scenes with shared default location
-    /// See also: <see cref="SituationTemplate.LocationFilter"/> for situation-specific overrides
+    /// Location activation filter - categorical properties that trigger scene activation
+    /// Scene activates when player enters location matching these categorical properties
+    /// null = no location-based activation (use NPC or other trigger)
+    /// Evaluated before entity resolution (categorical matching: Privacy, Safety, Activity, Purpose)
+    /// Separate from Situation.LocationFilter which determines WHERE situation happens (always explicit per-situation)
+    /// Copied to Scene.LocationActivationFilter at spawn time
     /// </summary>
-    public PlacementFilter BaseLocationFilter { get; init; }
+    public PlacementFilter LocationActivationFilter { get; init; }
 
     /// <summary>
-    /// Base NPC filter for all situations in this scene
-    /// CSS-STYLE INHERITANCE: Situations inherit this base filter unless they specify their own override
-    /// Resolution: effectiveFilter = SituationTemplate.NpcFilter ?? BaseNpcFilter
-    /// null = no base NPC (situations must specify their own)
-    /// Example: "Innkeeper" for all Inn Service situations unless overridden
-    /// See also: <see cref="SituationTemplate.NpcFilter"/> for situation-specific overrides
+    /// NPC activation filter - categorical properties that trigger scene activation
+    /// Scene activates when player talks to NPC matching these categorical properties
+    /// null = no NPC-based activation (use Location or other trigger)
+    /// Evaluated before entity resolution (categorical matching: PersonalityType, BondStrength, etc.)
+    /// Separate from Situation.NpcFilter which determines WHO situation involves (always explicit per-situation)
+    /// Copied to Scene.NpcActivationFilter at spawn time
     /// </summary>
-    public PlacementFilter BaseNpcFilter { get; init; }
-
-    /// <summary>
-    /// Base route filter for all situations in this scene
-    /// CSS-STYLE INHERITANCE: Situations inherit this base filter unless they specify their own override
-    /// Resolution: effectiveFilter = SituationTemplate.RouteFilter ?? BaseRouteFilter
-    /// null = no base route (situations must specify their own)
-    /// Rarely used - most situations don't involve routes
-    /// See also: <see cref="SituationTemplate.RouteFilter"/> for situation-specific overrides
-    /// </summary>
-    public PlacementFilter BaseRouteFilter { get; init; }
+    public PlacementFilter NpcActivationFilter { get; init; }
 
     /// <summary>
     /// Temporal eligibility conditions for scene spawning

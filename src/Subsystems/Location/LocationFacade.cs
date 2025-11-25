@@ -25,6 +25,9 @@ public class LocationFacade
     private readonly DifficultyCalculationService _difficultyService;
     private readonly ItemRepository _itemRepository;
     private readonly SceneFacade _sceneFacade;
+    private readonly SceneInstantiator _sceneInstantiator;
+    private readonly ContentGenerationFacade _contentGenerationFacade;
+    private readonly PackageLoaderFacade _packageLoaderFacade;
 
     public LocationFacade(
         GameWorld gameWorld,
@@ -43,7 +46,10 @@ public class LocationFacade
         NarrativeRenderer narrativeRenderer,
         DifficultyCalculationService difficultyService,
         ItemRepository itemRepository,
-        SceneFacade sceneFacade)
+        SceneFacade sceneFacade,
+        SceneInstantiator sceneInstantiator,
+        ContentGenerationFacade contentGenerationFacade,
+        PackageLoaderFacade packageLoaderFacade)
     {
         _gameWorld = gameWorld;
         _locationManager = locationManager;
@@ -63,6 +69,9 @@ public class LocationFacade
         _difficultyService = difficultyService ?? throw new ArgumentNullException(nameof(difficultyService));
         _itemRepository = itemRepository ?? throw new ArgumentNullException(nameof(itemRepository));
         _sceneFacade = sceneFacade ?? throw new ArgumentNullException(nameof(sceneFacade));
+        _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
+        _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
+        _packageLoaderFacade = packageLoaderFacade ?? throw new ArgumentNullException(nameof(packageLoaderFacade));
     }
 
     /// <summary>
@@ -78,8 +87,10 @@ public class LocationFacade
     /// Move player to a different Location within the current Venue.
     /// Movement between Locations within a Venue is FREE (no attention cost).
     /// HIGHLANDER: Accepts Location object, not string identifier
+    /// TWO-PHASE SPAWNING: Activates deferred scenes when player enters location
+    /// INITIAL PLACEMENT: Handles first-time placement when player has no current location
     /// </summary>
-    public bool MoveToSpot(Location targetLocation)
+    public async Task<bool> MoveToSpot(Location targetLocation)
     {
         // Validation
         if (targetLocation == null)
@@ -90,33 +101,49 @@ public class LocationFacade
 
         // Get current state
         Player player = _gameWorld.GetPlayer();
-        Venue currentVenue = GetCurrentLocation().Venue;
         Location currentLocation = GetCurrentLocation();
 
-        if (!_movementValidator.ValidateCurrentState(player, currentVenue, currentLocation))
+        // INITIAL PLACEMENT: Handle first-time placement when player has no current location yet
+        bool isInitialPlacement = (currentLocation == null);
+
+        if (!isInitialPlacement)
         {
-            _messageSystem.AddSystemMessage("Cannot determine current location", SystemMessageTypes.Danger);
-            return false;
+            // REGULAR MOVEMENT: Validate current state and movement
+            Venue currentVenue = currentLocation.Venue;
+
+            if (!_movementValidator.ValidateCurrentState(player, currentVenue, currentLocation))
+            {
+                _messageSystem.AddSystemMessage("Cannot determine current location", SystemMessageTypes.Danger);
+                return false;
+            }
+
+            // Check if already at target
+            if (currentLocation == targetLocation)
+            {
+                return true; // Already there - no-op success
+            }
+
+            // Validate movement
+            MovementValidationResult validationResult = _movementValidator.ValidateMovement(currentVenue, currentLocation, targetLocation);
+            if (!validationResult.IsValid)
+            {
+                _messageSystem.AddSystemMessage(validationResult.ErrorMessage, SystemMessageTypes.Warning);
+                return false;
+            }
         }
 
-        // Check if already at target
-        if (currentLocation == targetLocation)
-        {
-            return true; // Already there - no-op success
-        }
-
-        // Validate movement
-        MovementValidationResult validationResult = _movementValidator.ValidateMovement(currentVenue, currentLocation, targetLocation);
-        if (!validationResult.IsValid)
-        {
-            _messageSystem.AddSystemMessage(validationResult.ErrorMessage, SystemMessageTypes.Warning);
-            return false;
-        }
-
-        // Execute movement
+        // Execute movement (works for both initial placement and regular movement)
         _locationManager.SetCurrentSpot(targetLocation);
         player.AddKnownLocation(targetLocation);
-        _messageSystem.AddSystemMessage($"Moved to {targetLocation.Name}", SystemMessageTypes.Info);
+
+        if (!isInitialPlacement)
+        {
+            _messageSystem.AddSystemMessage($"Moved to {targetLocation.Name}", SystemMessageTypes.Info);
+        }
+
+        // TWO-PHASE SPAWNING - PHASE 2: Activate deferred scenes when player enters location
+        // Check for deferred scenes at this location and activate them (spawn dependent resources)
+        await CheckAndActivateDeferredScenes(targetLocation);
 
         return true;
     }
@@ -389,6 +416,216 @@ public class LocationFacade
     }
 
     /// <summary>
+    /// TWO-PHASE SPAWNING - PHASE 2: Check for deferred scenes with location activation triggers
+    /// Evaluates LocationActivationFilter using categorical matching (BEFORE entity resolution)
+    /// Triggers dependent resource spawning and entity resolution
+    /// Transitions Scene.State: Deferred → Active
+    /// </summary>
+    private async Task CheckAndActivateDeferredScenes(Location location)
+    {
+        Player player = _gameWorld.GetPlayer();
+
+        // Find all deferred scenes with location activation filters matching this location
+        // CRITICAL: Check LocationActivationFilter (activation trigger), NOT CurrentSituation.Location (not yet resolved)
+        List<Scene> deferredScenes = _gameWorld.Scenes
+            .Where(s => s.State == SceneState.Deferred)
+            .Where(s => s.LocationActivationFilter != null &&
+                       LocationMatchesActivationFilter(location, s.LocationActivationFilter, player))
+            .ToList();
+
+        if (deferredScenes.Count == 0)
+            return; // No deferred scenes triggered by this location
+
+        foreach (Scene scene in deferredScenes)
+        {
+            Console.WriteLine($"[LocationFacade] Activating deferred scene '{scene.DisplayName}' triggered by location '{location.Name}'");
+
+            // Construct activation context
+            SceneSpawnContext activationContext = new SceneSpawnContext
+            {
+                Player = player,
+                CurrentLocation = location,
+                CurrentVenue = location.Venue,
+                CurrentNPC = null,
+                CurrentRoute = null,
+                CurrentSituation = null
+            };
+
+            // PHASE 2: Generate and load dependent resources
+            Console.WriteLine($"[SceneActivation] Starting activation for scene '{scene.DisplayName}' (Template: {scene.TemplateId})");
+            int locationCountBefore = _gameWorld.Locations.Count;
+
+            string resourceJson = _sceneInstantiator.ActivateScene(scene, activationContext);
+
+            if (!string.IsNullOrEmpty(resourceJson))
+            {
+                string packagePath = $"scene_activation_{scene.TemplateId}_{Guid.NewGuid().ToString("N")}";
+                await _contentGenerationFacade.CreateDynamicPackageFile(resourceJson, packagePath);
+                await _packageLoaderFacade.LoadDynamicPackage(resourceJson, packagePath);
+
+                int locationCountAfter = _gameWorld.Locations.Count;
+                int locationsAdded = locationCountAfter - locationCountBefore;
+                Console.WriteLine($"[SceneActivation] Loaded dependent resources for scene '{scene.DisplayName}' ({locationsAdded} locations added, total: {locationCountAfter})");
+            }
+            else
+            {
+                Console.WriteLine($"[SceneActivation] No dependent resources to load for scene '{scene.DisplayName}'");
+            }
+
+            // PHASE 2.5: Resolve entity references now that dependent resources exist in GameWorld
+            _sceneInstantiator.ResolveSceneEntityReferences(scene, activationContext);
+            Console.WriteLine($"[LocationFacade] ✅ Resolved entity references for scene '{scene.DisplayName}'");
+
+            // Transition scene state: Deferred → Active
+            scene.State = SceneState.Active;
+            Console.WriteLine($"[LocationFacade] Scene '{scene.DisplayName}' activated successfully (State: Deferred → Active)");
+        }
+    }
+
+    /// <summary>
+    /// Check if location matches activation filter using categorical properties
+    /// Uses intentionally named enum properties: Privacy, Safety, Activity, Purpose
+    /// Does NOT resolve entities - pure categorical matching (BEFORE entity resolution)
+    /// </summary>
+    private bool LocationMatchesActivationFilter(Location location, PlacementFilter filter, Player player)
+    {
+        // Check Privacy (if specified)
+        if (filter.PrivacyLevels != null && filter.PrivacyLevels.Count > 0)
+        {
+            if (!filter.PrivacyLevels.Contains(location.Privacy))
+                return false;
+        }
+
+        // Check Safety (if specified)
+        if (filter.SafetyLevels != null && filter.SafetyLevels.Count > 0)
+        {
+            if (!filter.SafetyLevels.Contains(location.Safety))
+                return false;
+        }
+
+        // Check Activity (if specified)
+        if (filter.ActivityLevels != null && filter.ActivityLevels.Count > 0)
+        {
+            if (!filter.ActivityLevels.Contains(location.Activity))
+                return false;
+        }
+
+        // Check Purpose (if specified)
+        if (filter.Purposes != null && filter.Purposes.Count > 0)
+        {
+            if (!filter.Purposes.Contains(location.Purpose))
+                return false;
+        }
+
+        return true; // All categorical checks passed
+    }
+
+    /// <summary>
+    /// Check for deferred scenes that should activate when player interacts with specific NPC
+    /// Parallel to CheckAndActivateDeferredScenes but triggered by NPC interaction (conversation start)
+    /// Uses NpcActivationFilter with categorical NPC properties (Profession, SocialStanding, etc.)
+    /// </summary>
+    public async Task CheckAndActivateDeferredScenesForNPC(NPC npc, Player player)
+    {
+        List<Scene> deferredScenes = _gameWorld.Scenes
+            .Where(s => s.State == SceneState.Deferred && s.NpcActivationFilter != null)
+            .ToList();
+
+        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
+
+        foreach (Scene scene in deferredScenes)
+        {
+            if (NPCMatchesActivationFilter(npc, scene.NpcActivationFilter, player))
+            {
+                Console.WriteLine($"[LocationFacade] Activating deferred scene '{scene.DisplayName}' triggered by NPC '{npc.Name}'");
+
+                // Construct activation context
+                SceneSpawnContext activationContext = new SceneSpawnContext
+                {
+                    Player = player,
+                    CurrentLocation = currentLocation,
+                    CurrentVenue = currentLocation?.Venue,
+                    CurrentNPC = npc,
+                    CurrentRoute = null,
+                    CurrentSituation = null
+                };
+
+                // PHASE 2: Generate and load dependent resources
+                string resourceJson = _sceneInstantiator.ActivateScene(scene, activationContext);
+
+                if (!string.IsNullOrEmpty(resourceJson))
+                {
+                    string packagePath = $"scene_activation_{scene.TemplateId}_{Guid.NewGuid().ToString("N")}";
+                    await _contentGenerationFacade.CreateDynamicPackageFile(resourceJson, packagePath);
+                    await _packageLoaderFacade.LoadDynamicPackage(resourceJson, packagePath);
+
+                    Console.WriteLine($"[LocationFacade] Loaded dependent resources for scene '{scene.DisplayName}'");
+                }
+
+                // PHASE 2.5: Resolve entity references now that dependent resources exist in GameWorld
+                _sceneInstantiator.ResolveSceneEntityReferences(scene, activationContext);
+                Console.WriteLine($"[LocationFacade] ✅ Resolved entity references for scene '{scene.DisplayName}'");
+
+                // Transition scene state: Deferred → Active
+                scene.State = SceneState.Active;
+                Console.WriteLine($"[LocationFacade] Scene '{scene.DisplayName}' activated successfully (State: Deferred → Active)");
+            }
+        }
+    }
+
+    /// <summary>
+    /// Check if NPC matches activation filter using categorical properties
+    /// Uses intentionally named enum properties: Profession, SocialStanding, StoryRole, KnowledgeLevel
+    /// Does NOT resolve entities - pure categorical matching (BEFORE entity resolution)
+    /// </summary>
+    private bool NPCMatchesActivationFilter(NPC npc, PlacementFilter filter, Player player)
+    {
+        // Check Profession (if specified)
+        if (filter.Professions != null && filter.Professions.Count > 0)
+        {
+            if (!filter.Professions.Contains(npc.Profession))
+                return false;
+        }
+
+        // Check SocialStanding (if specified)
+        if (filter.SocialStandings != null && filter.SocialStandings.Count > 0)
+        {
+            if (!filter.SocialStandings.Contains(npc.SocialStanding))
+                return false;
+        }
+
+        // Check StoryRole (if specified)
+        if (filter.StoryRoles != null && filter.StoryRoles.Count > 0)
+        {
+            if (!filter.StoryRoles.Contains(npc.StoryRole))
+                return false;
+        }
+
+        // Check KnowledgeLevel (if specified)
+        if (filter.KnowledgeLevels != null && filter.KnowledgeLevels.Count > 0)
+        {
+            if (!filter.KnowledgeLevels.Contains(npc.KnowledgeLevel))
+                return false;
+        }
+
+        // Check PersonalityTypes (if specified)
+        if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
+        {
+            if (!filter.PersonalityTypes.Contains(npc.PersonalityType))
+                return false;
+        }
+
+        // Check MinTier/MaxTier (if specified)
+        if (filter.MinTier.HasValue && npc.Tier < filter.MinTier.Value)
+            return false;
+
+        if (filter.MaxTier.HasValue && npc.Tier > filter.MaxTier.Value)
+            return false;
+
+        return true; // All categorical checks passed
+    }
+
+    /// <summary>
     /// Get the LocationActionManager for direct access to Venue actions.
     /// </summary>
     public LocationActionManager GetLocationActionManager()
@@ -487,7 +724,6 @@ public class LocationFacade
             TravelActions = GetTravelActions(venue, spot),
             LocationSpecificActions = GetLocationSpecificActions(venue, spot),
             PlayerActions = GetPlayerActions(spot),
-            // REMOVED: HasSpots (intra-venue movement now data-driven from LocationActionCatalog)
             NPCsWithSituations = BuildNPCsWithSituations(spot, currentTime),
             AmbientMentalSituations = ambientMental,
             MentalScenes = mentalScenes,
@@ -622,7 +858,6 @@ public class LocationFacade
         {
             if (capability != LocationCapability.None && spot.Capabilities.HasFlag(capability))
             {
-                // DELETED: Property-based display mapping - simplified to capability name
                 // Time-specific properties eliminated, capabilities are static
                 traits.Add(capability.ToString());
             }

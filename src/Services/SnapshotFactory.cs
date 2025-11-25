@@ -128,18 +128,24 @@ public static class SnapshotFactory
         // Extract stat requirements from numeric requirements
         foreach (NumericRequirement numReq in firstPath.NumericRequirements)
         {
-            if (numReq.ResourceType == ResourceType.Rapport && numReq.MinValue.HasValue)
-                snapshot.RequiredRapport = numReq.MinValue;
-            else if (numReq.ResourceType == ResourceType.Insight && numReq.MinValue.HasValue)
-                snapshot.RequiredInsight = numReq.MinValue;
-            else if (numReq.ResourceType == ResourceType.Authority && numReq.MinValue.HasValue)
-                snapshot.RequiredAuthority = numReq.MinValue;
-            else if (numReq.ResourceType == ResourceType.Diplomacy && numReq.MinValue.HasValue)
-                snapshot.RequiredDiplomacy = numReq.MinValue;
-            else if (numReq.ResourceType == ResourceType.Cunning && numReq.MinValue.HasValue)
-                snapshot.RequiredCunning = numReq.MinValue;
-            else if (numReq.ResourceType == ResourceType.Coins && numReq.MinValue.HasValue)
-                snapshot.RequiredCoins = numReq.MinValue;
+            // NumericRequirement uses Type and Context pattern for player stats
+            if (numReq.Type == "PlayerStat" && !string.IsNullOrEmpty(numReq.Context))
+            {
+                if (numReq.Context.Equals("Rapport", StringComparison.OrdinalIgnoreCase))
+                    snapshot.RequiredRapport = numReq.Threshold;
+                else if (numReq.Context.Equals("Insight", StringComparison.OrdinalIgnoreCase))
+                    snapshot.RequiredInsight = numReq.Threshold;
+                else if (numReq.Context.Equals("Authority", StringComparison.OrdinalIgnoreCase))
+                    snapshot.RequiredAuthority = numReq.Threshold;
+                else if (numReq.Context.Equals("Diplomacy", StringComparison.OrdinalIgnoreCase))
+                    snapshot.RequiredDiplomacy = numReq.Threshold;
+                else if (numReq.Context.Equals("Cunning", StringComparison.OrdinalIgnoreCase))
+                    snapshot.RequiredCunning = numReq.Threshold;
+            }
+            else if (numReq.Type == "Coins")
+            {
+                snapshot.RequiredCoins = numReq.Threshold;
+            }
         }
 
         return snapshot;
@@ -193,7 +199,8 @@ public static class SnapshotFactory
         {
             foreach (BondChange bondChange in reward.BondChanges)
             {
-                snapshot.BondChanges.Add($"{bondChange.NpcName}: {bondChange.Delta:+#;-#;0}");
+                string npcName = bondChange.Npc?.Name ?? "Unknown NPC";
+                snapshot.BondChanges.Add($"{npcName}: {bondChange.Delta:+#;-#;0}");
             }
         }
 
@@ -202,7 +209,8 @@ public static class SnapshotFactory
         {
             foreach (StateApplication stateApp in reward.StateApplications)
             {
-                snapshot.StatesApplied.Add($"{stateApp.StateType} ({stateApp.ApplicationType})");
+                string action = stateApp.Apply ? "Apply" : "Remove";
+                snapshot.StatesApplied.Add($"{stateApp.StateType} ({action})");
             }
         }
 
@@ -222,7 +230,7 @@ public static class SnapshotFactory
     /// Create immutable snapshot of Player state
     /// Optional - for detailed analysis
     /// </summary>
-    public static PlayerStateSnapshot CreatePlayerStateSnapshot(Player player)
+    public static PlayerStateSnapshot CreatePlayerStateSnapshot(Player player, GameWorld gameWorld)
     {
         if (player == null) return null;
 
@@ -238,10 +246,10 @@ public static class SnapshotFactory
             Stamina = player.Stamina,
             Focus = player.Focus,
             Resolve = player.Resolve,
-            CurrentDay = player.CurrentDay,
-            CurrentTimeBlock = player.CurrentTimeBlock,
-            ActiveStates = player.States != null
-                ? player.States.Select(s => s.StateType.ToString()).ToList()
+            CurrentDay = gameWorld.CurrentDay,
+            CurrentTimeBlock = gameWorld.CurrentTimeBlock,
+            ActiveStates = player.ActiveStates != null
+                ? player.ActiveStates.Select(s => s.Type.ToString()).ToList()
                 : new List<string>()
         };
     }

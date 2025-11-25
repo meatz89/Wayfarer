@@ -55,6 +55,19 @@ public class SceneInstanceFacade
     }
 
     /// <summary>
+    /// TWO-PHASE SPAWNING - PHASE 1: Create deferred scene package (Scene + Situations only)
+    /// Returns JSON string with ONLY Scene + Situations (NO dependent resources)
+    /// Scene.State = "Deferred" (dependent resources not spawned yet)
+    /// Used during startup to create scenes without triggering placement
+    /// </summary>
+    public string CreateDeferredScenePackage(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
+    {
+        // PHASE 1: Generate JSON with ONLY Scene + Situations (empty lists for dependent resources)
+        string packageJson = _sceneInstantiator.CreateDeferredScene(template, spawnReward, context);
+        return packageJson;
+    }
+
+    /// <summary>
     /// Spawn scene immediately (HIGHLANDER flow)
     ///
     /// FLOW:
@@ -122,7 +135,8 @@ public class SceneInstanceFacade
                 spawnedScene.TemplateId,
                 true, // isProcedurallyGenerated = true (runtime spawned via instantiation)
                 SpawnTriggerType.ChoiceReward, // Most common trigger for runtime spawns
-                context.Player
+                _gameWorld.CurrentDay,
+                _gameWorld.CurrentTimeBlock
             );
 
             // Record all embedded situations as children of this scene

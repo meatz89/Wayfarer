@@ -185,9 +185,18 @@ public static class SceneArchetypeCatalog
                 Context = "securing_lodging",
                 Style = "approachable"
             },
-            // Hierarchical placement: Inherit scene base (common room + innkeeper)
-            LocationFilter = null,  // Inherits scene BaseLocationFilter (common room)
-            NpcFilter = null,       // Inherits scene BaseNpcFilter (innkeeper)
+            // Explicit categorical filters for inn lodging negotiation
+            // EntityResolver searches ONLY within CurrentVenue for matching entities
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                Purposes = new List<LocationPurpose> { LocationPurpose.Commerce }
+            },
+            NpcFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.NPC,
+                Professions = new List<Professions> { Professions.Innkeeper }
+            },
             RouteFilter = null
         };
 
@@ -493,8 +502,12 @@ public static class SceneArchetypeCatalog
                 Context = "morning_after",
                 Style = "somber"
             },
-            // Hierarchical placement: Inherit scene base location, no NPC (solo reflection)
-            LocationFilter = null,  // Inherits scene BaseLocationFilter
+            // Explicit filters for solo reflection (any location, no NPC)
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location
+                // Empty filter lists = matches any location within venue
+            },
             NpcFilter = new PlacementFilter  // Explicit "no NPC" override (solo reflection)
             {
                 PlacementType = PlacementType.NPC,
@@ -590,9 +603,17 @@ public static class SceneArchetypeCatalog
                 Context = "delivery_opportunity",
                 Style = "direct"
             },
-            // Hierarchical placement: Inherit scene base filters
-            LocationFilter = null,
-            NpcFilter = null,
+            // Explicit filters for delivery contract offer (merchant at commerce location)
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                Purposes = new List<LocationPurpose> { LocationPurpose.Commerce }
+            },
+            NpcFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.NPC,
+                Professions = new List<Professions> { Professions.Merchant }
+            },
             RouteFilter = null
         };
 
@@ -725,9 +746,17 @@ public static class SceneArchetypeCatalog
                 Context = "contract_terms",
                 Style = "businesslike"
             },
-            // Hierarchical placement: Inherit scene base filters
-            LocationFilter = null,
-            NpcFilter = null,
+            // Explicit filters for contract negotiation (merchant at commerce location)
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                Purposes = new List<LocationPurpose> { LocationPurpose.Commerce }
+            },
+            NpcFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.NPC,
+                Professions = new List<Professions> { Professions.Merchant }
+            },
             RouteFilter = null
         };
 
@@ -1168,8 +1197,17 @@ public static class SceneArchetypeCatalog
                 Context = "delivery_success",
                 Style = "satisfying"
             },
-            LocationFilter = null,  // Inherits scene base (warehouse)
-            NpcFilter = null,       // Inherits scene base (warehouse master)
+            // Explicit filters for delivery completion (warehouse with merchant)
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                Purposes = new List<LocationPurpose> { LocationPurpose.Commerce }
+            },
+            NpcFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.NPC,
+                Professions = new List<Professions> { Professions.Merchant }
+            },
             RouteFilter = null      // At destination location, not on route
         };
 

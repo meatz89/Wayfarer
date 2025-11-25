@@ -42,7 +42,6 @@ public class PersonalityRuleEnforcer
         return true;
     }
 
-    // DELETED: ModifySuccessRate() - Success rates don't exist in deterministic card system
     // MERCANTILE bonus now implemented in ModifyMomentumChange() as +3 Momentum
 
     /// <summary>

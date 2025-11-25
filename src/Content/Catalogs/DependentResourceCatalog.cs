@@ -20,6 +20,9 @@
 /// Generated specs include:
 /// - DependentLocationSpec: Access-controlled location with activity-appropriate properties
 /// - DependentItemSpec: Access item (key, token, pass) that unlocks location
+///
+/// All specs use generic, descriptive names until AI narrative system implemented.
+/// When AI narrative comes online, it will regenerate ALL text with full entity context.
 /// </summary>
 public static class DependentResourceCatalog
 {
@@ -40,7 +43,7 @@ public static class DependentResourceCatalog
     /// - Location: Private space with activity-appropriate properties
     /// - Item: Access token that unlocks location
     ///
-    /// All specs use placeholder patterns for NPC name replacement at finalization.
+    /// All specs use generic, descriptive names until AI narrative system implemented.
     /// </summary>
     public static DependentResources GenerateForActivity(ServiceActivityType activityType)
     {
@@ -61,21 +64,26 @@ public static class DependentResourceCatalog
         DependentLocationSpec locationSpec = new DependentLocationSpec
         {
             TemplateId = "private_room",
-            NamePattern = "{NPCName}'s Lodging Room",
-            DescriptionPattern = "A private room where {NPCName} provides lodging services.",
+            Name = "Private Room",
+            Description = "A private room for lodging.",
             VenueIdSource = VenueIdSource.SameAsBase,
             HexPlacement = HexPlacementStrategy.SameVenue,
             Properties = new List<string> { "sleepingSpace", "restful", "indoor", "private" },
             IsLockedInitially = true,
             UnlockItemTemplateId = "room_key",
-            CanInvestigate = false
+            CanInvestigate = false,
+            // FAIL-FAST: ALL categorical dimensions REQUIRED (no defaults)
+            Privacy = "Private",      // Private room for lodging
+            Safety = "Safe",          // Inn rooms are safe spaces
+            Activity = "Quiet",       // Bedroom environment
+            Purpose = "Dwelling"      // Sleeping/resting space
         };
 
         DependentItemSpec itemSpec = new DependentItemSpec
         {
             TemplateId = "room_key",
-            NamePattern = "Room Key",
-            DescriptionPattern = "A key that unlocks access to {NPCName}'s private lodging room.",
+            Name = "Room Key",
+            Description = "A key that unlocks access to a private room.",
             Categories = new List<ItemCategory> { ItemCategory.Special_Access },
             Weight = 1,
             BuyPrice = 0,
@@ -96,21 +104,26 @@ public static class DependentResourceCatalog
         DependentLocationSpec locationSpec = new DependentLocationSpec
         {
             TemplateId = "bath_chamber",
-            NamePattern = "{NPCName}'s Bathing Chamber",
-            DescriptionPattern = "A private bathing chamber maintained by {NPCName}.",
+            Name = "Bath Chamber",
+            Description = "A private bathing chamber.",
             VenueIdSource = VenueIdSource.SameAsBase,
             HexPlacement = HexPlacementStrategy.SameVenue,
             Properties = new List<string> { "restful", "indoor", "private", "water" },
             IsLockedInitially = true,
             UnlockItemTemplateId = "bath_token",
-            CanInvestigate = false
+            CanInvestigate = false,
+            // FAIL-FAST: ALL categorical dimensions REQUIRED (no defaults)
+            Privacy = "Private",      // Private bathing area
+            Safety = "Safe",          // Safe environment
+            Activity = "Quiet",       // Restful activity
+            Purpose = "Dwelling"      // Personal care space
         };
 
         DependentItemSpec itemSpec = new DependentItemSpec
         {
             TemplateId = "bath_token",
-            NamePattern = "Bath Token",
-            DescriptionPattern = "A token granting access to {NPCName}'s private bathing facilities.",
+            Name = "Bath Token",
+            Description = "A token granting access to a private bathing chamber.",
             Categories = new List<ItemCategory> { ItemCategory.Special_Access },
             Weight = 1,
             BuyPrice = 0,
@@ -131,21 +144,26 @@ public static class DependentResourceCatalog
         DependentLocationSpec locationSpec = new DependentLocationSpec
         {
             TemplateId = "training_yard",
-            NamePattern = "{NPCName}'s Training Grounds",
-            DescriptionPattern = "A private training area supervised by {NPCName}.",
+            Name = "Training Grounds",
+            Description = "A private training area.",
             VenueIdSource = VenueIdSource.SameAsBase,
             HexPlacement = HexPlacementStrategy.SameVenue,
             Properties = new List<string> { "outdoor", "private" },
             IsLockedInitially = true,
             UnlockItemTemplateId = "training_pass",
-            CanInvestigate = false
+            CanInvestigate = false,
+            // FAIL-FAST: ALL categorical dimensions REQUIRED (no defaults)
+            Privacy = "Private",      // Private training facility
+            Safety = "Neutral",       // Training has inherent risk
+            Activity = "Busy",        // Physical training activity
+            Purpose = "Work"          // Training/education purpose
         };
 
         DependentItemSpec itemSpec = new DependentItemSpec
         {
             TemplateId = "training_pass",
-            NamePattern = "Training Pass",
-            DescriptionPattern = "A pass granting access to {NPCName}'s training grounds.",
+            Name = "Training Pass",
+            Description = "A pass granting access to a training area.",
             Categories = new List<ItemCategory> { ItemCategory.Special_Access },
             Weight = 1,
             BuyPrice = 0,
@@ -166,21 +184,26 @@ public static class DependentResourceCatalog
         DependentLocationSpec locationSpec = new DependentLocationSpec
         {
             TemplateId = "treatment_room",
-            NamePattern = "{NPCName}'s Treatment Room",
-            DescriptionPattern = "A private medical chamber where {NPCName} provides healing services.",
+            Name = "Treatment Room",
+            Description = "A private medical treatment room.",
             VenueIdSource = VenueIdSource.SameAsBase,
             HexPlacement = HexPlacementStrategy.SameVenue,
             Properties = new List<string> { "restful", "indoor", "private", "quiet" },
             IsLockedInitially = true,
             UnlockItemTemplateId = "treatment_receipt",
-            CanInvestigate = false
+            CanInvestigate = false,
+            // FAIL-FAST: ALL categorical dimensions REQUIRED (no defaults)
+            Privacy = "Private",      // Private medical room
+            Safety = "Safe",          // Healing environment
+            Activity = "Quiet",       // Restful recovery
+            Purpose = "Dwelling"      // Personal care/recovery space
         };
 
         DependentItemSpec itemSpec = new DependentItemSpec
         {
             TemplateId = "treatment_receipt",
-            NamePattern = "Treatment Receipt",
-            DescriptionPattern = "A receipt granting access to {NPCName}'s medical treatment room.",
+            Name = "Treatment Receipt",
+            Description = "A receipt granting access to a medical treatment room.",
             Categories = new List<ItemCategory> { ItemCategory.Special_Access },
             Weight = 1,
             BuyPrice = 0,
@@ -201,21 +224,26 @@ public static class DependentResourceCatalog
         DependentLocationSpec locationSpec = new DependentLocationSpec
         {
             TemplateId = "workshop",
-            NamePattern = "{NPCName}'s Workshop",
-            DescriptionPattern = "A private workshop where {NPCName} allows crafting work.",
+            Name = "Workshop",
+            Description = "A private workshop for crafting.",
             VenueIdSource = VenueIdSource.SameAsBase,
             HexPlacement = HexPlacementStrategy.SameVenue,
             Properties = new List<string> { "indoor", "private" },
             IsLockedInitially = true,
             UnlockItemTemplateId = "workshop_permit",
-            CanInvestigate = false
+            CanInvestigate = false,
+            // FAIL-FAST: ALL categorical dimensions REQUIRED (no defaults)
+            Privacy = "Private",      // Private workspace
+            Safety = "Neutral",       // Tools/hazards present
+            Activity = "Busy",        // Active crafting work
+            Purpose = "Work"          // Manufacturing/crafting purpose
         };
 
         DependentItemSpec itemSpec = new DependentItemSpec
         {
             TemplateId = "workshop_permit",
-            NamePattern = "Workshop Permit",
-            DescriptionPattern = "A permit granting access to {NPCName}'s private workshop.",
+            Name = "Workshop Permit",
+            Description = "A permit granting access to a private workshop.",
             Categories = new List<ItemCategory> { ItemCategory.Special_Access },
             Weight = 1,
             BuyPrice = 0,
@@ -236,21 +264,26 @@ public static class DependentResourceCatalog
         DependentLocationSpec locationSpec = new DependentLocationSpec
         {
             TemplateId = "study_room",
-            NamePattern = "{NPCName}'s Study Room",
-            DescriptionPattern = "A quiet study room maintained by {NPCName}.",
+            Name = "Study Room",
+            Description = "A quiet study room.",
             VenueIdSource = VenueIdSource.SameAsBase,
             HexPlacement = HexPlacementStrategy.SameVenue,
             Properties = new List<string> { "indoor", "private", "quiet", "restful" },
             IsLockedInitially = true,
             UnlockItemTemplateId = "library_pass",
-            CanInvestigate = false
+            CanInvestigate = false,
+            // FAIL-FAST: ALL categorical dimensions REQUIRED (no defaults)
+            Privacy = "Private",      // Private study space
+            Safety = "Safe",          // Safe reading environment
+            Activity = "Quiet",       // Quiet intellectual work
+            Purpose = "Education"     // Learning/study purpose
         };
 
         DependentItemSpec itemSpec = new DependentItemSpec
         {
             TemplateId = "library_pass",
-            NamePattern = "Library Pass",
-            DescriptionPattern = "A pass granting access to {NPCName}'s private study room.",
+            Name = "Library Pass",
+            Description = "A pass granting access to a private study room.",
             Categories = new List<ItemCategory> { ItemCategory.Special_Access },
             Weight = 1,
             BuyPrice = 0,

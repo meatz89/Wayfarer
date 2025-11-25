@@ -365,50 +365,53 @@ Same patterns used in non-tutorial contexts:
 
 **Narrative Context**: Player arrives at roadside inn as sun sets, tired from travel. Need lodging, meet innkeeper Elena, settle in for night. Morning comes, handle what needs handling, prepare to continue journey.
 
+**Tutorial Philosophy - Identity Formation (Sir Brante Pattern)**:
+A1 focuses on character building, not gating. All choices succeed and grant stat rewards, allowing player to define their character through choices. No locked content, no frustration, pure identity formation. Player builds 4-6 stat points by scene end, establishing foundation for A2 where stat gating is introduced.
+
 **Mechanical Objectives**:
 1. Introduce resource display (Health, Stamina, Focus, coins always visible)
-2. Teach four-choice pattern (stat/money/challenge/fallback)
-3. Demonstrate guaranteed progression (help path always available)
+2. Teach choice-based stat building (earn first stat points through choices)
+3. Establish identity through playstyle (choices define character)
 4. Show perfect information (costs/rewards visible before selection)
 5. Introduce basic navigation (common room → private room → departure)
-6. Teach time blocks (actions consume segments, periods advance)
+6. Build stats for future gating (preparation for A2 requirements)
 
 **Structure**: 3 situations, linear flow
 
 **Situation 1: Negotiate Lodging** (Common room)
-- Choice A: Rapport 3 path (locked for most players, demonstrates stat gating)
-- Choice B: Pay 6 coins (affordable, standard path)
-- Choice C: Social challenge (NOT available yet, too complex for first scene)
-- Choice D: Help clean common room for free room (guaranteed, time-costly)
-- Outcome: All paths grant room_key, advance to Situation 2
+- Choice A: Chat warmly with Elena (+Rapport 1, costs 5 coins)
+- Choice B: Assert your need for accommodation (+Authority 1, costs 5 coins)
+- Choice C: Seek advantageous deal (+Cunning 1, costs 5 coins)
+- Choice D: Negotiate fair arrangement (+Diplomacy 1, costs 5 coins)
+- Outcome: All paths grant room access, player builds first stat point, advance to Situation 2
 
-**Situation 2: Rest and Recover** (Private room, requires room_key)
-- Choice A: Balanced rest (Health +15, Stamina +15, Focus +10)
-- Choice B: Deep sleep (Health +20, Stamina +25, Focus +5)
-- Choice C: Contemplative rest (Health +10, Stamina +10, Focus +20)
-- Choice D: Quick rest (Health +10, Stamina +15, immediate departure)
-- Outcome: Resources restored, advance to Situation 3
+**Situation 2: Evening Reflection** (Private room)
+- Choice A: Read and study (+Insight 1, small resource boost)
+- Choice B: Plan tomorrow's route (+Cunning 1, tactical thinking)
+- Choice C: Rest peacefully (Health +3, Stamina +3, Focus +3, resource restoration)
+- Choice D: Visit common room and socialize (+Rapport 1, relationship building)
+- Outcome: Player continues identity formation, advance to Situation 3
 
 **Situation 3: Morning Departure** (Common room)
-- Choice A: Thank innkeeper, build relationship (Elena +1)
-- Choice B: Ask about the road ahead (learn about next destination)
-- Choice C: Quick departure (minimal interaction, save time)
-- Choice D: Offer to help with morning tasks (Elena +2, costs time)
-- Outcome: Scene completes, A2 spawns at Westmarch, region unlocked
+- Choice A: Leave early to make good time (+Cunning 1, efficiency focus)
+- Choice B: Socialize with other travelers (+Rapport 1, relationship focus)
+- Outcome: Scene completes, A2 spawns at next location, player has 4-6 stat points
 
 **What Player Learns**:
-- Resources visible and matter (coins, Health, Stamina, Focus)
-- Four-choice pattern repeats (stat/money/challenge/fallback)
-- Guaranteed path exists (help-for-free always available)
-- Perfect information (costs shown before selection)
-- Relationships build over time (Elena +1, +2 increments)
-- Time is resource (helping costs segments)
+- Choices define character (identity through stat selection)
+- All paths succeed (no frustration in first encounter)
+- Stats accumulate meaningfully (4-6 points earned)
+- Resources displayed and tracked (coins, Health, Stamina, Focus)
+- Choices have mechanical consequences (stat rewards matter)
+- Preparation for gating (building stats that will unlock content in A2)
 
-**Safety Nets**:
-- Only 6 coins needed (earn 10 from starting funds)
-- No challenge path (too complex for first scene)
-- Generous restoration (recover fully)
-- No time pressure (scene doesn't expire)
+**Why This Tutorial Philosophy Works**:
+- Positive first experience (success, growth, agency)
+- Player HAS stats before seeing gates (context for what gates mean in A2)
+- Natural progression: Build (A1) → Gate (A2) → Strategy (A3)
+- Follows Sir Brante pedagogy (identity formation before challenge)
+- Avoids frontloading frustration with locked content
+- Sets up meaningful A2 gating (Rapport 3 gate meaningful when player has 2-4 Rapport)
 
 ### 10.4.2 A2: Meet Constable in Westmarch (45-60 minutes)
 

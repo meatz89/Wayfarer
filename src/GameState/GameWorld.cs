@@ -49,7 +49,6 @@ public class GameWorld
     public List<SocialCard> PlayerObservationCards { get; set; } = new List<SocialCard>();
     // Exchange definitions loaded from JSON for lookup
     public List<ExchangeDTO> ExchangeDefinitions { get; set; } = new List<ExchangeDTO>();
-    // Mental cards for obligation system - REMOVED: Situations now owned by Scene
     public List<SocialCard> SocialCards { get; set; } = new List<SocialCard>();
     public List<MentalCard> MentalCards { get; set; } = new List<MentalCard>();
     // Physical cards for physical challenge system
@@ -274,12 +273,7 @@ public class GameWorld
     // Hierarchy lookup methods
     public District GetDistrictForLocation(Venue venue)
     {
-        // HIGHLANDER: Accept Venue object, return District object reference directly
         // ZERO NULL TOLERANCE: venue must never be null
-        // District can be null if venue not yet assigned (return null is legitimate)
-        if (venue.District == null)
-            return null;
-
         return venue.District;
     }
 
@@ -287,10 +281,6 @@ public class GameWorld
     public Region GetRegionForDistrict(District district)
     {
         // ZERO NULL TOLERANCE: district must never be null
-        // Region can be null if district not yet assigned (return null is legitimate)
-        if (district.Region == null)
-            return null;
-
         return district.Region;
     }
 
@@ -305,13 +295,9 @@ public class GameWorld
 
         // HIGHLANDER: GetDistrictForLocation accepts Venue, not string - need to pass venue object
         District district = GetDistrictForLocation(venue);
-        // District can legitimately be null (venue not assigned to district yet)
-        if (district == null) return venue.Name;
 
         // HIGHLANDER: Pass District object, not string
         Region region = GetRegionForDistrict(district);
-        // Region can legitimately be null (district not assigned to region yet)
-        if (region == null) return $"{venue.Name}, {district.Name}";
 
         return $"{venue.Name}, {district.Name}, {region.Name}";
     }
@@ -992,10 +978,7 @@ public class GameWorld
             // Copy all properties from new location to existing (preserve object identity)
             existing.Name = location.Name;
             existing.AssignVenue(location.Venue);
-            existing.InitialState = location.InitialState;
-            // IsLocked DELETED - new architecture uses query-based accessibility via LocationAccessibilityService
             existing.HexPosition = location.HexPosition;
-            existing.CurrentTimeBlocks = location.CurrentTimeBlocks;
             existing.Capabilities = location.Capabilities;
             existing.DomainTags = location.DomainTags;
             existing.IsSkeleton = false; // Mark as no longer skeleton
@@ -1007,9 +990,6 @@ public class GameWorld
             // New location - add to collection
             Locations.Add(location);
         }
-
-        // Relationship is unidirectional: Location → Venue via Location.Venue object reference
-        // No bidirectional tracking needed
     }
 
     // ========== VENUE CAPACITY HELPERS ==========
