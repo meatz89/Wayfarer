@@ -443,6 +443,60 @@ private Location FindMatchingLocation(PlacementFilter filter)
 }
 ```
 
+### 14.5.4 Dual-Model Location Accessibility
+
+**CRITICAL**: Dependent locations (created by scenes) have different accessibility rules than authored locations.
+
+See [ADR-012](../arc42/09_architecture_decisions.md#adr-012-dual-model-location-accessibility) and [§8.11](../arc42/08_crosscutting_concepts.md#811-location-accessibility-architecture).
+
+#### The Provenance Discriminator
+
+`Location.Provenance` property determines which accessibility model applies:
+
+| Provenance | Location Type | Accessibility |
+|------------|---------------|---------------|
+| `null` | Authored (from JSON) | **ALWAYS accessible** |
+| `non-null` | Dependent (scene-created) | Accessible when active scene's current situation is at location |
+
+#### Why This Matters for Tutorial
+
+When the inn_lodging scene creates a "private room" dependent location:
+
+1. **Scene activates** at Common Room (authored, always accessible)
+2. **Situation 1 (Negotiate)** completes—player picks a choice
+3. **Scene advances**: `CurrentSituationIndex` moves to Situation 2
+4. **Situation 2 (Rest)**: `situation.Location = Private Room` (dependent)
+5. **Private Room becomes accessible**: `LocationAccessibilityService` checks:
+   - `Private Room.Provenance != null` → dependent location
+   - Any active scene with `CurrentSituation.Location == Private Room`? YES
+   - Return `true` → player can move there
+6. **Player moves** to Private Room (accessibility check passes)
+7. **Situation 2 displays** its choices
+
+#### Implementation
+
+```csharp
+// src/Subsystems/Location/LocationAccessibilityService.cs:36-65
+public bool IsLocationAccessible(Location location)
+{
+    // AUTHORED: Always accessible per TIER 1 No Soft-Locks
+    if (location.Provenance == null)
+        return true;
+
+    // DEPENDENT: Check if any active scene's current situation is at this location
+    return _gameWorld.Scenes
+        .Where(scene => scene.State == SceneState.Active)
+        .Any(scene => scene.CurrentSituation?.Location == location);
+}
+```
+
+#### Why Not GrantsLocationAccess Property?
+
+A proposed `SituationTemplate.GrantsLocationAccess` property was removed:
+- If situation is at dependent location, player MUST access it to engage
+- Setting `GrantsLocationAccess = false` would guarantee a soft-lock
+- Situation presence at location implies access (no explicit property needed)
+
 ## 14.6 Scene-Situation-Choice Execution Pipeline
 
 ### 14.6.1 Getting Available Actions (Query-Time)

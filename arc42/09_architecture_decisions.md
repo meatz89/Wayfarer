@@ -261,6 +261,53 @@ Implement explicit package-round entity tracking via `PackageLoadResult` structu
 
 ---
 
+## ADR-012: Dual-Model Location Accessibility
+
+**Status:** Accepted
+
+**Context:**
+The game has two types of locations with fundamentally different accessibility requirements:
+- **Authored locations:** Defined in base game JSON, exist from game start (inns, taverns, checkpoints)
+- **Dependent locations:** Created by scenes during gameplay (private rooms, meeting chambers)
+
+A naive implementation blocked ALL locations unless an active scene granted access. This violated TIER 1 (No Soft-Locks) because authored locations became inaccessible when no scene was active at them.
+
+A proposed `GrantsLocationAccess` property on SituationTemplate was dead code—if a situation exists at a dependent location, the player MUST access it to engage. Setting `GrantsLocationAccess = false` would guarantee a soft-lock.
+
+**Decision:**
+Dual-model accessibility via `Location.Provenance` discriminator:
+- **Authored locations** (`Provenance == null`): ALWAYS accessible per TIER 1 No Soft-Locks principle
+- **Dependent locations** (`Provenance != null`): Accessible when ANY active scene's current situation is at that location
+
+`LocationAccessibilityService.IsLocationAccessible()` implements this logic:
+```csharp
+if (location.Provenance == null)
+    return true;  // Authored: always accessible
+
+return _gameWorld.Scenes
+    .Where(scene => scene.State == SceneState.Active)
+    .Any(scene => scene.CurrentSituation?.Location == location);
+```
+
+**Consequences:**
+- Authored locations always reachable (no soft-locks in base game)
+- Dependent locations automatically unlock when scene advances to their situation
+- No explicit "unlock" properties needed—situation presence implies access
+- `Provenance` property serves double duty: tracks creation source AND determines accessibility model
+- MovementValidator delegates to LocationAccessibilityService for all accessibility checks
+
+**Alternatives Rejected:**
+- `GrantsLocationAccess` property: Dead code—can never meaningfully be false without causing soft-lock
+- Flag-based locking (`IsLocked`): Requires explicit unlock actions, risks desync between lock state and scene state
+- Scene-based access for ALL locations: Blocked authored locations without active scenes
+
+**Related Decisions:**
+- ADR-006: TIER 1 No Soft-Locks drives authored location always-accessible requirement
+- ADR-010: Entity Resolution via Categorical Filters creates dependent locations
+- ADR-011: Provenance tracking enables package-round entity attribution
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — High-level strategy these decisions implement

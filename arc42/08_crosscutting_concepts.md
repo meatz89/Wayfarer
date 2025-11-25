@@ -341,6 +341,83 @@ else
 
 ---
 
+## 8.11 Location Accessibility Architecture
+
+**Dual-model accessibility ensures TIER 1 No Soft-Locks while supporting scene-gated dependent locations.**
+
+See [ADR-012](09_architecture_decisions.md#adr-012-dual-model-location-accessibility) for decision rationale.
+
+### The Problem
+
+Locations fall into two categories with different accessibility requirements:
+- **Authored locations:** Defined in base game JSON (inns, taverns, checkpoints)—must always be reachable
+- **Dependent locations:** Created by scenes during gameplay (private rooms, meeting chambers)—should only be accessible after narrative progression
+
+A naive implementation (scene-grants-access for ALL locations) blocked authored locations when no scene was active at them—violating TIER 1.
+
+### The Solution: Provenance Discriminator
+
+`Location.Provenance` property determines which accessibility model applies:
+
+| Provenance Value | Location Type | Accessibility Rule |
+|------------------|---------------|-------------------|
+| `null` | Authored | **ALWAYS accessible** (No Soft-Locks) |
+| `non-null` | Dependent | Accessible when active scene's current situation is at location |
+
+### Implementation
+
+**LocationAccessibilityService.IsLocationAccessible():**
+```csharp
+// AUTHORED: Always accessible per TIER 1
+if (location.Provenance == null)
+    return true;
+
+// DEPENDENT: Accessible when situation is at location
+return _gameWorld.Scenes
+    .Where(scene => scene.State == SceneState.Active)
+    .Any(scene => scene.CurrentSituation?.Location == location);
+```
+
+### Service Interaction
+
+```
+MovementValidator.ValidateMovement()
+    └─ IsSpotAccessible(targetLocation)
+        └─ LocationAccessibilityService.IsLocationAccessible(location)
+            ├─ Provenance == null → return true
+            └─ Provenance != null → CheckSceneGrantsAccess()
+```
+
+### Example: Inn Lodging Scene
+
+1. **Scene activates** at Common Room (authored location—always accessible)
+2. **Situation 1** (Negotiate): Player talks to innkeeper at Common Room
+3. **Player completes situation 1** by selecting a choice
+4. **Scene advances**: `CurrentSituationIndex` moves to Situation 2
+5. **Situation 2** (Rest): Location = Private Room (dependent)
+6. **Private Room becomes accessible**: Active scene's current situation is now at Private Room
+7. **Player moves** to Private Room (accessibility check passes)
+8. **Scene displays** Situation 2 choices
+
+### Why Not GrantsLocationAccess Property?
+
+A proposed `SituationTemplate.GrantsLocationAccess` property was removed as dead code:
+- If situation is at dependent location, player MUST access it to engage
+- Setting `GrantsLocationAccess = false` would guarantee a soft-lock
+- Therefore the property can NEVER meaningfully be false
+- Situation presence at location implies access (no explicit property needed)
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `src/Subsystems/Location/LocationAccessibilityService.cs` | Dual-model accessibility logic |
+| `src/Subsystems/Location/MovementValidator.cs` | Delegates accessibility checks |
+| `src/Content/Location.cs:109` | `Provenance` property definition |
+| `src/GameState/SceneProvenance.cs` | Provenance tracking structure |
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement
