@@ -104,4 +104,12 @@ public class SituationTemplate
     /// Provides tone, theme, context, style guidance
     /// </summary>
     public NarrativeHints NarrativeHints { get; init; }
+
+    /// <summary>
+    /// Name of dependent location this situation should be bound to
+    /// Used for direct object binding after PackageLoader creates dependent locations
+    /// Example: "Private Room" - matches DependentLocationSpec.Name
+    /// If set, bypasses categorical filter resolution for location binding
+    /// </summary>
+    public string DependentLocationName { get; init; }
 }

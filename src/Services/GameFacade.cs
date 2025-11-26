@@ -1650,14 +1650,13 @@ public class GameFacade
         }
 
         // Write to disk and load via PackageLoader
+        // HIGHLANDER: Get direct object reference from result
         string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}_deferred";
         await _contentGenerationFacade.CreateDynamicPackageFile(packageJson, packageId);
-        await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
+        PackageLoadResult loadResult = await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
 
-        // Retrieve spawned scene from GameWorld
-        Scene spawnedScene = _gameWorld.Scenes
-            .Where(s => s.TemplateId == template.Id && s.State == SceneState.Deferred)
-            .LastOrDefault();
+        // Get spawned scene from result (HIGHLANDER: direct object reference)
+        Scene spawnedScene = loadResult.ScenesAdded.FirstOrDefault();
 
         if (spawnedScene == null)
         {

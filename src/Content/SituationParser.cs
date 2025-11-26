@@ -86,7 +86,9 @@ public static class SituationParser
             Tier = dto.Tier,
             Repeatable = dto.Repeatable,
             GeneratedNarrative = dto.GeneratedNarrative,
-            NarrativeHints = ParseNarrativeHints(dto.NarrativeHints)
+            NarrativeHints = ParseNarrativeHints(dto.NarrativeHints),
+            // Direct binding to dependent location (bypasses filter resolution)
+            DependentLocationName = dto.DependentLocationName
         };
 
         // Resolve object references during parsing (HIGHLANDER: Name is natural key)

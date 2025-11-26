@@ -131,7 +131,7 @@ public class PlacementFilter
     public bool? IsPlayerAccessible { get; init; }
 
     /// <summary>
-    /// DEPRECATED: Location tags used only for DEPENDENT_LOCATION marker system
+    /// DEPRECATED: No longer used (situation binding via DependentLocationName)
     /// Use orthogonal categorical dimensions (Privacy, Safety, Activity, Purpose) instead
     /// </summary>
     public List<string> LocationTags { get; init; } = new List<string>();

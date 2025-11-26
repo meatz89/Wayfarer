@@ -323,12 +323,8 @@ public static class SceneArchetypeCatalog
                 Context = "evening_choices",
                 Style = "introspective"
             },
-            // Hierarchical placement: Override to private room, no NPC
-            LocationFilter = new PlacementFilter
-            {
-                PlacementType = PlacementType.Location,
-                LocationTags = new List<string> { "DEPENDENT_LOCATION:private_room" }  // Marker replaced at spawn time
-            },
+            // Direct binding to dependent location (no marker system)
+            DependentLocationName = "Private Room",
             NpcFilter = new PlacementFilter  // Explicit "no NPC" override (empty filter = no match)
             {
                 PlacementType = PlacementType.NPC,
@@ -407,12 +403,8 @@ public static class SceneArchetypeCatalog
                 Context = "morning_departure",
                 Style = "optimistic"
             },
-            // Hierarchical placement: Override to private room, no NPC (same as Rest situation)
-            LocationFilter = new PlacementFilter
-            {
-                PlacementType = PlacementType.Location,
-                LocationTags = new List<string> { "DEPENDENT_LOCATION:private_room" }  // Marker replaced at spawn time
-            },
+            // Direct binding to dependent location (no marker system)
+            DependentLocationName = "Private Room",
             NpcFilter = new PlacementFilter  // Explicit "no NPC" override (empty filter = no match)
             {
                 PlacementType = PlacementType.NPC,

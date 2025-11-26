@@ -88,7 +88,7 @@ public class Location
 
     // Gameplay properties - NO DEFAULTS: must be explicitly set by parser
     public ObligationDiscipline ObligationProfile { get; set; }
-    public List<string> DomainTags { get; set; } = new List<string>(); // DEPRECATED: Used only for DEPENDENT_LOCATION marker system
+    public List<string> DomainTags { get; set; } = new List<string>(); // DEPRECATED: No longer used (situation binding via DependentLocationName)
     public LocationTypes LocationType { get; set; }
     public bool IsStartingLocation { get; set; }
 

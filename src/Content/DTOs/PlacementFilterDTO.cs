@@ -123,7 +123,8 @@ public class PlacementFilterDTO
     public bool? IsPlayerAccessible { get; set; }
 
     /// <summary>
-    /// DEPRECATED: Use orthogonal categorical dimensions instead (kept only for DEPENDENT_LOCATION markers)
+    /// DEPRECATED: No longer used (situation binding via DependentLocationName)
+    /// Use orthogonal categorical dimensions instead
     /// </summary>
     public List<string> LocationTags { get; set; } = new List<string>();
 

@@ -138,6 +138,14 @@ public class Situation
     public PlacementFilter LocationFilter { get; set; }
 
     /// <summary>
+    /// Name of dependent location this situation should be bound to
+    /// Used for direct object binding after PackageLoader creates dependent locations
+    /// Example: "Private Room" - matches Location.Name from PackageLoadResult
+    /// If set, bypasses categorical filter resolution for location binding
+    /// </summary>
+    public string DependentLocationName { get; set; }
+
+    /// <summary>
     /// Location where this situation activates
     /// Each situation can require different location from other situations in same scene
     /// Used for context matching: player must be at this location for situation to activate

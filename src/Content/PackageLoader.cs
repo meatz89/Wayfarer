@@ -278,10 +278,11 @@ public class PackageLoader
     }
 
     /// <summary>
-    /// Load a dynamic package from JSON string (e.g., AI-generated content)
-    /// Returns list of skeleton IDs that need completion
+    /// Load a dynamic package from JSON string (e.g., scene-generated content)
+    /// Returns PackageLoadResult with direct object references to all created entities
+    /// HIGHLANDER: Callers use object references directly, not string-based lookups
     /// </summary>
-    public async Task<List<string>> LoadDynamicPackageFromJson(string json, string packageId)
+    public async Task<PackageLoadResult> LoadDynamicPackageFromJson(string json, string packageId)
     {
         Package package;
         using (MemoryStream stream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(json)))
@@ -304,7 +305,7 @@ public class PackageLoader
         // Check if already loaded
         if (_loadedPackageIds.Contains(package.PackageId))
         {
-            return new List<string>();
+            return new PackageLoadResult { PackageId = package.PackageId };
         }
 
         // Track as loaded
@@ -335,8 +336,8 @@ public class PackageLoader
         // Must regenerate for ALL locations because adjacency relationships may have changed
         GenerateLocationActionsFromCatalogue();
 
-        // Return skeleton IDs for AI completion
-        return _gameWorld.SkeletonRegistry.Select(r => r.SkeletonKey).ToList();
+        // Return full result with direct object references to created entities
+        return result;
     }
 
     private void ApplyStartingConditions(PackageStartingConditions conditions)

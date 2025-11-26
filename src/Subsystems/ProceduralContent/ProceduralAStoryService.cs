@@ -71,7 +71,8 @@ public class ProceduralAStoryService
         await _contentFacade.CreateDynamicPackageFile(packageJson, packageId);
 
         // 6. Load through HIGHLANDER pipeline (JSON → PackageLoader → Parser)
-        await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
+        // Result discarded - templates don't need post-load configuration
+        _ = await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
 
         return dto.Id;
     }

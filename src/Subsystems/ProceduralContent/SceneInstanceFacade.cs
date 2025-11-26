@@ -96,25 +96,22 @@ public class SceneInstanceFacade
         await _contentGenerationFacade.CreateDynamicPackageFile(packageJson, packageId);
 
         // PHASE 2.3: Load package via PackageLoader (HIGHLANDER: JSON → Parser → Entity)
-        await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
+        // Returns PackageLoadResult with direct object references to created entities
+        PackageLoadResult loadResult = await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
 
-        // PHASE 2.4: Retrieve spawned scene from GameWorld
-        // Scene was added to GameWorld by PackageLoader
-        // HIGHLANDER: Query by TemplateId, get last match (most recently added)
-        // Scenes collection ordered by insertion, LastOrDefault gets most recent
-        Scene spawnedScene = _gameWorld.Scenes
-            .Where(s => s.TemplateId == template.Id)
-            .LastOrDefault();
+        // PHASE 2.4: Get spawned scene from result (HIGHLANDER: direct object reference)
+        Scene spawnedScene = loadResult.ScenesAdded.FirstOrDefault();
 
         if (spawnedScene == null)
         {
             throw new InvalidOperationException($"Scene from template '{template.Id}' failed to load via PackageLoader");
         }
 
-        // PHASE 2.4: Post-load orchestration (dependent resources)
-        if (template.DependentLocations.Any() || template.DependentItems.Any())
+        // PHASE 2.5: Post-load orchestration (dependent resources)
+        // Uses direct object references from loadResult - no GameWorld searching
+        if (loadResult.LocationsAdded.Any() || loadResult.ItemsAdded.Any())
         {
-            PostLoadOrchestration(spawnedScene, template, context.Player);
+            PostLoadOrchestration(spawnedScene, loadResult, context.Player);
         }
 
         // PHASE 2.5: RUNTIME PLAYABILITY VALIDATION (FAIL-FAST)
@@ -157,10 +154,9 @@ public class SceneInstanceFacade
     /// Post-load orchestration for dependent resources
     /// Sets Origin, Provenance, generates hex routes, adds items to inventory
     ///
-    /// CRITICAL FIX: Must set Origin = SceneCreated BEFORE querying by Provenance
-    /// Locations are identified by: DomainTags suffix matching spec.TemplateId AND Provenance == null (unprocessed)
+    /// HIGHLANDER: Uses PackageLoadResult with direct object references - no searching
     /// </summary>
-    private void PostLoadOrchestration(Scene scene, SceneTemplate template, Player player)
+    private void PostLoadOrchestration(Scene scene, PackageLoadResult loadResult, Player player)
     {
         // Build provenance for newly created resources
         SceneProvenance provenance = new SceneProvenance
@@ -171,30 +167,16 @@ public class SceneInstanceFacade
             CreatedSegment = _timeManager.CurrentSegment
         };
 
-        // STEP 1: Find and configure dependent locations
-        // Match by DomainTags suffix + null Provenance (unprocessed locations)
-        foreach (DependentLocationSpec locationSpec in template.DependentLocations)
+        // STEP 1: Configure dependent locations (direct object references from result)
+        foreach (Location location in loadResult.LocationsAdded)
         {
-            // Find location by DomainTags suffix matching spec.TemplateId AND Provenance null (not yet processed)
-            Location location = _gameWorld.Locations
-                .FirstOrDefault(loc =>
-                    loc.Provenance == null &&  // Not yet processed
-                    loc.DomainTags != null &&
-                    loc.DomainTags.Any(tag => tag.EndsWith($"_{locationSpec.TemplateId}")));
-
-            if (location == null)
-            {
-                Console.WriteLine($"[SceneInstanceFacade] WARNING: Could not find dependent location for spec '{locationSpec.TemplateId}'");
-                continue;
-            }
-
             // ADR-012: Set explicit Origin enum for accessibility model
             location.Origin = LocationOrigin.SceneCreated;
 
             // Set provenance for forensic tracking
             location.Provenance = provenance;
 
-            Console.WriteLine($"[SceneInstanceFacade] Configured location '{location.Name}' with Origin=SceneCreated, Provenance.Scene='{scene.TemplateId}'");
+            Console.WriteLine($"[SceneInstanceFacade] Configured location '{location.Name}' with Origin=SceneCreated");
 
             // Generate hex routes if location has hex position
             if (location.HexPosition.HasValue)
@@ -208,30 +190,42 @@ public class SceneInstanceFacade
             }
         }
 
-        // STEP 2: Find and configure dependent items
-        // Match by Provenance null + Name matching spec (items created by same package load)
-        foreach (DependentItemSpec itemSpec in template.DependentItems)
+        // STEP 2: Configure dependent items (direct object references from result)
+        // Get template for AddToInventoryOnCreation check
+        SceneTemplate template = scene.Template ?? _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == scene.TemplateId);
+
+        foreach (Item item in loadResult.ItemsAdded)
         {
-            // Find item by Name matching spec.Name AND Provenance null (not yet processed)
-            Item item = _gameWorld.Items
-                .FirstOrDefault(i =>
-                    i.Provenance == null &&  // Not yet processed
-                    i.Name == itemSpec.Name);
-
-            if (item == null)
-            {
-                Console.WriteLine($"[SceneInstanceFacade] WARNING: Could not find dependent item for spec '{itemSpec.TemplateId}'");
-                continue;
-            }
-
             // Set provenance for forensic tracking
             item.Provenance = provenance;
 
-            // Add to inventory if specified
-            if (itemSpec.AddToInventoryOnCreation)
+            // Check if this item should be added to inventory
+            DependentItemSpec itemSpec = template?.DependentItems?.FirstOrDefault(s => s.Name == item.Name);
+            if (itemSpec != null && itemSpec.AddToInventoryOnCreation)
             {
                 player.Inventory.Add(item);
                 Console.WriteLine($"[SceneInstanceFacade] Added item '{item.Name}' to player inventory");
+            }
+        }
+
+        // STEP 3: Bind situations to dependent locations (direct object references)
+        // Match Situation.DependentLocationName to Location.Name from loadResult
+        foreach (Situation situation in scene.Situations)
+        {
+            if (!string.IsNullOrEmpty(situation.DependentLocationName))
+            {
+                Location dependentLocation = loadResult.LocationsAdded
+                    .FirstOrDefault(l => l.Name == situation.DependentLocationName);
+
+                if (dependentLocation != null)
+                {
+                    situation.Location = dependentLocation;
+                    Console.WriteLine($"[SceneInstanceFacade] Bound situation '{situation.Name}' to dependent location '{dependentLocation.Name}'");
+                }
+                else
+                {
+                    Console.WriteLine($"[SceneInstanceFacade] WARNING: Situation '{situation.Name}' references dependent location '{situation.DependentLocationName}' not found in loadResult");
+                }
             }
         }
     }

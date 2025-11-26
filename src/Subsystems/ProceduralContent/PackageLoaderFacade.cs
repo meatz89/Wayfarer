@@ -28,10 +28,11 @@ public class PackageLoaderFacade
 
     /// <summary>
     /// Load dynamically-generated package from JSON string
-    /// Creates Location/Item/NPC entities in GameWorld
-    /// Returns list of skeleton IDs requiring AI completion
+    /// Creates Location/Item/NPC/Scene entities in GameWorld
+    /// Returns PackageLoadResult with direct object references to all created entities
+    /// HIGHLANDER: Callers use object references directly, not string-based lookups
     /// </summary>
-    public async Task<List<string>> LoadDynamicPackage(string packageJson, string packageId)
+    public async Task<PackageLoadResult> LoadDynamicPackage(string packageJson, string packageId)
     {
         return await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
     }

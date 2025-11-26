@@ -678,7 +678,9 @@ public class SceneTemplateParser
             LocationFilter = ParsePlacementFilter(dto.LocationFilter, contextId, _gameWorld),
             NpcFilter = ParsePlacementFilter(dto.NpcFilter, contextId, _gameWorld),
             RouteFilter = ParsePlacementFilter(dto.RouteFilter, contextId, _gameWorld),
-            NarrativeHints = ParseNarrativeHints(dto.NarrativeHints)
+            NarrativeHints = ParseNarrativeHints(dto.NarrativeHints),
+            // Direct binding to dependent location (bypasses filter resolution)
+            DependentLocationName = dto.DependentLocationName
         };
 
         return template;

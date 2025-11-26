@@ -222,7 +222,7 @@ public static class AStorySceneArchetypeCatalog
                 Context = "formal_audience",
                 Style = "dramatic"
             },
-            LocationFilter = new PlacementFilter { PlacementType = PlacementType.Location, LocationTags = new List<string> { "DEPENDENT_LOCATION:meeting_chamber" } },
+            DependentLocationName = "Meeting Chamber",
             NpcFilter = null,       // Inherits scene BaseNpcFilter
             RouteFilter = null
         };
