@@ -97,27 +97,15 @@ public class SceneTemplateDTO
     public string ProgressionMode { get; set; }
 
     /// <summary>
-    /// Scene archetype ID for procedural scene generation
-    /// SceneArchetypeCatalog generates complete SituationTemplates array at PARSE TIME
-    /// REQUIRED for all scenes - defines both structure and content
-    ///
-    /// Multi-situation archetypes (2-4 situations):
-    ///   - "service_with_location_access": 4-situation service arc (negotiate→access→service→depart)
-    ///   - "transaction_sequence": 3-situation trade arc (browse→negotiate→complete)
-    ///   - "gatekeeper_sequence": 2-situation authority arc (confront→pass)
-    ///   - "inn_crisis_escalation": 4-situation escalating conflict
-    ///
-    /// Single-situation archetypes (1 situation with 4-choice pattern):
-    ///   - "single_negotiation": Diplomatic trade/bargaining
-    ///   - "single_confrontation": Authority challenge/dominance
-    ///   - "single_investigation": Analytical puzzle/discovery
-    ///   - "single_social_maneuvering": Rapport building/manipulation
-    ///   - "single_crisis": Emergency response/decisive action
-    ///   - "single_service_transaction": Simple service request
-    ///   - "consequence_reflection": Consequence acknowledgment
-    ///
-    /// Scene archetype defines WHAT the scene contains (design)
-    /// PlacementFilter defines WHERE/WHEN it appears (configuration)
+    /// Scene archetype ID for procedural scene generation.
+    /// String value validated at parse-time against SceneArchetypeType enum (PascalCase).
+    /// HIGHLANDER: ONE SceneArchetypeCatalog generates SituationTemplates at PARSE TIME.
+    /// null = no archetype-based generation (uses explicit SituationTemplates from JSON).
+    /// Scene archetype defines WHAT the scene contains (design).
+    /// PlacementFilter defines WHERE/WHEN it appears (configuration).
+    /// Valid values: InnLodging, ConsequenceReflection, DeliveryContract, RouteSegmentTravel,
+    ///               SeekAudience, InvestigateLocation, GatherTestimony, ConfrontAntagonist,
+    ///               MeetOrderMember, DiscoverArtifact, UncoverConspiracy, UrgentDecision, MoralCrossroads
     /// </summary>
     public string SceneArchetypeId { get; set; }
 
@@ -129,20 +117,4 @@ public class SceneTemplateDTO
     /// </summary>
     public string ServiceType { get; set; }
 
-    /// <summary>
-    /// Dependent location specifications for self-contained scenes
-    /// Scene dynamically creates these locations via JSON package generation
-    /// Empty/null = Scene uses only pre-existing locations (traditional pattern)
-    /// Self-contained pattern: Catalogue generates specs → Parser converts to domain → SceneInstantiator creates resources
-    /// </summary>
-    public List<DependentLocationSpecDTO> DependentLocations { get; set; }
-
-    /// <summary>
-    /// Dependent item specifications for self-contained scenes
-    /// Scene dynamically creates these items via JSON package generation
-    /// Empty/null = Scene uses only pre-existing items (traditional pattern)
-    /// Self-contained pattern: Catalogue generates specs → Parser converts to domain → SceneInstantiator creates resources
-    /// Example: Room keys, special access permits, quest items
-    /// </summary>
-    public List<DependentItemSpecDTO> DependentItems { get; set; }
 }

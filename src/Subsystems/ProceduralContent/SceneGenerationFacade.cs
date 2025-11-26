@@ -12,6 +12,9 @@
 /// - Called ONLY from SceneTemplateParser at parse time
 /// - NEVER called at runtime (generation is parse-time only)
 ///
+/// HIGHLANDER COMPLIANT: ONE SceneArchetypeCatalog for ALL scene types
+/// No routing logic - all 13 archetypes handled by single catalogue
+///
 /// TESTABILITY:
 /// - Facade itself is integration layer (thin wrapper)
 /// - Generation tested via catalogue directly (isolated pure functions)
@@ -27,20 +30,18 @@ public class SceneGenerationFacade
     }
 
     /// <summary>
-    /// Generate scene structure from archetype ID with entity context
+    /// Generate scene structure from archetype type with entity context
     ///
     /// Flow:
     /// 1. Extract properties from entities into GenerationContext
-    /// 2. Route to appropriate catalogue based on archetype ID
-    ///    - A-story archetypes → AStorySceneArchetypeCatalog
-    ///    - Standard archetypes → SceneArchetypeCatalog
+    /// 2. Call SceneArchetypeCatalog.Generate() directly (ONE catalogue for ALL archetypes)
     /// 3. Return generated SceneArchetypeDefinition
     ///
     /// Called at parse time (or via dynamic package generation) with entities from GameWorld
     /// HIGHLANDER: Accept NPC and Location objects, not string IDs
     /// </summary>
     public SceneArchetypeDefinition GenerateSceneFromArchetype(
-        string archetypeId,
+        SceneArchetypeType archetypeType,
         int tier,
         NPC contextNPC,
         Location contextLocation,
@@ -50,43 +51,34 @@ public class SceneGenerationFacade
 
         GenerationContext context = GenerationContext.FromEntities(tier, contextNPC, contextLocation, contextPlayer, mainStorySequence);
 
-        // Route to appropriate catalogue based on archetype category
-        SceneArchetypeDefinition definition;
-
-        // A-story archetypes: investigation/social/confrontation/discovery/crisis patterns
-        if (IsAStoryArchetype(archetypeId))
-        {
-            definition = AStorySceneArchetypeCatalog.Generate(archetypeId, tier, context);
-        }
-        else
-        {
-            // Standard service/consequence archetypes
-            definition = SceneArchetypeCatalog.Generate(archetypeId, tier, context);
-        }
+        // HIGHLANDER: ONE catalogue handles ALL 13 archetypes (service + narrative)
+        SceneArchetypeDefinition definition = SceneArchetypeCatalog.Generate(archetypeType, tier, context);
 
         return definition;
     }
 
     /// <summary>
-    /// Check if archetype ID is an A-story archetype
-    /// A-story archetypes: investigation, social, confrontation, discovery, crisis patterns
-    /// Standard archetypes: service-based patterns (inn_lodging, consequence_reflection, etc.)
+    /// Generate scene structure from archetype ID string (backward compatibility)
+    /// Parses string to enum and delegates to strongly-typed method
     /// </summary>
-    private bool IsAStoryArchetype(string archetypeId)
+    public SceneArchetypeDefinition GenerateSceneFromArchetype(
+        string archetypeId,
+        int tier,
+        NPC contextNPC,
+        Location contextLocation,
+        int? mainStorySequence = null)
     {
-        List<string> aStoryArchetypes = new List<string>
-    {
-        // Investigation
-        "investigate_location", "gather_testimony", "discover_artifact", "uncover_conspiracy",
-        // Social
-        "meet_order_member", "gain_trust", "social_infiltration",
-        // Confrontation
-        "seek_audience", "confront_antagonist", "challenge_authority", "expose_corruption",
-        // Crisis/Decision
-        "urgent_decision", "moral_crossroads", "sacrifice_choice", "reveal_truth"
-    };
+        if (string.IsNullOrEmpty(archetypeId))
+            throw new ArgumentException("archetypeId cannot be null or empty", nameof(archetypeId));
 
-        return aStoryArchetypes.Contains(archetypeId?.ToLowerInvariant());
+        if (!Enum.TryParse<SceneArchetypeType>(archetypeId, true, out SceneArchetypeType archetypeType))
+        {
+            throw new InvalidOperationException(
+                $"Unknown scene archetype: '{archetypeId}'. " +
+                $"Valid archetypes: {string.Join(", ", Enum.GetNames<SceneArchetypeType>())}");
+        }
+
+        return GenerateSceneFromArchetype(archetypeType, tier, contextNPC, contextLocation, mainStorySequence);
     }
 
     /// <summary>
@@ -102,17 +94,13 @@ public class SceneGenerationFacade
     }
 
     /// <summary>
-    /// Get list of available scene archetype IDs
+    /// Get list of available scene archetype types
     ///
-    /// Hardcoded list of supported archetypes
+    /// Returns all SceneArchetypeType enum values
     /// Used for developer tools, debug visualization, error messages
     /// </summary>
-    public List<string> GetAvailableArchetypes()
+    public List<SceneArchetypeType> GetAvailableArchetypes()
     {
-        return new List<string>
-    {
-        "inn_lodging",
-        "consequence_reflection"
-    };
+        return Enum.GetValues<SceneArchetypeType>().ToList();
     }
 }

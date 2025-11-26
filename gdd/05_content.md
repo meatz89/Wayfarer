@@ -146,7 +146,4 @@ Temporary actions available only while scenes are active:
 
 ## Cross-References
 
-- **Archetype Catalog**: See [design/07_content_generation.md](../design/07_content_generation.md) for all 21 archetypes
-- **Tutorial Design**: See [design/10_tutorial_design.md](../design/10_tutorial_design.md) for A1-A10 detailed objectives
-- **Design Patterns**: See [design/09_design_patterns.md](../design/09_design_patterns.md) for content patterns
-- **Technical Architecture**: See [arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md) for Dual-Tier Action system
+- **Technical Architecture**: See [arc42/08_crosscutting_concepts.md](../arc42/08_crosscutting_concepts.md) for Dual-Tier Action system and Catalogue Pattern

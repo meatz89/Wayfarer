@@ -52,7 +52,6 @@ public class AStoryPlayerExperienceTest : IntegrationTestBase
 
         Assert.NotNull(a1Template);
         Assert.NotEmpty(a1Template.SituationTemplates);
-        Assert.True(a1Template.IsStarter);
     }
 
     [Fact]

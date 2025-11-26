@@ -19,17 +19,4 @@ public class SceneArchetypeDefinition
     /// </summary>
     public SituationSpawnRules SpawnRules { get; init; }
 
-    /// <summary>
-    /// Dependent location specifications for self-contained scenes
-    /// Catalogue generates specs, SceneInstantiator creates actual LocationDTOs at runtime
-    /// Empty list = Scene uses pre-existing locations only (traditional pattern)
-    /// </summary>
-    public List<DependentLocationSpec> DependentLocations { get; init; } = new List<DependentLocationSpec>();
-
-    /// <summary>
-    /// Dependent item specifications for self-contained scenes
-    /// Catalogue generates specs, SceneInstantiator creates actual ItemDTOs at runtime
-    /// Empty list = Scene uses pre-existing items only (traditional pattern)
-    /// </summary>
-    public List<DependentItemSpec> DependentItems { get; init; } = new List<DependentItemSpec>();
 }

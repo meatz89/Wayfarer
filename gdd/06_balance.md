@@ -16,7 +16,6 @@ Traditional RPGs create difficulty through:
 - Skills that require higher levels
 
 Wayfarer creates difficulty through:
-- Tight economic margins requiring optimization
 - Orthogonal costs forcing prioritization
 - Time scarcity preventing "do everything"
 

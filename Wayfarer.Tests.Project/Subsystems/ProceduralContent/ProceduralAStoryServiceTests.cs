@@ -123,13 +123,13 @@ public class ProceduralAStoryServiceTests : IntegrationTestBase
         ProceduralAStoryService service = GetService<ProceduralAStoryService>();
         AStoryContext context = AStoryContext.InitializeForProceduralGeneration();
 
-        // Map cycle position to expected archetype category
-        string expectedCategoryPattern = expectedCyclePosition switch
+        // Map cycle position to expected archetype category (using SceneArchetypeType enum names)
+        List<SceneArchetypeType> expectedArchetypes = expectedCyclePosition switch
         {
-            0 => "investigate", // Investigation archetypes contain "investigate"
-            1 => "meet",        // Social archetypes contain "meet" or "gain"
-            2 => "confront",    // Confrontation archetypes contain "confront"
-            3 => "crisis",      // Crisis archetypes contain "crisis"
+            0 => new List<SceneArchetypeType> { SceneArchetypeType.InvestigateLocation, SceneArchetypeType.GatherTestimony, SceneArchetypeType.SeekAudience },
+            1 => new List<SceneArchetypeType> { SceneArchetypeType.MeetOrderMember },
+            2 => new List<SceneArchetypeType> { SceneArchetypeType.ConfrontAntagonist },
+            3 => new List<SceneArchetypeType> { SceneArchetypeType.UrgentDecision, SceneArchetypeType.MoralCrossroads },
             _ => throw new InvalidOperationException()
         };
 
@@ -145,7 +145,7 @@ public class ProceduralAStoryServiceTests : IntegrationTestBase
         Assert.NotNull(template.SceneArchetypeId);
 
         // Verify archetype matches expected category
-        Assert.Contains(expectedCategoryPattern, template.SceneArchetypeId.ToLowerInvariant());
+        Assert.Contains(template.SceneArchetypeId.Value, expectedArchetypes);
     }
 
     [Fact]
@@ -153,14 +153,14 @@ public class ProceduralAStoryServiceTests : IntegrationTestBase
     {
         // Arrange
         AStoryContext context = new AStoryContext();
-        context.RecentArchetypeIds.Add("investigate_location");
-        context.RecentArchetypeIds.Add("meet_order_member");
-        context.RecentArchetypeIds.Add("confront_antagonist");
+        context.RecentArchetypes.Add(SceneArchetypeType.InvestigateLocation);
+        context.RecentArchetypes.Add(SceneArchetypeType.MeetOrderMember);
+        context.RecentArchetypes.Add(SceneArchetypeType.ConfrontAntagonist);
 
         // Act & Assert
-        Assert.True(context.IsArchetypeRecent("investigate_location"));
-        Assert.True(context.IsArchetypeRecent("meet_order_member"));
-        Assert.False(context.IsArchetypeRecent("gather_testimony"));
+        Assert.True(context.IsArchetypeRecent(SceneArchetypeType.InvestigateLocation));
+        Assert.True(context.IsArchetypeRecent(SceneArchetypeType.MeetOrderMember));
+        Assert.False(context.IsArchetypeRecent(SceneArchetypeType.GatherTestimony));
     }
 
     [Fact]
@@ -188,9 +188,9 @@ public class ProceduralAStoryServiceTests : IntegrationTestBase
         AStoryContext context = AStoryContext.InitializeForProceduralGeneration();
 
         // Mark all Investigation archetypes as recent (sequence 1 uses Investigation)
-        context.RecentArchetypeIds.Add("investigate_location");
-        context.RecentArchetypeIds.Add("gather_testimony");
-        context.RecentArchetypeIds.Add("seek_audience");
+        context.RecentArchetypes.Add(SceneArchetypeType.InvestigateLocation);
+        context.RecentArchetypes.Add(SceneArchetypeType.GatherTestimony);
+        context.RecentArchetypes.Add(SceneArchetypeType.SeekAudience);
 
         int sequence = 1; // Investigation category (cycle position 0)
 
@@ -203,7 +203,13 @@ public class ProceduralAStoryServiceTests : IntegrationTestBase
             .FirstOrDefault(t => t.MainStorySequence == sequence);
 
         Assert.NotNull(template);
-        Assert.Contains("investigate", template.SceneArchetypeId.ToLowerInvariant());
+        List<SceneArchetypeType> investigationArchetypes = new List<SceneArchetypeType>
+        {
+            SceneArchetypeType.InvestigateLocation,
+            SceneArchetypeType.GatherTestimony,
+            SceneArchetypeType.SeekAudience
+        };
+        Assert.Contains(template.SceneArchetypeId.Value, investigationArchetypes);
     }
 
     [Fact]
@@ -212,11 +218,12 @@ public class ProceduralAStoryServiceTests : IntegrationTestBase
         // CRITICAL: Prevents division by zero in SelectArchetype (line 125)
         // If any category returns empty list, sequence % count will crash
         // This test ensures catalog integrity for all four rotation categories
+        // HIGHLANDER: Uses single SceneArchetypeCatalog
 
-        List<string> investigationArchetypes = AStorySceneArchetypeCatalog.GetArchetypesForCategory("Investigation");
-        List<string> socialArchetypes = AStorySceneArchetypeCatalog.GetArchetypesForCategory("Social");
-        List<string> confrontationArchetypes = AStorySceneArchetypeCatalog.GetArchetypesForCategory("Confrontation");
-        List<string> crisisArchetypes = AStorySceneArchetypeCatalog.GetArchetypesForCategory("Crisis");
+        List<SceneArchetypeType> investigationArchetypes = SceneArchetypeCatalog.GetArchetypesForCategory("Investigation");
+        List<SceneArchetypeType> socialArchetypes = SceneArchetypeCatalog.GetArchetypesForCategory("Social");
+        List<SceneArchetypeType> confrontationArchetypes = SceneArchetypeCatalog.GetArchetypesForCategory("Confrontation");
+        List<SceneArchetypeType> crisisArchetypes = SceneArchetypeCatalog.GetArchetypesForCategory("Crisis");
 
         Assert.NotEmpty(investigationArchetypes);
         Assert.NotEmpty(socialArchetypes);
@@ -229,7 +236,7 @@ public class ProceduralAStoryServiceTests : IntegrationTestBase
     {
         // Document catalog behavior for unknown categories
         // SelectArchetype validates this case and throws clear error
-        List<string> unknownArchetypes = AStorySceneArchetypeCatalog.GetArchetypesForCategory("UnknownCategory");
+        List<SceneArchetypeType> unknownArchetypes = SceneArchetypeCatalog.GetArchetypesForCategory("UnknownCategory");
         Assert.Empty(unknownArchetypes);
     }
 }

@@ -13,6 +13,17 @@ public class PlacementFilter
     /// </summary>
     public PlacementType PlacementType { get; init; }
 
+    // ==================== SPAWN CONTEXT RELATIVE PLACEMENT ====================
+
+    /// <summary>
+    /// Spawn-context-relative placement for situations.
+    /// SameLocation = use context.CurrentLocation directly (no categorical search)
+    /// SameVenue = search within context.CurrentVenue only
+    /// Anywhere = standard categorical search (default)
+    /// EXPLICIT: Situations must specify Proximity, no implicit inheritance
+    /// </summary>
+    public PlacementProximity Proximity { get; init; } = PlacementProximity.Anywhere;
+
     // ==================== CATEGORICAL SEARCH ====================
 
     /// <summary>

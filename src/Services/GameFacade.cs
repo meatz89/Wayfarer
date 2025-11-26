@@ -41,12 +41,10 @@ public class GameFacade
     private readonly SpawnFacade _spawnFacade;
     private readonly SceneFacade _sceneFacade;
     private readonly SituationCompletionHandler _situationCompletionHandler;
-    private readonly SceneInstanceFacade _sceneInstanceFacade;
-    private readonly PackageLoaderFacade _packageLoaderFacade;
+    private readonly SceneInstantiator _sceneInstantiator;
+    private readonly PackageLoader _packageLoader;
     private readonly HexRouteGenerator _hexRouteGenerator;
     private readonly ContentGenerationFacade _contentGenerationFacade;
-    private readonly SceneInstantiator _sceneInstantiator;
-    private readonly DependentResourceOrchestrationService _dependentResourceOrchestrationService;
 
     public GameFacade(
         GameWorld gameWorld,
@@ -76,12 +74,10 @@ public class GameFacade
         SpawnFacade spawnFacade,
         SceneFacade sceneFacade,
         SituationCompletionHandler situationCompletionHandler,
-        SceneInstanceFacade sceneInstanceFacade,
-        PackageLoaderFacade packageLoaderFacade,
-        HexRouteGenerator hexRouteGenerator,
-        ContentGenerationFacade contentGenerationFacade,
         SceneInstantiator sceneInstantiator,
-        DependentResourceOrchestrationService dependentResourceOrchestrationService)
+        PackageLoader packageLoader,
+        HexRouteGenerator hexRouteGenerator,
+        ContentGenerationFacade contentGenerationFacade)
     {
         _gameWorld = gameWorld;
         _messageSystem = messageSystem;
@@ -109,12 +105,10 @@ public class GameFacade
         _spawnFacade = spawnFacade ?? throw new ArgumentNullException(nameof(spawnFacade));
         _sceneFacade = sceneFacade ?? throw new ArgumentNullException(nameof(sceneFacade));
         _situationCompletionHandler = situationCompletionHandler ?? throw new ArgumentNullException(nameof(situationCompletionHandler));
-        _sceneInstanceFacade = sceneInstanceFacade ?? throw new ArgumentNullException(nameof(sceneInstanceFacade));
-        _packageLoaderFacade = packageLoaderFacade ?? throw new ArgumentNullException(nameof(packageLoaderFacade));
+        _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
+        _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
         _hexRouteGenerator = hexRouteGenerator ?? throw new ArgumentNullException(nameof(hexRouteGenerator));
         _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
-        _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
-        _dependentResourceOrchestrationService = dependentResourceOrchestrationService ?? throw new ArgumentNullException(nameof(dependentResourceOrchestrationService));
     }
 
     // ========== CORE GAME STATE ==========
@@ -1617,12 +1611,22 @@ public class GameFacade
         SceneSpawnReward spawnReward,
         SceneSpawnContext context)
     {
-        // HIGHLANDER FLOW: Single method spawns scene with full orchestration (JSON → PackageLoader → Parser)
-        Scene scene = await _sceneInstanceFacade.SpawnScene(template, spawnReward, context);
+        // HIGHLANDER FLOW: Generate JSON and load via PackageLoader
+        string packageJson = _sceneInstantiator.CreateDeferredScene(template, spawnReward, context);
+
+        if (string.IsNullOrEmpty(packageJson))
+        {
+            Console.WriteLine($"[GameFacade] Scene '{template.Id}' failed spawn conditions");
+            return null;
+        }
+
+        string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}";
+        PackageLoadResult loadResult = await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
+        Scene scene = loadResult.ScenesAdded.FirstOrDefault();
 
         if (scene == null)
         {
-            Console.WriteLine($"[GameFacade] Scene '{template.Id}' failed spawn conditions");
+            Console.WriteLine($"[GameFacade] Scene '{template.Id}' failed to load via PackageLoader");
             return null;
         }
 
@@ -1641,7 +1645,7 @@ public class GameFacade
         SceneSpawnContext context)
     {
         // PHASE 1: Generate JSON package with ONLY Scene + Situations (empty lists for dependent resources)
-        string packageJson = _sceneInstanceFacade.CreateDeferredScenePackage(template, spawnReward, context);
+        string packageJson = _sceneInstantiator.CreateDeferredScene(template, spawnReward, context);
 
         if (packageJson == null)
         {
@@ -1653,7 +1657,7 @@ public class GameFacade
         // HIGHLANDER: Get direct object reference from result
         string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}_deferred";
         await _contentGenerationFacade.CreateDynamicPackageFile(packageJson, packageId);
-        PackageLoadResult loadResult = await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
+        PackageLoadResult loadResult = await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
 
         // Get spawned scene from result (HIGHLANDER: direct object reference)
         Scene spawnedScene = loadResult.ScenesAdded.FirstOrDefault();

@@ -85,7 +85,15 @@ public class SceneTemplateParser
         if (string.IsNullOrEmpty(dto.SceneArchetypeId))
             throw new InvalidDataException($"SceneTemplate '{dto.Id}' missing required 'sceneArchetypeId'. All scenes must reference a scene archetype.");
 
-        Console.WriteLine($"[SceneArchetypeGeneration] Generating scene '{dto.Id}' using archetype '{dto.SceneArchetypeId}'");
+        // Parse SceneArchetypeType enum with fail-fast validation
+        if (!Enum.TryParse<SceneArchetypeType>(dto.SceneArchetypeId, true, out SceneArchetypeType sceneArchetypeType))
+        {
+            throw new InvalidDataException(
+                $"SceneTemplate '{dto.Id}' has invalid SceneArchetypeId: '{dto.SceneArchetypeId}'. " +
+                $"Valid values: {string.Join(", ", Enum.GetNames<SceneArchetypeType>())}");
+        }
+
+        Console.WriteLine($"[SceneArchetypeGeneration] Generating scene '{dto.Id}' using archetype '{sceneArchetypeType}'");
 
         // CATEGORICAL PARSING: No entity resolution at parse time
         // Concrete binding happens at instantiation time via SceneInstantiator
@@ -108,15 +116,6 @@ public class SceneTemplateParser
 
         Console.WriteLine($"[SceneArchetypeGeneration] Generated {situationTemplates.Count} situations with pattern '{spawnRules.Pattern}'");
 
-        // Extract dependent resources from archetype definition (self-contained pattern)
-        // Catalogue generates resource specifications at parse time
-        List<DependentLocationSpec> dependentLocations = archetypeDefinition.DependentLocations ?? new List<DependentLocationSpec>();
-        List<DependentItemSpec> dependentItems = archetypeDefinition.DependentItems ?? new List<DependentItemSpec>();
-
-        if (dependentLocations.Any() || dependentItems.Any())
-        {
-            Console.WriteLine($"[SceneArchetypeGeneration] Archetype generated {dependentLocations.Count} dependent locations and {dependentItems.Count} dependent items");
-        }
 
         PlacementFilter locationActivationFilter = ParsePlacementFilter(dto.LocationActivationFilter, dto.Id, _gameWorld);
 
@@ -141,7 +140,7 @@ public class SceneTemplateParser
         {
             Id = dto.Id,
             Archetype = archetype,
-            SceneArchetypeId = dto.SceneArchetypeId,
+            SceneArchetypeId = sceneArchetypeType,
             DisplayNameTemplate = dto.DisplayNameTemplate,
             // Activation filter: Parse trigger for scene activation (Deferred → Active)
             // Scenes activate via LOCATION ONLY (player enters location matching filter)
@@ -156,9 +155,7 @@ public class SceneTemplateParser
             Category = category,
             MainStorySequence = mainStorySequence,
             PresentationMode = presentationMode,
-            ProgressionMode = progressionMode,
-            DependentLocations = dependentLocations,
-            DependentItems = dependentItems
+            ProgressionMode = progressionMode
         };
 
         return template;
@@ -656,10 +653,10 @@ public class SceneTemplateParser
 
         // ARCHETYPE-BASED GENERATION: archetypeId generates 4 ChoiceTemplates from catalogue
         List<ChoiceTemplate> choiceTemplates;
-        if (!string.IsNullOrEmpty(dto.ArchetypeId))
+        if (dto.ArchetypeId != null)
         {
             // PARSE-TIME ARCHETYPE GENERATION
-            choiceTemplates = GenerateChoiceTemplatesFromArchetype(dto.ArchetypeId, contextId, dto.Id);
+            choiceTemplates = GenerateChoiceTemplatesFromArchetype(dto.ArchetypeId.Value, contextId, dto.Id);
         }
         else
         {
@@ -673,13 +670,11 @@ public class SceneTemplateParser
             NarrativeTemplate = dto.NarrativeTemplate,
             ChoiceTemplates = choiceTemplates,
             Priority = dto.Priority,
-            // Hierarchical placement override filters (CSS-style inheritance)
+            // Explicit placement filters - no inheritance, each situation specifies its own
             LocationFilter = ParsePlacementFilter(dto.LocationFilter, contextId, _gameWorld),
             NpcFilter = ParsePlacementFilter(dto.NpcFilter, contextId, _gameWorld),
             RouteFilter = ParsePlacementFilter(dto.RouteFilter, contextId, _gameWorld),
-            NarrativeHints = ParseNarrativeHints(dto.NarrativeHints),
-            // DependentLocationSpec parsed from DTO (categorical requirements for location creation)
-            DependentLocationSpec = ParseDependentLocationSpec(dto.DependentLocationSpec)
+            NarrativeHints = ParseNarrativeHints(dto.NarrativeHints)
         };
 
         return template;
@@ -1044,53 +1039,6 @@ public class SceneTemplateParser
     }
 
     /// <summary>
-    /// Parse DependentLocationSpec from DTO
-    /// Used for situations that need to create a dependent location at spawn time
-    /// </summary>
-    private DependentLocationSpec ParseDependentLocationSpec(DependentLocationSpecDTO dto)
-    {
-        if (dto == null)
-            return null;
-
-        // Parse VenueIdSource enum (defaults to SameAsBase)
-        VenueIdSource venueIdSource = VenueIdSource.SameAsBase;
-        if (!string.IsNullOrEmpty(dto.VenueIdSource))
-        {
-            if (!Enum.TryParse<VenueIdSource>(dto.VenueIdSource, true, out venueIdSource))
-            {
-                throw new InvalidDataException($"DependentLocationSpec has invalid VenueIdSource: '{dto.VenueIdSource}'");
-            }
-        }
-
-        // Parse HexPlacement enum (defaults to Adjacent)
-        HexPlacementStrategy hexPlacement = HexPlacementStrategy.Adjacent;
-        if (!string.IsNullOrEmpty(dto.HexPlacement))
-        {
-            if (!Enum.TryParse<HexPlacementStrategy>(dto.HexPlacement, true, out hexPlacement))
-            {
-                throw new InvalidDataException($"DependentLocationSpec has invalid HexPlacement: '{dto.HexPlacement}'");
-            }
-        }
-
-        return new DependentLocationSpec
-        {
-            TemplateId = dto.TemplateId,
-            Name = dto.Name,
-            Description = dto.Description,
-            VenueIdSource = venueIdSource,
-            HexPlacement = hexPlacement,
-            Properties = dto.Properties ?? new List<string>(),
-            IsLockedInitially = dto.IsLockedInitially,
-            UnlockItemTemplateId = dto.UnlockItemTemplateId,
-            CanInvestigate = dto.CanInvestigate,
-            Privacy = dto.Privacy,
-            Safety = dto.Safety,
-            Activity = dto.Activity,
-            Purpose = dto.Purpose
-        };
-    }
-
-    /// <summary>
     /// Parse SituationSpawnRules from DTO
     /// </summary>
     private SituationSpawnRules ParseSpawnRules(SituationSpawnRulesDTO dto, string contextId)
@@ -1173,12 +1121,12 @@ public class SceneTemplateParser
     /// Called ONLY at parse time when SituationTemplate has archetypeId
     /// Creates the 4-choice pattern: stat-gated, money, challenge, fallback
     /// </summary>
-    private List<ChoiceTemplate> GenerateChoiceTemplatesFromArchetype(string archetypeId, string contextId, string situationTemplateId)
+    private List<ChoiceTemplate> GenerateChoiceTemplatesFromArchetype(SituationArchetypeType archetypeType, string contextId, string situationTemplateId)
     {
-        Console.WriteLine($"[Archetype Generation] Generating 4 choices for situation '{situationTemplateId}' using archetype '{archetypeId}'");
+        Console.WriteLine($"[Archetype Generation] Generating 4 choices for situation '{situationTemplateId}' using archetype '{archetypeType}'");
 
         // Fetch archetype definition from catalogue (PARSE-TIME ONLY)
-        SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(archetypeId);
+        SituationArchetype archetype = SituationArchetypeCatalog.GetArchetype(archetypeType);
 
         List<ChoiceTemplate> choices = new List<ChoiceTemplate>();
 
@@ -1252,13 +1200,13 @@ public class SceneTemplateParser
     /// </summary>
     private string GenerateStatGatedActionText(SituationArchetype archetype)
     {
-        return archetype.Id switch
+        return archetype.Type switch
         {
-            "confrontation" => "Assert authority and take command",
-            "negotiation" => "Negotiate favorable terms",
-            "investigation" => "Deduce the solution through analysis",
-            "social_maneuvering" => "Read the social dynamics and navigate skillfully",
-            "crisis" => "Take decisive action with expertise",
+            SituationArchetypeType.Confrontation => "Assert authority and take command",
+            SituationArchetypeType.Negotiation => "Negotiate favorable terms",
+            SituationArchetypeType.Investigation => "Deduce the solution through analysis",
+            SituationArchetypeType.SocialManeuvering => "Read the social dynamics and navigate skillfully",
+            SituationArchetypeType.Crisis => "Take decisive action with expertise",
             _ => "Use your expertise"
         };
     }
@@ -1268,13 +1216,13 @@ public class SceneTemplateParser
     /// </summary>
     private string GenerateMoneyActionText(SituationArchetype archetype)
     {
-        return archetype.Id switch
+        return archetype.Type switch
         {
-            "confrontation" => "Pay off the opposition",
-            "negotiation" => "Pay the premium price",
-            "investigation" => "Hire an expert or pay for information",
-            "social_maneuvering" => "Offer a generous gift",
-            "crisis" => "Pay for emergency solution",
+            SituationArchetypeType.Confrontation => "Pay off the opposition",
+            SituationArchetypeType.Negotiation => "Pay the premium price",
+            SituationArchetypeType.Investigation => "Hire an expert or pay for information",
+            SituationArchetypeType.SocialManeuvering => "Offer a generous gift",
+            SituationArchetypeType.Crisis => "Pay for emergency solution",
             _ => "Pay to resolve"
         };
     }
@@ -1284,13 +1232,13 @@ public class SceneTemplateParser
     /// </summary>
     private string GenerateChallengeActionText(SituationArchetype archetype)
     {
-        return archetype.Id switch
+        return archetype.Type switch
         {
-            "confrontation" => "Attempt a physical confrontation",
-            "negotiation" => "Engage in complex debate",
-            "investigation" => "Work through the puzzle systematically",
-            "social_maneuvering" => "Make a bold social gambit",
-            "crisis" => "Risk everything on a desperate gambit",
+            SituationArchetypeType.Confrontation => "Attempt a physical confrontation",
+            SituationArchetypeType.Negotiation => "Engage in complex debate",
+            SituationArchetypeType.Investigation => "Work through the puzzle systematically",
+            SituationArchetypeType.SocialManeuvering => "Make a bold social gambit",
+            SituationArchetypeType.Crisis => "Risk everything on a desperate gambit",
             _ => "Accept the challenge"
         };
     }
@@ -1300,13 +1248,13 @@ public class SceneTemplateParser
     /// </summary>
     private string GenerateFallbackActionText(SituationArchetype archetype)
     {
-        return archetype.Id switch
+        return archetype.Type switch
         {
-            "confrontation" => "Back down and submit",
-            "negotiation" => "Accept unfavorable terms",
-            "investigation" => "Give up and move on",
-            "social_maneuvering" => "Exit awkwardly",
-            "crisis" => "Flee the situation",
+            SituationArchetypeType.Confrontation => "Back down and submit",
+            SituationArchetypeType.Negotiation => "Accept unfavorable terms",
+            SituationArchetypeType.Investigation => "Give up and move on",
+            SituationArchetypeType.SocialManeuvering => "Exit awkwardly",
+            SituationArchetypeType.Crisis => "Flee the situation",
             _ => "Accept poor outcome"
         };
     }
@@ -1316,14 +1264,14 @@ public class SceneTemplateParser
     /// Called for Standalone scenes that need ONE situation with 4-choice pattern
     /// Returns SituationTemplate with choices generated from SituationArchetypeCatalog
     /// </summary>
-    private SituationTemplate GenerateSingleSituationFromArchetype(string situationArchetypeId, string contextId, int tier)
+    private SituationTemplate GenerateSingleSituationFromArchetype(SituationArchetypeType situationArchetypeType, string contextId, int tier)
     {
         string situationId = $"{contextId}_situation";
 
-        Console.WriteLine($"[SingleSituationGeneration] Generating situation '{situationId}' from archetype '{situationArchetypeId}'");
+        Console.WriteLine($"[SingleSituationGeneration] Generating situation '{situationId}' from archetype '{situationArchetypeType}'");
 
         // Generate 4 choices from archetype catalogue
-        List<ChoiceTemplate> choices = GenerateChoiceTemplatesFromArchetype(situationArchetypeId, contextId, situationId);
+        List<ChoiceTemplate> choices = GenerateChoiceTemplatesFromArchetype(situationArchetypeType, contextId, situationId);
 
         // Create situation template with generated choices
         SituationTemplate template = new SituationTemplate
@@ -1336,7 +1284,7 @@ public class SceneTemplateParser
             NarrativeHints = new NarrativeHints
             {
                 Tone = "neutral",
-                Theme = situationArchetypeId,
+                Theme = situationArchetypeType.ToString(),
                 Context = "standalone_situation",
                 Style = "balanced"
             }

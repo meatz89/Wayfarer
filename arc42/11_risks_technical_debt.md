@@ -27,26 +27,7 @@ Categorical translation (Friendly × Premium = concrete values) works for expect
 
 ---
 
-## 11.2 Technical Debt
-
-| Item | Description | Priority | Effort |
-|------|-------------|----------|--------|
-| **Incomplete Test Coverage** | Business logic tests exist; integration tests sparse | High | Large |
-| **Documentation Drift** | Root architecture docs (DUAL_TIER*.md) may diverge from arc42 | Medium | Small |
-| **Hardcoded Strings** | Some UI text not extracted for localization | Low | Medium |
-| **Missing Telemetry** | No runtime analytics for balance validation | Medium | Medium |
-
-### Debt Details
-
-**Incomplete Test Coverage:**
-Core facades have unit tests. Missing: integration tests for full choice-to-reward flows, content validation tests for all JSON packages, UI component tests.
-
-**Documentation Drift:**
-DUAL_TIER_ACTION_ARCHITECTURE.md exists alongside arc42 (referenced in CLAUDE.md as mandatory reading). Risk of contradictory information if not kept synchronized with arc42/08_crosscutting_concepts.md §8.8.
-
----
-
-## 11.3 Accepted Limitations
+## 11.2 Accepted Limitations
 
 These are conscious design decisions, not debt:
 
@@ -55,7 +36,7 @@ These are conscious design decisions, not debt:
 | No offline play | Blazor Server chosen for simplicity; acceptable for target audience |
 | No multiplayer | Single-player design decision; architecture doesn't preclude future addition |
 | No mobile optimization | Browser-based desktop target; mobile would require UI redesign |
-| No save/load (yet) | GameWorld serialization planned but not implemented |
+| No save/load | GameWorld serialization planned but not implemented |
 
 ---
 

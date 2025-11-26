@@ -409,14 +409,6 @@ MovementValidator.ValidateMovement()
 7. **Player moves** to Private Room (accessibility check passes)
 8. **Scene displays** Situation 2 choices
 
-### Why Not GrantsLocationAccess Property?
-
-A proposed `SituationTemplate.GrantsLocationAccess` property was removed as dead code:
-- If situation is at scene-created location, player MUST access it to engage
-- Setting `GrantsLocationAccess = false` would guarantee a soft-lock
-- Therefore the property can NEVER meaningfully be false
-- Situation presence at location implies access (no explicit property needed)
-
 ### Key Files
 
 | File | Purpose |

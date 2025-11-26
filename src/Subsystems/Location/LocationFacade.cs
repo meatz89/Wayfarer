@@ -27,7 +27,7 @@ public class LocationFacade
     private readonly SceneFacade _sceneFacade;
     private readonly SceneInstantiator _sceneInstantiator;
     private readonly ContentGenerationFacade _contentGenerationFacade;
-    private readonly PackageLoaderFacade _packageLoaderFacade;
+    private readonly PackageLoader _packageLoader;
 
     public LocationFacade(
         GameWorld gameWorld,
@@ -49,7 +49,7 @@ public class LocationFacade
         SceneFacade sceneFacade,
         SceneInstantiator sceneInstantiator,
         ContentGenerationFacade contentGenerationFacade,
-        PackageLoaderFacade packageLoaderFacade)
+        PackageLoader packageLoader)
     {
         _gameWorld = gameWorld;
         _locationManager = locationManager;
@@ -59,7 +59,6 @@ public class LocationFacade
         _actionManager = actionManager;
         _narrativeGenerator = narrativeGenerator;
         _observationSystem = observationSystem;
-        // ObservationManager eliminated
         _routeRepository = routeRepository;
         _npcRepository = npcRepository;
         _timeManager = timeManager;
@@ -71,7 +70,7 @@ public class LocationFacade
         _sceneFacade = sceneFacade ?? throw new ArgumentNullException(nameof(sceneFacade));
         _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
         _contentGenerationFacade = contentGenerationFacade ?? throw new ArgumentNullException(nameof(contentGenerationFacade));
-        _packageLoaderFacade = packageLoaderFacade ?? throw new ArgumentNullException(nameof(packageLoaderFacade));
+        _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
     }
 
     /// <summary>
@@ -462,7 +461,7 @@ public class LocationFacade
                 await _contentGenerationFacade.CreateDynamicPackageFile(resourceJson, packagePath);
 
                 // HIGHLANDER: Get direct object references to created entities
-                PackageLoadResult loadResult = await _packageLoaderFacade.LoadDynamicPackage(resourceJson, packagePath);
+                PackageLoadResult loadResult = await _packageLoader.LoadDynamicPackageFromJson(resourceJson, packagePath);
 
                 Console.WriteLine($"[SceneActivation] Loaded dependent resources for scene '{scene.DisplayName}' ({loadResult.LocationsAdded.Count} locations, {loadResult.ItemsAdded.Count} items)");
 
@@ -549,51 +548,8 @@ public class LocationFacade
         {
             // Set provenance for forensic tracking
             item.Provenance = provenance;
-
-            // Check if this item should be added to inventory
-            DependentItemSpec itemSpec = template?.DependentItems?.FirstOrDefault(s => s.Name == item.Name);
-            if (itemSpec != null && itemSpec.AddToInventoryOnCreation)
-            {
-                player.Inventory.Add(item);
-                Console.WriteLine($"[LocationFacade] Added item '{item.Name}' to player inventory");
-            }
         }
 
-        // Create and bind locations PER-SITUATION via direct CreateSingleLocation
-        // NO JSON serialization - creates Location directly from spec
-        // Shared spec instance = shared location (tracked by Dictionary for reference equality)
-        Dictionary<DependentLocationSpec, Location> specToLocationMap = new Dictionary<DependentLocationSpec, Location>();
-
-        foreach (Situation situation in scene.Situations)
-        {
-            DependentLocationSpec spec = situation.Template?.DependentLocationSpec;
-            if (spec != null)
-            {
-                // Check if we've already created a location for this spec instance
-                if (specToLocationMap.TryGetValue(spec, out Location existingLocation))
-                {
-                    // Shared spec instance = shared location (reference equality)
-                    situation.Location = existingLocation;
-                    Console.WriteLine($"[LocationFacade] Bound situation '{situation.Name}' to SHARED location '{existingLocation.Name}'");
-                }
-                else
-                {
-                    // CREATE location directly from spec (NO JSON, NO matching)
-                    // Returns ONE Location reference - direct binding
-                    Location createdLocation = _packageLoaderFacade.CreateSingleLocation(spec, contextVenue);
-
-                    // Set Origin and Provenance
-                    createdLocation.Origin = LocationOrigin.SceneCreated;
-                    createdLocation.Provenance = provenance;
-
-                    // DIRECT BINDING: situation.Location = createdLocation (NO matching)
-                    situation.Location = createdLocation;
-                    specToLocationMap[spec] = createdLocation;
-
-                    Console.WriteLine($"[LocationFacade] CREATED and bound location '{createdLocation.Name}' for situation '{situation.Name}'");
-                }
-            }
-        }
     }
 
     /// <summary>

@@ -22,16 +22,13 @@ public class SpawnFacade
 {
     private readonly GameWorld _gameWorld;
     private readonly TimeManager _timeManager;
-    private readonly DependentResourceOrchestrationService _dependentResourceOrchestrationService;
 
     public SpawnFacade(
         GameWorld gameWorld,
-        TimeManager timeManager,
-        DependentResourceOrchestrationService dependentResourceOrchestrationService)
+        TimeManager timeManager)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
-        _dependentResourceOrchestrationService = dependentResourceOrchestrationService ?? throw new ArgumentNullException(nameof(dependentResourceOrchestrationService));
     }
 
     /// <summary>

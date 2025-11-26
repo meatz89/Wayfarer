@@ -73,19 +73,11 @@ Venues group related locations into coherent spaces:
 
 ## 2.4 The Living World
 
-### NPCs Exist Independently
-
-Characters have lives, routines, relationships with each other. They don't exist solely for the player. This creates:
-- Organic encounter timing (NPCs aren't always available)
-- Relationship webs the player can leverage or disrupt
-- Consequences that ripple through social networks
-
 ### Time Passes
 
-Days have limited time blocks. Seasons affect travel. Events occur whether the player participates or not. This creates:
+Days have limited time blocks. NO Seasons (timespan is days or weeks). Nothing happens without player action. This creates:
 - Opportunity cost for every decision
 - Urgency without artificial timers
-- A world that feels alive rather than waiting
 
 ---
 

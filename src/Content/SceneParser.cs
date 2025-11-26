@@ -125,8 +125,8 @@ public static class SceneParser
         // Parse activation filters that determine WHEN scene activates (Deferred → Active)
         // Separate from situation placement filters (which determine WHERE situations happen)
         // Evaluated BEFORE entity resolution using categorical matching only
+        // Scenes activate via LOCATION ONLY (player enters location matching filter)
         PlacementFilter locationActivationFilter = null;
-        PlacementFilter npcActivationFilter = null;
 
         if (dto.LocationActivationFilter != null)
         {

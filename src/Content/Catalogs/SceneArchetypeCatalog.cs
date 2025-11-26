@@ -1,8 +1,10 @@
 /// <summary>
 /// ⚠️ PARSE-TIME ONLY CATALOGUE ⚠️
 ///
-/// Generates complete multi-situation Scene structures from archetype IDs at PARSE TIME.
+/// Generates complete multi-situation Scene structures from strongly-typed archetype enums at PARSE TIME.
 /// Each archetype is INTENTIONALLY DESIGNED for specific fictional contexts with verisimilitude.
+///
+/// HIGHLANDER COMPLIANT: ONE catalogue for ALL scene archetypes (A-story, B-story, C-story)
 ///
 /// CATALOGUE PATTERN COMPLIANCE:
 /// - Called ONLY from SceneTemplateParser at PARSE TIME
@@ -12,12 +14,27 @@
 /// - Translation happens ONCE at game initialization
 ///
 /// ARCHITECTURE:
-/// JSON specifies sceneArchetypeId → Parser calls catalogue → Receives SituationTemplates + SpawnRules
+/// JSON specifies SceneArchetypeType enum → Parser calls catalogue → Receives SituationTemplates + SpawnRules
 /// → Parser stores in SceneTemplate → Runtime queries GameWorld.SceneTemplates (NO catalogue calls)
 ///
-/// SCENE ARCHETYPES (Reusable patterns):
-/// - inn_lodging: 3-situation inn lodging flow (negotiate → rest → depart)
-/// - consequence_reflection: Single-situation consequence acknowledgment
+/// SCENE ARCHETYPES (13 total - Reusable patterns):
+///
+/// SERVICE PATTERNS (4):
+/// - InnLodging: 3-situation inn lodging flow (negotiate → rest → depart)
+/// - ConsequenceReflection: Single-situation consequence acknowledgment
+/// - DeliveryContract: Contract acceptance and delivery flow
+/// - RouteSegmentTravel: Travel between locations
+///
+/// NARRATIVE PATTERNS (9):
+/// - SeekAudience: Player seeks audience with authority figure (negotiate_access → audience)
+/// - InvestigateLocation: Player investigates location for clues (search → analyze → conclude)
+/// - GatherTestimony: Player gathers testimony from witnesses (approach → interview)
+/// - ConfrontAntagonist: Player confronts antagonist (accuse → resolve)
+/// - MeetOrderMember: Player meets order member (contact → negotiate → revelation)
+/// - DiscoverArtifact: Player discovers artifact (locate → acquire)
+/// - UncoverConspiracy: Player uncovers conspiracy (suspect → proof → expose → consequence)
+/// - UrgentDecision: Player faces urgent decision (crisis → decision)
+/// - MoralCrossroads: Player faces moral dilemma (dilemma → choice → consequence)
 ///
 /// Each archetype defines:
 /// - Specific situation count and structure (intentional design)
@@ -29,25 +46,102 @@
 public static class SceneArchetypeCatalog
 {
     /// <summary>
-    /// Generate scene archetype definition by ID
-    /// Called at parse time to generate complete scene structure
-    /// Throws InvalidDataException on unknown archetype ID (fail fast)
+    /// Generate scene archetype definition from strongly-typed enum.
+    /// Called at parse time to generate complete scene structure.
+    /// Compiler ensures exhaustiveness - no runtime unknown archetype errors.
     /// </summary>
     public static SceneArchetypeDefinition Generate(
-        string archetypeId,
+        SceneArchetypeType archetypeType,
         int tier,
         GenerationContext context)
     {
-        return archetypeId?.ToLowerInvariant() switch
+        return archetypeType switch
         {
-            "inn_lodging" => GenerateInnLodging(tier, context),
-            "consequence_reflection" => GenerateConsequenceReflection(tier, context),
-            "delivery_contract" => GenerateDeliveryContract(tier, context),
-            "route_segment_travel" => GenerateRouteSegmentTravel(tier, context),
+            // Service patterns (4)
+            SceneArchetypeType.InnLodging => GenerateInnLodging(tier, context),
+            SceneArchetypeType.ConsequenceReflection => GenerateConsequenceReflection(tier, context),
+            SceneArchetypeType.DeliveryContract => GenerateDeliveryContract(tier, context),
+            SceneArchetypeType.RouteSegmentTravel => GenerateRouteSegmentTravel(tier, context),
 
-            _ => throw new InvalidDataException($"Unknown scene archetype ID: '{archetypeId}'. Valid archetypes: inn_lodging, consequence_reflection, delivery_contract, route_segment_travel")
+            // Narrative patterns (9)
+            SceneArchetypeType.SeekAudience => GenerateSeekAudience(tier, context),
+            SceneArchetypeType.InvestigateLocation => GenerateInvestigateLocation(tier, context),
+            SceneArchetypeType.GatherTestimony => GenerateGatherTestimony(tier, context),
+            SceneArchetypeType.ConfrontAntagonist => GenerateConfrontAntagonist(tier, context),
+            SceneArchetypeType.MeetOrderMember => GenerateMeetOrderMember(tier, context),
+            SceneArchetypeType.DiscoverArtifact => GenerateDiscoverArtifact(tier, context),
+            SceneArchetypeType.UncoverConspiracy => GenerateUncoverConspiracy(tier, context),
+            SceneArchetypeType.UrgentDecision => GenerateUrgentDecision(tier, context),
+            SceneArchetypeType.MoralCrossroads => GenerateMoralCrossroads(tier, context),
+
+            _ => throw new InvalidOperationException($"Unhandled scene archetype type: {archetypeType}")
         };
     }
+
+    /// <summary>
+    /// Get available archetypes for category (for procedural A-story generation)
+    /// Returns archetypes currently implemented in catalog for given category
+    /// Prevents drift between catalog and procedural selection lists
+    ///
+    /// CATEGORIES (4-part rotation):
+    /// - Investigation: SeekAudience, InvestigateLocation, GatherTestimony
+    /// - Social: MeetOrderMember
+    /// - Confrontation: ConfrontAntagonist
+    /// - Crisis: UrgentDecision, MoralCrossroads
+    ///
+    /// Note: Discovery archetypes (DiscoverArtifact, UncoverConspiracy) not included in rotation
+    /// Can be added to rotation cycle when design requires them
+    /// </summary>
+    public static List<SceneArchetypeType> GetArchetypesForCategory(string category)
+    {
+        return category switch
+        {
+            "Investigation" => new List<SceneArchetypeType>
+            {
+                SceneArchetypeType.InvestigateLocation,
+                SceneArchetypeType.GatherTestimony,
+                SceneArchetypeType.SeekAudience
+            },
+            "Social" => new List<SceneArchetypeType>
+            {
+                SceneArchetypeType.MeetOrderMember
+            },
+            "Confrontation" => new List<SceneArchetypeType>
+            {
+                SceneArchetypeType.ConfrontAntagonist
+            },
+            "Crisis" => new List<SceneArchetypeType>
+            {
+                SceneArchetypeType.UrgentDecision,
+                SceneArchetypeType.MoralCrossroads
+            },
+            _ => new List<SceneArchetypeType>() // Empty list for unknown category
+        };
+    }
+
+    /// <summary>
+    /// Get all available narrative archetype types (for validation and procedural selection)
+    /// Returns list of all implemented narrative archetypes (excludes service patterns)
+    /// </summary>
+    public static List<SceneArchetypeType> GetAllNarrativeArchetypes()
+    {
+        return new List<SceneArchetypeType>
+        {
+            SceneArchetypeType.SeekAudience,
+            SceneArchetypeType.InvestigateLocation,
+            SceneArchetypeType.GatherTestimony,
+            SceneArchetypeType.ConfrontAntagonist,
+            SceneArchetypeType.MeetOrderMember,
+            SceneArchetypeType.DiscoverArtifact,
+            SceneArchetypeType.UncoverConspiracy,
+            SceneArchetypeType.UrgentDecision,
+            SceneArchetypeType.MoralCrossroads
+        };
+    }
+
+    // ===================================================================
+    // SERVICE PATTERNS (4) - Transactional C-story content
+    // ===================================================================
 
     /// <summary>
     /// INN_LODGING archetype
@@ -89,11 +183,11 @@ public static class SceneArchetypeCatalog
         string restSitId = $"{sceneId}_rest";
         string departSitId = $"{sceneId}_depart";
 
-        // Generate dependent resources for inn lodging
-        // SHARED SPEC INSTANCE: Same spec object referenced by multiple situations = same location
+        // Generate location filter for lodging service
+        // EntityResolver.FindOrCreateLocation uses filter to find existing OR create new
         DependentResourceCatalog.DependentResources resources =
             DependentResourceCatalog.GenerateForActivity(ServiceActivityType.Lodging);
-        DependentLocationSpec sharedPrivateRoomSpec = resources.LocationSpec;
+        PlacementFilter serviceLocationFilter = resources.LocationFilter;
 
         // SITUATION 1: SECURE LODGING
         // Tutorial A1 (sequence 1): Manual identity formation choices
@@ -164,7 +258,7 @@ public static class SceneArchetypeCatalog
         else
         {
             // Standard/A2+: Use service_negotiation archetype with universal scaling
-            SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype("service_negotiation");
+            SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ServiceNegotiation);
             negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
                 negotiateArchetype,
                 negotiateSitId,
@@ -325,9 +419,8 @@ public static class SceneArchetypeCatalog
                 Context = "evening_choices",
                 Style = "introspective"
             },
-            // DIRECT OBJECT BINDING: Spec embedded in situation, PackageLoader creates ONE location per spec
-            // Same spec INSTANCE = same location (rest and depart share Private Room)
-            DependentLocationSpec = sharedPrivateRoomSpec,
+            // Use LocationFilter for categorical matching via EntityResolver
+            LocationFilter = serviceLocationFilter,
             NpcFilter = new PlacementFilter  // Explicit "no NPC" override (empty filter = no match)
             {
                 PlacementType = PlacementType.NPC,
@@ -406,8 +499,8 @@ public static class SceneArchetypeCatalog
                 Context = "morning_departure",
                 Style = "optimistic"
             },
-            // DIRECT OBJECT BINDING: Same spec INSTANCE as rest = same location created once
-            DependentLocationSpec = sharedPrivateRoomSpec,
+            // Same filter as rest situation = same location resolved
+            LocationFilter = serviceLocationFilter,
             NpcFilter = new PlacementFilter  // Explicit "no NPC" override (empty filter = no match)
             {
                 PlacementType = PlacementType.NPC,
@@ -441,16 +534,12 @@ public static class SceneArchetypeCatalog
         return new SceneArchetypeDefinition
         {
             SituationTemplates = new List<SituationTemplate>
-        {
-            negotiateSituation,
-            restSituation,
-            departSituation
-        },
-            SpawnRules = spawnRules,
-            // DependentLocations now embedded in situations via DependentLocationSpec property
-            // Scene-level list empty - locations created per-situation during spawn
-            DependentLocations = new List<DependentLocationSpec>(),
-            DependentItems = new List<DependentItemSpec> { resources.ItemSpec }
+            {
+                negotiateSituation,
+                restSituation,
+                departSituation
+            },
+            SpawnRules = spawnRules
         };
     }
 
@@ -478,7 +567,7 @@ public static class SceneArchetypeCatalog
     {
         string situationId = "consequence_reflection";
 
-        SituationArchetype reflectionArchetype = SituationArchetypeCatalog.GetArchetype("crisis");
+        SituationArchetype reflectionArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
         List<ChoiceTemplate> reflectionChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
             reflectionArchetype,
             situationId,
@@ -524,9 +613,7 @@ public static class SceneArchetypeCatalog
         return new SceneArchetypeDefinition
         {
             SituationTemplates = new List<SituationTemplate> { reflectionSituation },
-            SpawnRules = spawnRules,
-            DependentLocations = new List<DependentLocationSpec>(),  // No dependent resources
-            DependentItems = new List<DependentItemSpec>()
+            SpawnRules = spawnRules
         };
     }
 
@@ -615,7 +702,7 @@ public static class SceneArchetypeCatalog
         };
 
         // SITUATION 2: CONTRACT NEGOTIATION
-        SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype("service_negotiation");
+        SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.ServiceNegotiation);
         List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplatesWithContext(
             negotiateArchetype,
             negotiateSitId,
@@ -780,9 +867,7 @@ public static class SceneArchetypeCatalog
                 offerSituation,
                 negotiateSituation
             },
-            SpawnRules = spawnRules,
-            DependentLocations = new List<DependentLocationSpec>(),  // No dependent resources
-            DependentItems = new List<DependentItemSpec>()
+            SpawnRules = spawnRules
         };
     }
 
@@ -1252,9 +1337,1169 @@ public static class SceneArchetypeCatalog
                 approachSituation,
                 arrivalSituation
             },
-            SpawnRules = spawnRules,
-            DependentLocations = new List<DependentLocationSpec>(),  // No dependent resources
-            DependentItems = new List<DependentItemSpec>()
+            SpawnRules = spawnRules
         };
+    }
+
+    // ===================================================================
+    // NARRATIVE PATTERNS (9) - A-story and B-story content
+    // ===================================================================
+
+    /// <summary>
+    /// SEEK_AUDIENCE archetype
+    ///
+    /// FICTIONAL CONTEXT: Player seeks audience with authority figure or important NPC
+    /// STORY PURPOSE: Gatekeeper challenge to access next story beat
+    ///
+    /// Situation Count: 2
+    /// Pattern: Linear (negotiate_access → audience)
+    ///
+    /// Situation 1 - Negotiate Access: Convince gatekeeper to grant audience
+    ///   - Archetype: negotiation (Diplomacy/coins/challenge/fallback)
+    ///   - Guaranteed path: Fallback (wait patiently) always succeeds
+    ///   - Success rewards: Unlock meeting location, advance to audience
+    ///
+    /// Situation 2 - Audience: Meet with authority figure
+    ///   - Archetype: confrontation (Authority/Social challenge)
+    ///   - Guaranteed path: Fallback (respectful submission) always succeeds
+    ///   - Success rewards: Story revelation, next A-scene spawn
+    ///
+    /// Dependent Resources: Meeting chamber (generated location)
+    ///
+    /// GUARANTEED PROGRESSION: Both situations have fallback choices with no requirements
+    /// FINAL SITUATION: ALL choices spawn next A-scene (guaranteed forward progress)
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateSeekAudience(int tier, GenerationContext context)
+    {
+        string sceneId = "seek_audience";
+
+        // SITUATION 1: NEGOTIATE ACCESS
+        SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Negotiation);
+        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            negotiateArchetype,
+            $"{sceneId}_negotiate",
+            context);
+
+        // Enrich with unlock rewards
+        List<ChoiceTemplate> enrichedNegotiateChoices = new List<ChoiceTemplate>();
+        foreach (ChoiceTemplate choice in negotiateChoices)
+        {
+            ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
+
+            // NEW ARCHITECTURE: Dual-model accessibility - situation presence at dependent location grants access
+            // No need for reward-based unlock - when situation advances to meeting_chamber, access is automatic
+
+            enrichedNegotiateChoices.Add(new ChoiceTemplate
+            {
+                Id = choice.Id,
+                PathType = choice.PathType,
+                ActionTextTemplate = choice.ActionTextTemplate,
+                RequirementFormula = choice.RequirementFormula,
+                CostTemplate = choice.CostTemplate,
+                RewardTemplate = reward,
+                ActionType = choice.ActionType,
+                ChallengeType = choice.ChallengeType
+            });
+        }
+
+        SituationTemplate negotiateSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_negotiate",
+            Type = SituationType.Normal,
+            ChoiceTemplates = enrichedNegotiateChoices,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "formal",
+                Theme = "access_negotiation",
+                Context = "seeking_audience",
+                Style = "diplomatic"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        // HIGHLANDER: Use PlacementFilter for categorical matching
+        // EntityResolver.FindOrCreateLocation finds existing OR creates new
+        PlacementFilter meetingChamberFilter = new PlacementFilter
+        {
+            PlacementType = PlacementType.Location,
+            PrivacyLevels = new List<LocationPrivacy> { LocationPrivacy.Private },
+            SafetyLevels = new List<LocationSafety> { LocationSafety.Safe },
+            ActivityLevels = new List<LocationActivity> { LocationActivity.Quiet },
+            Purposes = new List<LocationPurpose> { LocationPurpose.Governance },
+            RequiredCapabilities = LocationCapability.None,
+            SelectionStrategy = PlacementSelectionStrategy.Random
+        };
+
+        // SITUATION 2: AUDIENCE
+        SituationArchetype audienceArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Confrontation);
+        List<ChoiceTemplate> audienceChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            audienceArchetype,
+            $"{sceneId}_audience",
+            context);
+
+        SituationTemplate audienceSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_audience",
+            Type = SituationType.Normal,
+            ChoiceTemplates = audienceChoices,
+            Priority = 90,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "tense",
+                Theme = "authority_meeting",
+                Context = "formal_audience",
+                Style = "dramatic"
+            },
+            // HIGHLANDER: Use LocationFilter for categorical matching
+            LocationFilter = meetingChamberFilter,
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        // Linear spawn rules
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = $"{sceneId}_negotiate",
+            Transitions = new List<SituationTransition>
+        {
+            new SituationTransition
+            {
+                SourceSituationId = $"{sceneId}_negotiate",
+                DestinationSituationId = $"{sceneId}_audience",
+                Condition = TransitionCondition.Always
+            }
+        }
+        };
+
+        List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        negotiateSituation,
+        audienceSituation
+    };
+
+        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+        EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = situations,
+            SpawnRules = spawnRules
+        };
+    }
+
+    /// <summary>
+    /// INVESTIGATE_LOCATION archetype
+    ///
+    /// FICTIONAL CONTEXT: Player investigates location for clues about the Order
+    /// STORY PURPOSE: Procedural investigation advancing mystery
+    ///
+    /// Situation Count: 3
+    /// Pattern: Linear (search → analyze → conclude)
+    ///
+    /// Classic investigation flow reusable for any location-based mystery beat.
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateInvestigateLocation(int tier, GenerationContext context)
+    {
+        string sceneId = "investigate_location";
+
+        // SITUATION 1: SEARCH LOCATION
+        SituationArchetype searchArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
+        List<ChoiceTemplate> searchChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            searchArchetype,
+            $"{sceneId}_search",
+            context);
+
+        // Enrich with evidence rewards
+        List<ChoiceTemplate> enrichedSearchChoices = new List<ChoiceTemplate>();
+        foreach (ChoiceTemplate choice in searchChoices)
+        {
+            // NOTE: Dependent item granting (evidence) cannot be handled at catalog time
+            // because the items don't exist until scene instantiation.
+
+            enrichedSearchChoices.Add(choice); // Pass through unchanged
+        }
+
+        SituationTemplate searchSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_search",
+            Type = SituationType.Normal,
+            ChoiceTemplates = enrichedSearchChoices,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "mysterious",
+                Theme = "investigation",
+                Context = "searching_clues",
+                Style = "atmospheric"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,  // Solo situation - no NPC
+            RouteFilter = null
+        };
+
+        // SITUATION 2: ANALYZE EVIDENCE
+        SituationArchetype analyzeArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
+        List<ChoiceTemplate> analyzeChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            analyzeArchetype,
+            $"{sceneId}_analyze",
+            context);
+
+        SituationTemplate analyzeSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_analyze",
+            Type = SituationType.Normal,
+            ChoiceTemplates = analyzeChoices,
+            Priority = 90,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "focused",
+                Theme = "deduction",
+                Context = "analyzing_evidence",
+                Style = "cerebral"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,  // Solo situation - no NPC
+            RouteFilter = null
+        };
+
+        // SITUATION 3: CONCLUDE INVESTIGATION
+        SituationArchetype concludeArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
+        List<ChoiceTemplate> concludeChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            concludeArchetype,
+            $"{sceneId}_conclude",
+            context);
+
+        SituationTemplate concludeSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_conclude",
+            Type = SituationType.Normal,
+            ChoiceTemplates = concludeChoices,
+            Priority = 80,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "resolute",
+                Theme = "revelation",
+                Context = "investigation_conclusion",
+                Style = "climactic"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,  // Solo situation - no NPC
+            RouteFilter = null
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = $"{sceneId}_search",
+            Transitions = new List<SituationTransition>
+        {
+            new SituationTransition
+            {
+                SourceSituationId = $"{sceneId}_search",
+                DestinationSituationId = $"{sceneId}_analyze",
+                Condition = TransitionCondition.Always
+            },
+            new SituationTransition
+            {
+                SourceSituationId = $"{sceneId}_analyze",
+                DestinationSituationId = $"{sceneId}_conclude",
+                Condition = TransitionCondition.Always
+            }
+        }
+        };
+
+        List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        searchSituation,
+        analyzeSituation,
+        concludeSituation
+    };
+
+        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+        // Generic logic - works for ANY sequence (A1→A2, A2→A3, A3→A4, A10→A11, etc.)
+        // If next template exists (authored) → uses it
+        // If next template doesn't exist → RewardApplicationService generates procedurally
+        EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = situations,
+            SpawnRules = spawnRules
+        };
+    }
+
+    /// <summary>
+    /// GATHER_TESTIMONY archetype
+    ///
+    /// FICTIONAL CONTEXT: Player gathers testimony from witness/informant about Order activities
+    /// STORY PURPOSE: Social information gathering advancing investigation
+    ///
+    /// Situation Count: 2
+    /// Pattern: Linear (approach → interview)
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateGatherTestimony(int tier, GenerationContext context)
+    {
+        string sceneId = "gather_testimony";
+
+        // SITUATION 1: APPROACH WITNESS
+        SituationArchetype approachArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.SocialManeuvering);
+        List<ChoiceTemplate> approachChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            approachArchetype,
+            $"{sceneId}_approach",
+            context);
+
+        SituationTemplate approachSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_approach",
+            Type = SituationType.Normal,
+            ChoiceTemplates = approachChoices,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "careful",
+                Theme = "approach",
+                Context = "gaining_confidence",
+                Style = "subtle"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        // SITUATION 2: INTERVIEW
+        SituationArchetype interviewArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Negotiation);
+        List<ChoiceTemplate> interviewChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            interviewArchetype,
+            $"{sceneId}_interview",
+            context);
+
+        SituationTemplate interviewSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_interview",
+            Type = SituationType.Normal,
+            ChoiceTemplates = interviewChoices,
+            Priority = 90,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "probing",
+                Theme = "interrogation",
+                Context = "gathering_testimony",
+                Style = "investigative"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = $"{sceneId}_approach",
+            Transitions = new List<SituationTransition>
+        {
+            new SituationTransition
+            {
+                SourceSituationId = $"{sceneId}_approach",
+                DestinationSituationId = $"{sceneId}_interview",
+                Condition = TransitionCondition.Always
+            }
+        }
+        };
+
+        List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        approachSituation,
+        interviewSituation
+    };
+
+        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+        EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = situations,
+            SpawnRules = spawnRules
+        };
+    }
+
+    /// <summary>
+    /// CONFRONT_ANTAGONIST archetype
+    ///
+    /// FICTIONAL CONTEXT: Player confronts antagonist with evidence/accusation
+    /// STORY PURPOSE: Dramatic confrontation advancing conflict
+    ///
+    /// Situation Count: 2
+    /// Pattern: Linear (accusation → resolution)
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateConfrontAntagonist(int tier, GenerationContext context)
+    {
+        string sceneId = "confront_antagonist";
+
+        // SITUATION 1: ACCUSATION
+        SituationArchetype accuseArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Confrontation);
+        List<ChoiceTemplate> accuseChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            accuseArchetype,
+            $"{sceneId}_accuse",
+            context);
+
+        SituationTemplate accuseSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_accuse",
+            Type = SituationType.Normal,
+            ChoiceTemplates = accuseChoices,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "confrontational",
+                Theme = "accusation",
+                Context = "dramatic_confrontation",
+                Style = "intense"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        // SITUATION 2: RESOLUTION
+        SituationArchetype resolveArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
+        List<ChoiceTemplate> resolveChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            resolveArchetype,
+            $"{sceneId}_resolve",
+            context);
+
+        SituationTemplate resolveSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_resolve",
+            Type = SituationType.Normal,
+            ChoiceTemplates = resolveChoices,
+            Priority = 90,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "decisive",
+                Theme = "resolution",
+                Context = "confrontation_outcome",
+                Style = "climactic"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = $"{sceneId}_accuse",
+            Transitions = new List<SituationTransition>
+        {
+            new SituationTransition
+            {
+                SourceSituationId = $"{sceneId}_accuse",
+                DestinationSituationId = $"{sceneId}_resolve",
+                Condition = TransitionCondition.Always
+            }
+        }
+        };
+
+        List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        accuseSituation,
+        resolveSituation
+    };
+
+        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+        EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = situations,
+            SpawnRules = spawnRules
+        };
+    }
+
+    /// <summary>
+    /// MEET_ORDER_MEMBER archetype
+    ///
+    /// FICTIONAL CONTEXT: Player meets member of scattered Order, each knows one piece of mystery
+    /// STORY PURPOSE: Incremental revelation, deepening pursuit
+    ///
+    /// Situation Count: 3
+    /// Pattern: Linear (contact → negotiate_info → revelation)
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateMeetOrderMember(int tier, GenerationContext context)
+    {
+        string sceneId = "meet_order_member";
+
+        // SITUATION 1: INITIAL CONTACT
+        SituationArchetype contactArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.SocialManeuvering);
+        List<ChoiceTemplate> contactChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            contactArchetype,
+            $"{sceneId}_contact",
+            context);
+
+        SituationTemplate contactSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_contact",
+            Type = SituationType.Normal,
+            ChoiceTemplates = contactChoices,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "cautious",
+                Theme = "first_contact",
+                Context = "meeting_order_member",
+                Style = "mysterious"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        // SITUATION 2: NEGOTIATE INFORMATION
+        SituationArchetype negotiateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Negotiation);
+        List<ChoiceTemplate> negotiateChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            negotiateArchetype,
+            $"{sceneId}_negotiate",
+            context);
+
+        SituationTemplate negotiateSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_negotiate",
+            Type = SituationType.Normal,
+            ChoiceTemplates = negotiateChoices,
+            Priority = 90,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "tense",
+                Theme = "information_exchange",
+                Context = "negotiating_knowledge",
+                Style = "strategic"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        // SITUATION 3: REVELATION
+        SituationArchetype revelationArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
+        List<ChoiceTemplate> revelationChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            revelationArchetype,
+            $"{sceneId}_revelation",
+            context);
+
+        SituationTemplate revelationSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_revelation",
+            Type = SituationType.Normal,
+            ChoiceTemplates = revelationChoices,
+            Priority = 80,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "revelatory",
+                Theme = "knowledge_gained",
+                Context = "order_secret_revealed",
+                Style = "impactful"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = $"{sceneId}_contact",
+            Transitions = new List<SituationTransition>
+        {
+            new SituationTransition
+            {
+                SourceSituationId = $"{sceneId}_contact",
+                DestinationSituationId = $"{sceneId}_negotiate",
+                Condition = TransitionCondition.Always
+            },
+            new SituationTransition
+            {
+                SourceSituationId = $"{sceneId}_negotiate",
+                DestinationSituationId = $"{sceneId}_revelation",
+                Condition = TransitionCondition.Always
+            }
+        }
+        };
+
+        List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        contactSituation,
+        negotiateSituation,
+        revelationSituation
+    };
+
+        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+        EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = situations,
+            SpawnRules = spawnRules
+        };
+    }
+
+    /// <summary>
+    /// DISCOVER_ARTIFACT archetype
+    ///
+    /// FICTIONAL CONTEXT: Player discovers Order artifact (relic, document, tool)
+    /// STORY PURPOSE: Physical progression token, lore advancement
+    ///
+    /// Situation Count: 2
+    /// Pattern: Linear (locate → acquire)
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateDiscoverArtifact(int tier, GenerationContext context)
+    {
+        string sceneId = "discover_artifact";
+
+        // SITUATION 1: LOCATE ARTIFACT
+        SituationArchetype locateArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
+        List<ChoiceTemplate> locateChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            locateArchetype,
+            $"{sceneId}_locate",
+            context);
+
+        SituationTemplate locateSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_locate",
+            Type = SituationType.Normal,
+            ChoiceTemplates = locateChoices,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "anticipatory",
+                Theme = "discovery",
+                Context = "locating_artifact",
+                Style = "atmospheric"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,  // Solo situation - no NPC
+            RouteFilter = null
+        };
+
+        // SITUATION 2: ACQUIRE ARTIFACT
+        SituationArchetype acquireArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
+        List<ChoiceTemplate> acquireChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            acquireArchetype,
+            $"{sceneId}_acquire",
+            context);
+
+        // Enrich with artifact reward
+        List<ChoiceTemplate> enrichedAcquireChoices = new List<ChoiceTemplate>();
+        foreach (ChoiceTemplate choice in acquireChoices)
+        {
+            // NOTE: Dependent item granting (order_artifact) cannot be handled at catalog time
+            // because the items don't exist until scene instantiation.
+
+            enrichedAcquireChoices.Add(choice); // Pass through unchanged
+        }
+
+        SituationTemplate acquireSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_acquire",
+            Type = SituationType.Normal,
+            ChoiceTemplates = enrichedAcquireChoices,
+            Priority = 90,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "triumphant",
+                Theme = "acquisition",
+                Context = "claiming_artifact",
+                Style = "epic"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,  // Solo situation - no NPC
+            RouteFilter = null
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = $"{sceneId}_locate",
+            Transitions = new List<SituationTransition>
+        {
+            new SituationTransition
+            {
+                SourceSituationId = $"{sceneId}_locate",
+                DestinationSituationId = $"{sceneId}_acquire",
+                Condition = TransitionCondition.Always
+            }
+        }
+        };
+
+        List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        locateSituation,
+        acquireSituation
+    };
+
+        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+        EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = situations,
+            SpawnRules = spawnRules
+        };
+    }
+
+    /// <summary>
+    /// UNCOVER_CONSPIRACY archetype
+    ///
+    /// FICTIONAL CONTEXT: Player uncovers conspiracy related to Order's fall
+    /// STORY PURPOSE: Major plot revelation, raising stakes
+    ///
+    /// Situation Count: 4
+    /// Pattern: Linear (suspect → gather_proof → expose → consequence)
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateUncoverConspiracy(int tier, GenerationContext context)
+    {
+        string sceneId = "uncover_conspiracy";
+
+        // SITUATION 1: SUSPICION
+        SituationArchetype suspectArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
+        List<ChoiceTemplate> suspectChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            suspectArchetype,
+            $"{sceneId}_suspect",
+            context);
+
+        SituationTemplate suspectSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_suspect",
+            Type = SituationType.Normal,
+            ChoiceTemplates = suspectChoices,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "suspicious",
+                Theme = "conspiracy",
+                Context = "initial_suspicion",
+                Style = "tense"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,  // Solo situation - no NPC
+            RouteFilter = null
+        };
+
+        // SITUATION 2: GATHER PROOF
+        SituationArchetype proofArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Investigation);
+        List<ChoiceTemplate> proofChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            proofArchetype,
+            $"{sceneId}_proof",
+            context);
+
+        SituationTemplate proofSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_proof",
+            Type = SituationType.Normal,
+            ChoiceTemplates = proofChoices,
+            Priority = 90,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "determined",
+                Theme = "evidence_gathering",
+                Context = "proving_conspiracy",
+                Style = "methodical"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,  // Solo situation - no NPC
+            RouteFilter = null
+        };
+
+        // SITUATION 3: EXPOSE
+        SituationArchetype exposeArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Confrontation);
+        List<ChoiceTemplate> exposeChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            exposeArchetype,
+            $"{sceneId}_expose",
+            context);
+
+        SituationTemplate exposeSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_expose",
+            Type = SituationType.Normal,
+            ChoiceTemplates = exposeChoices,
+            Priority = 80,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "dramatic",
+                Theme = "revelation",
+                Context = "exposing_conspiracy",
+                Style = "climactic"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        // SITUATION 4: CONSEQUENCE
+        SituationArchetype consequenceArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
+        List<ChoiceTemplate> consequenceChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            consequenceArchetype,
+            $"{sceneId}_consequence",
+            context);
+
+        SituationTemplate consequenceSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_consequence",
+            Type = SituationType.Normal,
+            ChoiceTemplates = consequenceChoices,
+            Priority = 70,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "grave",
+                Theme = "consequence",
+                Context = "conspiracy_aftermath",
+                Style = "sobering"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = $"{sceneId}_suspect",
+            Transitions = new List<SituationTransition>
+        {
+            new SituationTransition
+            {
+                SourceSituationId = $"{sceneId}_suspect",
+                DestinationSituationId = $"{sceneId}_proof",
+                Condition = TransitionCondition.Always
+            },
+            new SituationTransition
+            {
+                SourceSituationId = $"{sceneId}_proof",
+                DestinationSituationId = $"{sceneId}_expose",
+                Condition = TransitionCondition.Always
+            },
+            new SituationTransition
+            {
+                SourceSituationId = $"{sceneId}_expose",
+                DestinationSituationId = $"{sceneId}_consequence",
+                Condition = TransitionCondition.Always
+            }
+        }
+        };
+
+        List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        suspectSituation,
+        proofSituation,
+        exposeSituation,
+        consequenceSituation
+    };
+
+        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+        EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = situations,
+            SpawnRules = spawnRules
+        };
+    }
+
+    /// <summary>
+    /// URGENT_DECISION archetype
+    ///
+    /// FICTIONAL CONTEXT: Player must make urgent time-pressured decision
+    /// STORY PURPOSE: Crisis moment, testing player values
+    ///
+    /// Situation Count: 2
+    /// Pattern: Linear (crisis → decision)
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateUrgentDecision(int tier, GenerationContext context)
+    {
+        string sceneId = "urgent_decision";
+
+        // SITUATION 1: CRISIS EMERGES
+        SituationArchetype crisisArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
+        List<ChoiceTemplate> crisisChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            crisisArchetype,
+            $"{sceneId}_crisis",
+            context);
+
+        SituationTemplate crisisSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_crisis",
+            Type = SituationType.Crisis,
+            ChoiceTemplates = crisisChoices,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "urgent",
+                Theme = "crisis",
+                Context = "emergency",
+                Style = "intense"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        // SITUATION 2: DECISION
+        SituationArchetype decisionArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
+        List<ChoiceTemplate> decisionChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            decisionArchetype,
+            $"{sceneId}_decision",
+            context);
+
+        SituationTemplate decisionSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_decision",
+            Type = SituationType.Crisis,
+            ChoiceTemplates = decisionChoices,
+            Priority = 90,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "desperate",
+                Theme = "decision",
+                Context = "urgent_choice",
+                Style = "high_stakes"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = $"{sceneId}_crisis",
+            Transitions = new List<SituationTransition>
+        {
+            new SituationTransition
+            {
+                SourceSituationId = $"{sceneId}_crisis",
+                DestinationSituationId = $"{sceneId}_decision",
+                Condition = TransitionCondition.Always
+            }
+        }
+        };
+
+        List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        crisisSituation,
+        decisionSituation
+    };
+
+        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+        EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = situations,
+            SpawnRules = spawnRules
+        };
+    }
+
+    /// <summary>
+    /// MORAL_CROSSROADS archetype
+    ///
+    /// FICTIONAL CONTEXT: Player faces moral dilemma with lasting consequences
+    /// STORY PURPOSE: Player agency, values expression
+    ///
+    /// Situation Count: 3
+    /// Pattern: Linear (dilemma → choice → consequence)
+    /// </summary>
+    private static SceneArchetypeDefinition GenerateMoralCrossroads(int tier, GenerationContext context)
+    {
+        string sceneId = "moral_crossroads";
+
+        // SITUATION 1: DILEMMA PRESENTED
+        SituationArchetype dilemmaArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.SocialManeuvering);
+        List<ChoiceTemplate> dilemmaChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            dilemmaArchetype,
+            $"{sceneId}_dilemma",
+            context);
+
+        SituationTemplate dilemmaSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_dilemma",
+            Type = SituationType.Normal,
+            ChoiceTemplates = dilemmaChoices,
+            Priority = 100,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "conflicted",
+                Theme = "moral_dilemma",
+                Context = "ethical_choice",
+                Style = "thoughtful"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        // SITUATION 2: MORAL CHOICE
+        SituationArchetype choiceArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.Crisis);
+        List<ChoiceTemplate> choiceChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            choiceArchetype,
+            $"{sceneId}_choice",
+            context);
+
+        SituationTemplate choiceSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_choice",
+            Type = SituationType.Normal,
+            ChoiceTemplates = choiceChoices,
+            Priority = 90,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "weighty",
+                Theme = "moral_stance",
+                Context = "defining_moment",
+                Style = "impactful"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        // SITUATION 3: CONSEQUENCE
+        SituationArchetype consequenceArchetype = SituationArchetypeCatalog.GetArchetype(SituationArchetypeType.SocialManeuvering);
+        List<ChoiceTemplate> consequenceChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
+            consequenceArchetype,
+            $"{sceneId}_consequence",
+            context);
+
+        SituationTemplate consequenceSituation = new SituationTemplate
+        {
+            Id = $"{sceneId}_consequence",
+            Type = SituationType.Normal,
+            ChoiceTemplates = consequenceChoices,
+            Priority = 80,
+            NarrativeHints = new NarrativeHints
+            {
+                Tone = "reflective",
+                Theme = "consequence",
+                Context = "moral_aftermath",
+                Style = "somber"
+            },
+            LocationFilter = new PlacementFilter { Proximity = PlacementProximity.SameLocation },
+            NpcFilter = null,
+            RouteFilter = null
+        };
+
+        SituationSpawnRules spawnRules = new SituationSpawnRules
+        {
+            Pattern = SpawnPattern.Linear,
+            InitialSituationId = $"{sceneId}_dilemma",
+            Transitions = new List<SituationTransition>
+        {
+            new SituationTransition
+            {
+                SourceSituationId = $"{sceneId}_dilemma",
+                DestinationSituationId = $"{sceneId}_choice",
+                Condition = TransitionCondition.Always
+            },
+            new SituationTransition
+            {
+                SourceSituationId = $"{sceneId}_choice",
+                DestinationSituationId = $"{sceneId}_consequence",
+                Condition = TransitionCondition.Always
+            }
+        }
+        };
+
+        List<SituationTemplate> situations = new List<SituationTemplate>
+    {
+        dilemmaSituation,
+        choiceSituation,
+        consequenceSituation
+    };
+
+        // CRITICAL: Enrich final situation to spawn next A-scene (infinite progression)
+        EnrichFinalSituationWithNextASceneSpawn(situations, context);
+
+        return new SceneArchetypeDefinition
+        {
+            SituationTemplates = situations,
+            SpawnRules = spawnRules
+        };
+    }
+
+    // ===================================================================
+    // INFINITE A-STORY PROGRESSION: Final Situation Enrichment
+    // ===================================================================
+
+    /// <summary>
+    /// Enrich final situation to spawn next A-scene (CRITICAL for infinite progression)
+    ///
+    /// GUARANTEED PROGRESSION PATTERN:
+    /// - Final situation ALL choices spawn next A-scene
+    /// - Ensures forward progress regardless of player choices
+    /// - Infinite A-story loop: A11 → A12 → A13 → ... → infinity
+    ///
+    /// Called after generating situation templates, before returning definition
+    /// Modifies final situation's choice templates in-place
+    ///
+    /// Generic logic - works for ANY sequence number.
+    /// If next template exists (authored) → uses it.
+    /// If next template doesn't exist → RewardApplicationService generates procedurally.
+    /// NO HARDCODED SPECIAL CASES.
+    /// </summary>
+    private static void EnrichFinalSituationWithNextASceneSpawn(
+        List<SituationTemplate> situations,
+        GenerationContext context)
+    {
+        if (!context.AStorySequence.HasValue)
+        {
+            return; // Not an A-story scene, no enrichment needed
+        }
+
+        if (situations.Count == 0)
+        {
+            return; // No situations to enrich
+        }
+
+        // Final situation = last situation in list
+        SituationTemplate finalSituation = situations[situations.Count - 1];
+
+        // Next A-scene ID (generic - no special cases)
+        string nextASceneId = $"a_story_{context.AStorySequence.Value + 1}";
+
+        // Enrich ALL choices with SceneSpawnReward
+        List<ChoiceTemplate> enrichedChoices = new List<ChoiceTemplate>();
+        foreach (ChoiceTemplate choice in finalSituation.ChoiceTemplates)
+        {
+            ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
+
+            // Add next A-scene spawn reward
+            // Uses template's PlacementFilter for categorical resolution (no override needed)
+            reward.ScenesToSpawn = new List<SceneSpawnReward>
+        {
+            new SceneSpawnReward
+            {
+                SceneTemplateId = nextASceneId
+                // PlacementFilterOverride = null (uses template's filter)
+            }
+        };
+
+            enrichedChoices.Add(new ChoiceTemplate
+            {
+                Id = choice.Id,
+                PathType = choice.PathType,
+                ActionTextTemplate = choice.ActionTextTemplate,
+                RequirementFormula = choice.RequirementFormula,
+                CostTemplate = choice.CostTemplate,
+                RewardTemplate = reward,
+                ActionType = choice.ActionType,
+                ChallengeType = choice.ChallengeType
+            });
+        }
+
+        // Replace final situation's choices with enriched versions
+        finalSituation.ChoiceTemplates.Clear();
+        finalSituation.ChoiceTemplates.AddRange(enrichedChoices);
     }
 }

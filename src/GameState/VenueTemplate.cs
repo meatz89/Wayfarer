@@ -1,7 +1,7 @@
 /// <summary>
 /// Template for procedural venue generation.
 /// Defines categorical requirements for dynamically created venues.
-/// Parallel to DependentLocationSpec for locations.
+/// Parallel to PlacementFilter for locations.
 /// </summary>
 public class VenueTemplate
 {

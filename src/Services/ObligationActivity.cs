@@ -8,8 +8,8 @@ public class ObligationActivity
 {
     private readonly GameWorld _gameWorld;
     private readonly MessageSystem _messageSystem;
-    private readonly SceneInstanceFacade _sceneInstanceFacade;
-    private readonly DependentResourceOrchestrationService _dependentResourceOrchestrationService;
+    private readonly SceneInstantiator _sceneInstantiator;
+    private readonly PackageLoader _packageLoader;
 
     private ObligationDiscoveryResult _pendingDiscoveryResult;
     private ObligationActivationResult _pendingActivationResult;
@@ -20,13 +20,13 @@ public class ObligationActivity
     public ObligationActivity(
         GameWorld gameWorld,
         MessageSystem messageSystem,
-        SceneInstanceFacade sceneInstanceFacade,
-        DependentResourceOrchestrationService dependentResourceOrchestrationService)
+        SceneInstantiator sceneInstantiator,
+        PackageLoader packageLoader)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _messageSystem = messageSystem ?? throw new ArgumentNullException(nameof(messageSystem));
-        _sceneInstanceFacade = sceneInstanceFacade ?? throw new ArgumentNullException(nameof(sceneInstanceFacade));
-        _dependentResourceOrchestrationService = dependentResourceOrchestrationService ?? throw new ArgumentNullException(nameof(dependentResourceOrchestrationService));
+        _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
+        _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
     }
 
     /// <summary>
@@ -480,9 +480,9 @@ public class ObligationActivity
         };
 
         // HIGHLANDER FLOW: Single method spawns scene with full orchestration
-        Scene scene = await _sceneInstanceFacade.SpawnScene(template, sceneSpawn, context);
+        string packageJson = _sceneInstantiator.CreateDeferredScene(template, sceneSpawn, context);
 
-        if (scene == null)
+        if (string.IsNullOrEmpty(packageJson))
         {
             _messageSystem.AddSystemMessage(
                 $"Scene '{template.Id}' failed to spawn (spawn conditions not met)",
@@ -490,10 +490,17 @@ public class ObligationActivity
             return;
         }
 
-        string placementDescription = GetPlacementDescription(scene);
-        _messageSystem.AddSystemMessage(
-            $"New scene appeared: {scene.DisplayName} {placementDescription}",
-            SystemMessageTypes.Warning);
+        string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}";
+        PackageLoadResult loadResult = await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
+
+        Scene scene = loadResult.ScenesAdded.FirstOrDefault();
+        if (scene != null)
+        {
+            string placementDescription = GetPlacementDescription(scene);
+            _messageSystem.AddSystemMessage(
+                $"New scene appeared: {scene.DisplayName} {placementDescription}",
+                SystemMessageTypes.Warning);
+        }
     }
     /// <summary>
     /// Get human-readable placement description for system message

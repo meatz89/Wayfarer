@@ -87,7 +87,7 @@ public static class SituationParser
             Repeatable = dto.Repeatable,
             GeneratedNarrative = dto.GeneratedNarrative,
             NarrativeHints = ParseNarrativeHints(dto.NarrativeHints)
-            // Note: Situation.Location bound directly at spawn time from Template.DependentLocationSpec
+            // Note: Situation.Location bound at activation time via PlacementFilter resolution
         };
 
         // Resolve object references during parsing (HIGHLANDER: Name is natural key)

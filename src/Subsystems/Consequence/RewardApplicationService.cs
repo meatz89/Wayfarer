@@ -11,24 +11,24 @@ public class RewardApplicationService
     private readonly GameWorld _gameWorld;
     private readonly ConsequenceFacade _consequenceFacade;
     private readonly TimeFacade _timeFacade;
-    private readonly SceneInstanceFacade _sceneInstanceFacade;
-    private readonly DependentResourceOrchestrationService _dependentResourceOrchestrationService;
+    private readonly SceneInstantiator _sceneInstantiator;
     private readonly ProceduralAStoryService _proceduralAStoryService;
+    private readonly PackageLoader _packageLoader;
 
     public RewardApplicationService(
         GameWorld gameWorld,
         ConsequenceFacade consequenceFacade,
         TimeFacade timeFacade,
-        SceneInstanceFacade sceneInstanceFacade,
-        DependentResourceOrchestrationService dependentResourceOrchestrationService,
-        ProceduralAStoryService proceduralAStoryService)
+        SceneInstantiator sceneInstantiator,
+        ProceduralAStoryService proceduralAStoryService,
+        PackageLoader packageLoader)
     {
         _gameWorld = gameWorld;
         _consequenceFacade = consequenceFacade;
         _timeFacade = timeFacade;
-        _sceneInstanceFacade = sceneInstanceFacade;
-        _dependentResourceOrchestrationService = dependentResourceOrchestrationService ?? throw new ArgumentNullException(nameof(dependentResourceOrchestrationService));
+        _sceneInstantiator = sceneInstantiator ?? throw new ArgumentNullException(nameof(sceneInstantiator));
         _proceduralAStoryService = proceduralAStoryService ?? throw new ArgumentNullException(nameof(proceduralAStoryService));
+        _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
     }
 
     /// <summary>
@@ -264,7 +264,12 @@ public class RewardApplicationService
             };
 
             // HIGHLANDER FLOW: Spawn scene directly (JSON → PackageLoader → Parser)
-            Scene scene = await _sceneInstanceFacade.SpawnScene(template, sceneSpawn, context);
+            string packageJson = _sceneInstantiator.CreateDeferredScene(template, sceneSpawn, context);
+            if (!string.IsNullOrEmpty(packageJson))
+            {
+                string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}";
+                await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
+            }
         }
 
         // NO CLEANUP NEEDED: Provisional scenes don't exist in HIGHLANDER flow

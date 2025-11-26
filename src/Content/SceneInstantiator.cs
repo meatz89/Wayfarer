@@ -105,31 +105,10 @@ public class SceneInstantiator
         // Use a deterministic tag based on template + timestamp to bind dependent resources
         string sceneTag = $"{scene.TemplateId}_{Guid.NewGuid().ToString("N")}";
 
-        // Generate dependent resource DTOs (if self-contained scene)
-        List<LocationDTO> dependentLocations = new List<LocationDTO>();
-        List<ItemDTO> dependentItems = new List<ItemDTO>();
+        // Build package with ONLY dependent items (locations resolved via EntityResolver)
+        string packageJson = BuildScenePackage(null, new List<LocationDTO>(), new List<ItemDTO>());
 
-        if (scene.Template.DependentLocations.Any() || scene.Template.DependentItems.Any())
-        {
-            // Generate dependent location DTOs
-            foreach (DependentLocationSpec spec in scene.Template.DependentLocations)
-            {
-                LocationDTO locationDto = BuildLocationDTO(spec, sceneTag, context);
-                dependentLocations.Add(locationDto);
-            }
-
-            // Generate dependent item DTOs
-            foreach (DependentItemSpec spec in scene.Template.DependentItems)
-            {
-                ItemDTO itemDto = BuildItemDTO(spec, sceneTag, context, dependentLocations);
-                dependentItems.Add(itemDto);
-            }
-        }
-
-        // Build package with ONLY dependent resources (empty list for Scenes)
-        string packageJson = BuildScenePackage(null, dependentLocations, dependentItems);
-
-        Console.WriteLine($"[SceneInstantiator] Generated activation package for scene '{scene.TemplateId}' with {dependentLocations.Count} locations and {dependentItems.Count} items");
+        Console.WriteLine($"[SceneInstantiator] Generated activation package for scene '{scene.TemplateId}'");
 
         return packageJson;
     }
@@ -168,8 +147,12 @@ public class SceneInstantiator
             // LOCATION RESOLUTION - filter must be explicit
             if (situation.LocationFilter != null)
             {
-                situation.Location = entityResolver.FindOrCreateLocation(situation.LocationFilter);
-                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved Location '{situation.Location?.Name ?? "NULL"}' for situation '{situation.Name}' via categorical filter");
+                // Pass context.CurrentLocation for Proximity-based resolution (SameLocation)
+                situation.Location = entityResolver.FindOrCreateLocation(situation.LocationFilter, context.CurrentLocation);
+                string resolutionType = situation.LocationFilter.Proximity == PlacementProximity.SameLocation
+                    ? "SameLocation proximity"
+                    : "categorical filter";
+                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved Location '{situation.Location?.Name ?? "NULL"}' for situation '{situation.Name}' via {resolutionType}");
             }
             else if (situation.Location == null)
             {
@@ -179,8 +162,12 @@ public class SceneInstantiator
             // NPC RESOLUTION - filter must be explicit
             if (situation.NpcFilter != null)
             {
-                situation.Npc = entityResolver.FindOrCreateNPC(situation.NpcFilter);
-                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved NPC '{situation.Npc?.Name ?? "NULL"}' for situation '{situation.Name}' via categorical filter");
+                // Pass context.CurrentLocation for Proximity-based resolution (SameLocation)
+                situation.Npc = entityResolver.FindOrCreateNPC(situation.NpcFilter, context.CurrentLocation);
+                string npcResolutionType = situation.NpcFilter.Proximity == PlacementProximity.SameLocation
+                    ? "SameLocation proximity"
+                    : "categorical filter";
+                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved NPC '{situation.Npc?.Name ?? "NULL"}' for situation '{situation.Name}' via {npcResolutionType}");
             }
             else if (situation.Npc == null)
             {
@@ -190,8 +177,12 @@ public class SceneInstantiator
             // ROUTE RESOLUTION - filter must be explicit
             if (situation.RouteFilter != null)
             {
-                situation.Route = entityResolver.FindOrCreateRoute(situation.RouteFilter);
-                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved Route '{situation.Route?.Name ?? "NULL"}' for situation '{situation.Name}' via categorical filter");
+                // Pass context.CurrentLocation for Proximity-based resolution (SameLocation)
+                situation.Route = entityResolver.FindOrCreateRoute(situation.RouteFilter, context.CurrentLocation);
+                string routeResolutionType = situation.RouteFilter.Proximity == PlacementProximity.SameLocation
+                    ? "SameLocation proximity"
+                    : "categorical filter";
+                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved Route '{situation.Route?.Name ?? "NULL"}' for situation '{situation.Name}' via {routeResolutionType}");
             }
             else if (situation.Route == null)
             {
@@ -228,34 +219,12 @@ public class SceneInstantiator
         // System 3: Generate Scene DTO with categorical specifications (NO resolution)
         SceneDTO sceneDto = GenerateSceneDTO(template, spawnReward, context, isDeferredState: false);
 
-        // Generate dependent resource DTOs (if self-contained scene)
-        // Categories → FindOrGenerate → Concrete IDs stored directly
-        List<LocationDTO> dependentLocations = new List<LocationDTO>();
-        List<ItemDTO> dependentItems = new List<ItemDTO>();
-
-        if (template.DependentLocations.Any() || template.DependentItems.Any())
-        {
-            // Generate dependent location DTOs
-            foreach (DependentLocationSpec spec in template.DependentLocations)
-            {
-                LocationDTO locationDto = BuildLocationDTO(spec, sceneDto.Id, context);
-                dependentLocations.Add(locationDto);
-            }
-
-            // Generate dependent item DTOs
-            foreach (DependentItemSpec spec in template.DependentItems)
-            {
-                ItemDTO itemDto = BuildItemDTO(spec, sceneDto.Id, context, dependentLocations);
-                dependentItems.Add(itemDto);
-            }
-        }
-
         // Generate Situation DTOs (entities reference by categories, no markers)
         List<SituationDTO> situationDtos = GenerateSituationDTOs(template, sceneDto, context);
         sceneDto.Situations = situationDtos;
 
-        // Build complete package
-        string packageJson = BuildScenePackage(sceneDto, dependentLocations, dependentItems);
+        // Build complete package (locations resolved via EntityResolver, not in package)
+        string packageJson = BuildScenePackage(sceneDto, new List<LocationDTO>(), new List<ItemDTO>());
 
         Console.WriteLine($"[SceneInstantiator] Generated scene package '{sceneDto.Id}' with {situationDtos.Count} situations");
 
@@ -374,12 +343,10 @@ public class SceneInstantiator
                 InteractionType = "Instant",  // Scene situations present choices (instant interaction, choice determines next action)
                 SystemType = sitTemplate.SystemType.ToString(),
                 DeckId = deckId,
-                // Hierarchical placement: Situation filters override scene base filters
+                // Explicit placement filters (no inheritance - situations specify their own filters)
                 LocationFilter = effectiveLocationFilter,
                 NpcFilter = effectiveNpcFilter,
                 RouteFilter = effectiveRouteFilter
-                // NOTE: DependentLocationSpec binding handled at spawn time via direct object reference
-                // Each situation with a spec gets location created and bound: situation.Location = createdLocation
             };
 
             // Copy narrative hints if present
@@ -1041,269 +1008,6 @@ public class SceneInstantiator
         return (day * SEGMENTS_PER_DAY) + (timeBlockValue * SEGMENTS_PER_TIME_BLOCK) + segment;
     }
 
-    /// <summary>
-    /// Generate dependent resource SPECS for self-contained scene
-    /// Returns specs to orchestrator who creates JSON files and loads via PackageLoader
-    /// Does NOT load resources itself (pure generation, no infrastructure)
-    /// Called from FinalizeScene BEFORE situation instantiation
-    /// </summary>
-    private DependentResourceSpecs GenerateDependentResourceSpecs(Scene scene, SceneSpawnContext context)
-    {
-        // Generate unique ID for this package (Scene.Id no longer exists)
-        string uniqueSceneId = Guid.NewGuid().ToString();
-
-        // Build lists of DTOs
-        List<LocationDTO> locationDtos = new List<LocationDTO>();
-        List<ItemDTO> itemDtos = new List<ItemDTO>();
-
-        // Generate LocationDTOs from specifications
-        foreach (DependentLocationSpec spec in scene.Template.DependentLocations)
-        {
-            LocationDTO locationDto = BuildLocationDTO(spec, uniqueSceneId, context);
-            locationDtos.Add(locationDto);
-        }
-
-        // Generate ItemDTOs from specifications
-        foreach (DependentItemSpec spec in scene.Template.DependentItems)
-        {
-            ItemDTO itemDto = BuildItemDTO(spec, uniqueSceneId, context, locationDtos);
-            itemDtos.Add(itemDto);
-        }
-
-        // Create Package object
-        string packageId = $"scene_{uniqueSceneId}_dep";
-        Package package = new Package
-        {
-            PackageId = packageId,
-            Metadata = new PackageMetadata
-            {
-                Name = $"Scene (template '{scene.TemplateId}') Dependent Resources",
-                Author = "Scene System",
-                Version = "1.0.0"
-            },
-            Content = new PackageContent
-            {
-                Locations = locationDtos,
-                Items = itemDtos
-            }
-        };
-
-        // Serialize to JSON for orchestrator
-        JsonSerializerOptions jsonOptions = new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-            WriteIndented = true
-        };
-        string json = JsonSerializer.Serialize(package, jsonOptions);
-
-        // Build list of created IDs for scene tracking
-        List<string> createdLocationIds = locationDtos.Select(dto => dto.Id).ToList();
-        List<string> createdItemIds = itemDtos.Select(dto => dto.Id).ToList();
-
-        // Build list of items to add to inventory (orchestrator handles after loading)
-        List<string> itemsToAddToInventory = new List<string>();
-        foreach (DependentItemSpec spec in scene.Template.DependentItems)
-        {
-            if (spec.AddToInventoryOnCreation)
-            {
-                string itemId = $"{spec.TemplateId}_{Guid.NewGuid().ToString("N")}";
-                itemsToAddToInventory.Add(itemId);
-            }
-        }
-
-        // Return specs to orchestrator (NO LOADING HERE)
-        return new DependentResourceSpecs
-        {
-            Locations = locationDtos,
-            Items = itemDtos,
-            PackageId = packageId,
-            PackageJson = json,
-            CreatedLocationIds = createdLocationIds,
-            CreatedItemIds = createdItemIds,
-            ItemsToAddToInventory = itemsToAddToInventory
-        };
-    }
-
-    /// <summary>
-    /// Build LocationDTO from DependentLocationSpec
-    /// Uses generic names, determines venue, delegates hex placement
-    /// </summary>
-    private LocationDTO BuildLocationDTO(DependentLocationSpec spec, string sceneId, SceneSpawnContext context)
-    {
-        // Generate unique ID
-        string locationId = $"{spec.TemplateId}_{Guid.NewGuid().ToString("N")}";
-
-        // Use names directly (AI narrative will regenerate all text when implemented)
-        string locationName = spec.Name;
-        string locationDescription = spec.Description;
-
-        // Determine venue ID
-        string venueId = DetermineVenueId(spec.VenueIdSource, context);
-
-        // FAIL-FAST BUDGET VALIDATION: Check venue capacity BEFORE creating DTO
-        // Since all locations persist forever, budget violations cannot be cleaned up
-        Venue venue = _gameWorld.Venues.FirstOrDefault(v => v.Name == venueId);
-        if (venue == null)
-            throw new InvalidOperationException($"Venue '{venueId}' not found for location '{locationId}'");
-
-        if (!_gameWorld.CanVenueAddMoreLocations(venue))
-        {
-            // HIGHLANDER: Pass Venue object, not string
-            int currentCount = _gameWorld.GetLocationCountInVenue(venue);
-            throw new InvalidOperationException(
-                $"Venue '{venue.Name}' has reached capacity " +
-                $"({currentCount}/{venue.MaxLocations} locations). " +
-                $"Cannot add location '{locationId}'. " +
-                $"Increase MaxLocations or use different venue.");
-        }
-
-        // HIGHLANDER: NO hex placement logic here - ALL placement via LocationPlacementService
-        // SceneInstantiator creates LocationDTO with NO hex coordinates
-        // PackageLoader.PlaceLocations() handles placement for ALL locations (authored + generated)
-
-        // FAIL-FAST VALIDATION: ALL categorical dimensions REQUIRED from spec
-        if (string.IsNullOrEmpty(spec.Privacy))
-        {
-            throw new InvalidOperationException(
-                $"DependentLocationSpec '{spec.TemplateId}' missing required Privacy property. " +
-                $"Every location MUST have explicit Privacy. Valid values: Public, SemiPublic, Private, Restricted");
-        }
-        if (string.IsNullOrEmpty(spec.Safety))
-        {
-            throw new InvalidOperationException(
-                $"DependentLocationSpec '{spec.TemplateId}' missing required Safety property. " +
-                $"Every location MUST have explicit Safety. Valid values: Dangerous, Unsafe, Neutral, Safe, Secure");
-        }
-        if (string.IsNullOrEmpty(spec.Activity))
-        {
-            throw new InvalidOperationException(
-                $"DependentLocationSpec '{spec.TemplateId}' missing required Activity property. " +
-                $"Every location MUST have explicit Activity. Valid values: Quiet, Moderate, Busy, Crowded");
-        }
-        if (string.IsNullOrEmpty(spec.Purpose))
-        {
-            throw new InvalidOperationException(
-                $"DependentLocationSpec '{spec.TemplateId}' missing required Purpose property. " +
-                $"Every location MUST have explicit Purpose. Valid values: Transit, Dwelling, Commerce, Work, Government, Education, Entertainment, Religion, Defense, Storage, Agriculture, Manufacturing");
-        }
-
-        // Build LocationDTO
-        LocationDTO dto = new LocationDTO
-        {
-            Id = locationId,
-            Name = locationName,
-            Description = locationDescription,
-            DistanceFromPlayer = "near", // Generated locations default to "near" - placement algorithm will select appropriate venue
-            Type = "Room", // Default type for generated locations
-            CanInvestigate = spec.CanInvestigate,
-            CanWork = false, // Generated locations don't support work by default,
-            WorkType = "",
-            WorkPay = 0,
-            // FAIL-FAST: Read ALL categorical dimensions from spec (NO defaults)
-            Privacy = spec.Privacy,
-            Safety = spec.Safety,
-            Activity = spec.Activity,
-            Purpose = spec.Purpose,
-            // FAIL-FAST: ALL gameplay properties REQUIRED (no defaults allowed)
-            LocationType = "Inn", // Generated locations are typically indoor private spaces
-            ObligationProfile = "Research", // Default profile for generated locations
-            IsStartingLocation = false // Generated locations are never starting locations
-        };
-
-        // Map capabilities (functional properties)
-        if (spec.Properties != null && spec.Properties.Any())
-        {
-            dto.Capabilities = spec.Properties;
-        }
-
-        // SPATIAL CONSTRAINT: All dependent locations spawn in SameVenue as activation location
-        // Ensures verisimilitude ("your room at this inn" spawns at this inn, not different venue)
-        dto.ProximityConstraint = new ProximityConstraintDTO
-        {
-            Proximity = "SameVenue",
-            ReferenceLocation = "current"
-        };
-
-        return dto;
-    }
-
-    /// <summary>
-    /// Build ItemDTO from DependentItemSpec
-    /// Uses generic names, maps categories, handles inventory placement
-    /// </summary>
-    private ItemDTO BuildItemDTO(DependentItemSpec spec, string sceneId, SceneSpawnContext context, List<LocationDTO> createdLocations)
-    {
-        // Generate unique ID
-        string itemId = $"{spec.TemplateId}_{Guid.NewGuid().ToString("N")}";
-
-        // Use names directly (AI narrative will regenerate all text when implemented)
-        string itemName = spec.Name;
-        string itemDescription = spec.Description;
-
-        // Build ItemDTO
-        ItemDTO dto = new ItemDTO
-        {
-            Id = itemId,
-            Name = itemName,
-            Description = itemDescription,
-            BuyPrice = spec.BuyPrice,
-            SellPrice = spec.SellPrice,
-            InventorySlots = spec.Weight
-        };
-
-        // Map categories
-        if (spec.Categories != null && spec.Categories.Any())
-        {
-            dto.Categories = spec.Categories.Select(c => c.ToString()).ToList();
-        }
-
-        // Handle placement
-        if (spec.AddToInventoryOnCreation)
-        {
-            // Item will be added to player inventory AFTER parsing
-            // Store this intent in a way the parser can understand
-            // For now, we'll handle this after package loading
-        }
-
-        return dto;
-    }
-
-    /// <summary>
-    /// Determine venue ID based on VenueIdSource enum
-    /// </summary>
-    private string DetermineVenueId(VenueIdSource source, SceneSpawnContext context)
-    {
-        switch (source)
-        {
-            case VenueIdSource.SameAsBase:
-                if (context.CurrentLocation == null)
-                    throw new InvalidOperationException("VenueIdSource.SameAsBase requires CurrentLocation in context");
-                // ADR-007: Use Venue.Name instead of deleted VenueId
-                return context.CurrentLocation.Venue.Name;
-
-            case VenueIdSource.GenerateNew:
-                // Generate new venue for this location
-                VenueTemplate venueTemplate = new VenueTemplate
-                {
-                    NamePattern = "Generated Venue",
-                    DescriptionPattern = "A procedurally generated venue.",
-                    Type = VenueType.Merchant,
-                    Tier = context.CurrentLocation?.Tier ?? 1,
-                    District = context.CurrentLocation?.Venue?.District?.Name ?? "wilderness",
-                    MaxLocations = 20,
-                    HexAllocation = HexAllocationStrategy.ClusterOf7
-                };
-                Venue generatedVenue = _venueGenerator.GenerateVenue(venueTemplate, context, _gameWorld);
-                return generatedVenue.Name;
-
-            default:
-                throw new InvalidOperationException($"Unknown VenueIdSource: {source}");
-        }
-    }
-
-    // HIGHLANDER: FindAdjacentHex and IsAdjacentToOtherVenue methods DELETED
-    // These methods now live in LocationPlacementService (single implementation for ALL location placement)
-    // SceneInstantiator no longer performs ANY hex placement logic
 
     /// <summary>
     /// Convert PlacementFilter domain entity to PlacementFilterDTO for JSON serialization

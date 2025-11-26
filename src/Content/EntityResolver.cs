@@ -27,13 +27,22 @@ public class EntityResolver
     /// <summary>
     /// Find existing Location OR create new Location from categorical specification
     /// NEVER returns null - always returns existing or newly created Location
+    /// Supports Proximity-based resolution: SameLocation returns contextLocation directly
     /// </summary>
-    public Location FindOrCreateLocation(PlacementFilter filter)
+    public Location FindOrCreateLocation(PlacementFilter filter, Location contextLocation = null)
     {
         if (filter == null)
             throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null - scenes must specify location placement requirements");
 
-        // Try to find existing location matching categories
+        // Handle proximity-based resolution FIRST (before categorical search)
+        if (filter.Proximity == PlacementProximity.SameLocation)
+        {
+            if (contextLocation == null)
+                throw new InvalidOperationException("SameLocation proximity requires contextLocation - situation must have spawn context");
+            return contextLocation;
+        }
+
+        // Standard categorical search
         Location existingLocation = FindMatchingLocation(filter);
         if (existingLocation != null)
             return existingLocation;
@@ -47,13 +56,23 @@ public class EntityResolver
     /// <summary>
     /// Find existing NPC OR create new NPC from categorical specification
     /// NEVER returns null - always returns existing or newly created NPC
+    /// Supports Proximity-based resolution: SameLocation searches NPCs AT contextLocation
     /// </summary>
-    public NPC FindOrCreateNPC(PlacementFilter filter)
+    public NPC FindOrCreateNPC(PlacementFilter filter, Location contextLocation = null)
     {
         if (filter == null)
             throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null - scenes must specify NPC placement requirements");
 
-        // Try to find existing NPC matching categories
+        // Handle proximity-based resolution FIRST (before categorical search)
+        if (filter.Proximity == PlacementProximity.SameLocation)
+        {
+            if (contextLocation == null)
+                throw new InvalidOperationException("SameLocation proximity requires contextLocation - situation must have spawn context");
+            // Search NPCs AT this specific location
+            return FindOrCreateNPCAtLocation(contextLocation, filter);
+        }
+
+        // Standard categorical search
         NPC existingNPC = FindMatchingNPC(filter);
         if (existingNPC != null)
             return existingNPC;
@@ -67,13 +86,23 @@ public class EntityResolver
     /// <summary>
     /// Find existing RouteOption OR create new RouteOption from categorical specification
     /// NEVER returns null - always returns existing or newly created RouteOption
+    /// Supports Proximity-based resolution: SameLocation searches Routes FROM contextLocation
     /// </summary>
-    public RouteOption FindOrCreateRoute(PlacementFilter filter)
+    public RouteOption FindOrCreateRoute(PlacementFilter filter, Location contextLocation = null)
     {
         if (filter == null)
             throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null - scenes must specify route placement requirements");
 
-        // Try to find existing route matching categories
+        // Handle proximity-based resolution FIRST (before categorical search)
+        if (filter.Proximity == PlacementProximity.SameLocation)
+        {
+            if (contextLocation == null)
+                throw new InvalidOperationException("SameLocation proximity requires contextLocation - situation must have spawn context");
+            // Search routes originating FROM this specific location
+            return FindOrCreateRouteFromLocation(contextLocation, filter);
+        }
+
+        // Standard categorical search
         RouteOption existingRoute = FindMatchingRoute(filter);
         if (existingRoute != null)
             return existingRoute;
@@ -288,6 +317,81 @@ public class EntityResolver
             return false;
 
         return true;
+    }
+
+    // ========== LOCATION-SCOPED ENTITY RESOLUTION (SameLocation Proximity) ==========
+
+    /// <summary>
+    /// Find NPC AT specific location, or create new NPC placed at that location
+    /// Used when Proximity = SameLocation - semantic: "find/create NPC at THIS location"
+    /// </summary>
+    private NPC FindOrCreateNPCAtLocation(Location location, PlacementFilter filter)
+    {
+        // Search NPCs specifically AT this location
+        List<NPC> npcsAtLocation = _gameWorld.NPCs
+            .Where(npc => npc.Location == location && NPCMatchesFilter(npc, filter))
+            .ToList();
+
+        Console.WriteLine($"[EntityResolver] SameLocation: Found {npcsAtLocation.Count} NPCs at location '{location.Name}'");
+
+        if (npcsAtLocation.Count > 0)
+            return ApplySelectionStrategy(npcsAtLocation, filter.SelectionStrategy);
+
+        // No NPC at this location - create new one and place AT this location
+        NPC newNPC = CreateNPCFromCategories(filter);
+        newNPC.Location = location; // CRITICAL: Place NPC AT this location
+        _gameWorld.NPCs.Add(newNPC);
+
+        Console.WriteLine($"[EntityResolver] SameLocation: Created new NPC '{newNPC.Name}' at location '{location.Name}'");
+        return newNPC;
+    }
+
+    /// <summary>
+    /// Find Route FROM specific location, or create new Route originating from that location
+    /// Used when Proximity = SameLocation - semantic: "find/create Route FROM THIS location"
+    /// </summary>
+    private RouteOption FindOrCreateRouteFromLocation(Location location, PlacementFilter filter)
+    {
+        // Search routes originating FROM this location
+        List<RouteOption> routesFromLocation = _gameWorld.Routes
+            .Where(route => route.OriginLocation == location && RouteMatchesFilter(route, filter))
+            .ToList();
+
+        Console.WriteLine($"[EntityResolver] SameLocation: Found {routesFromLocation.Count} routes from location '{location.Name}'");
+
+        if (routesFromLocation.Count > 0)
+            return ApplySelectionStrategy(routesFromLocation, filter.SelectionStrategy);
+
+        // No route from this location - create new one originating FROM this location
+        RouteOption newRoute = CreateRouteFromCategories(filter);
+        newRoute.OriginLocation = location; // CRITICAL: Route originates FROM this location
+        _gameWorld.Routes.Add(newRoute);
+
+        Console.WriteLine($"[EntityResolver] SameLocation: Created new route '{newRoute.Name}' from location '{location.Name}'");
+        return newRoute;
+    }
+
+    /// <summary>
+    /// Apply selection strategy for RouteOption candidates
+    /// </summary>
+    private RouteOption ApplySelectionStrategy(List<RouteOption> routes, PlacementSelectionStrategy? strategy)
+    {
+        if (routes.Count == 0)
+            return null;
+        if (routes.Count == 1)
+            return routes[0];
+
+        strategy = strategy ?? PlacementSelectionStrategy.First;
+
+        switch (strategy.Value)
+        {
+            case PlacementSelectionStrategy.Random:
+                return routes[Random.Shared.Next(routes.Count)];
+
+            case PlacementSelectionStrategy.First:
+            default:
+                return routes.First();
+        }
     }
 
     // ========== CREATE NEW ENTITIES ==========

@@ -13,14 +13,14 @@
 public class SceneFacade
 {
     private readonly GameWorld _gameWorld;
-    private readonly SceneInstanceFacade _sceneInstanceFacade;
+    private readonly SceneInstantiator _sceneInstantiator;
     private readonly RewardApplicationService _rewardApplicationService;
     private readonly SituationCompletionHandler _situationCompletionHandler;
 
-    public SceneFacade(GameWorld gameWorld, SceneInstanceFacade sceneInstanceFacade, RewardApplicationService rewardApplicationService, SituationCompletionHandler situationCompletionHandler)
+    public SceneFacade(GameWorld gameWorld, SceneInstantiator sceneInstantiator, RewardApplicationService rewardApplicationService, SituationCompletionHandler situationCompletionHandler)
     {
         _gameWorld = gameWorld;
-        _sceneInstanceFacade = sceneInstanceFacade;
+        _sceneInstantiator = sceneInstantiator;
         _rewardApplicationService = rewardApplicationService;
         _situationCompletionHandler = situationCompletionHandler;
     }

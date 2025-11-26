@@ -42,11 +42,12 @@ public class AStoryContext
     public List<Scene> CompletedScenes { get; set; } = new List<Scene>();
 
     /// <summary>
-    /// Recent archetype IDs used (last 5 scenes)
+    /// Recent archetype types used (last 5 scenes)
     /// Anti-repetition: Avoid same archetype in 5-scene window
     /// Rolling window updated after each generation
+    /// HIGHLANDER: Uses SceneArchetypeType enum, not strings
     /// </summary>
-    public List<string> RecentArchetypeIds { get; set; } = new List<string>();
+    public List<SceneArchetypeType> RecentArchetypes { get; set; } = new List<SceneArchetypeType>();
 
     /// <summary>
     /// Recent regions visited (last 3 scenes)
@@ -120,7 +121,7 @@ public class AStoryContext
     /// Advances sequence, tracks completion, updates anti-repetition windows
     /// HIGHLANDER: Accept Scene and Region objects, not string IDs
     /// </summary>
-    public void RecordCompletion(Scene scene, string archetypeId, Region region, PersonalityType? personalityType)
+    public void RecordCompletion(Scene scene, SceneArchetypeType archetype, Region region, PersonalityType? personalityType)
     {
         LastCompletedSequence = CurrentSequence;
         CurrentSequence++;
@@ -128,10 +129,10 @@ public class AStoryContext
         CompletedScenes.Add(scene);
 
         // Update anti-repetition rolling windows
-        RecentArchetypeIds.Add(archetypeId);
-        if (RecentArchetypeIds.Count > 5)
+        RecentArchetypes.Add(archetype);
+        if (RecentArchetypes.Count > 5)
         {
-            RecentArchetypeIds.RemoveAt(0); // Remove oldest
+            RecentArchetypes.RemoveAt(0); // Remove oldest
         }
 
         // HIGHLANDER: Store Region object, not string ID
@@ -157,10 +158,11 @@ public class AStoryContext
     /// <summary>
     /// Check if archetype is recent (used in last 5 scenes)
     /// Anti-repetition: Don't select same archetype twice in 5-scene window
+    /// HIGHLANDER: Uses SceneArchetypeType enum, not strings
     /// </summary>
-    public bool IsArchetypeRecent(string archetypeId)
+    public bool IsArchetypeRecent(SceneArchetypeType archetype)
     {
-        return RecentArchetypeIds.Contains(archetypeId);
+        return RecentArchetypes.Contains(archetype);
     }
 
     /// <summary>
@@ -194,7 +196,7 @@ public class AStoryContext
             CurrentSequence = 0, // Placeholder - actual sequence passed to generation method
             LastCompletedSequence = 0, // Placeholder - no completed scenes yet
             CompletedScenes = new List<Scene>(),
-            RecentArchetypeIds = new List<string>(),
+            RecentArchetypes = new List<SceneArchetypeType>(),
             RecentRegions = new List<Region>(),
             RecentPersonalityTypes = new List<PersonalityType>(),
             UnlockedRegionIds = new List<string>(),

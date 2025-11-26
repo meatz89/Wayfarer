@@ -42,10 +42,10 @@ public class TutorialInnLodgingIntegrationTest
         // ASSERT: Situations use PlacementFilter (NEW architecture)
         foreach (SituationTemplate situation in tutorialLodging.SituationTemplates)
         {
-            // Hierarchical placement: LocationFilter or inherit from scene BaseLocationFilter
+            // Hierarchical placement: LocationFilter or inherit from scene LocationActivationFilter
             bool hasLocationFilter =
                 situation.LocationFilter != null ||
-                tutorialLodging.BaseLocationFilter != null;
+                tutorialLodging.LocationActivationFilter != null;
 
             Assert.True(hasLocationFilter,
                 $"Situation {situation.Id} missing location filter (hierarchical placement)");

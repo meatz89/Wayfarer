@@ -18,13 +18,12 @@ public class SituationTemplateDTO
     public string Type { get; set; }
 
     /// <summary>
-    /// Optional archetype ID for procedural choice generation
-    /// If specified: Parser generates 4 ChoiceTemplates from archetype at parse time
-    /// Valid values: "confrontation", "negotiation", "investigation", "social_maneuvering", "crisis"
-    /// If null/empty: Use explicit ChoiceTemplates from JSON (existing hand-authored behavior)
-    /// BACKWARD COMPATIBLE: Existing content without archetypeId continues working unchanged
+    /// Optional archetype for procedural choice generation.
+    /// Strongly-typed enum - compile-time validated, no runtime string matching.
+    /// If specified: Parser generates 4 ChoiceTemplates from archetype at parse time.
+    /// If null: Use explicit ChoiceTemplates from JSON (hand-authored behavior).
     /// </summary>
-    public string ArchetypeId { get; set; }
+    public SituationArchetypeType? ArchetypeId { get; set; }
 
     /// <summary>
     /// Narrative description template with {placeholders}
@@ -44,38 +43,26 @@ public class SituationTemplateDTO
     /// </summary>
     public int Priority { get; set; } = 0;
 
-    // ==================== HIERARCHICAL PLACEMENT (OVERRIDE FILTERS) ====================
-    // CSS-style inheritance: SituationTemplate can OVERRIDE SceneTemplate base filters
-    // Resolution: effectiveFilter = situationFilter ?? sceneBaseFilter
-    // All nullable - null means "inherit from scene base"
+    // ==================== EXPLICIT PLACEMENT FILTERS ====================
+    // Each situation must specify explicit filters - NO inheritance from scene
+    // null = no entity needed (solo situation, not route-based, etc.)
+    // PlacementProximity.SameLocation = use/find at spawn context location
 
     /// <summary>
-    /// Location filter override for this specific situation
-    /// CSS-STYLE INHERITANCE: null = inherit from parent scene's base filter
-    /// Resolution: effectiveFilter = this.LocationFilter ?? SceneTemplateDTO.BaseLocationFilter
-    /// Non-null = override scene base for this situation only
-    /// Enables multi-location scenes: "Negotiate" at Common Room, "Rest" at Private Room
-    /// See also: <see cref="SceneTemplateDTO.BaseLocationFilter"/> for inherited default
+    /// Location filter for this situation - EXPLICIT, not inherited
+    /// Required for all situations (use Proximity = SameLocation for same spawn location)
     /// </summary>
     public PlacementFilterDTO LocationFilter { get; set; }
 
     /// <summary>
-    /// NPC filter override for this specific situation
-    /// CSS-STYLE INHERITANCE: null = inherit from parent scene's base filter
-    /// Resolution: effectiveFilter = this.NpcFilter ?? SceneTemplateDTO.BaseNpcFilter
-    /// Non-null = override scene base for this situation only
-    /// Example: Scene has Innkeeper base, but "Depart" situation has null (no NPC)
-    /// See also: <see cref="SceneTemplateDTO.BaseNpcFilter"/> for inherited default
+    /// NPC filter for this situation - EXPLICIT, not inherited
+    /// null = solo situation (no NPC needed)
     /// </summary>
     public PlacementFilterDTO NpcFilter { get; set; }
 
     /// <summary>
-    /// Route filter override for this specific situation
-    /// CSS-STYLE INHERITANCE: null = inherit from parent scene's base filter
-    /// Resolution: effectiveFilter = this.RouteFilter ?? SceneTemplateDTO.BaseRouteFilter
-    /// Non-null = override scene base for this situation only
-    /// Rarely used - most situations don't involve routes
-    /// See also: <see cref="SceneTemplateDTO.BaseRouteFilter"/> for inherited default
+    /// Route filter for this situation - EXPLICIT, not inherited
+    /// null = not a route-based situation
     /// </summary>
     public PlacementFilterDTO RouteFilter { get; set; }
 
@@ -85,10 +72,4 @@ public class SituationTemplateDTO
     /// </summary>
     public NarrativeHintsDTO NarrativeHints { get; set; }
 
-    /// <summary>
-    /// Specification for creating a dependent location for this situation
-    /// Categorical properties define what location to create
-    /// At spawn time, each spec instance creates ONE location with direct binding
-    /// </summary>
-    public DependentLocationSpecDTO DependentLocationSpec { get; set; }
 }

@@ -279,24 +279,6 @@ Dual-model accessibility via explicit `Location.Origin` enum (not nullable Prove
 - **Authored locations** (`Origin == LocationOrigin.Authored`): ALWAYS accessible per TIER 1 No Soft-Locks principle
 - **Scene-created locations** (`Origin == LocationOrigin.SceneCreated`): Accessible when ANY active scene's current situation is at that location
 
-```csharp
-public enum LocationOrigin
-{
-    Authored,      // Base game content - always accessible
-    SceneCreated   // Created by scene - requires scene access
-}
-```
-
-`LocationAccessibilityService.IsLocationAccessible()` implements this logic:
-```csharp
-if (location.Origin == LocationOrigin.Authored)
-    return true;  // Authored: always accessible
-
-return _gameWorld.Scenes
-    .Where(scene => scene.State == SceneState.Active)
-    .Any(scene => scene.CurrentSituation?.Location == location);
-```
-
 **Consequences:**
 - Authored locations always reachable (no soft-locks in base game)
 - Scene-created locations automatically unlock when scene advances to their situation

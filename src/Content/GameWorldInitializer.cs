@@ -62,17 +62,11 @@ public static class GameWorldInitializer
         HexRouteGenerator hexRouteGenerator = new HexRouteGenerator(gameWorld);
         VenueGeneratorService venueGenerator = new VenueGeneratorService(hexSync);
 
-        SceneInstantiator instantiator = new SceneInstantiator(gameWorld, spawnConditionsEvaluator, narrativeService, venueGenerator);
-        ContentGenerationFacade contentGenerationFacade = new ContentGenerationFacade();
-        PackageLoaderFacade packageLoaderFacade = new PackageLoaderFacade(packageLoader);
+        SceneInstantiator sceneInstantiator = new SceneInstantiator(gameWorld, spawnConditionsEvaluator, narrativeService, venueGenerator);
         MessageSystem messageSystem = new MessageSystem(gameWorld);
         TimeModel timeModel = new TimeModel(gameWorld.CurrentDay);
         timeModel.SetInitialState(gameWorld.CurrentDay, gameWorld.CurrentTimeBlock, 1);
         TimeManager timeManager = new TimeManager(timeModel, messageSystem);
-        SpawnedScenePlayabilityValidator playabilityValidator = new SpawnedScenePlayabilityValidator(gameWorld);
-
-        SceneInstanceFacade sceneInstanceFacade =
-            new SceneInstanceFacade(instantiator, contentGenerationFacade, packageLoaderFacade, hexRouteGenerator, timeManager, gameWorld, playabilityValidator);
 
         // Log scene templates with LocationActivationFilter (location-only activation)
         List<SceneTemplate> activatableTemplates = gameWorld.SceneTemplates

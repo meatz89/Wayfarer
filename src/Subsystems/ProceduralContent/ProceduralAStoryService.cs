@@ -30,21 +30,16 @@ public class ProceduralAStoryService
 {
     private readonly GameWorld _gameWorld;
     private readonly ContentGenerationFacade _contentFacade;
-    private readonly PackageLoaderFacade _packageLoaderFacade;
-
-    // Archetype categories for rotation
-    // Archetype categories queried dynamically from catalog (HIGHLANDER - single source of truth)
-    // Prevents drift between catalog and procedural selection
-    // Categories retrieved at runtime via AStorySceneArchetypeCatalog.GetAvailableArchetypesByCategory()
+    private readonly PackageLoader _packageLoader;
 
     public ProceduralAStoryService(
         GameWorld gameWorld,
         ContentGenerationFacade contentFacade,
-        PackageLoaderFacade packageLoaderFacade)
+        PackageLoader packageLoader)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _contentFacade = contentFacade ?? throw new ArgumentNullException(nameof(contentFacade));
-        _packageLoaderFacade = packageLoaderFacade ?? throw new ArgumentNullException(nameof(packageLoaderFacade));
+        _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
     }
 
     /// <summary>
@@ -54,14 +49,14 @@ public class ProceduralAStoryService
     /// </summary>
     public async Task<string> GenerateNextATemplate(int sequence, AStoryContext context)
     {
-        // 1. Select appropriate archetype
-        string archetypeId = SelectArchetype(sequence, context);
+        // 1. Select appropriate archetype (HIGHLANDER: SceneArchetypeType enum)
+        SceneArchetypeType archetypeType = SelectArchetype(sequence, context);
 
         // 2. Calculate tier from sequence
         int tier = CalculateTier(sequence);
 
         // 3. Build SceneTemplateDTO
-        SceneTemplateDTO dto = BuildSceneTemplateDTO(sequence, archetypeId, tier, context);
+        SceneTemplateDTO dto = BuildSceneTemplateDTO(sequence, archetypeType, tier, context);
 
         // 4. Serialize to JSON package
         string packageJson = SerializeTemplatePackage(dto);
@@ -72,7 +67,7 @@ public class ProceduralAStoryService
 
         // 6. Load through HIGHLANDER pipeline (JSON → PackageLoader → Parser)
         // Result discarded - templates don't need post-load configuration
-        _ = await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
+        _ = await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
 
         return dto.Id;
     }
@@ -85,11 +80,11 @@ public class ProceduralAStoryService
     /// Works from ANY sequence (flexible number of authored scenes)
     ///
     /// DYNAMIC CATALOG QUERY (HIGHLANDER - single source of truth):
-    /// Queries AStorySceneArchetypeCatalog.GetArchetypesForCategory() at runtime
+    /// Queries SceneArchetypeCatalog.GetArchetypesForCategory() at runtime
     /// Prevents drift between catalog implementation and procedural selection
     /// When new archetypes added to catalog, automatically available for selection
     /// </summary>
-    private string SelectArchetype(int sequence, AStoryContext context)
+    private SceneArchetypeType SelectArchetype(int sequence, AStoryContext context)
     {
         // Determine archetype category by rotation cycle
         // Generic: works regardless of where procedural generation starts
@@ -106,8 +101,9 @@ public class ProceduralAStoryService
         };
 
         // Query catalog for available archetypes (SINGLE SOURCE OF TRUTH)
-        List<string> candidateArchetypes =
-            AStorySceneArchetypeCatalog.GetArchetypesForCategory(categoryKey);
+        // HIGHLANDER: ONE SceneArchetypeCatalog for ALL scene types
+        List<SceneArchetypeType> candidateArchetypes =
+            SceneArchetypeCatalog.GetArchetypesForCategory(categoryKey);
 
         // FAIL-FAST: Validate catalog returned archetypes (prevents division by zero)
         if (!candidateArchetypes.Any())
@@ -115,11 +111,11 @@ public class ProceduralAStoryService
             throw new InvalidOperationException(
                 $"Cannot select archetype: Catalog returned no archetypes for category '{categoryKey}'. " +
                 $"Sequence {sequence} maps to cycle position {cyclePosition}. " +
-                $"Check AStorySceneArchetypeCatalog.GetArchetypesForCategory implementation.");
+                $"Check SceneArchetypeCatalog.GetArchetypesForCategory implementation.");
         }
 
         // Filter out recent archetypes (anti-repetition)
-        List<string> availableArchetypes = candidateArchetypes
+        List<SceneArchetypeType> availableArchetypes = candidateArchetypes
             .Where(a => !context.IsArchetypeRecent(a))
             .ToList();
 
@@ -133,7 +129,7 @@ public class ProceduralAStoryService
         // Modulo ensures we cycle through category archetypes instead of always picking first
         // Example: Investigation has 3 archetypes - Seq1→arch0, Seq5→arch1, Seq9→arch2, Seq13→arch0
         int selectionIndex = sequence % availableArchetypes.Count;
-        string selectedArchetype = availableArchetypes[selectionIndex];
+        SceneArchetypeType selectedArchetype = availableArchetypes[selectionIndex];
 
         return selectedArchetype;
     }
@@ -159,7 +155,7 @@ public class ProceduralAStoryService
     /// </summary>
     private SceneTemplateDTO BuildSceneTemplateDTO(
         int sequence,
-        string archetypeId,
+        SceneArchetypeType archetypeType,
         int tier,
         AStoryContext context)
     {
@@ -176,7 +172,7 @@ public class ProceduralAStoryService
             Id = sceneId,
             Archetype = "Linear", // A-story scenes are linear progression
             DisplayNameTemplate = $"The Path Deepens (A{sequence})", // AI will generate better title
-            SceneArchetypeId = archetypeId, // Routes to AStorySceneArchetypeCatalog
+            SceneArchetypeId = archetypeType.ToString(), // PascalCase enum name, parsed by SceneTemplateParser
             LocationActivationFilter = placementFilter, // A-story activates when player enters matching location
             SpawnConditions = spawnConditions,
             Tier = tier,
@@ -185,9 +181,7 @@ public class ProceduralAStoryService
             PresentationMode = "Modal", // A-story takes over screen (Sir Brante pattern)
             ProgressionMode = "Cascade", // Situations flow with momentum
             ExpirationDays = null, // A-story never expires
-            IntroNarrativeTemplate = null, // AI generates from hints
-            DependentLocations = null, // Catalogue generates if needed
-            DependentItems = null // Catalogue generates if needed
+            IntroNarrativeTemplate = null // AI generates from hints
         };
 
         return dto;
@@ -420,7 +414,7 @@ public class ProceduralAStoryService
             CurrentSequence = lastSequence + 1,
             LastCompletedSequence = lastSequence,
             CompletedScenes = completedAScenes.ToList(),  // HIGHLANDER: Store scene objects, not IDs
-            RecentArchetypeIds = new List<string>(),
+            RecentArchetypes = new List<SceneArchetypeType>(),
             RecentRegions = new List<Region>(),
             RecentPersonalityTypes = new List<PersonalityType>(),
             UnlockedRegionIds = new List<string>(),
@@ -441,13 +435,13 @@ public class ProceduralAStoryService
                     $"A-story scene (MainStorySequence={scene.MainStorySequence}) has null Template. " +
                     $"All scenes must have valid Template reference.");
             }
-            if (string.IsNullOrEmpty(scene.Template.SceneArchetypeId))
+            if (!scene.Template.SceneArchetypeId.HasValue)
             {
                 throw new InvalidOperationException(
-                    $"A-story scene template (MainStorySequence={scene.MainStorySequence}) has null or empty SceneArchetypeId. " +
+                    $"A-story scene template (MainStorySequence={scene.MainStorySequence}) has null SceneArchetypeId. " +
                     $"All A-story scenes must have archetype.");
             }
-            context.RecentArchetypeIds.Add(scene.Template.SceneArchetypeId);
+            context.RecentArchetypes.Add(scene.Template.SceneArchetypeId.Value);
 
             // Validate and extract region from LAST COMPLETED situation
             if (!scene.Situations.Any())

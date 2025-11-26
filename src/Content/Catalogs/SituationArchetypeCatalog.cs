@@ -3,6 +3,7 @@
 ///
 /// Defines 21 situation archetypes (5 core, 10 expanded, 6 specialized) for procedural choice generation.
 /// Creates learnable mechanical patterns players recognize and prepare for.
+/// Uses strongly-typed enums for compile-time validation.
 ///
 /// CATALOGUE PATTERN COMPLIANCE:
 /// - Called ONLY from SceneTemplateParser at PARSE TIME
@@ -12,29 +13,17 @@
 /// - Translation happens ONCE at game initialization
 ///
 /// ARCHITECTURE:
-/// Parser reads archetypeId from JSON → Calls GetArchetype() → Receives archetype structure
+/// Parser reads SituationArchetypeType enum from DTO → Calls GetArchetype() → Receives archetype structure
 /// → Parser generates 4 ChoiceTemplates from archetype → Stores in SituationTemplate
 /// → Runtime queries Scene.Situations (situations embedded in scenes), NO catalogue calls
 ///
-/// ARCHETYPE LIBRARY (15 patterns):
-/// Core:
-/// 1. Confrontation - Authority challenges, physical barriers
-/// 2. Negotiation - Price disputes, deal-making
-/// 3. Investigation - Mysteries, puzzles, information gathering
-/// 4. Social Maneuvering - Reputation management, relationship building
-/// 5. Crisis - Emergencies, high-stakes moments
-///
-/// Expanded:
-/// 6. Service Transaction - Paying for services, economic exchanges
-/// 7. Access Control - Gatekeepers, locked doors, restricted areas
-/// 8. Information Gathering - Rumors, gossip, local knowledge
-/// 9. Skill Demonstration - Proving competence, showing credentials
-/// 10. Reputation Challenge - Defending honor, responding to accusations
-/// 11. Emergency Aid - Medical crisis, rescue situations
-/// 12. Administrative Procedure - Bureaucracy, permits, official processes
-/// 13. Trade Dispute - Disagreements over goods, quality, terms
-/// 14. Cultural Faux Pas - Social blunders, tradition violations
-/// 15. Recruitment - Join requests, commitment decisions
+/// ARCHETYPE LIBRARY (21 patterns - see SituationArchetypeType enum):
+/// Core (5): Confrontation, Negotiation, Investigation, SocialManeuvering, Crisis
+/// Expanded (10): ServiceTransaction, AccessControl, InformationGathering, SkillDemonstration,
+///                ReputationChallenge, EmergencyAid, AdministrativeProcedure, TradeDispute,
+///                CulturalFauxPas, Recruitment
+/// Specialized (6): RestPreparation, EnteringPrivateSpace, DepartingPrivateSpace,
+///                  ServiceNegotiation, ServiceExecutionRest, ServiceDeparture
 ///
 /// Each archetype defines:
 /// - Which stats are tested (learnable patterns)
@@ -45,36 +34,36 @@
 public static class SituationArchetypeCatalog
 {
     /// <summary>
-    /// Get archetype definition by ID
-    /// Called at parse time to generate choice structures
-    /// Throws InvalidDataException on unknown archetype ID (fail fast)
+    /// Get archetype definition from strongly-typed enum.
+    /// Called at parse time to generate choice structures.
+    /// Compiler ensures exhaustiveness - no runtime unknown archetype errors.
     /// </summary>
-    public static SituationArchetype GetArchetype(string archetypeId)
+    public static SituationArchetype GetArchetype(SituationArchetypeType archetypeType)
     {
-        return archetypeId?.ToLowerInvariant() switch
+        return archetypeType switch
         {
-            "confrontation" => CreateConfrontation(),
-            "negotiation" => CreateNegotiation(),
-            "investigation" => CreateInvestigation(),
-            "social_maneuvering" => CreateSocialManeuvering(),
-            "crisis" => CreateCrisis(),
-            "service_transaction" => CreateServiceTransaction(),
-            "access_control" => CreateAccessControl(),
-            "information_gathering" => CreateInformationGathering(),
-            "skill_demonstration" => CreateSkillDemonstration(),
-            "reputation_challenge" => CreateReputationChallenge(),
-            "emergency_aid" => CreateEmergencyAid(),
-            "administrative_procedure" => CreateAdministrativeProcedure(),
-            "trade_dispute" => CreateTradeDispute(),
-            "cultural_faux_pas" => CreateCulturalFauxPas(),
-            "recruitment" => CreateRecruitment(),
-            "rest_preparation" => CreateRestPreparation(),
-            "entering_private_space" => CreateEnteringPrivateSpace(),
-            "departing_private_space" => CreateDepartingPrivateSpace(),
-            "service_negotiation" => CreateServiceNegotiation(),
-            "service_execution_rest" => CreateServiceExecutionRest(),
-            "service_departure" => CreateServiceDeparture(),
-            _ => throw new InvalidDataException($"Unknown archetype ID: '{archetypeId}'. Valid values: confrontation, negotiation, investigation, social_maneuvering, crisis, service_transaction, access_control, information_gathering, skill_demonstration, reputation_challenge, emergency_aid, administrative_procedure, trade_dispute, cultural_faux_pas, recruitment, rest_preparation, entering_private_space, departing_private_space, service_negotiation, service_execution_rest, service_departure")
+            SituationArchetypeType.Confrontation => CreateConfrontation(),
+            SituationArchetypeType.Negotiation => CreateNegotiation(),
+            SituationArchetypeType.Investigation => CreateInvestigation(),
+            SituationArchetypeType.SocialManeuvering => CreateSocialManeuvering(),
+            SituationArchetypeType.Crisis => CreateCrisis(),
+            SituationArchetypeType.ServiceTransaction => CreateServiceTransaction(),
+            SituationArchetypeType.AccessControl => CreateAccessControl(),
+            SituationArchetypeType.InformationGathering => CreateInformationGathering(),
+            SituationArchetypeType.SkillDemonstration => CreateSkillDemonstration(),
+            SituationArchetypeType.ReputationChallenge => CreateReputationChallenge(),
+            SituationArchetypeType.EmergencyAid => CreateEmergencyAid(),
+            SituationArchetypeType.AdministrativeProcedure => CreateAdministrativeProcedure(),
+            SituationArchetypeType.TradeDispute => CreateTradeDispute(),
+            SituationArchetypeType.CulturalFauxPas => CreateCulturalFauxPas(),
+            SituationArchetypeType.Recruitment => CreateRecruitment(),
+            SituationArchetypeType.RestPreparation => CreateRestPreparation(),
+            SituationArchetypeType.EnteringPrivateSpace => CreateEnteringPrivateSpace(),
+            SituationArchetypeType.DepartingPrivateSpace => CreateDepartingPrivateSpace(),
+            SituationArchetypeType.ServiceNegotiation => CreateServiceNegotiation(),
+            SituationArchetypeType.ServiceExecutionRest => CreateServiceExecutionRest(),
+            SituationArchetypeType.ServiceDeparture => CreateServiceDeparture(),
+            _ => throw new InvalidOperationException($"Unhandled situation archetype type: {archetypeType}")
         };
     }
 
@@ -95,7 +84,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "confrontation",
+            Type = SituationArchetypeType.Confrontation,
             Name = "Confrontation",
             Domain = Domain.Authority,
             PrimaryStat = PlayerStatType.Authority,
@@ -126,7 +115,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "negotiation",
+            Type = SituationArchetypeType.Negotiation,
             Name = "Negotiation",
             Domain = Domain.Economic,
             PrimaryStat = PlayerStatType.Diplomacy,
@@ -157,7 +146,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "investigation",
+            Type = SituationArchetypeType.Investigation,
             Name = "Investigation",
             Domain = Domain.Mental,
             PrimaryStat = PlayerStatType.Insight,
@@ -188,7 +177,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "social_maneuvering",
+            Type = SituationArchetypeType.SocialManeuvering,
             Name = "Social Maneuvering",
             Domain = Domain.Social,
             PrimaryStat = PlayerStatType.Rapport,
@@ -219,7 +208,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "crisis",
+            Type = SituationArchetypeType.Crisis,
             Name = "Crisis",
             Domain = Domain.Physical, // Can appear in any domain, but Physical for default
             PrimaryStat = PlayerStatType.Authority, // Leadership in crisis
@@ -250,7 +239,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "service_transaction",
+            Type = SituationArchetypeType.ServiceTransaction,
             Name = "Service Transaction",
             Domain = Domain.Economic,
             PrimaryStat = PlayerStatType.None,
@@ -281,7 +270,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "access_control",
+            Type = SituationArchetypeType.AccessControl,
             Name = "Access Control",
             Domain = Domain.Authority,
             PrimaryStat = PlayerStatType.Authority,
@@ -312,7 +301,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "information_gathering",
+            Type = SituationArchetypeType.InformationGathering,
             Name = "Information Gathering",
             Domain = Domain.Social,
             PrimaryStat = PlayerStatType.Rapport,
@@ -343,7 +332,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "skill_demonstration",
+            Type = SituationArchetypeType.SkillDemonstration,
             Name = "Skill Demonstration",
             Domain = Domain.Economic,
             PrimaryStat = PlayerStatType.Diplomacy,
@@ -374,7 +363,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "reputation_challenge",
+            Type = SituationArchetypeType.ReputationChallenge,
             Name = "Reputation Challenge",
             Domain = Domain.Social,
             PrimaryStat = PlayerStatType.Authority,
@@ -405,7 +394,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "emergency_aid",
+            Type = SituationArchetypeType.EmergencyAid,
             Name = "Emergency Aid",
             Domain = Domain.Physical,
             PrimaryStat = PlayerStatType.Insight,
@@ -436,7 +425,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "administrative_procedure",
+            Type = SituationArchetypeType.AdministrativeProcedure,
             Name = "Administrative Procedure",
             Domain = Domain.Authority,
             PrimaryStat = PlayerStatType.Diplomacy,
@@ -467,7 +456,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "trade_dispute",
+            Type = SituationArchetypeType.TradeDispute,
             Name = "Trade Dispute",
             Domain = Domain.Economic,
             PrimaryStat = PlayerStatType.Insight,
@@ -498,7 +487,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "cultural_faux_pas",
+            Type = SituationArchetypeType.CulturalFauxPas,
             Name = "Cultural Faux Pas",
             Domain = Domain.Social,
             PrimaryStat = PlayerStatType.Rapport,
@@ -529,7 +518,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "recruitment",
+            Type = SituationArchetypeType.Recruitment,
             Name = "Recruitment",
             Domain = Domain.Social,
             PrimaryStat = PlayerStatType.Cunning,
@@ -560,7 +549,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "rest_preparation",
+            Type = SituationArchetypeType.RestPreparation,
             Name = "Rest Preparation",
             Domain = Domain.Physical,
             PrimaryStat = PlayerStatType.Insight,
@@ -592,7 +581,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "entering_private_space",
+            Type = SituationArchetypeType.EnteringPrivateSpace,
             Name = "Entering Private Space",
             Domain = Domain.Physical,
             PrimaryStat = PlayerStatType.Insight,
@@ -616,7 +605,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "departing_private_space",
+            Type = SituationArchetypeType.DepartingPrivateSpace,
             Name = "Departing Private Space",
             Domain = Domain.Physical,
             PrimaryStat = PlayerStatType.Insight,
@@ -652,7 +641,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "service_negotiation",
+            Type = SituationArchetypeType.ServiceNegotiation,
             Name = "Service Negotiation",
             Category = ArchetypeCategory.ServiceNegotiation,  // Enum-based routing
             Domain = Domain.Economic,
@@ -690,7 +679,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "service_execution_rest",
+            Type = SituationArchetypeType.ServiceExecutionRest,
             Name = "Service Execution (Rest)",
             Category = ArchetypeCategory.ServiceExecutionRest,  // Enum-based routing
             Domain = Domain.Physical,
@@ -728,7 +717,7 @@ public static class SituationArchetypeCatalog
     {
         return new SituationArchetype
         {
-            Id = "service_departure",
+            Type = SituationArchetypeType.ServiceDeparture,
             Name = "Service Departure",
             Category = ArchetypeCategory.ServiceDeparture,  // Enum-based routing
             Domain = Domain.Physical,
@@ -932,104 +921,104 @@ public static class SituationArchetypeCatalog
 
     private static string GenerateStatGatedActionText(SituationArchetype archetype)
     {
-        return archetype.Id switch
+        return archetype.Type switch
         {
-            "confrontation" => "Assert authority and take command",
-            "negotiation" => "Negotiate favorable terms",
-            "investigation" => "Deduce the solution through analysis",
-            "social_maneuvering" => "Read the social dynamics and navigate skillfully",
-            "crisis" => "Take decisive action with expertise",
-            "service_transaction" => "Use your expertise",
-            "access_control" => "Present credentials",
-            "information_gathering" => "Ask the right questions",
-            "skill_demonstration" => "Demonstrate your competence",
-            "reputation_challenge" => "Defend your honor",
-            "emergency_aid" => "Apply expert treatment",
-            "administrative_procedure" => "Navigate bureaucracy skillfully",
-            "trade_dispute" => "Leverage your position",
-            "cultural_faux_pas" => "Apologize gracefully",
-            "recruitment" => "Negotiate terms",
-            "rest_preparation" => "Optimize rest conditions",
-            "entering_private_space" => "Thoroughly inspect and optimize the space",
-            "departing_private_space" => "Systematically prepare and check everything",
+            SituationArchetypeType.Confrontation => "Assert authority and take command",
+            SituationArchetypeType.Negotiation => "Negotiate favorable terms",
+            SituationArchetypeType.Investigation => "Deduce the solution through analysis",
+            SituationArchetypeType.SocialManeuvering => "Read the social dynamics and navigate skillfully",
+            SituationArchetypeType.Crisis => "Take decisive action with expertise",
+            SituationArchetypeType.ServiceTransaction => "Use your expertise",
+            SituationArchetypeType.AccessControl => "Present credentials",
+            SituationArchetypeType.InformationGathering => "Ask the right questions",
+            SituationArchetypeType.SkillDemonstration => "Demonstrate your competence",
+            SituationArchetypeType.ReputationChallenge => "Defend your honor",
+            SituationArchetypeType.EmergencyAid => "Apply expert treatment",
+            SituationArchetypeType.AdministrativeProcedure => "Navigate bureaucracy skillfully",
+            SituationArchetypeType.TradeDispute => "Leverage your position",
+            SituationArchetypeType.CulturalFauxPas => "Apologize gracefully",
+            SituationArchetypeType.Recruitment => "Negotiate terms",
+            SituationArchetypeType.RestPreparation => "Optimize rest conditions",
+            SituationArchetypeType.EnteringPrivateSpace => "Thoroughly inspect and optimize the space",
+            SituationArchetypeType.DepartingPrivateSpace => "Systematically prepare and check everything",
             _ => "Use your expertise"
         };
     }
 
     private static string GenerateMoneyActionText(SituationArchetype archetype)
     {
-        return archetype.Id switch
+        return archetype.Type switch
         {
-            "confrontation" => "Pay off the opposition",
-            "negotiation" => "Pay the premium price",
-            "investigation" => "Hire an expert or pay for information",
-            "social_maneuvering" => "Offer a generous gift",
-            "crisis" => "Pay for emergency solution",
-            "service_transaction" => "Pay the asking price",
-            "access_control" => "Bribe the gatekeeper",
-            "information_gathering" => "Buy the information",
-            "skill_demonstration" => "Hire someone to vouch",
-            "reputation_challenge" => "Offer compensation",
-            "emergency_aid" => "Pay for premium care",
-            "administrative_procedure" => "Expedite with payment",
-            "trade_dispute" => "Offer settlement",
-            "cultural_faux_pas" => "Offer gift as amends",
-            "recruitment" => "Buy time",
-            "rest_preparation" => "Use comfort items for better rest",
-            "entering_private_space" => "Request comfort amenities",
-            "departing_private_space" => "Leave generous gratuity for staff",
+            SituationArchetypeType.Confrontation => "Pay off the opposition",
+            SituationArchetypeType.Negotiation => "Pay the premium price",
+            SituationArchetypeType.Investigation => "Hire an expert or pay for information",
+            SituationArchetypeType.SocialManeuvering => "Offer a generous gift",
+            SituationArchetypeType.Crisis => "Pay for emergency solution",
+            SituationArchetypeType.ServiceTransaction => "Pay the asking price",
+            SituationArchetypeType.AccessControl => "Bribe the gatekeeper",
+            SituationArchetypeType.InformationGathering => "Buy the information",
+            SituationArchetypeType.SkillDemonstration => "Hire someone to vouch",
+            SituationArchetypeType.ReputationChallenge => "Offer compensation",
+            SituationArchetypeType.EmergencyAid => "Pay for premium care",
+            SituationArchetypeType.AdministrativeProcedure => "Expedite with payment",
+            SituationArchetypeType.TradeDispute => "Offer settlement",
+            SituationArchetypeType.CulturalFauxPas => "Offer gift as amends",
+            SituationArchetypeType.Recruitment => "Buy time",
+            SituationArchetypeType.RestPreparation => "Use comfort items for better rest",
+            SituationArchetypeType.EnteringPrivateSpace => "Request comfort amenities",
+            SituationArchetypeType.DepartingPrivateSpace => "Leave generous gratuity for staff",
             _ => "Pay to resolve"
         };
     }
 
     private static string GenerateChallengeActionText(SituationArchetype archetype)
     {
-        return archetype.Id switch
+        return archetype.Type switch
         {
-            "confrontation" => "Attempt a physical confrontation",
-            "negotiation" => "Engage in complex debate",
-            "investigation" => "Work through the puzzle systematically",
-            "social_maneuvering" => "Make a bold social gambit",
-            "crisis" => "Risk everything on a desperate gambit",
-            "service_transaction" => "Attempt to bargain",
-            "access_control" => "Force your way through",
-            "information_gathering" => "Investigate on your own",
-            "skill_demonstration" => "Attempt without preparation",
-            "reputation_challenge" => "Challenge to duel",
-            "emergency_aid" => "Risk improvised treatment",
-            "administrative_procedure" => "Navigate red tape",
-            "trade_dispute" => "Escalate to arbitration",
-            "cultural_faux_pas" => "Defend your action",
-            "recruitment" => "Counter-offer boldly",
-            "rest_preparation" => "Force yourself to relax despite anxiety",
-            "entering_private_space" => "Push through discomfort mentally",
-            "departing_private_space" => "Force yourself to leave promptly",
+            SituationArchetypeType.Confrontation => "Attempt a physical confrontation",
+            SituationArchetypeType.Negotiation => "Engage in complex debate",
+            SituationArchetypeType.Investigation => "Work through the puzzle systematically",
+            SituationArchetypeType.SocialManeuvering => "Make a bold social gambit",
+            SituationArchetypeType.Crisis => "Risk everything on a desperate gambit",
+            SituationArchetypeType.ServiceTransaction => "Attempt to bargain",
+            SituationArchetypeType.AccessControl => "Force your way through",
+            SituationArchetypeType.InformationGathering => "Investigate on your own",
+            SituationArchetypeType.SkillDemonstration => "Attempt without preparation",
+            SituationArchetypeType.ReputationChallenge => "Challenge to duel",
+            SituationArchetypeType.EmergencyAid => "Risk improvised treatment",
+            SituationArchetypeType.AdministrativeProcedure => "Navigate red tape",
+            SituationArchetypeType.TradeDispute => "Escalate to arbitration",
+            SituationArchetypeType.CulturalFauxPas => "Defend your action",
+            SituationArchetypeType.Recruitment => "Counter-offer boldly",
+            SituationArchetypeType.RestPreparation => "Force yourself to relax despite anxiety",
+            SituationArchetypeType.EnteringPrivateSpace => "Push through discomfort mentally",
+            SituationArchetypeType.DepartingPrivateSpace => "Force yourself to leave promptly",
             _ => "Accept the challenge"
         };
     }
 
     private static string GenerateFallbackActionText(SituationArchetype archetype)
     {
-        return archetype.Id switch
+        return archetype.Type switch
         {
-            "confrontation" => "Back down and submit",
-            "negotiation" => "Accept unfavorable terms",
-            "investigation" => "Give up and move on",
-            "social_maneuvering" => "Exit awkwardly",
-            "crisis" => "Flee the situation",
-            "service_transaction" => "Leave without service",
-            "access_control" => "Turn back",
-            "information_gathering" => "Move on without answers",
-            "skill_demonstration" => "Admit lack of skill",
-            "reputation_challenge" => "Apologize and back down",
-            "emergency_aid" => "Do nothing",
-            "administrative_procedure" => "Abandon the process",
-            "trade_dispute" => "Accept the loss",
-            "cultural_faux_pas" => "Ignore and act oblivious",
-            "recruitment" => "Refuse bluntly",
-            "rest_preparation" => "Collapse from exhaustion immediately",
-            "entering_private_space" => "Collapse immediately without preparation",
-            "departing_private_space" => "Rush out without proper preparation",
+            SituationArchetypeType.Confrontation => "Back down and submit",
+            SituationArchetypeType.Negotiation => "Accept unfavorable terms",
+            SituationArchetypeType.Investigation => "Give up and move on",
+            SituationArchetypeType.SocialManeuvering => "Exit awkwardly",
+            SituationArchetypeType.Crisis => "Flee the situation",
+            SituationArchetypeType.ServiceTransaction => "Leave without service",
+            SituationArchetypeType.AccessControl => "Turn back",
+            SituationArchetypeType.InformationGathering => "Move on without answers",
+            SituationArchetypeType.SkillDemonstration => "Admit lack of skill",
+            SituationArchetypeType.ReputationChallenge => "Apologize and back down",
+            SituationArchetypeType.EmergencyAid => "Do nothing",
+            SituationArchetypeType.AdministrativeProcedure => "Abandon the process",
+            SituationArchetypeType.TradeDispute => "Accept the loss",
+            SituationArchetypeType.CulturalFauxPas => "Ignore and act oblivious",
+            SituationArchetypeType.Recruitment => "Refuse bluntly",
+            SituationArchetypeType.RestPreparation => "Collapse from exhaustion immediately",
+            SituationArchetypeType.EnteringPrivateSpace => "Collapse immediately without preparation",
+            SituationArchetypeType.DepartingPrivateSpace => "Rush out without proper preparation",
             _ => "Accept poor outcome"
         };
     }

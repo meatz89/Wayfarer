@@ -144,7 +144,6 @@ public static class ServiceConfiguration
         services.AddSingleton<PackageLoader>(); // Depends on SceneGenerationFacade
         services.AddSingleton<HexRouteGenerator>();
         services.AddSingleton<SceneInstantiator>();
-        services.AddSingleton<DependentResourceOrchestrationService>();
         services.AddSingleton<SpawnedScenePlayabilityValidator>(); // Runtime validation for soft-lock prevention
 
         // Dynamic Location Generation System (All locations persist within session)
@@ -153,14 +152,11 @@ public static class ServiceConfiguration
         services.AddSingleton<LocationPlacementService>(); // HIGHLANDER: Single procedural hex placement for ALL locations
         services.AddSingleton<LocationPlayabilityValidator>(); // Fail-fast playability validation (all locations)
 
-        // Scene Generation and Instance Facades (clean boundaries for procedural content)
-        // IMPORTANT: Register dependencies BEFORE SceneInstanceFacade
-        services.AddSingleton<PackageLoaderFacade>();
+        // Scene Generation Services
         services.AddSingleton<ContentGenerationFacade>();
-        services.AddSingleton<SceneInstanceFacade>(); // Depends on PackageLoaderFacade + ContentGenerationFacade + SpawnedScenePlayabilityValidator
 
         // Infinite A-Story Generation (procedural main story continuation)
-        services.AddSingleton<ProceduralAStoryService>(); // Depends on GameWorld, ContentGenerationFacade, PackageLoaderFacade
+        services.AddSingleton<ProceduralAStoryService>(); // Depends on GameWorld, ContentGenerationFacade, PackageLoader
 
         // State Clearing System (needed by TimeFacade)
         services.AddSingleton<StateClearingResolver>();

@@ -23,12 +23,12 @@ public class SceneTemplate
     public SpawnPattern Archetype { get; init; }
 
     /// <summary>
-    /// Scene archetype ID used for generation
-    /// For A-story scenes: "seek_audience", "investigate_location", etc.
-    /// Used for anti-repetition tracking and narrative generation context
-    /// null for manually-authored scenes (not generated from catalogue)
+    /// Scene archetype type used for generation.
+    /// HIGHLANDER: ONE enum for ALL scene archetypes (service + narrative patterns).
+    /// Used for anti-repetition tracking and narrative generation context.
+    /// null for manually-authored scenes (not generated from catalogue).
     /// </summary>
-    public string SceneArchetypeId { get; init; }
+    public SceneArchetypeType? SceneArchetypeId { get; init; }
 
     /// <summary>
     /// Display name template for this Scene
@@ -144,22 +144,4 @@ public class SceneTemplate
     /// </summary>
     public ProgressionMode ProgressionMode { get; init; } = ProgressionMode.Breathe;
 
-    /// <summary>
-    /// Dependent locations that this Scene creates dynamically at spawn time
-    /// Self-contained pattern: Scene generates JSON package → PackageLoader → Standard parsing
-    /// Each spec becomes LocationDTO, flows through normal JSON → DTO → Domain pipeline
-    /// Scene tracks created location IDs for forensics and cleanup
-    /// Empty list = Scene uses only pre-existing locations (traditional pattern)
-    /// </summary>
-    public List<DependentLocationSpec> DependentLocations { get; init; } = new List<DependentLocationSpec>();
-
-    /// <summary>
-    /// Dependent items that this Scene creates dynamically at spawn time
-    /// Self-contained pattern: Scene generates JSON package → PackageLoader → Standard parsing
-    /// Each spec becomes ItemDTO, flows through normal JSON → DTO → Domain pipeline
-    /// Scene tracks created item IDs for forensics and cleanup
-    /// Empty list = Scene uses only pre-existing items (traditional pattern)
-    /// Example: Room keys, special access permits, quest items
-    /// </summary>
-    public List<DependentItemSpec> DependentItems { get; init; } = new List<DependentItemSpec>();
 }

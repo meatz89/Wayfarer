@@ -48,10 +48,10 @@ public enum ArchetypeCategory
 public class SituationArchetype
 {
     /// <summary>
-    /// Unique identifier for this archetype
-    /// Values: "confrontation", "negotiation", "investigation", "social_maneuvering", "crisis"
+    /// Archetype type - strongly-typed enum for compile-time validation.
+    /// Replaces string ID for type safety.
     /// </summary>
-    public string Id { get; init; }
+    public SituationArchetypeType Type { get; init; }
 
     /// <summary>
     /// Display name for this archetype
