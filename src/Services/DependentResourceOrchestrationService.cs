@@ -84,18 +84,34 @@ public class DependentResourceOrchestrationService
         }
 
         // Bind situations to dependent locations (direct object references)
-        // Match Situation.DependentLocationName to Location.Name from loadResult
+        // NEW ARCHITECTURE: Use Template.DependentLocationSpec (object reference) instead of string matching
+        // Multiple situations with SAME spec INSTANCE share the same created location
+        Dictionary<DependentLocationSpec, Location> specToLocationMap = new Dictionary<DependentLocationSpec, Location>();
+
         foreach (Situation situation in scene.Situations)
         {
-            if (!string.IsNullOrEmpty(situation.DependentLocationName))
+            DependentLocationSpec spec = situation.Template?.DependentLocationSpec;
+            if (spec != null)
             {
-                Location dependentLocation = loadResult.LocationsAdded
-                    .FirstOrDefault(l => l.Name == situation.DependentLocationName);
-
-                if (dependentLocation != null)
+                // Check if we've already bound a location for this spec instance
+                if (specToLocationMap.TryGetValue(spec, out Location existingLocation))
                 {
-                    situation.Location = dependentLocation;
-                    Console.WriteLine($"[DependentResources] Bound situation '{situation.Name}' to dependent location '{dependentLocation.Name}'");
+                    // Shared spec instance = shared location (direct binding by reference equality)
+                    situation.Location = existingLocation;
+                    Console.WriteLine($"[DependentResources] Bound situation '{situation.Name}' to shared location '{existingLocation.Name}'");
+                }
+                else
+                {
+                    // Find location matching this spec's name in loadResult
+                    Location dependentLocation = loadResult.LocationsAdded
+                        .FirstOrDefault(l => l.Name == spec.Name);
+
+                    if (dependentLocation != null)
+                    {
+                        situation.Location = dependentLocation;
+                        specToLocationMap[spec] = dependentLocation;
+                        Console.WriteLine($"[DependentResources] Bound situation '{situation.Name}' to dependent location '{dependentLocation.Name}'");
+                    }
                 }
             }
         }

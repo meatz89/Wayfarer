@@ -89,9 +89,11 @@ public static class SceneArchetypeCatalog
         string restSitId = $"{sceneId}_rest";
         string departSitId = $"{sceneId}_depart";
 
-        // Generate dependent resources for inn lodging (MUST be before reward creation)
+        // Generate dependent resources for inn lodging
+        // SHARED SPEC INSTANCE: Same spec object referenced by multiple situations = same location
         DependentResourceCatalog.DependentResources resources =
             DependentResourceCatalog.GenerateForActivity(ServiceActivityType.Lodging);
+        DependentLocationSpec sharedPrivateRoomSpec = resources.LocationSpec;
 
         // SITUATION 1: SECURE LODGING
         // Tutorial A1 (sequence 1): Manual identity formation choices
@@ -323,8 +325,9 @@ public static class SceneArchetypeCatalog
                 Context = "evening_choices",
                 Style = "introspective"
             },
-            // Direct binding to dependent location (no marker system)
-            DependentLocationName = "Private Room",
+            // DIRECT OBJECT BINDING: Spec embedded in situation, PackageLoader creates ONE location per spec
+            // Same spec INSTANCE = same location (rest and depart share Private Room)
+            DependentLocationSpec = sharedPrivateRoomSpec,
             NpcFilter = new PlacementFilter  // Explicit "no NPC" override (empty filter = no match)
             {
                 PlacementType = PlacementType.NPC,
@@ -403,8 +406,8 @@ public static class SceneArchetypeCatalog
                 Context = "morning_departure",
                 Style = "optimistic"
             },
-            // Direct binding to dependent location (no marker system)
-            DependentLocationName = "Private Room",
+            // DIRECT OBJECT BINDING: Same spec INSTANCE as rest = same location created once
+            DependentLocationSpec = sharedPrivateRoomSpec,
             NpcFilter = new PlacementFilter  // Explicit "no NPC" override (empty filter = no match)
             {
                 PlacementType = PlacementType.NPC,
@@ -444,7 +447,9 @@ public static class SceneArchetypeCatalog
             departSituation
         },
             SpawnRules = spawnRules,
-            DependentLocations = new List<DependentLocationSpec> { resources.LocationSpec },
+            // DependentLocations now embedded in situations via DependentLocationSpec property
+            // Scene-level list empty - locations created per-situation during spawn
+            DependentLocations = new List<DependentLocationSpec>(),
             DependentItems = new List<DependentItemSpec> { resources.ItemSpec }
         };
     }

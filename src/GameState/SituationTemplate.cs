@@ -106,10 +106,10 @@ public class SituationTemplate
     public NarrativeHints NarrativeHints { get; init; }
 
     /// <summary>
-    /// Name of dependent location this situation should be bound to
-    /// Used for direct object binding after PackageLoader creates dependent locations
-    /// Example: "Private Room" - matches DependentLocationSpec.Name
-    /// If set, bypasses categorical filter resolution for location binding
+    /// Specification for creating a dependent location for this situation
+    /// Each situation with a spec gets its own location created at spawn time
+    /// Direct object binding: situation.Location = PackageLoader.CreateSingleLocation(spec)
+    /// Multiple situations can share same spec INSTANCE for shared locations
     /// </summary>
-    public string DependentLocationName { get; init; }
+    public DependentLocationSpec DependentLocationSpec { get; init; }
 }

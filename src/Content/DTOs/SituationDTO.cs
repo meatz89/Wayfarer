@@ -207,11 +207,4 @@ public class SituationDTO
     /// </summary>
     public NarrativeHintsDTO NarrativeHints { get; set; }
 
-    /// <summary>
-    /// Name of dependent location this situation should be bound to
-    /// Used for direct object binding after PackageLoader creates dependent locations
-    /// Example: "Private Room" - matches Location.Name from PackageLoadResult
-    /// If set, bypasses categorical filter resolution for location binding
-    /// </summary>
-    public string DependentLocationName { get; set; }
 }

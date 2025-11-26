@@ -86,10 +86,9 @@ public class SituationTemplateDTO
     public NarrativeHintsDTO NarrativeHints { get; set; }
 
     /// <summary>
-    /// Name of dependent location this situation should be bound to
-    /// Used for direct object binding after PackageLoader creates dependent locations
-    /// Example: "Private Room" - matches DependentLocationSpec.Name
-    /// If set, bypasses categorical filter resolution for location binding
+    /// Specification for creating a dependent location for this situation
+    /// Categorical properties define what location to create
+    /// At spawn time, each spec instance creates ONE location with direct binding
     /// </summary>
-    public string DependentLocationName { get; set; }
+    public DependentLocationSpecDTO DependentLocationSpec { get; set; }
 }

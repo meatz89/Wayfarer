@@ -202,6 +202,25 @@ public static class AStorySceneArchetypeCatalog
             RouteFilter = null
         };
 
+        // Dependent location spec - created BEFORE situation so it can be referenced
+        // HIGHLANDER: Situation references spec by object, not by name string
+        DependentLocationSpec meetingChamber = new DependentLocationSpec
+        {
+            TemplateId = "meeting_chamber",
+            Name = "Meeting Chamber",
+            Description = "A formal meeting space where important discussions take place.",
+            VenueIdSource = VenueIdSource.SameAsBase,
+            HexPlacement = HexPlacementStrategy.SameVenue,
+            Properties = new List<string> { "indoor", "private", "formal" },
+            IsLockedInitially = true,
+            UnlockItemTemplateId = null,
+            CanInvestigate = false,
+            Privacy = "Private",
+            Safety = "Safe",
+            Activity = "Quiet",
+            Purpose = "Government"
+        };
+
         // SITUATION 2: AUDIENCE
         SituationArchetype audienceArchetype = SituationArchetypeCatalog.GetArchetype("confrontation");
         List<ChoiceTemplate> audienceChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
@@ -222,7 +241,8 @@ public static class AStorySceneArchetypeCatalog
                 Context = "formal_audience",
                 Style = "dramatic"
             },
-            DependentLocationName = "Meeting Chamber",
+            // HIGHLANDER: Direct object reference to spec - PackageLoader creates location, binds directly
+            DependentLocationSpec = meetingChamber,
             NpcFilter = null,       // Inherits scene BaseNpcFilter
             RouteFilter = null
         };
@@ -241,20 +261,6 @@ public static class AStorySceneArchetypeCatalog
                 Condition = TransitionCondition.Always
             }
         }
-        };
-
-        // Dependent resources
-        DependentLocationSpec meetingChamber = new DependentLocationSpec
-        {
-            TemplateId = "meeting_chamber",
-            Name = "Meeting Chamber",
-            Description = "A formal meeting space where important discussions take place.",
-            VenueIdSource = VenueIdSource.SameAsBase,
-            HexPlacement = HexPlacementStrategy.SameVenue,
-            Properties = new List<string> { "indoor", "private", "formal" },
-            IsLockedInitially = true,
-            UnlockItemTemplateId = null,
-            CanInvestigate = false
         };
 
         List<SituationTemplate> situations = new List<SituationTemplate>

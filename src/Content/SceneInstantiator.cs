@@ -377,9 +377,9 @@ public class SceneInstantiator
                 // Hierarchical placement: Situation filters override scene base filters
                 LocationFilter = effectiveLocationFilter,
                 NpcFilter = effectiveNpcFilter,
-                RouteFilter = effectiveRouteFilter,
-                // Direct binding to dependent location (no marker system)
-                DependentLocationName = sitTemplate.DependentLocationName
+                RouteFilter = effectiveRouteFilter
+                // NOTE: DependentLocationSpec binding handled at spawn time via direct object reference
+                // Each situation with a spec gets location created and bound: situation.Location = createdLocation
             };
 
             // Copy narrative hints if present

@@ -678,8 +678,8 @@ public class SceneTemplateParser
             NpcFilter = ParsePlacementFilter(dto.NpcFilter, contextId, _gameWorld),
             RouteFilter = ParsePlacementFilter(dto.RouteFilter, contextId, _gameWorld),
             NarrativeHints = ParseNarrativeHints(dto.NarrativeHints),
-            // Direct binding to dependent location (bypasses filter resolution)
-            DependentLocationName = dto.DependentLocationName
+            // DependentLocationSpec parsed from DTO (categorical requirements for location creation)
+            DependentLocationSpec = ParseDependentLocationSpec(dto.DependentLocationSpec)
         };
 
         return template;
@@ -1040,6 +1040,53 @@ public class SceneTemplateParser
             Theme = dto.Theme,
             Context = dto.Context,
             Style = dto.Style
+        };
+    }
+
+    /// <summary>
+    /// Parse DependentLocationSpec from DTO
+    /// Used for situations that need to create a dependent location at spawn time
+    /// </summary>
+    private DependentLocationSpec ParseDependentLocationSpec(DependentLocationSpecDTO dto)
+    {
+        if (dto == null)
+            return null;
+
+        // Parse VenueIdSource enum (defaults to SameAsBase)
+        VenueIdSource venueIdSource = VenueIdSource.SameAsBase;
+        if (!string.IsNullOrEmpty(dto.VenueIdSource))
+        {
+            if (!Enum.TryParse<VenueIdSource>(dto.VenueIdSource, true, out venueIdSource))
+            {
+                throw new InvalidDataException($"DependentLocationSpec has invalid VenueIdSource: '{dto.VenueIdSource}'");
+            }
+        }
+
+        // Parse HexPlacement enum (defaults to Adjacent)
+        HexPlacementStrategy hexPlacement = HexPlacementStrategy.Adjacent;
+        if (!string.IsNullOrEmpty(dto.HexPlacement))
+        {
+            if (!Enum.TryParse<HexPlacementStrategy>(dto.HexPlacement, true, out hexPlacement))
+            {
+                throw new InvalidDataException($"DependentLocationSpec has invalid HexPlacement: '{dto.HexPlacement}'");
+            }
+        }
+
+        return new DependentLocationSpec
+        {
+            TemplateId = dto.TemplateId,
+            Name = dto.Name,
+            Description = dto.Description,
+            VenueIdSource = venueIdSource,
+            HexPlacement = hexPlacement,
+            Properties = dto.Properties ?? new List<string>(),
+            IsLockedInitially = dto.IsLockedInitially,
+            UnlockItemTemplateId = dto.UnlockItemTemplateId,
+            CanInvestigate = dto.CanInvestigate,
+            Privacy = dto.Privacy,
+            Safety = dto.Safety,
+            Activity = dto.Activity,
+            Purpose = dto.Purpose
         };
     }
 
