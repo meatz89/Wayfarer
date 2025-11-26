@@ -194,108 +194,65 @@ public class HexRouteGenerator
         // Generate route segments with encounters
         route.Segments = GenerateRouteSegments(hexPath, dangerRating, timeSegments, transportType);
 
-        // Spawn scenes for Encounter segments
-        SpawnEncounterScenes(route);
+        // Assign SceneTemplates to Encounter segments (template-only - Scene spawned when player reaches segment)
+        AssignMandatorySceneTemplates(route, dangerRating);
 
         return route;
     }
 
     /// <summary>
-    /// TODO: Route encounter spawning needs architectural redesign
+    /// Assign MandatorySceneTemplate to Encounter segments at route generation time
+    /// Templates are filtered by StoryCategory.Service (transactional encounters)
+    /// Actual Scene spawning happens in TravelManager when player reaches segment
     /// </summary>
-    private void SpawnEncounterScenes(RouteOption route)
+    private void AssignMandatorySceneTemplates(RouteOption route, int dangerRating)
     {
-        // DISABLED
-        return;
-
-        /*
         if (route.Segments == null || route.Segments.Count == 0)
             return;
 
-        // DELETED: BaseRouteFilter no longer exists
-        List<SceneTemplate> routeTemplates = _gameWorld.SceneTemplates
-            .Where(template => template.BaseRouteFilter != null)
+        // Filter eligible templates by Category (Service = transactional encounters)
+        List<SceneTemplate> eligibleTemplates = _gameWorld.SceneTemplates
+            .Where(t => t.Category == StoryCategory.Service)
             .ToList();
 
-        if (routeTemplates.Count == 0)
-            return; // No route scene templates available yet
+        if (eligibleTemplates.Count == 0)
+            return; // No Service scene templates available yet
 
         foreach (RouteSegment segment in route.Segments.Where(s => s.Type == SegmentType.Encounter))
         {
-            // Get hex range for this segment to determine terrain/danger
-            int hexesPerSegment = Math.Max(1, route.HexPath.Count / route.Segments.Count);
-            int segmentIndex = segment.SegmentNumber - 1;
-            int startHex = segmentIndex * hexesPerSegment;
-            int endHex = (segmentIndex == route.Segments.Count - 1) ? route.HexPath.Count : (segmentIndex + 1) * hexesPerSegment;
-            List<AxialCoordinates> segmentHexes = route.HexPath.Skip(startHex).Take(endHex - startHex).ToList();
-
-            SegmentAnalysisResult analysis = AnalyzeSegmentHexes(segmentHexes);
-            TerrainType dominantTerrain = analysis.DominantTerrain;
-            int segmentDanger = analysis.AverageDanger;
-
-            // Filter templates by terrain and danger
-            List<SceneTemplate> matchingTemplates = FilterSceneTemplatesByTerrainAndDanger(
-                routeTemplates,
-                dominantTerrain,
-                segmentDanger
-            );
-
-            if (matchingTemplates.Count > 0)
+            // Filter by tier matching danger (within 1 tier)
+            List<SceneTemplate> matching = FilterTemplatesByDanger(eligibleTemplates, dangerRating);
+            if (matching.Count > 0)
             {
-                // Select random template (weighted by tier - lower tiers more common)
-                SceneTemplate selectedTemplate = SelectWeightedRandomTemplate(matchingTemplates);
-
-                // Spawn scene for this segment
-                Scene scene = SpawnActiveSceneForRoute(selectedTemplate, route, segment);
-
-                // NOTE: RouteSegment.MandatorySceneTemplate stores the TEMPLATE, not the instance
-                // Scene instances are stored in GameWorld.Scenes or TravelState
-                // The spawned scene is already added to GameWorld in SpawnActiveSceneForRoute
-                // No need to store instance reference on RouteSegment
+                segment.MandatorySceneTemplate = SelectWeightedRandomTemplate(matching);
+            }
+            else if (eligibleTemplates.Count > 0)
+            {
+                // Fallback: use any eligible template if no tier match
+                segment.MandatorySceneTemplate = SelectWeightedRandomTemplate(eligibleTemplates);
             }
         }
-        */
     }
 
     /// <summary>
-    /// TODO: Disabled - needs architectural redesign
+    /// Filter templates by tier matching danger rating
+    /// Maps danger to tier and allows templates within 1 tier of target
     /// </summary>
-    private List<SceneTemplate> FilterSceneTemplatesByTerrainAndDanger(
-        List<SceneTemplate> templates,
-        TerrainType segmentTerrain,
-        int segmentDanger)
+    private List<SceneTemplate> FilterTemplatesByDanger(List<SceneTemplate> templates, int dangerRating)
     {
-        // DISABLED
-        return new List<SceneTemplate>();
-
-        /*
-        List<SceneTemplate> matching = new List<SceneTemplate>();
-
-        foreach (SceneTemplate template in templates)
+        // Map danger rating to tier (0-20: Tier 0, 21-40: Tier 1, 41-60: Tier 2, 61+: Tier 3)
+        int targetTier = dangerRating switch
         {
-            PlacementFilter filter = template.BaseRouteFilter;
+            < 20 => 0,
+            < 40 => 1,
+            < 60 => 2,
+            _ => 3
+        };
 
-            // Check terrain match (if filter specifies terrains)
-            if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
-            {
-                // Convert TerrainType to string for comparison
-                string terrainString = segmentTerrain.ToString();
-                if (!filter.TerrainTypes.Contains(terrainString))
-                    continue; // Terrain doesn't match
-            }
-
-            // Check difficulty range (if filter specifies)
-            if (filter.MinDifficulty.HasValue && segmentDanger < filter.MinDifficulty.Value)
-                continue; // Too safe for this template
-
-            if (filter.MaxDifficulty.HasValue && segmentDanger > filter.MaxDifficulty.Value)
-                continue; // Too dangerous for this template
-
-            matching.Add(template);
-        }
-
-        return matching;
-        */
+        // Filter by tier within 1 level of target
+        return templates
+            .Where(t => Math.Abs(t.Tier - targetTier) <= 1)
+            .ToList();
     }
 
     /// <summary>
@@ -339,92 +296,9 @@ public class HexRouteGenerator
         return templates[0];
     }
 
-    /// <summary>
-    /// Spawn Active scene directly for route (non-provisional)
-    /// Route scenes are permanent, not choice-dependent like location/NPC scenes
-    /// </summary>
-    private Scene SpawnActiveSceneForRoute(SceneTemplate template, RouteOption route, RouteSegment segment)
-    {
-        // Generate unique Scene ID using template and GUID (no route ID needed)
-        // No .Substring() on GUID (forbidden operation per CLAUDE.md)
-        // HIGHLANDER: No .Id property on Scene - use DisplayName for identification
-        string sceneName = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}_seg{segment.SegmentNumber}";
-
-        // Create Scene directly as Active (skip provisional step)
-        // HIERARCHICAL PLACEMENT: Route set on Situation, not Scene
-        Scene scene = new Scene
-        {
-            TemplateId = template.Id,
-            Template = template,
-            State = SceneState.Active, // Active immediately, not provisional
-            Archetype = template.Archetype,
-            DisplayName = template.DisplayNameTemplate,
-            IntroNarrative = template.IntroNarrativeTemplate,
-            SpawnRules = template.SpawnRules
-        };
-
-        // Create Situations from SituationTemplates
-        foreach (SituationTemplate sitTemplate in template.SituationTemplates)
-        {
-            Situation situation = InstantiateSituation(sitTemplate, scene, route);
-            scene.Situations.Add(situation);
-        }
-
-        // Set CurrentSituationIndex to first situation (index 0)
-        scene.CurrentSituationIndex = 0;
-
-        // PROCEDURAL CONTENT TRACING: Record travel scene spawn
-        if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
-        {
-            SceneSpawnNode sceneNode = _gameWorld.ProceduralTracer.RecordSceneSpawn(
-                scene,
-                scene.TemplateId,
-                false, // isProcedurallyGenerated = false (authored template, but travel-triggered)
-                SpawnTriggerType.DayTransition, // Travel scenes spawn during route travel
-                _gameWorld.CurrentDay,
-                _gameWorld.CurrentTimeBlock
-            );
-
-            // Record all embedded situations as children of this scene
-            foreach (Situation situation in scene.Situations)
-            {
-                _gameWorld.ProceduralTracer.RecordSituationSpawn(
-                    situation,
-                    sceneNode,
-                    SituationSpawnTriggerType.InitialScene
-                );
-            }
-        }
-
-        // Add to GameWorld.Scenes (permanent storage)
-        _gameWorld.Scenes.Add(scene);
-
-        return scene;
-    }
-
-    /// <summary>
-    /// Instantiate Situation from SituationTemplate for route scene
-    /// Simplified version without placeholder replacement (routes have minimal dynamic context)
-    /// </summary>
-    private Situation InstantiateSituation(SituationTemplate template, Scene parentScene, RouteOption route)
-    {
-        // HIGHLANDER: No .Id property on Situation - use Name for identification
-        string situationName = $"situation_{template.Id}_{Guid.NewGuid().ToString("N")}";
-
-        Situation situation = new Situation
-        {
-            Name = situationName,
-            Description = template.NarrativeTemplate ?? "",
-            InstantiationState = InstantiationState.Deferred, // Starts deferred, instantiates when player enters segment
-            Template = template,
-            SystemType = TacticalSystemType.Physical, // Route encounters default to Physical
-            ParentScene = parentScene,
-            Tier = parentScene.Template?.Tier ?? 1,
-            Repeatable = false // Route encounters are one-time
-        };
-
-        return situation;
-    }
+    // NOTE: SpawnActiveSceneForRoute() and InstantiateSituation() DELETED
+    // Scene spawning for Encounter segments moved to TravelManager.SpawnEncounterScene()
+    // Uses SceneInstantiator.ActivateScene() for proper entity resolution
 
     /// <summary>
     /// Generate route segments with danger-based encounter distribution

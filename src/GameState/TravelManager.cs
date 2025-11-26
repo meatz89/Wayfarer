@@ -4,13 +4,15 @@ public class TravelManager
     private readonly GameWorld _gameWorld;
     private readonly TimeManager _timeManager;
     private readonly MessageSystem _messageSystem;
+    private readonly SceneInstantiator _sceneInstantiator;
     private readonly Random _random = new Random();
 
-    public TravelManager(GameWorld gameWorld, TimeManager timeManager, MessageSystem messageSystem)
+    public TravelManager(GameWorld gameWorld, TimeManager timeManager, MessageSystem messageSystem, SceneInstantiator sceneInstantiator)
     {
         _gameWorld = gameWorld;
         _timeManager = timeManager;
         _messageSystem = messageSystem;
+        _sceneInstantiator = sceneInstantiator;
     }
 
     // ========== TRAVEL SESSION METHODS ==========
@@ -78,8 +80,78 @@ public class TravelManager
         {
             return GetPathCardsForEventSegment(segment, session);
         }
+        else if (segment.Type == SegmentType.Encounter)
+        {
+            // Encounter segments use Scene-Situation system, not PathCards
+            // Spawn Scene from MandatorySceneTemplate if not already spawned
+            SpawnEncounterScene(segment, session);
+            return new List<PathCardDTO>(); // No cards - UI shows Scene instead
+        }
 
         return new List<PathCardDTO>();
+    }
+
+    /// <summary>
+    /// Spawn Scene from Encounter segment's MandatorySceneTemplate
+    /// Scene is spawned once when player reaches segment, stored in PendingScene
+    /// Uses SceneInstantiator.ActivateScene() for proper entity resolution
+    /// </summary>
+    private void SpawnEncounterScene(RouteSegment segment, TravelSession session)
+    {
+        // Already spawned - don't respawn
+        if (session.PendingScene != null)
+            return;
+
+        SceneTemplate template = segment.MandatorySceneTemplate;
+        if (template == null)
+        {
+            _messageSystem.AddSystemMessage("Encounter segment has no scene template", SystemMessageTypes.Warning);
+            return;
+        }
+
+        // Check if Scene already exists for this template (avoid duplicate spawning)
+        Scene existingScene = _gameWorld.Scenes.FirstOrDefault(s =>
+            s.Template == template && s.State == SceneState.Active);
+        if (existingScene != null)
+        {
+            session.PendingScene = existingScene;
+            return;
+        }
+
+        // Create new Scene from template in Deferred state
+        Scene scene = new Scene
+        {
+            TemplateId = template.Id,
+            Template = template,
+            State = SceneState.Deferred,
+            Archetype = template.Archetype,
+            DisplayName = template.DisplayNameTemplate,
+            IntroNarrative = template.IntroNarrativeTemplate,
+            Category = template.Category,
+            SpawnRules = template.SpawnRules
+        };
+
+        // Add to GameWorld before activation
+        _gameWorld.Scenes.Add(scene);
+
+        // Build activation context for route encounter
+        Player player = _gameWorld.GetPlayer();
+        SceneSpawnContext activationContext = new SceneSpawnContext
+        {
+            Player = player,
+            CurrentLocation = null, // Route encounters have no specific location
+            CurrentVenue = null,
+            CurrentNPC = null,
+            CurrentRoute = session.Route,
+            CurrentSituation = null
+        };
+
+        // Activate scene - creates Situations and resolves entities
+        _sceneInstantiator.ActivateScene(scene, activationContext);
+
+        // Set as pending scene for this segment
+        session.PendingScene = scene;
+        _messageSystem.AddSystemMessage($"Encounter: {scene.DisplayName}", SystemMessageTypes.Info);
     }
 
     /// <summary>

@@ -681,6 +681,19 @@ namespace Wayfarer.Pages.Components
         }
 
         /// <summary>
+        /// Engage the encounter - navigate to scene resolution
+        /// Called when player clicks ENGAGE CHALLENGE button
+        /// </summary>
+        protected async Task EngageEncounter()
+        {
+            if (TravelContext?.Session?.PendingScene == null)
+                return;
+
+            // Navigate to scene screen to resolve the encounter
+            await OnNavigate.InvokeAsync("scene");
+        }
+
+        /// <summary>
         /// Get all unique encounter situation names for current segment
         /// Aggregates situation names from all scenes on all paths in current segment
         /// </summary>
