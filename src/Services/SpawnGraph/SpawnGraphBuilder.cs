@@ -345,7 +345,7 @@ public class SpawnGraphBuilder
             {
                 if (situationModelMap.TryGetValue(situationNode, out SituationNodeModel situationModel))
                 {
-                    diagram.Links.Add(new LinkModel(sceneModel, situationModel));
+                    diagram.Links.Add(new SpawnGraphLinkModel(sceneModel, situationModel, SpawnGraphLinkType.Hierarchy));
                 }
             }
         }
@@ -358,7 +358,7 @@ public class SpawnGraphBuilder
             {
                 if (choiceModelMap.TryGetValue(choiceNode, out ChoiceNodeModel choiceModel))
                 {
-                    diagram.Links.Add(new LinkModel(situationModel, choiceModel));
+                    diagram.Links.Add(new SpawnGraphLinkModel(situationModel, choiceModel, SpawnGraphLinkType.Hierarchy));
                 }
             }
 
@@ -367,7 +367,7 @@ public class SpawnGraphBuilder
                 string entityKey = "loc_" + situationNode.Location.Name;
                 if (entityModelMap.TryGetValue(entityKey, out EntityNodeModel entityModel))
                 {
-                    diagram.Links.Add(new LinkModel(situationModel, entityModel));
+                    diagram.Links.Add(new SpawnGraphLinkModel(situationModel, entityModel, SpawnGraphLinkType.EntityLocation));
                 }
             }
 
@@ -376,7 +376,7 @@ public class SpawnGraphBuilder
                 string entityKey = "npc_" + situationNode.NPC.Name;
                 if (entityModelMap.TryGetValue(entityKey, out EntityNodeModel entityModel))
                 {
-                    diagram.Links.Add(new LinkModel(situationModel, entityModel));
+                    diagram.Links.Add(new SpawnGraphLinkModel(situationModel, entityModel, SpawnGraphLinkType.EntityNpc));
                 }
             }
 
@@ -385,7 +385,7 @@ public class SpawnGraphBuilder
                 string entityKey = "route_" + situationNode.Route.OriginLocationName + "_" + situationNode.Route.DestinationLocationName;
                 if (entityModelMap.TryGetValue(entityKey, out EntityNodeModel entityModel))
                 {
-                    diagram.Links.Add(new LinkModel(situationModel, entityModel));
+                    diagram.Links.Add(new SpawnGraphLinkModel(situationModel, entityModel, SpawnGraphLinkType.EntityRoute));
                 }
             }
         }
@@ -398,7 +398,15 @@ public class SpawnGraphBuilder
             {
                 if (sceneModelMap.TryGetValue(spawnedScene, out SceneNodeModel sceneModel))
                 {
-                    diagram.Links.Add(new LinkModel(choiceModel, sceneModel));
+                    diagram.Links.Add(new SpawnGraphLinkModel(choiceModel, sceneModel, SpawnGraphLinkType.SpawnScene));
+                }
+            }
+
+            foreach (SituationSpawnNode spawnedSituation in choiceNode.SpawnedSituations)
+            {
+                if (situationModelMap.TryGetValue(spawnedSituation, out SituationNodeModel situationModel))
+                {
+                    diagram.Links.Add(new SpawnGraphLinkModel(choiceModel, situationModel, SpawnGraphLinkType.SpawnSituation));
                 }
             }
         }

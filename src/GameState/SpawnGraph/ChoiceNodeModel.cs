@@ -11,6 +11,7 @@ public class ChoiceNodeModel : NodeModel
     public ChoiceActionType ActionType => SpawnNode?.ActionType ?? ChoiceActionType.Instant;
     public bool? ChallengeSucceeded => SpawnNode?.ChallengeSucceeded;
     public bool WasExecuted => SpawnNode != null;
+    public bool IsHighlighted { get; set; }
 
     public ChoiceNodeModel(Point position, ChoiceExecutionNode spawnNode) : base(position)
     {

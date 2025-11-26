@@ -35,6 +35,45 @@
                 Entities
             </label>
         </div>
+        <span class="filter-separator">|</span>
+        <div class="filter-toggles category-filters">
+            <label class="filter-toggle category-main @(ShowMainStory ? "active" : "")">
+                <input type="checkbox" @bind="ShowMainStory" @bind:after="ApplyFilters" />
+                Main
+            </label>
+            <label class="filter-toggle category-side @(ShowSideStory ? "active" : "")">
+                <input type="checkbox" @bind="ShowSideStory" @bind:after="ApplyFilters" />
+                Side
+            </label>
+            <label class="filter-toggle category-service @(ShowService ? "active" : "")">
+                <input type="checkbox" @bind="ShowService" @bind:after="ApplyFilters" />
+                Service
+            </label>
+        </div>
+        <span class="filter-separator">|</span>
+        <div class="filter-toggles state-filters">
+            <label class="filter-toggle state-active @(ShowActive ? "active" : "")">
+                <input type="checkbox" @bind="ShowActive" @bind:after="ApplyFilters" />
+                Active
+            </label>
+            <label class="filter-toggle state-completed @(ShowCompleted ? "active" : "")">
+                <input type="checkbox" @bind="ShowCompleted" @bind:after="ApplyFilters" />
+                Completed
+            </label>
+            <label class="filter-toggle state-deferred @(ShowDeferred ? "active" : "")">
+                <input type="checkbox" @bind="ShowDeferred" @bind:after="ApplyFilters" />
+                Deferred
+            </label>
+        </div>
+        <div class="search-container">
+            <input type="text" class="search-input" placeholder="Search nodes..."
+                   @bind="SearchTerm" @bind:event="oninput" @bind:after="ApplySearch" />
+            @if (!string.IsNullOrEmpty(SearchTerm))
+            {
+                <span class="search-count">@MatchCount matches</span>
+                <button class="search-clear" @onclick="ClearSearch">x</button>
+            }
+        </div>
         <span class="stats">
             Scenes: @SceneCount | Situations: @SituationCount | Choices: @ChoiceCount
         </span>
@@ -69,7 +108,36 @@
         </div>
     }
 
-    <DetailPanel SelectedNode="SelectedNode" OnCloseClicked="ClearSelection" />
+    <div class="spawn-graph-legend">
+        <div class="legend-title" @onclick="ToggleLegend">
+            @(ShowLegend ? "Hide" : "Show") Legend
+        </div>
+        @if (ShowLegend)
+        {
+            <div class="legend-content">
+                <div class="legend-section">
+                    <span class="legend-header">Hierarchy</span>
+                    <div class="legend-item"><span class="legend-line solid gray"></span> Contains</div>
+                </div>
+                <div class="legend-section">
+                    <span class="legend-header">Spawns</span>
+                    <div class="legend-item"><span class="legend-line dashed green"></span> Scene</div>
+                    <div class="legend-item"><span class="legend-line dashed blue"></span> Situation</div>
+                </div>
+                <div class="legend-section">
+                    <span class="legend-header">References</span>
+                    <div class="legend-item"><span class="legend-line dotted orange"></span> Location</div>
+                    <div class="legend-item"><span class="legend-line dotted red"></span> NPC</div>
+                    <div class="legend-item"><span class="legend-line dotted brown"></span> Route</div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <DetailPanel SelectedNode="SelectedNode" OnCloseClicked="ClearSelection"
+                  OnNavigateToScene="NavigateToScene"
+                  OnNavigateToSituation="NavigateToSituation"
+                  OnNavigateToChoice="NavigateToChoice" />
 </div>
 
 @code {
@@ -82,6 +150,18 @@
     private bool ShowSituations { get; set; } = true;
     private bool ShowChoices { get; set; } = true;
     private bool ShowEntities { get; set; } = true;
+
+    private bool ShowMainStory { get; set; } = true;
+    private bool ShowSideStory { get; set; } = true;
+    private bool ShowService { get; set; } = true;
+
+    private bool ShowActive { get; set; } = true;
+    private bool ShowCompleted { get; set; } = true;
+    private bool ShowDeferred { get; set; } = true;
+
+    private string SearchTerm { get; set; } = "";
+    private int MatchCount { get; set; }
+    private bool ShowLegend { get; set; } = false;
 
     private int SceneCount => GameWorld?.ProceduralTracer?.AllSceneNodes?.Count ?? 0;
     private int SituationCount => GameWorld?.ProceduralTracer?.AllSituationNodes?.Count ?? 0;
@@ -146,12 +226,114 @@
 
         SpawnGraphBuildResult result = await GraphBuilder.BuildGraphAsync(GameWorld.ProceduralTracer, Diagram);
 
+        if (result.Success)
+        {
+            WireUpDoubleClickHandlers();
+        }
+
         BuildMessage = result.Success
             ? $"Layout: {result.NodeCount} nodes, {result.LinkCount} links ({result.GraphWidth:F0}x{result.GraphHeight:F0})"
             : result.Message;
 
         IsLoading = false;
         StateHasChanged();
+    }
+
+    private void WireUpDoubleClickHandlers()
+    {
+        foreach (NodeModel node in Diagram.Nodes)
+        {
+            if (node is SceneNodeModel sceneNode)
+            {
+                sceneNode.OnDoubleClick = ZoomToSceneSubtree;
+            }
+        }
+    }
+
+    private void ZoomToSceneSubtree(SceneNodeModel sceneNode)
+    {
+        if (Diagram == null || sceneNode?.SpawnNode == null) return;
+
+        List<NodeModel> subtreeNodes = CollectSceneSubtree(sceneNode);
+
+        if (subtreeNodes.Count == 0) return;
+
+        double minX = double.MaxValue, minY = double.MaxValue;
+        double maxX = double.MinValue, maxY = double.MinValue;
+
+        foreach (NodeModel node in subtreeNodes)
+        {
+            if (node.Position != null)
+            {
+                if (node.Position.X < minX) minX = node.Position.X;
+                if (node.Position.Y < minY) minY = node.Position.Y;
+                if (node.Position.X + 200 > maxX) maxX = node.Position.X + 200;
+                if (node.Position.Y + 100 > maxY) maxY = node.Position.Y + 100;
+            }
+        }
+
+        double padding = 50;
+        double contentWidth = maxX - minX + padding * 2;
+        double contentHeight = maxY - minY + padding * 2;
+
+        double centerX = minX + contentWidth / 2 - padding;
+        double centerY = minY + contentHeight / 2 - padding;
+
+        Diagram.SetZoom(1.5);
+        Diagram.SetPan(-centerX * 1.5 + 600, -centerY * 1.5 + 400);
+
+        StateHasChanged();
+    }
+
+    private List<NodeModel> CollectSceneSubtree(SceneNodeModel sceneNode)
+    {
+        List<NodeModel> result = new List<NodeModel> { sceneNode };
+
+        if (sceneNode.SpawnNode == null) return result;
+
+        foreach (SituationSpawnNode situationSpawn in sceneNode.SpawnNode.Situations)
+        {
+            SituationNodeModel situationModel = FindSituationModel(situationSpawn);
+            if (situationModel != null)
+            {
+                result.Add(situationModel);
+
+                foreach (ChoiceExecutionNode choiceExec in situationSpawn.Choices)
+                {
+                    ChoiceNodeModel choiceModel = FindChoiceModel(choiceExec);
+                    if (choiceModel != null)
+                    {
+                        result.Add(choiceModel);
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private SituationNodeModel FindSituationModel(SituationSpawnNode spawnNode)
+    {
+        foreach (NodeModel node in Diagram.Nodes)
+        {
+            if (node is SituationNodeModel sitModel && sitModel.SpawnNode == spawnNode)
+            {
+                return sitModel;
+            }
+        }
+        return null;
+    }
+
+    private ChoiceNodeModel FindChoiceModel(ChoiceExecutionNode spawnNode)
+    {
+        foreach (NodeModel node in Diagram.Nodes)
+        {
+            if (node is ChoiceNodeModel choiceModel && choiceModel.SpawnNode == spawnNode)
+            {
+                return choiceModel;
+            }
+        }
+        return null;
     }
 
     private async Task RefreshGraph()
@@ -172,7 +354,7 @@
         {
             bool shouldShow = node switch
             {
-                SceneNodeModel _ => ShowScenes,
+                SceneNodeModel sceneNode => ShouldShowScene(sceneNode),
                 SituationNodeModel _ => ShowSituations,
                 ChoiceNodeModel _ => ShowChoices,
                 EntityNodeModel _ => ShowEntities,
@@ -183,9 +365,102 @@
         StateHasChanged();
     }
 
+    private bool ShouldShowScene(SceneNodeModel sceneNode)
+    {
+        if (!ShowScenes) return false;
+
+        bool categoryMatch = sceneNode.Category switch
+        {
+            StoryCategory.MainStory => ShowMainStory,
+            StoryCategory.SideStory => ShowSideStory,
+            StoryCategory.Service => ShowService,
+            _ => true
+        };
+
+        if (!categoryMatch) return false;
+
+        bool stateMatch = sceneNode.CurrentState switch
+        {
+            SceneState.Active => ShowActive,
+            SceneState.Completed => ShowCompleted,
+            SceneState.Deferred => ShowDeferred,
+            SceneState.Expired => ShowCompleted,
+            _ => true
+        };
+
+        return stateMatch;
+    }
+
+    private void ApplySearch()
+    {
+        if (Diagram == null) return;
+
+        string term = SearchTerm?.Trim().ToLowerInvariant() ?? "";
+        bool hasSearch = !string.IsNullOrEmpty(term);
+        MatchCount = 0;
+
+        foreach (NodeModel node in Diagram.Nodes)
+        {
+            string nodeName = GetNodeName(node).ToLowerInvariant();
+            bool matches = hasSearch && nodeName.Contains(term);
+
+            SetNodeHighlight(node, matches);
+
+            if (matches)
+            {
+                MatchCount++;
+            }
+        }
+
+        StateHasChanged();
+    }
+
+    private void ClearSearch()
+    {
+        SearchTerm = "";
+        ApplySearch();
+    }
+
+    private string GetNodeName(NodeModel node)
+    {
+        return node switch
+        {
+            SceneNodeModel scene => scene.DisplayName,
+            SituationNodeModel situation => situation.Name,
+            ChoiceNodeModel choice => choice.ActionText,
+            EntityNodeModel entity => entity.EntityName,
+            _ => ""
+        };
+    }
+
+    private void SetNodeHighlight(NodeModel node, bool highlighted)
+    {
+        switch (node)
+        {
+            case SceneNodeModel scene:
+                scene.IsHighlighted = highlighted;
+                break;
+            case SituationNodeModel situation:
+                situation.IsHighlighted = highlighted;
+                break;
+            case ChoiceNodeModel choice:
+                choice.IsHighlighted = highlighted;
+                break;
+            case EntityNodeModel entity:
+                entity.IsHighlighted = highlighted;
+                break;
+        }
+    }
+
     private void NavigateBack()
     {
         NavigationManager.NavigateTo("/");
+    }
+
+    private void ToggleLegend()
+    {
+        ShowLegend = !ShowLegend;
+        StateHasChanged();
     }
 
     private void ClearSelection()
@@ -196,6 +471,65 @@
             SelectedNode = null;
             StateHasChanged();
         }
+    }
+
+    private void NavigateToScene(SceneSpawnNode spawnNode)
+    {
+        if (Diagram == null || spawnNode == null) return;
+
+        foreach (NodeModel node in Diagram.Nodes)
+        {
+            if (node is SceneNodeModel sceneModel && sceneModel.SpawnNode == spawnNode)
+            {
+                SelectAndPanToNode(sceneModel);
+                return;
+            }
+        }
+    }
+
+    private void NavigateToSituation(SituationSpawnNode spawnNode)
+    {
+        if (Diagram == null || spawnNode == null) return;
+
+        foreach (NodeModel node in Diagram.Nodes)
+        {
+            if (node is SituationNodeModel situationModel && situationModel.SpawnNode == spawnNode)
+            {
+                SelectAndPanToNode(situationModel);
+                return;
+            }
+        }
+    }
+
+    private void NavigateToChoice(ChoiceExecutionNode spawnNode)
+    {
+        if (Diagram == null || spawnNode == null) return;
+
+        foreach (NodeModel node in Diagram.Nodes)
+        {
+            if (node is ChoiceNodeModel choiceModel && choiceModel.SpawnNode == spawnNode)
+            {
+                SelectAndPanToNode(choiceModel);
+                return;
+            }
+        }
+    }
+
+    private void SelectAndPanToNode(NodeModel node)
+    {
+        Diagram.UnselectAll();
+        Diagram.SelectModel(node, false);
+        SelectedNode = node;
+
+        if (node.Position != null)
+        {
+            double nodeX = node.Position.X + 100;
+            double nodeY = node.Position.Y + 50;
+            double zoom = Diagram.Zoom;
+            Diagram.SetPan(-nodeX * zoom + 400, -nodeY * zoom + 300);
+        }
+
+        StateHasChanged();
     }
 
     public void Dispose()

@@ -10,6 +10,7 @@ public class SituationNodeModel : NodeModel
     public TacticalSystemType SystemType => SpawnNode?.SystemType ?? TacticalSystemType.Social;
     public SituationInteractionType InteractionType => SpawnNode?.InteractionType ?? SituationInteractionType.Instant;
     public LifecycleStatus LifecycleStatus => SpawnNode?.LifecycleStatus ?? LifecycleStatus.Selectable;
+    public bool IsHighlighted { get; set; }
 
     public SituationNodeModel(Point position, SituationSpawnNode spawnNode) : base(position)
     {

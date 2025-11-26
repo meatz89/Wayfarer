@@ -94,6 +94,112 @@
     color: #a8a8a8;
 }
 
+/* Filter separator */
+.filter-separator {
+    color: #444;
+    font-size: 14px;
+    padding: 0 4px;
+}
+
+/* Category filter colors */
+.filter-toggle.category-main.active {
+    background-color: rgba(107, 76, 154, 0.6);
+    border-color: #8b6cba;
+    color: #d4c1f0;
+}
+
+.filter-toggle.category-side.active {
+    background-color: rgba(37, 99, 235, 0.5);
+    border-color: #3b82f6;
+    color: #bfdbfe;
+}
+
+.filter-toggle.category-service.active {
+    background-color: rgba(180, 83, 9, 0.5);
+    border-color: #d97706;
+    color: #fde68a;
+}
+
+/* State filter colors */
+.filter-toggle.state-active.active {
+    background-color: rgba(22, 163, 74, 0.5);
+    border-color: #22c55e;
+    color: #bbf7d0;
+}
+
+.filter-toggle.state-completed.active {
+    background-color: rgba(75, 85, 99, 0.5);
+    border-color: #6b7280;
+    color: #d1d5db;
+}
+
+.filter-toggle.state-deferred.active {
+    background-color: rgba(234, 88, 12, 0.4);
+    border-color: #f97316;
+    color: #fed7aa;
+}
+
+/* Search container */
+.search-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.search-input {
+    padding: 4px 8px;
+    border: 1px solid #0f3460;
+    background-color: #1a1a2e;
+    color: #e8e8e8;
+    border-radius: 4px;
+    font-size: 12px;
+    width: 160px;
+}
+
+.search-input:focus {
+    outline: none;
+    border-color: #3b82f6;
+}
+
+.search-input::placeholder {
+    color: #666;
+}
+
+.search-count {
+    font-size: 11px;
+    color: #22c55e;
+}
+
+.search-clear {
+    padding: 2px 6px;
+    border: 1px solid #0f3460;
+    background-color: transparent;
+    color: #888;
+    border-radius: 3px;
+    cursor: pointer;
+    font-size: 11px;
+}
+
+.search-clear:hover {
+    background-color: #0f3460;
+    color: #e8e8e8;
+}
+
+/* Highlighted node (search match) */
+.spawn-node.highlighted {
+    box-shadow: 0 0 0 3px #fbbf24, 0 4px 16px rgba(251, 191, 36, 0.4);
+    animation: pulse-highlight 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse-highlight {
+    0%, 100% {
+        box-shadow: 0 0 0 3px #fbbf24, 0 4px 16px rgba(251, 191, 36, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 4px #fbbf24, 0 4px 24px rgba(251, 191, 36, 0.6);
+    }
+}
+
 /* Canvas area */
 .spawn-graph-canvas {
     position: absolute;
@@ -143,6 +249,19 @@
     box-shadow: 0 0 0 2px #fff, 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
+/* Node header with icon and badge */
+.spawn-node .node-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+}
+
+.spawn-node .node-icon {
+    opacity: 0.9;
+    flex-shrink: 0;
+}
+
 /* Node type badge */
 .spawn-node .node-badge {
     font-size: 9px;
@@ -151,7 +270,6 @@
     text-transform: uppercase;
     padding: 2px 6px;
     border-radius: 3px;
-    margin-bottom: 6px;
     display: inline-block;
 }
 
@@ -266,41 +384,39 @@
     color: #fde68a;
 }
 
-/* Link/Edge styles */
+/* Link/Edge styles - Base */
 .diagram-link path {
     stroke-width: 2px;
 }
 
-/* Hierarchy links (solid) */
-.link-hierarchy path {
-    stroke: #888;
+/* Spawn links - dashed (green = scene spawn, blue = situation spawn) */
+.diagram-link path[stroke="#22c55e"] {
+    stroke-dasharray: 8 4 !important;
 }
 
-/* Spawn links (dashed green) */
-.link-spawn-scene path {
-    stroke: #22c55e;
-    stroke-dasharray: 6 3;
+.diagram-link path[stroke="#3b82f6"] {
+    stroke-dasharray: 8 4 !important;
 }
 
-.link-spawn-situation path {
-    stroke: #3b82f6;
-    stroke-dasharray: 6 3;
+/* Entity reference links - dotted */
+.diagram-link path[stroke="#f97316"] {
+    stroke-dasharray: 3 3 !important;
 }
 
-/* Entity reference links (dotted) */
-.link-entity-location path {
-    stroke: #f97316;
-    stroke-dasharray: 2 4;
+.diagram-link path[stroke="#ef4444"] {
+    stroke-dasharray: 3 3 !important;
 }
 
-.link-entity-npc path {
-    stroke: #ef4444;
-    stroke-dasharray: 2 4;
+.diagram-link path[stroke="#b45309"] {
+    stroke-dasharray: 3 3 !important;
 }
 
-.link-entity-route path {
-    stroke: #b45309;
-    stroke-dasharray: 2 4;
+/* Edge labels */
+.edge-label {
+    font-size: 10px;
+    fill: #888;
+    text-anchor: middle;
+    pointer-events: none;
 }
 
 /* Loading state */
@@ -443,3 +559,106 @@
 .detail-value.failure {
     color: #f87171;
 }
+
+/* Clickable navigation links */
+.detail-value.detail-link {
+    color: #60a5fa;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-decoration: none;
+}
+
+.detail-value.detail-link:hover {
+    color: #93c5fd;
+    text-decoration: underline;
+}
+
+/* Edge Legend */
+.spawn-graph-legend {
+    position: absolute;
+    bottom: 16px;
+    right: 16px;
+    background-color: rgba(22, 33, 62, 0.95);
+    border: 1px solid #0f3460;
+    border-radius: 6px;
+    z-index: 1002;
+}
+
+.legend-title {
+    padding: 6px 12px;
+    font-size: 11px;
+    color: #888;
+    cursor: pointer;
+    user-select: none;
+}
+
+.legend-title:hover {
+    color: #e8e8e8;
+}
+
+.legend-content {
+    padding: 8px 12px;
+    border-top: 1px solid #0f3460;
+    display: flex;
+    gap: 16px;
+}
+
+.legend-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.legend-header {
+    font-size: 10px;
+    font-weight: 600;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 2px;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: #a8a8a8;
+}
+
+.legend-line {
+    width: 24px;
+    height: 3px;
+    display: inline-block;
+}
+
+.legend-line.solid {
+    background: currentColor;
+}
+
+.legend-line.dashed {
+    background: repeating-linear-gradient(
+        to right,
+        currentColor 0px,
+        currentColor 6px,
+        transparent 6px,
+        transparent 10px
+    );
+}
+
+.legend-line.dotted {
+    background: repeating-linear-gradient(
+        to right,
+        currentColor 0px,
+        currentColor 3px,
+        transparent 3px,
+        transparent 6px
+    );
+}
+
+.legend-line.gray { color: #888888; }
+.legend-line.green { color: #22c55e; }
+.legend-line.blue { color: #3b82f6; }
+.legend-line.orange { color: #f97316; }
+.legend-line.red { color: #ef4444; }
+.legend-line.brown { color: #b45309; }

@@ -1,7 +1,11 @@
 @namespace Wayfarer.Pages.Components.SpawnGraph
+@using Wayfarer.Pages.Components
 
-<div class="spawn-node choice-node @GetExecutedClass() @GetSelectedClass()">
-    <div class="node-badge">Choice</div>
+<div class="spawn-node choice-node @GetExecutedClass() @GetSelectedClass() @GetHighlightedClass()">
+    <div class="node-header">
+        <Icon Name="@GetIconName()" Size="14px" CssClass="node-icon" />
+        <div class="node-badge">Choice</div>
+    </div>
     <div class="node-label">@Node.TruncatedText</div>
     <div class="node-info">
         @Node.ActionType
@@ -23,5 +27,15 @@
     private string GetSelectedClass()
     {
         return Node.Selected ? "selected" : "";
+    }
+
+    private string GetIconName()
+    {
+        return Node.WasExecuted ? "check-mark" : "cancel";
+    }
+
+    private string GetHighlightedClass()
+    {
+        return Node.IsHighlighted ? "highlighted" : "";
     }
 }

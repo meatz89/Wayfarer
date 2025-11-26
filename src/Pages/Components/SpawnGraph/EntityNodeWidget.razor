@@ -1,7 +1,11 @@
 @namespace Wayfarer.Pages.Components.SpawnGraph
+@using Wayfarer.Pages.Components
 
-<div class="spawn-node @GetNodeClass() @GetSelectedClass()">
-    <div class="node-badge">@GetBadgeText()</div>
+<div class="spawn-node @GetNodeClass() @GetSelectedClass() @GetHighlightedClass()">
+    <div class="node-header">
+        <Icon Name="@GetIconName()" Size="14px" CssClass="node-icon" />
+        <div class="node-badge">@GetBadgeText()</div>
+    </div>
     <div class="node-label">@Node.EntityName</div>
     <div class="node-info">@GetInfoText()</div>
 </div>
@@ -45,5 +49,21 @@
     private string GetSelectedClass()
     {
         return Node.Selected ? "selected" : "";
+    }
+
+    private string GetIconName()
+    {
+        return Node.EntityType switch
+        {
+            SpawnGraphEntityType.Location => "round-star",
+            SpawnGraphEntityType.NPC => "crown",
+            SpawnGraphEntityType.Route => "backpack",
+            _ => "sparkles"
+        };
+    }
+
+    private string GetHighlightedClass()
+    {
+        return Node.IsHighlighted ? "highlighted" : "";
     }
 }

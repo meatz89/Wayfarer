@@ -39,6 +39,9 @@
 @code {
     [Parameter] public NodeModel SelectedNode { get; set; }
     [Parameter] public EventCallback OnCloseClicked { get; set; }
+    [Parameter] public EventCallback<SceneSpawnNode> OnNavigateToScene { get; set; }
+    [Parameter] public EventCallback<SituationSpawnNode> OnNavigateToSituation { get; set; }
+    [Parameter] public EventCallback<ChoiceExecutionNode> OnNavigateToChoice { get; set; }
 
     private string GetVisibilityClass()
     {
@@ -162,14 +165,27 @@
                 {
                     <div class="detail-row">
                         <span class="detail-label">Parent Scene</span>
-                        <span class="detail-value">@spawn.ParentScene.DisplayName</span>
+                        <span class="detail-value detail-link" @onclick="() => OnNavigateToScene.InvokeAsync(spawn.ParentScene)">@spawn.ParentScene.DisplayName</span>
                     </div>
                 }
                 @if (spawn.ParentChoice != null)
                 {
                     <div class="detail-row">
                         <span class="detail-label">Spawned By</span>
-                        <span class="detail-value">@spawn.ParentChoice.ActionText</span>
+                        <span class="detail-value detail-link" @onclick="() => OnNavigateToChoice.InvokeAsync(spawn.ParentChoice)">@spawn.ParentChoice.ActionText</span>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (spawn.Situations.Count > 0)
+        {
+            <div class="detail-section">
+                <h4>Situations (@spawn.Situations.Count)</h4>
+                @foreach (SituationSpawnNode situation in spawn.Situations)
+                {
+                    <div class="detail-row">
+                        <span class="detail-value detail-link" @onclick="() => OnNavigateToSituation.InvokeAsync(situation)">@situation.Name</span>
                     </div>
                 }
             </div>
@@ -271,25 +287,36 @@
                 <h4>Parent</h4>
                 <div class="detail-row">
                     <span class="detail-label">Scene</span>
-                    <span class="detail-value">@spawn.ParentScene.DisplayName</span>
+                    <span class="detail-value detail-link" @onclick="() => OnNavigateToScene.InvokeAsync(spawn.ParentScene)">@spawn.ParentScene.DisplayName</span>
                 </div>
             </div>
         }
 
-        <div class="detail-section">
-            <h4>Children</h4>
-            <div class="detail-row">
-                <span class="detail-label">Choices</span>
-                <span class="detail-value">@spawn.Choices.Count executed</span>
+        @if (spawn.Choices.Count > 0)
+        {
+            <div class="detail-section">
+                <h4>Choices (@spawn.Choices.Count)</h4>
+                @foreach (ChoiceExecutionNode choice in spawn.Choices)
+                {
+                    <div class="detail-row">
+                        <span class="detail-value detail-link" @onclick="() => OnNavigateToChoice.InvokeAsync(choice)">@choice.ActionText</span>
+                    </div>
+                }
             </div>
-            @if (spawn.SpawnedSituations.Count > 0)
-            {
-                <div class="detail-row">
-                    <span class="detail-label">Cascades</span>
-                    <span class="detail-value">@spawn.SpawnedSituations.Count spawned</span>
-                </div>
-            }
-        </div>
+        }
+
+        @if (spawn.SpawnedSituations.Count > 0)
+        {
+            <div class="detail-section">
+                <h4>Cascaded Situations (@spawn.SpawnedSituations.Count)</h4>
+                @foreach (SituationSpawnNode cascadedSituation in spawn.SpawnedSituations)
+                {
+                    <div class="detail-row">
+                        <span class="detail-value detail-link" @onclick="() => OnNavigateToSituation.InvokeAsync(cascadedSituation)">@cascadedSituation.Name</span>
+                    </div>
+                }
+            </div>
+        }
     };
 
     private RenderFragment RenderChoiceDetails(ChoiceNodeModel node) => __builder =>
@@ -355,22 +382,27 @@
             </div>
         }
 
-        @if (spawn.SpawnedScenes.Count > 0 || spawn.SpawnedSituations.Count > 0)
+        @if (spawn.SpawnedScenes.Count > 0)
         {
             <div class="detail-section">
-                <h4>Consequences</h4>
-                @if (spawn.SpawnedScenes.Count > 0)
+                <h4>Spawned Scenes (@spawn.SpawnedScenes.Count)</h4>
+                @foreach (SceneSpawnNode spawnedScene in spawn.SpawnedScenes)
                 {
                     <div class="detail-row">
-                        <span class="detail-label">Scenes</span>
-                        <span class="detail-value">@spawn.SpawnedScenes.Count spawned</span>
+                        <span class="detail-value detail-link" @onclick="() => OnNavigateToScene.InvokeAsync(spawnedScene)">@spawnedScene.DisplayName</span>
                     </div>
                 }
-                @if (spawn.SpawnedSituations.Count > 0)
+            </div>
+        }
+
+        @if (spawn.SpawnedSituations.Count > 0)
+        {
+            <div class="detail-section">
+                <h4>Spawned Situations (@spawn.SpawnedSituations.Count)</h4>
+                @foreach (SituationSpawnNode spawnedSituation in spawn.SpawnedSituations)
                 {
                     <div class="detail-row">
-                        <span class="detail-label">Situations</span>
-                        <span class="detail-value">@spawn.SpawnedSituations.Count spawned</span>
+                        <span class="detail-value detail-link" @onclick="() => OnNavigateToSituation.InvokeAsync(spawnedSituation)">@spawnedSituation.Name</span>
                     </div>
                 }
             </div>
@@ -393,7 +425,7 @@
                 <h4>Parent</h4>
                 <div class="detail-row">
                     <span class="detail-label">Situation</span>
-                    <span class="detail-value">@spawn.ParentSituation.Name</span>
+                    <span class="detail-value detail-link" @onclick="() => OnNavigateToSituation.InvokeAsync(spawn.ParentSituation)">@spawn.ParentSituation.Name</span>
                 </div>
             </div>
         }

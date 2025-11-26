@@ -1,7 +1,11 @@
 @namespace Wayfarer.Pages.Components.SpawnGraph
+@using Wayfarer.Pages.Components
 
-<div class="spawn-node scene-node @GetStateClass() @GetSelectedClass()">
-    <div class="node-badge">Scene</div>
+<div class="spawn-node scene-node @GetStateClass() @GetSelectedClass() @GetHighlightedClass()" @ondblclick="OnDoubleClick" @ondblclick:stopPropagation>
+    <div class="node-header">
+        <Icon Name="drama-masks" Size="14px" CssClass="node-icon" />
+        <div class="node-badge">Scene</div>
+    </div>
     <div class="node-label">@Node.DisplayName</div>
     <div class="node-info">
         @Node.Category
@@ -14,6 +18,11 @@
 
 @code {
     [Parameter] public SceneNodeModel Node { get; set; }
+
+    private void OnDoubleClick()
+    {
+        Node.TriggerDoubleClick();
+    }
 
     private string GetStateClass()
     {
@@ -29,5 +38,10 @@
     private string GetSelectedClass()
     {
         return Node.Selected ? "selected" : "";
+    }
+
+    private string GetHighlightedClass()
+    {
+        return Node.IsHighlighted ? "highlighted" : "";
     }
 }

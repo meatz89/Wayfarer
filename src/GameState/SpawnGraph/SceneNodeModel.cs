@@ -10,9 +10,17 @@ public class SceneNodeModel : NodeModel
     public SceneState CurrentState => SpawnNode?.CurrentState ?? SceneState.Active;
     public bool IsProcedurallyGenerated => SpawnNode?.IsProcedurallyGenerated ?? false;
     public int SituationCount => SpawnNode?.SituationCount ?? 0;
+    public bool IsHighlighted { get; set; }
+
+    public System.Action<SceneNodeModel> OnDoubleClick { get; set; }
 
     public SceneNodeModel(Point position, SceneSpawnNode spawnNode) : base(position)
     {
         SpawnNode = spawnNode;
+    }
+
+    public void TriggerDoubleClick()
+    {
+        OnDoubleClick?.Invoke(this);
     }
 }

@@ -1,7 +1,11 @@
 @namespace Wayfarer.Pages.Components.SpawnGraph
+@using Wayfarer.Pages.Components
 
-<div class="spawn-node situation-node @GetSelectedClass()">
-    <div class="node-badge">Situation</div>
+<div class="spawn-node situation-node @GetSelectedClass() @GetHighlightedClass()">
+    <div class="node-header">
+        <Icon Name="target-arrows" Size="14px" CssClass="node-icon" />
+        <div class="node-badge">Situation</div>
+    </div>
     <div class="node-label">@Node.Name</div>
     <div class="node-info">
         @Node.SystemType | @Node.InteractionType
@@ -14,5 +18,10 @@
     private string GetSelectedClass()
     {
         return Node.Selected ? "selected" : "";
+    }
+
+    private string GetHighlightedClass()
+    {
+        return Node.IsHighlighted ? "highlighted" : "";
     }
 }

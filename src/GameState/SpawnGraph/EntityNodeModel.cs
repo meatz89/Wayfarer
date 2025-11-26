@@ -12,6 +12,7 @@ public class EntityNodeModel : NodeModel
 {
     public SpawnGraphEntityType EntityType { get; }
     public string EntityName { get; }
+    public bool IsHighlighted { get; set; }
 
     public LocationSnapshot LocationSnapshot { get; }
     public NPCSnapshot NPCSnapshot { get; }
