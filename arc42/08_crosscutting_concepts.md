@@ -421,6 +421,166 @@ MovementValidator.ValidateMovement()
 
 ---
 
+## 8.12 PlacementFilter Architecture
+
+**PlacementFilter controls entity resolution for scene situations using categorical properties.**
+
+Filters specify WHERE entities should be found or created, using proximity and identity dimensions.
+
+### Filter Properties
+
+| Property | Required | Purpose |
+|----------|----------|---------|
+| **Proximity** | Yes | How to search relative to context |
+| **Privacy** | No | Location privacy dimension |
+| **Safety** | No | Location safety dimension |
+| **Activity** | No | Location activity dimension |
+| **Purpose** | No | Location purpose dimension |
+| **Profession** | No | NPC profession (for NPC filters) |
+
+At least one identity dimension is required alongside Proximity.
+
+### PlacementProximity Values
+
+| Value | Meaning |
+|-------|---------|
+| `SameLocation` | Use context location directly |
+| `SameVenue` | Search within venue's locations |
+| `AdjacentLocation` | Search hex neighbors |
+| `SameDistrict` | Search district's venues |
+| `SameRegion` | Search region's districts |
+| `Anywhere` | Unrestricted search |
+
+### Filter Semantics
+
+- **Null filter:** No entity needed for that type
+- **Empty list on dimension:** Don't filter (any value matches)
+- **Non-empty list:** Entity must have ONE OF the specified values
+
+**Example:** `LocationFilter { Proximity: SameVenue, Purpose: [Lodging, Commerce] }` finds locations in current venue that are either Lodging OR Commerce.
+
+---
+
+## 8.13 Template vs Instance Lifecycle
+
+**Content instantiates lazily across three phases to separate immutable patterns from mutable state.**
+
+```mermaid
+stateDiagram-v2
+    [*] --> ParseTime: JSON Loaded
+    ParseTime --> Instantiation: Spawn Condition Met
+    Instantiation --> Activation: Player Enters Location
+    Activation --> QueryTime: Player Selects Action
+
+    state ParseTime {
+        SceneTemplate
+        SituationTemplate
+        ChoiceTemplate
+    }
+
+    state Instantiation {
+        Scene_Deferred: Scene (Deferred)
+        note right of Scene_Deferred: Situations = EMPTY
+    }
+
+    state Activation {
+        Scene_Active: Scene (Active)
+        Situations: Situation Instances
+        note right of Situations: Entities resolved
+    }
+
+    state QueryTime {
+        LocationAction
+        note right of LocationAction: Ephemeral
+    }
+```
+
+| Phase | What Exists | Entity References | Mutability |
+|-------|-------------|-------------------|------------|
+| **Parse Time** | Templates only | N/A (no instances) | Immutable |
+| **Instantiation (Deferred)** | Scene Instance, Situations = EMPTY | N/A | Scene mutable |
+| **Activation (Active)** | Scene + Situation Instances | Resolved (find-or-create) | All mutable |
+| **Query Time** | LocationAction (ephemeral) | Inherited from Situation | Deleted after use |
+
+**Key Insight:** Deferred scenes have NO Situation Instances. Situations are only created at activation when entities can be resolved. This prevents orphaned situations and simplifies memory management.
+
+---
+
+## 8.14 Entity Resolution (Find-Or-Create)
+
+**Entities are resolved at scene ACTIVATION, not parse-time or instantiation.**
+
+### Resolution Process
+
+1. Scene transitions from Deferred to Active
+2. For each SituationTemplate in SceneTemplate:
+   - Create Situation Instance
+   - Resolve Location via LocationFilter (find-or-create)
+   - Resolve NPC via NpcFilter if present (find-or-create)
+   - Resolve Route via RouteFilter if present (find-or-create)
+   - Add Situation Instance to Scene.Situations
+
+### Parse-Time vs Activation Behavior
+
+| Context | Caller | If Entity Not Found |
+|---------|--------|---------------------|
+| **Parse-time** | Parsers | Fail fast (content error) |
+| **Activation** | SceneInstantiator | Create via PackageLoader |
+
+**Parse-time principle:** Referenced entities must already exist. Missing entity = malformed content.
+
+**Activation principle:** Scene may require entities that don't exist yet. Missing entity = create dynamically.
+
+### Situation Entity Types
+
+Each Situation Instance references up to three dependent entities:
+
+| Filter | Entity | Constraint |
+|--------|--------|------------|
+| LocationFilter | Location | One per situation, **mandatory** |
+| NpcFilter | NPC | One per situation, null = solo situation |
+| RouteFilter | Route | One per situation, null = non-travel |
+
+---
+
+## 8.15 Separated Responsibilities (HIGHLANDER)
+
+**Entity resolution follows strict responsibility separation to prevent circular dependencies.**
+
+| Class | Responsibility | What It Does NOT Do |
+|-------|----------------|---------------------|
+| **EntityResolver** | FIND only | Never creates entities |
+| **PackageLoader** | CREATE only | Never searches for existing |
+| **SceneInstantiator** | Orchestrate find-or-create | Never finds or creates directly |
+
+### Resolution Flow
+
+```mermaid
+sequenceDiagram
+    participant SI as SceneInstantiator
+    participant ER as EntityResolver
+    participant PL as PackageLoader
+    participant GW as GameWorld
+
+    SI->>ER: FindLocation(filter)
+    alt Found
+        ER-->>SI: Location
+    else Not Found
+        ER-->>SI: null
+        SI->>PL: CreateLocation(filter)
+        PL->>GW: Add(newLocation)
+        PL-->>SI: newLocation
+    end
+```
+
+**Why This Matters:**
+- No circular dependencies between resolution components
+- Clear audit trail for entity creation
+- Single path for all entity creation (through PackageLoader)
+- Entity origin tracking (Authored vs SceneCreated)
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement

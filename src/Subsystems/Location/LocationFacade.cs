@@ -450,7 +450,7 @@ public class LocationFacade
                 CurrentSituation = null
             };
 
-            // CORRECT ARCHITECTURE (from CONTENT_ARCHITECTURE.md):
+            // CORRECT ARCHITECTURE (from arc42/08_crosscutting_concepts.md §8.13-8.14):
             // ActivateScene is an INTEGRATED PROCESS that:
             // 1. Creates Situation instances from SituationTemplates
             // 2. Resolves entities (find-or-create) for each Situation

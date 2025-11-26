@@ -90,7 +90,7 @@ public class SceneInstantiator
     /// <summary>
     /// PHASE 2: Activate scene - INTEGRATED PROCESS
     /// Creates Situation instances from SituationTemplates AND resolves entities in one operation.
-    /// CORRECT ARCHITECTURE (from CONTENT_ARCHITECTURE.md):
+    /// CORRECT ARCHITECTURE (from arc42/08_crosscutting_concepts.md §8.13-8.14):
     /// - Deferred scene has Situations = EMPTY (just reference to Template)
     /// - Activation creates Situation INSTANCES from Template.SituationTemplates
     /// - For each Situation, resolve entities (find-or-create) via EntityResolver + PackageLoader
@@ -111,7 +111,7 @@ public class SceneInstantiator
                 $"Scene '{scene.TemplateId}' cannot be activated - Template reference is null");
         }
 
-        // FAIL FAST: SituationTemplates must exist per CONTENT_ARCHITECTURE.md
+        // FAIL FAST: SituationTemplates must exist per arc42/08 §8.13
         // "SceneTemplates created with ALL SituationTemplates embedded"
         if (scene.Template.SituationTemplates == null || scene.Template.SituationTemplates.Count == 0)
         {
@@ -158,7 +158,7 @@ public class SceneInstantiator
             }
             else
             {
-                // FAIL FAST: LocationFilter is MANDATORY per CONTENT_ARCHITECTURE.md Section 11
+                // FAIL FAST: LocationFilter is MANDATORY per gdd/05_content.md §5.8
                 throw new InvalidOperationException(
                     $"[SceneInstantiator] FAIL FAST: Situation '{situation.Name}' in scene '{scene.DisplayName}' " +
                     $"has null LocationFilter. LocationFilter is MANDATORY for all situations. " +
