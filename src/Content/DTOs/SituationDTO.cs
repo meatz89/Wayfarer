@@ -206,4 +206,5 @@ public class SituationDTO
     /// Hints for AI narrative generation
     /// </summary>
     public NarrativeHintsDTO NarrativeHints { get; set; }
+
 }

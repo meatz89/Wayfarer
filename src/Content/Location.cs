@@ -88,7 +88,6 @@ public class Location
 
     // Gameplay properties - NO DEFAULTS: must be explicitly set by parser
     public ObligationDiscipline ObligationProfile { get; set; }
-    public List<string> DomainTags { get; set; } = new List<string>(); // DEPRECATED: Used only for DEPENDENT_LOCATION marker system
     public LocationTypes LocationType { get; set; }
     public bool IsStartingLocation { get; set; }
 
@@ -102,9 +101,19 @@ public class Location
     public LocationPurpose Purpose { get; set; }
 
     /// <summary>
-    /// Provenance tracking: which scene created this location (if any)
-    /// null = location from base game content (not dynamically created)
-    /// non-null = location created by scene during gameplay (dependent resource)
+    /// Explicit discriminator for accessibility model.
+    /// CLEAN ARCHITECTURE: Uses explicit enum instead of null-as-domain-meaning.
+    /// Defaults to Authored (base game content).
+    /// Set to SceneCreated by DependentResourceOrchestrationService when creating dependent locations.
+    /// </summary>
+    public LocationOrigin Origin { get; set; } = LocationOrigin.Authored;
+
+    /// <summary>
+    /// Provenance tracking: forensic metadata about which scene created this location.
+    /// Only populated when Origin == SceneCreated.
+    /// Contains: Scene reference, creation timestamp (day/timeblock/segment).
+    /// Used for: cleanup coordination, resource lifecycle tracking, debug queries.
+    /// NOT used for accessibility decisions - use Origin enum instead.
     /// </summary>
     public SceneProvenance Provenance { get; set; } = null;
 

@@ -130,12 +130,6 @@ public class PlacementFilter
     /// </summary>
     public bool? IsPlayerAccessible { get; init; }
 
-    /// <summary>
-    /// DEPRECATED: Location tags used only for DEPENDENT_LOCATION marker system
-    /// Use orthogonal categorical dimensions (Privacy, Safety, Activity, Purpose) instead
-    /// </summary>
-    public List<string> LocationTags { get; init; } = new List<string>();
-
     // Orthogonal Categorical Dimensions for Location selection
     // Multiple dimensions compose to create archetypes
     // Empty list = don't filter on this dimension (any value matches)

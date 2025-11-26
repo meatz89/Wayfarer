@@ -50,7 +50,8 @@ public class SceneInstantiator
     public string CreateDeferredScene(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
         // Evaluate spawn conditions
-        bool isEligible = template.IsStarter || _spawnConditionsEvaluator.EvaluateAll(
+        // Scenes load as Deferred, activate via LocationActivationFilter when player enters matching location
+        bool isEligible = _spawnConditionsEvaluator.EvaluateAll(
             template.SpawnConditions,
             context.Player,
             placementId: null
@@ -210,8 +211,9 @@ public class SceneInstantiator
     /// </summary>
     public string GenerateScenePackageJson(SceneTemplate template, SceneSpawnReward spawnReward, SceneSpawnContext context)
     {
-        // Evaluate spawn conditions (same as old CreateProvisionalScene)
-        bool isEligible = template.IsStarter || _spawnConditionsEvaluator.EvaluateAll(
+        // Evaluate spawn conditions
+        // Scenes load as Deferred, activate via LocationActivationFilter when player enters matching location
+        bool isEligible = _spawnConditionsEvaluator.EvaluateAll(
             template.SpawnConditions,
             context.Player,
             placementId: null
@@ -298,16 +300,16 @@ public class SceneInstantiator
         }
 
         // System 3: Write categorical specifications (NOT concrete IDs)
-        // Copy activation filters from template to scene instance
-        // These determine WHEN scene activates (Deferred → Active transition)
+        // Copy activation filter from template to scene instance
+        // Scenes activate via LOCATION ONLY (player enters location matching filter)
 
         SceneDTO dto = new SceneDTO
         {
             Id = sceneId,
             TemplateId = template.Id,
-            // Activation filters: Copied from template, determine activation trigger
+            // Activation filter: Copied from template, determines activation trigger
+            // Scenes activate via LOCATION ONLY when player enters matching location
             LocationActivationFilter = ConvertPlacementFilterToDTO(template.LocationActivationFilter),
-            NpcActivationFilter = ConvertPlacementFilterToDTO(template.NpcActivationFilter),
             State = isDeferredState ? "Deferred" : "Active", // TWO-PHASE: Deferred or Active based on caller
             ExpiresOnDay = expiresOnDay,
             Archetype = template.Archetype.ToString(),
@@ -361,18 +363,6 @@ public class SceneInstantiator
             PlacementFilterDTO effectiveNpcFilter = ConvertPlacementFilterToDTO(sitTemplate.NpcFilter);
             PlacementFilterDTO effectiveRouteFilter = ConvertPlacementFilterToDTO(sitTemplate.RouteFilter);
 
-            // Replace DEPENDENT_LOCATION markers with scene-specific tags
-            // Marker format: "DEPENDENT_LOCATION:private_room" → "{sceneId}_private_room"
-            // This binds situations to dependent locations created by THIS scene
-            if (effectiveLocationFilter?.LocationTags != null)
-            {
-                effectiveLocationFilter.LocationTags = effectiveLocationFilter.LocationTags
-                    .Select(tag => tag.StartsWith("DEPENDENT_LOCATION:")
-                        ? $"{sceneDto.Id}_{tag.Substring("DEPENDENT_LOCATION:".Length)}"
-                        : tag)
-                    .ToList();
-            }
-
             // Build Situation DTO from template
             // Scene-based situations use templates - most DTO properties are for standalone situations
             SituationDTO situationDto = new SituationDTO
@@ -388,6 +378,8 @@ public class SceneInstantiator
                 LocationFilter = effectiveLocationFilter,
                 NpcFilter = effectiveNpcFilter,
                 RouteFilter = effectiveRouteFilter
+                // NOTE: DependentLocationSpec binding handled at spawn time via direct object reference
+                // Each situation with a spec gets location created and bound: situation.Location = createdLocation
             };
 
             // Copy narrative hints if present
@@ -581,14 +573,6 @@ public class SceneInstantiator
             if (!string.IsNullOrEmpty(filter.DistrictId))
             {
                 if (loc.Venue == null || loc.Venue.District == null || loc.Venue.District.Name != filter.DistrictId)
-                    return false;
-            }
-
-            // Check location tags (uses DomainTags property)
-            if (filter.LocationTags != null && filter.LocationTags.Count > 0)
-            {
-                // Location must have ALL specified tags
-                if (!filter.LocationTags.All(tag => loc.DomainTags.Contains(tag)))
                     return false;
             }
 
@@ -1215,9 +1199,6 @@ public class SceneInstantiator
             CanWork = false, // Generated locations don't support work by default,
             WorkType = "",
             WorkPay = 0,
-            // Scene-specific tag for dependent location binding
-            // Enables situations to reference this location via PlacementFilter.LocationTags
-            DomainTags = new List<string> { $"{sceneId}_{spec.TemplateId}" },
             // FAIL-FAST: Read ALL categorical dimensions from spec (NO defaults)
             Privacy = spec.Privacy,
             Safety = spec.Safety,
@@ -1354,7 +1335,6 @@ public class SceneInstantiator
             LocationTypes = filter.LocationTypes?.Select(t => t.ToString()).ToList(),
             Capabilities = ConvertCapabilitiesToStringList(filter.RequiredCapabilities),
             IsPlayerAccessible = filter.IsPlayerAccessible,
-            LocationTags = filter.LocationTags,
             DistrictId = filter.DistrictId,
             RegionId = filter.RegionId,
             // Orthogonal Categorical Dimensions - Location

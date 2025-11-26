@@ -168,8 +168,8 @@ public static class AStorySceneArchetypeCatalog
         {
             ChoiceReward reward = choice.RewardTemplate ?? new ChoiceReward();
 
-            // NEW ARCHITECTURE: Location accessibility controlled by situation GrantsLocationAccess property
-            // No need for reward-based unlock - situation at meeting_chamber grants access via template property
+            // NEW ARCHITECTURE: Dual-model accessibility - situation presence at dependent location grants access
+            // No need for reward-based unlock - when situation advances to meeting_chamber, access is automatic
 
             enrichedNegotiateChoices.Add(new ChoiceTemplate
             {
@@ -202,6 +202,25 @@ public static class AStorySceneArchetypeCatalog
             RouteFilter = null
         };
 
+        // Dependent location spec - created BEFORE situation so it can be referenced
+        // HIGHLANDER: Situation references spec by object, not by name string
+        DependentLocationSpec meetingChamber = new DependentLocationSpec
+        {
+            TemplateId = "meeting_chamber",
+            Name = "Meeting Chamber",
+            Description = "A formal meeting space where important discussions take place.",
+            VenueIdSource = VenueIdSource.SameAsBase,
+            HexPlacement = HexPlacementStrategy.SameVenue,
+            Properties = new List<string> { "indoor", "private", "formal" },
+            IsLockedInitially = true,
+            UnlockItemTemplateId = null,
+            CanInvestigate = false,
+            Privacy = "Private",
+            Safety = "Safe",
+            Activity = "Quiet",
+            Purpose = "Government"
+        };
+
         // SITUATION 2: AUDIENCE
         SituationArchetype audienceArchetype = SituationArchetypeCatalog.GetArchetype("confrontation");
         List<ChoiceTemplate> audienceChoices = SituationArchetypeCatalog.GenerateChoiceTemplates(
@@ -222,7 +241,8 @@ public static class AStorySceneArchetypeCatalog
                 Context = "formal_audience",
                 Style = "dramatic"
             },
-            LocationFilter = new PlacementFilter { PlacementType = PlacementType.Location, LocationTags = new List<string> { "DEPENDENT_LOCATION:meeting_chamber" } },
+            // HIGHLANDER: Direct object reference to spec - PackageLoader creates location, binds directly
+            DependentLocationSpec = meetingChamber,
             NpcFilter = null,       // Inherits scene BaseNpcFilter
             RouteFilter = null
         };
@@ -241,20 +261,6 @@ public static class AStorySceneArchetypeCatalog
                 Condition = TransitionCondition.Always
             }
         }
-        };
-
-        // Dependent resources
-        DependentLocationSpec meetingChamber = new DependentLocationSpec
-        {
-            TemplateId = "meeting_chamber",
-            Name = "Meeting Chamber",
-            Description = "A formal meeting space where important discussions take place.",
-            VenueIdSource = VenueIdSource.SameAsBase,
-            HexPlacement = HexPlacementStrategy.SameVenue,
-            Properties = new List<string> { "indoor", "private", "formal" },
-            IsLockedInitially = true,
-            UnlockItemTemplateId = null,
-            CanInvestigate = false
         };
 
         List<SituationTemplate> situations = new List<SituationTemplate>

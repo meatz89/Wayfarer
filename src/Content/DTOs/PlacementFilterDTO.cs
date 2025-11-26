@@ -122,11 +122,6 @@ public class PlacementFilterDTO
     /// </summary>
     public bool? IsPlayerAccessible { get; set; }
 
-    /// <summary>
-    /// DEPRECATED: Use orthogonal categorical dimensions instead (kept only for DEPENDENT_LOCATION markers)
-    /// </summary>
-    public List<string> LocationTags { get; set; } = new List<string>();
-
     // Orthogonal Categorical Dimensions - Location
     // String values from JSON parsed to enums by SceneTemplateParser
 

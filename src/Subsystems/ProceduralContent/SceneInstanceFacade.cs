@@ -96,26 +96,21 @@ public class SceneInstanceFacade
         await _contentGenerationFacade.CreateDynamicPackageFile(packageJson, packageId);
 
         // PHASE 2.3: Load package via PackageLoader (HIGHLANDER: JSON → Parser → Entity)
-        await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
+        // Returns PackageLoadResult with direct object references to created entities
+        PackageLoadResult loadResult = await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
 
-        // PHASE 2.4: Retrieve spawned scene from GameWorld
-        // Scene was added to GameWorld by PackageLoader
-        // HIGHLANDER: Query by TemplateId, get last match (most recently added)
-        // Scenes collection ordered by insertion, LastOrDefault gets most recent
-        Scene spawnedScene = _gameWorld.Scenes
-            .Where(s => s.TemplateId == template.Id)
-            .LastOrDefault();
+        // PHASE 2.4: Get spawned scene from result (HIGHLANDER: direct object reference)
+        Scene spawnedScene = loadResult.ScenesAdded.FirstOrDefault();
 
         if (spawnedScene == null)
         {
             throw new InvalidOperationException($"Scene from template '{template.Id}' failed to load via PackageLoader");
         }
 
-        // PHASE 2.4: Post-load orchestration (dependent resources)
-        if (template.DependentLocations.Any() || template.DependentItems.Any())
-        {
-            PostLoadOrchestration(spawnedScene, template, context.Player);
-        }
+        // PHASE 2.5: Post-load orchestration (dependent resources)
+        // Creates dependent locations PER-SITUATION via direct CreateSingleLocation calls
+        // Items still come from loadResult (JSON path still used for items)
+        PostLoadOrchestration(spawnedScene, loadResult, context.Player, context.CurrentVenue);
 
         // PHASE 2.5: RUNTIME PLAYABILITY VALIDATION (FAIL-FAST)
         // Validates spawned scene is actually playable by player
@@ -155,11 +150,14 @@ public class SceneInstanceFacade
 
     /// <summary>
     /// Post-load orchestration for dependent resources
-    /// Sets provenance, generates hex routes, adds items to inventory, builds marker map
+    /// Creates locations PER-SITUATION via CreateSingleLocation (NO JSON, NO matching)
+    /// Sets Origin, Provenance, generates hex routes, adds items to inventory
+    ///
+    /// HIGHLANDER: Direct creation and binding - no string matching
     /// </summary>
-    private void PostLoadOrchestration(Scene scene, SceneTemplate template, Player player)
+    private void PostLoadOrchestration(Scene scene, PackageLoadResult loadResult, Player player, Venue contextVenue)
     {
-        // ADR-007: Use Scene object reference instead of SceneId
+        // Build provenance for newly created resources
         SceneProvenance provenance = new SceneProvenance
         {
             Scene = scene,
@@ -168,39 +166,68 @@ public class SceneInstanceFacade
             CreatedSegment = _timeManager.CurrentSegment
         };
 
-        // Generate hex routes for dependent locations
-        // Provenance already set by DependentResourceOrchestrationService
-        // HIGHLANDER: Match by Provenance.Scene only (no Template properties)
-        foreach (DependentLocationSpec locationSpec in template.DependentLocations)
+        // Get template for item processing
+        SceneTemplate template = scene.Template ?? _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == scene.TemplateId);
+
+        // STEP 1: Configure dependent items (still from loadResult - items use JSON path)
+        foreach (Item item in loadResult.ItemsAdded)
         {
-            // Find location created by this scene
-            Location location = _gameWorld.Locations
-                .FirstOrDefault(loc => loc.Provenance?.Scene == scene);
+            // Set provenance for forensic tracking
+            item.Provenance = provenance;
 
-            if (location != null && location.HexPosition.HasValue)
-            {
-                List<RouteOption> routes = _hexRouteGenerator.GenerateRoutesForNewLocation(location);
-                foreach (RouteOption route in routes)
-                {
-                    _gameWorld.Routes.Add(route);
-                }
-                Console.WriteLine($"[SceneInstanceFacade] Generated {routes.Count} hex routes for location '{location.Name}'");
-            }
-        }
-
-        // Add items to inventory if AddToInventoryOnCreation=true
-        // Provenance already set by DependentResourceOrchestrationService
-        // HIGHLANDER: Match by Provenance.Scene only (no Template properties)
-        foreach (DependentItemSpec itemSpec in template.DependentItems)
-        {
-            // Find item created by this scene
-            Item item = _gameWorld.Items
-                .FirstOrDefault(i => i.Provenance?.Scene == scene);
-
-            if (item != null && itemSpec.AddToInventoryOnCreation)
+            // Check if this item should be added to inventory
+            DependentItemSpec itemSpec = template?.DependentItems?.FirstOrDefault(s => s.Name == item.Name);
+            if (itemSpec != null && itemSpec.AddToInventoryOnCreation)
             {
                 player.Inventory.Add(item);
                 Console.WriteLine($"[SceneInstanceFacade] Added item '{item.Name}' to player inventory");
+            }
+        }
+
+        // STEP 2: Create and bind locations PER-SITUATION via direct CreateSingleLocation
+        // NO JSON serialization - creates Location directly from spec
+        // Shared spec instance = shared location (tracked by Dictionary for reference equality)
+        Dictionary<DependentLocationSpec, Location> specToLocationMap = new Dictionary<DependentLocationSpec, Location>();
+
+        foreach (Situation situation in scene.Situations)
+        {
+            DependentLocationSpec spec = situation.Template?.DependentLocationSpec;
+            if (spec != null)
+            {
+                // Check if we've already created a location for this spec instance
+                if (specToLocationMap.TryGetValue(spec, out Location existingLocation))
+                {
+                    // Shared spec instance = shared location (reference equality)
+                    situation.Location = existingLocation;
+                    Console.WriteLine($"[SceneInstanceFacade] Bound situation '{situation.Name}' to SHARED location '{existingLocation.Name}'");
+                }
+                else
+                {
+                    // CREATE location directly from spec (NO JSON, NO matching)
+                    // Returns ONE Location reference - direct binding
+                    Location createdLocation = _packageLoaderFacade.CreateSingleLocation(spec, contextVenue);
+
+                    // Set Origin and Provenance
+                    createdLocation.Origin = LocationOrigin.SceneCreated;
+                    createdLocation.Provenance = provenance;
+
+                    // Generate hex routes if location has hex position
+                    if (createdLocation.HexPosition.HasValue)
+                    {
+                        List<RouteOption> routes = _hexRouteGenerator.GenerateRoutesForNewLocation(createdLocation);
+                        foreach (RouteOption route in routes)
+                        {
+                            _gameWorld.Routes.Add(route);
+                        }
+                        Console.WriteLine($"[SceneInstanceFacade] Generated {routes.Count} hex routes for location '{createdLocation.Name}'");
+                    }
+
+                    // DIRECT BINDING: situation.Location = createdLocation (NO matching)
+                    situation.Location = createdLocation;
+                    specToLocationMap[spec] = createdLocation;
+
+                    Console.WriteLine($"[SceneInstanceFacade] CREATED and bound location '{createdLocation.Name}' for situation '{situation.Name}'");
+                }
             }
         }
     }

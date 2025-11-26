@@ -4,7 +4,36 @@
 
 This document explains the complete technical implementation of the scene system for playtesters and debuggers who need to understand WHY scenes activate, HOW entities get created, and WHERE to look when something breaks.
 
-**NOTE**: `IsStarter` is LEGACY and should be removed. The target architecture: ALL scenes load as Deferred at game initialization, then activate via categorical trigger when player enters matching location.
+**Code Snippets Note:** Code examples in this document are PARAPHRASED for clarity. Actual line numbers and exact code may differ. Use file:line references to locate actual implementation.
+
+### 14.1.1 Scene Lifecycle: Loading → Activation → Display
+
+**Scenes go through THREE phases:**
+
+| Phase | When | What Happens |
+|-------|------|--------------|
+| **LOADING** | JSON package parsed (static or dynamic) | Scene created as **Deferred** in GameWorld.Scenes. Situations exist but entity references unresolved. |
+| **ACTIVATION** | Player enters location matching `LocationActivationFilter` | Dependent resources (locations, NPCs) CREATED from categorical properties. Entity references resolved. Scene → **Active**. Situation 1 becomes current. |
+| **DISPLAY** | Player at situation's location OR talks to situation's NPC | Choices from current situation displayed to player. |
+
+**CRITICAL: `IsStarter` is LEGACY.** The target architecture has ALL scenes loaded as Deferred when their JSON package is loaded (static at game init, dynamic at runtime). The `IsStarter` flag exists in current code but should be removed—scenes should activate purely via categorical location matching.
+
+**Scenes activate via LOCATION ONLY.** When player enters a location, `CheckAndActivateDeferredScenes()` evaluates each Deferred scene's `LocationActivationFilter` against the location's categorical properties.
+
+**Situations display via their assigned context.** After activation, each situation has resolved `Location` and/or `Npc` references. Choices appear when player is at that location or talks to that NPC.
+
+### 14.1.2 Core Game Design Principles (Essential Context)
+
+These principles govern HOW the scene/choice system works:
+
+| Principle | What It Means | Impact on Implementation |
+|-----------|---------------|-------------------------|
+| **Requirement Inversion** | Stats affect COST, not ACCESS. No boolean gates. | Choices use cost scaling, not level requirements. Everyone can attempt anything. |
+| **Four-Choice Archetype** | Standard situation structure | Every A-story situation offers: stat-gated (free for specialists), resource (costs coins), challenge (skill test), fallback (always available) |
+| **Perfect Information** | All costs/rewards visible | UI must display complete cost/reward before player commits |
+| **Impossible Choices** | No optimal path exists | Multiple suboptimal paths, not one "correct" answer |
+
+**See:** `gdd/01_vision.md` for full design philosophy, `gdd/08_glossary.md` for term definitions.
 
 ## 14.2 Complete System Architecture
 
@@ -13,8 +42,14 @@ This document explains the complete technical implementation of the scene system
 ALL content flows through a single path - no exceptions:
 
 ```
-JSON --> Parser --> Entity
+JSON --> DTO --> Parser --> Entity
 ```
+
+**Layer Responsibilities:**
+- **JSON**: Content authored in files or generated dynamically
+- **DTO**: Data Transfer Objects (Package, LocationDTO, SceneTemplateDTO) - JSON deserialized to typed objects
+- **Parser**: Converts DTOs to domain entities, resolves references, validates
+- **Entity**: Domain objects stored in GameWorld
 
 - **Authored content**: Written in `Content/Core/*.json`
 - **Dynamic content**: Generated to `Content/Dynamic/*.json` at runtime
@@ -28,11 +63,133 @@ Key files:
 
 | Tier | When | What's Created | Example |
 |------|------|----------------|---------|
-| **Parse-Time** (Tier 1) | Package loading | Templates with categorical filters | SceneTemplate, SituationTemplate, ChoiceTemplate |
+| **Parse-Time** (Tier 1) | Package loading | Templates and atmospheric actions | SceneTemplate, ChoiceTemplate, LocationAction (atmospheric) |
 | **Spawn-Time** (Tier 2) | Scene activation | Instances with resolved entity references | Scene, Situation with Location/NPC objects |
-| **Query-Time** (Tier 3) | UI request | Ephemeral actions (never stored) | LocationAction, NPCAction (fresh on every query) |
+| **Query-Time** (Tier 3) | UI request | Ephemeral scene-based actions | LocationAction/NPCAction from ChoiceTemplates (fresh on every query) |
 
-Key insight: **Actions are NEVER stored**. They're rebuilt fresh from ChoiceTemplates every time the UI queries.
+**DUAL-TIER ACTION ARCHITECTURE (see arc42/08 §8.8):**
+- **Atmospheric actions ARE stored** in `GameWorld.LocationActions` (permanent, parse-time from LocationActionCatalog)
+- **Scene-based actions are ephemeral** (rebuilt fresh from ChoiceTemplates every query)
+
+This is intentional: atmospheric actions (Travel, Work, Rest, Move) prevent soft-locks by always being available, while scene-based actions layer dynamic narrative content on top.
+
+### 14.2.3 Scene Lifecycle and Ownership
+
+**Full Scene State Machine:**
+```
+Deferred → Active → Completed
+              ↓
+           Expired
+```
+
+| State | Meaning | Dependent Resources | Player Interaction |
+|-------|---------|--------------------|--------------------|
+| **Deferred** | Created but not activated | NOT spawned yet | None |
+| **Active** | Available for interaction | Spawned and resolved | CurrentSituation accessible |
+| **Completed** | All situations finished | Exist (cleanup later) | None |
+| **Expired** | Time limit reached | Exist (cleanup later) | Opportunity missed |
+
+**Dependent Resources (FindOrCreate Pattern):**
+Templates can declare resources needed when scene activates:
+- `template.DependentLocations` — Locations to find/create (e.g., private room for lodging scene)
+- `template.DependentItems` — Items to create (e.g., evidence found during investigation)
+
+At activation time, EntityResolver searches the defined area near the player:
+- If suitable entity EXISTS → MATCHED and assigned to situation
+- If NO match found → CREATED from categorical properties and added to GameWorld
+
+This enables procedural content reuse—the same categorical filter may match different entities in different playthroughs.
+
+**Scene Owns Situations (Composition):**
+- Scene contains `List<Situation>` directly (like Car owns Wheels)
+- Deleting Scene deletes its Situations (no orphans)
+- `CurrentSituationIndex` tracks progression (0-based)
+- `CurrentSituation` is computed property from index
+
+**Multi-Location Scenes:**
+Scenes can span multiple locations via per-situation placement:
+```
+Scene: "Inn Service" (3 situations)
+├── Situation 1: "Negotiate" → Location: Common Room, NPC: Innkeeper
+├── Situation 2: "Rest" → Location: Private Room, NPC: null
+└── Situation 3: "Depart" → Location: Exit, NPC: null
+```
+
+**Activation Filter vs Situation Placement:**
+| Concept | When Evaluated | Purpose |
+|---------|----------------|---------|
+| **LocationActivationFilter** (Scene) | Player enters location | Triggers Deferred → Active |
+| **Situation.Location** (Situation) | Scene already Active | Determines WHERE choice appears |
+
+### 14.2.4 Strategic vs Tactical Layers
+
+**Two distinct gameplay layers with different information rules:**
+
+| Layer | Flow | Information | Decision |
+|-------|------|-------------|----------|
+| **Strategic** | Scene → Situation → Choice | Perfect (all costs visible) | WHETHER to attempt |
+| **Tactical** | Challenge → Card Play → Result | Hidden complexity (draw order) | HOW to succeed |
+
+**The Bridge (ActionType.StartChallenge):**
+- Instant actions stay in Strategic layer (apply costs immediately)
+- Challenge actions cross to Tactical layer (Mental/Physical/Social card game)
+- Strategic choice remains meaningful—bad plan leads to tactical struggle
+
+**Presentation and Progression Modes:**
+
+| Mode | Type | Behavior |
+|------|------|----------|
+| **Atmospheric** | Presentation | Scene appears as menu option (default) |
+| **Modal** | Presentation | Scene takes over full screen on location entry |
+| **Breathe** | Progression | Return to menu after each situation (default) |
+| **Cascade** | Progression | Continue to next situation immediately |
+
+### 14.2.5 Situation Routing (SpawnRules)
+
+Scenes define how situations flow via `SituationSpawnRules`:
+
+| Pattern | Description | Use Case |
+|---------|-------------|----------|
+| **Linear** | Advance to next index sequentially | Tutorial, simple progression |
+| **Conditional** | Branch on `OnSuccess`/`OnFailure` based on challenge result | Skill check consequences |
+| **HubAndSpoke** | Return to central situation after each branch | Investigation, hub location |
+| **Branching** | Multiple paths based on choice selection | Narrative branches |
+| **Converging** | Multiple paths merge to single conclusion | Drama convergence |
+
+**Situation Advancement Flow:**
+After choice execution, `Scene.AdvanceToNextSituation()` is called:
+
+1. **Evaluate Transitions** — Query `SpawnRules.Transitions` for matching source situation
+2. **Find Destination** — Get `DestinationSituationId` from transition (may evaluate conditions like OnSuccess/OnFailure)
+3. **Update Index** — Set `CurrentSituationIndex` to destination situation's index
+4. **Compare Contexts** — Determine routing decision based on context change
+
+**SceneRoutingDecision (returned to UI):**
+| Decision | Meaning | UI Action |
+|----------|---------|-----------|
+| **ContinueInScene** | Same context (location/NPC unchanged) | Show next situation immediately (Cascade) |
+| **ExitToWorld** | Context changed (different location/NPC) | Return to world, player navigates (Breathe) |
+| **SceneComplete** | No valid transition or all situations done | Scene.State = Completed |
+
+**Scene Completion Triggers:**
+- `SpawnRules.Transitions.Count == 0` (no transitions defined)
+- No matching transition for completed situation
+- `CurrentSituationIndex >= Situations.Count` (out of bounds)
+
+Key file: `src/GameState/Scene.cs:225-272`
+
+### 14.2.6 Related Systems (Not Covered in Detail)
+
+**Obligation System** (Quest/Mission tracking):
+- Obligations spawn situations when prerequisites are met
+- Types: NPCCommissioned (deadline, patron) vs SelfDiscovered (open-ended)
+- Tracked in `GameWorld.Obligations` and `ObligationJournal`
+- See `src/GameState/Obligation.cs` for details
+
+**Challenge System** (Tactical layer):
+- Three parallel systems: Social (Momentum), Mental (Progress), Physical (Breakthrough)
+- Card-based resolution with deck building
+- See `gdd/04_systems.md` and tactical facades
 
 ## 14.3 Complete Game Initialization Flow
 
@@ -67,8 +224,8 @@ GameFacade.StartGameAsync()
     TimeFacade.SetInitialTimeState()
     ExchangeFacade.InitializeNPCExchanges()
 
-  PHASE 2: SpawnStarterScenes() - Creates DEFERRED scenes
-    For each template with IsStarter=true:  // LEGACY - should be ALL templates
+  PHASE 2: SpawnStarterScenes() - Creates DEFERRED scenes (LEGACY)
+    For each template with IsStarter=true: // LEGACY: Should be package-based loading
       CreateDeferredSceneWithDynamicContent()
         SceneInstantiator.CreateDeferredScene()
           Generate JSON with State="Deferred"
@@ -89,24 +246,64 @@ GameFacade.StartGameAsync()
 
 Key file: `src/Services/GameFacade.cs:706-783`
 
-## 14.4 Categorical Activation Triggers (The Core Mechanism)
+## 14.4 Categorical Activation Triggers (Deferred → Active)
 
-### 14.4.1 How Scenes Activate (NOT via IsStarter)
+### 14.4.1 How Deferred Scenes Activate
 
-**CRITICAL**: `IsStarter=true` only determines which templates spawn at game start as Deferred. The actual ACTIVATION happens via categorical property matching.
+**Scenes activate via LOCATION ONLY.** When player enters a location, `CheckAndActivateDeferredScenes()` evaluates each Deferred scene's `LocationActivationFilter` against the location's identity dimensions (Privacy, Safety, Activity, Purpose).
+
+**See §14.1.1** for the complete Loading → Activation → Display lifecycle.
+
+### 14.4.2 Strongly-Typed Categorical Properties
+
+**All categorical properties are strongly-typed enums with specific domain meaning.** JSON strings are parsed to enums at startup with fail-fast validation—invalid values throw immediately.
+
+**Two Distinct Concepts:**
+- **Identity Dimensions** (what location IS): Privacy, Safety, Activity, Purpose — list matching (any-of)
+- **Capabilities** (what location CAN DO): Crossroads, Commercial, SleepingSpace — flags enum (all-of)
 
 **LocationActivationFilter** (from SceneTemplate JSON):
 ```json
 {
   "locationActivationFilter": {
     "placementType": "Location",
-    "capabilities": ["Commercial", "Restful"],
-    "privacyLevels": ["Public"]
+    "privacyLevels": ["Public"],
+    "purposes": ["Commerce"]
   }
 }
 ```
 
-### 14.4.2 Activation Check Flow
+**IMPORTANT: Two Different Matching Contexts**
+
+Categorical matching happens at TWO different times with DIFFERENT properties checked:
+
+| Context | When | Method | Properties Checked |
+|---------|------|--------|-------------------|
+| **Activation Trigger** | Player enters location | `LocationFacade.LocationMatchesActivationFilter` | Identity dimensions ONLY (Privacy, Safety, Activity, Purpose) |
+| **Entity Resolution** | Scene spawns entities | `EntityResolver.LocationMatchesFilter` | ALL including Capabilities, LocationTypes, Accessibility |
+
+**Activation Filter Properties (identity dimensions):**
+| JSON Field | Enum Type | Matching Rule |
+|------------|-----------|---------------|
+| `privacyLevels` | `LocationPrivacy` | Location must have ONE OF |
+| `safetyLevels` | `LocationSafety` | Location must have ONE OF |
+| `activityLevels` | `LocationActivity` | Location must have ONE OF |
+| `purposes` | `LocationPurpose` | Location must have ONE OF |
+
+**Entity Resolution Properties (includes capabilities):**
+| JSON Field | Enum Type | Matching Rule |
+|------------|-----------|---------------|
+| `capabilities` | `LocationCapability` (Flags) | Location must have ALL (bitwise AND) |
+| `locationTypes` | `LocationTypes` | Location must have ONE OF |
+| All activation properties above | — | Same matching rules |
+
+**Game Mechanic Effects (Capabilities - checked at entity resolution):**
+- `Commercial` → Enables Work action (earn coins)
+- `SleepingSpace` → Enables Rest action (restore health/stamina)
+- `Crossroads` → Enables Travel action (route selection)
+- `Restful` → Enhanced restoration quality
+
+### 14.4.3 Activation Check Flow
 
 When player moves to a location (`LocationFacade.MoveToSpot`):
 
@@ -136,14 +333,15 @@ private async Task CheckAndActivateDeferredScenes(Location location)
 }
 ```
 
-### 14.4.3 Categorical Matching Logic
+### 14.4.4 Categorical Matching Logic
 
 ```csharp
 // src/Subsystems/Location/LocationFacade.cs:490-521
 private bool LocationMatchesActivationFilter(Location location, PlacementFilter filter, Player player)
 {
     // Each categorical dimension checked independently
-    // Empty list = don't filter, Non-empty = must match ONE OF values
+    // Empty list = don't filter, Non-empty = must match ONE OF values (identity dimensions)
+    // Capabilities use flags enum with bitwise AND (all-of matching)
 
     if (filter.PrivacyLevels != null && filter.PrivacyLevels.Count > 0)
         if (!filter.PrivacyLevels.Contains(location.Privacy))
@@ -165,22 +363,33 @@ private bool LocationMatchesActivationFilter(Location location, PlacementFilter 
 }
 ```
 
-### 14.4.4 NPC Activation (Parallel Path)
+### 14.4.5 Situation NPCs and Choice Display
 
-Scenes can also activate when player interacts with matching NPC:
+**Scenes activate via LOCATION ONLY.** NPCs do NOT trigger scene activation.
 
-```csharp
-// src/Subsystems/Location/LocationFacade.cs:528-574
-public async Task CheckAndActivateDeferredScenesForNPC(NPC npc, Player player)
-{
-    // Similar logic but checks NpcActivationFilter against NPC categorical properties:
-    // - Professions
-    // - SocialStandings
-    // - StoryRoles
-    // - KnowledgeLevels
-    // - PersonalityTypes
-}
-```
+**NPCs are FOUND or CREATED at activation time (FindOrCreate pattern):**
+When a scene activates, the EntityResolver searches for existing NPCs near the player that match the situation's `NpcFilter` categorical properties. If a suitable NPC exists, it's MATCHED. If not, a new NPC is CREATED from the categorical properties. Either way, the result is assigned to `Situation.Npc`.
+
+**Same pattern applies to Locations:** Dependent locations are either matched from existing nearby locations or created from categorical properties.
+
+**NPC categorical properties (used for entity resolution, NOT activation):**
+| JSON Field | Enum Type | Purpose |
+|------------|-----------|---------|
+| `professions` | `Professions` | Find/create NPC with this occupation |
+| `socialStandings` | `NPCSocialStanding` | Find/create NPC with this influence |
+| `personalityTypes` | `PersonalityType` | Find/create NPC with this archetype |
+
+**Choices display when player talks to situation's NPC:**
+After activation, if `Situation.Npc` is set, choices appear when player opens conversation with that specific NPC. This is DISPLAY context, not activation trigger.
+
+**Example flow:**
+1. Scene "a1_secure_lodging" loads as Deferred
+2. Player enters Common Room (matches LocationActivationFilter)
+3. Scene activates → NPC "Elena" created/found via `npcFilter: {professions: ["Innkeeper"]}`
+4. `Situation.Npc = Elena` assigned
+5. Player talks to Elena → situation choices displayed
+
+**NOTE:** `NpcActivationFilter` exists in current code but is LEGACY. Target architecture uses location-only activation.
 
 ## 14.5 Entity Resolution Flow (Venue-Scoped)
 
@@ -233,6 +442,70 @@ private Location FindMatchingLocation(PlacementFilter filter)
     }
 }
 ```
+
+### 14.5.4 Dual-Model Location Accessibility
+
+**CRITICAL**: Dependent locations (created by scenes) have different accessibility rules than authored locations.
+
+See [ADR-012](../arc42/09_architecture_decisions.md#adr-012-dual-model-location-accessibility) and [§8.11](../arc42/08_crosscutting_concepts.md#811-location-accessibility-architecture).
+
+#### The LocationOrigin Discriminator
+
+`Location.Origin` enum provides explicit, type-safe accessibility discriminator:
+
+```csharp
+public enum LocationOrigin
+{
+    Authored,      // Base game content - always accessible
+    SceneCreated   // Created by scene - requires scene access
+}
+```
+
+| Origin | Location Type | Accessibility |
+|--------|---------------|---------------|
+| `Authored` | Base game content (from JSON) | **ALWAYS accessible** |
+| `SceneCreated` | Scene-generated | Accessible when active scene's current situation is at location |
+
+**Clean Architecture:** Uses explicit enum instead of null-as-domain-meaning pattern. The separate `Provenance` property provides forensic metadata (which scene, when) but is NOT used for accessibility decisions.
+
+#### Why This Matters for Tutorial
+
+When the inn_lodging scene creates a "private room" scene-created location:
+
+1. **Scene activates** at Common Room (authored, always accessible)
+2. **Situation 1 (Negotiate)** completes—player picks a choice
+3. **Scene advances**: `CurrentSituationIndex` moves to Situation 2
+4. **Situation 2 (Rest)**: `situation.Location = Private Room` (scene-created)
+5. **Private Room becomes accessible**: `LocationAccessibilityService` checks:
+   - `Private Room.Origin == SceneCreated` → scene-created location
+   - Any active scene with `CurrentSituation.Location == Private Room`? YES
+   - Return `true` → player can move there
+6. **Player moves** to Private Room (accessibility check passes)
+7. **Situation 2 displays** its choices
+
+#### Implementation
+
+```csharp
+// src/Subsystems/Location/LocationAccessibilityService.cs
+public bool IsLocationAccessible(Location location)
+{
+    // AUTHORED: Always accessible per TIER 1 No Soft-Locks
+    if (location.Origin == LocationOrigin.Authored)
+        return true;
+
+    // SCENE-CREATED: Check if any active scene's current situation is at this location
+    return _gameWorld.Scenes
+        .Where(scene => scene.State == SceneState.Active)
+        .Any(scene => scene.CurrentSituation?.Location == location);
+}
+```
+
+#### Why Not GrantsLocationAccess Property?
+
+A proposed `SituationTemplate.GrantsLocationAccess` property was removed:
+- If situation is at scene-created location, player MUST access it to engage
+- Setting `GrantsLocationAccess = false` would guarantee a soft-lock
+- Situation presence at location implies access (no explicit property needed)
 
 ## 14.6 Scene-Situation-Choice Execution Pipeline
 
@@ -534,16 +807,36 @@ Check in order:
 
 All content flows through the same path:
 ```
-JSON --> PackageLoader --> Parser --> Entity
+JSON --> DTO --> Parser --> Entity
 ```
+
+- **DTO Layer**: JSON deserializes to typed DTOs (Package, LocationDTO, SceneTemplateDTO)
+- **Parser Layer**: Converts DTOs to domain entities, resolves references, validates enums
 
 Dynamic scenes generate JSON at runtime, written to Content/Dynamic/, loaded via PackageLoader. NO direct entity creation allowed.
 
-### 14.12.2 Categorical Over ID-Based
+### 14.12.2 Strongly-Typed Categorical Properties
 
-Scenes use categorical filters, not hardcoded IDs:
-- **Correct**: `capabilities: ["Commercial", "Restful"]`
-- **Forbidden**: `locationId: "common_room"`
+Scenes use categorical filters with strongly-typed enums, not hardcoded IDs or generic strings.
+
+**Two Property Types:**
+- **Identity Dimensions** (what entity IS): `LocationPrivacy`, `LocationSafety`, `LocationActivity`, `LocationPurpose`
+- **Capabilities** (what entity CAN DO): `LocationCapability` flags enum
+
+**Correct:**
+```json
+{
+  "capabilities": ["Commercial", "Restful"],
+  "privacyLevels": ["SemiPublic"],
+  "purposes": ["Commerce", "Dwelling"]
+}
+```
+
+**Forbidden:**
+- `locationId: "common_room"` — hardcoded IDs
+- Generic strings with no enum backing
+
+All JSON strings are parsed to enums at startup. Invalid values fail immediately (fail-fast validation).
 
 This enables procedural generation and hex-map independence.
 
@@ -588,6 +881,10 @@ Entity resolution searches ONLY within the activation venue to prevent teleporta
 }
 ```
 
+**Categorical Property Types:**
+- `capabilities` → `LocationCapability` flags: `Commercial` (enables Work), `Restful` (enhanced rest)
+- `professions` → `Professions` enum: `Innkeeper` (occupational role)
+
 **NOTE**: `isStarter` is LEGACY. All scenes should work via categorical trigger only.
 
 **Archetype Generation**: `SceneArchetypeCatalog.GenerateInnLodging()` creates:
@@ -616,6 +913,11 @@ Entity resolution searches ONLY within the activation venue to prevent teleporta
 }
 ```
 
+**Categorical Property Types:**
+- `privacyLevels` → `LocationPrivacy` enum: `Public` (many witnesses, high social stakes)
+- `capabilities` → `LocationCapability` flags: `Commercial` (enables Work action)
+- `professions` → `Professions` enum: `Merchant` (occupational role)
+
 ### 14.13.3 A3: Route Travel
 
 ```json
@@ -630,9 +932,19 @@ Entity resolution searches ONLY within the activation venue to prevent teleporta
 }
 ```
 
+**Categorical Property Types:**
+- `activityLevels` → `LocationActivity` enum: `Quiet` (isolated, few people)
+- `capabilities` → `LocationCapability` flags: `Outdoor` (exposed to weather)
+
 ## 14.14 Summary
 
-The tutorial system uses categorical triggers for scene activation. When player enters a location:
+The tutorial system uses **strongly-typed categorical triggers** for scene activation. All categorical properties are enums with specific domain meaning—never generic strings.
+
+**Two Property Types:**
+- **Identity Dimensions** (what location IS): `LocationPrivacy`, `LocationSafety`, `LocationActivity`, `LocationPurpose`
+- **Capabilities** (what location CAN DO): `LocationCapability` flags enum enabling game mechanics
+
+**Activation Flow:**
 
 1. `LocationFacade.CheckAndActivateDeferredScenes()` finds all Deferred scenes
 2. Compares location's categorical properties against each scene's `LocationActivationFilter`
@@ -646,3 +958,4 @@ The tutorial system uses categorical triggers for scene activation. When player 
 - Resolution: `SceneInstantiator.cs:156-201`
 - Actions: `SceneFacade.cs:119-166`
 - Chaining: `RewardApplicationService.cs:201-271`
+- Enum definitions: `src/GameState/LocationPrivacy.cs`, `LocationCapability.cs`, etc.

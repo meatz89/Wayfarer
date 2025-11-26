@@ -54,16 +54,6 @@ public class SceneTemplate
     public PlacementFilter LocationActivationFilter { get; init; }
 
     /// <summary>
-    /// NPC activation filter - categorical properties that trigger scene activation
-    /// Scene activates when player talks to NPC matching these categorical properties
-    /// null = no NPC-based activation (use Location or other trigger)
-    /// Evaluated before entity resolution (categorical matching: PersonalityType, BondStrength, etc.)
-    /// Separate from Situation.NpcFilter which determines WHO situation involves (always explicit per-situation)
-    /// Copied to Scene.NpcActivationFilter at spawn time
-    /// </summary>
-    public PlacementFilter NpcActivationFilter { get; init; }
-
-    /// <summary>
     /// Temporal eligibility conditions for scene spawning
     /// null = always eligible (no temporal filtering)
     /// Non-null = Scene spawns only when conditions met (player state, world state, entity state)
@@ -98,14 +88,6 @@ public class SceneTemplate
     /// Enables time-limited content (rumors, opportunities, urgent requests)
     /// </summary>
     public int? ExpirationDays { get; init; }
-
-    /// <summary>
-    /// Starter content flag
-    /// true = Spawn this Scene during initial game setup
-    /// false = Spawn via triggers (Choice rewards, Obligation phases, events)
-    /// GameWorld.SpawnInitialScenes() processes all IsStarter templates
-    /// </summary>
-    public bool IsStarter { get; init; } = false;
 
     /// <summary>
     /// Intro narrative template with placeholders

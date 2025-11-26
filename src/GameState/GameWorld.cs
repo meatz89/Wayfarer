@@ -980,7 +980,6 @@ public class GameWorld
             existing.AssignVenue(location.Venue);
             existing.HexPosition = location.HexPosition;
             existing.Capabilities = location.Capabilities;
-            existing.DomainTags = location.DomainTags;
             existing.IsSkeleton = false; // Mark as no longer skeleton
             existing.Tier = location.Tier;
             // Provenance intentionally NOT copied - preserve creation metadata

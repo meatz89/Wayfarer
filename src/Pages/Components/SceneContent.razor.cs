@@ -217,7 +217,7 @@ public class SceneContentBase : ComponentBase
             // HIGHLANDER: reward uses Achievement and Item objects, extract Names for display
             List<string> achievementsGranted = reward?.Achievements?.Select(a => a.Name).ToList() ?? new List<string>();
             List<string> itemsGranted = reward?.Items?.Select(i => i.Name).ToList() ?? new List<string>();
-            // LocationsToUnlock DELETED - new architecture uses query-based accessibility via GrantsLocationAccess property
+            // LocationsToUnlock DELETED - new architecture uses dual-model accessibility (situation presence grants access)
 
             // Map scene spawns to display names
             List<string> scenesUnlocked = new List<string>();

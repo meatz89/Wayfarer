@@ -28,10 +28,11 @@ public class PackageLoaderFacade
 
     /// <summary>
     /// Load dynamically-generated package from JSON string
-    /// Creates Location/Item/NPC entities in GameWorld
-    /// Returns list of skeleton IDs requiring AI completion
+    /// Creates Location/Item/NPC/Scene entities in GameWorld
+    /// Returns PackageLoadResult with direct object references to all created entities
+    /// HIGHLANDER: Callers use object references directly, not string-based lookups
     /// </summary>
-    public async Task<List<string>> LoadDynamicPackage(string packageJson, string packageId)
+    public async Task<PackageLoadResult> LoadDynamicPackage(string packageJson, string packageId)
     {
         return await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
     }
@@ -49,5 +50,25 @@ public class PackageLoaderFacade
         await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
 
         return packageId;
+    }
+
+    /// <summary>
+    /// Create a single location directly from DependentLocationSpec.
+    /// NO JSON serialization - creates Location in-memory and returns direct reference.
+    /// HIGHLANDER: Direct creation path for situation binding, no matching by name/ID.
+    /// </summary>
+    public Location CreateSingleLocation(DependentLocationSpec spec, Venue contextVenue)
+    {
+        return _packageLoader.CreateSingleLocation(spec, contextVenue);
+    }
+
+    /// <summary>
+    /// Create a single NPC directly from DependentNpcSpec.
+    /// NO JSON serialization - creates NPC in-memory and returns direct reference.
+    /// HIGHLANDER: Direct creation path for situation binding, no matching by name/ID.
+    /// </summary>
+    public NPC CreateSingleNpc(DependentNpcSpec spec, Location contextLocation)
+    {
+        return _packageLoader.CreateSingleNpc(spec, contextLocation);
     }
 }

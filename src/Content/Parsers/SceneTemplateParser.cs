@@ -119,22 +119,21 @@ public class SceneTemplateParser
         }
 
         PlacementFilter locationActivationFilter = ParsePlacementFilter(dto.LocationActivationFilter, dto.Id, _gameWorld);
-        PlacementFilter npcActivationFilter = ParsePlacementFilter(dto.NpcActivationFilter, dto.Id, _gameWorld);
 
         // FAIL-FAST VALIDATION: Detect silent JSON deserialization failures
         // If JSON field names don't match DTO properties (e.g. 'baseLocationFilter' vs 'locationActivationFilter'),
         // System.Text.Json silently leaves properties as null instead of throwing exceptions
-        // For MainStory scenes (critical path content), require at least one activation filter
+        // For MainStory scenes (critical path content), require LocationActivationFilter
         // This catches JSON structure mismatches at parse time instead of runtime
         if (category == StoryCategory.MainStory)
         {
-            if (locationActivationFilter == null && npcActivationFilter == null)
+            if (locationActivationFilter == null)
             {
                 throw new InvalidOperationException(
-                    $"SceneTemplate '{dto.Id}' is MainStory but has NO activation filters. " +
+                    $"SceneTemplate '{dto.Id}' is MainStory but has NO LocationActivationFilter. " +
                     $"This indicates JSON field name mismatch. " +
-                    $"Verify JSON uses correct field names: 'locationActivationFilter' (not 'baseLocationFilter') and 'npcActivationFilter' (not 'baseNpcFilter'). " +
-                    $"MainStory scenes require at least one activation filter to determine when they activate.");
+                    $"Verify JSON uses correct field name: 'locationActivationFilter' (not 'baseLocationFilter'). " +
+                    $"MainStory scenes require LocationActivationFilter to determine when they activate.");
             }
         }
 
@@ -144,15 +143,14 @@ public class SceneTemplateParser
             Archetype = archetype,
             SceneArchetypeId = dto.SceneArchetypeId,
             DisplayNameTemplate = dto.DisplayNameTemplate,
-            // Activation filters: Parse triggers for scene activation (Deferred → Active)
+            // Activation filter: Parse trigger for scene activation (Deferred → Active)
+            // Scenes activate via LOCATION ONLY (player enters location matching filter)
             // Separate from situation placement filters (each situation has explicit filters)
             LocationActivationFilter = locationActivationFilter,
-            NpcActivationFilter = npcActivationFilter,
             SpawnConditions = SpawnConditionsParser.ParseSpawnConditions(dto.SpawnConditions),
             SituationTemplates = situationTemplates,
             SpawnRules = spawnRules,
             ExpirationDays = dto.ExpirationDays,
-            IsStarter = dto.IsStarter,
             IntroNarrativeTemplate = dto.IntroNarrativeTemplate,
             Tier = dto.Tier,
             Category = category,
@@ -207,7 +205,6 @@ public class SceneTemplateParser
             LocationTypes = ParseLocationTypes(dto.LocationTypes, contextId),
             RequiredCapabilities = ParseLocationCapabilities(dto.Capabilities, contextId),
             IsPlayerAccessible = dto.IsPlayerAccessible,
-            LocationTags = dto.LocationTags,
             // Orthogonal categorical dimensions - Location
             PrivacyLevels = ParsePrivacyLevels(dto.PrivacyLevels, contextId),
             SafetyLevels = ParseSafetyLevels(dto.SafetyLevels, contextId),
@@ -676,12 +673,13 @@ public class SceneTemplateParser
             NarrativeTemplate = dto.NarrativeTemplate,
             ChoiceTemplates = choiceTemplates,
             Priority = dto.Priority,
-            GrantsLocationAccess = dto.GrantsLocationAccess,
             // Hierarchical placement override filters (CSS-style inheritance)
             LocationFilter = ParsePlacementFilter(dto.LocationFilter, contextId, _gameWorld),
             NpcFilter = ParsePlacementFilter(dto.NpcFilter, contextId, _gameWorld),
             RouteFilter = ParsePlacementFilter(dto.RouteFilter, contextId, _gameWorld),
-            NarrativeHints = ParseNarrativeHints(dto.NarrativeHints)
+            NarrativeHints = ParseNarrativeHints(dto.NarrativeHints),
+            // DependentLocationSpec parsed from DTO (categorical requirements for location creation)
+            DependentLocationSpec = ParseDependentLocationSpec(dto.DependentLocationSpec)
         };
 
         return template;
@@ -1042,6 +1040,53 @@ public class SceneTemplateParser
             Theme = dto.Theme,
             Context = dto.Context,
             Style = dto.Style
+        };
+    }
+
+    /// <summary>
+    /// Parse DependentLocationSpec from DTO
+    /// Used for situations that need to create a dependent location at spawn time
+    /// </summary>
+    private DependentLocationSpec ParseDependentLocationSpec(DependentLocationSpecDTO dto)
+    {
+        if (dto == null)
+            return null;
+
+        // Parse VenueIdSource enum (defaults to SameAsBase)
+        VenueIdSource venueIdSource = VenueIdSource.SameAsBase;
+        if (!string.IsNullOrEmpty(dto.VenueIdSource))
+        {
+            if (!Enum.TryParse<VenueIdSource>(dto.VenueIdSource, true, out venueIdSource))
+            {
+                throw new InvalidDataException($"DependentLocationSpec has invalid VenueIdSource: '{dto.VenueIdSource}'");
+            }
+        }
+
+        // Parse HexPlacement enum (defaults to Adjacent)
+        HexPlacementStrategy hexPlacement = HexPlacementStrategy.Adjacent;
+        if (!string.IsNullOrEmpty(dto.HexPlacement))
+        {
+            if (!Enum.TryParse<HexPlacementStrategy>(dto.HexPlacement, true, out hexPlacement))
+            {
+                throw new InvalidDataException($"DependentLocationSpec has invalid HexPlacement: '{dto.HexPlacement}'");
+            }
+        }
+
+        return new DependentLocationSpec
+        {
+            TemplateId = dto.TemplateId,
+            Name = dto.Name,
+            Description = dto.Description,
+            VenueIdSource = venueIdSource,
+            HexPlacement = hexPlacement,
+            Properties = dto.Properties ?? new List<string>(),
+            IsLockedInitially = dto.IsLockedInitially,
+            UnlockItemTemplateId = dto.UnlockItemTemplateId,
+            CanInvestigate = dto.CanInvestigate,
+            Privacy = dto.Privacy,
+            Safety = dto.Safety,
+            Activity = dto.Activity,
+            Purpose = dto.Purpose
         };
     }
 

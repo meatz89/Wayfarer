@@ -409,17 +409,11 @@ public class GameFacade
 
     /// <summary>
     /// Create conversation context with cross-facade orchestration
-    /// ORCHESTRATION: Checks for NPC-triggered scene activation BEFORE starting conversation
+    /// Note: Scene activation happens via LOCATION (CheckAndActivateDeferredScenes when player enters)
+    /// NPCs are for display context only - choices display when player talks to situation's NPC
     /// </summary>
     public async Task<SocialChallengeContext> CreateConversationContext(NPC npc, Situation situation)
     {
-        Player player = _gameWorld.GetPlayer();
-
-        // THREE-TIER TIMING: Check for deferred scenes that should activate when player talks to this NPC
-        // Parallel to location-based activation when player arrives at location
-        await _locationFacade.CheckAndActivateDeferredScenesForNPC(npc, player);
-
-        // Then create conversation context
         return await _conversationFacade.CreateConversationContext(npc, situation);
     }
 
@@ -1656,14 +1650,13 @@ public class GameFacade
         }
 
         // Write to disk and load via PackageLoader
+        // HIGHLANDER: Get direct object reference from result
         string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}_deferred";
         await _contentGenerationFacade.CreateDynamicPackageFile(packageJson, packageId);
-        await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
+        PackageLoadResult loadResult = await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
 
-        // Retrieve spawned scene from GameWorld
-        Scene spawnedScene = _gameWorld.Scenes
-            .Where(s => s.TemplateId == template.Id && s.State == SceneState.Deferred)
-            .LastOrDefault();
+        // Get spawned scene from result (HIGHLANDER: direct object reference)
+        Scene spawnedScene = loadResult.ScenesAdded.FirstOrDefault();
 
         if (spawnedScene == null)
         {
@@ -1674,9 +1667,9 @@ public class GameFacade
     }
 
     /// <summary>
-    /// Spawn all starter scenes during game initialization
+    /// Spawn initial scenes during game initialization
     /// HIGHLANDER: Called ONCE from StartGameAsync() after IsGameStarted = true
-    /// Starter scenes provide initial gameplay content (tutorial, intro situations)
+    /// Spawns MainStory scenes with LocationActivationFilter as deferred content
     /// TWO-PHASE SPAWNING: Creates scenes as Deferred (no dependent resources spawned)
     /// Activation happens when player enters location via LocationFacade
     /// </summary>
@@ -1684,13 +1677,15 @@ public class GameFacade
     {
         Player player = _gameWorld.GetPlayer();
 
-        List<SceneTemplate> starterTemplates = _gameWorld.SceneTemplates
-            .Where(t => t.IsStarter)
+        // Spawn all MainStory scenes with LocationActivationFilter as deferred
+        // They will activate when player enters a matching location
+        List<SceneTemplate> initialTemplates = _gameWorld.SceneTemplates
+            .Where(t => t.Category == StoryCategory.MainStory && t.LocationActivationFilter != null)
             .ToList();
 
-        foreach (SceneTemplate template in starterTemplates)
+        foreach (SceneTemplate template in initialTemplates)
         {
-            // 5-SYSTEM ARCHITECTURE: Starter scenes use template's PlacementFilter (no override)
+            // 5-SYSTEM ARCHITECTURE: Initial scenes use template's PlacementFilter (no override)
             // EntityResolver will FindOrCreate entities from categorical specifications
             SceneSpawnReward spawnReward = new SceneSpawnReward
             {
@@ -1713,11 +1708,11 @@ public class GameFacade
 
             if (scene == null)
             {
-                Console.WriteLine($"[GameFacade] Starter scene '{template.Id}' failed to spawn - skipping");
+                Console.WriteLine($"[GameFacade] Initial scene '{template.Id}' failed to spawn - skipping");
                 continue;
             }
 
-            Console.WriteLine($"[GameFacade] Created deferred starter scene '{template.Id}' (State=Deferred, no dependent resources yet)");
+            Console.WriteLine($"[GameFacade] Created deferred initial scene '{template.Id}' (State=Deferred, no dependent resources yet)");
         }
     }
 

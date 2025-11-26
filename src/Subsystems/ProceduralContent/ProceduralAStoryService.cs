@@ -71,7 +71,8 @@ public class ProceduralAStoryService
         await _contentFacade.CreateDynamicPackageFile(packageJson, packageId);
 
         // 6. Load through HIGHLANDER pipeline (JSON → PackageLoader → Parser)
-        await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
+        // Result discarded - templates don't need post-load configuration
+        _ = await _packageLoaderFacade.LoadDynamicPackage(packageJson, packageId);
 
         return dto.Id;
     }
@@ -183,7 +184,6 @@ public class ProceduralAStoryService
             MainStorySequence = sequence,
             PresentationMode = "Modal", // A-story takes over screen (Sir Brante pattern)
             ProgressionMode = "Cascade", // Situations flow with momentum
-            IsStarter = false,
             ExpirationDays = null, // A-story never expires
             IntroNarrativeTemplate = null, // AI generates from hints
             DependentLocations = null, // Catalogue generates if needed
@@ -214,7 +214,6 @@ public class ProceduralAStoryService
             // ZERO NULL TOLERANCE: selectedRegion guaranteed non-null by SelectRegion (returns first available or throws)
             RegionId = selectedRegion!.Name, // Categorical identifier: Region.Name (NOT entity instance ID)
             Capabilities = SelectLocationCapabilities(tier),
-            LocationTags = new List<string> { "story_significant" },
 
             // NPC filters (categorical)
             PersonalityTypes = personalityTypes,

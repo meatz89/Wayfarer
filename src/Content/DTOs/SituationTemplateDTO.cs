@@ -44,14 +44,6 @@ public class SituationTemplateDTO
     /// </summary>
     public int Priority { get; set; } = 0;
 
-    /// <summary>
-    /// Whether this situation grants location access while active
-    /// Used for query-based accessibility pattern
-    /// Defaults to true - situations grant access to their location
-    /// Maps to SituationTemplate.GrantsLocationAccess
-    /// </summary>
-    public bool GrantsLocationAccess { get; set; } = true;
-
     // ==================== HIERARCHICAL PLACEMENT (OVERRIDE FILTERS) ====================
     // CSS-style inheritance: SituationTemplate can OVERRIDE SceneTemplate base filters
     // Resolution: effectiveFilter = situationFilter ?? sceneBaseFilter
@@ -92,4 +84,11 @@ public class SituationTemplateDTO
     /// Provides tone, theme, context for dynamic narrative generation
     /// </summary>
     public NarrativeHintsDTO NarrativeHints { get; set; }
+
+    /// <summary>
+    /// Specification for creating a dependent location for this situation
+    /// Categorical properties define what location to create
+    /// At spawn time, each spec instance creates ONE location with direct binding
+    /// </summary>
+    public DependentLocationSpecDTO DependentLocationSpec { get; set; }
 }

@@ -7,7 +7,7 @@ public class DependentLocationSpec
 {
     /// <summary>
     /// Template identifier for this location specification
-    /// Used to tag situations targeting this location via LocationTags
+    /// Used to match generated location with spec for tracking/debugging
     /// Becomes location Name after package generation
     /// </summary>
     public string TemplateId { get; set; }

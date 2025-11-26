@@ -15,13 +15,16 @@ public class TutorialInnLodgingIntegrationTest
         // ARRANGE & ACT
         GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
 
-        // ASSERT: Tutorial scene templates exist (semantic query by starter and presentation mode)
+        // ASSERT: Tutorial scene templates exist (semantic query by MainStory category and modal presentation)
+        // Scenes activate via LOCATION ONLY when player enters matching location
         SceneTemplate tutorialLodging = gameWorld.SceneTemplates
-            .FirstOrDefault(st => st.IsStarter && st.PresentationMode == PresentationMode.Modal);
+            .FirstOrDefault(st => st.Category == StoryCategory.MainStory &&
+                                 st.PresentationMode == PresentationMode.Modal &&
+                                 st.LocationActivationFilter != null);
 
         Assert.NotNull(tutorialLodging);
         Assert.NotEmpty(tutorialLodging.SituationTemplates);
-        Assert.True(tutorialLodging.IsStarter);
+        Assert.Equal(StoryCategory.MainStory, tutorialLodging.Category);
         Assert.Equal(PresentationMode.Modal, tutorialLodging.PresentationMode);
     }
 
@@ -30,9 +33,11 @@ public class TutorialInnLodgingIntegrationTest
     {
         // ARRANGE & ACT
         GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
-        // Semantic query by starter and presentation mode instead of hardcoded ID
+        // Semantic query by MainStory category and modal presentation
         SceneTemplate tutorialLodging = gameWorld.SceneTemplates
-            .First(st => st.IsStarter && st.PresentationMode == PresentationMode.Modal);
+            .First(st => st.Category == StoryCategory.MainStory &&
+                        st.PresentationMode == PresentationMode.Modal &&
+                        st.LocationActivationFilter != null);
 
         // ASSERT: Situations use PlacementFilter (NEW architecture)
         foreach (SituationTemplate situation in tutorialLodging.SituationTemplates)
@@ -52,9 +57,11 @@ public class TutorialInnLodgingIntegrationTest
     {
         // ARRANGE & ACT
         GameWorld gameWorld = GameWorldInitializer.CreateGameWorld("Content/Core");
-        // Semantic query by starter and presentation mode instead of hardcoded ID
+        // Semantic query by MainStory category and modal presentation
         SceneTemplate tutorialLodging = gameWorld.SceneTemplates
-            .First(st => st.IsStarter && st.PresentationMode == PresentationMode.Modal);
+            .First(st => st.Category == StoryCategory.MainStory &&
+                        st.PresentationMode == PresentationMode.Modal &&
+                        st.LocationActivationFilter != null);
 
         SituationTemplate firstSituation = tutorialLodging.SituationTemplates.First();
 

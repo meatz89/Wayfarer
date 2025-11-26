@@ -453,7 +453,6 @@ public class LocationFacade
 
             // PHASE 2: Generate and load dependent resources
             Console.WriteLine($"[SceneActivation] Starting activation for scene '{scene.DisplayName}' (Template: {scene.TemplateId})");
-            int locationCountBefore = _gameWorld.Locations.Count;
 
             string resourceJson = _sceneInstantiator.ActivateScene(scene, activationContext);
 
@@ -461,11 +460,15 @@ public class LocationFacade
             {
                 string packagePath = $"scene_activation_{scene.TemplateId}_{Guid.NewGuid().ToString("N")}";
                 await _contentGenerationFacade.CreateDynamicPackageFile(resourceJson, packagePath);
-                await _packageLoaderFacade.LoadDynamicPackage(resourceJson, packagePath);
 
-                int locationCountAfter = _gameWorld.Locations.Count;
-                int locationsAdded = locationCountAfter - locationCountBefore;
-                Console.WriteLine($"[SceneActivation] Loaded dependent resources for scene '{scene.DisplayName}' ({locationsAdded} locations added, total: {locationCountAfter})");
+                // HIGHLANDER: Get direct object references to created entities
+                PackageLoadResult loadResult = await _packageLoaderFacade.LoadDynamicPackage(resourceJson, packagePath);
+
+                Console.WriteLine($"[SceneActivation] Loaded dependent resources for scene '{scene.DisplayName}' ({loadResult.LocationsAdded.Count} locations, {loadResult.ItemsAdded.Count} items)");
+
+                // CRITICAL: Post-load orchestration for dependent resources
+                // Creates locations PER-SITUATION via CreateSingleLocation - no JSON, no matching
+                ConfigureDependentResources(scene, loadResult, player, activationContext.CurrentVenue);
             }
             else
             {
@@ -521,108 +524,76 @@ public class LocationFacade
     }
 
     /// <summary>
-    /// Check for deferred scenes that should activate when player interacts with specific NPC
-    /// Parallel to CheckAndActivateDeferredScenes but triggered by NPC interaction (conversation start)
-    /// Uses NpcActivationFilter with categorical NPC properties (Profession, SocialStanding, etc.)
+    /// Configure dependent resources after PackageLoader loads them.
+    /// Sets Origin = SceneCreated and Provenance for accessibility model (ADR-012).
+    /// Also adds items to inventory if AddToInventoryOnCreation = true.
+    ///
+    /// HIGHLANDER: Creates locations PER-SITUATION via CreateSingleLocation - no JSON, no matching
     /// </summary>
-    public async Task CheckAndActivateDeferredScenesForNPC(NPC npc, Player player)
+    private void ConfigureDependentResources(Scene scene, PackageLoadResult loadResult, Player player, Venue contextVenue)
     {
-        List<Scene> deferredScenes = _gameWorld.Scenes
-            .Where(s => s.State == SceneState.Deferred && s.NpcActivationFilter != null)
-            .ToList();
-
-        Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
-
-        foreach (Scene scene in deferredScenes)
+        // Build provenance for newly created resources
+        SceneProvenance provenance = new SceneProvenance
         {
-            if (NPCMatchesActivationFilter(npc, scene.NpcActivationFilter, player))
+            Scene = scene,
+            CreatedDay = _timeManager.CurrentDay,
+            CreatedTimeBlock = _timeManager.CurrentTimeBlock,
+            CreatedSegment = _timeManager.CurrentSegment
+        };
+
+        // Get template for AddToInventoryOnCreation check
+        SceneTemplate template = scene.Template ?? _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == scene.TemplateId);
+
+        // Configure dependent items (still from loadResult - items use JSON path)
+        foreach (Item item in loadResult.ItemsAdded)
+        {
+            // Set provenance for forensic tracking
+            item.Provenance = provenance;
+
+            // Check if this item should be added to inventory
+            DependentItemSpec itemSpec = template?.DependentItems?.FirstOrDefault(s => s.Name == item.Name);
+            if (itemSpec != null && itemSpec.AddToInventoryOnCreation)
             {
-                Console.WriteLine($"[LocationFacade] Activating deferred scene '{scene.DisplayName}' triggered by NPC '{npc.Name}'");
-
-                // Construct activation context
-                SceneSpawnContext activationContext = new SceneSpawnContext
-                {
-                    Player = player,
-                    CurrentLocation = currentLocation,
-                    CurrentVenue = currentLocation?.Venue,
-                    CurrentNPC = npc,
-                    CurrentRoute = null,
-                    CurrentSituation = null
-                };
-
-                // PHASE 2: Generate and load dependent resources
-                string resourceJson = _sceneInstantiator.ActivateScene(scene, activationContext);
-
-                if (!string.IsNullOrEmpty(resourceJson))
-                {
-                    string packagePath = $"scene_activation_{scene.TemplateId}_{Guid.NewGuid().ToString("N")}";
-                    await _contentGenerationFacade.CreateDynamicPackageFile(resourceJson, packagePath);
-                    await _packageLoaderFacade.LoadDynamicPackage(resourceJson, packagePath);
-
-                    Console.WriteLine($"[LocationFacade] Loaded dependent resources for scene '{scene.DisplayName}'");
-                }
-
-                // PHASE 2.5: Resolve entity references now that dependent resources exist in GameWorld
-                _sceneInstantiator.ResolveSceneEntityReferences(scene, activationContext);
-                Console.WriteLine($"[LocationFacade] ✅ Resolved entity references for scene '{scene.DisplayName}'");
-
-                // Transition scene state: Deferred → Active
-                scene.State = SceneState.Active;
-                Console.WriteLine($"[LocationFacade] Scene '{scene.DisplayName}' activated successfully (State: Deferred → Active)");
+                player.Inventory.Add(item);
+                Console.WriteLine($"[LocationFacade] Added item '{item.Name}' to player inventory");
             }
         }
-    }
 
-    /// <summary>
-    /// Check if NPC matches activation filter using categorical properties
-    /// Uses intentionally named enum properties: Profession, SocialStanding, StoryRole, KnowledgeLevel
-    /// Does NOT resolve entities - pure categorical matching (BEFORE entity resolution)
-    /// </summary>
-    private bool NPCMatchesActivationFilter(NPC npc, PlacementFilter filter, Player player)
-    {
-        // Check Profession (if specified)
-        if (filter.Professions != null && filter.Professions.Count > 0)
+        // Create and bind locations PER-SITUATION via direct CreateSingleLocation
+        // NO JSON serialization - creates Location directly from spec
+        // Shared spec instance = shared location (tracked by Dictionary for reference equality)
+        Dictionary<DependentLocationSpec, Location> specToLocationMap = new Dictionary<DependentLocationSpec, Location>();
+
+        foreach (Situation situation in scene.Situations)
         {
-            if (!filter.Professions.Contains(npc.Profession))
-                return false;
+            DependentLocationSpec spec = situation.Template?.DependentLocationSpec;
+            if (spec != null)
+            {
+                // Check if we've already created a location for this spec instance
+                if (specToLocationMap.TryGetValue(spec, out Location existingLocation))
+                {
+                    // Shared spec instance = shared location (reference equality)
+                    situation.Location = existingLocation;
+                    Console.WriteLine($"[LocationFacade] Bound situation '{situation.Name}' to SHARED location '{existingLocation.Name}'");
+                }
+                else
+                {
+                    // CREATE location directly from spec (NO JSON, NO matching)
+                    // Returns ONE Location reference - direct binding
+                    Location createdLocation = _packageLoaderFacade.CreateSingleLocation(spec, contextVenue);
+
+                    // Set Origin and Provenance
+                    createdLocation.Origin = LocationOrigin.SceneCreated;
+                    createdLocation.Provenance = provenance;
+
+                    // DIRECT BINDING: situation.Location = createdLocation (NO matching)
+                    situation.Location = createdLocation;
+                    specToLocationMap[spec] = createdLocation;
+
+                    Console.WriteLine($"[LocationFacade] CREATED and bound location '{createdLocation.Name}' for situation '{situation.Name}'");
+                }
+            }
         }
-
-        // Check SocialStanding (if specified)
-        if (filter.SocialStandings != null && filter.SocialStandings.Count > 0)
-        {
-            if (!filter.SocialStandings.Contains(npc.SocialStanding))
-                return false;
-        }
-
-        // Check StoryRole (if specified)
-        if (filter.StoryRoles != null && filter.StoryRoles.Count > 0)
-        {
-            if (!filter.StoryRoles.Contains(npc.StoryRole))
-                return false;
-        }
-
-        // Check KnowledgeLevel (if specified)
-        if (filter.KnowledgeLevels != null && filter.KnowledgeLevels.Count > 0)
-        {
-            if (!filter.KnowledgeLevels.Contains(npc.KnowledgeLevel))
-                return false;
-        }
-
-        // Check PersonalityTypes (if specified)
-        if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
-        {
-            if (!filter.PersonalityTypes.Contains(npc.PersonalityType))
-                return false;
-        }
-
-        // Check MinTier/MaxTier (if specified)
-        if (filter.MinTier.HasValue && npc.Tier < filter.MinTier.Value)
-            return false;
-
-        if (filter.MaxTier.HasValue && npc.Tier > filter.MaxTier.Value)
-            return false;
-
-        return true; // All categorical checks passed
     }
 
     /// <summary>

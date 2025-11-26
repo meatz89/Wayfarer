@@ -37,15 +37,6 @@ public class SceneTemplateDTO
     public PlacementFilterDTO LocationActivationFilter { get; set; }
 
     /// <summary>
-    /// NPC activation filter - categorical properties that trigger scene activation
-    /// Scene activates when player talks to NPC matching these categorical properties
-    /// null = no NPC-based activation (use Location or other trigger)
-    /// Example: Activate when player talks to any NPC with PersonalityType=Innkeeper
-    /// Separate from Situation.NpcFilter which determines WHO situation involves (always explicit per-situation)
-    /// </summary>
-    public PlacementFilterDTO NpcActivationFilter { get; set; }
-
-    /// <summary>
     /// Temporal eligibility conditions for scene spawning
     /// null = always eligible (no temporal filtering)
     /// Defines player state, world state, and entity state requirements
@@ -57,11 +48,6 @@ public class SceneTemplateDTO
     /// null = no expiration
     /// </summary>
     public int? ExpirationDays { get; set; }
-
-    /// <summary>
-    /// Flag for initial game setup scenes
-    /// </summary>
-    public bool IsStarter { get; set; } = false;
 
     /// <summary>
     /// Intro narrative template with {placeholders}

@@ -179,15 +179,6 @@ public class EntityResolver
                 return false;
         }
 
-        // Check location tags (DEPENDENT_LOCATION marker system)
-        // Location must have ALL specified tags in its DomainTags collection
-        // Used for scene-specific dependent location binding
-        if (filter.LocationTags != null && filter.LocationTags.Count > 0)
-        {
-            if (!filter.LocationTags.All(tag => loc.DomainTags.Contains(tag)))
-                return false;
-        }
-
         return true;
     }
 

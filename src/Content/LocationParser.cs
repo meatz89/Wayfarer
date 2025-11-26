@@ -72,9 +72,6 @@ public static class LocationParser
         // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
         // Parse gameplay properties - FAIL-FAST: all required, no silent failures
-        // DomainTags: Collection fallback acceptable (empty list = no tags)
-        location.DomainTags = dto.DomainTags ?? new List<string>();
-
         // LocationType: REQUIRED, no defaults
         if (string.IsNullOrEmpty(dto.LocationType))
         {

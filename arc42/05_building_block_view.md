@@ -173,6 +173,26 @@ flowchart TB
 | **SpawnFacade** | Scene spawn condition evaluation |
 | **SceneInstantiator** | Scene creation from templates; deferred/active state transitions |
 
+### Location Subsystem Services
+
+LocationFacade delegates validation to specialized services:
+
+| Service | Responsibility |
+|---------|----------------|
+| **MovementValidator** | Validates intra-venue movement; checks venue match; delegates accessibility |
+| **LocationAccessibilityService** | Dual-model accessibility: authored (always) vs dependent (scene-gated) |
+
+**Dependency Chain:**
+```
+LocationFacade.MoveToSpot()
+    └─ MovementValidator.ValidateMovement()
+        └─ LocationAccessibilityService.IsLocationAccessible()
+            ├─ Provenance == null → true (authored, always accessible)
+            └─ Provenance != null → CheckSceneGrantsAccess() (dependent)
+```
+
+See [§8.11 Location Accessibility Architecture](08_crosscutting_concepts.md#811-location-accessibility-architecture) and [ADR-012](09_architecture_decisions.md#adr-012-dual-model-location-accessibility).
+
 **Decomposition Rationale:** GameFacade delegates everything—it contains no business logic. Tactical facades handle the three parallel challenge systems with equivalent depth. Support facades handle game systems. This ensures single responsibility and testability.
 
 ---

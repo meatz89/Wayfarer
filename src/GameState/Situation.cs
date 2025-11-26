@@ -137,6 +137,7 @@ public class Situation
     /// </summary>
     public PlacementFilter LocationFilter { get; set; }
 
+
     /// <summary>
     /// Location where this situation activates
     /// Each situation can require different location from other situations in same scene

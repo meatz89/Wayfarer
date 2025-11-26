@@ -53,16 +53,6 @@ public class Scene
     /// </summary>
     public PlacementFilter LocationActivationFilter { get; set; }
 
-    /// <summary>
-    /// NPC activation filter - categorical properties that trigger scene activation
-    /// CheckAndActivateDeferredScenesForNPC evaluates this filter against NPCs at player's location
-    /// null = no NPC-based activation (use Location or other trigger)
-    /// Evaluated before entity resolution (categorical matching: PersonalityType, BondStrength, etc.)
-    /// Separate from Situation.NpcFilter which determines WHO situation involves (always explicit per-situation)
-    /// Copied from SceneTemplate.NpcActivationFilter at spawn time
-    /// </summary>
-    public PlacementFilter NpcActivationFilter { get; set; }
-
     // ==================== PRESENTATION PROPERTIES ====================
 
     /// <summary>
