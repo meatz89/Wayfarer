@@ -1,0 +1,22 @@
+@namespace Wayfarer.Pages.Components.SpawnGraph
+
+<div class="spawn-node choice-node @GetExecutedClass()">
+    <div class="node-badge">Choice</div>
+    <div class="node-label">@Node.TruncatedText</div>
+    <div class="node-info">
+        @Node.ActionType
+        @if (Node.ChallengeSucceeded.HasValue)
+        {
+            <span> | @(Node.ChallengeSucceeded.Value ? "Success" : "Failed")</span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public ChoiceNodeModel Node { get; set; }
+
+    private string GetExecutedClass()
+    {
+        return Node.WasExecuted ? "" : "not-executed";
+    }
+}

@@ -1,0 +1,13 @@
+@namespace Wayfarer.Pages.Components.SpawnGraph
+
+<div class="spawn-node situation-node">
+    <div class="node-badge">Situation</div>
+    <div class="node-label">@Node.Name</div>
+    <div class="node-info">
+        @Node.SystemType | @Node.InteractionType
+    </div>
+</div>
+
+@code {
+    [Parameter] public SituationNodeModel Node { get; set; }
+}

@@ -1,0 +1,28 @@
+@namespace Wayfarer.Pages.Components.SpawnGraph
+
+<div class="spawn-node scene-node @GetStateClass()">
+    <div class="node-badge">Scene</div>
+    <div class="node-label">@Node.DisplayName</div>
+    <div class="node-info">
+        @Node.Category
+        @if (Node.SituationCount > 0)
+        {
+            <span> | @Node.SituationCount situations</span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public SceneNodeModel Node { get; set; }
+
+    private string GetStateClass()
+    {
+        return Node.CurrentState switch
+        {
+            SceneState.Active => "state-active",
+            SceneState.Completed => "state-completed",
+            SceneState.Deferred => "state-deferred",
+            _ => ""
+        };
+    }
+}

@@ -14,6 +14,10 @@
     <link href="css/travel-path-cards.css" rel="stylesheet" />
     <link href="css/debug-panel.css" rel="stylesheet" />
     <link href="css/spawn-trace.css" rel="stylesheet" />
+    <link href="css/spawngraph.css" rel="stylesheet" />
+    <!-- Z.Blazor.Diagrams library CSS and JS -->
+    <link href="_content/Z.Blazor.Diagrams/style.min.css" rel="stylesheet" />
+    <script src="_content/Z.Blazor.Diagrams/script.min.js"></script>
     <link href="css/game-tooltip.css" rel="stylesheet" />
     <link href="css/game-icons.css" rel="stylesheet" />
     <link href="css/icon-component.css" rel="stylesheet" />
@@ -35,5 +39,8 @@
 <body>
     @RenderBody()
     <script src="_framework/blazor.server.js"></script>
+    <!-- Dagre.js for DAG layout (Spawn Graph Visualization) -->
+    <script src="https://cdn.jsdelivr.net/npm/dagre@0.8.5/dist/dagre.min.js"></script>
+    <script src="js/dagre-layout.js"></script>
 </body>
 </html>

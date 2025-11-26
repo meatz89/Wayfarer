@@ -54,6 +54,9 @@ public static class ServiceConfiguration
         // Procedural Content Tracing System (debugging tool)
         services.AddSingleton<ProceduralContentTracer>();
 
+        // Spawn Graph Builder (scoped - depends on IJSRuntime)
+        services.AddScoped<SpawnGraphBuilder>();
+
         // Scene-Situation Architecture
         services.AddSingleton<ConsequenceFacade>();
         services.AddSingleton<SituationFacade>();

@@ -2,6 +2,7 @@
 @using Wayfarer.Pages.Components.SpawnTrace
 @inject GameFacade GameFacade
 @inject MessageSystem MessageSystem
+@inject NavigationManager NavigationManager
 
 <div class="debug-panel @(IsExpanded ? "expanded" : "collapsed")">
     <div class="debug-toggle" @onclick="TogglePanel">
@@ -64,10 +65,11 @@
 
             <!-- Spawn Trace Viewer -->
             <div class="debug-section">
-                <h4 @onclick="ToggleSpawnTrace" style="cursor: pointer;">
-                    Procedural Content Trace
-                    <span style="font-size: 11px; color: #888;">(@(showSpawnTrace ? "Hide" : "Show"))</span>
-                </h4>
+                <h4>Procedural Content Trace</h4>
+                <div class="spawn-trace-controls">
+                    <button class="debug-btn" @onclick="OpenSpawnGraph">Open Full Graph</button>
+                    <button class="debug-btn" @onclick="ToggleSpawnTrace">@(showSpawnTrace ? "Hide" : "Show") Tree</button>
+                </div>
                 @if (showSpawnTrace)
                 {
                     <SpawnGraphViewer Tracer="@GameFacade.GameWorld.ProceduralTracer" />
@@ -90,6 +92,11 @@
     {
         showSpawnTrace = !showSpawnTrace;
         StateHasChanged();
+    }
+
+    private void OpenSpawnGraph()
+    {
+        NavigationManager.NavigateTo("/spawngraph");
     }
 
     private void SetStatLevel(PlayerStatType statType, int level)

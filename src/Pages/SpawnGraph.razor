@@ -1,0 +1,123 @@
+@page "/spawngraph"
+
+@namespace Wayfarer.Pages
+
+@using Wayfarer.Pages.Components.SpawnGraph
+
+@inject GameWorld GameWorld
+@inject NavigationManager NavigationManager
+@inject SpawnGraphBuilder GraphBuilder
+
+<div class="spawn-graph-container">
+    <div class="spawn-graph-toolbar">
+        <button class="back-button" @onclick="NavigateBack">Back to Game</button>
+        <h1>Procedural Content Graph</h1>
+        <button @onclick="RefreshGraph">Refresh</button>
+        <button @onclick="FitToView">Fit to View</button>
+        <span class="stats">
+            Scenes: @SceneCount | Situations: @SituationCount | Choices: @ChoiceCount
+        </span>
+    </div>
+
+    <div class="spawn-graph-canvas">
+        @if (IsLoading)
+        {
+            <div class="spawn-graph-loading">
+                <p>Computing layout...</p>
+            </div>
+        }
+        else if (Diagram != null && Diagram.Nodes.Count > 0)
+        {
+            <CascadingValue Value="Diagram">
+                <DiagramCanvas></DiagramCanvas>
+            </CascadingValue>
+        }
+        else
+        {
+            <div class="spawn-graph-empty">
+                <h2>No Graph Data</h2>
+                <p>Start the game and make some choices to generate content.</p>
+            </div>
+        }
+    </div>
+
+    @if (!string.IsNullOrEmpty(BuildMessage))
+    {
+        <div class="spawn-graph-status">
+            @BuildMessage
+        </div>
+    }
+</div>
+
+@code {
+    private BlazorDiagram Diagram { get; set; }
+    private bool IsLoading { get; set; }
+    private string BuildMessage { get; set; }
+
+    private int SceneCount => GameWorld?.ProceduralTracer?.AllSceneNodes?.Count ?? 0;
+    private int SituationCount => GameWorld?.ProceduralTracer?.AllSituationNodes?.Count ?? 0;
+    private int ChoiceCount => GameWorld?.ProceduralTracer?.AllChoiceNodes?.Count ?? 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        InitializeDiagram();
+        RegisterCustomWidgets();
+        await BuildGraphAsync();
+    }
+
+    private void InitializeDiagram()
+    {
+        BlazorDiagramOptions options = new BlazorDiagramOptions
+        {
+            AllowMultiSelection = true
+        };
+
+        options.Zoom.Enabled = true;
+        options.Zoom.Minimum = 0.1;
+        options.Zoom.Maximum = 4.0;
+        options.Links.DefaultColor = "#888888";
+        options.Links.DefaultSelectedColor = "#ffffff";
+
+        Diagram = new BlazorDiagram(options);
+    }
+
+    private void RegisterCustomWidgets()
+    {
+        Diagram.RegisterComponent<SceneNodeModel, SceneNodeWidget>();
+        Diagram.RegisterComponent<SituationNodeModel, SituationNodeWidget>();
+        Diagram.RegisterComponent<ChoiceNodeModel, ChoiceNodeWidget>();
+        Diagram.RegisterComponent<EntityNodeModel, EntityNodeWidget>();
+    }
+
+    private async Task BuildGraphAsync()
+    {
+        if (GameWorld?.ProceduralTracer == null) return;
+
+        IsLoading = true;
+        StateHasChanged();
+
+        SpawnGraphBuildResult result = await GraphBuilder.BuildGraphAsync(GameWorld.ProceduralTracer, Diagram);
+
+        BuildMessage = result.Success
+            ? $"Layout: {result.NodeCount} nodes, {result.LinkCount} links ({result.GraphWidth:F0}x{result.GraphHeight:F0})"
+            : result.Message;
+
+        IsLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task RefreshGraph()
+    {
+        await BuildGraphAsync();
+    }
+
+    private void FitToView()
+    {
+        Diagram?.ZoomToFit();
+    }
+
+    private void NavigateBack()
+    {
+        NavigationManager.NavigateTo("/");
+    }
+}

@@ -1,0 +1,269 @@
+/* Spawn Graph Canvas Visualization Styles */
+
+/* Full-screen container */
+.spawn-graph-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #1a1a2e;
+    z-index: 1000;
+}
+
+/* Toolbar at top */
+.spawn-graph-toolbar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 48px;
+    background-color: #16213e;
+    border-bottom: 1px solid #0f3460;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 16px;
+    z-index: 1001;
+}
+
+.spawn-graph-toolbar h1 {
+    font-size: 16px;
+    font-weight: 600;
+    color: #e8e8e8;
+    margin: 0;
+}
+
+.spawn-graph-toolbar button {
+    padding: 6px 12px;
+    border: 1px solid #0f3460;
+    background-color: #1a1a2e;
+    color: #a8a8a8;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+    transition: all 0.15s ease;
+}
+
+.spawn-graph-toolbar button:hover {
+    background-color: #0f3460;
+    color: #e8e8e8;
+}
+
+.spawn-graph-toolbar .back-button {
+    margin-right: auto;
+}
+
+.spawn-graph-toolbar .stats {
+    font-size: 12px;
+    color: #888;
+}
+
+/* Canvas area */
+.spawn-graph-canvas {
+    position: absolute;
+    top: 48px;
+    left: 0;
+    right: 0;
+    bottom: 0;
+}
+
+/* Empty state */
+.spawn-graph-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #666;
+}
+
+.spawn-graph-empty h2 {
+    font-size: 18px;
+    margin-bottom: 8px;
+    color: #888;
+}
+
+.spawn-graph-empty p {
+    font-size: 14px;
+}
+
+/* Node base styles */
+.spawn-node {
+    min-width: 180px;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-family: system-ui, -apple-system, sans-serif;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: box-shadow 0.15s ease, transform 0.1s ease;
+}
+
+.spawn-node:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+    transform: translateY(-1px);
+}
+
+.spawn-node.selected {
+    box-shadow: 0 0 0 2px #fff, 0 4px 16px rgba(0, 0, 0, 0.4);
+}
+
+/* Node type badge */
+.spawn-node .node-badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-bottom: 6px;
+    display: inline-block;
+}
+
+/* Node label */
+.spawn-node .node-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 4px;
+    word-wrap: break-word;
+}
+
+/* Node secondary info */
+.spawn-node .node-info {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+/* Scene nodes - Purple */
+.spawn-node.scene-node {
+    background: linear-gradient(135deg, #6b4c9a 0%, #4a3570 100%);
+    border: 1px solid #8b6cba;
+}
+
+.spawn-node.scene-node .node-badge {
+    background-color: rgba(139, 108, 186, 0.4);
+    color: #d4c1f0;
+}
+
+/* Scene states */
+.spawn-node.scene-node.state-active {
+    border-color: #4ade80;
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.3);
+}
+
+.spawn-node.scene-node.state-completed {
+    opacity: 0.7;
+    border-color: #666;
+}
+
+.spawn-node.scene-node.state-deferred {
+    border-style: dashed;
+    opacity: 0.85;
+}
+
+/* Situation nodes - Blue */
+.spawn-node.situation-node {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    border: 1px solid #3b82f6;
+}
+
+.spawn-node.situation-node .node-badge {
+    background-color: rgba(59, 130, 246, 0.4);
+    color: #bfdbfe;
+}
+
+/* Choice nodes - Green (executed) or Gray (available) */
+.spawn-node.choice-node {
+    background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+    border: 1px solid #22c55e;
+    min-width: 160px;
+}
+
+.spawn-node.choice-node .node-badge {
+    background-color: rgba(34, 197, 94, 0.4);
+    color: #bbf7d0;
+}
+
+.spawn-node.choice-node.not-executed {
+    background: linear-gradient(135deg, #4b5563 0%, #374151 100%);
+    border: 1px solid #6b7280;
+}
+
+.spawn-node.choice-node.not-executed .node-badge {
+    background-color: rgba(107, 114, 128, 0.4);
+    color: #d1d5db;
+}
+
+/* Location nodes - Orange */
+.spawn-node.location-node {
+    background: linear-gradient(135deg, #ea580c 0%, #c2410c 100%);
+    border: 1px solid #f97316;
+    min-width: 140px;
+}
+
+.spawn-node.location-node .node-badge {
+    background-color: rgba(249, 115, 22, 0.4);
+    color: #fed7aa;
+}
+
+/* NPC nodes - Red */
+.spawn-node.npc-node {
+    background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%);
+    border: 1px solid #ef4444;
+    min-width: 140px;
+}
+
+.spawn-node.npc-node .node-badge {
+    background-color: rgba(239, 68, 68, 0.4);
+    color: #fecaca;
+}
+
+/* Route nodes - Brown */
+.spawn-node.route-node {
+    background: linear-gradient(135deg, #92400e 0%, #78350f 100%);
+    border: 1px solid #b45309;
+    min-width: 140px;
+}
+
+.spawn-node.route-node .node-badge {
+    background-color: rgba(180, 83, 9, 0.4);
+    color: #fde68a;
+}
+
+/* Link/Edge styles */
+.diagram-link path {
+    stroke-width: 2px;
+}
+
+/* Hierarchy links (solid) */
+.link-hierarchy path {
+    stroke: #888;
+}
+
+/* Spawn links (dashed green) */
+.link-spawn-scene path {
+    stroke: #22c55e;
+    stroke-dasharray: 6 3;
+}
+
+.link-spawn-situation path {
+    stroke: #3b82f6;
+    stroke-dasharray: 6 3;
+}
+
+/* Entity reference links (dotted) */
+.link-entity-location path {
+    stroke: #f97316;
+    stroke-dasharray: 2 4;
+}
+
+.link-entity-npc path {
+    stroke: #ef4444;
+    stroke-dasharray: 2 4;
+}
+
+.link-entity-route path {
+    stroke: #b45309;
+    stroke-dasharray: 2 4;
+}

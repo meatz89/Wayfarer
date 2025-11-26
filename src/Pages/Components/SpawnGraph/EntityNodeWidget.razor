@@ -1,0 +1,44 @@
+@namespace Wayfarer.Pages.Components.SpawnGraph
+
+<div class="spawn-node @GetNodeClass()">
+    <div class="node-badge">@GetBadgeText()</div>
+    <div class="node-label">@Node.EntityName</div>
+    <div class="node-info">@GetInfoText()</div>
+</div>
+
+@code {
+    [Parameter] public EntityNodeModel Node { get; set; }
+
+    private string GetNodeClass()
+    {
+        return Node.EntityType switch
+        {
+            SpawnGraphEntityType.Location => "location-node",
+            SpawnGraphEntityType.NPC => "npc-node",
+            SpawnGraphEntityType.Route => "route-node",
+            _ => ""
+        };
+    }
+
+    private string GetBadgeText()
+    {
+        return Node.EntityType switch
+        {
+            SpawnGraphEntityType.Location => "Location",
+            SpawnGraphEntityType.NPC => "NPC",
+            SpawnGraphEntityType.Route => "Route",
+            _ => "Entity"
+        };
+    }
+
+    private string GetInfoText()
+    {
+        return Node.EntityType switch
+        {
+            SpawnGraphEntityType.Location => Node.LocationSnapshot?.Purpose.ToString() ?? "",
+            SpawnGraphEntityType.NPC => Node.NPCSnapshot?.Profession.ToString() ?? "",
+            SpawnGraphEntityType.Route => Node.RouteSnapshot?.Method.ToString() ?? "",
+            _ => ""
+        };
+    }
+}
