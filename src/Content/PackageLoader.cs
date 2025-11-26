@@ -41,6 +41,75 @@ public class PackageLoader
     }
 
     /// <summary>
+    /// HIGHLANDER: THE ONLY method for location creation.
+    /// Used by:
+    /// 1. Static JSON parsing (foreach location in package.locations → CreateSingleLocation)
+    /// 2. Runtime creation via EntityResolver.FindOrCreateLocation()
+    ///
+    /// Single path ensures consistent venue assignment, hex positioning, and GameWorld registration.
+    /// </summary>
+    public Location CreateSingleLocation(LocationDTO dto, Venue venue)
+    {
+        if (dto == null)
+            throw new ArgumentNullException(nameof(dto), "LocationDTO cannot be null");
+        if (venue == null)
+            throw new ArgumentNullException(nameof(venue), "Venue cannot be null - all locations must belong to a venue");
+
+        // Parse DTO to Location domain entity
+        Location location = LocationParser.ConvertDTOToLocation(dto, _gameWorld);
+
+        // Assign venue (HIGHLANDER: single assignment point)
+        location.AssignVenue(venue);
+
+        // Assign hex position at venue center (runtime-created locations)
+        // NOTE: For authored locations, PlaceLocations() will override this with procedural placement
+        location.HexPosition = venue.CenterHex;
+
+        // Register in GameWorld
+        _gameWorld.Locations.Add(location);
+
+        // Sync to hex grid
+        _hexSync.SyncLocationToHex(location, _gameWorld);
+
+        Console.WriteLine($"[PackageLoader] CreateSingleLocation: Created '{location.Name}' in venue '{venue.Name}' at hex {venue.CenterHex}");
+
+        return location;
+    }
+
+    /// <summary>
+    /// HIGHLANDER: THE ONLY method for NPC creation.
+    /// Used by:
+    /// 1. Static JSON parsing (foreach npc in package.npcs → CreateSingleNpc)
+    /// 2. Runtime creation via EntityResolver.FindOrCreateNPC()
+    ///
+    /// Single path ensures consistent location assignment and GameWorld registration.
+    /// </summary>
+    public NPC CreateSingleNpc(NPCDTO dto, Location location)
+    {
+        if (dto == null)
+            throw new ArgumentNullException(nameof(dto), "NPCDTO cannot be null");
+
+        // Create EntityResolver for NPC parsing (find-only, global search for parse-time)
+        EntityResolver entityResolver = new EntityResolver(_gameWorld);
+
+        // Parse DTO to NPC domain entity
+        NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld, entityResolver);
+
+        // Assign location if provided (overrides any location from DTO)
+        if (location != null)
+        {
+            npc.Location = location;
+        }
+
+        // Register in GameWorld
+        _gameWorld.NPCs.Add(npc);
+
+        Console.WriteLine($"[PackageLoader] CreateSingleNpc: Created '{npc.Name}' at location '{location?.Name ?? "none"}'");
+
+        return npc;
+    }
+
+    /// <summary>
     /// Load static packages in alphabetical/numerical order
     /// Used at game startup for deterministic content loading
     /// PACKAGE-ROUND TRACKING: Accumulates results from all packages, initializes spatial systems ONCE
@@ -1038,10 +1107,8 @@ public class PackageLoader
     {
         if (npcDtos == null) return;
 
-        // EntityResolver for categorical entity resolution (DDR-006)
-        Player player = _gameWorld.GetPlayer();
-        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
-        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
+        // EntityResolver for categorical entity resolution (find-only, global search)
+        EntityResolver entityResolver = new EntityResolver(_gameWorld);
 
         foreach (NPCDTO dto in npcDtos)
         {
@@ -1494,10 +1561,8 @@ public class PackageLoader
             _gameWorld.ExchangeDefinitions.Add(dto);
         }
 
-        // EntityResolver for categorical entity resolution (DDR-006)
-        Player player = _gameWorld.GetPlayer();
-        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
-        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
+        // EntityResolver for categorical entity resolution (find-only, global search)
+        EntityResolver entityResolver = new EntityResolver(_gameWorld);
 
         // Parse exchanges into ExchangeCard objects and store them
         // These will be referenced when building NPC decks
@@ -1744,10 +1809,8 @@ public class PackageLoader
     {
         if (conversationTrees == null) return;
 
-        // EntityResolver for categorical entity resolution (DDR-006)
-        Player player = _gameWorld.GetPlayer();
-        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
-        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
+        // EntityResolver for categorical entity resolution (find-only, global search)
+        EntityResolver entityResolver = new EntityResolver(_gameWorld);
 
         foreach (ConversationTreeDTO dto in conversationTrees)
         {
@@ -1760,10 +1823,8 @@ public class PackageLoader
     {
         if (observationScenes == null) return;
 
-        // EntityResolver for categorical entity resolution (DDR-006)
-        Player player = _gameWorld.GetPlayer();
-        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
-        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
+        // EntityResolver for categorical entity resolution (find-only, global search)
+        EntityResolver entityResolver = new EntityResolver(_gameWorld);
 
         foreach (ObservationSceneDTO dto in observationScenes)
         {
@@ -1845,17 +1906,12 @@ public class PackageLoader
     {
         if (sceneDtos == null) return;
 
-        // System 4: Entity Resolver (FindOrCreate)
-        Player player = _gameWorld.GetPlayer();
-        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
-        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
-
         foreach (SceneDTO dto in sceneDtos)
         {
             // ARCHITECTURAL CHANGE: Entity resolution happens per-situation (not per-scene)
-            // SceneParser will iterate through SituationDTOs and resolve entities for each
-            // Scene has no placement properties - situations do
-            Scene scene = SceneParser.ConvertDTOToScene(dto, _gameWorld, entityResolver);
+            // SceneParser stores filters; SceneInstantiator resolves entities at activation
+            // THREE-TIER TIMING: Filters stored here (Tier 1), entities resolved at activation (Tier 2)
+            Scene scene = SceneParser.ConvertDTOToScene(dto, _gameWorld);
             _gameWorld.Scenes.Add(scene);
             result.ScenesAdded.Add(scene);
         }

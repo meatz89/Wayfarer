@@ -3,18 +3,18 @@ using Xunit;
 namespace Wayfarer.Tests.Content;
 
 /// <summary>
-/// Comprehensive tests for EntityResolver FindOrCreate pattern implementation.
-/// Tests critical entity resolution: finding existing entities via categorical filters,
-/// creating new entities when no match exists, selection strategies, filter matching logic.
+/// Comprehensive tests for EntityResolver FIND-ONLY pattern implementation.
+/// EntityResolver now ONLY finds existing entities - returns null if not found.
+/// Creation logic moved to SceneInstantiator which orchestrates find-or-create.
 /// MANDATORY per CLAUDE.md: Complex algorithms require complete test coverage.
 /// </summary>
 public class EntityResolverTests
 {
     [Fact]
-    public void FindOrCreateLocation_ExistingMatch_ReturnsExisting()
+    public void FindLocation_ExistingMatch_ReturnsExisting()
     {
         // Arrange: GameWorld with existing location matching filter
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         Location existingLocation = new Location("Existing Tavern")
         {
@@ -33,18 +33,17 @@ public class EntityResolverTests
         };
 
         // Act
-        Location result = resolver.FindOrCreateLocation(filter);
+        Location result = resolver.FindLocation(filter, null);
 
-        // Assert: Returns existing location, does not create new
+        // Assert: Returns existing location
         Assert.Same(existingLocation, result);
-        Assert.Equal(1, world.Locations.Count); // No new location created
     }
 
     [Fact]
-    public void FindOrCreateLocation_NoMatch_CreatesNew()
+    public void FindLocation_NoMatch_ReturnsNull()
     {
         // Arrange: GameWorld with NO matching location
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         PlacementFilter filter = new PlacementFilter
         {
@@ -54,35 +53,31 @@ public class EntityResolverTests
         };
 
         // Act
-        Location result = resolver.FindOrCreateLocation(filter);
+        Location result = resolver.FindLocation(filter, null);
 
-        // Assert: Creates new location
-        Assert.NotNull(result);
-        Assert.Equal(LocationPurpose.Commerce, result.Purpose);
-        Assert.Equal(LocationPrivacy.Public, result.Privacy);
-        Assert.Equal(1, world.Locations.Count); // New location added
-        Assert.Contains(result, world.Locations);
+        // Assert: Returns null (find-only, caller decides what to do)
+        Assert.Null(result);
     }
 
     [Fact]
-    public void FindOrCreateLocation_NullFilter_ThrowsArgumentNullException()
+    public void FindLocation_NullFilter_ThrowsArgumentNullException()
     {
         // Arrange
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         // Act & Assert
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
-            () => resolver.FindOrCreateLocation(null)
+            () => resolver.FindLocation(null, null)
         );
         Assert.Equal("filter", exception.ParamName);
         Assert.Contains("PlacementFilter cannot be null", exception.Message);
     }
 
     [Fact]
-    public void FindOrCreateLocation_EmptyWorld_CreatesNew()
+    public void FindLocation_EmptyWorld_ReturnsNull()
     {
         // Arrange: Empty world (no locations)
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         PlacementFilter filter = new PlacementFilter
         {
@@ -91,19 +86,17 @@ public class EntityResolverTests
         };
 
         // Act
-        Location result = resolver.FindOrCreateLocation(filter);
+        Location result = resolver.FindLocation(filter, null);
 
-        // Assert: Creates new location
-        Assert.NotNull(result);
-        Assert.Equal(LocationPurpose.Worship, result.Purpose);
-        Assert.Single(world.Locations);
+        // Assert: Returns null (find-only)
+        Assert.Null(result);
     }
 
     [Fact]
-    public void FindOrCreateLocation_MultipleMatches_AppliesSelectionStrategy()
+    public void FindLocation_MultipleMatches_AppliesSelectionStrategy()
     {
         // Arrange: Multiple locations matching filter
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         Location location1 = new Location("Location 1")
         {
@@ -128,17 +121,17 @@ public class EntityResolverTests
         };
 
         // Act
-        Location result = resolver.FindOrCreateLocation(filter);
+        Location result = resolver.FindLocation(filter, null);
 
         // Assert: Selects location2 (least recent = lowest VisitCount)
         Assert.Same(location2, result);
     }
 
     [Fact]
-    public void FindOrCreateLocation_CapabilitiesFilter_MatchesFlags()
+    public void FindLocation_CapabilitiesFilter_MatchesFlags()
     {
         // Arrange: Location with specific capabilities
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         Location locationWithCapabilities = new Location("Crossroads Market")
         {
@@ -160,17 +153,17 @@ public class EntityResolverTests
         };
 
         // Act
-        Location result = resolver.FindOrCreateLocation(filter);
+        Location result = resolver.FindLocation(filter, null);
 
         // Assert: Finds location with required capabilities
         Assert.Same(locationWithCapabilities, result);
     }
 
     [Fact]
-    public void FindOrCreateNPC_ExistingMatch_ReturnsExisting()
+    public void FindNPC_ExistingMatch_ReturnsExisting()
     {
         // Arrange: GameWorld with existing NPC matching filter
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         NPC existingNPC = new NPC
         {
@@ -189,18 +182,17 @@ public class EntityResolverTests
         };
 
         // Act
-        NPC result = resolver.FindOrCreateNPC(filter);
+        NPC result = resolver.FindNPC(filter, null);
 
         // Assert: Returns existing NPC
         Assert.Same(existingNPC, result);
-        Assert.Equal(1, world.NPCs.Count);
     }
 
     [Fact]
-    public void FindOrCreateNPC_NoMatch_CreatesNew()
+    public void FindNPC_NoMatch_ReturnsNull()
     {
         // Arrange: GameWorld with NO matching NPC
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         PlacementFilter filter = new PlacementFilter
         {
@@ -210,34 +202,30 @@ public class EntityResolverTests
         };
 
         // Act
-        NPC result = resolver.FindOrCreateNPC(filter);
+        NPC result = resolver.FindNPC(filter, null);
 
-        // Assert: Creates new NPC
-        Assert.NotNull(result);
-        Assert.Equal(Professions.Merchant, result.Profession);
-        Assert.Equal(PersonalityType.MERCANTILE, result.PersonalityType);
-        Assert.Single(world.NPCs);
-        Assert.Contains(result, world.NPCs);
+        // Assert: Returns null (find-only, caller decides what to do)
+        Assert.Null(result);
     }
 
     [Fact]
-    public void FindOrCreateNPC_NullFilter_ThrowsArgumentNullException()
+    public void FindNPC_NullFilter_ThrowsArgumentNullException()
     {
         // Arrange
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         // Act & Assert
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
-            () => resolver.FindOrCreateNPC(null)
+            () => resolver.FindNPC(null, null)
         );
         Assert.Equal("filter", exception.ParamName);
     }
 
     [Fact]
-    public void FindOrCreateNPC_TierFilter_MatchesRange()
+    public void FindNPC_TierFilter_MatchesRange()
     {
         // Arrange: NPCs with different tiers
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         NPC npcTier1 = new NPC { Name = "Novice", Tier = 1, Profession = Professions.Guard };
         NPC npcTier3 = new NPC { Name = "Veteran", Tier = 3, Profession = Professions.Guard };
@@ -256,17 +244,17 @@ public class EntityResolverTests
         };
 
         // Act
-        NPC result = resolver.FindOrCreateNPC(filter);
+        NPC result = resolver.FindNPC(filter, null);
 
         // Assert: Finds tier 3 NPC (within range 2-4)
         Assert.Same(npcTier3, result);
     }
 
     [Fact]
-    public void FindOrCreateNPC_RelationshipFilter_MatchesRelationship()
+    public void FindNPC_RelationshipFilter_MatchesRelationship()
     {
         // Arrange: NPCs with different relationship states
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         NPC friendlyNPC = new NPC
         {
@@ -293,17 +281,17 @@ public class EntityResolverTests
         };
 
         // Act
-        NPC result = resolver.FindOrCreateNPC(filter);
+        NPC result = resolver.FindNPC(filter, null);
 
         // Assert: Finds friendly NPC
         Assert.Same(friendlyNPC, result);
     }
 
     [Fact]
-    public void FindOrCreateNPC_MultipleMatches_HighestBondStrategy()
+    public void FindNPC_MultipleMatches_HighestBondStrategy()
     {
         // Arrange: Multiple NPCs matching filter
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         NPC npc1 = new NPC
         {
@@ -330,17 +318,17 @@ public class EntityResolverTests
         };
 
         // Act
-        NPC result = resolver.FindOrCreateNPC(filter);
+        NPC result = resolver.FindNPC(filter, null);
 
         // Assert: Selects NPC2 (highest relationship flow)
         Assert.Same(npc2, result);
     }
 
     [Fact]
-    public void FindOrCreateRoute_ExistingMatch_ReturnsExisting()
+    public void FindRoute_ExistingMatch_ReturnsExisting()
     {
         // Arrange: GameWorld with existing route matching filter
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         RouteOption existingRoute = new RouteOption
         {
@@ -357,18 +345,17 @@ public class EntityResolverTests
         };
 
         // Act
-        RouteOption result = resolver.FindOrCreateRoute(filter);
+        RouteOption result = resolver.FindRoute(filter, null);
 
         // Assert: Returns existing route
         Assert.Same(existingRoute, result);
-        Assert.Equal(1, world.Routes.Count);
     }
 
     [Fact]
-    public void FindOrCreateRoute_NoMatch_CreatesNew()
+    public void FindRoute_NoMatch_ReturnsNull()
     {
         // Arrange: GameWorld with NO matching route
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         PlacementFilter filter = new PlacementFilter
         {
@@ -377,33 +364,30 @@ public class EntityResolverTests
         };
 
         // Act
-        RouteOption result = resolver.FindOrCreateRoute(filter);
+        RouteOption result = resolver.FindRoute(filter, null);
 
-        // Assert: Creates new route
-        Assert.NotNull(result);
-        Assert.Equal(15, result.DangerRating); // Uses MinDifficulty
-        Assert.Equal(75, result.BaseStaminaCost); // 15 * 5
-        Assert.Single(world.Routes);
+        // Assert: Returns null (find-only)
+        Assert.Null(result);
     }
 
     [Fact]
-    public void FindOrCreateRoute_NullFilter_ThrowsArgumentNullException()
+    public void FindRoute_NullFilter_ThrowsArgumentNullException()
     {
         // Arrange
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         // Act & Assert
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
-            () => resolver.FindOrCreateRoute(null)
+            () => resolver.FindRoute(null, null)
         );
         Assert.Equal("filter", exception.ParamName);
     }
 
     [Fact]
-    public void FindOrCreateRoute_DifficultyRange_MatchesRange()
+    public void FindRoute_DifficultyRange_MatchesRange()
     {
         // Arrange: Routes with different danger ratings
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         RouteOption routeEasy = new RouteOption { Name = "Easy", DangerRating = 5 };
         RouteOption routeMedium = new RouteOption { Name = "Medium", DangerRating = 25 };
@@ -421,7 +405,7 @@ public class EntityResolverTests
         };
 
         // Act
-        RouteOption result = resolver.FindOrCreateRoute(filter);
+        RouteOption result = resolver.FindRoute(filter, null);
 
         // Assert: Finds medium route (within range 20-40)
         Assert.Same(routeMedium, result);
@@ -431,7 +415,7 @@ public class EntityResolverTests
     public void FindItemByName_ExistingItem_ReturnsItem()
     {
         // Arrange: GameWorld with existing item
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         Item existingItem = new Item { Name = "Test Item" };
         world.Items.Add(existingItem);
@@ -447,7 +431,7 @@ public class EntityResolverTests
     public void FindItemByName_NoMatch_ReturnsNull()
     {
         // Arrange: GameWorld without matching item
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         // Act
         Item result = resolver.FindItemByName("Nonexistent Item");
@@ -460,7 +444,7 @@ public class EntityResolverTests
     public void FindItemByName_NullOrEmptyName_ReturnsNull()
     {
         // Arrange
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         // Act
         Item resultNull = resolver.FindItemByName(null);
@@ -472,10 +456,10 @@ public class EntityResolverTests
     }
 
     [Fact]
-    public void FindOrCreateLocation_MultipleFilters_AllMustMatch()
+    public void FindLocation_MultipleFilters_AllMustMatch()
     {
         // Arrange: Location matching some but not all filters
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         Location partialMatch = new Location("Partial")
         {
@@ -495,18 +479,17 @@ public class EntityResolverTests
         };
 
         // Act
-        Location result = resolver.FindOrCreateLocation(filter);
+        Location result = resolver.FindLocation(filter, null);
 
-        // Assert: Creates new location (partial match doesn't satisfy filter)
-        Assert.NotSame(partialMatch, result);
-        Assert.Equal(2, world.Locations.Count); // Partial match + new creation
+        // Assert: Returns null (partial match doesn't satisfy filter)
+        Assert.Null(result);
     }
 
     [Fact]
-    public void FindOrCreateNPC_OrthogonalDimensions_ComposesCorrectly()
+    public void FindNPC_OrthogonalDimensions_ComposesCorrectly()
     {
         // Arrange: NPC with orthogonal categorical dimensions
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         NPC npc = new NPC
         {
@@ -529,17 +512,17 @@ public class EntityResolverTests
         };
 
         // Act
-        NPC result = resolver.FindOrCreateNPC(filter);
+        NPC result = resolver.FindNPC(filter, null);
 
         // Assert: Finds NPC matching all orthogonal dimensions
         Assert.Same(npc, result);
     }
 
     [Fact]
-    public void FindOrCreateLocation_AccessibilityFilter_OnlyVisited()
+    public void FindLocation_AccessibilityFilter_OnlyVisited()
     {
         // Arrange: Locations with different visited states
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         Location visitedLocation = new Location("Visited")
         {
@@ -564,17 +547,17 @@ public class EntityResolverTests
         };
 
         // Act
-        Location result = resolver.FindOrCreateLocation(filter);
+        Location result = resolver.FindLocation(filter, null);
 
         // Assert: Finds visited location only
         Assert.Same(visitedLocation, result);
     }
 
     [Fact]
-    public void FindOrCreateLocation_RandomSelection_PicksFromMultiple()
+    public void FindLocation_RandomSelection_PicksFromMultiple()
     {
         // Arrange: Multiple matching locations
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         Location location1 = new Location("Location 1") { Purpose = LocationPurpose.Commerce };
         Location location2 = new Location("Location 2") { Purpose = LocationPurpose.Commerce };
@@ -595,7 +578,7 @@ public class EntityResolverTests
         HashSet<Location> selectedLocations = new HashSet<Location>();
         for (int i = 0; i < 50; i++)
         {
-            Location result = resolver.FindOrCreateLocation(filter);
+            Location result = resolver.FindLocation(filter, null);
             selectedLocations.Add(result);
         }
 
@@ -604,10 +587,10 @@ public class EntityResolverTests
     }
 
     [Fact]
-    public void FindOrCreateNPC_EmptyWorld_CreatesNew()
+    public void FindNPC_EmptyWorld_ReturnsNull()
     {
         // Arrange: Empty world
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         PlacementFilter filter = new PlacementFilter
         {
@@ -616,19 +599,17 @@ public class EntityResolverTests
         };
 
         // Act
-        NPC result = resolver.FindOrCreateNPC(filter);
+        NPC result = resolver.FindNPC(filter, null);
 
-        // Assert: Creates new NPC
-        Assert.NotNull(result);
-        Assert.Equal(Professions.Scholar, result.Profession);
-        Assert.Single(world.NPCs);
+        // Assert: Returns null (find-only)
+        Assert.Null(result);
     }
 
     [Fact]
-    public void FindOrCreateRoute_EmptyWorld_CreatesNew()
+    public void FindRoute_EmptyWorld_ReturnsNull()
     {
         // Arrange: Empty world
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         PlacementFilter filter = new PlacementFilter
         {
@@ -637,18 +618,17 @@ public class EntityResolverTests
         };
 
         // Act
-        RouteOption result = resolver.FindOrCreateRoute(filter);
+        RouteOption result = resolver.FindRoute(filter, null);
 
-        // Assert: Creates new route
-        Assert.NotNull(result);
-        Assert.Single(world.Routes);
+        // Assert: Returns null (find-only)
+        Assert.Null(result);
     }
 
     [Fact]
-    public void FindOrCreateLocation_FirstSelectionStrategy_ReturnsFirst()
+    public void FindLocation_FirstSelectionStrategy_ReturnsFirst()
     {
         // Arrange: Multiple matches
-        (GameWorld world, Player player, EntityResolver resolver) = CreateTestContext();
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
 
         Location location1 = new Location("First") { Purpose = LocationPurpose.Commerce };
         Location location2 = new Location("Second") { Purpose = LocationPurpose.Commerce };
@@ -664,29 +644,106 @@ public class EntityResolverTests
         };
 
         // Act
-        Location result = resolver.FindOrCreateLocation(filter);
+        Location result = resolver.FindLocation(filter, null);
 
         // Assert: Returns first match
         Assert.Same(location1, result);
     }
 
+    [Fact]
+    public void FindLocation_SameLocationProximity_ReturnsContextLocation()
+    {
+        // Arrange: Context location for SameLocation proximity
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
+
+        Location contextLocation = new Location("Context Location")
+        {
+            Purpose = LocationPurpose.Commerce
+        };
+        world.Locations.Add(contextLocation);
+
+        PlacementFilter filter = new PlacementFilter
+        {
+            PlacementType = PlacementType.Location,
+            Proximity = PlacementProximity.SameLocation
+        };
+
+        // Act
+        Location result = resolver.FindLocation(filter, contextLocation);
+
+        // Assert: Returns context location directly
+        Assert.Same(contextLocation, result);
+    }
+
+    [Fact]
+    public void FindLocation_SameLocationProximity_NullContext_Throws()
+    {
+        // Arrange: No context location for SameLocation proximity
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
+
+        PlacementFilter filter = new PlacementFilter
+        {
+            PlacementType = PlacementType.Location,
+            Proximity = PlacementProximity.SameLocation
+        };
+
+        // Act & Assert: Should throw because context is required
+        Assert.Throws<InvalidOperationException>(() => resolver.FindLocation(filter, null));
+    }
+
+    [Fact]
+    public void FindNPC_SameLocationProximity_FindsNPCAtContextLocation()
+    {
+        // Arrange: NPCs at different locations
+        (GameWorld world, EntityResolver resolver) = CreateTestContext();
+
+        Location contextLocation = new Location("Context");
+        Location otherLocation = new Location("Other");
+        world.Locations.Add(contextLocation);
+        world.Locations.Add(otherLocation);
+
+        NPC npcAtContext = new NPC
+        {
+            Name = "NPC at Context",
+            Location = contextLocation,
+            Profession = Professions.Guard
+        };
+
+        NPC npcElsewhere = new NPC
+        {
+            Name = "NPC Elsewhere",
+            Location = otherLocation,
+            Profession = Professions.Guard
+        };
+
+        world.NPCs.Add(npcAtContext);
+        world.NPCs.Add(npcElsewhere);
+
+        PlacementFilter filter = new PlacementFilter
+        {
+            PlacementType = PlacementType.NPC,
+            Proximity = PlacementProximity.SameLocation,
+            Professions = new List<Professions> { Professions.Guard }
+        };
+
+        // Act
+        NPC result = resolver.FindNPC(filter, contextLocation);
+
+        // Assert: Finds NPC at context location
+        Assert.Same(npcAtContext, result);
+    }
+
     // ========== HELPER METHODS ==========
 
     /// <summary>
-    /// Create test context with GameWorld, Player, and EntityResolver
+    /// Create test context with GameWorld and EntityResolver (find-only).
+    /// EntityResolver no longer requires Player or NarrativeService.
     /// </summary>
-    private (GameWorld world, Player player, EntityResolver resolver) CreateTestContext()
+    private (GameWorld world, EntityResolver resolver) CreateTestContext()
     {
         GameWorld world = new GameWorld();
-        Player player = new Player
-        {
-            Name = "TestPlayer",
-            CurrentPosition = new AxialCoordinates(0, 0)
-        };
+        EntityResolver resolver = new EntityResolver(world);
 
-        SceneNarrativeService narrativeService = new SceneNarrativeService(world);
-        EntityResolver resolver = new EntityResolver(world, player, narrativeService);
-
-        return (world, player, resolver);
+        return (world, resolver);
     }
 }

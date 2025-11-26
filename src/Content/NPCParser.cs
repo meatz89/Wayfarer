@@ -109,12 +109,19 @@ public static class NPCParser
             npc.KnowledgeLevel = knowledgeLevel;
         }
 
-        // EntityResolver.FindOrCreate pattern - categorical entity resolution
-        // Query existing locations first (reuse), generate if no match (eager creation)
+        // EntityResolver.Find pattern - categorical entity resolution
+        // At parse-time, locations MUST exist (loaded before NPCs)
         if (dto.SpawnLocation != null)
         {
             PlacementFilter spawnFilter = SceneTemplateParser.ParsePlacementFilter(dto.SpawnLocation, $"NPC:{dto.Id}");
-            npc.Location = entityResolver.FindOrCreateLocation(spawnFilter);
+            Location spawnLocation = entityResolver.FindLocation(spawnFilter, null);
+            if (spawnLocation == null)
+            {
+                throw new InvalidOperationException(
+                    $"NPC '{dto.Name}' (ID: {dto.Id}) references non-existent location via SpawnLocation filter. " +
+                    "Ensure locations are loaded before NPCs.");
+            }
+            npc.Location = spawnLocation;
         }
 
         // NOTE: Old inline scene parsing removed - NEW Scene-Situation architecture

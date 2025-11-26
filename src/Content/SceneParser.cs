@@ -9,11 +9,11 @@ public static class SceneParser
     /// Resolves template reference and parses embedded situations
     /// ARCHITECTURAL CHANGE: Entity resolution happens per-situation (not per-scene)
     /// Each situation has its own placement resolved from its own PlacementFilter
+    /// THREE-TIER TIMING: Filters stored here (Tier 1), entities resolved at activation (Tier 2)
     /// </summary>
     public static Scene ConvertDTOToScene(
         SceneDTO dto,
-        GameWorld gameWorld,
-        EntityResolver entityResolver)
+        GameWorld gameWorld)
     {
         // =====================================================
         // VALIDATION: Required Fields

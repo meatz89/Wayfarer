@@ -62,7 +62,7 @@ public static class GameWorldInitializer
         HexRouteGenerator hexRouteGenerator = new HexRouteGenerator(gameWorld);
         VenueGeneratorService venueGenerator = new VenueGeneratorService(hexSync);
 
-        SceneInstantiator sceneInstantiator = new SceneInstantiator(gameWorld, spawnConditionsEvaluator, narrativeService, venueGenerator);
+        SceneInstantiator sceneInstantiator = new SceneInstantiator(gameWorld, spawnConditionsEvaluator, narrativeService, venueGenerator, packageLoader);
         MessageSystem messageSystem = new MessageSystem(gameWorld);
         TimeModel timeModel = new TimeModel(gameWorld.CurrentDay);
         timeModel.SetInitialState(gameWorld.CurrentDay, gameWorld.CurrentTimeBlock, 1);

@@ -5,7 +5,7 @@ public static class ConversationTreeParser
 {
     /// <summary>
     /// Convert ConversationTreeDTO to ConversationTree entity
-    /// Uses EntityResolver.FindOrCreate for categorical NPC resolution (DDR-006)
+    /// Uses EntityResolver.Find for categorical NPC resolution (find-only at parse-time)
     /// </summary>
     public static ConversationTree Parse(ConversationTreeDTO dto, EntityResolver entityResolver)
     {
@@ -27,9 +27,15 @@ public static class ConversationTreeParser
         if (string.IsNullOrEmpty(dto.StartingNodeId))
             throw new InvalidOperationException($"ConversationTree '{dto.Id}' missing required 'StartingNodeId' field");
 
-        // EntityResolver.FindOrCreate pattern - categorical entity resolution
+        // EntityResolver.Find pattern - find-only at parse-time (NPCs should already exist)
         PlacementFilter participantFilter = SceneTemplateParser.ParsePlacementFilter(dto.ParticipantFilter, $"ConversationTree:{dto.Id}");
-        NPC npc = entityResolver.FindOrCreateNPC(participantFilter);
+        NPC npc = entityResolver.FindNPC(participantFilter, null);
+        if (npc == null)
+        {
+            throw new InvalidOperationException(
+                $"ConversationTree '{dto.Id}' references non-existent NPC via ParticipantFilter. " +
+                "Ensure NPCs are loaded before ConversationTrees.");
+        }
 
         // Parse time blocks from string to enum
         List<TimeBlocks> timeBlocks = new List<TimeBlocks>();
@@ -56,7 +62,7 @@ public static class ConversationTreeParser
             Name = dto.Name,
             Description = dto.Description ?? "",
             // HIGHLANDER: Object reference only (no ID string)
-            Npc = npc,  // Categorical resolution via EntityResolver.FindOrCreate
+            Npc = npc,  // Categorical resolution via EntityResolver.Find
             MinimumRelationship = dto.MinimumRelationship,
             RequiredKnowledge = dto.RequiredKnowledge ?? new List<string>(),
             AvailableTimeBlocks = timeBlocks,

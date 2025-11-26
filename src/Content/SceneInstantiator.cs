@@ -4,16 +4,16 @@ using System.Text.Json;
 [assembly: InternalsVisibleTo("Wayfarer.Tests")]
 
 /// <summary>
-/// Domain Service for generating Scene instance DTOs and JSON packages from SceneTemplates
+/// Domain Service for generating Scene instance DTOs and activating deferred scenes
 ///
-/// HIGHLANDER COMPLIANCE: Generates DTOs/JSON only - NEVER creates entities directly
-/// Entity creation MUST flow through: JSON → PackageLoader → SceneParser → Entity
+/// HIGHLANDER COMPLIANCE: Creates entities via PackageLoader (single creation path)
+/// Entity creation MUST flow through: DTO → PackageLoader.CreateSingle*() → Entity
 ///
 /// RESPONSIBILITIES:
-/// 1. GenerateScenePackageJson: Main entry point - generates complete package JSON
-/// 2. Placement resolution: Evaluates PlacementFilters to find concrete placements
-/// 3. DTO generation: Creates SceneDTO, SituationDTOs, ChoiceTemplateDTOs
-/// 4. Dependent resources: Generates LocationDTO/ItemDTO specs for self-contained scenes
+/// 1. CreateDeferredScene: Generate deferred scene JSON package (NO Situations)
+/// 2. ActivateScene: INTEGRATED process - creates Situations AND resolves entities
+/// 3. GenerateScenePackageJson: Generates complete package JSON for immediate activation
+/// 4. DTO generation: Creates SceneDTO, SituationDTOs, ChoiceTemplateDTOs
 ///
 /// AI GENERATION INTEGRATION: SceneNarrativeService generates narratives during DTO generation
 /// Generic text used until AI narrative system implemented
@@ -27,23 +27,30 @@ public class SceneInstantiator
     private readonly SpawnConditionsEvaluator _spawnConditionsEvaluator;
     private readonly SceneNarrativeService _narrativeService;
     private readonly VenueGeneratorService _venueGenerator;
+    private readonly PackageLoader _packageLoader;
 
     public SceneInstantiator(
         GameWorld gameWorld,
         SpawnConditionsEvaluator spawnConditionsEvaluator,
         SceneNarrativeService narrativeService,
-        VenueGeneratorService venueGenerator)
+        VenueGeneratorService venueGenerator,
+        PackageLoader packageLoader)
     {
         _gameWorld = gameWorld;
         _spawnConditionsEvaluator = spawnConditionsEvaluator ?? throw new ArgumentNullException(nameof(spawnConditionsEvaluator));
         _narrativeService = narrativeService ?? throw new ArgumentNullException(nameof(narrativeService));
         _venueGenerator = venueGenerator ?? throw new ArgumentNullException(nameof(venueGenerator));
+        _packageLoader = packageLoader ?? throw new ArgumentNullException(nameof(packageLoader));
     }
 
     /// <summary>
-    /// PHASE 1: Create deferred scene WITHOUT dependent resources
-    /// Generates JSON package with ONLY Scene + Situations (NO dependent locations/items)
-    /// Scene.State = "Deferred" (dependent resources not spawned yet)
+    /// PHASE 1: Create deferred scene WITHOUT Situations or dependent resources
+    /// Generates JSON package with ONLY Scene (NO Situations, NO dependent locations/items)
+    /// Scene.State = "Deferred" (Situations created at activation time)
+    /// CORRECT ARCHITECTURE:
+    /// - SceneTemplate has ALL SituationTemplates (blueprint)
+    /// - Scene (Deferred) = reference to Template ONLY, Situations = EMPTY
+    /// - Scene (Active) = Situation INSTANCES created from SituationTemplates
     /// HIGHLANDER: Returns JSON string for ContentGenerationFacade to write, PackageLoaderFacade to load
     /// NEVER creates entities directly - only DTOs and JSON
     /// </summary>
@@ -67,26 +74,30 @@ public class SceneInstantiator
         // CRITICAL: State = "Deferred" (not Active yet)
         SceneDTO sceneDto = GenerateSceneDTO(template, spawnReward, context, isDeferredState: true);
 
-        // Generate Situation DTOs (entities reference by categories, no markers)
-        List<SituationDTO> situationDtos = GenerateSituationDTOs(template, sceneDto, context);
-        sceneDto.Situations = situationDtos;
+        // CORRECT ARCHITECTURE: Deferred scenes have NO Situation instances
+        // Situations created at activation time from Template.SituationTemplates
+        // Empty situations list - player can't interact with deferred scene anyway
+        sceneDto.Situations = new List<SituationDTO>();
 
-        // Build package with ONLY Scene + Situations (empty lists for dependent resources)
+        // Build package with ONLY Scene (empty situations, empty dependent resources)
         string packageJson = BuildScenePackage(sceneDto, new List<LocationDTO>(), new List<ItemDTO>());
 
-        Console.WriteLine($"[SceneInstantiator] Generated DEFERRED scene package '{sceneDto.Id}' with {situationDtos.Count} situations (State=Deferred, NO dependent resources)");
+        Console.WriteLine($"[SceneInstantiator] Generated DEFERRED scene package '{sceneDto.Id}' (State=Deferred, NO situations - created at activation)");
 
         return packageJson;
     }
 
     /// <summary>
-    /// PHASE 2: Activate scene by spawning dependent resources for existing deferred scene
-    /// Generates JSON package with ONLY dependent locations + items (NO Scene/Situations)
+    /// PHASE 2: Activate scene - INTEGRATED PROCESS
+    /// Creates Situation instances from SituationTemplates AND resolves entities in one operation.
+    /// CORRECT ARCHITECTURE (from CONTENT_ARCHITECTURE.md):
+    /// - Deferred scene has Situations = EMPTY (just reference to Template)
+    /// - Activation creates Situation INSTANCES from Template.SituationTemplates
+    /// - For each Situation, resolve entities (find-or-create) via EntityResolver + PackageLoader
+    /// - Write entity references directly to Situation instances
     /// Scene transitions: Deferred → Active
-    /// Input: Scene entity (already exists in GameWorld with State=Deferred)
-    /// Output: JSON package with dependent resources only
     /// </summary>
-    public string ActivateScene(Scene scene, SceneSpawnContext context)
+    public void ActivateScene(Scene scene, SceneSpawnContext context)
     {
         if (scene.State != SceneState.Deferred)
         {
@@ -100,97 +111,236 @@ public class SceneInstantiator
                 $"Scene '{scene.TemplateId}' cannot be activated - Template reference is null");
         }
 
-        // Generate unique scene ID for dependent resource tagging
-        // CRITICAL: Use Scene.TemplateId NOT Scene.Id (Scene has no Id property per HIGHLANDER)
-        // Use a deterministic tag based on template + timestamp to bind dependent resources
-        string sceneTag = $"{scene.TemplateId}_{Guid.NewGuid().ToString("N")}";
-
-        // Build package with ONLY dependent items (locations resolved via EntityResolver)
-        string packageJson = BuildScenePackage(null, new List<LocationDTO>(), new List<ItemDTO>());
-
-        Console.WriteLine($"[SceneInstantiator] Generated activation package for scene '{scene.TemplateId}'");
-
-        return packageJson;
-    }
-
-    /// <summary>
-    /// PHASE 2.5: Resolve entity references from filters AFTER dependent resources created
-    /// THREE-TIER TIMING: Filters stored at parse (Tier 1), resolved here at activation (Tier 2)
-    /// Called by LocationFacade.CheckAndActivateDeferredScenes() after PackageLoader completes
-    ///
-    /// VENUE-SCOPED CATEGORICAL RESOLUTION:
-    /// - ALL situations MUST have explicit filter properties (null filter = BUG)
-    /// - EntityResolver searches ONLY within CurrentVenue (no cross-venue teleportation)
-    /// - Categorical properties (Profession, Purpose, Privacy, etc.) determine matches
-    /// - Creates dependent entities if not found within venue
-    ///
-    /// Scene template parameterizes archetype filters for context:
-    /// - Archetype provides structure (e.g., inn_lodging: 3 situations)
-    /// - Template provides filter values (e.g., Profession=Innkeeper, Purpose=Commerce)
-    /// - Same archetype reused with different filter parameters in different contexts
-    ///
-    /// Input: Scene with Situations containing PlacementFilters but NULL entity references
-    /// Output: Scene with Situations containing resolved Location/Npc/Route object references
-    /// </summary>
-    /// <param name="scene">Scene with situations containing filters but null entity references</param>
-    /// <param name="context">Spawn context with CurrentVenue for venue-scoped resolution</param>
-    public void ResolveSceneEntityReferences(Scene scene, SceneSpawnContext context)
-    {
-        Console.WriteLine($"[SceneInstantiator] Resolving entity references for scene '{scene.DisplayName}' within venue '{context.CurrentVenue?.Name ?? "NO VENUE"}' with {scene.Situations.Count} situations");
-
-        // Create EntityResolver for venue-scoped categorical matching
-        EntityResolver entityResolver = new EntityResolver(_gameWorld, context.Player, _narrativeService, context.CurrentVenue);
-
-        // For each situation, resolve entities from explicit filters (null filter = BUG)
-        foreach (Situation situation in scene.Situations)
+        // FAIL FAST: SituationTemplates must exist per CONTENT_ARCHITECTURE.md
+        // "SceneTemplates created with ALL SituationTemplates embedded"
+        if (scene.Template.SituationTemplates == null || scene.Template.SituationTemplates.Count == 0)
         {
-            // LOCATION RESOLUTION - filter must be explicit
+            throw new InvalidOperationException(
+                $"[SceneInstantiator] FAIL FAST: Scene '{scene.DisplayName}' (Template: {scene.TemplateId}) " +
+                $"has no SituationTemplates. SceneTemplates must have ALL SituationTemplates embedded. " +
+                $"This is a content authoring error.");
+        }
+
+        Console.WriteLine($"[SceneInstantiator] Activating scene '{scene.DisplayName}' - creating {scene.Template.SituationTemplates.Count} Situation instances from SituationTemplates");
+
+        // Create EntityResolver for FIND-only (venue-scoped categorical search)
+        EntityResolver finder = new EntityResolver(_gameWorld, context.CurrentVenue);
+
+        // INTEGRATED PROCESS: Create Situation instances AND resolve entities in one loop
+        foreach (SituationTemplate sitTemplate in scene.Template.SituationTemplates)
+        {
+            // Step 1: Create Situation instance from template
+            Situation situation = CreateSituationFromTemplate(sitTemplate, scene);
+            Console.WriteLine($"[SceneInstantiator]   Created Situation '{situation.Name}' from template '{sitTemplate.Id}'");
+
+            // Step 2: Resolve entities (find-or-create) - INTEGRATED, NOT SEPARATE
+            // LOCATION: Find or create
             if (situation.LocationFilter != null)
             {
-                // Pass context.CurrentLocation for Proximity-based resolution (SameLocation)
-                situation.Location = entityResolver.FindOrCreateLocation(situation.LocationFilter, context.CurrentLocation);
-                string resolutionType = situation.LocationFilter.Proximity == PlacementProximity.SameLocation
-                    ? "SameLocation proximity"
-                    : "categorical filter";
-                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved Location '{situation.Location?.Name ?? "NULL"}' for situation '{situation.Name}' via {resolutionType}");
+                Location location = finder.FindLocation(situation.LocationFilter, context.CurrentLocation);
+
+                if (location == null)
+                {
+                    // Not found - create via PackageLoader (HIGHLANDER single creation path)
+                    LocationDTO dto = BuildLocationDTOFromFilter(situation.LocationFilter);
+                    location = _packageLoader.CreateSingleLocation(dto, context.CurrentVenue);
+                    Console.WriteLine($"[SceneInstantiator]     ✅ CREATED Location '{location.Name}'");
+                }
+                else
+                {
+                    string resolutionType = situation.LocationFilter.Proximity == PlacementProximity.SameLocation
+                        ? "SameLocation proximity"
+                        : "categorical filter";
+                    Console.WriteLine($"[SceneInstantiator]     ✅ FOUND Location '{location.Name}' via {resolutionType}");
+                }
+
+                situation.Location = location;
             }
-            else if (situation.Location == null)
+            else
             {
-                Console.WriteLine($"[SceneInstantiator]   ⚠️ WARNING: Situation '{situation.Name}' has null LocationFilter - THIS IS A BUG");
+                // FAIL FAST: LocationFilter is MANDATORY per CONTENT_ARCHITECTURE.md Section 11
+                throw new InvalidOperationException(
+                    $"[SceneInstantiator] FAIL FAST: Situation '{situation.Name}' in scene '{scene.DisplayName}' " +
+                    $"has null LocationFilter. LocationFilter is MANDATORY for all situations. " +
+                    $"Fix the SituationTemplate to specify a LocationFilter.");
             }
 
-            // NPC RESOLUTION - filter must be explicit
+            // NPC: Find or create
             if (situation.NpcFilter != null)
             {
-                // Pass context.CurrentLocation for Proximity-based resolution (SameLocation)
-                situation.Npc = entityResolver.FindOrCreateNPC(situation.NpcFilter, context.CurrentLocation);
-                string npcResolutionType = situation.NpcFilter.Proximity == PlacementProximity.SameLocation
-                    ? "SameLocation proximity"
-                    : "categorical filter";
-                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved NPC '{situation.Npc?.Name ?? "NULL"}' for situation '{situation.Name}' via {npcResolutionType}");
+                NPC npc = finder.FindNPC(situation.NpcFilter, context.CurrentLocation);
+
+                if (npc == null)
+                {
+                    // Not found - create via PackageLoader (HIGHLANDER single creation path)
+                    NPCDTO dto = BuildNPCDTOFromFilter(situation.NpcFilter);
+                    npc = _packageLoader.CreateSingleNpc(dto, situation.Location);
+                    Console.WriteLine($"[SceneInstantiator]     ✅ CREATED NPC '{npc.Name}'");
+                }
+                else
+                {
+                    string npcResolutionType = situation.NpcFilter.Proximity == PlacementProximity.SameLocation
+                        ? "SameLocation proximity"
+                        : "categorical filter";
+                    Console.WriteLine($"[SceneInstantiator]     ✅ FOUND NPC '{npc.Name}' via {npcResolutionType}");
+                }
+
+                situation.Npc = npc;
             }
-            else if (situation.Npc == null)
+            else
             {
-                Console.WriteLine($"[SceneInstantiator]   ℹ️ Situation '{situation.Name}' has null NpcFilter (solo situation - no NPC needed)");
+                Console.WriteLine($"[SceneInstantiator]     ℹ️ Solo situation (no NPC needed)");
             }
 
-            // ROUTE RESOLUTION - filter must be explicit
+            // ROUTE: Find only (FAIL FAST if not found - route creation not implemented)
             if (situation.RouteFilter != null)
             {
-                // Pass context.CurrentLocation for Proximity-based resolution (SameLocation)
-                situation.Route = entityResolver.FindOrCreateRoute(situation.RouteFilter, context.CurrentLocation);
+                RouteOption route = finder.FindRoute(situation.RouteFilter, context.CurrentLocation);
+
+                if (route == null)
+                {
+                    // FAIL FAST: Route expected but not found - this is a content error
+                    throw new InvalidOperationException(
+                        $"[SceneInstantiator] FAIL FAST: Route not found for situation '{situation.Name}' " +
+                        $"in scene '{scene.DisplayName}'. RouteFilter specified but no matching route exists. " +
+                        $"Route creation not implemented - ensure routes are pre-authored.");
+                }
+
                 string routeResolutionType = situation.RouteFilter.Proximity == PlacementProximity.SameLocation
                     ? "SameLocation proximity"
                     : "categorical filter";
-                Console.WriteLine($"[SceneInstantiator]   ✅ Resolved Route '{situation.Route?.Name ?? "NULL"}' for situation '{situation.Name}' via {routeResolutionType}");
+                Console.WriteLine($"[SceneInstantiator]     ✅ FOUND Route '{route.Name}' via {routeResolutionType}");
+                situation.Route = route;
             }
-            else if (situation.Route == null)
-            {
-                Console.WriteLine($"[SceneInstantiator]   ℹ️ Situation '{situation.Name}' has null RouteFilter (not route-based)");
-            }
+
+            // Step 3: Add to Scene.Situations
+            scene.Situations.Add(situation);
         }
 
-        Console.WriteLine($"[SceneInstantiator] ✅ Entity resolution complete for scene '{scene.DisplayName}'");
+        // Set CurrentSituationIndex to 0 (first situation)
+        scene.CurrentSituationIndex = 0;
+        scene.SituationCount = scene.Situations.Count;
+
+        // Transition state: Deferred → Active
+        scene.State = SceneState.Active;
+
+        Console.WriteLine($"[SceneInstantiator] ✅ Scene '{scene.DisplayName}' activated with {scene.Situations.Count} Situations (State=Active)");
+    }
+
+    /// <summary>
+    /// Create Situation instance from SituationTemplate
+    /// CORRECT ARCHITECTURE: Situation instances created at scene activation (not at parse time)
+    /// Copies template data to instance, sets entity references to NULL
+    /// Entity resolution happens immediately after in ActivateScene() (INTEGRATED process)
+    /// </summary>
+    private Situation CreateSituationFromTemplate(SituationTemplate template, Scene parentScene)
+    {
+        Situation situation = new Situation
+        {
+            Name = template.Name,
+            TemplateId = template.Id,
+            Template = template,
+            Type = template.Type,
+            Description = template.NarrativeTemplate ?? "A situation unfolds before you.",
+            NarrativeHints = template.NarrativeHints,
+            SystemType = template.SystemType,
+            InstantiationState = InstantiationState.Deferred,
+
+            // PARENT SCENE REFERENCE: Enables state machine navigation
+            ParentScene = parentScene,
+
+            // Entity references NULL here - resolved immediately after in ActivateScene()
+            Location = null,
+            Npc = null,
+            Route = null,
+
+            // Copy PlacementFilters from template for entity resolution
+            LocationFilter = template.LocationFilter,
+            NpcFilter = template.NpcFilter,
+            RouteFilter = template.RouteFilter,
+
+            // Route segment placement from RouteFilter (geographic specificity)
+            SegmentIndex = template.RouteFilter?.SegmentIndex ?? 0,
+
+            // Default values for instance-level tracking
+            Lifecycle = new SpawnTracking(),
+            InteractionType = SituationInteractionType.Instant,
+            SituationCards = new List<SituationCard>()
+        };
+
+        return situation;
+    }
+
+    // NOTE: ResolveSceneEntityReferences() DELETED - logic merged into ActivateScene()
+    // Entity resolution now happens as an INTEGRATED process during activation
+
+    /// <summary>
+    /// Build LocationDTO from PlacementFilter for runtime creation.
+    /// Filter has plural lists (for matching flexibility), DTO has singular strings (for creation).
+    /// </summary>
+    private LocationDTO BuildLocationDTOFromFilter(PlacementFilter filter)
+    {
+        return new LocationDTO
+        {
+            Name = _narrativeService.GenerateLocationName(filter),
+            LocationType = (filter.LocationTypes != null && filter.LocationTypes.Count > 0
+                ? filter.LocationTypes[0]
+                : LocationTypes.Generic).ToString(),
+            Privacy = (filter.PrivacyLevels != null && filter.PrivacyLevels.Count > 0
+                ? filter.PrivacyLevels[0]
+                : LocationPrivacy.Public).ToString(),
+            Safety = (filter.SafetyLevels != null && filter.SafetyLevels.Count > 0
+                ? filter.SafetyLevels[0]
+                : LocationSafety.Neutral).ToString(),
+            Activity = (filter.ActivityLevels != null && filter.ActivityLevels.Count > 0
+                ? filter.ActivityLevels[0]
+                : LocationActivity.Moderate).ToString(),
+            Purpose = (filter.Purposes != null && filter.Purposes.Count > 0
+                ? filter.Purposes[0]
+                : LocationPurpose.Generic).ToString(),
+            ObligationProfile = ObligationDiscipline.Research.ToString(),
+            Capabilities = ParseCapabilitiesToStrings(filter.RequiredCapabilities)
+        };
+    }
+
+    /// <summary>
+    /// Build NPCDTO from PlacementFilter for runtime creation.
+    /// Filter has plural lists (for matching flexibility), DTO has singular strings (for creation).
+    /// </summary>
+    private NPCDTO BuildNPCDTOFromFilter(PlacementFilter filter)
+    {
+        return new NPCDTO
+        {
+            Name = _narrativeService.GenerateNPCName(filter),
+            Profession = (filter.Professions != null && filter.Professions.Count > 0
+                ? filter.Professions[0]
+                : Professions.Commoner).ToString(),
+            PersonalityType = (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0
+                ? filter.PersonalityTypes[0]
+                : PersonalityType.Neutral).ToString(),
+            Tier = filter.MinTier ?? 1,
+            Role = "Generated NPC",
+            Description = "A person you've encountered"
+        };
+    }
+
+    /// <summary>
+    /// Convert LocationCapability flags enum to list of strings for DTO.
+    /// </summary>
+    private List<string> ParseCapabilitiesToStrings(LocationCapability capabilities)
+    {
+        List<string> result = new List<string>();
+        if (capabilities == LocationCapability.None)
+            return result;
+
+        foreach (LocationCapability cap in Enum.GetValues(typeof(LocationCapability)))
+        {
+            if (cap != LocationCapability.None && capabilities.HasFlag(cap))
+            {
+                result.Add(cap.ToString());
+            }
+        }
+        return result;
     }
 
     /// <summary>
@@ -414,10 +564,10 @@ public class SceneInstantiator
         return JsonSerializer.Serialize(package, jsonOptions);
     }
 
-    // ResolvePlacement method DELETED - placement resolution moved to THREE-TIER TIMING MODEL
-    // Tier 1 (Parse): SceneParser stores PlacementFilters, entities NULL
-    // Tier 2 (Activation): SceneInstantiator.ResolveSceneEntityReferences() calls EntityResolver AFTER PackageLoader
-    // Tier 3 (Query): Actions instantiated with resolved entities
+    // ResolvePlacement method DELETED - entity resolution moved to ActivateScene() INTEGRATED process
+    // Deferred Scene (Parse): SceneParser stores PlacementFilters, entities NULL, Situations = EMPTY
+    // Active Scene (Activation): ActivateScene() creates Situations AND resolves entities (find-or-create)
+    // Query Time: Actions instantiated with resolved entities
 
     /// <summary>
     /// Instantiate Situation from SituationTemplate

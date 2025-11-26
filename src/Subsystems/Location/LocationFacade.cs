@@ -450,37 +450,20 @@ public class LocationFacade
                 CurrentSituation = null
             };
 
-            // PHASE 2: Generate and load dependent resources
+            // CORRECT ARCHITECTURE (from CONTENT_ARCHITECTURE.md):
+            // ActivateScene is an INTEGRATED PROCESS that:
+            // 1. Creates Situation instances from SituationTemplates
+            // 2. Resolves entities (find-or-create) for each Situation
+            // 3. Writes entity references to Situation instances
+            // 4. Transitions state Deferred → Active
+            // ALL IN ONE CALL - no separate entity resolution step
+
             Console.WriteLine($"[SceneActivation] Starting activation for scene '{scene.DisplayName}' (Template: {scene.TemplateId})");
 
-            string resourceJson = _sceneInstantiator.ActivateScene(scene, activationContext);
+            // INTEGRATED ACTIVATION: Creates Situations AND resolves entities in one call
+            _sceneInstantiator.ActivateScene(scene, activationContext);
 
-            if (!string.IsNullOrEmpty(resourceJson))
-            {
-                string packagePath = $"scene_activation_{scene.TemplateId}_{Guid.NewGuid().ToString("N")}";
-                await _contentGenerationFacade.CreateDynamicPackageFile(resourceJson, packagePath);
-
-                // HIGHLANDER: Get direct object references to created entities
-                PackageLoadResult loadResult = await _packageLoader.LoadDynamicPackageFromJson(resourceJson, packagePath);
-
-                Console.WriteLine($"[SceneActivation] Loaded dependent resources for scene '{scene.DisplayName}' ({loadResult.LocationsAdded.Count} locations, {loadResult.ItemsAdded.Count} items)");
-
-                // CRITICAL: Post-load orchestration for dependent resources
-                // Creates locations PER-SITUATION via CreateSingleLocation - no JSON, no matching
-                ConfigureDependentResources(scene, loadResult, player, activationContext.CurrentVenue);
-            }
-            else
-            {
-                Console.WriteLine($"[SceneActivation] No dependent resources to load for scene '{scene.DisplayName}'");
-            }
-
-            // PHASE 2.5: Resolve entity references now that dependent resources exist in GameWorld
-            _sceneInstantiator.ResolveSceneEntityReferences(scene, activationContext);
-            Console.WriteLine($"[LocationFacade] ✅ Resolved entity references for scene '{scene.DisplayName}'");
-
-            // Transition scene state: Deferred → Active
-            scene.State = SceneState.Active;
-            Console.WriteLine($"[LocationFacade] Scene '{scene.DisplayName}' activated successfully (State: Deferred → Active)");
+            Console.WriteLine($"[LocationFacade] ✅ Scene '{scene.DisplayName}' activated successfully (State: {scene.State})");
         }
     }
 

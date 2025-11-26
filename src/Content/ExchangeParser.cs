@@ -6,7 +6,7 @@ public static class ExchangeParser
 {
     /// <summary>
     /// Parse a single ExchangeDTO into an ExchangeCard
-    /// Uses EntityResolver.FindOrCreate for categorical NPC resolution (DDR-006)
+    /// Uses EntityResolver.Find for categorical NPC resolution (find-only at parse-time)
     /// </summary>
     public static ExchangeCard ParseExchange(ExchangeDTO dto, EntityResolver entityResolver)
     {
@@ -21,16 +21,22 @@ public static class ExchangeParser
         if (dto.ProviderFilter == null)
             throw new InvalidOperationException($"Exchange '{dto.Name}' missing required 'providerFilter' field");
 
-        // EntityResolver.FindOrCreate pattern - categorical entity resolution
+        // EntityResolver.Find pattern - find-only at parse-time (NPCs should already exist)
         PlacementFilter providerFilter = SceneTemplateParser.ParsePlacementFilter(dto.ProviderFilter, $"Exchange:{dto.Name}");
-        NPC npc = entityResolver.FindOrCreateNPC(providerFilter);
+        NPC npc = entityResolver.FindNPC(providerFilter, null);
+        if (npc == null)
+        {
+            throw new InvalidOperationException(
+                $"Exchange '{dto.Name}' references non-existent NPC via ProviderFilter. " +
+                "Ensure NPCs are loaded before Exchanges.");
+        }
 
         ExchangeCard card = new ExchangeCard
         {
             Name = dto.Name,
             Description = GenerateDescription(dto),
             // HIGHLANDER: Object reference only (no ID string)
-            Npc = npc,  // Categorical resolution via EntityResolver.FindOrCreate
+            Npc = npc,  // Categorical resolution via EntityResolver.Find
 
             // Default to trade type
             ExchangeType = dto.GiveCurrency == "coins" ? ExchangeType.Purchase : ExchangeType.Trade,

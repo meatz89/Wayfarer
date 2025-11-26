@@ -205,7 +205,7 @@ public static class SceneArchetypeCatalog
             {
                 Id = $"{negotiateSitId}_friendly",
                 PathType = ChoicePathType.InstantSuccess,
-                ActionTextTemplate = "Chat warmly with {NPCName}",
+                ActionTextTemplate = "Chat warmly with the innkeeper",
                 RequirementFormula = new CompoundRequirement(),
                 CostTemplate = new ChoiceCost { Coins = 5 },
                 RewardTemplate = new ChoiceReward

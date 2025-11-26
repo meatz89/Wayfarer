@@ -749,10 +749,10 @@ public class GameFacade
         await SpawnStarterScenes();
 
         // PHASE 3: Move player to starting location (triggers CheckAndActivateDeferredScenes)
-        // THREE-TIER TIMING: MoveToSpot() calls LocationFacade.CheckAndActivateDeferredScenes() which:
-        //   1. Activates DEFERRED scenes at the player's new location
-        //   2. Generates dependent resources (locations, NPCs, items)
-        //   3. Calls ResolveSceneEntityReferences() to assign entities to situations
+        // INTEGRATED ACTIVATION: MoveToSpot() calls LocationFacade.CheckAndActivateDeferredScenes() which:
+        //   1. Finds DEFERRED scenes matching player's location via LocationActivationFilter
+        //   2. Calls ActivateScene() - INTEGRATED process that creates Situations AND resolves entities
+        //   3. Entities found via EntityResolver.Find*() or created via PackageLoader.CreateSingle*()
         // This ensures A1 scene is activated and Elena shows the "Secure Lodging" conversation option
         Console.WriteLine($"[StartGameAsync] Moving player to starting location '{startingSpot.Name}' at hex ({startingSpot.HexPosition.Value.Q}, {startingSpot.HexPosition.Value.R})");
 

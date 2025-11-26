@@ -1,6 +1,6 @@
 /// <summary>
 /// Parser for ObservationScene - Mental challenge system for scene investigation.
-/// Translates JSON DTOs into domain entities with EntityResolver for categorical matching (DDR-006).
+/// Translates JSON DTOs into domain entities with EntityResolver for categorical matching (find-only at parse-time).
 /// </summary>
 public static class ObservationSceneParser
 {
@@ -13,9 +13,15 @@ public static class ObservationSceneParser
         if (dto.LocationFilter == null)
             throw new InvalidOperationException($"ObservationScene '{dto.Name}' must have a locationFilter");
 
-        // EntityResolver.FindOrCreate pattern - categorical entity resolution
+        // EntityResolver.Find pattern - find-only at parse-time (Locations should already exist)
         PlacementFilter locationFilter = SceneTemplateParser.ParsePlacementFilter(dto.LocationFilter, $"ObservationScene:{dto.Name}");
-        Location location = entityResolver.FindOrCreateLocation(locationFilter);
+        Location location = entityResolver.FindLocation(locationFilter, null);
+        if (location == null)
+        {
+            throw new InvalidOperationException(
+                $"ObservationScene '{dto.Name}' references non-existent Location via LocationFilter. " +
+                "Ensure Locations are loaded before ObservationScenes.");
+        }
 
         ObservationScene scene = new ObservationScene
         {

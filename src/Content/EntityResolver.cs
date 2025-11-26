@@ -1,121 +1,99 @@
 /// <summary>
-/// System 4: Entity Resolver
-/// Finds existing entities OR creates new ones from categorical specifications
-/// Receives PlacementFilterDTO from JSON, returns concrete entity objects
-/// Separates entity resolution from scene instantiation (5-system architecture)
+/// System 4: Entity Resolver - FIND ONLY
+/// Pure query service - searches for entities matching categorical filters.
+/// Returns null if not found (caller decides whether to create or throw).
+/// NO creation logic - that belongs to PackageLoader (HIGHLANDER principle).
 ///
 /// VENUE-SCOPED RESOLUTION:
-/// - Searches ONLY within the specified venue (no cross-venue teleportation)
-/// - Ensures all situation entities exist within the same physical location group
-/// - Creates dependent entities within the same venue if not found
+/// - When venue provided: searches ONLY within that venue (no cross-venue teleportation)
+/// - When venue null: global search (parse-time resolution)
 /// </summary>
 public class EntityResolver
 {
     private readonly GameWorld _gameWorld;
-    private readonly Player _player;
-    private readonly SceneNarrativeService _narrativeService;
-    private readonly Venue? _currentVenue;
+    private readonly Venue _currentVenue;
 
-    public EntityResolver(GameWorld gameWorld, Player player, SceneNarrativeService narrativeService, Venue? currentVenue = null)
+    /// <summary>
+    /// Constructor for venue-scoped resolution (runtime scene activation).
+    /// </summary>
+    public EntityResolver(GameWorld gameWorld, Venue currentVenue)
     {
         _gameWorld = gameWorld;
-        _player = player;
-        _narrativeService = narrativeService;
         _currentVenue = currentVenue;
     }
 
     /// <summary>
-    /// Find existing Location OR create new Location from categorical specification
-    /// NEVER returns null - always returns existing or newly created Location
-    /// Supports Proximity-based resolution: SameLocation returns contextLocation directly
+    /// Constructor for global resolution (parse-time, no venue constraint).
     /// </summary>
-    public Location FindOrCreateLocation(PlacementFilter filter, Location contextLocation = null)
+    public EntityResolver(GameWorld gameWorld)
+    {
+        _gameWorld = gameWorld;
+        _currentVenue = null;
+    }
+
+    /// <summary>
+    /// Find existing Location matching filter. Returns null if not found.
+    /// Caller decides whether to create (SceneInstantiator) or throw (parsers).
+    /// </summary>
+    public Location FindLocation(PlacementFilter filter, Location contextLocation)
     {
         if (filter == null)
-            throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null - scenes must specify location placement requirements");
+            throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null");
 
-        // Handle proximity-based resolution FIRST (before categorical search)
+        // Handle proximity-based resolution FIRST
         if (filter.Proximity == PlacementProximity.SameLocation)
         {
             if (contextLocation == null)
-                throw new InvalidOperationException("SameLocation proximity requires contextLocation - situation must have spawn context");
+                throw new InvalidOperationException("SameLocation proximity requires contextLocation");
             return contextLocation;
         }
 
-        // Standard categorical search
-        Location existingLocation = FindMatchingLocation(filter);
-        if (existingLocation != null)
-            return existingLocation;
-
-        // No match found - generate new location from categories
-        Location newLocation = CreateLocationFromCategories(filter);
-        _gameWorld.Locations.Add(newLocation);
-        return newLocation;
+        return FindMatchingLocation(filter);
     }
 
     /// <summary>
-    /// Find existing NPC OR create new NPC from categorical specification
-    /// NEVER returns null - always returns existing or newly created NPC
-    /// Supports Proximity-based resolution: SameLocation searches NPCs AT contextLocation
+    /// Find existing NPC matching filter. Returns null if not found.
+    /// Caller decides whether to create (SceneInstantiator) or throw (parsers).
     /// </summary>
-    public NPC FindOrCreateNPC(PlacementFilter filter, Location contextLocation = null)
+    public NPC FindNPC(PlacementFilter filter, Location contextLocation)
     {
         if (filter == null)
-            throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null - scenes must specify NPC placement requirements");
+            throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null");
 
-        // Handle proximity-based resolution FIRST (before categorical search)
+        // Handle proximity-based resolution: search NPCs AT contextLocation
         if (filter.Proximity == PlacementProximity.SameLocation)
         {
             if (contextLocation == null)
-                throw new InvalidOperationException("SameLocation proximity requires contextLocation - situation must have spawn context");
-            // Search NPCs AT this specific location
-            return FindOrCreateNPCAtLocation(contextLocation, filter);
+                throw new InvalidOperationException("SameLocation proximity requires contextLocation");
+            return FindNPCAtLocation(contextLocation, filter);
         }
 
-        // Standard categorical search
-        NPC existingNPC = FindMatchingNPC(filter);
-        if (existingNPC != null)
-            return existingNPC;
-
-        // No match found - generate new NPC from categories
-        NPC newNPC = CreateNPCFromCategories(filter);
-        _gameWorld.NPCs.Add(newNPC);
-        return newNPC;
+        return FindMatchingNPC(filter);
     }
 
     /// <summary>
-    /// Find existing RouteOption OR create new RouteOption from categorical specification
-    /// NEVER returns null - always returns existing or newly created RouteOption
-    /// Supports Proximity-based resolution: SameLocation searches Routes FROM contextLocation
+    /// Find existing RouteOption matching filter. Returns null if not found.
+    /// Caller decides whether to create (SceneInstantiator) or throw (parsers).
     /// </summary>
-    public RouteOption FindOrCreateRoute(PlacementFilter filter, Location contextLocation = null)
+    public RouteOption FindRoute(PlacementFilter filter, Location contextLocation)
     {
         if (filter == null)
-            throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null - scenes must specify route placement requirements");
+            throw new ArgumentNullException(nameof(filter), "PlacementFilter cannot be null");
 
-        // Handle proximity-based resolution FIRST (before categorical search)
+        // Handle proximity-based resolution: search Routes FROM contextLocation
         if (filter.Proximity == PlacementProximity.SameLocation)
         {
             if (contextLocation == null)
-                throw new InvalidOperationException("SameLocation proximity requires contextLocation - situation must have spawn context");
-            // Search routes originating FROM this specific location
-            return FindOrCreateRouteFromLocation(contextLocation, filter);
+                throw new InvalidOperationException("SameLocation proximity requires contextLocation");
+            return FindRouteFromLocation(contextLocation, filter);
         }
 
-        // Standard categorical search
-        RouteOption existingRoute = FindMatchingRoute(filter);
-        if (existingRoute != null)
-            return existingRoute;
-
-        // No match found - generate new route from categories
-        RouteOption newRoute = CreateRouteFromCategories(filter);
-        _gameWorld.Routes.Add(newRoute);
-        return newRoute;
+        return FindMatchingRoute(filter);
     }
 
     /// <summary>
-    /// Find existing Item by name
-    /// Returns null if item not found - Items are immutable content definitions, NOT generated
+    /// Find existing Item by name.
+    /// Returns null if item not found - Items are immutable content definitions.
     /// </summary>
     public Item FindItemByName(string itemName)
     {
@@ -125,12 +103,10 @@ public class EntityResolver
         return _gameWorld.Items.FirstOrDefault(i => i.Name == itemName);
     }
 
-    // ========== FIND EXISTING ENTITIES ==========
+    // ========== FIND MATCHING ENTITIES ==========
 
     private Location FindMatchingLocation(PlacementFilter filter)
     {
-        // VENUE-SCOPED SEARCH: When currentVenue provided, search only within that venue
-        // GLOBAL SEARCH: When currentVenue is null (parse-time), search all locations
         List<Location> matchingLocations;
 
         if (_currentVenue != null)
@@ -145,14 +121,13 @@ public class EntityResolver
             matchingLocations = _gameWorld.Locations
                 .Where(loc => LocationMatchesFilter(loc, filter))
                 .ToList();
-            Console.WriteLine($"[EntityResolver] Found {matchingLocations.Count} matching locations (global search, no venue constraint)");
+            Console.WriteLine($"[EntityResolver] Found {matchingLocations.Count} matching locations (global search)");
         }
 
-        // Apply selection strategy if multiple matches
         if (matchingLocations.Count == 0)
             return null;
 
-        return ApplySelectionStrategy(matchingLocations, filter.SelectionStrategy);
+        return ApplyLocationSelectionStrategy(matchingLocations, filter.SelectionStrategy);
     }
 
     private bool LocationMatchesFilter(Location loc, PlacementFilter filter)
@@ -160,7 +135,6 @@ public class EntityResolver
         // Check location capabilities (if specified)
         if (filter.RequiredCapabilities != LocationCapability.None)
         {
-            // Location must have ALL specified capabilities (bitwise AND check)
             if ((loc.Capabilities & filter.RequiredCapabilities) != filter.RequiredCapabilities)
                 return false;
         }
@@ -173,8 +147,6 @@ public class EntityResolver
         }
 
         // Check orthogonal categorical dimensions
-        // Empty list = don't filter, Non-empty = location must match ONE OF the values
-
         if (filter.PrivacyLevels != null && filter.PrivacyLevels.Count > 0)
         {
             if (!filter.PrivacyLevels.Contains(loc.Privacy))
@@ -202,8 +174,6 @@ public class EntityResolver
         // Check accessibility requirements
         if (filter.IsPlayerAccessible.HasValue && filter.IsPlayerAccessible.Value)
         {
-            // Check if location has been visited by player
-            // NEW ARCHITECTURE: Accessibility controlled by LocationAccessibilityService query
             if (!loc.HasBeenVisited)
                 return false;
         }
@@ -213,8 +183,6 @@ public class EntityResolver
 
     private NPC FindMatchingNPC(PlacementFilter filter)
     {
-        // VENUE-SCOPED SEARCH: When currentVenue provided, search only NPCs within that venue
-        // GLOBAL SEARCH: When currentVenue is null (parse-time), search all NPCs
         List<NPC> matchingNPCs;
 
         if (_currentVenue != null)
@@ -229,41 +197,34 @@ public class EntityResolver
             matchingNPCs = _gameWorld.NPCs
                 .Where(npc => NPCMatchesFilter(npc, filter))
                 .ToList();
-            Console.WriteLine($"[EntityResolver] Found {matchingNPCs.Count} matching NPCs (global search, no venue constraint)");
+            Console.WriteLine($"[EntityResolver] Found {matchingNPCs.Count} matching NPCs (global search)");
         }
 
-        // Apply selection strategy if multiple matches
         if (matchingNPCs.Count == 0)
             return null;
 
-        return ApplySelectionStrategy(matchingNPCs, filter.SelectionStrategy);
+        return ApplyNPCSelectionStrategy(matchingNPCs, filter.SelectionStrategy);
     }
 
     private bool NPCMatchesFilter(NPC npc, PlacementFilter filter)
     {
-        // Check personality type (if specified)
         if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
         {
             if (!filter.PersonalityTypes.Contains(npc.PersonalityType))
                 return false;
         }
 
-        // Check profession (if specified)
         if (filter.Professions != null && filter.Professions.Count > 0)
         {
             if (!filter.Professions.Contains(npc.Profession))
                 return false;
         }
 
-        // Check relationship state (if specified)
         if (filter.RequiredRelationships != null && filter.RequiredRelationships.Count > 0)
         {
             if (!filter.RequiredRelationships.Contains(npc.PlayerRelationship))
                 return false;
         }
-
-        // Check orthogonal categorical dimensions
-        // Empty list = don't filter, Non-empty = NPC must match ONE OF the values
 
         if (filter.SocialStandings != null && filter.SocialStandings.Count > 0)
         {
@@ -283,7 +244,6 @@ public class EntityResolver
                 return false;
         }
 
-        // Check tier (if specified)
         if (filter.MinTier.HasValue && npc.Tier < filter.MinTier.Value)
             return false;
         if (filter.MaxTier.HasValue && npc.Tier > filter.MaxTier.Value)
@@ -294,15 +254,18 @@ public class EntityResolver
 
     private RouteOption FindMatchingRoute(PlacementFilter filter)
     {
-        RouteOption matchingRoute = _gameWorld.Routes
-            .FirstOrDefault(route => RouteMatchesFilter(route, filter));
+        List<RouteOption> matchingRoutes = _gameWorld.Routes
+            .Where(route => RouteMatchesFilter(route, filter))
+            .ToList();
 
-        return matchingRoute;
+        if (matchingRoutes.Count == 0)
+            return null;
+
+        return ApplyRouteSelectionStrategy(matchingRoutes, filter.SelectionStrategy);
     }
 
     private bool RouteMatchesFilter(RouteOption route, PlacementFilter filter)
     {
-        // Check terrain types (dominant terrain from TerrainCategories)
         if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
         {
             string dominantTerrain = route.GetDominantTerrainType();
@@ -310,7 +273,6 @@ public class EntityResolver
                 return false;
         }
 
-        // Check difficulty (using DangerRating)
         if (filter.MinDifficulty.HasValue && route.DangerRating < filter.MinDifficulty.Value)
             return false;
         if (filter.MaxDifficulty.HasValue && route.DangerRating > filter.MaxDifficulty.Value)
@@ -319,71 +281,91 @@ public class EntityResolver
         return true;
     }
 
-    // ========== LOCATION-SCOPED ENTITY RESOLUTION (SameLocation Proximity) ==========
+    // ========== LOCATION-SCOPED FIND (SameLocation Proximity) ==========
 
-    /// <summary>
-    /// Find NPC AT specific location, or create new NPC placed at that location
-    /// Used when Proximity = SameLocation - semantic: "find/create NPC at THIS location"
-    /// </summary>
-    private NPC FindOrCreateNPCAtLocation(Location location, PlacementFilter filter)
+    private NPC FindNPCAtLocation(Location location, PlacementFilter filter)
     {
-        // Search NPCs specifically AT this location
         List<NPC> npcsAtLocation = _gameWorld.NPCs
             .Where(npc => npc.Location == location && NPCMatchesFilter(npc, filter))
             .ToList();
 
         Console.WriteLine($"[EntityResolver] SameLocation: Found {npcsAtLocation.Count} NPCs at location '{location.Name}'");
 
-        if (npcsAtLocation.Count > 0)
-            return ApplySelectionStrategy(npcsAtLocation, filter.SelectionStrategy);
+        if (npcsAtLocation.Count == 0)
+            return null;
 
-        // No NPC at this location - create new one and place AT this location
-        NPC newNPC = CreateNPCFromCategories(filter);
-        newNPC.Location = location; // CRITICAL: Place NPC AT this location
-        _gameWorld.NPCs.Add(newNPC);
-
-        Console.WriteLine($"[EntityResolver] SameLocation: Created new NPC '{newNPC.Name}' at location '{location.Name}'");
-        return newNPC;
+        return ApplyNPCSelectionStrategy(npcsAtLocation, filter.SelectionStrategy);
     }
 
-    /// <summary>
-    /// Find Route FROM specific location, or create new Route originating from that location
-    /// Used when Proximity = SameLocation - semantic: "find/create Route FROM THIS location"
-    /// </summary>
-    private RouteOption FindOrCreateRouteFromLocation(Location location, PlacementFilter filter)
+    private RouteOption FindRouteFromLocation(Location location, PlacementFilter filter)
     {
-        // Search routes originating FROM this location
         List<RouteOption> routesFromLocation = _gameWorld.Routes
             .Where(route => route.OriginLocation == location && RouteMatchesFilter(route, filter))
             .ToList();
 
         Console.WriteLine($"[EntityResolver] SameLocation: Found {routesFromLocation.Count} routes from location '{location.Name}'");
 
-        if (routesFromLocation.Count > 0)
-            return ApplySelectionStrategy(routesFromLocation, filter.SelectionStrategy);
+        if (routesFromLocation.Count == 0)
+            return null;
 
-        // No route from this location - create new one originating FROM this location
-        RouteOption newRoute = CreateRouteFromCategories(filter);
-        newRoute.OriginLocation = location; // CRITICAL: Route originates FROM this location
-        _gameWorld.Routes.Add(newRoute);
-
-        Console.WriteLine($"[EntityResolver] SameLocation: Created new route '{newRoute.Name}' from location '{location.Name}'");
-        return newRoute;
+        return ApplyRouteSelectionStrategy(routesFromLocation, filter.SelectionStrategy);
     }
 
-    /// <summary>
-    /// Apply selection strategy for RouteOption candidates
-    /// </summary>
-    private RouteOption ApplySelectionStrategy(List<RouteOption> routes, PlacementSelectionStrategy? strategy)
+    // ========== SELECTION STRATEGIES ==========
+
+    private Location ApplyLocationSelectionStrategy(List<Location> locations, PlacementSelectionStrategy strategy)
+    {
+        if (locations.Count == 0)
+            return null;
+        if (locations.Count == 1)
+            return locations[0];
+
+        switch (strategy)
+        {
+            case PlacementSelectionStrategy.LeastRecent:
+                return locations.OrderBy(loc => loc.VisitCount).First();
+
+            case PlacementSelectionStrategy.Random:
+                return locations[Random.Shared.Next(locations.Count)];
+
+            case PlacementSelectionStrategy.First:
+            default:
+                return locations.First();
+        }
+    }
+
+    private NPC ApplyNPCSelectionStrategy(List<NPC> npcs, PlacementSelectionStrategy strategy)
+    {
+        if (npcs.Count == 0)
+            return null;
+        if (npcs.Count == 1)
+            return npcs[0];
+
+        switch (strategy)
+        {
+            case PlacementSelectionStrategy.HighestBond:
+                return npcs.OrderByDescending(npc => npc.RelationshipFlow).First();
+
+            case PlacementSelectionStrategy.LeastRecent:
+                return npcs.OrderBy(npc => npc.StoryCubes).First();
+
+            case PlacementSelectionStrategy.Random:
+                return npcs[Random.Shared.Next(npcs.Count)];
+
+            case PlacementSelectionStrategy.First:
+            default:
+                return npcs.First();
+        }
+    }
+
+    private RouteOption ApplyRouteSelectionStrategy(List<RouteOption> routes, PlacementSelectionStrategy strategy)
     {
         if (routes.Count == 0)
             return null;
         if (routes.Count == 1)
             return routes[0];
 
-        strategy = strategy ?? PlacementSelectionStrategy.First;
-
-        switch (strategy.Value)
+        switch (strategy)
         {
             case PlacementSelectionStrategy.Random:
                 return routes[Random.Shared.Next(routes.Count)];
@@ -392,181 +374,5 @@ public class EntityResolver
             default:
                 return routes.First();
         }
-    }
-
-    // ========== CREATE NEW ENTITIES ==========
-
-    private Location CreateLocationFromCategories(PlacementFilter filter)
-    {
-        string locationName = GenerateLocationName(filter);
-
-        // ADR-007: Constructor uses Name only (no Id parameter or generation)
-        Location newLocation = new Location(locationName)
-        {
-            IsSkeleton = false,
-            HexPosition = null,
-
-            // Apply categorical properties
-            Capabilities = filter.RequiredCapabilities,
-            LocationType = filter.LocationTypes?.FirstOrDefault() ?? LocationTypes.Generic,
-            Privacy = filter.PrivacyLevels?.FirstOrDefault() ?? LocationPrivacy.Public,
-            Safety = filter.SafetyLevels?.FirstOrDefault() ?? LocationSafety.Neutral,
-            Activity = filter.ActivityLevels?.FirstOrDefault() ?? LocationActivity.Moderate,
-            Purpose = filter.Purposes?.FirstOrDefault() ?? LocationPurpose.Generic,
-            Tier = filter.MinTier ?? 1,
-
-            // Initialize required properties
-            HasBeenVisited = false,
-            VisitCount = 0,
-            Familiarity = 0,
-            MaxFamiliarity = 3,
-            FlowModifier = 0,
-            InvestigationCubes = 0
-        };
-
-        return newLocation;
-    }
-
-    private NPC CreateNPCFromCategories(PlacementFilter filter)
-    {
-        NPC newNPC = new NPC
-        {
-            Name = GenerateNPCName(filter),
-            IsSkeleton = false,
-
-            // Apply categorical properties
-            PersonalityType = filter.PersonalityTypes?.FirstOrDefault() ?? PersonalityType.Neutral,
-            Profession = filter.Professions?.FirstOrDefault() ?? Professions.Commoner,
-            Tier = filter.MinTier ?? 1,
-            Level = filter.MinTier ?? 1,
-
-            // Initialize required properties
-            PlayerRelationship = NPCRelationship.Neutral,
-            RelationshipFlow = 12, // NEUTRAL with 0 flow
-            StoryCubes = 0,
-            Crisis = CrisisType.None,
-            ConversationDifficulty = 1,
-            Role = "Generated NPC",
-            Description = "A person you've encountered"
-        };
-
-        return newNPC;
-    }
-
-    private RouteOption CreateRouteFromCategories(PlacementFilter filter)
-    {
-        RouteOption newRoute = new RouteOption
-        {
-            Name = GenerateRouteName(filter),
-
-            // Apply categorical properties from filter
-            DangerRating = filter.MinDifficulty ?? 1,
-            BaseStaminaCost = (filter.MinDifficulty ?? 1) * 5, // Scale with difficulty
-
-            // Initialize required properties
-            Method = TravelMethods.Walking,
-            BaseCoinCost = 0,
-            TravelTimeSegments = 1
-        };
-
-        return newRoute;
-    }
-
-    // ========== SELECTION STRATEGIES ==========
-
-    private Location ApplySelectionStrategy(List<Location> locations, PlacementSelectionStrategy? strategy)
-    {
-        if (locations.Count == 0)
-            return null;
-        if (locations.Count == 1)
-            return locations[0];
-
-        strategy = strategy ?? PlacementSelectionStrategy.First;
-
-        switch (strategy.Value)
-        {
-            case PlacementSelectionStrategy.Closest:
-                // Return location closest to player current position
-                return locations.OrderBy(loc =>
-                    CalculateDistance(loc.HexPosition, _player.CurrentPosition)).First();
-
-            case PlacementSelectionStrategy.LeastRecent:
-                // Return least recently visited location
-                return locations.OrderBy(loc => loc.VisitCount).First();
-
-            case PlacementSelectionStrategy.Random:
-                // Uniform random selection from all matching candidates
-                return RandomLocation(locations);
-
-            case PlacementSelectionStrategy.First:
-            default:
-                return locations.First();
-        }
-    }
-
-    private NPC ApplySelectionStrategy(List<NPC> npcs, PlacementSelectionStrategy? strategy)
-    {
-        if (npcs.Count == 0)
-            return null;
-        if (npcs.Count == 1)
-            return npcs[0];
-
-        strategy = strategy ?? PlacementSelectionStrategy.First;
-
-        switch (strategy.Value)
-        {
-            case PlacementSelectionStrategy.HighestBond:
-                // Return NPC with highest relationship flow
-                return npcs.OrderByDescending(npc => npc.RelationshipFlow).First();
-
-            case PlacementSelectionStrategy.LeastRecent:
-                // Return NPC with lowest story cubes (least interaction)
-                return npcs.OrderBy(npc => npc.StoryCubes).First();
-
-            case PlacementSelectionStrategy.Random:
-                // Uniform random selection from all matching candidates
-                return RandomNPC(npcs);
-
-            case PlacementSelectionStrategy.First:
-            default:
-                return npcs.First();
-        }
-    }
-
-    // ========== NAME GENERATION ==========
-
-    private string GenerateLocationName(PlacementFilter filter)
-    {
-        return _narrativeService.GenerateLocationName(filter);
-    }
-
-    private string GenerateNPCName(PlacementFilter filter)
-    {
-        return _narrativeService.GenerateNPCName(filter);
-    }
-
-    private string GenerateRouteName(PlacementFilter filter)
-    {
-        return _narrativeService.GenerateRouteName(filter);
-    }
-
-    // ========== HELPER METHODS ==========
-
-    private int CalculateDistance(AxialCoordinates? hexPosition, AxialCoordinates playerPosition)
-    {
-        if (!hexPosition.HasValue)
-            return int.MaxValue;
-
-        return hexPosition.Value.DistanceTo(playerPosition);
-    }
-
-    private Location RandomLocation(List<Location> locations)
-    {
-        return locations[Random.Shared.Next(locations.Count)];
-    }
-
-    private NPC RandomNPC(List<NPC> npcs)
-    {
-        return npcs[Random.Shared.Next(npcs.Count)];
     }
 }

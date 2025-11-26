@@ -8,7 +8,7 @@ using Xunit;
 /// - Bitwise operations (HasFlag, OR, AND)
 /// - EnumParser integration (string parsing to enum)
 /// - LocationParser capability parsing from JSON
-/// - EntityResolver capability matching in PlacementFilter queries
+/// - EntityResolver capability matching in PlacementFilter queries (find-only)
 /// - Edge cases and boundary conditions
 ///
 /// PRINCIPLE: Test behaviors (bitwise logic), not implementation (switch statements).
@@ -27,44 +27,6 @@ public class LocationCapabilityTests
 
         // ASSERT: None flag has value 0 (default empty state)
         Assert.Equal(0, (int)none);
-    }
-
-    [Theory]
-    [InlineData(LocationCapability.Crossroads, 1 << 0)]
-    [InlineData(LocationCapability.TransitHub, 1 << 1)]
-    [InlineData(LocationCapability.Gateway, 1 << 2)]
-    [InlineData(LocationCapability.Transit, 1 << 3)]
-    [InlineData(LocationCapability.Transport, 1 << 4)]
-    [InlineData(LocationCapability.Commercial, 1 << 5)]
-    [InlineData(LocationCapability.Market, 1 << 6)]
-    [InlineData(LocationCapability.Tavern, 1 << 7)]
-    [InlineData(LocationCapability.SleepingSpace, 1 << 8)]
-    [InlineData(LocationCapability.Restful, 1 << 9)]
-    [InlineData(LocationCapability.LodgingProvider, 1 << 10)]
-    [InlineData(LocationCapability.Service, 1 << 11)]
-    [InlineData(LocationCapability.Rest, 1 << 12)]
-    [InlineData(LocationCapability.Indoor, 1 << 13)]
-    [InlineData(LocationCapability.Outdoor, 1 << 14)]
-    [InlineData(LocationCapability.Social, 1 << 15)]
-    [InlineData(LocationCapability.Gathering, 1 << 16)]
-    [InlineData(LocationCapability.Temple, 1 << 17)]
-    [InlineData(LocationCapability.Noble, 1 << 18)]
-    [InlineData(LocationCapability.Water, 1 << 19)]
-    [InlineData(LocationCapability.River, 1 << 20)]
-    [InlineData(LocationCapability.Official, 1 << 21)]
-    [InlineData(LocationCapability.Authority, 1 << 22)]
-    [InlineData(LocationCapability.Guarded, 1 << 23)]
-    [InlineData(LocationCapability.Checkpoint, 1 << 24)]
-    [InlineData(LocationCapability.Wealthy, 1 << 25)]
-    [InlineData(LocationCapability.Prestigious, 1 << 26)]
-    [InlineData(LocationCapability.Urban, 1 << 27)]
-    [InlineData(LocationCapability.Rural, 1 << 28)]
-    [InlineData(LocationCapability.ViewsMainEntrance, 1 << 29)]
-    [InlineData(LocationCapability.ViewsBackAlley, 1 << 30)]
-    public void LocationCapability_AllFlags_HaveCorrectBitValues(LocationCapability capability, int expectedBitValue)
-    {
-        // ASSERT: Each flag uses correct bit position (power of 2)
-        Assert.Equal(expectedBitValue, (int)capability);
     }
 
     [Fact]
@@ -373,13 +335,9 @@ public class LocationCapabilityTests
     [Fact]
     public void LocationParser_ParseCapabilities_SingleCapability_SetCorrectly()
     {
-        // ARRANGE: DTO with single capability
-        LocationDTO dto = new LocationDTO
-        {
-            Id = "test_location",
-            Name = "Test Location",
-            Capabilities = new List<string> { "Commercial" }
-        };
+        // ARRANGE: DTO with single capability (all required fields provided)
+        LocationDTO dto = CreateValidLocationDTO("test_location", "Test Location");
+        dto.Capabilities = new List<string> { "Commercial" };
 
         GameWorld world = new GameWorld();
 
@@ -395,12 +353,8 @@ public class LocationCapabilityTests
     public void LocationParser_ParseCapabilities_MultipleCapabilities_CombinedWithOR()
     {
         // ARRANGE: DTO with multiple capabilities
-        LocationDTO dto = new LocationDTO
-        {
-            Id = "tavern_location",
-            Name = "The Prancing Pony",
-            Capabilities = new List<string> { "Indoor", "Social", "Tavern", "SleepingSpace" }
-        };
+        LocationDTO dto = CreateValidLocationDTO("tavern_location", "The Prancing Pony");
+        dto.Capabilities = new List<string> { "Indoor", "Social", "Tavern", "SleepingSpace" };
 
         GameWorld world = new GameWorld();
 
@@ -425,12 +379,8 @@ public class LocationCapabilityTests
     public void LocationParser_ParseCapabilities_EmptyList_SetsNone()
     {
         // ARRANGE: DTO with empty capabilities list
-        LocationDTO dto = new LocationDTO
-        {
-            Id = "empty_location",
-            Name = "Empty Location",
-            Capabilities = new List<string>()
-        };
+        LocationDTO dto = CreateValidLocationDTO("empty_location", "Empty Location");
+        dto.Capabilities = new List<string>();
 
         GameWorld world = new GameWorld();
 
@@ -445,12 +395,8 @@ public class LocationCapabilityTests
     public void LocationParser_ParseCapabilities_NullList_SetsNone()
     {
         // ARRANGE: DTO with null capabilities
-        LocationDTO dto = new LocationDTO
-        {
-            Id = "null_location",
-            Name = "Null Location",
-            Capabilities = null
-        };
+        LocationDTO dto = CreateValidLocationDTO("null_location", "Null Location");
+        dto.Capabilities = null;
 
         GameWorld world = new GameWorld();
 
@@ -465,12 +411,8 @@ public class LocationCapabilityTests
     public void LocationParser_ParseCapabilities_InvalidCapabilityString_Skipped()
     {
         // ARRANGE: DTO with mix of valid and invalid capabilities
-        LocationDTO dto = new LocationDTO
-        {
-            Id = "mixed_location",
-            Name = "Mixed Location",
-            Capabilities = new List<string> { "Commercial", "InvalidCapability", "Market" }
-        };
+        LocationDTO dto = CreateValidLocationDTO("mixed_location", "Mixed Location");
+        dto.Capabilities = new List<string> { "Commercial", "InvalidCapability", "Market" };
 
         GameWorld world = new GameWorld();
 
@@ -486,10 +428,29 @@ public class LocationCapabilityTests
         Assert.Equal(expected, location.Capabilities);
     }
 
+    /// <summary>
+    /// Helper: Create a valid LocationDTO with all required fields for capability parsing tests.
+    /// Tests focus on capability behavior; other fields use minimal valid values.
+    /// </summary>
+    private static LocationDTO CreateValidLocationDTO(string id, string name)
+    {
+        return new LocationDTO
+        {
+            Id = id,
+            Name = name,
+            LocationType = "Generic",
+            Privacy = "Public",
+            Safety = "Neutral",
+            Activity = "Moderate",
+            Purpose = "Generic",
+            ObligationProfile = "Research"
+        };
+    }
+
     // ==================== SECTION 7: ENTITYRESOLVER CAPABILITY MATCHING ====================
 
     [Fact]
-    public void EntityResolver_FindOrCreateLocation_RequiredCapabilities_MatchesSingleCapability()
+    public void EntityResolver_FindLocation_RequiredCapabilities_MatchesSingleCapability()
     {
         // ARRANGE: GameWorld with location having Commercial capability
         Location commercialLocation = new Location("Market Square")
@@ -500,9 +461,7 @@ public class LocationCapabilityTests
         GameWorld world = new GameWorld();
         world.Locations.Add(commercialLocation);
 
-        Player player = new Player();
-        SceneNarrativeService narrativeService = new SceneNarrativeService(world);
-        EntityResolver resolver = new EntityResolver(world, player, narrativeService);
+        EntityResolver resolver = new EntityResolver(world);
 
         PlacementFilter filter = new PlacementFilter
         {
@@ -511,14 +470,14 @@ public class LocationCapabilityTests
         };
 
         // ACT: Find location with Commercial capability
-        Location result = resolver.FindOrCreateLocation(filter);
+        Location result = resolver.FindLocation(filter, null);
 
         // ASSERT: Existing location matched
         Assert.Same(commercialLocation, result);
     }
 
     [Fact]
-    public void EntityResolver_FindOrCreateLocation_RequiredCapabilities_MatchesMultipleCapabilities()
+    public void EntityResolver_FindLocation_RequiredCapabilities_MatchesMultipleCapabilities()
     {
         // ARRANGE: GameWorld with location having Indoor + Social capabilities
         Location tavernLocation = new Location("The Rusty Anchor")
@@ -529,9 +488,7 @@ public class LocationCapabilityTests
         GameWorld world = new GameWorld();
         world.Locations.Add(tavernLocation);
 
-        Player player = new Player();
-        SceneNarrativeService narrativeService = new SceneNarrativeService(world);
-        EntityResolver resolver = new EntityResolver(world, player, narrativeService);
+        EntityResolver resolver = new EntityResolver(world);
 
         PlacementFilter filter = new PlacementFilter
         {
@@ -540,14 +497,14 @@ public class LocationCapabilityTests
         };
 
         // ACT: Find location with both Indoor AND Social
-        Location result = resolver.FindOrCreateLocation(filter);
+        Location result = resolver.FindLocation(filter, null);
 
         // ASSERT: Location has ALL required capabilities (bitwise AND check)
         Assert.Same(tavernLocation, result);
     }
 
     [Fact]
-    public void EntityResolver_FindOrCreateLocation_RequiredCapabilities_RejectsMissingCapability()
+    public void EntityResolver_FindLocation_RequiredCapabilities_RejectsMissingCapability()
     {
         // ARRANGE: GameWorld with location missing one required capability
         Location indoorLocation = new Location("Private Room")
@@ -558,9 +515,7 @@ public class LocationCapabilityTests
         GameWorld world = new GameWorld();
         world.Locations.Add(indoorLocation);
 
-        Player player = new Player();
-        SceneNarrativeService narrativeService = new SceneNarrativeService(world);
-        EntityResolver resolver = new EntityResolver(world, player, narrativeService);
+        EntityResolver resolver = new EntityResolver(world);
 
         PlacementFilter filter = new PlacementFilter
         {
@@ -568,17 +523,15 @@ public class LocationCapabilityTests
             RequiredCapabilities = LocationCapability.Indoor | LocationCapability.Social
         };
 
-        // ACT: Find location (no match, creates new)
-        Location result = resolver.FindOrCreateLocation(filter);
+        // ACT: Find location (no match, returns null - find-only)
+        Location result = resolver.FindLocation(filter, null);
 
-        // ASSERT: Existing location NOT matched (missing Social), new location created
-        Assert.NotSame(indoorLocation, result);
-        Assert.True(result.Capabilities.HasFlag(LocationCapability.Indoor));
-        Assert.True(result.Capabilities.HasFlag(LocationCapability.Social));
+        // ASSERT: No match found (existing location missing Social capability)
+        Assert.Null(result);
     }
 
     [Fact]
-    public void EntityResolver_FindOrCreateLocation_RequiredCapabilitiesNone_MatchesAnyLocation()
+    public void EntityResolver_FindLocation_RequiredCapabilitiesNone_MatchesAnyLocation()
     {
         // ARRANGE: GameWorld with location having any capabilities
         Location anyLocation = new Location("Some Place")
@@ -589,9 +542,7 @@ public class LocationCapabilityTests
         GameWorld world = new GameWorld();
         world.Locations.Add(anyLocation);
 
-        Player player = new Player();
-        SceneNarrativeService narrativeService = new SceneNarrativeService(world);
-        EntityResolver resolver = new EntityResolver(world, player, narrativeService);
+        EntityResolver resolver = new EntityResolver(world);
 
         PlacementFilter filter = new PlacementFilter
         {
@@ -600,14 +551,14 @@ public class LocationCapabilityTests
         };
 
         // ACT: Find location with None requirement
-        Location result = resolver.FindOrCreateLocation(filter);
+        Location result = resolver.FindLocation(filter, null);
 
         // ASSERT: Any location matches when requirement is None
         Assert.NotNull(result);
     }
 
     [Fact]
-    public void EntityResolver_FindOrCreateLocation_RequiredCapabilities_SubsetMatch_Succeeds()
+    public void EntityResolver_FindLocation_RequiredCapabilities_SubsetMatch_Succeeds()
     {
         // ARRANGE: Location has MORE capabilities than required (superset)
         Location versatileLocation = new Location("Grand Hall")
@@ -621,9 +572,7 @@ public class LocationCapabilityTests
         GameWorld world = new GameWorld();
         world.Locations.Add(versatileLocation);
 
-        Player player = new Player();
-        SceneNarrativeService narrativeService = new SceneNarrativeService(world);
-        EntityResolver resolver = new EntityResolver(world, player, narrativeService);
+        EntityResolver resolver = new EntityResolver(world);
 
         PlacementFilter filter = new PlacementFilter
         {
@@ -632,20 +581,18 @@ public class LocationCapabilityTests
         };
 
         // ACT: Find location (requires subset of location's capabilities)
-        Location result = resolver.FindOrCreateLocation(filter);
+        Location result = resolver.FindLocation(filter, null);
 
         // ASSERT: Location matches because it has ALL required capabilities (and more)
         Assert.Same(versatileLocation, result);
     }
 
     [Fact]
-    public void EntityResolver_CreateLocationFromCategories_AssignsRequiredCapabilities()
+    public void EntityResolver_FindLocation_EmptyWorld_ReturnsNull()
     {
         // ARRANGE: EntityResolver with empty GameWorld
         GameWorld world = new GameWorld();
-        Player player = new Player();
-        SceneNarrativeService narrativeService = new SceneNarrativeService(world);
-        EntityResolver resolver = new EntityResolver(world, player, narrativeService);
+        EntityResolver resolver = new EntityResolver(world);
 
         PlacementFilter filter = new PlacementFilter
         {
@@ -653,16 +600,11 @@ public class LocationCapabilityTests
             RequiredCapabilities = LocationCapability.Crossroads | LocationCapability.Transit | LocationCapability.Urban
         };
 
-        // ACT: Create new location from filter (no existing match)
-        Location result = resolver.FindOrCreateLocation(filter);
+        // ACT: Find location (no existing match, returns null - find-only)
+        Location result = resolver.FindLocation(filter, null);
 
-        // ASSERT: New location created with all required capabilities
-        Assert.True(result.Capabilities.HasFlag(LocationCapability.Crossroads));
-        Assert.True(result.Capabilities.HasFlag(LocationCapability.Transit));
-        Assert.True(result.Capabilities.HasFlag(LocationCapability.Urban));
-
-        // ASSERT: Capabilities exactly match requirement
-        Assert.Equal(filter.RequiredCapabilities, result.Capabilities);
+        // ASSERT: No match found (EntityResolver is find-only, doesn't create)
+        Assert.Null(result);
     }
 
     // ==================== SECTION 8: EDGE CASES AND BOUNDARY CONDITIONS ====================

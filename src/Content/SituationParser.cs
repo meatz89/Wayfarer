@@ -8,8 +8,8 @@ public static class SituationParser
 {
     /// <summary>
     /// Convert a SituationDTO to a Situation domain model (System 5: Situation Instantiation)
-    /// THREE-TIER TIMING: Entity references NULL at parse time, resolved at activation time
-    /// PlacementFilters stored by caller, entities assigned later by ResolveSceneEntityReferences()
+    /// Entity references NULL at parse time - resolved by ActivateScene() INTEGRATED process
+    /// PlacementFilters stored by caller (SceneParser), entities assigned at scene activation
     /// </summary>
     public static Situation ConvertDTOToSituation(
         SituationDTO dto,
@@ -48,10 +48,10 @@ public static class SituationParser
         {
             Name = dto.Name,
             Description = dto.Description,
-            // THREE-TIER TIMING: Entity references NULL at parse time, resolved at activation
-            Location = null,  // Will be resolved by ResolveSceneEntityReferences() at activation
-            Npc = null,       // Will be resolved by ResolveSceneEntityReferences() at activation
-            Route = null,     // Will be resolved by ResolveSceneEntityReferences() at activation
+            // Entity references NULL at parse time - resolved by ActivateScene() at scene activation
+            Location = null,  // Resolved via EntityResolver.FindLocation() + PackageLoader.CreateSingleLocation()
+            Npc = null,       // Resolved via EntityResolver.FindNPC() + PackageLoader.CreateSingleNpc()
+            Route = null,     // Resolved via EntityResolver.FindRoute() (FAIL FAST if not found)
             SystemType = systemType,
             IsIntroAction = dto.IsIntroAction,
             // IsAvailable and IsCompleted are computed properties from Status enum (no population needed)
