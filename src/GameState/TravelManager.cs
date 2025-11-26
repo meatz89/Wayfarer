@@ -203,9 +203,6 @@ public class TravelManager
         // Step 1: Get or draw event for this segment
         string eventId = GetOrDrawEventForSegment(segment, session, eventCollection.EventIds);
 
-        // Step 2: Get the event - still requires lookup by ID
-        // TODO: EventCollection should have TravelEvent objects, not EventIds strings
-        // For now, keep GetTravelEvent lookup until EventCollection is refactored
         if (!_gameWorld.AllTravelEvents.Any(e => e.TravelEvent.Id == eventId))
         {
             return new List<PathCardDTO>();

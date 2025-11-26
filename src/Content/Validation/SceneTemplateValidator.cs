@@ -34,6 +34,22 @@ public static class SceneTemplateValidator
             {
                 errors.Add(new SceneValidationError("STRUCT_004", $"Situation {situation.Id} has {situation.ChoiceTemplates.Count} choices (max 4)"));
             }
+
+            if (situation.LocationFilter == null)
+            {
+                errors.Add(new SceneValidationError("STRUCT_005",
+                    $"Situation '{situation.Id}' has null LocationFilter. " +
+                    $"All situations require LocationFilter per gdd/05_content.md §5.8. " +
+                    $"Use PlacementProximity.SameLocation for spawn location."));
+            }
+
+            if (situation.NpcFilter != null && situation.RouteFilter != null)
+            {
+                errors.Add(new SceneValidationError("PATTERN_001",
+                    $"Situation '{situation.Id}' has BOTH NpcFilter AND RouteFilter. " +
+                    $"gdd/05_content.md §5.8 requires ONE presentation pattern: " +
+                    $"Location-only (modal), Location+NPC (conversation), or Location+Route (travel)."));
+            }
         }
     }
 

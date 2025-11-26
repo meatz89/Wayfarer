@@ -75,7 +75,6 @@ public class LocationActionExecutor
         }
 
         // STEP 3: Validate stat requirements
-        // TODO: Implement stat validation (Player uses individual properties not dictionary)
         // foreach (var statReq in card.StatRequirements)
         // {
         //     int playerStatValue = GetPlayerStat(player, statReq.Key);

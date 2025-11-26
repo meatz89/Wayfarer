@@ -65,8 +65,6 @@ public static class LocationParser
         // EXPLICIT INITIALIZATION: Flow modifier (0 = neutral, can be positive/negative)
         location.FlowModifier = 0;
 
-        // EXPLICIT INITIALIZATION: Tier (MUST come from placement algorithm or be set to 1)
-        // TODO: Tier should be determined by LocationPlacementService based on venue tier
         location.Tier = 1;
 
         // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access

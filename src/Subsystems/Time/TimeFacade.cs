@@ -101,12 +101,6 @@ public class TimeFacade
             _gameWorld.ClearState(stateType);
         }
 
-        // TODO Phase 6: Trigger cascade after clearing states
-        // if (expiredStates.Any())
-        // {
-        //     await _spawnFacade.EvaluateDormantSituations();
-        // }
-
         return result;
     }
 

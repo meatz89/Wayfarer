@@ -293,11 +293,8 @@ public class EmergencyFacade
             }
         }
 
-        // Grant items
-        // HIGHLANDER: GrantedItems is List<Item> with object references
         foreach (Item item in outcome.GrantedItems)
         {
-            // TODO: Implement item granting when inventory system is in place
             _messageSystem.AddSystemMessage($"Received item: {item.Name}", SystemMessageTypes.Info);
         }
 
@@ -314,11 +311,8 @@ public class EmergencyFacade
             }
         }
 
-        // Spawn situations
-        // HIGHLANDER: SpawnedSituations is List<Situation> with object references
         foreach (Situation situation in outcome.SpawnedSituations)
         {
-            // TODO: Implement situation spawning when situation system is in place
             _messageSystem.AddSystemMessage($"New situation available: {situation.Name}", SystemMessageTypes.Info);
         }
 

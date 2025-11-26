@@ -312,13 +312,6 @@ public class ResourceFacade
             statesCleared++;
         }
 
-        // TODO Phase 6: Trigger cascade after clearing states
-        // if (statesToClear.Any())
-        // {
-        //     await _spawnFacade.EvaluateDormantSituations();
-        // }
-
-        // Generate message about recovery
         if (healthRecovered > 0 || staminaRecovered > 0 || statesCleared > 0)
         {
             string recoveryMessage = "Rested for 1 segment.";

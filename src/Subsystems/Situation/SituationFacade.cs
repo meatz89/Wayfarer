@@ -133,8 +133,6 @@ public class SituationFacade
         situation.Lifecycle.CompletedTimeBlock = _timeFacade.GetCurrentTimeBlock();
         situation.Lifecycle.CompletedSegment = _timeFacade.GetCurrentSegment();
 
-        // TODO Phase D: Execute spawn rules via SpawnFacade
-
         return SituationSelectionResult.InstantResolution(situation);
     }
 

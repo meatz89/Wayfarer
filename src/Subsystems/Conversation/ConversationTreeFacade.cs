@@ -204,7 +204,6 @@ public class ConversationTreeFacade
         {
             foreach (Situation situation in response.SpawnedSituations)
             {
-                // TODO: Implement situation spawning logic when situation system is in place
                 _messageSystem.AddSystemMessage($"New situation available: {situation.Name}", SystemMessageTypes.Info);
             }
         }

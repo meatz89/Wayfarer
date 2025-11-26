@@ -28,7 +28,7 @@
           "placementType": "NPC",
           "professions": ["Innkeeper"]
         },
-        "introNarrativeTemplate": "Evening approaches in a new town. You're a newly arrived traveler needing shelter. The inn's common room is warm and inviting. {NPCName}, the friendly innkeeper, notices you and approaches.",
+        "introNarrativeTemplate": "Evening approaches in a new town. You're a newly arrived traveler needing shelter. The inn's common room is warm and inviting. The friendly innkeeper notices you and approaches.",
         "spawnConditions": {
           "alwaysEligible": true
         }
@@ -52,7 +52,7 @@
           "placementType": "NPC",
           "professions": ["Merchant"]
         },
-        "introNarrativeTemplate": "Morning arrives. You step out into the town square, seeking work. {NPCName} stands by their cart, looking for reliable help - a delivery contract awaits.",
+        "introNarrativeTemplate": "Morning arrives. You step out into the town square, seeking work. A merchant stands by their cart, looking for reliable help - a delivery contract awaits.",
         "spawnConditions": {}
       },
       {

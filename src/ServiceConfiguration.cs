@@ -227,6 +227,7 @@ public static class ServiceConfiguration
         services.AddSingleton<NarrativeFacade>();
 
         // Mastery (Cubes) Subsystem
+        services.AddSingleton<MasteryCubeService>();
         services.AddSingleton<CubeFacade>();
 
         // Screen Expansion Subsystems - ConversationTree, Observation, Emergency

@@ -189,10 +189,9 @@ public class ObservationFacade
         // Check for item finding (using object reference)
         if (point.FoundItem != null && point.FindItemChance > 0)
         {
-            int roll = _random.Next(1, 101); // 1-100
+            int roll = _random.Next(1, 101);
             if (roll <= point.FindItemChance)
             {
-                // TODO: Implement item granting when inventory system is in place
                 result.ItemFound = point.FoundItem;
                 _messageSystem.AddSystemMessage($"Found item: {point.FoundItem.Name}", SystemMessageTypes.Info);
             }

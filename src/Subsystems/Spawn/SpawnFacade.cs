@@ -176,17 +176,17 @@ public class SpawnFacade
             TransformDescription = template.TransformDescription,
             // PropertyReduction DELETED - old equipment system removed
             InteractionType = template.InteractionType,
-            NavigationPayload = template.NavigationPayload, // TODO: Clone if mutable
+            NavigationPayload = template.NavigationPayload,
             Tier = template.Tier,
             Repeatable = template.Repeatable,
             GeneratedNarrative = null, // Don't copy cached narrative
-            NarrativeHints = template.NarrativeHints, // TODO: Clone if mutable
+            NarrativeHints = template.NarrativeHints,
             Category = template.Category,
             ConnectionType = template.ConnectionType,
             LifecycleStatus = LifecycleStatus.Selectable,
 
             // Spawn tracking
-            Template = null, // TODO: Replace with proper template reference when using SituationTemplate system
+            Template = null,
             ParentSituation = parentSituation, // Object reference, not ParentSituationId
             Lifecycle = new SpawnTracking
             {
@@ -295,13 +295,6 @@ public class SpawnFacade
     /// </summary>
     private void ResolvePlacement(Situation spawned, Situation parent, SpawnRule rule)
     {
-        // PHASE 0.2: Placement properties DELETED from Situation - Scene owns placement now
-        // Spawned situations inherit parent scene, which owns placement through Scene.PlacementLocation/PlacementNpc/PlacementRouteId
-        // SpawnFacade NO LONGER sets placement properties on situations
-        // Scene-Situation architecture: Scene is OWNER of placement hierarchy
-
-        // TODO Phase 0.2: Implement Scene-based placement inheritance once Scene system refactored
-        // For now, spawned situations will not have direct placement (rely on ParentScene lookup)
         spawned.Obligation = parent.Obligation;
     }
 

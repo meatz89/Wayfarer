@@ -1115,7 +1115,6 @@ public class GameFacade
         if (npc == null)
             return IntentResult.Failed();
 
-        // TODO: Implement conversation initiation
         _messageSystem.AddSystemMessage($"Talking to NPC {npc.Name} not yet implemented", SystemMessageTypes.Info);
         await Task.CompletedTask;
         return IntentResult.Executed(requiresRefresh: false);
@@ -2027,7 +2026,7 @@ public class GameFacade
                     player.Health = Math.Max(0, player.Health + card.HealthEffect);  // Damage
 
                 // Apply token gains
-                foreach (var tokenGain in card.TokenGains)
+                foreach (KeyValuePair<string, int> tokenGain in card.TokenGains)
                 {
                     // Token system integration (future implementation)
                     // For now, tokens not implemented

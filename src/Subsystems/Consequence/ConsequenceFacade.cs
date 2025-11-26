@@ -67,14 +67,10 @@ public class ConsequenceFacade
             int oldBond = npc.BondStrength;
             npc.BondStrength += change.Delta;
 
-            // Clamp to valid range (0-30)
             if (npc.BondStrength < 0)
                 npc.BondStrength = 0;
             if (npc.BondStrength > 30)
                 npc.BondStrength = 30;
-
-            // TODO: Add narrative feedback about bond change
-            // Example: "Your bond with {npc.Name} has {increased|decreased} to {npc.BondStrength}"
         }
     }
 
@@ -98,9 +94,6 @@ public class ConsequenceFacade
                 newValue = 10;
 
             SetScaleValue(player, shift.ScaleType, newValue);
-
-            // TODO: Add narrative feedback about scale shift
-            // Example: "Your {ScaleType} reputation shifts toward {positive|negative}"
         }
     }
 
@@ -116,10 +109,8 @@ public class ConsequenceFacade
         {
             if (application.Apply)
             {
-                // Add state (if not already active)
                 if (!player.ActiveStates.Any(s => s.Type == application.StateType))
                 {
-                    // TODO: Get state category from StateType (requires StateType → StateCategory mapping)
                     StateCategory category = GetStateCategoryForType(application.StateType);
 
                     player.ActiveStates.Add(new ActiveState
@@ -129,23 +120,16 @@ public class ConsequenceFacade
                         AppliedDay = _timeFacade.GetCurrentDay(),
                         AppliedTimeBlock = _timeFacade.GetCurrentTimeBlock(),
                         AppliedSegment = _timeFacade.GetCurrentSegment(),
-                        DurationSegments = application.DurationSegments ?? 48  // Use specified duration or default to 3 days
+                        DurationSegments = application.DurationSegments ?? 48
                     });
-
-                    // TODO: Add narrative feedback about state gained
-                    // Example: "You are now {StateType}: {state description}"
                 }
             }
             else
             {
-                // Remove state (if active)
                 ActiveState existingState = player.ActiveStates.FirstOrDefault(s => s.Type == application.StateType);
                 if (existingState != null)
                 {
                     player.ActiveStates.Remove(existingState);
-
-                    // TODO: Add narrative feedback about state removed
-                    // Example: "You are no longer {StateType}"
                 }
             }
         }

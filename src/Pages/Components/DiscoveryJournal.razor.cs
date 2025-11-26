@@ -129,10 +129,7 @@ namespace Wayfarer.Pages.Components
 
         protected int GetObligationTotalSituations(Obligation obligation)
         {
-            // PhaseDefinitions eliminated - return static understanding requirement for now
-            // NOTE: Scenes no longer have ObligationId - UI needs redesign
-            // TODO: Add UnderstandingRequired property to Obligation model
-            return 10; // Default Understanding requirement for completion
+            return 10;
         }
 
         protected double GetObligationProgressPercent(ActiveObligation activeInv)

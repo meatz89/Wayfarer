@@ -79,8 +79,6 @@ public static class ObservationSceneParser
             IsExamined = false,
             GrantedKnowledge = new List<string>(dto.GrantedKnowledge),
             FindItemChance = dto.FindItemChance
-            // RevealsExaminationPoint resolved in second pass
-            // FoundItem, SpawnedSituation, SpawnedConversation: TODO resolve from gameWorld if needed
         };
 
         // Parse optional required stat

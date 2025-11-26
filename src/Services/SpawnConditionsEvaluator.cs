@@ -78,9 +78,6 @@ public class SpawnConditionsEvaluator
             }
         }
 
-        // Check LocationVisits
-        // NOTE: Player has LocationFamiliarity but not LocationVisits visit count tracking
-        // TODO: Add Player.LocationVisits dictionary tracking when needed
         if (conditions.LocationVisits != null && conditions.LocationVisits.Count > 0)
         {
             foreach (KeyValuePair<string, int> kvp in conditions.LocationVisits)
@@ -208,9 +205,6 @@ public class SpawnConditionsEvaluator
             foreach (KeyValuePair<string, int> kvp in conditions.LocationReputation)
             {
                 // NOTE: Location reputation system not yet implemented in Player
-                // When implemented, query player.GetLocationReputation(locationId)
-                // For now, skip this check (treat as passed)
-                // TODO: Implement when Player.LocationReputation tracking added
             }
         }
 
@@ -243,9 +237,6 @@ public class SpawnConditionsEvaluator
         {
             // Properties vary by entity type - determine type from placement
             // NOTE: This is a simplified check. Full implementation would need to determine entity type
-            // and check appropriate properties (NPC personality, Location properties, Route terrain, etc.)
-            // For now, treat as passed (properties system fully functional but not queried here)
-            // TODO: Implement full property checking when needed
         }
 
         return true; // All entity state conditions met

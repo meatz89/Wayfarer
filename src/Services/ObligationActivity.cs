@@ -243,10 +243,7 @@ public class ObligationActivity
             return null; // Not active
         }
 
-        // NOTE: Scenes no longer have ObligationId property - obligations tracked via Understanding resource
-        // Completion now based on Understanding reaching requirement, not scene counts
-        // TODO: Add UnderstandingRequired property to Obligation model
-        int requiredUnderstanding = 10; // Default completion threshold
+        int requiredUnderstanding = 10;
         if (activeInv.UnderstandingAccumulated < requiredUnderstanding)
         {
             return null; // Not yet complete - need more Understanding

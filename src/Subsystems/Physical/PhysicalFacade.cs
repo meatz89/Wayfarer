@@ -7,6 +7,7 @@ public class PhysicalFacade
     private readonly TimeManager _timeManager;
     private readonly ObligationActivity _obligationActivity;
     private readonly SituationCompletionHandler _situationCompletionHandler;
+    private readonly MasteryCubeService _masteryCubeService;
 
     public PhysicalFacade(
         GameWorld gameWorld,
@@ -15,7 +16,8 @@ public class PhysicalFacade
         PhysicalDeckBuilder deckBuilder,
         TimeManager timeManager,
         ObligationActivity obligationActivity,
-        SituationCompletionHandler situationCompletionHandler)
+        SituationCompletionHandler situationCompletionHandler,
+        MasteryCubeService masteryCubeService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
         _effectResolver = effectResolver ?? throw new ArgumentNullException(nameof(effectResolver));
@@ -24,6 +26,7 @@ public class PhysicalFacade
         _timeManager = timeManager ?? throw new ArgumentNullException(nameof(timeManager));
         _obligationActivity = obligationActivity ?? throw new ArgumentNullException(nameof(obligationActivity));
         _situationCompletionHandler = situationCompletionHandler ?? throw new ArgumentNullException(nameof(situationCompletionHandler));
+        _masteryCubeService = masteryCubeService ?? throw new ArgumentNullException(nameof(masteryCubeService));
     }
 
     public PhysicalSession GetCurrentSession()
@@ -358,11 +361,11 @@ public class PhysicalFacade
         {
             Player player = _gameWorld.GetPlayer();
             int reputationGain = _gameWorld.CurrentPhysicalSession.CurrentBreakthrough >= 20 ? 1 : 0;
-            player.Reputation += reputationGain;// PROGRESSION SYSTEM: Award mastery cube for this challenge type
+            player.Reputation += reputationGain;
             if (!string.IsNullOrEmpty(_gameWorld.CurrentPhysicalSession.ChallengeId))
             {
-                player.MasteryCubes.AddMastery(_gameWorld.CurrentPhysicalSession.ChallengeId, 1);
-                int masteryLevel = player.MasteryCubes.GetMastery(_gameWorld.CurrentPhysicalSession.ChallengeId);
+                _masteryCubeService.AddMastery(player.MasteryCubes, _gameWorld.CurrentPhysicalSession.ChallengeId, 1);
+                int masteryLevel = _masteryCubeService.GetMastery(player.MasteryCubes, _gameWorld.CurrentPhysicalSession.ChallengeId);
             }
         }
 
@@ -453,15 +456,6 @@ public class PhysicalFacade
         int staminaDamage = 2;
         player.Stamina = Math.Max(0, player.Stamina - staminaDamage);
 
-        // Only add injury card if health drops below 2 (critical state)
-        if (player.Health < 2)
-        {
-            // TODO: Injury card system not fully implemented
-            // Need to: 1) Define injury PhysicalCard templates in JSON
-            //          2) Create card lookup/factory in GameWorld or card catalogue
-            //          3) Add PhysicalCard object to player.InjuryCards collection
-            // Example: player.InjuryCards.Add(lookupInjuryCard("injury_physical_moderate"));
-        }
     }
 
     /// <summary>

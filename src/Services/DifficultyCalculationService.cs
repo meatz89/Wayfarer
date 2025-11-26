@@ -6,10 +6,12 @@
 public class DifficultyCalculationService
 {
     private readonly GameWorld _gameWorld;
+    private readonly MasteryCubeService _masteryCubeService;
 
-    public DifficultyCalculationService(GameWorld gameWorld)
+    public DifficultyCalculationService(GameWorld gameWorld, MasteryCubeService masteryCubeService)
     {
         _gameWorld = gameWorld ?? throw new ArgumentNullException(nameof(gameWorld));
+        _masteryCubeService = masteryCubeService ?? throw new ArgumentNullException(nameof(masteryCubeService));
     }
 
     /// <summary>
@@ -63,7 +65,7 @@ public class DifficultyCalculationService
 
             case ModifierType.Mastery:
                 // Physical expertise per challenge type (uses DeckId, not Type)
-                int mastery = player.MasteryCubes.GetMastery(mod.Context);
+                int mastery = _masteryCubeService.GetMastery(player.MasteryCubes, mod.Context);
                 return mastery >= mod.Threshold;
 
             case ModifierType.Familiarity:

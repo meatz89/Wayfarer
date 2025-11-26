@@ -94,7 +94,7 @@ namespace Wayfarer.Pages.Components
                 "deep_conversation" => "Deep Conversation",
                 "business_discussion" => "Business Discussion",
                 "casual_talk" => "Casual Talk",
-                _ => conversationType.Replace("_", " ").ToTitleCase()
+                _ => FormatTitleCase(conversationType.Replace("_", " "))
             };
         }
 
@@ -136,25 +136,11 @@ namespace Wayfarer.Pages.Components
             RefreshStrangers();
             StateHasChanged();
         }
-    }
-}
 
-// Extension method for title case conversion
-public static class StringExtensions
-{
-    public static string ToTitleCase(this string input)
-    {
-        if (string.IsNullOrEmpty(input))
-            return input;
-
-        string[] words = input.Split(' ');
-        for (int i = 0; i < words.Length; i++)
+        private string FormatTitleCase(string input)
         {
-            if (words[i].Length > 0)
-            {
-                words[i] = char.ToUpper(words[i][0]) + words[i].Substring(1).ToLower();
-            }
+            if (string.IsNullOrEmpty(input)) return input;
+            return System.Globalization.CultureInfo.CurrentCulture.TextInfo.ToTitleCase(input.ToLower());
         }
-        return string.Join(" ", words);
     }
 }
