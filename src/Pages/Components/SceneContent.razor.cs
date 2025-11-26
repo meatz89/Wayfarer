@@ -606,12 +606,17 @@ public class SceneContentBase : ComponentBase
 
         // CONTEXT-AWARE ROUTING: Query routing decision from completed situation
         SceneRoutingDecision routingDecision = CurrentSituation.RoutingDecision;
-        Console.WriteLine($"[SceneContent.HandleChoiceSelected] RoutingDecision: {routingDecision}");
+        Console.WriteLine($"[SceneContent.HandleChoiceSelected] RoutingDecision: {routingDecision}, ProgressionMode: {Scene.ProgressionMode}");
 
-        if (routingDecision == SceneRoutingDecision.ContinueInScene)
+        // CASCADE MODE: Force continuation regardless of context changes
+        // BREATHE MODE: Respect context-based routing (exit to world when context changes)
+        bool shouldContinueInScene = routingDecision == SceneRoutingDecision.ContinueInScene ||
+            (routingDecision == SceneRoutingDecision.ExitToWorld && Scene.ProgressionMode == ProgressionMode.Cascade);
+
+        if (shouldContinueInScene)
         {
-            Console.WriteLine($"[SceneContent.HandleChoiceSelected] CONTINUE IN SCENE - reloading modal");
-            // Same context (location + NPC) - seamless cascade to next situation
+            Console.WriteLine($"[SceneContent.HandleChoiceSelected] CONTINUE IN SCENE - reloading modal (Cascade={Scene.ProgressionMode == ProgressionMode.Cascade})");
+            // Same context OR Cascade mode - seamless cascade to next situation
             Situation nextSituation = Scene.CurrentSituation;
 
             if (nextSituation != null)
@@ -632,8 +637,8 @@ public class SceneContentBase : ComponentBase
         }
         else if (routingDecision == SceneRoutingDecision.ExitToWorld)
         {
-            Console.WriteLine($"[SceneContent.HandleChoiceSelected] EXIT TO WORLD - closing modal");
-            // Different context (location or NPC changed) - player must navigate
+            Console.WriteLine($"[SceneContent.HandleChoiceSelected] EXIT TO WORLD (Breathe mode) - closing modal");
+            // Different context AND Breathe mode - player must navigate
             // Scene persists with updated CurrentSituationId
             // Will resume when player navigates to required context
             await OnSceneEnd.InvokeAsync();

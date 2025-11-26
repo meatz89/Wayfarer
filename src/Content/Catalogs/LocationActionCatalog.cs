@@ -102,7 +102,7 @@ public static class LocationActionCatalog
             });
         }
 
-        // SleepingSpace capability → Rest action
+        // SleepingSpace capability → Rest action (best rest - actual beds)
         if (location.Capabilities.HasFlag(LocationCapability.SleepingSpace))
         {
             Console.WriteLine($"[LocationActionCatalog] ✅ SleepingSpace found - generating Rest action");
@@ -126,6 +126,63 @@ public static class LocationActionCatalog
                 ExcludedCapabilities = LocationCapability.None,
                 Availability = new List<TimeBlocks> { TimeBlocks.Morning, TimeBlocks.Midday, TimeBlocks.Afternoon, TimeBlocks.Evening },
                 Priority = 130  // High priority - safe recovery
+            });
+        }
+
+        // Restful capability → Rest action (enhanced atmosphere, no beds needed)
+        // Only generates if SleepingSpace not already present (avoid duplicate Rest actions)
+        if (location.Capabilities.HasFlag(LocationCapability.Restful) &&
+            !location.Capabilities.HasFlag(LocationCapability.SleepingSpace))
+        {
+            Console.WriteLine($"[LocationActionCatalog] ✅ Restful found - generating Rest action");
+            actions.Add(new LocationAction
+            {
+                SourceLocation = location,
+                Name = "Rest",
+                Description = "Take time to rest in this peaceful atmosphere. Advances 1 time segment. Restores +2 Stamina.",
+                ActionType = LocationActionType.Rest,
+                Costs = new ActionCosts
+                {
+                    // Rest costs time (handled by intent)
+                },
+                Rewards = new ActionRewards
+                {
+                    StaminaRecovery = 2
+                },
+                RequiredCapabilities = LocationCapability.Restful,
+                OptionalCapabilities = LocationCapability.None,
+                ExcludedCapabilities = LocationCapability.None,
+                Availability = new List<TimeBlocks> { TimeBlocks.Morning, TimeBlocks.Midday, TimeBlocks.Afternoon, TimeBlocks.Evening },
+                Priority = 120  // Below SleepingSpace priority
+            });
+        }
+
+        // Rest capability → Rest action (basic rest area, minimal recovery)
+        // Only generates if neither SleepingSpace nor Restful present
+        if (location.Capabilities.HasFlag(LocationCapability.Rest) &&
+            !location.Capabilities.HasFlag(LocationCapability.Restful) &&
+            !location.Capabilities.HasFlag(LocationCapability.SleepingSpace))
+        {
+            Console.WriteLine($"[LocationActionCatalog] ✅ Rest found - generating Rest action");
+            actions.Add(new LocationAction
+            {
+                SourceLocation = location,
+                Name = "Rest",
+                Description = "Take a brief rest. Advances 1 time segment. Restores +1 Stamina.",
+                ActionType = LocationActionType.Rest,
+                Costs = new ActionCosts
+                {
+                    // Rest costs time (handled by intent)
+                },
+                Rewards = new ActionRewards
+                {
+                    StaminaRecovery = 1
+                },
+                RequiredCapabilities = LocationCapability.Rest,
+                OptionalCapabilities = LocationCapability.None,
+                ExcludedCapabilities = LocationCapability.None,
+                Availability = new List<TimeBlocks> { TimeBlocks.Morning, TimeBlocks.Midday, TimeBlocks.Afternoon, TimeBlocks.Evening },
+                Priority = 110  // Below Restful priority
             });
         }
 

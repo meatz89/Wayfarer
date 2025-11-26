@@ -26,6 +26,57 @@
 
 **Technical Details:** The A-story tutorial uses `mainStorySequence: 1` to trigger special stat-granting logic in SceneArchetypeCatalog.cs. Old tutorial scenes are now disabled to prevent conflicts.
 
+### 3. Hex Placement Overlap Bug (FIXED)
+**Issue:** Scene-created locations were placed at occupied hexes, causing location overlap within venue clusters.
+
+**Root Cause:** `PackageLoader.CreateSingleLocation` was calling `LocationPlacementService.PlaceLocationInVenue()` which calculated hex position but didn't check if the hex was already occupied by another location.
+
+**Fix Applied:**
+1. Added `FindUnoccupiedHexInVenue()` method to LocationPlacementService
+2. Updated `CreateSingleLocation` and `PlaceLocationsInVenue` to use the new method
+3. Method iterates through venue hex offsets to find first unoccupied position
+
+**Verification:** Server logs confirm fix works:
+```
+[LocationPlacement] Hex (-2, -1) is occupied, checking next...
+[LocationPlacement] Found unoccupied hex at (-2, -2)
+[LocationPlacement] Placed 'Town Square Center' at (-2, -2) in venue 'Town Square'
+```
+
+**Technical Details:** The fix uses venue hex offsets array and checks each position against existing locations until an unoccupied hex is found.
+
+### 4. Tutorial Scene Only 1 Situation (FIXED - 2025-11-26)
+**Issue:** a1_secure_lodging scene only presents 1 situation instead of the expected 3 situations.
+
+**Root Cause:** SceneContent.HandleChoiceSelected() ignored `Scene.ProgressionMode`. When context changed (NPC goes from Innkeeper to null between situations), the UI exited to world instead of cascading.
+
+**Fix Applied:** Updated SceneContent.razor.cs to check `ProgressionMode.Cascade` - when set, forces continuation regardless of context changes.
+
+**Verification:** Playwright test confirms scene now cascades from Situation 1 (stat choices) to Situation 2 (rest choices like "Read and study", "Rest peacefully").
+
+### 5. Travel Blocked - Potential Soft-Lock (FIXED - 2025-11-26)
+**Issue:** Player cannot travel from The Brass Bell Inn to Town Square due to resource constraints.
+
+**Root Cause:** TravelManager.UpdateTravelState() had inverted comparison operators. Used `<=` when should use `>=`, causing stamina 3 to match Weary state incorrectly.
+
+**Fix Applied:** Reordered checks from HIGH to LOW with `>=` comparisons:
+```csharp
+// Now correctly checks: >= 6 (Steady) → >= 5 (Fresh) → >= 4 (Tired) → >= 3 (Weary) → else (Exhausted)
+```
+
+**Technical Details:** With stamina 3, the old check `<= 3` matched Weary instead of allowing proper state transitions.
+
+### 6. Missing Rest Action (FIXED - 2025-11-26)
+**Issue:** Common Room has "Restful" capability but no Rest action is generated.
+
+**Root Cause:** LocationActionCatalog only handled SleepingSpace capability for Rest action. The Restful and Rest capability handlers were completely missing.
+
+**Fix Applied:** Added two new capability handlers to LocationActionCatalog.GeneratePropertyBasedActions():
+1. Restful capability → Rest action (+2 Stamina, Priority 120)
+2. Rest capability → Rest action (+1 Stamina, Priority 110)
+
+**Verification:** Server logs now show `[LocationActionCatalog] ✅ Restful found - generating Rest action` and UI displays "Rest - Take time to rest in this peaceful atmosphere. Advances 1 time segment. Restores +2 Stamina."
+
 ---
 
 ## Gameplay Flow Discovery
@@ -132,16 +183,49 @@ new Promise(resolve => {
 ### Investigator Build Playthrough
 **Goal:** Maximize Cunning + Insight
 **Progress:**
-- Cunning: 0 → 1 ✅ (first stat point acquired)
+- Cunning: 0 → 1 (only 1 stat point from a1 scene - scene ended early)
 - Coins: 8 → 3 (spent 5 on stat choice)
-- Build identity: Beginning to form
+- Stamina: 3/6 (CRITICALLY LOW - blocks travel)
+- Build identity: BLOCKED - cannot progress
+
+### Session 2025-11-26 Findings (Updated)
+
+**CRITICAL ISSUES DISCOVERED:**
+
+1. **Tutorial Scene a1_secure_lodging Only 1 Situation:**
+   - Expected 3 situations per server logs
+   - Actual: Only 1 stat-choice situation presented
+   - Scene ended immediately after first choice
+   - "Secure Lodging" no longer available
+
+2. **Travel Blocked - Potential Soft-Lock:**
+   - Attempted travel to Town Square: BLOCKED
+   - Error: "PATH BLOCKED - All routes ahead are impassable"
+   - Route showed STAMINA: 3/3 requirement
+   - Player has Stamina 3/6 but cannot proceed
+   - Forced to TURN BACK
+
+3. **Missing Rest Action:**
+   - Common Room has "Restful" capability
+   - No Rest action generated
+   - Only: Look Around, Check Belongings, Wait, Travel
+   - Wait explicitly provides "no resource recovery"
+
+**Player STUCK at The Brass Bell Inn:**
+- Cannot travel (stamina too low)
+- Cannot rest (no Rest action)
+- Cannot recover stamina (Wait doesn't help)
+- Only Working/Trading available but may not help stamina
+
+**Map View Observations:**
+- Hex grid displays correctly with terrain types
+- Locations show as gray circles with labels
+- Player position shown with star icon
 
 **Next Steps:**
-- Continue gameplay for 10-15 more scenes
-- Document all stat-gated encounters
-- Track Cunning/Insight progression
-- Observe opportunity cost moments
-- Record "life you could have had" feelings
+- FIX: Add Rest action for Restful capability locations
+- FIX: Investigate why scene ended after 1 situation
+- FIX: Review route segment stamina requirements
 
 ---
 
@@ -150,8 +234,8 @@ new Promise(resolve => {
 ### To Resume Playtest
 1. Start server: `cd src && ASPNETCORE_URLS="http://localhost:8100" dotnet run --no-build`
 2. Navigate to http://localhost:8100
-3. Current state: Cunning = 1, Coins = 3, at Common Room
-4. Continue with Look Around → find more scenes
+3. Current state: Cunning = 2, Insight = 1, Coins = 3, a1 completed
+4. Look Around → find a2_morning scene
 5. Prioritize Cunning/Insight choices when available
 6. Document all stat-gated moments
 
@@ -160,8 +244,10 @@ new Promise(resolve => {
 2. Navigate to http://localhost:8100
 3. Look Around
 4. Click "Secure Lodging" (only one will appear)
-5. Select "Seek advantageous deal" (Cunning)
-6. Continue gameplay
+5. Select "Seek advantageous deal" (Cunning) in Situation 1
+6. Select "Read and study" (Insight) in Situation 2
+7. Select "Leave early" (Cunning) in Situation 3
+8. Continue to a2_morning
 
 ### To Start Diplomat Build (Phase 3)
 1. Fresh server restart
@@ -172,5 +258,9 @@ new Promise(resolve => {
 
 ---
 
-**Last Updated:** 2025-11-23 09:52 UTC
-**Current Phase:** Phase 2 (Investigator Build) - Architecture fix verified, ready for continued gameplay
+**Last Updated:** 2025-11-26 16:15 UTC
+**Current Phase:** UNBLOCKED - All 3 critical bugs FIXED
+**Issues Fixed This Session:**
+- Bug #4: Scene cascade (ProgressionMode.Cascade now respected)
+- Bug #5: Travel blocked (TravelState comparison operators fixed)
+- Bug #6: Missing Rest action (Restful/Rest capability handlers added)

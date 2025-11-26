@@ -636,7 +636,8 @@ public class TravelManager
     }
 
     /// <summary>
-    /// Update travel state based on current stamina
+    /// Update travel state based on current stamina.
+    /// States checked from HIGH to LOW using >= to ensure correct tier assignment.
     /// </summary>
     private void UpdateTravelState(TravelSession session)
     {
@@ -645,25 +646,31 @@ public class TravelManager
             session.CurrentState = TravelState.Exhausted;
             session.StaminaCapacity = 0;
         }
-        else if (session.StaminaRemaining <= 3)
-        {
-            session.CurrentState = TravelState.Weary;
-            session.StaminaCapacity = 3;
-        }
-        else if (session.StaminaRemaining <= 4)
-        {
-            session.CurrentState = TravelState.Tired;
-            session.StaminaCapacity = 4;
-        }
         else if (session.StaminaRemaining >= 6)
         {
             session.CurrentState = TravelState.Steady;
             session.StaminaCapacity = 6;
         }
-        else
+        else if (session.StaminaRemaining >= 5)
         {
             session.CurrentState = TravelState.Fresh;
             session.StaminaCapacity = 5;
+        }
+        else if (session.StaminaRemaining >= 4)
+        {
+            session.CurrentState = TravelState.Tired;
+            session.StaminaCapacity = 4;
+        }
+        else if (session.StaminaRemaining >= 3)
+        {
+            session.CurrentState = TravelState.Weary;
+            session.StaminaCapacity = 3;
+        }
+        else
+        {
+            // 1-2 stamina remaining
+            session.CurrentState = TravelState.Exhausted;
+            session.StaminaCapacity = 0;
         }
     }
 
