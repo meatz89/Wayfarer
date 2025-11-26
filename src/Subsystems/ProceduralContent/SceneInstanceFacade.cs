@@ -155,11 +155,14 @@ public class SceneInstanceFacade
 
     /// <summary>
     /// Post-load orchestration for dependent resources
-    /// Sets provenance, generates hex routes, adds items to inventory, builds marker map
+    /// Sets Origin, Provenance, generates hex routes, adds items to inventory
+    ///
+    /// CRITICAL FIX: Must set Origin = SceneCreated BEFORE querying by Provenance
+    /// Locations are identified by: DomainTags suffix matching spec.TemplateId AND Provenance == null (unprocessed)
     /// </summary>
     private void PostLoadOrchestration(Scene scene, SceneTemplate template, Player player)
     {
-        // ADR-007: Use Scene object reference instead of SceneId
+        // Build provenance for newly created resources
         SceneProvenance provenance = new SceneProvenance
         {
             Scene = scene,
@@ -168,16 +171,33 @@ public class SceneInstanceFacade
             CreatedSegment = _timeManager.CurrentSegment
         };
 
-        // Generate hex routes for dependent locations
-        // Provenance already set by DependentResourceOrchestrationService
-        // HIGHLANDER: Match by Provenance.Scene only (no Template properties)
+        // STEP 1: Find and configure dependent locations
+        // Match by DomainTags suffix + null Provenance (unprocessed locations)
         foreach (DependentLocationSpec locationSpec in template.DependentLocations)
         {
-            // Find location created by this scene
+            // Find location by DomainTags suffix matching spec.TemplateId AND Provenance null (not yet processed)
             Location location = _gameWorld.Locations
-                .FirstOrDefault(loc => loc.Provenance?.Scene == scene);
+                .FirstOrDefault(loc =>
+                    loc.Provenance == null &&  // Not yet processed
+                    loc.DomainTags != null &&
+                    loc.DomainTags.Any(tag => tag.EndsWith($"_{locationSpec.TemplateId}")));
 
-            if (location != null && location.HexPosition.HasValue)
+            if (location == null)
+            {
+                Console.WriteLine($"[SceneInstanceFacade] WARNING: Could not find dependent location for spec '{locationSpec.TemplateId}'");
+                continue;
+            }
+
+            // ADR-012: Set explicit Origin enum for accessibility model
+            location.Origin = LocationOrigin.SceneCreated;
+
+            // Set provenance for forensic tracking
+            location.Provenance = provenance;
+
+            Console.WriteLine($"[SceneInstanceFacade] Configured location '{location.Name}' with Origin=SceneCreated, Provenance.Scene='{scene.TemplateId}'");
+
+            // Generate hex routes if location has hex position
+            if (location.HexPosition.HasValue)
             {
                 List<RouteOption> routes = _hexRouteGenerator.GenerateRoutesForNewLocation(location);
                 foreach (RouteOption route in routes)
@@ -188,16 +208,27 @@ public class SceneInstanceFacade
             }
         }
 
-        // Add items to inventory if AddToInventoryOnCreation=true
-        // Provenance already set by DependentResourceOrchestrationService
-        // HIGHLANDER: Match by Provenance.Scene only (no Template properties)
+        // STEP 2: Find and configure dependent items
+        // Match by Provenance null + Name matching spec (items created by same package load)
         foreach (DependentItemSpec itemSpec in template.DependentItems)
         {
-            // Find item created by this scene
+            // Find item by Name matching spec.Name AND Provenance null (not yet processed)
             Item item = _gameWorld.Items
-                .FirstOrDefault(i => i.Provenance?.Scene == scene);
+                .FirstOrDefault(i =>
+                    i.Provenance == null &&  // Not yet processed
+                    i.Name == itemSpec.Name);
 
-            if (item != null && itemSpec.AddToInventoryOnCreation)
+            if (item == null)
+            {
+                Console.WriteLine($"[SceneInstanceFacade] WARNING: Could not find dependent item for spec '{itemSpec.TemplateId}'");
+                continue;
+            }
+
+            // Set provenance for forensic tracking
+            item.Provenance = provenance;
+
+            // Add to inventory if specified
+            if (itemSpec.AddToInventoryOnCreation)
             {
                 player.Inventory.Add(item);
                 Console.WriteLine($"[SceneInstanceFacade] Added item '{item.Name}' to player inventory");
