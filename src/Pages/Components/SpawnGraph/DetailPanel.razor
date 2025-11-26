@@ -1,0 +1,488 @@
+@namespace Wayfarer.Pages.Components.SpawnGraph
+
+@using Blazor.Diagrams.Core.Models
+
+<div class="detail-panel @GetVisibilityClass()">
+    @if (SelectedNode == null)
+    {
+        <div class="detail-panel-empty">
+            <p>Select a node to view details</p>
+        </div>
+    }
+    else
+    {
+        <div class="detail-panel-header">
+            <span class="detail-panel-type">@GetNodeTypeName()</span>
+            <button class="detail-panel-close" @onclick="OnClose">X</button>
+        </div>
+        <div class="detail-panel-content">
+            @if (SelectedNode is SceneNodeModel sceneNode)
+            {
+                @RenderSceneDetails(sceneNode)
+            }
+            else if (SelectedNode is SituationNodeModel situationNode)
+            {
+                @RenderSituationDetails(situationNode)
+            }
+            else if (SelectedNode is ChoiceNodeModel choiceNode)
+            {
+                @RenderChoiceDetails(choiceNode)
+            }
+            else if (SelectedNode is EntityNodeModel entityNode)
+            {
+                @RenderEntityDetails(entityNode)
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public NodeModel SelectedNode { get; set; }
+    [Parameter] public EventCallback OnCloseClicked { get; set; }
+
+    private string GetVisibilityClass()
+    {
+        return SelectedNode != null ? "visible" : "";
+    }
+
+    private string GetNodeTypeName()
+    {
+        return SelectedNode switch
+        {
+            SceneNodeModel _ => "Scene",
+            SituationNodeModel _ => "Situation",
+            ChoiceNodeModel _ => "Choice",
+            EntityNodeModel entity => entity.EntityType.ToString(),
+            _ => "Node"
+        };
+    }
+
+    private void OnClose()
+    {
+        OnCloseClicked.InvokeAsync();
+    }
+
+    private RenderFragment RenderSceneDetails(SceneNodeModel node) => __builder =>
+    {
+        SceneSpawnNode spawn = node.SpawnNode;
+        if (spawn == null) return;
+
+        <div class="detail-section">
+            <h4>Identity</h4>
+            <div class="detail-row">
+                <span class="detail-label">Name</span>
+                <span class="detail-value">@spawn.DisplayName</span>
+            </div>
+            @if (!string.IsNullOrEmpty(spawn.SceneTemplateId))
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Template</span>
+                    <span class="detail-value">@spawn.SceneTemplateId</span>
+                </div>
+            }
+            <div class="detail-row">
+                <span class="detail-label">Procedural</span>
+                <span class="detail-value">@(spawn.IsProcedurallyGenerated ? "Yes" : "No")</span>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h4>Properties</h4>
+            <div class="detail-row">
+                <span class="detail-label">Category</span>
+                <span class="detail-value">@spawn.Category</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">State</span>
+                <span class="detail-value">@spawn.CurrentState</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Progression</span>
+                <span class="detail-value">@spawn.ProgressionMode</span>
+            </div>
+            @if (spawn.MainStorySequence.HasValue)
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Main Story #</span>
+                    <span class="detail-value">@spawn.MainStorySequence</span>
+                </div>
+            }
+            <div class="detail-row">
+                <span class="detail-label">Situations</span>
+                <span class="detail-value">@spawn.SituationCount</span>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h4>Timing</h4>
+            <div class="detail-row">
+                <span class="detail-label">Spawn Trigger</span>
+                <span class="detail-value">@spawn.SpawnTrigger</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Spawned</span>
+                <span class="detail-value">Day @spawn.GameDay, @spawn.GameTimeBlock</span>
+            </div>
+            @if (spawn.ActivatedTimestamp.HasValue)
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Activated</span>
+                    <span class="detail-value">Day @spawn.ActivatedGameDay</span>
+                </div>
+            }
+            @if (spawn.CompletedTimestamp.HasValue)
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Completed</span>
+                    <span class="detail-value">Day @spawn.CompletedGameDay</span>
+                </div>
+            }
+        </div>
+
+        @if (spawn.PlacedLocation != null)
+        {
+            <div class="detail-section">
+                <h4>Location</h4>
+                <div class="detail-row">
+                    <span class="detail-label">Name</span>
+                    <span class="detail-value">@spawn.PlacedLocation.Name</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Purpose</span>
+                    <span class="detail-value">@spawn.PlacedLocation.Purpose</span>
+                </div>
+            </div>
+        }
+
+        @if (spawn.ParentScene != null || spawn.ParentChoice != null)
+        {
+            <div class="detail-section">
+                <h4>Parent</h4>
+                @if (spawn.ParentScene != null)
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">Parent Scene</span>
+                        <span class="detail-value">@spawn.ParentScene.DisplayName</span>
+                    </div>
+                }
+                @if (spawn.ParentChoice != null)
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">Spawned By</span>
+                        <span class="detail-value">@spawn.ParentChoice.ActionText</span>
+                    </div>
+                }
+            </div>
+        }
+    };
+
+    private RenderFragment RenderSituationDetails(SituationNodeModel node) => __builder =>
+    {
+        SituationSpawnNode spawn = node.SpawnNode;
+        if (spawn == null) return;
+
+        <div class="detail-section">
+            <h4>Identity</h4>
+            <div class="detail-row">
+                <span class="detail-label">Name</span>
+                <span class="detail-value">@spawn.Name</span>
+            </div>
+            @if (!string.IsNullOrEmpty(spawn.SituationTemplateId))
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Template</span>
+                    <span class="detail-value">@spawn.SituationTemplateId</span>
+                </div>
+            }
+            @if (!string.IsNullOrEmpty(spawn.Description))
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Description</span>
+                    <span class="detail-value description">@spawn.Description</span>
+                </div>
+            }
+        </div>
+
+        <div class="detail-section">
+            <h4>Properties</h4>
+            <div class="detail-row">
+                <span class="detail-label">Type</span>
+                <span class="detail-value">@spawn.Type</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">System</span>
+                <span class="detail-value">@spawn.SystemType</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Interaction</span>
+                <span class="detail-value">@spawn.InteractionType</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Status</span>
+                <span class="detail-value">@spawn.LifecycleStatus</span>
+            </div>
+        </div>
+
+        <div class="detail-section">
+            <h4>Context</h4>
+            <div class="detail-row">
+                <span class="detail-label">Spawn Trigger</span>
+                <span class="detail-value">@spawn.SpawnTrigger</span>
+            </div>
+            @if (spawn.Location != null)
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Location</span>
+                    <span class="detail-value">@spawn.Location.Name</span>
+                </div>
+            }
+            @if (spawn.NPC != null)
+            {
+                <div class="detail-row">
+                    <span class="detail-label">NPC</span>
+                    <span class="detail-value">@spawn.NPC.Name</span>
+                </div>
+            }
+            @if (spawn.Route != null)
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Route</span>
+                    <span class="detail-value">@spawn.Route.OriginLocationName -> @spawn.Route.DestinationLocationName</span>
+                </div>
+            }
+        </div>
+
+        @if (spawn.LastChallengeSucceeded.HasValue)
+        {
+            <div class="detail-section">
+                <h4>Challenge</h4>
+                <div class="detail-row">
+                    <span class="detail-label">Result</span>
+                    <span class="detail-value @(spawn.LastChallengeSucceeded.Value ? "success" : "failure")">
+                        @(spawn.LastChallengeSucceeded.Value ? "Success" : "Failed")
+                    </span>
+                </div>
+            </div>
+        }
+
+        @if (spawn.ParentScene != null)
+        {
+            <div class="detail-section">
+                <h4>Parent</h4>
+                <div class="detail-row">
+                    <span class="detail-label">Scene</span>
+                    <span class="detail-value">@spawn.ParentScene.DisplayName</span>
+                </div>
+            </div>
+        }
+
+        <div class="detail-section">
+            <h4>Children</h4>
+            <div class="detail-row">
+                <span class="detail-label">Choices</span>
+                <span class="detail-value">@spawn.Choices.Count executed</span>
+            </div>
+            @if (spawn.SpawnedSituations.Count > 0)
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Cascades</span>
+                    <span class="detail-value">@spawn.SpawnedSituations.Count spawned</span>
+                </div>
+            }
+        </div>
+    };
+
+    private RenderFragment RenderChoiceDetails(ChoiceNodeModel node) => __builder =>
+    {
+        ChoiceExecutionNode spawn = node.SpawnNode;
+        if (spawn == null) return;
+
+        <div class="detail-section">
+            <h4>Identity</h4>
+            <div class="detail-row">
+                <span class="detail-label">Action</span>
+                <span class="detail-value description">@spawn.ActionText</span>
+            </div>
+            @if (!string.IsNullOrEmpty(spawn.ChoiceId))
+            {
+                <div class="detail-row">
+                    <span class="detail-label">Choice ID</span>
+                    <span class="detail-value">@spawn.ChoiceId</span>
+                </div>
+            }
+        </div>
+
+        <div class="detail-section">
+            <h4>Properties</h4>
+            <div class="detail-row">
+                <span class="detail-label">Path Type</span>
+                <span class="detail-value">@spawn.PathType</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Action Type</span>
+                <span class="detail-value">@spawn.ActionType</span>
+            </div>
+            <div class="detail-row">
+                <span class="detail-label">Met Requirements</span>
+                <span class="detail-value">@(spawn.PlayerMetRequirements ? "Yes" : "No")</span>
+            </div>
+        </div>
+
+        @if (spawn.ChallengeSucceeded.HasValue)
+        {
+            <div class="detail-section">
+                <h4>Challenge</h4>
+                <div class="detail-row">
+                    <span class="detail-label">Result</span>
+                    <span class="detail-value @(spawn.ChallengeSucceeded.Value ? "success" : "failure")">
+                        @(spawn.ChallengeSucceeded.Value ? "Success" : "Failed")
+                    </span>
+                </div>
+                @if (!string.IsNullOrEmpty(spawn.ChallengeOutcome))
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">Outcome</span>
+                        <span class="detail-value description">@spawn.ChallengeOutcome</span>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(spawn.DeckId))
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">Deck</span>
+                        <span class="detail-value">@spawn.DeckId</span>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (spawn.SpawnedScenes.Count > 0 || spawn.SpawnedSituations.Count > 0)
+        {
+            <div class="detail-section">
+                <h4>Consequences</h4>
+                @if (spawn.SpawnedScenes.Count > 0)
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">Scenes</span>
+                        <span class="detail-value">@spawn.SpawnedScenes.Count spawned</span>
+                    </div>
+                }
+                @if (spawn.SpawnedSituations.Count > 0)
+                {
+                    <div class="detail-row">
+                        <span class="detail-label">Situations</span>
+                        <span class="detail-value">@spawn.SpawnedSituations.Count spawned</span>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (spawn.DestinationLocation != null)
+        {
+            <div class="detail-section">
+                <h4>Navigation</h4>
+                <div class="detail-row">
+                    <span class="detail-label">Destination</span>
+                    <span class="detail-value">@spawn.DestinationLocation.Name</span>
+                </div>
+            </div>
+        }
+
+        @if (spawn.ParentSituation != null)
+        {
+            <div class="detail-section">
+                <h4>Parent</h4>
+                <div class="detail-row">
+                    <span class="detail-label">Situation</span>
+                    <span class="detail-value">@spawn.ParentSituation.Name</span>
+                </div>
+            </div>
+        }
+    };
+
+    private RenderFragment RenderEntityDetails(EntityNodeModel node) => __builder =>
+    {
+        switch (node.EntityType)
+        {
+            case SpawnGraphEntityType.Location when node.LocationSnapshot != null:
+                LocationSnapshot loc = node.LocationSnapshot;
+                <div class="detail-section">
+                    <h4>Location</h4>
+                    <div class="detail-row">
+                        <span class="detail-label">Name</span>
+                        <span class="detail-value">@loc.Name</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Purpose</span>
+                        <span class="detail-value">@loc.Purpose</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Privacy</span>
+                        <span class="detail-value">@loc.Privacy</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Safety</span>
+                        <span class="detail-value">@loc.Safety</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Activity</span>
+                        <span class="detail-value">@loc.Activity</span>
+                    </div>
+                </div>
+                break;
+
+            case SpawnGraphEntityType.NPC when node.NPCSnapshot != null:
+                NPCSnapshot npc = node.NPCSnapshot;
+                <div class="detail-section">
+                    <h4>NPC</h4>
+                    <div class="detail-row">
+                        <span class="detail-label">Name</span>
+                        <span class="detail-value">@npc.Name</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Profession</span>
+                        <span class="detail-value">@npc.Profession</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Personality</span>
+                        <span class="detail-value">@npc.PersonalityType</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Social Standing</span>
+                        <span class="detail-value">@npc.SocialStanding</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Story Role</span>
+                        <span class="detail-value">@npc.StoryRole</span>
+                    </div>
+                </div>
+                break;
+
+            case SpawnGraphEntityType.Route when node.RouteSnapshot != null:
+                RouteSnapshot route = node.RouteSnapshot;
+                <div class="detail-section">
+                    <h4>Route</h4>
+                    <div class="detail-row">
+                        <span class="detail-label">Origin</span>
+                        <span class="detail-value">@route.OriginLocationName</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Destination</span>
+                        <span class="detail-value">@route.DestinationLocationName</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Method</span>
+                        <span class="detail-value">@route.Method</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Stamina Cost</span>
+                        <span class="detail-value">@route.BaseStaminaCost</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Coin Cost</span>
+                        <span class="detail-value">@route.BaseCoinCost</span>
+                    </div>
+                </div>
+                break;
+        }
+    };
+}

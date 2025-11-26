@@ -2,7 +2,10 @@
 
 @namespace Wayfarer.Pages
 
+@using Blazor.Diagrams.Core.Models
 @using Wayfarer.Pages.Components.SpawnGraph
+
+@implements IDisposable
 
 @inject GameWorld GameWorld
 @inject NavigationManager NavigationManager
@@ -14,6 +17,24 @@
         <h1>Procedural Content Graph</h1>
         <button @onclick="RefreshGraph">Refresh</button>
         <button @onclick="FitToView">Fit to View</button>
+        <div class="filter-toggles">
+            <label class="filter-toggle @(ShowScenes ? "active" : "")">
+                <input type="checkbox" @bind="ShowScenes" @bind:after="ApplyFilters" />
+                Scenes
+            </label>
+            <label class="filter-toggle @(ShowSituations ? "active" : "")">
+                <input type="checkbox" @bind="ShowSituations" @bind:after="ApplyFilters" />
+                Situations
+            </label>
+            <label class="filter-toggle @(ShowChoices ? "active" : "")">
+                <input type="checkbox" @bind="ShowChoices" @bind:after="ApplyFilters" />
+                Choices
+            </label>
+            <label class="filter-toggle @(ShowEntities ? "active" : "")">
+                <input type="checkbox" @bind="ShowEntities" @bind:after="ApplyFilters" />
+                Entities
+            </label>
+        </div>
         <span class="stats">
             Scenes: @SceneCount | Situations: @SituationCount | Choices: @ChoiceCount
         </span>
@@ -47,12 +68,20 @@
             @BuildMessage
         </div>
     }
+
+    <DetailPanel SelectedNode="SelectedNode" OnCloseClicked="ClearSelection" />
 </div>
 
 @code {
     private BlazorDiagram Diagram { get; set; }
     private bool IsLoading { get; set; }
     private string BuildMessage { get; set; }
+    private NodeModel SelectedNode { get; set; }
+
+    private bool ShowScenes { get; set; } = true;
+    private bool ShowSituations { get; set; } = true;
+    private bool ShowChoices { get; set; } = true;
+    private bool ShowEntities { get; set; } = true;
 
     private int SceneCount => GameWorld?.ProceduralTracer?.AllSceneNodes?.Count ?? 0;
     private int SituationCount => GameWorld?.ProceduralTracer?.AllSituationNodes?.Count ?? 0;
@@ -62,6 +91,7 @@
     {
         InitializeDiagram();
         RegisterCustomWidgets();
+        SubscribeToEvents();
         await BuildGraphAsync();
     }
 
@@ -69,7 +99,7 @@
     {
         BlazorDiagramOptions options = new BlazorDiagramOptions
         {
-            AllowMultiSelection = true
+            AllowMultiSelection = false
         };
 
         options.Zoom.Enabled = true;
@@ -79,6 +109,24 @@
         options.Links.DefaultSelectedColor = "#ffffff";
 
         Diagram = new BlazorDiagram(options);
+    }
+
+    private void SubscribeToEvents()
+    {
+        Diagram.SelectionChanged += OnSelectionChanged;
+    }
+
+    private void OnSelectionChanged(Blazor.Diagrams.Core.Models.Base.SelectableModel model)
+    {
+        if (model is NodeModel node && node.Selected)
+        {
+            SelectedNode = node;
+        }
+        else if (model is NodeModel deselectedNode && !deselectedNode.Selected && SelectedNode == deselectedNode)
+        {
+            SelectedNode = null;
+        }
+        StateHasChanged();
     }
 
     private void RegisterCustomWidgets()
@@ -116,8 +164,45 @@
         Diagram?.ZoomToFit();
     }
 
+    private void ApplyFilters()
+    {
+        if (Diagram == null) return;
+
+        foreach (NodeModel node in Diagram.Nodes)
+        {
+            bool shouldShow = node switch
+            {
+                SceneNodeModel _ => ShowScenes,
+                SituationNodeModel _ => ShowSituations,
+                ChoiceNodeModel _ => ShowChoices,
+                EntityNodeModel _ => ShowEntities,
+                _ => true
+            };
+            node.Visible = shouldShow;
+        }
+        StateHasChanged();
+    }
+
     private void NavigateBack()
     {
         NavigationManager.NavigateTo("/");
+    }
+
+    private void ClearSelection()
+    {
+        if (SelectedNode != null)
+        {
+            Diagram?.UnselectAll();
+            SelectedNode = null;
+            StateHasChanged();
+        }
+    }
+
+    public void Dispose()
+    {
+        if (Diagram != null)
+        {
+            Diagram.SelectionChanged -= OnSelectionChanged;
+        }
     }
 }

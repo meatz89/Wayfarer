@@ -1,6 +1,6 @@
 @namespace Wayfarer.Pages.Components.SpawnGraph
 
-<div class="spawn-node choice-node @GetExecutedClass()">
+<div class="spawn-node choice-node @GetExecutedClass() @GetSelectedClass()">
     <div class="node-badge">Choice</div>
     <div class="node-label">@Node.TruncatedText</div>
     <div class="node-info">
@@ -18,5 +18,10 @@
     private string GetExecutedClass()
     {
         return Node.WasExecuted ? "" : "not-executed";
+    }
+
+    private string GetSelectedClass()
+    {
+        return Node.Selected ? "selected" : "";
     }
 }

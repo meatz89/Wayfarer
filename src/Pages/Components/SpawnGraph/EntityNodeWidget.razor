@@ -1,6 +1,6 @@
 @namespace Wayfarer.Pages.Components.SpawnGraph
 
-<div class="spawn-node @GetNodeClass()">
+<div class="spawn-node @GetNodeClass() @GetSelectedClass()">
     <div class="node-badge">@GetBadgeText()</div>
     <div class="node-label">@Node.EntityName</div>
     <div class="node-info">@GetInfoText()</div>
@@ -40,5 +40,10 @@
             SpawnGraphEntityType.Route => Node.RouteSnapshot?.Method.ToString() ?? "",
             _ => ""
         };
+    }
+
+    private string GetSelectedClass()
+    {
+        return Node.Selected ? "selected" : "";
     }
 }

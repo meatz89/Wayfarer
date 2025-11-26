@@ -1,6 +1,6 @@
 @namespace Wayfarer.Pages.Components.SpawnGraph
 
-<div class="spawn-node scene-node @GetStateClass()">
+<div class="spawn-node scene-node @GetStateClass() @GetSelectedClass()">
     <div class="node-badge">Scene</div>
     <div class="node-label">@Node.DisplayName</div>
     <div class="node-info">
@@ -24,5 +24,10 @@
             SceneState.Deferred => "state-deferred",
             _ => ""
         };
+    }
+
+    private string GetSelectedClass()
+    {
+        return Node.Selected ? "selected" : "";
     }
 }
