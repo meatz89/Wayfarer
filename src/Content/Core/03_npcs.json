@@ -19,7 +19,7 @@
           "privacyLevels": ["SemiPublic"],
           "safetyLevels": ["Safe"],
           "activityLevels": ["Moderate"],
-          "purposes": ["Dwelling"]
+          "purposes": ["Commerce"]
         },
         "description": "The innkeeper, efficient and observant, managing the evening crowd with practiced ease. She wipes down tables while watching travelers settle in for the night.",
         "personality": "Practical but warm. Takes care of travelers. Has seen many road-worn wanderers stumble through her door.",
@@ -43,7 +43,7 @@
           "privacyLevels": ["SemiPublic"],
           "safetyLevels": ["Safe"],
           "activityLevels": ["Moderate"],
-          "purposes": ["Dwelling"]
+          "purposes": ["Commerce"]
         },
         "description": "A warehouse foreman sitting at a corner table, looking for labor help with tonight's shipment. Direct, no-nonsense, pays fair for honest work.",
         "personality": "Straightforward and business-minded. Always needs capable hands. Values hard work over idle conversation.",

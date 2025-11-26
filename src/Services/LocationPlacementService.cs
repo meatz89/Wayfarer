@@ -13,16 +13,21 @@ public class LocationPlacementService
     }
 
     /// <summary>
-    /// PURE PROCEDURAL PLACEMENT: Place single location via categorical matching.
+    /// PURE PROCEDURAL PLACEMENT: Place single location via distance-based selection.
     ///
     /// SEVEN-PHASE ALGORITHM (PRODUCTION):
+    ///   0. Venue search space determination (proximity constraints)
     ///   1. Distance translation (hint → radius range)
-    ///   2. Venue matching (Purpose → Type categorical matching)
+    ///   2. Venue candidates (all venues - no Purpose→Type restriction)
     ///   3. Distance filtering (venues within radius from player)
     ///   4. Capacity check (query location count &lt; venue.MaxLocations)
     ///   5. Density check (prefer venues with fewer locations)
     ///   6. Selection strategy (closest to player)
     ///   7. Hex assignment within venue (atomic venue + hex assignment)
+    ///
+    /// NOTE: VenuePurposeCompatibility was REMOVED - it artificially restricted venues
+    /// before distance filtering, causing locations to be placed in wrong venues.
+    /// Any venue type can host any location Purpose (taverns have commerce, dwelling, etc.).
     /// </summary>
     public void PlaceLocation(Location location, string distanceHint, Player player)
     {
@@ -51,16 +56,14 @@ public class LocationPlacementService
         DistanceRange distanceRange = TranslateDistanceHint(distanceHint);
         Console.WriteLine($"[LocationPlacement] Distance range: {distanceRange.MinRadius}-{distanceRange.MaxRadius} hexes from player at ({player.CurrentPosition.Q}, {player.CurrentPosition.R})");
 
-        // PHASE 2: Venue matching via categorical properties (WITHIN search space)
-        Console.WriteLine($"[LocationPlacement] === PHASE 2: Venue Matching ===");
+        // PHASE 2: All venues are candidates (no Purpose→Type filtering)
+        Console.WriteLine($"[LocationPlacement] === PHASE 2: Venue Candidates ===");
         List<Venue> matchingVenues = FindMatchingVenues(location, venueSearchSpace);
-        Console.WriteLine($"[LocationPlacement] Found {matchingVenues.Count} venues matching Purpose={location.Purpose} within search space");
 
         if (matchingVenues.Count == 0)
         {
-            string message = $"No venues match location '{location.Name}' Purpose={location.Purpose}. " +
-                           $"Available venue types: {string.Join(", ", _gameWorld.Venues.Select(v => v.Type))}. " +
-                           $"Add matching venue or change location Purpose.";
+            string message = $"No venues available for location '{location.Name}'. " +
+                           $"Ensure at least one venue exists in the game world.";
             Console.WriteLine($"[LocationPlacement] ERROR: {message}");
             throw new InvalidOperationException(message);
         }
@@ -178,29 +181,18 @@ public class LocationPlacementService
     }
 
     /// <summary>
-    /// PHASE 2: Find all venues matching location's Purpose via compatibility table.
-    /// HIGHLANDER INTEGRATION: Searches WITHIN venueSearchSpace (filtered by ProximityConstraint).
-    /// Uses VenuePurposeCompatibility static lookup for semantic bridge.
-    /// Many-to-many mapping: One purpose → Multiple venue types.
-    /// Example: Commerce purpose matches Market, Merchant, Workshop venues.
+    /// PHASE 2: Return all venues from search space as candidates.
+    /// ARCHITECTURAL FIX: VenuePurposeCompatibility REMOVED - it artificially restricted venues
+    /// before distance filtering, causing locations to be placed in wrong venues.
+    /// Distance, capacity, and density are the correct constraints (not Purpose→Type mapping).
+    /// Any venue type can host any location Purpose (taverns have commerce, dwelling, etc.).
     /// </summary>
     private List<Venue> FindMatchingVenues(Location location, List<Venue> venueSearchSpace)
     {
-        // Get compatible venue types from lookup table
-        List<VenueType> compatibleTypes = VenuePurposeCompatibility.GetCompatibleTypes(location.Purpose);
-
-        // Filter venues by compatibility WITHIN search space (not all venues)
-        List<Venue> matching = venueSearchSpace
-            .Where(venue => compatibleTypes.Contains(venue.Type))
-            .ToList();
-
-        // Log matches for debugging
-        foreach (Venue venue in matching)
-        {
-            Console.WriteLine($"[LocationPlacement] Venue '{venue.Name}' (Type: {venue.Type}) matches Purpose: {location.Purpose}");
-        }
-
-        return matching;
+        // No filtering - all venues are valid candidates
+        // Distance, capacity, and density determine final selection
+        Console.WriteLine($"[LocationPlacement] All {venueSearchSpace.Count} venues are candidates (no Purpose→Type restriction)");
+        return venueSearchSpace;
     }
 
     /// <summary>
