@@ -576,14 +576,6 @@ public class SceneInstantiator
                     return false;
             }
 
-            // Check location tags (uses DomainTags property)
-            if (filter.LocationTags != null && filter.LocationTags.Count > 0)
-            {
-                // Location must have ALL specified tags
-                if (!filter.LocationTags.All(tag => loc.DomainTags.Contains(tag)))
-                    return false;
-            }
-
             // Check player state filters (shared across all placement types)
             if (!CheckPlayerStateFilters(filter, player))
                 return false;
@@ -1207,8 +1199,6 @@ public class SceneInstantiator
             CanWork = false, // Generated locations don't support work by default,
             WorkType = "",
             WorkPay = 0,
-            // DomainTags no longer used for situation binding (uses DependentLocationName instead)
-            DomainTags = new List<string>(),
             // FAIL-FAST: Read ALL categorical dimensions from spec (NO defaults)
             Privacy = spec.Privacy,
             Safety = spec.Safety,
@@ -1345,7 +1335,6 @@ public class SceneInstantiator
             LocationTypes = filter.LocationTypes?.Select(t => t.ToString()).ToList(),
             Capabilities = ConvertCapabilitiesToStringList(filter.RequiredCapabilities),
             IsPlayerAccessible = filter.IsPlayerAccessible,
-            LocationTags = filter.LocationTags,
             DistrictId = filter.DistrictId,
             RegionId = filter.RegionId,
             // Orthogonal Categorical Dimensions - Location

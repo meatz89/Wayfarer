@@ -25,8 +25,6 @@ public class LocationDTO
     /// </summary>
     public string DistanceFromPlayer { get; set; }
 
-    public List<string> DomainTags { get; set; } = new List<string>();
-
     // Additional properties from JSON
     public bool CanInvestigate { get; set; }
     public bool CanWork { get; set; }

@@ -214,7 +214,6 @@ public class ProceduralAStoryService
             // ZERO NULL TOLERANCE: selectedRegion guaranteed non-null by SelectRegion (returns first available or throws)
             RegionId = selectedRegion!.Name, // Categorical identifier: Region.Name (NOT entity instance ID)
             Capabilities = SelectLocationCapabilities(tier),
-            LocationTags = new List<string> { "story_significant" },
 
             // NPC filters (categorical)
             PersonalityTypes = personalityTypes,

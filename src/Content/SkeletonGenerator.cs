@@ -102,7 +102,6 @@ public static class SkeletonGenerator
             LocationType = LocationTypes.Crossroads,  // Default type
             TravelTimeSegments = 1,  // Default travel time
             Difficulty = 1,  // Default difficulty
-            DomainTags = new List<string>(),
 
             // Simple default capability
             Capabilities = LocationCapability.None,

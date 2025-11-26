@@ -205,7 +205,6 @@ public class SceneTemplateParser
             LocationTypes = ParseLocationTypes(dto.LocationTypes, contextId),
             RequiredCapabilities = ParseLocationCapabilities(dto.Capabilities, contextId),
             IsPlayerAccessible = dto.IsPlayerAccessible,
-            LocationTags = dto.LocationTags,
             // Orthogonal categorical dimensions - Location
             PrivacyLevels = ParsePrivacyLevels(dto.PrivacyLevels, contextId),
             SafetyLevels = ParseSafetyLevels(dto.SafetyLevels, contextId),

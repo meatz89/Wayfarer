@@ -179,14 +179,6 @@ public class EntityResolver
                 return false;
         }
 
-        // Check location tags (DEPRECATED - situations now bind via DependentLocationName)
-        // Kept for backwards compatibility with any remaining authored content using tags
-        if (filter.LocationTags != null && filter.LocationTags.Count > 0)
-        {
-            if (!filter.LocationTags.All(tag => loc.DomainTags.Contains(tag)))
-                return false;
-        }
-
         return true;
     }
 
