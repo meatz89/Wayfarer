@@ -289,7 +289,64 @@ SituationTemplates define order. Situation Instances hold runtime state.
 
 ---
 
-## 11. Entity Resolution (Find-Or-Create)
+## 11. Situation Presentation
+
+How situations appear depends on which entities they reference. Three distinct patterns exist.
+
+### Location-Only Situations (Modal)
+
+When situation has Location but NO NPC:
+1. Player enters location matching situation's Location
+2. IMMEDIATE: Modal appears with situation choices
+3. Player MUST select a choice (no escape)
+4. After selection: costs/rewards applied, return to location view
+
+**Feel:** Sir Brante style. Enter a place, confronted with decision. Cannot leave until resolved.
+
+### Location + NPC Situations (Conversation Entry)
+
+When situation has BOTH Location AND NPC:
+1. Player enters location matching situation's Location
+2. Player uses "Look Around" action
+3. NPCs at location displayed
+4. For each NPC with active situation: conversation option appears
+5. Player clicks conversation option (voluntary entry)
+6. Modal appears with situation choices (mandatory decision)
+7. After selection: costs/rewards applied, return to location view
+
+**Feel:** You spot someone. You can approach them or not. Once you engage, you must see it through.
+
+### Route Situations (Travel Segments)
+
+When situation has Route:
+1. Player initiates travel on route
+2. Route divided into segments (each segment = one situation)
+3. At each segment: modal appears with situation choices
+4. Player MUST select a choice (no turning back mid-journey)
+5. After selection: costs/rewards applied, continue to next segment
+6. After final segment: arrive at destination
+
+**Feel:** Journey encounters. The road presents challenges. You handle each as it comes.
+
+### Entity Filter Determines Presentation
+
+| LocationFilter | NpcFilter | RouteFilter | Presentation |
+|----------------|-----------|-------------|--------------|
+| Set | null | null | Location modal (immediate) |
+| Set | Set | null | NPC conversation (Look Around → click → modal) |
+| Set | null | Set | Route segment (during travel) |
+
+LocationFilter is always required. NpcFilter and RouteFilter determine presentation mode.
+
+### Mandatory Decision Principle
+
+Once a situation is entered (by any path), player MUST make a choice. No backing out. This creates weight—approaching an NPC or entering a location has consequences.
+
+The Four-Choice Archetype guarantees at least one choice is always available (fallback), so player is never stuck.
+
+---
+
+## 12. Entity Resolution (Find-Or-Create)
 
 ### When Resolution Occurs
 
@@ -351,7 +408,7 @@ PackageLoader is the SINGLE path for entity creation. It handles:
 
 ---
 
-## 12. Text Generation Rules
+## 13. Text Generation Rules
 
 ### NO PLACEHOLDERS
 
@@ -366,7 +423,7 @@ Placeholder syntax like `{NPCName}`, `{LocationName}` is FORBIDDEN in templates.
 
 ---
 
-## 13. Choice Patterns by Category
+## 14. Choice Patterns by Category
 
 ### A-Story: Fallback Required
 
@@ -394,7 +451,7 @@ This enables narrative tension, gating, and consequences that A-Story cannot hav
 
 ---
 
-## 14. Dual-Tier Action Architecture
+## 15. Dual-Tier Action Architecture
 
 LocationAction discriminated by presence of ChoiceTemplate.
 
@@ -420,7 +477,7 @@ LocationAction discriminated by presence of ChoiceTemplate.
 
 ---
 
-## 15. Location Accessibility
+## 16. Location Accessibility
 
 | Origin | Accessibility |
 |--------|---------------|
@@ -431,7 +488,7 @@ Scene-created locations become inaccessible when scene completes or advances pas
 
 ---
 
-## 16. Complete Flow
+## 17. Complete Flow
 
 ### Parse Time (Startup)
 
@@ -464,10 +521,15 @@ Scene-created locations become inaccessible when scene completes or advances pas
 
 1. SceneFacade generates LocationActions from current situation's choices
 2. Player selects choice, costs/rewards applied
-3. Scene index advances
+3. Scene index advances to next Situation Instance
 4. Player returns to location view
 5. Player navigates to next situation's location
-6. Scene resumes when player arrives
+6. Scene resumes when player enters matching location
+
+Presentation varies by situation type (see §11):
+- Location-only: Modal appears immediately on location entry
+- Location + NPC: Conversation option appears when player looks around
+- Route: Segment appears during travel
 
 ### Completion
 
@@ -478,7 +540,7 @@ Scene-created locations become inaccessible when scene completes or advances pas
 
 ---
 
-## 17. Key Principles
+## 18. Key Principles
 
 ### Template vs Instance Separation
 
