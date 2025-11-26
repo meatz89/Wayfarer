@@ -23,20 +23,17 @@ public class PackageLoader
 
     private readonly SceneGenerationFacade _sceneGenerationFacade;
     private readonly LocationPlayabilityValidator _locationValidator;
-    private readonly HexSynchronizationService _hexSync;
     private readonly LocationPlacementService _locationPlacementService;
 
     public PackageLoader(
         GameWorld gameWorld,
         SceneGenerationFacade sceneGenerationFacade,
         LocationPlayabilityValidator locationValidator,
-        HexSynchronizationService hexSync,
         LocationPlacementService locationPlacementService)
     {
         _gameWorld = gameWorld;
         _sceneGenerationFacade = sceneGenerationFacade;
         _locationValidator = locationValidator ?? throw new ArgumentNullException(nameof(locationValidator));
-        _hexSync = hexSync ?? throw new ArgumentNullException(nameof(hexSync));
         _locationPlacementService = locationPlacementService ?? throw new ArgumentNullException(nameof(locationPlacementService));
     }
 
@@ -61,17 +58,26 @@ public class PackageLoader
         // Assign venue (HIGHLANDER: single assignment point)
         location.AssignVenue(venue);
 
-        // Assign hex position at venue center (runtime-created locations)
-        // NOTE: For authored locations, PlaceLocations() will override this with procedural placement
-        location.HexPosition = venue.CenterHex;
+        // Find unoccupied hex in venue cluster (HIGHLANDER: single hex assignment point)
+        // CRITICAL: Don't blindly assign center hex - it may already be occupied
+        AxialCoordinates? availableHex = _locationPlacementService.FindUnoccupiedHexInVenue(venue);
+
+        if (!availableHex.HasValue)
+        {
+            throw new InvalidOperationException(
+                $"Cannot create location '{location.Name}' in venue '{venue.Name}': " +
+                $"No unoccupied hexes available. Venue capacity: {venue.MaxLocations}, " +
+                $"Allocation: {venue.HexAllocation}. Consider increasing venue capacity or using a larger hex allocation.");
+        }
+
+        location.HexPosition = availableHex.Value;
 
         // Register in GameWorld
         _gameWorld.Locations.Add(location);
 
-        // Sync to hex grid
-        _hexSync.SyncLocationToHex(location, _gameWorld);
+        // HIGHLANDER: Location.HexPosition is source of truth - no derived sync needed
 
-        Console.WriteLine($"[PackageLoader] CreateSingleLocation: Created '{location.Name}' in venue '{venue.Name}' at hex {venue.CenterHex}");
+        Console.WriteLine($"[PackageLoader] CreateSingleLocation: Created '{location.Name}' in venue '{venue.Name}' at hex ({availableHex.Value.Q}, {availableHex.Value.R})");
 
         return location;
     }
@@ -1077,12 +1083,11 @@ public class PackageLoader
                         $"Increase MaxLocations in venue definition or reduce authored locations.");
                 }
 
-                // POST-PARSING INTEGRATION: Skip validation here - happens after hex sync
-                // Validation moved to after SyncLocationHexPositions() call (line 145)
-                // Reason: Validator requires Location.HexPosition which is set during hex sync
+                // POST-PARSING INTEGRATION: Skip validation here - happens after placement
+                // Validation moved to after PlaceLocations() call
+                // Reason: Validator requires Location.HexPosition which is set during placement
 
-                // Synchronize hex reference (for ALL locations)
-                _hexSync.SyncLocationToHex(location, _gameWorld);
+                // HIGHLANDER: Location.HexPosition is source of truth - no derived sync needed
 
                 // AddOrUpdateLocation handles skeleton replacement via in-place property updates
                 _gameWorld.AddOrUpdateLocation(location.Name, location);
@@ -1093,8 +1098,7 @@ public class PackageLoader
             else
             {
                 // Location has no venue (shouldn't happen, but handle gracefully)
-                // Skip validation - happens after hex sync
-                _hexSync.SyncLocationToHex(location, _gameWorld);
+                // HIGHLANDER: Location.HexPosition is source of truth - no derived sync needed
                 _gameWorld.AddOrUpdateLocation(location.Name, location);
 
                 // Track location in result
@@ -1947,7 +1951,7 @@ public class PackageLoader
         Console.WriteLine($"[VenuePlacement] Found {venuesToPlace.Count} authored venues to place (skipping {venues.Count - venuesToPlace.Count} skeleton venues)");
 
         // Use VenueGeneratorService to place venues deterministically
-        VenueGeneratorService venueGenerator = new VenueGeneratorService(_hexSync);
+        VenueGeneratorService venueGenerator = new VenueGeneratorService();
         venueGenerator.PlaceAuthoredVenues(venuesToPlace, _gameWorld);
 
         Console.WriteLine($"[VenuePlacement] Completed procedural placement for {venuesToPlace.Count} authored venues");

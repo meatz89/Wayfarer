@@ -176,7 +176,7 @@ public class HexParserValidationTests
 
         Assert.NotNull(result);
         Assert.Equal(2, result.Hexes.Count);
-        // HIGHLANDER: Test Location object property, not deleted LocationId string
-        Assert.All(result.Hexes, hex => Assert.Null(hex.Location));
+        // NOTE: Hex.Location property was REMOVED - Location.HexPosition is source of truth
+        // No assertion needed - hexes don't directly reference locations anymore
     }
 }

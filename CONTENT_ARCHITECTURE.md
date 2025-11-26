@@ -160,6 +160,16 @@ All properties singular. Exact match semantics. Null = don't filter on that dime
 - Purpose
 - Profession (for NPC filters)
 
+**Venue placement (for LocationFilters):**
+- VenueTypes (list of acceptable venue types)
+
+### Two Filter Concepts for Locations
+
+| Concept | Properties | Used For |
+|---------|-----------|----------|
+| **Identity dimensions** | Purpose, Privacy, Safety, Activity | Situations finding matching locations |
+| **VenueFilter** | VenueTypes list | Location finding its containing venue |
+
 ### PlacementProximity Values
 
 | Value | Meaning |
@@ -367,6 +377,29 @@ Entity resolution happens at SCENE ACTIVATION, simultaneously with Situation Ins
    - Resolve Route via filter if present (find-or-create)
    - Add Situation Instance to Scene.Situations
 
+### Location Placement Principle
+
+Locations have two filter concepts:
+- **Identity dimensions** (Purpose, Privacy, Safety, Activity) - what the location IS, used by situations finding locations
+- **VenueFilter** (VenueTypes list) - what venue types can contain this location
+
+| Location Origin | How Venue Determined |
+|-----------------|---------------------|
+| **Authored** | Match venue.VenueType against location.VenueFilter (venues parsed first) |
+| **Scene-created** | Proximity from context + VenueFilter match |
+
+### Hex Position Principle
+
+Location.HexPosition is the sole source of truth for spatial placement. One location per hex.
+
+| Concept | Implementation |
+|---------|---------------|
+| **Source of truth** | Location.HexPosition |
+| **Constraint** | One location per hex |
+| **Scene-created** | Assigned to available hex within venue (not occupied by existing location) |
+
+Hex position assigned procedurally to unoccupied hex within matched venue.
+
 ### Situation Entities: Three Types
 
 Each Situation Instance can reference up to three dependent entities (one per type):
@@ -566,6 +599,12 @@ Templates are patterns. Instances hold runtime state. Deferred scenes have NO Si
 | **EntityResolver** | FIND only |
 | **PackageLoader** | CREATE only |
 | **SceneInstantiator** | Create Situation Instances, orchestrate find-or-create |
+
+### Location Placement
+
+Locations have identity dimensions (what it IS) and VenueFilter (what venue types contain it). Venue matched by `venue.VenueType IN location.VenueFilter`. Scene-created adds Proximity from context. 
+
+Location.HexPosition is sole source of truth. One location per hex. Scene-created locations assigned to unoccupied hexes within venue.
 
 ### Explicit Over Implicit
 

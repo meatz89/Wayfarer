@@ -66,7 +66,7 @@ public static class HexParser
 
         // Validate hex grid integrity before building lookup
         ValidateDuplicateCoordinates(hexMap);
-        ValidateDuplicateLocationIds(hexMap);
+        // NOTE: Location uniqueness per hex validated via Location.HexPosition (not hex.Location)
 
         // Build coordinate lookup dictionary
         hexMap.BuildLookup();
@@ -115,9 +115,9 @@ public static class HexParser
     }
 
     /// <summary>
-    /// Update Location entities with hex position references after hex grid is loaded
+    /// Validate Location.HexPosition values after hex grid is loaded
     /// CRITICAL: This must be called AFTER hex grid is loaded but BEFORE locations are used
-    /// Syncs Location.HexPosition (source of truth) with Hex.Location (derived lookup)
+    /// HIGHLANDER: Location.HexPosition is source of truth - no derived sync needed
     /// </summary>
     public static void SyncLocationHexPositions(HexMap hexMap, List<Location> locations)
     {
@@ -127,10 +127,9 @@ public static class HexParser
         if (locations == null)
             throw new ArgumentNullException(nameof(locations), "Locations list cannot be null");
 
-        // For each location, find matching hex and assign Location object reference
-        // HIGHLANDER: Hex.Location stores object reference, not string ID
-        // Hex-to-Location syncing now happens via HexPosition matching (reverse lookup)
-        int syncedCount = 0;
+        // HIGHLANDER: Location.HexPosition is source of truth
+        // No derived sync needed - just validate positions exist
+        int validatedCount = 0;
         foreach (Location location in locations)
         {
             if (!location.HexPosition.HasValue)
@@ -146,24 +145,22 @@ public static class HexParser
                 continue;
             }
 
-            // Assign Location object reference to hex
-            if (hex.Location == null || hex.Location != location)
-            {
-                hex.Location = location;
-                syncedCount++;
-                Console.WriteLine($"[HexSync] ✅ Synced location '{location.Name}' at hex position ({hex.Coordinates.Q}, {hex.Coordinates.R})");
-            }
+            validatedCount++;
+            Console.WriteLine($"[HexSync] ✅ Validated location '{location.Name}' at hex position ({hex.Coordinates.Q}, {hex.Coordinates.R})");
         }
 
-        Console.WriteLine($"[HexSync] Synced {syncedCount} locations to hex positions");
+        Console.WriteLine($"[HexSync] Validated {validatedCount} locations with hex positions");
 
-        // Validate all locations have hex positions after sync
+        // Validate all locations have hex positions
         ValidateAllLocationsHaveHexPositions(locations);
+
+        // Validate no two locations share the same hex
+        ValidateLocationHexUniqueness(locations);
     }
 
     /// <summary>
     /// Ensure hex grid completeness - create hexes for positioned locations that don't have them
-    /// INVERSE of SyncLocationHexPositions: Location.HexPosition (source of truth) → Hex (derived index)
+    /// HIGHLANDER: Location.HexPosition is source of truth - hexes just need to exist at those coordinates
     /// Maintains invariant: "Every positioned location has a corresponding hex in the grid"
     /// Called after loading dynamic content where locations exist before hexes
     /// </summary>
@@ -177,7 +174,7 @@ public static class HexParser
 
         int hexesCreated = 0;
 
-        // Find positioned locations and ensure hexes reference them correctly
+        // Find positioned locations and ensure hexes exist at those coordinates
         foreach (Location location in locations)
         {
             if (!location.HexPosition.HasValue)
@@ -188,14 +185,9 @@ public static class HexParser
 
             if (existingHex != null)
             {
-                // Hex exists - update its Location if it's null or different
-                // HIGHLANDER: Compare Location objects directly, assign object not ID
-                if (existingHex.Location == null || existingHex.Location != location)
-                {
-                    Console.WriteLine($"[HexGridCompleteness] Updating hex at ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}): Location '{existingHex.Location?.Name}' → '{location.Name}'");
-                    existingHex.Location = location;
-                    hexesCreated++;
-                }
+                // Hex exists - nothing to do
+                // HIGHLANDER: Location.HexPosition is source of truth, no derived sync needed
+                Console.WriteLine($"[HexGridCompleteness] Hex exists at ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}) for location '{location.Name}'");
             }
             else
             {
@@ -203,8 +195,7 @@ public static class HexParser
                 Hex hex = new Hex
                 {
                     Coordinates = location.HexPosition.Value,
-                    // HIGHLANDER: Assign Location object, not location.Id
-                    Location = location,
+                    // HIGHLANDER: No Location property - Location.HexPosition is source of truth
                     Terrain = TerrainType.Road, // Default safe terrain for scene-generated locations (within settlements)
                     DangerLevel = 0, // Default safe for dependent locations
                     IsDiscovered = true // Player knows about scene-generated content
@@ -251,39 +242,42 @@ public static class HexParser
     }
 
     /// <summary>
-    /// Validate no duplicate locations exist across hexes
-    /// CRITICAL: Prevents same location appearing on multiple hexes (impossible spatial state)
-    /// Called after coordinate validation, before BuildLookup()
+    /// Validate no two locations share the same HexPosition
+    /// CRITICAL: Each hex can have at most ONE location (spatial uniqueness)
+    /// HIGHLANDER: Uses Location.HexPosition (source of truth)
     /// </summary>
-    private static void ValidateDuplicateLocationIds(HexMap hexMap)
+    public static void ValidateLocationHexUniqueness(List<Location> locations)
     {
-        List<LocationHexMapping> locationMappings = new List<LocationHexMapping>();
+        List<LocationHexMapping> positionMappings = new List<LocationHexMapping>();
 
-        foreach (Hex hex in hexMap.Hexes)
+        foreach (Location location in locations)
         {
-            if (hex.Location == null)
-                continue; // Wilderness hex, skip
+            if (!location.HexPosition.HasValue)
+                continue; // Intra-venue location, skip
 
-            LocationHexMapping existing = locationMappings.FirstOrDefault(m => m.Location == hex.Location);
+            LocationHexMapping existing = positionMappings.FirstOrDefault(m =>
+                m.Coordinates.Q == location.HexPosition.Value.Q &&
+                m.Coordinates.R == location.HexPosition.Value.R);
+
             if (existing != null)
             {
                 throw new InvalidDataException(
-                    $"Location '{hex.Location.Name}' referenced by multiple hexes: " +
-                    $"({existing.Coordinates.Q}, {existing.Coordinates.R}) and ({hex.Coordinates.Q}, {hex.Coordinates.R}). " +
-                    $"Each location must occupy exactly one hex position.");
+                    $"Multiple locations at hex ({location.HexPosition.Value.Q}, {location.HexPosition.Value.R}): " +
+                    $"'{existing.Location.Name}' and '{location.Name}'. " +
+                    $"Each hex can have at most one location.");
             }
 
-            locationMappings.Add(new LocationHexMapping
+            positionMappings.Add(new LocationHexMapping
             {
-                Location = hex.Location,
-                Coordinates = hex.Coordinates
+                Location = location,
+                Coordinates = location.HexPosition.Value
             });
         }
     }
 
     /// <summary>
     /// Helper class for location-hex validation mapping
-    /// HIGHLANDER: Uses Location object, not string ID
+    /// HIGHLANDER: Uses Location.HexPosition for validation
     /// </summary>
     private class LocationHexMapping
     {

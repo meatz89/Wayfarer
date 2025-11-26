@@ -29,15 +29,6 @@ public class Hex
     public int DangerLevel { get; set; }
 
     /// <summary>
-    /// Optional location occupying this hex
-    /// null if hex is wilderness (no location)
-    /// HIGHLANDER: Object reference only, not string ID
-    /// This is derived lookup, not source of truth - Source of truth: Location.HexPosition
-    /// Locations are THE spatial entities - venues are just abstract wrappers
-    /// </summary>
-    public Location Location { get; set; }
-
-    /// <summary>
     /// Optional: Hex has been discovered by player (fog of war)
     /// false = player hasn't visited or seen this hex yet
     /// true = player has traveled through or scouted this hex

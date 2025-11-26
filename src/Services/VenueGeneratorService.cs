@@ -4,11 +4,8 @@
 /// </summary>
 public class VenueGeneratorService
 {
-    private readonly HexSynchronizationService _hexSyncService;
-
-    public VenueGeneratorService(HexSynchronizationService hexSyncService)
+    public VenueGeneratorService()
     {
-        _hexSyncService = hexSyncService;
     }
 
     /// <summary>
@@ -263,8 +260,8 @@ public class VenueGeneratorService
         if (strategy == HexAllocationStrategy.SingleHex)
         {
             Hex centerHex = gameWorld.WorldHexGrid.GetHex(center.Q, center.R);
-            // HIGHLANDER: Check if hex has Location object, not LocationId string
-            if (centerHex == null || centerHex.Location != null)
+            // HIGHLANDER: Query Location.HexPosition (source of truth) instead of derived lookup
+            if (centerHex == null || gameWorld.GetLocationsAtHex(center.Q, center.R).Count > 0)
             {
                 return false;
             }
@@ -274,8 +271,8 @@ public class VenueGeneratorService
         else // ClusterOf7
         {
             Hex centerHex = gameWorld.WorldHexGrid.GetHex(center.Q, center.R);
-            // HIGHLANDER: Check if hex has Location object, not LocationId string
-            if (centerHex == null || centerHex.Location != null)
+            // HIGHLANDER: Query Location.HexPosition (source of truth) instead of derived lookup
+            if (centerHex == null || gameWorld.GetLocationsAtHex(center.Q, center.R).Count > 0)
             {
                 return false;
             }
@@ -284,8 +281,8 @@ public class VenueGeneratorService
             foreach (AxialCoordinates neighbor in neighbors)
             {
                 Hex neighborHex = gameWorld.WorldHexGrid.GetHex(neighbor.Q, neighbor.R);
-                // HIGHLANDER: Check if hex has Location object, not LocationId string
-                if (neighborHex == null || neighborHex.Location != null)
+                // HIGHLANDER: Query Location.HexPosition (source of truth) instead of derived lookup
+                if (neighborHex == null || gameWorld.GetLocationsAtHex(neighbor.Q, neighbor.R).Count > 0)
                 {
                     return false;
                 }
@@ -325,11 +322,12 @@ public class VenueGeneratorService
                 continue;
             }
 
-            // HIGHLANDER: Check Location object reference directly (not LocationId string)
-            if (neighborHex.Location != null)
+            // HIGHLANDER: Query Location.HexPosition (source of truth) instead of derived lookup
+            List<Location> locationsAtHex = gameWorld.GetLocationsAtHex(neighborCoords.Q, neighborCoords.R);
+            foreach (Location location in locationsAtHex)
             {
                 // Location already exists on this hex - check if it belongs to a venue
-                if (neighborHex.Location.Venue != null)
+                if (location.Venue != null)
                 {
                     return false;
                 }

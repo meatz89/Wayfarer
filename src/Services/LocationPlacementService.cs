@@ -282,9 +282,9 @@ public class LocationPlacementService
 
     /// <summary>
     /// Place all locations within a venue's hex cluster using procedural algorithm.
-    /// First location: venue.CenterHex
-    /// Subsequent locations: Adjacent to previous location
-    /// Validates venue capacity, hex availability, venue separation.
+    /// Each location placed at first available unoccupied hex in venue cluster.
+    /// HIGHLANDER: FindUnoccupiedHexInVenue is single source for hex availability.
+    /// Validates venue capacity, hex availability.
     /// </summary>
     public void PlaceLocationsInVenue(Venue venue, List<Location> locations, Player player = null)
     {
@@ -302,8 +302,6 @@ public class LocationPlacementService
         }
 
         Console.WriteLine($"[LocationPlacement] Placing {locations.Count} locations in venue '{venue.Name}' (capacity: {venue.MaxLocations})");
-
-        Location previousLocation = null;
 
         foreach (Location location in locations)
         {
@@ -343,34 +341,66 @@ public class LocationPlacementService
             // Standard hex assignment (if no hex-level constraint applied)
             if (!hexConstraintApplied)
             {
-                if (previousLocation == null)
-                {
-                    // First location: Place at venue center
-                    location.HexPosition = venue.CenterHex;
-                    Console.WriteLine($"[LocationPlacement] Placed '{location.Name}' at venue center ({venue.CenterHex.Q}, {venue.CenterHex.R})");
-                }
-                else
-                {
-                    // Subsequent locations: Find adjacent hex
-                    AxialCoordinates? adjacentHex = FindAdjacentHex(previousLocation, venue);
+                // HIGHLANDER: Find unoccupied hex in venue cluster
+                // CRITICAL: previousLocation only tracks THIS batch - venue may already have locations
+                AxialCoordinates? availableHex = FindUnoccupiedHexInVenue(venue);
 
-                    if (!adjacentHex.HasValue)
-                    {
-                        throw new InvalidOperationException(
-                            $"Could not find adjacent hex for location '{location.Name}' in venue '{venue.Name}'. " +
-                            $"Venue may have reached spatial density limit.");
-                    }
-
-                    location.HexPosition = adjacentHex.Value;
-                    Console.WriteLine($"[LocationPlacement] Placed '{location.Name}' at ({adjacentHex.Value.Q}, {adjacentHex.Value.R}) adjacent to '{previousLocation.Name}'");
+                if (!availableHex.HasValue)
+                {
+                    throw new InvalidOperationException(
+                        $"Cannot place location '{location.Name}' in venue '{venue.Name}': " +
+                        $"No unoccupied hexes available. Venue capacity: {venue.MaxLocations}, " +
+                        $"Allocation: {venue.HexAllocation}. All hexes in venue cluster are occupied.");
                 }
+
+                location.HexPosition = availableHex;
+                Console.WriteLine($"[LocationPlacement] Placed '{location.Name}' at ({availableHex.Value.Q}, {availableHex.Value.R}) in venue '{venue.Name}'");
             }
 
             // ATOMIC ASSIGNMENT: Set venue simultaneously with hex position
             location.AssignVenue(venue);
-
-            previousLocation = location;
         }
+    }
+
+    /// <summary>
+    /// Find first unoccupied hex in venue's cluster.
+    /// HIGHLANDER: Single method for finding available hex in venue.
+    /// Called by PackageLoader.CreateSingleLocation and PlaceLocationsInVenue.
+    ///
+    /// Search order:
+    /// 1. Center hex (if unoccupied)
+    /// 2. Adjacent hexes (for ClusterOf7 venues)
+    /// </summary>
+    public AxialCoordinates? FindUnoccupiedHexInVenue(Venue venue)
+    {
+        if (venue == null)
+            throw new ArgumentNullException(nameof(venue));
+
+        // Get all hexes allocated to this venue
+        List<AxialCoordinates> venueHexes = venue.GetAllocatedHexes();
+        Console.WriteLine($"[LocationPlacement] Searching for unoccupied hex in venue '{venue.Name}' (allocation: {venue.HexAllocation}, {venueHexes.Count} hexes)");
+
+        // Search hexes in order: center first, then neighbors
+        foreach (AxialCoordinates hexCoord in venueHexes)
+        {
+            // Check if any location occupies this hex
+            bool hexOccupied = _gameWorld.Locations.Any(loc =>
+                loc.HexPosition.HasValue &&
+                loc.HexPosition.Value.Q == hexCoord.Q &&
+                loc.HexPosition.Value.R == hexCoord.R);
+
+            if (!hexOccupied)
+            {
+                Console.WriteLine($"[LocationPlacement] Found unoccupied hex at ({hexCoord.Q}, {hexCoord.R})");
+                return hexCoord;
+            }
+
+            Console.WriteLine($"[LocationPlacement] Hex ({hexCoord.Q}, {hexCoord.R}) is occupied, checking next...");
+        }
+
+        // No unoccupied hex found
+        Console.WriteLine($"[LocationPlacement] WARNING: No unoccupied hex found in venue '{venue.Name}'");
+        return null;
     }
 
     /// <summary>

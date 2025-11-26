@@ -153,23 +153,38 @@ public class HexMap
     }
 
     /// <summary>
-    /// Get hex occupied by specific location
+    /// Get hex at location's position
     /// Returns null if location has no hex position
-    /// HIGHLANDER: Accept Location object, compare objects
+    /// HIGHLANDER: Location.HexPosition is source of truth
     /// </summary>
     public Hex GetHexForLocation(Location location)
     {
-        return Hexes.FirstOrDefault(h => h.Location == location);
+        if (!location.HexPosition.HasValue)
+            return null;
+
+        return GetHex(location.HexPosition.Value);
     }
 
     /// <summary>
-    /// Get all hexes with locations (occupied hexes)
-    /// Excludes wilderness hexes
-    /// HIGHLANDER: Check Location object, not LocationId string
+    /// Get all hexes that have locations positioned on them
+    /// HIGHLANDER: Query via Location.HexPosition (requires locations list)
+    /// NOTE: Caller must provide locations to determine occupancy
     /// </summary>
-    public List<Hex> GetOccupiedHexes()
+    public List<Hex> GetOccupiedHexes(List<Location> locations)
     {
-        return Hexes.Where(h => h.Location != null).ToList();
+        List<Hex> occupiedHexes = new List<Hex>();
+        foreach (Location location in locations)
+        {
+            if (!location.HexPosition.HasValue)
+                continue;
+
+            Hex hex = GetHex(location.HexPosition.Value);
+            if (hex != null && !occupiedHexes.Contains(hex))
+            {
+                occupiedHexes.Add(hex);
+            }
+        }
+        return occupiedHexes;
     }
 
     /// <summary>

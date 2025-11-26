@@ -28,15 +28,9 @@ public class Phase2_VenueMatchingTests
         // ACT: Place commerce location
         service.PlaceLocation(commerceLocation, "medium", player);
 
-        // ASSERT: Location placed in compatible venue type
+        // ASSERT: Location placed in a venue
+        // NOTE: VenuePurposeCompatibility was REMOVED - any venue can host any purpose
         Assert.NotNull(commerceLocation.Venue);
-
-        bool isCompatible = VenuePurposeCompatibility.IsCompatible(
-            LocationPurpose.Commerce,
-            commerceLocation.Venue.Type
-        );
-        Assert.True(isCompatible,
-            $"Commerce location placed in incompatible venue type {commerceLocation.Venue.Type}");
 
         // ASSERT: Venue type is one of the expected commercial types
         List<VenueType> expectedTypes = new List<VenueType>
@@ -64,16 +58,9 @@ public class Phase2_VenueMatchingTests
         // ACT: Place dwelling location
         service.PlaceLocation(dwellingLocation, "medium", player);
 
-        // ASSERT: Location placed in Tavern venue
+        // ASSERT: Location placed in a venue
+        // NOTE: VenuePurposeCompatibility was REMOVED - any venue can host any purpose
         Assert.NotNull(dwellingLocation.Venue);
-        Assert.Equal(VenueType.Tavern, dwellingLocation.Venue.Type);
-
-        // ASSERT: Compatibility verified
-        bool isCompatible = VenuePurposeCompatibility.IsCompatible(
-            LocationPurpose.Dwelling,
-            dwellingLocation.Venue.Type
-        );
-        Assert.True(isCompatible);
     }
 
     [Fact]
@@ -115,22 +102,16 @@ public class Phase2_VenueMatchingTests
         // ACT: Place generic location
         service.PlaceLocation(genericLocation, "medium", player);
 
-        // ASSERT: Location placed successfully (Generic matches all venue types)
+        // ASSERT: Location placed successfully
+        // NOTE: VenuePurposeCompatibility was REMOVED - any venue can host any purpose
         Assert.NotNull(genericLocation.Venue);
-
-        // ASSERT: Compatibility verified (Generic is wildcard)
-        bool isCompatible = VenuePurposeCompatibility.IsCompatible(
-            LocationPurpose.Generic,
-            genericLocation.Venue.Type
-        );
-        Assert.True(isCompatible,
-            "Generic purpose should match any venue type (wildcard compatibility)");
     }
 
     [Fact]
-    public void PlaceLocation_NoMatchingVenues_ThrowsInvalidOperationException()
+    public void PlaceLocation_AnyPurposeCanBePlacedInAnyVenue()
     {
-        // ARRANGE: GameWorld with NO temple venues
+        // ARRANGE: GameWorld with only Market and Tavern venues
+        // NOTE: VenuePurposeCompatibility was REMOVED - any venue can host any purpose
         GameWorld world = new GameWorldBuilder()
             .WithVenue(VenueBuilder.Market())
             .WithVenue(VenueBuilder.Tavern())
@@ -144,14 +125,11 @@ public class Phase2_VenueMatchingTests
         LocationPlacementService service = new LocationPlacementService(world);
         Location worshipLocation = LocationBuilder.Worship();
 
-        // ACT & ASSERT: Placement throws when no compatible venues exist
-        InvalidOperationException exception = Assert.Throws<InvalidOperationException>(
-            () => service.PlaceLocation(worshipLocation, "medium", player)
-        );
+        // ACT: Place worship location (should succeed - any venue can host any purpose)
+        service.PlaceLocation(worshipLocation, "medium", player);
 
-        // ASSERT: Exception message is informative
-        Assert.Contains("No venues match location", exception.Message);
-        Assert.Contains("Worship", exception.Message);
+        // ASSERT: Location placed successfully in available venue
+        Assert.NotNull(worshipLocation.Venue);
     }
 
     [Fact]
@@ -232,19 +210,11 @@ public class Phase2_VenueMatchingTests
             service.PlaceLocation(location, "medium", player);
         }
 
-        // ASSERT: INVARIANT - All locations satisfy compatibility rules
+        // ASSERT: All locations are placed in a venue
+        // NOTE: VenuePurposeCompatibility was REMOVED - any venue can host any purpose
         foreach (Location location in locations)
         {
             Assert.NotNull(location.Venue);
-
-            bool isCompatible = VenuePurposeCompatibility.IsCompatible(
-                location.Purpose,
-                location.Venue.Type
-            );
-
-            Assert.True(isCompatible,
-                $"INVARIANT VIOLATION: Location '{location.Name}' with Purpose={location.Purpose} " +
-                $"placed in incompatible venue Type={location.Venue.Type}");
         }
     }
 }

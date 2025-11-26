@@ -147,7 +147,7 @@ public static class ServiceConfiguration
         services.AddSingleton<SpawnedScenePlayabilityValidator>(); // Runtime validation for soft-lock prevention
 
         // Dynamic Location Generation System (All locations persist within session)
-        services.AddSingleton<HexSynchronizationService>(); // Hex/Location synchronization
+        // HIGHLANDER: Location.HexPosition is source of truth - no sync service needed
         services.AddSingleton<VenueGeneratorService>(); // Procedural venue generation
         services.AddSingleton<LocationPlacementService>(); // HIGHLANDER: Single procedural hex placement for ALL locations
         services.AddSingleton<LocationPlayabilityValidator>(); // Fail-fast playability validation (all locations)

@@ -176,16 +176,9 @@ public class Phase2_VenueMatchingEdgeCaseTests
         // ACT: Place transit location (roads, paths, outdoor routes)
         service.PlaceLocation(transitLocation, "medium", player);
 
-        // ASSERT: Location placed in Wilderness venue
+        // ASSERT: Location placed in a venue
+        // NOTE: VenuePurposeCompatibility was REMOVED - any venue can host any purpose
         Assert.NotNull(transitLocation.Venue);
-        Assert.Equal(VenueType.Wilderness, transitLocation.Venue.Type);
-
-        // ASSERT: Compatibility verified
-        bool isCompatible = VenuePurposeCompatibility.IsCompatible(
-            LocationPurpose.Transit,
-            transitLocation.Venue.Type
-        );
-        Assert.True(isCompatible);
     }
 
     [Fact]
@@ -280,81 +273,8 @@ public class Phase2_VenueMatchingEdgeCaseTests
         Assert.Contains(entertainmentLocation.Venue.Type, entertainmentTypes);
     }
 
-    /// <summary>
-    /// THEORY TEST: Exhaustive validation of VenuePurposeCompatibility lookup table.
-    /// Tests positive cases (compatible combinations) and negative cases (incompatible combinations).
-    /// Ensures compatibility table correctness across all enum values.
-    /// </summary>
-    [Theory]
-    // Commerce purpose - SHOULD match Market, Merchant, Workshop
-    [InlineData(LocationPurpose.Commerce, VenueType.Market, true)]
-    [InlineData(LocationPurpose.Commerce, VenueType.Merchant, true)]
-    [InlineData(LocationPurpose.Commerce, VenueType.Workshop, true)]
-    [InlineData(LocationPurpose.Commerce, VenueType.Tavern, false)]
-    [InlineData(LocationPurpose.Commerce, VenueType.Temple, false)]
-    [InlineData(LocationPurpose.Commerce, VenueType.Wilderness, false)]
-    // Dwelling purpose - SHOULD match Tavern only
-    [InlineData(LocationPurpose.Dwelling, VenueType.Tavern, true)]
-    [InlineData(LocationPurpose.Dwelling, VenueType.Market, false)]
-    [InlineData(LocationPurpose.Dwelling, VenueType.Temple, false)]
-    [InlineData(LocationPurpose.Dwelling, VenueType.Workshop, false)]
-    // Worship purpose - SHOULD match Temple only
-    [InlineData(LocationPurpose.Worship, VenueType.Temple, true)]
-    [InlineData(LocationPurpose.Worship, VenueType.Market, false)]
-    [InlineData(LocationPurpose.Worship, VenueType.Tavern, false)]
-    [InlineData(LocationPurpose.Worship, VenueType.Fortress, false)]
-    // Transit purpose - SHOULD match Wilderness only
-    [InlineData(LocationPurpose.Transit, VenueType.Wilderness, true)]
-    [InlineData(LocationPurpose.Transit, VenueType.Market, false)]
-    [InlineData(LocationPurpose.Transit, VenueType.Tavern, false)]
-    [InlineData(LocationPurpose.Transit, VenueType.Temple, false)]
-    // Civic purpose - SHOULD match NobleDistrict only
-    [InlineData(LocationPurpose.Civic, VenueType.NobleDistrict, true)]
-    [InlineData(LocationPurpose.Civic, VenueType.Market, false)]
-    [InlineData(LocationPurpose.Civic, VenueType.Tavern, false)]
-    // Defense purpose - SHOULD match Fortress, Guard
-    [InlineData(LocationPurpose.Defense, VenueType.Fortress, true)]
-    [InlineData(LocationPurpose.Defense, VenueType.Guard, true)]
-    [InlineData(LocationPurpose.Defense, VenueType.Market, false)]
-    [InlineData(LocationPurpose.Defense, VenueType.Temple, false)]
-    // Governance purpose - SHOULD match Administrative only
-    [InlineData(LocationPurpose.Governance, VenueType.Administrative, true)]
-    [InlineData(LocationPurpose.Governance, VenueType.Market, false)]
-    [InlineData(LocationPurpose.Governance, VenueType.NobleDistrict, false)]
-    // Learning purpose - SHOULD match Academy only
-    [InlineData(LocationPurpose.Learning, VenueType.Academy, true)]
-    [InlineData(LocationPurpose.Learning, VenueType.Market, false)]
-    [InlineData(LocationPurpose.Learning, VenueType.Temple, false)]
-    // Entertainment purpose - SHOULD match Theater, Arena
-    [InlineData(LocationPurpose.Entertainment, VenueType.Theater, true)]
-    [InlineData(LocationPurpose.Entertainment, VenueType.Arena, true)]
-    [InlineData(LocationPurpose.Entertainment, VenueType.Market, false)]
-    [InlineData(LocationPurpose.Entertainment, VenueType.Tavern, false)]
-    // Generic purpose - SHOULD match ALL venue types (wildcard)
-    [InlineData(LocationPurpose.Generic, VenueType.Market, true)]
-    [InlineData(LocationPurpose.Generic, VenueType.Tavern, true)]
-    [InlineData(LocationPurpose.Generic, VenueType.Temple, true)]
-    [InlineData(LocationPurpose.Generic, VenueType.Wilderness, true)]
-    [InlineData(LocationPurpose.Generic, VenueType.NobleDistrict, true)]
-    [InlineData(LocationPurpose.Generic, VenueType.Fortress, true)]
-    [InlineData(LocationPurpose.Generic, VenueType.Guard, true)]
-    [InlineData(LocationPurpose.Generic, VenueType.Administrative, true)]
-    [InlineData(LocationPurpose.Generic, VenueType.Academy, true)]
-    [InlineData(LocationPurpose.Generic, VenueType.Theater, true)]
-    [InlineData(LocationPurpose.Generic, VenueType.Arena, true)]
-    [InlineData(LocationPurpose.Generic, VenueType.Merchant, true)]
-    [InlineData(LocationPurpose.Generic, VenueType.Workshop, true)]
-    public void VenuePurposeCompatibility_ValidatesCorrectly(
-        LocationPurpose purpose,
-        VenueType venueType,
-        bool expectedCompatibility)
-    {
-        // ACT: Check compatibility via static lookup table
-        bool actualCompatibility = VenuePurposeCompatibility.IsCompatible(purpose, venueType);
-
-        // ASSERT: Matches expected compatibility
-        Assert.Equal(expectedCompatibility, actualCompatibility);
-    }
+    // NOTE: VenuePurposeCompatibility_ValidatesCorrectly test REMOVED
+    // VenuePurposeCompatibility was DELETED - any venue type can host any location purpose
 
     [Fact]
     public void Invariant_VenueCapacity_NeverExceeded()

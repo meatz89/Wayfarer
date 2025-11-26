@@ -385,13 +385,41 @@ public class GameWorld
             return null;
         }
 
-        if (currentHex.Location == null)
+        // HIGHLANDER: Query Location.HexPosition (source of truth), not derived lookup
+        Location primaryLocation = GetPrimaryLocationAtHex(player.CurrentPosition.Q, player.CurrentPosition.R);
+        if (primaryLocation == null)
         {
-            Console.WriteLine($"[GameWorld.GetPlayerCurrentLocation] ERROR: Hex at ({player.CurrentPosition.Q}, {player.CurrentPosition.R}) has null Location");
+            Console.WriteLine($"[GameWorld.GetPlayerCurrentLocation] ERROR: No location found at hex ({player.CurrentPosition.Q}, {player.CurrentPosition.R})");
             return null;
         }
 
-        return currentHex.Location;
+        return primaryLocation;
+    }
+
+    /// <summary>
+    /// Get all locations at a specific hex position.
+    /// HIGHLANDER: Queries Location.HexPosition (source of truth) instead of derived lookup.
+    /// Multiple locations can exist at the same hex (e.g., Common Room + Private Room).
+    /// </summary>
+    public List<Location> GetLocationsAtHex(int q, int r)
+    {
+        return Locations.Where(l =>
+            l.HexPosition.HasValue &&
+            l.HexPosition.Value.Q == q &&
+            l.HexPosition.Value.R == r
+        ).ToList();
+    }
+
+    /// <summary>
+    /// Get the primary location at a hex position.
+    /// Authored locations take precedence over scene-created locations.
+    /// Returns null if no location exists at that hex.
+    /// </summary>
+    public Location GetPrimaryLocationAtHex(int q, int r)
+    {
+        return GetLocationsAtHex(q, r)
+            .OrderBy(l => l.Origin == LocationOrigin.Authored ? 0 : 1)
+            .FirstOrDefault();
     }
 
     /// <summary>
