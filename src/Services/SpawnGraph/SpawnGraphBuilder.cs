@@ -426,19 +426,172 @@ public class SpawnGraphBuilder
         double xOffset = 50;
         double yOffset = 100;
         double xSpacing = 250;
-        double ySpacing = 180;
+        double ySpacing = 150;
 
-        int column = 0;
+        Dictionary<SceneSpawnNode, SceneNodeModel> sceneModelMap = new Dictionary<SceneSpawnNode, SceneNodeModel>();
+        Dictionary<SituationSpawnNode, SituationNodeModel> situationModelMap = new Dictionary<SituationSpawnNode, SituationNodeModel>();
+        Dictionary<ChoiceExecutionNode, ChoiceNodeModel> choiceModelMap = new Dictionary<ChoiceExecutionNode, ChoiceNodeModel>();
+        Dictionary<string, EntityNodeModel> entityModelMap = new Dictionary<string, EntityNodeModel>();
 
-        foreach (SceneSpawnNode sceneNode in tracer.AllSceneNodes)
+        // Create scene nodes (column 0)
+        int sceneRow = 0;
+        foreach (SceneSpawnNode sceneSpawn in tracer.AllSceneNodes)
         {
-            SceneNodeModel node = new SceneNodeModel(
-                new Point(xOffset + (column * xSpacing), yOffset),
-                sceneNode);
-            diagram.Nodes.Add(node);
-
-            column++;
+            SceneNodeModel model = new SceneNodeModel(
+                new Point(xOffset, yOffset + (sceneRow * ySpacing)),
+                sceneSpawn);
+            diagram.Nodes.Add(model);
+            sceneModelMap[sceneSpawn] = model;
+            sceneRow++;
         }
+
+        // Create situation nodes (column 1)
+        int situationRow = 0;
+        foreach (SituationSpawnNode situationSpawn in tracer.AllSituationNodes)
+        {
+            SituationNodeModel model = new SituationNodeModel(
+                new Point(xOffset + xSpacing, yOffset + (situationRow * ySpacing)),
+                situationSpawn);
+            diagram.Nodes.Add(model);
+            situationModelMap[situationSpawn] = model;
+            situationRow++;
+        }
+
+        // Create choice nodes (column 2)
+        int choiceRow = 0;
+        foreach (ChoiceExecutionNode choiceSpawn in tracer.AllChoiceNodes)
+        {
+            ChoiceNodeModel model = new ChoiceNodeModel(
+                new Point(xOffset + (xSpacing * 2), yOffset + (choiceRow * ySpacing)),
+                choiceSpawn);
+            diagram.Nodes.Add(model);
+            choiceModelMap[choiceSpawn] = model;
+            choiceRow++;
+        }
+
+        // Create entity nodes (column 3)
+        int entityRow = 0;
+        foreach (SituationSpawnNode situationSpawn in tracer.AllSituationNodes)
+        {
+            if (situationSpawn.Location != null)
+            {
+                string entityKey = "loc_" + situationSpawn.Location.Name;
+                if (!entityModelMap.ContainsKey(entityKey))
+                {
+                    EntityNodeModel model = new EntityNodeModel(
+                        new Point(xOffset + (xSpacing * 3), yOffset + (entityRow * ySpacing)),
+                        situationSpawn.Location);
+                    diagram.Nodes.Add(model);
+                    entityModelMap[entityKey] = model;
+                    entityRow++;
+                }
+            }
+
+            if (situationSpawn.NPC != null)
+            {
+                string entityKey = "npc_" + situationSpawn.NPC.Name;
+                if (!entityModelMap.ContainsKey(entityKey))
+                {
+                    EntityNodeModel model = new EntityNodeModel(
+                        new Point(xOffset + (xSpacing * 3), yOffset + (entityRow * ySpacing)),
+                        situationSpawn.NPC);
+                    diagram.Nodes.Add(model);
+                    entityModelMap[entityKey] = model;
+                    entityRow++;
+                }
+            }
+
+            if (situationSpawn.Route != null)
+            {
+                string entityKey = "route_" + situationSpawn.Route.OriginLocationName + "_" + situationSpawn.Route.DestinationLocationName;
+                if (!entityModelMap.ContainsKey(entityKey))
+                {
+                    EntityNodeModel model = new EntityNodeModel(
+                        new Point(xOffset + (xSpacing * 3), yOffset + (entityRow * ySpacing)),
+                        situationSpawn.Route);
+                    diagram.Nodes.Add(model);
+                    entityModelMap[entityKey] = model;
+                    entityRow++;
+                }
+            }
+        }
+
+        // Create links (same as ApplyLayoutToDiagram)
+        foreach (SceneSpawnNode sceneSpawn in tracer.AllSceneNodes)
+        {
+            if (!sceneModelMap.TryGetValue(sceneSpawn, out SceneNodeModel sceneModel)) continue;
+
+            foreach (SituationSpawnNode situationSpawn in sceneSpawn.Situations)
+            {
+                if (situationModelMap.TryGetValue(situationSpawn, out SituationNodeModel situationModel))
+                {
+                    diagram.Links.Add(new SpawnGraphLinkModel(sceneModel, situationModel, SpawnGraphLinkType.Hierarchy));
+                }
+            }
+        }
+
+        foreach (SituationSpawnNode situationSpawn in tracer.AllSituationNodes)
+        {
+            if (!situationModelMap.TryGetValue(situationSpawn, out SituationNodeModel situationModel)) continue;
+
+            foreach (ChoiceExecutionNode choiceSpawn in situationSpawn.Choices)
+            {
+                if (choiceModelMap.TryGetValue(choiceSpawn, out ChoiceNodeModel choiceModel))
+                {
+                    diagram.Links.Add(new SpawnGraphLinkModel(situationModel, choiceModel, SpawnGraphLinkType.Hierarchy));
+                }
+            }
+
+            if (situationSpawn.Location != null)
+            {
+                string entityKey = "loc_" + situationSpawn.Location.Name;
+                if (entityModelMap.TryGetValue(entityKey, out EntityNodeModel entityModel))
+                {
+                    diagram.Links.Add(new SpawnGraphLinkModel(situationModel, entityModel, SpawnGraphLinkType.EntityLocation));
+                }
+            }
+
+            if (situationSpawn.NPC != null)
+            {
+                string entityKey = "npc_" + situationSpawn.NPC.Name;
+                if (entityModelMap.TryGetValue(entityKey, out EntityNodeModel entityModel))
+                {
+                    diagram.Links.Add(new SpawnGraphLinkModel(situationModel, entityModel, SpawnGraphLinkType.EntityNpc));
+                }
+            }
+
+            if (situationSpawn.Route != null)
+            {
+                string entityKey = "route_" + situationSpawn.Route.OriginLocationName + "_" + situationSpawn.Route.DestinationLocationName;
+                if (entityModelMap.TryGetValue(entityKey, out EntityNodeModel entityModel))
+                {
+                    diagram.Links.Add(new SpawnGraphLinkModel(situationModel, entityModel, SpawnGraphLinkType.EntityRoute));
+                }
+            }
+        }
+
+        foreach (ChoiceExecutionNode choiceSpawn in tracer.AllChoiceNodes)
+        {
+            if (!choiceModelMap.TryGetValue(choiceSpawn, out ChoiceNodeModel choiceModel)) continue;
+
+            foreach (SceneSpawnNode spawnedScene in choiceSpawn.SpawnedScenes)
+            {
+                if (sceneModelMap.TryGetValue(spawnedScene, out SceneNodeModel sceneModel))
+                {
+                    diagram.Links.Add(new SpawnGraphLinkModel(choiceModel, sceneModel, SpawnGraphLinkType.SpawnScene));
+                }
+            }
+
+            foreach (SituationSpawnNode spawnedSituation in choiceSpawn.SpawnedSituations)
+            {
+                if (situationModelMap.TryGetValue(spawnedSituation, out SituationNodeModel situationModel))
+                {
+                    diagram.Links.Add(new SpawnGraphLinkModel(choiceModel, situationModel, SpawnGraphLinkType.SpawnSituation));
+                }
+            }
+        }
+
+        int maxRow = Math.Max(Math.Max(sceneRow, situationRow), Math.Max(choiceRow, entityRow));
 
         return new SpawnGraphBuildResult
         {
@@ -446,8 +599,8 @@ public class SpawnGraphBuilder
             Message = "Used fallback layout (JS interop unavailable)",
             NodeCount = diagram.Nodes.Count,
             LinkCount = diagram.Links.Count,
-            GraphWidth = column * xSpacing + 200,
-            GraphHeight = ySpacing * 3
+            GraphWidth = xSpacing * 4 + 200,
+            GraphHeight = maxRow * ySpacing + 200
         };
     }
 
@@ -471,51 +624,90 @@ public class SpawnGraphBuildResult
 
 public class DagreGraphData
 {
+    [System.Text.Json.Serialization.JsonPropertyName("nodes")]
     public List<DagreNode> Nodes { get; set; } = new List<DagreNode>();
+
+    [System.Text.Json.Serialization.JsonPropertyName("edges")]
     public List<DagreEdge> Edges { get; set; } = new List<DagreEdge>();
 }
 
 public class DagreNode
 {
+    [System.Text.Json.Serialization.JsonPropertyName("id")]
     public string Id { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("label")]
     public string Label { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("type")]
     public string Type { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("width")]
     public int Width { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("height")]
     public int Height { get; set; }
 }
 
 public class DagreEdge
 {
+    [System.Text.Json.Serialization.JsonPropertyName("source")]
     public string Source { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("target")]
     public string Target { get; set; }
 }
 
 public class DagreLayoutResult
 {
+    [System.Text.Json.Serialization.JsonPropertyName("nodes")]
     public List<DagreLayoutNode> Nodes { get; set; } = new List<DagreLayoutNode>();
+
+    [System.Text.Json.Serialization.JsonPropertyName("edges")]
     public List<DagreLayoutEdge> Edges { get; set; } = new List<DagreLayoutEdge>();
+
+    [System.Text.Json.Serialization.JsonPropertyName("graphWidth")]
     public double GraphWidth { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("graphHeight")]
     public double GraphHeight { get; set; }
 }
 
 public class DagreLayoutNode
 {
+    [System.Text.Json.Serialization.JsonPropertyName("id")]
     public string Id { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("x")]
     public double X { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("y")]
     public double Y { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("width")]
     public double Width { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("height")]
     public double Height { get; set; }
 }
 
 public class DagreLayoutEdge
 {
+    [System.Text.Json.Serialization.JsonPropertyName("source")]
     public string Source { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("target")]
     public string Target { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("points")]
     public List<DagrePoint> Points { get; set; } = new List<DagrePoint>();
 }
 
 public class DagrePoint
 {
+    [System.Text.Json.Serialization.JsonPropertyName("x")]
     public double X { get; set; }
+
+    [System.Text.Json.Serialization.JsonPropertyName("y")]
     public double Y { get; set; }
 }

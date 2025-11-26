@@ -215,6 +215,20 @@ public class SceneInstantiator
 
             // Step 3: Add to Scene.Situations
             scene.Situations.Add(situation);
+
+            // PROCEDURAL CONTENT TRACING: Record situation spawn during scene activation
+            if (_gameWorld.ProceduralTracer != null && _gameWorld.ProceduralTracer.IsEnabled)
+            {
+                SceneSpawnNode sceneNode = _gameWorld.ProceduralTracer.GetNodeForScene(scene);
+                if (sceneNode != null)
+                {
+                    _gameWorld.ProceduralTracer.RecordSituationSpawn(
+                        situation,
+                        sceneNode,
+                        SituationSpawnTriggerType.InitialScene
+                    );
+                }
+            }
         }
 
         // Set CurrentSituationIndex to 0 (first situation)
