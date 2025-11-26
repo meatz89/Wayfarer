@@ -467,8 +467,8 @@ public class LocationFacade
                 Console.WriteLine($"[SceneActivation] Loaded dependent resources for scene '{scene.DisplayName}' ({loadResult.LocationsAdded.Count} locations, {loadResult.ItemsAdded.Count} items)");
 
                 // CRITICAL: Post-load orchestration for dependent resources
-                // Uses direct object references - no GameWorld searching
-                ConfigureDependentResources(scene, loadResult, player);
+                // Creates locations PER-SITUATION via CreateSingleLocation - no JSON, no matching
+                ConfigureDependentResources(scene, loadResult, player, activationContext.CurrentVenue);
             }
             else
             {
@@ -528,9 +528,9 @@ public class LocationFacade
     /// Sets Origin = SceneCreated and Provenance for accessibility model (ADR-012).
     /// Also adds items to inventory if AddToInventoryOnCreation = true.
     ///
-    /// HIGHLANDER: Uses PackageLoadResult with direct object references - no searching.
+    /// HIGHLANDER: Creates locations PER-SITUATION via CreateSingleLocation - no JSON, no matching
     /// </summary>
-    private void ConfigureDependentResources(Scene scene, PackageLoadResult loadResult, Player player)
+    private void ConfigureDependentResources(Scene scene, PackageLoadResult loadResult, Player player, Venue contextVenue)
     {
         // Build provenance for newly created resources
         SceneProvenance provenance = new SceneProvenance
@@ -541,22 +541,10 @@ public class LocationFacade
             CreatedSegment = _timeManager.CurrentSegment
         };
 
-        // Configure dependent locations (direct object references from result)
-        foreach (Location location in loadResult.LocationsAdded)
-        {
-            // ADR-012: Set explicit Origin enum for accessibility model
-            location.Origin = LocationOrigin.SceneCreated;
-
-            // Set provenance for forensic tracking
-            location.Provenance = provenance;
-
-            Console.WriteLine($"[LocationFacade] Configured location '{location.Name}' with Origin=SceneCreated");
-        }
-
         // Get template for AddToInventoryOnCreation check
         SceneTemplate template = scene.Template ?? _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == scene.TemplateId);
 
-        // Configure dependent items (direct object references from result)
+        // Configure dependent items (still from loadResult - items use JSON path)
         foreach (Item item in loadResult.ItemsAdded)
         {
             // Set provenance for forensic tracking
@@ -571,9 +559,9 @@ public class LocationFacade
             }
         }
 
-        // Bind situations to dependent locations (direct object references)
-        // NEW ARCHITECTURE: Use Template.DependentLocationSpec (object reference) instead of string matching
-        // Multiple situations with SAME spec INSTANCE share the same created location
+        // Create and bind locations PER-SITUATION via direct CreateSingleLocation
+        // NO JSON serialization - creates Location directly from spec
+        // Shared spec instance = shared location (tracked by Dictionary for reference equality)
         Dictionary<DependentLocationSpec, Location> specToLocationMap = new Dictionary<DependentLocationSpec, Location>();
 
         foreach (Situation situation in scene.Situations)
@@ -581,29 +569,28 @@ public class LocationFacade
             DependentLocationSpec spec = situation.Template?.DependentLocationSpec;
             if (spec != null)
             {
-                // Check if we've already bound a location for this spec instance
+                // Check if we've already created a location for this spec instance
                 if (specToLocationMap.TryGetValue(spec, out Location existingLocation))
                 {
-                    // Shared spec instance = shared location (direct binding by reference equality)
+                    // Shared spec instance = shared location (reference equality)
                     situation.Location = existingLocation;
-                    Console.WriteLine($"[LocationFacade] Bound situation '{situation.Name}' to shared location '{existingLocation.Name}'");
+                    Console.WriteLine($"[LocationFacade] Bound situation '{situation.Name}' to SHARED location '{existingLocation.Name}'");
                 }
                 else
                 {
-                    // Find location matching this spec's name in loadResult
-                    Location dependentLocation = loadResult.LocationsAdded
-                        .FirstOrDefault(l => l.Name == spec.Name);
+                    // CREATE location directly from spec (NO JSON, NO matching)
+                    // Returns ONE Location reference - direct binding
+                    Location createdLocation = _packageLoaderFacade.CreateSingleLocation(spec, contextVenue);
 
-                    if (dependentLocation != null)
-                    {
-                        situation.Location = dependentLocation;
-                        specToLocationMap[spec] = dependentLocation;
-                        Console.WriteLine($"[LocationFacade] Bound situation '{situation.Name}' to dependent location '{dependentLocation.Name}'");
-                    }
-                    else
-                    {
-                        Console.WriteLine($"[LocationFacade] WARNING: Situation '{situation.Name}' has DependentLocationSpec '{spec.Name}' but location not found in loadResult");
-                    }
+                    // Set Origin and Provenance
+                    createdLocation.Origin = LocationOrigin.SceneCreated;
+                    createdLocation.Provenance = provenance;
+
+                    // DIRECT BINDING: situation.Location = createdLocation (NO matching)
+                    situation.Location = createdLocation;
+                    specToLocationMap[spec] = createdLocation;
+
+                    Console.WriteLine($"[LocationFacade] CREATED and bound location '{createdLocation.Name}' for situation '{situation.Name}'");
                 }
             }
         }

@@ -340,6 +340,144 @@ public class PackageLoader
         return result;
     }
 
+    /// <summary>
+    /// Create a single location directly from DependentLocationSpec.
+    /// NO JSON serialization - creates LocationDTO in-memory and converts to Location.
+    /// Returns direct object reference for immediate binding.
+    /// HIGHLANDER: Direct creation path, no matching by name/ID.
+    /// </summary>
+    public Location CreateSingleLocation(DependentLocationSpec spec, Venue contextVenue)
+    {
+        if (spec == null)
+            throw new ArgumentNullException(nameof(spec));
+        if (contextVenue == null)
+            throw new ArgumentNullException(nameof(contextVenue));
+
+        // Generate unique name
+        string locationName = $"{spec.Name}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+
+        // FAIL-FAST BUDGET VALIDATION: Check venue capacity BEFORE creating
+        if (!_gameWorld.CanVenueAddMoreLocations(contextVenue))
+        {
+            int currentCount = _gameWorld.GetLocationCountInVenue(contextVenue);
+            throw new InvalidOperationException(
+                $"Venue '{contextVenue.Name}' has reached capacity " +
+                $"({currentCount}/{contextVenue.MaxLocations} locations). " +
+                $"Cannot add location '{locationName}'.");
+        }
+
+        // FAIL-FAST: ALL categorical dimensions REQUIRED from spec
+        if (string.IsNullOrEmpty(spec.Privacy))
+            throw new InvalidOperationException($"DependentLocationSpec '{spec.TemplateId}' missing required Privacy property.");
+        if (string.IsNullOrEmpty(spec.Safety))
+            throw new InvalidOperationException($"DependentLocationSpec '{spec.TemplateId}' missing required Safety property.");
+        if (string.IsNullOrEmpty(spec.Activity))
+            throw new InvalidOperationException($"DependentLocationSpec '{spec.TemplateId}' missing required Activity property.");
+        if (string.IsNullOrEmpty(spec.Purpose))
+            throw new InvalidOperationException($"DependentLocationSpec '{spec.TemplateId}' missing required Purpose property.");
+
+        // Build LocationDTO directly (no JSON serialization)
+        LocationDTO dto = new LocationDTO
+        {
+            Id = locationName,
+            Name = locationName,
+            Description = spec.Description,
+            DistanceFromPlayer = "near",
+            Type = "Room",
+            CanInvestigate = spec.CanInvestigate,
+            CanWork = false,
+            WorkType = "",
+            WorkPay = 0,
+            Privacy = spec.Privacy,
+            Safety = spec.Safety,
+            Activity = spec.Activity,
+            Purpose = spec.Purpose,
+            LocationType = "Inn",
+            ObligationProfile = "Research",
+            IsStartingLocation = false
+        };
+
+        // Map capabilities from Properties
+        if (spec.Properties != null && spec.Properties.Any())
+        {
+            dto.Capabilities = spec.Properties;
+        }
+
+        // SameVenue constraint - location spawns in context venue
+        dto.ProximityConstraint = new ProximityConstraintDTO
+        {
+            Proximity = "SameVenue",
+            ReferenceLocation = "current"
+        };
+
+        // Convert DTO to Location entity
+        Location location = LocationParser.ConvertDTOToLocation(dto, _gameWorld);
+
+        // DIRECT VENUE ASSIGNMENT: Assign to context venue (no matching)
+        location.Venue = contextVenue;
+
+        // Sync to hex grid
+        _hexSync.SyncLocationToHex(location, _gameWorld);
+
+        // Add to GameWorld
+        _gameWorld.AddOrUpdateLocation(location.Name, location);
+
+        // Place location using procedural algorithm
+        Player player = _gameWorld.GetPlayer();
+        _locationPlacementService.PlaceLocation(location, "near", player);
+
+        Console.WriteLine($"[PackageLoader.CreateSingleLocation] Created location '{location.Name}' in venue '{contextVenue.Name}'");
+
+        return location;
+    }
+
+    /// <summary>
+    /// Create a single NPC directly from DependentNpcSpec.
+    /// NO JSON serialization - creates NPCDTO in-memory and converts to NPC.
+    /// Returns direct object reference for immediate binding.
+    /// HIGHLANDER: Direct creation path, no matching by name/ID.
+    /// </summary>
+    public NPC CreateSingleNpc(DependentNpcSpec spec, Location contextLocation)
+    {
+        if (spec == null)
+            throw new ArgumentNullException(nameof(spec));
+        if (contextLocation == null)
+            throw new ArgumentNullException(nameof(contextLocation));
+
+        // Generate unique name
+        string npcName = $"{spec.Name}_{Guid.NewGuid().ToString("N").Substring(0, 8)}";
+
+        // Build NPCDTO directly (no JSON serialization)
+        NPCDTO dto = new NPCDTO
+        {
+            Name = npcName,
+            Description = spec.Description,
+            Role = spec.Role ?? "Unknown",
+            Tier = spec.Tier,
+            Level = spec.Level,
+            PersonalityType = spec.PersonalityType ?? "Neutral",
+            ConversationModifier = 0
+        };
+
+        // EntityResolver for categorical entity resolution
+        Player player = _gameWorld.GetPlayer();
+        SceneNarrativeService narrativeService = new SceneNarrativeService(_gameWorld);
+        EntityResolver entityResolver = new EntityResolver(_gameWorld, player, narrativeService);
+
+        // Convert DTO to NPC entity
+        NPC npc = NPCParser.ConvertDTOToNPC(dto, _gameWorld, entityResolver);
+
+        // DIRECT LOCATION ASSIGNMENT: Assign to context location (no matching)
+        npc.Location = contextLocation;
+
+        // Add to GameWorld
+        _gameWorld.NPCs.Add(npc);
+
+        Console.WriteLine($"[PackageLoader.CreateSingleNpc] Created NPC '{npc.Name}' at location '{contextLocation.Name}'");
+
+        return npc;
+    }
+
     private void ApplyStartingConditions(PackageStartingConditions conditions)
     {
         // Apply player initial config - STORE CONFIG ONLY, apply after all packages loaded

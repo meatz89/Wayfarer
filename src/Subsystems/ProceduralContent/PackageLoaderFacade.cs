@@ -51,4 +51,24 @@ public class PackageLoaderFacade
 
         return packageId;
     }
+
+    /// <summary>
+    /// Create a single location directly from DependentLocationSpec.
+    /// NO JSON serialization - creates Location in-memory and returns direct reference.
+    /// HIGHLANDER: Direct creation path for situation binding, no matching by name/ID.
+    /// </summary>
+    public Location CreateSingleLocation(DependentLocationSpec spec, Venue contextVenue)
+    {
+        return _packageLoader.CreateSingleLocation(spec, contextVenue);
+    }
+
+    /// <summary>
+    /// Create a single NPC directly from DependentNpcSpec.
+    /// NO JSON serialization - creates NPC in-memory and returns direct reference.
+    /// HIGHLANDER: Direct creation path for situation binding, no matching by name/ID.
+    /// </summary>
+    public NPC CreateSingleNpc(DependentNpcSpec spec, Location contextLocation)
+    {
+        return _packageLoader.CreateSingleNpc(spec, contextLocation);
+    }
 }

@@ -108,11 +108,9 @@ public class SceneInstanceFacade
         }
 
         // PHASE 2.5: Post-load orchestration (dependent resources)
-        // Uses direct object references from loadResult - no GameWorld searching
-        if (loadResult.LocationsAdded.Any() || loadResult.ItemsAdded.Any())
-        {
-            PostLoadOrchestration(spawnedScene, loadResult, context.Player);
-        }
+        // Creates dependent locations PER-SITUATION via direct CreateSingleLocation calls
+        // Items still come from loadResult (JSON path still used for items)
+        PostLoadOrchestration(spawnedScene, loadResult, context.Player, context.CurrentVenue);
 
         // PHASE 2.5: RUNTIME PLAYABILITY VALIDATION (FAIL-FAST)
         // Validates spawned scene is actually playable by player
@@ -152,11 +150,12 @@ public class SceneInstanceFacade
 
     /// <summary>
     /// Post-load orchestration for dependent resources
+    /// Creates locations PER-SITUATION via CreateSingleLocation (NO JSON, NO matching)
     /// Sets Origin, Provenance, generates hex routes, adds items to inventory
     ///
-    /// HIGHLANDER: Uses PackageLoadResult with direct object references - no searching
+    /// HIGHLANDER: Direct creation and binding - no string matching
     /// </summary>
-    private void PostLoadOrchestration(Scene scene, PackageLoadResult loadResult, Player player)
+    private void PostLoadOrchestration(Scene scene, PackageLoadResult loadResult, Player player, Venue contextVenue)
     {
         // Build provenance for newly created resources
         SceneProvenance provenance = new SceneProvenance
@@ -167,33 +166,10 @@ public class SceneInstanceFacade
             CreatedSegment = _timeManager.CurrentSegment
         };
 
-        // STEP 1: Configure dependent locations (direct object references from result)
-        foreach (Location location in loadResult.LocationsAdded)
-        {
-            // ADR-012: Set explicit Origin enum for accessibility model
-            location.Origin = LocationOrigin.SceneCreated;
-
-            // Set provenance for forensic tracking
-            location.Provenance = provenance;
-
-            Console.WriteLine($"[SceneInstanceFacade] Configured location '{location.Name}' with Origin=SceneCreated");
-
-            // Generate hex routes if location has hex position
-            if (location.HexPosition.HasValue)
-            {
-                List<RouteOption> routes = _hexRouteGenerator.GenerateRoutesForNewLocation(location);
-                foreach (RouteOption route in routes)
-                {
-                    _gameWorld.Routes.Add(route);
-                }
-                Console.WriteLine($"[SceneInstanceFacade] Generated {routes.Count} hex routes for location '{location.Name}'");
-            }
-        }
-
-        // STEP 2: Configure dependent items (direct object references from result)
-        // Get template for AddToInventoryOnCreation check
+        // Get template for item processing
         SceneTemplate template = scene.Template ?? _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == scene.TemplateId);
 
+        // STEP 1: Configure dependent items (still from loadResult - items use JSON path)
         foreach (Item item in loadResult.ItemsAdded)
         {
             // Set provenance for forensic tracking
@@ -208,9 +184,9 @@ public class SceneInstanceFacade
             }
         }
 
-        // STEP 3: Bind situations to dependent locations (direct object references)
-        // NEW ARCHITECTURE: Use Template.DependentLocationSpec (object reference) instead of string matching
-        // Multiple situations with SAME spec INSTANCE share the same created location
+        // STEP 2: Create and bind locations PER-SITUATION via direct CreateSingleLocation
+        // NO JSON serialization - creates Location directly from spec
+        // Shared spec instance = shared location (tracked by Dictionary for reference equality)
         Dictionary<DependentLocationSpec, Location> specToLocationMap = new Dictionary<DependentLocationSpec, Location>();
 
         foreach (Situation situation in scene.Situations)
@@ -218,29 +194,39 @@ public class SceneInstanceFacade
             DependentLocationSpec spec = situation.Template?.DependentLocationSpec;
             if (spec != null)
             {
-                // Check if we've already bound a location for this spec instance
+                // Check if we've already created a location for this spec instance
                 if (specToLocationMap.TryGetValue(spec, out Location existingLocation))
                 {
-                    // Shared spec instance = shared location (direct binding by reference equality)
+                    // Shared spec instance = shared location (reference equality)
                     situation.Location = existingLocation;
-                    Console.WriteLine($"[SceneInstanceFacade] Bound situation '{situation.Name}' to shared location '{existingLocation.Name}'");
+                    Console.WriteLine($"[SceneInstanceFacade] Bound situation '{situation.Name}' to SHARED location '{existingLocation.Name}'");
                 }
                 else
                 {
-                    // Find location matching this spec's name in loadResult
-                    Location dependentLocation = loadResult.LocationsAdded
-                        .FirstOrDefault(l => l.Name == spec.Name);
+                    // CREATE location directly from spec (NO JSON, NO matching)
+                    // Returns ONE Location reference - direct binding
+                    Location createdLocation = _packageLoaderFacade.CreateSingleLocation(spec, contextVenue);
 
-                    if (dependentLocation != null)
+                    // Set Origin and Provenance
+                    createdLocation.Origin = LocationOrigin.SceneCreated;
+                    createdLocation.Provenance = provenance;
+
+                    // Generate hex routes if location has hex position
+                    if (createdLocation.HexPosition.HasValue)
                     {
-                        situation.Location = dependentLocation;
-                        specToLocationMap[spec] = dependentLocation;
-                        Console.WriteLine($"[SceneInstanceFacade] Bound situation '{situation.Name}' to dependent location '{dependentLocation.Name}'");
+                        List<RouteOption> routes = _hexRouteGenerator.GenerateRoutesForNewLocation(createdLocation);
+                        foreach (RouteOption route in routes)
+                        {
+                            _gameWorld.Routes.Add(route);
+                        }
+                        Console.WriteLine($"[SceneInstanceFacade] Generated {routes.Count} hex routes for location '{createdLocation.Name}'");
                     }
-                    else
-                    {
-                        Console.WriteLine($"[SceneInstanceFacade] WARNING: Situation '{situation.Name}' has DependentLocationSpec '{spec.Name}' but location not found in loadResult");
-                    }
+
+                    // DIRECT BINDING: situation.Location = createdLocation (NO matching)
+                    situation.Location = createdLocation;
+                    specToLocationMap[spec] = createdLocation;
+
+                    Console.WriteLine($"[SceneInstanceFacade] CREATED and bound location '{createdLocation.Name}' for situation '{situation.Name}'");
                 }
             }
         }
