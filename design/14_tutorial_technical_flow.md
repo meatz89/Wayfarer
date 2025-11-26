@@ -449,25 +449,35 @@ private Location FindMatchingLocation(PlacementFilter filter)
 
 See [ADR-012](../arc42/09_architecture_decisions.md#adr-012-dual-model-location-accessibility) and [§8.11](../arc42/08_crosscutting_concepts.md#811-location-accessibility-architecture).
 
-#### The Provenance Discriminator
+#### The LocationOrigin Discriminator
 
-`Location.Provenance` property determines which accessibility model applies:
+`Location.Origin` enum provides explicit, type-safe accessibility discriminator:
 
-| Provenance | Location Type | Accessibility |
-|------------|---------------|---------------|
-| `null` | Authored (from JSON) | **ALWAYS accessible** |
-| `non-null` | Dependent (scene-created) | Accessible when active scene's current situation is at location |
+```csharp
+public enum LocationOrigin
+{
+    Authored,      // Base game content - always accessible
+    SceneCreated   // Created by scene - requires scene access
+}
+```
+
+| Origin | Location Type | Accessibility |
+|--------|---------------|---------------|
+| `Authored` | Base game content (from JSON) | **ALWAYS accessible** |
+| `SceneCreated` | Scene-generated | Accessible when active scene's current situation is at location |
+
+**Clean Architecture:** Uses explicit enum instead of null-as-domain-meaning pattern. The separate `Provenance` property provides forensic metadata (which scene, when) but is NOT used for accessibility decisions.
 
 #### Why This Matters for Tutorial
 
-When the inn_lodging scene creates a "private room" dependent location:
+When the inn_lodging scene creates a "private room" scene-created location:
 
 1. **Scene activates** at Common Room (authored, always accessible)
 2. **Situation 1 (Negotiate)** completes—player picks a choice
 3. **Scene advances**: `CurrentSituationIndex` moves to Situation 2
-4. **Situation 2 (Rest)**: `situation.Location = Private Room` (dependent)
+4. **Situation 2 (Rest)**: `situation.Location = Private Room` (scene-created)
 5. **Private Room becomes accessible**: `LocationAccessibilityService` checks:
-   - `Private Room.Provenance != null` → dependent location
+   - `Private Room.Origin == SceneCreated` → scene-created location
    - Any active scene with `CurrentSituation.Location == Private Room`? YES
    - Return `true` → player can move there
 6. **Player moves** to Private Room (accessibility check passes)
@@ -476,14 +486,14 @@ When the inn_lodging scene creates a "private room" dependent location:
 #### Implementation
 
 ```csharp
-// src/Subsystems/Location/LocationAccessibilityService.cs:36-65
+// src/Subsystems/Location/LocationAccessibilityService.cs
 public bool IsLocationAccessible(Location location)
 {
     // AUTHORED: Always accessible per TIER 1 No Soft-Locks
-    if (location.Provenance == null)
+    if (location.Origin == LocationOrigin.Authored)
         return true;
 
-    // DEPENDENT: Check if any active scene's current situation is at this location
+    // SCENE-CREATED: Check if any active scene's current situation is at this location
     return _gameWorld.Scenes
         .Where(scene => scene.State == SceneState.Active)
         .Any(scene => scene.CurrentSituation?.Location == location);
@@ -493,7 +503,7 @@ public bool IsLocationAccessible(Location location)
 #### Why Not GrantsLocationAccess Property?
 
 A proposed `SituationTemplate.GrantsLocationAccess` property was removed:
-- If situation is at dependent location, player MUST access it to engage
+- If situation is at scene-created location, player MUST access it to engage
 - Setting `GrantsLocationAccess = false` would guarantee a soft-lock
 - Situation presence at location implies access (no explicit property needed)
 

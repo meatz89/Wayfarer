@@ -268,20 +268,28 @@ Implement explicit package-round entity tracking via `PackageLoadResult` structu
 **Context:**
 The game has two types of locations with fundamentally different accessibility requirements:
 - **Authored locations:** Defined in base game JSON, exist from game start (inns, taverns, checkpoints)
-- **Dependent locations:** Created by scenes during gameplay (private rooms, meeting chambers)
+- **Scene-created locations:** Created dynamically by scenes during gameplay (private rooms, meeting chambers)
 
 A naive implementation blocked ALL locations unless an active scene granted access. This violated TIER 1 (No Soft-Locks) because authored locations became inaccessible when no scene was active at them.
 
-A proposed `GrantsLocationAccess` property on SituationTemplate was dead code—if a situation exists at a dependent location, the player MUST access it to engage. Setting `GrantsLocationAccess = false` would guarantee a soft-lock.
+A proposed `GrantsLocationAccess` property on SituationTemplate was dead code—if a situation exists at a scene-created location, the player MUST access it to engage. Setting `GrantsLocationAccess = false` would guarantee a soft-lock.
 
 **Decision:**
-Dual-model accessibility via `Location.Provenance` discriminator:
-- **Authored locations** (`Provenance == null`): ALWAYS accessible per TIER 1 No Soft-Locks principle
-- **Dependent locations** (`Provenance != null`): Accessible when ANY active scene's current situation is at that location
+Dual-model accessibility via explicit `Location.Origin` enum (not nullable Provenance):
+- **Authored locations** (`Origin == LocationOrigin.Authored`): ALWAYS accessible per TIER 1 No Soft-Locks principle
+- **Scene-created locations** (`Origin == LocationOrigin.SceneCreated`): Accessible when ANY active scene's current situation is at that location
+
+```csharp
+public enum LocationOrigin
+{
+    Authored,      // Base game content - always accessible
+    SceneCreated   // Created by scene - requires scene access
+}
+```
 
 `LocationAccessibilityService.IsLocationAccessible()` implements this logic:
 ```csharp
-if (location.Provenance == null)
+if (location.Origin == LocationOrigin.Authored)
     return true;  // Authored: always accessible
 
 return _gameWorld.Scenes
@@ -291,20 +299,22 @@ return _gameWorld.Scenes
 
 **Consequences:**
 - Authored locations always reachable (no soft-locks in base game)
-- Dependent locations automatically unlock when scene advances to their situation
+- Scene-created locations automatically unlock when scene advances to their situation
 - No explicit "unlock" properties needed—situation presence implies access
-- `Provenance` property serves double duty: tracks creation source AND determines accessibility model
+- Explicit `Origin` enum provides type-safe discriminator (not null-as-domain-meaning)
+- `Provenance` property is separate forensic metadata (which scene, when) not used for accessibility
 - MovementValidator delegates to LocationAccessibilityService for all accessibility checks
 
 **Alternatives Rejected:**
 - `GrantsLocationAccess` property: Dead code—can never meaningfully be false without causing soft-lock
 - Flag-based locking (`IsLocked`): Requires explicit unlock actions, risks desync between lock state and scene state
 - Scene-based access for ALL locations: Blocked authored locations without active scenes
+- Null-as-domain-meaning (`Provenance == null`): Bad pattern—null is absence, not a domain concept
 
 **Related Decisions:**
 - ADR-006: TIER 1 No Soft-Locks drives authored location always-accessible requirement
-- ADR-010: Entity Resolution via Categorical Filters creates dependent locations
-- ADR-011: Provenance tracking enables package-round entity attribution
+- ADR-010: Entity Resolution via Categorical Filters creates scene-created locations
+- ADR-011: Provenance tracking provides forensic metadata separate from accessibility model
 
 ---
 

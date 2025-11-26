@@ -91,7 +91,11 @@ public class DependentResourceOrchestrationService
             Location createdLocation = _gameWorld.Locations.FirstOrDefault(l => l.Name == locationId);
             if (createdLocation != null)
             {
-                // Set provenance tracking
+                // ADR-012: Set explicit Origin enum for accessibility model
+                // SceneCreated locations are only accessible when scene's current situation grants access
+                createdLocation.Origin = LocationOrigin.SceneCreated;
+
+                // Set provenance tracking for forensic metadata
                 // ADR-007: Use Scene object reference instead of SceneId
                 createdLocation.Provenance = new SceneProvenance
                 {

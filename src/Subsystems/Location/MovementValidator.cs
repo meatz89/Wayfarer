@@ -115,9 +115,9 @@ public class MovementValidator
     /// <summary>
     /// Check if a location is accessible at the current time
     ///
-    /// DUAL-MODEL ACCESSIBILITY via LocationAccessibilityService:
-    /// - Authored locations (Provenance == null): Always accessible (No Soft-Locks)
-    /// - Dependent locations (Provenance != null): Accessible when scene grants access
+    /// DUAL-MODEL ACCESSIBILITY (ADR-012) via LocationAccessibilityService:
+    /// - Authored locations (Origin == Authored): Always accessible (No Soft-Locks)
+    /// - Scene-created locations (Origin == SceneCreated): Accessible when scene grants access
     ///
     /// Pure query pattern - no state modification.
     /// </summary>

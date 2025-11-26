@@ -351,28 +351,38 @@ See [ADR-012](09_architecture_decisions.md#adr-012-dual-model-location-accessibi
 
 Locations fall into two categories with different accessibility requirements:
 - **Authored locations:** Defined in base game JSON (inns, taverns, checkpoints)—must always be reachable
-- **Dependent locations:** Created by scenes during gameplay (private rooms, meeting chambers)—should only be accessible after narrative progression
+- **Scene-created locations:** Created dynamically by scenes during gameplay (private rooms, meeting chambers)—should only be accessible after narrative progression
 
 A naive implementation (scene-grants-access for ALL locations) blocked authored locations when no scene was active at them—violating TIER 1.
 
-### The Solution: Provenance Discriminator
+### The Solution: Explicit LocationOrigin Enum
 
-`Location.Provenance` property determines which accessibility model applies:
+`Location.Origin` enum provides explicit, type-safe discriminator:
 
-| Provenance Value | Location Type | Accessibility Rule |
-|------------------|---------------|-------------------|
-| `null` | Authored | **ALWAYS accessible** (No Soft-Locks) |
-| `non-null` | Dependent | Accessible when active scene's current situation is at location |
+```csharp
+public enum LocationOrigin
+{
+    Authored,      // Base game content - always accessible
+    SceneCreated   // Created by scene - requires scene access
+}
+```
+
+| Origin Value | Location Type | Accessibility Rule |
+|--------------|---------------|-------------------|
+| `Authored` | Base game content | **ALWAYS accessible** (No Soft-Locks) |
+| `SceneCreated` | Scene-generated | Accessible when active scene's current situation is at location |
+
+**Clean Architecture:** Uses explicit enum instead of null-as-domain-meaning pattern. The separate `Provenance` property provides forensic metadata (which scene, when) but is NOT used for accessibility decisions.
 
 ### Implementation
 
 **LocationAccessibilityService.IsLocationAccessible():**
 ```csharp
 // AUTHORED: Always accessible per TIER 1
-if (location.Provenance == null)
+if (location.Origin == LocationOrigin.Authored)
     return true;
 
-// DEPENDENT: Accessible when situation is at location
+// SCENE-CREATED: Accessible when situation is at location
 return _gameWorld.Scenes
     .Where(scene => scene.State == SceneState.Active)
     .Any(scene => scene.CurrentSituation?.Location == location);
@@ -384,8 +394,8 @@ return _gameWorld.Scenes
 MovementValidator.ValidateMovement()
     └─ IsSpotAccessible(targetLocation)
         └─ LocationAccessibilityService.IsLocationAccessible(location)
-            ├─ Provenance == null → return true
-            └─ Provenance != null → CheckSceneGrantsAccess()
+            ├─ Origin == Authored → return true
+            └─ Origin == SceneCreated → CheckSceneGrantsAccess()
 ```
 
 ### Example: Inn Lodging Scene
@@ -394,7 +404,7 @@ MovementValidator.ValidateMovement()
 2. **Situation 1** (Negotiate): Player talks to innkeeper at Common Room
 3. **Player completes situation 1** by selecting a choice
 4. **Scene advances**: `CurrentSituationIndex` moves to Situation 2
-5. **Situation 2** (Rest): Location = Private Room (dependent)
+5. **Situation 2** (Rest): Location = Private Room (scene-created)
 6. **Private Room becomes accessible**: Active scene's current situation is now at Private Room
 7. **Player moves** to Private Room (accessibility check passes)
 8. **Scene displays** Situation 2 choices
@@ -402,7 +412,7 @@ MovementValidator.ValidateMovement()
 ### Why Not GrantsLocationAccess Property?
 
 A proposed `SituationTemplate.GrantsLocationAccess` property was removed as dead code:
-- If situation is at dependent location, player MUST access it to engage
+- If situation is at scene-created location, player MUST access it to engage
 - Setting `GrantsLocationAccess = false` would guarantee a soft-lock
 - Therefore the property can NEVER meaningfully be false
 - Situation presence at location implies access (no explicit property needed)
@@ -411,10 +421,11 @@ A proposed `SituationTemplate.GrantsLocationAccess` property was removed as dead
 
 | File | Purpose |
 |------|---------|
+| `src/GameState/LocationOrigin.cs` | Explicit discriminator enum |
 | `src/Subsystems/Location/LocationAccessibilityService.cs` | Dual-model accessibility logic |
 | `src/Subsystems/Location/MovementValidator.cs` | Delegates accessibility checks |
-| `src/Content/Location.cs:109` | `Provenance` property definition |
-| `src/GameState/SceneProvenance.cs` | Provenance tracking structure |
+| `src/Content/Location.cs` | `Origin` and `Provenance` property definitions |
+| `src/GameState/SceneProvenance.cs` | Forensic tracking structure (not used for accessibility) |
 
 ---
 
