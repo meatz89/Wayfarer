@@ -547,14 +547,24 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
 
 ## Session 2025-11-27: Scene Cascade Architecture Documentation
 
-### 12. Scene Auto-Cascade Bug - INTENDED BEHAVIOR DEFINITION
+### 12. Scene Auto-Cascade Bug (FIXED - 2025-11-27)
 
 **Bug Description:** Scene 2 (a2_morning) and Scene 3 (a3_route_travel) start immediately after the previous scene completes, bypassing player navigation. Player has no agency to explore between scenes.
 
-**Root Cause (Under Investigation):**
-- Scenes may be created as Deferred at game start instead of only when ScenesToSpawn fires
-- OR: Deferred scenes may auto-activate without checking locationActivationFilter
-- OR: SituationCompletionHandler may auto-cascade without ExitToWorld
+**Root Cause (IDENTIFIED):**
+`SpawnStarterScenes()` in `GameFacade.cs:1687-1689` filtered by `Category == StoryCategory.MainStory` instead of `IsStarter == true`. This caused ALL MainStory scenes (A1, A2, A3) to be created as Deferred at game start, instead of just A1.
+
+**Fix Applied:**
+1. Added `IsStarter` property to `SceneTemplate.cs` (domain entity)
+2. Added `IsStarter` property to `SceneTemplateDTO.cs` (DTO)
+3. Updated `SceneTemplateParser.cs` to copy `IsStarter` from DTO
+4. Changed `SpawnStarterScenes()` filter from `Category == MainStory` to `IsStarter == true`
+
+**Verification:** Console logs now show only A1 created at game start:
+```
+[GameFacade] Created deferred initial scene 'a1_secure_lodging' (State=Deferred, no dependent resources yet)
+```
+A2 and A3 are NOT created until their ScenesToSpawn rewards fire.
 
 **INTENDED ARCHITECTURE (Authoritative Definition):**
 
@@ -597,12 +607,14 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
 
 ---
 
-**Last Updated:** 2025-11-27 11:00 UTC
-**Current Phase:** Scene cascade architecture documented - Bug investigation pending
+**Last Updated:** 2025-11-27 12:00 UTC
+**Current Phase:** Scene cascade bug FIXED - Ready for integration testing
 **Issues Fixed This Session:**
 - Z.Blazor.Diagrams MutationObserver error (dynamic script loading)
 - CRITICAL: Procedural routes PathCards generation (HexRouteGenerator + GameWorld discovery handling)
 - CRITICAL: RouteSegmentTravel arrival location resolution (PlacementProximity.RouteDestination)
+- CRITICAL: Scene auto-cascade bug - SpawnStarterScenes() now filters by IsStarter (not Category)
 
 **Open Issues:**
-- INVESTIGATING: Scene auto-cascade bug - scenes activate immediately without player navigation
+- RECOMMENDED: Add validation to ensure at least one scene has IsStarter=true
+- RECOMMENDED: Add validation for ScenesToSpawn reference integrity

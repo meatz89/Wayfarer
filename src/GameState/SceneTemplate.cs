@@ -144,4 +144,14 @@ public class SceneTemplate
     /// </summary>
     public ProgressionMode ProgressionMode { get; init; } = ProgressionMode.Breathe;
 
+    /// <summary>
+    /// Whether this scene is created as Deferred at game start
+    /// true = Scene created as Deferred during SpawnStarterScenes (e.g., A1 tutorial)
+    /// false = Scene only created when ScenesToSpawn reward fires (e.g., A2, A3)
+    /// Defaults to false - most scenes are NOT created at game start
+    /// Only A1 (isStarter: true) should be created at startup; other A-story scenes
+    /// remain as Templates until triggered by ScenesToSpawn rewards
+    /// </summary>
+    public bool IsStarter { get; init; } = false;
+
 }

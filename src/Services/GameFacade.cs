@@ -1682,10 +1682,11 @@ public class GameFacade
     {
         Player player = _gameWorld.GetPlayer();
 
-        // Spawn all MainStory scenes with LocationActivationFilter as deferred
+        // Spawn only scenes marked as IsStarter=true as deferred at game start
+        // A1 (isStarter: true) gets created here; A2/A3 get created when ScenesToSpawn rewards fire
         // They will activate when player enters a matching location
         List<SceneTemplate> initialTemplates = _gameWorld.SceneTemplates
-            .Where(t => t.Category == StoryCategory.MainStory && t.LocationActivationFilter != null)
+            .Where(t => t.IsStarter)
             .ToList();
 
         foreach (SceneTemplate template in initialTemplates)

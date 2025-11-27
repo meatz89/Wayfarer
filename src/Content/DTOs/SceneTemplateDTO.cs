@@ -117,4 +117,12 @@ public class SceneTemplateDTO
     /// </summary>
     public string ServiceType { get; set; }
 
+    /// <summary>
+    /// Whether this scene is created as Deferred at game start
+    /// true = Scene created as Deferred during SpawnStarterScenes (e.g., A1 tutorial)
+    /// false = Scene only created when ScenesToSpawn reward fires (e.g., A2, A3)
+    /// Defaults to false - most scenes are NOT created at game start
+    /// </summary>
+    public bool IsStarter { get; set; } = false;
+
 }

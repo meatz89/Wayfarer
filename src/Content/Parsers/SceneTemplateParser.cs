@@ -155,7 +155,8 @@ public class SceneTemplateParser
             Category = category,
             MainStorySequence = mainStorySequence,
             PresentationMode = presentationMode,
-            ProgressionMode = progressionMode
+            ProgressionMode = progressionMode,
+            IsStarter = dto.IsStarter
         };
 
         return template;
