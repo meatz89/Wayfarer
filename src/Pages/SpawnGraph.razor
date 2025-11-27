@@ -10,6 +10,7 @@
 @inject GameWorld GameWorld
 @inject NavigationManager NavigationManager
 @inject SpawnGraphBuilder GraphBuilder
+@inject IJSRuntime JSRuntime
 
 <div class="spawn-graph-container">
     <div class="spawn-graph-toolbar">
@@ -167,12 +168,31 @@
     private int SituationCount => GameWorld?.ProceduralTracer?.AllSituationNodes?.Count ?? 0;
     private int ChoiceCount => GameWorld?.ProceduralTracer?.AllChoiceNodes?.Count ?? 0;
 
+    private bool ScriptLoaded { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         InitializeDiagram();
         RegisterCustomWidgets();
         SubscribeToEvents();
-        await BuildGraphAsync();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender && !ScriptLoaded)
+        {
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                if (!window.blazorDiagramsLoaded) {
+                    var script = document.createElement('script');
+                    script.src = '_content/Z.Blazor.Diagrams/script.min.js';
+                    script.onload = function() { window.blazorDiagramsLoaded = true; };
+                    document.head.appendChild(script);
+                }
+            ");
+            await Task.Delay(100);
+            ScriptLoaded = true;
+            await BuildGraphAsync();
+        }
     }
 
     private void InitializeDiagram()

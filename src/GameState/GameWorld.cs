@@ -361,27 +361,31 @@ public class GameWorld
     /// HEX-FIRST PATTERN: player.CurrentPosition → hex → Location object
     /// Returns null if player position has no location
     /// HIGHLANDER: Direct object access (not locationId lookup)
-    /// ZERO NULL TOLERANCE: Logs diagnostic information when null is returned
+    /// NOTE: Returns null during initialization (before IsGameStarted), which is expected
+    /// Only logs errors after game has started to avoid false positives during init
     /// </summary>
     public Location GetPlayerCurrentLocation()
     {
         Player player = GetPlayer();
         if (player == null)
         {
-            Console.WriteLine("[GameWorld.GetPlayerCurrentLocation] ERROR: Player is null");
+            if (IsGameStarted)
+                Console.WriteLine("[GameWorld.GetPlayerCurrentLocation] ERROR: Player is null");
             return null;
         }
 
         if (WorldHexGrid == null)
         {
-            Console.WriteLine("[GameWorld.GetPlayerCurrentLocation] ERROR: WorldHexGrid is null");
+            if (IsGameStarted)
+                Console.WriteLine("[GameWorld.GetPlayerCurrentLocation] ERROR: WorldHexGrid is null");
             return null;
         }
 
         Hex currentHex = WorldHexGrid.GetHex(player.CurrentPosition);
         if (currentHex == null)
         {
-            Console.WriteLine($"[GameWorld.GetPlayerCurrentLocation] ERROR: No hex found at position ({player.CurrentPosition.Q}, {player.CurrentPosition.R})");
+            if (IsGameStarted)
+                Console.WriteLine($"[GameWorld.GetPlayerCurrentLocation] ERROR: No hex found at position ({player.CurrentPosition.Q}, {player.CurrentPosition.R})");
             return null;
         }
 
@@ -389,7 +393,8 @@ public class GameWorld
         Location primaryLocation = GetPrimaryLocationAtHex(player.CurrentPosition.Q, player.CurrentPosition.R);
         if (primaryLocation == null)
         {
-            Console.WriteLine($"[GameWorld.GetPlayerCurrentLocation] ERROR: No location found at hex ({player.CurrentPosition.Q}, {player.CurrentPosition.R})");
+            if (IsGameStarted)
+                Console.WriteLine($"[GameWorld.GetPlayerCurrentLocation] ERROR: No location found at hex ({player.CurrentPosition.Q}, {player.CurrentPosition.R})");
             return null;
         }
 

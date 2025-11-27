@@ -315,9 +315,12 @@ public class SceneInstantiator
     {
         return new NPCDTO
         {
+            Id = $"generated_npc_{Guid.NewGuid():N}",
             Name = _narrativeService.GenerateNPCName(filter),
             Profession = (filter.Profession ?? Professions.Commoner).ToString(),
             PersonalityType = (filter.PersonalityType ?? PersonalityType.Neutral).ToString(),
+            CurrentState = "Neutral",
+            SpawnLocation = new PlacementFilterDTO { PlacementType = "Location" },
             Tier = filter.MinTier ?? 1,
             Role = "Generated NPC",
             Description = "A person you've encountered"

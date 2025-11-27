@@ -746,7 +746,8 @@ public class GameFacade
 
         // PHASE 2: Spawn starter scenes (creates DEFERRED scenes in GameWorld.Scenes)
         // Must happen BEFORE player movement so CheckAndActivateDeferredScenes has scenes to activate
-        await SpawnStarterScenes();
+        // Pass startingSpot directly since player hasn't moved yet
+        await SpawnStarterScenes(startingSpot);
 
         // PHASE 3: Move player to starting location (triggers CheckAndActivateDeferredScenes)
         // INTEGRATED ACTIVATION: MoveToSpot() calls LocationFacade.CheckAndActivateDeferredScenes() which:
@@ -1676,7 +1677,8 @@ public class GameFacade
     /// TWO-PHASE SPAWNING: Creates scenes as Deferred (no dependent resources spawned)
     /// Activation happens when player enters location via LocationFacade
     /// </summary>
-    public async Task SpawnStarterScenes()
+    /// <param name="startingLocation">The starting location (player hasn't moved yet, so GetPlayerCurrentLocation() would fail)</param>
+    public async Task SpawnStarterScenes(Location startingLocation)
     {
         Player player = _gameWorld.GetPlayer();
 
@@ -1697,10 +1699,11 @@ public class GameFacade
             };
 
             // Build context from player state
+            // Use startingLocation directly since player hasn't been moved yet
             SceneSpawnContext spawnContext = new SceneSpawnContext
             {
                 Player = player,
-                CurrentLocation = _gameWorld.GetPlayerCurrentLocation(),
+                CurrentLocation = startingLocation,
                 CurrentSituation = null
             };
 
