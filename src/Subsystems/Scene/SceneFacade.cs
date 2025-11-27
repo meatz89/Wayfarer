@@ -346,10 +346,25 @@ public class SceneFacade
 
         foreach (SceneSpawnReward spawnReward in choiceTemplate.Consequence.ScenesToSpawn)
         {
-            SceneTemplate template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == spawnReward.SceneTemplateId);
-            if (template == null)
+            // NO ID STRINGS - use direct Template reference or MainStory sequence
+            SceneTemplate template;
+            if (spawnReward.SpawnNextMainStoryScene)
             {
-                Console.WriteLine($"[SceneFacade] WARNING: SceneTemplate '{spawnReward.SceneTemplateId}' not found for preview");
+                // player is already available from method parameter
+                template = _gameWorld.GetNextMainStoryTemplate(player.CurrentMainStorySequence);
+                if (template == null)
+                {
+                    Console.WriteLine($"[SceneFacade] WARNING: No MainStory template found for sequence {player.CurrentMainStorySequence + 1}");
+                    continue;
+                }
+            }
+            else if (spawnReward.Template != null)
+            {
+                template = spawnReward.Template;
+            }
+            else
+            {
+                Console.WriteLine($"[SceneFacade] WARNING: SceneSpawnReward has no Template reference");
                 continue;
             }
 

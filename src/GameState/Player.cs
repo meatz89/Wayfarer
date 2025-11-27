@@ -166,6 +166,13 @@ public class Player
     // Scene-Situation Architecture additions (Sir Brante inspired progression)
 
     /// <summary>
+    /// Tracks player's progress in MainStory (A-story)
+    /// Incremented when completing each MainStory scene
+    /// Used by SceneSpawnReward to determine which template to spawn next
+    /// </summary>
+    public int CurrentMainStorySequence { get; set; } = 0;
+
+    /// <summary>
     /// Resolve - universal consumable resource (0-30, similar to Willpower in Sir Brante)
     /// Used to unlock situations and make difficult choices
     /// More restrictive than Focus - creates genuine strategic choices

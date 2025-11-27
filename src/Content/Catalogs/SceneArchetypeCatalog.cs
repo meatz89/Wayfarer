@@ -433,7 +433,7 @@ public static class SceneArchetypeCatalog
                 Cunning = 1,  // Early planning shows cunning
                 ScenesToSpawn = new List<SceneSpawnReward>
                 {
-                    new SceneSpawnReward { SceneTemplateId = "a2_morning" }
+                    new SceneSpawnReward { SpawnNextMainStoryScene = true }
                 }
             }
             : new Consequence
@@ -447,7 +447,7 @@ public static class SceneArchetypeCatalog
                 Rapport = 1,
                 ScenesToSpawn = new List<SceneSpawnReward>
                 {
-                    new SceneSpawnReward { SceneTemplateId = "a2_morning" }
+                    new SceneSpawnReward { SpawnNextMainStoryScene = true }
                 }
             }
             : new Consequence
@@ -730,7 +730,7 @@ public static class SceneArchetypeCatalog
 
                 SceneSpawnReward a3Spawn = new SceneSpawnReward
                 {
-                    SceneTemplateId = "a3_route_travel"
+                    SpawnNextMainStoryScene = true
                 };
 
                 // Determine choice type and set immediate coin payment
@@ -2512,15 +2512,11 @@ public static class SceneArchetypeCatalog
                 Coins = originalConsequence.Coins,
                 TimeSegments = originalConsequence.TimeSegments,
 
-                // Add next A-scene spawn reward
-                // Uses template's PlacementFilter for categorical resolution (no override needed)
+                // Add next A-scene spawn reward - NO ID STRINGS
+                // Uses SpawnNextMainStoryScene to pick next from sequence
                 ScenesToSpawn = new List<SceneSpawnReward>
                 {
-                    new SceneSpawnReward
-                    {
-                        SceneTemplateId = nextASceneId
-                        // PlacementFilterOverride = null (uses template's filter)
-                    }
+                    new SceneSpawnReward { SpawnNextMainStoryScene = true }
                 }
             };
 

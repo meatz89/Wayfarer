@@ -452,20 +452,37 @@ public class ObligationActivity
     /// Spawn Scene from template as obligation phase reward
     /// Uses Scene-Situation template architecture with SceneInstantiator
     /// Obligation rewards use SpecificLocation/SpecificNPC/SpecificRoute placement
+    /// NO ID STRINGS - uses direct Template reference or SpawnNextMainStoryScene flag
     /// </summary>
     private async Task SpawnSceneFromTemplate(SceneSpawnReward sceneSpawn, Situation sourceSituation)
     {
-        // Get SceneTemplate from GameWorld
-        SceneTemplate template = _gameWorld.SceneTemplates.FirstOrDefault(t => t.Id == sceneSpawn.SceneTemplateId);
-        if (template == null)
+        Player player = _gameWorld.GetPlayer();
+
+        // Get SceneTemplate - NO ID STRINGS
+        SceneTemplate template;
+        if (sceneSpawn.SpawnNextMainStoryScene)
+        {
+            // MainStory sequence-based lookup
+            template = _gameWorld.GetNextMainStoryTemplate(player.CurrentMainStorySequence);
+            if (template == null)
+            {
+                _messageSystem.AddSystemMessage(
+                    "No next MainStory template found",
+                    SystemMessageTypes.Warning);
+                return;
+            }
+        }
+        else if (sceneSpawn.Template != null)
+        {
+            template = sceneSpawn.Template;
+        }
+        else
         {
             _messageSystem.AddSystemMessage(
-                $"Scene template '{sceneSpawn.SceneTemplateId}' not found",
+                "SceneSpawnReward has no Template reference",
                 SystemMessageTypes.Warning);
             return;
         }
-
-        Player player = _gameWorld.GetPlayer();
 
         // 5-SYSTEM ARCHITECTURE: Build context from player state
         // EntityResolver will FindOrCreate entities from PlacementFilterOverride

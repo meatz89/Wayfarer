@@ -163,6 +163,20 @@ public class GameWorld
     // At spawn time, SceneInstantiator queries GameWorld for matching entities and creates Scene instances
     public List<SceneTemplate> SceneTemplates { get; set; } = new List<SceneTemplate>();
 
+    /// <summary>
+    /// Get next MainStory template by sequence number
+    /// Returns authored template if exists, null if needs procedural generation
+    /// NO ID STRINGS - sequence-based lookup only
+    /// </summary>
+    public SceneTemplate GetNextMainStoryTemplate(int currentSequence)
+    {
+        int nextSequence = currentSequence + 1;
+        return SceneTemplates
+            .Where(t => t.Category == StoryCategory.MainStory)
+            .Where(t => t.MainStorySequence.HasValue && t.MainStorySequence.Value == nextSequence)
+            .FirstOrDefault();
+    }
+
     // SCENE SYSTEM - Persistent Scene instances spawned from SceneTemplates
     // PHASE 1.4: Unified collection for all scenes (Active, Provisional, Completed)
     // Scenes stored here, queried by PlacementType and PlacementId

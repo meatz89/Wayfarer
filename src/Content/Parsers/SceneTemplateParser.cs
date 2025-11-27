@@ -780,6 +780,7 @@ public class SceneTemplateParser
 
     /// <summary>
     /// Parse SceneSpawnRewards from DTOs
+    /// NO ID STRINGS - uses SpawnNextMainStoryScene boolean flag
     /// </summary>
     private List<SceneSpawnReward> ParseSceneSpawnRewards(List<SceneSpawnRewardDTO> dtos)
     {
@@ -789,12 +790,9 @@ public class SceneTemplateParser
         List<SceneSpawnReward> rewards = new List<SceneSpawnReward>();
         foreach (SceneSpawnRewardDTO dto in dtos)
         {
-            if (string.IsNullOrEmpty(dto.SceneTemplateId))
-                throw new InvalidDataException("SceneSpawnReward missing required 'SceneTemplateId'");
-
             rewards.Add(new SceneSpawnReward
             {
-                SceneTemplateId = dto.SceneTemplateId
+                SpawnNextMainStoryScene = dto.SpawnNextMainStoryScene
             });
         }
 

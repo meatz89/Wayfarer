@@ -171,12 +171,14 @@ public static class SceneTemplateValidator
 
             if (spawnedScenes.Any())
             {
-                List<string> uniqueSceneTemplates = spawnedScenes.Select(s => s.SceneTemplateId).Distinct().ToList();
-                if (uniqueSceneTemplates.Count > 1)
+                // All spawned scenes should use SpawnNextMainStoryScene for consistent A-story progression
+                bool allMainStory = spawnedScenes.All(s => s.SpawnNextMainStoryScene);
+                bool anyMainStory = spawnedScenes.Any(s => s.SpawnNextMainStoryScene);
+                if (anyMainStory && !allMainStory)
                 {
                     errors.Add(new SceneValidationError("ASTORY_008",
-                        $"Final A-story situation '{finalSituation.Id}' in '{template.Id}' spawns different scenes across choices. " +
-                        $"All choices in final situation must spawn the SAME next A-scene (for guaranteed progression)."));
+                        $"Final A-story situation '{finalSituation.Id}' in '{template.Id}' has inconsistent scene spawns. " +
+                        $"All choices in final situation must use SpawnNextMainStoryScene (for guaranteed progression)."));
                 }
             }
         }

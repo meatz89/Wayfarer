@@ -1,14 +1,13 @@
 /// <summary>
 /// DTO for SceneSpawnReward - defines procedural Scene spawning
-/// Spawns a Scene instance from SceneTemplate using its PlacementFilter
-/// Maps to SceneSpawnReward domain entity
+/// NO ID STRINGS - uses boolean flag for MainStory sequencing
 /// </summary>
 public class SceneSpawnRewardDTO
 {
     /// <summary>
-    /// Which SceneTemplate to spawn
-    /// References SceneTemplate.Id in GameWorld.SceneTemplates
-    /// Spawned scene inherits SceneTemplate.PlacementFilter for entity resolution
+    /// TRUE = spawn next MainStory scene in sequence
+    /// System determines which template based on Player.CurrentMainStorySequence
+    /// NO ID STRINGS - sequence-based lookup only
     /// </summary>
-    public string SceneTemplateId { get; set; }
+    public bool SpawnNextMainStoryScene { get; set; }
 }

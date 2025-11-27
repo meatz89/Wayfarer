@@ -29,9 +29,7 @@
           "profession": "Innkeeper"
         },
         "introNarrativeTemplate": "Evening approaches in a new town. You're a newly arrived traveler needing shelter. The inn's common room is warm and inviting. The friendly innkeeper notices you and approaches.",
-        "spawnConditions": {
-          "alwaysEligible": true
-        }
+        "spawnConditions": {}
       },
       {
         "id": "a2_morning",

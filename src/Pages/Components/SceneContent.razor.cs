@@ -230,8 +230,11 @@ public class SceneContentBase : ComponentBase
                 {
                     // Scene spawning uses categorical PlacementFilter now (no context binding needed)
                     // SceneTemplate.PlacementFilter defines categories → EntityResolver finds/creates at spawn time
-                    // Perfect information: Show template ID (player sees which scene will spawn)
-                    scenesUnlocked.Add(sceneSpawn.SceneTemplateId);
+                    // Perfect information: Show what scene will spawn
+                    if (sceneSpawn.SpawnNextMainStoryScene)
+                        scenesUnlocked.Add("Next Main Story Scene");
+                    else if (sceneSpawn.Template != null)
+                        scenesUnlocked.Add(sceneSpawn.Template.Id);
                 }
             }
 

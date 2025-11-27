@@ -1695,8 +1695,7 @@ public class GameFacade
             // EntityResolver will FindOrCreate entities from categorical specifications
             SceneSpawnReward spawnReward = new SceneSpawnReward
             {
-                SceneTemplateId = template.Id
-                // PlacementFilterOverride = null (use template's filter)
+                Template = template // Direct object reference, NO ID STRINGS
             };
 
             // Build context from player state

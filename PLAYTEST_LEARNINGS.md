@@ -615,7 +615,77 @@ A2 and A3 are NOT created until their ScenesToSpawn rewards fire.
 
 ---
 
-**Last Updated:** 2025-11-27 16:30 UTC
+## Session 2025-11-27: Playwright Session Cleanup Protocol
+
+### 16. Console Log Pollution from Zombie Servers (DOCUMENTED - 2025-11-27)
+
+**Issue:** Browser console shows hundreds of errors from previous sessions, making it impossible to spot real errors in the current test. Errors include:
+```
+WebSocket closed with status code: 1006 (no reason given)
+Failed to complete negotiation with the server: TypeError: Failed to fetch
+ERR_CONNECTION_REFUSED
+ERR_ADDRESS_IN_USE
+```
+
+**Root Cause:** Multiple dotnet servers spawned on different ports (8100-9300) during previous Playwright sessions that either:
+1. Timed out without cleanup
+2. Were orphaned when Playwright session ended
+3. Continue running in background after context window ran out
+
+The browser maintains WebSocket connections and logs errors when servers become unavailable.
+
+**Impact:** Critical - Cannot distinguish new errors from stale errors. Blocks effective testing.
+
+**MANDATORY CLEANUP PROTOCOL FOR PLAYWRIGHT TESTS:**
+
+Before starting ANY new Playwright test session, execute this cleanup sequence:
+
+```bash
+# Step 1: Kill all zombie dotnet processes
+taskkill //F //IM dotnet.exe 2>/dev/null || true
+
+# Step 2: Close browser to clear stale connections
+mcp__playwright__playwright_close
+
+# Step 3: Wait briefly for ports to release
+sleep 2
+
+# Step 4: Start fresh server on clean port
+cd src && ASPNETCORE_URLS="http://localhost:6000" timeout 600 dotnet run --no-build
+
+# Step 5: Navigate with fresh browser instance
+mcp__playwright__playwright_navigate url=http://localhost:6000
+
+# Step 6: Verify clean console (should have 0-2 entries only)
+mcp__playwright__playwright_console_logs type=all
+```
+
+**Expected Clean Console Output:**
+```
+[info] Information: Normalizing '_blazor' to 'http://localhost:6000/_blazor'.
+[info] Information: WebSocket connected to ws://localhost:6000/_blazor?id=...
+```
+
+**If Console Still Has Errors:** The Playwright MCP server maintains a single console log buffer that persists across browser sessions. Closing and reopening the browser does NOT clear the console log history.
+
+**WORKAROUND - Filter by Timestamp:**
+When checking console logs, note the timestamp of the successful WebSocket connection to your current port. Ignore all errors with timestamps BEFORE that connection. Only investigate errors AFTER the successful connection.
+
+Example:
+```
+[info] [2025-11-27T18:45:28.901Z] Information: WebSocket connected to ws://localhost:5100/_blazor?id=...
+```
+Any errors before 18:45:28 are stale. Only errors AFTER 18:45:28 are relevant.
+
+**Port Selection Strategy:**
+- Use ports 5000-5999 range (safe ports, not blocked by Chrome)
+- Port 6000 is BLOCKED by Chrome as "unsafe port" (ERR_UNSAFE_PORT)
+- Increment by 100 for each new session
+- Avoid ports 8000-9999 (heavily polluted from previous sessions)
+
+---
+
+**Last Updated:** 2025-11-27 18:45 UTC
 **Current Phase:** A2 scene testing - critical bug found
 **Issues Fixed This Session:**
 - Z.Blazor.Diagrams MutationObserver error (dynamic script loading)

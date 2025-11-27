@@ -195,7 +195,7 @@ public class RewardApplicationService
 
     /// <summary>
     /// Spawn scenes when action selected (HIGHLANDER FLOW)
-    /// NO provisional scenes - spawns directly as Active
+    /// NO ID STRINGS - uses boolean flags and sequence-based lookup
     /// Perfect information shown from SceneTemplate metadata
     /// </summary>
     private async Task FinalizeSceneSpawns(ChoiceReward reward, Situation currentSituation)
@@ -204,51 +204,52 @@ public class RewardApplicationService
 
         foreach (SceneSpawnReward sceneSpawn in reward.ScenesToSpawn)
         {
-            // Lookup by sequence number (NOT by ID string) for A-story scenes
-            // This allows authored scenes to have ANY ID format (a1_secure_lodging, a2_morning, etc.)
-            // and procedural scenes to use pattern-based IDs (a_story_11, a_story_12, etc.)
-            SceneTemplate template = null;
+            SceneTemplate template;
 
-            // Extract sequence number from ID pattern
-            if (sceneSpawn.SceneTemplateId.StartsWith("a_story_"))
+            if (sceneSpawn.SpawnNextMainStoryScene)
             {
-                string sequenceStr = sceneSpawn.SceneTemplateId.Replace("a_story_", "");
-                if (int.TryParse(sequenceStr, out int sequence))
-                {
-                    // Find by mainStorySequence (works for both authored and procedural scenes)
-                    template = _gameWorld.SceneTemplates
-                        .FirstOrDefault(t => t.MainStorySequence.HasValue && t.MainStorySequence.Value == sequence);
+                // MAINSTORY SEQUENCING - NO ID STRINGS
+                // Get player's current progress
+                int currentSequence = player.CurrentMainStorySequence;
+                Console.WriteLine($"[FinalizeSceneSpawns] SpawnNextMainStoryScene=true, CurrentSequence={currentSequence}");
 
-                    // Generate procedurally if not found (on-demand generation)
+                // Try to find authored template for next sequence
+                template = _gameWorld.GetNextMainStoryTemplate(currentSequence);
+
+                if (template == null)
+                {
+                    // No authored template exists - generate procedurally
+                    Console.WriteLine($"[FinalizeSceneSpawns] No authored template for sequence {currentSequence + 1}, generating procedurally");
+                    AStoryContext aStoryContext = _proceduralAStoryService.GetOrInitializeContext(player);
+                    await _proceduralAStoryService.GenerateNextATemplate(currentSequence + 1, aStoryContext);
+
+                    // ZERO NULL TOLERANCE: Template must exist after generation
+                    template = _gameWorld.GetNextMainStoryTemplate(currentSequence);
                     if (template == null)
                     {
-                        AStoryContext aStoryContext = _proceduralAStoryService.GetOrInitializeContext(player);
-                        await _proceduralAStoryService.GenerateNextATemplate(sequence, aStoryContext);
-
-                        // ZERO NULL TOLERANCE: Template must exist after generation (assert with First())
-                        template = _gameWorld.SceneTemplates
-                            .First(t => t.MainStorySequence.HasValue && t.MainStorySequence.Value == sequence);
+                        throw new InvalidOperationException(
+                            $"Failed to generate MainStory template for sequence {currentSequence + 1}");
                     }
                 }
-                else
-                {
-                    throw new InvalidOperationException(
-                        $"Invalid A-story template ID format: '{sceneSpawn.SceneTemplateId}'. " +
-                        $"Expected format 'a_story_<number>' (e.g., 'a_story_4'). " +
-                        $"Check SceneSpawnReward configuration in choice rewards.");
-                }
+
+                Console.WriteLine($"[FinalizeSceneSpawns] Found template '{template.Id}' (MainStorySequence={template.MainStorySequence})");
+            }
+            else if (sceneSpawn.Template != null)
+            {
+                // NON-MAINSTORY: Direct template reference (resolved at parse time)
+                // NO ID STRINGS - object reference only
+                template = sceneSpawn.Template;
+                Console.WriteLine($"[FinalizeSceneSpawns] Using direct template reference: '{template.Id}'");
             }
             else
             {
-                // Non-A-story scene - lookup by ID as normal
-                // ZERO NULL TOLERANCE: Template must exist (will throw if not found)
-                template = _gameWorld.SceneTemplates
-                    .First(t => t.Id == sceneSpawn.SceneTemplateId);
+                // Invalid spawn configuration
+                throw new InvalidOperationException(
+                    "SceneSpawnReward must have either SpawnNextMainStoryScene=true OR Template set. " +
+                    "NO ID STRINGS - use boolean flags and object references only.");
             }
 
-            // Resolve placement context (ARCHITECTURAL CHANGE: Direct property access)
-            // Context properties are nullable - not all situations have Route/Location/NPC
-            // SceneSpawnContext documents these as nullable per domain model
+            // Resolve placement context
             RouteOption currentRoute = currentSituation!.Route;
             Location currentLocation = currentSituation!.Location;
             NPC currentNPC = currentSituation!.Npc;
@@ -269,10 +270,9 @@ public class RewardApplicationService
             {
                 string packageId = $"scene_{template.Id}_{Guid.NewGuid().ToString("N")}";
                 await _packageLoader.LoadDynamicPackageFromJson(packageJson, packageId);
+                Console.WriteLine($"[FinalizeSceneSpawns] Created deferred scene package: {packageId}");
             }
         }
-
-        // NO CLEANUP NEEDED: Provisional scenes don't exist in HIGHLANDER flow
     }
 
     /// <summary>

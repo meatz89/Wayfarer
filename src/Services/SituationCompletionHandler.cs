@@ -92,24 +92,22 @@ public class SituationCompletionHandler
             // Store routing decision on situation for UI to query
             situation.RoutingDecision = routingDecision;
 
-            // SCENE COMPLETE: Teleport player to final situation's location
-            // RouteSegmentTravel scenes use RouteDestination proximity, resolving to route.DestinationLocation
-            // When scene completes, player should BE at that destination (narrative coherence)
+            // SCENE COMPLETE: Update MainStory sequence tracking
+            // Player position NEVER changes here - travel uses TravelFacade/MovementValidator
             if (routingDecision == SceneRoutingDecision.SceneComplete)
             {
-                Location finalLocation = situation.Location;
-                if (finalLocation != null && finalLocation.HexPosition.HasValue)
+                // MAINSTORY SEQUENCE INCREMENT: Track player's A-story progress
+                // When a MainStory scene completes, increment sequence for next spawn
+                if (scene.Category == StoryCategory.MainStory && scene.MainStorySequence.HasValue)
                 {
                     Player player = _gameWorld.GetPlayer();
-                    AxialCoordinates targetPosition = finalLocation.HexPosition.Value;
-
-                    // Only teleport if player is at a different location
-                    if (player.CurrentPosition.Q != targetPosition.Q || player.CurrentPosition.R != targetPosition.R)
-                    {
-                        player.CurrentPosition = targetPosition;
-                        Console.WriteLine($"[SituationCompletionHandler] Scene '{scene.DisplayName}' complete - teleported player to '{finalLocation.Name}'");
-                    }
+                    player.CurrentMainStorySequence = scene.MainStorySequence.Value;
+                    Console.WriteLine($"[SituationCompletionHandler] MainStory scene '{scene.DisplayName}' complete - advanced player sequence to {player.CurrentMainStorySequence}");
                 }
+
+                // HIGHLANDER: Player position NEVER changes via scene completion
+                // Player travels via TravelFacade (inter-venue) or moves via MovementValidator (intra-venue)
+                // Scene completion only updates scene state - player position is their concern, not ours
             }
 
             // PROCEDURAL CONTENT TRACING: Update scene state if it transitioned to Completed
