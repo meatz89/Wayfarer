@@ -680,6 +680,37 @@ A2 and A3 are NOT created until their ScenesToSpawn rewards fire.
 4. ✅ A2 Situation 2 displays correctly with 4 stat-gated choices
 5. ❌ A2 Situation 2 choice execution fails - no progression
 
+### 15. DeliveryContract Duplicate Fallback Semantics (DESIGN FIX NEEDED - 2025-11-27)
+**Issue:** A2 (DeliveryContract) scene has semantically identical Fallback choices across both situations:
+- Situation 1 Fallback: "Not right now" (decline opportunity)
+- Situation 2 Fallback: "Politely decline" (decline... after already accepting?)
+
+**Design Problem:** Both Fallbacks mean "decline" but the player's commitment context is DIFFERENT:
+- Situation 1: Player has NO obligation - can freely exit
+- Situation 2: Player ACCEPTED the opportunity - backing out breaks commitment
+
+**Correct Design (Fallback Context Rules):**
+
+| Context | Player State | Fallback Meaning | Requirements | Consequences |
+|---------|-------------|------------------|--------------|--------------|
+| Pre-commitment | No obligation | "Exit, return later" | NONE | NONE |
+| Post-commitment | Obligated | "Break commitment" | NONE | YES (penalty) |
+
+**Key Principle:** Fallback must ALWAYS exist (TIER 1: No Soft-Locks) but:
+- Fallback NEVER has requirements (would create soft-locks)
+- Fallback CAN have consequences (preserves scarcity)
+
+**Fix Required:**
+- Situation 1 Fallback: "Not right now" → No change (correct)
+- Situation 2 Fallback: "Politely decline" → "Back out of the deal" with **-1 Rapport** penalty
+
+**Documentation Added:**
+- `arc42/08_crosscutting_concepts.md` §8.16: Fallback Context Rules (No Soft-Lock Guarantee)
+- `gdd/04_systems.md` §4.5: Fallback Context Rules subsection
+
+**Files to Modify:**
+- `src/Content/Catalogs/SceneArchetypeCatalog.cs` - `GenerateDeliveryContract()` method, Situation 2 Fallback enrichment
+
 ---
 
 ## Session 2025-11-27: Sleep Outside Environment Filter Fix

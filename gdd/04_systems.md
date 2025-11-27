@@ -135,6 +135,28 @@ Every A-story situation presents four path types:
 - Specialists rewarded but not required
 - Challenge path offers risk/reward for skill expression
 
+### Fallback Context Rules
+
+The Fallback path guarantees forward progress, but its meaning changes based on player commitment:
+
+| Context | Fallback Meaning | Consequences |
+|---------|-----------------|--------------|
+| **Pre-commitment** | "Exit, return later" | None |
+| **Post-commitment** | "Break commitment" | Penalty (e.g., -1 stat) |
+
+**Key Rules:**
+- Fallback NEVER has requirements (would create soft-locks)
+- Fallback CAN have consequences (preserves scarcity)
+- No two situations should have semantically identical Fallback choices
+
+**Example:** In a delivery contract scene:
+- Situation 1 Fallback: "Not right now" (decline offer, no cost)
+- Situation 2 Fallback: "Back out of the deal" (break accepted contract, -1 Rapport)
+
+Both guarantee progress, but the consequences scale with commitment level.
+
+See [arc42/08_crosscutting_concepts.md §8.16](../arc42/08_crosscutting_concepts.md#816-fallback-context-rules-no-soft-lock-guarantee) for technical implementation.
+
 ---
 
 ## Cross-References

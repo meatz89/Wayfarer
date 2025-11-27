@@ -584,6 +584,68 @@ sequenceDiagram
 
 ---
 
+## 8.16 Fallback Context Rules (No Soft-Lock Guarantee)
+
+**Fallback choices are the TIER 1 safety valve that guarantees forward progress.**
+
+Every situation MUST have a Fallback choice. This is non-negotiable per the No Soft-Locks principle. However, what Fallback MEANS depends on the player's commitment context.
+
+### Fallback Definition
+
+| Aspect | Rule |
+|--------|------|
+| **Requirements** | NEVER. Fallback must always be available regardless of player state. |
+| **Consequences** | ALLOWED. Fallback can have costs/penalties to preserve scarcity. |
+| **Forward Progress** | REQUIRED. Fallback must complete the situation and allow continuation. |
+
+### Context-Dependent Semantics
+
+Fallback means different things based on whether the player has made a commitment:
+
+| Context | Player State | Fallback Meaning | Consequences |
+|---------|-------------|------------------|--------------|
+| **Pre-commitment** | No obligation | "Exit, return later" | None |
+| **Post-commitment** | Obligated | "Break commitment" | Yes (penalty) |
+
+### Example: DeliveryContract Scene
+
+```
+Situation 1: "Delivery Opportunity" (Pre-commitment)
+├─ Accept the opportunity (proceed)
+└─ Not right now (Fallback - no consequences)
+    └─ Player can return later to accept
+
+Situation 2: "Contract Terms" (Post-commitment - player ACCEPTED)
+├─ Leverage your rapport (best deal)
+├─ Pay upfront (standard deal)
+├─ Negotiate terms (challenge)
+└─ Back out of the deal (Fallback - PENALTY: -1 Rapport)
+    └─ Breaking commitment has cost, but player can still progress
+```
+
+The two Fallbacks are semantically DIFFERENT:
+- Situation 1 Fallback: "I'm not interested" (no obligation, no cost)
+- Situation 2 Fallback: "I can't fulfill this" (broken obligation, HAS cost)
+
+### Why This Matters
+
+**Without this rule:**
+- Player accepts contract but can't afford any option → SOFT-LOCK
+- Or: Duplicate "decline" choices across situations → confusing, redundant
+
+**With this rule:**
+- Fallback always exists → No soft-lock possible
+- Fallback consequences scale with commitment → Scarcity preserved
+- Distinct Fallback semantics per situation → Clear player communication
+
+### Design Principle
+
+> **No two situations in the same scene should have semantically identical choices.**
+
+When a situation transitions from pre-commitment to post-commitment, the Fallback choice MUST change its meaning and consequences to reflect the new context.
+
+---
+
 ## Related Documentation
 
 - [04_solution_strategy.md](04_solution_strategy.md) — Strategies these concepts implement

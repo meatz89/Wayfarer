@@ -777,16 +777,23 @@ public static class SceneArchetypeCatalog
                         break;
 
                     case ChoicePathType.Fallback:
-                        // Fallback: Player declines contract - no rewards, situation remains available
+                        // Fallback: Player breaks commitment after accepting - consequences but no requirements
+                        // See arc42/08 §8.16 Fallback Context Rules: Post-commitment fallback has penalty
+                        baseReward.Rapport = -1;  // Breaking commitment disappoints the merchant
                         break;
                 }
             }
+
+            // Override action text for Fallback to reflect post-commitment context
+            string enrichedActionText = choice.PathType == ChoicePathType.Fallback
+                ? "Back out of the deal"
+                : choice.ActionTextTemplate;
 
             enrichedNegotiateChoices.Add(new ChoiceTemplate
             {
                 Id = choice.Id,
                 PathType = choice.PathType,  // Keep original PathType (Fallback stays Fallback)
-                ActionTextTemplate = choice.ActionTextTemplate,
+                ActionTextTemplate = enrichedActionText,
                 RequirementFormula = modifiedRequirement,  // Use modified requirements for A2
                 CostTemplate = choice.CostTemplate,
                 RewardTemplate = baseReward,
