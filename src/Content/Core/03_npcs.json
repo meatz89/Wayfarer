@@ -16,10 +16,10 @@
         "profession": "Innkeeper",
         "spawnLocation": {
           "placementType": "Location",
-          "privacyLevels": ["SemiPublic"],
-          "safetyLevels": ["Safe"],
-          "activityLevels": ["Moderate"],
-          "purposes": ["Commerce"]
+          "privacy": "SemiPublic",
+          "safety": "Safe",
+          "activity": "Moderate",
+          "purpose": "Commerce"
         },
         "description": "The innkeeper, efficient and observant, managing the evening crowd with practiced ease. She wipes down tables while watching travelers settle in for the night.",
         "personality": "Practical but warm. Takes care of travelers. Has seen many road-worn wanderers stumble through her door.",
@@ -40,10 +40,10 @@
         "profession": "Warehouse Foreman",
         "spawnLocation": {
           "placementType": "Location",
-          "privacyLevels": ["SemiPublic"],
-          "safetyLevels": ["Safe"],
-          "activityLevels": ["Moderate"],
-          "purposes": ["Commerce"]
+          "privacy": "SemiPublic",
+          "safety": "Safe",
+          "activity": "Moderate",
+          "purpose": "Commerce"
         },
         "description": "A warehouse foreman sitting at a corner table, looking for labor help with tonight's shipment. Direct, no-nonsense, pays fair for honest work.",
         "personality": "Straightforward and business-minded. Always needs capable hands. Values hard work over idle conversation.",
@@ -64,10 +64,10 @@
         "profession": "Merchant",
         "spawnLocation": {
           "placementType": "Location",
-          "privacyLevels": ["Public"],
-          "safetyLevels": ["Safe"],
-          "activityLevels": ["Busy"],
-          "purposes": ["Commerce"]
+          "privacy": "Public",
+          "safety": "Safe",
+          "activity": "Busy",
+          "purpose": "Commerce"
         },
         "description": "A traveling merchant with various goods for sale. Practical equipment for travelers and adventurers.",
         "personality": "Business-minded and efficient. Knows the value of good equipment.",

@@ -1,9 +1,12 @@
 /// <summary>
 /// Filter for selecting placement entities at spawn time via CATEGORICAL PROPERTIES ONLY
-/// Implements AI content generation pattern: JSON describes categories (PersonalityTypes, LocationProperties),
+/// Implements AI content generation pattern: JSON describes categories (PersonalityType, LocationProperties),
 /// EntityResolver queries GameWorld entities and applies SelectionStrategy to choose from matches
 /// Tutorial pattern: A1 and A2 use same categorical specs → naturally reuse same entities via FindOrCreate
 /// HIGHLANDER: One pattern only - categorical queries, no concrete IDs, no binding mechanisms
+/// SIMPLICITY: Each property is SINGULAR (nullable enum), not plural (List).
+///   null = don't filter on this property (any value matches)
+///   value = entity must have exactly this value
 /// </summary>
 public class PlacementFilter
 {
@@ -35,25 +38,25 @@ public class PlacementFilter
     // ==================== NPC FILTERS (when PlacementType == NPC) ====================
 
     /// <summary>
-    /// Required personality types for NPC selection
-    /// Example: ["Mercantile", "Commanding"] - NPC must have one of these personalities
-    /// CATEGORICAL - no concrete NPC IDs
+    /// Required personality type for NPC selection
+    /// null = don't filter by personality (any personality matches)
+    /// Example: PersonalityType.Mercantile - NPC must have this personality
     /// </summary>
-    public List<PersonalityType> PersonalityTypes { get; init; } = new List<PersonalityType>();
+    public PersonalityType? PersonalityType { get; init; }
 
     /// <summary>
-    /// Required professions for NPC selection
-    /// Example: [Merchant, Scholar, Guard]
-    /// NPC must have one of these professions to match
+    /// Required profession for NPC selection
+    /// null = don't filter by profession (any profession matches)
+    /// Example: Professions.Merchant - NPC must have this profession
     /// </summary>
-    public List<Professions> Professions { get; init; } = new List<Professions>();
+    public Professions? Profession { get; init; }
 
     /// <summary>
-    /// Required relationship states for NPC selection
-    /// Example: [Ally, Rival, Neutral]
-    /// NPC must have one of these relationship states with player
+    /// Required relationship state for NPC selection
+    /// null = don't filter by relationship (any relationship matches)
+    /// Example: NPCRelationship.Ally - NPC must have this relationship with player
     /// </summary>
-    public List<NPCRelationship> RequiredRelationships { get; init; } = new List<NPCRelationship>();
+    public NPCRelationship? RequiredRelationship { get; init; }
 
     /// <summary>
     /// Minimum NPC tier requirement
@@ -84,31 +87,26 @@ public class PlacementFilter
     /// </summary>
     public int? MaxBond { get; init; }
 
-    // Orthogonal Categorical Dimensions for NPC selection
-    // Multiple dimensions compose to create archetypes
-    // Empty list = don't filter on this dimension (any value matches)
-    // Non-empty list = NPC must have ONE OF the specified values
+    /// <summary>
+    /// Social standing for NPC selection
+    /// null = don't filter by standing (any standing matches)
+    /// Example: NPCSocialStanding.Notable - select NPCs who are recognized
+    /// </summary>
+    public NPCSocialStanding? SocialStanding { get; init; }
 
     /// <summary>
-    /// Social standing dimension for NPC selection
-    /// Example: [Notable, Authority] - select NPCs who are recognized or powerful
-    /// Empty = any standing (don't filter)
+    /// Story role for NPC selection
+    /// null = don't filter by role (any role matches)
+    /// Example: NPCStoryRole.Obstacle - select NPCs who block progress
     /// </summary>
-    public List<NPCSocialStanding> SocialStandings { get; init; } = new List<NPCSocialStanding>();
+    public NPCStoryRole? StoryRole { get; init; }
 
     /// <summary>
-    /// Story role dimension for NPC selection
-    /// Example: [Obstacle, Facilitator] - select NPCs who block or help
-    /// Empty = any role (don't filter)
+    /// Knowledge level for NPC selection
+    /// null = don't filter by knowledge (any knowledge level matches)
+    /// Example: NPCKnowledgeLevel.Informed - select NPCs aware of local events
     /// </summary>
-    public List<NPCStoryRole> StoryRoles { get; init; } = new List<NPCStoryRole>();
-
-    /// <summary>
-    /// Knowledge level dimension for NPC selection
-    /// Example: [Informed, Expert] - select NPCs aware of local events
-    /// Empty = any knowledge level (don't filter)
-    /// </summary>
-    public List<NPCKnowledgeLevel> KnowledgeLevels { get; init; } = new List<NPCKnowledgeLevel>();
+    public NPCKnowledgeLevel? KnowledgeLevel { get; init; }
 
     /// <summary>
     /// DEPRECATED: NPC tags used only for DEPENDENT_NPC marker system
@@ -119,12 +117,11 @@ public class PlacementFilter
     // ==================== LOCATION FILTERS (when PlacementType == Location) ====================
 
     /// <summary>
-    /// Required location types for categorical selection
-    /// Example: [Inn, Tavern, Market]
-    /// Location must match one of these types
-    /// STRONGLY-TYPED enum, not strings
+    /// Required location type for categorical selection
+    /// null = don't filter by type (any type matches)
+    /// Example: LocationTypes.Inn - location must be this type
     /// </summary>
-    public List<LocationTypes> LocationTypes { get; init; } = new List<LocationTypes>();
+    public LocationTypes? LocationType { get; init; }
 
     /// <summary>
     /// Required location capabilities for categorical selection
@@ -141,38 +138,33 @@ public class PlacementFilter
     /// </summary>
     public bool? IsPlayerAccessible { get; init; }
 
-    // Orthogonal Categorical Dimensions for Location selection
-    // Multiple dimensions compose to create archetypes
-    // Empty list = don't filter on this dimension (any value matches)
-    // Non-empty list = Location must have ONE OF the specified values
+    /// <summary>
+    /// Privacy level for location selection
+    /// null = don't filter by privacy (any privacy matches)
+    /// Example: LocationPrivacy.Private - select private locations
+    /// </summary>
+    public LocationPrivacy? Privacy { get; init; }
 
     /// <summary>
-    /// Privacy dimension for location selection
-    /// Example: [SemiPublic, Private] - select locations with moderate to high privacy
-    /// Empty = any privacy level (don't filter)
+    /// Safety level for location selection
+    /// null = don't filter by safety (any safety matches)
+    /// Example: LocationSafety.Safe - select only secure locations
     /// </summary>
-    public List<LocationPrivacy> PrivacyLevels { get; init; } = new List<LocationPrivacy>();
+    public LocationSafety? Safety { get; init; }
 
     /// <summary>
-    /// Safety dimension for location selection
-    /// Example: [Safe] - select only secure locations
-    /// Empty = any safety level (don't filter)
+    /// Activity level for location selection
+    /// null = don't filter by activity (any activity matches)
+    /// Example: LocationActivity.Quiet - avoid busy crowded places
     /// </summary>
-    public List<LocationSafety> SafetyLevels { get; init; } = new List<LocationSafety>();
+    public LocationActivity? Activity { get; init; }
 
     /// <summary>
-    /// Activity dimension for location selection
-    /// Example: [Quiet, Moderate] - avoid busy crowded places
-    /// Empty = any activity level (don't filter)
+    /// Purpose for location selection
+    /// null = don't filter by purpose (any purpose matches)
+    /// Example: LocationPurpose.Commerce - select trade locations
     /// </summary>
-    public List<LocationActivity> ActivityLevels { get; init; } = new List<LocationActivity>();
-
-    /// <summary>
-    /// Purpose dimension for location selection
-    /// Example: [Dwelling, Commerce] - select lodging or trade locations
-    /// Empty = any purpose (don't filter)
-    /// </summary>
-    public List<LocationPurpose> Purposes { get; init; } = new List<LocationPurpose>();
+    public LocationPurpose? Purpose { get; init; }
 
     /// <summary>
     /// District identifier filter
@@ -193,11 +185,11 @@ public class PlacementFilter
     // ==================== ROUTE FILTERS (when PlacementType == Route) ====================
 
     /// <summary>
-    /// Terrain types for route selection
-    /// Example: [Urban, Forest, Mountain]
-    /// Route must match one of these terrain types
+    /// Terrain type for route selection
+    /// null = don't filter by terrain (any terrain matches)
+    /// Example: "Forest" - route must have this terrain type
     /// </summary>
-    public List<string> TerrainTypes { get; init; } = new List<string>();
+    public string TerrainType { get; init; }
 
     /// <summary>
     /// Route difficulty tier requirement

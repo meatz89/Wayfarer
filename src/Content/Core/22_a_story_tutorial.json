@@ -26,7 +26,7 @@
         },
         "npcActivationFilter": {
           "placementType": "NPC",
-          "professions": ["Innkeeper"]
+          "profession": "Innkeeper"
         },
         "introNarrativeTemplate": "Evening approaches in a new town. You're a newly arrived traveler needing shelter. The inn's common room is warm and inviting. The friendly innkeeper notices you and approaches.",
         "spawnConditions": {
@@ -45,12 +45,12 @@
         "tier": 0,
         "locationActivationFilter": {
           "placementType": "Location",
-          "privacyLevels": ["Public"],
+          "privacy": "Public",
           "capabilities": ["Commercial"]
         },
         "npcActivationFilter": {
           "placementType": "NPC",
-          "professions": ["Merchant"]
+          "profession": "Merchant"
         },
         "introNarrativeTemplate": "Morning arrives. You step out into the town square, seeking work. A merchant stands by their cart, looking for reliable help - a delivery contract awaits.",
         "spawnConditions": {}
@@ -67,12 +67,12 @@
         "tier": 0,
         "locationActivationFilter": {
           "placementType": "Location",
-          "activityLevels": ["Quiet"],
+          "activity": "Quiet",
           "capabilities": ["Outdoor"]
         },
         "npcActivationFilter": {
           "placementType": "NPC",
-          "professions": ["Merchant"]
+          "profession": "Merchant"
         },
         "introNarrativeTemplate": "The road stretches before you. Package secured, delivery contract accepted. Time to venture into the wilderness.",
         "spawnConditions": {}

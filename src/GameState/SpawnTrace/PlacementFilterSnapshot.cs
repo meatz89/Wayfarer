@@ -8,19 +8,19 @@ public class PlacementFilterSnapshot
     public PlacementSelectionStrategy SelectionStrategy { get; set; }
 
     // NPC filters
-    public List<PersonalityType> PersonalityTypes { get; set; }
-    public List<Professions> Professions { get; set; }
-    public List<NPCSocialStanding> SocialStandings { get; set; }
-    public List<NPCStoryRole> StoryRoles { get; set; }
+    public PersonalityType? PersonalityType { get; set; }
+    public Professions? Profession { get; set; }
+    public NPCSocialStanding? SocialStanding { get; set; }
+    public NPCStoryRole? StoryRole { get; set; }
 
     // Location filters
-    public List<LocationTypes> LocationTypes { get; set; }
-    public List<LocationPrivacy> PrivacyLevels { get; set; }
-    public List<LocationSafety> SafetyLevels { get; set; }
-    public List<LocationActivity> ActivityLevels { get; set; }
-    public List<LocationPurpose> Purposes { get; set; }
+    public LocationTypes? LocationType { get; set; }
+    public LocationPrivacy? Privacy { get; set; }
+    public LocationSafety? Safety { get; set; }
+    public LocationActivity? Activity { get; set; }
+    public LocationPurpose? Purpose { get; set; }
 
     // Route filters
-    public List<string> TerrainTypes { get; set; }
+    public string TerrainType { get; set; }
     public int? RouteTier { get; set; }
 }

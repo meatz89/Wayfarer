@@ -13,7 +13,7 @@
         "name": "Purchase Sturdy Rope",
         "providerFilter": {
           "placementType": "NPC",
-          "professions": ["Merchant"]
+          "profession": "Merchant"
         },
         "giveCurrency": "Coins",
         "giveAmount": 10,
@@ -24,7 +24,7 @@
         "name": "Purchase Waders",
         "providerFilter": {
           "placementType": "NPC",
-          "professions": ["Merchant"]
+          "profession": "Merchant"
         },
         "giveCurrency": "Coins",
         "giveAmount": 12,
@@ -35,7 +35,7 @@
         "name": "Purchase Oil Lantern",
         "providerFilter": {
           "placementType": "NPC",
-          "professions": ["Merchant"]
+          "profession": "Merchant"
         },
         "giveCurrency": "Coins",
         "giveAmount": 15,
@@ -46,7 +46,7 @@
         "name": "Purchase Tools",
         "providerFilter": {
           "placementType": "NPC",
-          "professions": ["Merchant"]
+          "profession": "Merchant"
         },
         "giveCurrency": "Coins",
         "giveAmount": 20,
@@ -57,7 +57,7 @@
         "name": "Purchase Quality Clothing",
         "providerFilter": {
           "placementType": "NPC",
-          "professions": ["Merchant"]
+          "profession": "Merchant"
         },
         "giveCurrency": "Coins",
         "giveAmount": 25,
@@ -68,7 +68,7 @@
         "name": "Purchase Rations",
         "providerFilter": {
           "placementType": "NPC",
-          "professions": ["Merchant"]
+          "profession": "Merchant"
         },
         "giveCurrency": "Coins",
         "giveAmount": 5,
@@ -79,7 +79,7 @@
         "name": "Purchase Climbing Gear",
         "providerFilter": {
           "placementType": "NPC",
-          "professions": ["Merchant"]
+          "profession": "Merchant"
         },
         "giveCurrency": "Coins",
         "giveAmount": 30,

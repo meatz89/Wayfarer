@@ -185,32 +185,32 @@ public class SceneTemplateParser
             PlacementType = placementType,
             // System control
             SelectionStrategy = ParseSelectionStrategy(dto.SelectionStrategy, contextId),
-            // NPC filters
-            PersonalityTypes = ParsePersonalityTypes(dto.PersonalityTypes, contextId),
-            Professions = ParseProfessions(dto.Professions, contextId),
-            RequiredRelationships = ParseNPCRelationships(dto.RequiredRelationships, contextId),
+            // NPC filters - SINGULAR properties
+            PersonalityType = ParsePersonalityType(dto.PersonalityType, contextId),
+            Profession = ParseProfession(dto.Profession, contextId),
+            RequiredRelationship = ParseNPCRelationship(dto.RequiredRelationship, contextId),
             MinTier = dto.MinTier,
             MaxTier = dto.MaxTier,
             MinBond = dto.MinBond,
             MaxBond = dto.MaxBond,
             NpcTags = dto.NpcTags,
-            // Orthogonal categorical dimensions - NPC
-            SocialStandings = ParseSocialStandings(dto.SocialStandings, contextId),
-            StoryRoles = ParseStoryRoles(dto.StoryRoles, contextId),
-            KnowledgeLevels = ParseKnowledgeLevels(dto.KnowledgeLevels, contextId),
-            // Location filters
-            LocationTypes = ParseLocationTypes(dto.LocationTypes, contextId),
+            // Orthogonal categorical dimensions - NPC - SINGULAR
+            SocialStanding = ParseSocialStanding(dto.SocialStanding, contextId),
+            StoryRole = ParseStoryRole(dto.StoryRole, contextId),
+            KnowledgeLevel = ParseKnowledgeLevel(dto.KnowledgeLevel, contextId),
+            // Location filters - SINGULAR properties
+            LocationType = ParseLocationType(dto.LocationType, contextId),
             RequiredCapabilities = ParseLocationCapabilities(dto.Capabilities, contextId),
             IsPlayerAccessible = dto.IsPlayerAccessible,
-            // Orthogonal categorical dimensions - Location
-            PrivacyLevels = ParsePrivacyLevels(dto.PrivacyLevels, contextId),
-            SafetyLevels = ParseSafetyLevels(dto.SafetyLevels, contextId),
-            ActivityLevels = ParseActivityLevels(dto.ActivityLevels, contextId),
-            Purposes = ParsePurposes(dto.Purposes, contextId),
+            // Orthogonal categorical dimensions - Location - SINGULAR
+            Privacy = ParsePrivacy(dto.Privacy, contextId),
+            Safety = ParseSafety(dto.Safety, contextId),
+            Activity = ParseActivity(dto.Activity, contextId),
+            Purpose = ParsePurpose(dto.Purpose, contextId),
             DistrictId = dto.DistrictId,
             RegionId = dto.RegionId,
-            // Route filters
-            TerrainTypes = dto.TerrainTypes,
+            // Route filters - SINGULAR
+            TerrainType = dto.TerrainType,
             RouteTier = dto.RouteTier,
             MinDifficulty = dto.MinDifficulty,
             MaxDifficulty = dto.MaxDifficulty,
@@ -218,7 +218,7 @@ public class SceneTemplateParser
             SegmentIndex = dto.SegmentIndex, // Route segment placement for geographic specificity
             // Variety control
             ExcludeRecentlyUsed = dto.ExcludeRecentlyUsed,
-            // Player state filters
+            // Player state filters (still lists - player can have multiple states)
             RequiredStates = ParseStateTypes(dto.RequiredStates, contextId, "RequiredStates"),
             ForbiddenStates = ParseStateTypes(dto.ForbiddenStates, contextId, "ForbiddenStates"),
             RequiredAchievements = ParseAchievements(dto.RequiredAchievements, contextId, gameWorld),
@@ -229,27 +229,17 @@ public class SceneTemplateParser
     }
 
     /// <summary>
-    /// Parse personality type strings to enum list
+    /// Parse single personality type string to nullable enum
     /// </summary>
-    private static List<PersonalityType> ParsePersonalityTypes(List<string> typeStrings, string contextId)
+    private static PersonalityType? ParsePersonalityType(string typeString, string contextId)
     {
-        if (typeStrings == null || !typeStrings.Any())
-            return new List<PersonalityType>();
+        if (string.IsNullOrEmpty(typeString))
+            return null;
 
-        List<PersonalityType> types = new List<PersonalityType>();
-        foreach (string typeString in typeStrings)
-        {
-            if (Enum.TryParse<PersonalityType>(typeString, true, out PersonalityType personalityType))
-            {
-                types.Add(personalityType);
-            }
-            else
-            {
-                throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid PersonalityType: '{typeString}'");
-            }
-        }
+        if (Enum.TryParse<PersonalityType>(typeString, true, out PersonalityType personalityType))
+            return personalityType;
 
-        return types;
+        throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid PersonalityType: '{typeString}'");
     }
 
     /// <summary>
@@ -277,243 +267,143 @@ public class SceneTemplateParser
     }
 
     /// <summary>
-    /// Parse profession strings to enum list
+    /// Parse single profession string to nullable enum
     /// </summary>
-    private static List<Professions> ParseProfessions(List<string> professionStrings, string contextId)
+    private static Professions? ParseProfession(string professionString, string contextId)
     {
-        if (professionStrings == null || !professionStrings.Any())
-            return new List<Professions>();
+        if (string.IsNullOrEmpty(professionString))
+            return null;
 
-        List<Professions> professions = new List<Professions>();
-        foreach (string professionString in professionStrings)
-        {
-            if (Enum.TryParse<Professions>(professionString, true, out Professions profession))
-            {
-                professions.Add(profession);
-            }
-            else
-            {
-                throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid Profession: '{professionString}'");
-            }
-        }
+        if (Enum.TryParse<Professions>(professionString, true, out Professions profession))
+            return profession;
 
-        return professions;
+        throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid Profession: '{professionString}'");
     }
 
     /// <summary>
-    /// Parse NPC relationship strings to enum list
+    /// Parse single NPC relationship string to nullable enum
     /// </summary>
-    private static List<NPCRelationship> ParseNPCRelationships(List<string> relationshipStrings, string contextId)
+    private static NPCRelationship? ParseNPCRelationship(string relationshipString, string contextId)
     {
-        if (relationshipStrings == null || !relationshipStrings.Any())
-            return new List<NPCRelationship>();
+        if (string.IsNullOrEmpty(relationshipString))
+            return null;
 
-        List<NPCRelationship> relationships = new List<NPCRelationship>();
-        foreach (string relationshipString in relationshipStrings)
-        {
-            if (Enum.TryParse<NPCRelationship>(relationshipString, true, out NPCRelationship relationship))
-            {
-                relationships.Add(relationship);
-            }
-            else
-            {
-                throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid NPCRelationship: '{relationshipString}'");
-            }
-        }
+        if (Enum.TryParse<NPCRelationship>(relationshipString, true, out NPCRelationship relationship))
+            return relationship;
 
-        return relationships;
+        throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid NPCRelationship: '{relationshipString}'");
     }
 
     /// <summary>
-    /// Parse social standing strings to enum list (Orthogonal Categorical Dimension)
+    /// Parse single social standing string to nullable enum
     /// </summary>
-    private static List<NPCSocialStanding> ParseSocialStandings(List<string> standingStrings, string contextId)
+    private static NPCSocialStanding? ParseSocialStanding(string standingString, string contextId)
     {
-        if (standingStrings == null || !standingStrings.Any())
-            return new List<NPCSocialStanding>();
+        if (string.IsNullOrEmpty(standingString))
+            return null;
 
-        List<NPCSocialStanding> standings = new List<NPCSocialStanding>();
-        foreach (string standingString in standingStrings)
-        {
-            if (Enum.TryParse<NPCSocialStanding>(standingString, true, out NPCSocialStanding standing))
-            {
-                standings.Add(standing);
-            }
-            else
-            {
-                throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid NPCSocialStanding: '{standingString}'");
-            }
-        }
+        if (Enum.TryParse<NPCSocialStanding>(standingString, true, out NPCSocialStanding standing))
+            return standing;
 
-        return standings;
+        throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid NPCSocialStanding: '{standingString}'");
     }
 
     /// <summary>
-    /// Parse story role strings to enum list (Orthogonal Categorical Dimension)
+    /// Parse single story role string to nullable enum
     /// </summary>
-    private static List<NPCStoryRole> ParseStoryRoles(List<string> roleStrings, string contextId)
+    private static NPCStoryRole? ParseStoryRole(string roleString, string contextId)
     {
-        if (roleStrings == null || !roleStrings.Any())
-            return new List<NPCStoryRole>();
+        if (string.IsNullOrEmpty(roleString))
+            return null;
 
-        List<NPCStoryRole> roles = new List<NPCStoryRole>();
-        foreach (string roleString in roleStrings)
-        {
-            if (Enum.TryParse<NPCStoryRole>(roleString, true, out NPCStoryRole role))
-            {
-                roles.Add(role);
-            }
-            else
-            {
-                throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid NPCStoryRole: '{roleString}'");
-            }
-        }
+        if (Enum.TryParse<NPCStoryRole>(roleString, true, out NPCStoryRole role))
+            return role;
 
-        return roles;
+        throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid NPCStoryRole: '{roleString}'");
     }
 
     /// <summary>
-    /// Parse knowledge level strings to enum list (Orthogonal Categorical Dimension)
+    /// Parse single knowledge level string to nullable enum
     /// </summary>
-    private static List<NPCKnowledgeLevel> ParseKnowledgeLevels(List<string> levelStrings, string contextId)
+    private static NPCKnowledgeLevel? ParseKnowledgeLevel(string levelString, string contextId)
     {
-        if (levelStrings == null || !levelStrings.Any())
-            return new List<NPCKnowledgeLevel>();
+        if (string.IsNullOrEmpty(levelString))
+            return null;
 
-        List<NPCKnowledgeLevel> levels = new List<NPCKnowledgeLevel>();
-        foreach (string levelString in levelStrings)
-        {
-            if (Enum.TryParse<NPCKnowledgeLevel>(levelString, true, out NPCKnowledgeLevel level))
-            {
-                levels.Add(level);
-            }
-            else
-            {
-                throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid NPCKnowledgeLevel: '{levelString}'");
-            }
-        }
+        if (Enum.TryParse<NPCKnowledgeLevel>(levelString, true, out NPCKnowledgeLevel level))
+            return level;
 
-        return levels;
+        throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid NPCKnowledgeLevel: '{levelString}'");
     }
 
     /// <summary>
-    /// Parse privacy level strings to enum list (Orthogonal Categorical Dimension)
+    /// Parse single privacy string to nullable enum
     /// </summary>
-    private static List<LocationPrivacy> ParsePrivacyLevels(List<string> privacyStrings, string contextId)
+    private static LocationPrivacy? ParsePrivacy(string privacyString, string contextId)
     {
-        if (privacyStrings == null || !privacyStrings.Any())
-            return new List<LocationPrivacy>();
+        if (string.IsNullOrEmpty(privacyString))
+            return null;
 
-        List<LocationPrivacy> privacyLevels = new List<LocationPrivacy>();
-        foreach (string privacyString in privacyStrings)
-        {
-            if (Enum.TryParse<LocationPrivacy>(privacyString, true, out LocationPrivacy privacy))
-            {
-                privacyLevels.Add(privacy);
-            }
-            else
-            {
-                throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid LocationPrivacy: '{privacyString}'");
-            }
-        }
+        if (Enum.TryParse<LocationPrivacy>(privacyString, true, out LocationPrivacy privacy))
+            return privacy;
 
-        return privacyLevels;
+        throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid LocationPrivacy: '{privacyString}'");
     }
 
     /// <summary>
-    /// Parse safety level strings to enum list (Orthogonal Categorical Dimension)
+    /// Parse single safety string to nullable enum
     /// </summary>
-    private static List<LocationSafety> ParseSafetyLevels(List<string> safetyStrings, string contextId)
+    private static LocationSafety? ParseSafety(string safetyString, string contextId)
     {
-        if (safetyStrings == null || !safetyStrings.Any())
-            return new List<LocationSafety>();
+        if (string.IsNullOrEmpty(safetyString))
+            return null;
 
-        List<LocationSafety> safetyLevels = new List<LocationSafety>();
-        foreach (string safetyString in safetyStrings)
-        {
-            if (Enum.TryParse<LocationSafety>(safetyString, true, out LocationSafety safety))
-            {
-                safetyLevels.Add(safety);
-            }
-            else
-            {
-                throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid LocationSafety: '{safetyString}'");
-            }
-        }
+        if (Enum.TryParse<LocationSafety>(safetyString, true, out LocationSafety safety))
+            return safety;
 
-        return safetyLevels;
+        throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid LocationSafety: '{safetyString}'");
     }
 
     /// <summary>
-    /// Parse activity level strings to enum list (Orthogonal Categorical Dimension)
+    /// Parse single activity string to nullable enum
     /// </summary>
-    private static List<LocationActivity> ParseActivityLevels(List<string> activityStrings, string contextId)
+    private static LocationActivity? ParseActivity(string activityString, string contextId)
     {
-        if (activityStrings == null || !activityStrings.Any())
-            return new List<LocationActivity>();
+        if (string.IsNullOrEmpty(activityString))
+            return null;
 
-        List<LocationActivity> activityLevels = new List<LocationActivity>();
-        foreach (string activityString in activityStrings)
-        {
-            if (Enum.TryParse<LocationActivity>(activityString, true, out LocationActivity activity))
-            {
-                activityLevels.Add(activity);
-            }
-            else
-            {
-                throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid LocationActivity: '{activityString}'");
-            }
-        }
+        if (Enum.TryParse<LocationActivity>(activityString, true, out LocationActivity activity))
+            return activity;
 
-        return activityLevels;
+        throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid LocationActivity: '{activityString}'");
     }
 
     /// <summary>
-    /// Parse purpose strings to enum list (Orthogonal Categorical Dimension)
+    /// Parse single purpose string to nullable enum
     /// </summary>
-    private static List<LocationPurpose> ParsePurposes(List<string> purposeStrings, string contextId)
+    private static LocationPurpose? ParsePurpose(string purposeString, string contextId)
     {
-        if (purposeStrings == null || !purposeStrings.Any())
-            return new List<LocationPurpose>();
+        if (string.IsNullOrEmpty(purposeString))
+            return null;
 
-        List<LocationPurpose> purposes = new List<LocationPurpose>();
-        foreach (string purposeString in purposeStrings)
-        {
-            if (Enum.TryParse<LocationPurpose>(purposeString, true, out LocationPurpose purpose))
-            {
-                purposes.Add(purpose);
-            }
-            else
-            {
-                throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid LocationPurpose: '{purposeString}'");
-            }
-        }
+        if (Enum.TryParse<LocationPurpose>(purposeString, true, out LocationPurpose purpose))
+            return purpose;
 
-        return purposes;
+        throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid LocationPurpose: '{purposeString}'");
     }
 
     /// <summary>
-    /// Parse location type strings to enum list
+    /// Parse single location type string to nullable enum
     /// </summary>
-    private static List<LocationTypes> ParseLocationTypes(List<string> typeStrings, string contextId)
+    private static LocationTypes? ParseLocationType(string typeString, string contextId)
     {
-        if (typeStrings == null || !typeStrings.Any())
-            return new List<LocationTypes>();
+        if (string.IsNullOrEmpty(typeString))
+            return null;
 
-        List<LocationTypes> types = new List<LocationTypes>();
-        foreach (string typeString in typeStrings)
-        {
-            if (Enum.TryParse<LocationTypes>(typeString, true, out LocationTypes locationType))
-            {
-                types.Add(locationType);
-            }
-            else
-            {
-                throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid LocationType: '{typeString}'");
-            }
-        }
+        if (Enum.TryParse<LocationTypes>(typeString, true, out LocationTypes locationType))
+            return locationType;
 
-        return types;
+        throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid LocationType: '{typeString}'");
     }
 
     /// <summary>

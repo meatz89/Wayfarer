@@ -12,10 +12,10 @@
       "description": "Carefully observe the inn's common room and its occupants.",
       "locationFilter": {
         "placementType": "Location",
-        "privacyLevels": ["SemiPublic"],
-        "safetyLevels": ["Safe"],
-        "activityLevels": ["Moderate"],
-        "purposes": ["Dwelling"]
+        "privacy": "SemiPublic",
+        "safety": "Safe",
+        "activity": "Moderate",
+        "purpose": "Dwelling"
       },
       "requiredKnowledge": [],
       "isRepeatable": false,
@@ -77,10 +77,10 @@
       "description": "Get your bearings by studying the central square and its connections.",
       "locationFilter": {
         "placementType": "Location",
-        "privacyLevels": ["Public"],
-        "safetyLevels": ["Safe"],
-        "activityLevels": ["Busy"],
-        "purposes": ["Commerce"]
+        "privacy": "Public",
+        "safety": "Safe",
+        "activity": "Busy",
+        "purpose": "Commerce"
       },
       "requiredKnowledge": [],
       "isRepeatable": false,
@@ -142,10 +142,10 @@
       "description": "Search for concrete evidence about the missing grain delivery.",
       "locationFilter": {
         "placementType": "Location",
-        "privacyLevels": ["Public"],
-        "safetyLevels": ["Safe"],
-        "activityLevels": ["Busy"],
-        "purposes": ["Commerce"]
+        "privacy": "Public",
+        "safety": "Safe",
+        "activity": "Busy",
+        "purpose": "Commerce"
       },
       "requiredKnowledge": ["thomas_grain_missing"],
       "isRepeatable": false,
@@ -203,10 +203,10 @@
       "description": "Investigate the inn when most guests are asleep.",
       "locationFilter": {
         "placementType": "Location",
-        "privacyLevels": ["SemiPublic"],
-        "safetyLevels": ["Safe"],
-        "activityLevels": ["Moderate"],
-        "purposes": ["Dwelling"]
+        "privacy": "SemiPublic",
+        "safety": "Safe",
+        "activity": "Moderate",
+        "purpose": "Dwelling"
       },
       "requiredKnowledge": ["locked_room_noted"],
       "isRepeatable": false,

@@ -139,37 +139,22 @@ public class EntityResolver
                 return false;
         }
 
-        // Check location type (if specified)
-        if (filter.LocationTypes != null && filter.LocationTypes.Count > 0)
-        {
-            if (!filter.LocationTypes.Contains(loc.LocationType))
-                return false;
-        }
+        // Check location type (if specified) - SINGULAR property
+        if (filter.LocationType.HasValue && loc.LocationType != filter.LocationType.Value)
+            return false;
 
-        // Check orthogonal categorical dimensions
-        if (filter.PrivacyLevels != null && filter.PrivacyLevels.Count > 0)
-        {
-            if (!filter.PrivacyLevels.Contains(loc.Privacy))
-                return false;
-        }
+        // Check orthogonal categorical dimensions - SINGULAR properties
+        if (filter.Privacy.HasValue && loc.Privacy != filter.Privacy.Value)
+            return false;
 
-        if (filter.SafetyLevels != null && filter.SafetyLevels.Count > 0)
-        {
-            if (!filter.SafetyLevels.Contains(loc.Safety))
-                return false;
-        }
+        if (filter.Safety.HasValue && loc.Safety != filter.Safety.Value)
+            return false;
 
-        if (filter.ActivityLevels != null && filter.ActivityLevels.Count > 0)
-        {
-            if (!filter.ActivityLevels.Contains(loc.Activity))
-                return false;
-        }
+        if (filter.Activity.HasValue && loc.Activity != filter.Activity.Value)
+            return false;
 
-        if (filter.Purposes != null && filter.Purposes.Count > 0)
-        {
-            if (!filter.Purposes.Contains(loc.Purpose))
-                return false;
-        }
+        if (filter.Purpose.HasValue && loc.Purpose != filter.Purpose.Value)
+            return false;
 
         // Check accessibility requirements
         if (filter.IsPlayerAccessible.HasValue && filter.IsPlayerAccessible.Value)
@@ -208,41 +193,24 @@ public class EntityResolver
 
     private bool NPCMatchesFilter(NPC npc, PlacementFilter filter)
     {
-        if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
-        {
-            if (!filter.PersonalityTypes.Contains(npc.PersonalityType))
-                return false;
-        }
+        // SINGULAR property semantics: null = don't filter, value = must match exactly
+        if (filter.PersonalityType.HasValue && npc.PersonalityType != filter.PersonalityType.Value)
+            return false;
 
-        if (filter.Professions != null && filter.Professions.Count > 0)
-        {
-            if (!filter.Professions.Contains(npc.Profession))
-                return false;
-        }
+        if (filter.Profession.HasValue && npc.Profession != filter.Profession.Value)
+            return false;
 
-        if (filter.RequiredRelationships != null && filter.RequiredRelationships.Count > 0)
-        {
-            if (!filter.RequiredRelationships.Contains(npc.PlayerRelationship))
-                return false;
-        }
+        if (filter.RequiredRelationship.HasValue && npc.PlayerRelationship != filter.RequiredRelationship.Value)
+            return false;
 
-        if (filter.SocialStandings != null && filter.SocialStandings.Count > 0)
-        {
-            if (!filter.SocialStandings.Contains(npc.SocialStanding))
-                return false;
-        }
+        if (filter.SocialStanding.HasValue && npc.SocialStanding != filter.SocialStanding.Value)
+            return false;
 
-        if (filter.StoryRoles != null && filter.StoryRoles.Count > 0)
-        {
-            if (!filter.StoryRoles.Contains(npc.StoryRole))
-                return false;
-        }
+        if (filter.StoryRole.HasValue && npc.StoryRole != filter.StoryRole.Value)
+            return false;
 
-        if (filter.KnowledgeLevels != null && filter.KnowledgeLevels.Count > 0)
-        {
-            if (!filter.KnowledgeLevels.Contains(npc.KnowledgeLevel))
-                return false;
-        }
+        if (filter.KnowledgeLevel.HasValue && npc.KnowledgeLevel != filter.KnowledgeLevel.Value)
+            return false;
 
         if (filter.MinTier.HasValue && npc.Tier < filter.MinTier.Value)
             return false;
@@ -266,10 +234,11 @@ public class EntityResolver
 
     private bool RouteMatchesFilter(RouteOption route, PlacementFilter filter)
     {
-        if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
+        // SINGULAR property - terrain type
+        if (!string.IsNullOrEmpty(filter.TerrainType))
         {
             string dominantTerrain = route.GetDominantTerrainType();
-            if (!filter.TerrainTypes.Contains(dominantTerrain))
+            if (dominantTerrain != filter.TerrainType)
                 return false;
         }
 

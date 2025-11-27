@@ -18,12 +18,12 @@
         "isStarter": false,
         "locationActivationFilter": {
           "placementType": "Location",
-          "purposes": ["Commerce"],
-          "safetyLevels": ["Safe"]
+          "purpose": "Commerce",
+          "safety": "Safe"
         },
         "npcActivationFilter": {
           "placementType": "NPC",
-          "professions": ["Innkeeper"]
+          "profession": "Innkeeper"
         }
       },
       {
@@ -35,8 +35,8 @@
         "isStarter": false,
         "locationActivationFilter": {
           "placementType": "Location",
-          "privacyLevels": ["Public"],
-          "activityLevels": ["Moderate"]
+          "privacy": "Public",
+          "activity": "Moderate"
         }
       }
     ]

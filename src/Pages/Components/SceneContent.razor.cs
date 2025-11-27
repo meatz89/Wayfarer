@@ -608,10 +608,10 @@ public class SceneContentBase : ComponentBase
         SceneRoutingDecision routingDecision = CurrentSituation.RoutingDecision;
         Console.WriteLine($"[SceneContent.HandleChoiceSelected] RoutingDecision: {routingDecision}, ProgressionMode: {Scene.ProgressionMode}");
 
-        // CASCADE MODE: Force continuation regardless of context changes
-        // BREATHE MODE: Respect context-based routing (exit to world when context changes)
-        bool shouldContinueInScene = routingDecision == SceneRoutingDecision.ContinueInScene ||
-            (routingDecision == SceneRoutingDecision.ExitToWorld && Scene.ProgressionMode == ProgressionMode.Cascade);
+        // ROUTING DECISION IS AUTHORITATIVE: ExitToWorld = context changed, player must navigate
+        // ProgressionMode only affects UI pacing (how fast same-context transitions appear)
+        // ExitToWorld ALWAYS exits - it's a hard constraint, not a UI preference
+        bool shouldContinueInScene = routingDecision == SceneRoutingDecision.ContinueInScene;
 
         if (shouldContinueInScene)
         {

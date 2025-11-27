@@ -173,6 +173,16 @@
     border: 1px solid #c4a684;
 }
 
+/* When player is at location, position name below the star */
+.player-location {
+    top: 60%;
+}
+
+.player-location .location-name {
+    font-weight: 600;
+    border: 1px solid #8b6f47;
+}
+
 /* ========================================
    MAP LEGEND
    ======================================== */
@@ -238,6 +248,43 @@
     font-family: 'Lora', serif;
     font-size: 14px;
     color: #3a2d1f;
+}
+
+/* ========================================
+   VENUE BORDERS AND LABELS
+   ======================================== */
+
+/* Venue color tints using background gradient overlay (works with clip-path) */
+/* Strong color overlays to clearly distinguish venue hexes from non-venue hexes */
+.venue-color-0 { background-image: linear-gradient(rgba(200, 80, 80, 0.4), rgba(200, 80, 80, 0.4)); }
+.venue-color-1 { background-image: linear-gradient(rgba(80, 160, 80, 0.4), rgba(80, 160, 80, 0.4)); }
+.venue-color-2 { background-image: linear-gradient(rgba(80, 80, 200, 0.4), rgba(80, 80, 200, 0.4)); }
+.venue-color-3 { background-image: linear-gradient(rgba(200, 180, 80, 0.4), rgba(200, 180, 80, 0.4)); }
+.venue-color-4 { background-image: linear-gradient(rgba(180, 80, 180, 0.4), rgba(180, 80, 180, 0.4)); }
+.venue-color-5 { background-image: linear-gradient(rgba(80, 180, 180, 0.4), rgba(80, 180, 180, 0.4)); }
+
+/* Add a visible border effect using filter for venue hexes */
+.venue-color-0, .venue-color-1, .venue-color-2, .venue-color-3, .venue-color-4, .venue-color-5 {
+    filter: drop-shadow(0 0 2px rgba(139, 111, 71, 0.8));
+}
+
+/* Venue name label - positioned absolutely in container (outside hex clip-path) */
+.venue-label {
+    position: absolute;
+    transform: translateX(-50%);
+    font-family: 'Cinzel', serif;
+    font-size: 12px;
+    font-weight: 700;
+    color: #3a2d1f;
+    background-color: rgba(250, 244, 234, 0.98);
+    padding: 4px 12px;
+    border-radius: 4px;
+    border: 2px solid #8b6f47;
+    white-space: nowrap;
+    z-index: 100;
+    pointer-events: none;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
 }
 
 /* ========================================

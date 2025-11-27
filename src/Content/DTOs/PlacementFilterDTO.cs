@@ -2,6 +2,9 @@
 /// DTO for PlacementFilter - categorical filters for procedural entity selection
 /// Determines what NPCs/Locations/Routes match this Scene's spawning context
 /// Maps to PlacementFilter domain entity
+/// SIMPLICITY: Each property is SINGULAR (nullable string), not plural (List).
+///   null = don't filter on this property (any value matches)
+///   value = entity must have exactly this value
 /// </summary>
 public class PlacementFilterDTO
 {
@@ -12,37 +15,32 @@ public class PlacementFilterDTO
     public string PlacementType { get; set; }
 
     // ====================
-    // CONCRETE ID BINDINGS (ALTERNATIVE TO CATEGORICAL FILTERS)
-    // ====================
-
-    // NpcId/LocationId/RouteId DELETED - 100% categorical resolution
-    // NEW ARCHITECTURE: All placement uses categorical filters, no concrete IDs
-    // EntityResolver finds/creates entities matching categories at spawn time
-
-    // ====================
     // NPC FILTERS (CATEGORICAL)
     // ====================
 
     /// <summary>
-    /// Personality types to match
-    /// Example: ["Innocent", "Cunning", "Authoritative"]
-    /// Maps to PersonalityType enum values
+    /// Personality type to match
+    /// Example: "Mercantile"
+    /// Maps to PersonalityType enum value
+    /// null = don't filter by personality
     /// </summary>
-    public List<string> PersonalityTypes { get; set; } = new List<string>();
+    public string PersonalityType { get; set; }
 
     /// <summary>
-    /// Professions to match
-    /// Example: ["Merchant", "Scholar", "Guard"]
-    /// Maps to Professions enum values
+    /// Profession to match
+    /// Example: "Merchant"
+    /// Maps to Professions enum value
+    /// null = don't filter by profession
     /// </summary>
-    public List<string> Professions { get; set; } = new List<string>();
+    public string Profession { get; set; }
 
     /// <summary>
-    /// Required relationship states
-    /// Example: ["Ally", "Rival", "Neutral"]
-    /// Maps to NPCRelationship enum values
+    /// Required relationship state
+    /// Example: "Ally"
+    /// Maps to NPCRelationship enum value
+    /// null = don't filter by relationship
     /// </summary>
-    public List<string> RequiredRelationships { get; set; } = new List<string>();
+    public string RequiredRelationship { get; set; }
 
     /// <summary>
     /// Minimum NPC tier requirement
@@ -69,47 +67,48 @@ public class PlacementFilterDTO
     public int? MaxBond { get; set; }
 
     /// <summary>
+    /// Social standing for NPC selection
+    /// Example: "Notable"
+    /// Maps to NPCSocialStanding enum value
+    /// null = don't filter by standing
+    /// </summary>
+    public string SocialStanding { get; set; }
+
+    /// <summary>
+    /// Story role for NPC selection
+    /// Example: "Obstacle"
+    /// Maps to NPCStoryRole enum value
+    /// null = don't filter by role
+    /// </summary>
+    public string StoryRole { get; set; }
+
+    /// <summary>
+    /// Knowledge level for NPC selection
+    /// Example: "Informed"
+    /// Maps to NPCKnowledgeLevel enum value
+    /// null = don't filter by knowledge
+    /// </summary>
+    public string KnowledgeLevel { get; set; }
+
+    /// <summary>
     /// DEPRECATED: Use orthogonal categorical dimensions instead
     /// </summary>
     public List<string> NpcTags { get; set; } = new List<string>();
-
-    // Orthogonal Categorical Dimensions - NPC
-    // String values from JSON parsed to enums by SceneTemplateParser
-
-    /// <summary>
-    /// Social standing dimension for NPC selection
-    /// Example: ["Notable", "Authority"]
-    /// Maps to NPCSocialStanding enum values
-    /// </summary>
-    public List<string> SocialStandings { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Story role dimension for NPC selection
-    /// Example: ["Obstacle", "Facilitator"]
-    /// Maps to NPCStoryRole enum values
-    /// </summary>
-    public List<string> StoryRoles { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Knowledge level dimension for NPC selection
-    /// Example: ["Informed", "Expert"]
-    /// Maps to NPCKnowledgeLevel enum values
-    /// </summary>
-    public List<string> KnowledgeLevels { get; set; } = new List<string>();
 
     // ====================
     // LOCATION FILTERS
     // ====================
 
     /// <summary>
-    /// Location types to match
-    /// Example: ["Inn", "Tavern", "Market"]
-    /// Maps to LocationTypes enum values
+    /// Location type to match
+    /// Example: "Inn"
+    /// Maps to LocationTypes enum value
+    /// null = don't filter by type
     /// </summary>
-    public List<string> LocationTypes { get; set; } = new List<string>();
+    public string LocationType { get; set; }
 
     /// <summary>
-    /// Location capabilities to match
+    /// Location capabilities to match (still a list - combines via AND logic for flags)
     /// Example: ["Crossroads", "Commercial", "Indoor"]
     /// Maps to LocationCapability Flags enum values
     /// </summary>
@@ -122,36 +121,37 @@ public class PlacementFilterDTO
     /// </summary>
     public bool? IsPlayerAccessible { get; set; }
 
-    // Orthogonal Categorical Dimensions - Location
-    // String values from JSON parsed to enums by SceneTemplateParser
+    /// <summary>
+    /// Privacy level for location selection
+    /// Example: "Private"
+    /// Maps to LocationPrivacy enum value
+    /// null = don't filter by privacy
+    /// </summary>
+    public string Privacy { get; set; }
 
     /// <summary>
-    /// Privacy dimension for location selection
-    /// Example: ["SemiPublic", "Private"]
-    /// Maps to LocationPrivacy enum values
+    /// Safety level for location selection
+    /// Example: "Safe"
+    /// Maps to LocationSafety enum value
+    /// null = don't filter by safety
     /// </summary>
-    public List<string> PrivacyLevels { get; set; } = new List<string>();
+    public string Safety { get; set; }
 
     /// <summary>
-    /// Safety dimension for location selection
-    /// Example: ["Safe"]
-    /// Maps to LocationSafety enum values
+    /// Activity level for location selection
+    /// Example: "Quiet"
+    /// Maps to LocationActivity enum value
+    /// null = don't filter by activity
     /// </summary>
-    public List<string> SafetyLevels { get; set; } = new List<string>();
+    public string Activity { get; set; }
 
     /// <summary>
-    /// Activity dimension for location selection
-    /// Example: ["Quiet", "Moderate"]
-    /// Maps to LocationActivity enum values
+    /// Purpose for location selection
+    /// Example: "Commerce"
+    /// Maps to LocationPurpose enum value
+    /// null = don't filter by purpose
     /// </summary>
-    public List<string> ActivityLevels { get; set; } = new List<string>();
-
-    /// <summary>
-    /// Purpose dimension for location selection
-    /// Example: ["Dwelling", "Commerce"]
-    /// Maps to LocationPurpose enum values
-    /// </summary>
-    public List<string> Purposes { get; set; } = new List<string>();
+    public string Purpose { get; set; }
 
     /// <summary>
     /// District ID filter (large categorical container)
@@ -170,10 +170,11 @@ public class PlacementFilterDTO
     // ====================
 
     /// <summary>
-    /// Terrain types to match
-    /// Example: ["Forest", "Mountain", "Road"]
+    /// Terrain type to match
+    /// Example: "Forest"
+    /// null = don't filter by terrain
     /// </summary>
-    public List<string> TerrainTypes { get; set; } = new List<string>();
+    public string TerrainType { get; set; }
 
     /// <summary>
     /// Route difficulty tier filter
@@ -194,7 +195,7 @@ public class PlacementFilterDTO
     public int? MaxDifficulty { get; set; }
 
     /// <summary>
-    /// Categorical tags for route selection
+    /// Categorical tags for route selection (still a list - route must have ALL tags)
     /// Example: ["Trade", "Dangerous", "Shortcut"]
     /// </summary>
     public List<string> RouteTags { get; set; } = new List<string>();
@@ -204,8 +205,6 @@ public class PlacementFilterDTO
     /// Enables geographic specificity: situation activates at THIS segment, not entire route
     /// Example: SegmentIndex = 0 (first segment), 1 (second segment), 2 (third segment)
     /// null = situation spans entire route (any segment)
-    /// ARCHITECTURAL FOUNDATION: Required for route segment situations (Tutorial A3 pattern)
-    /// VERISIMILITUDE: "Fallen tree at segment 1" vs abstract "tree somewhere on route"
     /// </summary>
     public int SegmentIndex { get; set; }
 
@@ -227,7 +226,7 @@ public class PlacementFilterDTO
     public bool ExcludeRecentlyUsed { get; set; }
 
     // ====================
-    // PLAYER STATE FILTERS
+    // PLAYER STATE FILTERS (still lists - player can have multiple states)
     // ====================
 
     /// <summary>

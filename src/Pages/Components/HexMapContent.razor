@@ -14,22 +14,41 @@
     <!-- HTML/CSS Hex Grid -->
     <div class="map-viewport">
         <div class="hex-grid-container">
+            @* First pass: Render venue labels (outside clip-path) *@
+            @foreach (var hex in Hexes)
+            {
+                var pos = GetHexPosition(hex.Coordinates);
+                var venue = GetVenueAtCoordinates(hex.Coordinates);
+                var showVenueLabel = IsVenueLabelHex(hex.Coordinates);
+
+                @if (showVenueLabel && venue != null)
+                {
+                    <div class="venue-label" style="left: @(pos.left + 35)px; top: @(pos.top - 10)px;">@venue.Name</div>
+                }
+            }
+
+            @* Second pass: Render hexes *@
             @foreach (var hex in Hexes)
             {
                 var pos = GetHexPosition(hex.Coordinates);
                 var terrainClass = GetTerrainColorClass(hex);
                 var isPlayer = IsPlayerPosition(hex.Coordinates);
                 var location = GetLocationAtCoordinates(hex.Coordinates);
+                var venue = GetVenueAtCoordinates(hex.Coordinates);
+                var venueColorClass = GetVenueColorClass(venue);
 
-                <div class="hex hex-@terrainClass" style="left: @(pos.left)px; top: @(pos.top)px;">
+                <div class="hex hex-@terrainClass @venueColorClass" style="left: @(pos.left)px; top: @(pos.top)px;">
                     @if (isPlayer)
                     {
                         <div class="player-marker">★</div>
                     }
-                    @if (location != null && !isPlayer)
+                    @if (location != null)
                     {
-                        <div class="location-marker">
-                            <div class="location-pin"></div>
+                        <div class="location-marker @(isPlayer ? "player-location" : "")">
+                            @if (!isPlayer)
+                            {
+                                <div class="location-pin"></div>
+                            }
                             <div class="location-name">@location.Name</div>
                         </div>
                     }

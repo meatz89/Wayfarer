@@ -286,12 +286,12 @@ public static class SceneArchetypeCatalog
             LocationFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Location,
-                Purposes = new List<LocationPurpose> { LocationPurpose.Commerce }
+                Purpose = LocationPurpose.Commerce
             },
             NpcFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.NPC,
-                Professions = new List<Professions> { Professions.Innkeeper }
+                Profession = Professions.Innkeeper
             },
             RouteFilter = null
         };
@@ -421,11 +421,7 @@ public static class SceneArchetypeCatalog
             },
             // Use LocationFilter for categorical matching via EntityResolver
             LocationFilter = serviceLocationFilter,
-            NpcFilter = new PlacementFilter  // Explicit "no NPC" override (empty filter = no match)
-            {
-                PlacementType = PlacementType.NPC,
-                PersonalityTypes = new List<PersonalityType>()  // Empty list = no NPC wanted
-            },
+            NpcFilter = null,
             RouteFilter = null
         };
 
@@ -501,11 +497,7 @@ public static class SceneArchetypeCatalog
             },
             // Same filter as rest situation = same location resolved
             LocationFilter = serviceLocationFilter,
-            NpcFilter = new PlacementFilter  // Explicit "no NPC" override (empty filter = no match)
-            {
-                PlacementType = PlacementType.NPC,
-                PersonalityTypes = new List<PersonalityType>()  // Empty list = no NPC wanted
-            },
+            NpcFilter = null,
             RouteFilter = null
         };
 
@@ -592,13 +584,9 @@ public static class SceneArchetypeCatalog
             LocationFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Location
-                // Empty filter lists = matches any location within venue
+                // Empty filter = matches any location within venue
             },
-            NpcFilter = new PlacementFilter  // Explicit "no NPC" override (solo reflection)
-            {
-                PlacementType = PlacementType.NPC,
-                PersonalityTypes = new List<PersonalityType>()  // Empty list = no NPC wanted
-            },
+            NpcFilter = null,
             RouteFilter = null
         };
 
@@ -691,12 +679,12 @@ public static class SceneArchetypeCatalog
             LocationFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Location,
-                Purposes = new List<LocationPurpose> { LocationPurpose.Commerce }
+                Purpose = LocationPurpose.Commerce
             },
             NpcFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.NPC,
-                Professions = new List<Professions> { Professions.Merchant }
+                Profession = Professions.Merchant
             },
             RouteFilter = null
         };
@@ -834,12 +822,12 @@ public static class SceneArchetypeCatalog
             LocationFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Location,
-                Purposes = new List<LocationPurpose> { LocationPurpose.Commerce }
+                Purpose = LocationPurpose.Commerce
             },
             NpcFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.NPC,
-                Professions = new List<Professions> { Professions.Merchant }
+                Profession = Professions.Merchant
             },
             RouteFilter = null
         };
@@ -1000,7 +988,11 @@ public static class SceneArchetypeCatalog
                 PlacementType = PlacementType.Route,
                 SegmentIndex = 0  // First segment
             },
-            LocationFilter = null,
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                Proximity = PlacementProximity.SameLocation
+            },
             NpcFilter = null
         };
 
@@ -1096,7 +1088,11 @@ public static class SceneArchetypeCatalog
                 PlacementType = PlacementType.Route,
                 SegmentIndex = 1  // Second segment
             },
-            LocationFilter = null,
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                Proximity = PlacementProximity.SameLocation
+            },
             NpcFilter = null
         };
 
@@ -1192,7 +1188,11 @@ public static class SceneArchetypeCatalog
                 PlacementType = PlacementType.Route,
                 SegmentIndex = 2  // Third segment
             },
-            LocationFilter = null,
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                Proximity = PlacementProximity.SameLocation
+            },
             NpcFilter = null
         };
 
@@ -1239,7 +1239,11 @@ public static class SceneArchetypeCatalog
                 PlacementType = PlacementType.Route,
                 SegmentIndex = 3  // Fourth segment
             },
-            LocationFilter = null,
+            LocationFilter = new PlacementFilter
+            {
+                PlacementType = PlacementType.Location,
+                Proximity = PlacementProximity.SameLocation
+            },
             NpcFilter = null
         };
 
@@ -1283,12 +1287,12 @@ public static class SceneArchetypeCatalog
             LocationFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.Location,
-                Purposes = new List<LocationPurpose> { LocationPurpose.Commerce }
+                Purpose = LocationPurpose.Commerce
             },
             NpcFilter = new PlacementFilter
             {
                 PlacementType = PlacementType.NPC,
-                Professions = new List<Professions> { Professions.Merchant }
+                Profession = Professions.Merchant
             },
             RouteFilter = null      // At destination location, not on route
         };
@@ -1425,10 +1429,10 @@ public static class SceneArchetypeCatalog
         PlacementFilter meetingChamberFilter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            PrivacyLevels = new List<LocationPrivacy> { LocationPrivacy.Private },
-            SafetyLevels = new List<LocationSafety> { LocationSafety.Safe },
-            ActivityLevels = new List<LocationActivity> { LocationActivity.Quiet },
-            Purposes = new List<LocationPurpose> { LocationPurpose.Governance },
+            Privacy = LocationPrivacy.Private,
+            Safety = LocationSafety.Safe,
+            Activity = LocationActivity.Quiet,
+            Purpose = LocationPurpose.Governance,
             RequiredCapabilities = LocationCapability.None,
             SelectionStrategy = PlacementSelectionStrategy.Random
         };

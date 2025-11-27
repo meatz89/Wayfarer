@@ -297,21 +297,11 @@ public class SceneInstantiator
         return new LocationDTO
         {
             Name = _narrativeService.GenerateLocationName(filter),
-            LocationType = (filter.LocationTypes != null && filter.LocationTypes.Count > 0
-                ? filter.LocationTypes[0]
-                : LocationTypes.Generic).ToString(),
-            Privacy = (filter.PrivacyLevels != null && filter.PrivacyLevels.Count > 0
-                ? filter.PrivacyLevels[0]
-                : LocationPrivacy.Public).ToString(),
-            Safety = (filter.SafetyLevels != null && filter.SafetyLevels.Count > 0
-                ? filter.SafetyLevels[0]
-                : LocationSafety.Neutral).ToString(),
-            Activity = (filter.ActivityLevels != null && filter.ActivityLevels.Count > 0
-                ? filter.ActivityLevels[0]
-                : LocationActivity.Moderate).ToString(),
-            Purpose = (filter.Purposes != null && filter.Purposes.Count > 0
-                ? filter.Purposes[0]
-                : LocationPurpose.Generic).ToString(),
+            LocationType = (filter.LocationType ?? LocationTypes.Generic).ToString(),
+            Privacy = (filter.Privacy ?? LocationPrivacy.Public).ToString(),
+            Safety = (filter.Safety ?? LocationSafety.Neutral).ToString(),
+            Activity = (filter.Activity ?? LocationActivity.Moderate).ToString(),
+            Purpose = (filter.Purpose ?? LocationPurpose.Generic).ToString(),
             ObligationProfile = ObligationDiscipline.Research.ToString(),
             Capabilities = ParseCapabilitiesToStrings(filter.RequiredCapabilities)
         };
@@ -326,12 +316,8 @@ public class SceneInstantiator
         return new NPCDTO
         {
             Name = _narrativeService.GenerateNPCName(filter),
-            Profession = (filter.Professions != null && filter.Professions.Count > 0
-                ? filter.Professions[0]
-                : Professions.Commoner).ToString(),
-            PersonalityType = (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0
-                ? filter.PersonalityTypes[0]
-                : PersonalityType.Neutral).ToString(),
+            Profession = (filter.Profession ?? Professions.Commoner).ToString(),
+            PersonalityType = (filter.PersonalityType ?? PersonalityType.Neutral).ToString(),
             Tier = filter.MinTier ?? 1,
             Role = "Generated NPC",
             Description = "A person you've encountered"
@@ -652,9 +638,9 @@ public class SceneInstantiator
         List<NPC> matchingNPCs = _gameWorld.NPCs.Where(npc =>
         {
             // Check personality type (if specified)
-            if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
+            if (filter.PersonalityType.HasValue)
             {
-                if (!filter.PersonalityTypes.Contains(npc.PersonalityType))
+                if (npc.PersonalityType != filter.PersonalityType.Value)
                     return false;
             }
 
@@ -732,11 +718,11 @@ public class SceneInstantiator
     {
         RouteOption matchingRoute = _gameWorld.Routes.FirstOrDefault(route =>
         {
-            // Check terrain types (dominant terrain from TerrainCategories)
-            if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
+            // Check terrain type (dominant terrain from TerrainCategories)
+            if (filter.TerrainType != null)
             {
                 string dominantTerrain = route.GetDominantTerrainType();
-                if (!filter.TerrainTypes.Contains(dominantTerrain))
+                if (dominantTerrain != filter.TerrainType)
                     return false;
             }
 
@@ -842,8 +828,8 @@ public class SceneInstantiator
         criteria.Add($"PlacementType: {filter.PlacementType}");
 
         // NPC filters
-        if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
-            criteria.Add($"Personality Types: [{string.Join(", ", filter.PersonalityTypes)}]");
+        if (filter.PersonalityType.HasValue)
+            criteria.Add($"Personality Type: {filter.PersonalityType.Value}");
         if (filter.MinBond.HasValue)
             criteria.Add($"MinBond: {filter.MinBond.Value}");
         if (filter.MaxBond.HasValue)
@@ -860,8 +846,8 @@ public class SceneInstantiator
             criteria.Add($"Region: {filter.RegionId}");
 
         // Route filters
-        if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
-            criteria.Add($"Terrain Types: [{string.Join(", ", filter.TerrainTypes)}]");
+        if (filter.TerrainType != null)
+            criteria.Add($"Terrain Type: {filter.TerrainType}");
         if (filter.RouteTier.HasValue)
             criteria.Add($"Route Tier: {filter.RouteTier.Value}");
         if (filter.MinDifficulty.HasValue)
@@ -1187,31 +1173,31 @@ public class SceneInstantiator
             PlacementType = filter.PlacementType.ToString(),
             SelectionStrategy = filter.SelectionStrategy.ToString(),
             // NPC filters
-            PersonalityTypes = filter.PersonalityTypes?.Select(p => p.ToString()).ToList(),
-            Professions = filter.Professions?.Select(p => p.ToString()).ToList(),
-            RequiredRelationships = filter.RequiredRelationships?.Select(r => r.ToString()).ToList(),
+            PersonalityType = filter.PersonalityType?.ToString(),
+            Profession = filter.Profession?.ToString(),
+            RequiredRelationship = filter.RequiredRelationship?.ToString(),
             MinTier = filter.MinTier,
             MaxTier = filter.MaxTier,
             MinBond = filter.MinBond,
             MaxBond = filter.MaxBond,
             NpcTags = filter.NpcTags,
             // Orthogonal Categorical Dimensions - NPC
-            SocialStandings = filter.SocialStandings?.Select(s => s.ToString()).ToList(),
-            StoryRoles = filter.StoryRoles?.Select(r => r.ToString()).ToList(),
-            KnowledgeLevels = filter.KnowledgeLevels?.Select(k => k.ToString()).ToList(),
+            SocialStanding = filter.SocialStanding?.ToString(),
+            StoryRole = filter.StoryRole?.ToString(),
+            KnowledgeLevel = filter.KnowledgeLevel?.ToString(),
             // Location filters
-            LocationTypes = filter.LocationTypes?.Select(t => t.ToString()).ToList(),
+            LocationType = filter.LocationType?.ToString(),
             Capabilities = ConvertCapabilitiesToStringList(filter.RequiredCapabilities),
             IsPlayerAccessible = filter.IsPlayerAccessible,
             DistrictId = filter.DistrictId,
             RegionId = filter.RegionId,
             // Orthogonal Categorical Dimensions - Location
-            PrivacyLevels = filter.PrivacyLevels?.Select(p => p.ToString()).ToList(),
-            SafetyLevels = filter.SafetyLevels?.Select(s => s.ToString()).ToList(),
-            ActivityLevels = filter.ActivityLevels?.Select(a => a.ToString()).ToList(),
-            Purposes = filter.Purposes?.Select(p => p.ToString()).ToList(),
+            Privacy = filter.Privacy?.ToString(),
+            Safety = filter.Safety?.ToString(),
+            Activity = filter.Activity?.ToString(),
+            Purpose = filter.Purpose?.ToString(),
             // Route filters
-            TerrainTypes = filter.TerrainTypes,
+            TerrainType = filter.TerrainType,
             RouteTier = filter.RouteTier,
             MinDifficulty = filter.MinDifficulty,
             MaxDifficulty = filter.MaxDifficulty,

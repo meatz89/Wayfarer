@@ -56,10 +56,11 @@ public static class DependentResourceCatalog
         PlacementFilter locationFilter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            PrivacyLevels = new List<LocationPrivacy> { LocationPrivacy.Private },
-            SafetyLevels = new List<LocationSafety> { LocationSafety.Safe },
-            ActivityLevels = new List<LocationActivity> { LocationActivity.Quiet },
-            Purposes = new List<LocationPurpose> { LocationPurpose.Dwelling },
+            LocationType = LocationTypes.Inn,
+            Privacy = LocationPrivacy.Private,
+            Safety = LocationSafety.Safe,
+            Activity = LocationActivity.Quiet,
+            Purpose = LocationPurpose.Dwelling,
             RequiredCapabilities = LocationCapability.SleepingSpace | LocationCapability.Restful,
             SelectionStrategy = PlacementSelectionStrategy.Random
         };
@@ -75,10 +76,10 @@ public static class DependentResourceCatalog
         PlacementFilter locationFilter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            PrivacyLevels = new List<LocationPrivacy> { LocationPrivacy.Private },
-            SafetyLevels = new List<LocationSafety> { LocationSafety.Safe },
-            ActivityLevels = new List<LocationActivity> { LocationActivity.Quiet },
-            Purposes = new List<LocationPurpose> { LocationPurpose.Dwelling },
+            Privacy = LocationPrivacy.Private,
+            Safety = LocationSafety.Safe,
+            Activity = LocationActivity.Quiet,
+            Purpose = LocationPurpose.Dwelling,
             RequiredCapabilities = LocationCapability.Restful,
             SelectionStrategy = PlacementSelectionStrategy.Random
         };
@@ -94,10 +95,10 @@ public static class DependentResourceCatalog
         PlacementFilter locationFilter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            PrivacyLevels = new List<LocationPrivacy> { LocationPrivacy.Private },
-            SafetyLevels = new List<LocationSafety> { LocationSafety.Neutral },
-            ActivityLevels = new List<LocationActivity> { LocationActivity.Busy },
-            Purposes = new List<LocationPurpose> { LocationPurpose.Commerce },
+            Privacy = LocationPrivacy.Private,
+            Safety = LocationSafety.Neutral,
+            Activity = LocationActivity.Busy,
+            Purpose = LocationPurpose.Commerce,
             RequiredCapabilities = LocationCapability.None,
             SelectionStrategy = PlacementSelectionStrategy.Random
         };
@@ -113,10 +114,10 @@ public static class DependentResourceCatalog
         PlacementFilter locationFilter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            PrivacyLevels = new List<LocationPrivacy> { LocationPrivacy.Private },
-            SafetyLevels = new List<LocationSafety> { LocationSafety.Safe },
-            ActivityLevels = new List<LocationActivity> { LocationActivity.Quiet },
-            Purposes = new List<LocationPurpose> { LocationPurpose.Dwelling },
+            Privacy = LocationPrivacy.Private,
+            Safety = LocationSafety.Safe,
+            Activity = LocationActivity.Quiet,
+            Purpose = LocationPurpose.Dwelling,
             RequiredCapabilities = LocationCapability.Restful,
             SelectionStrategy = PlacementSelectionStrategy.Random
         };
@@ -132,10 +133,10 @@ public static class DependentResourceCatalog
         PlacementFilter locationFilter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            PrivacyLevels = new List<LocationPrivacy> { LocationPrivacy.Private },
-            SafetyLevels = new List<LocationSafety> { LocationSafety.Neutral },
-            ActivityLevels = new List<LocationActivity> { LocationActivity.Busy },
-            Purposes = new List<LocationPurpose> { LocationPurpose.Commerce },
+            Privacy = LocationPrivacy.Private,
+            Safety = LocationSafety.Neutral,
+            Activity = LocationActivity.Busy,
+            Purpose = LocationPurpose.Commerce,
             RequiredCapabilities = LocationCapability.None,
             SelectionStrategy = PlacementSelectionStrategy.Random
         };
@@ -151,10 +152,10 @@ public static class DependentResourceCatalog
         PlacementFilter locationFilter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            PrivacyLevels = new List<LocationPrivacy> { LocationPrivacy.Private },
-            SafetyLevels = new List<LocationSafety> { LocationSafety.Safe },
-            ActivityLevels = new List<LocationActivity> { LocationActivity.Quiet },
-            Purposes = new List<LocationPurpose> { LocationPurpose.Learning },
+            Privacy = LocationPrivacy.Private,
+            Safety = LocationSafety.Safe,
+            Activity = LocationActivity.Quiet,
+            Purpose = LocationPurpose.Learning,
             RequiredCapabilities = LocationCapability.Restful,
             SelectionStrategy = PlacementSelectionStrategy.Random
         };

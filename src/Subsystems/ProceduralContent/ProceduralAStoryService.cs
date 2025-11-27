@@ -198,7 +198,7 @@ public class ProceduralAStoryService
         Region selectedRegion = SelectRegion(tier, context);
 
         // Select NPC personality type for social archetypes
-        List<string> personalityTypes = SelectPersonalityTypes(tier, context);
+        string personalityType = SelectPersonalityType(tier, context);
 
         PlacementFilterDTO filter = new PlacementFilterDTO
         {
@@ -210,7 +210,7 @@ public class ProceduralAStoryService
             Capabilities = SelectLocationCapabilities(tier),
 
             // NPC filters (categorical)
-            PersonalityTypes = personalityTypes,
+            PersonalityType = personalityType,
             MinBond = null, // A-story accessible regardless of relationships
             MaxBond = null,
             NpcTags = new List<string> { "order_connected" }
@@ -268,10 +268,10 @@ public class ProceduralAStoryService
     }
 
     /// <summary>
-    /// Select personality types for NPC categorical filtering
+    /// Select personality type for NPC categorical filtering
     /// Varies based on tier and anti-repetition
     /// </summary>
-    private List<string> SelectPersonalityTypes(int tier, AStoryContext context)
+    private string SelectPersonalityType(int tier, AStoryContext context)
     {
         List<PersonalityType> allTypes = new List<PersonalityType>
     {
@@ -292,14 +292,10 @@ public class ProceduralAStoryService
             availableTypes = allTypes; // All recent, use any
         }
 
-        // Select 2-3 personality types for variety
-        int countToSelect = Math.Min(2 + (tier - 1), availableTypes.Count);
-        List<string> selectedTypes = availableTypes
-            .Take(countToSelect)
-            .Select(p => p.ToString())
-            .ToList();
+        // Select one personality type
+        PersonalityType selectedType = availableTypes[Random.Shared.Next(availableTypes.Count)];
 
-        return selectedTypes;
+        return selectedType.ToString();
     }
 
     /// <summary>

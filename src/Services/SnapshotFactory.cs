@@ -71,36 +71,16 @@ public static class SnapshotFactory
         {
             PlacementType = filter.PlacementType,
             SelectionStrategy = filter.SelectionStrategy,
-            PersonalityTypes = filter.PersonalityTypes != null
-                ? new List<PersonalityType>(filter.PersonalityTypes)
-                : new List<PersonalityType>(),
-            Professions = filter.Professions != null
-                ? new List<Professions>(filter.Professions)
-                : new List<Professions>(),
-            SocialStandings = filter.SocialStandings != null
-                ? new List<NPCSocialStanding>(filter.SocialStandings)
-                : new List<NPCSocialStanding>(),
-            StoryRoles = filter.StoryRoles != null
-                ? new List<NPCStoryRole>(filter.StoryRoles)
-                : new List<NPCStoryRole>(),
-            LocationTypes = filter.LocationTypes != null
-                ? new List<LocationTypes>(filter.LocationTypes)
-                : new List<LocationTypes>(),
-            PrivacyLevels = filter.PrivacyLevels != null
-                ? new List<LocationPrivacy>(filter.PrivacyLevels)
-                : new List<LocationPrivacy>(),
-            SafetyLevels = filter.SafetyLevels != null
-                ? new List<LocationSafety>(filter.SafetyLevels)
-                : new List<LocationSafety>(),
-            ActivityLevels = filter.ActivityLevels != null
-                ? new List<LocationActivity>(filter.ActivityLevels)
-                : new List<LocationActivity>(),
-            Purposes = filter.Purposes != null
-                ? new List<LocationPurpose>(filter.Purposes)
-                : new List<LocationPurpose>(),
-            TerrainTypes = filter.TerrainTypes != null
-                ? new List<string>(filter.TerrainTypes)
-                : new List<string>(),
+            PersonalityType = filter.PersonalityType,
+            Profession = filter.Profession,
+            SocialStanding = filter.SocialStanding,
+            StoryRole = filter.StoryRole,
+            LocationType = filter.LocationType,
+            Privacy = filter.Privacy,
+            Safety = filter.Safety,
+            Activity = filter.Activity,
+            Purpose = filter.Purpose,
+            TerrainType = filter.TerrainType,
             RouteTier = filter.RouteTier
         };
     }

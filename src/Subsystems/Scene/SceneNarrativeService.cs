@@ -178,10 +178,9 @@ public class SceneNarrativeService
         // Capabilities are flags enum, no ordered list - skip prefix generation
 
         // Add location type
-        if (filter.LocationTypes != null && filter.LocationTypes.Count > 0)
+        if (filter.LocationType.HasValue)
         {
-            LocationTypes type = filter.LocationTypes.First();
-            string typeWord = type switch
+            string typeWord = filter.LocationType.Value switch
             {
                 LocationTypes.Inn => "Inn",
                 LocationTypes.Tavern => "Tavern",
@@ -210,10 +209,9 @@ public class SceneNarrativeService
 
         string professionName = "Person";
 
-        if (filter.Professions != null && filter.Professions.Count > 0)
+        if (filter.Profession.HasValue)
         {
-            Professions profession = filter.Professions.First();
-            professionName = profession switch
+            professionName = filter.Profession.Value switch
             {
                 Professions.Innkeeper => "Innkeeper",
                 Professions.Merchant => "Merchant",
@@ -228,10 +226,9 @@ public class SceneNarrativeService
         }
 
         string personalityPrefix = "";
-        if (filter.PersonalityTypes != null && filter.PersonalityTypes.Count > 0)
+        if (filter.PersonalityType.HasValue)
         {
-            PersonalityType personality = filter.PersonalityTypes.First();
-            personalityPrefix = personality switch
+            personalityPrefix = filter.PersonalityType.Value switch
             {
                 PersonalityType.DEVOTED => "Devoted",
                 PersonalityType.MERCANTILE => "Shrewd",
@@ -257,11 +254,9 @@ public class SceneNarrativeService
         if (filter == null)
             return "Unknown Route";
 
-        if (filter.TerrainTypes != null && filter.TerrainTypes.Count > 0)
+        if (filter.TerrainType != null)
         {
-            string terrain = filter.TerrainTypes.First();
-
-            string terrainName = terrain.ToLower() switch
+            string terrainName = filter.TerrainType.ToLower() switch
             {
                 "forest" => "Forest Path",
                 "mountain" => "Mountain Trail",
@@ -269,7 +264,7 @@ public class SceneNarrativeService
                 "river" => "River Crossing",
                 "urban" => "City Street",
                 "wilderness" => "Wilderness Track",
-                _ => $"{terrain} Route"
+                _ => $"{filter.TerrainType} Route"
             };
 
             return terrainName;

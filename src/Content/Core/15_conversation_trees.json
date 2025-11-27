@@ -12,10 +12,10 @@
       "description": "The innkeeper greets you warmly.",
       "participantFilter": {
         "placementType": "NPC",
-        "professions": ["Innkeeper"],
-        "socialStandings": ["Notable"],
-        "storyRoles": ["Obstacle"],
-        "knowledgeLevels": ["Informed"]
+        "profession": "Innkeeper",
+        "socialStanding": "Notable",
+        "storyRole": "Obstacle",
+        "knowledgeLevel": "Informed"
       },
       "minimumRelationship": 0,
       "requiredKnowledge": [],
@@ -101,10 +101,10 @@
       "description": "The foreman seems troubled by supply issues.",
       "participantFilter": {
         "placementType": "NPC",
-        "professions": ["Dock_Boss"],
-        "socialStandings": ["Commoner"],
-        "storyRoles": ["Neutral"],
-        "knowledgeLevels": ["Ignorant"]
+        "profession": "Dock_Boss",
+        "socialStanding": "Commoner",
+        "storyRole": "Neutral",
+        "knowledgeLevel": "Ignorant"
       },
       "minimumRelationship": 0,
       "requiredKnowledge": [],
@@ -222,10 +222,10 @@
       "description": "Elena shares insights about the town after hours.",
       "participantFilter": {
         "placementType": "NPC",
-        "professions": ["Innkeeper"],
-        "socialStandings": ["Notable"],
-        "storyRoles": ["Obstacle"],
-        "knowledgeLevels": ["Informed"]
+        "profession": "Innkeeper",
+        "socialStanding": "Notable",
+        "storyRole": "Obstacle",
+        "knowledgeLevel": "Informed"
       },
       "minimumRelationship": 3,
       "requiredKnowledge": ["knows_room_cost"],
@@ -313,10 +313,10 @@
       "description": "The general merchant shares news and rumors.",
       "participantFilter": {
         "placementType": "NPC",
-        "professions": ["Merchant"],
-        "socialStandings": ["Commoner"],
-        "storyRoles": ["Neutral"],
-        "knowledgeLevels": ["Ignorant"]
+        "profession": "Merchant",
+        "socialStanding": "Commoner",
+        "storyRole": "Neutral",
+        "knowledgeLevel": "Ignorant"
       },
       "minimumRelationship": 0,
       "requiredKnowledge": [],

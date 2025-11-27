@@ -475,30 +475,30 @@ public class LocationFacade
     private bool LocationMatchesActivationFilter(Location location, PlacementFilter filter, Player player)
     {
         // Check Privacy (if specified)
-        if (filter.PrivacyLevels != null && filter.PrivacyLevels.Count > 0)
+        if (filter.Privacy.HasValue)
         {
-            if (!filter.PrivacyLevels.Contains(location.Privacy))
+            if (location.Privacy != filter.Privacy.Value)
                 return false;
         }
 
         // Check Safety (if specified)
-        if (filter.SafetyLevels != null && filter.SafetyLevels.Count > 0)
+        if (filter.Safety.HasValue)
         {
-            if (!filter.SafetyLevels.Contains(location.Safety))
+            if (location.Safety != filter.Safety.Value)
                 return false;
         }
 
         // Check Activity (if specified)
-        if (filter.ActivityLevels != null && filter.ActivityLevels.Count > 0)
+        if (filter.Activity.HasValue)
         {
-            if (!filter.ActivityLevels.Contains(location.Activity))
+            if (location.Activity != filter.Activity.Value)
                 return false;
         }
 
         // Check Purpose (if specified)
-        if (filter.Purposes != null && filter.Purposes.Count > 0)
+        if (filter.Purpose.HasValue)
         {
-            if (!filter.Purposes.Contains(location.Purpose))
+            if (location.Purpose != filter.Purpose.Value)
                 return false;
         }
 

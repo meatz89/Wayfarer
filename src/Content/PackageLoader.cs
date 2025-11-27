@@ -79,6 +79,12 @@ public class PackageLoader
 
         Console.WriteLine($"[PackageLoader] CreateSingleLocation: Created '{location.Name}' in venue '{venue.Name}' at hex ({availableHex.Value.Q}, {availableHex.Value.R})");
 
+        // RUNTIME ACTION REGENERATION: Generate intra-venue movement actions for dynamically created locations
+        // This ensures scene-created locations have proper movement actions both TO and FROM neighboring locations
+        List<LocationAction> newActions = LocationActionCatalog.RegenerateIntraVenueActionsForNewLocation(location, _gameWorld.Locations);
+        _gameWorld.LocationActions.AddRange(newActions);
+        Console.WriteLine($"[PackageLoader] CreateSingleLocation: Added {newActions.Count} intra-venue movement actions for '{location.Name}'");
+
         return location;
     }
 

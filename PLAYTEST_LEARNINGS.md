@@ -45,14 +45,25 @@
 
 **Technical Details:** The fix uses venue hex offsets array and checks each position against existing locations until an unoccupied hex is found.
 
-### 4. Tutorial Scene Only 1 Situation (FIXED - 2025-11-26)
-**Issue:** a1_secure_lodging scene only presents 1 situation instead of the expected 3 situations.
+### 4. Tutorial Scene Design Clarification (UPDATED - 2025-11-27)
+**Previous Misunderstanding:** a1_secure_lodging was thought to need automatic cascading through 3 situations.
 
-**Root Cause:** SceneContent.HandleChoiceSelected() ignored `Scene.ProgressionMode`. When context changed (NPC goes from Innkeeper to null between situations), the UI exited to world instead of cascading.
+**Actual Design:** The 3 situations have INTENTIONALLY different contexts:
+- Situation 1: Negotiate with Elena (Innkeeper) at Common Room
+- Situation 2: Rest in Private Room (no NPC)
+- Situation 3: Depart from Private Room (no NPC)
 
-**Fix Applied:** Updated SceneContent.razor.cs to check `ProgressionMode.Cascade` - when set, forces continuation regardless of context changes.
+**Correct Behavior:** After completing Situation 1, player receives `ExitToWorld` routing decision. Player must manually navigate to Private Room where Situation 2 activates. This teaches the spatial model.
 
-**Verification:** Playwright test confirms scene now cascades from Situation 1 (stat choices) to Situation 2 (rest choices like "Read and study", "Rest peacefully").
+**Previous "Fix" Was Wrong:** A "Cascade bypass" was added that ignored ExitToWorld when ProgressionMode=Cascade. This broke the spatial model and prevented generated locations from working properly.
+
+**Current Code (Correct):**
+```csharp
+bool shouldContinueInScene = routingDecision == SceneRoutingDecision.ContinueInScene;
+```
+- ExitToWorld ALWAYS exits (context changed, player navigates)
+- ContinueInScene continues (same context, next situation flows)
+- ProgressionMode affects UI pacing only, not routing decisions
 
 ### 5. Travel Blocked - Potential Soft-Lock (FIXED - 2025-11-26)
 **Issue:** Player cannot travel from The Brass Bell Inn to Town Square due to resource constraints.

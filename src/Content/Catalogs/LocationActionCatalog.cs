@@ -266,6 +266,56 @@ public static class LocationActionCatalog
     }
 
     /// <summary>
+    /// PUBLIC: Regenerate intra-venue movement actions when a location is created at runtime.
+    /// Called by PackageLoader.CreateSingleLocation to ensure scene-created locations have proper
+    /// movement actions both FROM the new location TO neighbors AND FROM neighbors TO the new location.
+    /// </summary>
+    public static List<LocationAction> RegenerateIntraVenueActionsForNewLocation(Location newLocation, List<Location> allLocations)
+    {
+        List<LocationAction> newActions = new List<LocationAction>();
+
+        if (newLocation.Venue == null || !newLocation.HexPosition.HasValue)
+        {
+            Console.WriteLine($"[LocationActionCatalog] ⚠️ Cannot regenerate actions for '{newLocation.Name}' - missing venue or hex position");
+            return newActions;
+        }
+
+        // Generate actions FROM new location TO adjacent neighbors
+        List<LocationAction> actionsFromNew = GenerateIntraVenueMovementActions(newLocation, allLocations);
+        newActions.AddRange(actionsFromNew);
+        Console.WriteLine($"[LocationActionCatalog] Generated {actionsFromNew.Count} movement actions FROM '{newLocation.Name}'");
+
+        // Generate actions FROM adjacent neighbors TO new location
+        foreach (Location neighbor in allLocations)
+        {
+            if (neighbor == newLocation) continue;
+            if (neighbor.Venue != newLocation.Venue) continue;
+            if (!neighbor.HexPosition.HasValue) continue;
+            if (!AreHexesAdjacent(neighbor.HexPosition.Value, newLocation.HexPosition.Value)) continue;
+
+            LocationAction moveToNew = new LocationAction
+            {
+                SourceLocation = neighbor,
+                DestinationLocation = newLocation,
+                Name = $"Move to {newLocation.Name}",
+                Description = $"Walk to {newLocation.Name} within the same venue (instant, free)",
+                ActionType = LocationActionType.IntraVenueMove,
+                Costs = ActionCosts.None(),
+                Rewards = ActionRewards.None(),
+                RequiredCapabilities = LocationCapability.None,
+                OptionalCapabilities = LocationCapability.None,
+                ExcludedCapabilities = LocationCapability.None,
+                Availability = new List<TimeBlocks>(),
+                Priority = 90
+            };
+            newActions.Add(moveToNew);
+            Console.WriteLine($"[LocationActionCatalog] Generated movement action FROM '{neighbor.Name}' TO '{newLocation.Name}'");
+        }
+
+        return newActions;
+    }
+
+    /// <summary>
     /// Calculate hex distance in axial coordinates for debugging.
     /// Manhattan distance in axial hex grid.
     /// </summary>
