@@ -433,7 +433,7 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
 
 **Expected Flow:** Player must TRAVEL to Town Square Center to find the Merchant and trigger a2_morning scene. The intro narrative confirms this: "Morning arrives. You step out into the town square, seeking work."
 
-### 10. CRITICAL BUG: Procedural Routes Blocked (OPEN - 2025-11-27)
+### 10. CRITICAL BUG: Procedural Routes Blocked (FIXED - 2025-11-27)
 **Issue:** When attempting to travel from Common Room to Town Square Center:
 - Travel initiated showing "Segment 1 of 2"
 - Immediately shows "PATH BLOCKED - All routes ahead are impassable"
@@ -442,19 +442,32 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
 
 **Root Cause Analysis:**
 1. `HexRouteGenerator.cs` creates RouteSegments for procedural routes
-2. Segments have `Type = SegmentType.FixedPath` but NO PathCards are generated
-3. `TravelManager.GetSegmentCards()` returns empty list
-4. `TravelFacade.GetAvailablePathCards()` returns empty → triggers dead-end
-5. `IsDeadEnd()` returns true because no cards available
+2. Segments had `Type = SegmentType.FixedPath` but NO PathCards were generated (PathCollection = null)
+3. `TravelManager.GetSegmentCards()` returned empty list for null PathCollection
+4. `TravelFacade.GetAvailablePathCards()` returned empty → triggered dead-end
+5. `IsDeadEnd()` returned true because no cards available
 
-**Impact:** Player cannot travel between locations using procedural routes. Only authored routes in `04_connections.json` work (currently only `square_to_mill`).
+**Fix Applied:** Two changes made:
 
-**Soft-Lock Status:** PARTIAL - Player can still:
-- Use "Move to The Inn" (same-venue navigation)
-- Wait, Rest, Work at current location
-- Cannot progress tutorial to a2_morning scene
+1. **`HexRouteGenerator.cs`** - Added `GeneratePathCardsForSegment()` method that creates 2 PathCardDTOs per segment:
+   - **Safe Path** (e.g., "Main Road", "Forest Trail"): 0 stamina, 2 segments (slower)
+   - **Fast Path** (e.g., "Side Track", "Through the Undergrowth"): 1-2 stamina, 1 segment (faster)
+   - Names and descriptions are terrain-appropriate (Road, Forest, Plains, Mountains, etc.)
+   - Both paths start face-down (`StartsRevealed = false`) for discovery mechanic
 
-**Required Fix:** `HexRouteGenerator.GenerateRouteSegments()` needs to generate PathCards for each segment. PathCards define the available paths (main road, shortcut, etc.) that players can choose.
+2. **`GameWorld.cs`** - Modified `IsPathCardDiscovered()` to handle procedural cards gracefully:
+   - If no discovery entry exists, returns `card.StartsRevealed` (false for procedural cards)
+   - No longer throws exception for missing discovery entries
+
+**Verification:** Procedural route travel now works:
+- "CHOOSE YOUR PATH" displays 2 options (Main Road 0 stamina/2 seg, Side Track 1 stamina/1 seg)
+- Selecting a path shows "PATH REVEALED" with correct description and costs
+- "CONTINUE TO NEXT SEGMENT" button advances travel
+
+**Design Intent Implemented:**
+- Player learns routes through repeated travel (paths revealed permanently after first use)
+- Safe vs Fast tradeoff creates strategic choice (time vs stamina)
+- Terrain-based naming adds world immersion
 
 ### Test Flow Executed
 1. Game Start → Common Room (EVENING)
@@ -470,11 +483,11 @@ protected override async Task OnAfterRenderAsync(bool firstRender)
 
 ---
 
-**Last Updated:** 2025-11-27 08:48 UTC
-**Current Phase:** Tutorial Testing - BLOCKED by procedural routes bug
+**Last Updated:** 2025-11-27 09:27 UTC
+**Current Phase:** Tutorial Testing - Procedural routes FIXED, ready to test a2_morning
 **Issues Fixed This Session:**
 - Z.Blazor.Diagrams MutationObserver error (dynamic script loading)
+- CRITICAL: Procedural routes PathCards generation (HexRouteGenerator + GameWorld discovery handling)
 
 **Open Issues:**
-- CRITICAL: Procedural routes have no PathCards → travel blocked
-- Cannot test a2_morning scene activation due to travel block
+- None critical - ready to continue a2_morning testing

@@ -959,6 +959,7 @@ public class GameWorld
     /// <summary>
     /// Check if path card is discovered
     /// HIGHLANDER: Accept PathCardDTO object, extract Id internally for state tracking
+    /// Returns false for procedurally generated cards without discovery entries (face-down by default)
     /// </summary>
     public bool IsPathCardDiscovered(PathCardDTO card)
     {
@@ -967,7 +968,9 @@ public class GameWorld
 
         PathCardDiscoveryEntry entry = PathCardDiscoveries.FirstOrDefault(d => d.CardId == card.Id);
         if (entry == null)
-            throw new InvalidOperationException($"No discovery entry found for card '{card.Name}' - ensure card exists before checking discovery status");
+        {
+            return card.StartsRevealed;
+        }
         return entry.IsDiscovered;
     }
 

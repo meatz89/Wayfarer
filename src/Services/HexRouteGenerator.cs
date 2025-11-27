@@ -344,7 +344,7 @@ public class HexRouteGenerator
             {
                 SegmentNumber = segmentNumber,
                 Type = isEncounter ? SegmentType.Encounter : SegmentType.FixedPath,
-                // PathCollection: null (FixedPath uses NarrativeDescription only, no PathCards needed for procedural routes)
+                PathCollection = isEncounter ? null : GeneratePathCardsForSegment(dominantTerrain, segmentDanger, segmentNumber),
                 // MandatorySceneTemplate: null initially, populated by scene spawning logic
                 NarrativeDescription = GenerateSegmentDescription(dominantTerrain, segmentDanger)
             };
@@ -489,6 +489,105 @@ public class HexRouteGenerator
                            "(Very Dangerous)";
 
         return $"{terrainDesc} {dangerDesc}";
+    }
+
+    /// <summary>
+    /// Generate PathCardCollectionDTO for a FixedPath segment with 2 path options
+    /// Safe path: slower (2 segments), no stamina cost
+    /// Fast path: quicker (1 segment), stamina cost based on danger
+    /// Both start face-down (StartsRevealed = false) for discovery mechanic
+    /// </summary>
+    private PathCardCollectionDTO GeneratePathCardsForSegment(TerrainType terrain, int danger, int segmentNumber)
+    {
+        PathCardNames names = GetTerrainPathNames(terrain);
+        int fastPathStaminaCost = CalculateFastPathStaminaCost(danger);
+
+        PathCardDTO safePath = new PathCardDTO
+        {
+            Id = $"procedural_safe_{segmentNumber}",
+            Name = names.SafeName,
+            StartsRevealed = false,
+            StaminaCost = 0,
+            TravelTimeSegments = 2,
+            NarrativeText = names.SafeDescription
+        };
+
+        PathCardDTO fastPath = new PathCardDTO
+        {
+            Id = $"procedural_fast_{segmentNumber}",
+            Name = names.FastName,
+            StartsRevealed = false,
+            StaminaCost = fastPathStaminaCost,
+            TravelTimeSegments = 1,
+            NarrativeText = names.FastDescription
+        };
+
+        return new PathCardCollectionDTO
+        {
+            Id = $"procedural_collection_{segmentNumber}",
+            Name = $"Segment {segmentNumber} Paths",
+            PathCards = new List<PathCardDTO> { safePath, fastPath }
+        };
+    }
+
+    /// <summary>
+    /// Get terrain-appropriate path names for procedural path cards
+    /// </summary>
+    private PathCardNames GetTerrainPathNames(TerrainType terrain)
+    {
+        return terrain switch
+        {
+            TerrainType.Forest => new PathCardNames(
+                "Forest Trail", "A well-worn path through the trees.",
+                "Through the Undergrowth", "Push through the dense brush - faster but exhausting."),
+            TerrainType.Plains => new PathCardNames(
+                "Caravan Road", "Follow the established trade route.",
+                "Cross-Country", "Cut across the open fields directly."),
+            TerrainType.Mountains => new PathCardNames(
+                "Mountain Pass", "The long but steady switchback trail.",
+                "Ridge Climb", "Scale the rocky ridge for a shortcut."),
+            TerrainType.Swamp => new PathCardNames(
+                "Raised Pathway", "Stick to the elevated boardwalk.",
+                "Wade Through", "Trudge directly through the muck."),
+            TerrainType.Road => new PathCardNames(
+                "Main Road", "Continue along the well-maintained road.",
+                "Side Track", "Take a lesser-known parallel path."),
+            TerrainType.Water => new PathCardNames(
+                "Bridge Crossing", "Use the established crossing point.",
+                "Ford the River", "Wade across at a shallow point."),
+            _ => new PathCardNames(
+                "Main Path", "The obvious route forward.",
+                "Shortcut", "A quicker but more demanding alternative.")
+        };
+    }
+
+    /// <summary>
+    /// Calculate stamina cost for fast path based on danger level
+    /// Danger 0-2: 1 stamina, Danger 3-4: 2 stamina, Danger 5+: 2 stamina
+    /// </summary>
+    private int CalculateFastPathStaminaCost(int danger)
+    {
+        if (danger <= 2) return 1;
+        return 2;
+    }
+
+    /// <summary>
+    /// Helper struct for terrain-based path naming
+    /// </summary>
+    private readonly struct PathCardNames
+    {
+        public string SafeName { get; }
+        public string SafeDescription { get; }
+        public string FastName { get; }
+        public string FastDescription { get; }
+
+        public PathCardNames(string safeName, string safeDesc, string fastName, string fastDesc)
+        {
+            SafeName = safeName;
+            SafeDescription = safeDesc;
+            FastName = fastName;
+            FastDescription = fastDesc;
+        }
     }
 
     /// <summary>
