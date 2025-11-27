@@ -1015,7 +1015,14 @@ public class GameWorld
             existing.Name = location.Name;
             existing.AssignVenue(location.Venue);
             existing.HexPosition = location.HexPosition;
-            existing.Capabilities = location.Capabilities;
+            // Orthogonal categorical properties
+            existing.Environment = location.Environment;
+            existing.Setting = location.Setting;
+            existing.Role = location.Role;
+            existing.Purpose = location.Purpose;
+            existing.Privacy = location.Privacy;
+            existing.Safety = location.Safety;
+            existing.Activity = location.Activity;
             existing.IsSkeleton = false; // Mark as no longer skeleton
             existing.Tier = location.Tier;
             // Provenance intentionally NOT copied - preserve creation metadata

@@ -47,14 +47,10 @@ public class Location
     public bool IsSkeleton { get; set; }
     public string SkeletonSource { get; set; } // What created this skeleton
 
-
-    /// <summary>
-    /// Functional capabilities - what this location CAN DO (not what it IS).
-    /// Uses Flags enum for efficient bitwise operations and combination checking.
-    /// Separated from categorical dimensions (Privacy/Safety/Activity/Purpose).
-    /// NO DEFAULTS: Capabilities.None must be explicitly set if location has no capabilities
-    /// </summary>
-    public LocationCapability Capabilities { get; set; }
+    // Orthogonal Categorical Dimensions (replacing generic LocationCapability flags)
+    // Each dimension is an independent axis with clear semantic values
+    public LocationEnvironment Environment { get; set; }
+    public LocationSetting Setting { get; set; }
 
     // NO DEFAULTS: All numeric properties must be explicitly set
     public int FlowModifier { get; set; }
@@ -88,7 +84,7 @@ public class Location
 
     // Gameplay properties - NO DEFAULTS: must be explicitly set by parser
     public ObligationDiscipline ObligationProfile { get; set; }
-    public LocationTypes LocationType { get; set; }
+    public LocationRole Role { get; set; }
     public bool IsStartingLocation { get; set; }
 
     // Orthogonal Categorical Dimensions (Entity Resolution)

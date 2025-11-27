@@ -35,7 +35,7 @@ public class LocationDTO
     // NEW Scene-Situation architecture uses GameWorld.Scenes with PlacementType/PlacementId filtering
 
     // Gameplay properties moved from LocationDTO
-    public string LocationType { get; set; }
+    public string Role { get; set; }
     public bool IsStartingLocation { get; set; }
     public string ObligationProfile { get; set; }
     public Dictionary<string, List<string>> AvailableProfessionsByTime { get; set; } = new Dictionary<string, List<string>>();
@@ -48,13 +48,9 @@ public class LocationDTO
     public string Activity { get; set; }
     public string Purpose { get; set; }
 
-    /// <summary>
-    /// Functional capabilities - what location CAN DO (not what it IS).
-    /// String array from JSON parsed to LocationCapability Flags enum by LocationParser.
-    /// Examples: "Crossroads" (enables Travel), "Commercial" (enables Work), "Indoor" (weather shelter).
-    /// SEPARATED from categorical dimensions (Privacy/Safety/Activity/Purpose).
-    /// </summary>
-    public List<string> Capabilities { get; set; } = new List<string>();
+    // ORTHOGONAL ENVIRONMENTAL DIMENSIONS (replacing generic capabilities)
+    public string Environment { get; set; }  // Indoor, Outdoor, Covered, Underground
+    public string Setting { get; set; }  // Urban, Suburban, Rural, Wilderness
 
     /// <summary>
     /// DEPENDENT LOCATION SPATIAL CONSTRAINT: Categorical proximity to reference location.

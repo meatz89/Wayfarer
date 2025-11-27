@@ -582,22 +582,30 @@ A2 and A3 are NOT created until their ScenesToSpawn rewards fire.
 - `npcActivationFilter` → Scene activates when player INTERACTS with matching NPC
 - Both must match if both specified
 
-**Correct A-Story Tutorial Flow:**
+**Correct A-Story Tutorial Flow (UPDATED 2025-11-27):**
+
+**Scene A1 (InnLodging - 3 Situations):**
 1. Game Start → A1 created as Deferred (isStarter: true)
-2. Player at Common Room (Commercial + Restful) → A1 activates
-3. Player completes A1 Situation 3 → ScenesToSpawn creates A2 as Deferred
-4. Player returns to location screen (ExitToWorld)
-5. Player navigates to Town Square Center (Public + Commercial + Merchant NPC)
-6. A2 activates when filters match
-7. Player completes A2 → ScenesToSpawn creates A3 as Deferred
-8. Player returns to location screen (ExitToWorld)
-9. Player initiates route travel (Outdoor + Quiet)
-10. A3 activates during route travel
+2. Player at Common Room → "Look Around" → A1 Situation 1 activates with Elena
+3. Player completes Situation 1 → ExitToWorld → must navigate to Private Room
+4. Player at Private Room → A1 Situation 2 activates
+5. Player completes Situation 2 → A1 Situation 3 activates
+6. Player completes Situation 3 → ScenesToSpawn creates A2 as Deferred
+
+**Scene A2 (DeliveryContract):**
+7. Player navigates back to Common Room (SemiPublic + Commercial)
+8. A2 activates when location filter matches
+9. Player completes A2 → ScenesToSpawn creates A3 as Deferred
+
+**Scene A3 (RouteSegmentTravel):**
+10. A3 activates IMMEDIATELY (same filter as A2 - player already at Common Room)
+11. A3 creates/finds route to destination
+12. Player takes route travel action → A3 Situation 1 starts
 
 **Key Validation Points:**
-- A2 should NOT appear at Common Room (it's SemiPublic, A2 needs Public)
-- A3 should NOT appear until route travel initiated
-- Player must have agency to explore between scenes
+- A2 activates at Common Room (SemiPublic + Commercial) - filter was FIXED from "Public"
+- A3 activates immediately after A2 (same filter) - filter was FIXED from "Quiet + Outdoor"
+- Player navigates to Private Room during A1 (teaches spatial model)
 
 **Files to Investigate:**
 - `src/Content/GameWorldInitializer.cs` - Scene startup logic (line 52: SpawnInitialScenes)
@@ -607,13 +615,14 @@ A2 and A3 are NOT created until their ScenesToSpawn rewards fire.
 
 ---
 
-**Last Updated:** 2025-11-27 12:00 UTC
-**Current Phase:** Scene cascade bug FIXED - Ready for integration testing
+**Last Updated:** 2025-11-27 12:30 UTC
+**Current Phase:** Scene cascade JSON filters FIXED - Ready for integration testing
 **Issues Fixed This Session:**
 - Z.Blazor.Diagrams MutationObserver error (dynamic script loading)
 - CRITICAL: Procedural routes PathCards generation (HexRouteGenerator + GameWorld discovery handling)
 - CRITICAL: RouteSegmentTravel arrival location resolution (PlacementProximity.RouteDestination)
 - CRITICAL: Scene auto-cascade bug - SpawnStarterScenes() now filters by IsStarter (not Category)
+- **CRITICAL: A2/A3 locationActivationFilter JSON fix** - A2 changed from "Public" to "SemiPublic", A3 changed to same filter as A2 (so it activates immediately at Common Room)
 
 **Open Issues:**
 - RECOMMENDED: Add validation to ensure at least one scene has IsStarter=true

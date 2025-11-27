@@ -75,12 +75,13 @@ public static class SnapshotFactory
             Profession = filter.Profession,
             SocialStanding = filter.SocialStanding,
             StoryRole = filter.StoryRole,
-            LocationType = filter.LocationType,
+            LocationRole = filter.LocationRole,
             Privacy = filter.Privacy,
             Safety = filter.Safety,
             Activity = filter.Activity,
             Purpose = filter.Purpose,
-            TerrainType = filter.TerrainType,
+            Terrain = filter.Terrain,
+            Structure = filter.Structure,
             RouteTier = filter.RouteTier
         };
     }

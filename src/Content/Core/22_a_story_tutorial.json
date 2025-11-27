@@ -45,14 +45,14 @@
         "tier": 0,
         "locationActivationFilter": {
           "placementType": "Location",
-          "privacy": "Public",
+          "privacy": "SemiPublic",
           "capabilities": ["Commercial"]
         },
         "npcActivationFilter": {
           "placementType": "NPC",
           "profession": "Merchant"
         },
-        "introNarrativeTemplate": "Morning arrives. You step out into the town square, seeking work. A merchant stands by their cart, looking for reliable help - a delivery contract awaits.",
+        "introNarrativeTemplate": "Morning arrives. You step into the common room, ready to start your journey. A merchant sits at a nearby table, looking for reliable help - a delivery contract awaits.",
         "spawnConditions": {}
       },
       {
@@ -67,14 +67,14 @@
         "tier": 0,
         "locationActivationFilter": {
           "placementType": "Location",
-          "activity": "Quiet",
-          "capabilities": ["Outdoor"]
+          "privacy": "SemiPublic",
+          "capabilities": ["Commercial"]
         },
         "npcActivationFilter": {
           "placementType": "NPC",
           "profession": "Merchant"
         },
-        "introNarrativeTemplate": "The road stretches before you. Package secured, delivery contract accepted. Time to venture into the wilderness.",
+        "introNarrativeTemplate": "The delivery contract is secured. The road stretches before you - time to venture beyond the town walls.",
         "spawnConditions": {}
       }
     ]

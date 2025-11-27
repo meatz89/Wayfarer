@@ -160,26 +160,25 @@ public class LocationManager
     }
 
     /// <summary>
-    /// Get the travel hub location for a location.
+    /// Get the travel hub location for a venue.
     /// HIGHLANDER: Accept Venue object
     /// </summary>
     public Location GetTravelHubLocation(Venue venue)
     {
-        // Look for Locations with Transit capability
+        // Look for Locations with Connective or Hub role (travel hubs)
         List<Location> Locations = GetLocationsForVenue(venue);
-        return Locations.FirstOrDefault(s => s.Capabilities.HasFlag(LocationCapability.Transit));
+        return Locations.FirstOrDefault(s => s.Role == LocationRole.Connective || s.Role == LocationRole.Hub);
     }
 
     /// <summary>
-    /// Check if a location is the travel hub for its location.
+    /// Check if a location is the travel hub for its venue.
     /// </summary>
     public bool IsTravelHub(Location location)
     {
         if (location == null) return false;
 
-        // ADR-007: Venue variable deleted (was unused, accessed deleted VenueId)
-        // Travel happens at any location with Transit capability
-        return location.Capabilities.HasFlag(LocationCapability.Transit);
+        // Travel happens at locations with Connective or Hub role
+        return location.Role == LocationRole.Connective || location.Role == LocationRole.Hub;
     }
 
     /// <summary>
@@ -285,50 +284,52 @@ public class LocationManager
 
     /// <summary>
     /// Generate a detail description for a location based on its properties.
+    /// Uses orthogonal categorical dimensions (Role, Purpose, Privacy, Safety, Activity).
     /// </summary>
     private string GenerateLocationDetail(Location location)
     {
         if (location == null) return "";
 
-        LocationDescriptionGenerator descGenerator = new LocationDescriptionGenerator();
-        return descGenerator.GenerateBriefDescription(location.Capabilities);
+        // Generate description from orthogonal categorical dimensions
+        return $"{location.Purpose} • {location.Activity}";
     }
 
     /// <summary>
     /// Check if a location is a travel hub.
+    /// Travel hubs use LocationRole.Connective or LocationRole.Hub.
     /// </summary>
     public bool IsLocationTravelHub(Location location)
     {
-        // Travel happens at any location with Crossroads capability
-        return location.Capabilities.HasFlag(LocationCapability.Crossroads);
+        // Travel happens at locations with Connective or Hub role
+        return location.Role == LocationRole.Connective || location.Role == LocationRole.Hub;
     }
 
     /// <summary>
-    /// DEPRECATED: Get active properties for a location (time-specific properties eliminated).
-    /// Returns capabilities as static flags (no time variation).
+    /// Check if a location has a specific role.
+    /// Replaces deprecated capability-based checks.
     /// </summary>
-    public LocationCapability GetActiveLocationProperties(Location location, TimeBlocks timeBlock)
+    public bool LocationHasRole(Location location, LocationRole role)
     {
-        if (location == null) return LocationCapability.None;
-        return location.Capabilities;
+        if (location == null) return false;
+        return location.Role == role;
     }
 
     /// <summary>
-    /// Check if a location has a specific capability (DELETED: time-specific check eliminated)
+    /// Get all Locations with a specific role in a venue.
     /// </summary>
-    public bool LocationHasProperty(Location location, LocationCapability capability, TimeBlocks timeBlock)
-    {
-        // Capabilities are now static flags, not temporal states
-        return location.Capabilities.HasFlag(capability);
-    }
-
-    /// <summary>
-    /// Get all Locations with a specific capability in a venue.
-    /// </summary>
-    public List<Location> GetLocationsWithProperty(Venue venue, LocationCapability capability, TimeBlocks timeBlock)
+    public List<Location> GetLocationsWithRole(Venue venue, LocationRole role)
     {
         List<Location> Locations = GetLocationsForVenue(venue);
-        return Locations.Where(s => LocationHasProperty(s, capability, timeBlock)).ToList();
+        return Locations.Where(s => s.Role == role).ToList();
+    }
+
+    /// <summary>
+    /// Get all Locations with a specific purpose in a venue.
+    /// </summary>
+    public List<Location> GetLocationsWithPurpose(Venue venue, LocationPurpose purpose)
+    {
+        List<Location> Locations = GetLocationsForVenue(venue);
+        return Locations.Where(s => s.Purpose == purpose).ToList();
     }
 
     /// <summary>
@@ -357,15 +358,15 @@ public class LocationManager
     }
 
     /// <summary>
-    /// Get the default entrance location for a location.
+    /// Get the default entrance location for a venue.
     /// HIGHLANDER: Accept Venue object
     /// </summary>
     public Location GetDefaultEntranceLocation(Venue venue)
     {
-        // Look for Locations with Transit capability
+        // Look for Locations with Connective or Hub role (travel entry points)
         List<Location> Locations = GetLocationsForVenue(venue);
-        Location transitLocation = Locations.FirstOrDefault(s => s.Capabilities.HasFlag(LocationCapability.Transit));
-        if (transitLocation != null) return transitLocation;
+        Location travelHubLocation = Locations.FirstOrDefault(s => s.Role == LocationRole.Connective || s.Role == LocationRole.Hub);
+        if (travelHubLocation != null) return travelHubLocation;
 
         // Finally, just return the first available location
         return Locations.FirstOrDefault();

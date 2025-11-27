@@ -166,7 +166,7 @@ public class SceneNarrativeService
 
     /// <summary>
     /// Generate contextual location name from PlacementFilter properties
-    /// Uses multiple properties to create descriptive names
+    /// Uses location role to create descriptive names
     /// </summary>
     public string GenerateLocationName(PlacementFilter filter)
     {
@@ -175,24 +175,19 @@ public class SceneNarrativeService
 
         List<string> nameParts = new List<string>();
 
-        // Capabilities are flags enum, no ordered list - skip prefix generation
-
-        // Add location type
-        if (filter.LocationType.HasValue)
+        // Add location role - the functional/narrative role of the location
+        if (filter.LocationRole.HasValue)
         {
-            string typeWord = filter.LocationType.Value switch
+            string roleWord = filter.LocationRole.Value switch
             {
-                LocationTypes.Inn => "Inn",
-                LocationTypes.Tavern => "Tavern",
-                LocationTypes.Market => "Market",
-                LocationTypes.Shop => "Shop",
-                LocationTypes.Temple => "Temple",
-                LocationTypes.Palace => "Palace",
-                LocationTypes.Guild => "Guild",
-                LocationTypes.Crossroads => "Crossroads",
+                LocationRole.Rest => "Private Room",
+                LocationRole.Hub => "Hall",
+                LocationRole.Connective => "Passage",
+                LocationRole.Landmark => "Landmark",
+                LocationRole.Hazard => "Danger Zone",
                 _ => "Place"
             };
-            nameParts.Add(typeWord);
+            nameParts.Add(roleWord);
         }
 
         return nameParts.Count > 0 ? $"The {string.Join(" ", nameParts)}" : "Unknown Location";
@@ -254,17 +249,17 @@ public class SceneNarrativeService
         if (filter == null)
             return "Unknown Route";
 
-        if (filter.TerrainType != null)
+        if (filter.Terrain != null)
         {
-            string terrainName = filter.TerrainType.ToLower() switch
+            string terrainName = filter.Terrain switch
             {
-                "forest" => "Forest Path",
-                "mountain" => "Mountain Trail",
-                "plains" => "Open Road",
-                "river" => "River Crossing",
-                "urban" => "City Street",
-                "wilderness" => "Wilderness Track",
-                _ => $"{filter.TerrainType} Route"
+                TerrainType.Forest => "Forest Path",
+                TerrainType.Mountains => "Mountain Trail",
+                TerrainType.Plains => "Open Road",
+                TerrainType.Road => "Paved Road",
+                TerrainType.Water => "River Crossing",
+                TerrainType.Swamp => "Swamp Trail",
+                _ => $"{filter.Terrain} Route"
             };
 
             return terrainName;

@@ -117,19 +117,11 @@ public class PlacementFilter
     // ==================== LOCATION FILTERS (when PlacementType == Location) ====================
 
     /// <summary>
-    /// Required location type for categorical selection
-    /// null = don't filter by type (any type matches)
-    /// Example: LocationTypes.Inn - location must be this type
+    /// Required location role for categorical selection
+    /// null = don't filter by role (any role matches)
+    /// Example: LocationRole.Hub - location must have this functional/narrative role
     /// </summary>
-    public LocationTypes? LocationType { get; init; }
-
-    /// <summary>
-    /// Required location capabilities for categorical selection
-    /// Example: [Crossroads, Commercial, Indoor]
-    /// Location must have ALL specified capabilities to match
-    /// STRONGLY-TYPED Flags enum, not strings
-    /// </summary>
-    public LocationCapability RequiredCapabilities { get; init; } = LocationCapability.None;
+    public LocationRole? LocationRole { get; init; }
 
     /// <summary>
     /// Player accessibility requirement
@@ -185,11 +177,18 @@ public class PlacementFilter
     // ==================== ROUTE FILTERS (when PlacementType == Route) ====================
 
     /// <summary>
-    /// Terrain type for route selection
+    /// Terrain type for route selection (orthogonal: natural geography)
     /// null = don't filter by terrain (any terrain matches)
-    /// Example: "Forest" - route must have this terrain type
+    /// Example: TerrainType.Forest - route must have this terrain type
     /// </summary>
-    public string TerrainType { get; init; }
+    public TerrainType? Terrain { get; init; }
+
+    /// <summary>
+    /// Structure type for route selection (orthogonal: built/constructed features)
+    /// null = don't filter by structure (any structure matches)
+    /// Example: StructureType.Bridge - route must include this structure type
+    /// </summary>
+    public StructureType? Structure { get; init; }
 
     /// <summary>
     /// Route difficulty tier requirement

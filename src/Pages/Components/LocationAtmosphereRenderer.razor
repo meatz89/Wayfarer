@@ -1,42 +1,90 @@
-@* Maps Venue atmosphere categories to descriptive text *@
+@* Maps Location orthogonal properties to descriptive text *@
 
 @code {
     [Parameter] public Location CurrentLocation { get; set; }
     [Parameter] public TimeBlocks CurrentTime { get; set; }
     [Parameter] public List<NPC> NPCsPresent { get; set; }
 
-    private LocationDescriptionGenerator _descriptionGenerator = new LocationDescriptionGenerator();
-
     private string GetAtmosphereText()
     {
         if (CurrentLocation == null)
             return "An undefined location.";
 
-        // Generate description from categorical capabilities
-        return _descriptionGenerator.GenerateDescription(
-            CurrentLocation.Capabilities,
-            CurrentTime,
-            NPCsPresent?.Count ?? 0
-        );
+        // Generate description from orthogonal categorical dimensions
+        List<string> descriptors = new List<string>();
+
+        // Purpose-based opening
+        descriptors.Add(GetPurposeDescription(CurrentLocation.Purpose));
+
+        // Activity level
+        descriptors.Add(GetActivityDescription(CurrentLocation.Activity));
+
+        // Environment
+        descriptors.Add(GetEnvironmentDescription(CurrentLocation.Environment));
+
+        // NPC presence
+        int npcCount = NPCsPresent?.Count ?? 0;
+        if (npcCount > 3)
+            descriptors.Add("Several figures go about their business");
+        else if (npcCount > 0)
+            descriptors.Add("A few souls are present");
+
+        return string.Join(". ", descriptors.Where(d => !string.IsNullOrEmpty(d))) + ".";
+    }
+
+    private string GetPurposeDescription(LocationPurpose purpose)
+    {
+        return purpose switch
+        {
+            LocationPurpose.Transit => "A passage point facilitating movement",
+            LocationPurpose.Dwelling => "A living space offering lodging",
+            LocationPurpose.Commerce => "A place of trade where business thrives",
+            LocationPurpose.Civic => "An officially administered public space",
+            LocationPurpose.Defense => "A militarily strategic position",
+            LocationPurpose.Governance => "A bureaucratically organized area",
+            LocationPurpose.Worship => "A sacred space devoted to spiritual matters",
+            LocationPurpose.Learning => "A scholarly space dedicated to knowledge",
+            LocationPurpose.Entertainment => "A place offering amusement and diversion",
+            LocationPurpose.Generic => "A versatile space serving various purposes",
+            _ => "A notable location"
+        };
+    }
+
+    private string GetActivityDescription(LocationActivity activity)
+    {
+        return activity switch
+        {
+            LocationActivity.Quiet => "Peaceful silence pervades",
+            LocationActivity.Moderate => "Typical activity fills the space",
+            LocationActivity.Busy => "Bustling with people and activity",
+            _ => ""
+        };
+    }
+
+    private string GetEnvironmentDescription(LocationEnvironment environment)
+    {
+        return environment switch
+        {
+            LocationEnvironment.Indoor => "Sheltered from the elements",
+            LocationEnvironment.Outdoor => "Open to the sky",
+            LocationEnvironment.Covered => "Partially sheltered",
+            LocationEnvironment.Underground => "Below ground level",
+            _ => ""
+        };
     }
 
     private string GetNPCFocusDescription(NPC npc)
     {
-        // Generate description from categorical properties
         var connectionState = DetermineConnectionState(npc);
-        
         var baseActivity = GetProfessionActivity(npc.Profession);
-        
         return $"{baseActivity}";
     }
-    
+
     private ConnectionState DetermineConnectionState(NPC npc)
     {
-        // In the 5-state system, NPCs always start NEUTRAL at locations
-        // Their state changes during conversations based on mechanics
         return ConnectionState.NEUTRAL;
     }
-    
+
     private string GetProfessionActivity(Professions profession)
     {
         return profession switch
@@ -50,7 +98,7 @@
             _ => "Going about their business"
         };
     }
-    
+
     private string GetEmotionalModifier(ConnectionState state, bool hasUrgentLetter)
     {
         return state switch
@@ -63,11 +111,11 @@
             _ => "focused on the task at hand"
         };
     }
-    
+
     private string GetContextualProp(Professions profession, bool hasUrgentLetter)
     {
         if (hasUrgentLetter) return "a sealed letter";
-        
+
         return profession switch
         {
             Professions.Scribe => "quill and parchment",
@@ -77,7 +125,7 @@
             _ => "their tools"
         };
     }
-    
+
     private string GetDisconnectedDetail()
     {
         return "eyes darting to the door with each patron's entrance";
@@ -88,21 +136,18 @@
         if (CurrentLocation == null)
             return null;
 
-        // Generate hints based on location capabilities
-        if (CurrentLocation.Capabilities.HasFlag(LocationCapability.Market))
+        // Generate hints based on orthogonal properties
+        if (CurrentLocation.Purpose == LocationPurpose.Commerce)
             return "Diplomacy flows visibly. Merchant patterns emerge.";
 
-        if (CurrentLocation.Capabilities.HasFlag(LocationCapability.ViewsMainEntrance))
-            return "Guard rotations and arrivals draw your attention.";
+        if (CurrentLocation.Role == LocationRole.Connective || CurrentLocation.Role == LocationRole.Hub)
+            return "Multiple paths of activity intersect here.";
 
-        if (CurrentLocation.Capabilities.HasFlag(LocationCapability.ViewsBackAlley))
-            return "Discrete movements catch your eye.";
-
-        if (CurrentLocation.Capabilities.HasFlag(LocationCapability.Temple))
+        if (CurrentLocation.Purpose == LocationPurpose.Worship)
             return "Devotional patterns become apparent.";
 
-        if (CurrentLocation.Capabilities.HasFlag(LocationCapability.Transit))
-            return "Multiple paths of activity intersect here.";
+        if (CurrentLocation.Activity == LocationActivity.Busy)
+            return "Numerous interactions to observe in the bustle.";
 
         return null;
     }

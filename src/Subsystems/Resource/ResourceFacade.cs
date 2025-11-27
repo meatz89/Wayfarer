@@ -301,7 +301,7 @@ public class ResourceFacade
 
         // STATE CLEARING: Get projection of states to clear on rest
         Location currentLocation = _gameWorld.GetPlayerCurrentLocation();
-        bool isSafe = currentLocation != null && currentLocation.Capabilities.HasFlag(LocationCapability.Guarded);
+        bool isSafe = currentLocation != null && currentLocation.Safety == LocationSafety.Safe;
         List<StateType> statesToClear = _stateClearingResolver.GetStatesToClearOnRest(isSafe);
 
         // Apply state clearing

@@ -328,37 +328,51 @@ ASPNETCORE_URLS="http://localhost:6000" dotnet run
 
 **What Actually Happens** (verified from 22_a_story_tutorial.json):
 
-### Scene a1: "Secure Lodging" (isStarter: true)
+### Scene a1: "Secure Lodging" (isStarter: true) - 3 SITUATIONS
+
+A1 uses the InnLodging archetype with 3 cascading situations that teach the spatial model.
+
+**SITUATION 1: Secure Lodging (Common Room)**
 - **Where:** Common Room (inn with Commercial + Restful properties)
 - **Who:** Elena (Innkeeper)
-- **Narrative:** "Evening approaches...you're a newly arrived traveler needing shelter..."
-- **Archetype:** inn_lodging (cascading situations)
-- **Goal:** Learn choice system, resource costs, perfect information
+- **4 stat-building choices:** Rapport, Authority, Cunning, Diplomacy (each costs 5 coins)
+- **After choice:** Player receives ExitToWorld routing → must navigate to Private Room
 
-**MANDATORY STEPS TO ACCESS TUTORIAL SCENE:**
+**SITUATION 2: Evening in Room (Private Room)**
+- **Where:** Private Room (scene-created location, only accessible during A1)
+- **Who:** No NPC
+- **4 choices:** Read (+Insight), Plan route (+Cunning), Rest (+Health/Stamina/Focus), Visit common room (+Rapport)
+
+**SITUATION 3: Morning Departure (Private Room)**
+- **Where:** Private Room
+- **Who:** No NPC
+- **2 choices:** Both spawn A2 as Deferred scene
+  - "Leave early" → +1 Cunning, spawns a2_morning
+  - "Take time to socialize" → +1 Rapport, spawns a2_morning
+
+**MANDATORY STEPS TO ACCESS A1:**
 1. **Click "Look Around" action** (REQUIRED - discovers NPCs at location)
 2. Wait for NPC list to appear (Elena - Innkeeper)
 3. Click Elena's name to interact with her
-4. Tutorial scene "Secure Lodging" displays with 4 stat-building choices
-
-**Why This Step is Required:**
-Scene spawns at game start but requires `player with NPC='Elena'`. Player starts with `NPC='no-one'`. "Look Around" discovers NPCs, changing context to enable scene display. This is core game mechanic, NOT a bug.
+4. Situation 1 displays with 4 stat-building choices
+5. After Situation 1: Navigate to Private Room for Situations 2 and 3
 
 ### Scene a2: "First Delivery"
-- **Where:** Town Square area (Commercial + Public properties)
-- **Who:** General Merchant
-- **Narrative:** "Morning arrives...seeking work...delivery contract awaits"
+- **Activation:** When player enters Common Room after completing A1 (SemiPublic + Commercial)
+- **Who:** General Merchant (at Common Room)
 - **Archetype:** delivery_contract
-- **Goal:** Accept first delivery job, understand economic loop
-- **Access:** Click "Look Around" at Town Square, then interact with General Merchant
+- **Flow:** Contract offer → Contract negotiation
+- **End:** Creates A3 as Deferred (immediately activates because Common Room matches A3 filter)
+- **Access:** Click "Look Around" at Common Room after A1 completion
 
 ### Scene a3: "Journey Beyond Town"
-- **Where:** Route travel (Quiet + Outdoor properties)
+- **Activation:** IMMEDIATELY after A2 completes (same location trigger as A2 - SemiPublic + Commercial)
+- **Key mechanism:** A3 spawning must find/create route to another location
+- **Player action:** Click route travel action → A3 Situation 1 starts
+- **5 situations:** Route obstacles with stat gates (Authority, Insight, Rapport challenges)
 - **Archetype:** route_segment_travel
-- **Narrative:** "The road stretches before you..."
-- **Goal:** Experience route segments, resource management, route learning
 
-**Testing Priority:** Verify all three scenes spawn, progress correctly, and teach core systems. Always use "Look Around" first at each new location.
+**Testing Priority:** Verify the cascade: A1 (3 situations with Private Room navigation) → A2 (at Common Room) → A3 (immediate activation, route travel). Always use "Look Around" at each location.
 
 ---
 

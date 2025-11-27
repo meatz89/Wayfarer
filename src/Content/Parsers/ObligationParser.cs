@@ -70,7 +70,7 @@ public class ObligationParser
                 throw new NotImplementedException(
                     "Obligation scene spawning requires refactoring to use categorical PlacementFilter. " +
                     "SceneSpawnInfoDTO.TargetType/TargetEntityId (legacy absolute placement) must be replaced with " +
-                    "full PlacementFilterDTO containing categorical properties (LocationTypes, PersonalityTypes, etc.). " +
+                    "full PlacementFilterDTO containing categorical properties (LocationRole, PersonalityType, etc.). " +
                     "Scenes will reuse entities naturally through categorical matching - no concrete IDs needed.");
             }
         }

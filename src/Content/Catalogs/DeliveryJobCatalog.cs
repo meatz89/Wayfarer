@@ -47,8 +47,8 @@ public static class DeliveryJobCatalog
             }
 
             // Only generate jobs for routes connecting Commercial locations
-            if (!origin.Capabilities.HasFlag(LocationCapability.Commercial) ||
-                !destination.Capabilities.HasFlag(LocationCapability.Commercial))
+            if (origin.Purpose != LocationPurpose.Commerce ||
+                destination.Purpose != LocationPurpose.Commerce)
             {
                 continue;
             }

@@ -45,12 +45,9 @@ public class LocationPlayabilityValidator
             errors.Add($"Location '{location.Name}' has no venue - every location must belong to a venue");
         }
 
-        // 4. Capabilities must be present
-        if (location.Capabilities == LocationCapability.None)
-        {
-            // ADR-007: Use Name instead of deleted Id
-            errors.Add($"Location '{location.Name}' has no capabilities - locations must have at least one capability for action generation");
-        }
+        // 4. Categorical properties must be present
+        // Removed capability check - orthogonal properties are now validated individually
+        // Locations must have Purpose, Role, Environment, etc. set explicitly by parser
 
         // 5. IsLocked validation DELETED - new architecture uses dual-model accessibility
         // Authored locations always accessible; dependent locations accessible when situation is at location

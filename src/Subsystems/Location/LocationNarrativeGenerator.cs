@@ -55,14 +55,14 @@ public class LocationNarrativeGenerator
         TimeBlocks currentTime,
         int npcsPresent)
     {
-        LocationDescriptionGenerator descGenerator = new LocationDescriptionGenerator();
+        // Generate basic description from orthogonal properties
+        List<string> traits = new List<string>();
+        if (location.Environment != default) traits.Add(location.Environment.ToString());
+        if (location.Purpose != default) traits.Add(location.Purpose.ToString());
+        if (location.Activity != default) traits.Add(location.Activity.ToString());
 
-        // Debug log
-        return descGenerator.GenerateDescription(
-            location.Capabilities,
-            currentTime,
-            npcsPresent
-        );
+        string baseDescription = traits.Count > 0 ? string.Join(", ", traits) : "a location";
+        return $"{baseDescription} with {npcsPresent} people present";
     }
 
     /// <summary>
@@ -209,8 +209,8 @@ public class LocationNarrativeGenerator
     /// </summary>
     private string GetWeatherFlavor(string weather, Location location)
     {
-        // Use Indoor capability to determine shelter
-        bool isIndoor = location != null && location.Capabilities.HasFlag(LocationCapability.Indoor);
+        // Use Environment categorical property to determine shelter
+        bool isIndoor = location != null && location.Environment == LocationEnvironment.Indoor;
 
         return weather switch
         {
@@ -231,9 +231,9 @@ public class LocationNarrativeGenerator
     {
         if (location != null)
         {
-            if (location.Capabilities.HasFlag(LocationCapability.Market))
+            if (location.Purpose == LocationPurpose.Commerce && location.Role == LocationRole.Hub)
                 return "The area has several interesting details worth observing.";
-            if (location.Capabilities.HasFlag(LocationCapability.Commercial))
+            if (location.Purpose == LocationPurpose.Commerce)
                 return "The bustling commerce provides many things to notice.";
         }
 

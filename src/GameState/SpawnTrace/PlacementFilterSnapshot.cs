@@ -14,13 +14,14 @@ public class PlacementFilterSnapshot
     public NPCStoryRole? StoryRole { get; set; }
 
     // Location filters
-    public LocationTypes? LocationType { get; set; }
+    public LocationRole? LocationRole { get; set; }
     public LocationPrivacy? Privacy { get; set; }
     public LocationSafety? Safety { get; set; }
     public LocationActivity? Activity { get; set; }
     public LocationPurpose? Purpose { get; set; }
 
-    // Route filters
-    public string TerrainType { get; set; }
+    // Route filters (orthogonal)
+    public TerrainType? Terrain { get; set; }
+    public StructureType? Structure { get; set; }
     public int? RouteTier { get; set; }
 }

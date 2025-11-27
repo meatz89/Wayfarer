@@ -31,23 +31,9 @@ public class LocationAction
     /// </summary>
     public string Description { get; set; }
 
-    /// <summary>
-    /// Required location capabilities for this action to be available.
-    /// The location must have ALL of these capabilities for the action to appear (bitwise AND check).
-    /// </summary>
-    public LocationCapability RequiredCapabilities { get; set; } = LocationCapability.None;
-
-    /// <summary>
-    /// Optional location capabilities that enable this action.
-    /// The location must have AT LEAST ONE of these capabilities (if specified).
-    /// </summary>
-    public LocationCapability OptionalCapabilities { get; set; } = LocationCapability.None;
-
-    /// <summary>
-    /// Capabilities that prevent this action from appearing.
-    /// If the location has ANY of these capabilities, the action is unavailable.
-    /// </summary>
-    public LocationCapability ExcludedCapabilities { get; set; } = LocationCapability.None;
+    // CAPABILITY PROPERTIES DELETED - capability matching replaced by orthogonal property checks
+    // Actions are generated at parse-time with explicit SourceLocation binding
+    // No runtime capability matching needed - action availability determined by generation logic
 
     /// <summary>
     /// Resource costs required to perform this action (ATMOSPHERIC PATTERN)
@@ -134,27 +120,16 @@ public class LocationAction
     public List<ScenePreview> ScenePreviews { get; set; } = new List<ScenePreview>();
 
     /// <summary>
-    /// Check if this action matches a given location's capabilities
+    /// Check if this action is available at a given location.
+    /// Actions are bound to SourceLocation at generation time - no capability matching needed.
     /// </summary>
     public bool MatchesLocation(Location location, TimeBlocks currentTime)
     {
         if (location == null) return false;
 
-        // Check location identity first (if action is location-specific)
+        // Check location identity (action is bound to specific location at generation time)
         if (SourceLocation != null && location != SourceLocation)
-            return false; // Location-specific action at wrong location
-
-        // Check excluded capabilities first (fast rejection)
-        if (ExcludedCapabilities != LocationCapability.None && (location.Capabilities & ExcludedCapabilities) != 0)
-            return false; // Location has at least one excluded capability
-
-        // Check required capabilities (all must be present)
-        if (RequiredCapabilities != LocationCapability.None && (location.Capabilities & RequiredCapabilities) != RequiredCapabilities)
-            return false; // Location missing at least one required capability
-
-        // Check optional capabilities (at least one must be present if specified)
-        if (OptionalCapabilities != LocationCapability.None && (location.Capabilities & OptionalCapabilities) == 0)
-            return false; // Location has none of the optional capabilities
+            return false;
 
         return true;
     }

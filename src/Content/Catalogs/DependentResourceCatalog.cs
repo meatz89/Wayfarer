@@ -56,12 +56,11 @@ public static class DependentResourceCatalog
         PlacementFilter locationFilter = new PlacementFilter
         {
             PlacementType = PlacementType.Location,
-            LocationType = LocationTypes.Inn,
+            LocationRole = LocationRole.Rest,
             Privacy = LocationPrivacy.Private,
             Safety = LocationSafety.Safe,
             Activity = LocationActivity.Quiet,
             Purpose = LocationPurpose.Dwelling,
-            RequiredCapabilities = LocationCapability.SleepingSpace | LocationCapability.Restful,
             SelectionStrategy = PlacementSelectionStrategy.Random
         };
 
@@ -80,7 +79,6 @@ public static class DependentResourceCatalog
             Safety = LocationSafety.Safe,
             Activity = LocationActivity.Quiet,
             Purpose = LocationPurpose.Dwelling,
-            RequiredCapabilities = LocationCapability.Restful,
             SelectionStrategy = PlacementSelectionStrategy.Random
         };
 
@@ -99,7 +97,6 @@ public static class DependentResourceCatalog
             Safety = LocationSafety.Neutral,
             Activity = LocationActivity.Busy,
             Purpose = LocationPurpose.Commerce,
-            RequiredCapabilities = LocationCapability.None,
             SelectionStrategy = PlacementSelectionStrategy.Random
         };
 
@@ -118,7 +115,6 @@ public static class DependentResourceCatalog
             Safety = LocationSafety.Safe,
             Activity = LocationActivity.Quiet,
             Purpose = LocationPurpose.Dwelling,
-            RequiredCapabilities = LocationCapability.Restful,
             SelectionStrategy = PlacementSelectionStrategy.Random
         };
 
@@ -137,7 +133,6 @@ public static class DependentResourceCatalog
             Safety = LocationSafety.Neutral,
             Activity = LocationActivity.Busy,
             Purpose = LocationPurpose.Commerce,
-            RequiredCapabilities = LocationCapability.None,
             SelectionStrategy = PlacementSelectionStrategy.Random
         };
 
@@ -156,7 +151,6 @@ public static class DependentResourceCatalog
             Safety = LocationSafety.Safe,
             Activity = LocationActivity.Quiet,
             Purpose = LocationPurpose.Learning,
-            RequiredCapabilities = LocationCapability.Restful,
             SelectionStrategy = PlacementSelectionStrategy.Random
         };
 

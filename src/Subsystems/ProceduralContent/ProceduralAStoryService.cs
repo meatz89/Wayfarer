@@ -207,7 +207,7 @@ public class ProceduralAStoryService
             // Location filters (categorical)
             // ZERO NULL TOLERANCE: selectedRegion guaranteed non-null by SelectRegion (returns first available or throws)
             RegionId = selectedRegion!.Name, // Categorical identifier: Region.Name (NOT entity instance ID)
-            Capabilities = SelectLocationCapabilities(tier),
+            // Capabilities removed - use orthogonal properties Purpose/Role/etc instead
 
             // NPC filters (categorical)
             PersonalityType = personalityType,

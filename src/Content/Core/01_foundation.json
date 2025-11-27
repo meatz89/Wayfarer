@@ -48,7 +48,7 @@
       {
         "id": "brass_bell_inn",
         "name": "The Brass Bell Inn",
-        "locationType": "Tavern",
+        "venueType": "Inn",
         "description": "A warm inn where lamplight spills from windows. Inside: warmth, food, safety. The common room hums with evening conversations.",
         "districtId": "town_center",
         "tier": 1,
@@ -58,7 +58,7 @@
       {
         "id": "town_square",
         "name": "Town Square",
-        "locationType": "Market",
+        "venueType": "Market",
         "description": "The heart of the town, where traders gather and townsfolk meet. The Brass Bell Inn beckons from across the square.",
         "districtId": "town_center",
         "tier": 1,
@@ -68,7 +68,7 @@
       {
         "id": "old_mill",
         "name": "The Old Mill",
-        "locationType": "Wilderness",
+        "terrain": "Wilderness",
         "description": "An abandoned mill on the outskirts of town. The waterwheel still turns slowly, creaking with age.",
         "districtId": "town_outskirts",
         "tier": 1,
@@ -92,7 +92,8 @@
         "activity": "Busy",
         "purpose": "Commerce",
         "canInvestigate": false,
-        "locationType": "Crossroads",
+        "role": "Connective",
+        "structure": "Crossroads",
         "obligationProfile": "Research",
         "isStartingLocation": false
       },
@@ -113,7 +114,7 @@
         "activity": "Moderate",
         "purpose": "Commerce",
         "canInvestigate": false,
-        "locationType": "Tavern",
+        "role": "Hub",
         "obligationProfile": "Research",
         "isStartingLocation": true
       },
@@ -132,7 +133,7 @@
         "activity": "Busy",
         "purpose": "Commerce",
         "canInvestigate": false,
-        "locationType": "Market",
+        "role": "Landmark",
         "obligationProfile": "Research",
         "isStartingLocation": false
       },
@@ -150,7 +151,8 @@
         "activity": "Quiet",
         "purpose": "Transit",
         "canInvestigate": false,
-        "locationType": "Wilderness",
+        "role": "Connective",
+        "terrain": "Wilderness",
         "obligationProfile": "Research",
         "isStartingLocation": false
       }

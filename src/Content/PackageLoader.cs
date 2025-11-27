@@ -1192,18 +1192,15 @@ public class PackageLoader
                     if (string.IsNullOrEmpty(dto.OriginVenueId))
                         throw new InvalidDataException($"Route '{dto.Name}' missing OriginVenueId - cannot create skeleton origin location");
 
-                    // Create skeleton location with crossroads property (required for routes)
+                    // Create skeleton location with Connective role (required for routes)
                     originSpot = SkeletonGenerator.GenerateSkeletonSpot(
                         dto.OriginSpotId,
                         dto.OriginVenueId,
                         $"route_{dto.Name}_origin"
                     );
 
-                    // Ensure skeleton has Crossroads capability for route connectivity
-                    if (!originSpot.Capabilities.HasFlag(LocationCapability.Crossroads))
-                    {
-                        originSpot.Capabilities |= LocationCapability.Crossroads;
-                    }
+                    // Ensure skeleton has Connective role for route connectivity
+                    originSpot.Role = LocationRole.Connective;
 
                     _gameWorld.AddOrUpdateLocation(dto.OriginSpotId, originSpot);
                     _gameWorld.AddSkeleton(dto.OriginSpotId, "Location");
@@ -1224,18 +1221,15 @@ public class PackageLoader
                     if (string.IsNullOrEmpty(dto.DestinationVenueId))
                         throw new InvalidDataException($"Route '{dto.Name}' missing DestinationVenueId - cannot create skeleton destination location");
 
-                    // Create skeleton location with crossroads property (required for routes)
+                    // Create skeleton location with Connective role (required for routes)
                     destSpot = SkeletonGenerator.GenerateSkeletonSpot(
                         dto.DestinationSpotId,
                         dto.DestinationVenueId,
                         $"route_{dto.Name}_destination"
                     );
 
-                    // Ensure skeleton has Crossroads capability for route connectivity
-                    if (!destSpot.Capabilities.HasFlag(LocationCapability.Crossroads))
-                    {
-                        destSpot.Capabilities |= LocationCapability.Crossroads;
-                    }
+                    // Ensure skeleton has Connective role for route connectivity
+                    destSpot.Role = LocationRole.Connective;
 
                     _gameWorld.AddOrUpdateLocation(dto.DestinationSpotId, destSpot);
                     _gameWorld.AddSkeleton(dto.DestinationSpotId, "Location");
@@ -1751,7 +1745,7 @@ public class PackageLoader
             }
         }
 
-        // Validate each venue has exactly one crossroads location
+        // Validate each venue has exactly one travel hub location (Connective or Hub role)
         foreach (Venue venue in _gameWorld.Venues)
         {
             VenueLocationGrouping locationGroup = spotsByLocation.FirstOrDefault(g => g.VenueId == venue.Name);
@@ -1761,22 +1755,22 @@ public class PackageLoader
             }
 
             List<Location> locations = locationGroup.Locations;
-            List<Location> crossroadsSpots = locations
-                .Where(s => s.Capabilities.HasFlag(LocationCapability.Crossroads))
+            List<Location> travelHubSpots = locations
+                .Where(s => s.Role == LocationRole.Connective || s.Role == LocationRole.Hub)
                 .ToList();
 
-            if (crossroadsSpots.Count == 0)
+            if (travelHubSpots.Count == 0)
             {
-                throw new InvalidOperationException($"Venue '{venue.Name}' has no Locations with Crossroads capability. Every Venue must have exactly one crossroads location for travel.");
+                throw new InvalidOperationException($"Venue '{venue.Name}' has no Locations with Connective or Hub role. Every Venue must have exactly one travel hub location for travel.");
             }
-            else if (crossroadsSpots.Count > 1)
+            else if (travelHubSpots.Count > 1)
             {
-                string spotsInfo = string.Join(", ", crossroadsSpots.Select(s => $"'{s.Name}'"));
-                throw new InvalidOperationException($"Venue '{venue.Name}' has {crossroadsSpots.Count} Locations with Crossroads capability: {spotsInfo}. Only one crossroads location is allowed per location.");
+                string spotsInfo = string.Join(", ", travelHubSpots.Select(s => $"'{s.Name}'"));
+                throw new InvalidOperationException($"Venue '{venue.Name}' has {travelHubSpots.Count} Locations with Connective/Hub role: {spotsInfo}. Only one travel hub location is allowed per venue.");
             }
         }
 
-        // Validate all route Locations have crossroads property
+        // Validate all route Locations have travel hub role
         List<string> routeSpotIds = new List<string>();
         foreach (RouteOption route in _gameWorld.Routes)
         {
@@ -1791,26 +1785,25 @@ public class PackageLoader
             // HIGHLANDER: LINQ query on already-parsed locations
             Location location = _gameWorld.Locations.FirstOrDefault(l => l.Name == LocationId);
             if (location == null)
-            {// Create skeleton location with crossroads property (required for routes)
+            {
+                // Create skeleton location with Connective role (required for routes)
                 location = SkeletonGenerator.GenerateSkeletonSpot(
                     LocationId,
                     "unknown_location",
-                    $"crossroads_validation_{LocationId}"
+                    $"travel_hub_validation_{LocationId}"
                 );
 
-                // Ensure skeleton has Crossroads capability for route connectivity
-                if (!location.Capabilities.HasFlag(LocationCapability.Crossroads))
-                {
-                    location.Capabilities |= LocationCapability.Crossroads;
-                }
+                // Ensure skeleton has Connective role for route connectivity
+                location.Role = LocationRole.Connective;
 
                 _gameWorld.AddOrUpdateLocation(LocationId, location);
                 _gameWorld.AddSkeleton(LocationId, "Location");
             }
 
-            if (!location.Capabilities.HasFlag(LocationCapability.Crossroads))
+            // Ensure route endpoints have travel hub role (Connective or Hub)
+            if (location.Role != LocationRole.Connective && location.Role != LocationRole.Hub)
             {
-                location.Capabilities |= LocationCapability.Crossroads;
+                location.Role = LocationRole.Connective;
             }
         }
     }

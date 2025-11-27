@@ -22,35 +22,39 @@ public static class LocationParser
         // Parser creates Location entity with NO hex coordinates
         // Spatial properties set in post-parse initialization phase (PackageLoader.PlaceLocations)
 
-        // Parse functional capabilities (what location CAN DO)
-        // EXPLICIT INITIALIZATION: Capabilities.None if no capabilities specified
-        if (dto.Capabilities != null && dto.Capabilities.Count > 0)
+        // Parse orthogonal environmental dimensions (replacing generic capabilities)
+        // Environment: Indoor, Outdoor, Covered, Underground
+        if (!string.IsNullOrEmpty(dto.Environment))
         {
-            Console.WriteLine($"[LocationParser] Parsing capabilities for location '{dto.Id}'");
-            Console.WriteLine($"[LocationParser] Capabilities: {string.Join(", ", dto.Capabilities)}");
-
-            LocationCapability combinedCapabilities = LocationCapability.None;
-
-            foreach (string capabilityString in dto.Capabilities)
+            if (!Enum.TryParse(dto.Environment, out LocationEnvironment environment))
             {
-                if (EnumParser.TryParse<LocationCapability>(capabilityString, out LocationCapability capability))
-                {
-                    combinedCapabilities |= capability;  // Bitwise OR to combine flags
-                    Console.WriteLine($"[LocationParser] ✅ Parsed capability: {capabilityString} → {capability}");
-                }
-                else
-                {
-                    Console.WriteLine($"[LocationParser] ⚠️ WARNING: Failed to parse capability '{capabilityString}' for location '{dto.Id}'");
-                }
+                throw new InvalidOperationException(
+                    $"Invalid Environment value '{dto.Environment}' for location '{dto.Name}'. " +
+                    $"Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationEnvironment)))}");
             }
-
-            location.Capabilities = combinedCapabilities;
-            Console.WriteLine($"[LocationParser] Final Capabilities for '{dto.Id}': {location.Capabilities}");
+            location.Environment = environment;
         }
         else
         {
-            // EXPLICIT: No capabilities = Capabilities.None (must be set explicitly)
-            location.Capabilities = LocationCapability.None;
+            // Default to Indoor if not specified
+            location.Environment = LocationEnvironment.Indoor;
+        }
+
+        // Setting: Urban, Suburban, Rural, Wilderness
+        if (!string.IsNullOrEmpty(dto.Setting))
+        {
+            if (!Enum.TryParse(dto.Setting, out LocationSetting setting))
+            {
+                throw new InvalidOperationException(
+                    $"Invalid Setting value '{dto.Setting}' for location '{dto.Name}'. " +
+                    $"Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationSetting)))}");
+            }
+            location.Setting = setting;
+        }
+        else
+        {
+            // Default to Urban if not specified
+            location.Setting = LocationSetting.Urban;
         }
 
         // EXPLICIT INITIALIZATION: Skeleton tracking (false for authored locations)
@@ -70,20 +74,20 @@ public static class LocationParser
         // AccessRequirement system eliminated - PRINCIPLE 4: Economic affordability determines access
 
         // Parse gameplay properties - FAIL-FAST: all required, no silent failures
-        // LocationType: REQUIRED, no defaults
-        if (string.IsNullOrEmpty(dto.LocationType))
+        // Role: REQUIRED, no defaults - describes functional/narrative role of location
+        if (string.IsNullOrEmpty(dto.Role))
         {
             throw new InvalidOperationException(
-                $"Location '{dto.Name}' missing required LocationType property. " +
-                $"Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationTypes)))}");
+                $"Location '{dto.Name}' missing required Role property. " +
+                $"Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationRole)))}");
         }
-        if (!Enum.TryParse(dto.LocationType, out LocationTypes locationType))
+        if (!Enum.TryParse(dto.Role, out LocationRole locationRole))
         {
             throw new InvalidOperationException(
-                $"Invalid LocationType value '{dto.LocationType}' for location '{dto.Name}'. " +
-                $"Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationTypes)))}");
+                $"Invalid Role value '{dto.Role}' for location '{dto.Name}'. " +
+                $"Valid values: {string.Join(", ", Enum.GetNames(typeof(LocationRole)))}");
         }
-        location.LocationType = locationType;
+        location.Role = locationRole;
 
         // IsStartingLocation: explicit boolean required (dto must have value)
         location.IsStartingLocation = dto.IsStartingLocation;

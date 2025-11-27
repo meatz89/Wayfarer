@@ -34,7 +34,7 @@ public class LocationActionManager
         List<LocationActionViewModel> dynamicActions = GetDynamicLocationActions(venue, location);
 
         // ActionGenerator DELETED - generated actions now come from SceneFacade at query time
-        // Capability-based actions (from LocationCapability flags) filtered at query time
+        // Purpose-based actions (from orthogonal properties) filtered at query time
         // Scene-based actions (from ChoiceTemplates) created by SceneFacade when Situation activates
 
         return dynamicActions;
@@ -166,9 +166,9 @@ public class LocationActionManager
 
         TimeBlocks currentTime = _timeManager.GetCurrentTimeBlock();
 
-        // Generate actions based on capabilities (no time variation - capabilities are static)
-        List<LocationActionViewModel> capabilityActions = GenerateActionsForCapabilities(location.Capabilities, location);
-        actions.AddRange(capabilityActions);
+        // Generate actions based on orthogonal properties (no time variation)
+        List<LocationActionViewModel> purposeActions = GenerateActionsForPurpose(location);
+        actions.AddRange(purposeActions);
 
         // Add NPC-specific actions
         List<LocationActionViewModel> npcActions = GenerateNPCActions(location, currentTime);
@@ -178,14 +178,14 @@ public class LocationActionManager
     }
 
     /// <summary>
-    /// Generate actions for location capabilities.
+    /// Generate actions based on location purpose (orthogonal property).
     /// </summary>
-    private List<LocationActionViewModel> GenerateActionsForCapabilities(LocationCapability capabilities, Location location)
+    private List<LocationActionViewModel> GenerateActionsForPurpose(Location location)
     {
         List<LocationActionViewModel> actions = new List<LocationActionViewModel>();
 
-        // Check each relevant capability and generate corresponding actions
-        if (capabilities.HasFlag(LocationCapability.Commercial))
+        // Check purpose using orthogonal categorical property
+        if (location.Purpose == LocationPurpose.Commerce)
         {
             actions.Add(new LocationActionViewModel
             {
@@ -197,7 +197,7 @@ public class LocationActionManager
             });
         }
 
-        // Other actions are NPC-based services, not capability-based
+        // Other actions are NPC-based services, not purpose-based
 
         return actions;
     }

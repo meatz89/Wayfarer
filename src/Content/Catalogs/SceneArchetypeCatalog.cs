@@ -1435,7 +1435,6 @@ public static class SceneArchetypeCatalog
             Safety = LocationSafety.Safe,
             Activity = LocationActivity.Quiet,
             Purpose = LocationPurpose.Governance,
-            RequiredCapabilities = LocationCapability.None,
             SelectionStrategy = PlacementSelectionStrategy.Random
         };
 

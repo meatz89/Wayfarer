@@ -100,19 +100,12 @@ public class PlacementFilterDTO
     // ====================
 
     /// <summary>
-    /// Location type to match
-    /// Example: "Inn"
-    /// Maps to LocationTypes enum value
-    /// null = don't filter by type
+    /// Location role to match (functional/narrative role)
+    /// Example: "Hub", "Connective", "Rest"
+    /// Maps to LocationRole enum value
+    /// null = don't filter by role
     /// </summary>
-    public string LocationType { get; set; }
-
-    /// <summary>
-    /// Location capabilities to match (still a list - combines via AND logic for flags)
-    /// Example: ["Crossroads", "Commercial", "Indoor"]
-    /// Maps to LocationCapability Flags enum values
-    /// </summary>
-    public List<string> Capabilities { get; set; } = new List<string>();
+    public string Role { get; set; }
 
     /// <summary>
     /// Player accessibility requirement
@@ -170,11 +163,20 @@ public class PlacementFilterDTO
     // ====================
 
     /// <summary>
-    /// Terrain type to match
-    /// Example: "Forest"
+    /// Terrain type to match (orthogonal: natural geography)
+    /// Example: "Forest", "Mountain", "Swamp"
+    /// Maps to TerrainType enum value
     /// null = don't filter by terrain
     /// </summary>
-    public string TerrainType { get; set; }
+    public string Terrain { get; set; }
+
+    /// <summary>
+    /// Structure type to match (orthogonal: built/constructed features)
+    /// Example: "Bridge", "Road", "Ruin"
+    /// Maps to StructureType enum value
+    /// null = don't filter by structure
+    /// </summary>
+    public string Structure { get; set; }
 
     /// <summary>
     /// Route difficulty tier filter

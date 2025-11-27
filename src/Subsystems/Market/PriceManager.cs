@@ -200,11 +200,11 @@ public class PriceManager
     {
         float modifier = 1.0f;
 
-        // Location capabilities determine pricing (NOT Venue type)
-        // Check capabilities in priority order (most specific first)
+        // Location purpose/role determine pricing (orthogonal properties replace capabilities)
+        // Check in priority order (most specific first)
 
-        // Market locations - higher prices for most goods
-        if (location.Capabilities.HasFlag(LocationCapability.Market))
+        // Market-purpose locations - higher prices for most goods
+        if (location.Purpose == LocationPurpose.Commerce && location.Role == LocationRole.Hub)
         {
             modifier = 1.1f;
             // But lower prices for common items (food/materials)
@@ -214,8 +214,8 @@ public class PriceManager
                 modifier = 0.95f;
             }
         }
-        // Tavern locations - lower general prices, higher food prices
-        else if (location.Capabilities.HasFlag(LocationCapability.Tavern))
+        // Rest-role locations (taverns/inns) - lower general prices, higher food prices
+        else if (location.Role == LocationRole.Rest && location.Purpose == LocationPurpose.Commerce)
         {
             modifier = 0.9f;
             // Higher prices for food and drink
@@ -224,8 +224,8 @@ public class PriceManager
                 modifier = 1.15f;
             }
         }
-        // Commercial locations (workshops, etc.) - good prices for tools/materials
-        else if (location.Capabilities.HasFlag(LocationCapability.Commercial))
+        // Commercial-purpose locations (workshops, etc.) - good prices for tools/materials
+        else if (location.Purpose == LocationPurpose.Commerce)
         {
             // Good prices for materials and tools
             if (item.Categories.Contains(ItemCategory.Materials) ||
@@ -238,9 +238,8 @@ public class PriceManager
                 modifier = 1.05f;
             }
         }
-        // Wealthy/Prestigious locations - higher prices for trade goods
-        else if (location.Capabilities.HasFlag(LocationCapability.Wealthy) ||
-                 location.Capabilities.HasFlag(LocationCapability.Prestigious))
+        // High-tier locations - higher prices for trade goods
+        else if (location.Tier >= 3)
         {
             // Competitive prices for trade goods and valuables
             if (item.Categories.Contains(ItemCategory.Trade_Goods) ||
@@ -253,20 +252,8 @@ public class PriceManager
                 modifier = 1.0f;
             }
         }
-        // Water-adjacent locations - better prices for water-related items
-        else if (location.Capabilities.HasFlag(LocationCapability.Water) ||
-                 location.Capabilities.HasFlag(LocationCapability.River))
-        {
-            // Good prices for water transport
-            if (item.Categories.Contains(ItemCategory.Water_Transport))
-            {
-                modifier = 0.8f;
-            }
-            else
-            {
-                modifier = 1.1f;
-            }
-        }
+        // NOTE: Water-adjacent location pricing removed - LocationSetting doesn't include Water
+        // Future: Could use LocationEnvironment or specific tags for water-adjacent locations
 
         return modifier;
     }

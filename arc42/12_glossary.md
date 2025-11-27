@@ -102,6 +102,11 @@ Domain and technical terms used throughout this documentation.
 | **LocationActivity** | Identity dimension: Quiet, Moderate, Busy — determines population density |
 | **LocationPurpose** | Identity dimension: Transit, Dwelling, Commerce, Civic, Defense, Governance, Worship, Learning, Entertainment, Generic |
 | **LocationCapability** | Flags enum: Crossroads, Commercial, SleepingSpace, Restful, Indoor, Outdoor, Market, etc. — enables game mechanics |
+| **LocationRole** | Identity dimension: Generic, Hub, Connective, Landmark, Hazard, Rest — functional/narrative role of a Location |
+| **VenueType** | Identity dimension for Venues (NOT Locations): Inn, Tavern, Shop, Guild, Temple, Market — establishment type |
+| **TerrainType** | Identity dimension: Forest, Wilderness, Mountain, Swamp, Beach, River, Lake, Cave — natural geography |
+| **SettlementScale** | Identity dimension: Farm, Mine, Outpost, Village, Town, City, Port — population center size |
+| **StructureType** | Identity dimension: Road, Bridge, Crossroads, Tower, Castle, Ruin, Crypt — built/constructed features |
 | **Professions** | NPC identity dimension: Innkeeper, Merchant, Guard, Scholar, etc. — occupational role |
 | **PersonalityType** | NPC identity dimension: behavioral archetype affecting dialogue and costs |
 | **NPCSocialStanding** | NPC identity dimension: influence tier (Notable, Authority) |

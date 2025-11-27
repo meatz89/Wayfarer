@@ -11,12 +11,13 @@ public static class LocationTraitsParser
         if (location == null)
             return traits;
 
-        // Add location-type specific trait
-        string locationTypeTrait = location.LocationType.ToString();
-        if (!string.IsNullOrEmpty(locationTypeTrait))
-        {
-            traits.Add(locationTypeTrait);
-        }
+        // Add orthogonal categorical properties
+        if (location.Role != default)
+            traits.Add(location.Role.ToString());
+        if (location.Purpose != default)
+            traits.Add(location.Purpose.ToString());
+        if (location.Environment != default)
+            traits.Add(location.Environment.ToString());
 
         // Limit to 3-4 most relevant traits (as per mockup)
         return traits.Take(4).ToList();

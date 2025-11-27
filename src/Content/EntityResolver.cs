@@ -132,15 +132,8 @@ public class EntityResolver
 
     private bool LocationMatchesFilter(Location loc, PlacementFilter filter)
     {
-        // Check location capabilities (if specified)
-        if (filter.RequiredCapabilities != LocationCapability.None)
-        {
-            if ((loc.Capabilities & filter.RequiredCapabilities) != filter.RequiredCapabilities)
-                return false;
-        }
-
-        // Check location type (if specified) - SINGULAR property
-        if (filter.LocationType.HasValue && loc.LocationType != filter.LocationType.Value)
+        // Check location role (if specified) - SINGULAR property
+        if (filter.LocationRole.HasValue && loc.Role != filter.LocationRole.Value)
             return false;
 
         // Check orthogonal categorical dimensions - SINGULAR properties
@@ -234,11 +227,11 @@ public class EntityResolver
 
     private bool RouteMatchesFilter(RouteOption route, PlacementFilter filter)
     {
-        // SINGULAR property - terrain type
-        if (!string.IsNullOrEmpty(filter.TerrainType))
+        // ORTHOGONAL property - terrain type (now strongly typed enum)
+        if (filter.Terrain.HasValue)
         {
             string dominantTerrain = route.GetDominantTerrainType();
-            if (dominantTerrain != filter.TerrainType)
+            if (dominantTerrain != filter.Terrain.Value.ToString())
                 return false;
         }
 

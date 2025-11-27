@@ -99,17 +99,17 @@ public static class SkeletonGenerator
             // Knowledge system eliminated - Understanding resource replaces Knowledge tokens
 
             // Gameplay properties moved from Location
-            LocationType = LocationTypes.Crossroads,  // Default type
+            Role = LocationRole.Connective,  // Default role for skeleton locations
             TravelTimeSegments = 1,  // Default travel time
             Difficulty = 1,  // Default difficulty
 
-            // Simple default capability
-            Capabilities = LocationCapability.None,
             // Orthogonal categorical dimensions
             Privacy = LocationPrivacy.Public,
             Safety = LocationSafety.Neutral,
             Activity = LocationActivity.Moderate,
-            Purpose = LocationPurpose.Generic
+            Purpose = LocationPurpose.Generic,
+            Environment = LocationEnvironment.Indoor,
+            Setting = LocationSetting.Urban
         };
 
         return location;

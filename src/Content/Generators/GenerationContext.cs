@@ -32,8 +32,9 @@ public class GenerationContext
     public int PlayerCoins { get; set; }
     public int PlayerHealth { get; set; }
 
-    // Location Context
-    public LocationCapability LocationCapabilities { get; set; } = LocationCapability.None;
+    // Location Context (orthogonal categorical dimensions)
+    public LocationRole? LocationRole { get; set; }
+    public LocationPurpose? LocationPurpose { get; set; }
 
     // UNIVERSAL CATEGORICAL PROPERTIES (apply to ALL archetypes)
     public DangerLevel Danger { get; set; } = DangerLevel.Safe;
@@ -61,8 +62,7 @@ public class GenerationContext
             NpcPersonality = null,
             NpcName = "",
             PlayerCoins = 0,
-            PlayerHealth = 100,
-            LocationCapabilities = LocationCapability.None
+            PlayerHealth = 100
         };
     }
 
@@ -109,7 +109,8 @@ public class GenerationContext
             PlayerHealth = player?.Health ?? 100,
 
             // Location context
-            LocationCapabilities = location?.Capabilities ?? LocationCapability.None,
+            LocationRole = location?.Role,
+            LocationPurpose = location?.Purpose,
 
             // UNIVERSAL CATEGORICAL PROPERTIES (auto-derived)
             Danger = DeriveDangerLevel(location, npc, player),
@@ -131,10 +132,8 @@ public class GenerationContext
     /// </summary>
     private static DangerLevel DeriveDangerLevel(Location location, NPC npc, Player player)
     {
-        // Check location capabilities for danger indicators (Guarded, Outdoor=wilderness)
-        if (location != null &&
-            (location.Capabilities.HasFlag(LocationCapability.Guarded) ||
-             location.Capabilities.HasFlag(LocationCapability.Outdoor)))
+        // Check location safety level for danger indicators
+        if (location != null && location.Safety == LocationSafety.Dangerous)
         {
             return DangerLevel.Risky;
         }
@@ -174,10 +173,10 @@ public class GenerationContext
     /// </summary>
     private static TimePressure DeriveTimePressure(Location location, Player player)
     {
-        // Check for crisis/emergency location capabilities (Guarded, Official = authority pressure)
+        // Check for crisis/emergency location purposes (Governance/Civic = authority pressure)
         if (location != null &&
-            (location.Capabilities.HasFlag(LocationCapability.Guarded) ||
-             location.Capabilities.HasFlag(LocationCapability.Official)))
+            (location.Purpose == global::LocationPurpose.Governance ||
+             location.Purpose == global::LocationPurpose.Civic))
         {
             return TimePressure.Urgent;
         }
@@ -239,7 +238,7 @@ public class GenerationContext
         // All personalities can present moral ambiguity based on context
 
         // Holy locations = clear moral context
-        if (location != null && location.Capabilities.HasFlag(LocationCapability.Temple))
+        if (location != null && location.Purpose == global::LocationPurpose.Worship)
         {
             return MoralClarity.Clear;
         }
@@ -276,23 +275,22 @@ public class GenerationContext
     /// </summary>
     private static EnvironmentQuality DeriveEnvironmentQuality(Location location)
     {
-        if (location == null || location.Capabilities == LocationCapability.None)
+        if (location == null)
             return EnvironmentQuality.Standard;
 
-        // Premium environment (luxurious, opulent)
-        if (location.Capabilities.HasFlag(LocationCapability.Wealthy) ||
-            location.Capabilities.HasFlag(LocationCapability.Prestigious))
+        // Premium environment (high tier locations)
+        if (location.Tier >= 3)
         {
             return EnvironmentQuality.Premium;
         }
 
-        // Standard environment (comfortable, restful)
-        if (location.Capabilities.HasFlag(LocationCapability.Restful))
+        // Standard environment (mid tier locations)
+        if (location.Tier == 2)
         {
             return EnvironmentQuality.Standard;
         }
 
-        // Basic environment (rough, minimal)
+        // Basic environment (low tier locations)
         return EnvironmentQuality.Basic;
     }
 

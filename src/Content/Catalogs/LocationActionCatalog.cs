@@ -26,8 +26,8 @@ public static class LocationActionCatalog
     }
 
     /// <summary>
-    /// Generate actions based on location's capabilities.
-    /// Each capability generates specific actions.
+    /// Generate actions based on location's orthogonal categorical properties.
+    /// Uses LocationRole and LocationPurpose instead of generic flags enum.
     /// </summary>
     private static List<LocationAction> GeneratePropertyBasedActions(Location location)
     {
@@ -35,13 +35,13 @@ public static class LocationActionCatalog
 
         // DIAGNOSTIC LOGGING
         Console.WriteLine($"[LocationActionCatalog] Generating actions for location '{location.Name}'");
-        Console.WriteLine($"[LocationActionCatalog] Capabilities: {location.Capabilities}");
+        Console.WriteLine($"[LocationActionCatalog] Role: {location.Role}, Purpose: {location.Purpose}");
 
-        // Crossroads capability → Travel action (opens route selection screen)
+        // LocationRole.Connective or LocationRole.Hub → Travel action (opens route selection screen)
         // ATMOSPHERIC ACTION (FALLBACK SCENE): No ChoiceTemplate, free action (no costs/rewards)
-        if (location.Capabilities.HasFlag(LocationCapability.Crossroads))
+        if (location.Role == LocationRole.Connective || location.Role == LocationRole.Hub)
         {
-            Console.WriteLine($"[LocationActionCatalog] ✅ Crossroads found - generating Travel action");
+            Console.WriteLine($"[LocationActionCatalog] ✅ Travel hub role found - generating Travel action");
             actions.Add(new LocationAction
             {
                 SourceLocation = location,
@@ -51,41 +51,32 @@ public static class LocationActionCatalog
                 Costs = new ActionCosts(),  // Free action (no costs)
                 Rewards = new ActionRewards(),  // No rewards (opens travel screen)
                 TimeRequired = 0,  // No time cost for initiating travel
-                RequiredCapabilities = LocationCapability.Crossroads,
-                OptionalCapabilities = LocationCapability.None,
-                ExcludedCapabilities = LocationCapability.None,
                 Availability = new List<TimeBlocks>(),  // Available at all times
                 Priority = 100  // High priority - always shown first
             });
         }
 
-        // Commercial capability → Work action
-        if (location.Capabilities.HasFlag(LocationCapability.Commercial))
+        // LocationPurpose.Commerce → Work action
+        if (location.Purpose == LocationPurpose.Commerce)
         {
-            Console.WriteLine($"[LocationActionCatalog] ✅ Commercial found - generating Work action");
+            Console.WriteLine($"[LocationActionCatalog] ✅ Commerce purpose found - generating Work action");
             actions.Add(new LocationAction
             {
                 SourceLocation = location,
                 Name = "Work",
                 Description = "Earn coins through labor. Base pay 8 coins, reduced by hunger penalty.",
                 ActionType = LocationActionType.Work,
-                Costs = new ActionCosts
-                {
-                    // Work costs time and stamina (handled by intent)
-                },
+                Costs = new ActionCosts(),
                 Rewards = new ActionRewards
                 {
                     CoinReward = 8
                 },
-                RequiredCapabilities = LocationCapability.Commercial,
-                OptionalCapabilities = LocationCapability.None,
-                ExcludedCapabilities = LocationCapability.None,
                 Availability = new List<TimeBlocks> { TimeBlocks.Morning, TimeBlocks.Midday, TimeBlocks.Afternoon },
                 Priority = 150  // Match JSON priority
             });
 
-            // Commercial capability → Job Board action (Core Loop Phase 3)
-            Console.WriteLine($"[LocationActionCatalog] ✅ Commercial found - generating View Job Board action");
+            // Commerce purpose → Job Board action (Core Loop Phase 3)
+            Console.WriteLine($"[LocationActionCatalog] ✅ Commerce purpose found - generating View Job Board action");
             actions.Add(new LocationAction
             {
                 SourceLocation = location,
@@ -94,95 +85,29 @@ public static class LocationActionCatalog
                 ActionType = LocationActionType.ViewJobBoard,
                 Costs = ActionCosts.None(),  // Viewing is free
                 Rewards = ActionRewards.None(),  // No direct reward (opens modal)
-                RequiredCapabilities = LocationCapability.Commercial,
-                OptionalCapabilities = LocationCapability.None,
-                ExcludedCapabilities = LocationCapability.None,
                 Availability = new List<TimeBlocks>(),  // Available at all times (job board always accessible)
                 Priority = 140  // Just below Work action
             });
         }
 
-        // SleepingSpace capability → Rest action (best rest - actual beds)
-        if (location.Capabilities.HasFlag(LocationCapability.SleepingSpace))
+        // LocationRole.Rest → Rest action (sleeping/recovery locations)
+        if (location.Role == LocationRole.Rest)
         {
-            Console.WriteLine($"[LocationActionCatalog] ✅ SleepingSpace found - generating Rest action");
+            Console.WriteLine($"[LocationActionCatalog] ✅ Rest role found - generating Rest action");
             actions.Add(new LocationAction
             {
                 SourceLocation = location,
                 Name = "Rest",
                 Description = "Rest in the safety of this sleeping space. Advances 1 time segment. Restores +1 Health and +1 Stamina. Hunger increases by +5 automatically.",
                 ActionType = LocationActionType.Rest,
-                Costs = new ActionCosts
-                {
-                    // Rest costs time (handled by intent)
-                },
+                Costs = new ActionCosts(),
                 Rewards = new ActionRewards
                 {
                     HealthRecovery = 1,
                     StaminaRecovery = 1
                 },
-                RequiredCapabilities = LocationCapability.SleepingSpace,
-                OptionalCapabilities = LocationCapability.None,
-                ExcludedCapabilities = LocationCapability.None,
                 Availability = new List<TimeBlocks> { TimeBlocks.Morning, TimeBlocks.Midday, TimeBlocks.Afternoon, TimeBlocks.Evening },
                 Priority = 130  // High priority - safe recovery
-            });
-        }
-
-        // Restful capability → Rest action (enhanced atmosphere, no beds needed)
-        // Only generates if SleepingSpace not already present (avoid duplicate Rest actions)
-        if (location.Capabilities.HasFlag(LocationCapability.Restful) &&
-            !location.Capabilities.HasFlag(LocationCapability.SleepingSpace))
-        {
-            Console.WriteLine($"[LocationActionCatalog] ✅ Restful found - generating Rest action");
-            actions.Add(new LocationAction
-            {
-                SourceLocation = location,
-                Name = "Rest",
-                Description = "Take time to rest in this peaceful atmosphere. Advances 1 time segment. Restores +2 Stamina.",
-                ActionType = LocationActionType.Rest,
-                Costs = new ActionCosts
-                {
-                    // Rest costs time (handled by intent)
-                },
-                Rewards = new ActionRewards
-                {
-                    StaminaRecovery = 2
-                },
-                RequiredCapabilities = LocationCapability.Restful,
-                OptionalCapabilities = LocationCapability.None,
-                ExcludedCapabilities = LocationCapability.None,
-                Availability = new List<TimeBlocks> { TimeBlocks.Morning, TimeBlocks.Midday, TimeBlocks.Afternoon, TimeBlocks.Evening },
-                Priority = 120  // Below SleepingSpace priority
-            });
-        }
-
-        // Rest capability → Rest action (basic rest area, minimal recovery)
-        // Only generates if neither SleepingSpace nor Restful present
-        if (location.Capabilities.HasFlag(LocationCapability.Rest) &&
-            !location.Capabilities.HasFlag(LocationCapability.Restful) &&
-            !location.Capabilities.HasFlag(LocationCapability.SleepingSpace))
-        {
-            Console.WriteLine($"[LocationActionCatalog] ✅ Rest found - generating Rest action");
-            actions.Add(new LocationAction
-            {
-                SourceLocation = location,
-                Name = "Rest",
-                Description = "Take a brief rest. Advances 1 time segment. Restores +1 Stamina.",
-                ActionType = LocationActionType.Rest,
-                Costs = new ActionCosts
-                {
-                    // Rest costs time (handled by intent)
-                },
-                Rewards = new ActionRewards
-                {
-                    StaminaRecovery = 1
-                },
-                RequiredCapabilities = LocationCapability.Rest,
-                OptionalCapabilities = LocationCapability.None,
-                ExcludedCapabilities = LocationCapability.None,
-                Availability = new List<TimeBlocks> { TimeBlocks.Morning, TimeBlocks.Midday, TimeBlocks.Afternoon, TimeBlocks.Evening },
-                Priority = 110  // Below Restful priority
             });
         }
 
@@ -238,9 +163,6 @@ public static class LocationActionCatalog
                 ActionType = LocationActionType.IntraVenueMove,  // Strongly typed: intra-venue movement (distinct from cross-venue Travel)
                 Costs = ActionCosts.None(),  // Intra-venue movement is FREE because hexes are adjacent
                 Rewards = ActionRewards.None(),
-                RequiredCapabilities = LocationCapability.None,  // No capability requirements (always available)
-                OptionalCapabilities = LocationCapability.None,
-                ExcludedCapabilities = LocationCapability.None,
                 Availability = new List<TimeBlocks>(),  // Always available at all times
                 Priority = 90  // High priority, but below cross-venue Travel button
             });
@@ -302,9 +224,6 @@ public static class LocationActionCatalog
                 ActionType = LocationActionType.IntraVenueMove,
                 Costs = ActionCosts.None(),
                 Rewards = ActionRewards.None(),
-                RequiredCapabilities = LocationCapability.None,
-                OptionalCapabilities = LocationCapability.None,
-                ExcludedCapabilities = LocationCapability.None,
                 Availability = new List<TimeBlocks>(),
                 Priority = 90
             };

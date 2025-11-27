@@ -88,15 +88,15 @@ public class ExchangeFacade
             throw new InvalidOperationException("Player has no current location");
         }
 
-        // Extract individual capability flags for domain validation
+        // Extract orthogonal categorical properties for domain validation
         List<string> spotDomains = new List<string>();
-        foreach (LocationCapability capability in Enum.GetValues(typeof(LocationCapability)))
-        {
-            if (capability != LocationCapability.None && currentSpot.Capabilities.HasFlag(capability))
-            {
-                spotDomains.Add(capability.ToString());
-            }
-        }
+        if (currentSpot.Environment != default) spotDomains.Add(currentSpot.Environment.ToString());
+        if (currentSpot.Setting != default) spotDomains.Add(currentSpot.Setting.ToString());
+        if (currentSpot.Role != default) spotDomains.Add(currentSpot.Role.ToString());
+        if (currentSpot.Purpose != default) spotDomains.Add(currentSpot.Purpose.ToString());
+        if (currentSpot.Privacy != default) spotDomains.Add(currentSpot.Privacy.ToString());
+        if (currentSpot.Safety != default) spotDomains.Add(currentSpot.Safety.ToString());
+        if (currentSpot.Activity != default) spotDomains.Add(currentSpot.Activity.ToString());
 
         // Validate each exchange
         List<ExchangeOption> validExchanges = new List<ExchangeOption>();

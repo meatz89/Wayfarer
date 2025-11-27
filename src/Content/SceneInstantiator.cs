@@ -328,13 +328,12 @@ public class SceneInstantiator
         return new LocationDTO
         {
             Name = _narrativeService.GenerateLocationName(filter),
-            LocationType = (filter.LocationType ?? LocationTypes.Generic).ToString(),
+            Role = (filter.LocationRole ?? LocationRole.Generic).ToString(),
             Privacy = (filter.Privacy ?? LocationPrivacy.Public).ToString(),
             Safety = (filter.Safety ?? LocationSafety.Neutral).ToString(),
             Activity = (filter.Activity ?? LocationActivity.Moderate).ToString(),
             Purpose = (filter.Purpose ?? LocationPurpose.Generic).ToString(),
-            ObligationProfile = ObligationDiscipline.Research.ToString(),
-            Capabilities = ParseCapabilitiesToStrings(filter.RequiredCapabilities)
+            ObligationProfile = ObligationDiscipline.Research.ToString()
         };
     }
 
@@ -356,25 +355,6 @@ public class SceneInstantiator
             Role = "Generated NPC",
             Description = "A person you've encountered"
         };
-    }
-
-    /// <summary>
-    /// Convert LocationCapability flags enum to list of strings for DTO.
-    /// </summary>
-    private List<string> ParseCapabilitiesToStrings(LocationCapability capabilities)
-    {
-        List<string> result = new List<string>();
-        if (capabilities == LocationCapability.None)
-            return result;
-
-        foreach (LocationCapability cap in Enum.GetValues(typeof(LocationCapability)))
-        {
-            if (cap != LocationCapability.None && capabilities.HasFlag(cap))
-            {
-                result.Add(cap.ToString());
-            }
-        }
-        return result;
     }
 
     /// <summary>
@@ -711,14 +691,6 @@ public class SceneInstantiator
         // Collect ALL matching Locations
         List<Location> matchingLocations = _gameWorld.Locations.Where(loc =>
         {
-            // Check location capabilities (if specified)
-            if (filter.RequiredCapabilities != LocationCapability.None)
-            {
-                // Location must have ALL required capabilities (bitwise AND check)
-                if ((loc.Capabilities & filter.RequiredCapabilities) != filter.RequiredCapabilities)
-                    return false;
-            }
-
             // Check district (accessed via Location.Venue.District)
             // HIGHLANDER: District is object reference, filter.DistrictId is string (DTO boundary)
             if (!string.IsNullOrEmpty(filter.DistrictId))
@@ -753,10 +725,10 @@ public class SceneInstantiator
         RouteOption matchingRoute = _gameWorld.Routes.FirstOrDefault(route =>
         {
             // Check terrain type (dominant terrain from TerrainCategories)
-            if (filter.TerrainType != null)
+            if (filter.Terrain != null)
             {
                 string dominantTerrain = route.GetDominantTerrainType();
-                if (dominantTerrain != filter.TerrainType)
+                if (dominantTerrain != filter.Terrain.ToString())
                     return false;
             }
 
@@ -872,16 +844,18 @@ public class SceneInstantiator
             criteria.Add($"NPC Tags: [{string.Join(", ", filter.NpcTags)}]");
 
         // Location filters
-        if (filter.RequiredCapabilities != LocationCapability.None)
-            criteria.Add($"Required Capabilities: {filter.RequiredCapabilities}");
+        if (filter.LocationRole.HasValue)
+            criteria.Add($"Location Role: {filter.LocationRole}");
+        if (filter.Purpose.HasValue)
+            criteria.Add($"Purpose: {filter.Purpose}");
         if (!string.IsNullOrEmpty(filter.DistrictId))
             criteria.Add($"District: {filter.DistrictId}");
         if (!string.IsNullOrEmpty(filter.RegionId))
             criteria.Add($"Region: {filter.RegionId}");
 
         // Route filters
-        if (filter.TerrainType != null)
-            criteria.Add($"Terrain Type: {filter.TerrainType}");
+        if (filter.Terrain != null)
+            criteria.Add($"Terrain: {filter.Terrain}");
         if (filter.RouteTier.HasValue)
             criteria.Add($"Route Tier: {filter.RouteTier.Value}");
         if (filter.MinDifficulty.HasValue)
@@ -914,7 +888,7 @@ public class SceneInstantiator
                 int locationCount = _gameWorld.Locations.Count;
                 List<string> locationSummaries = _gameWorld.Locations
                     .Take(10) // Show first 10
-                    .Select(loc => $"  - {loc.Name}: Capabilities={loc.Capabilities}")
+                    .Select(loc => $"  - {loc.Name}: Role={loc.Role}, Purpose={loc.Purpose}")
                     .ToList();
                 if (locationCount > 10)
                     locationSummaries.Add($"  ... and {locationCount - 10} more locations");
@@ -1220,8 +1194,7 @@ public class SceneInstantiator
             StoryRole = filter.StoryRole?.ToString(),
             KnowledgeLevel = filter.KnowledgeLevel?.ToString(),
             // Location filters
-            LocationType = filter.LocationType?.ToString(),
-            Capabilities = ConvertCapabilitiesToStringList(filter.RequiredCapabilities),
+            Role = filter.LocationRole?.ToString(),
             IsPlayerAccessible = filter.IsPlayerAccessible,
             DistrictId = filter.DistrictId,
             RegionId = filter.RegionId,
@@ -1231,7 +1204,7 @@ public class SceneInstantiator
             Activity = filter.Activity?.ToString(),
             Purpose = filter.Purpose?.ToString(),
             // Route filters
-            TerrainType = filter.TerrainType,
+            Terrain = filter.Terrain?.ToString(),
             RouteTier = filter.RouteTier,
             MinDifficulty = filter.MinDifficulty,
             MaxDifficulty = filter.MaxDifficulty,
@@ -1249,25 +1222,5 @@ public class SceneInstantiator
                 MaxValue = r.MaxValue
             }).ToList()
         };
-    }
-
-    /// <summary>
-    /// Convert LocationCapability flags enum to List of string names.
-    /// Extracts individual set flags from combined enum value.
-    /// </summary>
-    private static List<string> ConvertCapabilitiesToStringList(LocationCapability capabilities)
-    {
-        if (capabilities == LocationCapability.None)
-            return new List<string>();
-
-        List<string> result = new List<string>();
-        foreach (LocationCapability flag in Enum.GetValues(typeof(LocationCapability)))
-        {
-            if (flag != LocationCapability.None && capabilities.HasFlag(flag))
-            {
-                result.Add(flag.ToString());
-            }
-        }
-        return result;
     }
 }

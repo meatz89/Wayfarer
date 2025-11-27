@@ -761,17 +761,14 @@ public class LocationFacade
     {
         List<string> traits = new List<string>();
 
-        if (spot.Capabilities == LocationCapability.None) return traits;
-
-        // Extract individual flags from LocationCapability enum
-        foreach (LocationCapability capability in Enum.GetValues(typeof(LocationCapability)))
-        {
-            if (capability != LocationCapability.None && spot.Capabilities.HasFlag(capability))
-            {
-                // Time-specific properties eliminated, capabilities are static
-                traits.Add(capability.ToString());
-            }
-        }
+        // Build traits from orthogonal categorical properties
+        if (spot.Environment != default) traits.Add(spot.Environment.ToString());
+        if (spot.Setting != default) traits.Add(spot.Setting.ToString());
+        if (spot.Role != default) traits.Add(spot.Role.ToString());
+        if (spot.Purpose != default) traits.Add(spot.Purpose.ToString());
+        if (spot.Privacy != default) traits.Add(spot.Privacy.ToString());
+        if (spot.Safety != default) traits.Add(spot.Safety.ToString());
+        if (spot.Activity != default) traits.Add(spot.Activity.ToString());
 
         return traits;
     }
@@ -797,15 +794,13 @@ public class LocationFacade
 
         foreach (PlayerAction action in sortedActions)
         {
-            // Filter: Check if location has ALL required capabilities for this action
-            if (action.RequiredLocationCapabilities != LocationCapability.None)
+            // Filter: Check if location has required role for this action
+            if (action.RequiredLocationRole != null)
             {
-                // Check if spot has ALL required capabilities
-                bool hasAllRequiredCapabilities = (spot.Capabilities & action.RequiredLocationCapabilities) == action.RequiredLocationCapabilities;
-
-                if (!hasAllRequiredCapabilities)
+                // Check if spot has required role
+                if (spot.Role != action.RequiredLocationRole.Value)
                 {
-                    continue;  // Skip - location missing required capabilities
+                    continue;  // Skip - location missing required role
                 }
             }
 

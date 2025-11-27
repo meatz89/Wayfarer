@@ -169,9 +169,14 @@ public partial class GameScreenBase : ComponentBase, IAsyncDisposable
             if (location != null)
             {
                 CurrentSpot = location.Name;
-                if (location.Capabilities != LocationCapability.None)
+                // Display orthogonal properties instead of capabilities
+                List<string> properties = new List<string>();
+                if (location.Environment != default) properties.Add(location.Environment.ToString());
+                if (location.Purpose != default) properties.Add(location.Purpose.ToString());
+                if (location.Role != default) properties.Add(location.Role.ToString());
+                if (properties.Count > 0)
                 {
-                    CurrentSpot += $" • {location.Capabilities}";
+                    CurrentSpot += $" • {string.Join(", ", properties)}";
                 }
             }
         }

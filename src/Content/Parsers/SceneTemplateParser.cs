@@ -199,9 +199,8 @@ public class SceneTemplateParser
             SocialStanding = ParseSocialStanding(dto.SocialStanding, contextId),
             StoryRole = ParseStoryRole(dto.StoryRole, contextId),
             KnowledgeLevel = ParseKnowledgeLevel(dto.KnowledgeLevel, contextId),
-            // Location filters - SINGULAR properties
-            LocationType = ParseLocationType(dto.LocationType, contextId),
-            RequiredCapabilities = ParseLocationCapabilities(dto.Capabilities, contextId),
+            // Location filters - SINGULAR properties (orthogonal)
+            LocationRole = ParseLocationRole(dto.Role, contextId),
             IsPlayerAccessible = dto.IsPlayerAccessible,
             // Orthogonal categorical dimensions - Location - SINGULAR
             Privacy = ParsePrivacy(dto.Privacy, contextId),
@@ -210,8 +209,9 @@ public class SceneTemplateParser
             Purpose = ParsePurpose(dto.Purpose, contextId),
             DistrictId = dto.DistrictId,
             RegionId = dto.RegionId,
-            // Route filters - SINGULAR
-            TerrainType = dto.TerrainType,
+            // Route filters - SINGULAR (orthogonal)
+            Terrain = ParseTerrainType(dto.Terrain, contextId),
+            Structure = ParseStructureType(dto.Structure, contextId),
             RouteTier = dto.RouteTier,
             MinDifficulty = dto.MinDifficulty,
             MaxDifficulty = dto.MaxDifficulty,
@@ -241,30 +241,6 @@ public class SceneTemplateParser
             return personalityType;
 
         throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid PersonalityType: '{typeString}'");
-    }
-
-    /// <summary>
-    /// Parse location capability strings to Flags enum
-    /// </summary>
-    private static LocationCapability ParseLocationCapabilities(List<string> capabilityStrings, string contextId)
-    {
-        if (capabilityStrings == null || !capabilityStrings.Any())
-            return LocationCapability.None;
-
-        LocationCapability capabilities = LocationCapability.None;
-        foreach (string capabilityString in capabilityStrings)
-        {
-            if (Enum.TryParse<LocationCapability>(capabilityString, true, out LocationCapability capability))
-            {
-                capabilities |= capability; // Bitwise OR for Flags enum
-            }
-            else
-            {
-                throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid LocationCapability: '{capabilityString}'");
-            }
-        }
-
-        return capabilities;
     }
 
     /// <summary>
@@ -394,17 +370,45 @@ public class SceneTemplateParser
     }
 
     /// <summary>
-    /// Parse single location type string to nullable enum
+    /// Parse single location role string to nullable enum
     /// </summary>
-    private static LocationTypes? ParseLocationType(string typeString, string contextId)
+    private static LocationRole? ParseLocationRole(string roleString, string contextId)
     {
-        if (string.IsNullOrEmpty(typeString))
+        if (string.IsNullOrEmpty(roleString))
             return null;
 
-        if (Enum.TryParse<LocationTypes>(typeString, true, out LocationTypes locationType))
-            return locationType;
+        if (Enum.TryParse<LocationRole>(roleString, true, out LocationRole locationRole))
+            return locationRole;
 
-        throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid LocationType: '{typeString}'");
+        throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid LocationRole: '{roleString}'");
+    }
+
+    /// <summary>
+    /// Parse single terrain type string to nullable enum
+    /// </summary>
+    private static TerrainType? ParseTerrainType(string terrainString, string contextId)
+    {
+        if (string.IsNullOrEmpty(terrainString))
+            return null;
+
+        if (Enum.TryParse<TerrainType>(terrainString, true, out TerrainType terrainType))
+            return terrainType;
+
+        throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid TerrainType: '{terrainString}'");
+    }
+
+    /// <summary>
+    /// Parse single structure type string to nullable enum
+    /// </summary>
+    private static StructureType? ParseStructureType(string structureString, string contextId)
+    {
+        if (string.IsNullOrEmpty(structureString))
+            return null;
+
+        if (Enum.TryParse<StructureType>(structureString, true, out StructureType structureType))
+            return structureType;
+
+        throw new InvalidDataException($"PlacementFilter in '{contextId}' has invalid StructureType: '{structureString}'");
     }
 
     /// <summary>
